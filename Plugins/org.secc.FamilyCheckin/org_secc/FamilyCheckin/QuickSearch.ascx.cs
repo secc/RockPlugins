@@ -45,17 +45,14 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         protected override void OnLoad( EventArgs e )
         {           
             base.OnLoad( e );
-            //if (Request.QueryString["test"] != null)
-            //{
-            //string json = "{\"name\":\"Joe\"}";
-            //Response.Clear();
-            //Response.ContentType = "application/json; charset=utf-8";
-            //Response.Write(json);
-            //Response.End();
-            //}
 
             minLength = int.Parse(GetAttributeValue("MinimumPhoneNumberLength"));
             maxLength = int.Parse(GetAttributeValue("MaximumPhoneNumberLength"));
+
+            if ( Request["__EVENTTARGET"] == "ChooseFamily" )
+            {
+                ChooseFamily(Request["__EVENTARGUMENT"]);
+            }
 
             if ( !Page.IsPostBack )
             {
@@ -82,6 +79,20 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     txtName.Label = "Name or Phone";
                     lPageTitle.Text = "Search By Name or Phone";
                 }
+            }
+        }
+
+        private void ChooseFamily(string familyIdAsString)
+        {
+            int familyId = Int32.Parse(familyIdAsString);
+            CurrentCheckInState = (CheckInState)Session["CheckInState"];
+            ClearSelection();
+            CheckInFamily selectedFamily = CurrentCheckInState.CheckIn.Families.FirstOrDefault(f => f.Group.Id == familyId);
+            if (selectedFamily != null)
+            {
+                selectedFamily.Selected = true;
+                SaveState();
+                NavigateToNextPage();
             }
         }
 
@@ -127,7 +138,14 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
         }
 
-
+        private void ClearSelection()
+        {
+            foreach (var family in CurrentCheckInState.CheckIn.Families)
+            {
+                family.Selected = false;
+                family.People = new List<CheckInPerson>();
+            }
+        }
         private void BbFamily_Click(object sender, EventArgs e)
         {
             throw new NotImplementedException();

@@ -51,10 +51,16 @@
                 function(family){
                     var link = $("<a>");
                     link.html("<h4>"+family["Caption"] +"</h4>"+ family["SubCaption"]);
+                    link.attr("id",family["Group"]["Id"]);
+                    link.click(chooseFamily)
                     link.addClass("btn btn-default btn-block");
                     familyDiv.append(link);
                 }
             );
+        }
+
+        var chooseFamily = function(event){
+            __doPostBack("ChooseFamily", this.id);
         }
 
         

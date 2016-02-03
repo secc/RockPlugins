@@ -13,14 +13,20 @@ using Rock.CheckIn;
 using System.Web;
 using Rock.Web.Cache;
 using System.Collections.Generic;
+using System.Web.SessionState;
 
 namespace org.secc.FamilyCheckin.Rest.Controllers
 {
     /// <summary>
     /// TaggedItems REST API
     /// </summary>
-    public partial class FamilyCheckinController :  ApiController, IHasCustomRoutes
+    public partial class FamilyCheckinController :  ApiController, IHasCustomRoutes, IRequiresSessionState
     {
+
+        protected CheckInState CurrentCheckInState;
+
+        protected int? CurrentKioskId { get; set; }
+
         /// <summary>
         /// Add Custom route for flushing cached attributes
         /// </summary>
@@ -54,8 +60,9 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
         
         public HttpResponseMessage Get(int kioskValue, Guid blockGuid, string phone)
         {
+            CurrentKioskId = kioskValue;
             List<int> CheckInGroupTypeIds = new List<int>();
-            CheckInState CurrentCheckInState = new CheckInState(kioskValue, CheckInGroupTypeIds);
+            CurrentCheckInState = new CheckInState(kioskValue, CheckInGroupTypeIds);
             CurrentCheckInState.CheckIn.UserEnteredSearch = true;
             CurrentCheckInState.CheckIn.ConfirmSingleFamily = true;
             CurrentCheckInState.CheckIn.SearchType = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER);
@@ -83,7 +90,7 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
                 {
                     // Keep workflow active for continued processing
                     CurrentWorkflow.CompletedDateTime = null;
-
+                    SaveState();
                     return ControllerContext.Request.CreateResponse(HttpStatusCode.OK, families);
                 }
             }
@@ -93,8 +100,23 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
             }
             return ControllerContext.Request.CreateResponse(HttpStatusCode.InternalServerError, String.Join("\n", errors));
 
+        }
+        protected void SaveState()
+        {
+            var Session = HttpContext.Current.Session;
+
+            if(Session != null)
+            {
+                if (CurrentCheckInState != null)
+                {
+                    Session["CheckInState"] = CurrentCheckInState;
+                }
+                else
+                {
+                    Session.Remove("CheckInState");
+                }
+            }
 
         }
-
     }
 }
