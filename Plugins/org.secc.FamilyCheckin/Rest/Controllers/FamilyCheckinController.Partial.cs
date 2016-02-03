@@ -13,14 +13,14 @@ using Rock.CheckIn;
 using System.Web;
 using Rock.Web.Cache;
 using System.Collections.Generic;
-using System.Web.SessionState;
+using org.secc.FamilyCheckin.Rest.Handlers;
 
 namespace org.secc.FamilyCheckin.Rest.Controllers
 {
     /// <summary>
     /// TaggedItems REST API
     /// </summary>
-    public partial class FamilyCheckinController :  ApiController, IHasCustomRoutes, IRequiresSessionState
+    public partial class FamilyCheckinController :  ApiController, IHasCustomRoutes
     {
 
         protected CheckInState CurrentCheckInState;
@@ -41,7 +41,7 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
                     controller = "familycheckin",
                     entityqualifier = RouteParameter.Optional,
                     entityqualifiervalue = RouteParameter.Optional
-                } );
+                } ).RouteHandler = new SessionRouteHandler();
         }
 
         /// <summary>
