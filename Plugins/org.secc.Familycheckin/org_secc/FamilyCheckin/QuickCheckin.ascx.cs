@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text.RegularExpressions;
@@ -15,22 +14,27 @@ using System.Web.UI;
 using Rock.Model;
 using System.Reflection;
 using System.Web.UI.HtmlControls;
+using System.Text;
+using System.Net.Sockets;
+using System.Net;
+using Rock.Data;
 
 namespace RockWeb.Plugins.org_secc.FamilyCheckin
 {
     [DisplayName("QuickCheckin")]
     [Category("Check-in")]
-    [Description("QuickCheckin block for helping parents find their family quickly.")]
+    [Description("QuickCheckin block for helping parents check in their family quickly.")]
 
     public partial class QuickCheckin : CheckInBlock
     {
-
-        private Schedule currentSchedule;
-        private List<QCPerson> qcPeople;
-
+        private List<GroupTypeCache> parentGroupTypesList;
+        private GroupTypeCache currentParentGroupType;
         protected override void OnInit(EventArgs e)
         {
             base.OnInit(e);
+
+            RockPage.AddScriptLink("~/Scripts/CheckinClient/cordova-2.4.0.js", false);
+            RockPage.AddScriptLink("~/Scripts/CheckinClient/ZebraPrint.js");
 
             //RockPage.AddScriptLink("~/Scripts/iscroll.js");
             //RockPage.AddScriptLink("~/Scripts/CheckinClient/checkin-core.js");
@@ -50,588 +54,617 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 List<string> errors = new List<string>();
                 string workflowActivity = GetAttributeValue("WorkflowActivity");
                 bool test = ProcessActivity(workflowActivity, out errors);
-                qcPeople = new List<QCPerson>();
-                LoadQCPeople();
-                Session.Add("qcPeople", qcPeople);
-                currentSchedule = GetCurrentSchedule();
-                Session.Add("currentSchedule", currentSchedule);
-            }
 
-            qcPeople = (List<QCPerson>)Session["qcPeople"];
-            currentSchedule = (Schedule)Session["currentSchedule"];
+                //Find the parent group types
+                parentGroupTypesList = CurrentCheckInState.CheckIn.Families.Where(f => f.Selected).FirstOrDefault()
+                    .People.SelectMany(p => p.GroupTypes).SelectMany(gt => gt.GroupType.ParentGroupTypes)
+                    .Where(pgt => pgt.ChildGroupTypes.Count > 1).DistinctBy(pgt => pgt.Guid).ToList();
+                Session["parentGroupTypesList"] = parentGroupTypesList;
 
-
-            if (qcPeople == null || qcPeople.Count == 0)
-            {
-                NavigateToPreviousPage();
-                return;
-            }
-
-
-            DisplaySchedules();
-            DisplayPeople();
-        }
-
-        private Schedule GetCurrentSchedule()
-        {
-            var qcPerson = qcPeople.FirstOrDefault();
-            if (qcPerson != null && qcPerson.SelectedSchedule != null)
-            {
-                return qcPerson.SelectedSchedule.Schedule;
-            }
-            else if (qcPerson.Schedules.Count > 0)
-            {
-                return qcPerson.Schedules.FirstOrDefault().Schedule;
-            }
-            return null;
-        }
-
-        private void LoadQCPeople()
-        {
-            List<Schedule> schedules = GetAllSchedules();
-            var allPeopleList = CurrentCheckInState.CheckIn.Families.Where(f => f.Selected).FirstOrDefault()
-                    .People.OrderBy(p => p.Person.FullNameReversed).ToList();
-            foreach (var person in allPeopleList)
-            {
-                var qcPerson = new QCPerson(person.Person);
-                foreach (var schedule in schedules)
+                //Find the current parent group type
+                foreach (var parentGroupType in parentGroupTypesList)
                 {
-                    if (PersonHasSchedule(person, schedule))
+                    if (CurrentCheckInState.CheckIn.Families.Where(f => f.Selected).FirstOrDefault()
+                           .People.SelectMany(p => p.GroupTypes)
+                           .Where(gt => gt.Selected == true && gt.GroupType.ParentGroupTypes.Contains(parentGroupType)).Count() > 0)
                     {
-                        QCSchedule qcSchedule = new QCSchedule(schedule);
-                        qcPerson.Schedules.Add(qcSchedule);
-                        foreach (var groupType in person.GroupTypes)
-                        {
-                            if (GroupTypeHasSchedule(groupType, schedule))
-                            {
-                                QCGroupType qcGroupType = new QCGroupType(groupType.GroupType);
-                                qcSchedule.GroupTypes.Add(qcGroupType);
-                                if (groupType.Selected)
-                                {
-                                    qcSchedule.SelectedGroupType = qcGroupType;
-                                }
-                                foreach (var group in groupType.Groups)
-                                {
-                                    if (GroupHasSchedule(group, schedule))
-                                    {
-                                        QCGroup qcGroup = new QCGroup(group.Group);
-                                        qcGroupType.Groups.Add(qcGroup);
-                                        if (group.Selected)
-                                        {
-                                            qcGroupType.SelectedGroup = qcGroup;
-                                        }
-                                        foreach (var location in group.Locations)
-                                        {
-                                            if (LocationHasSchedule(location, schedule))
-                                            {
-                                                qcGroup.Locations.Add(location.Location);
-                                                if (location.Selected)
-                                                {
-                                                    qcGroup.SelectedLocation = location.Location;
-                                                    foreach (var locationSchedule in location.Schedules)
-                                                    {
-                                                        if (locationSchedule.Selected && locationSchedule.Schedule.Guid == schedule.Guid)
-                                                        {
-                                                            qcPerson.SelectedSchedule = qcSchedule;
-                                                            qcPerson.Enabled = true;
-                                                            qcPerson.Selected = true;
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        currentParentGroupType = parentGroupType;
+                        break;
                     }
                 }
-                qcPeople.Add(qcPerson);
+                Session["currentParentGroupType"] = currentParentGroupType;
+
+                Session["modalActive"] = false;
+                Session["modalPerson"] = null;
+                Session["modalSchedule"] = null;
+            }
+
+            parentGroupTypesList = (List<GroupTypeCache>)Session["parentGroupTypesList"];
+            currentParentGroupType = (GroupTypeCache)Session["currentParentGroupType"];
+
+            DisplayParentGroupTypes();
+            DisplayPeople();
+
+            if ((bool)Session["modalActive"])
+            {
+                ShowRoomChangeModal((Person)Session["modalPerson"], (CheckInSchedule)Session["modalSchedule"]);
+            }
+
+
+            //Exit page on completion
+            if (Request["__EVENTARGUMENT"] != null && (string)Request["__EVENTTARGET"]== "btnCancel_Click")
+            {
+                NavigateToNextPage();
             }
         }
 
-
-        private void DisplayPeople()
+        private void DisplayParentGroupTypes()
         {
-            foreach (var qcPerson in qcPeople)
+            foreach (var parentGroupType in parentGroupTypesList)
             {
-                DisplayPersonButton(qcPerson);
-                DisplayPersonClasses(qcPerson);
-            }
-            UpdateAllClasses();
-        }
+                var btnParentGroupType = new BootstrapButton();
 
-        private void DisplayPersonButton(QCPerson qcPerson)
-        {
-            HtmlGenericControl hgcRow = new HtmlGenericControl("div");
-            hgcRow.AddCssClass("row");
-            phPeople.Controls.Add(hgcRow);
-            qcPerson.PlaceHolder = hgcRow;
-            //Checkin Button
-            var btnPerson = new BootstrapButton();
-            btnPerson.DataLoadingText = "<img src = '" + qcPerson.Person.PhotoUrl + "' style = 'height:100px;'><br /> Please Wait...";
-            btnPerson.Text = "<img src='" + qcPerson.Person.PhotoUrl + "' style='height:100px;'><br>" + qcPerson.Person.FullName;
-            btnPerson.Click += (s, e) => { TogglePerson(qcPerson); };
-            hgcRow.Controls.Add(btnPerson);
-            qcPerson.UpdatePersonButton();
-        }
-
-        private void DisplayPersonClasses(QCPerson qcPerson)
-        {
-            //Bootstrap well to display if person is not able to check in.
-            var wellNoAreas = new HtmlGenericContainer("div", "well col-xs-12 col-md-6");
-            qcPerson.PlaceHolder.Controls.Add(wellNoAreas);
-
-            //Area Button
-            var btnGroupType = new BootstrapButton();
-            btnGroupType.CssClass = "btn btn-default btn-lg col-xs-12 col-md-4";
-            qcPerson.PlaceHolder.Controls.Add(btnGroupType);
-
-            //Group Button
-            var btnGroup = new BootstrapButton();
-            btnGroup.CssClass = "btn btn-default btn-lg col-xs-12 col-md-4";
-            qcPerson.PlaceHolder.Controls.Add(btnGroup);
-
-            //Room Button
-            var btnLocation = new BootstrapButton();
-            btnLocation.CssClass = "btn btn-default btn-lg col-xs-12 col-md-8";
-            qcPerson.PlaceHolder.Controls.Add(btnLocation);
-        }
-
-        private void UpdateAllClasses()
-        {
-            foreach (var qcPerson in qcPeople)
-            {
-                HtmlGenericContainer wellNoAreas = (HtmlGenericContainer)qcPerson.PlaceHolder.Controls[1];
-                BootstrapButton btnGroupType = (BootstrapButton)qcPerson.PlaceHolder.Controls[2];
-                BootstrapButton btnGroup = (BootstrapButton)qcPerson.PlaceHolder.Controls[3];
-                BootstrapButton btnLocation = (BootstrapButton)qcPerson.PlaceHolder.Controls[4];
-
-                if (qcPerson.Enabled == false || qcPerson.SelectedSchedule == null)
+                if (parentGroupType.Guid == currentParentGroupType.Guid)
                 {
-                    if (qcPerson.SelectedSchedule == null)
+                    btnParentGroupType.CssClass = "btn btn-primary btn-lg col-xs-6";
+                    btnParentGroupType.Enabled = false;
+                }
+                else
+                {
+                    btnParentGroupType.CssClass = "btn btn-default btn-lg col-xs-6";
+                    btnParentGroupType.Enabled = true;
+                }
+                btnParentGroupType.Text = parentGroupType.Name;
+                btnParentGroupType.ID = parentGroupType.Guid.ToString();
+                btnParentGroupType.Click += (s, e) => { ChangeParentGroupType(parentGroupType); };
+                phParentGroupTypes.Controls.Add(btnParentGroupType);
+            }
+        }
+
+        private void ChangeParentGroupType(GroupTypeCache parentGroupType)
+        {
+            currentParentGroupType = parentGroupType;
+            Session["currentParentGroupType"] = currentParentGroupType;
+            foreach (var control in phParentGroupTypes.Controls)
+            {
+                try
+                {
+                    BootstrapButton btnParentGroupType = (BootstrapButton)control;
+                    if (btnParentGroupType.ID == currentParentGroupType.Guid.ToString())
                     {
-                        wellNoAreas.InnerText = "(Please select a time to check in.)";
+                        btnParentGroupType.CssClass = "btn btn-primary btn-lg col-xs-6";
+                        btnParentGroupType.Enabled = false;
                     }
                     else
                     {
-                        wellNoAreas.InnerText = "(No Rooms Available At This Time)";
+                        btnParentGroupType.CssClass = "btn btn-default btn-lg col-xs-6";
+                        btnParentGroupType.Enabled = true;
                     }
-                    btnGroupType.Visible = false;
-                    btnGroup.Visible = false;
-                    btnLocation.Visible = false;
                 }
-                else
+                catch { }
+            }
+            phPeople.Controls.Clear();
+            DisplayPeople();
+        }
+
+        private void DisplayPeople()
+        {
+            var people = CurrentCheckInState.CheckIn.Families.SelectMany(f => f.People);
+
+            foreach (var person in people)
+            {
+                HtmlGenericControl hgcRow = new HtmlGenericControl("div");
+                hgcRow.AddCssClass("row");
+                phPeople.Controls.Add(hgcRow);
+                DisplayPersonButton(person, hgcRow);
+                DisplayPersonCheckinAreas(person.Person, hgcRow);
+            }
+        }
+
+        private void DisplayPersonCheckinAreas(Person person, HtmlGenericControl hgcRow)
+        {
+            var personSchedules = CurrentCheckInState.CheckIn.Families.Where(f => f.Selected)
+                .SelectMany(f => f.People.Where(p => p.Person.Guid == person.Guid))
+                .SelectMany(p => p.GroupTypes.Where(gt => gt.GroupType.ParentGroupTypes.Select(pgt => pgt.Guid).Contains(currentParentGroupType.Guid) == true))
+                .SelectMany(gt => gt.Groups).SelectMany(g => g.Locations).SelectMany(l => l.Schedules)
+                .DistinctBy(s => s.Schedule.Guid);
+
+            foreach (var schedule in personSchedules)
+            {
+                HtmlGenericControl hgcAreaRow = new HtmlGenericControl("div");
+                hgcRow.AddCssClass("row col-xs-12");
+                hgcRow.Controls.Add(hgcAreaRow);
+                DisplayPersonSchedule(person, schedule, hgcAreaRow);
+            }
+        }
+
+        private void DisplayPersonSchedule(Person person, CheckInSchedule schedule, HtmlGenericControl hgcAreaRow)
+        {
+            BootstrapButton btnSchedule = new BootstrapButton();
+            btnSchedule.Text = schedule.Schedule.Name + "<br>(Select Room To Checkin)";
+            hgcAreaRow.Controls.Add(btnSchedule);
+            btnSchedule.CssClass = "btn btn-default btn-lg col-xs-8";
+            btnSchedule.ID = person.Guid.ToString() + currentParentGroupType.Guid.ToString() + schedule.Schedule.Guid.ToString();
+            btnSchedule.Click += (s, e) => { ShowRoomChangeModal(person, schedule); };
+
+            var groupType = CurrentCheckInState.CheckIn.Families.Where(f => f.Selected)
+                .SelectMany(f => f.People.Where(p => p.Person.Guid == person.Guid))
+                .SelectMany(p => p.GroupTypes.Where(gt => gt.GroupType.ParentGroupTypes.Select(pgt => pgt.Guid).Contains(currentParentGroupType.Guid) == true))
+                .FirstOrDefault(gt => gt.Selected && gt.Groups.SelectMany(g => g.Locations).SelectMany(l => l.Schedules.Where(s => s.Selected)).Select(s => s.Schedule.Guid).Contains(schedule.Schedule.Guid) == true);
+
+            if (groupType != null)
+            {
+                var group = CurrentCheckInState.CheckIn.Families.Where(f => f.Selected)
+                .SelectMany(f => f.People.Where(p => p.Person.Guid == person.Guid))
+                .SelectMany(p => p.GroupTypes.Where(gt => gt.GroupType.ParentGroupTypes.Select(pgt => pgt.Guid).Contains(currentParentGroupType.Guid) == true && gt == groupType))
+                .SelectMany(gt => gt.Groups).FirstOrDefault(g => g.Selected);
+
+                if (group != null)
                 {
-                    wellNoAreas.Visible = false;
-                    btnGroupType.Visible = true;
-                    if (qcPerson.SelectedSchedule.SelectedGroupType == null)
+                    var room = CurrentCheckInState.CheckIn.Families.Where(f => f.Selected)
+                        .SelectMany(f => f.People.Where(p => p.Person.Guid == person.Guid))
+                        .SelectMany(p => p.GroupTypes.Where(gt => gt.GroupType.ParentGroupTypes.Select(pgt => pgt.Guid).Contains(currentParentGroupType.Guid) == true && gt == groupType))
+                        .SelectMany(gt => gt.Groups.Where(g => g.Selected && g.Group.Guid == group.Group.Guid))
+                        .SelectMany(g => g.Locations).Where(l => l.Selected && l.Schedules.FirstOrDefault(s => s.Schedule.Guid == schedule.Schedule.Guid).Selected)
+                        .FirstOrDefault();
+
+                    if (room != null)
                     {
-                        if (qcPerson.SelectedSchedule.GroupTypes.Count == 0)
-                        {
-                            //No Areas availble, disable button.
-                            btnGroupType.Text = "(No areas available)";
-                            btnGroupType.Enabled = false;
-                        }
-                        else
-                        {
-                            btnGroupType.Text = "(Please select area)";
-                        }
-                        btnGroup.Visible = false;
-                        btnLocation.Visible = false;
+                        btnSchedule.CssClass = "btn btn-primary btn-lg col-xs-8";
+                        btnSchedule.Text = "<b>" + schedule.Schedule.Name + "</b><br>" + groupType + ": " + group + " > " + room;
                     }
-                    else //Area is not null
+                }
+            }
+        }
+
+        private void ShowRoomChangeModal(Person person, CheckInSchedule schedule)
+        {
+            mdChooseClass.Content.Controls.Clear();
+            List<CheckInGroupType> groupTypes = GetGroupTypes(person, schedule);
+
+            foreach (var groupType in groupTypes)
+            {
+                List<CheckInGroup> groups = GetGroups(person, schedule, groupType);
+
+                foreach (var group in groups)
+                {
+                    List<CheckInLocation> rooms = GetLocations(person, schedule, groupType, group);
+
+                    foreach (var room in rooms)
                     {
-                        //Display Area Name
-                        btnGroupType.Text = qcPerson.SelectedSchedule.SelectedGroupType.GroupType.Name;
-                        //Make Group Button Visible
-                        btnGroup.Visible = true;
-
-                        if (qcPerson.SelectedSchedule.SelectedGroupType.SelectedGroup == null)
+                        //Change room button
+                        BootstrapButton btnRoom = new BootstrapButton();
+                        btnRoom.ID = "c" + person.Guid.ToString() + schedule.Schedule.Guid.ToString() + room.Location.Guid.ToString();
+                        btnRoom.Text = groupType.GroupType.Name + ": " + group.Group.Name + " > " +
+                            room.Location.Name + " - Count: " + KioskLocationAttendance.Read(room.Location.Id).CurrentCount;
+                        btnRoom.CssClass = "btn btn-default btn-lg col-xs-12";
+                        btnRoom.Click += (s, e) =>
                         {
-                            //Select Group
-                            if (qcPerson.SelectedSchedule.SelectedGroupType.Groups.Count == 0)
+                            ChangeRoomSelection(person, schedule, groupType, group, room);
+                            Session["modalActive"] = false;
+                            mdChooseClass.Hide();
+                            phPeople.Controls.Clear();
+                            DisplayPeople();
+                        };
+                        mdChooseClass.Content.Controls.Add(btnRoom);
+                    }
+                }
+            }
+            BootstrapButton btnCancel = new BootstrapButton();
+            btnCancel.ID = "c" + person.Guid.ToString() + schedule.Schedule.Guid.ToString();
+            btnCancel.Text = "(Do not check in at "+ schedule.Schedule.Name +")";
+            btnCancel.CssClass = "btn btn-danger btn-lg col-xs-12";
+            btnCancel.Click += (s, e) => {
+                ClearRoomSelection(person, schedule);
+                Session["modalActive"] = false;
+                mdChooseClass.Hide();
+                phPeople.Controls.Clear();
+                DisplayPeople();
+            };
+
+            mdChooseClass.Content.Controls.Add(btnCancel);
+            mdChooseClass.Title = "Choose Class";
+            mdChooseClass.CancelLinkVisible = false;
+            mdChooseClass.Show();
+            Session["modalActive"] = true;
+            Session["modalPerson"] = person;
+            Session["modalSchedule"] = schedule;
+        }
+
+        protected void CancelModal(object sender, EventArgs e)
+        {
+            Session["modalActive"] = false;
+            mdChooseClass.Hide();
+        }
+
+        private void ChangeRoomSelection(Person person, CheckInSchedule schedule,
+            CheckInGroupType groupType, CheckInGroup group, CheckInLocation room)
+        {
+            ClearRoomSelection(person, schedule);
+            room.Selected = true;
+            group.Selected = true;
+            groupType.Selected = true;
+            room.Schedules.Where(s => s.Schedule.Guid == schedule.Schedule.Guid).FirstOrDefault().Selected = true;
+            SaveState();
+        }
+
+
+
+        private void ClearRoomSelection(Person person, CheckInSchedule schedule)
+        {
+            List<CheckInGroupType> groupTypes = GetGroupTypes(person, schedule);
+            
+            foreach (var groupType in groupTypes)
+            {
+                List<CheckInGroup> groups = GetGroups(person, schedule, groupType);
+
+                foreach (var group in groups)
+                {
+                    List<CheckInLocation> rooms = GetLocations(person, schedule, groupType, group);
+
+                    foreach (var room in rooms)
+                    {
+                        //Change scheduals in room to not selected
+                        foreach (var roomSchedule in room.Schedules)
+                        {
+                            if (roomSchedule.Schedule.Guid == schedule.Schedule.Guid)
                             {
-                                //No Group availble, disable button.
-                                btnGroup.Text = "(No groups available)";
-                                btnGroup.Enabled = false;
+                                roomSchedule.Selected = false;
                             }
-                            else
-                            {
-                                btnGroup.Text = "(Please select group)";
-                            }
-                            btnLocation.Visible = false;
                         }
-                        else //Group is not null
+                        //Set location as not selected if no schedules selected
+                        if (room.Schedules.Where(s => s.Selected == true).Count() == 0)
                         {
-                            //Display Group Name
-                            btnGroup.Text = qcPerson.SelectedSchedule.SelectedGroupType.SelectedGroup.Group.Name;
-                            btnLocation.Visible = true;
+                            room.Selected = false;
+                        }
+                    }
+                    //Set group as not selected if no locations selected
+                    if (group.Locations.Where(l => l.Selected == true).Count() == 0)
+                    {
+                        group.Selected = false;
+                    }
+                }
+                //Set group type as not selected if no groups selected
+                if (groupType.Groups.Where(g => g.Selected == true).Count() == 0)
+                {
+                    groupType.Selected = false;
+                }
+            }
+            SaveState();
+        }
 
-                            if (qcPerson.SelectedSchedule.SelectedGroupType.SelectedGroup.SelectedLocation == null)
+        private List<CheckInLocation> GetLocations(Person person, CheckInSchedule schedule, CheckInGroupType groupType, CheckInGroup group)
+        {
+            return CurrentCheckInState.CheckIn.Families.Where(f => f.Selected)
+                        .SelectMany(f => f.People.Where(p => p.Person.Guid == person.Guid))
+                        .SelectMany(p => p.GroupTypes.Where(gt => gt.GroupType.ParentGroupTypes.Select(pgt => pgt.Guid).Contains(currentParentGroupType.Guid) == true))
+                        .Where(gt => gt.GroupType.Guid == groupType.GroupType.Guid)
+                        .SelectMany(gt => gt.Groups)
+                        .Where(g => g.Group.Guid == group.Group.Guid)
+                        .SelectMany(g => g.Locations.Where(
+                            l => l.Schedules.Where(
+                                s => s.Schedule.Guid == schedule.Schedule.Guid).Count() != 0)).ToList();
+        }
+
+        private List<CheckInGroup> GetGroups(Person person, CheckInSchedule schedule, CheckInGroupType groupType)
+        {
+            return CurrentCheckInState.CheckIn.Families.Where(f => f.Selected)
+                .SelectMany(f => f.People.Where(p => p.Person.Guid == person.Guid))
+                .SelectMany(p => p.GroupTypes.Where(gt => gt.GroupType.ParentGroupTypes.Select(pgt => pgt.Guid).Contains(currentParentGroupType.Guid) == true))
+                .Where(gt => gt.GroupType.Guid == groupType.GroupType.Guid)
+                .SelectMany(gt => gt.Groups)
+                .Where(g => g.Locations.Where(
+                    l => l.Schedules.Where(
+                        s => s.Schedule.Guid == schedule.Schedule.Guid).Count() != 0).Count() != 0).ToList();
+        }
+
+        private List<CheckInGroupType> GetGroupTypes(Person person, CheckInSchedule schedule)
+        {
+            return CurrentCheckInState.CheckIn.Families.Where(f => f.Selected)
+                .SelectMany(f => f.People.Where(p => p.Person.Guid == person.Guid))
+                .SelectMany(p => p.GroupTypes.Where(gt => gt.GroupType.ParentGroupTypes.Select(pgt => pgt.Guid).Contains(currentParentGroupType.Guid) == true))
+                .Where(gt => gt.Groups.Where(g => g.Locations.Where(
+                    l => l.Schedules.Where(
+                        s => s.Schedule.Guid == schedule.Schedule.Guid).Count() != 0).Count() != 0).Count() != 0).ToList();
+        }
+
+        private void DisplayPersonButton(CheckInPerson person, HtmlGenericControl hgcRow)
+        {
+            //Checkin Button
+            var btnPerson = new BootstrapButton();
+            btnPerson.DataLoadingText = "<img src = '" + person.Person.PhotoUrl + "' style = 'height:100px;'><br /> Please Wait...";
+            btnPerson.Text = "<img src='" + person.Person.PhotoUrl + "' style='height:100px;'><br>" + person.Person.FullName;
+            btnPerson.ID = person.Person.Guid.ToString();
+            btnPerson.Click += (s, e) => { TogglePerson(person); };
+            hgcRow.Controls.Add(btnPerson);
+            if (person.Selected)
+            {
+            btnPerson.CssClass = "btn btn-success btn-lg col-xs-4";
+            }
+            else
+            {
+                btnPerson.CssClass = "btn btn-default btn-lg col-xs-4";
+            }
+        }
+
+        private void TogglePerson(CheckInPerson person)
+        {
+            if (person.Selected)
+                person.Selected = false;
+            else
+                person.Selected = true;
+
+            SaveState();
+            phPeople.Controls.Clear();
+            DisplayPeople();
+        }
+
+        protected void btnCancel_Click(object sender, EventArgs e)
+        {
+            NavigateToNextPage();
+        }
+
+        protected void btnCheckin_Click(object sender, EventArgs e)
+        {
+            //Unselect all groups not in parent group
+            var groupTypes = CurrentCheckInState.CheckIn.Families.Where(f => f.Selected)
+                .SelectMany(f => f.People)
+                .SelectMany(p => p.GroupTypes.Where(gt => gt.GroupType.ParentGroupTypes.Select(pgt => pgt.Guid).Contains(currentParentGroupType.Guid) == false));
+            foreach (var groupType in groupTypes)
+            {
+                groupType.Selected = false;
+            }
+            maNotice.Show("Checking in, please wait.", ModalAlertType.Information);
+            //Check-in and print tags.
+            List<string> errors = new List<string>();
+            bool test = ProcessActivity("Save Attendance", out errors);
+            ProcessLabels();
+        }
+
+        private void ProcessLabels()
+        {
+            var printQueue = new Dictionary<string, StringBuilder>();
+            foreach (var selectedFamily in CurrentCheckInState.CheckIn.Families.Where(p => p.Selected))
+            {
+                List<CheckInLabel> labels = new List<CheckInLabel>();
+                List<CheckInPerson> selectedPeople = selectedFamily.People.Where(p => p.Selected).ToList();
+                List<FamilyLabel> familyLabels = new List<FamilyLabel>();
+
+                foreach (CheckInPerson selectedPerson in selectedPeople)
+                {
+                    foreach (var groupType in selectedPerson.GroupTypes.Where(gt => gt.Selected))
+                    {
+                        using (var rockContext = new RockContext())
+                        {
+                            foreach (var label in groupType.Labels)
                             {
-                                //Select Room
-                                if (qcPerson.SelectedSchedule.SelectedGroupType.Groups.Count == 0)
+                                var file = new BinaryFileService(rockContext).Get(label.FileGuid);
+                                file.LoadAttributes(rockContext);
+                                string isFamilyLabel = file.GetAttributeValue("IsFamilyLabel");
+                                if (isFamilyLabel != "True")
                                 {
-                                    //No room availble, disable button.
-                                    btnGroup.Text = "(No rooms available)";
-                                    btnGroup.Enabled = false;
+                                    labels.Add(label);
                                 }
                                 else
                                 {
-                                    btnGroup.Text = "(Please select room)";
+                                    List<string> mergeCodes = file.GetAttributeValue("MergeCodes").TrimEnd('|').Split('|').ToList();
+                                    FamilyLabel familyLabel = familyLabels.FirstOrDefault(fl => fl.FileGuid == label.FileGuid &&
+                                                                                    fl.MergeFields.Count < mergeCodes.Count);
+                                    if (familyLabel == null)
+                                    {
+                                        familyLabel = new FamilyLabel();
+                                        familyLabel.FileGuid = label.FileGuid;
+                                        familyLabel.LabelObj = label;
+                                        foreach (var mergeCode in mergeCodes)
+                                        {
+                                            familyLabel.MergeKeys.Add(mergeCode.Split('^')[0]);
+                                        }
+                                        familyLabels.Add(familyLabel);
+                                    }
+                                    familyLabel.MergeFields.Add((selectedPerson.Person.Age.ToString() ?? "#") + "yr-" + selectedPerson.SecurityCode);
                                 }
                             }
-                            else
-                            {
-                                //Display Room Name
-                                btnLocation.Text = qcPerson.SelectedSchedule.SelectedGroupType.SelectedGroup.SelectedLocation.Name;
-                            }
                         }
                     }
                 }
-            }
-        }
 
-        private void TogglePerson(QCPerson qcPerson)
-        {
-            if (qcPerson.Selected == false && qcPerson.Enabled == true)
-            {
-                qcPerson.Selected = true;
-                ((BootstrapButton)qcPerson.PlaceHolder.Controls[0]).CssClass = "btn btn-success btn-lg col-md-4 vcenter";
-                ((BootstrapButton)qcPerson.PlaceHolder.Controls[0]).Enabled = true;
-            }
-            else {
-                qcPerson.Selected = false;
-                ((BootstrapButton)qcPerson.PlaceHolder.Controls[0]).CssClass = "btn btn-default btn-lg col-md-4 vcenter";
-            }
-            Session["qcPeople"] = qcPeople;
-        }
-
-        private void DisplaySchedules()
-        {
-            List<Schedule> schedules = GetAllSchedules();
-
-            foreach (var schedule in schedules)
-            {
-
-                Button btnSchedule = null;
-                // See if we've already created this button
-                foreach (Control control in phSchedules.Controls)
+                //Format all FamilyLabels and add to list of labels to print.
+                foreach (FamilyLabel familyLabel in familyLabels)
                 {
-                    if (control.GetType() == typeof(Button) && ((Button)control).Text == schedule.Name)
+                    //create padding to clear unused merge fields
+                    List<string> padding = Enumerable.Repeat(" ", familyLabel.MergeKeys.Count).ToList();
+                    familyLabel.MergeFields.AddRange(padding);
+                    for (int i = 0; i < familyLabel.MergeKeys.Count; i++)
                     {
-                        btnSchedule = (Button)control;
+                        familyLabel.LabelObj.MergeFields[familyLabel.MergeKeys[i]] = familyLabel.MergeFields[i];
                     }
-                }
-                // If we don't have a button already, go ahead and create a new button
-                if (btnSchedule == null)
-                {
-                    btnSchedule = new Button();
-                    btnSchedule.Click += (s, e) => { UpdateSchedule(schedule); };
-                    phSchedules.Controls.Add(btnSchedule);
+                    labels.Add(familyLabel.LabelObj);
                 }
 
-                // Set/Update all the properties on the buttons
-                btnSchedule.Text = schedule.Name;
-
-                //btnSchedule.UseSubmitBehavior = false;
-                if (currentSchedule != null && schedule.Guid == currentSchedule.Guid)
+                // Print client labels
+                if (labels.Any(l => l.PrintFrom == Rock.Model.PrintFrom.Client))
                 {
-                    btnSchedule.CssClass = "btn btn-primary";
-                    btnSchedule.Enabled = false;
+                    var clientLabels = labels.Where(l => l.PrintFrom == PrintFrom.Client).ToList();
+                    var urlRoot = string.Format("{0}://{1}", Request.Url.Scheme, Request.Url.Authority);
+                    clientLabels.ForEach(l => l.LabelFile = urlRoot + l.LabelFile);
+                    AddLabelScript(clientLabels.ToJson());
                 }
-                else
+
+                // Print server labels
+                if (labels.Any(l => l.PrintFrom == Rock.Model.PrintFrom.Server))
                 {
-                    btnSchedule.Enabled = true;
-                    btnSchedule.CssClass = "btn btn-default";
-                }
-            }
-        }
+                    string delayCut = @"^XB";
+                    string endingTag = @"^XZ";
+                    var printerIp = string.Empty;
+                    var labelContent = new StringBuilder();
 
-        private void UpdateSchedule(Schedule schedule)
-        {
-            //Update class and session variables
-            currentSchedule = schedule;
-            Session["currentSchedule"] = currentSchedule;
-
-            //Update session information for all people
-            foreach (var qcPerson in qcPeople)
-            {
-                qcPerson.ChangeSchedule(currentSchedule);
-                
-            }
-
-            DisplaySchedules();
-        }
-
-
-        private bool PersonHasSchedule(CheckInPerson person, Schedule schedule)
-        {
-            foreach(var groupType in person.GroupTypes)
-            {
-                if(GroupTypeHasSchedule(groupType, schedule))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private bool GroupTypeHasSchedule(CheckInGroupType groupType, Schedule schedule)
-        {
-            foreach (var group in groupType.Groups)
-            {
-                if (GroupHasSchedule(group, schedule))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private bool GroupHasSchedule(CheckInGroup group, Schedule schedule)
-        {
-            foreach (var location in group.Locations)
-            {
-                if (LocationHasSchedule(location, schedule))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private bool LocationHasSchedule(CheckInLocation location, Schedule schedule)
-        {
-            foreach (var locationSchedule in location.Schedules)
-            {
-                if (locationSchedule.Schedule.ToString() == schedule.ToString())
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private List<Schedule> GetAllSchedules()
-        {
-            List<Schedule> allSchedules = new List<Schedule>();
-
-            var allPeopleList = CurrentCheckInState.CheckIn.Families.Where(f => f.Selected).FirstOrDefault()
-            .People.OrderBy(p => p.Person.FullNameReversed).ToList();
-
-            foreach (var person in allPeopleList)
-            {
-                var allGroupsTypes = person.GroupTypes.ToList();
-
-                foreach (var groupType in allGroupsTypes)
-                {
-                    var allGroups = groupType.Groups.ToList();
-
-                    foreach (var group in allGroups)
+                    // make sure labels have a valid ip
+                    var lastLabel = labels.Last();
+                    foreach (var label in labels.Where(l => l.PrintFrom == PrintFrom.Server && !string.IsNullOrEmpty(l.PrinterAddress)))
                     {
-                        var allLocations = group.Locations.ToList();
-
-                        foreach (var location in allLocations)
+                        var labelCache = KioskLabel.Read(label.FileGuid);
+                        if (labelCache != null)
                         {
-                            foreach(var schedule in location.Schedules)
+                            if (printerIp != label.PrinterAddress)
                             {
-                                allSchedules.Add(schedule.Schedule);
+                                printQueue.AddOrReplace(label.PrinterAddress, labelContent);
+                                printerIp = label.PrinterAddress;
+                                labelContent = new StringBuilder();
                             }
 
+                            var printContent = labelCache.FileContent;
+                            foreach (var mergeField in label.MergeFields)
+                            {
+                                if (!string.IsNullOrWhiteSpace(mergeField.Value))
+                                {
+                                    printContent = Regex.Replace(printContent, string.Format(@"(?<=\^FD){0}(?=\^FS)", mergeField.Key), ZebraFormatString(mergeField.Value));
+                                }
+                                else
+                                {
+                                    printContent = Regex.Replace(printContent, string.Format(@"\^FO.*\^FS\s*(?=\^FT.*\^FD{0}\^FS)", mergeField.Key), string.Empty);
+                                    printContent = Regex.Replace(printContent, string.Format(@"\^FD{0}\^FS", mergeField.Key), "^FD^FS");
+                                }
+                            }
+
+                            // send a Delay Cut command at the end to prevent cutting intermediary labels
+                            if (label != lastLabel)
+                            {
+                                printContent = Regex.Replace(printContent.Trim(), @"\" + endingTag + @"$", delayCut + endingTag);
+                            }
+
+                            labelContent.Append(printContent);
                         }
+                    }
+
+                    printQueue.AddOrReplace(printerIp, labelContent);
+                }
+
+                if (printQueue.Any())
+                {
+                    PrintLabels(printQueue);
+                    printQueue.Clear();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Prints the labels.
+        /// </summary>
+        /// <param name="families">The families.</param>
+        private void PrintLabels(Dictionary<string, StringBuilder> printerContent)
+        {
+            foreach (var printerIp in printerContent.Keys.Where(k => !string.IsNullOrEmpty(k)))
+            {
+                StringBuilder labelContent;
+                if (printerContent.TryGetValue(printerIp, out labelContent))
+                {
+                    var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                    var printerIpEndPoint = new IPEndPoint(IPAddress.Parse(printerIp), 9100);
+                    var result = socket.BeginConnect(printerIpEndPoint, null, null);
+                    bool success = result.AsyncWaitHandle.WaitOne(5000, true);
+
+                    if (socket.Connected)
+                    {
+                        var ns = new NetworkStream(socket);
+                        byte[] toSend = System.Text.Encoding.ASCII.GetBytes(labelContent.ToString());
+                        ns.Write(toSend, 0, toSend.Length);
+                    }
+                    else
+                    {
+                        //phPrinterStatus.Controls.Add(new LiteralControl(string.Format("Can't connect to printer: {0}", printerIp)));
+                    }
+
+                    if (socket != null && socket.Connected)
+                    {
+                        socket.Shutdown(SocketShutdown.Both);
+                        socket.Close();
                     }
                 }
             }
-            allSchedules = allSchedules.DistinctBy(s =>s.Guid).ToList();
-
-            return allSchedules;
         }
-    }
 
-    class QCGroup
-    {
-        public QCGroup(Rock.Model.Group group)
+        /// <summary>
+        /// Adds the label script.
+        /// </summary>
+        /// <param name="jsonObject">The json object.</param>
+        private void AddLabelScript(string jsonObject)
         {
-            this.Group = group;
-            this.Locations = new List<Location>();
+            string script = string.Format(@"
+            var labelData = {0};
+		    function printLabels() {{
+		        ZebraPrintPlugin.printTags(
+            	    JSON.stringify(labelData),
+            	    function(result) {{
+			        }},
+			        function(error) {{
+				        // error is an array where:
+				        // error[0] is the error message
+				        // error[1] determines if a re-print is possible (in the case where the JSON is good, but the printer was not connected)
+			            console.log('An error occurred: ' + error[0]);
+                        navigator.notification.alert(
+                            'An error occurred while printing the labels.' + error[0],  // message
+                            alertDismissed,         // callback
+                            'Error',            // title
+                            'Ok'                  // buttonName
+                        );
+			        }}
+                );
+	        }}
+try{{
+            printLabels();
+}} catch(e){{}}
+            __doPostBack('btnCancel_Click','');
+            ", jsonObject);
+            ScriptManager.RegisterStartupScript(upContent, upContent.GetType(), "addLabelScript", script, true);
         }
-        public Rock.Model.Group Group { get; set; }
-        public List<Location> Locations { get; set; }
-        public Location SelectedLocation { get; set; }
 
-        internal void ChangeLocation(Location newLocation, QCPerson qcPerson)
+        /// <summary>
+        /// Formats the Zebra string.
+        /// </summary>
+        /// <param name="input">The input.</param>
+        /// <param name="isJson">if set to <c>true</c> [is json].</param>
+        /// <returns></returns>
+        private static string ZebraFormatString(string input, bool isJson = false)
         {
-            //Only select new group if it exists in our list of eligible groups 
-            SelectedLocation = Locations.FirstOrDefault(l => l.Guid == newLocation.Guid);
-
-            if (SelectedLocation == null)
+            if (isJson)
             {
-                qcPerson.DisableButton();
-            }
-        }
-    }
-
-
-    class QCGroupType
-    {
-        public QCGroupType(GroupTypeCache groupType)
-        {
-            this.GroupType = groupType;
-            this.Groups = new List<QCGroup>();
-        }
-        public GroupTypeCache GroupType { get; set; }
-        public List<QCGroup> Groups { get; set; }
-
-        public QCGroup SelectedGroup { get; set; }
-
-        internal void ChangeGroup(QCGroup newGroup, QCPerson qcPerson)
-        {
-            QCGroup prevGroup = SelectedGroup;
-            Location prevLocation = null;
-            if (prevGroup != null)
-            {
-                prevLocation = prevGroup.SelectedLocation;
-            }
-            //Only select new group if it exists in our list of eligible groups 
-            SelectedGroup = Groups.FirstOrDefault(p => p.Group.Guid == newGroup.Group.Guid);
-
-            //Try to intelligently pick a new location and make it our selection.
-            if (SelectedGroup == null)
-            {
-                qcPerson.DisableButton();
+                return input.Replace("é", @"\\82");  // fix acute e
             }
             else
             {
-                //Change selected Group (area) in the following priority: 1. Grou like Group used in previous schedule 2. Group aready in new schedule 3. First or null
-                Location newLocation = SelectedGroup.Locations.FirstOrDefault(l => prevGroup.SelectedLocation != null && l.Guid == prevGroup.SelectedLocation.Guid) ??
-                                                     SelectedGroup.SelectedLocation ??
-                                                     SelectedGroup.Locations.FirstOrDefault();
-                //Change group type
-                SelectedGroup.ChangeLocation(newLocation, qcPerson);
+                return input.Replace("é", @"\82");  // fix acute e
             }
         }
     }
-
-
-    class QCSchedule
+    public class FamilyLabel
     {
+        public Guid FileGuid { get; set; }
 
-        public QCSchedule(Schedule schedule)
+        public CheckInLabel LabelObj { get; set; }
+
+        private List<string> _mergeFields = new List<string>();
+        public List<string> MergeFields
         {
-            this.Schedule = schedule;
-            this.GroupTypes = new List<QCGroupType>();
-        }
-
-        public Schedule Schedule;
-        public List<QCGroupType> GroupTypes { get; set; }
-        public QCGroupType SelectedGroupType { get; set; }
-
-        internal void ChangeGroupType(QCGroupType newGroupType, QCPerson qcPerson)
-        {
-            QCGroupType prevGroupType = SelectedGroupType;
-            QCGroup prevGroup = null;
-            if (prevGroupType != null)
+            get
             {
-                prevGroup = prevGroupType.SelectedGroup;
+                return _mergeFields;
             }
-            SelectedGroupType = GroupTypes.FirstOrDefault(p => p.GroupType.Guid == newGroupType.GroupType.Guid);
-
-            if (SelectedGroupType == null)
+            set
             {
-                qcPerson.DisableButton();
-            }
-            else
-            {
-                //Change selected Group (area) in the following priority: 1. Grou like Group used in previous schedule 2. Group aready in new schedule 3. First or null
-                QCGroup newGroup = SelectedGroupType.Groups.FirstOrDefault(g => prevGroupType.SelectedGroup != null && g.Group.Guid == prevGroupType.SelectedGroup.Group.Guid) ??
-                                                     SelectedGroupType.SelectedGroup ??
-                                                     SelectedGroupType.Groups.FirstOrDefault();
-                //Change group type
-                SelectedGroupType.ChangeGroup(newGroup, qcPerson);
+                _mergeFields = value;
             }
         }
-    }
+        private List<string> _mergeKeys = new List<string>();
 
-
-    class QCPerson
-    {
-        private const string _defaultClass = "btn btn-default btn-lg col-xs-12 col-md-4";
-        private const string _checkedClass = "btn btn-success btn-lg col-xs-12 col-md-4";
-        public QCPerson()
+        public List<string> MergeKeys
         {
-            this.Enabled = false;
-            this.Selected = false;
-            this.Schedules = new List<QCSchedule>();
-        }
-        public QCPerson(Person person)
-        {
-            this.Person = person;
-            this.Enabled = false;
-            this.Selected = false;
-            this.Schedules = new List<QCSchedule>();
-        }
-        public HtmlContainerControl PlaceHolder { get; set; }
-        public Person Person { get; set; }
-        public List<QCSchedule> Schedules { get; set; }
-        public QCSchedule SelectedSchedule { get; set; }
-        public bool Enabled { get; set; }
-        public bool Selected { get; set; }
-
-        internal void DisableButton()
-        {
-            var btnPerson = (BootstrapButton)this.PlaceHolder.Controls[0];
-            btnPerson.Enabled = false;
-            btnPerson.CssClass = _defaultClass;
-        }
-
-        internal void EnableButton()
-        {
-            var btnPerson = (BootstrapButton)this.PlaceHolder.Controls[0];
-            btnPerson.Enabled = true;
-            //if currently selected also make green
-            if (this.Selected) btnPerson.CssClass = _checkedClass;
-            else btnPerson.CssClass = _defaultClass;
-        }
-
-        internal void UpdatePersonButton()
-        {
-            if (this.Enabled)
+            get
             {
-                EnableButton();
+                return _mergeKeys;
             }
-            else
+            set
             {
-                DisableButton();
-            }
-        }
-
-        internal void ChangeSchedule(Schedule newSchedule)
-        {
-            //save our selections so we can make educated guesses on choosing a new location
-            QCSchedule prevSchedule = SelectedSchedule;
-            QCGroupType prevGroupType = null;
-            if (prevSchedule!=null)
-            {
-                prevGroupType = prevSchedule.SelectedGroupType;
-            }
-
-            //Change selected schedule to new schedule only if in list of available schedules
-            SelectedSchedule = Schedules.FirstOrDefault(p => p.Schedule.Guid == newSchedule.Guid);
-            if (SelectedSchedule == null)
-            {
-                DisableButton();
-            }
-            else
-            {
-                //Change selected GroupType (area) in the following priority: 1. GT like GT used in previous schedule 2. GT aready in new schedule 3. First or null
-                QCGroupType newGroupType = SelectedSchedule.GroupTypes.FirstOrDefault(gt => prevSchedule.SelectedGroupType!=null && gt.GroupType.Guid == prevSchedule.SelectedGroupType.GroupType.Guid) ??
-                                                     SelectedSchedule.SelectedGroupType ??
-                                                     SelectedSchedule.GroupTypes.FirstOrDefault();
-                //Change group type
-                SelectedSchedule.ChangeGroupType(newGroupType, this);
+                _mergeKeys = value;
             }
         }
     }

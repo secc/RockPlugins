@@ -8,7 +8,7 @@
 }
 </style>
 
-<asp:PlaceHolder ID="upContent" runat="server">
+<asp:UpdatePanel ID="upContent" runat="server">
 <ContentTemplate>
 
     <script>
@@ -43,10 +43,17 @@
 
         
     </script>
+    <Rock:ModalDialog ID="mdChooseClass" runat="server">
+        <Content>
+        </Content>
+    </Rock:ModalDialog>
+    <Rock:ModalAlert ID="maNotice" runat="server" />
 <div class="container">
-    <asp:PlaceHolder runat="server" ID="phSchedules"/>
-    <br />
+    <asp:PlaceHolder runat="server" ID="phParentGroupTypes"/>
+    <br /><br /><br /><br />
     <asp:PlaceHolder runat="server" ID="phPeople"/>
+    <Rock:BootstrapButton runat="server" ID="btnCheckin" CssClass="btn btn-lg btn-primary col-xs-6" OnClick="btnCheckin_Click">Check-In</Rock:BootstrapButton>
+    <Rock:BootstrapButton runat="server" ID="btnCancel" CssClass="btn btn-lg btn-default col-xs-6" OnClick="btnCancel_Click">Cancel</Rock:BootstrapButton>
 </div>
     </ContentTemplate>
-</asp:PlaceHolder>
+</asp:UpdatePanel>
