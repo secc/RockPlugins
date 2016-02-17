@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?><Database Name="ShelbyDBRepl" EntityNamespace="org.secc.Purchasing.DataLayer.Accounting" ContextNamespace="org.secc.Purchasing.DataLayer.Accounting" Class="ShelbyContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+  <Connection Mode="AppSettings" ConnectionString="Data Source=ar-sql02;Initial Catalog=ShelbyDBRepl;Integrated Security=True" SettingsObjectName="org.secc.Purchasing.Properties.Settings" SettingsPropertyName="ShelbyDBReplConnectionString" Provider="System.Data.SqlClient" />
+  <Table Name="Shelby.SSCo" Member="GLCompanyDatas">
+    <Type Name="GLCompanyData">
+      <Column Name="CoNu" Member="CompanyNumber" Type="System.Int16" DbType="SmallInt NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="Name" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Association Name="GLCompanyData_GLYearData" Member="GLYearDatas" ThisKey="CompanyNumber" OtherKey="CompanyNumber" Type="GLYearData" />
+      <Association Name="GLCompanyData_GLFundData" Member="GLFundDatas" ThisKey="CompanyNumber" OtherKey="CompanyNumber" Type="GLFundData" />
+      <Association Name="GLCompanyData_GLDepartmentData" Member="GLDepartmentDatas" ThisKey="CompanyNumber" OtherKey="CompanyNumber" Type="GLDepartmentData" />
+      <Association Name="GLCompanyData_GLAccountData" Member="GLAccountDatas" ThisKey="CompanyNumber" OtherKey="CompanyNumber" Type="GLAccountData" />
+    </Type>
+  </Table>
+  <Table Name="Shelby.GLYear" Member="GLYearDatas">
+    <Type Name="GLYearData">
+      <Column Name="BeginDate" Type="System.DateTime" DbType="DateTime NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="CoNu" Member="CompanyNumber" Type="System.Int16" DbType="SmallInt NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="EndDate" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Association Name="GLYearData_GLAccountData" Member="GLAccountDatas" ThisKey="CompanyNumber,BeginDate" OtherKey="CompanyNumber,BeginDate" Type="GLAccountData" />
+      <Association Name="GLCompanyData_GLYearData" Member="GLCompanyData" ThisKey="CompanyNumber" OtherKey="CompanyNumber" Type="GLCompanyData" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="Shelby.GLFund" Member="GLFundDatas">
+    <Type Name="GLFundData">
+      <Column Name="CoNu" Member="CompanyNumber" Type="System.Int16" DbType="SmallInt NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="FundNu" Member="FundNumber" Type="System.Int16" DbType="SmallInt NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="Name" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Association Name="GLFundData_GLDepartmentData" Member="GLDepartmentDatas" ThisKey="CompanyNumber,FundNumber" OtherKey="CompanyNumber,FundNumber" Type="GLDepartmentData" />
+      <Association Name="GLFundData_GLAccountData" Member="GLAccountDatas" ThisKey="CompanyNumber,FundNumber" OtherKey="CompanyNumber,FundNumber" Type="GLAccountData" />
+      <Association Name="GLCompanyData_GLFundData" Member="GLCompanyData" ThisKey="CompanyNumber" OtherKey="CompanyNumber" Type="GLCompanyData" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="Shelby.GLDept" Member="GLDepartmentDatas">
+    <Type Name="GLDepartmentData">
+      <Column Name="CoNu" Member="CompanyNumber" Type="System.Int16" DbType="SmallInt NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="DeptNu" Member="DepartmentNumber" Type="System.Int16" DbType="SmallInt NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="FundNu" Member="FundNumber" Type="System.Int16" DbType="SmallInt NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="Name" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Association Name="GLDepartmentData_GLAccountData" Member="GLAccountDatas" ThisKey="CompanyNumber,FundNumber,DepartmentNumber" OtherKey="CompanyNumber,FundNumber,DepartmentNumber" Type="GLAccountData" />
+      <Association Name="GLFundData_GLDepartmentData" Member="GLFundData" ThisKey="CompanyNumber,FundNumber" OtherKey="CompanyNumber,FundNumber" Type="GLFundData" IsForeignKey="true" />
+      <Association Name="GLCompanyData_GLDepartmentData" Member="GLCompanyData" ThisKey="CompanyNumber" OtherKey="CompanyNumber" Type="GLCompanyData" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="Shelby.GLAcct" Member="GLAccountDatas">
+    <Type Name="GLAccountData">
+      <Column Name="AcctNu" Member="AccountNumber" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="BeginDate" Type="System.DateTime" DbType="DateTime NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="CoNu" Member="CompanyNumber" Type="System.Int16" DbType="SmallInt NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="DeptNu" Member="DepartmentNumber" Type="System.Int16" DbType="SmallInt NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="Descr" Member="Description" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="FundNu" Member="FundNumber" Type="System.Int16" DbType="SmallInt NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Association Name="GLCompanyData_GLAccountData" Member="GLCompanyData" ThisKey="CompanyNumber" OtherKey="CompanyNumber" Type="GLCompanyData" IsForeignKey="true" />
+      <Association Name="GLYearData_GLAccountData" Member="GLYearData" ThisKey="CompanyNumber,BeginDate" OtherKey="CompanyNumber,BeginDate" Type="GLYearData" IsForeignKey="true" />
+      <Association Name="GLFundData_GLAccountData" Member="GLFundData" ThisKey="CompanyNumber,FundNumber" OtherKey="CompanyNumber,FundNumber" Type="GLFundData" IsForeignKey="true" />
+      <Association Name="GLDepartmentData_GLAccountData" Member="GLDepartmentData" ThisKey="CompanyNumber,FundNumber,DepartmentNumber" OtherKey="CompanyNumber,FundNumber,DepartmentNumber" Type="GLDepartmentData" IsForeignKey="true" />
+    </Type>
+  </Table>
+</Database>

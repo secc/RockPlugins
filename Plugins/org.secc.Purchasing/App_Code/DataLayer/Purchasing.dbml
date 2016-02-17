@@ -1,0 +1,472 @@
+﻿<?xml version="1.0" encoding="utf-8"?><Database Name="RockRMS" EntityNamespace="org.secc.Purchasing.DataLayer" ContextNamespace="org.secc.Purchasing.DataLayer" Class="PurchasingContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+  <Connection Mode="AppSettings" ConnectionString="Data Source=(localdb)\v11.0;Initial Catalog=RockRMS;Integrated Security=True;Connect Timeout=30" SettingsObjectName="org.secc.Purchasing.Properties.Settings" SettingsPropertyName="RockRMSConnectionString" Provider="System.Data.SqlClient" />
+  <Table Name="dbo._org_secc_Purchasing_History" Member="HistoryDatas">
+    <Type Name="HistoryData">
+      <Column Name="history_id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="object_type_name" Type="System.String" DbType="VarChar(400) NOT NULL" CanBeNull="false" />
+      <Column Name="identifier" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="history_type" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="original_xml" Type="System.String" DbType="VarChar(MAX)" CanBeNull="true" />
+      <Column Name="updated_xml" Type="System.String" DbType="VarChar(MAX)" CanBeNull="true" />
+      <Column Name="organization_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="date_created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="created_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="date_modified" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="modified_by" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="active" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+    </Type>
+  </Table>
+  <Table Name="dbo._org_secc_Purchasing_Campus" Member="CampusDatas">
+    <Type Name="CampusData">
+      <Column Name="campus_id" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="campus_company_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="campus_fund_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="date_created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="created_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="date_modified" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="modified_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="active" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+    </Type>
+  </Table>
+  <Table Name="dbo._org_secc_Purchasing_PaymentMethod" Member="PaymentMethodDatas">
+    <Type Name="PaymentMethodData">
+      <Column Name="payment_method_id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="name" Type="System.String" DbType="VarChar(100) NOT NULL" CanBeNull="false" />
+      <Column Name="description" Type="System.String" DbType="VarChar(500)" CanBeNull="true" />
+      <Column Name="credit_card_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="created_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="modified_by" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="date_created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="date_modified" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="active" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="organization_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Association Name="PaymentMethodData_PaymentData" Member="PaymentDatas" ThisKey="payment_method_id" OtherKey="payment_method_id" Type="PaymentData" />
+      <Association Name="PaymentMethodData_PurchaseOrderData" Member="PurchaseOrderDatas" ThisKey="payment_method_id" OtherKey="default_payment_method_id" Type="PurchaseOrderData" />
+      <Association Name="PaymentCreditCardData_PaymentMethodData" Member="PaymentCreditCardData" ThisKey="credit_card_id" OtherKey="credit_card_id" Type="PaymentCreditCardData" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo._org_secc_Purchasing_CreditCard" Member="PaymentCreditCardDatas">
+    <Type Name="PaymentCreditCardData">
+      <Column Name="credit_card_id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="card_last_four" Type="System.String" DbType="Char(4) NOT NULL" CanBeNull="false" />
+      <Column Name="card_expiration_date" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="card_holder_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="created_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="modified_by" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="date_created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="date_modified" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="active" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Association Name="PaymentCreditCardData_PaymentMethodData" Member="PaymentMethodDatas" ThisKey="credit_card_id" OtherKey="credit_card_id" Type="PaymentMethodData" />
+    </Type>
+  </Table>
+  <Table Name="dbo._org_secc_Purchasing_RequisitionItem" Member="RequisitionItemDatas">
+    <Type Name="RequisitionItemData">
+      <Column Name="requisition_item_id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="requisition_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="quantity" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="description" Type="System.String" DbType="VarChar(MAX) NOT NULL" CanBeNull="false" />
+      <Column Name="date_needed" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="company_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="fund_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="department_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="account_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="created_by" Type="System.String" DbType="VarChar(25) NOT NULL" CanBeNull="false" />
+      <Column Name="modified_by" Type="System.String" DbType="VarChar(25)" CanBeNull="true" />
+      <Column Name="date_created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="date_modified" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="active" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="price" Type="System.Decimal" DbType="Decimal(10,2)" CanBeNull="true" />
+      <Column Name="fiscal_year_start" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="is_expedited_shipping_allowed" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="item_number" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Association Name="RequisitionItemData_PurchaseOrderItemData" Member="PurchaseOrderItemDatas" ThisKey="requisition_item_id" OtherKey="requisition_item_id" Type="PurchaseOrderItemData" />
+      <Association Name="RequisitionData_RequisitionItemData" Member="RequisitionData" ThisKey="requisition_id" OtherKey="requisition_id" Type="RequisitionData" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo._org_secc_Purchasing_PurchaseOrderItem" Member="PurchaseOrderItemDatas">
+    <Type Name="PurchaseOrderItemData">
+      <Column Name="purchase_order_item_id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="purchase_order_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="requisition_item_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="quantity" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="has_been_received" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="created_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="modified_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="date_created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="date_modified" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="active" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="price" Type="System.Decimal" DbType="Decimal(10,2)" CanBeNull="true" />
+      <Association Name="PurchaseOrderItemData_ReceiptItemData" Member="ReceiptItemDatas" ThisKey="purchase_order_item_id" OtherKey="purchase_order_item_id" Type="ReceiptItemData" />
+      <Association Name="RequisitionItemData_PurchaseOrderItemData" Member="RequisitionItemData" ThisKey="requisition_item_id" OtherKey="requisition_item_id" Type="RequisitionItemData" IsForeignKey="true" />
+      <Association Name="PurchaseOrderData_PurchaseOrderItemData" Member="PurchaseOrderData" ThisKey="purchase_order_id" OtherKey="purchase_order_id" Type="PurchaseOrderData" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo._org_secc_Purchasing_Receipt" Member="ReceiptDatas">
+    <Type Name="ReceiptData">
+      <Column Name="receipt_id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="carrier_luid" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="purchase_order_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="received_by_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="date_received" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="created_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="modified_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="date_created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="date_modified" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="active" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Association Name="ReceiptData_ReceiptItemData" Member="ReceiptItemDatas" ThisKey="receipt_id" OtherKey="receipt_id" Type="ReceiptItemData" />
+      <Association Name="PurchaseOrderData_ReceiptData" Member="PurchaseOrderData" ThisKey="purchase_order_id" OtherKey="purchase_order_id" Type="PurchaseOrderData" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo._org_secc_Purchasing_ReceiptItem" Member="ReceiptItemDatas">
+    <Type Name="ReceiptItemData">
+      <Column Name="receipt_item_id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="receipt_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="purchase_order_item_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="quantity_received" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="created_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="modified_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="date_created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="date_modified" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="active" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Association Name="PurchaseOrderItemData_ReceiptItemData" Member="PurchaseOrderItemData" ThisKey="purchase_order_item_id" OtherKey="purchase_order_item_id" Type="PurchaseOrderItemData" IsForeignKey="true" />
+      <Association Name="ReceiptData_ReceiptItemData" Member="ReceiptData" ThisKey="receipt_id" OtherKey="receipt_id" Type="ReceiptData" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo._org_secc_Purchasing_Payment" Member="PaymentDatas">
+    <Type Name="PaymentData">
+      <Column Name="payment_id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="payment_method_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="purchase_order_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="payment_date" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="payment_amount" Type="System.Decimal" DbType="Decimal(10,2) NOT NULL" CanBeNull="false" />
+      <Column Name="created_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="modified_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="date_created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="date_modified" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="active" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Association Name="PaymentData_PaymentChargeData" Member="PaymentChargeDatas" ThisKey="payment_id" OtherKey="payment_id" Type="PaymentChargeData" />
+      <Association Name="PaymentMethodData_PaymentData" Member="PaymentMethodData" ThisKey="payment_method_id" OtherKey="payment_method_id" Type="PaymentMethodData" IsForeignKey="true" />
+      <Association Name="PurchaseOrderData_PaymentData" Member="PurchaseOrderData" ThisKey="purchase_order_id" OtherKey="purchase_order_id" Type="PurchaseOrderData" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo._org_secc_Purchasing_PaymentCharge" Member="PaymentChargeDatas">
+    <Type Name="PaymentChargeData">
+      <Column Name="charge_id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="payment_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="requisition_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="company_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="fund_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="department_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="account_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="amount" Type="System.Decimal" DbType="Decimal(10,2) NOT NULL" CanBeNull="false" />
+      <Column Name="created_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="modified_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="date_created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="date_modified" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="active" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="fiscal_year_start" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Association Name="PaymentData_PaymentChargeData" Member="PaymentData" ThisKey="payment_id" OtherKey="payment_id" Type="PaymentData" IsForeignKey="true" />
+      <Association Name="RequisitionData_PaymentChargeData" Member="RequisitionData" ThisKey="requisition_id" OtherKey="requisition_id" Type="RequisitionData" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo._org_secc_Purchasing_Attachment" Member="AttachmentDatas">
+    <Type Name="AttachmentData">
+      <Column Name="attachment_id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="parent_object_type_name" Type="System.String" DbType="VarChar(400) NOT NULL" CanBeNull="false" />
+      <Column Name="parent_identifier" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="blob_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="organization_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="created_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="modified_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="date_created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="date_modified" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="active" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+    </Type>
+  </Table>
+  <Table Name="dbo._org_secc_Purchasing_Note" Member="NoteDatas">
+    <Type Name="NoteData">
+      <Column Name="note_id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="object_type_name" Type="System.String" DbType="VarChar(400) NOT NULL" CanBeNull="false" />
+      <Column Name="identifier" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="body" Type="System.String" DbType="VarChar(MAX)" CanBeNull="true" />
+      <Column Name="created_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="modified_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="date_created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="date_modified" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="active" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="organization_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+    </Type>
+  </Table>
+  <Table Name="dbo._org_secc_Purchasing_Vendor" Member="VendorDatas">
+    <Type Name="VendorData">
+      <Column Name="vendor_id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="vendor_name" Type="System.String" DbType="NVarChar(100) NOT NULL" CanBeNull="false" />
+      <Column Name="vendor_guid" Type="System.Guid" DbType="UniqueIdentifier NOT NULL" CanBeNull="false" />
+      <Column Name="organization_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="date_created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="created_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="date_modified" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="modified_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="active" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="address" Type="System.String" DbType="VarChar(1000)" CanBeNull="true" />
+      <Column Name="phone" Type="System.String" DbType="VarChar(25)" CanBeNull="true" />
+      <Column Name="web_address" Type="System.String" DbType="VarChar(255)" CanBeNull="true" />
+      <Column Name="terms" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Association Name="VendorData_PurchaseOrderData" Member="PurchaseOrderDatas" ThisKey="vendor_id" OtherKey="vendor_id" Type="PurchaseOrderData" />
+      <Association Name="VendorData_RequisitionData" Member="RequisitionDatas" ThisKey="vendor_id" OtherKey="pref_vendor_id" Type="RequisitionData" />
+      <Association Name="VendorData_CapitalRequestBidData" Member="CapitalRequestBidDatas" ThisKey="vendor_id" OtherKey="vendor_id" Type="CapitalRequestBidData" />
+    </Type>
+  </Table>
+  <Table Name="dbo._org_secc_Purchasing_PurchaseOrder" Member="PurchaseOrderDatas">
+    <Type Name="PurchaseOrderData">
+      <Column Name="purchase_order_id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="vendor_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="purchase_order_type_luid" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="organization_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="created_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="modified_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="date_created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="date_modified" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="active" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="date_ordered" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="ordered_by" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="status_luid" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="date_received" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="date_closed" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="ship_to_address" Type="System.String" DbType="VarChar(1000)" CanBeNull="true" />
+      <Column Name="ship_to_name" Type="System.String" DbType="VarChar(100)" CanBeNull="true" />
+      <Column Name="ship_to_attention" Type="System.String" DbType="VarChar(100)" CanBeNull="true" />
+      <Column Name="shipping_charge" Type="System.Decimal" DbType="Decimal(10,2)" CanBeNull="true" />
+      <Column Name="other_charge" Type="System.Decimal" DbType="Decimal(10,2)" CanBeNull="true" />
+      <Column Name="default_payment_method_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="terms" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="has_been_billed" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Association Name="PurchaseOrderData_PurchaseOrderItemData" Member="PurchaseOrderItemDatas" ThisKey="purchase_order_id" OtherKey="purchase_order_id" Type="PurchaseOrderItemData" />
+      <Association Name="PurchaseOrderData_ReceiptData" Member="ReceiptDatas" ThisKey="purchase_order_id" OtherKey="purchase_order_id" Type="ReceiptData" />
+      <Association Name="PurchaseOrderData_PaymentData" Member="PaymentDatas" ThisKey="purchase_order_id" OtherKey="purchase_order_id" Type="PaymentData" />
+      <Association Name="PaymentMethodData_PurchaseOrderData" Member="PaymentMethodData" ThisKey="default_payment_method_id" OtherKey="payment_method_id" Type="PaymentMethodData" IsForeignKey="true" />
+      <Association Name="VendorData_PurchaseOrderData" Member="VendorData" ThisKey="vendor_id" OtherKey="vendor_id" Type="VendorData" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo._org_secc_Purchasing_Requisition" Member="RequisitionDatas">
+    <Type Name="RequisitionData">
+      <Column Name="requisition_id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="title" Type="System.String" DbType="VarChar(200) NOT NULL" CanBeNull="false" />
+      <Column Name="requisition_type_luid" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="requester_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="status_luid" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="deliver_to" Type="System.String" DbType="VarChar(500)" CanBeNull="true" />
+      <Column Name="is_approved" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="is_open" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="pref_vendor_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="pref_vendor_name" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="pref_vendor_address" Type="System.String" DbType="VarChar(1000)" CanBeNull="true" />
+      <Column Name="pref_vendor_phone" Type="System.String" DbType="VarChar(25)" CanBeNull="true" />
+      <Column Name="pref_vendor_webaddress" Type="System.String" DbType="VarChar(255)" CanBeNull="true" />
+      <Column Name="created_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="modified_by" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="date_accepted" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="date_purchased" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="date_created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="date_modified" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="active" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="organization_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="date_submitted" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="accepted_by_personid" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="ministry_luid" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="location_luid" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="capital_request_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="assigned_to_person_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Association Name="RequisitionData_RequisitionItemData" Member="RequisitionItemDatas" ThisKey="requisition_id" OtherKey="requisition_id" Type="RequisitionItemData" />
+      <Association Name="RequisitionData_PaymentChargeData" Member="PaymentChargeDatas" ThisKey="requisition_id" OtherKey="requisition_id" Type="PaymentChargeData" />
+      <Association Name="VendorData_RequisitionData" Member="VendorData" ThisKey="pref_vendor_id" OtherKey="vendor_id" Type="VendorData" IsForeignKey="true" />
+      <Association Name="CapitalRequestData_RequisitionData" Member="CapitalRequestData" ThisKey="capital_request_id" OtherKey="capital_request_id" Type="CapitalRequestData" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo._org_secc_Purchasing_CapitalRequestBid" Member="CapitalRequestBidDatas">
+    <Type Name="CapitalRequestBidData">
+      <Column Name="bid_id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="capital_request_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="vendor_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="vendor_name" Type="System.String" DbType="VarChar(100)" CanBeNull="true" />
+      <Column Name="vendor_contact_name" Type="System.String" DbType="VarChar(100)" CanBeNull="true" />
+      <Column Name="vendor_contact_phone" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="vendor_contact_email" Type="System.String" DbType="VarChar(200)" CanBeNull="true" />
+      <Column Name="bid_amount" Type="System.Decimal" DbType="Decimal(10,2) NOT NULL" CanBeNull="false" />
+      <Column Name="quote_blob_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="is_preferred_bid" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="created_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="modified_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="date_created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="date_modified" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="active" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="organization_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Association Name="VendorData_CapitalRequestBidData" Member="VendorData" ThisKey="vendor_id" OtherKey="vendor_id" Type="VendorData" IsForeignKey="true" />
+      <Association Name="CapitalRequestData_CapitalRequestBidData" Member="CapitalRequestData" ThisKey="capital_request_id" OtherKey="capital_request_id" Type="CapitalRequestData" IsForeignKey="true" DeleteRule="CASCADE" DeleteOnNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo._org_secc_Purchasing_Approval" Member="ApprovalDatas">
+    <Type Name="ApprovalData">
+      <Column Name="approval_id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="object_type_name" Type="System.String" DbType="VarChar(400) NOT NULL" CanBeNull="false" />
+      <Column Name="identifier" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="approver_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="approval_status_luid" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="date_approved" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="date_notified" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="created_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="modified_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="date_created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="date_modified" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="active" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="organization_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="approval_type_luid" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+    </Type>
+  </Table>
+  <Table Name="dbo._org_secc_Purchasing_CapitalRequest" Member="CapitalRequestDatas">
+    <Type Name="CapitalRequestData">
+      <Column Name="capital_request_id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="project_name" Type="System.String" DbType="VarChar(250) NOT NULL" CanBeNull="false" />
+      <Column Name="project_description" Type="System.String" DbType="VarChar(MAX)" CanBeNull="true" />
+      <Column Name="requested_on" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="status_luid" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="requester_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="ministry_luid" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="purchase_cost" Type="System.Decimal" DbType="Decimal(10,2)" CanBeNull="true" />
+      <Column Name="install_train_cost" Type="System.Decimal" DbType="Decimal(10,2)" CanBeNull="true" />
+      <Column Name="ongoing_maintenance_cost" Type="System.Decimal" DbType="Decimal(10,2)" CanBeNull="true" />
+      <Column Name="item_location" Type="System.String" DbType="VarChar(250)" CanBeNull="true" />
+      <Column Name="anticipated_inservice_date" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="gl_company_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="gl_fund_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="gl_department_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="gl_account_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="created_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="modified_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="date_created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="date_modified" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="active" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="organization_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="gl_fiscal_year_start" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="location_luid" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Association Name="CapitalRequestData_RequisitionData" Member="RequisitionDatas" ThisKey="capital_request_id" OtherKey="capital_request_id" Type="RequisitionData" />
+      <Association Name="CapitalRequestData_CapitalRequestBidData" Member="CapitalRequestBidDatas" ThisKey="capital_request_id" OtherKey="capital_request_id" Type="CapitalRequestBidData" />
+    </Type>
+  </Table>
+  <Table Name="dbo.Person" Member="PersonDatas">
+    <Type Name="PersonData">
+      <Column Name="Id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="IsSystem" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="RecordTypeValueId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="RecordStatusValueId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="RecordStatusReasonValueId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="ConnectionStatusValueId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="IsDeceased" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="TitleValueId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="FirstName" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="NickName" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="MiddleName" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="LastName" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="SuffixValueId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="PhotoId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="BirthDay" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="BirthMonth" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="BirthYear" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="Gender" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="MaritalStatusValueId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="AnniversaryDate" Type="System.DateTime" DbType="Date" CanBeNull="true" />
+      <Column Name="GivingGroupId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="Email" Type="System.String" DbType="NVarChar(75)" CanBeNull="true" />
+      <Column Name="IsEmailActive" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="EmailNote" Type="System.String" DbType="NVarChar(250)" CanBeNull="true" />
+      <Column Name="SystemNote" Type="System.String" DbType="NVarChar(1000)" CanBeNull="true" />
+      <Column Name="ViewedCount" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="Guid" Type="System.Guid" DbType="UniqueIdentifier NOT NULL" CanBeNull="false" />
+      <Column Name="CreatedDateTime" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="ModifiedDateTime" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="CreatedByPersonAliasId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="ModifiedByPersonAliasId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="EmailPreference" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="InactiveReasonNote" Type="System.String" DbType="NVarChar(1000)" CanBeNull="true" />
+      <Column Name="ForeignKey" Type="System.String" DbType="NVarChar(100)" CanBeNull="true" />
+      <Column Name="ReviewReasonValueId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="ReviewReasonNote" Type="System.String" DbType="NVarChar(1000)" CanBeNull="true" />
+      <Column Name="GraduationYear" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="BirthDate" Type="System.DateTime" DbType="Date" IsDbGenerated="true" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="GivingId" Type="System.String" DbType="VarChar(31)" IsDbGenerated="true" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="DaysUntilBirthday" Type="System.Int32" DbType="Int" IsDbGenerated="true" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="ForeignGuid" Type="System.Guid" DbType="UniqueIdentifier" CanBeNull="true" />
+      <Column Name="ForeignId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="GivingLeaderId" Type="System.Int32" DbType="Int" IsDbGenerated="true" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="RecordStatusLastModifiedDateTime" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Association Name="PersonData_PersonAliasData" Member="PersonAliasDatas" ThisKey="Id" OtherKey="PersonId" Type="PersonAliasData" />
+      <Association Name="LookupData_PersonData" Member="DefinedValue" ThisKey="MaritalStatusValueId" OtherKey="Id" Type="LookupData" IsForeignKey="true" />
+      <Association Name="LookupData_PersonData1" Member="DefinedValue1" ThisKey="ConnectionStatusValueId" OtherKey="Id" Type="LookupData" IsForeignKey="true" />
+      <Association Name="LookupData_PersonData2" Member="DefinedValue2" ThisKey="RecordStatusReasonValueId" OtherKey="Id" Type="LookupData" IsForeignKey="true" />
+      <Association Name="LookupData_PersonData3" Member="DefinedValue3" ThisKey="RecordStatusValueId" OtherKey="Id" Type="LookupData" IsForeignKey="true" />
+      <Association Name="LookupData_PersonData4" Member="DefinedValue4" ThisKey="RecordTypeValueId" OtherKey="Id" Type="LookupData" IsForeignKey="true" />
+      <Association Name="LookupData_PersonData5" Member="DefinedValue5" ThisKey="ReviewReasonValueId" OtherKey="Id" Type="LookupData" IsForeignKey="true" />
+      <Association Name="LookupData_PersonData6" Member="DefinedValue6" ThisKey="SuffixValueId" OtherKey="Id" Type="LookupData" IsForeignKey="true" />
+      <Association Name="LookupData_PersonData7" Member="LookupData" ThisKey="TitleValueId" OtherKey="Id" Type="LookupData" IsForeignKey="true" />
+      <Association Name="PersonAliasData_PersonData" Member="PersonAlia" ThisKey="CreatedByPersonAliasId" OtherKey="Id" Type="PersonAliasData" IsForeignKey="true" />
+      <Association Name="PersonAliasData_PersonData1" Member="PersonAlia1" ThisKey="ModifiedByPersonAliasId" OtherKey="Id" Type="PersonAliasData" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.DefinedValue" Member="LookupDatas">
+    <Type Name="LookupData">
+      <Column Name="Id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="IsSystem" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="DefinedTypeId" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="[Order]" Member="Order" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="Value" Type="System.String" DbType="NVarChar(250) NOT NULL" CanBeNull="false" />
+      <Column Name="Description" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
+      <Column Name="Guid" Type="System.Guid" DbType="UniqueIdentifier NOT NULL" CanBeNull="false" />
+      <Column Name="CreatedDateTime" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="ModifiedDateTime" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="CreatedByPersonAliasId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="ModifiedByPersonAliasId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="ForeignKey" Type="System.String" DbType="NVarChar(100)" CanBeNull="true" />
+      <Column Name="ForeignGuid" Type="System.Guid" DbType="UniqueIdentifier" CanBeNull="true" />
+      <Column Name="ForeignId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Association Name="LookupData_PersonData" Member="Persons" ThisKey="Id" OtherKey="MaritalStatusValueId" Type="PersonData" />
+      <Association Name="LookupData_PersonData1" Member="Persons1" ThisKey="Id" OtherKey="ConnectionStatusValueId" Type="PersonData" />
+      <Association Name="LookupData_PersonData2" Member="Persons2" ThisKey="Id" OtherKey="RecordStatusReasonValueId" Type="PersonData" />
+      <Association Name="LookupData_PersonData3" Member="Persons3" ThisKey="Id" OtherKey="RecordStatusValueId" Type="PersonData" />
+      <Association Name="LookupData_PersonData4" Member="Persons4" ThisKey="Id" OtherKey="RecordTypeValueId" Type="PersonData" />
+      <Association Name="LookupData_PersonData5" Member="Persons5" ThisKey="Id" OtherKey="ReviewReasonValueId" Type="PersonData" />
+      <Association Name="LookupData_PersonData6" Member="Persons6" ThisKey="Id" OtherKey="SuffixValueId" Type="PersonData" />
+      <Association Name="LookupData_PersonData7" Member="PersonDatas" ThisKey="Id" OtherKey="TitleValueId" Type="PersonData" />
+      <Association Name="PersonAliasData_LookupData" Member="PersonAlia" ThisKey="CreatedByPersonAliasId" OtherKey="Id" Type="PersonAliasData" IsForeignKey="true" />
+      <Association Name="PersonAliasData_LookupData1" Member="PersonAliasData" ThisKey="ModifiedByPersonAliasId" OtherKey="Id" Type="PersonAliasData" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.PersonAlias" Member="PersonAliasDatas">
+    <Type Name="PersonAliasData">
+      <Column Name="Id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="Name" Type="System.String" DbType="NVarChar(200)" CanBeNull="true" />
+      <Column Name="PersonId" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="AliasPersonId" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="AliasPersonGuid" Type="System.Guid" DbType="UniqueIdentifier NOT NULL" CanBeNull="false" />
+      <Column Name="Guid" Type="System.Guid" DbType="UniqueIdentifier NOT NULL" CanBeNull="false" />
+      <Column Name="ForeignKey" Type="System.String" DbType="NVarChar(100)" CanBeNull="true" />
+      <Column Name="ForeignGuid" Type="System.Guid" DbType="UniqueIdentifier" CanBeNull="true" />
+      <Column Name="ForeignId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Association Name="PersonAliasData_PersonData" Member="PersonDatas" ThisKey="Id" OtherKey="CreatedByPersonAliasId" Type="PersonData" />
+      <Association Name="PersonAliasData_PersonData1" Member="PersonDatas1" ThisKey="Id" OtherKey="ModifiedByPersonAliasId" Type="PersonData" />
+      <Association Name="PersonAliasData_LookupData" Member="LookupDatas" ThisKey="Id" OtherKey="CreatedByPersonAliasId" Type="LookupData" />
+      <Association Name="PersonAliasData_LookupData1" Member="LookupDatas1" ThisKey="Id" OtherKey="ModifiedByPersonAliasId" Type="LookupData" />
+      <Association Name="PersonData_PersonAliasData" Member="PersonData" ThisKey="PersonId" OtherKey="Id" Type="PersonData" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Function Name="dbo.cust_secc_sp_get_personID_byPersonAttributeValue" Method="GetPersonIDsByAttributeValue">
+    <Parameter Name="attribute_id" Type="System.Int32" DbType="Int" />
+    <Parameter Name="int_value" Type="System.Int32" DbType="Int" />
+    <Parameter Name="varchar_value" Type="System.String" DbType="VarChar(MAX)" />
+    <Parameter Name="datetime_value" Type="System.DateTime" DbType="DateTime" />
+    <Parameter Name="decimal_value" Type="System.Decimal" DbType="Decimal(18,4)" />
+    <Parameter Name="OrganizationID" Parameter="organizationID" Type="System.Int32" DbType="Int" />
+    <ElementType Name="cust_secc_sp_get_personID_byPersonAttributeValueResult">
+      <Column Name="person_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+    </ElementType>
+  </Function>
+</Database>
