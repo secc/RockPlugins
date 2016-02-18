@@ -53,7 +53,7 @@
                     link.html("<h4>"+family["Caption"] +"</h4>"+ family["SubCaption"]);
                     link.attr("id",family["Group"]["Id"]);
                     link.click(chooseFamily)
-                    link.addClass("btn btn-default btn-block");
+                    link.addClass("btn btn-primary btn-block");
                     familyDiv.append(link);
                 }
             );
@@ -66,10 +66,70 @@
         
     </script>
 
-<div class="checkin-header">
-    <h1><asp:Literal ID="lPageTitle" runat="server" /></h1>
-</div>
+    <asp:PlaceHolder ID="phScript" runat="server"></asp:PlaceHolder>
 
+    <Rock:HiddenFieldWithClass ID="hfRefreshTimerSeconds" runat="server" CssClass="js-refresh-timer-seconds" />
+
+<span style="display: none">
+            <asp:LinkButton ID="lbRefresh" runat="server" OnClick="lbRefresh_Click"></asp:LinkButton>
+            <asp:Label ID="lblActiveWhen" runat="server" CssClass="active-when" />
+        </span>
+
+        <%-- Panel for no schedules --%>
+        <asp:Panel ID="pnlNotActive" runat="server">
+            <div class="checkin-header">
+                <h1>Check-in Is Not Active</h1>
+            </div>
+
+            <div class="checkin-body">
+
+                <div class="checkin-scroll-panel">
+                    <div class="scroller">
+                        <p>There are no current or future schedules for this kiosk!</p>
+
+                    </div>
+                </div>
+
+            </div>
+        </asp:Panel>
+
+        <%-- Panel for schedule not active yet --%>
+        <asp:Panel ID="pnlNotActiveYet" runat="server">
+            <div class="checkin-header">
+                <h1>Check-in Is Not Active Yet</h1>
+            </div>
+
+            <div class="checkin-body">
+
+                <div class="checkin-scroll-panel">
+                    <div class="scroller">
+
+                        <p>This kiosk is not active yet.  Countdown until active: <span class="countdown-timer"></span></p>
+                        <asp:HiddenField ID="hfActiveTime" runat="server" />
+
+                    </div>
+                </div>
+
+            </div>
+        </asp:Panel>
+
+        <%-- Panel for location closed --%>
+        <asp:Panel ID="pnlClosed" runat="server">
+            <div class="checkin-header checkin-closed-header">
+                <h1>Closed</h1>
+            </div>
+
+            <div class="checkin-body checkin-closed-body">
+                <div class="checkin-scroll-panel">
+                    <div class="scroller">
+                        <p>This location is currently closed.</p>
+                    </div>
+                </div>
+            </div>
+        </asp:Panel>
+
+    <%-- Panel for active checkin --%>
+        <asp:Panel ID="pnlActive" runat="server">
  <div class="checkin-body">
         <div class="checkin-scroll-panel">
             <div class="scroller">
@@ -115,7 +175,8 @@
                 </div>
             </div>
         </div>
-    <style>
+    </asp:Panel>
+    <style type="text/css">
         .checkin-scroll-panel, .scroller {
             padding-right:0px;
             position:relative;

@@ -53,7 +53,17 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 List<string> errors = new List<string>();
                 string workflowActivity = GetAttributeValue("WorkflowActivity");
-                bool test = ProcessActivity(workflowActivity, out errors);
+                try
+                {
+                    //Sometimes this blows up.
+                    bool test = ProcessActivity(workflowActivity, out errors);
+                }
+                catch
+                {
+                    NavigateToPreviousPage();
+                    Response.End();
+                    return;
+                }
 
                 //Find the parent group types
                 parentGroupTypesList = CurrentCheckInState.CheckIn.Families.Where(f => f.Selected).FirstOrDefault()
@@ -61,17 +71,10 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     .Where(pgt => pgt.ChildGroupTypes.Count > 1).DistinctBy(pgt => pgt.Guid).ToList();
                 Session["parentGroupTypesList"] = parentGroupTypesList;
 
-                //Find the current parent group type
-                foreach (var parentGroupType in parentGroupTypesList)
-                {
-                    if (CurrentCheckInState.CheckIn.Families.Where(f => f.Selected).FirstOrDefault()
-                           .People.SelectMany(p => p.GroupTypes)
-                           .Where(gt => gt.Selected == true && gt.GroupType.ParentGroupTypes.Contains(parentGroupType)).Count() > 0)
-                    {
-                        currentParentGroupType = parentGroupType;
-                        break;
-                    }
-                }
+
+                currentParentGroupType = getCurrentParentGroupType();
+
+                
                 Session["currentParentGroupType"] = currentParentGroupType;
 
                 Session["modalActive"] = false;
@@ -82,12 +85,21 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             parentGroupTypesList = (List<GroupTypeCache>)Session["parentGroupTypesList"];
             currentParentGroupType = (GroupTypeCache)Session["currentParentGroupType"];
 
-            DisplayParentGroupTypes();
+            btnParentGroupTypeHeader.Text = currentParentGroupType.Name + " <i class='fa fa-chevron-down'></i>";
+            btnParentGroupTypeHeader.DataLoadingText = currentParentGroupType.Name + " <i class='fa fa-refresh fa-spin'>";
+
             DisplayPeople();
 
             if ((bool)Session["modalActive"])
             {
+                if(Session["modalPerson"]!=null && Session["modalSchedule"] != null)
+                {
                 ShowRoomChangeModal((Person)Session["modalPerson"], (CheckInSchedule)Session["modalSchedule"]);
+                }
+                if (Session["modalGroupType"] != null)
+                {
+                    ShowGroupTypeChangeModal();
+                }
             }
 
 
@@ -98,77 +110,76 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
         }
 
-        private void DisplayParentGroupTypes()
+        private GroupTypeCache getCurrentParentGroupType()
         {
+            var lastCheckin = CurrentCheckInState.CheckIn.Families.Where(f => f.Selected)
+                .SelectMany(f => f.People.Where(p => p.Selected)).Select(p => p.LastCheckIn).Where(dt => dt != null ).Max();
+
+            //Find the current parent group type
             foreach (var parentGroupType in parentGroupTypesList)
             {
-                var btnParentGroupType = new BootstrapButton();
-
-                if (parentGroupType.Guid == currentParentGroupType.Guid)
+                if (CurrentCheckInState.CheckIn.Families.Where(f => f.Selected).FirstOrDefault()
+                       .People.Where(p => p.LastCheckIn == lastCheckin).SelectMany(p => p.GroupTypes)
+                       .Where(gt => gt.Selected == true && gt.GroupType.ParentGroupTypes.Contains(parentGroupType)).Count() > 0)
                 {
-                    btnParentGroupType.CssClass = "btn btn-primary btn-lg col-xs-6";
-                    btnParentGroupType.Enabled = false;
+                    return parentGroupType;
                 }
-                else
-                {
-                    btnParentGroupType.CssClass = "btn btn-default btn-lg col-xs-6";
-                    btnParentGroupType.Enabled = true;
-                }
-                btnParentGroupType.Text = parentGroupType.Name;
-                btnParentGroupType.ID = parentGroupType.Guid.ToString();
-                btnParentGroupType.Click += (s, e) => { ChangeParentGroupType(parentGroupType); };
-                phParentGroupTypes.Controls.Add(btnParentGroupType);
             }
+            return null;
         }
 
         private void ChangeParentGroupType(GroupTypeCache parentGroupType)
         {
+            //Save pgt
             currentParentGroupType = parentGroupType;
             Session["currentParentGroupType"] = currentParentGroupType;
-            foreach (var control in phParentGroupTypes.Controls)
-            {
-                try
-                {
-                    BootstrapButton btnParentGroupType = (BootstrapButton)control;
-                    if (btnParentGroupType.ID == currentParentGroupType.Guid.ToString())
-                    {
-                        btnParentGroupType.CssClass = "btn btn-primary btn-lg col-xs-6";
-                        btnParentGroupType.Enabled = false;
-                    }
-                    else
-                    {
-                        btnParentGroupType.CssClass = "btn btn-default btn-lg col-xs-6";
-                        btnParentGroupType.Enabled = true;
-                    }
-                }
-                catch { }
-            }
+
+            //Clean up our modal mess.
+            Session["modalActive"] = false;
+            Session["modalGroupType"] = null;
+            phModal.Controls.Clear();
+            mdChoose.Hide();
+
+            //change name
+            btnParentGroupTypeHeader.Text = currentParentGroupType.Name+" <i class='fa fa-chevron-down'></i>";
+            btnParentGroupTypeHeader.DataLoadingText = currentParentGroupType.Name + " <i class='fa fa-refresh fa-spin'>";
+
+            //Show updated people info
             phPeople.Controls.Clear();
             DisplayPeople();
+
+            SaveState();
         }
 
         private void DisplayPeople()
         {
             var people = CurrentCheckInState.CheckIn.Families.SelectMany(f => f.People);
 
+            HtmlGenericControl hgcRow = new HtmlGenericControl("div");
+            hgcRow.AddCssClass("row");
+            phPeople.Controls.Add(hgcRow);
+
             foreach (var person in people)
             {
-                HtmlGenericControl hgcRow = new HtmlGenericControl("div");
-                hgcRow.AddCssClass("row");
-                phPeople.Controls.Add(hgcRow);
-                DisplayPersonButton(person, hgcRow);
-                DisplayPersonCheckinAreas(person.Person, hgcRow);
+                if (GetCheckinSchedules(person.Person).Count() > 0)
+                {
+                HtmlGenericControl hgcPadding = new HtmlGenericControl("div");
+                hgcPadding.AddCssClass("col-xs-12 col-md-6");
+                hgcRow.Controls.Add(hgcPadding);
+
+                HtmlGenericControl hgcCell = new HtmlGenericControl("div");
+                hgcCell.AddCssClass("well col-xs-12");
+                hgcPadding.Controls.Add(hgcCell);
+                DisplayPersonButton(person, hgcCell);
+                DisplayPersonCheckinAreas(person.Person, hgcCell);
+                }
             }
         }
 
         private void DisplayPersonCheckinAreas(Person person, HtmlGenericControl hgcRow)
         {
-            var personSchedules = CurrentCheckInState.CheckIn.Families.Where(f => f.Selected)
-                .SelectMany(f => f.People.Where(p => p.Person.Guid == person.Guid))
-                .SelectMany(p => p.GroupTypes.Where(gt => gt.GroupType.ParentGroupTypes.Select(pgt => pgt.Guid).Contains(currentParentGroupType.Guid) == true))
-                .SelectMany(gt => gt.Groups).SelectMany(g => g.Locations).SelectMany(l => l.Schedules)
-                .DistinctBy(s => s.Schedule.Guid);
-
+            List<CheckInSchedule> personSchedules = GetCheckinSchedules(person);
+            
             foreach (var schedule in personSchedules)
             {
                 HtmlGenericControl hgcAreaRow = new HtmlGenericControl("div");
@@ -178,14 +189,24 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
         }
 
+        private List<CheckInSchedule> GetCheckinSchedules(Person person)
+        {
+            return CurrentCheckInState.CheckIn.Families.Where(f => f.Selected)
+                .SelectMany(f => f.People.Where(p => p.Person.Guid == person.Guid))
+                .SelectMany(p => p.GroupTypes.Where(gt => gt.GroupType.ParentGroupTypes.Select(pgt => pgt.Guid).Contains(currentParentGroupType.Guid) == true))
+                .SelectMany(gt => gt.Groups).SelectMany(g => g.Locations).SelectMany(l => l.Schedules)
+                .DistinctBy(s => s.Schedule.Guid).ToList();
+        }
+
         private void DisplayPersonSchedule(Person person, CheckInSchedule schedule, HtmlGenericControl hgcAreaRow)
         {
             BootstrapButton btnSchedule = new BootstrapButton();
             btnSchedule.Text = schedule.Schedule.Name + "<br>(Select Room To Checkin)";
             hgcAreaRow.Controls.Add(btnSchedule);
-            btnSchedule.CssClass = "btn btn-default btn-lg col-xs-8";
+            btnSchedule.CssClass = "btn btn-default col-xs-8";
             btnSchedule.ID = person.Guid.ToString() + currentParentGroupType.Guid.ToString() + schedule.Schedule.Guid.ToString();
             btnSchedule.Click += (s, e) => { ShowRoomChangeModal(person, schedule); };
+            btnSchedule.DataLoadingText = "<i class='fa fa-refresh fa-spin'></i><br>Loading Rooms...";
 
             var groupType = CurrentCheckInState.CheckIn.Families.Where(f => f.Selected)
                 .SelectMany(f => f.People.Where(p => p.Person.Guid == person.Guid))
@@ -210,8 +231,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
                     if (room != null)
                     {
-                        btnSchedule.CssClass = "btn btn-primary btn-lg col-xs-8";
-                        btnSchedule.Text = "<b>" + schedule.Schedule.Name + "</b><br>" + groupType + ": " + group + " > " + room;
+                        btnSchedule.CssClass = "btn btn-primary col-xs-8";
+                        btnSchedule.Text = "<b>" + schedule.Schedule.Name + "</b><br>" + group + " > " + room;
                     }
                 }
             }
@@ -219,7 +240,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private void ShowRoomChangeModal(Person person, CheckInSchedule schedule)
         {
-            mdChooseClass.Content.Controls.Clear();
             List<CheckInGroupType> groupTypes = GetGroupTypes(person, schedule);
 
             foreach (var groupType in groupTypes)
@@ -229,43 +249,55 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 foreach (var group in groups)
                 {
                     List<CheckInLocation> rooms = GetLocations(person, schedule, groupType, group);
-
                     foreach (var room in rooms)
                     {
+                        HtmlGenericContainer hgcPadding = new HtmlGenericContainer("div");
+                        hgcPadding.CssClass = "col-md-8 col-md-offset-2 col-xs-12";
+                        hgcPadding.Style.Add("padding", "5px");
+                        phModal.Controls.Add(hgcPadding);
+
+
                         //Change room button
                         BootstrapButton btnRoom = new BootstrapButton();
                         btnRoom.ID = "c" + person.Guid.ToString() + schedule.Schedule.Guid.ToString() + room.Location.Guid.ToString();
-                        btnRoom.Text = groupType.GroupType.Name + ": " + group.Group.Name + " > " +
+                        btnRoom.Text = groupType.GroupType.Name + ": " + group.Group.Name + "<br>" +
                             room.Location.Name + " - Count: " + KioskLocationAttendance.Read(room.Location.Id).CurrentCount;
-                        btnRoom.CssClass = "btn btn-default btn-lg col-xs-12";
+                        btnRoom.CssClass = "btn btn-default btn-block btn-lg";
                         btnRoom.Click += (s, e) =>
                         {
                             ChangeRoomSelection(person, schedule, groupType, group, room);
                             Session["modalActive"] = false;
-                            mdChooseClass.Hide();
+                            mdChoose.Hide();
                             phPeople.Controls.Clear();
                             DisplayPeople();
                         };
-                        mdChooseClass.Content.Controls.Add(btnRoom);
+                        btnRoom.DataLoadingText = "<i class='fa fa-refresh fa-spin'></i><br>Changing room to: " + room.Location.Name;
+                        hgcPadding.Controls.Add(btnRoom);
                     }
                 }
             }
+            HtmlGenericContainer hgcCancelPadding = new HtmlGenericContainer("div");
+            hgcCancelPadding.CssClass = "col-md-8 col-md-offset-2 col-xs-12";
+            hgcCancelPadding.Style.Add("padding", "5px");
+            phModal.Controls.Add(hgcCancelPadding);
+
             BootstrapButton btnCancel = new BootstrapButton();
             btnCancel.ID = "c" + person.Guid.ToString() + schedule.Schedule.Guid.ToString();
             btnCancel.Text = "(Do not check in at "+ schedule.Schedule.Name +")";
-            btnCancel.CssClass = "btn btn-danger btn-lg col-xs-12";
+            btnCancel.CssClass = "btn btn-danger btn-lg col-md-8 col-xs-12 btn-block";
             btnCancel.Click += (s, e) => {
                 ClearRoomSelection(person, schedule);
                 Session["modalActive"] = false;
-                mdChooseClass.Hide();
+                mdChoose.Hide();
                 phPeople.Controls.Clear();
                 DisplayPeople();
             };
+            btnCancel.DataLoadingText = "<i class='fa fa-refresh fa-spin'></i> Canceling...";
+            hgcCancelPadding.Controls.Add(btnCancel);
 
-            mdChooseClass.Content.Controls.Add(btnCancel);
-            mdChooseClass.Title = "Choose Class";
-            mdChooseClass.CancelLinkVisible = false;
-            mdChooseClass.Show();
+            mdChoose.Title = "Choose Class";
+            mdChoose.CancelLinkVisible = false;
+            mdChoose.Show();
             Session["modalActive"] = true;
             Session["modalPerson"] = person;
             Session["modalSchedule"] = schedule;
@@ -274,7 +306,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         protected void CancelModal(object sender, EventArgs e)
         {
             Session["modalActive"] = false;
-            mdChooseClass.Hide();
+            mdChoose.Hide();
         }
 
         private void ChangeRoomSelection(Person person, CheckInSchedule schedule,
@@ -287,8 +319,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             room.Schedules.Where(s => s.Schedule.Guid == schedule.Schedule.Guid).FirstOrDefault().Selected = true;
             SaveState();
         }
-
-
 
         private void ClearRoomSelection(Person person, CheckInSchedule schedule)
         {
@@ -370,20 +400,30 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private void DisplayPersonButton(CheckInPerson person, HtmlGenericControl hgcRow)
         {
+            //Padding div to make it look nice.
+            HtmlGenericControl hgcPadding = new HtmlGenericControl("div");
+            hgcPadding.AddCssClass("col-xs-4");
+            hgcRow.Controls.Add(hgcPadding);
+
             //Checkin Button
             var btnPerson = new BootstrapButton();
-            btnPerson.DataLoadingText = "<img src = '" + person.Person.PhotoUrl + "' style = 'height:100px;'><br /> Please Wait...";
-            btnPerson.Text = "<img src='" + person.Person.PhotoUrl + "' style='height:100px;'><br>" + person.Person.FullName;
             btnPerson.ID = person.Person.Guid.ToString();
             btnPerson.Click += (s, e) => { TogglePerson(person); };
-            hgcRow.Controls.Add(btnPerson);
+            hgcPadding.Controls.Add(btnPerson);
+
+
+
             if (person.Selected)
             {
-            btnPerson.CssClass = "btn btn-success btn-lg col-xs-4";
+                btnPerson.DataLoadingText = "<i class='fa  fa-check-square-o fa-5x'></i><br /> Please Wait...";
+                btnPerson.Text = "<i class='fa  fa-check-square-o fa-5x'></i><br/>" + person.Person.NickName;
+                btnPerson.CssClass = "btn btn-success btn-lg col-xs-12";
             }
             else
             {
-                btnPerson.CssClass = "btn btn-default btn-lg col-xs-4";
+                btnPerson.DataLoadingText = "<i class='fa fa-square-o fa-5x'></i><br /> Please Wait...";
+                btnPerson.Text = "<i class='fa fa-square-o fa-5x'></i><br/>" + person.Person.NickName;
+                btnPerson.CssClass = "btn btn-default btn-lg col-xs-12";
             }
         }
 
@@ -414,11 +454,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 groupType.Selected = false;
             }
-            maNotice.Show("Checking in, please wait.", ModalAlertType.Information);
             //Check-in and print tags.
             List<string> errors = new List<string>();
             bool test = ProcessActivity("Save Attendance", out errors);
             ProcessLabels();
+            NavigateToNextPage();
         }
 
         private void ProcessLabels()
@@ -634,6 +674,38 @@ try{{
             {
                 return input.Replace("é", @"\82");  // fix acute e
             }
+        }
+
+        protected void btnParentGroupTypeHeader_Click(object sender, EventArgs e)
+        {
+            Session["modalActive"] = true;
+            Session["modalGroupType"] = true;
+            ShowGroupTypeChangeModal();
+        }
+
+        private void ShowGroupTypeChangeModal()
+        {
+            if (parentGroupTypesList.Count > 0)
+            {
+                foreach (var parentGroupType in parentGroupTypesList)
+                {
+                    var btnParentGroupType = new BootstrapButton();
+                    btnParentGroupType.CssClass = "btn btn-default btn-lg btn-block";
+                    btnParentGroupType.Text = "<br>" + parentGroupType.Name + "<br><br>";
+                    btnParentGroupType.DataLoadingText= "<br><i class='fa fa-refresh fa-spin'></i> Selecting Program...<br><br>";
+                    btnParentGroupType.ID = parentGroupType.Guid.ToString();
+                    btnParentGroupType.Click += (s, e1) => { ChangeParentGroupType(parentGroupType); };
+                    phModal.Controls.Add(btnParentGroupType);
+                }
+                mdChoose.Title = "Select Program";
+                mdChoose.Show();
+                mdChoose.CancelLinkVisible = false;
+            }
+            else
+            {
+                mdChoose.Hide();
+            }
+            
         }
     }
     public class FamilyLabel
