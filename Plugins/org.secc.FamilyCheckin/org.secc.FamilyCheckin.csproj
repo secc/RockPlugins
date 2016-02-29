@@ -85,6 +85,7 @@
     <Compile Include="Rest\Controllers\FamilyCheckinController.Partial.cs" />
     <Compile Include="Rest\Handlers\SessionControllerHandler.cs" />
     <Compile Include="Rest\Handlers\SessionRouteHandler.cs" />
+    <Compile Include="Workflows\ReserveAttendance.cs" />
     <Compile Include="Workflows\SelectAllPeople.cs" />
   </ItemGroup>
   <ItemGroup>
