@@ -30,7 +30,7 @@ using Rock.Web.UI.Controls;
 using System.Collections.Generic;
 using System.Web;
 
-namespace RockWeb.Plugins.org_secc.RoomRatioManager
+namespace RockWeb.Plugins.org_secc.CheckinMonitor
 {
     [DisplayName("Room Ratio Manager")]
     [Category("Check-in")]

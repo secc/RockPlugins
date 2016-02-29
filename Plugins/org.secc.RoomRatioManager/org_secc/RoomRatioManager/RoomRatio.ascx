@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="RoomRatio.ascx.cs" Inherits="RockWeb.Plugins.org_secc.RoomRatioManager.RoomRatio" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="RoomRatio.ascx.cs" Inherits="RockWeb.Plugins.org_secc.CheckinMonitor.RoomRatio" %>
 
 <asp:UpdatePanel ID="upDevice" runat="server">
     <ContentTemplate>
