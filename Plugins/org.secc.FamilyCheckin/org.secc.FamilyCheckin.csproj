@@ -85,7 +85,7 @@
     <Compile Include="Rest\Controllers\FamilyCheckinController.Partial.cs" />
     <Compile Include="Rest\Handlers\SessionControllerHandler.cs" />
     <Compile Include="Rest\Handlers\SessionRouteHandler.cs" />
-    <Compile Include="Workflows\FindAndSelectFamilyMembers.cs" />
+    <Compile Include="Workflows\SelectAllPeople.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\Documents\Visual Studio 2015\Projects\Rock-develop\DotLiquid\DotLiquid.csproj">

@@ -33,10 +33,10 @@ namespace org.secc.FamilyCheckin
     /// Finds family members in a given family
     /// </summary>
     [ActionCategory( "Check-In" )]
-    [Description( "Finds family members in a given family and sets them as selected." )]
+    [Description( "Marks all people as selected." )]
     [Export( typeof( ActionComponent ) )]
-    [ExportMetadata( "ComponentName", "Find Family Members" )]
-    public class FindAndSelectFamilyMemebers : CheckInActionComponent
+    [ExportMetadata( "ComponentName", "Select All People" )]
+    public class SelectAllPeople : CheckInActionComponent
     {
         /// <summary>
         /// Executes the specified workflow.
@@ -55,18 +55,10 @@ namespace org.secc.FamilyCheckin
                 var family = checkInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault();
                 if ( family != null )
                 {
-                    var service = new GroupMemberService( rockContext );
-                    foreach ( var groupMember in service.GetByGroupId( family.Group.Id ).AsNoTracking().ToList() )
+                    foreach (var person in family.People)
                     {
-                        if ( !family.People.Any( p => p.Person.Id == groupMember.PersonId ) )
-                        {
-                            var person = new CheckInPerson();
-                            person.Person = groupMember.Person.Clone( false );
-                            person.FamilyMember = true;
-                            family.People.Add( person );
-                            person.Selected = true;
-                            person.PreSelected = true;
-                        }
+                        person.Selected = true;
+                        person.PreSelected = true;
                     }
 
                     return true;
