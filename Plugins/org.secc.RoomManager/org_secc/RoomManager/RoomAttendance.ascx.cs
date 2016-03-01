@@ -21,12 +21,18 @@ namespace RockWeb.Plugins.org_secc.RoomManager
     [Description("Allows volunteers to manage actual checkin of children.")]
     public partial class RoomAttendance : RockBlock
     {
+        private RockContext rockContext;
+        private AttendanceService attendanceService;
+
         protected override void OnLoad(EventArgs e)
         {
+            rockContext = new RockContext();
+            attendanceService = new AttendanceService(rockContext);
             if (!Page.IsPostBack)
             {
                 ViewState["LocationId"] = null;
-                ViewState["LocationName"] = null;
+                ViewState["Tab"] = null;
+                SaveViewState();
             }
             else
             {
@@ -36,11 +42,15 @@ namespace RockWeb.Plugins.org_secc.RoomManager
 
         protected void btnCheckout_Click(object sender, EventArgs e)
         {
+            ViewState["Tab"] = "Checkout";
+            SaveViewState();
             MakeVisible(pnlCheckout, liCheckout);
         }
 
         protected void btnCheckin_Click(object sender, EventArgs e)
         {
+            ViewState["Tab"] = "Checkin";
+            SaveViewState();
             MakeVisible(pnlCheckin, liCheckin);
         }
 
@@ -58,11 +68,10 @@ namespace RockWeb.Plugins.org_secc.RoomManager
         private void UpdateView()
         {
             phCheckin.Controls.Clear();
+            phCheckout.Controls.Clear();
             int? locationId = (int?)ViewState["LocationId"];
             if (locationId!=null)
             {
-                RockContext rockContext = new RockContext();
-                AttendanceService attendanceService = new AttendanceService(rockContext);
                 List<Person> reservedPeople = attendanceService.Queryable().Where(a =>
                                                 a.LocationId == locationId &&
                                                 a.DidAttend == false &&
@@ -82,14 +91,68 @@ namespace RockWeb.Plugins.org_secc.RoomManager
                     btnPerson.Click += (s, e) => { CheckInPerson(person); };
                     phCheckin.Controls.Add(btnPerson);
                 }
+
+                List<Person> checkedInPeople = attendanceService.Queryable().Where(a =>
+                                                a.LocationId == locationId &&
+                                                a.DidAttend == true &&
+                                                DbFunctions.TruncateTime(a.StartDateTime) == RockDateTime.Now.Date &&
+                                                a.EndDateTime == null)
+                                                .Select(a => a.PersonAlias)
+                                                .Select(pa => pa.Person)
+                                                .OrderBy(p => p.FirstName)
+                                                .OrderBy(p => p.LastName)
+                                                .ToList();
+
+                foreach (var person in checkedInPeople)
+                {
+                    BootstrapButton btnPerson = new BootstrapButton();
+                    btnPerson.ID = person.Guid.ToString();
+                    btnPerson.Text = person.FullNameReversed;
+                    btnPerson.CssClass = "btn btn-default btn-block";
+                    btnPerson.Click += (s, e) => { CheckOutPerson(person); };
+                    phCheckout.Controls.Add(btnPerson);
+                }
+
             }
+
+            ReSelectTabs();
+
+        }
+
+        private void ReSelectTabs()
+        {
+            if (ViewState["Tab"] != null)
+            {
+                switch ((string)ViewState["Tab"])
+                {
+                    case "Checkout":
+                        MakeVisible(pnlCheckout, liCheckout);
+                        break;
+                    case "Checkin":
+                        MakeVisible(pnlCheckin, liCheckin);
+                        break;
+
+                }
+            }
+        }
+
+        private void CheckOutPerson(Person person)
+        {
+            int? locationId = (int?)ViewState["LocationId"];
+            Attendance attendance = attendanceService.Queryable().Where(a =>
+                                                            a.PersonAlias.PersonId == person.Id &&
+                                                            DbFunctions.TruncateTime(a.StartDateTime) == RockDateTime.Now.Date &&
+                                                            a.LocationId == locationId)
+                                                            .FirstOrDefault();
+            attendance.EndDateTime = RockDateTime.Now;
+            rockContext.SaveChanges();
+
+            UpdateView();
         }
 
         private void CheckInPerson(Person person)
         {
             int? locationId = (int?)ViewState["LocationId"];
-            RockContext rockContext = new RockContext();
-            AttendanceService attendanceService = new AttendanceService(rockContext);
             Attendance attendance = attendanceService.Queryable().Where(a =>
                                                             a.PersonAlias.PersonId == person.Id &&
                                                             DbFunctions.TruncateTime(a.StartDateTime) == RockDateTime.Now.Date &&
@@ -105,6 +168,7 @@ namespace RockWeb.Plugins.org_secc.RoomManager
 
         private void MakeVisible(Panel pnlShow, HtmlGenericControl liShow)
         {
+            ViewState["Tab"] = pnlShow.ID;
             pnlCheckin.Visible = false;
             pnlCheckout.Visible = false;
             liCheckin.RemoveCssClass("active");
