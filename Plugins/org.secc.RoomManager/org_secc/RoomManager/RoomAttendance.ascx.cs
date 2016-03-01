@@ -26,6 +26,7 @@ namespace RockWeb.Plugins.org_secc.RoomManager
 
         protected override void OnLoad(EventArgs e)
         {
+            nbSearch.Visible = false;
             rockContext = new RockContext();
             attendanceService = new AttendanceService(rockContext);
             if (!Page.IsPostBack)
@@ -53,6 +54,12 @@ namespace RockWeb.Plugins.org_secc.RoomManager
             SaveViewState();
             MakeVisible(pnlCheckin, liCheckin);
         }
+        protected void btnShowSearch_Click(object sender, EventArgs e)
+        {
+            ViewState["Tab"] = "Search";
+            SaveViewState();
+            MakeVisible(pnlTagSearch, liTagSearch);
+        }
 
         protected void btnChangeLocation_Click(object sender, EventArgs e)
         {
@@ -69,9 +76,12 @@ namespace RockWeb.Plugins.org_secc.RoomManager
         {
             phCheckin.Controls.Clear();
             phCheckout.Controls.Clear();
+            phSearch.Controls.Clear();
+
             int? locationId = (int?)ViewState["LocationId"];
-            if (locationId!=null)
+            if (locationId != null)
             {
+                //Display checkin tab
                 List<Person> reservedPeople = attendanceService.Queryable().Where(a =>
                                                 a.LocationId == locationId &&
                                                 a.DidAttend == false &&
@@ -92,6 +102,7 @@ namespace RockWeb.Plugins.org_secc.RoomManager
                     phCheckin.Controls.Add(btnPerson);
                 }
 
+                //Display checkout tab
                 List<Person> checkedInPeople = attendanceService.Queryable().Where(a =>
                                                 a.LocationId == locationId &&
                                                 a.DidAttend == true &&
@@ -113,10 +124,81 @@ namespace RockWeb.Plugins.org_secc.RoomManager
                     phCheckout.Controls.Add(btnPerson);
                 }
 
+                //Display search information
+                var code = tbTagSearch.Text.Trim().ToUpper();
+                if (code != "")
+                {
+                    AttendanceCodeService attendanceCodeService = new AttendanceCodeService(rockContext);
+
+                    AttendanceCode attendanceCode = attendanceCodeService.Queryable().Where(ac => ac.Code == code &&
+                                                                                    DbFunctions.TruncateTime(ac.IssueDateTime) == RockDateTime.Now.Date)
+                                                                                    .FirstOrDefault();
+                    if (attendanceCode != null)
+                    {
+                        List<Person> people = attendanceService.Queryable()
+                            .Where(a => a.AttendanceCodeId == attendanceCode.Id)
+                            .Select(a => a.PersonAlias.Person)
+                            .Where(p => p != null)
+                            .DistinctBy(p => p.Guid)
+                            .ToList();
+
+                        foreach (var person in people)
+                        {
+                            BootstrapButton btnPerson = new BootstrapButton();
+                            btnPerson.ID = person.Guid.ToString()+"searched";
+                            btnPerson.Text = person.FullNameReversed;
+                            btnPerson.CssClass = "btn btn-default btn-block";
+                            btnPerson.Click += (s, e) => { MovePerson(person, attendanceCode); };
+                            phSearch.Controls.Add(btnPerson);
+                        }
+                    }
+
+
+                }
+
+                ReSelectTabs();
+            }
+        }
+
+        private void MovePerson(Person person, AttendanceCode attendanceCode)
+        {
+            int? locationId = (int?)ViewState["LocationId"];
+
+            Location location = new LocationService(rockContext).Queryable().Where(l => l.Id == locationId).FirstOrDefault();
+
+            if (location == null) return;
+
+
+            //Close out any open attendance location
+            List<Attendance> attendances = attendanceService.Queryable().Where(a =>
+                                                            a.PersonAlias.PersonId == person.Id &&
+                                                            DbFunctions.TruncateTime(a.StartDateTime) == RockDateTime.Now.Date)
+                                                            .ToList();
+
+            foreach (var openAttendance in attendances)
+            {
+                if (openAttendance.EndDateTime == null)
+                {
+                    openAttendance.EndDateTime = RockDateTime.Now;
+                }
             }
 
-            ReSelectTabs();
+            //Create new attendance record
+            Attendance attendance = new Attendance();
+            attendance.LocationId = locationId;
+            attendance.CampusId = location.CampusId;
+            attendance.PersonAliasId = person.PrimaryAliasId;
+            attendance.StartDateTime = RockDateTime.Now;
+            attendance.AttendanceCodeId = attendanceCode.Id;
+            attendance.DidAttend = true;
+            attendanceService.Add(attendance);
+            rockContext.SaveChanges();
 
+            //Clear text search and notify
+            tbTagSearch.Text = "";
+            phSearch.Controls.Clear();
+            nbSearch.Text = "Child has been moved to this room";
+            nbSearch.Visible = true;
         }
 
         private void ReSelectTabs()
@@ -168,14 +250,20 @@ namespace RockWeb.Plugins.org_secc.RoomManager
 
         private void MakeVisible(Panel pnlShow, HtmlGenericControl liShow)
         {
-            ViewState["Tab"] = pnlShow.ID;
             pnlCheckin.Visible = false;
             pnlCheckout.Visible = false;
+            pnlTagSearch.Visible = false;
             liCheckin.RemoveCssClass("active");
             liCheckout.RemoveCssClass("active");
+            liTagSearch.RemoveCssClass("active");
 
             pnlShow.Visible = true;
             liShow.AddCssClass("active");
+        }
+
+        protected void btnTagSearch_Click(object sender, EventArgs e)
+        {
+           UpdateView();
         }
     }
 }
