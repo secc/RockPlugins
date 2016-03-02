@@ -187,9 +187,12 @@ var $CountdownTimer = $('.countdown-timer');
 
 function refreshKiosk() {{
     window.clearTimeout(timeout);
-    if ($('input[id$= \'tbPhone\']').value.length>3){{
-    {0};
-}}
+    var input = $('input[id$= \'tbPhone\']');
+    if (input && input.value) {{
+        if (input.value.length>3) {{
+            {0};
+        }}
+    }}
 }}
 
 function clearCountdown() {{
