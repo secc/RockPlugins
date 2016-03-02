@@ -458,7 +458,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             List<string> errors = new List<string>();
             bool test = ProcessActivity("Save Attendance", out errors);
             ProcessLabels();
-            NavigateToNextPage();
+            pnlMain.Visible = false;
+            pnlSuccess.Visible = true;
         }
 
         private void ProcessLabels()

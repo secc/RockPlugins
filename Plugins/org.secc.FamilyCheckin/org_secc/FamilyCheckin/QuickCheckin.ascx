@@ -66,6 +66,7 @@
 
         
     </script>
+    <asp:Panel ID="pnlMain" runat="server">
     <Rock:ModalDialog ID="mdChoose" CssClass="modal" runat="server">
         <Content>
             <div class="row">
@@ -92,5 +93,11 @@
     <asp:PlaceHolder runat="server" ID="phPeople"/>
    
 </div>
+    </asp:Panel>
+    <asp:Panel ID="pnlSuccess" runat="server" Visible="false" CssClass="text-center alert alert-success">
+        
+        <h1>Welcome</h1>
+        <h2>We are printing your name tags now.</h2>
+    </asp:Panel>
     </ContentTemplate>
 </asp:UpdatePanel>
