@@ -13,6 +13,7 @@ using Rock.Web.UI.Controls;
 using Rock.Data;
 using Rock.Model;
 using System.Data.Entity;
+using Rock.Web.Cache;
 
 namespace RockWeb.Plugins.org_secc.RoomManager
 {
@@ -23,6 +24,7 @@ namespace RockWeb.Plugins.org_secc.RoomManager
     {
         private RockContext rockContext;
         private AttendanceService attendanceService;
+        private List<Location> locations;
 
         protected override void OnLoad(EventArgs e)
         {
@@ -33,6 +35,7 @@ namespace RockWeb.Plugins.org_secc.RoomManager
             {
                 ViewState["LocationId"] = null;
                 ViewState["Tab"] = null;
+                BindLocations();
                 SaveViewState();
             }
             else
@@ -41,6 +44,55 @@ namespace RockWeb.Plugins.org_secc.RoomManager
             }
         }
 
+        private void BindLocations()
+        {
+            Device device = AttemptKioskMatchByIpOrName();
+            if (device != null)
+            {
+                locations = device.Locations.ToList();
+                ddlLocation.DataSource = locations;
+                ddlLocation.DataTextField = "Name";
+                ddlLocation.DataValueField = "Id";
+                ddlLocation.DataBind();
+            }
+
+        }
+
+        protected void ddlLocation_SelectionChanged(object sender, EventArgs e)
+        {
+            //Check to make sure this device can access this data
+            Device device = AttemptKioskMatchByIpOrName();
+            if (device != null)
+            {
+                locations = device.Locations.ToList();
+                var location = locations.Where(l => l.Id.ToString() == ddlLocation.SelectedValue).FirstOrDefault();
+                if (location != null)
+                {
+                    ViewState["LocationId"] = location.Id;
+                    UpdateView();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Attempts to match a known kiosk based on the IP address of the client.
+        /// </summary>
+        private Device AttemptKioskMatchByIpOrName()
+        {
+            // match kiosk by ip/name.
+            string hostIp = Request.ServerVariables["REMOTE_ADDR"];
+            string forwardedIp = Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+            string ipAddress = forwardedIp ?? hostIp;
+            bool skipDeviceNameLookup = false;
+
+            var rockContext = new RockContext();
+            var checkInDeviceTypeId = DefinedValueCache.Read(new Guid("BCCA780E-17C2-4CD5-8480-8C4EB3F6D695") ).Id;
+            var device = new DeviceService(rockContext).GetByIPAddress(ipAddress, checkInDeviceTypeId, skipDeviceNameLookup);
+            
+            return device;
+
+
+        }
         protected void btnCheckout_Click(object sender, EventArgs e)
         {
             ViewState["Tab"] = "Checkout";
@@ -59,17 +111,6 @@ namespace RockWeb.Plugins.org_secc.RoomManager
             ViewState["Tab"] = "Search";
             SaveViewState();
             MakeVisible(pnlTagSearch, liTagSearch);
-        }
-
-        protected void btnChangeLocation_Click(object sender, EventArgs e)
-        {
-            if (lpLocation.Location != null)
-            {
-                ViewState["LocationId"] = lpLocation.Location.Id;
-                ViewState["LocationName"] = lpLocation.Location.Name;
-                SaveViewState();
-                UpdateView();
-            }
         }
 
         private void UpdateView()
@@ -265,5 +306,7 @@ namespace RockWeb.Plugins.org_secc.RoomManager
         {
            UpdateView();
         }
+
+        
     }
 }

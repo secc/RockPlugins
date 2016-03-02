@@ -12,7 +12,9 @@
             <li runat="server" id="liTagSearch">
                 <Rock:BootstrapButton runat="server" ID="btnShowSearch" Text="Search By Tag" OnClick="btnShowSearch_Click"></Rock:BootstrapButton>
             </li>
-            <Rock:BootstrapButton ID="btnChangeLocation" runat="server" OnClick="btnChangeLocation_Click" CssClass="pull-right btn btn-default" Text="<i class='fa fa-arrow-right'></i>"></Rock:BootstrapButton><Rock:LocationPicker runat="server" CurrentPickerMode="Named" AllowedPickerModes="Named" ID="lpLocation" CssClass="pull-right"/>
+            <li>
+                <Rock:ButtonDropDownList Title="Select Location" ID="ddlLocation" OnSelectionChanged="ddlLocation_SelectionChanged" style="display:inline" runat="server"></Rock:ButtonDropDownList>
+            </li>
         </ul>
         <asp:Panel ID="pnlCheckin" runat="server">
             <asp:PlaceHolder ID="phCheckin" runat="server"></asp:PlaceHolder>
