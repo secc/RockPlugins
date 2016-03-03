@@ -35,14 +35,25 @@ namespace RockWeb.Plugins.org_secc.RoomManager
             {
                 ViewState["LocationId"] = null;
                 ViewState["Tab"] = null;
+                ViewState["Barcode"] = false;
                 BindLocations();
                 SaveViewState();
             }
             else
             {
-                UpdateView();
+                if (!(bool)ViewState["Barcode"])
+                {
+                    UpdateView();
+                }
+                //Hack to recieve custom reports from our barcode reader
+                if (Request["__EVENTTARGET"] == upMain.ClientID)
+                {
+                    BarcodeSearch(Request["__EVENTARGUMENT"]);
+                }
             }
+            
         }
+
 
         private void BindLocations()
         {
@@ -69,6 +80,7 @@ namespace RockWeb.Plugins.org_secc.RoomManager
                 if (location != null)
                 {
                     ViewState["LocationId"] = location.Id;
+                    btnBarcode.Visible = true;
                     UpdateView();
                 }
             }
@@ -88,7 +100,8 @@ namespace RockWeb.Plugins.org_secc.RoomManager
             var rockContext = new RockContext();
             var checkInDeviceTypeId = DefinedValueCache.Read(new Guid("BCCA780E-17C2-4CD5-8480-8C4EB3F6D695") ).Id;
             var device = new DeviceService(rockContext).GetByIPAddress(ipAddress, checkInDeviceTypeId, skipDeviceNameLookup);
-            
+            ltDeviceName.Text = ipAddress;
+
             return device;
 
 
@@ -111,6 +124,30 @@ namespace RockWeb.Plugins.org_secc.RoomManager
             ViewState["Tab"] = "Search";
             SaveViewState();
             MakeVisible(pnlTagSearch, liTagSearch);
+        }
+
+        protected void btnBarcode_Click(object sender, EventArgs e)
+        {
+            ViewState["Barcode"] = !(bool)ViewState["Barcode"];
+            SaveViewState();
+
+            if ((bool)ViewState["Barcode"])
+            {
+                btnBarcode.CssClass = "btn btn-success";
+                ScriptManager.RegisterStartupScript(upMain, upMain.GetType(), "enable", "enableBarcode();", true);
+                pnlTagSearch.Visible = false;
+            }
+            else
+            {
+                btnBarcode.CssClass = "btn btn-default";
+                ScriptManager.RegisterStartupScript(upMain, upMain.GetType(), "disable", "disableBarcode();", true);
+                if ((string)ViewState["Tab"] == "Search")
+                {
+                    pnlTagSearch.Visible = true;
+                }
+            }
+
+
         }
 
         private void UpdateView()
@@ -166,39 +203,52 @@ namespace RockWeb.Plugins.org_secc.RoomManager
                 }
 
                 //Display search information
-                var code = tbTagSearch.Text.Trim().ToUpper();
+                var code = tbTagSearch.Text;
                 if (code != "")
                 {
+                    List<Attendance> attendances = SearchByTag(code);
                     AttendanceCodeService attendanceCodeService = new AttendanceCodeService(rockContext);
 
                     AttendanceCode attendanceCode = attendanceCodeService.Queryable().Where(ac => ac.Code == code &&
-                                                                                    DbFunctions.TruncateTime(ac.IssueDateTime) == RockDateTime.Now.Date)
-                                                                                    .FirstOrDefault();
-                    if (attendanceCode != null)
+                                                                            DbFunctions.TruncateTime(ac.IssueDateTime) == RockDateTime.Now.Date)
+                                                                            .FirstOrDefault();
+
+                    foreach (var attendance in attendances)
                     {
-                        List<Person> people = attendanceService.Queryable()
-                            .Where(a => a.AttendanceCodeId == attendanceCode.Id)
-                            .Select(a => a.PersonAlias.Person)
-                            .Where(p => p != null)
-                            .DistinctBy(p => p.Guid)
-                            .ToList();
-
-                        foreach (var person in people)
-                        {
-                            BootstrapButton btnPerson = new BootstrapButton();
-                            btnPerson.ID = person.Guid.ToString()+"searched";
-                            btnPerson.Text = person.FullNameReversed;
-                            btnPerson.CssClass = "btn btn-default btn-block";
-                            btnPerson.Click += (s, e) => { MovePerson(person, attendanceCode); };
-                            phSearch.Controls.Add(btnPerson);
-                        }
+                        BootstrapButton btnPerson = new BootstrapButton();
+                        btnPerson.ID = attendance.PersonAlias.Person.Guid.ToString()+"searched";
+                        btnPerson.Text = attendance.PersonAlias.Person.FullNameReversed;
+                        btnPerson.CssClass = "btn btn-default btn-block";
+                        btnPerson.Click += (s, e) => { MovePerson(attendance.PersonAlias.Person, attendanceCode); };
+                        phSearch.Controls.Add(btnPerson);
                     }
-
-
                 }
 
                 ReSelectTabs();
             }
+        }
+
+        private List<Attendance> SearchByTag(string code)
+        {
+            code = code.Trim().ToUpper();
+
+            AttendanceCodeService attendanceCodeService = new AttendanceCodeService(rockContext);
+
+            AttendanceCode attendanceCode = attendanceCodeService.Queryable().Where(ac => ac.Code == code &&
+                                                                            DbFunctions.TruncateTime(ac.IssueDateTime) == RockDateTime.Now.Date)
+                                                                            .FirstOrDefault();
+            
+            if (attendanceCode != null)
+            {
+                List<Attendance> attendances = attendanceService.Queryable()
+                    .Where(a => a.AttendanceCodeId == attendanceCode.Id)
+                    .Where(a => a.PersonAlias.Person != null)
+                    .DistinctBy(a => a.PersonAlias.Person.Guid)
+                    .ToList();
+                return attendances;
+            }
+            return new List<Attendance>();
+
         }
 
         private void MovePerson(Person person, AttendanceCode attendanceCode)
@@ -254,7 +304,6 @@ namespace RockWeb.Plugins.org_secc.RoomManager
                     case "Checkin":
                         MakeVisible(pnlCheckin, liCheckin);
                         break;
-
                 }
             }
         }
@@ -286,7 +335,6 @@ namespace RockWeb.Plugins.org_secc.RoomManager
             rockContext.SaveChanges();
 
             UpdateView();
-
         }
 
         private void MakeVisible(Panel pnlShow, HtmlGenericControl liShow)
@@ -294,12 +342,18 @@ namespace RockWeb.Plugins.org_secc.RoomManager
             pnlCheckin.Visible = false;
             pnlCheckout.Visible = false;
             pnlTagSearch.Visible = false;
+            pnlBarcode.Visible = false;
             liCheckin.RemoveCssClass("active");
             liCheckout.RemoveCssClass("active");
             liTagSearch.RemoveCssClass("active");
 
             pnlShow.Visible = true;
             liShow.AddCssClass("active");
+
+            if ((bool)ViewState["Barcode"])
+            {
+                pnlTagSearch.Visible = false;
+            }
         }
 
         protected void btnTagSearch_Click(object sender, EventArgs e)
@@ -307,6 +361,36 @@ namespace RockWeb.Plugins.org_secc.RoomManager
            UpdateView();
         }
 
-        
+        private void BarcodeSearch(string code)
+        {
+            if (code == "")
+            {
+                return;
+            }
+            AttendanceCodeService attendanceCodeService = new AttendanceCodeService(rockContext);
+
+            AttendanceCode attendanceCode = attendanceCodeService.Queryable().Where(ac => ac.Code == code &&
+                                                                            DbFunctions.TruncateTime(ac.IssueDateTime) == RockDateTime.Now.Date)
+                                                                            .FirstOrDefault();
+            List<Attendance> attendances = SearchByTag(code);
+            foreach (var attendance in attendances)
+            {
+                if (ViewState["Tab"] != null)
+                {
+                    switch ((string)ViewState["Tab"])
+                    {
+                        case "Checkout":
+                            CheckOutPerson(attendance.PersonAlias.Person);
+                            break;
+                        case "Checkin":
+                            CheckInPerson(attendance.PersonAlias.Person);
+                            break;
+                        case "Search":
+                            MovePerson(attendance.PersonAlias.Person, attendanceCode);
+                            break;
+                    }
+                }
+            }
+        }
     }
 }
