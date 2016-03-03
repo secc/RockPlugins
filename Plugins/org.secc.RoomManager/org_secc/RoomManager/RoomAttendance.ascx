@@ -1,5 +1,22 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="RoomAttendance.ascx.cs" Inherits="RockWeb.Plugins.org_secc.RoomManager.RoomAttendance" %>
 
+
+
+<script type="text/javascript">
+    var UpdPanelUpdate = function () {
+        __doPostBack("<%= hfReloader.ClientID %>","");
+    }
+
+    var startTimer = function () {
+        var timer = setInterval(function(){UpdPanelUpdate()}, 10000);
+    }
+
+    $(document).ready(startTimer);
+
+</script>
+
+
+
 <Rock:RockUpdatePanel ID="upMain" runat="server">
     <ContentTemplate>
         <ul class="nav nav-tabs">
@@ -16,6 +33,7 @@
                 <Rock:ButtonDropDownList Title="Select Location" ID="ddlLocation" OnSelectionChanged="ddlLocation_SelectionChanged" style="display:inline" runat="server"></Rock:ButtonDropDownList>
             </li>
         </ul>
+        <asp:HiddenField ID="hfReloader"  runat="server"/>
         <asp:Panel ID="pnlCheckin" runat="server">
             <asp:PlaceHolder ID="phCheckin" runat="server"></asp:PlaceHolder>
         </asp:Panel>
