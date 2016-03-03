@@ -314,7 +314,8 @@ namespace RockWeb.Plugins.org_secc.RoomManager
             Attendance attendance = attendanceService.Queryable().Where(a =>
                                                             a.PersonAlias.PersonId == person.Id &&
                                                             DbFunctions.TruncateTime(a.StartDateTime) == RockDateTime.Now.Date &&
-                                                            a.LocationId == locationId)
+                                                            a.LocationId == locationId &&
+                                                            a.DidAttend==true)
                                                             .FirstOrDefault();
             attendance.EndDateTime = RockDateTime.Now;
             rockContext.SaveChanges();
