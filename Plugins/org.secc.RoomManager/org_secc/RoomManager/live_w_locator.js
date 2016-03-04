@@ -95,10 +95,20 @@ var startBarcode = function () {
         var code = result.codeResult.code;
         console.log(code);
         //check for repeats
-        if (code == lastBarcode || code.length!=3) {
+        if (code == lastBarcode || code.length!=6) {
             return;
         }
         lastBarcode = code;
+
+        //test to make sure we read the barcode properly by matching the first and last halfs
+        //eg: code "ABC" will have the barcode "ABCABC"
+        if (code.slice(0, 3) != code.slice(3, 6)) {
+            return;
+        }
+
+        //split the barcode in half for the attendance code
+        code = code.slice(0, 3);
+
         beepSound.play();
         if ("vibrate" in navigator) {
             navigator.vibrate = navigator.vibrate || navigator.webkitVibrate || navigator.mozVibrate || navigator.msVibrate;
