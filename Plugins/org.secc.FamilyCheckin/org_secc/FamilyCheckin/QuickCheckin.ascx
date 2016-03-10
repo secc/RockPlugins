@@ -66,7 +66,7 @@
 
         
     </script>
-    <asp:Panel ID="pnlMain" runat="server">
+    <asp:Panel ID="pnlMain" runat="server" style="margin-top:10px;">
     <Rock:ModalDialog ID="mdChoose" CssClass="modal" runat="server">
         <Content>
             <div class="row">
