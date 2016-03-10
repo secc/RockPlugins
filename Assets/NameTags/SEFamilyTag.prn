@@ -1,14 +1,14 @@
 CT~~CD,~CC^~CT~
-^XA~TA000~JSN^LT0^MNW^MTD^PON^PMN^LH0,0^JMA^PR2,2~SD15^JUS^LRN^CI0^XZ
-~DG000.GRF,01664,004,
-J040,:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::,:::::::::~DG001.GRF,00256,004,
-,::::::::::::::::::::::H02001,H03001,H03803,H01807,H01C0E,I0C0C,I0E1C,I0738,I03B8,I01F0,J0E0,I01E0,I03F0,I0H30,H0H21A,H05C0CC0H08C0CC0H0800440H0C806C0H0700380,::::::::::::::::::::^XA
+^XA~TA000~JSN^LT0^MNW^MTD^PON^PMN^LH0,0^JMA^PR4,4~SD15^JUS^LRN^CI0^XZ
+^XA
 ^MMT
 ^PW609
 ^LL0406
 ^LS0
-^FT288,416^XG000.GRF,1,1^FS
-^FT288,416^XG001.GRF,1,1^FS
+^FO288,0^GFA,01664,01664,00004,:Z64:
+eJxjYHBgYBjFo3gUj+JRPIqphokDAOg/ZYE=:57D2
+^FO288,352^GFA,00256,00256,00004,:Z64:
+eJxjYKAhUGBkYDAAYgtmBgYJdgYGGT4GBh4eBgY+GQYGdgsGBuYdDAyMH4AKHwBpIGYGspkNGBiUpBgYYngOMPQAcQOLA8MJtgMMBcwNtHAiACnHC+w=:B0E2
 ^FT464,312^A0N,34,33^FH\^FDLLL^FS
 ^FT464,212^A0N,34,33^FH\^FDHHH^FS
 ^FT157,312^A0N,34,33^FH\^FDLLL^FS
@@ -36,5 +36,3 @@ J040,:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ^FT321,385^A0N,17,16^FH\^FDPlease retain this recipt for child pickup.^FS
 ^FT14,384^A0N,17,16^FH\^FDPlease retain this recipt for child pickup.^FS
 ^PQ1,0,1,Y^XZ
-^XA^ID000.GRF^FS^XZ
-^XA^ID001.GRF^FS^XZ
