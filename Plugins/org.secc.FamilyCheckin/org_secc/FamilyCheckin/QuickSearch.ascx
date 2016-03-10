@@ -5,7 +5,9 @@
 <ContentTemplate>
 
     <script>
-        
+        var selectionActive=false;
+
+
         Sys.Application.add_load(function () {
             $('.tenkey a.digit').click(function () {
                 $phoneNumber = $("input[id$='tbPhone']");
@@ -33,6 +35,9 @@
             phoneNumber = phoneNumber.replace(/\D/g, '');
             var minLength = <%= minLength.ToString()%>;
             if (phoneNumber.length>=minLength){
+
+                $("#searchMsg").html("Searching for families...").css("visibility","unset");
+                
                 $.ajax({
                     url: "/api/org.secc/familycheckin/family/"+phoneNumber,
                     dataType: "json",
@@ -45,6 +50,8 @@
         }
 
         var showFamilies = function(families) {
+            $("#searchMsg").css("visibility","hidden")
+
             var familyDiv = $("#familyDiv");
             familyDiv.empty();
             families.forEach(
@@ -53,13 +60,20 @@
                     link.html("<h4>"+family["Caption"] +"</h4>"+ family["SubCaption"]);
                     link.attr("id",family["Group"]["Id"]);
                     link.click(chooseFamily)
-                    link.addClass("btn btn-primary btn-block");
+                    link.addClass("btn btn-primary btn-block familyButton");
                     familyDiv.append(link);
                 }
             );
         }
 
         var chooseFamily = function(event){
+            if (selectionActive){
+                return;
+            }
+            selectionActive=true
+            this.innerHTML = "<h4><i class='fa fa-refresh fa-spin'></i>Loading Family</h4>Please wait..."
+            this.className = "btn btn-success btn-block"
+            
             __doPostBack("ChooseFamily", this.id);
         }
 
@@ -130,14 +144,16 @@
 
     <%-- Panel for active checkin --%>
         <asp:Panel ID="pnlActive" runat="server">
+<div class="checkin-header">
+
+</div>
  <div class="checkin-body">
-        <div class="checkin-scroll-panel">
             <div class="scroller">
                     <div class="container">
                         <div class="row">
-                            <div class="col-md-4">
+                            <div class="col-xs-4">
                                 <div class="checkin-search-body">
-                                    <ol class="checkin-summary checkin-body-container">
+
                                         <asp:Panel ID="pnlSearchPhone" runat="server">
                                             <Rock:RockTextBox ID="tbPhone" MaxLength="10" CssClass="checkin-phone-entry" runat="server" Label="Phone Number"
                                                 onkeyup="findFamilies(this.value)" autocomplete="off"/>
@@ -164,16 +180,18 @@
                                                 </div>
                                             </div>
                                         </asp:Panel>
-                                    </ol>
+                                
                                 </div>
                             </div>
-                            <div class="col-md-8" id="familyDiv">
+                            <div class="col-xs-8">
+                                <div class="alert alert-info" style="visibility:hidden" id="searchMsg"></div>
+                            </div>
+                            <div class="col-xs-8" id="familyDiv">
             
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
         </div>
     </asp:Panel>
     <style type="text/css">
