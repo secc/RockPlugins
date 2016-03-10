@@ -82,6 +82,10 @@ namespace RockWeb.Plugins.org_secc.RoomManager
                     pnlMenue.Visible = true;
                     ltLocation.Text = location.Name;
                     pnlLocation.Visible = false;
+
+                    //Start page refresh script
+                    ScriptManager.RegisterStartupScript(upMain, upMain.GetType(), "startTimer", "startTimer();", true);
+
                     UpdateView();
                 }
             }
@@ -328,7 +332,9 @@ namespace RockWeb.Plugins.org_secc.RoomManager
             attendance.DidAttend = true;
             rockContext.SaveChanges();
 
-            ScriptManager.RegisterStartupScript(upMain, upMain.GetType(), "toast", "toastr.success('Checked In " + person.PrimaryAlias.Person.FullName + "')", true);
+            ScriptManager.RegisterStartupScript(upMain, upMain.GetType(), "toast", "toastr.success('Checked In "
+                                                                + person.PrimaryAlias.Person.FullName +
+                                                                " to " + attendance.Location.Name +"')", true);
             UpdateView();
         }
 

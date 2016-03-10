@@ -11,8 +11,6 @@
         var timer = setInterval(function(){UpdPanelUpdate()}, 10000);
     }
 
-    $(document).ready(startTimer);
-
 </script>
 
 <style type="text/css">
@@ -45,9 +43,9 @@
         <asp:Panel runat="server" ID="pnlMenue" Visible="false">
         <div class="row" id="menue">
             <h1><asp:Literal runat="server" ID="ltLocation"></asp:Literal></h1>
-            <div class="col-md-2 col-xs-6">
+            <div class="col-md-2 col-xs-6" style="margin-bottom:5px;">
                  <Rock:ButtonDropDownList runat="server" OnSelectionChanged="ddlAction_SelectionChanged" Width="100%" Title="Select Action" ID="ddlAction">
-                     <asp:ListItem Text="Check-In" Value="Checkin"></asp:ListItem>
+                     <asp:ListItem Text="Check-In" Value="Checkin" Selected="True"></asp:ListItem>
                      <asp:ListItem Text="Check-Out" Value="Checkout"></asp:ListItem>
                      <asp:ListItem Text="Move-Here" Value="Search"></asp:ListItem>
                  </Rock:ButtonDropDownList>
