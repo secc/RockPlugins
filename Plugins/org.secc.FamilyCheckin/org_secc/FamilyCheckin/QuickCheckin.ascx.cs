@@ -36,9 +36,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             RockPage.AddScriptLink("~/Scripts/CheckinClient/cordova-2.4.0.js", false);
             RockPage.AddScriptLink("~/Scripts/CheckinClient/ZebraPrint.js");
 
-            //RockPage.AddScriptLink("~/Scripts/iscroll.js");
-            //RockPage.AddScriptLink("~/Scripts/CheckinClient/checkin-core.js");
-
             if (!KioskCurrentlyActive)
             {
                 NavigateToHomePage();
@@ -85,6 +82,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             parentGroupTypesList = (List<GroupTypeCache>)Session["parentGroupTypesList"];
             currentParentGroupType = (GroupTypeCache)Session["currentParentGroupType"];
 
+            if (currentParentGroupType == null)
+            {
+                NavigateToPreviousPage();
+            }
+
             btnParentGroupTypeHeader.Text = currentParentGroupType.Name + " <i class='fa fa-chevron-down'></i>";
             btnParentGroupTypeHeader.DataLoadingText = currentParentGroupType.Name + " <i class='fa fa-refresh fa-spin'>";
 
@@ -100,13 +102,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 {
                     ShowGroupTypeChangeModal();
                 }
-            }
-
-
-            //Exit page on completion
-            if (Request["__EVENTARGUMENT"] != null && (string)Request["__EVENTTARGET"]== "btnCancel_Click")
-            {
-                NavigateToNextPage();
             }
         }
 
@@ -459,7 +454,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             bool test = ProcessActivity("Save Attendance", out errors);
             ProcessLabels();
             pnlMain.Visible = false;
-            pnlSuccess.Visible = true;
         }
 
         private void ProcessLabels()
@@ -654,8 +648,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 try{{
             printLabels();
 }} catch(e){{}}
-            __doPostBack('btnCancel_Click','');
-            ", jsonObject);
+            __doPostBack('{1}','OnClick');
+            ", jsonObject, btnCancel.UniqueID);
             ScriptManager.RegisterStartupScript(upContent, upContent.GetType(), "addLabelScript", script, true);
         }
 

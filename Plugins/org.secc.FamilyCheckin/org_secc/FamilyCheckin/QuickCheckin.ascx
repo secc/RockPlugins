@@ -29,6 +29,14 @@
     color:#DB542D;
     text-decoration:none;
 }
+
+.successModal {
+    display:none;
+    position:absolute;
+    width:70vw;
+    left:15vw;
+    top:100vh;
+}
 </style>
 
 <asp:UpdatePanel ID="upContent" runat="server">
@@ -60,10 +68,17 @@
             }
         });
 
-        var chooseFamily = function(event){
-            __doPostBack("ChooseFamily", this.id);
-        }
+        var doCheckin = function () {
+            var content = document.getElementById("content");
+            document.body.style.overflow = "hidden";
+            content.style.transitionDuration = "0.2s";
+            content.style.transform = "translateY(100vh)";
 
+            var success = document.getElementById("success");
+            success.style.display = "block";
+            success.style.transform = "translateY(-90vh)";
+            __doPostBack("<%= btnCheckin.UniqueID%>", "OnClick");
+        }
         
     </script>
     <asp:Panel ID="pnlMain" runat="server" style="margin-top:10px;">
@@ -75,7 +90,7 @@
         </Content>
     </Rock:ModalDialog>
     <Rock:ModalAlert ID="maNotice" runat="server" />
-<div class="container">
+<div class="container" id="content">
     <div class="col-xs-12" id="padding">
         <div class="header">
             <span class="ParentGroupTypeHeader">
@@ -84,20 +99,21 @@
                 </Rock:BootstrapButton>
             </span>
             <span class="pull-right" style="padding-top:10px;">
-                <Rock:BootstrapButton runat="server" ID="btnCheckin" CssClass="btn btn-lg btn-primary" OnClick="btnCheckin_Click" DataLoadingText="<i class='fa fa-refresh fa-spin'></i> Checking In">Check-In</Rock:BootstrapButton>
+                <a href="javascript:doCheckin()" class="btn btn-lg btn-primary">Check-In</a>
+                <Rock:BootstrapButton runat="server" Visible="false" ID="btnCheckin" CssClass="btn btn-lg btn-primary" OnClick="btnCheckin_Click" ></Rock:BootstrapButton>
                 <Rock:BootstrapButton runat="server" ID="btnCancel" CssClass="btn btn-lg btn-default " OnClick="btnCancel_Click"  DataLoadingText="<i class='fa fa-refresh fa-spin'></i> Canceling">Cancel</Rock:BootstrapButton>
             </span>
         </div>
     </div>
-
+    
     <asp:PlaceHolder runat="server" ID="phPeople"/>
    
 </div>
     </asp:Panel>
-    <asp:Panel ID="pnlSuccess" runat="server" Visible="false" CssClass="text-center alert alert-success">
+    <div id="success" class="text-center alert alert-success successModal">
         
-        <h1>Welcome</h1>
+        <h2>Welcome.</h2>
         <h2>We are printing your name tags now.</h2>
-    </asp:Panel>
+    </div>
     </ContentTemplate>
 </asp:UpdatePanel>
