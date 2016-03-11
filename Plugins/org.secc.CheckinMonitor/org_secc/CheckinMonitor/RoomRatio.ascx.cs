@@ -51,15 +51,15 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
+            LoadDropdowns();
 
             if (!Page.IsPostBack)
             {
-                LoadDropdowns();
                 BindData();
 
             }else
             {
-                BindData();
+                //BindData();
             }
 
         }
@@ -211,6 +211,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         {
             RockContext rockContext = new RockContext();
             var locationId = (int)e.RowKeyId;
+            
             LocationService locationService = new LocationService(rockContext);
             var location = locationService.Queryable().Where(l => l.Id == locationId).FirstOrDefault();
             if (location.IsActive)
@@ -222,6 +223,11 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 location.IsActive = true;
             }
             rockContext.SaveChanges();
+            
+            //Clear location cache to kiosks don't allow kids into rooms
+            Rock.CheckIn.KioskDevice.FlushAll();
+
+            BindData();
         }
     }
 

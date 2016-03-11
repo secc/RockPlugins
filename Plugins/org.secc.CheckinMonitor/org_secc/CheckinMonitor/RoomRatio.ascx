@@ -41,7 +41,7 @@
                             <Rock:BadgeField OnSetBadgeType="IsFull_SetBadgeType" DataField="IsFull" HeaderText="Status"
                                 ImportantMin="0" ImportantMax="0"
                                 InfoMin="1" InfoMax="1" SuccessMin="2"  />
-                            <Rock:ToggleField DataField="IsActive"  HeaderText="Room Status" OnCheckedChanged="IsActive_CheckedChanged" Enabled="True" OnText="Open" OffText="Closed" />
+                            <Rock:ToggleField DataField="IsActive"  HeaderText="Room Status" OnCssClass="btn-success" OffCssClass="btn-danger" OnCheckedChanged="IsActive_CheckedChanged" Enabled="True" OnText="Open" OffText="Closed" />
                         </Columns>
     </Rock:Grid>
 </div>
