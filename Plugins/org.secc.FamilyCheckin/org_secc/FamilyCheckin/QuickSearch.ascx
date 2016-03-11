@@ -71,7 +71,7 @@
                 return;
             }
             selectionActive=true
-            this.innerHTML = "<h4><i class='fa fa-refresh fa-spin'></i>Loading Family</h4>Please wait..."
+            this.innerHTML = "<h4><i class='fa fa-refresh fa-spin'></i> Loading Family</h4>Please wait..."
             this.className = "btn btn-success btn-block"
             
             __doPostBack("ChooseFamily", this.id);
@@ -184,7 +184,9 @@
                                 </div>
                             </div>
                             <div class="col-xs-8">
-                                <div class="alert alert-info" style="visibility:hidden" id="searchMsg"></div>
+                                <div class="alert alert-info" style="visibility:hidden" id="searchMsg">
+                                    <i class='fa fa-refresh fa-spin'></i>
+                                </div>
                             </div>
                             <div class="col-xs-8" id="familyDiv">
             
