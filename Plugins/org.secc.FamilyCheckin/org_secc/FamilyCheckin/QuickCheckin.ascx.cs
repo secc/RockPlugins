@@ -85,6 +85,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             if (currentParentGroupType == null)
             {
                 NavigateToPreviousPage();
+                Response.End();
             }
 
             btnParentGroupTypeHeader.Text = currentParentGroupType.Name + " <i class='fa fa-chevron-down'></i>";
