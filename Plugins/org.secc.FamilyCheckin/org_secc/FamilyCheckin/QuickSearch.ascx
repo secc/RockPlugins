@@ -35,8 +35,9 @@
             phoneNumber = phoneNumber.replace(/\D/g, '');
             var minLength = <%= minLength.ToString()%>;
             if (phoneNumber.length>=minLength){
-
-                $("#searchMsg").html("Searching for families...").css("visibility","unset");
+                var searchMsg = document.getElementById("searchMsg");
+                searchMsg.style.visibility="visible";
+                searchMsg.innerHTML="Searching for families...";
                 
                 $.ajax({
                     url: "/api/org.secc/familycheckin/family/"+phoneNumber,
@@ -50,7 +51,7 @@
         }
 
         var showFamilies = function(families) {
-            $("#searchMsg").css("visibility","hidden")
+            document.getElementById("searchMsg").style.visibility="hidden";
 
             var familyDiv = $("#familyDiv");
             familyDiv.empty();

@@ -69,15 +69,19 @@
         });
 
         var doCheckin = function () {
-            var content = document.getElementById("content");
-            document.body.style.overflow = "hidden";
-            content.style.transitionDuration = "0.2s";
-            content.style.transform = "translateY(100vh)";
-
-            var success = document.getElementById("success");
-            success.style.display = "block";
-            success.style.transform = "translateY(-90vh)";
-            __doPostBack("<%= btnCheckin.UniqueID%>", "OnClick");
+            setTimeout(
+                function () {
+                    var content = document.getElementById("content");
+                    document.body.style.overflow = "hidden";
+                    content.style.transitionDuration = "0.2s";
+                    content.style.transform = "translateY(100vh)";
+            
+                    var success = document.getElementById("success");
+                    success.style.display = "block";
+                    success.style.transform = "translateY(-90vh)";
+                    __doPostBack("<%= btnCheckin.UniqueID%>", "OnClick");
+                },0
+            )            
         }
         
     </script>
