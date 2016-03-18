@@ -37,6 +37,12 @@
     left:15vw;
     top:100vh;
 }
+
+.modal-footer {
+    visibility:hidden;
+}
+
+
 </style>
 
 <asp:UpdatePanel ID="upContent" runat="server">

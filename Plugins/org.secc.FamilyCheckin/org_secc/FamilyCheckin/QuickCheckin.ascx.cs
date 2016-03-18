@@ -82,14 +82,18 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             parentGroupTypesList = (List<GroupTypeCache>)Session["parentGroupTypesList"];
             currentParentGroupType = (GroupTypeCache)Session["currentParentGroupType"];
 
-            if (currentParentGroupType == null)
+            if (currentParentGroupType != null && parentGroupTypesList.Count>1)
             {
-                NavigateToPreviousPage();
-                Response.End();
+                btnParentGroupTypeHeader.Text = currentParentGroupType.Name + " <i class='fa fa-chevron-down'></i>";
+                btnParentGroupTypeHeader.DataLoadingText = currentParentGroupType.Name + " <i class='fa fa-refresh fa-spin'>";
+            }
+            else
+            {
+                btnParentGroupTypeHeader.Text = "Check-In";
+                btnParentGroupTypeHeader.DataLoadingText = "Check-In";
+                btnParentGroupTypeHeader.Enabled = false;
             }
 
-            btnParentGroupTypeHeader.Text = currentParentGroupType.Name + " <i class='fa fa-chevron-down'></i>";
-            btnParentGroupTypeHeader.DataLoadingText = currentParentGroupType.Name + " <i class='fa fa-refresh fa-spin'>";
 
             DisplayPeople();
 
