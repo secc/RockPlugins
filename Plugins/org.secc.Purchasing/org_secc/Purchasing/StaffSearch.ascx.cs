@@ -79,14 +79,13 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         }
 
 
-        public int MinistryAreaAttributeID
+        public Guid? MinistryAreaAttributeGuid
         {
             get
             {
-                int attributeID = 3062;
-                if (ViewState["StaffSearch_MinistryAreaAttributeID"] != null)
-                    attributeID = (int)ViewState["StaffSearch_MinistryAreaAttributeID"];
-                return attributeID;
+                if (ViewState["StaffSearch_MinistryAreaAttributeGuid"] != null)
+                    return ViewState["StaffSearch_MinistryAreaAttributeGuid"].ToString().AsGuid();
+                return null;
             }
             set
             {
@@ -94,15 +93,14 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
         }
 
-        public int PositionAttributeID
+        public Guid? PositionAttributeGuid
         {
             get
             {
-                int positionID = 29;
                 if (ViewState["StaffSearch_PositionAttributeID"] != null)
-                    positionID = (int)ViewState["StaffSearch_PositionAttributeID"];
+                    return ViewState["StaffSearch_PositionAttributeID"].ToString().AsGuid();
 
-                return positionID;
+                return null;
             }
             set
             {
@@ -299,7 +297,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             List<DefinedValue> MinistryAreas = new List<DefinedValue>();
             DefinedValueService definedValueService = new DefinedValueService(new Rock.Data.RockContext());
-            return definedValueService.GetByDefinedTypeId(MinistryAreaAttributeID).ToList() ;
+            return definedValueService.GetByDefinedTypeGuid(MinistryAreaAttributeGuid.Value).ToList() ;
         }
 
         private string GetSelectedStaffPersonIDs()
@@ -346,23 +344,34 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             string Name1 = String.Empty;
             string Name2 = String.Empty;
 
+            AttributeService attributeService = new AttributeService(new Rock.Data.RockContext());
+            int ministryAreaAttributeID = 0;
+            int positionAttributeID = 0;
+            if (MinistryAreaAttributeGuid.HasValue) {
+                ministryAreaAttributeID = attributeService.Get(MinistryAreaAttributeGuid.Value).Id;
+            }
+            if (PositionAttributeGuid.HasValue)
+            {
+                positionAttributeID = attributeService.Get(PositionAttributeGuid.Value).Id;
+            }
+
             int.TryParse(ddlMinistry.SelectedValue, out MinistryLUID);
 
             if (ParseName(out PersonID, out Name1, out Name2))
             {
                 if (PersonID > 0)
-                    dt = new StaffMemberData().GetStaffMembersDTByPersonID(MinistryAreaAttributeID, PositionAttributeID, PersonID);
+                    dt = new StaffMemberData().GetStaffMembersDTByPersonID(ministryAreaAttributeID, positionAttributeID, PersonID);
                 else
                 {
                     if (MinistryLUID > 0)
-                        dt = new StaffMemberData().GetStaffMembersDTByNameMinistry(MinistryAreaAttributeID, PositionAttributeID, Name1, Name2, MinistryLUID);
+                        dt = new StaffMemberData().GetStaffMembersDTByNameMinistry(ministryAreaAttributeID, positionAttributeID, Name1, Name2, MinistryLUID);
                     else
-                        dt = new StaffMemberData().GetStaffMembersDTByName(MinistryAreaAttributeID, PositionAttributeID, Name1, Name2);
+                        dt = new StaffMemberData().GetStaffMembersDTByName(ministryAreaAttributeID, positionAttributeID, Name1, Name2);
                 }
             }
             else
             {
-                dt = new StaffMemberData().GetStaffMembersDTByMinistryID(MinistryAreaAttributeID, PositionAttributeID, MinistryLUID);
+                dt = new StaffMemberData().GetStaffMembersDTByMinistryID(ministryAreaAttributeID, positionAttributeID, MinistryLUID);
             }
             return dt;
         }
@@ -512,10 +521,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 ValErrors.Add("ParentPersonControlID", "The Parent form's Person ID control ID must be provided.");
             if(String.IsNullOrEmpty(ParentRefreshButtonID))
                 ValErrors.Add("ParentRefreshButtonID", "The parent form's Refresh Button ID must be provided.");
-            if(MinistryAreaAttributeID <= 0)
-                ValErrors.Add("MinistryAreaAttributeID", "Ministry Area Attribute ID must be greater than 0.");
-            if(PositionAttributeID <= 0)
-                ValErrors.Add("PositionAttributeID", "Position Attribute ID must be greater than 0.");
+            if(!MinistryAreaAttributeGuid.HasValue)
+                ValErrors.Add("MinistryAreaAttributeGuid", "Ministry Area Attribute Guid must have a value.");
+            if (!PositionAttributeGuid.HasValue)
+                ValErrors.Add("PositionAttributeGuid", "Position Attribute Guid must have a value.");
 
             return ValErrors;
         }

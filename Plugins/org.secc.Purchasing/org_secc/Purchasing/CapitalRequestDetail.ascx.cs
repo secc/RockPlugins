@@ -22,7 +22,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
     [DisplayName("Capital Request Detail")]
     [Category("Purchasing")]
-    [Description("Lists all capital requests.")]
+    [Description("Capital Request Detail page (display/edit a single CR).")]
     [LinkedPage("List Page", "The page that displays the capital request list.", true)]
     [LinkedPage("Person Detail Page", "Person Detail Page", false)]
     [BooleanField("Allow Ministry Selection", "A true/false flag that indicates if the user is able to select the requesting ministry. The default value is true.", false, "Summary Settings")]
@@ -102,19 +102,19 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
         }
 
-       public int MinistryAreaPersonAttributeSetting
+       public Guid MinistryAreaPersonAttributeSetting
         {
             get
             {
-                return GetAttributeValue("MinistryAreaPersonAttribute").AsIntegerOrNull() ?? 63;
+                return GetAttributeValue("MinistryAreaPersonAttribute").AsGuid();
             }
         }
 
-        public int PositionPersonAttributeSetting
+       public Guid PositionPersonAttributeSetting
         {
             get
             {
-                return GetAttributeValue("PositionPersonAttribute").AsIntegerOrNull() ?? 29;
+                return GetAttributeValue("PositionPersonAttribute").AsGuid();
             }
         }
 
@@ -1919,8 +1919,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             ucStaffSearch.Title = title;
             ucStaffSearch.ParentPersonControlID = personIdControl;
             ucStaffSearch.ParentRefreshButtonID = refreshButtonControl;
-            ucStaffSearch.MinistryAreaAttributeID = MinistryAreaPersonAttributeSetting;
-            ucStaffSearch.PositionAttributeID = PositionPersonAttributeSetting;
+            ucStaffSearch.MinistryAreaAttributeGuid = MinistryAreaPersonAttributeSetting;
+            ucStaffSearch.PositionAttributeGuid = PositionPersonAttributeSetting;
             ucStaffSearch.Show();
         }
 

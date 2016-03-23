@@ -1,0 +1,714 @@
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="RequisitionDetail.ascx.cs"
+    Inherits="RockWeb.Plugins.org_secc.Purchasing.RequisitionDetail" %>
+<%@ Register Src="VendorSelect.ascx" TagName="VendorSelect" TagPrefix="secc" %>
+<%@ Register Src="Notes.ascx" TagName="Notes" TagPrefix="secc" %>
+<%@ Register Src="Attachments.ascx" TagName="Attachments" TagPrefix="secc" %>
+<%@ Register Src="StaffSearch.ascx" TagName="StaffSearch" TagPrefix="secc" %>
+
+<script type="text/javascript">
+  
+    function dateNeededChanged() {
+        var selectedDateText = $("#[id*=txtDateNeeded]").val();
+        if (selectedDateText == "") {
+            return;
+        }
+        var selectedDate = Date.parse(selectedDateText);
+
+        if (isNaN(selectedDate)) {
+            $("#[id*=txtDateNeeded]").val("");
+            alert("Date Needed is not valid. Please retry.");
+            return;
+        }
+
+        var expeditedShippingWindowDays = parseInt( $( "#[id*=hfExpeditedShippingDays]" ).val() );
+
+        if (getMaxExpeditedShippingDate(expeditedShippingWindowDays) >= selectedDate) {
+            showAllowExpedited(true);
+        }
+        else {
+            showAllowExpedited(false);
+        }
+
+    }
+
+    function showAllowExpedited(isVisibile)
+    {
+        if(isVisibile)
+        {
+            $("#ItemAllowExpedited").css("display", "inline");
+        }
+        else
+        {
+             $("#ItemAllowExpedited").css("display", "none");
+        }
+    }
+
+    function getMaxExpeditedShippingDate(daysInWindow) {
+        var expeditedDate = getTodayAtMidnight();
+        expeditedDate.setDate(expeditedDate.getDate() + daysInWindow);
+
+        return expeditedDate;
+    }
+
+    function getTodayAtMidnight() {
+        var today = new Date(Date.now());
+        var year = today.getFullYear();
+        var month = today.getMonth();
+        var date = today.getDate();
+
+        return new Date(year, month, date);
+    }
+
+    function autoAdvanceCheck(e, charCount, currentControlID, nextControlID)
+    {
+        var keyPressed = e.keyCode || e.which;
+        
+        if(keyPressed == 9 || keyPressed == 16)
+        {
+            return;
+        }
+
+       var txtValue = $("#[id*=" + currentControlID + "]").val();
+       
+       if(txtValue.length == charCount)
+       {
+            $("#[id*=" + nextControlID + "]").focus();
+       } 
+    }
+
+    function setItemDetailEditability(isReadOnly)
+    {
+        alert("yes");
+        var className = "readOnly";
+        if(isReadOnly)
+        {
+            $("#itemDetails").find("input[type=text]").addClass(className);
+        }
+        else
+        {
+            $("#itemDetails").find("input[type=text]").addClass(className);
+        }
+
+    }
+
+    function checkAllItems() {
+        var isChecked = false;
+        if ($("#[id*=chkItemDetailsAll]").attr("checked")) {
+            isChecked = true;
+        }
+        var table = $("#[id*=dgItems]");
+        if (isChecked == true) {
+            table.find("#[id*=chkItemDetail]").attr("checked", "true");
+        }
+        else {
+            table.find("#[id*=chkItemDetail]").removeAttr("checked");
+        }
+    }
+
+    function returnToRequesterCallback(noteID) {
+        $("#[id*=hfReturnToSenderNoteID]").val(noteID);
+        $("#[id*=btnReturnToRequesterPart2]").click();
+    }
+</script>
+
+<asp:UpdatePanel ID="upMain" runat="server" UpdateMode="Conditional">
+    <ContentTemplate>
+        <secc:StaffSearch ID="ucStaffSearch" runat="server" AllowMultipleSelections="false" ShowPersonDetailLink="true" ShowPhoto="true" />
+        <asp:HiddenField ID="hfReturnToSenderNoteID" runat="server" />
+        <asp:Button ID="btnReturnToRequesterPart2" runat="server" OnClick="btnReturnToRequesterPart2_Click" style="display:none; visibility:hidden;" />
+        <asp:HiddenField ID="hfExpeditedShippingDays" runat="server" />
+        <input type="hidden" id="ihPersonList" runat="server" name="ihPersonList" />
+        <asp:Button ID="btnRefresh" runat="server" OnClick="btnRefresh_Click" Style="visibility: hidden;
+            display: none" Text="Refresh" />
+        <div id="pnlMain" style="border: solid 2px #c1bfbf; padding: 0; margin: 0">
+            
+        <div class="btn-group" role="group" style="margin-bottom: 10px;">
+            <asp:LinkButton ID="lbSave" CssClass="btn btn-default" runat="server" CommandName="Save" OnClick="ToolbarItem_click" Visible="false">Save</asp:LinkButton>
+            <asp:LinkButton ID="lbAddItem" CssClass="btn btn-default" runat="server" CommandName="AddItem" OnClick="ToolbarItem_click" Visible="false">Add Item</asp:LinkButton>
+            <asp:LinkButton ID="lbAddItemToPO" CssClass="btn btn-default" runat="server" CommandName="AddItemToPO" OnClick="ToolbarItem_click" Visible="false">Add Items to PO</asp:LinkButton>
+            <asp:LinkButton ID="lbAddNote" CssClass="btn btn-default" runat="server" CommandName="AddNote" OnClick="ToolbarItem_click" Visible="false">Add Note</asp:LinkButton>
+            <asp:LinkButton ID="lbAddAttachment" CssClass="btn btn-default" runat="server" CommandName="AddAttachment" OnClick="ToolbarItem_click" Visible="false">Add Attachment</asp:LinkButton>
+            <asp:LinkButton ID="lbRequestApproval" CssClass="btn btn-default" runat="server" CommandName="requestapproval" OnClick="ToolbarItem_click" Visible="false">Select Approver</asp:LinkButton>
+            <asp:LinkButton ID="lbSubmitToPurchasing" CssClass="btn btn-default" runat="server" CommandName="submitToPurchasing" OnClick="ToolbarItem_click" Visible="false">Submit to Purchasing</asp:LinkButton>
+            <asp:LinkButton ID="lbAcceptRequisition" CssClass="btn btn-default" runat="server" CommandName="acceptrequisition" OnClick="ToolbarItem_click" Visible="false">Accept Requisition</asp:LinkButton>
+            <asp:LinkButton ID="lbReturnToRequester" CssClass="btn btn-default" runat="server" CommandName="returntorequester" OnClick="ToolbarItem_click" Visible="false">Return to Requester</asp:LinkButton>
+            <asp:LinkButton ID="lbCancel" CssClass="btn btn-default" runat="server" CommandName="cancelrequisition" OnClick="ToolbarItem_click" Visible="false">Cancel Requisition</asp:LinkButton>
+            <asp:LinkButton ID="lbReturn" CssClass="btn btn-default" runat="server" CommandName="return" OnClick="ToolbarItem_click" Visible="true">Return To List</asp:LinkButton>
+        </div>
+            <div id="divStatusNote" class="statusNote smallText" runat="server" visible="false">
+                <strong>This requisition is <%= StateType %>.</strong> <br />
+                <asp:Label ID="lblDisposition" runat="server" Visible='<%# String.IsNullOrEmpty(Disposition) %>'>
+                    <strong>Disposition:</strong> &nbsp; <%= Disposition %>
+                </asp:Label>
+            </div>
+            <div id="content">
+                <h2>
+                    <asp:Label ID="lblTitle" runat="server" Text='<%= NewRequisitionTitleSetting %>' /></h2>
+                <div id="icons">
+                    <asp:HyperLink ID="lnkNotes" runat="server" Visible="false" NavigateUrl="#notes"><img src="/UserControls/Custom/SECC/Purchasing/images/notes.png" alt="Notes" /></asp:HyperLink>
+                    <asp:HyperLink ID="lnkAttachments" runat="server" Visible="false" NavigateUrl="#attachments"><img src="/UserControls/Custom/SECC/Purchasing/images/attachments.png" alt="Attachments" /></asp:HyperLink>
+                </div>
+                <div class="summary" style="margin: 5px 5px 5px 5px;">
+                    <h3>
+                        Summary</h3>
+                        <div class="smallText">
+                            Please enter the details of your request. Fields marked with <span class="required">*</span> are required.
+                        </div>
+                        <div id="summaryError" class="smallText" style="color:Red;">
+                            <asp:Label ID="lblSummaryError" runat="server" Visible="false" />
+                        </div>
+                    <table class="summaryGrid" border="0" cellspacing="1" cellpadding="1" style="vertical-align:top;">
+                        <tr>
+                            <td style="width: 100px;" class="formLabel">
+                                Req. Title:
+                            </td>
+                            <td style="width: 200px;" class="formItem">
+                                <asp:TextBox ID="txtTitle" runat="server" Visible="true" ReadOnly="false" MaxLength="200" Style="width: 175px; " />
+                                <asp:Label ID="lblSummaryTitle" runat="server" Visible="false" />
+                                <span class="required">*</span>
+                            </td>
+                            <td style="width: 75px;" class="formLabel">
+                                Type:
+                            </td>
+                            <td style="width: 200px;" class="formItem">
+                                <asp:DropDownList ID="ddlType" runat="server" CssClass="smallText" AutoPostBack="true" OnSelectedIndexChanged="ddlType_SelectedIndexChanged" />
+                                <asp:Label ID="lblType" runat="server" Text="Type" Visible="false" />
+                                <span class="required">*</span>
+                            </td>
+                            <td style="width: 75px;" class="formLabel">
+                                Status:
+                            </td>
+                            <td class="formItem">
+                                <asp:Label ID="lblStatus" runat="server" Text="Status" />
+
+                        </tr>
+                        <tr>
+                            <td class="formLabel">
+                                Requester:
+                            </td>
+                            <td class="formItem">
+                                <asp:HiddenField ID="hdnRequesterID" runat="server" />
+                                <asp:Label ID="lblRequesterName" runat="server" />
+                                <asp:Button ID="btnChangeRequester" runat="server" CssClass="smallText" Text="..."
+                                    Visible="false" OnClick="btnChangeRequester_Click" />
+                                <span class="required">*</span>
+                            </td>
+                            <td class="formLabel">
+                                Deliver To:
+                            </td>
+                            <td class="formItem">
+                                <asp:TextBox ID="txtDeliverTo" runat="server" Text="Deliver To" Style="width: 175px;" />
+                                <asp:Label ID="lblDeliverTo" runat="server" Text="Deliver To" Visible="false" />
+                                <span class="required">*</span>
+                            </td>
+                            <td class="formLabel">
+                                Approved:
+                            </td>
+                            <td class="formItem">
+                                <asp:Label ID="lblApproval" runat="server" Text="Not Approved" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="formLabel">
+                                Pref. Vendor:
+                            </td>
+                            <td class="formItem">
+                                <asp:Label ID="lblVendor" runat="server" />
+                                <asp:LinkButton ID="lbVendorRemove" runat="server" Visible="false" OnClick="lbVendorRemove_click"
+                                    Style="text-decoration: none;">
+                                    <i class="fa fa-times"></i>
+                                </asp:LinkButton>
+                                <asp:Button ID="btnVendorModalShow" runat="server" Text="..." CssClass="smallText"
+                                    OnClick="btnVendorModalShow_click" />
+                            </td>
+                            <div id="divCapitalRequest" runat="server" visible="false">
+                            <td class="formLabel">
+                                CER:
+                            </td>
+                            <td class="formItem">
+                                <asp:HiddenField ID="hfCapitalRequest" runat="server" />
+                                <asp:Literal ID="lCapitalRequest" runat="server" />
+                                <asp:LinkButton ID="lbCapitalRequestRemove" runat="server" Visible="false" OnClick="lbCapitalRequestRemove_Click" Style="text-decoration:none;" >
+                                    <img src="/images/delete.png" alt="Remove" style="border:0px;" />
+                                </asp:LinkButton>
+                                <asp:Button ID="btnCapitalRequestModalShow" runat="server" Text="..." CssClass="smallText" OnClick="btnCapitalRequestModalShow_Click" />
+                            </td>
+                            </div>
+                        </tr>
+                        
+
+                        
+                    </table>
+                </div>
+                <div class="scripture">
+                    <%= ScriptureTextSetting %>
+                </div>
+                <div id="items">
+                    <h3>
+                        Items</h3>
+                  <Rock:Grid ID="dgItems" runat="server" AllowPaging="false" AllowSorting="false" OnItemDataBound="dgItems_ItemDataBound" ShowFooter="true"
+                        DataKeyField="ItemID" CssClass="list" AutoGenerateColumns="false" NoResultText="No Active Items">
+                        <Columns>
+                            <Rock:RockBoundField DataField="ItemID" Visible="false" />
+                            <Rock:RockBoundField HeaderText="Qty" DataField="Quantity" ItemStyle-Width="4%" ItemStyle-HorizontalAlign="Right"/>
+                            <Rock:RockBoundField HeaderText="Qty Recv'd" DataField="QuantityReceived" ItemStyle-Width="4%" ItemStyle-HorizontalAlign="Right" />
+                            <Rock:RockBoundField HeaderText="Item #" DataField="ItemNumber" ItemStyle-Width="10%" />
+                            <Rock:RockBoundField HeaderText="Description" DataField="Description" ItemStyle-Width="30%" ItemStyle-CssClass="wrap" />
+                            <Rock:RockBoundField HeaderText="Needed By" DataField="DateNeeded" ItemStyle-Width="5%" DataFormatString="{0:d}"  />
+                            <Rock:BoolField HeaderText="Express Shipping" DataField="ExpeditedShipping" ItemStyle-Width="5%" ItemStyle-HorizontalAlign="Center" HeaderStyle-HorizontalAlign="Center" />
+                            <Rock:RockTemplateField SortExpression="AccountNumber" ItemStyle-Width="7%">
+                                <HeaderTemplate>
+                                    Charge To</HeaderTemplate>
+                                <ItemTemplate>
+                                    <%# DataBinder.Eval(Container.DataItem, "AccountNumber") %>
+                                </ItemTemplate>
+                            </Rock:RockTemplateField>
+                            <Rock:RockBoundField HeaderText="Cost/Item" DataField="EstimatedCost" ItemStyle-Width="5%" DataFormatString="{0:c}" />
+                            <Rock:RockBoundField HeaderText="Ext" DataField="LineItemCost" ItemStyle-Width="5%" DataFormatString="{0:c}" />
+                            <Rock:RockTemplateField HeaderText="Purchase Orders" HeaderStyle-HorizontalAlign="Center" ItemStyle-Width="5%" ItemStyle-HorizontalAlign="Center">
+                                <ItemTemplate>
+                                    <asp:Literal ID="litPOs" runat="server"></asp:Literal>
+                                </ItemTemplate>
+                            </Rock:RockTemplateField>
+                            <Rock:RockTemplateField ItemStyle-Width="10%">
+                                <ItemTemplate>&nbsp;</ItemTemplate>
+                            </Rock:RockTemplateField>
+                            <Rock:RockTemplateField>
+                                <ItemStyle HorizontalAlign="Right" Width="1%" />
+                                <ItemTemplate>
+                                    <asp:LinkButton ID="lbEdit" runat="server" CommandName="Update">
+                                        <img src="/images/edit.gif" alt="edit" />
+                                    </asp:LinkButton>
+                                </ItemTemplate>
+                            </Rock:RockTemplateField>
+
+                            <Rock:RockTemplateField>
+                                <ItemStyle HorizontalAlign="Right" Width="1%" />
+                                <ItemTemplate>
+                                    <asp:LinkButton ID="lbRemove" runat="server" CommandName="Remove" >
+                                        <img src="/images/delete.png" alt="Remove" />
+                                    </asp:LinkButton>
+                                </ItemTemplate>
+                            </Rock:RockTemplateField>
+                        </Columns>
+                    </Rock:Grid>
+                </div>
+                <div id="approvals"> 
+                    <h3>Approval Requests</h3>
+                    <Rock:Grid ID="dgApprovals" runat="server" AllowPaging="false" AllowSorting="false" OnReBind="dgApprovals_ReBind" NoResultText="No Approval Requests found"
+                         DataKeyField="ApprovalID" CssClass="list" OnItemDataBound="dgApprovals_ItemDataBound" OnItemCommand="dgApprovals_ItemCommand" >
+                        <Columns>
+                            <Rock:RockBoundField HeaderText="Approval ID" DataField="ApprovalID" Visible = "false" />
+                            <Rock:RockBoundField HeaderText="Approver" DataField="ApproverName" />
+                            <Rock:RockBoundField HeaderText="Status" DataField="ApprovalStatus" />
+                            <Rock:RockBoundField HeaderText="Date Approved" DataField="DateApproved" DataFormatString="{0:d}" />
+                            <Rock:RockTemplateField ItemStyle-HorizontalAlign="Right">
+                                <ItemTemplate>
+                                    <asp:LinkButton ID="lbResubmit" runat="server" Visible="false" Text="Resubmit" CommandName="resubmit" />
+                                    <asp:LinkButton ID="lbApprove" runat="server" Visible="false" Text="Approve" CommandName="approve" />
+                                    <asp:LinkButton ID="lbApproveForward" runat="server" Visible="false" Text="Approve & Forward" CommandName="approveForward" />
+                                    <asp:LinkButton ID="lbDeny" runat="server" Visible="false" Text="Decline" CommandName="decline" />
+                                </ItemTemplate>
+                            </Rock:RockTemplateField>
+
+                            <Rock:RockTemplateField>
+                                <ItemStyle HorizontalAlign="Center" />
+                                <ItemTemplate>
+                                    <asp:LinkButton ID="lbRemove" runat="server" CommandName="Remove" Visible="false">
+                                        <img src="/images/delete.png" alt="Remove" />
+                                    </asp:LinkButton>
+                                </ItemTemplate>
+                            </Rock:RockTemplateField>
+                        </Columns>
+                    </Rock:Grid> 
+                    <asp:HiddenField ID="hfApproverID" runat="server" />
+                    <asp:Button ID="btnApproverAdd" runat="server" OnClick="btnApproverAdd_Click" style="visibility:hidden;display:none;" />
+                </div>
+                
+                <div id="charges" >
+                    <h3>Charges</h3>
+                    <Rock:Grid ID="dgCharges" runat="server" AllowPaging="false" AllowSorting="false" DataKeyField="PaymentChargeID" NoResultText="No Charges found for this requisition." CssClass="list">
+                        <Columns>
+                            <Rock:RockBoundField HeaderText="PaymentChargeID" DataField="PaymentChargeID" Visible="false" />
+                            <Rock:RockBoundField HeaderText="Payment Date" DataField="PaymentDate" DataFormatString="{0:d}" />
+                            <Rock:RockBoundField HeaderText="Purchase Order" DataField="PurchaseOrderId" />
+                            <Rock:RockBoundField HeaderText="Vendor" DataField="VendorName" />
+                            <Rock:RockBoundField HeaderText="Payment Method" DataField="PaymentMethodName" />
+                            <Rock:RockBoundField HeaderText="Account" DataField="Account" />
+                            <Rock:RockBoundField HeaderText="Charge Amount" DataField="ChargeAmount" DataFormatString="{0:c}" />
+                        </Columns>
+                    </Rock:Grid>
+                    
+                </div>
+                <div id="notes">
+                    <h3>Notes</h3>
+                    <secc:Notes ID="ucPurchasingNotes" runat="server" />
+                </div>
+                <div id="attachments">
+                    <h3>Attachments</h3>
+                    <secc:Attachments ID="ucAttachments" runat="server"/>
+                </div>
+            </div>
+            <div class="footer">
+                <%= FooterTextSetting %>
+            </div>
+        </div>
+        <Rock:ModalIFrameDialog ID="mpiAttachmentPicker" runat="server"/>
+        <Rock:ModalDialog ID="mpChooseVendor" runat="server" Title="Choose Vendor" CancelControlID="btnVendorModalCancel"
+            EnableViewState="true" OnSaveClick="btnVendorModalUpdate_click">
+            <Content>
+                <asp:UpdatePanel ID="upChooseVendor" runat="server" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <div runat="server" id="divVendorInstructions" class="instructions smallText">
+                            <%= ChooseVendorInstructionsSetting %>
+                        </div>
+                        <secc:VendorSelect ID="ucVendorSelect" runat="server" EnableViewState="true"/>
+                    </ContentTemplate>
+                </asp:UpdatePanel>
+            </Content>
+        </Rock:ModalDialog>
+
+        <Rock:ModalDialog ID="mpCancelPrompt" runat="server">
+            <Content>
+               <div style="width:200px; text-align:center;">
+                    <h3>Cancel Requisition</h3>
+                    <div class="smallText">
+                        Are you sure that you would like to cancel this requisition request?
+                    </div>
+
+               </div>
+            </Content>
+            <%--Buttons
+                TODO: Make sure these buttons are tied to something.
+                    <asp:Button ID="btnCancelPromptYes" runat="server" OnClick="mpCancelPrompt_Click" CssClass="smallText" CommandName="cancelYes" Text="Yes" style="width:50px;" />
+                    <asp:Button ID="btnCancelPromptNo" runat="server" OnClick="mpCancelPrompt_Click" CssClass="smallText" CommandName="cancelNo" Text="No" style="width:50px;"/>
+            </Buttons--%>
+
+        </Rock:ModalDialog>
+
+        <Rock:ModalDialog ID="mpSelectApprovalType" runat="server">
+            <Content>
+                <asp:UpdatePanel ID="upSelectApprovalType" runat="server">
+                <ContentTemplate>
+                <div style="width:300px;">
+                    <div style="text-align:center;">
+                        <h3>Select Approver</h3>
+                        <div class="smallText">Who would you like to approve this requisition?</div>
+                        <asp:Button ID="btnSelectApproverSelf" runat="server" cssclass="smallText" Text="Self" OnClick="btnSelectApproverSelf_Click" />
+                        <asp:Button ID="btnSelectApproverOther" runat="server" CssClass="smallText" Text="Other" OnClick="btnSelectApproverOther_Click" />
+                    </div>
+                </div>
+                </ContentTemplate>
+                <Triggers>
+                    <asp:AsyncPostBackTrigger ControlID="lbRequestApproval" />
+                </Triggers>
+                </asp:UpdatePanel>
+            </Content>
+        </Rock:ModalDialog>
+
+        <Rock:ModalDialog ID="mpPurchaseOrderSelect" runat="server">
+            <Content>
+                <asp:UpdatePanel ID="upPurchaseOrderSelect" runat="server" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <div id="purchaseOrderSelect">
+                            <h3>Select Purchase Order</h3>
+                            <div style=" max-height:400px; overflow:auto;">
+                                <Rock:Grid ID="dgSelectPurchaseOrder" runat="server" CssClass="list" AllowPaging="false" AllowSorting="false">
+                                    <Columns>
+                                        <Rock:RockTemplateField ItemStyle-Width="10%" ItemStyle-HorizontalAlign="Center" ItemStyle-VerticalAlign="Middle">
+                                            <ItemTemplate>
+                                                <asp:RadioButton ID="rdoSelectPO" runat="server" GroupName="SelectPO" AutoPostBack="true" OnCheckedChanged="rdoSelectPO_CheckedChanged" />
+                                            </ItemTemplate>
+                                        </Rock:RockTemplateField>
+                                        <Rock:RockBoundField HeaderText="PO Number" DataField="PurchaseOrderID" />
+                                        <Rock:RockBoundField HeaderText="Type" DataField="Type" />
+                                        <Rock:RockBoundField HeaderText="Vendor Name" DataField="VendorName" />
+                                        <Rock:RockBoundField HeaderText="Created By" DataField="CreatedBy" />
+                                        <Rock:RockBoundField HeaderText="Date Created" DataField="DateCreated" />
+                                    </Columns>
+                                </Rock:Grid>
+                            </div>
+                            <div style="padding-top:3px; text-align:right;">
+                                <asp:Button ID="btnSelectPurchaseOrderSelect" runat="server" CssClass="smallText" Text="Select PO"  OnClick="btnSelectPurchaseOrderSelect_Click" />
+                                <asp:Button ID="btnSelectPurchaseOrderNew" runat="server" CssClass="smallText" Text="New PO" OnClick="btnSelectPurchaseOrderNew_Click" />
+                                <asp:Button ID="btnSelectPurchaseOrderCancel" runat="server" CssClass="smallText" Text="Cancel" OnClick="btnSelectPurchaseOrderCancel_Click" />
+                            </div>
+                        </div>
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="lbAddItemToPO" />
+                    </Triggers>
+                </asp:UpdatePanel>
+            </Content>
+        </Rock:ModalDialog>
+        <Rock:ModalDialog ID="mpSelectPurchaseOrderItems" runat="server">
+            <Content>
+                <asp:UpdatePanel ID="upSelectPurchaseOrderItems" runat="server" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <div id="selectPurchaseOrderItems">
+                            <h3>Select PO Items</h3>
+                            <asp:HiddenField ID="hfSelectPOItemsPONumber" runat="server" />
+                            <div id="selectPurchaseOrderError">
+                                <asp:Label ID="lblSelectPurchaseOrderError" runat="server" CssClass="smallText" Visible="false" style="color:Red;" />
+                            </div>
+                            <div style="width:100%;">
+                                <div style="width:125px; float:left;" class="formLabel">
+                                    PO Number:
+                                </div>
+                                <div style="width:150px; float:left;" class="formItem">
+                                    <asp:Label ID="lblSelectPOItemsPONumber" runat="server" />
+                                </div>
+                                <div style="width:75px; float:left;" class="formLabel">
+                                    Vendor:
+                                </div>
+                                <div style="width:250px; float: left;" class="formItem">
+                                    <asp:DropDownList ID="ddlSelectPOItemsVendor" runat="server" CssClass="smallText" style="max-width:95%;" />
+                                    <asp:Label ID="lblSelectPOItemsVendor" runat="server" Visible="false" />
+                                </div>
+                            </div>
+                            <div style="width:100%;">
+                                <div style="width:125px; float:left;" class="formLabel">
+                                    Type:
+                                </div>
+                                <div style="width:475px; float:left;" class="formItem">
+                                    <asp:DropDownList ID="ddlSelectPOItemsType" runat="server" CssClass="smallText" />
+                                    <asp:Label ID="lblSelectPOItemsType" runat="server" CssClass="smallText" />
+                                </div>
+                            </div>
+                            <div style="width:99%; max-height:350px; overflow-y:auto; overflow-x:hidden;">
+                                <Rock:Grid ID="dgSelectPOItems" runat="server" class="list" AllowPaging="false" AllowSorting="false" OnItemDataBound="dgSelectPOItems_ItemDataBound">
+                                    <Columns>
+                                        <Rock:RockBoundField DataField="ItemID" HeaderText="ItemID" Visible="false" />
+                                        <Rock:RockBoundField DataField="ItemNumber" HeaderText="Item Number" ItemStyle-Width="15%"
+                                            HeaderStyle-HorizontalAlign="Center" />
+                                        <Rock:RockBoundField DataField="Description" HeaderText="Description" ItemStyle-Width="20%" ItemStyle-CssClass="wrap" />
+                                        <Rock:RockBoundField DataField="DateNeeded" HeaderText="Date Needed" ItemStyle-Width="10%"
+                                            HeaderStyle-HorizontalAlign="Center" />
+                                        <Rock:BoolField DataField="AllowExpedited" HeaderText="Expedite" ItemStyle-HorizontalAlign="Center"
+                                            ItemStyle-Width="10%" />
+                                        <Rock:RockBoundField DataField="QtyRequested" HeaderText="Qty Requested" ItemStyle-Width="10%"
+                                            ItemStyle-HorizontalAlign="Center" HeaderStyle-HorizontalAlign="Center" />
+                                        <Rock:RockBoundField DataField="QtyAssigned" HeaderText="Qty Assigned" ItemStyle-Width="10%"
+                                            ItemStyle-HorizontalAlign="Center" HeaderStyle-HorizontalAlign="Center" />
+                                        <Rock:RockTemplateField ItemStyle-Width="10%">
+                                            <HeaderTemplate>
+                                                Remaining
+                                            </HeaderTemplate>
+                                            <ItemTemplate>
+                                                <asp:TextBox ID="txtQtyRemaining" runat="server" Visible="false" Style="width: 25px;" />
+                                                <asp:Label ID="lblQuantityRemaining" runat="server" CssClass="smallText"
+                                                    Visible="false" />
+                                            </ItemTemplate>
+                                        </Rock:RockTemplateField>
+                                        <Rock:RockTemplateField  ItemStyle-Width="15%">
+                                            <HeaderTemplate>
+                                                Price</HeaderTemplate>
+                                            <ItemTemplate>
+                                                <asp:TextBox ID="txtRequisitionItemPrice" runat="server" CssClass="smallText" Visible="false"
+                                                    Style="width: 50px;" />
+                                            </ItemTemplate>
+                                        </Rock:RockTemplateField>
+                                    </Columns>
+                                </Rock:Grid>
+                            </div>
+                            <div style="text-align:right; padding-top:3px;">
+                                <asp:Button ID="btnSelectPOItemsAdd" runat="server" Text="Add" CssClass="smallText" OnClick="btnSelectPOItemsAdd_Click" />
+                                <asp:Button ID="btnSelectPOItemsReset" runat="server" Text="Reset" CssClass="smallText" OnClick="btnSelectPOItemsReset_Click" />
+                                <asp:Button ID="btnSelectPOItemsCancel" runat="server" Text="Cancel" CssClass="smallText" OnClick="btnSelectPOItemsCancel_Click" />
+                            </div>
+                        </div>
+                    </ContentTemplate>
+                    <%-- Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="btnSelectPurchaseOrderNew" />
+                        <asp:AsyncPostBackTrigger ControlID="btnSelectPurchaseOrderSelect" />
+                    </ --%>
+                </asp:UpdatePanel>
+            </Content>
+        </Rock:ModalDialog>
+        <Rock:ModalDialog ID="mpCERSelect" runat="server">
+            <Content>
+                <asp:UpdatePanel id="upCERSelect" runat="server" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <h3>Choose Capital Request</h3>
+                        <div id="pnlCERSelect" style="width:500px;">
+                            <Rock:Grid ID="grdCERSelect" runat="server" PageSize="10" AllowPaging="true" OnReBind="grdCERSelect_ReBind">
+                                <Columns>
+                                    <Rock:RockBoundField DataField="CapitalRequestId" Visible="false" />
+                                    <Rock:RockTemplateField>
+                                        <ItemTemplate>
+                                            <asp:RadioButton ID="rbCERSelect" runat="server" GroupName="CERSelect" AutoPostBack="true" OnCheckedChanged="rbCERSelect_CheckedChanged" />
+                                        </ItemTemplate>
+                                    </Rock:RockTemplateField>
+                                    <Rock:RockBoundField DataField="ProjectName" HeaderText="Project Name" SortExpression="ProjectName" />
+                                    <Rock:RockBoundField DataField="RequestingMinistry" HeaderText="Ministry" SortExpression="RequestingMinistry" />
+                                    <Rock:RockBoundField DataField="RequesterName" HeaderText="Requester" SortExpression="RequesterNameLastFirst" />
+                                    <Rock:RockBoundField DataField="FullAccountNumber" HeaderText="Account" SortExpression="FullAccountNumber" />
+                                </Columns>
+                            </Rock:Grid>
+                        </div>
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="btnCapitalRequestModalShow" />
+                    </Triggers>
+                </asp:UpdatePanel>
+            </Content>
+            <%--Buttons>
+                TODO: Make sure these buttons are tied to something
+                <asp:Button ID="btnCERSelectChoose" runat="server" CssClass="smallText" Text="Choose" OnClick="btnCERSelectChoose_Click" />
+                <asp:Button ID="btnCERSelectCancel" runat="server" CssClass="smallText" Text="Cancel" OnClick="btnCERSelectCancel_Click" />    
+                </Buttons --%>
+        </Rock:ModalDialog>
+
+        <Rock:ModalDialog ID="mpItemDetail" runat="server" CancelControlID="btnItemDetailsCancel">
+            <Content DefaultButton="btnItemDetailsUpdate">
+                <asp:UpdatePanel ID="upItemDetail" runat="server" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <asp:HiddenField ID="hfItemID" runat="server" />
+                        <div id="ItemDetails">
+                            <h3>Item Details</h3>
+                            <div class="instructions smallText">
+                                Please provide as much detail as possible for the item that you are requesting. Fields marked with <span class="required">*</span> are required.
+                            </div>
+                            <div class="smallText" style="color:Red;">
+                                <asp:Label ID="lblItemDetailError" runat="server" Visible="false" />
+                            </div>
+                            <div class="formLabel">
+                                Quantity
+                            </div>
+                            <div class="formItem">
+                                <asp:TextBox ID="txtItemQuantity" runat="server" Style="width: 40px;" /> <span class="required">*</span>
+                            </div>
+                            <div class="formLabel">
+                                Item Number
+                            </div>
+                            <div class="formItem">
+                                <asp:TextBox ID="txtItemNumber" runat="server" />
+                            </div>
+                            <div class="formLabel">
+                                Description
+                            </div>
+                            <div class="formItem">
+                                <asp:TextBox ID="txtItemDescription" runat="server" TextMode="MultiLine" Style="width: 325px;" /> <span class="required">*</span>
+                            </div>
+                            <asp:Panel id="pnlItemDetailCompany" runat="server" class="hidden">
+                                <div class="formLabel">
+                                    Organization
+                                </div> 
+                                <div class="formItem">
+                                    <asp:DropDownList ID="ddlItemCompany" runat="server" />
+                                </div>
+                            </asp:Panel>
+                            <div class="formLabel">
+                                Account
+                            </div>
+                            <div class="formItem">
+                                <asp:TextBox ID="txtItemFundNumber" runat="server" MaxLength="3" onKeyUp="autoAdvanceCheck(event, 3, 'txtItemFundNumber', 'txtItemDepartmentNumber');" style="width:50px;" /> -
+
+                                <asp:TextBox ID="txtItemDepartmentNumber" runat="server" MaxLength="4" onKeyUp="autoAdvanceCheck(event, 3, 'txtItemDepartmentNumber', 'txtItemAccountNumber');" style="width:50px;" /> -
+                                <asp:TextBox ID="txtItemAccountNumber" runat="server" MaxLength="5" style="width:45px;" /> <span class="required">*</span>
+                            </div>
+                            <div class="formLabel">
+                                Needed By:
+                            </div>
+                            <div class="formItem">
+                                <Rock:DatePicker ID="txtDateNeeded" runat="server" onChange="dateNeededChanged()"  />
+                                <div id="ItemAllowExpedited" style="display: none;">
+                                    <asp:CheckBox ID="chkItemAllowExpedited" runat="server" CssClass="smallText" Text="Allow Expedited Shipping." />
+                                </div>
+                            </div>
+                            <div class="formLabel">
+                                Price/each
+                            </div>
+                            <div class="formItem">
+                                <asp:TextBox ID="txtItemPrice" runat="server" />
+                            </div>
+                            <div style="clear: left;" />
+                        </div>
+                        <asp:Button ID="btnItemDetailsUpdate" runat="server" OnClick="btnItemDetailsUpdate_click"
+                            Text="Save & Close" CssClass="smallText" />
+                        <asp:Button ID="btnItemDetailsSaveNew" runat="server" OnClick="btnItemDetialsSaveNew_click"
+                            Text="Save & Add New" CssClass="smallText" />
+                        <asp:Button ID="btnItemDetailsReset" runat="server" OnClick="btnItemDetailsReset_click"
+                            Text="Reset" CssClass="smallText" />
+                        <asp:Button ID="btnItemDetailsCancel" runat="server" OnClick="btnItemDetailsCancel_click"
+                            Text="Close" CssClass="smallText" />
+                    </ContentTemplate>
+                    <%-- Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="btnItemDetailsUpdate" />
+                        <asp:AsyncPostBackTrigger ControlID="btnItemDetailsReset" />
+                        <asp:AsyncPostBackTrigger ControlID="btnItemDetailsSaveNew" />
+                        <asp:AsyncPostBackTrigger ControlID="btnItemDetailsCancel" />
+                        <asp:AsyncPostBackTrigger ControlID="lbAddItem" />
+                        <asp:AsyncPostBackTrigger ControlID="dgItems" EventName="ItemCommand" />
+                    </! --%>
+                </asp:UpdatePanel>
+            </Content>
+        </Rock:ModalDialog>
+        <Rock:ModalDialog ID="mpItemPurchaseOrder" runat="server">
+            <Content>
+                <asp:UpdatePanel ID="upItemPurchaseOrder" runat="server" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <div id="itemPurchaseOrder" style="width:500px;">
+                            <asp:HiddenField ID="hfIPOItemID" runat="server" />
+                            <h3>Item PO's</h3>
+                            <h4>Item Summary</h4>
+                            <div style="width:100%;">
+                                <div style="width:100px; float:left;" class="formLabel">Item #</div>
+                                <div style="width:100px; float:left;" class="formItem"><asp:Label ID="lblIPOItemNumber" runat="server" /> </div>
+                                <div style="width:100px; float:left;" class="formLabel">Description</div>
+                                <div style="width:200px; float:left;" class="formItem"><asp:Label ID="lblIPODescription" runat="server" /></div>
+                            </div>
+                            <div style="width:100%;">
+                                <div style="width:100px; float:left;" class="formLabel">Qty Requested</div>
+                                <div style="width:100px; float:left;" class="formItem"><asp:Label id="lblIPOQtyRequested" runat="server" /></div>
+                                <div style="width:100px; float:left;" class="formLabel">Qty Received</div>
+                                <div style="width:50px; float:left;" class="formItem"><asp:Label ID="lblIPOQtyReceived" runat="server" /></div>
+                                <div style="width:50px; float:left;" class="formLabel">Acct #</div>
+                                <div style="width:100px; float:left;" class="formItem"><asp:Label ID="lblIPOAcctNumber" runat="server" />
+                            </div>
+                            <h4>Purchase Orders</h4>
+                            <Rock:Grid ID="dgIPOPurchaseOrders" runat="server" CssClass="list" OnItemDataBound="dgIPOPurchaseOrders_ItemDataBound" ExportEnabled="false">
+                                <Columns>
+                                    <Rock:RockBoundField HeaderText="PurchaseOrderID" DataField="PurchaseOrderID" Visible="false" />
+                                    <Rock:RockTemplateField HeaderText="PO Number" ItemStyle-Width="10%"  HeaderStyle-HorizontalAlign="Center">
+                                        <ItemTemplate>
+                                            <asp:HyperLink ID="hlPurchaseOrderID" runat="server" Target="_blank" Visible="false" />
+                                            <asp:Label ID="lblPurchaseOrderID" runat="server" Visible="false" />
+                                        </ItemTemplate>
+                                    </Rock:RockTemplateField>
+                                    <Rock:RockBoundField HeaderText="Type" DataField="PurchaseOrderType" ItemStyle-Width="20%" />
+                                    <Rock:RockBoundField HeaderText="Vendor" DataField="VendorName" ItemStyle-Width="20%" />
+                                    <Rock:RockBoundField HeaderText="Status" DataField="Status" ItemStyle-Width="20%" />
+                                    <Rock:RockBoundField HeaderText="Qty Ordered" DataField="QtyOrdered" ItemStyle-Width="10%" HeaderStyle-HorizontalAlign="Center" ItemStyle-HorizontalAlign="Center" />
+                                    <Rock:RockBoundField HeaderText="Qty Received" DataField="QtyReceived" ItemStyle-Width="10%" HeaderStyle-HorizontalAlign="Center" ItemStyle-HorizontalAlign="Center" />
+                                </Columns>
+                            </Rock:Grid>
+                            <div style="text-align:right; padding-top:3px;">
+                                <asp:Button ID="btnIPOClose" runat="server" CssClass="smallText" Text="Close" OnClick="btnIPOClose_Click" />
+                            </div>
+                        </div>
+                    </ContentTemplate>
+                    <%-- Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="dgItems" EventName="ItemCommand" />
+                    </--%>
+                </asp:UpdatePanel>
+            </Content>
+        </Rock:ModalDialog>
+    </ContentTemplate>
+    <%--  Triggers>
+        <asp:AsyncPostBackTrigger ControlID="btnItemDetailsUpdate" />
+        <asp:AsyncPostBackTrigger ControlID="btnItemDetailsSaveNew" />
+        <asp:AsyncPostBackTrigger ControlID="btnItemDetailsCancel" />
+        <asp:AsyncPostBackTrigger ControlID="btnVendorModalUpdate" />
+        <asp:AsyncPostBackTrigger ControlID="btnVendorModalReset" />
+        <asp:AsyncPostBackTrigger ControlID="btnVendorModalCancel" />
+        <asp:AsyncPostBackTrigger ControlID="btnCancelPromptYes" />
+        <asp:AsyncPostBackTrigger ControlID="btnCancelPromptNo" />
+        <asp:AsyncPostBackTrigger ControlID="btnSelectPOItemsAdd" />
+        <asp:AsyncPostBackTrigger ControlID="btnSelectPOItemsCancel" />
+        <asp:AsyncPostBackTrigger ControlID="ucPurchasingNotes" EventName="RefreshParent" />
+        <asp:AsyncPostBackTrigger ControlID="ucAttachments" EventName="RefreshParent" />
+        <asp:AsyncPostBackTrigger ControlID="btnSelectApproverSelf" EventName="Click" />
+    </Triggers --%>
+</asp:UpdatePanel>
+

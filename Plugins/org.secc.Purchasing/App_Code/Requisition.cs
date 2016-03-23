@@ -656,7 +656,7 @@ namespace org.secc.Purchasing
 
                 if (!ShowInactive)
                     Query = Query.Where(r => r.Active);
-
+                
                 if (ShowAll)
                 {
                     ListItems.AddRange(Query.Select(q => new RequisitionListItem{
@@ -680,8 +680,8 @@ namespace org.secc.Purchasing
                     {
                         if (PersonID > 0 && filter.ContainsKey("UserName"))
                         {
-                            ListItems.AddRange( Query.Where( q => q.CreatedBy == filter["UserName"].ToString() )
-                                                        .Select( q => new RequisitionListItem
+                            var range = Query.Where(q => q.CreatedBy == filter["UserName"].ToString())
+                                                        .Select(q => new RequisitionListItem
                                                         {
                                                             RequisitionID = q.RequisitionId,
                                                             Title = q.Title,
@@ -695,7 +695,8 @@ namespace org.secc.Purchasing
                                                             DateSubmitted = q.DateSubmitted,
                                                             IsApproved = q.IsApproved,
                                                             IsAccepted = q.IsAccepted
-                                                        } ) );
+                                                        });
+                            ListItems.AddRange( range );
 
                             ListItems.AddRange( Query.Where( q => q.RequesterId == PersonID )
                             .Select( q => new RequisitionListItem

@@ -271,12 +271,12 @@ namespace org.secc.Purchasing
 
         public static int PurchaseOrderOrderedStatusLUID()
         {
-            return definedTypeService.Get(PurchaseOrderStatusOrderedGuid).Id;
+            return definedValueService.Get(PurchaseOrderStatusOrderedGuid).Id;
         }
 
         public static int PurchaseOrderStatusPartiallyReceivedLUID()
         {
-            return definedTypeService.Get(PurchaseOrderStatusPartiallyReceived).Id;
+            return definedValueService.Get(PurchaseOrderStatusPartiallyReceived).Id;
         }
 
         public static int PurchaseOrderStatusReceivedLUID()
@@ -286,27 +286,27 @@ namespace org.secc.Purchasing
 
         public static int PurchaseOrderStatusBilledLUID()
         {
-            return definedTypeService.Get(PurchaseOrderStatusBilled).Id;
+            return definedValueService.Get(PurchaseOrderStatusBilled).Id;
         }
 
         public static int PurchaseOrderStatusClosedLUID()
         {
-            return definedTypeService.Get(PurchaseOrderStatusClosed).Id;
+            return definedValueService.Get(PurchaseOrderStatusClosed).Id;
         }
 
         public static int PurchaseOrderStatusReopenedLUID()
         {
-            return definedTypeService.Get(PurchaseOrderStatusReopened).Id;
+            return definedValueService.Get(PurchaseOrderStatusReopened).Id;
         }
 
         public static int PurchaseOrderStatusOpenLUID()
         {
-            return definedTypeService.Get(PurchaseOrderStatusOpen).Id;
+            return definedValueService.Get(PurchaseOrderStatusOpen).Id;
         }
 
         public static int PurchaseOrderStatusCancelledLUID()
         {
-            return definedTypeService.Get(PurchaseOrderStatusCancelled).Id;
+            return definedValueService.Get(PurchaseOrderStatusCancelled).Id;
         }
 
         public static List<PurchaseOrderListItem> GetPurchaseOrderList(Dictionary<string,string> filter)

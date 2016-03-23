@@ -26,6 +26,17 @@ namespace org.secc.Purchasing.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=(localdb)\\v11.0;Initial Catalog=RockRMS;Integrated Security=True;Conn" +
+            "ect Timeout=30")]
+        public string RockRMSConnectionString {
+            get {
+                return ((string)(this["RockRMSConnectionString"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
         [global::System.Configuration.DefaultSettingValueAttribute("Data Source=ar-sql02;Initial Catalog=ShelbyDBRepl;Integrated Security=True")]
         public string ShelbyDBReplConnectionString {
             get {
@@ -41,17 +52,6 @@ namespace org.secc.Purchasing.Properties {
         public string ArenaDBConnectionString {
             get {
                 return ((string)(this["ArenaDBConnectionString"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
-        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=(localdb)\\v11.0;Initial Catalog=RockRMS;Integrated Security=True;Conn" +
-            "ect Timeout=30")]
-        public string RockRMSConnectionString {
-            get {
-                return ((string)(this["RockRMSConnectionString"]));
             }
         }
     }
