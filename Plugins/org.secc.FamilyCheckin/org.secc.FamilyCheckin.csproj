@@ -85,19 +85,20 @@
     <Compile Include="Rest\Controllers\FamilyCheckinController.Partial.cs" />
     <Compile Include="Rest\Handlers\SessionControllerHandler.cs" />
     <Compile Include="Rest\Handlers\SessionRouteHandler.cs" />
+    <Compile Include="Workflows\CreateLabelsAggregate.cs" />
     <Compile Include="Workflows\ReserveAttendance.cs" />
     <Compile Include="Workflows\SelectAllPeople.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\Documents\Visual Studio 2015\Projects\Rock-develop\DotLiquid\DotLiquid.csproj">
+    <ProjectReference Include="..\..\..\..\..\Source\Repos\Rock\DotLiquid\DotLiquid.csproj">
       <Project>{cb9372cd-9c1d-47ab-92d8-702d4d68324f}</Project>
       <Name>DotLiquid</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\Documents\Visual Studio 2015\Projects\Rock-develop\Rock.Rest\Rock.Rest.csproj">
+    <ProjectReference Include="..\..\..\..\..\Source\Repos\Rock\Rock.Rest\Rock.Rest.csproj">
       <Project>{b89dfd33-ce93-44e1-8616-c31acdfe89cb}</Project>
       <Name>Rock.Rest</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\Documents\Visual Studio 2015\Projects\Rock-develop\Rock\Rock.csproj">
+    <ProjectReference Include="..\..\..\..\..\Source\Repos\Rock\Rock\Rock.csproj">
       <Project>{8f8c2a79-24f4-4157-8b99-45f75fa85799}</Project>
       <Name>Rock</Name>
     </ProjectReference>
