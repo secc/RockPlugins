@@ -250,11 +250,11 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
         }
 
-        public string RequisitionListPageSetting
+        public Guid RequisitionListPageSetting
         {
             get
             {
-                return GetAttributeValue("RequisitionListPage");
+                return GetAttributeValue("RequisitionListPage").AsGuid();
             }
         }
 
@@ -1222,12 +1222,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             txtTitle.Text = String.Empty;
 
             lblTitle.Text = NewRequistionTitleSetting;
-            if (DefaultRequistionTypeSetting.HasValue)
-            {
-                lblType.Text = definedValueService.Get(DefaultRequistionTypeSetting.Value).Value;
-            }
             lblStatus.Text = Requisition.GetStatuses(true).OrderBy(x => x.Order).FirstOrDefault().Value;
-            lblDeliverTo.Text = String.Empty;
             lblApproval.Text = String.Empty;
             UpdateVendorLabel();
         }
@@ -1339,17 +1334,13 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             {
                 lblTitle.Text = CurrentRequisition.Title;
                 lblStatus.Text = CurrentRequisition.Status.Value;
-                lblType.Text = CurrentRequisition.RequisitionType.Value;
                 lblStatus.Text = CurrentRequisition.Status.Value;
-                lblDeliverTo.Text = CurrentRequisition.DeliverTo;
 
                 if (CurrentRequisition.IsApproved)
                     lblApproval.Text = "Yes";
                 else
                     lblApproval.Text = "No";
 
-                txtTitle.Text = CurrentRequisition.Title;
-                lblSummaryTitle.Text = CurrentRequisition.Title;
                 if (ddlType.Items.FindByValue(CurrentRequisition.RequisitionTypeLUID.ToString()) != null)
                     ddlType.SelectedValue = CurrentRequisition.RequisitionTypeLUID.ToString();
                 else
@@ -1359,8 +1350,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 }
                 SetRequester(CurrentRequisition.RequesterID);
 
-               
 
+                txtTitle.Text = CurrentRequisition.Title;
                 txtDeliverTo.Text = CurrentRequisition.DeliverTo;
 
                 SetStatusNote();
@@ -1523,7 +1514,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void SetSummaryError(string errorText)
         {
-            lblSummaryError.Visible = !String.IsNullOrEmpty(errorText);
+            summaryError.Visible = !String.IsNullOrEmpty(errorText);
             lblSummaryError.Text = errorText;
         }
 
@@ -1531,10 +1522,15 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             bool IsEditable = CanUserEditSummary();
 
-            txtTitle.Visible = IsEditable;
-            lblSummaryTitle.Visible = !IsEditable;
-            ddlType.Visible = IsEditable;
-            txtDeliverTo.Visible = IsEditable;
+            if (!IsEditable)
+            {
+                txtTitle.AddCssClass("nothing");
+                ddlType.Enabled = false;
+                ddlType.AddCssClass("nothing");
+                txtTitle.ReadOnly = true;
+                txtDeliverTo.AddCssClass("nothing");
+                txtDeliverTo.ReadOnly = true;
+            }
 
             if (UserCanEdit)
             {
@@ -1549,8 +1545,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             btnVendorModalShow.Visible = IsEditable;
 
             ucVendorSelect.IsReadOnly = !IsEditable;
-            lblType.Visible = !IsEditable;
-            lblDeliverTo.Visible = !IsEditable;
 
             bool cerVisibility = false;
             int reqTypeLUID = 0;
@@ -2061,7 +2055,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void ReturnToList()
         {
-            Response.Redirect( string.Format( "~/default.aspx?page={0}", RequisitionListPageSetting ) );
+            NavigateToPage(RequisitionListPageSetting, null);
         }
 
         private void CancelRequisition()
