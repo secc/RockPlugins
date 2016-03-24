@@ -96,6 +96,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [BooleanField( "Map Info Debug", "", false, "CustomSetting" )]
 
     // Lava Output Settings
+    [CodeEditorField("Message", "", CodeEditorMode.Lava, CodeEditorTheme.Rock, 200, false, @"
+", "CustomSetting")]
     [BooleanField( "Show Lava Output", "", false, "CustomSetting" )]
     [CodeEditorField( "Lava Output", "", CodeEditorMode.Lava, CodeEditorTheme.Rock, 200, false, @"
 ", "CustomSetting" )]
@@ -211,6 +213,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 BindAttributes();
                 BuildDynamicControls();
+                DisplayMessage();
 
                 if ( _targetPersonGuid != Guid.Empty )
                 {
@@ -222,6 +225,15 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
                 
             }
+        }
+
+        private void DisplayMessage()
+        {
+            string template = GetAttributeValue("Message");
+
+            var mergeFields = new Dictionary<string, object>();
+            
+            lMessage.Text = template.ResolveMergeFields(mergeFields);
         }
 
         /// <summary>
@@ -296,6 +308,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             SetAttributeValue( "MapInfo", ceMapInfo.Text );
             SetAttributeValue( "MapInfoDebug", cbMapInfoDebug.Checked.ToString() );
 
+            SetAttributeValue( "Message", ceMessage.Text );
             SetAttributeValue( "ShowLavaOutput", cbShowLavaOutput.Checked.ToString() );
             SetAttributeValue( "LavaOutput", ceLavaOutput.Text );
             SetAttributeValue( "LavaOutputDebug", cbLavaOutputDebug.Checked.ToString() );
@@ -309,6 +322,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             SetAttributeValue( "ShowCount", cbShowCount.Checked.ToString() );
             SetAttributeValue( "ShowAge", cbShowAge.Checked.ToString() );
             SetAttributeValue( "AttributeColumns", cblGridAttributes.Items.Cast<ListItem>().Where( i => i.Selected ).Select( i => i.Value ).ToList().AsDelimited( "," ) );
+
+            SetAttributeValue( "GroupDetailPage", ppGroupDetailPage.SelectedValue );
+            SetAttributeValue( "RegisterPage" , ppRegisterPage.SelectedValue);
 
             SaveAttributeValues();
 
@@ -437,11 +453,12 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             ceMapInfo.Text = GetAttributeValue( "MapInfo" );
             cbMapInfoDebug.Checked = GetAttributeValue( "MapInfoDebug" ).AsBoolean();
 
+            ceMessage.Text = GetAttributeValue("Message");
             cbShowLavaOutput.Checked = GetAttributeValue( "ShowLavaOutput" ).AsBoolean();
             ceLavaOutput.Text = GetAttributeValue( "LavaOutput" );
             cbLavaOutputDebug.Checked = GetAttributeValue( "LavaOutputDebug" ).AsBoolean();
 
-            cbShowGrid.Checked = GetAttributeValue( "ShowMap" ).AsBoolean();
+            cbShowGrid.Checked = GetAttributeValue( "ShowGrid" ).AsBoolean();
             cbShowSchedule.Checked = GetAttributeValue( "ShowSchedule" ).AsBoolean();
             cbShowDescription.Checked = GetAttributeValue( "ShowDescription" ).AsBoolean();
             cbProximity.Checked = GetAttributeValue( "ShowProximity" ).AsBoolean();
@@ -458,6 +475,15 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
             }
 
+            PageService pageService = new PageService(new RockContext());
+
+            int GroupDetailPageId = int.Parse(GetAttributeValue("GroupDetailPage"));
+            Rock.Model.Page GroupDetailPage = pageService.Queryable().Where(p => p.Id == GroupDetailPageId).FirstOrDefault();
+            ppGroupDetailPage.SetValue(GroupDetailPage);
+
+            int RegisterPageId = int.Parse(GetAttributeValue("RegisterPage"));
+            Rock.Model.Page RegisterPage = pageService.Queryable().Where(p => p.Id == RegisterPageId).FirstOrDefault();
+            ppRegisterPage.SetValue(RegisterPage);
 
             upnlContent.Update();
         }
@@ -509,6 +535,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 lTitle.Text = String.Format( "<h4 class='margin-t-none'>Groups for {0}</h4>", targetPerson.FullName );
                 acAddress.SetValues( targetPersonLocation );
                 acAddress.Visible = false;
+                pnlMessage.Visible = false;
                 btnSearch.Visible = false;
                 btnClear.Visible = false;
 
@@ -538,6 +565,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             if ( fenceTypeGuid.HasValue || GetAttributeValue( "ShowProximity" ).AsBoolean() )
             {
                 acAddress.Visible = true;
+                pnlMessage.Visible = true;
                
                 if ( CurrentPerson != null )
                 {
@@ -545,7 +573,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
 
                 btnSearch.Visible = true;
-                var ranges = GetAttributeValue("Ranges").Split('|').ToList();
+                var ranges = GetAttributeValue("Ranges").Split('|').Where<string>(s => !string.IsNullOrEmpty(s)).ToList();
                 foreach (var range in ranges)
                 {
                     ddlRange.Items.Add(new ListItem(range+ (range=="1" ? " Mile" : " Miles"),range));
@@ -554,6 +582,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             else
             {
                 acAddress.Visible = false;
+                pnlMessage.Visible = false;
 
                 // Check to see if there's any filters
                 string scheduleFilters = GetAttributeValue( "ScheduleFilters" );
@@ -844,6 +873,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             // If we care where these groups are located...
             if ( fenceGroupTypeId.HasValue || showMap || showProximity )
             {
+                pnlSearch.Visible = false;
                 // Get the location for the address entered
                 Location personLocation = null;
                 if ( fenceGroupTypeId.HasValue || showProximity )
@@ -899,11 +929,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             }
                         }
                     }
+                }
                     //Only show those in range.
                     groupLocations = groupLocations
-                        .Where(gl => distances[gl.GroupId] < Int32.Parse(ddlRange.SelectedValue) && gl.Location.GeoPoint != null)
+                        .Where(gl => distances.ContainsKey(gl.GroupId) &&  distances[gl.GroupId] < Int32.Parse(ddlRange.SelectedValue) && gl.Location.GeoPoint != null)
                         .ToList();
-                }
 
                 // If groups should be limited by a geofence
                 var fenceMapItems = new List<MapItem>();
@@ -1026,8 +1056,25 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                         }
                     }
 
+                    var campusMapItems = new List<MapItem>();
+
+                    var campusList = CampusCache.All();
+                    foreach (var campus in campusList) 
+                    {
+                        var mapItem = new FinderMapItem(campus);
+                        mapItem.EntityTypeId = EntityTypeCache.Read("Rock.Model.Campus").Id;
+                        mapItem.EntityId = campus.Id;
+                        mapItem.Name = campus.Name;
+                        mapItem.InfoWindow = HttpUtility.HtmlEncode("<b>"+campus.Name+"</b><br>"+ 
+                            campus.Location.Street1+"<br>" + campus.Location.City +
+                            ", " + campus.Location.State +" "+ campus.Location.PostalCode);
+                        mapItem.Icon = "https://apps.southeastchristian.org/UserControls/Custom/SECC/SmallGroupLocator/Images/920-campus.png";
+                        campusMapItems.Add(mapItem);
+                    }
+
+
                     // Show the map
-                    Map( personMapItem, fenceMapItems, groupMapItems );
+                    Map( personMapItem, fenceMapItems, groupMapItems, campusMapItems );
                     pnlMap.Visible = true;
                 }
                 else
@@ -1056,6 +1103,21 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
 
                 mergeFields.Add( "Groups", groups );
+
+                Dictionary<string, object> linkedPages = new Dictionary<string, object>();
+                linkedPages.Add("GroupDetailPage", LinkedPageUrl("GroupDetailPage", null));
+
+                if (_targetPersonGuid != Guid.Empty)
+                {
+                    linkedPages.Add("RegisterPage", LinkedPageUrl("RegisterPage", _urlParms));
+                }
+                else
+                {
+                    linkedPages.Add("RegisterPage", LinkedPageUrl("RegisterPage", null));
+                }
+
+                mergeFields.Add("LinkedPages", linkedPages);
+
                 lLavaOverview.Text = template.ResolveMergeFields( mergeFields );
 
                 bool showDebug = UserCanEdit && GetAttributeValue( "LavaOutputDebug" ).AsBoolean();
@@ -1099,7 +1161,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     AverageAge = Math.Round( g.Members.Select( m => m.Person ).Average( p => p.Age ) ?? 0.0D ),
                     Distance = distances.Where( d => d.Key == g.Id )
                         .Select( d => d.Value ).FirstOrDefault()
-                } ).ToList();
+                } )
+                .Where(a => a.Distance< int.Parse(ddlRange.SelectedValue) && distances.ContainsKey(a.Id))
+                .ToList();
                 gGroups.DataBind();
             }
             else
@@ -1170,9 +1234,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         /// <param name="location">The location.</param>
         /// <param name="fences">The fences.</param>
         /// <param name="groups">The groups.</param>
-        private void Map( MapItem location, List<MapItem> fences, List<MapItem> groups )
+        private void Map( MapItem location, List<MapItem> fences, List<MapItem> groups, List<MapItem> campuses )
         {
             pnlMap.Visible = true;
+            pnlMessage.Visible = false;
 
             string mapStylingFormat = @"
                         <style>
@@ -1228,6 +1293,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         var locationData = {0};
         var fenceData = {1};
         var groupData = {2}; 
+        var campusData = {10};
 
         var allMarkers = [];
 
@@ -1266,7 +1332,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             if ( locationData != null )
             {{
-                var items = addMapItem(0, locationData, '{4}');
+                var items = addMapItem(0, locationData, '{4}', true);
                 for (var j = 0; j < items.length; j++) {{
                     items[j].setMap(map);
                 }}
@@ -1283,7 +1349,16 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             if ( groupData != null ) {{
                 for (var i = 0; i < groupData.length; i++) {{
-                    var items = addMapItem(i, groupData[i], '{6}');
+                    var items = addMapItem(i, groupData[i], '{6}', true);
+                    for (var j = 0; j < items.length; j++) {{
+                        items[j].setMap(map);
+                    }}
+                }}
+            }}
+
+            if ( campusData != null ) {{
+                for (var i = 0; i < campusData.length; i++) {{
+                    var items = addMapItem(i, campusData[i], '{6}', false);
                     for (var j = 0; j < items.length; j++) {{
                         items[j].setMap(map);
                     }}
@@ -1299,23 +1374,34 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         }}
 
-        function addMapItem( i, mapItem, color ) {{
+        function addMapItem( i, mapItem, color, addBounds ) {{
 
             var items = [];
 
             if (mapItem.Point) {{ 
 
                 var position = new google.maps.LatLng(mapItem.Point.Latitude, mapItem.Point.Longitude);
-                bounds.extend(position);
+                //if you want to center on this map item
+                if (addBounds) {{
+                    bounds.extend(position);
+                }}
 
                 if (!color) {{
                     color = 'FE7569'
                 }}
-
-                var pinImage = new google.maps.MarkerImage('//chart.googleapis.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|' + color,
-                    new google.maps.Size(21, 34),
-                    new google.maps.Point(0,0),
-                    new google.maps.Point(10, 34));
+                
+                if (mapItem.Icon){{
+                    var pinImage = new google.maps.MarkerImage(mapItem.Icon,
+                        new google.maps.Size(34, 34),
+                        new google.maps.Point(0,0),
+                        new google.maps.Point(10, 34));
+                }}
+                else {{
+                    var pinImage = new google.maps.MarkerImage('//chart.googleapis.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|' + color,
+                        new google.maps.Size(21, 34),
+                        new google.maps.Point(0,0),
+                        new google.maps.Point(10, 34));
+                }}
 
                 marker = new google.maps.Marker({{
                     position: position,
@@ -1324,11 +1410,14 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     icon: pinImage,
                     shadow: pinShadow
                 }});
+
+                marker['EntityId']=mapItem.EntityId;
     
                 items.push(marker);
                 allMarkers.push(marker);
 
-                if ( mapItem.InfoWindow != null ) {{ 
+                if ( mapItem.InfoWindow != null ) {{
+                    marker['InfoWindowContent'] = $('<div/>').html(mapItem.InfoWindow).text();
                     google.maps.event.addListener(marker, 'click', (function (marker, i) {{
                         return function () {{
                             infoWindow.setContent( $('<div/>').html(mapItem.InfoWindow).text() );
@@ -1351,7 +1440,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     }})(marker, i));
 
                 }}
-
             }}
 
             if (typeof mapItem.PolygonPoints !== 'undefined' && mapItem.PolygonPoints.length > 0) {{
@@ -1440,6 +1528,17 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }}
 
         }}
+        
+        function centerOnMarkerByGroupId(groupId){{
+            allMarkers.forEach(function(item){{
+                if (item['EntityId']==groupId) {{
+                    var latLng = item.getPosition();
+                    map.setCenter(latLng);
+                    infoWindow.setContent( item['InfoWindowContent'] );
+                    infoWindow.open(map, item);
+                }}
+            }});
+        }}
 ";
 
             var locationJson = location != null ?
@@ -1451,6 +1550,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             var groupsJson = groups != null && groups.Any() ?
                 string.Format( "JSON.parse('{0}')", groups.ToJson().Replace( Environment.NewLine, "" ).EscapeQuotes().Replace( "\x0A", "" ) ) : "null";
 
+            var campusJson = campuses != null && campuses.Any() ?
+                string.Format("JSON.parse('{0}')", campuses.ToJson().Replace(Environment.NewLine, "").EscapeQuotes().Replace("\x0A", "")) : "null";
+
             string mapScript = string.Format( mapScriptFormat,
                 locationJson,       // 0
                 fencesJson,         // 1
@@ -1461,7 +1563,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 groupColor,         // 6
                 latitude,           // 7
                 longitude,          // 8
-                zoom );             // 9
+                zoom,               // 9
+                campusJson          //10
+                );             
 
             ScriptManager.RegisterStartupScript( pnlMap, pnlMap.GetType(), "group-finder-map-script", mapScript, true );
 
@@ -1494,6 +1598,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         /// </summary>
         class FinderMapItem : MapItem
         {
+            private CampusCache.CampusLocation location;
+
             /// <summary>
             /// Gets or sets the information window.
             /// </summary>
@@ -1503,6 +1609,14 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             public string InfoWindow { get; set; }
 
             /// <summary>
+            /// Gets or sets the information window.
+            /// </summary>
+            /// <value>
+            /// The information window.
+            /// </value>
+            public string Icon { get; set; }
+
+            /// <summary>
             /// Initializes a new instance of the <see cref="FinderMapItem"/> class.
             /// </summary>
             /// <param name="location">The location.</param>
@@ -1510,6 +1624,21 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 : base( location )
             {
 
+            }
+
+            public FinderMapItem(CampusCache campus): base()
+            {
+                this.location = campus.Location;
+                PolygonPoints = new List<MapCoordinate>();
+
+                if (location != null)
+                {
+                    LocationId = campus.LocationId ?? 0;
+                    if (location != null)
+                    {
+                        Point = new MapCoordinate(location.Latitude, location.Longitude);
+                    }
+                }
             }
         }
 
