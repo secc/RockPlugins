@@ -10,9 +10,12 @@
 
             <div class="row">
                 <asp:Literal ID="lTitle" runat="server" />
+                
+                <asp:Panel ID="pnlMessage" runat="server" CssClass="col-md-6 col-xs-12">
+                    <asp:Literal ID="lMessage" runat="server" />
+                </asp:Panel>
 
-                <asp:Panel ID="pnlSearch" runat="server">
-
+                <asp:Panel ID="pnlSearch" runat="server" CssClass="col-md-6 col-xs-12">
                     <asp:ValidationSummary ID="valSummary" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-danger" />
 
                     <Rock:AddressControl ID="acAddress" runat="server" Required="true" RequiredErrorMessage="Your Address is Required" />
@@ -32,7 +35,7 @@
 
                     <Rock:RockDropDownList ID="ddlPageSize" runat="server" OnSelectedIndexChanged="ddlPageSize_SelectedIndexChanged" AutoPostBack="true" Label="Number of groups to show" />
 
-                    <asp:Panel ID="pnlMap" runat="server" CssClass="margin-v-sm">
+                    <asp:Panel ID="pnlMap" runat="server" CssClass="margin-v-sm col-md-6">
                         <div id="map_wrapper">
                             <div id="map_canvas" class="mapping"></div>
                         </div>
@@ -44,7 +47,7 @@
                         <asp:Literal ID="lLavaOutputDebug" runat="server" />
                     </asp:Panel>
 
-                    <asp:Panel ID="pnlGrid" runat="server" CssClass="margin-v-sm">
+                    <asp:Panel ID="pnlGrid" runat="server" CssClass="margin-v-sm col-md-6">
                         <div class="grid">
                             <Rock:Grid ID="gGroups" runat="server" RowItemText="Group" AllowSorting="true" OnRowSelected="gGroups_RowSelected">
                                 <Columns>
@@ -56,6 +59,7 @@
                                     <Rock:RockBoundField DataField="Distance" HeaderText="Distance" DataFormatString="{0:N2} M" ItemStyle-HorizontalAlign="Right" HeaderStyle-HorizontalAlign="Right" />
                                 </Columns>
                             </Rock:Grid>
+                            
                         </div>
                     </asp:Panel>
 
@@ -130,6 +134,9 @@
                             </Rock:PanelWidget>
 
                             <Rock:PanelWidget ID="wpLavaOutput" runat="server" Title="Lava">
+                                <Rock:CodeEditor ID="ceMessage" runat="server" Label="Lava Message" EditorMode="Lava" EditorTheme="Rock" Height="300"
+                                            Help="Message to display beside the address field."
+                                            ValidationGroup="GroupFinderSettings" />
                                 <div class="row">
                                     <div class="col-md-6">
                                         <Rock:RockCheckBox ID="cbShowLavaOutput" runat="server" Label="Show Formatted Output" Text="Yes"

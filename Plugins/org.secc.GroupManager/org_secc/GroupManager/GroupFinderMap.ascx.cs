@@ -96,6 +96,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [BooleanField( "Map Info Debug", "", false, "CustomSetting" )]
 
     // Lava Output Settings
+    [CodeEditorField("Message", "", CodeEditorMode.Lava, CodeEditorTheme.Rock, 200, false, @"
+", "CustomSetting")]
     [BooleanField( "Show Lava Output", "", false, "CustomSetting" )]
     [CodeEditorField( "Lava Output", "", CodeEditorMode.Lava, CodeEditorTheme.Rock, 200, false, @"
 ", "CustomSetting" )]
@@ -211,6 +213,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 BindAttributes();
                 BuildDynamicControls();
+                DisplayMessage();
 
                 if ( _targetPersonGuid != Guid.Empty )
                 {
@@ -222,6 +225,15 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
                 
             }
+        }
+
+        private void DisplayMessage()
+        {
+            string template = GetAttributeValue("Message");
+
+            var mergeFields = new Dictionary<string, object>();
+            
+            lMessage.Text = template.ResolveMergeFields(mergeFields);
         }
 
         /// <summary>
@@ -296,6 +308,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             SetAttributeValue( "MapInfo", ceMapInfo.Text );
             SetAttributeValue( "MapInfoDebug", cbMapInfoDebug.Checked.ToString() );
 
+            SetAttributeValue( "Message", ceMessage.Text );
             SetAttributeValue( "ShowLavaOutput", cbShowLavaOutput.Checked.ToString() );
             SetAttributeValue( "LavaOutput", ceLavaOutput.Text );
             SetAttributeValue( "LavaOutputDebug", cbLavaOutputDebug.Checked.ToString() );
@@ -309,6 +322,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             SetAttributeValue( "ShowCount", cbShowCount.Checked.ToString() );
             SetAttributeValue( "ShowAge", cbShowAge.Checked.ToString() );
             SetAttributeValue( "AttributeColumns", cblGridAttributes.Items.Cast<ListItem>().Where( i => i.Selected ).Select( i => i.Value ).ToList().AsDelimited( "," ) );
+
+            SetAttributeValue( "GroupDetailPage", ppGroupDetailPage.SelectedValue );
+            SetAttributeValue( "RegisterPage" , ppRegisterPage.SelectedValue);
 
             SaveAttributeValues();
 
@@ -437,11 +453,12 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             ceMapInfo.Text = GetAttributeValue( "MapInfo" );
             cbMapInfoDebug.Checked = GetAttributeValue( "MapInfoDebug" ).AsBoolean();
 
+            ceMessage.Text = GetAttributeValue("Message");
             cbShowLavaOutput.Checked = GetAttributeValue( "ShowLavaOutput" ).AsBoolean();
             ceLavaOutput.Text = GetAttributeValue( "LavaOutput" );
             cbLavaOutputDebug.Checked = GetAttributeValue( "LavaOutputDebug" ).AsBoolean();
 
-            cbShowGrid.Checked = GetAttributeValue( "ShowMap" ).AsBoolean();
+            cbShowGrid.Checked = GetAttributeValue( "ShowGrid" ).AsBoolean();
             cbShowSchedule.Checked = GetAttributeValue( "ShowSchedule" ).AsBoolean();
             cbShowDescription.Checked = GetAttributeValue( "ShowDescription" ).AsBoolean();
             cbProximity.Checked = GetAttributeValue( "ShowProximity" ).AsBoolean();
@@ -458,6 +475,15 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
             }
 
+            PageService pageService = new PageService(new RockContext());
+
+            int GroupDetailPageId = int.Parse(GetAttributeValue("GroupDetailPage"));
+            Rock.Model.Page GroupDetailPage = pageService.Queryable().Where(p => p.Id == GroupDetailPageId).FirstOrDefault();
+            ppGroupDetailPage.SetValue(GroupDetailPage);
+
+            int RegisterPageId = int.Parse(GetAttributeValue("RegisterPage"));
+            Rock.Model.Page RegisterPage = pageService.Queryable().Where(p => p.Id == RegisterPageId).FirstOrDefault();
+            ppRegisterPage.SetValue(RegisterPage);
 
             upnlContent.Update();
         }
@@ -509,6 +535,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 lTitle.Text = String.Format( "<h4 class='margin-t-none'>Groups for {0}</h4>", targetPerson.FullName );
                 acAddress.SetValues( targetPersonLocation );
                 acAddress.Visible = false;
+                pnlMessage.Visible = false;
                 btnSearch.Visible = false;
                 btnClear.Visible = false;
 
@@ -538,6 +565,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             if ( fenceTypeGuid.HasValue || GetAttributeValue( "ShowProximity" ).AsBoolean() )
             {
                 acAddress.Visible = true;
+                pnlMessage.Visible = true;
                
                 if ( CurrentPerson != null )
                 {
@@ -554,6 +582,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             else
             {
                 acAddress.Visible = false;
+                pnlMessage.Visible = false;
 
                 // Check to see if there's any filters
                 string scheduleFilters = GetAttributeValue( "ScheduleFilters" );
@@ -844,6 +873,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             // If we care where these groups are located...
             if ( fenceGroupTypeId.HasValue || showMap || showProximity )
             {
+                pnlSearch.Visible = false;
                 // Get the location for the address entered
                 Location personLocation = null;
                 if ( fenceGroupTypeId.HasValue || showProximity )
@@ -1073,6 +1103,21 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
 
                 mergeFields.Add( "Groups", groups );
+
+                Dictionary<string, object> linkedPages = new Dictionary<string, object>();
+                linkedPages.Add("GroupDetailPage", LinkedPageUrl("GroupDetailPage", null));
+
+                if (_targetPersonGuid != Guid.Empty)
+                {
+                    linkedPages.Add("RegisterPage", LinkedPageUrl("RegisterPage", _urlParms));
+                }
+                else
+                {
+                    linkedPages.Add("RegisterPage", LinkedPageUrl("RegisterPage", null));
+                }
+
+                mergeFields.Add("LinkedPages", linkedPages);
+
                 lLavaOverview.Text = template.ResolveMergeFields( mergeFields );
 
                 bool showDebug = UserCanEdit && GetAttributeValue( "LavaOutputDebug" ).AsBoolean();
@@ -1116,7 +1161,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     AverageAge = Math.Round( g.Members.Select( m => m.Person ).Average( p => p.Age ) ?? 0.0D ),
                     Distance = distances.Where( d => d.Key == g.Id )
                         .Select( d => d.Value ).FirstOrDefault()
-                } ).ToList();
+                } )
+                .Where(a => a.Distance< int.Parse(ddlRange.SelectedValue) && distances.ContainsKey(a.Id))
+                .ToList();
                 gGroups.DataBind();
             }
             else
@@ -1190,6 +1237,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         private void Map( MapItem location, List<MapItem> fences, List<MapItem> groups, List<MapItem> campuses )
         {
             pnlMap.Visible = true;
+            pnlMessage.Visible = false;
 
             string mapStylingFormat = @"
                         <style>
@@ -1284,7 +1332,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             if ( locationData != null )
             {{
-                var items = addMapItem(0, locationData, '{4}');
+                var items = addMapItem(0, locationData, '{4}', true);
                 for (var j = 0; j < items.length; j++) {{
                     items[j].setMap(map);
                 }}
@@ -1342,7 +1390,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     color = 'FE7569'
                 }}
                 
-                console.log(mapItem)
                 if (mapItem.Icon){{
                     var pinImage = new google.maps.MarkerImage(mapItem.Icon,
                         new google.maps.Size(34, 34),
@@ -1363,11 +1410,14 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     icon: pinImage,
                     shadow: pinShadow
                 }});
+
+                marker['EntityId']=mapItem.EntityId;
     
                 items.push(marker);
                 allMarkers.push(marker);
 
-                if ( mapItem.InfoWindow != null ) {{ 
+                if ( mapItem.InfoWindow != null ) {{
+                    marker['InfoWindowContent'] = $('<div/>').html(mapItem.InfoWindow).text();
                     google.maps.event.addListener(marker, 'click', (function (marker, i) {{
                         return function () {{
                             infoWindow.setContent( $('<div/>').html(mapItem.InfoWindow).text() );
@@ -1477,6 +1527,17 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }}
             }}
 
+        }}
+        
+        function centerOnMarkerByGroupId(groupId){{
+            allMarkers.forEach(function(item){{
+                if (item['EntityId']==groupId) {{
+                    var latLng = item.getPosition();
+                    map.setCenter(latLng);
+                    infoWindow.setContent( item['InfoWindowContent'] );
+                    infoWindow.open(map, item);
+                }}
+            }});
         }}
 ";
 
