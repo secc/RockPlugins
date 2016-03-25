@@ -161,7 +161,7 @@
                 </div>
                 <div id="content">
                     <div id="icons">
-                        <asp:HyperLink ID="lnkNotes" runat="server" Visible="false" NavigateUrl="#notes"><img src="/UserControls/Custom/SECC/Purchasing/images/notes.png" alt="Notes" /></asp:HyperLink>
+                        <asp:HyperLink ID="lnkNotes" runat="server" Visible="false" NavigateUrl="#notes"><i class="fa fa-sticky-note fa-2x" title="Notes"></i></asp:HyperLink>
                         <asp:HyperLink ID="lnkAttachments" runat="server" Visible="false" NavigateUrl="#attachments"><img src="/UserControls/Custom/SECC/Purchasing/images/attachments.png" alt="Attachments" /></asp:HyperLink>
                     </div>
                     <div class="summary">
@@ -249,8 +249,9 @@
                     </div>
                     <div id="items">
                         <h3>Items</h3>
-                      <Rock:Grid ID="dgItems" runat="server" AllowPaging="false" AllowSorting="false" OnItemDataBound="dgItems_ItemDataBound" ShowFooter="true"
-                            DataKeyField="ItemID" CssClass="list" AutoGenerateColumns="false" NoResultText="No Active Items">
+                      <Rock:Grid ID="dgItems" runat="server" AllowPaging="false" AllowSorting="false" OnRowDataBound="dgItems_OnRowDataBound" ShowFooter="true"
+                            DataKeyField="ItemID" CssClass="list" AutoGenerateColumns="false" NoResultText="No Active Items" ShowActionRow="false"
+                            OnPreRender="dgItems_PreRender">
                             <Columns>
                                 <Rock:RockBoundField DataField="ItemID" Visible="false" />
                                 <Rock:RockBoundField HeaderText="Qty" DataField="Quantity" ItemStyle-Width="4%" ItemStyle-HorizontalAlign="Right"/>
@@ -273,14 +274,11 @@
                                         <asp:Literal ID="litPOs" runat="server"></asp:Literal>
                                     </ItemTemplate>
                                 </Rock:RockTemplateField>
-                                <Rock:RockTemplateField ItemStyle-Width="10%">
-                                    <ItemTemplate>&nbsp;</ItemTemplate>
-                                </Rock:RockTemplateField>
                                 <Rock:RockTemplateField>
                                     <ItemStyle HorizontalAlign="Right" Width="1%" />
                                     <ItemTemplate>
-                                        <asp:LinkButton ID="lbEdit" runat="server" CommandName="Update">
-                                            <img src="/images/edit.gif" alt="edit" />
+                                        <asp:LinkButton ID="lbEdit" runat="server" class="btn btn-default" CommandName="Update">
+                                            <i class="fa fa-wrench" title="Edit"></i>
                                         </asp:LinkButton>
                                     </ItemTemplate>
                                 </Rock:RockTemplateField>
@@ -288,8 +286,8 @@
                                 <Rock:RockTemplateField>
                                     <ItemStyle HorizontalAlign="Right" Width="1%" />
                                     <ItemTemplate>
-                                        <asp:LinkButton ID="lbRemove" runat="server" CommandName="Remove" >
-                                            <img src="/images/delete.png" alt="Remove" />
+                                        <asp:LinkButton ID="lbRemove" runat="server" class="btn btn-default" CommandName="Remove" >
+                                            <i class="fa fa-remove" title="Delete"></i>
                                         </asp:LinkButton>
                                     </ItemTemplate>
                                 </Rock:RockTemplateField>
@@ -299,7 +297,7 @@
                     <div id="approvals"> 
                         <h3>Approval Requests</h3>
                         <Rock:Grid ID="dgApprovals" runat="server" AllowPaging="false" AllowSorting="false" OnReBind="dgApprovals_ReBind" NoResultText="No Approval Requests found"
-                             DataKeyField="ApprovalID" CssClass="list" OnItemDataBound="dgApprovals_ItemDataBound" OnItemCommand="dgApprovals_ItemCommand" >
+                             DataKeyField="ApprovalID" CssClass="list" OnItemDataBound="dgApprovals_ItemDataBound" OnItemCommand="dgApprovals_ItemCommand"  ShowActionRow="false">
                             <Columns>
                                 <Rock:RockBoundField HeaderText="Approval ID" DataField="ApprovalID" Visible = "false" />
                                 <Rock:RockBoundField HeaderText="Approver" DataField="ApproverName" />
@@ -330,7 +328,7 @@
                 
                     <div id="charges" >
                         <h3>Charges</h3>
-                        <Rock:Grid ID="dgCharges" runat="server" AllowPaging="false" AllowSorting="false" DataKeyField="PaymentChargeID" NoResultText="No Charges found for this requisition." CssClass="list">
+                        <Rock:Grid ID="dgCharges" runat="server" AllowPaging="false" AllowSorting="false" DataKeyField="PaymentChargeID" NoResultText="No Charges found for this requisition." CssClass="list" ShowActionRow="false">
                             <Columns>
                                 <Rock:RockBoundField HeaderText="PaymentChargeID" DataField="PaymentChargeID" Visible="false" />
                                 <Rock:RockBoundField HeaderText="Payment Date" DataField="PaymentDate" DataFormatString="{0:d}" />

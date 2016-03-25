@@ -193,17 +193,19 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
         }
 
-        private Rock.Model.UserLogin mCurrentUser = null;
-        public Rock.Model.UserLogin CurrentUser
+        public String CurrentUserName
         {
-
             get
             {
-                return mCurrentUser;
+                if (ViewState["ucNotes_CurrentUserName"] != null)
+                {
+                    return ViewState["ucNotes_CurrentUserName"].ToString();
+                }
+                return null;
             }
             set
             {
-                mCurrentUser = value;
+                ViewState["ucNotes_CurrentUserName"] = value;
             }
         }
         #region Page Events
@@ -211,7 +213,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            if (!Page.IsPostBack)
+          if (!Page.IsPostBack)
                 ResetVariableProperties();
         }
 
@@ -391,7 +393,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             n.Active = false;
 
-            n.Save(CurrentUser.UserName);
+            n.Save(CurrentUserName);
             BindNoteList();
         }
 
@@ -442,7 +444,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 DateTime DisplayAtTopExpire = DateTime.MinValue;
                 n.Active = true;
 
-                n.Save(CurrentUser.UserName);
+                n.Save(CurrentUserName);
 
                 ClearNoteDetail();
                 LoadNote(n.NoteID);
@@ -456,12 +458,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     if (ValErrors.Count > 0)
                     {
                         System.Text.StringBuilder sb = new System.Text.StringBuilder();
-                        sb.Append("<ul type=\"disc\">");
                         foreach (var item in ValErrors)
                         {
-                            sb.AppendFormat("<li>{0} - {1}", item.Key, item.Value);
+                            sb.AppendFormat("<strong>{0}</strong> - {1}<br />", item.Key, item.Value);
                         }
-                        sb.Append("</ul>");
 
                         SetErrorMessage(sb.ToString());
                     }
@@ -480,6 +480,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             lblPopupError.Text = msg;
             lblPopupError.Visible = !String.IsNullOrEmpty(msg);
+            popupError.Visible = !String.IsNullOrEmpty(msg);
         }
 
         private void SetNoteEditibility(bool isEditiable)
@@ -513,7 +514,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if (ReadOnly)
                 return !ReadOnly;
 
-            return (createdByUid == CurrentUser.UserName || UserHasParentEditPermission );
+            return (createdByUid == CurrentUserName || UserHasParentEditPermission );
 
         }
 

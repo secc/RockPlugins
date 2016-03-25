@@ -545,16 +545,16 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 hfExpeditedShippingDays.Value = ExpeditedShippingWindowDaysSetting;
                 ucVendorSelect.CanAddNewVendor = AllowNewVendorSelectionSetting;     
             }
-            string baseUrl = String.Empty;
+            string baseUrl = CurrentPageReference.BuildUrl();
 
-            if (CurrentRequisition != null && CurrentRequisition.RequisitionID > 0)
+            /*if (CurrentRequisition != null && CurrentRequisition.RequisitionID > 0)
             {
                 baseUrl = string.Format("~/default.aspx?page={0}&RequisitionID={1}", CurrentPageReference.PageId, CurrentRequisition.RequisitionID);
             }
             else
             {
                 baseUrl = string.Format("~/default.aspx?page={0}", CurrentPageReference.PageId);
-            }
+            }*/
 
             lnkAttachments.NavigateUrl = baseUrl + "#attachments";
             lnkNotes.NavigateUrl = baseUrl + "#notes";
@@ -722,7 +722,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 LoadItems();
         }
 
-        protected void dgItems_ItemDataBound(object sender, DataGridItemEventArgs e)
+        protected void dgItems_OnRowDataBound(object sender, GridViewRowEventArgs e)
         {
             //if (e.Item.ItemType == ListItemType.Header)
             //{
@@ -730,13 +730,13 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             //    chkAll.Visible = mItemCount > 0;
             //    `
             //}
-            if (e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem)
+            if (e.Row.RowType == DataControlRowType.DataRow)
             {
-                LinkButton lbRemove = (LinkButton)e.Item.FindControl("lbRemove");
-                LinkButton lbEdit = (LinkButton)e.Item.FindControl("lbEdit");
-                Literal litPOs = (Literal)e.Item.FindControl("litPOs");
+                LinkButton lbRemove = (LinkButton)e.Row.FindControl("lbRemove");
+                LinkButton lbEdit = (LinkButton)e.Row.FindControl("lbEdit");
+                Literal litPOs = (Literal)e.Row.FindControl("litPOs");
 
-                RequisitionItemListItem Item = (RequisitionItemListItem)e.Item.DataItem;
+                RequisitionItemListItem Item = (RequisitionItemListItem)e.Row.DataItem;
 
                 System.Text.StringBuilder sb = new System.Text.StringBuilder();
                 if (Item.PONumbers.Count == 0)
@@ -768,7 +768,45 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 lbRemove.CommandArgument = Item.ItemID.ToString();
                 lbEdit.CommandArgument = Item.ItemID.ToString();
                 lbRemove.Visible = UserCanDeleteItem(Item.ItemID);
+                e.Row.Cells[11].Visible = UserCanDeleteItem(Item.ItemID);
                 lbEdit.Visible = CanUserEditItemDetail();
+                e.Row.Cells[12].Visible = CanUserEditItemDetail();
+            }
+        }
+
+        protected void dgItems_PreRender(object sender, EventArgs e)
+        {
+            // If we have no rows, just hide the last 2 columns and return
+            if (dgItems.Rows.Count == 0)
+            {
+                dgItems.HeaderRow.Cells[dgItems.HeaderRow.Cells.Count - 1].Visible = false;
+                dgItems.HeaderRow.Cells[dgItems.HeaderRow.Cells.Count - 2].Visible = false;
+                return;
+            }
+            // Hide all the header rows
+            foreach (TableCell theCell in dgItems.HeaderRow.Cells)
+            {
+                theCell.Visible = false;
+            }
+            // Hide all the footer rows
+            if (dgItems.FooterRow != null) { 
+                foreach (TableCell theCell in dgItems.FooterRow.Cells)
+                {
+                    theCell.Visible = false;
+                }
+            }
+            
+            foreach (GridViewRow theRow in dgItems.Rows)
+            {
+                for (var i = 0; i<theRow.Cells.Count; i++)
+                {
+                    TableCell theCell = theRow.Cells[i];
+                    dgItems.HeaderRow.Cells[i].Visible = dgItems.HeaderRow.Cells[i].Visible || theCell.Visible;
+                    if (dgItems.FooterRow != null)
+                    {
+                        dgItems.FooterRow.Cells[i].Visible = dgItems.FooterRow.Cells[i].Visible || theCell.Visible;
+                    }
+                }
             }
         }
 
@@ -1321,7 +1359,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             ucPurchasingNotes.ReadOnly = !CanUserEditNotes();
             ucPurchasingNotes.UserHasParentEditPermission = UserCanEdit;
             ucPurchasingNotes.LoadNoteList(typeof(Requisition).ToString(), RequisitionID);
-            ucPurchasingNotes.CurrentUser = CurrentUser;
+            ucPurchasingNotes.CurrentUserName = CurrentUser.UserName;
 
         }
 
@@ -1416,6 +1454,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 ucPurchasingNotes.Identifier = RequisitionID;
             ucPurchasingNotes.ReadOnly = !CanUserEditNotes();
             ucPurchasingNotes.ShowNoteDetail();
+            ucPurchasingNotes.CurrentUserName = CurrentUser.UserName;
+
         }
 
         private void LoadRequisitionTypes()

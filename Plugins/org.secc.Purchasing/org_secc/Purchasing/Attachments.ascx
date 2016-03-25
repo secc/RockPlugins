@@ -25,7 +25,7 @@
             display: none;" />
         <Rock:Grid ID="dgAttachment" runat="server" CssClass="list" AllowPaging="false"
             AddEnabled="false" ExportEnabled="false" DataKeyField="AttachmentID" DeleteEnabled="false" OnItemCommand="dgAttachment_ItemCommand" OnItemDataBound="dgAttachment_ItemDataBind"
-            NoResultText="No Attachments found">
+            NoResultText="No Attachments found" ShowActionRow="false">
             <Columns>
                 <Rock:RockBoundField DataField="AttachmentID" Visible="false" />
                 <asp:HyperLinkField DataTextField="Title" HeaderText="Title" DataNavigateUrlFields="BlobGuid" DataNavigateUrlFormatString="/download.aspx?guid={0}" ItemStyle-Width="20%" />
