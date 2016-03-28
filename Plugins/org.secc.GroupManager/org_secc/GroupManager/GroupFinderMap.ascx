@@ -150,6 +150,9 @@
                                         <Rock:CodeEditor ID="ceLavaOutput" runat="server" Label="Lava Template" EditorMode="Lava" EditorTheme="Rock" Height="300"
                                             Help="The Lava template to use for formatting the matching groups."
                                             ValidationGroup="GroupFinderSettings" />
+                                         <Rock:CodeEditor ID="ceGrouplessMessage" runat="server" Label="No Groups Message" EditorMode="Lava" EditorTheme="Rock" Height="300"
+                                            Help="Message to show when no groups are found."
+                                            ValidationGroup="GroupFinderSettings" />
                                         <Rock:RockCheckBox ID="cbLavaOutputDebug" runat="server" Text="Enable Debug" />
                                     </div>
                                 </div>

@@ -101,6 +101,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [BooleanField( "Show Lava Output", "", false, "CustomSetting" )]
     [CodeEditorField( "Lava Output", "", CodeEditorMode.Lava, CodeEditorTheme.Rock, 200, false, @"
 ", "CustomSetting" )]
+    [CodeEditorField("Groupless Message", "", CodeEditorMode.Lava, CodeEditorTheme.Rock, 200, false, @"
+", "CustomSetting")]
     [BooleanField( "Lava Output Debug", "", false, "CustomSetting" )]
 
     // Grid Settings
@@ -311,6 +313,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             SetAttributeValue( "Message", ceMessage.Text );
             SetAttributeValue( "ShowLavaOutput", cbShowLavaOutput.Checked.ToString() );
             SetAttributeValue( "LavaOutput", ceLavaOutput.Text );
+            SetAttributeValue("GrouplessMessage", ceGrouplessMessage.Text);
             SetAttributeValue( "LavaOutputDebug", cbLavaOutputDebug.Checked.ToString() );
 
             SetAttributeValue( "ShowGrid", cbShowGrid.Checked.ToString() );
@@ -323,6 +326,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             SetAttributeValue( "ShowAge", cbShowAge.Checked.ToString() );
             SetAttributeValue( "AttributeColumns", cblGridAttributes.Items.Cast<ListItem>().Where( i => i.Selected ).Select( i => i.Value ).ToList().AsDelimited( "," ) );
 
+            
             SetAttributeValue( "GroupDetailPage", ppGroupDetailPage.SelectedValue );
             SetAttributeValue( "RegisterPage" , ppRegisterPage.SelectedValue);
 
@@ -456,6 +460,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             ceMessage.Text = GetAttributeValue("Message");
             cbShowLavaOutput.Checked = GetAttributeValue( "ShowLavaOutput" ).AsBoolean();
             ceLavaOutput.Text = GetAttributeValue( "LavaOutput" );
+            ceGrouplessMessage.Text = GetAttributeValue("GrouplessMessage");
             cbLavaOutputDebug.Checked = GetAttributeValue( "LavaOutputDebug" ).AsBoolean();
 
             cbShowGrid.Checked = GetAttributeValue( "ShowGrid" ).AsBoolean();
@@ -931,9 +936,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     }
                 }
                     //Only show those in range.
-                    groupLocations = groupLocations
-                        .Where(gl => distances.ContainsKey(gl.GroupId) &&  distances[gl.GroupId] < Int32.Parse(ddlRange.SelectedValue) && gl.Location.GeoPoint != null)
-                        .ToList();
+                groupLocations = groupLocations
+                    .Where(gl => distances.ContainsKey(gl.GroupId) &&  distances[gl.GroupId] < Int32.Parse(ddlRange.SelectedValue) && gl.Location.GeoPoint != null)
+                    .ToList();
 
                 // If groups should be limited by a geofence
                 var fenceMapItems = new List<MapItem>();
@@ -957,11 +962,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             fences.Any( f => gl.Location.GeoPoint.Intersects( f.Location.GeoFence ) ) )
                         .ToList();
 
-                    // Limit the groups to the those that still contain a valid location
-                    groups = groups
-                        .Where( g =>
-                            groupLocations.Any( gl => gl.GroupId == g.Id ) )
-                        .ToList();
+
 
                     // If the map and fences should be displayed, create a map item for each fence
                     if ( showMap && showFences )
@@ -992,6 +993,12 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     groups = groups.Take(pageSize.Value).ToList();
                 }
 
+                // Limit the groups to the those that still contain a valid location
+                groups = groups
+                    .Where(g =>
+                       groupLocations.Any(gl => gl.GroupId == g.Id))
+                    .ToList();
+
                 // If a map is to be shown
                 if ( showMap && groups.Any() )
                 {
@@ -1017,15 +1024,18 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             mergeFields.Add( "Location", gl.Location );
 
                             Dictionary<string, object> linkedPages = new Dictionary<string, object>();
-                            linkedPages.Add( "GroupDetailPage", LinkedPageUrl( "GroupDetailPage", null ) );
+                            linkedPages.Add("GroupDetailPage",
+                                new PageReference(int.Parse(GetAttributeValue("GroupDetailPage")),0,null).BuildUrl());
 
                             if ( _targetPersonGuid != Guid.Empty )
                             {
-                                linkedPages.Add( "RegisterPage", LinkedPageUrl( "RegisterPage", _urlParms) );
+                                linkedPages.Add("RegisterPage",
+                                    new PageReference(int.Parse(GetAttributeValue("RegisterPage")), 0, _urlParms).BuildUrl());
                             }
                             else
                             {
-                                linkedPages.Add( "RegisterPage", LinkedPageUrl( "RegisterPage", null ) );
+                                linkedPages.Add("RegisterPage",
+                                    new PageReference(int.Parse(GetAttributeValue("RegisterPage")), 0, null).BuildUrl());
                             }
                             
                             
@@ -1105,15 +1115,18 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 mergeFields.Add( "Groups", groups );
 
                 Dictionary<string, object> linkedPages = new Dictionary<string, object>();
-                linkedPages.Add("GroupDetailPage", LinkedPageUrl("GroupDetailPage", null));
+                linkedPages.Add("GroupDetailPage",
+                    new PageReference(int.Parse(GetAttributeValue("GroupDetailPage")), 0, null).BuildUrl());
 
                 if (_targetPersonGuid != Guid.Empty)
                 {
-                    linkedPages.Add("RegisterPage", LinkedPageUrl("RegisterPage", _urlParms));
+                    linkedPages.Add("RegisterPage",
+                        new PageReference(int.Parse(GetAttributeValue("RegisterPage")), 0, _urlParms).BuildUrl());
                 }
                 else
                 {
-                    linkedPages.Add("RegisterPage", LinkedPageUrl("RegisterPage", null));
+                    linkedPages.Add("RegisterPage",
+                        new PageReference(int.Parse(GetAttributeValue("RegisterPage")), 0, null).BuildUrl());
                 }
 
                 mergeFields.Add("LinkedPages", linkedPages);
@@ -1171,9 +1184,42 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 pnlGrid.Visible = false;
             }
 
-            // Show the results
-            pnlResults.Visible = true;
+            if (groups.Any())
+            {
+                // Show the results
+                pnlResults.Visible = true;
+            }
+            else
+            {
+                //Could not find any groups re-show address field
+                pnlSearch.Visible = true;
+                Template template = Template.Parse(GetAttributeValue("GrouplessMessage"));
 
+
+                // Resolve lava template
+                var mergeFields = new Dictionary<string, object>();
+
+                Dictionary<string, object> linkedPages = new Dictionary<string, object>();
+                linkedPages.Add("GroupDetailPage",
+                    new PageReference(int.Parse(GetAttributeValue("GroupDetailPage")), 0, null).BuildUrl());
+
+                if (_targetPersonGuid != Guid.Empty)
+                {
+                    linkedPages.Add("RegisterPage",
+                        new PageReference(int.Parse(GetAttributeValue("RegisterPage")), 0, _urlParms).BuildUrl());
+                }
+                else
+                {
+                    linkedPages.Add("RegisterPage",
+                        new PageReference(int.Parse(GetAttributeValue("RegisterPage")), 0, null).BuildUrl());
+                }
+
+
+                mergeFields.Add("LinkedPages", linkedPages);
+
+                lMessage.Text = template.Render(Hash.FromDictionary(mergeFields));
+
+            }
         }
 
         /// <summary>
