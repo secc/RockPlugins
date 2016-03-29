@@ -58,13 +58,14 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [GroupTypeField( "Geofenced Group Type", "", false, "", "CustomSetting" )]
     [TextField( "ScheduleFilters", "", false, "", "CustomSetting" )]
     [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Attribute Filters", "", false, true, "", "CustomSetting" )]
+    [IntegerField( "Max Results", "Maximum number of results to display. 0 is no filter", false, 0, "CustomSetting" )]
 
     // Map Settings
     [BooleanField( "Show Map", "", false, "CustomSetting" )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.MAP_STYLES, "Map Style", "", true, false, Rock.SystemGuid.DefinedValue.MAP_STYLE_GOOGLE, "CustomSetting" )]
     [IntegerField( "Map Height", "", false, 600, "CustomSetting" )]
     [BooleanField( "Show Fence", "", false, "CustomSetting" )]
-    [ValueListField("Ranges", "", false, "1|5|10", "1", null, null, "CustomSetting")]
+    [ValueListField( "Ranges", "", false, "1|5|10", "1", null, null, "CustomSetting" )]
     [ValueListField( "Polygon Colors", "", false, "#f37833|#446f7a|#afd074|#649dac|#f8eba2|#92d0df|#eaf7fc", "#ffffff", null, null, "CustomSetting" )]
     [CodeEditorField( "Map Info", "", CodeEditorMode.Lava, CodeEditorTheme.Rock, 200, false, @"
 <h4 class='margin-t-none'>{{ Group.Name }}</h4> 
@@ -96,24 +97,24 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [BooleanField( "Map Info Debug", "", false, "CustomSetting" )]
 
     // Lava Output Settings
-    [CodeEditorField("Message", "", CodeEditorMode.Lava, CodeEditorTheme.Rock, 200, false, @"
-", "CustomSetting")]
+    [CodeEditorField( "Message", "", CodeEditorMode.Lava, CodeEditorTheme.Rock, 200, false, @"
+", "CustomSetting" )]
     [BooleanField( "Show Lava Output", "", false, "CustomSetting" )]
     [CodeEditorField( "Lava Output", "", CodeEditorMode.Lava, CodeEditorTheme.Rock, 200, false, @"
 ", "CustomSetting" )]
-    [CodeEditorField("Groupless Message", "", CodeEditorMode.Lava, CodeEditorTheme.Rock, 200, false, @"
-", "CustomSetting")]
+    [CodeEditorField( "Groupless Message", "", CodeEditorMode.Lava, CodeEditorTheme.Rock, 200, false, @"
+", "CustomSetting" )]
     [BooleanField( "Lava Output Debug", "", false, "CustomSetting" )]
 
     // Grid Settings
     [BooleanField( "Show Grid", "", false, "CustomSetting" )]
     [BooleanField( "Show Schedule", "", false, "CustomSetting" )]
-    [BooleanField( "Show Proximity", "", false, "CustomSetting" )]
+    [BooleanField( "Show Proximity", "", true, "CustomSetting" )]
     [BooleanField( "Show Count", "", false, "CustomSetting" )]
     [BooleanField( "Show Age", "", false, "CustomSetting" )]
     [BooleanField( "Show Description", "", true, "CustomSetting" )]
     [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Attribute Columns", "", false, true, "", "CustomSetting" )]
-    [BooleanField( "Sort By Distance", "", false, "CustomSetting" )]
+    [BooleanField( "Sort By Distance", "", true, "CustomSetting" )]
     [TextField( "Page Sizes", "To show a dropdown of page sizes, enter a comma delimited list of page sizes. For example: 10,20 will present a drop down with 10,20,All as options with the default as 10", false, "", "CustomSetting" )]
 
     public partial class GroupFinderMap : RockBlockCustomSettings
@@ -225,17 +226,17 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 {
                     ShowView();
                 }
-                
+
             }
         }
 
         private void DisplayMessage()
         {
-            string template = GetAttributeValue("Message");
+            string template = GetAttributeValue( "Message" );
 
             var mergeFields = new Dictionary<string, object>();
-            
-            lMessage.Text = template.ResolveMergeFields(mergeFields);
+
+            lMessage.Text = template.ResolveMergeFields( mergeFields );
         }
 
         /// <summary>
@@ -300,20 +301,21 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
 
             SetAttributeValue( "AttributeFilters", cblAttributes.Items.Cast<ListItem>().Where( i => i.Selected ).Select( i => i.Value ).ToList().AsDelimited( "," ) );
+            SetAttributeValue( "MaxResults", nudMaxResults.Value.ToString() );
 
             SetAttributeValue( "ShowMap", cbShowMap.Checked.ToString() );
             SetAttributeValue( "MapStyle", ddlMapStyle.SelectedValue );
             SetAttributeValue( "MapHeight", nbMapHeight.Text );
             SetAttributeValue( "ShowFence", cbShowFence.Checked.ToString() );
             SetAttributeValue( "PolygonColors", vlPolygonColors.Value );
-            SetAttributeValue( "Ranges", vlRanges.Value);
+            SetAttributeValue( "Ranges", vlRanges.Value );
             SetAttributeValue( "MapInfo", ceMapInfo.Text );
             SetAttributeValue( "MapInfoDebug", cbMapInfoDebug.Checked.ToString() );
 
             SetAttributeValue( "Message", ceMessage.Text );
             SetAttributeValue( "ShowLavaOutput", cbShowLavaOutput.Checked.ToString() );
             SetAttributeValue( "LavaOutput", ceLavaOutput.Text );
-            SetAttributeValue("GrouplessMessage", ceGrouplessMessage.Text);
+            SetAttributeValue( "GrouplessMessage", ceGrouplessMessage.Text );
             SetAttributeValue( "LavaOutputDebug", cbLavaOutputDebug.Checked.ToString() );
 
             SetAttributeValue( "ShowGrid", cbShowGrid.Checked.ToString() );
@@ -446,6 +448,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     li.Selected = true;
                 }
             }
+            nudMaxResults.Value = int.Parse( GetAttributeValue( "MaxResults" ) );
 
             cbShowMap.Checked = GetAttributeValue( "ShowMap" ).AsBoolean();
             ddlMapStyle.BindToDefinedType( DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.MAP_STYLES.AsGuid() ) );
@@ -453,14 +456,14 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             nbMapHeight.Text = GetAttributeValue( "MapHeight" );
             cbShowFence.Checked = GetAttributeValue( "ShowFence" ).AsBoolean();
             vlPolygonColors.Value = GetAttributeValue( "PolygonColors" );
-            vlRanges.Value = GetAttributeValue("Ranges");
+            vlRanges.Value = GetAttributeValue( "Ranges" );
             ceMapInfo.Text = GetAttributeValue( "MapInfo" );
             cbMapInfoDebug.Checked = GetAttributeValue( "MapInfoDebug" ).AsBoolean();
 
-            ceMessage.Text = GetAttributeValue("Message");
+            ceMessage.Text = GetAttributeValue( "Message" );
             cbShowLavaOutput.Checked = GetAttributeValue( "ShowLavaOutput" ).AsBoolean();
             ceLavaOutput.Text = GetAttributeValue( "LavaOutput" );
-            ceGrouplessMessage.Text = GetAttributeValue("GrouplessMessage");
+            ceGrouplessMessage.Text = GetAttributeValue( "GrouplessMessage" );
             cbLavaOutputDebug.Checked = GetAttributeValue( "LavaOutputDebug" ).AsBoolean();
 
             cbShowGrid.Checked = GetAttributeValue( "ShowGrid" ).AsBoolean();
@@ -520,7 +523,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             cblGridAttributes.Visible = cblAttributes.Items.Count > 0;
         }
 
-        private void ShowViewForPerson(Guid targetPersonGuid)
+        private void ShowViewForPerson( Guid targetPersonGuid )
         {
             // check for a specific person in the query string
             Person targetPerson = null;
@@ -549,7 +552,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     lTitle.Text += String.Format( "<p>The position of the address on file ({0}) could not be determined.</p>", targetPersonLocation.ToString() );
                 }
             }
-            
+
         }
 
 
@@ -557,7 +560,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         /// Shows the view.
         /// </summary>
         private void ShowView()
-        {            
+        {
             // If the groups should be limited by geofence, or the distance should be displayed,
             // then we need to capture the person's address
             Guid? fenceTypeGuid = GetAttributeValue( "GeofencedGroupType" ).AsGuidOrNull();
@@ -565,17 +568,17 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 acAddress.Visible = true;
                 pnlMessage.Visible = true;
-               
+
                 if ( CurrentPerson != null )
                 {
                     acAddress.SetValues( CurrentPerson.GetHomeLocation() );
                 }
 
                 btnSearch.Visible = true;
-                var ranges = GetAttributeValue("Ranges").Split('|').Where<string>(s => !string.IsNullOrEmpty(s)).ToList();
-                foreach (var range in ranges)
+                var ranges = GetAttributeValue( "Ranges" ).Split( '|' ).Where<string>( s => !string.IsNullOrEmpty( s ) ).ToList();
+                foreach ( var range in ranges )
                 {
-                    ddlRange.Items.Add(new ListItem(range+ (range=="1" ? " Mile" : " Miles"),range));
+                    ddlRange.Items.Add( new ListItem( range + ( range == "1" ? " Mile" : " Miles" ), range ) );
                 }
             }
             else
@@ -753,7 +756,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             if ( control is IRockControl )
             {
-                var rockControl = (IRockControl)control;
+                var rockControl = ( IRockControl ) control;
                 rockControl.Label = name;
                 rockControl.Help = description;
                 phFilterControls.Controls.Add( control );
@@ -792,9 +795,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             // Get query of groups of the selected group type
             var rockContext = new RockContext();
             var groupService = new GroupService( rockContext );
-            var groupQry = groupService
+            IQueryable<Group> groupQry = groupService
                 .Queryable( "GroupLocations.Location" )
-                .Where( g => g.IsActive && g.GroupType.Guid.Equals( groupTypeGuid.Value ) && g.IsPublic);
+                .Where( g => g.IsActive && g.GroupType.Guid.Equals( groupTypeGuid.Value ) && g.IsPublic );
 
             var groupParameterExpression = groupService.ParameterExpression;
             var schedulePropertyExpression = Expression.Property( groupParameterExpression, "Schedule" );
@@ -861,7 +864,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
 
             //Filter out to show only groups that have GeoPoints
-            groups = groups.Where(g => g.GroupLocations.Where(gl => gl.Location.GeoPoint!=null).Count()>0).ToList();
+            groups = groups.Where( g => g.GroupLocations.Where( gl => gl.Location.GeoPoint != null ).Count() > 0 ).ToList();
 
             int? fenceGroupTypeId = GetGroupTypeId( GetAttributeValue( "GeofencedGroupType" ).AsGuidOrNull() );
             bool showMap = GetAttributeValue( "ShowMap" ).AsBoolean();
@@ -929,9 +932,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                         }
                     }
                 }
-                    //Only show those in range.
+                //Only show those in range.
                 groupLocations = groupLocations
-                    .Where(gl => distances.ContainsKey(gl.GroupId) &&  distances[gl.GroupId] < Int32.Parse(ddlRange.SelectedValue) && gl.Location.GeoPoint != null)
+                    .Where( gl => distances.ContainsKey( gl.GroupId ) && distances[gl.GroupId] < Int32.Parse( ddlRange.SelectedValue ) && gl.Location.GeoPoint != null )
                     .ToList();
 
                 // If groups should be limited by a geofence
@@ -980,17 +983,24 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     groups = groups.OrderBy( a => distances[a.Id] ).ThenBy( a => a.Name ).ToList();
                 }
 
+                //if there is a max results will limit to that number, 0 means all
+                int maxResults;
+                if ( int.TryParse( GetAttributeValue( "MaxResults" ), out maxResults ) && maxResults != 0 )
+                {
+                    groups = groups.Take( maxResults ).ToList();
+                }
+
                 // if limiting by PageSize, limit to the top X groups
                 int? pageSize = ddlPageSize.SelectedValue.AsIntegerOrNull();
                 if ( pageSize.HasValue && pageSize > 0 )
                 {
-                    groups = groups.Take(pageSize.Value).ToList();
+                    groups = groups.Take( pageSize.Value ).ToList();
                 }
 
                 // Limit the groups to the those that still contain a valid location
                 groups = groups
-                    .Where(g =>
-                       groupLocations.Any(gl => gl.GroupId == g.Id))
+                    .Where( g =>
+                        groupLocations.Any( gl => gl.GroupId == g.Id ) )
                     .ToList();
 
                 // If a map is to be shown
@@ -1060,17 +1070,17 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     var campusMapItems = new List<MapItem>();
 
                     var campusList = CampusCache.All();
-                    foreach (var campus in campusList) 
+                    foreach ( var campus in campusList )
                     {
-                        var mapItem = new FinderMapItem(campus);
-                        mapItem.EntityTypeId = EntityTypeCache.Read("Rock.Model.Campus").Id;
+                        var mapItem = new FinderMapItem( campus );
+                        mapItem.EntityTypeId = EntityTypeCache.Read( "Rock.Model.Campus" ).Id;
                         mapItem.EntityId = campus.Id;
                         mapItem.Name = campus.Name;
-                        mapItem.InfoWindow = HttpUtility.HtmlEncode("<b>"+campus.Name+"</b><br>"+ 
-                            campus.Location.Street1+"<br>" + campus.Location.City +
-                            ", " + campus.Location.State +" "+ campus.Location.PostalCode);
+                        mapItem.InfoWindow = HttpUtility.HtmlEncode( "<b>" + campus.Name + "</b><br>" +
+                            campus.Location.Street1 + "<br>" + campus.Location.City +
+                            ", " + campus.Location.State + " " + campus.Location.PostalCode );
                         mapItem.Icon = "https://apps.southeastchristian.org/UserControls/Custom/SECC/SmallGroupLocator/Images/920-campus.png";
-                        campusMapItems.Add(mapItem);
+                        campusMapItems.Add( mapItem );
                     }
 
 
@@ -1117,7 +1127,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     linkedPages.Add( "RegisterPage", LinkedPageUrl( "RegisterPage", null ) );
                 }
 
-                mergeFields.Add("LinkedPages", linkedPages);
+                mergeFields.Add( "LinkedPages", linkedPages );
 
                 lLavaOverview.Text = template.ResolveMergeFields( mergeFields );
 
@@ -1163,7 +1173,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     Distance = distances.Where( d => d.Key == g.Id )
                         .Select( d => d.Value ).FirstOrDefault()
                 } )
-                .Where(a => a.Distance< int.Parse(ddlRange.SelectedValue) && distances.ContainsKey(a.Id))
+                .Where( a => a.Distance < int.Parse( ddlRange.SelectedValue ) && distances.ContainsKey( a.Id ) )
                 .ToList();
                 gGroups.DataBind();
             }
@@ -1172,7 +1182,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 pnlGrid.Visible = false;
             }
 
-            if (groups.Any())
+            if ( groups.Any() )
             {
                 // Show the results
                 pnlResults.Visible = true;
@@ -1181,7 +1191,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 //Could not find any groups re-show address field
                 pnlSearch.Visible = true;
-                Template template = Template.Parse(GetAttributeValue("GrouplessMessage"));
+                Template template = Template.Parse( GetAttributeValue( "GrouplessMessage" ) );
 
 
                 // Resolve lava template
@@ -1200,9 +1210,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
 
 
-                mergeFields.Add("LinkedPages", linkedPages);
+                mergeFields.Add( "LinkedPages", linkedPages );
 
-                lMessage.Text = template.Render(Hash.FromDictionary(mergeFields));
+                lMessage.Text = template.Render( Hash.FromDictionary( mergeFields ) );
 
             }
         }
@@ -1582,7 +1592,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 string.Format( "JSON.parse('{0}')", groups.ToJson().Replace( Environment.NewLine, "" ).EscapeQuotes().Replace( "\x0A", "" ) ) : "null";
 
             var campusJson = campuses != null && campuses.Any() ?
-                string.Format("JSON.parse('{0}')", campuses.ToJson().Replace(Environment.NewLine, "").EscapeQuotes().Replace("\x0A", "")) : "null";
+                string.Format( "JSON.parse('{0}')", campuses.ToJson().Replace( Environment.NewLine, "" ).EscapeQuotes().Replace( "\x0A", "" ) ) : "null";
 
             string mapScript = string.Format( mapScriptFormat,
                 locationJson,       // 0
@@ -1596,7 +1606,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 longitude,          // 8
                 zoom,               // 9
                 campusJson          //10
-                );             
+                );
 
             ScriptManager.RegisterStartupScript( pnlMap, pnlMap.GetType(), "group-finder-map-script", mapScript, true );
 
@@ -1657,17 +1667,17 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             }
 
-            public FinderMapItem(CampusCache campus): base()
+            public FinderMapItem( CampusCache campus ) : base()
             {
                 this.location = campus.Location;
                 PolygonPoints = new List<MapCoordinate>();
 
-                if (location != null)
+                if ( location != null )
                 {
                     LocationId = campus.LocationId ?? 0;
-                    if (location != null)
+                    if ( location != null )
                     {
-                        Point = new MapCoordinate(location.Latitude, location.Longitude);
+                        Point = new MapCoordinate( location.Latitude, location.Longitude );
                     }
                 }
             }
@@ -1682,5 +1692,5 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             ShowResults();
         }
-}
+    }
 }
