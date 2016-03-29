@@ -326,9 +326,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             SetAttributeValue( "ShowAge", cbShowAge.Checked.ToString() );
             SetAttributeValue( "AttributeColumns", cblGridAttributes.Items.Cast<ListItem>().Where( i => i.Selected ).Select( i => i.Value ).ToList().AsDelimited( "," ) );
 
-            
-            SetAttributeValue( "GroupDetailPage", ppGroupDetailPage.SelectedValue );
-            SetAttributeValue( "RegisterPage" , ppRegisterPage.SelectedValue);
+            var ppFieldType = new PageReferenceFieldType();
+            SetAttributeValue( "GroupDetailPage", ppFieldType.GetEditValue( ppGroupDetailPage, null ) );
+            SetAttributeValue( "RegisterPage", ppFieldType.GetEditValue( ppRegisterPage, null ) );
 
             SaveAttributeValues();
 
@@ -480,15 +480,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
             }
 
-            PageService pageService = new PageService(new RockContext());
-
-            int GroupDetailPageId = int.Parse(GetAttributeValue("GroupDetailPage"));
-            Rock.Model.Page GroupDetailPage = pageService.Queryable().Where(p => p.Id == GroupDetailPageId).FirstOrDefault();
-            ppGroupDetailPage.SetValue(GroupDetailPage);
-
-            int RegisterPageId = int.Parse(GetAttributeValue("RegisterPage"));
-            Rock.Model.Page RegisterPage = pageService.Queryable().Where(p => p.Id == RegisterPageId).FirstOrDefault();
-            ppRegisterPage.SetValue(RegisterPage);
+            var ppFieldType = new PageReferenceFieldType();
+            ppFieldType.SetEditValue( ppGroupDetailPage, null, GetAttributeValue( "GroupDetailPage" ) );
+            ppFieldType.SetEditValue( ppRegisterPage, null, GetAttributeValue( "RegisterPage" ) );
 
             upnlContent.Update();
         }
@@ -1024,21 +1018,18 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             mergeFields.Add( "Location", gl.Location );
 
                             Dictionary<string, object> linkedPages = new Dictionary<string, object>();
-                            linkedPages.Add("GroupDetailPage",
-                                new PageReference(int.Parse(GetAttributeValue("GroupDetailPage")),0,null).BuildUrl());
+                            linkedPages.Add( "GroupDetailPage", LinkedPageUrl( "GroupDetailPage", null ) );
 
                             if ( _targetPersonGuid != Guid.Empty )
                             {
-                                linkedPages.Add("RegisterPage",
-                                    new PageReference(int.Parse(GetAttributeValue("RegisterPage")), 0, _urlParms).BuildUrl());
+                                linkedPages.Add( "RegisterPage", LinkedPageUrl( "RegisterPage", _urlParms ) );
                             }
                             else
                             {
-                                linkedPages.Add("RegisterPage",
-                                    new PageReference(int.Parse(GetAttributeValue("RegisterPage")), 0, null).BuildUrl());
+                                linkedPages.Add( "RegisterPage", LinkedPageUrl( "RegisterPage", null ) );
                             }
-                            
-                            
+
+
                             mergeFields.Add( "LinkedPages", linkedPages );
 
                             // add collection of allowed security actions
@@ -1115,18 +1106,15 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 mergeFields.Add( "Groups", groups );
 
                 Dictionary<string, object> linkedPages = new Dictionary<string, object>();
-                linkedPages.Add("GroupDetailPage",
-                    new PageReference(int.Parse(GetAttributeValue("GroupDetailPage")), 0, null).BuildUrl());
+                linkedPages.Add( "GroupDetailPage", LinkedPageUrl( "GroupDetailPage", null ) );
 
-                if (_targetPersonGuid != Guid.Empty)
+                if ( _targetPersonGuid != Guid.Empty )
                 {
-                    linkedPages.Add("RegisterPage",
-                        new PageReference(int.Parse(GetAttributeValue("RegisterPage")), 0, _urlParms).BuildUrl());
+                    linkedPages.Add( "RegisterPage", LinkedPageUrl( "RegisterPage", _urlParms ) );
                 }
                 else
                 {
-                    linkedPages.Add("RegisterPage",
-                        new PageReference(int.Parse(GetAttributeValue("RegisterPage")), 0, null).BuildUrl());
+                    linkedPages.Add( "RegisterPage", LinkedPageUrl( "RegisterPage", null ) );
                 }
 
                 mergeFields.Add("LinkedPages", linkedPages);
@@ -1200,18 +1188,15 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 var mergeFields = new Dictionary<string, object>();
 
                 Dictionary<string, object> linkedPages = new Dictionary<string, object>();
-                linkedPages.Add("GroupDetailPage",
-                    new PageReference(int.Parse(GetAttributeValue("GroupDetailPage")), 0, null).BuildUrl());
+                linkedPages.Add( "GroupDetailPage", LinkedPageUrl( "GroupDetailPage", null ) );
 
-                if (_targetPersonGuid != Guid.Empty)
+                if ( _targetPersonGuid != Guid.Empty )
                 {
-                    linkedPages.Add("RegisterPage",
-                        new PageReference(int.Parse(GetAttributeValue("RegisterPage")), 0, _urlParms).BuildUrl());
+                    linkedPages.Add( "RegisterPage", LinkedPageUrl( "RegisterPage", _urlParms ) );
                 }
                 else
                 {
-                    linkedPages.Add("RegisterPage",
-                        new PageReference(int.Parse(GetAttributeValue("RegisterPage")), 0, null).BuildUrl());
+                    linkedPages.Add( "RegisterPage", LinkedPageUrl( "RegisterPage", null ) );
                 }
 
 
