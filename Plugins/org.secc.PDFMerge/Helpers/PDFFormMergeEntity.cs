@@ -10,7 +10,5 @@ namespace org.secc.PDFMerge
         public Dictionary<string,string> MergeFields { get; set; }
 
         public BinaryFile MergedPDF { get; set; }
-
-        public bool Flatten { get; set; }
     }
 }

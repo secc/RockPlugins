@@ -38,6 +38,9 @@ namespace org.secc.PDFMerge
     [Export( typeof( Rock.Workflow.ActionComponent ) )]
     [ExportMetadata( "ComponentName", "PDF Form Merge" )]
 
+    //Settings
+    [BooleanField("Flatten", "Should the action flatten the PDF locking the form fields")]
+
     class PDFFormMerge : ActionComponent
     {
         /// <summary>
@@ -77,7 +80,8 @@ namespace org.secc.PDFMerge
                    }
                 }
 
-                stamper.FormFlattening = pdfFormMergeEntity.Flatten;
+                //Should we flatten the form
+                stamper.FormFlattening = GetActionAttributeValue( action, "Flatten" ).AsBoolean();
 
                 stamper.Close();
                 pdfReader.Close();
@@ -85,6 +89,7 @@ namespace org.secc.PDFMerge
                 BinaryFile mergedPDF = new BinaryFile();
                 mergedPDF.CopyPropertiesFrom( pdf );
                 mergedPDF.Guid = Guid.NewGuid();
+                mergedPDF.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( new Guid( Rock.SystemGuid.BinaryFiletype.DEFAULT ) ).Id;
 
                 BinaryFileData pdfData = new BinaryFileData();
                 pdfData.Content = ms.ToArray();

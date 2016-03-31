@@ -68,9 +68,11 @@ namespace RockWeb.Plugins.org_secc.PDFExamples
         }
         protected void bntMerge_Click( object sender, EventArgs e )
         {
+            var rockContext = new RockContext();
             //Get the mergefields and pdf
+            BinaryFileService binaryFileService = new BinaryFileService( rockContext );
             Dictionary<string, string> mergeFields = GetMergeFields();
-            BinaryFile pdf = new BinaryFileService( new RockContext() ).Get( int.Parse( fpSelectedFile.SelectedValue ) );
+            BinaryFile pdf = binaryFileService.Get( int.Parse( fpSelectedFile.SelectedValue ) );
 
             //Create the object we will need to pass to the workflow
             if ( pdf != null && mergeFields.Count > 0 )
@@ -106,11 +108,10 @@ namespace RockWeb.Plugins.org_secc.PDFExamples
 
                 }
 
-                RockContext rockContext = new RockContext();
-                BinaryFileService binaryFileService = new BinaryFileService( rockContext );
+                
 
                 var mergedPDF = pdfEntity.MergedPDF;
-                mergedPDF.Guid = Guid.NewGuid();
+                //mergedPDF.Guid = Guid.NewGuid();
                 binaryFileService.Add( mergedPDF );
                 rockContext.SaveChanges();
 
