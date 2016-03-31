@@ -163,15 +163,15 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 if (GetCheckinSchedules(person.Person).Count() > 0)
                 {
-                HtmlGenericControl hgcPadding = new HtmlGenericControl("div");
-                hgcPadding.AddCssClass("col-xs-12 col-md-6");
-                hgcRow.Controls.Add(hgcPadding);
+                    HtmlGenericControl hgcPadding = new HtmlGenericControl("div");
+                    hgcPadding.AddCssClass("col-xs-12 col-md-6");
+                    hgcRow.Controls.Add(hgcPadding);
 
-                HtmlGenericControl hgcCell = new HtmlGenericControl("div");
-                hgcCell.AddCssClass("well col-xs-12");
-                hgcPadding.Controls.Add(hgcCell);
-                DisplayPersonButton(person, hgcCell);
-                DisplayPersonCheckinAreas(person.Person, hgcCell);
+                    HtmlGenericControl hgcCell = new HtmlGenericControl("div");
+                    hgcCell.AddCssClass("well col-xs-12");
+                    hgcPadding.Controls.Add(hgcCell);
+                    DisplayPersonButton(person, hgcCell);
+                    DisplayPersonCheckinAreas(person.Person, hgcCell);
                 }
             }
         }
@@ -229,10 +229,49 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                         .SelectMany(g => g.Locations).Where(l => l.Selected && l.Schedules.FirstOrDefault(s => s.Schedule.Guid == schedule.Schedule.Guid).Selected)
                         .FirstOrDefault();
 
+                    //If a room is selected
                     if (room != null)
                     {
                         btnSchedule.CssClass = "btn btn-primary col-xs-8";
                         btnSchedule.Text = "<b>" + schedule.Schedule.Name + "</b><br>" + group + " > " + room;
+                    }
+                    else
+                    {
+                    //if group is selected by a room isn't selected we need to pick a room
+                        //Get the rooms 
+                        var availableRooms = CurrentCheckInState.CheckIn.Families.Where(f => f.Selected)
+                        .SelectMany(f => f.People.Where(p => p.Person.Guid == person.Guid))
+                        .SelectMany(p => p.GroupTypes.Where(gt => gt.GroupType.ParentGroupTypes.Select(pgt => pgt.Guid).Contains(currentParentGroupType.Guid) == true && gt == groupType))
+                        .SelectMany(gt => gt.Groups.Where(g => g.Selected && g.Group.Guid == group.Group.Guid))
+                        .SelectMany(g => g.Locations).Where(l => l.Schedules.FirstOrDefault(s => s.Schedule.Guid == schedule.Schedule.Guid).Selected)
+                        .OrderBy(l => l.Location);
+                        
+                        //Find the room with the fewest number of people in it
+                        if (availableRooms.Count() > 0)
+                        {
+                            var autoRoom = new AttendanceService(new RockContext()).Queryable()
+                                 .Where(a => a.StartDateTime.Date == RockDateTime.Today.Date
+                                                && a.EndDateTime == null
+                                                && availableRooms.Select(ar => ar.Location).Contains(a.Location))
+                                 .GroupBy(a => a)
+                                 .OrderBy(g => g.Count())
+                                 .Select(g => g.Key)
+                                 .FirstOrDefault().Location;
+
+                            //set room as selected and show on page
+                            if (autoRoom != null)
+                            {
+                                CurrentCheckInState.CheckIn.Families.Where(f => f.Selected)
+                                    .SelectMany(f => f.People.Where(p => p.Person.Guid == person.Guid))
+                                    .SelectMany(p => p.GroupTypes.Where(gt => gt.GroupType.ParentGroupTypes.Select(pgt => pgt.Guid).Contains(currentParentGroupType.Guid) == true && gt == groupType))
+                                    .SelectMany(gt => gt.Groups.Where(g => g.Selected && g.Group.Guid == group.Group.Guid))
+                                    .SelectMany(g => g.Locations).Where(l => l.Schedules.FirstOrDefault(s => s.Schedule.Guid == schedule.Schedule.Guid).Selected)
+                                    .Where(l => l.Location.Guid == autoRoom.Guid).FirstOrDefault().Selected = true;
+
+                                btnSchedule.CssClass = "btn btn-primary col-xs-8";
+                                btnSchedule.Text = "<b>" + schedule.Schedule.Name + "</b><br>" + group + " > " + autoRoom.Name;
+                            }
+                        }
                     }
                 }
             }
