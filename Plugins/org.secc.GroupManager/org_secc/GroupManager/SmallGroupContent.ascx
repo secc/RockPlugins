@@ -8,6 +8,7 @@
 
 <asp:UpdatePanel ID="upnlContent" runat="server" UpdateMode="Conditional">
     <ContentTemplate>
+        <Rock:NotificationBox runat="server" ID="nbAlert"  NotificationBoxType="Danger" Visible="false"></Rock:NotificationBox>
         <div class="row">
 
             <%-- Sidebar Panel --%>

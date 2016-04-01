@@ -65,7 +65,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             //If you are not a leader when one is required hide and quit.
             if ( !group.IsAuthorized( Authorization.EDIT, CurrentPerson ) )
             {
-                this.Visible = false;
+                pnlMain.Visible = false;
+                nbAlert.Visible = true;
+                nbAlert.Text = "You are not authorized to view this page.";
                 return;
             }
 

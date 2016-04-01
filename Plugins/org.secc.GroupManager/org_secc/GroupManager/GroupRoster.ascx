@@ -3,6 +3,8 @@
 <asp:UpdatePanel ID="upDevice" runat="server">
     <ContentTemplate>
 
+        <Rock:NotificationBox runat="server" ID="nbAlert"  NotificationBoxType="Danger" Visible="false"></Rock:NotificationBox>
+        
         <Rock:ModalAlert ID="maSent" runat="server"></Rock:ModalAlert>
 
         <asp:Panel ID="pnlMain" runat="server">
