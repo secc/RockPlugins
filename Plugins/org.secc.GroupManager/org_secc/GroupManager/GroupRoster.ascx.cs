@@ -10,6 +10,8 @@ using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 using System.Collections.Generic;
 using Rock;
+using Rock.Attribute;
+using Rock.Security;
 
 namespace RockWeb.Plugins.org_secc.GroupManager
 {
@@ -20,7 +22,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     {
         Group group = new Group();
         List<MemberData> memberData = new List<MemberData>();
-
         string smsScript = @"
             var charCount = function(){
                 document.getElementById('charCount').innerHTML = $('textarea[id$= \'tbMessage\']').val().length + ' of 160';
@@ -59,7 +60,15 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
             var rockContext = new RockContext();
             var groupService = new GroupService(rockContext);
-            group = groupService.Queryable().Where(g => g.Id == groupId).FirstOrDefault();
+            group = groupService.Get( groupId );
+
+            //If you are not a leader when one is required hide and quit.
+            if ( !group.IsAuthorized( Authorization.EDIT, CurrentPerson ) )
+            {
+                this.Visible = false;
+                return;
+            }
+
             Page.Title = group.Name;
             ltTitle.Text = "<h1>"+group.Name+"</h1>";
             var groupMembers = groupService.Queryable().Where(g => g.Id == groupId).SelectMany(g => g.Members).ToList();
@@ -146,8 +155,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
 
             group.LoadAttributes();
-            var a = group.GetAttributeValue("AllowEmailParents");
-            bool allowEmailParents = group.GetAttributeValue("AllowEmailParents")=="True" ? true :false;
+            cbSMSSendToParents.Visible = group.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
             pnlMain.Visible = false;
             pnlSMS.Visible = true;
 
@@ -164,8 +172,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
 
             group.LoadAttributes();
-            var a = group.GetAttributeValue("AllowEmailParents");
-            bool allowEmailParents = group.GetAttributeValue("AllowEmailParents") == "True" ? true : false;
+            cbEmailSendToParents.Visible = group.GetAttributeValue("AllowEmailParents").AsBoolean();
             pnlMain.Visible = false;
             pnlEmail.Visible = true;
 

@@ -13,22 +13,21 @@
             <br>
             <Rock:RockCheckBoxList ID="cblRole" runat="server" Label="Member Role"></Rock:RockCheckBoxList>
             <Rock:RockCheckBoxList ID="cblGender" runat="server" Label="Gender">
-
             </Rock:RockCheckBoxList>
             <Rock:RockCheckBoxList runat="server" ID="cblStatus" Label="Status">
             </Rock:RockCheckBoxList>
         </Rock:GridFilter>
 
 
-        <Rock:Grid ID="gMembers" runat="server" AllowSorting="true">
+        <Rock:Grid ID="gMembers" runat="server">
             <Columns>
                 <Rock:SelectField></Rock:SelectField>
-                <Rock:RockBoundField DataField="Name" HeaderText="Name" SortExpression="Name" ColumnPriority="AlwaysVisible" />
-                <Rock:RockBoundField  DataField="DateAdded" HeaderText="Date Added" SortExpression="Name" ColumnPriority="Desktop" />
-                <Rock:RockBoundField DataField="Address" HeaderText="Address" SortExpression="Name"  ColumnPriority="Desktop" />
-                <Rock:RockBoundField  DataField="City" HeaderText="City" SortExpression="Name"  ColumnPriority="Desktop" />
-                <Rock:RockBoundField DataField="State" HeaderText="State" SortExpression="Name"  ColumnPriority="Desktop" />
-                <Rock:RockBoundField  DataField="Role" HeaderText="Role" SortExpression="Name" ColumnPriority="Tablet" />
+                <Rock:RockBoundField DataField="Name" HeaderText="Name" ColumnPriority="AlwaysVisible" />
+                <Rock:RockBoundField  DataField="DateAdded" HeaderText="Date Added" ColumnPriority="Desktop" />
+                <Rock:RockBoundField DataField="Address" HeaderText="Address" ColumnPriority="Desktop" />
+                <Rock:RockBoundField  DataField="City" HeaderText="City" ColumnPriority="Desktop" />
+                <Rock:RockBoundField DataField="State" HeaderText="State" ColumnPriority="Desktop" />
+                <Rock:RockBoundField  DataField="Role" HeaderText="Role" ColumnPriority="Tablet" />
             </Columns>
         </Rock:Grid>
 
