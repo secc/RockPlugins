@@ -20,15 +20,15 @@
         </Rock:GridFilter>
 
 
-        <Rock:Grid ID="gMembers" runat="server">
+        <Rock:Grid ID="gMembers" runat="server" AllowSorting="true">
             <Columns>
                 <Rock:SelectField></Rock:SelectField>
-                <asp:BoundField DataField="Name" HeaderText="Name" SortExpression="Name" />
-                <asp:BoundField DataField="DateAdded" HeaderText="Date Added" SortExpression="Name" />
-                <asp:BoundField DataField="Address" HeaderText="Address" SortExpression="Name" />
-                <asp:BoundField DataField="City" HeaderText="City" SortExpression="Name" />
-                <asp:BoundField DataField="State" HeaderText="State" SortExpression="Name" />
-                <asp:BoundField DataField="Role" HeaderText="Role" SortExpression="Name" />
+                <Rock:RockBoundField DataField="Name" HeaderText="Name" SortExpression="Name" ColumnPriority="AlwaysVisible" />
+                <Rock:RockBoundField  DataField="DateAdded" HeaderText="Date Added" SortExpression="Name" ColumnPriority="Desktop" />
+                <Rock:RockBoundField DataField="Address" HeaderText="Address" SortExpression="Name"  ColumnPriority="Desktop" />
+                <Rock:RockBoundField  DataField="City" HeaderText="City" SortExpression="Name"  ColumnPriority="Desktop" />
+                <Rock:RockBoundField DataField="State" HeaderText="State" SortExpression="Name"  ColumnPriority="Desktop" />
+                <Rock:RockBoundField  DataField="Role" HeaderText="Role" SortExpression="Name" ColumnPriority="Tablet" />
             </Columns>
         </Rock:Grid>
 
