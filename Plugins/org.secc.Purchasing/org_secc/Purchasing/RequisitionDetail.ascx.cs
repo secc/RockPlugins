@@ -89,7 +89,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-                Guid? guid = GetAttributeValue("MinistryAreaAttributeIDSetting").AsGuidOrNull();
+                Guid? guid = GetAttributeValue("MinistryAreaAttributeID").AsGuidOrNull();
                 if (guid.HasValue)
                 {
                     return attributeService.Get(guid.Value);
@@ -202,27 +202,19 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
         }
 
-        public int NewRequisitionInPurchasingQueueNotificationSetting
+        public Guid? NewRequisitionInPurchasingQueueNotificationSetting
         {
             get
             {
-                int templateID = 0;
-                int.TryParse(GetAttributeValue("NewRequisitionInPurchasingQueueNotification"), out templateID);
-
-                return templateID;
-
+                return GetAttributeValue("NewRequisitioninPurchasingQueueNotification").AsGuidOrNull();
             }
         }
 
-        public int RequisitionSubmittedToPurchasingSetting
+        public Guid? RequisitionSubmittedToPurchasingSetting
         {
             get
             {
-                int templateID = 0;
-                int.TryParse(GetAttributeValue("RequisitionSubmittedToPurchasing"), out templateID);
-
-                return templateID;
-
+                return GetAttributeValue("RequisitionSubmittedToPurchasingNotification").AsGuidOrNull();
             }
         }
 
@@ -530,11 +522,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         protected void Page_Load(object sender, EventArgs e)
         {
 
-            definedValueService = new DefinedValueService(rockContext);
-            systemEmailService = new SystemEmailService(rockContext);
-            personAliasService = new PersonAliasService(rockContext);
-            userLoginService = new UserLoginService(rockContext);
-            attributeService = new AttributeService(rockContext);
 
             if (!Page.IsPostBack)
             {
@@ -543,7 +530,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 LoadRequisition();
 
                 hfExpeditedShippingDays.Value = ExpeditedShippingWindowDaysSetting;
-                ucVendorSelect.CanAddNewVendor = AllowNewVendorSelectionSetting;     
+                ucVendorSelect.CanAddNewVendor = AllowNewVendorSelectionSetting;
+                ucStaffPicker.MinistryAreaAttributeGuid = MinistryAreaAttribute.Guid;
+                ucStaffPicker.PositionAttributeGuid = PositionAttribute.Guid;
             }
             string baseUrl = CurrentPageReference.BuildUrl();
 
@@ -561,9 +550,22 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             dgItems.ShowFooter = true;
         }
+        protected override void CreateChildControls()
+        {
+            base.CreateChildControls();
+            ucStaffPickerGeneric.MinistryAreaAttributeGuid = MinistryAreaAttribute.Guid;
+            ucStaffPickerGeneric.PositionAttributeGuid = PositionAttribute.Guid;
+        }
 
         protected override void OnInit(EventArgs e)
         {
+
+            definedValueService = new DefinedValueService(rockContext);
+            systemEmailService = new SystemEmailService(rockContext);
+            personAliasService = new PersonAliasService(rockContext);
+            userLoginService = new UserLoginService(rockContext);
+            attributeService = new AttributeService(rockContext);
+
             //mpiAttachmentPicker.Url = "/DocumentBrowser.aspx?callback=selectDocument&SelectedID=#selectedID#&DocumentTypeID=#documentTypeID#";
             mpiAttachmentPicker.Height = 300;
             mpiAttachmentPicker.Width = 320;
@@ -583,12 +585,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             LoadToolbarLinks();
             base.OnPreRender(e);
-        }
-
-        protected void btnChangeRequester_Click(object sender, EventArgs e)
-        {
-            ShowStaffSelector("Select Requester", ihPersonList.ClientID, btnRefresh.ClientID);
-
         }
 
         protected void btnItemDetailsUpdate_click(object sender, EventArgs e)
@@ -776,6 +772,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         protected void dgItems_PreRender(object sender, EventArgs e)
         {
+            if (dgItems.HeaderRow == null)
+                return;
+
             // If we have no rows, just hide the last 2 columns and return
             if (dgItems.Rows.Count == 0)
             {
@@ -944,8 +943,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             {
                 DefinedValueService definedValueService = new DefinedValueService(new Rock.Data.RockContext());
                 var typeLU = definedValueService.Get(typeLUID );
-                // TODO: Check to make sure this value is "y"
-                if (typeLU != null && typeLU.AttributeValues["CERRequired"].Value == "Y")
+                if (typeLU != null && typeLU.AttributeValues["CERRequired"].Value.AsBoolean())
                 {
                     requiresCER = true;
                 }
@@ -1244,8 +1242,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void ClearRequester()
         {
-            hdnRequesterID.Value = String.Empty;
-            lblRequesterName.Text = String.Empty;
+            //hdnRequesterID.Value = String.Empty;
+            //lblRequesterName.Text = String.Empty;
         }
 
         private void ClearSummary()
@@ -1546,8 +1544,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 Person SelectedPerson = personAliasService.Get(selectedPersonID).Person;
                 if (SelectedPerson.Id > 0)
                 {
-                    hdnRequesterID.Value = SelectedPerson.Id.ToString();
-                    lblRequesterName.Text = SelectedPerson.FullName;
+                    //hdnRequesterID.Value = SelectedPerson.Id.ToString();
+                    ucStaffPicker.StaffPersonAliasId = SelectedPerson.PrimaryAliasId;
+                    //lblRequesterName.Text = SelectedPerson.FullName;
                 }
             }
         }
@@ -1574,11 +1573,11 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             if (UserCanEdit)
             {
-                btnChangeRequester.Visible = IsEditable;
+                ucStaffPicker.UserCanEdit = IsEditable;
             }
             else
             {
-                btnChangeRequester.Visible = false;
+                ucStaffPicker.UserCanEdit = false;
             }
 
             lbVendorRemove.Visible = IsEditable;
@@ -1602,7 +1601,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
                 var typeLU = definedValueService.Get(reqTypeLUID);
                 typeLU.LoadAttributes();
-                // TODO: is "Y" correct?
                 if ( typeLU != null && typeLU.AttributeValues["CERRequired"].Value.AsBoolean() )
                 {
                     cerVisibility = true;
@@ -1643,20 +1641,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             //btnVendorModalReset.Enabled = enabled; 
         }
 
-
-
-        private void ShowStaffSelector(string title, string parentPersonIDControl, string refreshButtonControlID)
-        {
-            ucStaffSearch.Title = title;
-            ucStaffSearch.ParentPersonControlID = parentPersonIDControl;
-            ucStaffSearch.ParentRefreshButtonID = refreshButtonControlID;
-            ucStaffSearch.MinistryAreaAttributeGuid = MinistryAreaAttribute.Guid;
-            ucStaffSearch.PositionAttributeGuid = PositionAttribute.Guid;
-            // TODO: Fix this
-            //ucStaffSearch.PersonDetailPage = PersonDetailPageSetting;
-            ucStaffSearch.Show();
-        }
-
         private void UpdateVendorLabel()
         {
             if (!String.IsNullOrEmpty(ucVendorSelect.VendorName))
@@ -1692,7 +1676,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     HasChanged = true;
                 if (!HasChanged && int.Parse(ddlType.SelectedValue) != CurrentRequisition.RequisitionTypeLUID)
                     HasChanged = true;
-                if (!HasChanged && int.Parse(hdnRequesterID.Value) != CurrentRequisition.RequesterID)
+                if (!HasChanged && ucStaffPicker.StaffPersonAliasId != CurrentRequisition.RequesterID)
                     HasChanged = true;
                 if (!HasChanged && txtDeliverTo.Text != CurrentRequisition.DeliverTo)
                     HasChanged = true;
@@ -1751,7 +1735,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             CurrentRequisition.Title = txtTitle.Text.Trim();
             if (ddlType.SelectedValue != "")
                 CurrentRequisition.RequisitionTypeLUID = int.Parse(ddlType.SelectedValue);
-            CurrentRequisition.RequesterID = int.Parse(hdnRequesterID.Value);
+            if (ucStaffPicker.StaffPersonAliasId.HasValue)
+                CurrentRequisition.RequesterID = ucStaffPicker.StaffPersonAliasId.Value;
             CurrentRequisition.DeliverTo = txtDeliverTo.Text;
 
             UpdatePreferredVendor();
@@ -1864,6 +1849,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void MergeTemplateFields( ref SystemEmail notificationTemplate, Dictionary<string, string> HTMLMerge, Dictionary<string, string> textMerge )
         {
+            if (notificationTemplate == null)
+            {
+                return;
+            }
             System.Text.StringBuilder htmlMessage = new System.Text.StringBuilder( notificationTemplate.Body );
 
             foreach ( KeyValuePair<string, string> kvp in HTMLMerge )
@@ -1935,7 +1924,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void SendRequesterSentToPurchasingNotification()
         {
-            SystemEmail ct = systemEmailService.Get(RequisitionSubmittedToPurchasingSetting);
+            SystemEmail ct = systemEmailService.Get(RequisitionSubmittedToPurchasingSetting.Value);
             Dictionary<string, string> HTMLMerge = new Dictionary<string, string>();
             Dictionary<string, string> TextMerge = new Dictionary<string, string>();
 
@@ -1958,7 +1947,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void SendPurchasingTeamNotification()
         {
-            SystemEmail ctOriginal = systemEmailService.Get(NewRequisitionInPurchasingQueueNotificationSetting);
+            SystemEmail ctOriginal = systemEmailService.Get(NewRequisitionInPurchasingQueueNotificationSetting.Value);
 
             String[] emails = ctOriginal.To.Split(new char[] { ',', ';' });
             PersonService personService = new PersonService(new Rock.Data.RockContext());
@@ -2652,7 +2641,11 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 }
                 else
                 {
-                    ShowStaffSelector("Select Approver", hfApproverID.ClientID, btnApproverAdd.ClientID);
+                    ucStaffPickerGeneric.MinistryAreaAttributeGuid = MinistryAreaAttribute.Guid;
+                    ucStaffPickerGeneric.PositionAttributeGuid = PositionAttribute.Guid;
+                    ucStaffPickerGeneric.Show();
+                    //TODO: fix this
+                    //ShowStaffSelector("Select Approver", hfApproverID.ClientID, btnApproverAdd.ClientID);
                 }
             }
         }
@@ -2682,8 +2675,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             Approval approvalRequest = CurrentRequisition.Approvals.FirstOrDefault(a => a.ApprovalID == approvalID);
             approvalRequest.Approve(CurrentUser.UserName, Approval.ApprovedAndForwardLUID());
-
-            ShowStaffSelector("Select Approver", hfApproverID.ClientID, btnApproverAdd.ClientID);
+            //TODO; Fix this
+            //ShowStaffSelector("Select Approver", hfApproverID.ClientID, btnApproverAdd.ClientID);
 
         }
 
@@ -2849,6 +2842,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void SendCommunication(SystemEmail notificationTemplate, Person sender, Person recepient)
         {
+            if (notificationTemplate == null)
+                return;
+
             string fromName;
             string fromEmail;
             string replyToEmail = String.Empty;
@@ -3509,8 +3505,17 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         protected void btnSelectApproverOther_Click(object sender, EventArgs e)
         {
             mpSelectApprovalType.Hide();
-            ShowStaffSelector("Select Approver", hfApproverID.ClientID, btnApproverAdd.ClientID);
+            ucStaffPickerGeneric.Show();
         }
+
+        protected void SelectButton_Click(object sender, EventArgs e)
+        {
+            PersonAlias test = ((StaffPicker)sender).StaffPerson;
+            AddApprover(test.AliasPersonId);
+            CurrentRequisition = new Requisition(RequisitionID);
+            LoadRequisition();
+        }
+        
         #endregion
 
         #region CER Select Modal
@@ -3527,7 +3532,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             grdCERSelect.ItemAltBgColor = CurrentPortalPage.Setting( "ItemAltBgColor", string.Empty, false );
             grdCERSelect.ItemMouseOverColor = CurrentPortalPage.Setting( "ItemMouseOverColor", string.Empty, false );*/
             grdCERSelect.AllowSorting = true;
-            grdCERSelect.AllowPaging = true;
             /*grdCERSelect.MergeEnabled = false;
             grdCERSelect.EditEnabled = false;
             grdCERSelect.MailEnabled = false;
@@ -3545,9 +3549,11 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             filter.Add( "PersonId", CurrentPerson.PrimaryAliasId.ToString() );
             filter.Add( "UserId", CurrentUser.UserName );
-            // TODO: I'm not 100% sure this is right.... DefaultValue?
-            filter.Add( "MinistryId", CurrentPerson.Attributes.Where( a => a.Key == MinistryAreaAttribute.Key ).FirstOrDefault().Value.DefaultValue );
-
+            CurrentPerson.LoadAttributes();
+            Guid? definedValueGuid = CurrentPerson.GetAttributeValue(MinistryAreaAttribute.Key).AsGuidOrNull();
+            if (definedValueGuid.HasValue) {
+                filter.Add("MinistryId", definedValueService.Get(definedValueGuid.Value).Id.ToString());
+            }
             DefinedValue openStatus = definedValueService.Get(new Guid(CapitalRequest.LOOKUP_STATUS_OPEN_GUID));
             filter.Add( "StatusLUID", openStatus.Id.ToString() );
             filter.Add( "Show_Me", true.ToString() );
@@ -3566,21 +3572,13 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             grdCERSelect.DataSource = CapitalRequest.GetCapitalRequestList( filter );
             grdCERSelect.DataBind();
         }
-        protected void grdCERSelect_ItemCreated( object sender, DataGridItemEventArgs e )
-        {
-            if ( e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem )
-            {
-
-            }
-        }
-
-        protected void rbCERSelect_CheckedChanged( object sender, EventArgs e )
+        protected void rbCERSelect_CheckedChanged(object sender, EventArgs e)
         {
             RadioButton selectedRb = (RadioButton)sender;
 
-            foreach ( DataGridItem item in grdCERSelect.Rows )
+            foreach ( GridViewRow item in grdCERSelect.Rows )
             {
-                if ( item.ItemType == ListItemType.Item || item.ItemType == ListItemType.AlternatingItem )
+                if ( item.RowType == DataControlRowType.DataRow)
                 {
                     RadioButton itemRB = (RadioButton)item.FindControl( "rbCERSelect" );
                     if ( itemRB.ClientID != selectedRb.ClientID )
@@ -3594,15 +3592,15 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             int selectedCERId = 0;
 
-            foreach ( DataGridItem item in grdCERSelect.Rows )
+            foreach (GridViewRow item in grdCERSelect.Rows)
             {
-                if ( item.ItemType == ListItemType.Item || item.ItemType == ListItemType.AlternatingItem )
+                if (item.RowType == DataControlRowType.DataRow)
                 {
                     RadioButton itemRb = (RadioButton)item.FindControl( "rbCERSelect" );
 
                     if ( itemRb.Checked )
                     {
-                        selectedCERId = int.Parse( item.Cells[0].Text );
+                        selectedCERId = grdCERSelect.DataKeys[item.RowIndex].Value.ToString().AsInteger();
                         break;
                     }
                 }
@@ -3617,12 +3615,5 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         }
 
         #endregion
-
-
-
-
-
-
-
-}
+        }
 }

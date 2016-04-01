@@ -15,161 +15,162 @@ using org.secc.Purchasing.DataLayer;
 
 namespace RockWeb.Plugins.org_secc.Purchasing
 {
-    public partial class StaffSearch : UserControl
+    public partial class StaffPicker : UserControl, IPostBackEventHandler 
     {
         #region Properties
 
-        public string ParentPersonControlID
-        {
-            get
-            {
-                string controlID = String.Empty;
-                if (ViewState["StaffSearch_ControlID"] != null)
-                    controlID = ViewState["StaffSearch_ControlID"].ToString();
-                return controlID;
-            }
-            set
-            {
-                ViewState["StaffSearch_ControlID"] = value;
-            }
-        }
-
-        public string ParentRefreshButtonID
-        {
-            get
-            {
-                string buttonControlID = String.Empty;
-                if (ViewState["StaffSearch_RefreshButtonID"] != null)
-                    buttonControlID = ViewState["StaffSearch_RefreshButtonID"].ToString();
-                return buttonControlID;
-            }
-            set
-            {
-                ViewState["StaffSearch_RefreshButtonID"] = value;
-            }
-        }
-        public string Title
-        {
-            get
-            {
-                string title = String.Empty;
-                if (ViewState["StaffSearch_Title"] != null)
-                    title = ViewState["StaffSearch_Title"].ToString();
-                return title;
-            }
-            set
-            {
-                ViewState["StaffSearch_Title"] = value;
-            }
-        }
-
+        private bool mAllowMultipleSelections;
         public bool AllowMultipleSelections
         {
             get
             {
-                bool isAllowed = false;
-                if (ViewState["StaffSearch_AllowMultipleSelections"] != null)
-                    isAllowed = (bool)ViewState["StaffSearch_AllowMultipleSelections"];
-                return isAllowed;
+                return mAllowMultipleSelections;
             }
             set
             {
-                ViewState["StaffSearch_AllowMultipleSelections"] = value;
+                mAllowMultipleSelections = value;
             }
         }
 
-
+        private Guid? mMinistryAreaAttributeGuid;
         public Guid? MinistryAreaAttributeGuid
         {
             get
             {
-                if (ViewState["StaffSearch_MinistryAreaAttributeID"] != null)
-                    return ViewState["StaffSearch_MinistryAreaAttributeID"].ToString().AsGuid();
-                return null;
+                return mMinistryAreaAttributeGuid;
             }
             set
             {
-                ViewState["StaffSearch_MinistryAreaAttributeID"] = value;
+                mMinistryAreaAttributeGuid = value;
             }
         }
 
+        private Guid? mPositionAttributeGuid;
         public Guid? PositionAttributeGuid
         {
             get
             {
-                if (ViewState["StaffSearch_PositionAttributeID"] != null)
-                    return ViewState["StaffSearch_PositionAttributeID"].ToString().AsGuid();
-
-                return null;
+                return mPositionAttributeGuid;
             }
             set
             {
-                ViewState["StaffSearch_PositionAttributeID"] = value;
+                mPositionAttributeGuid = value;
             }
         }
 
+        private string mInstructions;
         public string Instructions
         {
             get
             {
-                string inst = String.Empty;
-
-                if (ViewState["StaffSearch_Instructions"] != null)
-                    inst = ViewState["StaffSearch_Instructions"].ToString();
-
-                return inst;
+                return mInstructions;
             }
 
             set
             {
-                ViewState["StaffSearch_Instructions"] = value;
+                mInstructions = value;
             }
         }
 
+        private string mTitle;
+        public string Title
+        {
+            get
+            {
+                return mTitle;
+            }
+
+            set
+            {
+                mTitle = value;
+            }
+        }
+
+        private bool mShowPersonDetailLink;
         public bool ShowPersonDetailLink
         {
             get
             {
-                bool isShown = false;
-                if (ViewState["StaffSearch_ShowPersonDetailLink"] != null)
-                    isShown = (bool)ViewState["StaffSearch_ShowPersonDetailLink"];
-                return isShown;
+                return mShowPersonDetailLink;
             }
             set
             {
-                ViewState["StaffSearch_ShowPersonDetailLink"] = value;
+                mShowPersonDetailLink = value;
             }
         }
 
-        private StaffSearchMode Mode
+        private StaffPickerMode mMode;
+        private StaffPickerMode Mode
         {
             get
             {
-                StaffSearchMode mode = StaffSearchMode.Search;
-
-                if (ViewState["StaffSearch_PageMode"] != null && ViewState["StaffSearch_PageMode"].GetType() == typeof(StaffSearchMode))
-                    mode = (StaffSearchMode)ViewState["StaffSearch_PageMode"];
-
-                return mode;
+                return mMode;
             }
             set
             {
-                ViewState["StaffSearch_PageMode"] = value;
+                mMode = value;
+            }
+        }
+        private PersonAlias mStaffPerson = null;
+        public PersonAlias StaffPerson
+        {
+            get
+            {
+                if (mStaffPerson != null && mStaffPerson.Id == StaffPersonAliasId)
+                {
+                    return mStaffPerson;
+                }
+                else if (StaffPersonAliasId.HasValue) { 
+                    PersonAliasService personAliasService = new PersonAliasService(new Rock.Data.RockContext());
+                    mStaffPerson = personAliasService.Get(StaffPersonAliasId.Value);
+                    return mStaffPerson;
+                }
+                return null;
+            }
+            set
+            {
+                mStaffPerson = value;
+                StaffPersonAliasId = mStaffPerson.Id;
             }
         }
 
+        public int? mStaffPersonAliasId;
+        public int? StaffPersonAliasId
+        {
+            get
+            {
+                return mStaffPersonAliasId;
+            }
+            set
+            {
+                mStaffPersonAliasId = value;
+            }
+        }
+
+        public bool mUserCanEdit;
+        public Boolean UserCanEdit
+        {
+            get
+            {
+                return mUserCanEdit;
+            }
+            set
+            {
+                mUserCanEdit = value;
+                btnChangeRequester.Visible = value;
+            }
+        }
+
+        private bool mShowPhoto;
         private bool ShowPhoto
         {
             get
             {
-                bool isShown = false;
-
-                if (ViewState["StaffSearch_ShowPhoto"] != null)
-                    isShown = (bool)ViewState["StaffSearch_ShowPhoto"];
-
-                return isShown;
+                return mShowPhoto;
             }
         }
+
+
 
         #endregion 
 
@@ -179,6 +180,14 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             
             base.OnInit(e);
+        }
+
+        protected void Page_Load(object sender, EventArgs e)
+        {
+            if (StaffPerson != null)
+            {
+                lblRequesterName.Text = StaffPerson.Person.FullName;
+            }
         }
 
         protected void btnSubmit_Click(object sender, EventArgs e)
@@ -243,6 +252,27 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 ckBoxHeader.Visible = AllowMultipleSelections;
             }
         }
+        // Defines the Click event.
+        public event EventHandler Select;
+
+        //Invoke delegates registered with the Click event.
+        protected virtual void OnSelect(EventArgs e)
+        {
+
+            if (Select != null)
+            {
+                Select(this, e);
+            }
+        }
+
+
+        // Define the method of IPostBackEventHandler that raises change events.
+        public void RaisePostBackEvent(string eventArgument)
+        {
+
+            OnSelect(new EventArgs());
+        }
+
         #endregion
 
         #region Public
@@ -253,7 +283,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if (ValErrors.Count > 0)
                 throw new org.secc.Purchasing.RequisitionNotValidException("Staff Search Properties are not valid.", ValErrors);
             BindMinistryAreaList();
-            SetMode(StaffSearchMode.Search);
+            SetMode(StaffPickerMode.Search);
             mpStaffSearch.Show();
             dgSearchResults.Visible = false;
             
@@ -441,24 +471,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if (!ValidateStaffFields())
                 return;
             BindStaffMemberList();
-            SetMode(StaffSearchMode.Results);
-        }
-
-        private void SelectStaff()
-        {
-            SetErrorMessage(String.Empty);
-
-            string DelimitedPeopleIDs = GetSelectedStaffPersonIDs();
-
-            if (String.IsNullOrEmpty(DelimitedPeopleIDs.Trim()))
-            {
-                return;
-            }
-            else
-            {
-                ScriptManager.RegisterStartupScript(upStaffSearchMain, upStaffSearchMain.GetType(),
-                        "SelectStaff" + DateTime.Now.Ticks, string.Format("chooseStaffMembers(\"{0}\",\"{1}\",\"{2}\");", DelimitedPeopleIDs, ParentPersonControlID, ParentRefreshButtonID), true);
-            }
+            SetMode(StaffPickerMode.Results);
         }
 
         private void SetErrorMessage(string msg)
@@ -468,17 +481,17 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             error.Visible = !(String.IsNullOrEmpty(msg.Trim()));
 
         }
-        private void SetMode(StaffSearchMode m)
+        private void SetMode(StaffPickerMode m)
         {
             Mode = m;
-            bool ShowResults = Mode == StaffSearchMode.Results;
+            bool ShowResults = Mode == StaffPickerMode.Results;
             switch (Mode)
             {
-                case StaffSearchMode.Search:
+                case StaffPickerMode.Search:
                     lblInstructions.Text = Instructions;
                     ResetSearchFields();
                     break;
-                case StaffSearchMode.Results:
+                case StaffPickerMode.Results:
                     if (AllowMultipleSelections)
                         lblInstructions.Text = "Choose Staff Members and click Select.";
                     else
@@ -494,11 +507,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         private Dictionary<string, string> ValidatePreReqs()
         {
             Dictionary<string, string> ValErrors = new Dictionary<string, string>();
-
-            if (String.IsNullOrEmpty(ParentPersonControlID))
-                ValErrors.Add("ParentPersonControlID", "The Parent form's Person ID control ID must be provided.");
-            if(String.IsNullOrEmpty(ParentRefreshButtonID))
-                ValErrors.Add("ParentRefreshButtonID", "The parent form's Refresh Button ID must be provided.");
             if(!MinistryAreaAttributeGuid.HasValue)
                 ValErrors.Add("MinistryAreaAttributeGuid", "Ministry Area Attribute Guid must have a value.");
             if (!PositionAttributeGuid.HasValue)
@@ -521,16 +529,29 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         protected void SelectButton_Click(object sender, RowEventArgs e)
         {
-            var control = Page.FindControl("ihPersonList");
-            ScriptManager.RegisterStartupScript(upStaffSearchMain, upStaffSearchMain.GetType(),
-                    "SelectStaff" + DateTime.Now.Ticks, string.Format("chooseStaffMembers(\"{0}\",\"{1}\",\"{2}\");", e.RowKeyValue, ParentPersonControlID, ParentRefreshButtonID), true);
-            
-            //SelectStaff();
+
+            PersonAliasService personAliasService = new PersonAliasService(new Rock.Data.RockContext());
+            StaffPerson = personAliasService.Get(e.RowKeyValue.ToString().AsInteger());
+            EventHandler handler = this.Select;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+            else { 
+                lblRequesterName.Text = StaffPerson.Person.FullName;
+            }
+            mpStaffSearch.Hide();
+        }
+        protected void btnChangeRequester_Click(object sender, EventArgs e)
+        {
+            Show();
+            //ShowStaffSelector("Select Requester", ihPersonList.ClientID, btnRefresh.ClientID);
+
         }
         #endregion
 }
 
-    internal enum StaffSearchMode
+    internal enum StaffPickerMode
     {
         Search, 
         Results
