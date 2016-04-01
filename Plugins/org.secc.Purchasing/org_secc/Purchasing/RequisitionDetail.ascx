@@ -3,7 +3,7 @@
 <%@ Register Src="VendorSelect.ascx" TagName="VendorSelect" TagPrefix="secc" %>
 <%@ Register Src="Notes.ascx" TagName="Notes" TagPrefix="secc" %>
 <%@ Register Src="Attachments.ascx" TagName="Attachments" TagPrefix="secc" %>
-<%@ Register Src="StaffSearch.ascx" TagName="StaffSearch" TagPrefix="secc" %>
+<%@ Register Src="StaffPicker.ascx" TagName="StaffPicker" TagPrefix="secc" %>
 
 <script type="text/javascript">
   
@@ -120,12 +120,17 @@
     padding: 0px;
     height: auto;
 }
+.table > tfoot > tr > td {
+    background-color: #edeae6;
+    color: #6a6a6a;
+    font-weight: 600;
+    border-color: #d8d1c8;
+}
 </style>
 
 <asp:UpdatePanel ID="upMain" runat="server" UpdateMode="Conditional">
     <ContentTemplate>
         
-        <secc:StaffSearch ID="ucStaffSearch" runat="server" AllowMultipleSelections="false" ShowPersonDetailLink="true" ShowPhoto="true" />
         <asp:HiddenField ID="hfReturnToSenderNoteID" runat="server" />
         <asp:Button ID="btnReturnToRequesterPart2" runat="server" OnClick="btnReturnToRequesterPart2_Click" style="display:none; visibility:hidden;" />
         <asp:HiddenField ID="hfExpeditedShippingDays" runat="server" />
@@ -193,11 +198,8 @@
                                     <div class="form-group required">
                                         <label class="control-label">Requester:</label>
                                         <div>
-                                        <asp:HiddenField ID="hdnRequesterID" runat="server" />
-                                        <asp:Label ID="lblRequesterName" runat="server" />
-                                        <asp:Button ID="btnChangeRequester" runat="server" CssClass="btn btn-default" Text="..."
-                                            Visible="false" OnClick="btnChangeRequester_Click" />
-
+                                            <secc:StaffPicker ID="ucStaffPicker" runat="server" AllowMultipleSelections="false" 
+                                                ShowPersonDetailLink="true" ShowPhoto="true"/>
                                         </div>
                                     </div>
                                 </div>
@@ -354,6 +356,7 @@
                     <%= FooterTextSetting %>
                 </div>
         </div>
+        <secc:StaffPicker ID="ucStaffPickerGeneric" runat="server" OnSelect="SelectButton_Click" />
         <Rock:ModalIFrameDialog ID="mpiAttachmentPicker" runat="server"/>
         <Rock:ModalDialog ID="mpChooseVendor" runat="server" Title="Choose Vendor" CancelControlID="btnVendorModalCancel"
             EnableViewState="true" OnSaveClick="btnVendorModalUpdate_click">
@@ -387,23 +390,26 @@
 
         </Rock:ModalDialog>
 
-        <Rock:ModalDialog ID="mpSelectApprovalType" runat="server">
+        <Rock:ModalDialog ID="mpSelectApprovalType" runat="server" Title="Select Approver" >
             <Content>
-                <asp:UpdatePanel ID="upSelectApprovalType" runat="server">
                 <ContentTemplate>
-                <div style="width:300px;">
-                    <div style="text-align:center;">
-                        <h3>Select Approver</h3>
-                        <div class="smallText">Who would you like to approve this requisition?</div>
-                        <asp:Button ID="btnSelectApproverSelf" runat="server" cssclass="smallText" Text="Self" OnClick="btnSelectApproverSelf_Click" />
-                        <asp:Button ID="btnSelectApproverOther" runat="server" CssClass="smallText" Text="Other" OnClick="btnSelectApproverOther_Click" />
+                    <style>
+                        #<%=mpSelectApprovalType.ClientID%>_modal_dialog_panel .modal-footer {display: none}
+                    </style>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            Who would you like to approve this requisition?
+                        </div>
                     </div>
-                </div>
+                    <div class="row">
+                        <div class="pull-right">
+                            <div class="col-xs-12">
+                                <asp:Button ID="btnSelectApproverSelf" runat="server" cssclass="btn btn-primary" Text="Self" OnClick="btnSelectApproverSelf_Click" />
+                                <asp:Button ID="btnSelectApproverOther" runat="server" CssClass="btn btn-default" Text="Other" OnClick="btnSelectApproverOther_Click" />
+                            </div>
+                        </div>
+                    </div>
                 </ContentTemplate>
-                <Triggers>
-                    <asp:AsyncPostBackTrigger ControlID="lbRequestApproval" />
-                </Triggers>
-                </asp:UpdatePanel>
             </Content>
         </Rock:ModalDialog>
 
@@ -526,18 +532,17 @@
                 </asp:UpdatePanel>
             </Content>
         </Rock:ModalDialog>
-        <Rock:ModalDialog ID="mpCERSelect" runat="server">
+        <Rock:ModalDialog ID="mpCERSelect" runat="server" SaveButtonText="Select" OnSaveClick="btnCERSelectChoose_Click">
             <Content>
                 <asp:UpdatePanel id="upCERSelect" runat="server" UpdateMode="Conditional">
                     <ContentTemplate>
                         <h3>Choose Capital Request</h3>
-                        <div id="pnlCERSelect" style="width:500px;">
-                            <Rock:Grid ID="grdCERSelect" runat="server" PageSize="10" AllowPaging="true" OnReBind="grdCERSelect_ReBind">
+                        <div id="pnlCERSelect">
+                            <Rock:Grid ID="grdCERSelect" runat="server" OnReBind="grdCERSelect_ReBind" AllowPaging="false" ShowActionRow="false" DataKeyNames="CapitalRequestId">
                                 <Columns>
-                                    <Rock:RockBoundField DataField="CapitalRequestId" Visible="false" />
                                     <Rock:RockTemplateField>
                                         <ItemTemplate>
-                                            <asp:RadioButton ID="rbCERSelect" runat="server" GroupName="CERSelect" AutoPostBack="true" OnCheckedChanged="rbCERSelect_CheckedChanged" />
+                                            <asp:RadioButton ID="rbCERSelect" runat="server" GroupName="CERSelect" AutoPostBack="true" OnCheckedChanged="rbCERSelect_CheckedChanged"  />
                                         </ItemTemplate>
                                     </Rock:RockTemplateField>
                                     <Rock:RockBoundField DataField="ProjectName" HeaderText="Project Name" SortExpression="ProjectName" />
@@ -696,6 +701,9 @@
             </Content>
         </Rock:ModalDialog>
     </ContentTemplate>
+    <Triggers>
+        <asp:AsyncPostBackTrigger ControlID="ucStaffPickerGeneric" EventName="Select"/>
+    </Triggers>
     <%--  Triggers>
         <asp:AsyncPostBackTrigger ControlID="btnItemDetailsUpdate" />
         <asp:AsyncPostBackTrigger ControlID="btnItemDetailsSaveNew" />
