@@ -59,6 +59,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [TextField( "ScheduleFilters", "", false, "", "CustomSetting" )]
     [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Attribute Filters", "", false, true, "", "CustomSetting" )]
     [IntegerField( "Max Results", "Maximum number of results to display. 0 is no filter", false, 0, "CustomSetting" )]
+    [BooleanField("Hide Full", "Hide groups that have reached their capacity?", true)]
 
     // Map Settings
     [BooleanField( "Show Map", "", false, "CustomSetting" )]
@@ -302,6 +303,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             SetAttributeValue( "AttributeFilters", cblAttributes.Items.Cast<ListItem>().Where( i => i.Selected ).Select( i => i.Value ).ToList().AsDelimited( "," ) );
             SetAttributeValue( "MaxResults", nudMaxResults.Value.ToString() );
+            SetAttributeValue( "HideFull", tgHideFull.Checked.ToString() );
 
             SetAttributeValue( "ShowMap", cbShowMap.Checked.ToString() );
             SetAttributeValue( "MapStyle", ddlMapStyle.SelectedValue );
@@ -448,7 +450,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     li.Selected = true;
                 }
             }
-            nudMaxResults.Value = int.Parse( GetAttributeValue( "MaxResults" ) );
+            nudMaxResults.Value = GetAttributeValue( "MaxResults" ).AsInteger();
+            tgHideFull.Checked = GetAttributeValue( "HideFull" ).AsBoolean();
 
             cbShowMap.Checked = GetAttributeValue( "ShowMap" ).AsBoolean();
             ddlMapStyle.BindToDefinedType( DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.MAP_STYLES.AsGuid() ) );
@@ -863,6 +866,14 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 groups = groupQry.OrderBy( g => g.Name ).ToList();
             }
 
+            //Hide full groups if it is set
+            if (GetAttributeValue("HideFull").AsBoolean())
+            {
+                groups.ForEach( g => g.LoadAttributes() );
+                groups = groups.Where( g => g.GetAttributeValue( "Maximum Members" ).AsInteger() > g.Members.Count() ).ToList();
+            }
+
+            
             //Filter out to show only groups that have GeoPoints
             groups = groups.Where( g => g.GroupLocations.Where( gl => gl.Location.GeoPoint != null ).Count() > 0 ).ToList();
 
