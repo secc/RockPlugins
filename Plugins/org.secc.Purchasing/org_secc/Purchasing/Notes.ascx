@@ -57,12 +57,12 @@
     function setReadOnlyClass(isReadOnly) {
         var cName = "readOnly";
         if (isReadOnly == true) {
-            $("#[id*=txtNote]").addClass(cName);
-            $("#[id*=txtDisplayAtTopEnd]").addClass(cName);
+            $("[id*=txtNote]").addClass(cName);
+            $("[id*=txtDisplayAtTopEnd]").addClass(cName);
         }
         else {
-            $("#[id*=txtNote]").removeClass(cName);
-            $("#[id*=txtDisplayAtTopEnd]").removeClass(cName);          
+            $("[id*=txtNote]").removeClass(cName);
+            $("[id*=txtDisplayAtTopEnd]").removeClass(cName);          
         }
     }
 

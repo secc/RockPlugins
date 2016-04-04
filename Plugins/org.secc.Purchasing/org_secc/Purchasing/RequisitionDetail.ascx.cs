@@ -270,10 +270,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-                bool enableNotifications = false;
-                bool.TryParse(GetAttributeValue("EnableNotification"), out enableNotifications);
-
-                return enableNotifications;
+                return GetAttributeValue("EnableNotifications").AsBoolean();
             }
         }
         
@@ -553,8 +550,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         protected override void CreateChildControls()
         {
             base.CreateChildControls();
-            ucStaffPickerGeneric.MinistryAreaAttributeGuid = MinistryAreaAttribute.Guid;
-            ucStaffPickerGeneric.PositionAttributeGuid = PositionAttribute.Guid;
+            ucStaffPickerApprover.MinistryAreaAttributeGuid = MinistryAreaAttribute.Guid;
+            ucStaffPickerApprover.PositionAttributeGuid = PositionAttribute.Guid;
         }
 
         protected override void OnInit(EventArgs e)
@@ -2213,17 +2210,12 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             CurrentPerson.LoadAttributes();
             
-            AttributeValueCache avc = CurrentPerson.AttributeValues.Where(a => a.Key == MinistryLocationAttribute.Key).Select(a => a.Value).FirstOrDefault();
-
-            // TODO: Make this work
-
-            /*avc
-            PersonAttribute pa = new PersonAttribute(CurrentPerson.PrimaryAliasId, MinistryLocationAttributeIDSetting);
-
-            if (pa.AttributeId > 0 && pa.HasIntValue && pa.IntValue > 0)
-            {
-                int.TryParse(new Lookup(pa.IntValue).Qualifier, out companyID);
-            }*/
+            String avc = CurrentPerson.GetAttributeValue(MinistryLocationAttribute.Key);
+            DefinedValue ministryLocation = definedValueService.Get(avc.AsGuid());
+            if (ministryLocation != null) {
+                ministryLocation.LoadAttributes();
+                companyID = ministryLocation.GetAttributeValue("CompanyCode").AsInteger();
+            }
 
             if (companyID == 0)
                 companyID = defaultCompanyID;
@@ -2333,8 +2325,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
                 CurrentRequisition.SaveItem(Item, CurrentUser.UserName, true);
 
+                LoadRequisition();
                 hfItemID.Value = Item.ItemID.ToString();
-                PopulateItemDetailData(Item.ItemID);
+                //PopulateItemDetailData(Item.ItemID);
                 IsSuccessful = true;
             }
             catch (RequisitionException rEx)
@@ -2641,9 +2634,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 }
                 else
                 {
-                    ucStaffPickerGeneric.MinistryAreaAttributeGuid = MinistryAreaAttribute.Guid;
-                    ucStaffPickerGeneric.PositionAttributeGuid = PositionAttribute.Guid;
-                    ucStaffPickerGeneric.Show();
+                    ucStaffPickerApprover.MinistryAreaAttributeGuid = MinistryAreaAttribute.Guid;
+                    ucStaffPickerApprover.PositionAttributeGuid = PositionAttribute.Guid;
+                    ucStaffPickerApprover.Show();
                     //TODO: fix this
                     //ShowStaffSelector("Select Approver", hfApproverID.ClientID, btnApproverAdd.ClientID);
                 }
@@ -3505,15 +3498,18 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         protected void btnSelectApproverOther_Click(object sender, EventArgs e)
         {
             mpSelectApprovalType.Hide();
-            ucStaffPickerGeneric.Show();
+            ucStaffPickerApprover.Show();
         }
 
-        protected void SelectButton_Click(object sender, EventArgs e)
+        protected void SelectApprover_Click(object sender, EventArgs e)
         {
             PersonAlias test = ((StaffPicker)sender).StaffPerson;
             AddApprover(test.AliasPersonId);
             CurrentRequisition = new Requisition(RequisitionID);
             LoadRequisition();
+
+            // Clear the picker back out
+            ucStaffPickerApprover.StaffPerson = null;
         }
         
         #endregion
@@ -3615,5 +3611,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         }
 
         #endregion
+        protected void dgItems_RowUpdating(object sender, GridViewUpdateEventArgs e)
+        {
+            return;
+
         }
+}
 }

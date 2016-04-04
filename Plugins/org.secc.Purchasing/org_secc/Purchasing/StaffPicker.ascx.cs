@@ -15,7 +15,7 @@ using org.secc.Purchasing.DataLayer;
 
 namespace RockWeb.Plugins.org_secc.Purchasing
 {
-    public partial class StaffPicker : UserControl, IPostBackEventHandler 
+    public partial class StaffPicker : UserControl
     {
         #region Properties
 
@@ -130,7 +130,16 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             set
             {
                 mStaffPerson = value;
-                StaffPersonAliasId = mStaffPerson.Id;
+                if (value != null)
+                {
+                    StaffPersonAliasId = mStaffPerson.Id;
+                    lblRequesterName.Text = mStaffPerson.Person.FullName;
+                }
+                else
+                {
+                    StaffPersonAliasId = null;
+                    lblRequesterName.Text = "";
+                }
             }
         }
 
@@ -254,24 +263,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         }
         // Defines the Click event.
         public event EventHandler Select;
-
-        //Invoke delegates registered with the Click event.
-        protected virtual void OnSelect(EventArgs e)
-        {
-
-            if (Select != null)
-            {
-                Select(this, e);
-            }
-        }
-
-
-        // Define the method of IPostBackEventHandler that raises change events.
-        public void RaisePostBackEvent(string eventArgument)
-        {
-
-            OnSelect(new EventArgs());
-        }
 
         #endregion
 
@@ -532,15 +523,13 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             PersonAliasService personAliasService = new PersonAliasService(new Rock.Data.RockContext());
             StaffPerson = personAliasService.Get(e.RowKeyValue.ToString().AsInteger());
+            lblRequesterName.Text = StaffPerson.Person.FullName;
+            mpStaffSearch.Hide();
             EventHandler handler = this.Select;
             if (handler != null)
             {
                 handler(this, e);
             }
-            else { 
-                lblRequesterName.Text = StaffPerson.Person.FullName;
-            }
-            mpStaffSearch.Hide();
         }
         protected void btnChangeRequester_Click(object sender, EventArgs e)
         {

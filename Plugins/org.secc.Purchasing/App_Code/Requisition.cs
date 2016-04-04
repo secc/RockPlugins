@@ -195,7 +195,7 @@ namespace org.secc.Purchasing
             get
             {
                 if (mAcceptedBy == null && AcceptedByID > 0)
-                    mAcceptedBy = userLoginService.Get(AcceptedByID).Person;
+                    mAcceptedBy = personAliasService.Get(AcceptedByID).Person;
                 return mAcceptedBy;
             }
         }

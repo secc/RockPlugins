@@ -8,19 +8,19 @@
 <script type="text/javascript">
   
     function dateNeededChanged() {
-        var selectedDateText = $("#[id*=txtDateNeeded]").val();
+        var selectedDateText = $("[id*=txtDateNeeded]").val();
         if (selectedDateText == "") {
             return;
         }
         var selectedDate = Date.parse(selectedDateText);
 
         if (isNaN(selectedDate)) {
-            $("#[id*=txtDateNeeded]").val("");
+            $("[id*=txtDateNeeded]").val("");
             alert("Date Needed is not valid. Please retry.");
             return;
         }
 
-        var expeditedShippingWindowDays = parseInt( $( "#[id*=hfExpeditedShippingDays]" ).val() );
+        var expeditedShippingWindowDays = parseInt( $( "[id*=hfExpeditedShippingDays]" ).val() );
 
         if (getMaxExpeditedShippingDate(expeditedShippingWindowDays) >= selectedDate) {
             showAllowExpedited(true);
@@ -68,11 +68,11 @@
             return;
         }
 
-       var txtValue = $("#[id*=" + currentControlID + "]").val();
+       var txtValue = $("[id*=" + currentControlID + "]").val();
        
        if(txtValue.length == charCount)
        {
-            $("#[id*=" + nextControlID + "]").focus();
+            $("[id*=" + nextControlID + "]").focus();
        } 
     }
 
@@ -93,21 +93,21 @@
 
     function checkAllItems() {
         var isChecked = false;
-        if ($("#[id*=chkItemDetailsAll]").attr("checked")) {
+        if ($("[id*=chkItemDetailsAll]").attr("checked")) {
             isChecked = true;
         }
-        var table = $("#[id*=dgItems]");
+        var table = $("[id*=dgItems]");
         if (isChecked == true) {
-            table.find("#[id*=chkItemDetail]").attr("checked", "true");
+            table.find("[id*=chkItemDetail]").attr("checked", "true");
         }
         else {
-            table.find("#[id*=chkItemDetail]").removeAttr("checked");
+            table.find("[id*=chkItemDetail]").removeAttr("checked");
         }
     }
 
     function returnToRequesterCallback(noteID) {
-        $("#[id*=hfReturnToSenderNoteID]").val(noteID);
-        $("#[id*=btnReturnToRequesterPart2]").click();
+        $("[id*=hfReturnToSenderNoteID]").val(noteID);
+        $("[id*=btnReturnToRequesterPart2]").click();
     }
 </script>
 
@@ -253,7 +253,7 @@
                         <h3>Items</h3>
                       <Rock:Grid ID="dgItems" runat="server" AllowPaging="false" AllowSorting="false" OnRowDataBound="dgItems_OnRowDataBound" ShowFooter="true"
                             DataKeyField="ItemID" CssClass="list" AutoGenerateColumns="false" NoResultText="No Active Items" ShowActionRow="false"
-                            OnPreRender="dgItems_PreRender">
+                            OnPreRender="dgItems_PreRender" OnRowUpdating="dgItems_RowUpdating">
                             <Columns>
                                 <Rock:RockBoundField DataField="ItemID" Visible="false" />
                                 <Rock:RockBoundField HeaderText="Qty" DataField="Quantity" ItemStyle-Width="4%" ItemStyle-HorizontalAlign="Right"/>
@@ -356,7 +356,7 @@
                     <%= FooterTextSetting %>
                 </div>
         </div>
-        <secc:StaffPicker ID="ucStaffPickerGeneric" runat="server" OnSelect="SelectButton_Click" />
+        <secc:StaffPicker ID="ucStaffPickerApprover" runat="server" OnSelect="SelectApprover_Click" />
         <Rock:ModalIFrameDialog ID="mpiAttachmentPicker" runat="server"/>
         <Rock:ModalDialog ID="mpChooseVendor" runat="server" Title="Choose Vendor" CancelControlID="btnVendorModalCancel"
             EnableViewState="true" OnSaveClick="btnVendorModalUpdate_click">
@@ -372,21 +372,21 @@
             </Content>
         </Rock:ModalDialog>
 
-        <Rock:ModalDialog ID="mpCancelPrompt" runat="server">
+        <Rock:ModalDialog ID="mpCancelPrompt" runat="server" Title="Cancel Requisition">
             <Content>
-               <div style="width:200px; text-align:center;">
-                    <h3>Cancel Requisition</h3>
-                    <div class="smallText">
-                        Are you sure that you would like to cancel this requisition request?
+                    <style>
+                        #<%=mpCancelPrompt.ClientID%>_modal_dialog_panel .modal-footer {display: none}
+                    </style>
+                <div>
+                    Are you sure that you would like to cancel this requisition request?
+                </div>
+                <div class="clearfix">
+                    <div class="pull-right">
+                        <asp:Button ID="btnCancelPromptYes" runat="server" OnClick="mpCancelPrompt_Click" CssClass="btn btn-primary" CommandName="cancelYes" Text="Yes" />
+                        <asp:Button ID="btnCancelPromptNo" runat="server" OnClick="mpCancelPrompt_Click" CssClass="btn btn-default" CommandName="cancelNo" Text="No"/>
                     </div>
-
-               </div>
+                </div>
             </Content>
-            <%--Buttons
-                TODO: Make sure these buttons are tied to something.
-                    <asp:Button ID="btnCancelPromptYes" runat="server" OnClick="mpCancelPrompt_Click" CssClass="smallText" CommandName="cancelYes" Text="Yes" style="width:50px;" />
-                    <asp:Button ID="btnCancelPromptNo" runat="server" OnClick="mpCancelPrompt_Click" CssClass="smallText" CommandName="cancelNo" Text="No" style="width:50px;"/>
-            </Buttons--%>
 
         </Rock:ModalDialog>
 
@@ -565,88 +565,76 @@
                 </Buttons --%>
         </Rock:ModalDialog>
 
-        <Rock:ModalDialog ID="mpItemDetail" runat="server" CancelControlID="btnItemDetailsCancel">
+        <Rock:ModalDialog ID="mpItemDetail" runat="server" CancelControlID="btnItemDetailsCancel" Title="Item Details">
             <Content DefaultButton="btnItemDetailsUpdate">
                 <asp:UpdatePanel ID="upItemDetail" runat="server" UpdateMode="Conditional">
                     <ContentTemplate>
+                        <style>
+                            #<%=mpItemDetail.ClientID%>_modal_dialog_panel .modal-footer {display: none}
+                        </style>
                         <asp:HiddenField ID="hfItemID" runat="server" />
                         <div id="ItemDetails">
-                            <h3>Item Details</h3>
-                            <div class="instructions smallText">
+                            <div class="instructions">
                                 Please provide as much detail as possible for the item that you are requesting. Fields marked with <span class="required">*</span> are required.
                             </div>
                             <div class="smallText" style="color:Red;">
                                 <asp:Label ID="lblItemDetailError" runat="server" Visible="false" />
                             </div>
-                            <div class="formLabel">
-                                Quantity
-                            </div>
-                            <div class="formItem">
-                                <asp:TextBox ID="txtItemQuantity" runat="server" Style="width: 40px;" /> <span class="required">*</span>
-                            </div>
-                            <div class="formLabel">
-                                Item Number
-                            </div>
-                            <div class="formItem">
-                                <asp:TextBox ID="txtItemNumber" runat="server" />
-                            </div>
-                            <div class="formLabel">
-                                Description
-                            </div>
-                            <div class="formItem">
-                                <asp:TextBox ID="txtItemDescription" runat="server" TextMode="MultiLine" Style="width: 325px;" /> <span class="required">*</span>
-                            </div>
-                            <asp:Panel id="pnlItemDetailCompany" runat="server" class="hidden">
-                                <div class="formLabel">
-                                    Organization
-                                </div> 
-                                <div class="formItem">
-                                    <asp:DropDownList ID="ddlItemCompany" runat="server" />
-                                </div>
-                            </asp:Panel>
-                            <div class="formLabel">
-                                Account
-                            </div>
-                            <div class="formItem">
-                                <asp:TextBox ID="txtItemFundNumber" runat="server" MaxLength="3" onKeyUp="autoAdvanceCheck(event, 3, 'txtItemFundNumber', 'txtItemDepartmentNumber');" style="width:50px;" /> -
+                            <Rock:RockTextBox Label="Quantity" Id="txtItemQuantity" runat="server" Required="true" ValidationGroup="ItemDetail" />
+                            <Rock:RockTextBox Label="Item Number" Id="txtItemNumber" runat="server" ValidationGroup="ItemDetail" />
+                            <Rock:RockTextBox Label="Description" Id="txtItemDescription" TextMode="MultiLine" runat="server" Required="true" ValidationGroup="ItemDetail" />
 
-                                <asp:TextBox ID="txtItemDepartmentNumber" runat="server" MaxLength="4" onKeyUp="autoAdvanceCheck(event, 3, 'txtItemDepartmentNumber', 'txtItemAccountNumber');" style="width:50px;" /> -
-                                <asp:TextBox ID="txtItemAccountNumber" runat="server" MaxLength="5" style="width:45px;" /> <span class="required">*</span>
-                            </div>
-                            <div class="formLabel">
-                                Needed By:
-                            </div>
-                            <div class="formItem">
-                                <Rock:DatePicker ID="txtDateNeeded" runat="server" onChange="dateNeededChanged()"  />
-                                <div id="ItemAllowExpedited" style="display: none;">
-                                    <asp:CheckBox ID="chkItemAllowExpedited" runat="server" CssClass="smallText" Text="Allow Expedited Shipping." />
+                            <asp:Panel id="pnlItemDetailCompany" runat="server" class="hidden">
+                                <Rock:RockDropDownList Label="Organization" ID="ddlItemCompany" runat="server" />
+                            </asp:Panel>
+                            <div class="row">
+                                <div class="col-sm-3">
+                                    <div class="form-group required">
+                                        <label class="control-label">
+                                            Account
+                                        </label>
+                                        <div>
+                                            <div class="form-inline">
+                                                <Rock:RockTextBox ID="txtItemFundNumber"  runat="server" MaxLength="3" Size="3" onKeyUp="autoAdvanceCheck(event, 3, 'txtItemFundNumber', 'txtItemDepartmentNumber');" Required="true" ValidationGroup="ItemDetail" />
+                                                -
+                                                <Rock:RockTextBox ID="txtItemDepartmentNumber" runat="server" MaxLength="4" Size="4" onKeyUp="autoAdvanceCheck(event, 3, 'txtItemDepartmentNumber', 'txtItemAccountNumber');" Required="true" ValidationGroup="ItemDetail" />
+                                                -
+                                                <Rock:RockTextBox ID="txtItemAccountNumber" runat="server" MaxLength="5" Size="5" Required="true" ValidationGroup="ItemDetail" />
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <Rock:RockTextBox ID="txtItemPrice" Label="Price/Each" runat="server" ValidationGroup="ItemDetail" />
+                                </div>
+                                <div class="col-sm-3">
+                                    <Rock:DatePicker ID="txtDateNeeded" runat="server" Label="Needed By" onChange="dateNeededChanged()" style="width:auto"/>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div id="ItemAllowExpedited" style="display: none;">
+                                        <asp:CheckBox ID="chkItemAllowExpedited" runat="server" CssClass="smallText" Text="Allow Expedited Shipping." />
+                                    </div>
                                 </div>
                             </div>
-                            <div class="formLabel">
-                                Price/each
-                            </div>
-                            <div class="formItem">
-                                <asp:TextBox ID="txtItemPrice" runat="server" />
-                            </div>
-                            <div style="clear: left;" />
                         </div>
-                        <asp:Button ID="btnItemDetailsUpdate" runat="server" OnClick="btnItemDetailsUpdate_click"
-                            Text="Save & Close" CssClass="smallText" />
-                        <asp:Button ID="btnItemDetailsSaveNew" runat="server" OnClick="btnItemDetialsSaveNew_click"
-                            Text="Save & Add New" CssClass="smallText" />
-                        <asp:Button ID="btnItemDetailsReset" runat="server" OnClick="btnItemDetailsReset_click"
-                            Text="Reset" CssClass="smallText" />
-                        <asp:Button ID="btnItemDetailsCancel" runat="server" OnClick="btnItemDetailsCancel_click"
-                            Text="Close" CssClass="smallText" />
+                        <div class="clearfix">
+                            <div class="pull-right">
+                                <asp:Button ID="btnItemDetailsUpdate" class="btn btn-primary" runat="server" OnClick="btnItemDetailsUpdate_click"
+                                    Text="Save & Close" ValidationGroup="ItemDetail"/>
+                                <asp:Button ID="btnItemDetailsSaveNew" class="btn btn-info" runat="server" OnClick="btnItemDetialsSaveNew_click"
+                                    Text="Save & Add New" ValidationGroup="ItemDetail" />
+                                <asp:Button ID="btnItemDetailsReset" class="btn btn-default" runat="server" OnClick="btnItemDetailsReset_click"
+                                    Text="Reset" ValidationGroup="ItemDetail" CausesValidation="false" />
+                                <asp:Button ID="btnItemDetailsCancel" class="btn btn-default" runat="server" OnClick="btnItemDetailsCancel_click"
+                                    Text="Close" ValidationGroup="ItemDetail" CausesValidation="false" />
+                            </div>
+                        </div>
                     </ContentTemplate>
-                    <%-- Triggers>
-                        <asp:AsyncPostBackTrigger ControlID="btnItemDetailsUpdate" />
-                        <asp:AsyncPostBackTrigger ControlID="btnItemDetailsReset" />
-                        <asp:AsyncPostBackTrigger ControlID="btnItemDetailsSaveNew" />
-                        <asp:AsyncPostBackTrigger ControlID="btnItemDetailsCancel" />
-                        <asp:AsyncPostBackTrigger ControlID="lbAddItem" />
-                        <asp:AsyncPostBackTrigger ControlID="dgItems" EventName="ItemCommand" />
-                    </! --%>
+                    <Triggers>
+                        <asp:PostBackTrigger ControlID="btnItemDetailsUpdate" />
+                        <asp:PostBackTrigger ControlID="btnItemDetailsCancel" />
+                    </Triggers>
                 </asp:UpdatePanel>
             </Content>
         </Rock:ModalDialog>
@@ -702,7 +690,7 @@
         </Rock:ModalDialog>
     </ContentTemplate>
     <Triggers>
-        <asp:AsyncPostBackTrigger ControlID="ucStaffPickerGeneric" EventName="Select"/>
+        <asp:AsyncPostBackTrigger ControlID="ucStaffPickerApprover" EventName="Select"/>
     </Triggers>
     <%--  Triggers>
         <asp:AsyncPostBackTrigger ControlID="btnItemDetailsUpdate" />

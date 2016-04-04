@@ -386,15 +386,16 @@ namespace org.secc.Purchasing
             
 
             if (CompanyID <= 0 || FundID <= 0 || DepartmentID <= 0 || AccountID <= 0 || FYStartDate == DateTime.MinValue)
+            { 
                 ValErrors.Add("Account", "Please select a valid account");
+            } else if (Account == null || Account.AccountID <= 0)
+            {
+                ValErrors.Add("Account", "Account not found.");
+            }
 
             if (ItemID <= 0 && FYStartDate.Year < DateTime.Now.Year)
                 ValErrors.Add("Fiscal Year", "Fiscal year can not be in the past.");
 
-            if (Account == null || Account.AccountID <= 0)
-            {
-                ValErrors.Add("Account", "Account not found.");
-            }
 
             //if (Price < 0)
             //    ValErrors.Add("Estimated Cost", "Estimated cost can not be negative.");
