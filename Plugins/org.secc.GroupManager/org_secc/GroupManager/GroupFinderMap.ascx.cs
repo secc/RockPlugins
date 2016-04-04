@@ -59,7 +59,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [TextField( "ScheduleFilters", "", false, "", "CustomSetting" )]
     [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Attribute Filters", "", false, true, "", "CustomSetting" )]
     [IntegerField( "Max Results", "Maximum number of results to display. 0 is no filter", false, 0, "CustomSetting" )]
-    [BooleanField("Hide Full", "Hide groups that have reached their capacity?", true)]
+    [BooleanField( "Hide Full", "Hide groups that have reached their capacity?", true )]
 
     // Map Settings
     [BooleanField( "Show Map", "", false, "CustomSetting" )]
@@ -867,13 +867,13 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
 
             //Hide full groups if it is set
-            if (GetAttributeValue("HideFull").AsBoolean())
+            if ( GetAttributeValue( "HideFull" ).AsBoolean() )
             {
                 groups.ForEach( g => g.LoadAttributes() );
                 groups = groups.Where( g => g.GetAttributeValue( "Maximum Members" ).AsInteger() > g.Members.Count() ).ToList();
             }
 
-            
+
             //Filter out to show only groups that have GeoPoints
             groups = groups.Where( g => g.GroupLocations.Where( gl => gl.Location.GeoPoint != null ).Count() > 0 ).ToList();
 
@@ -995,11 +995,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
 
                 //if there is a max results will limit to that number, 0 means all
-                int maxResults;
-                if ( int.TryParse( GetAttributeValue( "MaxResults" ), out maxResults ) && maxResults != 0 )
-                {
-                    groups = groups.Take( maxResults ).ToList();
-                }
+                groups = groups.Take( GetAttributeValue( "MaxResults" ).AsInteger() ).ToList();
 
                 // if limiting by PageSize, limit to the top X groups
                 int? pageSize = ddlPageSize.SelectedValue.AsIntegerOrNull();
@@ -1184,7 +1180,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     Distance = distances.Where( d => d.Key == g.Id )
                         .Select( d => d.Value ).FirstOrDefault()
                 } )
-                .Where( a => a.Distance < int.Parse( ddlRange.SelectedValue ) && distances.ContainsKey( a.Id ) )
+                .Where( a => a.Distance < ddlRange.SelectedValue.AsInteger() && distances.ContainsKey( a.Id ) )
                 .ToList();
                 gGroups.DataBind();
             }

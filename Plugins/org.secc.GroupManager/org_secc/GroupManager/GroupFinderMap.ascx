@@ -10,7 +10,7 @@
 
             <div class="row">
                 <asp:Literal ID="lTitle" runat="server" />
-                
+
                 <asp:Panel ID="pnlMessage" runat="server" CssClass="col-md-6 col-xs-12">
                     <asp:Literal ID="lMessage" runat="server" />
                 </asp:Panel>
@@ -59,7 +59,7 @@
                                     <Rock:RockBoundField DataField="Distance" HeaderText="Distance" DataFormatString="{0:N2} M" ItemStyle-HorizontalAlign="Right" HeaderStyle-HorizontalAlign="Right" />
                                 </Columns>
                             </Rock:Grid>
-                            
+
                         </div>
                     </asp:Panel>
 
@@ -97,13 +97,7 @@
                                         <Rock:RockCheckBoxList ID="cblAttributes" runat="server" Label="Display Attribute Filters" RepeatDirection="Horizontal"
                                             Help="The group attributes that should be available for user to filter results by." ValidationGroup="GroupFinderSettings" />
                                         <Rock:Toggle runat="server" ID="tgHideFull" Label="Hide Full Groups" Help="Hide groups that have reached their capacity?"
-                                             OnCssClass="btn-success" OffCssClass="btn-danger" />
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                    </div>
-                                    <div class="col-md-6">
+                                            OnCssClass="btn-success" OffCssClass="btn-danger" />
                                     </div>
                                 </div>
                             </Rock:PanelWidget>
@@ -139,8 +133,8 @@
 
                             <Rock:PanelWidget ID="wpLavaOutput" runat="server" Title="Lava">
                                 <Rock:CodeEditor ID="ceMessage" runat="server" Label="Lava Message" EditorMode="Lava" EditorTheme="Rock" Height="300"
-                                            Help="Message to display beside the address field."
-                                            ValidationGroup="GroupFinderSettings" />
+                                    Help="Message to display beside the address field."
+                                    ValidationGroup="GroupFinderSettings" />
                                 <div class="row">
                                     <div class="col-md-6">
                                         <Rock:RockCheckBox ID="cbShowLavaOutput" runat="server" Label="Show Formatted Output" Text="Yes"
@@ -154,7 +148,7 @@
                                         <Rock:CodeEditor ID="ceLavaOutput" runat="server" Label="Lava Template" EditorMode="Lava" EditorTheme="Rock" Height="300"
                                             Help="The Lava template to use for formatting the matching groups."
                                             ValidationGroup="GroupFinderSettings" />
-                                         <Rock:CodeEditor ID="ceGrouplessMessage" runat="server" Label="No Groups Message" EditorMode="Lava" EditorTheme="Rock" Height="300"
+                                        <Rock:CodeEditor ID="ceGrouplessMessage" runat="server" Label="No Groups Message" EditorMode="Lava" EditorTheme="Rock" Height="300"
                                             Help="Message to show when no groups are found."
                                             ValidationGroup="GroupFinderSettings" />
                                         <Rock:RockCheckBox ID="cbLavaOutputDebug" runat="server" Text="Enable Debug" />
