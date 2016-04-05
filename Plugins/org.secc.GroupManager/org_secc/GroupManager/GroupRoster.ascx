@@ -69,8 +69,7 @@
                                         <br />
                                         <asp:Label runat="server" ID="Label5"
                                             Text='<%# Eval("Phone") %>' />
-                                        <Rock:BootstrapButton runat="server" ID="btnTest"></Rock:BootstrapButton>
-                                        <asp:PlaceHolder runat="server" ID="phTest"></asp:PlaceHolder>
+                                        <Rock:BootstrapButton runat="server" ID="btnRosterEmail"></Rock:BootstrapButton>
                                     </div>
                                 </div>
                             </div>

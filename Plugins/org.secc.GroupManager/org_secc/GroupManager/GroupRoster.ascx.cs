@@ -150,6 +150,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         protected void btnSMS_Click( object sender, EventArgs e )
         {
+            tbMessage.Text = "";
+
             if ( gMembers.SelectedKeys.Count == 0 )
             {
                 nbAlert.Text = "Please select members to text.";
@@ -163,11 +165,13 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             pnlSMS.Visible = true;
 
             ScriptManager.RegisterStartupScript( Page, Page.GetType(), "smsCharCount", smsScript, true );
-
         }
 
         protected void btnEmail_Click( object sender, EventArgs e )
         {
+            tbBody.Text = "";
+            tbSubject.Text = "";
+
             if ( gMembers.SelectedKeys.Count == 0 )
             {
                 nbAlert.Text = "Please select members to email.";
@@ -179,7 +183,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             cbEmailSendToParents.Visible = group.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
             pnlMain.Visible = false;
             pnlEmail.Visible = true;
-
         }
 
         protected void btnSMSSend_Click( object sender, EventArgs e )
@@ -223,6 +226,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             pnlMain.Visible = true;
             maSent.Show( "Your message has been sent. (Maybe?)", ModalAlertType.Information );
         }
+
         protected void btnEmailSend_Click( object sender, EventArgs e )
         {
             bool sendToParents = cbEmailSendToParents.Checked;
@@ -377,16 +381,13 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             var itemData = ( MemberData ) e.Item.DataItem;
             if ( itemData != null )
             {
-                BootstrapButton test = e.Item.FindControl( "btnTest" ) as BootstrapButton;
-                test.Text = itemData.Email;
-                test.Click += ( a, b ) => doThing( itemData.Id );
-
+                BootstrapButton btnRosterEmail = e.Item.FindControl( "btnRosterEmail" ) as BootstrapButton;
+                btnRosterEmail.Text = itemData.Email;
+                btnRosterEmail.Click += ( a, b ) => showRosterEmail( itemData.Id );
             }
-
-
         }
 
-        private void doThing( int? id )
+        private void showRosterEmail( int? id )
         {
             hfCommunication.Value = id.ToString();
             group.LoadAttributes();
