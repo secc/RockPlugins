@@ -557,6 +557,18 @@ namespace org.secc.Purchasing
             }
         }
 
+        public static List<PurchaseOrder> LoadByVendor(int vendorId)
+        {
+
+            using (PurchasingContext Context = ContextHelper.GetDBContext())
+            {
+                return Context.PurchaseOrderDatas
+                        .Where(p => p.vendor_id == vendorId)
+                        .Select(p => new PurchaseOrder(p))
+                        .ToList();
+            }
+        }
+
         public static List<PurchaseOrder> LoadByStatus(int[] POStatuses)
         {
             using ( PurchasingContext Context = ContextHelper.GetDBContext() )

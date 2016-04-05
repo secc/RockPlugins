@@ -859,6 +859,18 @@ namespace org.secc.Purchasing
             }
         }
 
+        public static List<Requisition> LoadByVendor(int vendorId)
+        {
+
+            using (PurchasingContext Context = ContextHelper.GetDBContext())
+            {
+                return Context.RequisitionDatas
+                        .Where(r => r.pref_vendor_id == vendorId)
+                        .Select(r => new Requisition(r))
+                        .ToList();
+            }
+        }
+
         public static List<RequistionItemsWithUnassignedRequisitionItems> LoadAcceptedRequisitonsWithItemsNotOnPO(int ministryAttributeID)
         {
             List<RequistionItemsWithUnassignedRequisitionItems> Reqs = new List<RequistionItemsWithUnassignedRequisitionItems>();

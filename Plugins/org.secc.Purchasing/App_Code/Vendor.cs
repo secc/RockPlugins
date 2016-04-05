@@ -19,8 +19,11 @@ namespace org.secc.Purchasing
         private Person mModifiedByPerson = null;
         private string mCreatedByUser;
         private DateTime mDateCreated;
-        
+
+        private bool? mHasPurchaseOrders = null;
+        private bool? mHasRequisitions = null;
         private List<PurchaseOrder> mPurchaseOrders = null;
+        private List<Requisition> mRequisitions = null;
 
         #endregion
 
@@ -68,6 +71,7 @@ namespace org.secc.Purchasing
             {
                 if (mCreatedByPerson == null && !String.IsNullOrEmpty(CreatedByUser))
                 {
+                       
                     mCreatedByPerson = userLoginService.GetByUserName(CreatedByUser).Person;
                 }
 
@@ -87,16 +91,68 @@ namespace org.secc.Purchasing
             }
         }
 
+        public Boolean HasPurchaseOrders
+        {
+            get
+            {
+                if (!mHasPurchaseOrders.HasValue)
+                {
+                    using (PurchasingContext Context = ContextHelper.GetDBContext())
+                    {
+                        mHasPurchaseOrders = Context.VendorDatas
+                                            .Where(v => v.vendor_id == this.VendorID)
+                                            .Select(v => v.PurchaseOrderDatas.Count() > 0).Single();
+                    }
+                }
+                return mHasPurchaseOrders.Value;
+            }
+        }
+
         [System.Xml.Serialization.XmlIgnore]
         public List<PurchaseOrder> PurchaseOrders
         {
             get
             {
+                if (mPurchaseOrders == null)
+                    mPurchaseOrders = PurchaseOrder.LoadByVendor(this.VendorID);
                 return mPurchaseOrders;
             }
             set
             {
                 mPurchaseOrders = value;
+            }
+        }
+
+        public Boolean HasRequisitions
+        {
+            get
+            {
+                if (!mHasRequisitions.HasValue)
+                {
+                    using ( PurchasingContext Context = ContextHelper.GetDBContext() )
+                    {
+                        mHasRequisitions = Context.VendorDatas
+                                            .Where( v => v.vendor_id == this.VendorID)
+                                            .Select(v => v.RequisitionDatas.Count() > 0).Single();
+                    }
+                }
+                return mHasRequisitions.Value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlIgnore]
+        public List<Requisition> Requisitions
+        {
+            get
+            {
+                if (mRequisitions == null)
+                    mRequisitions = Requisition.LoadByVendor(this.VendorID);
+                return mRequisitions;
+
+            }
+            set
+            {
+                mRequisitions = value;
             }
         }
         #endregion
