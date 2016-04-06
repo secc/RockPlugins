@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using Rock;
 using Rock.Attribute;
 using Rock.Security;
+using System.Text;
 
 namespace RockWeb.Plugins.org_secc.GroupManager
 {
@@ -164,7 +165,106 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             pnlMain.Visible = false;
             pnlSMS.Visible = true;
 
+            DisplaySMSRecipients();
+
             ScriptManager.RegisterStartupScript( Page, Page.GetType(), "smsCharCount", smsScript, true );
+        }
+
+        private void DisplaySMSRecipients()
+        {
+            var recepients = new StringBuilder();
+            recepients.Append( "<div class=well><h4>Recepients:</h4>" );
+
+            var sendParents = cbSMSSendToParents.Checked;
+
+            foreach ( int key in gMembers.SelectedKeys )
+            {
+                MemberData member = memberData.Where( md => md.Id == key ).FirstOrDefault();
+                member.LoadParents();
+                if ( member.IsParent || !sendParents )
+                {
+                    //Add person to recepients
+                    if ( member.Phones.Where( pn => pn.IsMessagingEnabled && !pn.IsUnlisted ).Count() > 0 )
+                    {
+                        recepients.Append( "<span title='Person has textable number'>" + member.Name + "</span> " );
+                    }
+                    else
+                    {
+                        recepients.Append( "<span title='Person does not have a textable number and will not recieve this message.' style='color:red'>" + member.Name + "</span> " );
+                    }
+                }
+                else
+                {
+                    //Add person parents to recepients
+
+                    foreach ( Person parent in member.Parents )
+                    {
+                        if( parent.PhoneNumbers.Where( pn => pn.IsMessagingEnabled && !pn.IsUnlisted ).Count() > 0 )
+                        {
+                            recepients.Append( "<span title='Person has textable number'>" + parent.FullName + "</span> " );
+                        }
+                        else
+                        {
+                            recepients.Append( "<span title='Person does not have a textable number and will not recieve this message.' style='color:red'>" + parent.FullName + "</span> " );
+                        }
+                    }
+                }
+            }
+            recepients.Append( "</div>" );
+            ltSMSRecipients.Text = recepients.ToString();
+        }
+        private void DisplayEmailRecipients()
+        {
+            var recepients = new StringBuilder();
+            recepients.Append( "<div class=well><h4>Recepients:</h4>" );
+
+            var sendParents = cbSMSSendToParents.Checked;
+
+            var keys = gMembers.SelectedKeys;
+
+            //if we are calling this from the roster only choose that one
+            if ( !string.IsNullOrWhiteSpace( hfCommunication.Value ) )
+            {
+                keys = new List<object> { hfCommunication.ValueAsInt() };
+            }
+
+            foreach ( int key in keys )
+            {
+                MemberData member = memberData.Where( md => md.Id == key ).FirstOrDefault();
+                member.LoadParents();
+                if ( member.IsParent || !sendParents )
+                {
+                    //Add person to recepients
+                    //Check is for valid email, active email, not set to do not email
+                    if ( !string.IsNullOrWhiteSpace(member.Email) && member.Email.IsValidEmail() &&
+                        member.Person.IsEmailActive && !member.Person.EmailPreference.Equals(2))
+                    {
+                        recepients.Append( "<span title='Person has a valid email address'>" + member.Name + "</span> " );
+                    }
+                    else
+                    {
+                        recepients.Append( "<span title='Person does not have a valid email address and will not recieve this message.' style='color:red'>" + member.Name + "</span> " );
+                    }
+                }
+                else
+                {
+                    //Add person parents to recepients
+                    foreach ( Person parent in member.Parents )
+                    {
+                        if ( !string.IsNullOrWhiteSpace( member.Email ) && parent.Email.IsValidEmail() &&
+                            parent.IsEmailActive && !parent.EmailPreference.Equals( 2 ) )
+                        {
+                            recepients.Append( "<span title='Person has a valid email address'>" + parent.FullName + "</span> " );
+                        }
+                        else
+                        {
+                            recepients.Append( "<span title='Person does not have a valid email address and will not recieve this message.' style='color:red'>" + parent.FullName + "</span> " );
+                        }
+                    }
+                }
+            }
+            recepients.Append( "</div>" );
+            ltEmailRecipients.Text = recepients.ToString();
         }
 
         protected void btnEmail_Click( object sender, EventArgs e )
@@ -183,15 +283,12 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             cbEmailSendToParents.Visible = group.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
             pnlMain.Visible = false;
             pnlEmail.Visible = true;
+
+            DisplayEmailRecipients();
         }
 
         protected void btnSMSSend_Click( object sender, EventArgs e )
         {
-            var keys = gMembers.SelectedKeys;
-            if ( keys.Count == 0 )
-            {
-                return;
-            }
             bool sendToParents = cbEmailSendToParents.Checked;
             string subject = tbSubject.Text;
             string body = tbBody.Text;
@@ -224,7 +321,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             pnlEmail.Visible = false;
             pnlSMS.Visible = false;
             pnlMain.Visible = true;
-            maSent.Show( "Your message has been sent. (Maybe?)", ModalAlertType.Information );
+            maSent.Show( "Your message has been sent.", ModalAlertType.Information );
         }
 
         protected void btnEmailSend_Click( object sender, EventArgs e )
@@ -316,10 +413,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     else
                     {
                         //Add parents to communication
-                        foreach ( int parent in member.Parents )
+                        foreach ( Person parent in member.Parents )
                         {
                             var communicationRecipient = new CommunicationRecipient();
-                            communicationRecipient.PersonAliasId = parent;
+                            communicationRecipient.PersonAliasId = parent.PrimaryAliasId ?? parent.Id;
                             communication.Recipients.Add( communicationRecipient );
                         }
                     }
@@ -343,10 +440,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     else
                     {
                         //Add parents to communication
-                        foreach ( int parent in member.Parents )
+                        foreach ( Person parent in member.Parents )
                         {
                             var communicationRecipient = new CommunicationRecipient();
-                            communicationRecipient.PersonAliasId = parent;
+                            communicationRecipient.PersonAliasId = parent.PrimaryAliasId ?? parent.Id;
                             communication.Recipients.Add( communicationRecipient );
                         }
                     }
@@ -394,17 +491,33 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             cbEmailSendToParents.Visible = group.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
             pnlMain.Visible = false;
             pnlEmail.Visible = true;
+
+            DisplayEmailRecipients();
+        }
+
+        protected void cbSMSSendToParents_CheckedChanged( object sender, EventArgs e )
+        {
+            //update our recepient display on switch
+            DisplaySMSRecipients();
+        }
+
+        protected void cbEmailSendToParents_CheckedChanged( object sender, EventArgs e )
+        {
+            //update our recepient display on switch
+            DisplayEmailRecipients();
         }
     }
 
     public class MemberData
     {
         public int? Id { get; set; }
+        public Person Person { get; set; }
         public string Name { get; set; }
         public string FirstName { get; set; }
         public string NickName { get; set; }
         public string LastName { get; set; }
         public string Phone { get; set; }
+        public List<PhoneNumber> Phones { get; set; }
         public string Email { get; set; }
         public string DateAdded { get; set; }
         public string Address { get; set; }
@@ -413,7 +526,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         public string State { get; set; }
         public string Zipcode { get; set; }
         public string Role { get; set; }
-        public List<int?> Parents { get; set; }
+        public List<Person> Parents { get; set; }
         public bool IsParent { get; set; }
         public Gender Gender { get; set; }
         public GroupMemberStatus Status { get; set; }
@@ -423,6 +536,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         public MemberData( GroupMember member )
         {
             Id = member.Person.PrimaryAliasId;
+            this.Person = member.Person;
             Name = member.Person.FullName;
             FirstName = member.Person.FirstName;
             NickName = member.Person.NickName;
@@ -430,6 +544,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             DateAdded = member.DateTimeAdded.Value.ToString( "d" );
             PhotoUrl = member.Person.PhotoUrl;
             Phone = member.Person.PhoneNumbers.Where( pn => !pn.IsUnlisted ).FirstOrDefault() != null ? member.Person.PhoneNumbers.Where( pn => !pn.IsUnlisted ).FirstOrDefault().NumberFormatted : "";
+            Phones = member.Person.PhoneNumbers.ToList();
             Email = member.Person.Email;
             Location _address = member.Person.GetHomeLocation();
 
@@ -452,20 +567,17 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             Role = member.GroupRole.Name;
             Gender = member.Person.Gender;
             Status = member.GroupMemberStatus;
-
-            GetParents( member );
-
         }
 
-        private void GetParents( GroupMember member )
+        public void LoadParents()
         {
-            Parents = new List<int?>();
+            Parents = new List<Person>();
 
-            var families = member.Person.GetFamilies().ToList();
+            var families = this.Person.GetFamilies().ToList();
             var adultGuid = new Guid( Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT );
             foreach ( var family in families )
             {
-                var familyRoleGuid = family.Members.Where( gm => gm.PersonId == member.PersonId ).FirstOrDefault().GroupRole.Guid;
+                var familyRoleGuid = family.Members.Where( gm => gm.PersonId == this.Person.Id ).FirstOrDefault().GroupRole.Guid;
                 if ( familyRoleGuid == adultGuid )
                 {
                     IsParent = true;
@@ -473,7 +585,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 else
                 {
                     IsParent = false;
-                    Parents.AddRange( family.Members.Where( m => m.GroupRole.Guid == adultGuid ).Select( m => m.Person ).Select( p => p.PrimaryAliasId ).ToList() );
+                    Parents.AddRange( family.Members.Where( m => m.GroupRole.Guid == adultGuid ).Select( m => m.Person ).ToList() );
                 }
             }
         }

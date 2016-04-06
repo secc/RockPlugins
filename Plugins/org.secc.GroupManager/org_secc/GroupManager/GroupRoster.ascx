@@ -12,8 +12,10 @@
             <Rock:RockLiteral ID="ltTitle" runat="server" />
 
             <Rock:BootstrapButton runat="server" Text="Membership List" CssClass="btn btn-primary" ID="btnMembership" OnClick="btnMembership_Click" />
-
             <Rock:BootstrapButton runat="server" Text="Roster" ID="btnRoster" CssClass="btn btn-default" OnClick="btnRoster_Click" />
+            
+            <hr />
+
             <asp:Panel runat="server" ID="pnlMembership">
 
                 <Rock:GridFilter ID="rFilter" runat="server" OnApplyFilterClick="rFilter_ApplyFilterClick">
@@ -45,8 +47,6 @@
             </asp:Panel>
 
             <asp:Panel runat="server" ID="pnlRoster" Visible="false">
-                <br />
-                <br />
                 <asp:Repeater runat="server" ID="rRoster" OnItemDataBound="rRoster_ItemDataBound">
                     <ItemTemplate>
                         <div class="col-xs-12 col-md-4">
@@ -83,7 +83,9 @@
         <!-- SMS Panel -->
         <asp:Panel ID="pnlSMS" runat="server" Visible="false">
             <h1>Text Message:</h1>
-            <Rock:Toggle ID="cbSMSSendToParents" runat="server" OnText="Parents" OffText="Members" Label="Send To:" OnCssClass="btn-primary" OffCssClass="btn-primary" Checked="false" />
+            <Rock:RockLiteral ID="ltSMSRecipients" runat="server"></Rock:RockLiteral>
+            <Rock:Toggle ID="cbSMSSendToParents" runat="server" OnText="Parents" OffText="Members" Label="Send To:"
+                 OnCssClass="btn-primary" OffCssClass="btn-primary" Checked="false" OnCheckedChanged="cbSMSSendToParents_CheckedChanged" />
             <div id="charCount"></div>
             <Rock:RockTextBox ID="tbMessage" runat="server" TextMode="MultiLine" Rows="5"></Rock:RockTextBox>
             <Rock:BootstrapButton ID="btnSMSSend" runat="server" OnClick="btnSMSSend_Click" CssClass="btn btn-primary">Send</Rock:BootstrapButton>
@@ -93,7 +95,9 @@
         <!-- Email Panel -->
         <asp:Panel ID="pnlEmail" runat="server" Visible="false">
             <h1>Email</h1>
-            <Rock:Toggle ID="cbEmailSendToParents" runat="server" OnText="Parents" OffText="Members" Label="Send To:" OnCssClass="btn-primary" OffCssClass="btn-primary" Checked="false" />
+            <Rock:RockLiteral ID="ltEmailRecipients" runat="server"></Rock:RockLiteral>
+            <Rock:Toggle ID="cbEmailSendToParents" runat="server" OnText="Parents" OffText="Members" Label="Send To:" 
+                OnCssClass="btn-primary" OffCssClass="btn-primary" Checked="false" OnCheckedChanged="cbEmailSendToParents_CheckedChanged"/>
             <Rock:RockTextBox ID="tbSubject" runat="server" Label="Subject"></Rock:RockTextBox>
             <Rock:RockTextBox ID="tbBody" runat="server" TextMode="MultiLine" Rows="5" Label="Message"></Rock:RockTextBox>
             <Rock:BootstrapButton ID="btnEmailSend" runat="server" OnClick="btnEmailSend_Click" CssClass="btn btn-primary">Send</Rock:BootstrapButton>
