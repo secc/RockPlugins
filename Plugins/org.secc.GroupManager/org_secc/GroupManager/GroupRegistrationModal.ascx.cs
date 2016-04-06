@@ -130,6 +130,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     person = new Person();
                     person.FirstName = tbFirstName.Text.Trim();
                     person.LastName = tbLastName.Text.Trim();
+                    person.SetBirthDate(dpBirthday.SelectedDate);
+                    person.UpdatePhoneNumber( DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).Id,
+                        PhoneNumber.DefaultCountryCode(), pnCell.Text, true, false, _rockContext );
                     person.Email = tbEmail.Text.Trim();
                     person.IsEmailActive = true;
                     person.EmailPreference = EmailPreference.EmailAllowed;
@@ -153,8 +156,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             firstName = firstName ?? string.Empty;
             lastName = lastName ?? string.Empty;
-            cellPhone = cellPhone ?? string.Empty;
-            cellPhone = new String( cellPhone.Where( Char.IsDigit ).ToArray() );
+            cellPhone = PhoneNumber.CleanNumber(cellPhone) ?? string.Empty;
             email = email ?? string.Empty;
 
             //Search for person who matches first and last name and one of email, phone number, or birthday
