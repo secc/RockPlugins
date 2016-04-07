@@ -8,6 +8,7 @@
 
 <Rock:RockUpdatePanel ID="upMain" runat="server">
     <ContentTemplate>
+        <asp:HiddenField ID="hfUpdated" runat="server" Value="false" />
         <asp:LinkButton runat="server" CssClass="btn btn-default" ValidationGroup="None" ID="btnLaunchModal" CausesValidation="false"
             OnClick="btnLaunchModal_Click" Text="<i class='fa fa-user-plus'></i> Add Group Member"></asp:LinkButton>
         <Rock:ModalDialog ID="mdDialog" ValidationGroup="AddMember" CancelLinkVisible="false" runat="server" Title="Add Group Member">

@@ -158,6 +158,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 pnlForm.Visible = false;
                 pnlResults.Visible = true;
                 ltResults.Text = person.FullName + " has been added to your group.";
+
+                //Mark That We Created a New Person and Clear Form
+                hfUpdated.Value = "true";
                 ClearForm();
             }
         }
@@ -173,11 +176,18 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             ClearForm();
             mdDialog.Hide();
+
+            if ( hfUpdated.Value.AsBoolean() )
+            {
+                //Reload page if we saved so we can show all of the new people
+                Response.Redirect( Request.RawUrl );
+            }
         }
 
         protected void btnClose_Click( object sender, EventArgs e )
         {
-            mdDialog.Hide();
+            //Reload page so we can see all the new people
+            Response.Redirect( Request.RawUrl );
         }
 
         #endregion
@@ -211,7 +221,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             return new PersonService( _rockContext ).Queryable()
                          .Where( p => p.LastName == lastName
                                  && ( p.FirstName == firstName || p.NickName == firstName )
-                                 && ( p.Email == email || p.PhoneNumbers.Where( pn => pn.Number == cellPhone ).Any() || ( birthday != null && p.BirthDate == birthday ) ) )
+                                 && ( (p.Email == email && p.Email!=string.Empty)
+                                 || (p.PhoneNumbers.Where( pn => pn.Number == cellPhone ).Any() && cellPhone!=string.Empty) 
+                                 || ( birthday != null && p.BirthDate == birthday ) ) )
                                  .ToList();
         }
 
