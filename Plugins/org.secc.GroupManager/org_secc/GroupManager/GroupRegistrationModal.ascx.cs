@@ -80,6 +80,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             base.OnLoad( e );
             CheckSettings();
+
+            //reset box if needed
+            nbInvalid.Visible = false;
         }
 
         #endregion
@@ -116,6 +119,13 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 if ( person == null )
                 {
                     var matches = GetByMatch( tbFirstName.Text.Trim(), tbLastName.Text.Trim(), dpBirthday.SelectedDate, pnCell.Text.Trim(), tbEmail.Text.Trim() );
+
+                    if ( matches == null )
+                    {
+                        nbInvalid.Visible = true;
+                        return;
+                    }
+
                     if ( matches.Count() == 1 )
                     {
                         person = matches.First();
@@ -184,10 +194,17 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         private List<Person> GetByMatch( string firstName, string lastName, DateTime? birthday, string cellPhone, string email )
         {
-            firstName = firstName ?? string.Empty;
-            lastName = lastName ?? string.Empty;
+
             cellPhone = PhoneNumber.CleanNumber( cellPhone ) ?? string.Empty;
             email = email ?? string.Empty;
+
+            //Stop if first name or last name is blank or if all three of email, phone and birthday are blank
+            if ( string.IsNullOrWhiteSpace( firstName ) || string.IsNullOrWhiteSpace( lastName )
+                || !( !string.IsNullOrWhiteSpace( cellPhone ) || !string.IsNullOrWhiteSpace( email ) || birthday != null)
+                )
+            {
+                return null;
+            }
 
             //Search for person who matches first and last name and one of email, phone number, or birthday
             return new PersonService( _rockContext ).Queryable()

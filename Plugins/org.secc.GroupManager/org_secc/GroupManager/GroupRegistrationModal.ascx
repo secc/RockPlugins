@@ -13,6 +13,9 @@
         <Rock:ModalDialog ID="mdDialog" ValidationGroup="AddMember" CancelLinkVisible="false" runat="server" Title="Add Group Member">
             <Content>
                 <asp:Panel runat="server" ID="pnlForm">
+                    <Rock:NotificationBox runat="server" ID="nbInvalid" NotificationBoxType="Warning" Dismissable="true" Visible="true">
+                        First and Last name is required and one of Birthday, Phone Number, or Email.
+                    </Rock:NotificationBox>
                     <Rock:RockTextBox ID="tbFirstName" runat="server" Label="First Name" ValidationGroup="AddMemeber" Required="True"></Rock:RockTextBox>
                     <Rock:RockTextBox ID="tbLastName" runat="server" Label="Last Name" ValidationGroup="AddMember" Required="True"></Rock:RockTextBox>
 
