@@ -80,13 +80,15 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 memberData.Add( new MemberData( member ) );
             }
 
+            gMembers.DataSource = memberData;
 
             if ( !Page.IsPostBack )
             {
                 GenerateFilters( true );
                 BindData();
-            }
+            } 
             BindRoster();
+
         }
         protected void btnMembership_Click( object sender, EventArgs e )
         {
@@ -105,6 +107,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         }
 
         protected void rFilter_ApplyFilterClick( object sender, EventArgs e )
+        {
+            FilterData();
+        }
+
+        private void FilterData()
         {
             rFilter.Show();
 
