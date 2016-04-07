@@ -144,12 +144,44 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 // Save the registration
                 AddPersonToGroup( _rockContext, person );
+                pnlForm.Visible = false;
+                pnlResults.Visible = true;
+                ltResults.Text = person.FullName + " has been added to your group.";
+                ClearForm();
             }
+        }
+
+        
+
+        protected void btnAddAnother_Click( object sender, EventArgs e )
+        {
+            pnlForm.Visible = true;
+            pnlResults.Visible = false;
+        }
+        protected void btnCancel_Click( object sender, EventArgs e )
+        {
+            ClearForm();
+            mdDialog.Hide();
+        }
+
+        protected void btnClose_Click( object sender, EventArgs e )
+        {
+            mdDialog.Hide();
         }
 
         #endregion
 
         #region Internal Methods
+
+        private void ClearForm()
+        {
+            tbFirstName.Text = "";
+            tbLastName.Text = "";
+            dpBirthday.Text = "";
+            pnCell.Text = "";
+            tbEmail.Text = "";
+        }
+
         private List<Person> GetByMatch( string firstName, string lastName, DateTime? birthday, string cellPhone, string email )
         {
             firstName = firstName ?? string.Empty;
@@ -299,9 +331,5 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         }
 
         #endregion
-
-
-
-
     }
 }
