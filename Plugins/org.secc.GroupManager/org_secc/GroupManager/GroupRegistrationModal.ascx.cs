@@ -43,8 +43,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [CustomRadioListField( "Group Member Status", "The group member status to use when adding person to group (default: 'Pending'.)", "2^Pending,1^Active,0^Inactive", true, "2", "", 1 )]
     [DefinedValueField( "2E6540EA-63F0-40FE-BE50-F2A84735E600", "Connection Status", "The connection status to use for new individuals (default: 'Web Prospect'.)", true, false, "368DD475-242C-49C4-A42C-7278BE690CC2", "", 2 )]
     [DefinedValueField( "8522BADD-2871-45A5-81DD-C76DA07E2E7E", "Record Status", "The record status to use for new individuals (default: 'Pending'.)", true, false, "283999EC-7346-42E3-B807-BCE9B2BABB49", "", 3 )]
-    [CodeEditorField( "Result Lava Template", "The lava template to use to format result message after user has been registered. Will only display if user is not redirected to a Result Page ( previous setting ).", CodeEditorMode.Lava, CodeEditorTheme.Rock, 400, true, @"
-", "", 8 )]
+
+    [BooleanField( "Large Button", "Show large button with text?" )]
     public partial class GroupRegistrationModal : RockBlock
     {
         #region Fields
@@ -98,11 +98,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnRegister_Click( object sender, EventArgs e )
         {
-            mdDialog.Hide();
-
             if ( Page.IsValid )
             {
-                if (_rockContext == null)
+                if ( _rockContext == null )
                 {
                     _rockContext = new RockContext();
                 }
@@ -130,7 +128,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     person = new Person();
                     person.FirstName = tbFirstName.Text.Trim();
                     person.LastName = tbLastName.Text.Trim();
-                    person.SetBirthDate(dpBirthday.SelectedDate);
+                    person.SetBirthDate( dpBirthday.SelectedDate );
                     person.UpdatePhoneNumber( DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).Id,
                         PhoneNumber.DefaultCountryCode(), pnCell.Text, true, false, _rockContext );
                     person.Email = tbEmail.Text.Trim();
@@ -156,7 +154,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             firstName = firstName ?? string.Empty;
             lastName = lastName ?? string.Empty;
-            cellPhone = PhoneNumber.CleanNumber(cellPhone) ?? string.Empty;
+            cellPhone = PhoneNumber.CleanNumber( cellPhone ) ?? string.Empty;
             email = email ?? string.Empty;
 
             //Search for person who matches first and last name and one of email, phone number, or birthday
@@ -233,6 +231,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             _familyType = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid() );
             _adultRole = _familyType.Roles.FirstOrDefault( r => r.Guid.Equals( Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() ) );
 
+            if ( !GetAttributeValue( "LargeButton" ).AsBoolean() )
+            {
+                btnLaunchModal.Text = "<i class='fa fa-user-plus'></i>";
+            }
+
             return true;
 
         }
@@ -299,6 +302,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
 
 
-        
+
     }
 }
