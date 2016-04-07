@@ -2,7 +2,7 @@
 
 <style type="text/css">
     .modal-footer {
-        visibility:hidden;
+        visibility: hidden;
     }
 </style>
 

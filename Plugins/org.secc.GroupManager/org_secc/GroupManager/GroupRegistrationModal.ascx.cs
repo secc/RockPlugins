@@ -45,6 +45,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [DefinedValueField( "8522BADD-2871-45A5-81DD-C76DA07E2E7E", "Record Status", "The record status to use for new individuals (default: 'Pending'.)", true, false, "283999EC-7346-42E3-B807-BCE9B2BABB49", "", 3 )]
 
     [BooleanField( "Large Button", "Show large button with text?" )]
+    [TextField("CSS Class", "Optional css class to style button", false, "btn btn-default")]
     public partial class GroupRegistrationModal : RockBlock
     {
         #region Fields
@@ -283,6 +284,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             if ( !GetAttributeValue( "LargeButton" ).AsBoolean() )
             {
                 btnLaunchModal.Text = "<i class='fa fa-user-plus'></i>";
+            }
+
+            if ( !string.IsNullOrWhiteSpace( GetAttributeValue( "CSSClass" ) ) )
+            {
+                btnLaunchModal.CssClass = GetAttributeValue( "CSSClass" );
             }
 
             return true;
