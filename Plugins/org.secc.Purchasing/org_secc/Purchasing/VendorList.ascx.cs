@@ -5,6 +5,7 @@ using System.Linq;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using System.Web.UI.HtmlControls;
 
 using Rock.Web.UI;
 using Rock;
@@ -27,7 +28,18 @@ namespace RockWeb.Plugins.org_secc.Purchasing
     public partial class VendorList : RockBlock
     {
         private bool? mCanEdit = null;
-        public Guid VendorDetailPageSetting { get { return GetAttributeValue("VendorDetailPage").AsGuid(); } }
+        Rock.Model.Page mVendorPage = null;
+        public Rock.Model.Page VendorDetailPageSetting
+        {
+            get
+            {
+            if (mVendorPage == null)
+            {
+                PageService pageService = new PageService(new Rock.Data.RockContext());
+                mVendorPage = pageService.Get(GetAttributeValue("VendorDetailPage").AsGuid());
+            }
+            return mVendorPage; 
+        } }
 
         public bool ActiveOnlyByDefaultSetting { get { return GetAttributeValue("ActiveOnlyByDefault").AsBoolean(); } }
 
@@ -68,14 +80,14 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if (!Page.IsPostBack)
             {
                 ResetFilter();
-                LoadVendors();
-                lbNewVendor.Visible = CanEdit;
-            }
+                phNewVendor.Visible = CanEdit;
+            };
+            LoadVendors();
         }
 
         protected void btnApplyFilter_Click(object sender, EventArgs e)
         {
-            LoadVendors();
+           LoadVendors();
         }
 
         protected void btnClearFilter_Click(object sender, EventArgs e)
@@ -86,7 +98,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         protected void lbNewVendor_Click(object sender, EventArgs e)
         {
-            NavigateToPage(this.VendorDetailPageSetting, null);
+            NavigateToPage(this.VendorDetailPageSetting.Guid, null);
         }
 
         #region Private
@@ -94,7 +106,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             dgVendors.RowCommand += new GridViewCommandEventHandler(dgVendors_ItemCommand);
             dgVendors.GridRebind += new GridRebindEventHandler(dgVendors_ReBind);
-            dgVendors.RowDeleted += new GridViewDeletedEventHandler(dgVendors_DeleteCommand);
         }
 
         private void ResetFilter()
@@ -114,21 +125,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             LoadVendors();
         }
 
-        private void dgVendors_DeleteCommand(object sender, GridViewDeletedEventArgs e) {
-            int vendorId = -1;
-            Vendor currentVendor;
-
-            /*if (int.TryParse(e.Item.Cells[0].Text, out vendorId) && vendorId > 0 && (currentVendor = new Vendor(vendorId)) != null) {
-                if (!IsVendorUsed(currentVendor.VendorID))
-                    Vendor.Delete(vendorId, "system");
-                //Doesn't work
-                //else
-                //    ScriptManager.RegisterStartupScript(updVendorList, updVendorList.GetType(), Guid.NewGuid().ToString(), string.Format("alert('The vendor '{0}' cannot" +
-                //        " be deleted because it is connected to a requisition or a PO');", currentVendor.VendorName), true);
-
-                LoadVendors();
-            }*/
-        }
 
         private void ConfigureDataGrid()
         {
@@ -172,7 +168,36 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         }
 
         #endregion
+        
+        protected void Delete_Click(object sender, RowEventArgs e)
+        {
+            int vendorId = e.RowKeyId;
+            Vendor currentVendor;
 
-    }
+            if (vendorId > 0 && (currentVendor = new Vendor(vendorId)) != null) {
+                if (!IsVendorUsed(currentVendor.VendorID)) {
+                    //Vendor.Delete(vendorId, "system");
+                }
+                else { 
+                    maAlert.Show(
+                        string.Format("The vendor {0} cannot be deleted because it is connected to a requisition or a PO", 
+                            currentVendor.VendorName),
+                            ModalAlertType.Warning);
+                }
+                LoadVendors();
+            }
+        }
+        protected void Unnamed_Click(object sender, RowEventArgs e)
+        {
+            return;
+        }
+        protected void dgVendors_RowDataBound(object sender, GridViewRowEventArgs e)
+        {
+            if (e.Row.RowType == DataControlRowType.DataRow || e.Row.RowType == DataControlRowType.Header) {
+                e.Row.Controls[7].Visible = UserCanEdit;
+                e.Row.Controls[8].Visible = UserCanEdit;
+            }
+        }
+}
 
 }
