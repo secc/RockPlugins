@@ -30,6 +30,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             
             $('textarea[id$= \'tbMessage\']').keyup(function(){charCount()});
             ";
+        private RockContext _rockContext;
+        private int groupId;
 
         protected override void OnInit( EventArgs e )
         {
@@ -50,18 +52,17 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             base.OnLoad( e );
             nbAlert.Visible = false;
             var personAlias = RockPage.CurrentPersonAlias;
-            int groupId;
-            try
-            {
-                groupId = Int32.Parse( PageParameter( "GroupId" ) );
-            }
-            catch
+            groupId = PageParameter( "GroupId" ).AsInteger();
+            if ( groupId == 0 )
             {
                 return;
             }
-            var rockContext = new RockContext();
-            var groupService = new GroupService( rockContext );
+
+            _rockContext = new RockContext();
+            var groupService = new GroupService( _rockContext );
             group = groupService.Get( groupId );
+
+
 
             //If you are not a leader when one is required hide and quit.
             if ( !group.IsAuthorized( Authorization.EDIT, CurrentPerson ) )
@@ -74,22 +75,37 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             Page.Title = group.Name;
             ltTitle.Text = "<h1>" + group.Name + "</h1>";
+
+
+            GetGroupMembers();
+
+            if ( !Page.IsPostBack )
+            {
+                GenerateFilters( true );
+                BindData();
+            }
+            else
+            {
+                gMembers.DataSource = memberData;
+            }
+            BindRoster();
+        }
+
+        private void GetGroupMembers()
+        {
+            memberData = new List<MemberData>();
+            GroupService groupService = new GroupService( _rockContext );
             var groupMembers = groupService.Queryable().Where( g => g.Id == groupId ).SelectMany( g => g.Members ).ToList();
             foreach ( var member in groupMembers )
             {
                 memberData.Add( new MemberData( member ) );
             }
 
-            gMembers.DataSource = memberData;
-
-            if ( !Page.IsPostBack )
-            {
-                GenerateFilters( true );
-                BindData();
-            } 
-            BindRoster();
-
+            //Rock allows for people to be in the same group twice as long as their group roles are different
+            //We need to filter down to one person with leaders at top
+            memberData = memberData.OrderByDescending( m => m.IsLeader ).DistinctBy( m => m.Id ).ToList();
         }
+
         protected void btnMembership_Click( object sender, EventArgs e )
         {
             btnMembership.CssClass = "btn btn-primary";
@@ -166,8 +182,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             if ( Page.IsValid )
             {
-                var rockContext = new RockContext();
-                var communication = UpdateCommunication( rockContext );
+                _rockContext = new RockContext();
+                var communication = UpdateCommunication( _rockContext );
 
                 if ( communication != null )
                 {
@@ -182,13 +198,14 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     communication.ReviewedDateTime = RockDateTime.Now;
                     communication.ReviewerPersonAliasId = CurrentPersonAliasId;
 
-                    rockContext.SaveChanges();
+                    _rockContext.SaveChanges();
                     var transaction = new Rock.Transactions.SendCommunicationTransaction();
                     transaction.CommunicationId = communication.Id;
                     transaction.PersonAlias = CurrentPersonAlias;
                     Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
                 }
             }
+            cbSMSSendToParents.Checked = false;
             pnlEmail.Visible = false;
             pnlSMS.Visible = false;
             pnlMain.Visible = true;
@@ -223,8 +240,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             if ( Page.IsValid )
             {
-                var rockContext = new RockContext();
-                var communication = UpdateCommunication( rockContext );
+                _rockContext = new RockContext();
+                var communication = UpdateCommunication( _rockContext );
 
                 if ( communication != null )
                 {
@@ -242,13 +259,14 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     communication.ReviewedDateTime = RockDateTime.Now;
                     communication.ReviewerPersonAliasId = CurrentPersonAliasId;
 
-                    rockContext.SaveChanges();
+                    _rockContext.SaveChanges();
                     var transaction = new Rock.Transactions.SendCommunicationTransaction();
                     transaction.CommunicationId = communication.Id;
                     transaction.PersonAlias = CurrentPersonAlias;
                     Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
                 }
             }
+            cbEmailSendToParents.Checked = false;
             pnlEmail.Visible = false;
             pnlSMS.Visible = false;
             pnlMain.Visible = true;
@@ -257,6 +275,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         protected void btnCancel_Click( object sender, EventArgs e )
         {
+            cbSMSSendToParents.Checked = false;
+            cbEmailSendToParents.Checked = false;
+            hfCommunication.Value = null;
             pnlEmail.Visible = false;
             pnlSMS.Visible = false;
             pnlMain.Visible = true;
@@ -271,6 +292,125 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             //update our recepient display on switch
             DisplayEmailRecipients();
+        }
+
+        protected void gMembers_RowSelected( object sender, RowEventArgs e )
+        {
+            var id = e.RowKeyId;
+            var member = memberData.Where( md => md.Id == id ).FirstOrDefault();
+            if ( member == null )
+            {
+                return;
+            }
+            mdMember.Title = member.Name;
+
+            hfMemberId.Value = member.Id.ToString();
+
+            //set membership status and option buttons
+            lbStatus.Text = member.Status.ToString();
+            switch ( member.Status )
+            {
+                case GroupMemberStatus.Inactive:
+                    lbStatus.LabelType = LabelType.Danger;
+                    btnDeactivate.Visible = false;
+                    btnActivate.Visible = true;
+                    break;
+                case GroupMemberStatus.Active:
+                    lbStatus.LabelType = LabelType.Success;
+                    btnActivate.Visible = false;
+                    btnDeactivate.Visible = true;
+                    break;
+                case GroupMemberStatus.Pending:
+                    lbStatus.LabelType = LabelType.Info;
+                    btnDeactivate.Visible = false;
+                    btnActivate.Visible = true;
+                    break;
+                default:
+                    break;
+            }
+            //set Role tag
+            lbRole.Text = member.Role.ToString();
+            if ( member.IsLeader )
+            {
+                lbRole.LabelType = LabelType.Primary;
+            }
+            else
+            {
+                lbRole.LabelType = LabelType.Default;
+            }
+
+            //Set literal fields
+            ltAddress.Text = member.FormattedAddress;
+            ltPhone.Text = member.Phone;
+            ltEmail.Text = member.Email;
+            ltDateAdded.Text = member.DateAdded;
+
+            //Show Date Inactive if not active
+            if ( member.DateInactive != null )
+            {
+                ltDateInactive.Visible = true;
+                ltDateInactive.Text = member.DateInactive.ToString();
+            }
+            else
+            {
+                ltDateInactive.Visible = false;
+            }
+
+            mdMember.Show();
+        }
+
+        protected void btnActivate_Click( object sender, EventArgs e )
+        {
+            int id = hfMemberId.Value.AsInteger();
+            if ( id > 0 )
+            {
+                activateMember( id );
+            }
+            mdMember.Hide();
+            hfMemberId.Value = null;
+            GetGroupMembers();
+            BindData();
+        }
+
+        protected void btnDeactivate_Click( object sender, EventArgs e )
+        {
+            int id = hfMemberId.Value.AsInteger();
+            if ( id > 0 )
+            {
+                deactivateMember( id );
+            }
+            mdMember.Hide();
+            hfMemberId.Value = null;
+            GetGroupMembers();
+            BindData();
+        }
+
+        private void deactivateMember( int id )
+        {
+            //Do not deactivate the last active leader.
+            if ( memberData.Where( m => m.IsLeader  && m.Status == GroupMemberStatus.Active).Count() == 1 
+                && memberData.Where( m => m.Person.Id == id && m.IsLeader ).Any() )
+            {
+                return;
+            }
+
+
+            var groupMember = group.Members.Where( m => m.Person.Id == id ).FirstOrDefault();
+            if ( groupMember != null )
+            {
+                groupMember.GroupMemberStatus = GroupMemberStatus.Inactive;
+                _rockContext.SaveChanges();
+            }
+        }
+
+        private void activateMember( int id )
+        {
+            var groupMember = group.Members.Where( m => m.Person.Id == id ).FirstOrDefault();
+            if ( groupMember != null )
+            {
+                groupMember.GroupMemberStatus = GroupMemberStatus.Active;
+                _rockContext.SaveChanges();
+            }
         }
 
         private void BindData()
@@ -331,6 +471,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             var sendParents = cbSMSSendToParents.Checked;
 
+            //List of ids so we don't display the same person twice
+            List<int> addedIds = new List<int>();
+
             foreach ( int key in gMembers.SelectedKeys )
             {
                 MemberData member = memberData.Where( md => md.Id == key ).FirstOrDefault();
@@ -340,31 +483,39 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 {
                     member.LoadParents();
                 }
+
                 if ( member.IsParent || !sendParents )
                 {
-                    //Add person to recepients
-                    if ( member.Phones.Where( pn => pn.IsMessagingEnabled && !pn.IsUnlisted ).Count() > 0 )
+                    if ( !addedIds.Contains( member.Id ) )
                     {
-                        recepients.Append( "<span title='Person has textable number'>" + member.Name + "</span> " );
-                    }
-                    else
-                    {
-                        recepients.Append( "<span title='Person does not have a textable number and will not recieve this message.' style='color:red'>" + member.Name + "</span> " );
+                        //Add person to recepients
+                        if ( member.Phones.Where( pn => pn.IsMessagingEnabled && !pn.IsUnlisted ).Count() > 0 )
+                        {
+                            recepients.Append( "<span title='Person has textable number'>" + member.Name + "</span> " );
+                        }
+                        else
+                        {
+                            recepients.Append( "<span title='Person does not have a textable number and will not recieve this message.' style='color:red'>" + member.Name + "</span> " );
+                        }
+                        addedIds.Add( member.Id );
                     }
                 }
                 else
                 {
                     //Add person parents to recepients
-
                     foreach ( Person parent in member.Parents )
                     {
-                        if ( parent.PhoneNumbers.Where( pn => pn.IsMessagingEnabled && !pn.IsUnlisted ).Count() > 0 )
+                        if ( !addedIds.Contains( parent.Id ) )
                         {
-                            recepients.Append( "<span title='Person has textable number'>" + parent.FullName + "</span> " );
-                        }
-                        else
-                        {
-                            recepients.Append( "<span title='Person does not have a textable number and will not recieve this message.' style='color:red'>" + parent.FullName + "</span> " );
+                            if ( parent.PhoneNumbers.Where( pn => pn.IsMessagingEnabled && !pn.IsUnlisted ).Count() > 0 )
+                            {
+                                recepients.Append( "<span title='Person has textable number'>" + parent.FullName + "</span> " );
+                            }
+                            else
+                            {
+                                recepients.Append( "<span title='Person does not have a textable number and will not recieve this message.' style='color:red'>" + parent.FullName + "</span> " );
+                            }
+                            addedIds.Add( parent.Id );
                         }
                     }
                 }
@@ -378,7 +529,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             var recepients = new StringBuilder();
             recepients.Append( "<div class=well><h4>Recepients:</h4>" );
 
-            var sendParents = cbSMSSendToParents.Checked;
+            var sendParents = cbEmailSendToParents.Checked;
 
             var keys = gMembers.SelectedKeys;
 
@@ -388,9 +539,13 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 keys = new List<object> { hfCommunication.ValueAsInt() };
             }
 
+            //This list is to keep track of recepients so we don't display them twice
+            List<int> addedIds = new List<int>();
+
             foreach ( int key in keys )
             {
                 MemberData member = memberData.Where( md => md.Id == key ).FirstOrDefault();
+
 
                 //only load parents if they are needed
                 if ( sendParents )
@@ -400,32 +555,43 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 if ( member.IsParent || !sendParents )
                 {
-                    //Add person to recepients
-                    //Check is for valid email, active email, not set to do not email
-                    if ( !string.IsNullOrWhiteSpace( member.Email ) && member.Email.IsValidEmail() &&
-                        member.Person.IsEmailActive && !member.Person.EmailPreference.Equals( 2 ) )
+                    if ( !addedIds.Contains( member.Id ) )
                     {
-                        recepients.Append( "<span title='Person has a valid email address'>" + member.Name + "</span> " );
+                        //Add person to recepients
+                        //Check is for valid email, active email, not set to do not email
+                        if ( !string.IsNullOrWhiteSpace( member.Email ) && member.Email.IsValidEmail() &&
+                            member.Person.IsEmailActive && member.Person.EmailPreference != EmailPreference.DoNotEmail )
+                        {
+                            recepients.Append( "<span title='Person has a valid email address'>" + member.Name + "</span> " );
+                        }
+                        else
+                        {
+                            recepients.Append( "<span title='Person does not have a valid email address and will not recieve this message.' style='color:red'>" + member.Name + "</span> " );
+                        }
+                        //Save that we are sending a message to this person
+                        addedIds.Add( member.Id );
                     }
-                    else
-                    {
-                        recepients.Append( "<span title='Person does not have a valid email address and will not recieve this message.' style='color:red'>" + member.Name + "</span> " );
-                    }
+
                 }
                 else
                 {
                     //Add person parents to recepients
                     foreach ( Person parent in member.Parents )
                     {
-                        if ( !string.IsNullOrWhiteSpace( member.Email ) && parent.Email.IsValidEmail() &&
-                            parent.IsEmailActive && !parent.EmailPreference.Equals( 2 ) )
+                        if ( !addedIds.Contains( parent.Id ) )
                         {
-                            recepients.Append( "<span title='Person has a valid email address'>" + parent.FullName + "</span> " );
+                            if ( !string.IsNullOrWhiteSpace( parent.Email ) && parent.Email.IsValidEmail() &&
+                            parent.IsEmailActive && parent.EmailPreference != EmailPreference.DoNotEmail )
+                            {
+                                recepients.Append( "<span title='Person has a valid email address'>" + parent.FullName + "</span> " );
+                            }
+                            else
+                            {
+                                recepients.Append( "<span title='Person does not have a valid email address and will not recieve this message.' style='color:red'>" + parent.FullName + "</span> " );
+                            }
+                            addedIds.Add( parent.Id );
                         }
-                        else
-                        {
-                            recepients.Append( "<span title='Person does not have a valid email address and will not recieve this message.' style='color:red'>" + parent.FullName + "</span> " );
-                        }
+
                     }
                 }
             }
@@ -457,6 +623,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         private void AddRecepients( Communication communication, bool sendParents )
         {
+            //List to keep from sending multiple messages
+            List<int> addedIds = new List<int>();
+
             if ( !string.IsNullOrWhiteSpace( hfCommunication.Value ) )
             {
                 //For adding a single person from the roster
@@ -465,19 +634,29 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 {
                     if ( member.IsParent || !sendParents )
                     {
-                        //Add person to Communication
-                        var communicationRecipient = new CommunicationRecipient();
-                        communicationRecipient.PersonAliasId = member.Id ?? 0;
-                        communication.Recipients.Add( communicationRecipient );
+                        if ( !addedIds.Contains( member.Id ) )
+                        {
+                            //Add person to Communication
+                            var communicationRecipient = new CommunicationRecipient();
+                            communicationRecipient.PersonAliasId = member.PersonAliasId;
+                            communication.Recipients.Add( communicationRecipient );
+                            addedIds.Add( member.Id );
+                        }
+
                     }
                     else
                     {
                         //Add parents to communication
                         foreach ( Person parent in member.Parents )
                         {
-                            var communicationRecipient = new CommunicationRecipient();
-                            communicationRecipient.PersonAliasId = parent.PrimaryAliasId ?? parent.Id;
-                            communication.Recipients.Add( communicationRecipient );
+                            if ( !addedIds.Contains( parent.Id ) )
+                            {
+                                var communicationRecipient = new CommunicationRecipient();
+                                communicationRecipient.PersonAliasId = parent.PrimaryAliasId ?? parent.Id;
+                                communication.Recipients.Add( communicationRecipient );
+                                addedIds.Add( parent.Id );
+                            }
+
                         }
                     }
                 }
@@ -492,19 +671,28 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     MemberData member = memberData.Where( md => md.Id == key ).FirstOrDefault();
                     if ( member.IsParent || !sendParents )
                     {
-                        //Add person to Communication
-                        var communicationRecipient = new CommunicationRecipient();
-                        communicationRecipient.PersonAliasId = key;
-                        communication.Recipients.Add( communicationRecipient );
+                        if ( !addedIds.Contains( member.Id ) )
+                        {
+                            //Add person to Communication
+                            var communicationRecipient = new CommunicationRecipient();
+                            communicationRecipient.PersonAliasId = member.PersonAliasId;
+                            communication.Recipients.Add( communicationRecipient );
+                            addedIds.Add( member.Id );
+                        }
+
                     }
                     else
                     {
                         //Add parents to communication
                         foreach ( Person parent in member.Parents )
                         {
-                            var communicationRecipient = new CommunicationRecipient();
-                            communicationRecipient.PersonAliasId = parent.PrimaryAliasId ?? parent.Id;
-                            communication.Recipients.Add( communicationRecipient );
+                            if ( !addedIds.Contains( parent.Id ) )
+                            {
+                                var communicationRecipient = new CommunicationRecipient();
+                                communicationRecipient.PersonAliasId = parent.PrimaryAliasId ?? parent.Id;
+                                communication.Recipients.Add( communicationRecipient );
+                                addedIds.Add( parent.Id );
+                            }
                         }
                     }
                 }
@@ -525,49 +713,142 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
     public class MemberData
     {
-        public int? Id { get; set; }
-        public Person Person { get; set; }
-        public string Name { get; set; }
-        public string FirstName { get; set; }
-        public string NickName { get; set; }
-        public string LastName { get; set; }
-        public string Phone { get; set; }
-        public List<PhoneNumber> Phones { get; set; }
-        public string Email { get; set; }
-        public string DateAdded { get; set; }
-        public string Address { get; set; }
-        public string FormattedAddress { get; set; }
-        public string City { get; set; }
-        public string State { get; set; }
-        public string Zipcode { get; set; }
-        public string Role { get; set; }
-        public List<Person> Parents { get; set; }
-        public bool IsParent { get; set; }
-        public Gender Gender { get; set; }
-        public GroupMemberStatus Status { get; set; }
-        public DateTime? DateInactive { get; set; }
-        public string PhotoUrl { get; set; }
+        public Person Person { get; private set; }
+        public int Id
+        {
+            get
+            {
+                return Person.Id;
+            }
+        }
+        public int PersonAliasId
+        {
+            get
+            {
+                return Person.PrimaryAliasId ?? Person.Id;
+            }
+        }
+        public string Name
+        {
+            get
+            {
+                return Person.FullName;
+            }
+        }
+        public string FirstName
+        {
+            get
+            {
+                return Person.FirstName;
+            }
+        }
+        public string NickName
+        {
+            get
+            {
+                return Person.NickName;
+            }
+        }
+
+        public string LastName
+        {
+            get
+            {
+                return Person.LastName;
+            }
+        }
+        public string Phone
+        {
+            get
+            {
+                //gets first non unlisted non empty phone number with a preference to those with SMS enabled
+                return Person.PhoneNumbers.Where( pn => !pn.IsUnlisted && !string.IsNullOrWhiteSpace( pn.Number ) )
+                        .OrderByDescending( pn => pn.IsMessagingEnabled ).FirstOrDefault() != null
+                    ? Person.PhoneNumbers.Where( pn => !pn.IsUnlisted && !string.IsNullOrWhiteSpace( pn.Number ) )
+                        .OrderByDescending( pn => pn.IsMessagingEnabled ).FirstOrDefault().NumberFormatted
+                    : "";
+            }
+        }
+        public List<PhoneNumber> Phones
+        {
+            get
+            {
+                return Person.PhoneNumbers.ToList();
+            }
+        }
+        public string Email
+        {
+            get
+            {
+                return Person.Email;
+            }
+        }
+        public string DateAdded { get; private set; }
+        public string Address { get; private set; }
+        public string City { get; private set; }
+        public string State { get; private set; }
+        public string Zipcode { get; private set; }
+        public string FormattedAddress
+        {
+            get
+            {
+                Location _address = Person.GetHomeLocation();
+                if ( _address != null )
+                {
+                    return ( _address.Street1 ?? "" )
+                            + ( !string.IsNullOrWhiteSpace( _address.Street2 ) ? "<br />" + _address.Street2 : "" )
+                            + ( !( string.IsNullOrWhiteSpace( City ) && string.IsNullOrWhiteSpace( State ) && string.IsNullOrWhiteSpace( Zipcode ) ) ? "<br />" : "" )
+                            + ( !string.IsNullOrWhiteSpace( City ) ? City + ", " : "" )
+                            + State + Zipcode;
+                }
+                return "";
+            }
+        }
+        public string Role { get; private set; }
+        public bool IsLeader { get; private set; }
+        public List<Person> Parents { get; private set; }
+        public bool IsParent { get; private set; }
+        public Gender Gender
+        {
+            get
+            {
+                return Person.Gender;
+            }
+        }
+        public GroupMemberStatus Status { get; private set; }
+        public DateTime? LastUpdate { get; private set; }
+        public DateTime? DateInactive
+        {
+            get
+            {
+                if ( Status == GroupMemberStatus.Inactive )
+                {
+                    return LastUpdate;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+        public string PhotoUrl
+        {
+            get
+            {
+                return Person.PhotoUrl;
+            }
+        }
 
         public MemberData( GroupMember member )
         {
-            Id = member.Person.PrimaryAliasId;
             this.Person = member.Person;
-            Name = member.Person.FullName;
-            FirstName = member.Person.FirstName;
-            NickName = member.Person.NickName;
-            LastName = member.Person.LastName;
             DateAdded = member.DateTimeAdded.Value.ToString( "d" );
-            PhotoUrl = member.Person.PhotoUrl;
-            Phone = member.Person.PhoneNumbers.Where( pn => !pn.IsUnlisted ).FirstOrDefault() != null ? member.Person.PhoneNumbers.Where( pn => !pn.IsUnlisted ).FirstOrDefault().NumberFormatted : "";
-            Phones = member.Person.PhoneNumbers.ToList();
-            Email = member.Person.Email;
+
             Location _address = member.Person.GetHomeLocation();
 
             if ( _address != null )
             {
                 Address = ( _address.Street1 ?? "" ) + " " + ( _address.Street2 ?? "" );
-                FormattedAddress = ( _address.Street1 ?? "" ) +
-                                   ( !string.IsNullOrWhiteSpace( _address.Street2 ) ? "<br />" + _address.Street2 : "" );
                 City = _address.City ?? "";
                 State = _address.State ?? "";
                 Zipcode = _address.PostalCode ?? "";
@@ -577,11 +858,13 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 Address = "";
                 City = "";
                 State = "";
+                Zipcode = "";
             }
 
             Role = member.GroupRole.Name;
-            Gender = member.Person.Gender;
+            IsLeader = member.GroupRole.IsLeader;
             Status = member.GroupMemberStatus;
+            LastUpdate = member.ModifiedDateTime;
         }
 
         public void LoadParents()
