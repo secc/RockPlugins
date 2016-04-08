@@ -12,12 +12,13 @@ using System.Collections.Generic;
 using Rock;
 using Rock.Attribute;
 using Rock.Security;
+using System.Text;
 
 namespace RockWeb.Plugins.org_secc.GroupManager
 {
-    [DisplayName("Group Roster")]
-    [Category("Groups")]
-    [Description("Presents roster of group in roster format only if current user is leader of group.")]
+    [DisplayName( "Group Roster" )]
+    [Category( "Groups" )]
+    [Description( "Presents roster of group in roster format only if current user is leader of group." )]
     public partial class GroupRoster : RockBlock
     {
         Group group = new Group();
@@ -29,38 +30,39 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             
             $('textarea[id$= \'tbMessage\']').keyup(function(){charCount()});
             ";
+        private RockContext _rockContext;
+        private int groupId;
 
-        protected override void OnInit(EventArgs e)
+        protected override void OnInit( EventArgs e )
         {
-            base.OnInit(e);
+            base.OnInit( e );
             gMembers.ShowActionRow = false;
             gMembers.PersonIdField = "Id";
             gMembers.DataKeyNames = new string[] { "Id" };
             gMembers.GridRebind += gMembers_GridRebind;
         }
 
-        private void gMembers_GridRebind(object sender, EventArgs e)
+        private void gMembers_GridRebind( object sender, EventArgs e )
         {
             BindData();
         }
 
-        protected override void OnLoad(EventArgs e)
+        protected override void OnLoad( EventArgs e )
         {
-            base.OnLoad(e);
-
+            base.OnLoad( e );
+            nbAlert.Visible = false;
             var personAlias = RockPage.CurrentPersonAlias;
-            int groupId;
-            try
-            {
-                groupId = Int32.Parse(PageParameter("GroupId"));
-            }
-            catch
+            groupId = PageParameter( "GroupId" ).AsInteger();
+            if ( groupId == 0 )
             {
                 return;
             }
-            var rockContext = new RockContext();
-            var groupService = new GroupService(rockContext);
+
+            _rockContext = new RockContext();
+            var groupService = new GroupService( _rockContext );
             group = groupService.Get( groupId );
+
+
 
             //If you are not a leader when one is required hide and quit.
             if ( !group.IsAuthorized( Authorization.EDIT, CurrentPerson ) )
@@ -72,87 +74,93 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
 
             Page.Title = group.Name;
-            ltTitle.Text = "<h1>"+group.Name+"</h1>";
-            var groupMembers = groupService.Queryable().Where(g => g.Id == groupId).SelectMany(g => g.Members).ToList();
-            foreach (var member in groupMembers)
-            {
-                memberData.Add(new MemberData(member));
-            }
+            ltTitle.Text = "<h1>" + group.Name + "</h1>";
 
 
-            if (!Page.IsPostBack)
+            GetGroupMembers();
+
+            if ( !Page.IsPostBack )
             {
-                GenerateFilters(true);
+                GenerateFilters( true );
                 BindData();
             }
-        }
-
-        private void GenerateFilters(bool FirstRun)
-        {
-            var roles = group.GroupType.Roles.ToList();
-            cblRole.DataSource=roles;
-            cblRole.DataBind();
-
-            cblGender.BindToEnum<Gender>();
-
-            cblStatus.BindToEnum<GroupMemberStatus>();
-
-            if (FirstRun)
+            else
             {
-                foreach (ListItem item in cblRole.Items)
-                {
-                    item.Selected = true;
-                }
-                foreach (ListItem item in cblGender.Items)
-                {
-                    item.Selected = true;
-                }
-                foreach (ListItem item in cblStatus.Items)
-                {
-                    item.Selected = true;
-                }
+                gMembers.DataSource = memberData;
             }
+            BindRoster();
         }
 
-        private void BindData()
+        private void GetGroupMembers()
         {
-            
-            gMembers.DataSource = memberData;
-            gMembers.DataBind();
-            
+            memberData = new List<MemberData>();
+            GroupService groupService = new GroupService( _rockContext );
+            var groupMembers = groupService.Queryable().Where( g => g.Id == groupId ).SelectMany( g => g.Members ).ToList();
+            foreach ( var member in groupMembers )
+            {
+                memberData.Add( new MemberData( member ) );
+            }
+
+            //Rock allows for people to be in the same group twice as long as their group roles are different
+            //We need to filter down to one person with leaders at top
+            memberData = memberData.OrderByDescending( m => m.IsLeader ).DistinctBy( m => m.Id ).ToList();
         }
 
-        protected void rFilter_ApplyFilterClick(object sender, EventArgs e)
+        protected void btnMembership_Click( object sender, EventArgs e )
+        {
+            btnMembership.CssClass = "btn btn-primary";
+            btnRoster.CssClass = "btn btn-default";
+            pnlMembership.Visible = true;
+            pnlRoster.Visible = false;
+        }
+
+        protected void btnRoster_Click( object sender, EventArgs e )
+        {
+            btnRoster.CssClass = "btn btn-primary";
+            btnMembership.CssClass = "btn btn-default";
+            pnlRoster.Visible = true;
+            pnlMembership.Visible = false;
+        }
+
+        protected void rFilter_ApplyFilterClick( object sender, EventArgs e )
+        {
+            FilterData();
+        }
+
+        private void FilterData()
         {
             rFilter.Show();
 
-            var genders = cblGender.Items.Cast<ListItem>().Where(i => i.Selected).Select(i => int.Parse(i.Value)).ToList();
-            var roles = cblRole.Items.Cast<ListItem>().Where(i => i.Selected).Select(i => i.Value).ToList();
-            var status = cblStatus.Items.Cast<ListItem>().Where(i => i.Selected).Select(i => int.Parse(i.Value)).ToList();
+            var genders = cblGender.Items.Cast<ListItem>().Where( i => i.Selected ).Select( i => int.Parse( i.Value ) ).ToList();
+            var roles = cblRole.Items.Cast<ListItem>().Where( i => i.Selected ).Select( i => i.Value ).ToList();
+            var status = cblStatus.Items.Cast<ListItem>().Where( i => i.Selected ).Select( i => int.Parse( i.Value ) ).ToList();
 
-            memberData = memberData.Where(m =>
-                genders.Contains(m.Gender.ConvertToInt()) &&
-                roles.Contains(m.Role) &&
-                status.Contains(m.Status.ConvertToInt())
+            memberData = memberData.Where( m =>
+                 genders.Contains( m.Gender.ConvertToInt() ) &&
+                 roles.Contains( m.Role ) &&
+                 status.Contains( m.Status.ConvertToInt() )
                 ).ToList();
-            if (txtFirstName.Text != string.Empty)
+            if ( txtFirstName.Text != string.Empty )
             {
-                memberData = memberData.Where(m => m.FirstName.ToLower().Contains(txtFirstName.Text.ToLower()) 
-                || m.NickName.ToLower().Contains(txtFirstName.Text.ToLower())).ToList();
+                memberData = memberData.Where( m => m.FirstName.ToLower().Contains( txtFirstName.Text.ToLower() )
+                 || m.NickName.ToLower().Contains( txtFirstName.Text.ToLower() ) ).ToList();
             }
-            if (txtLastName.Text != string.Empty)
+            if ( txtLastName.Text != string.Empty )
             {
-                memberData = memberData.Where(m => m.LastName.ToLower().Contains(txtLastName.Text.ToLower())).ToList();
+                memberData = memberData.Where( m => m.LastName.ToLower().Contains( txtLastName.Text.ToLower() ) ).ToList();
             }
 
             BindData();
         }
 
-        protected void btnSMS_Click(object sender, EventArgs e)
+        protected void btnSMS_Click( object sender, EventArgs e )
         {
-            var key = gMembers.SelectedKeys;
-            if (key.Count == 0)
+            tbMessage.Text = "";
+
+            if ( gMembers.SelectedKeys.Count == 0 )
             {
+                nbAlert.Text = "Please select members to text.";
+                nbAlert.Visible = true;
                 return;
             }
 
@@ -161,130 +169,440 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             pnlMain.Visible = false;
             pnlSMS.Visible = true;
 
-            ScriptManager.RegisterStartupScript(Page, Page.GetType(), "smsCharCount", smsScript, true);
+            DisplaySMSRecipients();
 
+            ScriptManager.RegisterStartupScript( Page, Page.GetType(), "smsCharCount", smsScript, true );
         }
 
-        protected void btnEmail_Click(object sender, EventArgs e)
+        protected void btnSMSSend_Click( object sender, EventArgs e )
         {
-            var key = gMembers.SelectedKeys;
-            if (key.Count == 0)
+            bool sendToParents = cbEmailSendToParents.Checked;
+            string subject = tbSubject.Text;
+            string body = tbBody.Text;
+
+            if ( Page.IsValid )
             {
+                _rockContext = new RockContext();
+                var communication = UpdateCommunication( _rockContext );
+
+                if ( communication != null )
+                {
+                    AddRecepients( communication, cbSMSSendToParents.Checked );
+
+                    communication.MediumEntityTypeId = EntityTypeCache.Read( "Rock.Communication.Medium.Sms" ).Id;
+                    communication.MediumData.Clear();
+                    communication.MediumData.Add( "TextMessage", tbMessage.Text );
+                    communication.MediumData.Add( "From", group.GetAttributeValue( "TextMessageFrom" ) );
+
+                    communication.Status = CommunicationStatus.Approved;
+                    communication.ReviewedDateTime = RockDateTime.Now;
+                    communication.ReviewerPersonAliasId = CurrentPersonAliasId;
+
+                    _rockContext.SaveChanges();
+                    var transaction = new Rock.Transactions.SendCommunicationTransaction();
+                    transaction.CommunicationId = communication.Id;
+                    transaction.PersonAlias = CurrentPersonAlias;
+                    Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
+                }
+            }
+            cbSMSSendToParents.Checked = false;
+            pnlEmail.Visible = false;
+            pnlSMS.Visible = false;
+            pnlMain.Visible = true;
+            maSent.Show( "Your message has been sent.", ModalAlertType.Information );
+        }
+
+        protected void btnEmail_Click( object sender, EventArgs e )
+        {
+            tbBody.Text = "";
+            tbSubject.Text = "";
+
+            if ( gMembers.SelectedKeys.Count == 0 )
+            {
+                nbAlert.Text = "Please select members to email.";
+                nbAlert.Visible = true;
                 return;
             }
 
             group.LoadAttributes();
-            cbEmailSendToParents.Visible = group.GetAttributeValue("AllowEmailParents").AsBoolean();
+            cbEmailSendToParents.Visible = group.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
             pnlMain.Visible = false;
             pnlEmail.Visible = true;
 
+            DisplayEmailRecipients();
         }
 
-        protected void btnSMSSend_Click(object sender, EventArgs e)
+        protected void btnEmailSend_Click( object sender, EventArgs e )
         {
-            var keys = gMembers.SelectedKeys;
-            if (keys.Count == 0)
-            {
-                return;
-            }
             bool sendToParents = cbEmailSendToParents.Checked;
             string subject = tbSubject.Text;
             string body = tbBody.Text;
 
-            if (Page.IsValid)
+            if ( Page.IsValid )
             {
-                var rockContext = new RockContext();
-                var communication = UpdateCommunication(rockContext);
+                _rockContext = new RockContext();
+                var communication = UpdateCommunication( _rockContext );
 
-                if (communication != null)
+                if ( communication != null )
                 {
-                    AddRecepients(communication, cbSMSSendToParents.Checked);
+                    AddRecepients( communication, cbEmailSendToParents.Checked );
 
-                    communication.MediumEntityTypeId = EntityTypeCache.Read("Rock.Communication.Medium.Sms").Id;
-                    communication.MediumData.Clear();
-                    communication.MediumData.Add("TextMessage", tbMessage.Text);
-                    communication.MediumData.Add("From", group.GetAttributeValue("TextMessageFrom"));
-
-                    communication.Status = CommunicationStatus.Approved;
-                    communication.ReviewedDateTime = RockDateTime.Now;
-                    communication.ReviewerPersonAliasId = CurrentPersonAliasId;
-
-                    rockContext.SaveChanges();
-                    var transaction = new Rock.Transactions.SendCommunicationTransaction();
-                    transaction.CommunicationId = communication.Id;
-                    transaction.PersonAlias = CurrentPersonAlias;
-                    Rock.Transactions.RockQueue.TransactionQueue.Enqueue(transaction);
-                }
-            }
-            pnlEmail.Visible = false;
-            pnlSMS.Visible = false;
-            pnlMain.Visible = true;
-            maSent.Show("Your message has been sent. (Maybe?)", ModalAlertType.Information);
-        }
-        protected void btnEmailSend_Click(object sender, EventArgs e)
-        {
-            var key = gMembers.SelectedKeys;
-            if (key.Count == 0)
-            {
-                return;
-            }
-            bool sendToParents = cbEmailSendToParents.Checked;
-            string subject = tbSubject.Text;
-            string body = tbBody.Text;
-
-            if (Page.IsValid)
-            {
-                var rockContext = new RockContext();
-                var communication = UpdateCommunication(rockContext);
-
-                if (communication != null)
-                {
-                    AddRecepients(communication, cbEmailSendToParents.Checked);
-
-                    communication.MediumEntityTypeId = EntityTypeCache.Read("Rock.Communication.Medium.Email").Id;
+                    communication.MediumEntityTypeId = EntityTypeCache.Read( "Rock.Communication.Medium.Email" ).Id;
                     communication.MediumData.Clear();
                     communication.Subject = tbSubject.Text;
-                    communication.MediumData.Add("FromName", CurrentPerson.FullName);
-                    communication.MediumData.Add("FromAddress", CurrentPerson.Email);
-                    communication.MediumData.Add("ReplyToAddress", CurrentPerson.Email);
-                    communication.MediumData.Add("TextMessage", tbBody.Text);
+                    communication.MediumData.Add( "FromName", CurrentPerson.FullName );
+                    communication.MediumData.Add( "FromAddress", CurrentPerson.Email );
+                    communication.MediumData.Add( "ReplyToAddress", CurrentPerson.Email );
+                    communication.MediumData.Add( "TextMessage", tbBody.Text );
 
                     communication.Status = CommunicationStatus.Approved;
                     communication.ReviewedDateTime = RockDateTime.Now;
                     communication.ReviewerPersonAliasId = CurrentPersonAliasId;
 
-                    rockContext.SaveChanges();
+                    _rockContext.SaveChanges();
                     var transaction = new Rock.Transactions.SendCommunicationTransaction();
                     transaction.CommunicationId = communication.Id;
                     transaction.PersonAlias = CurrentPersonAlias;
-                    Rock.Transactions.RockQueue.TransactionQueue.Enqueue(transaction);
+                    Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
                 }
             }
+            cbEmailSendToParents.Checked = false;
             pnlEmail.Visible = false;
             pnlSMS.Visible = false;
             pnlMain.Visible = true;
-            maSent.Show("Your message has been sent.", ModalAlertType.Information);
+            maSent.Show( "Your message has been sent.", ModalAlertType.Information );
         }
 
-
-
-        protected void btnCancel_Click(object sender, EventArgs e)
+        protected void btnCancel_Click( object sender, EventArgs e )
         {
+            cbSMSSendToParents.Checked = false;
+            cbEmailSendToParents.Checked = false;
+            hfCommunication.Value = null;
             pnlEmail.Visible = false;
             pnlSMS.Visible = false;
             pnlMain.Visible = true;
         }
-
-
-        /// <summary>
-        /// Updates a communication model with the user-entered values
-        /// </summary>
-        /// <param name="communicationService">The service.</param>
-        /// <returns></returns>
-        private Rock.Model.Communication UpdateCommunication(RockContext rockContext)
+        protected void cbSMSSendToParents_CheckedChanged( object sender, EventArgs e )
         {
-            var communicationService = new CommunicationService(rockContext);
-            var recipientService = new CommunicationRecipientService(rockContext);
+            //update our recepient display on switch
+            DisplaySMSRecipients();
+        }
+
+        protected void cbEmailSendToParents_CheckedChanged( object sender, EventArgs e )
+        {
+            //update our recepient display on switch
+            DisplayEmailRecipients();
+        }
+
+        protected void gMembers_RowSelected( object sender, RowEventArgs e )
+        {
+            var id = e.RowKeyId;
+            var member = memberData.Where( md => md.Id == id ).FirstOrDefault();
+            if ( member == null )
+            {
+                return;
+            }
+            mdMember.Title = member.Name;
+
+            hfMemberId.Value = member.Id.ToString();
+
+            //set membership status and option buttons
+            lbStatus.Text = member.Status.ToString();
+            switch ( member.Status )
+            {
+                case GroupMemberStatus.Inactive:
+                    lbStatus.LabelType = LabelType.Danger;
+                    btnDeactivate.Visible = false;
+                    btnActivate.Visible = true;
+                    break;
+                case GroupMemberStatus.Active:
+                    lbStatus.LabelType = LabelType.Success;
+                    btnActivate.Visible = false;
+                    btnDeactivate.Visible = true;
+                    break;
+                case GroupMemberStatus.Pending:
+                    lbStatus.LabelType = LabelType.Info;
+                    btnDeactivate.Visible = false;
+                    btnActivate.Visible = true;
+                    break;
+                default:
+                    break;
+            }
+            //set Role tag
+            lbRole.Text = member.Role.ToString();
+            if ( member.IsLeader )
+            {
+                lbRole.LabelType = LabelType.Primary;
+            }
+            else
+            {
+                lbRole.LabelType = LabelType.Default;
+            }
+
+            //Set literal fields
+            ltAddress.Text = member.FormattedAddress;
+            ltPhone.Text = member.Phone;
+            ltEmail.Text = member.Email;
+            ltDateAdded.Text = member.DateAdded;
+
+            //Show Date Inactive if not active
+            if ( member.DateInactive != null )
+            {
+                ltDateInactive.Visible = true;
+                ltDateInactive.Text = member.DateInactive.ToString();
+            }
+            else
+            {
+                ltDateInactive.Visible = false;
+            }
+
+            mdMember.Show();
+        }
+
+        protected void btnActivate_Click( object sender, EventArgs e )
+        {
+            int id = hfMemberId.Value.AsInteger();
+            if ( id > 0 )
+            {
+                activateMember( id );
+            }
+            mdMember.Hide();
+            hfMemberId.Value = null;
+            GetGroupMembers();
+            BindData();
+        }
+
+        protected void btnDeactivate_Click( object sender, EventArgs e )
+        {
+            int id = hfMemberId.Value.AsInteger();
+            if ( id > 0 )
+            {
+                deactivateMember( id );
+            }
+            mdMember.Hide();
+            hfMemberId.Value = null;
+            GetGroupMembers();
+            BindData();
+        }
+
+        private void deactivateMember( int id )
+        {
+            //Do not deactivate the last active leader.
+            if ( memberData.Where( m => m.IsLeader  && m.Status == GroupMemberStatus.Active).Count() == 1 
+                && memberData.Where( m => m.Person.Id == id && m.IsLeader ).Any() )
+            {
+                return;
+            }
+
+
+            var groupMember = group.Members.Where( m => m.Person.Id == id ).FirstOrDefault();
+            if ( groupMember != null )
+            {
+                groupMember.GroupMemberStatus = GroupMemberStatus.Inactive;
+                _rockContext.SaveChanges();
+            }
+        }
+
+        private void activateMember( int id )
+        {
+            var groupMember = group.Members.Where( m => m.Person.Id == id ).FirstOrDefault();
+            if ( groupMember != null )
+            {
+                groupMember.GroupMemberStatus = GroupMemberStatus.Active;
+                _rockContext.SaveChanges();
+            }
+        }
+
+        private void BindData()
+        {
+            gMembers.DataSource = memberData;
+            gMembers.DataBind();
+
+        }
+
+        private void BindRoster()
+        {
+            rRoster.DataSource = memberData;
+            rRoster.DataBind();
+        }
+
+        protected void rRoster_ItemDataBound( object sender, RepeaterItemEventArgs e )
+        {
+            var itemData = ( MemberData ) e.Item.DataItem;
+            if ( itemData != null )
+            {
+                BootstrapButton btnRosterEmail = e.Item.FindControl( "btnRosterEmail" ) as BootstrapButton;
+                btnRosterEmail.Text = itemData.Email;
+                btnRosterEmail.Click += ( a, b ) => showRosterEmail( itemData.Id );
+            }
+        }
+
+        private void GenerateFilters( bool FirstRun )
+        {
+            var roles = group.GroupType.Roles.ToList();
+            cblRole.DataSource = roles;
+            cblRole.DataBind();
+
+            cblGender.BindToEnum<Gender>();
+
+            cblStatus.BindToEnum<GroupMemberStatus>();
+
+            if ( FirstRun )
+            {
+                foreach ( ListItem item in cblRole.Items )
+                {
+                    item.Selected = true;
+                }
+                foreach ( ListItem item in cblGender.Items )
+                {
+                    item.Selected = true;
+                }
+                foreach ( ListItem item in cblStatus.Items )
+                {
+                    item.Selected = true;
+                }
+            }
+        }
+
+        private void DisplaySMSRecipients()
+        {
+            var recepients = new StringBuilder();
+            recepients.Append( "<div class=well><h4>Recepients:</h4>" );
+
+            var sendParents = cbSMSSendToParents.Checked;
+
+            //List of ids so we don't display the same person twice
+            List<int> addedIds = new List<int>();
+
+            foreach ( int key in gMembers.SelectedKeys )
+            {
+                MemberData member = memberData.Where( md => md.Id == key ).FirstOrDefault();
+
+                //only load parents if we need them
+                if ( sendParents )
+                {
+                    member.LoadParents();
+                }
+
+                if ( member.IsParent || !sendParents )
+                {
+                    if ( !addedIds.Contains( member.Id ) )
+                    {
+                        //Add person to recepients
+                        if ( member.Phones.Where( pn => pn.IsMessagingEnabled && !pn.IsUnlisted ).Count() > 0 )
+                        {
+                            recepients.Append( "<span title='Person has textable number'>" + member.Name + "</span> " );
+                        }
+                        else
+                        {
+                            recepients.Append( "<span title='Person does not have a textable number and will not recieve this message.' style='color:red'>" + member.Name + "</span> " );
+                        }
+                        addedIds.Add( member.Id );
+                    }
+                }
+                else
+                {
+                    //Add person parents to recepients
+                    foreach ( Person parent in member.Parents )
+                    {
+                        if ( !addedIds.Contains( parent.Id ) )
+                        {
+                            if ( parent.PhoneNumbers.Where( pn => pn.IsMessagingEnabled && !pn.IsUnlisted ).Count() > 0 )
+                            {
+                                recepients.Append( "<span title='Person has textable number'>" + parent.FullName + "</span> " );
+                            }
+                            else
+                            {
+                                recepients.Append( "<span title='Person does not have a textable number and will not recieve this message.' style='color:red'>" + parent.FullName + "</span> " );
+                            }
+                            addedIds.Add( parent.Id );
+                        }
+                    }
+                }
+            }
+            recepients.Append( "</div>" );
+            ltSMSRecipients.Text = recepients.ToString();
+        }
+
+        private void DisplayEmailRecipients()
+        {
+            var recepients = new StringBuilder();
+            recepients.Append( "<div class=well><h4>Recepients:</h4>" );
+
+            var sendParents = cbEmailSendToParents.Checked;
+
+            var keys = gMembers.SelectedKeys;
+
+            //if we are calling this from the roster only choose that one
+            if ( !string.IsNullOrWhiteSpace( hfCommunication.Value ) )
+            {
+                keys = new List<object> { hfCommunication.ValueAsInt() };
+            }
+
+            //This list is to keep track of recepients so we don't display them twice
+            List<int> addedIds = new List<int>();
+
+            foreach ( int key in keys )
+            {
+                MemberData member = memberData.Where( md => md.Id == key ).FirstOrDefault();
+
+
+                //only load parents if they are needed
+                if ( sendParents )
+                {
+                    member.LoadParents();
+                }
+
+                if ( member.IsParent || !sendParents )
+                {
+                    if ( !addedIds.Contains( member.Id ) )
+                    {
+                        //Add person to recepients
+                        //Check is for valid email, active email, not set to do not email
+                        if ( !string.IsNullOrWhiteSpace( member.Email ) && member.Email.IsValidEmail() &&
+                            member.Person.IsEmailActive && member.Person.EmailPreference != EmailPreference.DoNotEmail )
+                        {
+                            recepients.Append( "<span title='Person has a valid email address'>" + member.Name + "</span> " );
+                        }
+                        else
+                        {
+                            recepients.Append( "<span title='Person does not have a valid email address and will not recieve this message.' style='color:red'>" + member.Name + "</span> " );
+                        }
+                        //Save that we are sending a message to this person
+                        addedIds.Add( member.Id );
+                    }
+
+                }
+                else
+                {
+                    //Add person parents to recepients
+                    foreach ( Person parent in member.Parents )
+                    {
+                        if ( !addedIds.Contains( parent.Id ) )
+                        {
+                            if ( !string.IsNullOrWhiteSpace( parent.Email ) && parent.Email.IsValidEmail() &&
+                            parent.IsEmailActive && parent.EmailPreference != EmailPreference.DoNotEmail )
+                            {
+                                recepients.Append( "<span title='Person has a valid email address'>" + parent.FullName + "</span> " );
+                            }
+                            else
+                            {
+                                recepients.Append( "<span title='Person does not have a valid email address and will not recieve this message.' style='color:red'>" + parent.FullName + "</span> " );
+                            }
+                            addedIds.Add( parent.Id );
+                        }
+
+                    }
+                }
+            }
+            recepients.Append( "</div>" );
+            ltEmailRecipients.Text = recepients.ToString();
+        }
+
+        private Rock.Model.Communication UpdateCommunication( RockContext rockContext )
+        {
+            var communicationService = new CommunicationService( rockContext );
+            var recipientService = new CommunicationRecipientService( rockContext );
 
             Rock.Model.Communication communication = null;
             IQueryable<CommunicationRecipient> qryRecipients = null;
@@ -292,9 +610,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             communication = new Rock.Model.Communication();
             communication.Status = CommunicationStatus.Transient;
             communication.SenderPersonAliasId = CurrentPersonAliasId;
-            communicationService.Add(communication);
+            communicationService.Add( communication );
 
-            qryRecipients = communication.GetRecipientsQry(rockContext);
+            qryRecipients = communication.GetRecipientsQry( rockContext );
 
             communication.IsBulkCommunication = false;
 
@@ -302,99 +620,272 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             return communication;
         }
-        private void AddRecepients(Communication communication, bool sendParents)
+
+        private void AddRecepients( Communication communication, bool sendParents )
         {
-            foreach (int key in gMembers.SelectedKeys)
+            //List to keep from sending multiple messages
+            List<int> addedIds = new List<int>();
+
+            if ( !string.IsNullOrWhiteSpace( hfCommunication.Value ) )
             {
-                MemberData member = memberData.Where(md => md.Id == key).FirstOrDefault();
-                if (member.IsParent || !sendParents)
+                //For adding a single person from the roster
+                var member = memberData.Where( m => m.Id == hfCommunication.Value.AsIntegerOrNull() ).FirstOrDefault();
+                if ( member != null )
                 {
-                    var communicationRecipient = new CommunicationRecipient();
-                    communicationRecipient.PersonAliasId = key;
-                    communication.Recipients.Add(communicationRecipient);
-                }
-                else
-                {
-                    foreach (int parent in member.Parents)
+                    if ( member.IsParent || !sendParents )
                     {
-                        var communicationRecipient = new CommunicationRecipient();
-                        communicationRecipient.PersonAliasId = parent;
-                        communication.Recipients.Add(communicationRecipient);
+                        if ( !addedIds.Contains( member.Id ) )
+                        {
+                            //Add person to Communication
+                            var communicationRecipient = new CommunicationRecipient();
+                            communicationRecipient.PersonAliasId = member.PersonAliasId;
+                            communication.Recipients.Add( communicationRecipient );
+                            addedIds.Add( member.Id );
+                        }
+
+                    }
+                    else
+                    {
+                        //Add parents to communication
+                        foreach ( Person parent in member.Parents )
+                        {
+                            if ( !addedIds.Contains( parent.Id ) )
+                            {
+                                var communicationRecipient = new CommunicationRecipient();
+                                communicationRecipient.PersonAliasId = parent.PrimaryAliasId ?? parent.Id;
+                                communication.Recipients.Add( communicationRecipient );
+                                addedIds.Add( parent.Id );
+                            }
+
+                        }
+                    }
+                }
+                //clear the value we are done
+                hfCommunication.Value = "";
+            }
+            else
+            {
+                //For adding the communication recepients from the membership list 
+                foreach ( int key in gMembers.SelectedKeys )
+                {
+                    MemberData member = memberData.Where( md => md.Id == key ).FirstOrDefault();
+                    if ( member.IsParent || !sendParents )
+                    {
+                        if ( !addedIds.Contains( member.Id ) )
+                        {
+                            //Add person to Communication
+                            var communicationRecipient = new CommunicationRecipient();
+                            communicationRecipient.PersonAliasId = member.PersonAliasId;
+                            communication.Recipients.Add( communicationRecipient );
+                            addedIds.Add( member.Id );
+                        }
+
+                    }
+                    else
+                    {
+                        //Add parents to communication
+                        foreach ( Person parent in member.Parents )
+                        {
+                            if ( !addedIds.Contains( parent.Id ) )
+                            {
+                                var communicationRecipient = new CommunicationRecipient();
+                                communicationRecipient.PersonAliasId = parent.PrimaryAliasId ?? parent.Id;
+                                communication.Recipients.Add( communicationRecipient );
+                                addedIds.Add( parent.Id );
+                            }
+                        }
                     }
                 }
             }
+        }
+
+        private void showRosterEmail( int? id )
+        {
+            hfCommunication.Value = id.ToString();
+            group.LoadAttributes();
+            cbEmailSendToParents.Visible = group.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
+            pnlMain.Visible = false;
+            pnlEmail.Visible = true;
+
+            DisplayEmailRecipients();
         }
     }
 
     public class MemberData
     {
-        public int? Id { get; set; }
-        public string Name { get; set; }
-        public string FirstName { get; set; }
-        public string NickName { get; set; }
-        public string LastName { get; set; }
-        public string DateAdded { get; set; }
-        public string Address { get; set; }
-        public string City { get; set; }
-        public string State { get; set; }
-        public string Role { get; set; }
-        public List<int?> Parents { get; set; }
-        public bool IsParent { get; set; }
-        public Gender Gender { get; set; }
-        public GroupMemberStatus Status { get; set; }
-        public DateTime? DateInactive { get; set; }
-
-        public MemberData(GroupMember member)
+        public Person Person { get; private set; }
+        public int Id
         {
-            Id = member.Person.PrimaryAliasId;
-            Name = member.Person.FullName;
-            FirstName = member.Person.FirstName;
-            NickName = member.Person.NickName;
-            LastName = member.Person.LastName;
-            DateAdded = member.DateTimeAdded.Value.ToString("d");
+            get
+            {
+                return Person.Id;
+            }
+        }
+        public int PersonAliasId
+        {
+            get
+            {
+                return Person.PrimaryAliasId ?? Person.Id;
+            }
+        }
+        public string Name
+        {
+            get
+            {
+                return Person.FullName;
+            }
+        }
+        public string FirstName
+        {
+            get
+            {
+                return Person.FirstName;
+            }
+        }
+        public string NickName
+        {
+            get
+            {
+                return Person.NickName;
+            }
+        }
+
+        public string LastName
+        {
+            get
+            {
+                return Person.LastName;
+            }
+        }
+        public string Phone
+        {
+            get
+            {
+                //gets first non unlisted non empty phone number with a preference to those with SMS enabled
+                return Person.PhoneNumbers.Where( pn => !pn.IsUnlisted && !string.IsNullOrWhiteSpace( pn.Number ) )
+                        .OrderByDescending( pn => pn.IsMessagingEnabled ).FirstOrDefault() != null
+                    ? Person.PhoneNumbers.Where( pn => !pn.IsUnlisted && !string.IsNullOrWhiteSpace( pn.Number ) )
+                        .OrderByDescending( pn => pn.IsMessagingEnabled ).FirstOrDefault().NumberFormatted
+                    : "";
+            }
+        }
+        public List<PhoneNumber> Phones
+        {
+            get
+            {
+                return Person.PhoneNumbers.ToList();
+            }
+        }
+        public string Email
+        {
+            get
+            {
+                return Person.Email;
+            }
+        }
+        public string DateAdded { get; private set; }
+        public string Address { get; private set; }
+        public string City { get; private set; }
+        public string State { get; private set; }
+        public string Zipcode { get; private set; }
+        public string FormattedAddress
+        {
+            get
+            {
+                Location _address = Person.GetHomeLocation();
+                if ( _address != null )
+                {
+                    return ( _address.Street1 ?? "" )
+                            + ( !string.IsNullOrWhiteSpace( _address.Street2 ) ? "<br />" + _address.Street2 : "" )
+                            + ( !( string.IsNullOrWhiteSpace( City ) && string.IsNullOrWhiteSpace( State ) && string.IsNullOrWhiteSpace( Zipcode ) ) ? "<br />" : "" )
+                            + ( !string.IsNullOrWhiteSpace( City ) ? City + ", " : "" )
+                            + State + Zipcode;
+                }
+                return "";
+            }
+        }
+        public string Role { get; private set; }
+        public bool IsLeader { get; private set; }
+        public List<Person> Parents { get; private set; }
+        public bool IsParent { get; private set; }
+        public Gender Gender
+        {
+            get
+            {
+                return Person.Gender;
+            }
+        }
+        public GroupMemberStatus Status { get; private set; }
+        public DateTime? LastUpdate { get; private set; }
+        public DateTime? DateInactive
+        {
+            get
+            {
+                if ( Status == GroupMemberStatus.Inactive )
+                {
+                    return LastUpdate;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+        public string PhotoUrl
+        {
+            get
+            {
+                return Person.PhotoUrl;
+            }
+        }
+
+        public MemberData( GroupMember member )
+        {
+            this.Person = member.Person;
+            DateAdded = member.DateTimeAdded.Value.ToString( "d" );
+
             Location _address = member.Person.GetHomeLocation();
 
-            if (_address != null)
+            if ( _address != null )
             {
-                Address = (_address.Street1 ?? "")+ " " + (_address.Street2 ?? "");
+                Address = ( _address.Street1 ?? "" ) + " " + ( _address.Street2 ?? "" );
                 City = _address.City ?? "";
                 State = _address.State ?? "";
+                Zipcode = _address.PostalCode ?? "";
             }
             else
             {
                 Address = "";
                 City = "";
                 State = "";
+                Zipcode = "";
             }
 
             Role = member.GroupRole.Name;
-            Gender = member.Person.Gender;
+            IsLeader = member.GroupRole.IsLeader;
             Status = member.GroupMemberStatus;
-
-            GetParents(member);
-            
+            LastUpdate = member.ModifiedDateTime;
         }
 
-        private void GetParents(GroupMember member)
+        public void LoadParents()
         {
-            Parents = new List<int?>();
+            Parents = new List<Person>();
 
-            var families = member.Person.GetFamilies().ToList();
-            var adultGuid = new Guid(Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT);
-            foreach (var family in families)
+            var families = this.Person.GetFamilies().ToList();
+            var adultGuid = new Guid( Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT );
+            foreach ( var family in families )
             {
-                var familyRoleGuid = family.Members.Where(gm => gm.PersonId == member.PersonId).FirstOrDefault().GroupRole.Guid;
-                if (familyRoleGuid == adultGuid)
+                var familyRoleGuid = family.Members.Where( gm => gm.PersonId == this.Person.Id ).FirstOrDefault().GroupRole.Guid;
+                if ( familyRoleGuid == adultGuid )
                 {
                     IsParent = true;
                 }
                 else
                 {
                     IsParent = false;
-                    Parents.AddRange(family.Members.Where(m => m.GroupRole.Guid == adultGuid).Select(m => m.Person).Select(p => p.PrimaryAliasId).ToList());
+                    Parents.AddRange( family.Members.Where( m => m.GroupRole.Guid == adultGuid ).Select( m => m.Person ).ToList() );
                 }
             }
         }
     }
-
 }
