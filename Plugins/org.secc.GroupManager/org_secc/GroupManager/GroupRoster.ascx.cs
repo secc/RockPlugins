@@ -86,6 +86,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
             else
             {
+                //this line is needed or resizing the page
+                //afterpost back will stop the grid from being responsive
                 gMembers.DataSource = memberData;
             }
             BindRoster();
@@ -349,7 +351,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             if ( member.DateInactive != null )
             {
                 ltDateInactive.Visible = true;
-                ltDateInactive.Text = member.DateInactive.ToString();
+                ltDateInactive.Text = member.DateInactive.Value.ToShortDateString() + "<br>" + member.DateInactive.ToRelativeDateString();
             }
             else
             {
@@ -385,30 +387,45 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             BindData();
         }
 
+        protected void btnCloseModal_Click( object sender, EventArgs e )
+        {
+            mdMember.Hide();
+            hfMemberId.Value = null;
+        }
+
         private void deactivateMember( int id )
         {
             //Do not deactivate the last active leader.
-            if ( memberData.Where( m => m.IsLeader  && m.Status == GroupMemberStatus.Active).Count() == 1 
+            if ( memberData.Where( m => m.IsLeader && m.Status == GroupMemberStatus.Active ).Count() == 1
                 && memberData.Where( m => m.Person.Id == id && m.IsLeader ).Any() )
             {
                 return;
             }
 
-
-            var groupMember = group.Members.Where( m => m.Person.Id == id ).FirstOrDefault();
-            if ( groupMember != null )
+            //Select multiple group members because someone can be a member of
+            //a group more than once as long as their role is different
+            var groupMembers = group.Members.Where( m => m.Person.Id == id );
+            if ( groupMembers.Any() )
             {
-                groupMember.GroupMemberStatus = GroupMemberStatus.Inactive;
+                foreach ( var groupMember in groupMembers )
+                {
+                    groupMember.GroupMemberStatus = GroupMemberStatus.Inactive;
+                }
                 _rockContext.SaveChanges();
             }
         }
 
         private void activateMember( int id )
         {
-            var groupMember = group.Members.Where( m => m.Person.Id == id ).FirstOrDefault();
-            if ( groupMember != null )
+            //Select multiple group members because someone can be a member of
+            //a group more than once as long as their role is different
+            var groupMembers = group.Members.Where( m => m.Person.Id == id );
+            if ( groupMembers.Any() )
             {
-                groupMember.GroupMemberStatus = GroupMemberStatus.Active;
+                foreach ( var groupMember in groupMembers )
+                {
+                    groupMember.GroupMemberStatus = GroupMemberStatus.Active;
+                }
                 _rockContext.SaveChanges();
             }
         }
@@ -418,6 +435,32 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             gMembers.DataSource = memberData;
             gMembers.DataBind();
 
+        }
+
+        protected string StyleLeaderLabel( object IsLeader )
+        {
+            bool _isLeader = ( bool ) IsLeader;
+            if ( _isLeader )
+            {
+                return "label-primary pull-right";
+            }
+            return "label-default pull-right";
+        }
+
+        protected string StyleStatusLabel( object Status )
+        {
+            GroupMemberStatus _status = ( GroupMemberStatus ) Status;
+            switch ( _status )
+            {
+                case GroupMemberStatus.Inactive:
+                    return "label-danger pull-right";
+                case GroupMemberStatus.Active:
+                    return "label-success pull-right";
+                case GroupMemberStatus.Pending:
+                    return "label-info pull-right";
+                default:
+                    return "label-info pull-right";
+            }
         }
 
         private void BindRoster()
@@ -709,6 +752,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             DisplayEmailRecipients();
         }
+
+
     }
 
     public class MemberData

@@ -10,17 +10,35 @@
         <Rock:ModalDialog ID="mdMember" runat="server">
             <Content>
                 <asp:HiddenField ID="hfMemberId" runat="server" />
-                <div class="pull-right">
-                    <Rock:HighlightLabel ID="lbStatus" runat="server"></Rock:HighlightLabel>
-                    <Rock:HighlightLabel ID="lbRole" LabelType="Default" runat="server"></Rock:HighlightLabel>
+                <div class="container">
+                    <div>
+                        <Rock:HighlightLabel ID="lbStatus" runat="server"></Rock:HighlightLabel>
+                        <Rock:HighlightLabel ID="lbRole" LabelType="Default" runat="server"></Rock:HighlightLabel>
+                    </div>
+                    <div class="row">
+                        <Rock:RockLiteral ID="ltAddress" runat="server" Label="Address" CssClass="col-sm-6 col-xs-12"></Rock:RockLiteral>
+                        <Rock:RockLiteral ID="ltPhone" runat="server" Label="Phone Number" CssClass="col-sm-6 col-xs-12"></Rock:RockLiteral>
+                    </div>
+                    <div class="row">
+                        <Rock:RockLiteral ID="ltEmail" runat="server" Label="Email" CssClass="col-sm-6 col-xs-12"></Rock:RockLiteral>
+                        <Rock:RockLiteral ID="ltDateAdded" runat="server" Label="Date Added" CssClass="col-sm-6 col-xs-12"></Rock:RockLiteral>
+                    </div>
+                    <div class="row">
+                        <Rock:RockLiteral ID="ltDateInactive" runat="server" Label="Date Inactivated"
+                            CssClass="col-sm-6 col-xs-12"></Rock:RockLiteral>
+                        <div class="col-sm-6 col-xs-12">
+                            <Rock:BootstrapButton ID="btnActivate" runat="server" Text="Activate Member"
+                                OnClick="btnActivate_Click" CssClass="btn btn-primary"></Rock:BootstrapButton>
+                            <Rock:BootstrapButton ID="btnDeactivate" runat="server" Text="Deactivate Member"
+                                OnClick="btnDeactivate_Click" CssClass="btn btn-danger"></Rock:BootstrapButton>
+                       
+                            <Rock:BootstrapButton ID="btnCloseModal" CssClass="btn btn-default"
+                                OnClick="btnCloseModal_Click" runat="server" Text="Close"></Rock:BootstrapButton>
+                        </div>
+                    </div>
                 </div>
-                <Rock:RockLiteral ID="ltAddress" runat="server" Label="Address"></Rock:RockLiteral>
-                <Rock:RockLiteral ID="ltPhone" runat="server" Label="Phone Number"></Rock:RockLiteral>
-                <Rock:RockLiteral ID="ltEmail" runat="server" Label="Email"></Rock:RockLiteral>
-                <Rock:RockLiteral ID="ltDateAdded" runat="server" Label="Date Added"></Rock:RockLiteral>
-                <Rock:RockLiteral ID="ltDateInactive" runat="server" Label="Date Inactivated"></Rock:RockLiteral>
-                <Rock:BootstrapButton ID="btnActivate" runat="server" Text="Activate" OnClick="btnActivate_Click" CssClass="btn btn-primary"></Rock:BootstrapButton>
-                <Rock:BootstrapButton ID="btnDeactivate" runat="server" Text="Deactivate" OnClick="btnDeactivate_Click" CssClass="btn btn-danger"></Rock:BootstrapButton>
+
+
 
             </Content>
         </Rock:ModalDialog>
@@ -70,8 +88,12 @@
                         <div class="col-xs-12 col-md-4">
                             <div class="panel panel-default" style="min-height: 200px;">
                                 <div class="panel-heading">
-                                    <asp:Label runat="server" Style="font-weight: bold" ID="Label2"
+                                    <asp:Label runat="server" Style="font-weight: bold"
                                         Text='<%# Eval("Name") %>' />
+                                    <Rock:HighlightLabel runat="server" Text='<%# Eval("Status") %>'
+                                         CssClass='<%# StyleStatusLabel(Eval("Status"))%>' />
+                                    <Rock:HighlightLabel runat="server" Text='<%# Eval("Role") %>'
+                                        CssClass='<%# StyleLeaderLabel(Eval("IsLeader"))%>' />
                                 </div>
                                 <div class="panel-body">
                                     <div class="col-xs-4 thumbnail">
