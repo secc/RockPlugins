@@ -142,7 +142,7 @@ namespace org.secc.Purchasing
             get
             {
                 if (mCardholder == null && mCardholderID > 0)
-                    mCardholder = userLoginService.Get(mCardholderID).Person;
+                    mCardholder = personAliasService.Get(mCardholderID).Person;
 
                 return mCardholder;
             }
