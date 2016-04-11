@@ -86,6 +86,19 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
         }
 
+        private string mDefaultLabel;
+        public string DefaultLabel
+        {
+            get
+            {
+                return mDefaultLabel;
+            }
+            set
+            { 
+                mDefaultLabel = value;
+            }
+        }
+
         private bool mShowPersonDetailLink;
         public bool ShowPersonDetailLink
         {
@@ -138,21 +151,20 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 else
                 {
                     StaffPersonAliasId = null;
-                    lblRequesterName.Text = "";
+                    lblRequesterName.Text = DefaultLabel;
                 }
             }
         }
 
-        public int? mStaffPersonAliasId;
         public int? StaffPersonAliasId
         {
             get
             {
-                return mStaffPersonAliasId;
+                return hdnPersonAliasId.Value.AsIntegerOrNull();
             }
             set
             {
-                mStaffPersonAliasId = value;
+                hdnPersonAliasId.Value = value.ToString();
             }
         }
 
@@ -196,6 +208,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if (StaffPerson != null)
             {
                 lblRequesterName.Text = StaffPerson.Person.FullName;
+            } else {
+                lblRequesterName.Text = DefaultLabel;
             }
         }
 

@@ -25,6 +25,7 @@
                 $("#" + refreshButton).click();
             }
         </script>
+        <asp:HiddenField ID="hdnPersonAliasId" runat="server" />
         <asp:Label ID="lblRequesterName" runat="server" />
         <asp:Button ID="btnChangeRequester" runat="server" CssClass="btn btn-default" Text="..."
             Visible="false" OnClick="btnChangeRequester_Click" CausesValidation="false" />
