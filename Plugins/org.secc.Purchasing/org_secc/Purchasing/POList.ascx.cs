@@ -85,18 +85,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             ResetFilters();
         }
 
-        protected void btnFilterSubmittedByRefresh_Click(object sender, EventArgs e)
-        {
-            int PersonID = 0;
-
-            if (int.TryParse(hfFilterOrderedBy.Value, out PersonID))
-            {
-                PersonAliasService personAliasService = new PersonAliasService(new Rock.Data.RockContext());
-                lblFilterOrderedBy.Text = personAliasService.Get(PersonID).Person.FullName;
-                lbRemoveOrderedBy.Visible = true;
-            }
-        }
-
         protected void dgPurchaseOrders_ItemCommand(object sender, DataGridCommandEventArgs e)
         {
 
@@ -188,17 +176,15 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if (int.TryParse(ddlVendor.SelectedValue, out VendorID) && VendorID > 0)
                 Filter.Add("VendorID", VendorID.ToString());
 
-            DateTime OrderedOnStart;
-            if (DateTime.TryParse(txtOrderFrom.Text, out OrderedOnStart))
-                Filter.Add("OrderedOnStart", OrderedOnStart.ToShortDateString());
+            if (txtOrderDate.LowerValue.HasValue)
+                Filter.Add("OrderedOnStart", txtOrderDate.LowerValue.Value.ToShortDateString());
 
-            DateTime OrderedOnEnd;
-            if (DateTime.TryParse(txtOrderTo.Text, out OrderedOnEnd))
-                Filter.Add("OrderedOnEnd", OrderedOnEnd.ToShortDateString());
+            if (txtOrderDate.UpperValue.HasValue)
+                Filter.Add("OrderedOnEnd", txtOrderDate.UpperValue.Value.ToShortDateString());
 
-            int OrderedByID;
-            if (int.TryParse(hfFilterOrderedBy.Value, out OrderedByID))
-                Filter.Add("OrderedByID", OrderedByID.ToString());
+            if (ucStaffPicker.StaffPersonAliasId.HasValue) {
+                Filter.Add("OrderedByID", ucStaffPicker.StaffPersonAliasId.Value.ToString());
+            }
 
             Filter.Add("ShowInactive", chkShowInactive.Checked.ToString());
 
@@ -223,8 +209,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 item.Selected = false;
             }
 
-            txtOrderFrom.Text = String.Empty;
-            txtOrderTo.Text = String.Empty;
+            txtOrderDate.LowerValue = null;
+            txtOrderDate.UpperValue = null;
             txtPONumber.Text = String.Empty;
             ddlVendor.SelectedIndex = 0;
             ClearOrderedByFilter();
@@ -234,10 +220,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void ClearOrderedByFilter()
         {
-            hfFilterOrderedBy.Value = String.Empty;
-            lblFilterOrderedBy.Text = "(any)";
-            lbRemoveOrderedBy.Visible = false;
-
+            ucStaffPicker.StaffPerson = null;
         }
 
         private void ConfigurePOGrid()
@@ -310,12 +293,12 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             DateTime OrderedOnStart;
             DateTime.TryParse(GetUserPreference(string.Format("{0}_OrderedOnStart", PersonSettingKeyPrefix)), out OrderedOnStart);
             if (OrderedOnStart > DateTime.MinValue)
-                txtOrderFrom.Text = OrderedOnStart.ToShortDateString();
+                txtOrderDate.LowerValue = OrderedOnStart;
 
             DateTime OrderedOnEnd;
             DateTime.TryParse(GetUserPreference(string.Format("{0}_OrderedOnEnd", PersonSettingKeyPrefix)), out OrderedOnEnd);
             if (OrderedOnEnd > DateTime.MinValue)
-                txtOrderTo.Text = OrderedOnEnd.ToShortDateString();
+                txtOrderDate.UpperValue = OrderedOnEnd;
 
             int OrderedByPersonID = 0;
             int.TryParse(GetUserPreference(string.Format("{0}_OrderedBy", PersonSettingKeyPrefix)), out OrderedByPersonID);
@@ -337,9 +320,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 Person OrderedByPerson = personAliasService.Get(OrderedByPersonID).Person;
 
                 if (OrderedByPerson.PrimaryAliasId > 0) { 
-                    hfFilterOrderedBy.Value = OrderedByPerson.PrimaryAliasId.ToString();
-                    lblFilterOrderedBy.Text = OrderedByPerson.FullName;
-                    lbRemoveOrderedBy.Visible = true;
+                    ucStaffPicker.StaffPerson = OrderedByPerson.PrimaryAlias;
                 }
             }
 
@@ -351,13 +332,13 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void RedirectToAddPO()
         {
-            Response.Redirect(string.Format("/default.aspx?page={0}", PurchaseOrderDetailPageSetting), true);
+            Response.Redirect(PurchaseOrderDetailPageSetting);
         }
 
         private void ResetFilters()
         {
             ClearFilters();
-            LoadUserFilterSettings();
+            SaveUserFilterSettings();
             BindPOGrid();
         }
 
@@ -373,24 +354,18 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 SetUserPreference(string.Format("{0}_Type_{1}", PersonSettingKeyPrefix, item.Value), item.Selected.ToString());
             }
 
-            DateTime OrderOnStart;
-            DateTime.TryParse(txtOrderFrom.Text, out OrderOnStart);
-            if (OrderOnStart > DateTime.MinValue)
-                SetUserPreference(string.Format("{0}_OrderedOnStart", PersonSettingKeyPrefix), OrderOnStart.ToShortDateString());
+            if (txtOrderDate.LowerValue.HasValue)
+                SetUserPreference(string.Format("{0}_OrderedOnStart", PersonSettingKeyPrefix), txtOrderDate.LowerValue.Value.ToShortDateString());
             else
                 SetUserPreference(string.Format("{0}_OrderedOnStart", PersonSettingKeyPrefix), String.Empty);
 
-            DateTime OrderOnEnd;
-            DateTime.TryParse(txtOrderTo.Text, out OrderOnEnd);
-            if (OrderOnEnd > DateTime.MinValue)
-                SetUserPreference(string.Format("{0}_OrderedOnEnd", PersonSettingKeyPrefix), OrderOnEnd.ToShortDateString());
+            if (txtOrderDate.UpperValue.HasValue)
+                SetUserPreference(string.Format("{0}_OrderedOnEnd", PersonSettingKeyPrefix), txtOrderDate.UpperValue.Value.ToShortDateString());
             else
                 SetUserPreference(string.Format("{0}_OrderedOnEnd", PersonSettingKeyPrefix), String.Empty);
 
-            int OrderedByPersonID = 0;
-            int.TryParse(hfFilterOrderedBy.Value, out OrderedByPersonID);
-            if (OrderedByPersonID > 0)
-                SetUserPreference(string.Format("{0}_OrderedBy", PersonSettingKeyPrefix), OrderedByPersonID.ToString());
+            if (ucStaffPicker.StaffPersonAliasId.HasValue)
+                SetUserPreference(string.Format("{0}_OrderedBy", PersonSettingKeyPrefix), ucStaffPicker.StaffPersonAliasId.Value.ToString());
             else
                 SetUserPreference(string.Format("{0}_OrderedBy", PersonSettingKeyPrefix), String.Empty);
 
@@ -411,11 +386,14 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void ShowStaffSearch()
         {
-            ucStaffSearch.MinistryAreaAttributeGuid = MinistryAreaAttributeIDSetting;
-            ucStaffSearch.PositionAttributeGuid = PositionAttributeIDSetting;
-            ucStaffSearch.ParentPersonControlID = hfFilterOrderedBy.ClientID;
-            ucStaffSearch.ParentRefreshButtonID = btnFilterOrderedByRefresh.ClientID;
-            ucStaffSearch.Show();
+            ucStaffPicker.Show();
+        }
+
+        protected override void CreateChildControls()
+        {
+            base.CreateChildControls();
+            ucStaffPicker.MinistryAreaAttributeGuid = MinistryAreaAttributeIDSetting;
+            ucStaffPicker.PositionAttributeGuid = PositionAttributeIDSetting;
         }
         #endregion
     }
