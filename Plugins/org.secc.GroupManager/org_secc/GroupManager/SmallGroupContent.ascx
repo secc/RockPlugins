@@ -1,30 +1,37 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="SmallGroupContent.ascx.cs" Inherits="RockWeb.Plugins.org_secc.GroupManager.SmallGroupContent" %>
 
 <script type="text/javascript">
-    function clearDialog() {
+    function clearDialog()
+    {
         $('#rock-config-cancel-trigger').click();
     }
 </script>
 
 <asp:UpdatePanel ID="upnlContent" runat="server" UpdateMode="Conditional">
     <ContentTemplate>
-        <Rock:NotificationBox runat="server" ID="nbAlert"  NotificationBoxType="Danger" Visible="false"></Rock:NotificationBox>
+        <Rock:NotificationBox runat="server" ID="nbAlert" NotificationBoxType="Danger" Visible="false"></Rock:NotificationBox>
         <div class="row">
 
             <%-- Sidebar Panel --%>
             <asp:Panel ID="pnlSidebar" runat="server" Visible="false">
-                <asp:Placeholder ID="phLinks" runat="server" />
+                <asp:PlaceHolder ID="phLinks" runat="server" />
             </asp:Panel>
 
             <%-- View Panel --%>
             <asp:Panel ID="pnlView" CssClass="col-md-12" runat="server">
                 <Rock:NotificationBox ID="nbContentError" runat="server" Dismissable="true" Visible="false" />
+                <div class="col-xs-12">
+                    <asp:Panel ID="pnlCalendar" Visible="false" runat="server" class="pull-right">
+                        <Rock:BootstrapButton runat="server" ID="btnCalendar" Text="GO"
+                             CssClass="btn btn-warning pull-right" OnClick="btnCalendar_Click"></Rock:BootstrapButton>
+                        <Rock:DatePicker runat="server" ID="dpCalendar" CssClass="pull-right"></Rock:DatePicker>
+                    </asp:Panel>
+                </div>
+                <div></div>
                 <asp:PlaceHolder ID="phContent" runat="server" />
                 <asp:Literal ID="lDebug" runat="server" />
             </asp:Panel>
-
         </div>
-        
 
         <%-- Edit Panel --%>
         <asp:Panel ID="pnlEditModal" runat="server" Visible="false">
@@ -44,9 +51,9 @@
                             </div>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <Rock:ButtonDropDownList Title="Select Item Type"  ID="ddlTypes" runat="server" Label="Item Type"
+                                    <Rock:ButtonDropDownList Title="Select Item Type" ID="ddlTypes" runat="server" Label="Item Type"
                                         Help="The type of content items to display on page." />
-                                    
+
                                     <Rock:NumberBox ID="nbCacheDuration" runat="server" CssClass="input-width-sm" Label="Cache Duration"
                                         Help="The number of seconds to cache the content for (use '0' for no caching)." />
                                     <Rock:RockCheckBox ID="cbSetPageTitle" runat="server" Label="Set Page Title" Text="Yes"
@@ -60,39 +67,20 @@
                                     <Rock:PagePicker ID="ppDetailPage" runat="server" Label="Detail Page" />
                                 </div>
                             </div>
-
-                            <div class="form-group">
-                                <label class="control-label">
-                                    Filter
-                                </label>
-                                <asp:HiddenField ID="hfDataFilterId" runat="server" />
-                                <asp:PlaceHolder ID="phFilters" runat="server"></asp:PlaceHolder>
-                            </div>
-
-
                             <div class="row">
                                 <div class="col-md-6">
                                     <Rock:RockCheckBox ID="cbQueryParamFiltering" runat="server" Label="Enable Query/Route Parameter Filtering" Text="Yes"
                                         Help="Enabling this option will allow results to be filtered further by any query string our route parameters that are included. This includes item properties or attributes." />
                                     <Rock:RockCheckBox ID="cbShowSidebar" runat="server" Label="Show Sidebar Index" Text="Yes"
                                         Help="Enabling this option will display an index in a sidebar to the left. Requires parameter filtering to work." />
-                                    <Rock:KeyValueList ID="kvlOrder" runat="server" Label="Order Items By" KeyPrompt="Field" ValuePrompt="Direction"
-                                        Help="The field value and direction that items should be ordered by." />
+                                    <Rock:RockCheckBox ID="cbShowCalendar" runat="server" Label="Show Calendar" Text="Yes"
+                                        Help="Show a calendar to select a new date for the lesson?" />
+                                    <Rock:RockCheckBox ID="cbFilterByDate" runat="server" Label="FilterByDate" Text="Yes"
+                                        Help="Filter lessons to show only those in range." />
                                 </div>
                                 <div class="col-md-6">
-                                    <fieldset>
-                                        <legend>Social Media Settings</legend>
-
-                                        <Rock:RockCheckBox ID="cbSetRssAutodiscover" runat="server" Label="Set RSS Autodiscover Link" Text="Yes"
-                                            Help="Set's an RSS autodiscover link to the header section of the page." />
-
-                                        <Rock:RockDropDownList ID="ddlMetaDescriptionAttribute" runat="server" Label="Meta Description Attribute"
-                                            Help="Attribute to use for the page's meta description." />
-
-                                        <Rock:RockDropDownList ID="ddlMetaImageAttribute" runat="server" Label="Meta Image Attribute"
-                                            Help="Attribute to use for the page's og:image and image_src meta tags." />
-
-                                    </fieldset>
+                                    <Rock:KeyValueList ID="kvlOrder" runat="server" Label="Order Items By" KeyPrompt="Field" ValuePrompt="Direction"
+                                        Help="The field value and direction that items should be ordered by." />
                                 </div>
 
                             </div>

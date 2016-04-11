@@ -54,13 +54,13 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [IntegerField( "Count", "The maximum number of items to display.", false, 5, "CustomSetting" )]
     [IntegerField( "Cache Duration", "Number of seconds to cache the content.", false, 3600, "CustomSetting" )]
     [BooleanField( "Enable Debug", "Enabling debug will display the fields of the first 5 items to help show you wants available for your liquid.", false, "CustomSetting" )]
-    [IntegerField( "Filter Id", "The data filter that is used to filter items", false, 0, "CustomSetting" )]
     [BooleanField( "Query Parameter Filtering", "Determines if block should evaluate the query string parameters for additional filter criteria.", false, "CustomSetting" )]
     [BooleanField( "ShowSidebar", "Determines if sidebar index should be displayed.", false, "CustomSetting" )]
+    [BooleanField( "ShowCalendar", "Show a calendar to select a new date for the lesson?", false, "CustomSetting" )]
+    [BooleanField( "FilterByDate", "Filter to show only those content items which are in date.", false, "CustomSetting" )]
     [TextField( "Order", "The specifics of how items should be ordered. This value is set through configuration and should not be modified here.", false, "", "CustomSetting" )]
     [BooleanField( "Merge Content", "Should the content data and attribute values be merged using the liquid template engine.", false, "CustomSetting" )]
     [BooleanField( "Set Page Title", "Determines if the block should set the page title with the channel name or content item.", false, "CustomSetting" )]
-    [BooleanField( "Rss Autodiscover", "Determines if a RSS autodiscover link should be added to the page head.", false, "CustomSetting" )]
     [TextField( "Meta Description Attribute", "Attribute to use for storing the description attribute.", false, "", "CustomSetting" )]
     [TextField( "Meta Image Attribute", "Attribute to use for storing the image attribute.", false, "", "CustomSetting" )]
 
@@ -115,15 +115,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             base.LoadViewState( savedState );
 
             ChannelGuid = ViewState["ChannelGuid"] as Guid?;
-
-            var rockContext = new RockContext();
-
-            var channel = new ContentChannelService( rockContext ).Queryable( "ContentChannelType" )
-                .FirstOrDefault( c => c.Guid.Equals( ChannelGuid.Value ) );
-            if ( channel != null )
-            {
-                CreateFilterControl( channel, DataViewFilter.FromJson( ViewState["DataViewFilter"].ToString() ), false, rockContext );
-            }
         }
 
         /// <summary>
@@ -225,7 +216,6 @@ $(document).ready(function() {
         protected override object SaveViewState()
         {
             ViewState["ChannelGuid"] = ChannelGuid;
-            ViewState["DataViewFilter"] = GetFilterControl().ToJson();
 
             return base.SaveViewState();
         }
@@ -249,36 +239,10 @@ $(document).ready(function() {
 
         protected void lbSave_Click( object sender, EventArgs e )
         {
-
-            var dataViewFilter = GetFilterControl();
-
-            // update Guids since we are creating a new dataFilter and children and deleting the old one
-            SetNewDataFilterGuids( dataViewFilter );
-
             if ( !Page.IsValid )
             {
                 return;
             }
-
-            if ( !dataViewFilter.IsValid )
-            {
-                // Controls will render the error messages                    
-                return;
-            }
-
-            var rockContext = new RockContext();
-            DataViewFilterService dataViewFilterService = new DataViewFilterService( rockContext );
-
-            int? dataViewFilterId = hfDataFilterId.Value.AsIntegerOrNull();
-            if ( dataViewFilterId.HasValue )
-            {
-                var oldDataViewFilter = dataViewFilterService.Get( dataViewFilterId.Value );
-                DeleteDataViewFilter( oldDataViewFilter, dataViewFilterService );
-            }
-
-            dataViewFilterService.Add( dataViewFilter );
-
-            rockContext.SaveChanges();
 
             var ddlValue = ddlTypes.SelectedItem.Value;
 
@@ -286,14 +250,12 @@ $(document).ready(function() {
             SetAttributeValue( "EnableDebug", cbDebug.Checked.ToString() );
             SetAttributeValue( "MergeContent", cbMergeContent.Checked.ToString() );
             SetAttributeValue( "CacheDuration", ( nbCacheDuration.Text.AsIntegerOrNull() ?? 5 ).ToString() );
-            SetAttributeValue( "FilterId", dataViewFilter.Id.ToString() );
             SetAttributeValue( "QueryParameterFiltering", cbQueryParamFiltering.Checked.ToString() );
             SetAttributeValue( "ShowSidebar", cbShowSidebar.Checked.ToString() );
+            SetAttributeValue( "ShowCalendar", cbShowCalendar.Checked.ToString() );
+            SetAttributeValue( "FilterByDate", cbFilterByDate.Checked.ToString() );
             SetAttributeValue( "Order", kvlOrder.Value );
             SetAttributeValue( "SetPageTitle", cbSetPageTitle.Checked.ToString() );
-            SetAttributeValue( "RssAutodiscover", cbSetRssAutodiscover.Checked.ToString() );
-            SetAttributeValue( "MetaDescriptionAttribute", ddlMetaDescriptionAttribute.SelectedValue );
-            SetAttributeValue( "MetaImageAttribute", ddlMetaImageAttribute.SelectedValue );
 
             var ppFieldType = new PageReferenceFieldType();
             SetAttributeValue( "DetailPage", ppFieldType.GetEditValue( ppDetailPage, null ) );
@@ -389,7 +351,7 @@ $(document).ready(function() {
                 }
             }
 
-            DefinedTypeCache defindedTypeCache = DefinedTypeCache.Read( new Guid( "81717CA0-4403-4F5A-92AB-1F6328F01254" ) );
+            DefinedTypeCache defindedTypeCache = DefinedTypeCache.Read( "81717CA0-4403-4F5A-92AB-1F6328F01254".AsGuid() );
             ddlTypes.DataSource = defindedTypeCache.DefinedValues;
             ddlTypes.DataValueField = "Guid";
             ddlTypes.DataTextField = "Value";
@@ -405,12 +367,12 @@ $(document).ready(function() {
 
             cbDebug.Checked = GetAttributeValue( "EnableDebug" ).AsBoolean();
             cbMergeContent.Checked = GetAttributeValue( "MergeContent" ).AsBoolean();
-            cbSetRssAutodiscover.Checked = GetAttributeValue( "RssAutodiscover" ).AsBoolean();
             cbSetPageTitle.Checked = GetAttributeValue( "SetPageTitle" ).AsBoolean();
             nbCacheDuration.Text = GetAttributeValue( "CacheDuration" );
-            hfDataFilterId.Value = GetAttributeValue( "FilterId" );
             cbQueryParamFiltering.Checked = GetAttributeValue( "QueryParameterFiltering" ).AsBoolean();
             cbShowSidebar.Checked = GetAttributeValue( "ShowSidebar" ).AsBoolean();
+            cbShowCalendar.Checked = GetAttributeValue( "ShowCalendar" ).AsBoolean();
+            cbFilterByDate.Checked = GetAttributeValue( "FilterByDate" ).AsBoolean();
 
             var ppFieldType = new PageReferenceFieldType();
             ppFieldType.SetEditValue( ppDetailPage, null, GetAttributeValue( "DetailPage" ) );
@@ -436,6 +398,13 @@ $(document).ready(function() {
         {
             nbContentError.Visible = false;
             upnlContent.Update();
+
+            //Show calendar and set date to now if not yet set.
+            pnlCalendar.Visible = GetAttributeValue( "ShowCalendar" ).AsBoolean();
+            if ( dpCalendar.SelectedDate == null )
+            {
+                dpCalendar.SelectedDate = Rock.RockDateTime.Now;
+            }
 
             var pageRef = CurrentPageReference;
             pageRef.Parameters.AddOrReplace( "Page", "PageNum" );
@@ -557,29 +526,6 @@ $(document).ready(function() {
                     RockPage.BrowserTitle = String.Format( "{0} | {1}", itemTitle, RockPage.Site.Name );
                     RockPage.Header.Title = String.Format( "{0} | {1}", itemTitle, RockPage.Site.Name );
                 }
-            }
-
-            // set rss auto discover link
-            if ( GetAttributeValue( "RssAutodiscover" ).AsBoolean() && content.Count > 0 )
-            {
-                //<link rel="alternate" type="application/rss+xml" title="RSS Feed for petefreitag.com" href="/rss/" />
-                HtmlLink rssLink = new HtmlLink();
-                rssLink.Attributes.Add( "type", "application/rss+xml" );
-                rssLink.Attributes.Add( "rel", "alternate" );
-                rssLink.Attributes.Add( "title", content.Select( c => c.ContentChannel.Name ).FirstOrDefault() );
-
-                var context = HttpContext.Current;
-                string channelRssUrl = string.Format( "{0}://{1}{2}{3}{4}",
-                                    context.Request.Url.Scheme,
-                                    context.Request.Url.Host,
-                                    context.Request.Url.Port == 80
-                                        ? string.Empty
-                                        : ":" + context.Request.Url.Port,
-                                    RockPage.ResolveRockUrl( "~/GetChannelFeed.ashx?ChannelId=" ),
-                                    content.Select( c => c.ContentChannelId ).FirstOrDefault() );
-
-                rssLink.Attributes.Add( "href", channelRssUrl );
-                RockPage.Header.Controls.Add( rssLink );
             }
 
             // set description meta tag
@@ -758,18 +704,8 @@ $(document).ready(function() {
                                         qry = qry.Where( i => statuses.Contains( i.Status ) );
                                     }
                                 }
-
-                                int? dataFilterId = GetAttributeValue( "FilterId" ).AsIntegerOrNull();
-                                if ( dataFilterId.HasValue )
-                                {
-                                    var dataFilterService = new DataViewFilterService( rockContext );
-                                    var dataFilter = dataFilterService.Queryable( "ChildFilters" ).FirstOrDefault( a => a.Id == dataFilterId.Value );
-                                    Expression whereExpression = dataFilter != null ? dataFilter.GetExpression( itemType, service, paramExpression, errorMessages ) : null;
-
-                                    qry = qry.Where( paramExpression, whereExpression, null );
-                                }
                             }
-                            // All filtering has been added, now run query and load attributes and filter by itemtype defined type
+                            // Now run query and load attributes and filter by itemtype defined type
                             string dataItemType = GetAttributeValue( "ItemType" );
 
                             foreach ( var item in qry.ToList() )
@@ -777,10 +713,24 @@ $(document).ready(function() {
                                 item.LoadAttributes( rockContext );
                                 if ( dataItemType != null )
                                 {
+                                    //Filter by type such as Lesson or resource
                                     var attValue = item.GetAttributeValue( "ItemType" );
                                     if ( attValue == dataItemType )
                                     {
-                                        items.Add( item );
+                                        if ( GetAttributeValue( "FilterByDate" ).AsBoolean() )
+                                        {
+                                            //Filter out of date content items
+                                            var SelectedDate = (dpCalendar.SelectedDate ?? Rock.RockDateTime.Now).Date;
+                                            if ( SelectedDate >= item.StartDateTime.Date && SelectedDate <= item.ExpireDateTime )
+                                            {
+                                                items.Add( item );
+                                            }
+
+                                        }
+                                        else
+                                        {
+                                            items.Add( item );
+                                        }
                                     }
                                 }
                                 else
@@ -947,8 +897,6 @@ $(document).ready(function() {
         /// </summary>
         public void ShowEdit()
         {
-            int? filterId = hfDataFilterId.Value.AsIntegerOrNull();
-
             if ( ChannelGuid.HasValue )
             {
                 var rockContext = new RockContext();
@@ -959,25 +907,6 @@ $(document).ready(function() {
 
                     cblStatus.Visible = channel.RequiresApproval;
 
-                    cbSetRssAutodiscover.Visible = channel.EnableRss;
-
-                    var filterService = new DataViewFilterService( rockContext );
-                    DataViewFilter filter = null;
-
-                    if ( filterId.HasValue )
-                    {
-                        filter = filterService.Get( filterId.Value );
-                    }
-
-                    if ( filter == null || filter.ExpressionType == FilterExpressionType.Filter )
-                    {
-                        filter = new DataViewFilter();
-                        filter.Guid = new Guid();
-                        filter.ExpressionType = FilterExpressionType.GroupAll;
-                    }
-
-                    CreateFilterControl( channel, filter, true, rockContext );
-
                     kvlOrder.CustomKeys = new Dictionary<string, string>();
                     kvlOrder.CustomKeys.Add( "", "" );
                     kvlOrder.CustomKeys.Add( "Title", "Title" );
@@ -985,62 +914,6 @@ $(document).ready(function() {
                     kvlOrder.CustomKeys.Add( "Status", "Status" );
                     kvlOrder.CustomKeys.Add( "StartDateTime", "Start" );
                     kvlOrder.CustomKeys.Add( "ExpireDateTime", "Expire" );
-
-                    // add attributes to the meta description and meta image attribute list
-                    ddlMetaDescriptionAttribute.Items.Clear();
-                    ddlMetaImageAttribute.Items.Clear();
-                    ddlMetaDescriptionAttribute.Items.Add( "" );
-                    ddlMetaImageAttribute.Items.Add( "" );
-
-                    string currentMetaDescriptionAttribute = GetAttributeValue( "MetaDescriptionAttribute" ) ?? string.Empty;
-                    string currentMetaImageAttribute = GetAttributeValue( "MetaImageAttribute" ) ?? string.Empty;
-
-                    // add channel attributes
-                    channel.LoadAttributes();
-                    foreach ( var attribute in channel.Attributes )
-                    {
-                        var field = attribute.Value.FieldType.Field;
-                        string computedKey = "C^" + attribute.Key;
-
-                        ddlMetaDescriptionAttribute.Items.Add( new ListItem( "Channel: " + attribute.Value.ToString(), computedKey ) );
-
-                        if ( field is Rock.Field.Types.ImageFieldType )
-                        {
-                            ddlMetaImageAttribute.Items.Add( new ListItem( "Channel: " + attribute.Value.ToString(), computedKey ) );
-                        }
-                    }
-
-                    // add item attributes
-                    AttributeService attributeService = new AttributeService( rockContext );
-                    var itemAttributes = attributeService.GetByEntityTypeId( new ContentChannelItem().TypeId ).AsQueryable()
-                                            .Where( a => (
-                                                    a.EntityTypeQualifierColumn.Equals( "ContentChannelTypeId", StringComparison.OrdinalIgnoreCase ) &&
-                                                    a.EntityTypeQualifierValue.Equals( channel.ContentChannelTypeId.ToString() )
-                                                ) || (
-                                                    a.EntityTypeQualifierColumn.Equals( "ContentChannelId", StringComparison.OrdinalIgnoreCase ) &&
-                                                    a.EntityTypeQualifierValue.Equals( channel.Id.ToString() )
-                                                ) )
-                                            .ToList();
-
-                    foreach ( var attribute in itemAttributes )
-                    {
-                        kvlOrder.CustomKeys.Add( "Attribute:" + attribute.Key, attribute.Name );
-
-                        string computedKey = "I^" + attribute.Key;
-                        ddlMetaDescriptionAttribute.Items.Add( new ListItem( "Item: " + attribute.Name, computedKey ) );
-
-                        var field = attribute.FieldType.Name;
-
-                        if ( field == "Image" )
-                        {
-                            ddlMetaImageAttribute.Items.Add( new ListItem( "Item: " + attribute.Name, computedKey ) );
-                        }
-                    }
-
-                    // select attributes
-                    SetListValue( ddlMetaDescriptionAttribute, currentMetaDescriptionAttribute );
-                    SetListValue( ddlMetaImageAttribute, currentMetaImageAttribute );
-
                 }
             }
         }
@@ -1140,190 +1013,6 @@ $(document).ready(function() {
             return null;
         }
 
-        /// <summary>
-        /// Creates the filter control.
-        /// </summary>
-        /// <param name="channel">The channel.</param>
-        /// <param name="filter">The filter.</param>
-        /// <param name="setSelection">if set to <c>true</c> [set selection].</param>
-        /// <param name="rockContext">The rock context.</param>
-        private void CreateFilterControl( ContentChannel channel, DataViewFilter filter, bool setSelection, RockContext rockContext )
-        {
-            HackEntityFields( channel, rockContext );
-
-            phFilters.Controls.Clear();
-            if ( filter != null )
-            {
-                CreateFilterControl( phFilters, filter, setSelection, rockContext );
-            }
-        }
-
-        /// <summary>
-        /// Creates the filter control.
-        /// </summary>
-        /// <param name="parentControl">The parent control.</param>
-        /// <param name="filter">The filter.</param>
-        /// <param name="setSelection">if set to <c>true</c> [set selection].</param>
-        /// <param name="rockContext">The rock context.</param>
-        private void CreateFilterControl( Control parentControl, DataViewFilter filter, bool setSelection, RockContext rockContext )
-        {
-            try
-            {
-                if ( filter.ExpressionType == FilterExpressionType.Filter )
-                {
-                    var filterControl = new FilterField();
-
-                    parentControl.Controls.Add( filterControl );
-                    filterControl.DataViewFilterGuid = filter.Guid;
-                    filterControl.ID = string.Format( "ff_{0}", filterControl.DataViewFilterGuid.ToString( "N" ) );
-
-                    // Remove the 'Other Data View' Filter as it doesn't really make sense to have it available in this scenario
-                    filterControl.ExcludedFilterTypes = new string[] { typeof( Rock.Reporting.DataFilter.OtherDataViewFilter ).FullName };
-                    filterControl.FilteredEntityTypeName = ITEM_TYPE_NAME;
-
-                    if ( filter.EntityTypeId.HasValue )
-                    {
-                        var entityTypeCache = Rock.Web.Cache.EntityTypeCache.Read( filter.EntityTypeId.Value, rockContext );
-                        if ( entityTypeCache != null )
-                        {
-                            filterControl.FilterEntityTypeName = entityTypeCache.Name;
-                        }
-                    }
-
-                    filterControl.Expanded = filter.Expanded;
-                    if ( setSelection )
-                    {
-                        try
-                        {
-                            filterControl.SetSelection( filter.Selection );
-                        }
-                        catch ( Exception ex )
-                        {
-                            this.LogException( new Exception( "Exception setting selection for DataViewFilter: " + filter.Guid, ex ) );
-                        }
-                    }
-
-                    filterControl.DeleteClick += filterControl_DeleteClick;
-                }
-                else
-                {
-                    var groupControl = new FilterGroup();
-                    parentControl.Controls.Add( groupControl );
-                    groupControl.DataViewFilterGuid = filter.Guid;
-                    groupControl.ID = string.Format( "fg_{0}", groupControl.DataViewFilterGuid.ToString( "N" ) );
-                    groupControl.FilteredEntityTypeName = ITEM_TYPE_NAME;
-                    groupControl.IsDeleteEnabled = parentControl is FilterGroup;
-                    if ( setSelection )
-                    {
-                        groupControl.FilterType = filter.ExpressionType;
-                    }
-
-                    groupControl.AddFilterClick += groupControl_AddFilterClick;
-                    groupControl.AddGroupClick += groupControl_AddGroupClick;
-                    groupControl.DeleteGroupClick += groupControl_DeleteGroupClick;
-                    foreach ( var childFilter in filter.ChildFilters )
-                    {
-                        CreateFilterControl( groupControl, childFilter, setSelection, rockContext );
-                    }
-                }
-            }
-            catch ( Exception ex )
-            {
-                this.LogException( new Exception( "Exception creating FilterControl for DataViewFilter: " + filter.Guid, ex ) );
-            }
-        }
-
-        private DataViewFilter GetFilterControl()
-        {
-            if ( phFilters.Controls.Count > 0 )
-            {
-                return GetFilterControl( phFilters.Controls[0] );
-            }
-
-            return null;
-        }
-
-        private DataViewFilter GetFilterControl( Control control )
-        {
-            FilterGroup groupControl = control as FilterGroup;
-            if ( groupControl != null )
-            {
-                return GetFilterGroupControl( groupControl );
-            }
-
-            FilterField filterControl = control as FilterField;
-            if ( filterControl != null )
-            {
-                return GetFilterFieldControl( filterControl );
-            }
-
-            return null;
-        }
-
-        private DataViewFilter GetFilterGroupControl( FilterGroup filterGroup )
-        {
-            DataViewFilter filter = new DataViewFilter();
-            filter.Guid = filterGroup.DataViewFilterGuid;
-            filter.ExpressionType = filterGroup.FilterType;
-            foreach ( Control control in filterGroup.Controls )
-            {
-                DataViewFilter childFilter = GetFilterControl( control );
-                if ( childFilter != null )
-                {
-                    filter.ChildFilters.Add( childFilter );
-                }
-            }
-
-            return filter;
-        }
-
-        private DataViewFilter GetFilterFieldControl( FilterField filterField )
-        {
-            DataViewFilter filter = new DataViewFilter();
-            filter.Guid = filterField.DataViewFilterGuid;
-            filter.ExpressionType = FilterExpressionType.Filter;
-            filter.Expanded = filterField.Expanded;
-            if ( filterField.FilterEntityTypeName != null )
-            {
-                filter.EntityTypeId = Rock.Web.Cache.EntityTypeCache.Read( filterField.FilterEntityTypeName ).Id;
-                filter.Selection = filterField.GetSelection();
-            }
-
-            return filter;
-        }
-
-        private void SetNewDataFilterGuids( DataViewFilter dataViewFilter )
-        {
-            if ( dataViewFilter != null )
-            {
-                dataViewFilter.Guid = Guid.NewGuid();
-                foreach ( var childFilter in dataViewFilter.ChildFilters )
-                {
-                    SetNewDataFilterGuids( childFilter );
-                }
-            }
-        }
-
-        private void DeleteDataViewFilter( DataViewFilter dataViewFilter, DataViewFilterService service )
-        {
-            if ( dataViewFilter != null )
-            {
-                foreach ( var childFilter in dataViewFilter.ChildFilters.ToList() )
-                {
-                    DeleteDataViewFilter( childFilter, service );
-                }
-
-                service.Delete( dataViewFilter );
-            }
-        }
-
-        #endregion
-
-        #region Helper Classes
-
-        /// <summary>
-        /// 
-        /// </summary>
         public class Pagination : DotLiquid.Drop
         {
 
@@ -1493,6 +1182,11 @@ $(document).ready(function() {
 
             #endregion
 
+        }
+
+        protected void btnCalendar_Click( object sender, EventArgs e )
+        {
+            ShowView();
         }
     }
 
