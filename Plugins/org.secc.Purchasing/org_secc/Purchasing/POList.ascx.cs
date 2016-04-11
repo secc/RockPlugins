@@ -338,7 +338,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         private void ResetFilters()
         {
             ClearFilters();
-            LoadUserFilterSettings();
+            SaveUserFilterSettings();
             BindPOGrid();
         }
 
