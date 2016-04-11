@@ -45,7 +45,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [DefinedValueField( "8522BADD-2871-45A5-81DD-C76DA07E2E7E", "Record Status", "The record status to use for new individuals (default: 'Pending'.)", true, false, "283999EC-7346-42E3-B807-BCE9B2BABB49", "", 3 )]
 
     [BooleanField( "Large Button", "Show large button with text?" )]
-    [TextField("CSS Class", "Optional css class to style button", false, "btn btn-default")]
+    [TextField( "CSS Class", "Optional css class to style button", false, "btn btn-default" )]
     public partial class GroupRegistrationModal : RockBlock
     {
         #region Fields
@@ -80,9 +80,15 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
-            CheckSettings();
 
-            //reset box if needed
+            if ( !CheckSettings() )
+            {
+                //something isn't right, clear group reference and hide
+                _group = null;
+                upMain.Visible = false;
+            }
+
+            //Reset the verificaition notification in case it is visible from a previous submit
             nbInvalid.Visible = false;
         }
 
@@ -121,6 +127,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 {
                     var matches = GetByMatch( tbFirstName.Text.Trim(), tbLastName.Text.Trim(), dpBirthday.SelectedDate, pnCell.Text.Trim(), tbEmail.Text.Trim() );
 
+                    //if matches is null it means that information wasn't entered correctly
                     if ( matches == null )
                     {
                         nbInvalid.Visible = true;
@@ -165,7 +172,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
         }
 
-        
+
 
         protected void btnAddAnother_Click( object sender, EventArgs e )
         {
@@ -211,7 +218,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             //Stop if first name or last name is blank or if all three of email, phone and birthday are blank
             if ( string.IsNullOrWhiteSpace( firstName ) || string.IsNullOrWhiteSpace( lastName )
-                || !( !string.IsNullOrWhiteSpace( cellPhone ) || !string.IsNullOrWhiteSpace( email ) || birthday != null)
+                || !( !string.IsNullOrWhiteSpace( cellPhone ) || !string.IsNullOrWhiteSpace( email ) || birthday != null )
                 )
             {
                 return null;
@@ -221,8 +228,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             return new PersonService( _rockContext ).Queryable()
                          .Where( p => p.LastName == lastName
                                  && ( p.FirstName == firstName || p.NickName == firstName )
-                                 && ( (p.Email == email && p.Email!=string.Empty)
-                                 || (p.PhoneNumbers.Where( pn => pn.Number == cellPhone ).Any() && cellPhone!=string.Empty) 
+                                 && ( ( p.Email == email && p.Email != string.Empty )
+                                 || ( p.PhoneNumbers.Where( pn => pn.Number == cellPhone ).Any() && cellPhone != string.Empty )
                                  || ( birthday != null && p.BirthDate == birthday ) ) )
                                  .ToList();
         }
@@ -267,14 +274,19 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             _group = new GroupService( _rockContext )
                 .Queryable( "GroupType.DefaultGroupRole" ).AsNoTracking()
                 .FirstOrDefault( g => g.Id == groupId );
+
             if ( _group == null )
             {
                 return false;
             }
-            else
+
+            //Authorization check. Nothing is visible otherwise
+            if (!_group.IsAuthorized(Authorization.EDIT, CurrentPerson ) )
             {
-                _defaultGroupRole = _group.GroupType.DefaultGroupRole;
+                return false;
             }
+
+            _defaultGroupRole = _group.GroupType.DefaultGroupRole;
 
             _dvcConnectionStatus = DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() );
             if ( _dvcConnectionStatus == null )
