@@ -7,75 +7,86 @@ using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
-using Arena.Custom.SECC.Purchasing;
-using Arena.Portal;
+using org.secc.Purchasing;
+using Rock;
+using Rock.Attribute;
+using Rock.Web.UI;
+using Rock.Web.UI.Controls;
+using Rock.Model;
 
-namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
+namespace RockWeb.Plugins.org_secc.Purchasing
 {
-    public partial class PODetail : PortalControl
+
+    [DisplayName("Purchase Order Detail")]
+    [Category("Purchasing")]
+    [Description("Manage a single Purchase Order.")]
+
+    [TextField("Default Ship To Name", "Default value for Ship to (company) name. Setting defaults to Southeast Christian Church", false, "Southeast Christian Church", "Ship To")]
+    [TextField("Default Ship To Attention", "Default value for Ship To Attention. Setting defaults to (blank)", false, "", "Ship To")]
+    [CampusField("Default Ship To Campus", "Default ship to campus. Setting defaults to 920 campus.", false, "1", "Ship To")]
+    [BooleanField("Show Inactive Vendors", "Show Inactive Vendors by default. Setting defaults to false", false, "Vendors")]
+    [LinkedPage("Purchase Order List Page", "Purchase Order List Page", true)]
+    [LinkedPage("Requisition Detail Page", "Requisition Detail Page", true)]
+    [IntegerField("Ministry Person Attribute ID", "Ministry Person AttributeID", true)]
+    [TextField("Purchase Order Report Path", "Path to the purchase order report.", true, "/Arena/Purchasing/Purchase Order")]
+    [GroupField("Receving User Group", "Group that contains list of staff/volunteers who can receive items into purchasing/receiving.", true)]
+    [LinkedPage("Person Detail Page", "Person Detail Page", false, "7", "Staff Selector")]
+
+    [AttributeField(Rock.SystemGuid.EntityType.PERSON, "Ministry Area Person Attribute", "The person attribute that stores the user's Ministry Area.", false, false, null, "Staff Selector")]
+    [AttributeField(Rock.SystemGuid.EntityType.PERSON, "Position Person Attribute", "The person attribute that stores the user's job position.", false, false, null, "Staff Selector")]
+    public partial class PODetail : RockBlock
     {
         #region Fields
         protected PurchaseOrder mPurchaseOrder;
+        private PersonAliasService personAliasService;
+        private DefinedValueService definedValueService;
+        private CampusService campusService;
+        private AttributeService attributeService;
+        private Rock.Data.RockContext rockContext;
         #endregion
 
         #region Module Settings
-        [TextSetting("Default Ship To Name", "Default value for Ship to (company) name. Setting defaults to Southeast Christian Church", false), Category("Ship To")]
-        public string DefaultShipToNameSetting { get { return Setting("DefaultShipToName", "Southeast Christian Church", false); } }
+        public string DefaultShipToNameSetting { get { return GetAttributeValue("DefaultShipToName"); } }
 
-        [TextSetting("Default Ship To Attention", "Default value for Ship To Attention. Setting defaults to (blank)", false), Category("Ship To")]
-        public string DefaultShipToAttentionSetting { get { return Setting("DefaultShipToAttention", "", false); } }
+        public string DefaultShipToAttentionSetting { get { return GetAttributeValue("DefaultShipToAttention"); } }
 
-        [ListFromSqlSetting("Default Ship To Campus", "Default ship to campus. Setting defaults to 920 campus.", false, "1", "select campus_id, name from orgn_campus with(nolock) where address_id is not null order by name", ListSelectionMode.Single), Category("Ship To")]
         public int DefaultShipToCampusSetting
         {
             get
             {
-                int mCampus = 0;
-                int.TryParse(Setting("DefaultShipToCampus", "1", false), out mCampus);
-                return mCampus;
+                return GetAttributeValue("DefaultShipToCampus").AsInteger();
             }
         }
 
-        [BooleanSetting("Show Inactive Vendors", "Show Inactive Vendors by default. Setting defaults to false", false, false), Category("Vendors")]
         public bool ShowInactiveVendorsSetting
         {
             get
             {
-                bool showInactive = false;
-                bool.TryParse(Setting("ShowInactiveVendor", "false", false), out showInactive);
-                return showInactive;
+                return GetAttributeValue("ShowInactiveVendor").AsBoolean();
             }
         }
 
-        [PageSetting("Purchase Order List Page", "Purchase Order List Page", true)]
-        public string PurchaseOrderListPageSetting { get { return Setting("PurchaseOrderListPage", "", true); } }
+        public string PurchaseOrderListPageSetting { get { return GetAttributeValue("PurchaseOrderListPage"); } }
 
-        [PageSetting("Requisition Detail Page", "Requisition Detail Page", true)]
-        public string RequisitionDetailPageSetting { get { return Setting("RequisitionDetailPage", "", true); } }
+        public string RequisitionDetailPageSetting { get { return GetAttributeValue("RequisitionDetailPage"); } }
 
 
-        [NumericSetting("Ministry Person Attribute ID", "Ministry Person AttributeID", true)]
-        public int MinistryPersonAttributeIDSetting
+        public Guid MinistryPersonAttributeIDSetting
         {
             get
             {
-                int paID = 0;
-                int.TryParse(Setting("MinistryPersonAttributeID", "", true), out paID);
-
-                return paID;
+                return GetAttributeValue("MinistryPersonAttributeID").AsGuid();
             }
         }
 
-        [ReportSetting("Purchase Order Report Path", "Path to the purchase order report.", true, Arena.Enums.SelectionMode.Reports, "/Arena/Purchasing/Purchase Order")]
-        public string PurchaseOrderReportPathSetting { get { return Setting("PurchaseOrderReportPath", "/Arena/Purchasing/Purchase Order", true); } }
+        public string PurchaseOrderReportPathSetting { get { return GetAttributeValue("PurchaseOrderReportPath"); } }
 
-        [TagSetting("Receving User Tag", "Tag that contains list of staff/volunteers who can receive items into purchasing/receiving.", true)]
         public int ReceivingUserTagSetting
         {
             get
             {
                 int profileId = 0;
-                string selectedTag = Setting("ReceivingUserTag", "", true);
+                string selectedTag = GetAttributeValue("ReceivingUserGroup");
 
                 if (!String.IsNullOrEmpty(selectedTag) && selectedTag.Split("|".ToCharArray()).Length == 2)
                 {
@@ -86,28 +97,22 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
             }
         }
 
-        [PageSetting("Person Detail Page", "Person Detail Page", false, 7), Category("Staff Selector")]
-        public string PersonDetailPageSetting { get { return Setting("PersonDetailPage", "7", false); } }
+        public string PersonDetailPageSetting { get { return GetAttributeValue("PersonDetailPage"); } }
 
-        [NumericSetting("MinistryAreaAttributeID", "Ministry Area Attribute ID. Default is 63.", false), Category("Staff Selector")]
-        public int MinistryAreaAttributeIDSetting
+
+        public Guid MinistryAreaAttributeIDSetting
         {
             get
             {
-                int attributeID;
-                int.TryParse(Setting("MinistryAreaAttributeIDSetting", "63", false), out attributeID);
-                return attributeID;
+                return GetAttributeValue("MinistryAreaPersonAttribute").AsGuid();
             }
         }
 
-        [NumericSetting("PositionAttributeID", "Position Attribute ID. Default is 29.", false), Category("Staff Selector")]
-        public int PositionAttributeIDSetting
+        public Guid PositionAttributeIDSetting
         {
             get
             {
-                int positionID;
-                int.TryParse(Setting("PositionAttributeID", "29", false), out positionID);
-                return positionID;
+                return GetAttributeValue("PositionPersonAttribute").AsGuid();
             }
         }
         #endregion
@@ -118,9 +123,9 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
             get
             {
                 int poID = 0;
-                if (ViewState[CurrentModule.ModuleInstanceID + "_PurchaseOrderID"] != null)
+                if (ViewState[BlockId + "_PurchaseOrderID"] != null)
                 {
-                    int.TryParse(ViewState[CurrentModule.ModuleInstanceID + "_PurchaseOrderID"].ToString(), out poID);
+                    int.TryParse(ViewState[BlockId + "_PurchaseOrderID"].ToString(), out poID);
                 }
                 if (poID <= 0 && !String.IsNullOrEmpty(Request.QueryString["poid"]))
                 {
@@ -131,7 +136,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
             }
             set
             {
-                ViewState[CurrentModule.ModuleInstanceID + "_PurchaseOrderID"] = value;
+                ViewState[BlockId + "_PurchaseOrderID"] = value;
             }
         }
 
@@ -160,17 +165,21 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
         #region Page Events
         protected override void OnInit(EventArgs e)
         {
-            ucNotes.CurrentArenaContext = CurrentArenaContext;
-            ucAttachments.CurrentArenaContext = CurrentArenaContext;
+            rockContext = new Rock.Data.RockContext();
+            personAliasService = new PersonAliasService(rockContext);
+            definedValueService = new DefinedValueService(rockContext);
+            campusService = new CampusService(rockContext);
+            attributeService = new AttributeService(rockContext);
 
             ucNotes.RefreshParent += new EventHandler(ucNotes_RefreshParent);
             ucAttachments.RefreshParent += new EventHandler(ucAttachments_RefreshParent);
-            mpiDocumentChooser.Url = "/DocumentBrowser.aspx?callback=selectDocument&SelectedID=#selectedID#&DocumentTypeID=#documentTypeID#";
+            // TODO: Fix the document/attachment stuff!
+            /*mpiDocumentChooser.Url = "/DocumentBrowser.aspx?callback=selectDocument&SelectedID=#selectedID#&DocumentTypeID=#documentTypeID#";
             mpiDocumentChooser.Height = 300;
             mpiDocumentChooser.Width = 320;
             mpiDocumentChooser.JSFunctionName = "openChooseDocumentWindow(selectedID, documentTypeID)";
             mpiDocumentChooser.Title = "Attach Item";
-
+            */
 
             base.OnInit(e);
         }
@@ -190,11 +199,11 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
             string baseUrl = String.Empty;
             if (CurrentPurchaseOrder != null && CurrentPurchaseOrder.PurchaseOrderID > 0)
             {
-                baseUrl = string.Format("~/default.aspx?page={0}&poid={1}", CurrentPortalPage.PortalPageID, CurrentPurchaseOrder.PurchaseOrderID);
+                baseUrl = string.Format("~/page/{0}?poid={1}", CurrentPageReference.PageId, CurrentPurchaseOrder.PurchaseOrderID);
             }
             else
             {
-                baseUrl = string.Format("~/default.aspx?page={0}", CurrentPortalPage.PortalPageID);
+                baseUrl = string.Format("~/page/{0}?poid={1}", CurrentPageReference.PageId);
             }
 
             lnkAttachments.NavigateUrl = baseUrl + "#catAttachments";
@@ -410,7 +419,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
         {
             ddlType.Items.Clear();
             ddlType.DataSource = PurchaseOrder.GetPurchaseOrderTypes(true).OrderBy(x => x.Order);
-            ddlType.DataValueField = "LookupID";
+            ddlType.DataValueField = "Id";
             ddlType.DataTextField = "Value";
             ddlType.DataBind();
         }
@@ -442,10 +451,10 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
         private bool CanUserCancel()
         {
             bool canCancel = false;
-            if ( CurrentModule.Permissions.Allowed( Arena.Security.OperationType.Edit, CurrentUser ) )
+            if ( UserCanEdit )
             {
                 if ( CurrentPurchaseOrder != null && CurrentPurchaseOrder.PurchaseOrderID > 0 && CurrentPurchaseOrder.Active
-                    && CurrentPurchaseOrder.Status.Order < new Arena.Core.Lookup( PurchaseOrder.PurchaseOrderStatusPartiallyReceived ).Order )
+                    && CurrentPurchaseOrder.Status.Order < definedValueService.Get( PurchaseOrder.PurchaseOrderStatusPartiallyReceived ).Order )
                 {
                     canCancel = true;
                 }
@@ -459,7 +468,8 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
 
             if (CurrentPurchaseOrder != null && CurrentPurchaseOrder.PurchaseOrderID > 0 && CurrentPurchaseOrder.Active)
             {
-                if (CurrentPurchaseOrder.StatusLUID > 0 && CurrentPurchaseOrder.Status.Qualifier != "Y")
+                CurrentPurchaseOrder.Status.LoadAttributes();
+                if (CurrentPurchaseOrder.StatusLUID > 0 && !CurrentPurchaseOrder.Status.GetAttributeValue("IsClosed").AsBoolean())
                 {
                     canEdit = true;
                 }
@@ -472,7 +482,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
         {
             bool CanOrder = false;
 
-            if (CurrentModule.Permissions.Allowed(Arena.Security.OperationType.Edit, CurrentUser))
+            if (UserCanEdit)
             {
                 if (CurrentPurchaseOrder != null && CurrentPurchaseOrder.StatusLUID == PurchaseOrder.PurchaseOrderStatusOpenLUID() && CurrentPurchaseOrder.Active)
                     CanOrder = true;
@@ -486,7 +496,8 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
             bool CanReceive = false;
             if (CurrentPurchaseOrder != null && CurrentPurchaseOrder.PurchaseOrderID > 0 && CurrentPurchaseOrder.DateOrdered > DateTime.MinValue && CurrentPurchaseOrder.DateReceived == DateTime.MinValue)
             {
-                if (CurrentPurchaseOrder.StatusLUID > 0 && CurrentPurchaseOrder.Status.Qualifier != "Y" && CurrentPurchaseOrder.Active)
+                CurrentPurchaseOrder.Status.LoadAttributes();
+                if (CurrentPurchaseOrder.StatusLUID > 0 && !CurrentPurchaseOrder.Status.GetAttributeValue("IsClosed").AsBoolean() && CurrentPurchaseOrder.Active)
                 {
                     CanReceive = true;
                 }
@@ -501,7 +512,8 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
 
             if (CurrentPurchaseOrder != null && CurrentPurchaseOrder.PurchaseOrderID > 0 && CurrentPurchaseOrder.Active)
             {
-                if (CurrentPurchaseOrder.StatusLUID > 0 && CurrentPurchaseOrder.Status.Qualifier != "Y")
+                CurrentPurchaseOrder.Status.LoadAttributes();
+                if (CurrentPurchaseOrder.StatusLUID > 0 && !CurrentPurchaseOrder.Status.GetAttributeValue("IsClosed").AsBoolean())
                 {
                     canEdit = true;
                 }
@@ -513,11 +525,12 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
         {
             bool canEdit = false;
 
-            if (CurrentModule.Permissions.Allowed(Arena.Security.OperationType.Edit, CurrentUser))
+            if (UserCanEdit)
             {
                 if (CurrentPurchaseOrder != null && CurrentPurchaseOrder.PurchaseOrderID > 0)
                 {
-                    if (CurrentPurchaseOrder.StatusLUID > 0 && CurrentPurchaseOrder.Status.Qualifier != "Y" && CurrentPurchaseOrder.Active )
+                    CurrentPurchaseOrder.Status.LoadAttributes();
+                    if (CurrentPurchaseOrder.StatusLUID > 0 && !CurrentPurchaseOrder.Status.GetAttributeValue("IsClosed").AsBoolean() && CurrentPurchaseOrder.Active)
                     {
                         canEdit = true;
                     }
@@ -533,7 +546,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
         {
             bool canEdit = false;
 
-            if (CurrentModule.Permissions.Allowed(Arena.Security.OperationType.Edit, CurrentUser))
+            if (UserCanEdit)
             {
                 //if (CurrentPurchaseOrder != null && CurrentPurchaseOrder.Status.Qualifier != "Y")
                 //    canEdit = true;
@@ -542,7 +555,8 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
 
                 if (CurrentPurchaseOrder != null && CurrentPurchaseOrder.PurchaseOrderID > 0 && CurrentPurchaseOrder.Active)
                 {
-                    if (CurrentPurchaseOrder.StatusLUID > 0 && CurrentPurchaseOrder.Status.Qualifier != "Y")
+                    CurrentPurchaseOrder.Status.LoadAttributes();
+                    if (CurrentPurchaseOrder.StatusLUID > 0 && !CurrentPurchaseOrder.Status.GetAttributeValue("IsClosed").AsBoolean())
                     {
                         canEdit = true;
                     }
@@ -560,11 +574,12 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
         {
             bool canEdit = false;
 
-            if (CurrentModule.Permissions.Allowed(Arena.Security.OperationType.Edit, CurrentUser))
+            if (UserCanEdit)
             {
                 if (CurrentPurchaseOrder != null  && CurrentPurchaseOrder.DateOrdered > DateTime.MinValue)
                 {
-                    if (CurrentPurchaseOrder.StatusLUID > 0 && CurrentPurchaseOrder.Status.Qualifier != "Y" && CurrentPurchaseOrder.Active)
+                    CurrentPurchaseOrder.Status.LoadAttributes();
+                    if (CurrentPurchaseOrder.StatusLUID > 0 && !CurrentPurchaseOrder.Status.GetAttributeValue("IsClosed").AsBoolean() && CurrentPurchaseOrder.Active)
                     {
                         canEdit = true;
                     }
@@ -578,7 +593,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
         {
             bool canMark = false;
 
-            if (CurrentModule.Permissions.Allowed(Arena.Security.OperationType.Edit, CurrentUser))
+            if (UserCanEdit)
             {
                 if (CurrentPurchaseOrder != null && CurrentPurchaseOrder.StatusLUID == PurchaseOrder.PurchaseOrderStatusReceivedLUID() && CurrentPurchaseOrder.Active)
                     canMark = true;
@@ -590,7 +605,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
         private bool CanUserClose()
         {
             bool CanClose = false;
-            if (CurrentModule.Permissions.Allowed(Arena.Security.OperationType.Edit, CurrentUser))
+            if (UserCanEdit)
             {
                 if (CurrentPurchaseOrder != null && (CurrentPurchaseOrder.StatusLUID == PurchaseOrder.PurchaseOrderStatusBilledLUID() || CurrentPurchaseOrder.StatusLUID == PurchaseOrder.PurchaseOrderStatusReopenedLUID()) 
                         && CurrentPurchaseOrder.Active )
@@ -604,7 +619,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
         {
             bool CanReopen = false;
 
-            if (CurrentModule.Permissions.Allowed(Arena.Security.OperationType.Edit, CurrentUser))
+            if (UserCanEdit)
             {
                 if (CurrentPurchaseOrder != null && CurrentPurchaseOrder.PurchaseOrderID > 0)
                 {
@@ -624,7 +639,8 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
 
             if ( CurrentPurchaseOrder != null )
             {
-                if ( CurrentPurchaseOrder.Status.Qualifier == "Y" || !CurrentPurchaseOrder.Active )
+                CurrentPurchaseOrder.Status.LoadAttributes();
+                if ( CurrentPurchaseOrder.Status.GetAttributeValue("IsClosed").AsBoolean() || !CurrentPurchaseOrder.Active )
                 {
                     CanSave = false;
                 }
@@ -673,7 +689,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
                 if ( CurrentPurchaseOrder == null )
                     return;
 
-                CurrentPurchaseOrder.Cancel( CurrentUser.Identity.Name );
+                CurrentPurchaseOrder.Cancel( CurrentUser.UserName );
                 LoadPO();
 
             }
@@ -702,7 +718,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
                 if (CurrentPurchaseOrder == null)
                     return;
 
-                CurrentPurchaseOrder.Close(CurrentUser.Identity.Name);
+                CurrentPurchaseOrder.Close(CurrentUser.UserName);
                 LoadPO();
             }
             catch (RequisitionException rEx)
@@ -728,11 +744,11 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
         {
             dgPayments.Visible = true;
             dgPayments.ItemType = "Items";
-            dgPayments.ItemBgColor = CurrentPortalPage.Setting("ItemBgColor", string.Empty, false);
+            /*dgPayments.ItemBgColor = CurrentPortalPage.Setting("ItemBgColor", string.Empty, false);
             dgPayments.ItemAltBgColor = CurrentPortalPage.Setting("ItemAltBgColor", string.Empty, false);
-            dgPayments.ItemMouseOverColor = CurrentPortalPage.Setting("ItemMouseOverColor", string.Empty, false);
+            dgPayments.ItemMouseOverColor = CurrentPortalPage.Setting("ItemMouseOverColor", string.Empty, false);*/
             dgPayments.AllowSorting = false;
-            dgPayments.MergeEnabled = false;
+            /*dgPayments.MergeEnabled = false;
             dgPayments.EditEnabled = false;
             dgPayments.MailEnabled = false;
             dgPayments.AddEnabled = false;
@@ -740,18 +756,18 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
             dgPayments.DeleteEnabled = false;
             dgPayments.SourceTableKeyColumnName = "PaymentID";
             dgPayments.SourceTableOrderColumnName = "PaymentID";
-            dgPayments.NoResultText = "No payments found.";
+            dgPayments.NoResultText = "No payments found.";*/
         }
 
         private void ConfigureReceivingHistoryGrid()
         {
             dgReceivingHistory.Visible = true;
             dgReceivingHistory.ItemType = "Items";
-            dgReceivingHistory.ItemBgColor = CurrentPortalPage.Setting("ItemBgColor", string.Empty, false);
+            /*dgReceivingHistory.ItemBgColor = CurrentPortalPage.Setting("ItemBgColor", string.Empty, false);
             dgReceivingHistory.ItemAltBgColor = CurrentPortalPage.Setting("ItemAltBgColor", string.Empty, false);
-            dgReceivingHistory.ItemMouseOverColor = CurrentPortalPage.Setting("ItemMouseOverColor", string.Empty, false);
+            dgReceivingHistory.ItemMouseOverColor = CurrentPortalPage.Setting("ItemMouseOverColor", string.Empty, false);*/
             dgReceivingHistory.AllowSorting = false;
-            dgReceivingHistory.MergeEnabled = false;
+            /*dgReceivingHistory.MergeEnabled = false;
             dgReceivingHistory.EditEnabled = false;
             dgReceivingHistory.MailEnabled = false;
             dgReceivingHistory.AddEnabled = false;
@@ -759,18 +775,18 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
             dgReceivingHistory.DeleteEnabled = false;
             dgReceivingHistory.SourceTableKeyColumnName = "ReceiptID";
             dgReceivingHistory.SourceTableOrderColumnName = "ReceiptID";
-            dgReceivingHistory.NoResultText = "No Packages received";
+            dgReceivingHistory.NoResultText = "No Packages received";*/
         }
 
         private void ConfigurePOItemGrid()
         {
             dgItems.Visible = true;
             dgItems.ItemType = "Items";
-            dgItems.ItemBgColor = CurrentPortalPage.Setting("ItemBgColor", string.Empty, false);
+            /*dgItems.ItemBgColor = CurrentPortalPage.Setting("ItemBgColor", string.Empty, false);
             dgItems.ItemAltBgColor = CurrentPortalPage.Setting("ItemAltBgColor", string.Empty, false);
-            dgItems.ItemMouseOverColor = CurrentPortalPage.Setting("ItemMouseOverColor", string.Empty, false);
+            dgItems.ItemMouseOverColor = CurrentPortalPage.Setting("ItemMouseOverColor", string.Empty, false);*/
             dgItems.AllowSorting = false;
-            dgItems.MergeEnabled = false;
+            /*dgItems.MergeEnabled = false;
             dgItems.EditEnabled = false;
             dgItems.MailEnabled = false;
             dgItems.AddEnabled = false;
@@ -778,9 +794,9 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
             dgItems.DeleteEnabled = false;
             dgItems.SourceTableKeyColumnName = "ItemID";
             dgItems.SourceTableOrderColumnName = "ItemID";
-            dgItems.NoResultText = "No items found";
+            dgItems.NoResultText = "No items found";*/
 
-            HyperLinkColumn hlc = (HyperLinkColumn)dgItems.Columns[8];
+            HyperLinkField hlc = (HyperLinkField)dgItems.Columns[8];
             hlc.DataNavigateUrlFormatString = "~/default.aspx?page=" + RequisitionDetailPageSetting + "&RequisitionID={0}";
         }
 
@@ -830,7 +846,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
             if (CurrentPurchaseOrder == null)
                 return PaymentTable;
 
-            foreach (Arena.Custom.SECC.Purchasing.Payment p in CurrentPurchaseOrder.Payments.Where(pay => pay.Active).OrderBy(pay => pay.PaymentID))
+            foreach (Payment p in CurrentPurchaseOrder.Payments.Where(pay => pay.Active).OrderBy(pay => pay.PaymentID))
             {
                 Decimal ChargesAbs = Math.Abs(p.Charges.Where(x => x.Active).Select(x => x.Amount).Sum());
                 DataRow dr = PaymentTable.NewRow();
@@ -841,7 +857,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
                 dr["FullyApplied"] = Math.Abs(p.PaymentAmount) <= ChargesAbs;
                 dr["CreatedByUserID"] = p.CreatedByUserID;
 
-                if (p.CreatedBy == null || p.CreatedBy.PersonID <= 0)
+                if (p.CreatedBy == null || p.CreatedBy.PrimaryAliasId <= 0)
                     dr["CreatedByName"] = p.CreatedByUserID;
                 else
                     dr["CreatedByName"] = p.CreatedBy.FullName;
@@ -954,7 +970,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
                 decimal Total = ItemSubtotal + CurrentPurchaseOrder.ShippingCharge + CurrentPurchaseOrder.OtherCharge;
                 bool ShowTextbox = CanUserEditItem();
 
-                Label lblItemSubtotal = (Label)dgItems.Controls[0].Controls[dgItems.Controls[0].Controls.Count - 1].Controls[10].FindControl("lblSubTotal");
+                /*Label lblItemSubtotal = (Label)dgItems.Controls[0].Controls[dgItems.Controls[0].Controls.Count - 1].Controls[10].FindControl("lblSubTotal");
                 Label lblItemShipping = (Label)dgItems.Controls[0].Controls[dgItems.Controls[0].Controls.Count - 1].Controls[10].FindControl("lblShipping");
                 TextBox txtItemShipping = (TextBox)dgItems.Controls[0].Controls[dgItems.Controls[0].Controls.Count - 1].Controls[10].FindControl("txtShipping");
                 Label lblItemTax = (Label)dgItems.Controls[0].Controls[dgItems.Controls[0].Controls.Count - 1].Controls[10].FindControl("lblTax");
@@ -967,12 +983,12 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
                 lblItemTax.Text = CurrentPurchaseOrder.OtherCharge.ToString("0.00;(0.00)");
                 txtItemTax.Text = CurrentPurchaseOrder.OtherCharge.ToString("0.00");
                 lblItemTotal.Text = Total.ToString("0.00");
-
+                
                 lblItemShipping.Visible = !ShowTextbox;
                 txtItemShipping.Visible = ShowTextbox;
 
                 lblItemTax.Visible = !ShowTextbox;
-                txtItemTax.Visible = ShowTextbox;                
+                txtItemTax.Visible = ShowTextbox;  */              
 
             }
         }
@@ -1041,14 +1057,14 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
                 if (DefaultShipToCampusSetting > 0)
                 {
                     hfCampusID.Value = DefaultShipToCampusSetting.ToString();
-                    Arena.Organization.Campus ShipToCampus = new Arena.Organization.Campus(DefaultShipToCampusSetting);
-                    if (ShipToCampus.AddressID > 0)
+                    Rock.Model.Campus ShipToCampus = campusService.Get(DefaultShipToCampusSetting);
+                    if (ShipToCampus.LocationId > 0)
                     {
                         divShipToAddress.Visible = true;
-                        lblShipToAddress.Text = ShipToCampus.Address.StreetLine1 + " " + ShipToCampus.Address.StreetLine2;
-                        lblShipToCity.Text = ShipToCampus.Address.City;
-                        lblShipToState.Text = ShipToCampus.Address.State;
-                        lblShipToZip.Text = ShipToCampus.Address.PostalCode;
+                        lblShipToAddress.Text = ShipToCampus.Location.Street1 + " " + ShipToCampus.Location.Street2;
+                        lblShipToCity.Text = ShipToCampus.Location.City;
+                        lblShipToState.Text = ShipToCampus.Location.State;
+                        lblShipToZip.Text = ShipToCampus.Location.PostalCode;
                     }
                 }
 
@@ -1072,7 +1088,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
                 if (ddlType.Items.FindByValue(CurrentPurchaseOrder.PurchaseOrderTypeLUID.ToString()) != null)
                     ddlType.SelectedValue = CurrentPurchaseOrder.PurchaseOrderTypeLUID.ToString();
 
-                if (CurrentPurchaseOrder.CreatedBy != null && CurrentPurchaseOrder.CreatedBy.PersonID > 0)
+                if (CurrentPurchaseOrder.CreatedBy != null && CurrentPurchaseOrder.CreatedBy.PrimaryAliasId > 0)
                     lblCreatedBy.Text = CurrentPurchaseOrder.CreatedBy.FullName;
                 else
                     lblCreatedBy.Text = CurrentPurchaseOrder.CreatedByUserID;
@@ -1164,13 +1180,13 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
                 return;
             }
 
-            if (CurrentPurchaseOrder.Status.Order < new Arena.Core.Lookup(PurchaseOrder.PurchaseOrderStatusReceived).Order)
+            if (CurrentPurchaseOrder.Status.Order < definedValueService.Get(PurchaseOrder.PurchaseOrderStatusReceived).Order)
             {
                 SetSummaryError("Can not mark as billed - order has not been fully received.");
                 return;
             }
 
-            CurrentPurchaseOrder.MarkAsBilled(CurrentUser.Identity.Name);
+            CurrentPurchaseOrder.MarkAsBilled(CurrentUser.UserName);
             LoadPO();
 
         }
@@ -1183,9 +1199,10 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
 
         private void RemoveItemFromPO(int poItemID)
         {
-            if (poItemID > 0 && CurrentPurchaseOrder.Status.Qualifier != "Y")
+            CurrentPurchaseOrder.Status.LoadAttributes();
+            if (poItemID > 0 && !CurrentPurchaseOrder.Status.GetAttributeValue("IsClosed").AsBoolean())
             {
-                if (CurrentPurchaseOrder.RemoveItem(poItemID, CurrentUser.Identity.Name))
+                if (CurrentPurchaseOrder.RemoveItem(poItemID, CurrentUser.UserName))
                 {
                     LoadItems();
                 }
@@ -1198,7 +1215,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
 
         private void RemovePayment(int paymentID)
         {
-            if (CurrentPurchaseOrder.RemovePayment(paymentID, CurrentUser.Identity.Name))
+            if (CurrentPurchaseOrder.RemovePayment(paymentID, CurrentUser.UserName))
                 LoadPO();
             else
                 SetSummaryError("Unable to remove selected payment.");
@@ -1206,7 +1223,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
 
         private void RemoveReceipt(int receiptID)
         {
-            if (CurrentPurchaseOrder.RemoveReceipt(receiptID, CurrentUser.Identity.Name))
+            if (CurrentPurchaseOrder.RemoveReceipt(receiptID, CurrentUser.UserName))
                 LoadPO();
             else
                 SetSummaryError("Unable to remove receipt.");
@@ -1217,10 +1234,11 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
             if (CurrentPurchaseOrder == null)
                 return;
 
-            if (CurrentPurchaseOrder.Status.Qualifier != "Y")
+            CurrentPurchaseOrder.Status.LoadAttributes();
+            if (!CurrentPurchaseOrder.Status.GetAttributeValue("IsClosed").AsBoolean())
                 SetSummaryError("Reopen PO - Current Purchase Order is open.");
 
-            CurrentPurchaseOrder.Reopen(CurrentUser.Identity.Name);
+            CurrentPurchaseOrder.Reopen(CurrentUser.UserName);
             LoadPO();
         }
 
@@ -1255,7 +1273,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
             if(int.TryParse(ddlType.SelectedValue, out POType))
                 CurrentPurchaseOrder.PurchaseOrderTypeLUID = POType;
             if(CurrentPurchaseOrder.StatusLUID <= 0)
-                CurrentPurchaseOrder.StatusLUID = PurchaseOrder.GetPurchaseOrderStatuses(true).OrderBy(x => x.Order).FirstOrDefault().LookupID;
+                CurrentPurchaseOrder.StatusLUID = PurchaseOrder.GetPurchaseOrderStatuses(true).OrderBy(x => x.Order).FirstOrDefault().Id;
 
             if (ddlDefaultPayMethod.SelectedIndex > 0)
             {
@@ -1271,7 +1289,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
 
             CurrentPurchaseOrder.Terms = lblVendorTerms.Text;
 
-            Arena.Custom.SECC.Purchasing.Helpers.Address a = new Arena.Custom.SECC.Purchasing.Helpers.Address(lblShipToAddress.Text, lblShipToCity.Text, lblShipToState.Text, lblShipToZip.Text);
+            org.secc.Purchasing.Helpers.Address a = new org.secc.Purchasing.Helpers.Address(lblShipToAddress.Text, lblShipToCity.Text, lblShipToState.Text, lblShipToZip.Text);
             if (a.IsValid())
                 CurrentPurchaseOrder.ShipToAddress = a;
 
@@ -1295,7 +1313,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
 
             if (CurrentPurchaseOrder.HasChanged())
             {
-                CurrentPurchaseOrder.Save(CurrentUser.Identity.Name);
+                CurrentPurchaseOrder.Save(CurrentUser.UserName);
                 PurchaseOrderID = CurrentPurchaseOrder.PurchaseOrderID;
 
                 LoadSummary();
@@ -1324,7 +1342,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
             if (ucAttachments.Identifier == 0)
                 ucAttachments.Identifier = PurchaseOrderID;
 
-            string attachmentScript = string.Format("openChooseDocumentWindow(\"-1\",\"{0}\");", Attachment.GetPurchasingDocumentType().DocumentTypeId);
+            string attachmentScript = string.Format("openChooseDocumentWindow(\"-1\",\"{0}\");", Attachment.GetPurchasingDocumentType().TypeId);
 
             ScriptManager.RegisterStartupScript(upMain, upMain.GetType(), "ShowAttachmentWindow" + DateTime.Now.Ticks, attachmentScript, true);
         }
@@ -1437,14 +1455,14 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
                 v.VendorName = txtVendorName.Text;
                 if (!String.IsNullOrEmpty(txtVendorAddress.Text) && !String.IsNullOrEmpty(txtVendorCity.Text) && !String.IsNullOrEmpty(txtVendorState.Text) && !String.IsNullOrEmpty(txtVendorZip.Text))
                 {
-                    Arena.Custom.SECC.Purchasing.Helpers.Address a = new Arena.Custom.SECC.Purchasing.Helpers.Address(txtVendorAddress.Text, txtVendorCity.Text, txtVendorState.Text, txtVendorZip.Text);
+                    org.secc.Purchasing.Helpers.Address a = new org.secc.Purchasing.Helpers.Address(txtVendorAddress.Text, txtVendorCity.Text, txtVendorState.Text, txtVendorZip.Text);
                     if (a.IsValid())
                         v.Address = a;
                 }
 
                 if (!String.IsNullOrEmpty(txtVendorPhone.Text))
                 {
-                    Arena.Custom.SECC.Purchasing.Helpers.PhoneNumber p = new Arena.Custom.SECC.Purchasing.Helpers.PhoneNumber(txtVendorPhone.Text, txtVendorPhoneExtn.Text);
+                    org.secc.Purchasing.Helpers.PhoneNumber p = new org.secc.Purchasing.Helpers.PhoneNumber(txtVendorPhone.Text, txtVendorPhoneExtn.Text);
                     if (p.IsValid())
                         v.Phone = p;
                 }
@@ -1452,7 +1470,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
                 if (!String.IsNullOrEmpty(txtVendorWebAddress.Text))
                     v.WebAddress = txtVendorWebAddress.Text;
 
-                v.Save(CurrentUser.Identity.Name);
+                v.Save(CurrentUser.UserName);
                 hfVendorSelectID.Value = v.VendorID.ToString();
 
                 BindVendorList(chkVendorActive.Checked);
@@ -1537,7 +1555,8 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
 
         private bool IsPurchaseOrderClosed()
         {
-            return CurrentPurchaseOrder.Status.Qualifier == "Y";
+            CurrentPurchaseOrder.Status.LoadAttributes();
+            return CurrentPurchaseOrder.Status.GetAttributeValue("IsClosed").AsBoolean();
         }
 
         private void PopulateVendorModalFields(int vendorID)
@@ -1758,9 +1777,9 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
         public void BindCampusList()
         {
             ddlShipToCampus.Items.Clear();
-
-            ddlShipToCampus.DataSource = new Arena.Organization.CampusCollection(CurrentOrganization.OrganizationID).Where(x => x.AddressID > 0).OrderBy(x => x.Name);
-            ddlShipToCampus.DataValueField = "CampusId";
+            ;
+            ddlShipToCampus.DataSource = campusService.Queryable().Where(c => c.LocationId > 0).OrderBy(c => c.Name);
+            ddlShipToCampus.DataValueField = "Id";
             ddlShipToCampus.DataTextField = "Name";
             ddlShipToCampus.DataBind();
 
@@ -1794,13 +1813,13 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
         {
             if (campusID > 0)
             {
-                Arena.Organization.Campus c = new Arena.Organization.Campus(campusID);
-                if (c.Address != null)
+                Rock.Model.Campus c = campusService.Get(campusID);
+                if (c.Location != null)
                 {
-                    txtShipToAddress.Text = c.Address.StreetLine1 + " " + c.Address.StreetLine2;
-                    txtShipToCity.Text = c.Address.City;
-                    txtShipToState.Text = c.Address.State;
-                    txtShipToZip.Text = c.Address.PostalCode;
+                    txtShipToAddress.Text = c.Location.Street1 + " " + c.Location.Street2;
+                    txtShipToCity.Text = c.Location.City;
+                    txtShipToState.Text = c.Location.State;
+                    txtShipToZip.Text = c.Location.PostalCode;
                 }
 
             }
@@ -1905,11 +1924,11 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
         {
             dgChooseRequisitions.Visible = true;
             dgChooseRequisitions.ItemType = "Requisions";
-            dgChooseRequisitions.ItemBgColor = CurrentPortalPage.Setting("ItemBgColor", string.Empty, false);
+            /*dgChooseRequisitions.ItemBgColor = CurrentPortalPage.Setting("ItemBgColor", string.Empty, false);
             dgChooseRequisitions.ItemAltBgColor = CurrentPortalPage.Setting("ItemAltBgColor", string.Empty, false);
-            dgChooseRequisitions.ItemMouseOverColor = CurrentPortalPage.Setting("ItemMouseOverColor", string.Empty, false);
+            dgChooseRequisitions.ItemMouseOverColor = CurrentPortalPage.Setting("ItemMouseOverColor", string.Empty, false);*/
             dgChooseRequisitions.AllowSorting = false;
-            dgChooseRequisitions.MergeEnabled = false;
+            /*dgChooseRequisitions.MergeEnabled = false;
             dgChooseRequisitions.EditEnabled = false;
             dgChooseRequisitions.MailEnabled = false;
             dgChooseRequisitions.AddEnabled = false;
@@ -1917,7 +1936,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
             dgChooseRequisitions.DeleteEnabled = false;
             dgChooseRequisitions.SourceTableKeyColumnName = "RequisitionID";
             dgChooseRequisitions.SourceTableOrderColumnName = "RequisitionID";
-            dgChooseRequisitions.NoResultText = "No Requisitions with unassigned items found.";
+            dgChooseRequisitions.NoResultText = "No Requisitions with unassigned items found.";*/
         }
 
         private void BindRequisitionList(bool populate, bool bindMinistryFilter, bool bindRequesterFilter)
@@ -1926,7 +1945,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
 
             ConfigureRequisitionList();
 
-            var Reqs = Requisition.LoadAcceptedRequisitonsWithItemsNotOnPO(MinistryPersonAttributeIDSetting);
+            var Reqs = Requisition.LoadAcceptedRequisitonsWithItemsNotOnPO(attributeService.Get(MinistryPersonAttributeIDSetting).Id);
 
             if (ddlChooseRequisitionMinistry.SelectedIndex > 0)
             {
@@ -1998,9 +2017,9 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
         {
             int RequisitionID = 0;
 
-            foreach (DataGridItem item in dgChooseRequisitions.Items)
+            foreach (GridViewRow item in dgChooseRequisitions.Rows)
             {
-                if (item.ItemType == ListItemType.Item || item.ItemType == ListItemType.AlternatingItem)
+                if (item.RowType == DataControlRowType.DataRow)
                 {
                     RadioButton rbRequisition = (RadioButton)item.FindControl("rbChooseRequisition");
                     if (rbRequisition != null && rbRequisition.Checked)
@@ -2077,11 +2096,11 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
         private void ShowStaffSelector(string title, string parentPersonIDControl, string refreshButtonControlID)
         {
             ucStaffSearch.Title = title;
-            ucStaffSearch.ParentPersonControlID = parentPersonIDControl;
+            /*ucStaffSearch.ParentPersonControlID = parentPersonIDControl;
             ucStaffSearch.ParentRefreshButtonID = refreshButtonControlID;
             ucStaffSearch.MinistryAreaAttributeID = MinistryAreaAttributeIDSetting;
             ucStaffSearch.PositionAttributeID = PositionAttributeIDSetting;
-            ucStaffSearch.PersonDetailPage = PersonDetailPageSetting;
+            ucStaffSearch.PersonDetailPage = PersonDetailPageSetting;*/
             ucStaffSearch.Show();
         }
 
@@ -2163,11 +2182,11 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
         {
             dgRequisitionItems.Visible = true;
             dgRequisitionItems.ItemType = "Requisions";
-            dgRequisitionItems.ItemBgColor = CurrentPortalPage.Setting("ItemBgColor", string.Empty, false);
+            /*dgRequisitionItems.ItemBgColor = CurrentPortalPage.Setting("ItemBgColor", string.Empty, false);
             dgRequisitionItems.ItemAltBgColor = CurrentPortalPage.Setting("ItemAltBgColor", string.Empty, false);
-            dgRequisitionItems.ItemMouseOverColor = CurrentPortalPage.Setting("ItemMouseOverColor", string.Empty, false);
+            dgRequisitionItems.ItemMouseOverColor = CurrentPortalPage.Setting("ItemMouseOverColor", string.Empty, false);*/
             dgRequisitionItems.AllowSorting = false;
-            dgRequisitionItems.MergeEnabled = false;
+            /*dgRequisitionItems.MergeEnabled = false;
             dgRequisitionItems.EditEnabled = false;
             dgRequisitionItems.MailEnabled = false;
             dgRequisitionItems.AddEnabled = false;
@@ -2175,16 +2194,16 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
             dgRequisitionItems.DeleteEnabled = false;
             dgRequisitionItems.SourceTableKeyColumnName = "ItemID";
             dgRequisitionItems.SourceTableOrderColumnName = "ItemID";
-            dgRequisitionItems.NoResultText = "No Items found.";
+            dgRequisitionItems.NoResultText = "No Items found.";*/
         }
 
         private List<ItemToAddToPO> GetSelectedItemQuantity()
         {
             List<ItemToAddToPO> Items = new List<ItemToAddToPO>();
 
-            foreach (DataGridItem item in dgRequisitionItems.Items)
+            foreach (GridViewRow item in dgRequisitionItems.Rows)
             {
-                if (item.ItemType == ListItemType.Item || item.ItemType == ListItemType.AlternatingItem)
+                if (item.RowType == DataControlRowType.DataRow)
                 {
                     TextBox qtyTextBox = (TextBox)item.FindControl("txtRequisitionItemQtyRemaining");
                     TextBox priceTextBox = (TextBox)item.FindControl("txtREquisitionItemPrice");
@@ -2283,7 +2302,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
             try
             {
                 List<ItemToAddToPO> NewPOItemList = GetSelectedItemQuantity();
-                CurrentPurchaseOrder.UpdatePOItems(NewPOItemList, CurrentUser.Identity.Name);
+                CurrentPurchaseOrder.UpdatePOItems(NewPOItemList, CurrentUser.UserName);
 
                 return true;
             }
@@ -2328,9 +2347,9 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
             DateTime OrderDate;
             DateTime.TryParse(txtDateSubmitted.Text, out OrderDate);
 
-            CurrentPurchaseOrder.SubmitOrder(OrderDate, CurrentPerson.PersonID, CurrentUser.Identity.Name);
+            CurrentPurchaseOrder.SubmitOrder(OrderDate, CurrentPerson.PrimaryAliasId.Value, CurrentUser.UserName);
             if (!String.IsNullOrEmpty(txtOrderNotes.Text))
-                CurrentPurchaseOrder.SaveNote(txtOrderNotes.Text, CurrentUser.Identity.Name);
+                CurrentPurchaseOrder.SaveNote(txtOrderNotes.Text, CurrentUser.UserName);
 
             mpOrderSubmit.Hide();
             LoadPO();
@@ -2515,13 +2534,16 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
             if (ReceivingUserTagSetting == 0)
                 return;
 
-            Arena.Core.ProfileMemberCollection pmc = new Arena.Core.ProfileMemberCollection(ReceivingUserTagSetting);
+            GroupService groupService = new GroupService(rockContext);
+            Group pmc = groupService.Get(ReceivingUserTagSetting);
+
+            //Arena.Core.ProfileMemberCollection pmc = new Arena.Core.ProfileMemberCollection(ReceivingUserTagSetting);
 
             Dictionary<int, string> ConnectedMembers = new Dictionary<int, string>();
-            foreach (Arena.Core.ProfileMember pm in pmc)
+            foreach (GroupMember pm in pmc.Members)
             {
-                if (pm.Status.Guid == Arena.Core.SystemLookup.TagMemberStatus_Connected)
-                    ConnectedMembers.Add(pm.PersonID, pm.LastName + "," + pm.NickName);
+                if (pm.GroupMemberStatus == GroupMemberStatus.Active)
+                    ConnectedMembers.Add(pm.PersonId, pm.Person.FullName);
             }
 
             ddlReceivedByUser.Items.Clear();
@@ -2548,11 +2570,11 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
         {
             dgReceivePackageItems.Visible = true;
             dgReceivePackageItems.ItemType = "Requisions";
-            dgReceivePackageItems.ItemBgColor = CurrentPortalPage.Setting("ItemBgColor", string.Empty, false);
+            /*dgReceivePackageItems.ItemBgColor = CurrentPortalPage.Setting("ItemBgColor", string.Empty, false);
             dgReceivePackageItems.ItemAltBgColor = CurrentPortalPage.Setting("ItemAltBgColor", string.Empty, false);
-            dgReceivePackageItems.ItemMouseOverColor = CurrentPortalPage.Setting("ItemMouseOverColor", string.Empty, false);
+            dgReceivePackageItems.ItemMouseOverColor = CurrentPortalPage.Setting("ItemMouseOverColor", string.Empty, false);*/
             dgReceivePackageItems.AllowSorting = false;
-            dgReceivePackageItems.MergeEnabled = false;
+            /*dgReceivePackageItems.MergeEnabled = false;
             dgReceivePackageItems.EditEnabled = false;
             dgReceivePackageItems.MailEnabled = false;
             dgReceivePackageItems.AddEnabled = false;
@@ -2560,16 +2582,16 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
             dgReceivePackageItems.DeleteEnabled = false;
             dgReceivePackageItems.SourceTableKeyColumnName = "ItemID";
             dgReceivePackageItems.SourceTableOrderColumnName = "ItemID";
-            dgReceivePackageItems.NoResultText = "No Items found.";
+            dgReceivePackageItems.NoResultText = "No Items found.";*/
         }
 
         private Dictionary<int, int> GetItemsToReceive()
         {
             Dictionary<int, int> Items = new Dictionary<int, int>();
 
-            foreach (DataGridItem item in dgReceivePackageItems.Items)
+            foreach (GridViewRow item in dgReceivePackageItems.Rows)
             {
-                if (item.ItemType == ListItemType.Item || item.ItemType == ListItemType.AlternatingItem)
+                if (item.RowType == DataControlRowType.DataRow)
                 {
                     TextBox txtReceivePackageQtyReceiving = (TextBox)item.FindControl("txtReceivePackageQtyReceiving");
                     int QtyReceiving = 0;
@@ -2596,7 +2618,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
             int receiptID = 0;
             if (int.TryParse(hfOtherReceiverPersonID.Value, out personID))
             {
-                Arena.Core.Person p = new Arena.Core.Person(personID);
+                Person p = personAliasService.Get(personID).Person;
 
                 lblOtherReceiverName.Text = p.FullName;
 
@@ -2644,7 +2666,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
                     }
 
                     int.TryParse(ddlReceivePackageCarriers.SelectedValue, out carrierId);
-                    CurrentPurchaseOrder.ReceivePackage(receiverPersonId, carrierId, txtReceivePackageDateReceived.Text, ItemsToReceive, CurrentUser.Identity.Name);
+                    CurrentPurchaseOrder.ReceivePackage(receiverPersonId, carrierId, txtReceivePackageDateReceived.Text, ItemsToReceive, CurrentUser.UserName);
                 }
 
                 isSuccessful = true;
@@ -2800,7 +2822,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
                 int.TryParse(ddlPaymentMethodPaymentType.SelectedValue, out paymentTypeID);
                 DateTime.TryParse(txtPaymentMethodPaymentDate.Text, out paymentDate);
                 decimal.TryParse(txtPaymentMethodPaymentAmount.Text, out paymentAmount);
-                int paymentID =  CurrentPurchaseOrder.AddPayment(paymentTypeID, paymentDate, paymentAmount, CurrentUser.Identity.Name);
+                int paymentID =  CurrentPurchaseOrder.AddPayment(paymentTypeID, paymentDate, paymentAmount, CurrentUser.UserName);
                 
                 if (paymentID > 0)
                 {
@@ -2832,7 +2854,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
 
         }
 
-        private void BindPaymentChargesGrid(Arena.Custom.SECC.Purchasing.Payment pymt)
+        private void BindPaymentChargesGrid(Payment pymt)
         {
             ConfigurePaymentChargesGrid();
 
@@ -2935,11 +2957,11 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
         {
             dgPaymentDetailCharges.Visible = true;
             dgPaymentDetailCharges.ItemType = "Items";
-            dgPaymentDetailCharges.ItemBgColor = CurrentPortalPage.Setting("ItemBgColor", string.Empty, false);
+            /*dgPaymentDetailCharges.ItemBgColor = CurrentPortalPage.Setting("ItemBgColor", string.Empty, false);
             dgPaymentDetailCharges.ItemAltBgColor = CurrentPortalPage.Setting("ItemAltBgColor", string.Empty, false);
-            dgPaymentDetailCharges.ItemMouseOverColor = CurrentPortalPage.Setting("ItemMouseOverColor", string.Empty, false);
+            dgPaymentDetailCharges.ItemMouseOverColor = CurrentPortalPage.Setting("ItemMouseOverColor", string.Empty, false);*/
             dgPaymentDetailCharges.AllowSorting = false;
-            dgPaymentDetailCharges.MergeEnabled = false;
+            /*dgPaymentDetailCharges.MergeEnabled = false;
             dgPaymentDetailCharges.EditEnabled = false;
             dgPaymentDetailCharges.MailEnabled = false;
             dgPaymentDetailCharges.AddEnabled = false;
@@ -2947,7 +2969,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
             dgPaymentDetailCharges.DeleteEnabled = false;
             dgPaymentDetailCharges.SourceTableKeyColumnName = "RequisitionID";
             dgPaymentDetailCharges.SourceTableOrderColumnName = "RequisitionID";
-            dgPaymentDetailCharges.NoResultText = "No charges found.";
+            dgPaymentDetailCharges.NoResultText = "No charges found.";*/
         }
 
         private void HidePaymentDetailModal()
@@ -2963,7 +2985,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
 
             if (paymentID > 0)
             {
-                Arena.Custom.SECC.Purchasing.Payment pymt = CurrentPurchaseOrder.Payments.FirstOrDefault(p => p.PaymentID == paymentID);
+                Payment pymt = CurrentPurchaseOrder.Payments.FirstOrDefault(p => p.PaymentID == paymentID);
 
                 if (ddlPaymentMethodPaymentType.Items.FindByValue(pymt.PaymentMethodID.ToString()) != null)
                     ddlPaymentMethodPaymentType.SelectedValue = pymt.PaymentMethodID.ToString();
@@ -3051,11 +3073,11 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
             bool UpdatedSuccessfully = false;
             try
             {
-                Arena.Custom.SECC.Purchasing.Payment Pay = CurrentPurchaseOrder.Payments.FirstOrDefault(x => x.PaymentID == paymentID);
+                Payment Pay = CurrentPurchaseOrder.Payments.FirstOrDefault(x => x.PaymentID == paymentID);
 
-                foreach (DataGridItem dgi in dgPaymentDetailCharges.Items)
+                foreach (GridViewRow dgi in dgPaymentDetailCharges.Rows)
                 {
-                    if(dgi.ItemType == ListItemType.Item || dgi.ItemType == ListItemType.AlternatingItem)
+                    if(dgi.RowType == DataControlRowType.DataRow)
                     {
                         int RequisitionID = 0;
                         int CompanyID = 0;
@@ -3105,7 +3127,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
                             }
 
                             Charge.Amount = ChargeAmount;
-                            Charge.Save(CurrentUser.Identity.Name);
+                            Charge.Save(CurrentUser.UserName);
                         }
 
                     }
@@ -3226,11 +3248,11 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
         {
             dgIDReceipts.Visible = true;
             dgIDReceipts.ItemType = "ReceiptID";
-            dgIDReceipts.ItemBgColor = CurrentPortalPage.Setting("ItemBgColor", string.Empty, false);
+            /*dgIDReceipts.ItemBgColor = CurrentPortalPage.Setting("ItemBgColor", string.Empty, false);
             dgIDReceipts.ItemAltBgColor = CurrentPortalPage.Setting("ItemAltBgColor", string.Empty, false);
-            dgIDReceipts.ItemMouseOverColor = CurrentPortalPage.Setting("ItemMouseOverColor", string.Empty, false);
+            dgIDReceipts.ItemMouseOverColor = CurrentPortalPage.Setting("ItemMouseOverColor", string.Empty, false);*/
             dgIDReceipts.AllowSorting = false;
-            dgIDReceipts.MergeEnabled = false;
+            /*dgIDReceipts.MergeEnabled = false;
             dgIDReceipts.EditEnabled = false;
             dgIDReceipts.MailEnabled = false;
             dgIDReceipts.AddEnabled = false;
@@ -3238,7 +3260,7 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
             dgIDReceipts.DeleteEnabled = false;
             dgIDReceipts.SourceTableKeyColumnName = "ReceiptID";
             dgIDReceipts.SourceTableOrderColumnName = "ReceiptID";
-            dgIDReceipts.NoResultText = "Item has not been received.";
+            dgIDReceipts.NoResultText = "Item has not been received.";*/
         }
         
         private void HideItemDetailsModal()
@@ -3359,9 +3381,9 @@ namespace ArenaWeb.UserControls.Custom.SECC.Purchasing
                 {
                     POI.Price = Price;
                 }
-                POI.Save(CurrentUser.Identity.Name);
+                POI.Save(CurrentUser.UserName);
 
-                POI.RequisitionItem.Requisition.SyncStatus(CurrentUser.Identity.Name);
+                POI.RequisitionItem.Requisition.SyncStatus(CurrentUser.UserName);
                 CurrentPurchaseOrder.RefreshItems();
                 SuccessfullyUpdated = true;
             }

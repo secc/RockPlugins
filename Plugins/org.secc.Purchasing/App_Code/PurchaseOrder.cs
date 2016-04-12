@@ -281,7 +281,7 @@ namespace org.secc.Purchasing
 
         public static int PurchaseOrderStatusReceivedLUID()
         {
-            return definedTypeService.Get(PurchaseOrderStatusReceived).Id;
+            return definedValueService.Get(PurchaseOrderStatusReceived).Id;
         }
 
         public static int PurchaseOrderStatusBilledLUID()
