@@ -6,7 +6,7 @@ using DotLiquid;
 
 namespace org.secc.PDF
 {
-    class PDFWorkflowObject
+    public class PDFWorkflowObject
     {
         public BinaryFile PDFInput { get; set; }
         public string LavaInput { get; set; }

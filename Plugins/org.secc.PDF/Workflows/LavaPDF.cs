@@ -46,11 +46,13 @@ namespace org.secc.PDF
             {
                 BinaryFile pdfBinary = new BinaryFile();
                 pdfBinary.Guid = Guid.NewGuid();
+                pdfBinary.FileName = "GeneratedPDF.pdf";
+                pdfBinary.MimeType = "application/pdf";
                 pdfBinary.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( new Guid( Rock.SystemGuid.BinaryFiletype.DEFAULT ) ).Id;
 
                 BinaryFileData pdfData = new BinaryFileData();
                 pdfData.Content = msPDF.ToArray();
-
+                
                 pdfBinary.DatabaseData = pdfData;
 
                 pdfWorkflowObject.RenderedPDF = pdfBinary;
