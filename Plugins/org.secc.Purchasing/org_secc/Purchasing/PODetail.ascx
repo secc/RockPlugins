@@ -1,188 +1,7 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="PODetail.ascx.cs" Inherits="ArenaWeb.UserControls.Custom.SECC.Purchasing.PODetail" %>
-<%@ Register Src="~/UserControls/Custom/SECC/Purchasing/Notes.ascx" TagPrefix="secc"
-    TagName="Notes" %>
-<%@ Register Src="~/UserControls/Custom/SECC/Purchasing/Attachments.ascx" TagPrefix="secc"
-    TagName="Attachments" %>
-<%@ Register src="~/UserControls/Custom/SECC/Purchasing/StaffSearch.ascx" TagPrefix="secc" TagName="StaffSearch" %>
-<link href="/UserControls/Custom/SECC/Purchasing/CSS/Purchasing-Override-Arena.css" type="text/css" rel="Stylesheet" />
-
-<style type="text/css">
-    #pnlMain
-    {
-        border: 2px solid #c1bfbf;
-        padding-bottom: 3px;
-        margin: 0;
-        overflow: hidden;
-    }
-    
-    .listFooter
-    {
-        border-top: 1px solid #545454;
-        background-color: #F7F6F6;
-        background-image: url("../images/datagrid_header_background.jpg");
-        background-repeat: repeat-x;
-        vertical-align:top;
-        font-weight:bold;
-    }
-    
-    .category
-    {
-        padding: 2px;
-    }
-    
-    #shipToModal
-    {
-        width: 400px;
-    }
-    
-    #summaryGrid
-    {
-        width: 98%;
-        line-height: .75em;
-        padding-top: 4px;
-    }
-    
-    #icons
-    {
-        padding: 5px;
-    }
-    
-    #icons a
-    {
-        padding-right: 5px;   
-    } 
-    
-    .summaryRow
-    {
-        width: 100%;
-        padding-bottom: 5px;
-        float:none;
-        overflow:hidden;
-    }
-    
-    .summaryItem
-    {
-        width: 15%;
-        float: left;
-    }
-    
-    .summaryItem select
-    {
-        width:95%;   
-    }
-    
-    .summaryAddress
-    {
-        width: 48%;
-        float: left;
-    }
-    
-    #vendorSelect
-    {
-        width: 450px;
-        float: none;
-    }
-    
-    .vendorRow
-    {
-        width: 100%;
-        float: none;
-    }
-    .vendorHeader
-    {
-        width: 25%;
-        float: left;
-        margin-top: 2px;
-        margin-bottom: 2px;
-    }
-    .vendorItem
-    {
-        width: 75%;
-        float: left;
-        margin-top: 2px;
-        margin-bottom: 2px;
-    }
-    
-    .btnAddHide
-    {
-        display: none;
-        visibility: hidden;
-    }
-    
-    #chooseRequisition
-    {
-        width: 500px;
-        max-height:500px;
-    }
-    
-    #chooseRequisitionItem
-    {
-        width: 650px;
-        max-height:500px;
-    }
-    
-    .error
-    {
-        font-family: Verdana, Arial, Helvetica, sans-serif;
-        font-size: 10px;
-        color: Red;
-        text-decoration: none;
-    }
-    
-    .statusNote
-    {
-        margin: 5px;
-        border: 1px solid red;
-        background-color: #FF9B9B;
-        padding: 5px 5px 5px 5px;
-        font-family: Verdana, Arial, Helvetica, Sans-Serif;
-        font-size: 10px;
-        font-weight: bold;
-        width: 500px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    
-    a.statusNote
-    {
-        font-weight: bold;
-        margin-top: 2px;
-        text-decoration: underline;
-        color: Black;
-    }
-    
-    a.statusNote:link
-    {
-        color: Black;
-    }
-    a.statusNote:visited
-    {
-        color: Black;
-    }
-    
-    #itemDetails
-    {
-        width: 400px;
-    }
-    #orderSubmit
-    {
-        width:400px;
-    }
-    #receivePackage
-    {
-        width:600px;
-    }
-    #paymentDetails
-    {
-        width:500px;
-    }
-    
-    .wrap
-    {
-        word-break:break-all;
-        word-wrap:break-word;
-    }
-</style>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="PODetail.ascx.cs" Inherits="RockWeb.Plugins.org_secc.Purchasing.PODetail" %>
+<%@ Register Src="Notes.ascx" TagName="Notes" TagPrefix="secc" %>
+<%@ Register Src="Attachments.ascx" TagName="Attachments" TagPrefix="secc" %>
+<%@ Register Src="StaffPicker.ascx" TagName="StaffPicker" TagPrefix="secc" %>
 <script type="text/javascript">
     function showAlert(isShown) {
         showAlert(isShown, true);
@@ -383,22 +202,22 @@
             <div class="category" id="catItems">
                 <h3>
                     Items</h3>
-                <Arena:DataGrid ID="dgItems" runat="server" CssClass="list" AllowPaging="false" AllowSorting="false"
+                <Rock:Grid ID="dgItems" runat="server" CssClass="list" AllowPaging="false" AllowSorting="false"
                     OnItemDataBound="dgItems_ItemDataBound" OnItemCommand="dgItems_ItemCommand" DataKeyField="ItemID">
                     <Columns>
-                        <asp:BoundColumn DataField="POItemID" HeaderText="ItemID" Visible="false" />
-                        <asp:BoundColumn DataField="Quantity" HeaderText="Qty" ItemStyle-Width="5%" HeaderStyle-HorizontalAlign="Right" ItemStyle-HorizontalAlign="Right" />
-                        <asp:BoundColumn DataField="QuantityReceived" HeaderText="Qty Recv'd " ItemStyle-Width="5%" HeaderStyle-HorizontalAlign="Center" ItemStyle-HorizontalAlign="Right" />
-                        <asp:BoundColumn DataField="ItemNumber" HeaderText="Item Number" ItemStyle-Width="10%" />
-                        <asp:BoundColumn DataField="Description" HeaderText="Description" ItemStyle-Width="22%" ItemStyle-CssClass="wrap" />
-                        <asp:BoundColumn DataField="DateNeeded" HeaderText="Date Needed" ItemStyle-Width="10%" HeaderStyle-HorizontalAlign="Center" ItemStyle-HorizontalAlign="Center" />
-                        <Arena:BooleanImageColumn DataField="IsExpedited" HeaderText="Expedite" ItemStyle-Width="3%" ItemStyle-HorizontalAlign="Center" />
-                        <asp:BoundColumn DataField="AccountNumber" HeaderText="Account Number" ItemStyle-Width="10%" />
-                        <asp:HyperLinkColumn DataTextField="RequisitionID" HeaderText="Requisition" DataNavigateUrlField="RequisitionID"
+                        <Rock:RockBoundField DataField="POItemID" HeaderText="ItemID" Visible="false" />
+                        <Rock:RockBoundField DataField="Quantity" HeaderText="Qty" ItemStyle-Width="5%" HeaderStyle-HorizontalAlign="Right" ItemStyle-HorizontalAlign="Right" />
+                        <Rock:RockBoundField DataField="QuantityReceived" HeaderText="Qty Recv'd " ItemStyle-Width="5%" HeaderStyle-HorizontalAlign="Center" ItemStyle-HorizontalAlign="Right" />
+                        <Rock:RockBoundField DataField="ItemNumber" HeaderText="Item Number" ItemStyle-Width="10%" />
+                        <Rock:RockBoundField DataField="Description" HeaderText="Description" ItemStyle-Width="22%" ItemStyle-CssClass="wrap" />
+                        <Rock:RockBoundField DataField="DateNeeded" HeaderText="Date Needed" ItemStyle-Width="10%" HeaderStyle-HorizontalAlign="Center" ItemStyle-HorizontalAlign="Center" />
+                        <Rock:BoolField DataField="IsExpedited" HeaderText="Expedite" ItemStyle-Width="3%" ItemStyle-HorizontalAlign="Center" />
+                        <Rock:RockBoundField DataField="AccountNumber" HeaderText="Account Number" ItemStyle-Width="10%" />
+                        <asp:HyperLinkField DataTextField="RequisitionID" HeaderText="Requisition" DataNavigateUrlFields="RequisitionID"
                             ItemStyle-CssClass="smallText" ItemStyle-Width="5%" Target="_blank" />
-                        <asp:BoundColumn DataField="Price" HeaderText="Price" ItemStyle-Width="10%" ItemStyle-HorizontalAlign="Right" HeaderStyle-HorizontalAlign="Right" />
-                        <asp:TemplateColumn HeaderText="Extension" ItemStyle-Width="10%" ItemStyle-HorizontalAlign="Right" HeaderStyle-HorizontalAlign="Right">
-                            <ItemTemplate><%# Eval("Extension") %></ItemTemplate>
+                        <Rock:RockBoundField DataField="Price" HeaderText="Price" ItemStyle-Width="10%" ItemStyle-HorizontalAlign="Right" HeaderStyle-HorizontalAlign="Right" />
+                        <Rock:RockTemplateField HeaderText="Extension" ItemStyle-Width="10%" ItemStyle-HorizontalAlign="Right" HeaderStyle-HorizontalAlign="Right">
+                            <ItemTemplate><%# DataBinder.Eval(Container.DataItem, "Extension") %></ItemTemplate>
                             <FooterTemplate>
                                 <div style="text-align:right;">
                                     <div><asp:Label ID="lblSubTotal" runat="server" CssClass="smallText" /></div>
@@ -407,8 +226,8 @@
                                     <div style="border-top: 1px solid black;"><asp:Label ID="lblItemGridTotal" runat="server" CssClass="smallText" /></div>
                                 </div>
                             </FooterTemplate>
-                        </asp:TemplateColumn>
-                        <asp:TemplateColumn ItemStyle-HorizontalAlign="Right" ItemStyle-Width="10%" ItemStyle-VerticalAlign="Middle">
+                        </Rock:RockTemplateField>
+                        <Rock:RockTemplateField ItemStyle-HorizontalAlign="Right" ItemStyle-Width="10%" ItemStyle-VerticalAlign="Middle">
                             <ItemTemplate>
                                 <asp:LinkButton ID="lbDetails" runat="server" CommandName="details" CssClass="smallText"
                                     Text="Details" />
@@ -416,52 +235,52 @@
                                     <img src="/images/delete.png" alt="remove" style="border: 0;" />
                                 </asp:LinkButton>
                             </ItemTemplate>
-                        </asp:TemplateColumn>
+                        </Rock:RockTemplateField>
                     </Columns>
-                </Arena:DataGrid>
+                </Rock:Grid>
             </div>
             <div class="category" id="catReceivingHistory">
                 <h3>Receiving History:</h3>
-                <Arena:DataGrid ID="dgReceivingHistory" runat="server" CssClass="list" AllowPaging="false" AllowSorting="false" 
+                <Rock:Grid ID="dgReceivingHistory" runat="server" CssClass="list" AllowPaging="false" AllowSorting="false" 
                         OnItemDataBound="dgReceivingHistory_ItemDataBound" OnItemCommand="dgReceivingHistory_ItemCommand">
                     <Columns>
-                        <asp:BoundColumn HeaderText="ReceiptID" DataField="ReceiptID" Visible="false" />
-                        <asp:BoundColumn HeaderText="Date Received" DataField="DateReceived" />
-                        <asp:BoundColumn HeaderText="Carrier" DataField="CarrierName" />
-                        <asp:BoundColumn HeaderText="Received By" DataField="ReceivedBy" />
-                        <asp:BoundColumn HeaderText="Total Items" DataField="TotalItems" />
-                        <asp:TemplateColumn ItemStyle-HorizontalAlign="Right">
+                        <Rock:RockBoundField HeaderText="ReceiptID" DataField="ReceiptID" Visible="false" />
+                        <Rock:RockBoundField HeaderText="Date Received" DataField="DateReceived" />
+                        <Rock:RockBoundField HeaderText="Carrier" DataField="CarrierName" />
+                        <Rock:RockBoundField HeaderText="Received By" DataField="ReceivedBy" />
+                        <Rock:RockBoundField HeaderText="Total Items" DataField="TotalItems" />
+                        <Rock:RockTemplateField ItemStyle-HorizontalAlign="Right">
                             <ItemTemplate>
                                 <asp:LinkButton id="lbShowReceipt" runat="server" CommandName="showreceipt" CssClass="smallText" Text="Show" />
                                 <asp:LinkButton ID="lbRemoveReceipt" runat="server" CommandName="removereceipt" Visible="false">
                                     <img src="/images/delete.png" alt="Remove" />
                                 </asp:LinkButton>
                             </ItemTemplate>
-                        </asp:TemplateColumn>
+                        </Rock:RockTemplateField>
                     </Columns>
-                </Arena:DataGrid>
+                </Rock:Grid>
             </div>
             <div class="category" id="catPayments">
                 <h3>Payments</h3>
-                <Arena:DataGrid ID="dgPayments" runat="server" CssClass="list" AllowPaging="false" AllowSorting="false" 
+                <Rock:Grid ID="dgPayments" runat="server" CssClass="list" AllowPaging="false" AllowSorting="false" 
                     OnItemDataBound="dgPayments_ItemDataBound" OnItemCommand="dgPayments_ItemCommand">
                     <Columns>
-                        <asp:BoundColumn HeaderText="PaymentID" DataField="PaymentID" Visible="false" />
-                        <asp:BoundColumn HeaderText="Payment Date" DataField="PaymentDate" />
-                        <asp:BoundColumn HeaderText="Payment Method" DataField="PaymentMethod" />
-                        <Arena:BooleanImageColumn HeaderText="Fully Applied" DataField="FullyApplied" ItemStyle-HorizontalAlign="Center" HeaderStyle-HorizontalAlign="Center"  />
-                        <asp:BoundColumn HeaderText="Created By" DataField="CreatedByName" />
-                        <asp:BoundColumn HeaderText="Payment Amount" DataField="PaymentAmount" DataFormatString="{0:c}" HeaderStyle-HorizontalAlign="Right" ItemStyle-HorizontalAlign="Right" />
-                        <asp:TemplateColumn ItemStyle-HorizontalAlign="Right">
+                        <Rock:RockBoundField HeaderText="PaymentID" DataField="PaymentID" Visible="false" />
+                        <Rock:RockBoundField HeaderText="Payment Date" DataField="PaymentDate" />
+                        <Rock:RockBoundField HeaderText="Payment Method" DataField="PaymentMethod" />
+                        <Rock:BoolField HeaderText="Fully Applied" DataField="FullyApplied" ItemStyle-HorizontalAlign="Center" HeaderStyle-HorizontalAlign="Center"  />
+                        <Rock:RockBoundField HeaderText="Created By" DataField="CreatedByName" />
+                        <Rock:RockBoundField HeaderText="Payment Amount" DataField="PaymentAmount" DataFormatString="{0:c}" HeaderStyle-HorizontalAlign="Right" ItemStyle-HorizontalAlign="Right" />
+                        <Rock:RockTemplateField ItemStyle-HorizontalAlign="Right">
                             <ItemTemplate>
                                 <asp:LinkButton ID="lbDetails" runat="server" CommandName="details" Text="Details" CssClass="smallText" />
                                 <asp:LinkButton ID="lbRemove" runat="server" CommandName="remove">
                                     <img src="/images/delete.png" alt="Remove" />
                                 </asp:LinkButton>
                             </ItemTemplate>
-                        </asp:TemplateColumn>
+                        </Rock:RockTemplateField>
                     </Columns>
-                </Arena:DataGrid>
+                </Rock:Grid>
 
             </div>
             <div class="category" id="catNotes">
@@ -476,27 +295,8 @@
             </div>
         </div>
     </ContentTemplate>
-    <Triggers>
-        <asp:AsyncPostBackTrigger ControlID="btnVendorSelect" />
-        <asp:AsyncPostBackTrigger ControlID="btnVendorCancel" />
-        <asp:AsyncPostBackTrigger ControlID="btnShipToSubmit" />
-        <asp:AsyncPostBackTrigger ControlID="btnShipToCancel" />
-        <asp:AsyncPostBackTrigger ControlID="btnChooseRequisitionCancel" />
-        <asp:AsyncPostBackTrigger ControlID="btnRequisitionItemsAddToPO" />
-        <asp:AsyncPostBackTrigger ControlID="btnRequisitionItemsCancel" />
-        <asp:AsyncPostBackTrigger ControlID="btnOrderSubmit" />
-        <asp:AsyncPostBackTrigger ControlID="btnOrderSubmitCancel" />
-        <asp:AsyncPostBackTrigger ControlID="btnReceivePackageSubmit" />
-        <asp:AsyncPostBackTrigger ControlID="btnReceivePackageCancel" />
-        <asp:AsyncPostBackTrigger ControlID="btnIDUpdate" />
-        <asp:AsyncPostBackTrigger ControlID="btnIDClose" />
-        <asp:AsyncPostBackTrigger ControlID="btnPaymentMethodPaymentClose" />
-        <asp:AsyncPostBackTrigger ControlID="btnPaymentMethodPaymementAddCharges" />
-        <asp:AsyncPostBackTrigger ControlID="ucNotes" EventName="RefreshParent" />
-        <asp:AsyncPostBackTrigger ControlID="ucAttachments" EventName="RefreshParent" />
-    </Triggers>
 </asp:UpdatePanel>
-<Arena:ModalPopup ID="mpVendorSelect" runat="server">
+<Rock:ModalDialog ID="mpVendorSelect" runat="server">
     <Content>
         <asp:UpdatePanel ID="upVendorSelect" runat="server" UpdateMode="Conditional">
             <ContentTemplate>
@@ -596,8 +396,8 @@
             </Triggers>
         </asp:UpdatePanel>
     </Content>
-</Arena:ModalPopup>
-<Arena:ModalPopup ID="mpShipToSelect" runat="server">
+</Rock:ModalDialog>
+<Rock:ModalDialog ID="mpShipToSelect" runat="server">
     <Content>
         <asp:UpdatePanel ID="upShipTo" runat="server" UpdateMode="Conditional">
             <ContentTemplate>
@@ -657,8 +457,8 @@
             </Triggers>
         </asp:UpdatePanel>
     </Content>
-</Arena:ModalPopup>
-<Arena:ModalPopup ID="mpChooseRequisition" runat="server">
+</Rock:ModalDialog>
+<Rock:ModalDialog ID="mpChooseRequisition" runat="server">
     <Content>
         <asp:UpdatePanel ID="upChooseRequisition" runat="server" UpdateMode="Conditional">
             <ContentTemplate>
@@ -684,21 +484,21 @@
                         <asp:Label ID="lblChooseRequisitionError" runat="server" Visible="false" />
                     </div>
                     <div style="width:100%; max-height:350px; overflow-y:auto; overflow-x:hidden">
-                        <Arena:DataGrid ID="dgChooseRequisitions" runat="server" CssClass="list" AllowSorting="false"
+                        <Rock:Grid ID="dgChooseRequisitions" runat="server" CssClass="list" AllowSorting="false"
                             AllowPaging="false" ExportEnabled="false">
                             <Columns>
-                                <asp:BoundColumn DataField="RequisitionID" HeaderText="RequisitionID" Visible="false" />
-                                <asp:TemplateColumn ItemStyle-VerticalAlign="Middle">
+                                <Rock:RockBoundField DataField="RequisitionID" HeaderText="RequisitionID" Visible="false" />
+                                <Rock:RockTemplateField ItemStyle-VerticalAlign="Middle">
                                     <ItemTemplate>
                                         <asp:RadioButton ID="rbChooseRequisition" runat="server" GroupName="ChooseRequisition" />
                                     </ItemTemplate>
-                                </asp:TemplateColumn>
-                                <asp:BoundColumn DataField="Title" HeaderText="Title" />
-                                <asp:BoundColumn DataField="RequesterName" HeaderText="Requester" />
-                                <asp:BoundColumn DataField="DateSubmitted" HeaderText="Submitted On" />
-                                <Arena:BooleanImageColumn DataField="IsApproved" HeaderText="Approved" />
+                                </Rock:RockTemplateField>
+                                <Rock:RockBoundField DataField="Title" HeaderText="Title" />
+                                <Rock:RockBoundField DataField="RequesterName" HeaderText="Requester" />
+                                <Rock:RockBoundField DataField="DateSubmitted" HeaderText="Submitted On" />
+                                <Rock:BoolField DataField="IsApproved" HeaderText="Approved" />
                             </Columns>
-                        </Arena:DataGrid>
+                        </Rock:Grid>
                     </div>
                     <div style="text-align: right;">
                         <asp:Button ID="btnChooseRequisitionSubmit" runat="server" CssClass="smallText" Text="Select"
@@ -713,8 +513,8 @@
             </Triggers>
         </asp:UpdatePanel>
     </Content>
-</Arena:ModalPopup>
-<Arena:ModalPopup ID="mpRequisitionItems" runat="server">
+</Rock:ModalDialog>
+<Rock:ModalDialog ID="mpRequisitionItems" runat="server">
     <Content>
         <asp:UpdatePanel ID="upRequisitionItems" runat="server" UpdateMode="Conditional">
             <ContentTemplate>
@@ -737,22 +537,22 @@
                             <asp:Label ID="lblRequisitionItemsTitle" runat="server" /></div>
                     </div>
                     <div style="width:98%; max-height:350px; overflow-y:auto; overflow-x:hidden;">
-                        <Arena:DataGrid ID="dgRequisitionItems" runat="server" CssClass="list" DataKeyField="ItemID"
+                        <Rock:Grid ID="dgRequisitionItems" runat="server" CssClass="list" DataKeyField="ItemID"
                             AllowSorting="false" AllowPaging="false" OnItemDataBound="dgRequisitionItems_ItemDataBound">
                             <Columns>
-                                <asp:BoundColumn DataField="ItemID" HeaderText="ItemID" Visible="false" />
-                                <asp:BoundColumn DataField="ItemNumber" HeaderText="Item Number" ItemStyle-Width="15%"
+                                <Rock:RockBoundField DataField="ItemID" HeaderText="ItemID" Visible="false" />
+                                <Rock:RockBoundField DataField="ItemNumber" HeaderText="Item Number" ItemStyle-Width="15%"
                                     HeaderStyle-HorizontalAlign="Center" />
-                                <asp:BoundColumn DataField="Description" HeaderText="Description" ItemStyle-Width="20%" ItemStyle-CssClass="wrap" />
-                                <asp:BoundColumn DataField="DateNeeded" HeaderText="Date Needed" ItemStyle-Width="10%"
+                                <Rock:RockBoundField DataField="Description" HeaderText="Description" ItemStyle-Width="20%" ItemStyle-CssClass="wrap" />
+                                <Rock:RockBoundField DataField="DateNeeded" HeaderText="Date Needed" ItemStyle-Width="10%"
                                     HeaderStyle-HorizontalAlign="Center" />
-                                <Arena:BooleanImageColumn DataField="AllowExpedited" HeaderText="Expedite" ItemStyle-HorizontalAlign="Center"
+                                <Rock:BoolField DataField="AllowExpedited" HeaderText="Expedite" ItemStyle-HorizontalAlign="Center"
                                     ItemStyle-Width="10%" />
-                                <asp:BoundColumn DataField="QtyRequested" HeaderText="Qty Requested" ItemStyle-Width="10%"
+                                <Rock:RockBoundField DataField="QtyRequested" HeaderText="Qty Requested" ItemStyle-Width="10%"
                                     ItemStyle-HorizontalAlign="Center" HeaderStyle-HorizontalAlign="Center" />
-                                <asp:BoundColumn DataField="QtyAssigned" HeaderText="Qty Assigned" ItemStyle-Width="10%"
+                                <Rock:RockBoundField DataField="QtyAssigned" HeaderText="Qty Assigned" ItemStyle-Width="10%"
                                     ItemStyle-HorizontalAlign="Center" HeaderStyle-HorizontalAlign="Center" />
-                                <asp:TemplateColumn ItemStyle-Width="10%">
+                                <Rock:RockTemplateField ItemStyle-Width="10%">
                                     <HeaderTemplate>
                                         Remaining
                                     </HeaderTemplate>
@@ -761,17 +561,17 @@
                                         <asp:Label ID="lblRequisitionItemQtyRemaining" runat="server" CssClass="smallText"
                                             Visible="false" />
                                     </ItemTemplate>
-                                </asp:TemplateColumn>
-                                <asp:TemplateColumn ItemStyle-Width="15%">
+                                </Rock:RockTemplateField>
+                                <Rock:RockTemplateField ItemStyle-Width="15%">
                                     <HeaderTemplate>
                                         Price</HeaderTemplate>
                                     <ItemTemplate>
                                         <asp:TextBox ID="txtRequisitionItemPrice" runat="server" CssClass="smallText" Visible="false"
                                             Style="width: 50px;" />
                                     </ItemTemplate>
-                                </asp:TemplateColumn>
+                                </Rock:RockTemplateField>
                             </Columns>
-                        </Arena:DataGrid>
+                        </Rock:Grid>
                     </div>
                     <div style="text-align: right;">
                         <asp:Button ID="btnRequisitionItemsAddToPO" runat="server" CssClass="smallText" Text="Add to PO"
@@ -781,13 +581,10 @@
                     </div>
                 </div>
             </ContentTemplate>
-            <Triggers>
-                <asp:AsyncPostBackTrigger ControlID="btnChooseRequisitionSubmit" />
-            </Triggers>
         </asp:UpdatePanel>
     </Content>
-</Arena:ModalPopup>
-<Arena:ModalPopup ID="mpOrderSubmit" runat="server">
+</Rock:ModalDialog>
+<Rock:ModalDialog ID="mpOrderSubmit" runat="server">
     <Content>
         <asp:UpdatePanel ID="upOrderSubmit" runat="server" UpdateMode="Conditional">
             <ContentTemplate>
@@ -798,7 +595,7 @@
                             Order Date:
                         </div>
                         <div class="formItem" style="width:75%; float: left;">
-                            <Arena:DateTextBox ID="txtDateSubmitted" runat="server" />
+                            <Rock:DatePicker ID="txtDateSubmitted" runat="server" />
                         </div>
                     </div>
                     <div class="vendorRow">
@@ -820,8 +617,8 @@
             </Triggers>
         </asp:UpdatePanel>
     </Content>
-</Arena:ModalPopup>
-<Arena:ModalPopup ID="mpReceivePackage" runat="server">
+</Rock:ModalDialog>
+<Rock:ModalDialog ID="mpReceivePackage" runat="server">
     <Content>
         <asp:UpdatePanel ID="upReceivePackage" runat="server" UpdateMode="Conditional">
             <ContentTemplate>
@@ -838,7 +635,7 @@
                     </div>
                     <div class="vendorRow">
                         <div class="formLabel" style="width:20%; float:left;">Date Received</div>
-                        <div class="formItem" style="width:80%; float:left;"><Arena:DateTextBox ID="txtReceivePackageDateReceived" runat="server" CssClass="smallText" />
+                        <div class="formItem" style="width:80%; float:left;"><Rock:DatePicker ID="txtReceivePackageDateReceived" runat="server" CssClass="smallText" />
                             <asp:Label ID="lblReceivePackageDateReceived" runat="server" />
                          </div>
                     </div>
@@ -862,24 +659,24 @@
                     </asp:Panel>
 
                     <div class="vendorRow" style="margin-top:5px; padding-top:5px;max-height:350px;width:100%;overflow-x:hidden;overflow-y:auto;">
-                        <Arena:DataGrid ID="dgReceivePackageItems" runat="server" CssClass="list" OnItemDataBound="dgReceivePackageItems_ItemDataBound" AllowPaging="false"  OnReBind="dgReceivePackageItems_Rebind">
+                        <Rock:Grid ID="dgReceivePackageItems" runat="server" CssClass="list" OnItemDataBound="dgReceivePackageItems_ItemDataBound" AllowPaging="false"  OnReBind="dgReceivePackageItems_Rebind">
                             <Columns>
-                                <asp:BoundColumn HeaderText="POItemId" DataField="POItemId" Visible="false" />
-                                <asp:BoundColumn HeaderText="Qty Ordered" DataField="QtyOrdered" ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center" HeaderStyle-HorizontalAlign="Center"/>
-                                <asp:BoundColumn HeaderText="Item Number" DataField="ItemNumber" ItemStyle-Width="100px"/>
-                                <asp:BoundColumn HeaderText="Description" DataField="Description" ItemStyle-Width="175px" ItemStyle-CssClass="wrap" />
-                                <asp:BoundColumn HeaderText="Date Needed" DataField="DateNeeded" ItemStyle-Width="75px" HeaderStyle-HorizontalAlign="Center" ItemStyle-HorizontalAlign="Center" />
-                                <asp:BoundColumn HeaderText="Deliver To" DataField="DeliverTo" ItemStyle-Width="100px" />
-                                <asp:BoundColumn HeaderText="Prev Received" DataField="PreviouslyReceived" ItemStyle-Width="50px" HeaderStyle-HorizontalAlign="Center" ItemStyle-HorizontalAlign="Center"  />
-                                <asp:TemplateColumn HeaderText="Recieving" ItemStyle-Width="50px">
+                                <Rock:RockBoundField HeaderText="POItemId" DataField="POItemId" Visible="false" />
+                                <Rock:RockBoundField HeaderText="Qty Ordered" DataField="QtyOrdered" ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center" HeaderStyle-HorizontalAlign="Center"/>
+                                <Rock:RockBoundField HeaderText="Item Number" DataField="ItemNumber" ItemStyle-Width="100px"/>
+                                <Rock:RockBoundField HeaderText="Description" DataField="Description" ItemStyle-Width="175px" ItemStyle-CssClass="wrap" />
+                                <Rock:RockBoundField HeaderText="Date Needed" DataField="DateNeeded" ItemStyle-Width="75px" HeaderStyle-HorizontalAlign="Center" ItemStyle-HorizontalAlign="Center" />
+                                <Rock:RockBoundField HeaderText="Deliver To" DataField="DeliverTo" ItemStyle-Width="100px" />
+                                <Rock:RockBoundField HeaderText="Prev Received" DataField="PreviouslyReceived" ItemStyle-Width="50px" HeaderStyle-HorizontalAlign="Center" ItemStyle-HorizontalAlign="Center"  />
+                                <Rock:RockTemplateField HeaderText="Recieving" ItemStyle-Width="50px">
                                     <ItemTemplate>
                                         <asp:TextBox ID="txtReceivePackageQtyReceiving" runat="server" CssClass="samllText" Visible="false" style="width:95%;" />
                                         <asp:Label ID="lblReceivePackageQtyReceiving" runat="server" Visible="false" />
                                     </ItemTemplate>
-                                </asp:TemplateColumn>
+                                </Rock:RockTemplateField>
                             </Columns>
-                        </Arena:DataGrid>
-                        <secc:StaffSearch ID="ucStaffSearch" runat="server" AllowMultipleSelections="false" />
+                        </Rock:Grid>
+                        <secc:StaffPicker ID="ucStaffSearch" runat="server" AllowMultipleSelections="false" />
                     </div>
                     <div style="text-align:right; padding-top:3px;">
                         <asp:Button ID="btnReceivePackageSubmit" runat="server" CssClass="smallText" Text="Receive" OnClick="btnReceivePackageSubmit_Click" />
@@ -888,14 +685,10 @@
                     </div>
                 </div>
             </ContentTemplate>
-            <Triggers>
-                <asp:AsyncPostBackTrigger ControlID="lbToolbarReceive" />
-                <asp:AsyncPostBackTrigger ControlID="dgReceivingHistory" EventName="ItemCommand" />
-            </Triggers>
         </asp:UpdatePanel>
     </Content>
-</Arena:ModalPopup>
-<Arena:ModalPopup ID="mpPayments" runat="server" DefaultButtonControlID="btnPaymentMethodPaymentAdd" CancelControlID="btnPaymentMethodPaymentClose">
+</Rock:ModalDialog>
+<Rock:ModalDialog ID="mpPayments" runat="server" DefaultButtonControlID="btnPaymentMethodPaymentAdd" CancelControlID="btnPaymentMethodPaymentClose">
     <Content>
         <asp:UpdatePanel ID="upPayment" runat="server" UpdateMode="Conditional">
             <ContentTemplate>
@@ -911,7 +704,7 @@
                     </div>
                     <div class="vendorRow">
                         <div class="formLabel" style="width:40%; float:left;">Invoice Date:</div>
-                        <div class="formItem" style="width:60%; float:left;"><Arena:DateTextBox ID="txtPaymentMethodPaymentDate" runat="server" /><asp:Label ID="lblPaymentMethodPaymentDate" runat="server" Visible="false" /></div>
+                        <div class="formItem" style="width:60%; float:left;"><Rock:DatePicker ID="txtPaymentMethodPaymentDate" runat="server" /><asp:Label ID="lblPaymentMethodPaymentDate" runat="server" Visible="false" /></div>
                     </div>
                     <div class="vendorRow">
                         <div class="formLabel" style="width:40%; float:left;">Payment Amount:</div>
@@ -919,23 +712,23 @@
                     </div>
                     <div id="divPaymentMethodCharges" runat="server">
                         <h4>Charges</h4>
-                        <Arena:DataGrid ID="dgPaymentDetailCharges" runat="server" CssClass="list" AllowPaging="false" AllowSorting="false" OnItemDataBound="dgPaymentDetialCharges_ItemDataBound" >
+                        <Rock:Grid ID="dgPaymentDetailCharges" runat="server" CssClass="list" AllowPaging="false" AllowSorting="false" OnItemDataBound="dgPaymentDetialCharges_ItemDataBound" >
                             <Columns>
-                                <asp:BoundColumn DataField="RequisitionID" HeaderText="RequisitionID" Visible="false" />
-                                <asp:BoundColumn DataField="CompanyID" HeaderText="CompanyID" Visible="false" />
-                                <asp:BoundColumn DataField="AccountNumber" HeaderText="AccountNumber" Visible="false" />
-                                <asp:BoundColumn DataField="FiscalYearStart" HeaderText="FiscalYearStart" Visible="false" />
-                                <asp:BoundColumn DataField="Requisition" HeaderText="Requisition" Visible="true" ItemStyle-Width="40%" />
-                                <asp:BoundColumn DataField="AccountNumber" HeaderText="Account" Visible="true" ItemStyle-Width="30%" />
-                                <asp:TemplateColumn ItemStyle-HorizontalAlign="Right" HeaderStyle-HorizontalAlign="Right" ItemStyle-Width="30%">
+                                <Rock:RockBoundField DataField="RequisitionID" HeaderText="RequisitionID" Visible="false" />
+                                <Rock:RockBoundField DataField="CompanyID" HeaderText="CompanyID" Visible="false" />
+                                <Rock:RockBoundField DataField="AccountNumber" HeaderText="AccountNumber" Visible="false" />
+                                <Rock:RockBoundField DataField="FiscalYearStart" HeaderText="FiscalYearStart" Visible="false" />
+                                <Rock:RockBoundField DataField="Requisition" HeaderText="Requisition" Visible="true" ItemStyle-Width="40%" />
+                                <Rock:RockBoundField DataField="AccountNumber" HeaderText="Account" Visible="true" ItemStyle-Width="30%" />
+                                <Rock:RockTemplateField ItemStyle-HorizontalAlign="Right" HeaderStyle-HorizontalAlign="Right" ItemStyle-Width="30%">
                                     <HeaderTemplate>Charge Amount</HeaderTemplate>
                                     <ItemTemplate>
                                         <asp:TextBox ID="txtChargeAmount" runat="server" Visible="false" style="width:80%; text-align:right;" />
                                         <asp:Label id="lblChargeAmount" runat="server" Visible="false" />
                                     </ItemTemplate>
-                                </asp:TemplateColumn>
+                                </Rock:RockTemplateField>
                             </Columns>
-                        </Arena:DataGrid>
+                        </Rock:Grid>
                     </div>
                     <div style="text-align:right; padding-top:3px;">
                         <asp:Button ID="btnPaymentMethodPaymentAdd" runat="server" CssClass="smallText" Text="Add Payment" OnClick="btnPaymentMethodPaymentAdd_Click" />
@@ -947,14 +740,10 @@
                     </div>
                 </div>
             </ContentTemplate>
-            <Triggers>
-                <asp:AsyncPostBackTrigger ControlID="lbToolbarAddPayment" />
-                <asp:AsyncPostBackTrigger ControlID="dgPayments" EventName="ItemCommand" />
-            </Triggers>
         </asp:UpdatePanel>
     </Content>
-</Arena:ModalPopup>
-<Arena:ModalPopup ID="mpItemDetails" runat="server">
+</Rock:ModalDialog>
+<Rock:ModalDialog ID="mpItemDetails" runat="server">
     <Content>
         <asp:UpdatePanel ID="upItemDetails" runat="server" UpdateMode="Conditional">
             <ContentTemplate>
@@ -998,15 +787,15 @@
                         <div style="width:60%; float:left;" class="formItem"><asp:TextBox ID="txtIDPrice" runat="server" Visible="false" style="width:20%;" /><asp:Label ID="lblIDPrice" runat="server" Visible="true" /></div>
                     </div>    
                     <h4>Receipts</h4>
-                    <Arena:DataGrid ID="dgIDReceipts" runat="server" CssClass="list">
+                    <Rock:Grid ID="dgIDReceipts" runat="server" CssClass="list">
                         <Columns>
-                            <asp:BoundColumn HeaderText="ReceiptID" DataField="ReceiptID" Visible="false" />
-                            <asp:BoundColumn HeaderText="Date Received" DataField="DateReceived" />
-                            <asp:BoundColumn HeaderText="Carrier" DataField="Carrier" />
-                            <asp:BoundColumn HeaderText="Qty Received" DataField="QtyReceived" />
-                            <asp:BoundColumn HeaderText="Received By" DataField="ReceivedBy" />
+                            <Rock:RockBoundField HeaderText="ReceiptID" DataField="ReceiptID" Visible="false" />
+                            <Rock:RockBoundField HeaderText="Date Received" DataField="DateReceived" />
+                            <Rock:RockBoundField HeaderText="Carrier" DataField="Carrier" />
+                            <Rock:RockBoundField HeaderText="Qty Received" DataField="QtyReceived" />
+                            <Rock:RockBoundField HeaderText="Received By" DataField="ReceivedBy" />
                         </Columns>
-                    </Arena:DataGrid>
+                    </Rock:Grid>
                     <div style="text-align:right; padding-top:3px;">
                         <asp:Button ID="btnIDUpdate" runat="server" CssClass="smallText" Text="Update" OnClick="btnIDUpdate_Click" />
                         <asp:Button ID="btnIDReset" runat="server" CssClass="smallText" Text="Reset" OnClick="btnIDReset_Click" />
@@ -1014,12 +803,9 @@
                     </div>
                 </div>
             </ContentTemplate>
-            <Triggers>
-                <asp:AsyncPostBackTrigger ControlID="dgItems" EventName="ItemCommand" />
-            </Triggers>
         </asp:UpdatePanel>
     </Content>
-</Arena:ModalPopup>
-<Arena:ModalPopupIFrame ID="mpiDocumentChooser" runat="server" />
+</Rock:ModalDialog>
+<Rock:ModalIFrameDialog ID="mpiDocumentChooser" runat="server" />
 
 

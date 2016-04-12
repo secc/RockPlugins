@@ -62,7 +62,7 @@ namespace org.secc.Purchasing
             {
                 if ((mReceievedBy == null || mReceievedBy.Id != ReceivedByID) && ReceivedByID > 0)
                 {
-                    mReceievedBy = userLoginService.Get(ReceivedByID).Person;
+                    mReceievedBy = personAliasService.Get(ReceivedByID).Person;
                 }
                 return mReceievedBy;
             }
