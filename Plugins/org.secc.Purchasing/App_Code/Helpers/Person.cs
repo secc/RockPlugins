@@ -20,11 +20,11 @@ namespace org.secc.Purchasing.Helpers
             PersonAliasService personAliasService = new PersonAliasService(new Rock.Data.RockContext());
             var person = personAliasService.Get(personID).Person;
             person.LoadAttributes();
-            Int32? pa = Int32.Parse(person.GetAttributeValue(ministryAttribute));
+            Guid? pa = person.GetAttributeValue(ministryAttribute).AsGuidOrNull();
 
             DefinedValueService definedValueService = new DefinedValueService(new Rock.Data.RockContext());
 
-            if (pa != null && pa.Value > 0)
+            if (pa.HasValue)
                 MinistryLookup = definedValueService.Get(pa.Value);
             else
                 MinistryLookup = new DefinedValue();

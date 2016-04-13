@@ -879,7 +879,7 @@ namespace org.secc.Purchasing
                 Reqs.AddRange(Context.RequisitionDatas
                                 .GroupJoin(Context.PersonAliasDatas,
                                     r => r.requester_id,
-                                    p => p.PersonId,
+                                    p => p.Id,
                                     (r, p1) => new {
                                         r = r,
                                         p1 = p1
@@ -911,7 +911,7 @@ namespace org.secc.Purchasing
 
                 foreach (var item in Reqs.Select(r => r.RequesterID).Distinct())
             	{
-		            var Ministry = Helpers.Person.GetMyMinistryLookup(item, "ministry");
+                    var Ministry = Helpers.Person.GetMyMinistryLookup(item, "MinistryArea");
                     foreach (var reqItem in Reqs.Where(r => r.RequesterID == item))
                     {
                         if (Ministry.Id > 0)

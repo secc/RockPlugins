@@ -6,6 +6,7 @@ using System.Linq;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using System.Web.UI.HtmlControls;
 
 using org.secc.Purchasing;
 using Rock;
@@ -211,7 +212,19 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
 
             dgItems.ShowFooter = true;
+            Page.PreRenderComplete += Page_PreRenderComplete;
+        }
 
+        void Page_PreRenderComplete(object sender, EventArgs e)
+        {
+            HtmlAnchor cancelLink = (HtmlAnchor)mpChooseRequisition.Footer.FindControl("cancelLink");
+            cancelLink.InnerText = "Cancel";
+            cancelLink.AddCssClass("btn-default");
+            cancelLink.RemoveCssClass("btn-link");
+            cancelLink = (HtmlAnchor)mpRequisitionItems.Footer.FindControl("cancelLink");
+            cancelLink.InnerText = "Cancel";
+            cancelLink.AddCssClass("btn-default");
+            cancelLink.RemoveCssClass("btn-link");
         }
 
         protected override void OnPreRender(EventArgs e)
@@ -234,7 +247,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
         }
 
-        protected void dgItems_ItemCommand(object sender, DataGridCommandEventArgs e)
+        protected void dgItems_ItemCommand(object sender, CommandEventArgs e)
         {
             int ItemID = 0;
             int.TryParse(e.CommandArgument.ToString(), out ItemID);
@@ -970,12 +983,14 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 decimal Total = ItemSubtotal + CurrentPurchaseOrder.ShippingCharge + CurrentPurchaseOrder.OtherCharge;
                 bool ShowTextbox = CanUserEditItem();
 
-                /*Label lblItemSubtotal = (Label)dgItems.Controls[0].Controls[dgItems.Controls[0].Controls.Count - 1].Controls[10].FindControl("lblSubTotal");
-                Label lblItemShipping = (Label)dgItems.Controls[0].Controls[dgItems.Controls[0].Controls.Count - 1].Controls[10].FindControl("lblShipping");
-                TextBox txtItemShipping = (TextBox)dgItems.Controls[0].Controls[dgItems.Controls[0].Controls.Count - 1].Controls[10].FindControl("txtShipping");
-                Label lblItemTax = (Label)dgItems.Controls[0].Controls[dgItems.Controls[0].Controls.Count - 1].Controls[10].FindControl("lblTax");
-                TextBox txtItemTax = (TextBox)dgItems.Controls[0].Controls[dgItems.Controls[0].Controls.Count - 1].Controls[10].FindControl("txtTax");
-                Label lblItemTotal = (Label)dgItems.Controls[0].Controls[dgItems.Controls[0].Controls.Count - 1].Controls[10].FindControl("lblItemGridTotal");
+                var c = dgItems.FooterRow.Cells[dgItems.FooterRow.Cells.Count - 2];
+
+                Label lblItemSubtotal = (Label)c.FindControl("lblSubTotal");
+                Label lblItemShipping = (Label)c.FindControl("lblShipping");
+                TextBox txtItemShipping = (TextBox)c.FindControl("txtShipping");
+                Label lblItemTax = (Label)c.FindControl("lblTax");
+                TextBox txtItemTax = (TextBox)c.FindControl("txtTax");
+                Label lblItemTotal = (Label)c.FindControl("lblItemGridTotal");
                 
                 lblItemSubtotal.Text = ItemSubtotal.ToString("0.00");
                 lblItemShipping.Text = CurrentPurchaseOrder.ShippingCharge.ToString( "0.00;(0.00)" );
@@ -983,12 +998,12 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 lblItemTax.Text = CurrentPurchaseOrder.OtherCharge.ToString("0.00;(0.00)");
                 txtItemTax.Text = CurrentPurchaseOrder.OtherCharge.ToString("0.00");
                 lblItemTotal.Text = Total.ToString("0.00");
-                
+
                 lblItemShipping.Visible = !ShowTextbox;
                 txtItemShipping.Visible = ShowTextbox;
 
                 lblItemTax.Visible = !ShowTextbox;
-                txtItemTax.Visible = ShowTextbox;  */              
+                txtItemTax.Visible = ShowTextbox;          
 
             }
         }
@@ -1299,10 +1314,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             if (CanUserEditItem() && CurrentPurchaseOrder.Items.Count > 0)
             {
-                Label lblItemSubtotal = (Label)dgItems.Controls[0].Controls[dgItems.Controls[0].Controls.Count - 1].Controls[10].FindControl("lblSubTotal");
-                TextBox txtItemShipping = (TextBox)dgItems.Controls[0].Controls[dgItems.Controls[0].Controls.Count - 1].Controls[10].FindControl("txtShipping");
-                TextBox txtItemTax = (TextBox)dgItems.Controls[0].Controls[dgItems.Controls[0].Controls.Count - 1].Controls[10].FindControl("txtTax");
-                Label lblItemTotal = (Label)dgItems.Controls[0].Controls[dgItems.Controls[0].Controls.Count - 1].Controls[10].FindControl("lblItemGridTotal");
+                var c = dgItems.FooterRow.Cells[dgItems.FooterRow.Cells.Count - 2];
+
+                TextBox txtItemShipping = (TextBox)c.FindControl("txtShipping");
+                TextBox txtItemTax = (TextBox)c.FindControl("txtTax");
 
                 if (txtItemShipping.Visible && decimal.TryParse(txtItemShipping.Text, out ShippingCharge))
                     CurrentPurchaseOrder.ShippingCharge = ShippingCharge;
@@ -1882,10 +1897,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
         }
 
-        protected void btnChooseRequisitionSubmit_Click(object sender, EventArgs e)
+        protected void btnChooseRequisitionSubmit_Click(object sender, RowEventArgs e)
         {
             SetRequisitionErrorMessage(String.Empty);
-            int RequisitionID = FindSelectedRequisition();
+            int RequisitionID = e.RowKeyId;
             if (RequisitionID > 0)
             {
                 HideRequisitionModel();
@@ -1945,7 +1960,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             ConfigureRequisitionList();
 
-            var Reqs = Requisition.LoadAcceptedRequisitonsWithItemsNotOnPO(attributeService.Get(MinistryPersonAttributeIDSetting).Id);
+            var Reqs = Requisition.LoadAcceptedRequisitonsWithItemsNotOnPO(attributeService.Get(MinistryAreaAttributeIDSetting).Id);
 
             if (ddlChooseRequisitionMinistry.SelectedIndex > 0)
             {
@@ -2011,28 +2026,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
         }
 
-
-
-        private int FindSelectedRequisition()
-        {
-            int RequisitionID = 0;
-
-            foreach (GridViewRow item in dgChooseRequisitions.Rows)
-            {
-                if (item.RowType == DataControlRowType.DataRow)
-                {
-                    RadioButton rbRequisition = (RadioButton)item.FindControl("rbChooseRequisition");
-                    if (rbRequisition != null && rbRequisition.Checked)
-                    {
-                        RequisitionID = int.Parse(item.Cells[0].Text);
-                        break;
-                    }
-                }
-            }
-
-            return RequisitionID;
-        }
-
         //private DataTable GetRequisitions(bool populate)
         //{
         //    DataTable dtRequisitions = new DataTable();
@@ -2081,7 +2074,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void SetRequisitionErrorMessage(string msg)
         {
-            lblChooseRequisitionError.Text = msg;
+            lblChooseRequisitionError.InnerText = msg;
             lblChooseRequisitionError.Visible = !String.IsNullOrEmpty(msg);
         }
 
@@ -2124,14 +2117,14 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             HideRequisitionItemModal();
         }
 
-        protected void dgRequisitionItems_ItemDataBound(object sender, DataGridItemEventArgs e)
+        protected void dgRequisitionItems_ItemDataBound(object sender, GridViewRowEventArgs e)
         {
-            if (e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem)
+            if (e.Row.RowType == DataControlRowType.DataRow)
             {
-                DataRowView drv = (DataRowView)e.Item.DataItem;
-                TextBox txtQtyRemaining = (TextBox)e.Item.FindControl("txtRequisitionItemQtyRemaining");
-                Label lblQtyRemaining = (Label)e.Item.FindControl("lblRequisitionItemQtyRemaining");
-                TextBox txtPrice = (TextBox)e.Item.FindControl("txtRequisitionItemPrice");
+                DataRowView drv = (DataRowView)e.Row.DataItem;
+                TextBox txtQtyRemaining = (TextBox)e.Row.FindControl("txtRequisitionItemQtyRemaining");
+                Label lblQtyRemaining = (Label)e.Row.FindControl("lblRequisitionItemQtyRemaining");
+                TextBox txtPrice = (TextBox)e.Row.FindControl("txtRequisitionItemPrice");
 
                 if ((int)drv["QtyRemaining"] == 0)
                 {
@@ -2285,7 +2278,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void SetRequistionItemError(string msg)
         {
-            lblRequisitionItemError.Text = msg;
+            lblRequisitionItemError.InnerText = msg;
             lblRequisitionItemError.Visible = !String.IsNullOrEmpty(msg);
         }
 
@@ -3411,6 +3404,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             return SuccessfullyUpdated;
         }
+
         #endregion
     }
 
