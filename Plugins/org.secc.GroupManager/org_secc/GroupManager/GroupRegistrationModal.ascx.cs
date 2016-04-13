@@ -71,6 +71,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
+
+            //remove footer
+            mdDialog.Footer.Visible = false;
         }
 
         /// <summary>

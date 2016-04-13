@@ -38,10 +38,6 @@
     top:100vh;
 }
 
-.modal-footer {
-    visibility:hidden;
-}
-
 
 </style>
 

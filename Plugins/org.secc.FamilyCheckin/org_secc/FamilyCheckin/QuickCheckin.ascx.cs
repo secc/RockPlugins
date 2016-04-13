@@ -40,6 +40,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 NavigateToHomePage();
             }
+
+            mdChoose.Footer.Visible = false;
         }
 
         protected override void OnLoad(EventArgs e)

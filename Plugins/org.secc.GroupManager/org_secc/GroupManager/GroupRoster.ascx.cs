@@ -40,6 +40,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             gMembers.PersonIdField = "Id";
             gMembers.DataKeyNames = new string[] { "Id" };
             gMembers.GridRebind += gMembers_GridRebind;
+
+            //hide modal footer
+            mdMember.Footer.Visible = false;
         }
 
         private void gMembers_GridRebind( object sender, EventArgs e )
