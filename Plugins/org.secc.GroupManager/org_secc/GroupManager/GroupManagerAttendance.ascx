@@ -1,5 +1,36 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="GroupManagerAttendance.ascx.cs" Inherits="RockWeb.Plugins.org_secc.GroupManager.GroupManagerAttendance" %>
 
+<script>
+
+    var doCount = false;
+
+    var updateCount = function ()
+    {
+        console.log("Activate!!")
+        if (doCount)
+        {
+            var count = 0;
+            var boxes = $("[id$=cbMember]").toArray();
+            boxes.forEach(
+            function (el)
+            {
+                if (el.checked)
+                {
+                    count++;
+                }
+            })
+
+            if ($("[id$=cbDidNotMeet]")[0].checked)
+            {
+                $("[id$=tbCount]").val("");
+            } else
+            {
+                $("[id$=tbCount]").val(count);
+            }
+        }
+    }
+</script>
+
 <asp:UpdatePanel ID="pnlContent" runat="server">
     <ContentTemplate>
 
@@ -11,12 +42,12 @@
                     <asp:Literal ID="lHeading" runat="server" Text="Group Attendance" />
                 </h1>
             </div>
-            
+
             <div class="panel-body">
 
                 <Rock:NotificationBox ID="nbNotice" runat="server" />
 
-                <asp:Panel id="pnlDetails" runat="server">
+                <asp:Panel ID="pnlDetails" runat="server">
 
                     <div class="row">
                         <div class="col-sm-3">
@@ -24,8 +55,8 @@
                             <Rock:DatePicker ID="dpOccurrenceDate" runat="server" Label="Attendance For" Required="true" />
                         </div>
                         <div class="col-sm-3">
-                            <Rock:RockLiteral ID="lOccurrenceTime" runat="server" Label=" "/>
-                            <Rock:TimePicker ID="tpOccurrenceTime" runat="server"  Required="true" Label=" "/>
+                            <Rock:RockLiteral ID="lOccurrenceTime" runat="server" Label=" " />
+                            <Rock:TimePicker ID="tpOccurrenceTime" runat="server" Required="true" Label=" " />
                         </div>
                         <div class="col-sm-3">
                             <Rock:ButtonDropDownList runat="server" ID="ddlPastOccurrences" Label=" " Title="Previous Attendance" OnSelectionChanged="ddlPastOccurrences_SelectionChanged">
@@ -35,7 +66,7 @@
 
                     <div class="row">
                         <div class="col-sm-12">
-                            <Rock:RockCheckBox ID="cbDidNotMeet" runat="server" Text="We Did Not Meet" />
+                                <Rock:RockCheckBox ID="cbDidNotMeet" runat="server" Text="We Did Not Meet" />
                         </div>
                     </div>
 
@@ -43,11 +74,15 @@
                         <div class="col-md-6">
 
                             <div class="js-roster">
-                                <h4><asp:Literal ID="lMembers" runat="server" /></h4>
+                                <h4>
+                                    <asp:Literal ID="lMembers" runat="server" />
+                                </h4>
                                 <asp:ListView ID="lvMembers" runat="server">
                                     <ItemTemplate>
-                                        <asp:HiddenField ID="hfMember" runat="server" Value='<%# Eval("PersonId") %>' />
-                                        <Rock:RockCheckBox ID="cbMember" runat="server" Checked='<%# Eval("Attended") %>' Text='<%# Eval("FullName") %>' />
+                                        <div onclick="updateCount()">
+                                            <asp:HiddenField ID="hfMember" runat="server" Value='<%# Eval("PersonId") %>' />
+                                            <Rock:RockCheckBox ID="cbMember" runat="server" Checked='<%# Eval("Attended") %>' Text='<%# Eval("FullName") %>' />
+                                        </div>
                                     </ItemTemplate>
                                 </asp:ListView>
                                 <div class="pull-right margin-b-lg">
@@ -58,23 +93,24 @@
                         </div>
                         <div class="col-md-6">
 
-                            <asp:panel id="pnlPendingMembers" runat="server" visible="false">
-                                <h4><asp:Literal ID="lPendingMembers" runat="server" /></h4>
+                            <asp:Panel ID="pnlPendingMembers" runat="server" Visible="false">
+                                <h4>
+                                    <asp:Literal ID="lPendingMembers" runat="server" /></h4>
                                 <asp:ListView ID="lvPendingMembers" runat="server" OnItemCommand="lvPendingMembers_ItemCommand">
                                     <ItemTemplate>
                                         <div class="form-group">
                                             <asp:HiddenField ID="hfMember" runat="server" Value='<%# Eval("Id") %>' />
                                             <asp:Label ID="lName" runat="server" Text='<%# Eval("FullName") %>' />
-                                            <asp:LinkButton ID="lbAdd" runat="server" ToolTip="Add Person to Group" CausesValidation="false" CommandName="Add" CommandArgument='<%# Eval("Id") %>' CssClass="js-add-member" ><i class="fa fa-plus"></i></asp:LinkButton>
+                                            <asp:LinkButton ID="lbAdd" runat="server" ToolTip="Add Person to Group" CausesValidation="false" CommandName="Add" CommandArgument='<%# Eval("Id") %>' CssClass="js-add-member"><i class="fa fa-plus"></i></asp:LinkButton>
                                         </div>
                                     </ItemTemplate>
                                 </asp:ListView>
-                            </asp:panel>
+                            </asp:Panel>
 
                         </div>
                     </div>
                     <div>
-                        <Rock:RockTextBox ID="tbCount" runat="server"  Width="60" Label="Head Count:"></Rock:RockTextBox>
+                        <Rock:RockTextBox ID="tbCount" runat="server" Width="60" Label="Head Count:"></Rock:RockTextBox>
                         <Rock:RockTextBox ID="tbNotes" runat="server" TextMode="MultiLine" Rows="5" Label="Notes:"></Rock:RockTextBox>
                     </div>
                     <div class="actions">

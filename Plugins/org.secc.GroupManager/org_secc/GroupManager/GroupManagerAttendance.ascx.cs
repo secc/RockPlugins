@@ -41,6 +41,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [BooleanField( "Allow Add Date", "Should block support adding new attendance dates outside of the group's configured schedule and group type's exclusion dates?", true, "", 0 )]
     [BooleanField( "Allow Add Person", "Should block support adding new attendee ( Requires that person has rights to search for new person )?", false, "", 1 )]
     [MergeTemplateField( "Attendance Roster Template", "", false )]
+    [TextField("Count Label", "Label for count field.", true, "Head Count:")]
+    [BooleanField("Auto Count", "Auto count membership.", false)]
     public partial class GroupManagerAttendance : RockBlock
     {
         #region Private Variables
@@ -105,6 +107,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 {
                     BindDropDown();
                     ShowDetails();
+                    tbCount.Label = GetAttributeValue( "CountLabel" );
                 }
                 else
                 {
@@ -135,6 +138,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                         }
                     }
                 }
+            }
+
+            if ( GetAttributeValue( "AutoCount" ).AsBoolean() )
+            {
+                ScriptManager.RegisterStartupScript( this, this.GetType(), "AutoCount", "doCount = true;", true );
             }
         }
 
@@ -585,8 +593,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         $('#{0}').click(function () {{
             if ($(this).is(':checked')) {{
                 $('div.js-roster').hide('fast');
+                updateCount();
             }} else {{
                 $('div.js-roster').show('fast');
+                updateCount();
             }}
         }});
 
