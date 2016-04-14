@@ -84,6 +84,7 @@
                                 </div>
 
                             </div>
+                            <Rock:CodeEditor ID="ceContentLava" EditorMode="Lava" runat="server" Label="Display Lava"></Rock:CodeEditor>
 
                         </ContentTemplate>
                     </asp:UpdatePanel>

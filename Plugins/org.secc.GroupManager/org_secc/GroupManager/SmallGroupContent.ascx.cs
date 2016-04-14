@@ -63,6 +63,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [BooleanField( "Set Page Title", "Determines if the block should set the page title with the channel name or content item.", false, "CustomSetting" )]
     [TextField( "Meta Description Attribute", "Attribute to use for storing the description attribute.", false, "", "CustomSetting" )]
     [TextField( "Meta Image Attribute", "Attribute to use for storing the image attribute.", false, "", "CustomSetting" )]
+    [CodeEditorField( "ContentLava", "Lava to display content with.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 300,
+        true, @"<div class='content'> {% for item in Items %} <div class='row'> <h2> {{ item.Title }} </h2> <div class=''> {{item.Content}} </div> </div> {% endfor %} </div>", "CustomSetting" )]
 
     public partial class SmallGroupContent : RockBlockCustomSettings
     {
@@ -260,6 +262,8 @@ $(document).ready(function() {
             var ppFieldType = new PageReferenceFieldType();
             SetAttributeValue( "DetailPage", ppFieldType.GetEditValue( ppDetailPage, null ) );
 
+            SetAttributeValue( "ContentLava", ceContentLava.Text );
+
             SaveAttributeValues();
 
             FlushCacheItem( CONTENT_CACHE_KEY + ChannelGuid );
@@ -385,6 +389,7 @@ $(document).ready(function() {
             kvlOrder.Value = GetAttributeValue( "Order" );
             kvlOrder.Required = true;
 
+            ceContentLava.Text = GetAttributeValue( "ContentLava" );
 
             ShowEdit();
 
@@ -562,8 +567,9 @@ $(document).ready(function() {
             }
 
             var template = GetTemplate();
+            var render = template.Render( Hash.FromDictionary( mergeFields ) );
 
-            phContent.Controls.Add( new LiteralControl( template.Render( Hash.FromDictionary( mergeFields ) ) ) );
+            phContent.Controls.Add( new LiteralControl( render ) );
         }
 
         private void ShowSidebar()
@@ -625,14 +631,7 @@ $(document).ready(function() {
             var template = GetCacheItem( TEMPLATE_CACHE_KEY + ChannelGuid ) as Template;
             if ( template == null )
             {
-                var ministryGroup = _group.ParentGroup.ParentGroup;
-                if ( ministryGroup == null )
-                {
-                    return Template.Parse( "Ministry Group Not Found" );
-                }
-                ministryGroup.LoadAttributes();
-
-                template = Template.Parse( ministryGroup.GetAttributeValue( "ContentLava" ) );
+                template = Template.Parse(GetAttributeValue( "ContentLava" ) );
 
                 int? cacheDuration = GetAttributeValue( "CacheDuration" ).AsInteger();
                 if ( cacheDuration > 0 )
