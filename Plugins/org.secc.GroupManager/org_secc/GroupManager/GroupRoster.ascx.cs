@@ -13,12 +13,16 @@ using Rock;
 using Rock.Attribute;
 using Rock.Security;
 using System.Text;
+using DotLiquid;
 
 namespace RockWeb.Plugins.org_secc.GroupManager
 {
     [DisplayName( "Group Roster" )]
     [Category( "Groups" )]
     [Description( "Presents roster of group in roster format only if current user is leader of group." )]
+
+    //Settings
+    [CodeEditorField( "Roster Lava", "Lava to appear in member roster pannels", CodeEditorMode.Lava, CodeEditorTheme.Rock, 600 )]
     public partial class GroupRoster : RockBlock
     {
         Group group = new Group();
@@ -448,6 +452,27 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 return "label-primary pull-right";
             }
             return "label-default pull-right";
+        }
+
+        protected string RosterLava( object Person )
+        {
+            var lava = GetAttributeValue( "RosterLava" );
+            if ( !string.IsNullOrWhiteSpace( lava ) )
+            {
+                var _person = ( Person ) Person;
+                _person.LoadAttributes();
+                Dictionary<string, object> mergeObjects = new Dictionary<string, object> {
+                    {"Person", _person },
+                    {"CurrentPerson", CurrentPerson }
+                };
+                return lava.ResolveMergeFields( mergeObjects );
+            }
+            else
+            {
+                return "";
+            }
+
+
         }
 
         protected string StyleStatusLabel( object Status )

@@ -1,5 +1,42 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="GroupRoster.ascx.cs" Inherits="RockWeb.Plugins.org_secc.GroupManager.GroupRoster" %>
 
+<style>
+    .columns {
+        -webkit-column-count: 3;
+        -webkit-column-gap: 10px;
+        -webkit-column-fill: auto;
+        -moz-column-count: 3;
+        -moz-column-gap: 10px;
+        /*-moz-column-fill: auto;*/
+        column-count: 3;
+        column-gap: 10px;
+        column-fill: auto;
+    }
+
+    .panel {
+        -webkit-column-break-inside: avoid;
+          page-break-inside: avoid;
+               break-inside: avoid;
+    }
+
+    @media (max-width: 990px) {
+        .columns {
+            -webkit-column-count: 2;
+            -moz-column-count: 2;
+            column-count: 2;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .columns {
+            -webkit-column-count: 1;
+            -moz-column-count: 1;
+            column-count: 1;
+        }
+    }
+</style>
+
+
 <asp:UpdatePanel ID="upDevice" runat="server">
     <ContentTemplate>
         <asp:HiddenField ID="hfCommunication" runat="server" Value="" />
@@ -31,7 +68,7 @@
                                 OnClick="btnActivate_Click" CssClass="btn btn-primary"></Rock:BootstrapButton>
                             <Rock:BootstrapButton ID="btnDeactivate" runat="server" Text="Deactivate Member"
                                 OnClick="btnDeactivate_Click" CssClass="btn btn-danger"></Rock:BootstrapButton>
-                       
+
                             <Rock:BootstrapButton ID="btnCloseModal" CssClass="btn btn-default"
                                 OnClick="btnCloseModal_Click" runat="server" Text="Close"></Rock:BootstrapButton>
                         </div>
@@ -82,36 +119,38 @@
                 <Rock:BootstrapButton runat="server" ID="btnSMS" CssClass="btn btn-default btn-lg pull-right" OnClick="btnSMS_Click"><i class="fa fa-mobile-phone"></i> Text</Rock:BootstrapButton>
             </asp:Panel>
 
-            <asp:Panel runat="server" ID="pnlRoster" Visible="false">
-                <asp:Repeater runat="server" ID="rRoster" OnItemDataBound="rRoster_ItemDataBound">
-                    <ItemTemplate>
-                        <div class="col-xs-12 col-md-4">
+            <asp:Panel runat="server" ID="pnlRoster" Visible="false" CssClass="wrapper">
+                <div class="columns">
+                    <asp:Repeater runat="server" ID="rRoster" OnItemDataBound="rRoster_ItemDataBound">
+                        <ItemTemplate>
                             <div class="panel panel-default" style="min-height: 200px;">
                                 <div class="panel-heading">
                                     <asp:Label runat="server" Style="font-weight: bold"
                                         Text='<%# Eval("Name") %>' />
                                     <Rock:HighlightLabel runat="server" Text='<%# Eval("Status") %>'
-                                         CssClass='<%# StyleStatusLabel(Eval("Status"))%>' />
+                                        CssClass='<%# StyleStatusLabel(Eval("Status"))%>' />
                                     <Rock:HighlightLabel runat="server" Text='<%# Eval("Role") %>'
                                         CssClass='<%# StyleLeaderLabel(Eval("IsLeader"))%>' />
                                 </div>
                                 <div class="panel-body">
-                                    <div class="col-xs-4 thumbnail">
-                                        <img src='<%# Eval("PhotoUrl") %>' />
+                                    <div class="col-sm-4 col-xs-12 thumbnail">
+                                        <img src='<%# Eval("PhotoUrl") %>' alt="Photo">
                                     </div>
-                                    <div class="col-xs-8">
+                                    <div class="col-sm-8 col-xs-12">
                                         <asp:Label runat="server" ID="Label1"
                                             Text='<%# Eval("FormattedAddress") %>' />
                                         <br />
                                         <asp:Label runat="server" ID="Label5"
                                             Text='<%# Eval("Phone") %>' />
+                                        <br>
                                         <Rock:BootstrapButton runat="server" ID="btnRosterEmail"></Rock:BootstrapButton>
+                                        <Rock:RockLiteral ID="ltLava" runat="server" Text='<%# RosterLava(Eval("Person"))%>'></Rock:RockLiteral>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </ItemTemplate>
-                </asp:Repeater>
+                        </ItemTemplate>
+                    </asp:Repeater>
+                </div>
             </asp:Panel>
         </asp:Panel>
 
