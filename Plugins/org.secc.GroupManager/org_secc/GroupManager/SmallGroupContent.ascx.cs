@@ -196,6 +196,18 @@ $(document).ready(function() {
                         ShowSidebar();
                     }
                 }
+
+                if ( GetAttributeValue( "FilterByDate" ).AsBoolean() )
+                {
+                    var script = string.Format( @"
+$('#updateProgress').hide();
+document.getElementById('{0}').onchange = function() {{
+$('#updateProgress').show();
+    __doPostBack('{1}', 'OnClick');
+}}", dpCalendar.ClientID, btnCalendar.UniqueID );
+                    ScriptManager.RegisterStartupScript( Page, Page.GetType(), "CalendarScript",
+                        script, true );
+                }
             }
             else
             {
@@ -203,7 +215,6 @@ $(document).ready(function() {
                 pnlView.Visible = false;
                 nbAlert.Visible = true;
                 nbAlert.Text = "You are not authorized to view this page.";
-
             }
         }
 
@@ -631,7 +642,7 @@ $(document).ready(function() {
             var template = GetCacheItem( TEMPLATE_CACHE_KEY + ChannelGuid ) as Template;
             if ( template == null )
             {
-                template = Template.Parse(GetAttributeValue( "ContentLava" ) );
+                template = Template.Parse( GetAttributeValue( "ContentLava" ) );
 
                 int? cacheDuration = GetAttributeValue( "CacheDuration" ).AsInteger();
                 if ( cacheDuration > 0 )
@@ -719,7 +730,7 @@ $(document).ready(function() {
                                         if ( GetAttributeValue( "FilterByDate" ).AsBoolean() )
                                         {
                                             //Filter out of date content items
-                                            var SelectedDate = (dpCalendar.SelectedDate ?? Rock.RockDateTime.Now).Date;
+                                            var SelectedDate = ( dpCalendar.SelectedDate ?? Rock.RockDateTime.Now ).Date;
                                             if ( SelectedDate >= item.StartDateTime.Date && SelectedDate <= item.ExpireDateTime )
                                             {
                                                 items.Add( item );

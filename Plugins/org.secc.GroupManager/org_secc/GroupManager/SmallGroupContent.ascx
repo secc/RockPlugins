@@ -22,8 +22,7 @@
                 <Rock:NotificationBox ID="nbContentError" runat="server" Dismissable="true" Visible="false" />
                 <div class="col-xs-12">
                     <asp:Panel ID="pnlCalendar" Visible="false" runat="server" class="pull-right">
-                        <Rock:BootstrapButton runat="server" ID="btnCalendar" Text="GO"
-                             CssClass="btn btn-warning pull-right" OnClick="btnCalendar_Click"></Rock:BootstrapButton>
+                        <Rock:BootstrapButton runat="server" ID="btnCalendar" Visible="false" OnClick="btnCalendar_Click"></Rock:BootstrapButton>
                         <Rock:DatePicker runat="server" ID="dpCalendar" CssClass="pull-right"></Rock:DatePicker>
                     </asp:Panel>
                 </div>
