@@ -1,0 +1,135 @@
+﻿<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE html
+PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN'>
+<html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>
+<head>
+<title>Southeast Christian Church | Purchase Order</title>
+<style>
+.border-1px th, .border-1px td {
+    border-bottom: 1px solid black;
+    border-right: 1px solid black;
+}
+table.border-1px {
+    border-top: 1px solid black;
+    border-left: 1px solid black;
+}
+th, td {
+    font-size: 12px;
+}
+table {
+    font-size: 12px;
+}
+
+</style>
+</head>
+<body>
+    <div style="height: 92%">
+        <div>
+            <div style="float:left; width: 300px; text-align: center;">
+                <img src="https://www.southeastchristian.org/_/img/logos/southeast/black-border-on-white.png" />
+            </div>
+            <div style="float: left; width: 250px">
+                <h2 style="margin-top: 0px">Purchase Order</h2>
+                <h4>Southeast Christian Church<br />
+                    920 Blankenbaker Parkway<br />
+                    Louisville, KY 40243-1845<br />
+                    (502) 253-8000</h4>
+            </div>
+            <div style="float: left; width: 150px; text-align: right;">
+                <h4>PO #: {{PurchaseOrder.PurchaseOrderID}}</h4>
+            </div>
+        </div>
+        <br clear="both" />
+        <div style="text-align: center; font-size: 12px: border: 3px">
+            <em><strong>Jesus answered, "I am the way and the truth and the life. No one comes to the Father except through me." John 14:6 NIV®</strong></em>
+             <hr width="80%" noshade size="1" style="margin: 0px; margin-top: 5px" />
+            <hr width="80%" noshade size="1" style="margin: 0px" />
+        </div>
+
+        <div style="float:left; width: 100px;">&nbsp;</div>
+        <div style="float:left; width: 100px;">
+            <h4>Vendor:</h4>
+        </div>
+        <div style="float:left; width: 200px; font-size: 12px; padding-top: 5px">
+            {{Vendor}}
+        </div>
+        <div style="float:left; width: 100px;">
+            <h4>Ship To:</h4>
+        </div>
+        <div style="float:left; width: 200px; font-size: 12px; padding-top: 5px">
+            {{ShipTo.Name}}<br />
+            {% if ShipTo.Attn != '' %}
+                Attn: {{ShipTo.Attn }} <br />
+            {% endif %}
+            {% assign s1 = ShipTo.Street1 | Size %}
+            {% assign s2 = ShipTo.City | Size %}
+            {% assign s3 = ShipTo.State | Size %}
+            {% assign s4 = ShipTo.Zip | Size %}
+            {% if s1 != 0 && s2 != 0 && s3 != 0 && s4 != 0 %}
+                {{ShipTo.Street1}}<br />
+                {{ShipTo.City}}, {{ShipTo.State}} {{ShipTo.Zip}}
+            {% endif %}
+        </div>
+        <br clear="both" />&nbsp;
+        <table class="border-1px" cellspacing="0" cellpadding="5" style="width: 100%">
+            <thead>
+                <tr>
+                    <th width="8%" align="center">Quantity</th>
+                    <th width="10%" align="center">Item #</th>
+                    <th width="62%" align="center">Description</th>
+                    <th width="10%" align="center">Price</th>
+                    <th width="10%" align="center">Extension</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in PurchaseOrderItems %}
+                <tr>
+                    <td width="8%" align="center">{{item.Quantity}}</td>
+                    <td width="10%">{{item.ItemNumber}}</td>
+                    <td width="62%">{{item.Description}}</td>
+                    <td width="10%" align="right">{{item.Price | FormatAsCurrency }}</td>
+                    <td width="10%" align="right">{{item.Price | Times:item.Quantity | FormatAsCurrency}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <table cellspacing="0" cellpadding="5" style="width: 100%">
+            <tbody>
+                <tr>
+                    <td width="80%">&nbsp;</td>
+                    <th align="right" width="10%">Subtotal:</th>
+                    <td align="right" width="10%">{{SubTotal | FormatAsCurrency }}</td>
+                </tr>
+                <tr>
+                    <td width="80%">&nbsp;</td>
+                    <th align="right" width="10%">Shipping:</th>
+                    <td align="right" width="10%">{{ShippingCharge | FormatAsCurrency }}</td>
+                </tr>
+                <tr>
+                    <td width="80%">&nbsp;</td>
+                    <th align="right" width="10%">Other:</th>
+                    <td align="right" width="10%">{{OtherCharge | FormatAsCurrency }}</td>
+                </tr>
+                <tr>
+                    <td width="80%">&nbsp;</td>
+                    <th align="right" width="10%" style="border-top: 1px solid #000">Total:</th>
+                    <td align="right" width="10%" style="border-top: 1px solid #000">{{SubTotal | Plus:OtherCharge | Plus:ShippingCharge | FormatAsCurrency }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <table cellspacing="10" style="width:100%; height: 100px; bottom:0px; border: 1px solid #000">
+        <tbody>
+            <tr>
+                <td colspan="4">Southeast Christian Church is a tax exempt organization. Tax exempt #E2458</td>
+            </tr>
+            <tr>
+                <td width="15%">Ordered by:</td>
+                <td width="35%" style="border-bottom: 1px solid #000">{{OrderedBy}}</td>
+                <td width="15%">Date:</td>
+                <td width="35%" style="border-bottom: 1px solid #000" align="right">{{OrderedDate | Date:'M/d/yyyy'}}</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

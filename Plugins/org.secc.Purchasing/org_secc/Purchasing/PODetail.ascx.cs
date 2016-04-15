@@ -14,6 +14,7 @@ using Rock.Attribute;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 using Rock.Model;
+using org.secc.PDF;
 
 namespace RockWeb.Plugins.org_secc.Purchasing
 {
@@ -29,8 +30,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
     [LinkedPage("Purchase Order List Page", "Purchase Order List Page", true)]
     [LinkedPage("Requisition Detail Page", "Requisition Detail Page", true)]
     [IntegerField("Ministry Person Attribute ID", "Ministry Person AttributeID", true)]
-    [TextField("Purchase Order Report Path", "Path to the purchase order report.", true, "/Arena/Purchasing/Purchase Order")]
-    [GroupField("Receving User Group", "Group that contains list of staff/volunteers who can receive items into purchasing/receiving.", true)]
+    [CodeEditorField("PDF Report Lava", "HTML/Lava for generating the PDF Report", CodeEditorMode.Lava, CodeEditorTheme.Rock, 200, true,"{% include '~/Plugins/org_secc/Purchasing/PurchaseOrderPDF.lava' %}", "PDF Report")]
+    [WorkflowTypeField("PDF Report Workflow", "The workflow type to activate to merge the output PDF", false, false, null, "PDF Report")]
+    [TextField("PDF Report Activity", "The workflow activity to merge the output PDF", false, "Lava", "PDF Report")]
+    [GroupField("Receiving User Group", "Group that contains list of staff/volunteers who can receive items into purchasing/receiving.", true)]
     [LinkedPage("Person Detail Page", "Person Detail Page", false, "7", "Staff Selector")]
 
     [AttributeField(Rock.SystemGuid.EntityType.PERSON, "Ministry Area Person Attribute", "The person attribute that stores the user's Ministry Area.", false, false, null, "Staff Selector")]
@@ -80,21 +83,16 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
         }
 
-        public string PurchaseOrderReportPathSetting { get { return GetAttributeValue("PurchaseOrderReportPath"); } }
-
         public int ReceivingUserTagSetting
         {
             get
             {
-                int profileId = 0;
-                string selectedTag = GetAttributeValue("ReceivingUserGroup");
-
-                if (!String.IsNullOrEmpty(selectedTag) && selectedTag.Split("|".ToCharArray()).Length == 2)
-                {
-                    int.TryParse(selectedTag.Split("|".ToCharArray())[1], out profileId);
+                Guid? selectedTag = GetAttributeValue("ReceivingUserGroup").AsGuidOrNull();
+                if (selectedTag.HasValue) {
+                    GroupService groupService = new GroupService(rockContext);
+                    return groupService.Get(selectedTag.Value).Id;
                 }
-
-                return profileId;
+                return 0;
             }
         }
 
@@ -164,6 +162,33 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         #endregion
 
         #region Page Events
+
+        protected override void CreateChildControls()
+        {
+            base.CreateChildControls();
+             Button button = new Button()
+            {
+                ID = "btnPaymentMethodPaymentAdd",
+                CssClass = "btn btn-primary",
+                Text = "Add Payment"
+            };
+            button.Click += btnPaymentMethodPaymentAdd_Click;
+            mpPayments.Footer.Controls.Add(button);
+            
+            button = new Button()
+            {
+                ID = "btnPaymentMethodPaymentAddCharges",
+                CssClass = "btn btn-primary",
+                Text = "Update Charges"
+            };
+            button.Click += btnPaymentMethodPaymentUpdateCharges_Click;
+            mpPayments.Footer.Controls.Add(button);
+
+            ucStaffSearch.MinistryAreaAttributeGuid = MinistryAreaAttributeIDSetting;
+            ucStaffSearch.PositionAttributeGuid = PositionAttributeIDSetting;
+
+        }
+
         protected override void OnInit(EventArgs e)
         {
             rockContext = new Rock.Data.RockContext();
@@ -173,6 +198,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             attributeService = new AttributeService(rockContext);
 
             ucNotes.RefreshParent += new EventHandler(ucNotes_RefreshParent);
+            ucNotes.CurrentUserName = CurrentUser.UserName;
+            ucNotes.UserHasParentEditPermission = UserCanEdit;
             ucAttachments.RefreshParent += new EventHandler(ucAttachments_RefreshParent);
             // TODO: Fix the document/attachment stuff!
             /*mpiDocumentChooser.Url = "/DocumentBrowser.aspx?callback=selectDocument&SelectedID=#selectedID#&DocumentTypeID=#documentTypeID#";
@@ -204,7 +231,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
             else
             {
-                baseUrl = string.Format("~/page/{0}?poid={1}", CurrentPageReference.PageId);
+                baseUrl = string.Format("~/page/{0}", CurrentPageReference.PageId);
             }
 
             lnkAttachments.NavigateUrl = baseUrl + "#catAttachments";
@@ -225,6 +252,19 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             cancelLink.InnerText = "Cancel";
             cancelLink.AddCssClass("btn-default");
             cancelLink.RemoveCssClass("btn-link");
+            cancelLink = (HtmlAnchor)mpPayments.Footer.FindControl("cancelLink");
+            cancelLink.InnerText = "Cancel";
+            cancelLink.AddCssClass("btn-default");
+            cancelLink.RemoveCssClass("btn-link");
+            cancelLink = (HtmlAnchor)mpReceivePackage.Footer.FindControl("cancelLink");
+            cancelLink.InnerText = "Cancel";
+            cancelLink.AddCssClass("btn-default");
+            cancelLink.RemoveCssClass("btn-link");
+            cancelLink = (HtmlAnchor)mpShipToSelect.Footer.FindControl("cancelLink");
+            cancelLink.InnerText = "Cancel";
+            cancelLink.AddCssClass("btn-default");
+            cancelLink.RemoveCssClass("btn-link");
+            
         }
 
         protected override void OnPreRender(EventArgs e)
@@ -264,31 +304,28 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
         }
 
-        protected void dgPayments_ItemCommand(object sender, DataGridCommandEventArgs e)
+        protected void dgPayments_ItemCommand(object sender, CommandEventArgs e)
         {
-            if (e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem)
+            int PaymentID = 0;
+            int.TryParse(e.CommandArgument.ToString(), out PaymentID);
+            switch (e.CommandName.ToLower())
             {
-                int PaymentID = 0;
-                int.TryParse(e.CommandArgument.ToString(), out PaymentID);
-                switch (e.CommandName.ToLower())
-                {
-                    case "details":
-                        ShowPaymentDetailModal(PaymentID);
-                        break;
-                    case "remove":
-                        RemovePayment(PaymentID);
-                        break;
-                }
+                case "details":
+                    ShowPaymentDetailModal(PaymentID);
+                    break;
+                case "remove":
+                    RemovePayment(PaymentID);
+                    break;
             }
         }
 
-        protected void dgPayments_ItemDataBound(object sender, DataGridItemEventArgs e)
+        protected void dgPayments_RowDataBound(object sender, GridViewRowEventArgs e)
         {
-            if (e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem)
+            if (e.Row.RowType == DataControlRowType.DataRow)
             {
-                DataRowView drv = (DataRowView)e.Item.DataItem;
-                LinkButton lbDetails =(LinkButton) e.Item.FindControl("lbDetails");
-                LinkButton lbRemove = (LinkButton)e.Item.FindControl("lbRemove");
+                DataRowView drv = (DataRowView)e.Row.DataItem;
+                LinkButton lbDetails = (LinkButton)e.Row.FindControl("lbDetails");
+                LinkButton lbRemove = (LinkButton)e.Row.FindControl("lbRemove");
 
                 lbDetails.CommandArgument = drv["PaymentID"].ToString();
                 lbRemove.CommandArgument = drv["PaymentID"].ToString();
@@ -297,34 +334,31 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
         }
 
-        protected void dgReceivingHistory_ItemCommand(object sender, DataGridCommandEventArgs e)
+        protected void dgReceivingHistory_ItemCommand(object sender, CommandEventArgs e)
         {
-            if (e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem)
-            {
-                int receiptId = 0;
+            int receiptId = 0;
 
-                if(int.TryParse(e.CommandArgument.ToString(), out receiptId))
+            if(int.TryParse(e.CommandArgument.ToString(), out receiptId))
+            {
+                switch (e.CommandName.ToLower())
                 {
-                    switch (e.CommandName.ToLower())
-                    {
-                        case "showreceipt":
-                            ShowReceivePackageModel(receiptId);
-                            break;
-                        case "removereceipt":
-                            RemoveReceipt(receiptId);
-                            break;  
-                    }
+                    case "showreceipt":
+                        ShowReceivePackageModel(receiptId);
+                        break;
+                    case "removereceipt":
+                        RemoveReceipt(receiptId);
+                        break;  
                 }
             }
         }
 
-        protected void dgReceivingHistory_ItemDataBound(object sender, DataGridItemEventArgs e)
+        protected void dgReceivingHistory_RowDataBound(object sender, GridViewRowEventArgs e)
         {
-            if (e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem)
+            if (e.Row.RowType == DataControlRowType.DataRow)
             {
-                DataRowView drv = (DataRowView)e.Item.DataItem;
-                LinkButton lbShowReceipt = (LinkButton)e.Item.FindControl("lbShowReceipt");
-                LinkButton lbRemoveReceipt = (LinkButton)e.Item.FindControl("lbRemoveReceipt");
+                DataRowView drv = (DataRowView)e.Row.DataItem;
+                LinkButton lbShowReceipt = (LinkButton)e.Row.FindControl("lbShowReceipt");
+                LinkButton lbRemoveReceipt = (LinkButton)e.Row.FindControl("lbRemoveReceipt");
 
                 lbShowReceipt.CommandArgument = drv["ReceiptID"].ToString();
                 lbRemoveReceipt.CommandArgument = drv["ReceiptID"].ToString();
@@ -1208,8 +1242,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void RedirectToList()
         {
-            String RedirectLink = string.Format("~/default.aspx?page={0}", PurchaseOrderListPageSetting);
-            Response.Redirect(RedirectLink, true);
+            NavigateToPage(PurchaseOrderListPageSetting.AsGuid(), null);
         }
 
         private void RemoveItemFromPO(int poItemID)
@@ -1636,11 +1669,78 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if (CurrentPurchaseOrder == null)
                 return;
 
-            string poLink = string.Format("/ReportPDFViewer.aspx?Report={0}&PONumber={1}&OrganizationID={2}", PurchaseOrderReportPathSetting, CurrentPurchaseOrder.PurchaseOrderID, CurrentPurchaseOrder.OrganizationID);
+            PDFWorkflowObject pdfWorkflowObject = new PDFWorkflowObject();
 
-            string js = string.Format("window.open(\"{0}\", \"_blank\", \"height=600,width=800,status=0,menubar=0,toolbar=0,resizable=1\",false);", poLink);
+            pdfWorkflowObject.LavaInput = GetAttributeValue("PDFReportLava");
 
-            ScriptManager.RegisterStartupScript(upMain, upMain.GetType(), "PrintPO" + DateTime.Now.Ticks, js, true);
+            pdfWorkflowObject.MergeObjects = new Dictionary<string, object>();
+            pdfWorkflowObject.MergeObjects.Add("Vendor", CurrentPurchaseOrder.Vendor.VendorName);
+            pdfWorkflowObject.MergeObjects.Add("ShipTo", 
+                new Dictionary<String, String> {
+                    { "Name", CurrentPurchaseOrder.ShipToName },
+                    { "Attn", CurrentPurchaseOrder.ShipToAttn },
+                    { "Street1", CurrentPurchaseOrder.ShipToAddress != null?CurrentPurchaseOrder.ShipToAddress.StreetAddress:null},
+                    { "City", CurrentPurchaseOrder.ShipToAddress != null?CurrentPurchaseOrder.ShipToAddress.City:null},
+                    { "State", CurrentPurchaseOrder.ShipToAddress != null?CurrentPurchaseOrder.ShipToAddress.State:null},
+                    { "Zip", CurrentPurchaseOrder.ShipToAddress != null?CurrentPurchaseOrder.ShipToAddress.PostalCode:null },
+ 
+                });
+            List<Dictionary<String, Object>> purchaseOrderItems = new List<Dictionary<String, Object>>();
+            foreach (PurchaseOrderItem item in CurrentPurchaseOrder.Items) 
+            {
+                purchaseOrderItems.Add(new Dictionary<String, Object> {
+                    { "Quantity", item.Quantity},
+                    { "ItemNumber", item.RequisitionItem.ItemNumber},
+                    { "Description", item.RequisitionItem.Description},
+                    { "Price", item.Price}
+                });
+            }
+            pdfWorkflowObject.MergeObjects.Add("PurchaseOrderItems", purchaseOrderItems);
+
+            pdfWorkflowObject.MergeObjects.Add("PurchaseOrder", 
+                new Dictionary<String, Object> {
+                    { "PurchaseOrderID", CurrentPurchaseOrder.PurchaseOrderID }
+ 
+                });
+
+            pdfWorkflowObject.MergeObjects.Add("SubTotal", CurrentPurchaseOrder.Items.Where(x => x.Active).Select(x => (x.Price * x.Quantity)).Sum());
+            pdfWorkflowObject.MergeObjects.Add("ShippingCharge", CurrentPurchaseOrder.ShippingCharge);
+            pdfWorkflowObject.MergeObjects.Add("OtherCharge", CurrentPurchaseOrder.OtherCharge);
+
+            pdfWorkflowObject.MergeObjects.Add("OrderedBy", CurrentPurchaseOrder.OrderedBy.FullName);
+            pdfWorkflowObject.MergeObjects.Add("OrderedDate", CurrentPurchaseOrder.DateOrdered);
+
+            Guid workflowTypeGuid = Guid.NewGuid();
+            if (Guid.TryParse(GetAttributeValue("PDFReportWorkflow"), out workflowTypeGuid))
+            {
+                var workflowTypeService = new WorkflowTypeService(rockContext);
+                var workflowType = workflowTypeService.Get(workflowTypeGuid);
+                if (workflowType != null)
+                {
+                    var workflow = Workflow.Activate(workflowType, "PDFLavaWorkflow");
+
+                    List<string> workflowErrors;
+                    var workflowService = new WorkflowService(rockContext);
+                    var workflowActivity = GetAttributeValue("PDFReportActivity");
+                    var activityType = workflowType.ActivityTypes.Where(a => a.Name == workflowActivity).FirstOrDefault();
+                    if (activityType != null)
+                    {
+                        WorkflowActivity.Activate(activityType, workflow, rockContext);
+                        if (workflowService.Process(workflow, pdfWorkflowObject, out workflowErrors))
+                        {
+                            var b = pdfWorkflowObject.RenderedPDF.DatabaseData.Content;
+                            Response.Clear();
+                            Response.Buffer = true;
+                            //Response.Write(pdfWorkflowObject.RenderedXHTML);
+                            //Response.End();
+                            Response.ContentType = pdfWorkflowObject.RenderedPDF.MimeType;
+                            Response.AddHeader("content-disposition", "attachment;filename=\"PurchaseOrder-" + CurrentPurchaseOrder.PurchaseOrderID +".pdf\"");
+                            Response.OutputStream.Write(b, 0, b.Length);
+                            Response.End();
+                        }
+                    }
+                }
+            }
         }
 
         private bool SelectVendor()
@@ -1792,8 +1892,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         public void BindCampusList()
         {
             ddlShipToCampus.Items.Clear();
-            ;
-            ddlShipToCampus.DataSource = campusService.Queryable().Where(c => c.LocationId > 0).OrderBy(c => c.Name);
+
+            ddlShipToCampus.DataSource = campusService.Queryable().Where(c => c.LocationId > 0).OrderBy(c => c.Name).ToList();
             ddlShipToCampus.DataValueField = "Id";
             ddlShipToCampus.DataTextField = "Name";
             ddlShipToCampus.DataBind();
@@ -2421,14 +2521,14 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         }
 
-        protected void dgReceivePackageItems_ItemDataBound(object sender, DataGridItemEventArgs e)
+        protected void dgReceivePackageItems_RowDataBound(object sender, GridViewRowEventArgs e)
         {
-            if (e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem)
+            if (e.Row.RowType == DataControlRowType.DataRow)
             {
-                TextBox txtQtyReceiving = (TextBox)e.Item.FindControl("txtReceivePackageQtyReceiving");
-                Label lblQtyReceiving = (Label)e.Item.FindControl("lblReceivePackageQtyReceiving");
-                
-                DataRowView drv = (DataRowView)e.Item.DataItem;
+                TextBox txtQtyReceiving = (TextBox)e.Row.FindControl("txtReceivePackageQtyReceiving");
+                Label lblQtyReceiving = (Label)e.Row.FindControl("lblReceivePackageQtyReceiving");
+
+                DataRowView drv = (DataRowView)e.Row.DataItem;
                 int QtyToReceive = ((int)drv["QtyOrdered"] - (int)drv["PreviouslyReceived"]);
                 int ReceiptID = 0;
                 int.TryParse(hfReceiptID.Value, out ReceiptID);
@@ -2469,7 +2569,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             ddlReceivePackageCarriers.Items.Clear();
             ddlReceivePackageCarriers.DataSource = Receipt.GetShippingCarriers(true).OrderBy(x => x.Value);
-            ddlReceivePackageCarriers.DataValueField = "LookupID";
+            ddlReceivePackageCarriers.DataValueField = "Id";
             ddlReceivePackageCarriers.DataTextField = "Value";
             ddlReceivePackageCarriers.DataBind();
 
@@ -2552,9 +2652,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void ClearOtherReceiverFields()
         {
-            lblOtherReceiverName.Text = "&nbsp;";
+            /*lblOtherReceiverName.Text = "&nbsp;";
             lbOtherReceiverRemove.Visible = false;
-            hfOtherReceiverPersonID.Value = String.Empty;
+            hfOtherReceiverPersonID.Value = String.Empty;*/
 
 
         }
@@ -2588,8 +2688,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 {
                     TextBox txtReceivePackageQtyReceiving = (TextBox)item.FindControl("txtReceivePackageQtyReceiving");
                     int QtyReceiving = 0;
-                    int POItemID = 0;
-                    int.TryParse(item.Cells[0].Text, out POItemID);
+                    int POItemID = dgReceivePackageItems.DataKeys[item.RowIndex][0].ToString().AsInteger();
 
                     if (!String.IsNullOrEmpty(txtReceivePackageQtyReceiving.Text) && int.TryParse(txtReceivePackageQtyReceiving.Text, out QtyReceiving) && QtyReceiving > 0)
                         Items.Add(POItemID, QtyReceiving);
@@ -2609,7 +2708,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             int personID = 0;
             int receiptID = 0;
-            if (int.TryParse(hfOtherReceiverPersonID.Value, out personID))
+            /*if (int.TryParse(hfOtherReceiverPersonID.Value, out personID))
             {
                 Person p = personAliasService.Get(personID).Person;
 
@@ -2619,7 +2718,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 {
                     lbOtherReceiverRemove.Visible = true;
                 }
-            }
+            }*/
         }
 
         private void ResetReceivePackageModel()
@@ -2649,9 +2748,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     int receiverPersonId = 0;
                     int carrierId = 0;
 
-                    if (ddlReceivedByUser.SelectedValue == "-1")
+                    if (ddlReceivedByUser.SelectedValue == "-1" && ucStaffSearch.StaffPersonAliasId.HasValue)
                     {
-                        int.TryParse(hfOtherReceiverPersonID.Value, out receiverPersonId);
+                        receiverPersonId = ucStaffSearch.StaffPersonAliasId.Value;
                     }
                     else
                     {
@@ -2689,7 +2788,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         private void ShowOtherReceiverModal()
         {
             ScriptManager.RegisterStartupScript(upReceivePackage, upReceivePackage.GetType(), "UpdateReceivingZIndex" + DateTime.Now.Ticks, "$(\"#[id*=mpReceivePackage_pnlMPE]\").css(\"z-index\", \"10001\");", true);
-            ShowStaffSelector("Other Receiver", hfOtherReceiverPersonID.ClientID, btnOtherReceiverSelect.ClientID);
+            ShowStaffSelector("Other Receiver", null, null);
 
 
         }
@@ -2726,8 +2825,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             txtReceivePackageDateReceived.Visible = isNew;
             lblReceivePackageCarriers.Visible = !isNew;
             lblReceivePackageDateReceived.Visible = !isNew;
-            btnReceivePackageSubmit.Visible = isNew;
-            btnReceivePackageReset.Visible = isNew;
+            mpReceivePackage.SaveButtonText = isNew?"Receive":String.Empty;
             lblRecevedByUser.Visible = !isNew;
             ddlReceivedByUser.Visible = isNew;
         }
@@ -2735,7 +2833,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void SetReceivePackageError(string msg)
         {
-            lblReceivePackageError.Text = msg;
+            lblReceivePackageError.InnerHtml = msg;
             lblReceivePackageError.Visible = !String.IsNullOrEmpty(msg);
         }
         #endregion
@@ -2778,13 +2876,13 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             LoadPaymentMethodFields(paymentID);
         }
 
-        protected void dgPaymentDetialCharges_ItemDataBound(object sender, DataGridItemEventArgs e)
+        protected void dgPaymentDetailCharges_RowDataBound(object sender, GridViewRowEventArgs e)
         {
-            if (e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem)
+            if (e.Row.RowType == DataControlRowType.DataRow)
             {
-                DataRowView drv = (DataRowView)e.Item.DataItem;
-                TextBox txtChargeAmount = (TextBox)e.Item.FindControl("txtChargeAmount");
-                Label lblChargeAmount = (Label)e.Item.FindControl("lblChargeAmount");
+                DataRowView drv = (DataRowView)e.Row.DataItem;
+                TextBox txtChargeAmount = (TextBox)e.Row.FindControl("txtChargeAmount");
+                Label lblChargeAmount = (Label)e.Row.FindControl("lblChargeAmount");
                 Decimal ChargeAmount = 0;
                 decimal.TryParse(drv["ChargeAmount"].ToString(), out ChargeAmount);
                 txtChargeAmount.Text = ChargeAmount.ToString("0.00");
@@ -2932,6 +3030,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             dgPaymentDetailCharges.DataSource = dt;
             dgPaymentDetailCharges.DataBind();
+            /*dgPaymentDetailCharges.Columns[0].Visible = false;
+            dgPaymentDetailCharges.Columns[1].Visible = false;
+            dgPaymentDetailCharges.Columns[2].Visible = false;
+            dgPaymentDetailCharges.Columns[3].Visible = false;*/
         }
 
         private void BindPaymentMethodList()
@@ -3046,18 +3148,15 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             txtPaymentMethodPaymentAmount.Visible = isNew;
             lblPaymentMethodPaymentAmount.Visible = !isNew;
 
-            btnPaymentMethodPaymentAdd.Visible = isNew;
-            btnPaymentMethodPaymentReset.Visible = isNew;
-
-            btnPaymentMethodPaymementAddCharges.Visible = !isNew;
-            btnPaymentMethodPaymentResetCharges.Visible = !isNew;
+            mpPayments.Footer.FindControl("btnPaymentMethodPaymentAdd").Visible = isNew;
+            mpPayments.Footer.FindControl("btnPaymentMethodPaymentAddCharges").Visible = !isNew;
 
             divPaymentMethodCharges.Visible = !isNew;
         }
 
         private void SetPaymentMethodError(string msg)
         {
-            lblPaymentMethodError.Text = msg;
+            lblPaymentMethodError.InnerText = msg;
             lblPaymentMethodError.Visible = !String.IsNullOrEmpty(msg);
         }
 
@@ -3072,18 +3171,14 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 {
                     if(dgi.RowType == DataControlRowType.DataRow)
                     {
-                        int RequisitionID = 0;
-                        int CompanyID = 0;
+                        int RequisitionID = dgPaymentDetailCharges.DataKeys[dgi.RowIndex][0].ToString().AsInteger();
+                        int CompanyID = dgPaymentDetailCharges.DataKeys[dgi.RowIndex][1].ToString().AsInteger();
                         int FundID = 0;
                         int DeptID = 0;
                         int AcctID = 0;
-                        DateTime FYStartDate = DateTime.MinValue;
+                        DateTime? FYStartDate = dgPaymentDetailCharges.DataKeys[dgi.RowIndex][3].ToString().AsDateTime();
                         decimal ChargeAmount = 0;
-
-                        int.TryParse(dgi.Cells[0].Text, out RequisitionID);
-                        int.TryParse(dgi.Cells[1].Text, out CompanyID);
-                        DateTime.TryParse(dgi.Cells[3].Text, out FYStartDate);
-                        string[] AcctPartArr = dgi.Cells[2].Text.Split("-".ToCharArray());
+                        string[] AcctPartArr = dgPaymentDetailCharges.DataKeys[dgi.RowIndex][2].ToString().Split("-".ToCharArray());
 
                         if (AcctPartArr.Length == 3)
                         {
@@ -3097,14 +3192,14 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                         if (txtCharge != null && txtCharge.Visible)
                             decimal.TryParse(txtCharge.Text, out ChargeAmount);
 
-                        if (RequisitionID > 0 && CompanyID > 0 && FundID > 0 && DeptID > 0 && AcctID > 0 && FYStartDate > DateTime.MinValue)
+                        if (RequisitionID > 0 && CompanyID > 0 && FundID > 0 && DeptID > 0 && AcctID > 0 && FYStartDate.HasValue)
                         {
                             PaymentCharge Charge = Pay.Charges.Where(c => c.RequisitionID == RequisitionID
                                                                         && c.CompanyID == CompanyID
                                                                         && c.FundID == FundID
                                                                         && c.DepartmentID == DeptID
                                                                         && c.AccountID == AcctID
-                                                                        && c.FYStartDate == FYStartDate
+                                                                        && c.FYStartDate == FYStartDate.Value
                                                                         && c.Active).FirstOrDefault();
 
                             if (Charge == null)
@@ -3116,7 +3211,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                                 Charge.FundID = FundID;
                                 Charge.DepartmentID = DeptID;
                                 Charge.AccountID = AcctID;
-                                Charge.FYStartDate = FYStartDate;
+                                Charge.FYStartDate = FYStartDate.Value;
                             }
 
                             Charge.Amount = ChargeAmount;

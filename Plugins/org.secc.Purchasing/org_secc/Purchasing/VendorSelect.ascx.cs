@@ -383,7 +383,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         private void SetStatusMessage(string msg)
         {
             lblStatus.Visible = !String.IsNullOrEmpty(msg);
-            lblStatus.Text = msg;
+            lblStatus.InnerHtml = msg;
 
         }
 

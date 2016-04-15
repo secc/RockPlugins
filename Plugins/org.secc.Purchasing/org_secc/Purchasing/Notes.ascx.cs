@@ -251,13 +251,13 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             ResetPopupFields();
         }
 
-        protected void dgNote_ItemDataBound(object sender, DataGridItemEventArgs e)
+        protected void dgNote_RowDataBound(object sender, GridViewRowEventArgs e)
         {
-            if (e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem)
+            if (e.Row.RowType == DataControlRowType.DataRow)
             {
-                DataRowView drv = (DataRowView)e.Item.DataItem;
-                LinkButton lbHide = (LinkButton)e.Item.FindControl("lbHide");
-                LinkButton lbEdit = (LinkButton)e.Item.FindControl( "lbEdit" );
+                DataRowView drv = (DataRowView)e.Row.DataItem;
+                LinkButton lbHide = (LinkButton)e.Row.FindControl("lbHide");
+                LinkButton lbEdit = (LinkButton)e.Row.FindControl("lbEdit");
 
                 bool IsEditable = UserCanEditItem(drv["CreatedByUser"].ToString());
                 lbHide.CommandArgument = drv["NoteID"].ToString();
@@ -269,13 +269,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
         }
 
-        protected void dgNote_ItemCommand(object sender, DataGridCommandEventArgs e)
+        protected void dgNote_ItemCommand(object sender, CommandEventArgs e)
         {
             int noteID = 0;
-            if (e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem)
-            {
                 int.TryParse(e.CommandArgument.ToString(), out noteID);
-            }
 
             if (noteID <= 0)
                 return;

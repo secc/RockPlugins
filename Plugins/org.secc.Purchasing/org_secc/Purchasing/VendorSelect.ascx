@@ -29,12 +29,10 @@
 
 </script>
 <div id="vendorChooser" runat="server" >
-    <asp:Label ID="lblStatus" CssClass="smallText" runat="server" style="color:Red;" />
+    <div ID="lblStatus" CssClass="alert alert-danger" runat="server" />
+
+    <Rock:RockDropDownList Label="Choose Vendor:" ID="ddlVendor" runat="server" AutoPostBack="true" OnSelectedIndexChanged="ddlVendor_SelectedIndexChanged" style="max-width:95%;" />
     <table border="0" style="width:100%; border: 1px solid grey;">
-        <tr>
-            <td class="formLabel" style="width:100px;">Choose Vendor:</td>
-            <td class="formItem"><asp:DropDownList ID="ddlVendor" runat="server" AutoPostBack="true" OnSelectedIndexChanged="ddlVendor_SelectedIndexChanged" style="max-width:95%;" /></td>
-        </tr>
         <tr>
             <td class="formLabel">Name:</td>
             <td class="formItem"><asp:TextBox ID="txtName"  runat="server" style="width:250px;" /> </td>

@@ -65,7 +65,7 @@
                 Visible="true" CssClass="btn btn-default">Mark as Billed</asp:LinkButton>
             <asp:LinkButton ID="lbToolbarClose" runat="server" CommandName="close" OnClick="ToolbarItem_Click" 
                 Visible="true" CssClass="btn btn-default">Close</asp:LinkButton>
-            <asp:LinkButton ID="lbToolbarPrintPO" runat="server" CommandName="print" OnClick="ToolbarItem_Click" 
+            <asp:LinkButton ID="lbToolbarPrintPO" Target="_blank" runat="server" CommandName="print" OnClick="ToolbarItem_Click" 
                 Visible="true" CssClass="btn btn-default">Print</asp:LinkButton>
             <asp:LinkButton ID="lbToolbarReopen" runat="server" CommandName="reopen" OnClick="ToolbarItem_Click" 
                 Visible="true" CssClass="btn btn-default">Reopen</asp:LinkButton>
@@ -200,7 +200,7 @@
                                     <div style="width:90px">
                                         <asp:LinkButton ID="lbDetails" runat="server" OnCommand="dgItems_ItemCommand" CommandName="details" CommandArgument='<%# DataBinder.Eval(Container.DataItem, "POItemID") %>' CssClass="btn btn-default" ToolTip="Details">
                                             <i class="fa fa-bars"></i>
-                                        </asp:LinkButton>&nbsp;<asp:LinkButton ID="lbRemove" runat="server" OnCommand="dgItems_ItemCommand" CommandName="remove" CssClass="btn btn-default" ToolTip="Remove">
+                                        </asp:LinkButton>&nbsp;<asp:LinkButton ID="lbRemove" runat="server" OnCommand="dgItems_ItemCommand" CommandName="remove" CommandArgument='<%# DataBinder.Eval(Container.DataItem, "POItemID") %>' CssClass="btn btn-default" ToolTip="Remove">
                                             <i class="fa fa-remove"></i>
                                         </asp:LinkButton>
                                     </div>
@@ -212,7 +212,7 @@
                 <div class="category" id="catReceivingHistory">
                     <h3>Receiving History:</h3>
                     <Rock:Grid ID="dgReceivingHistory" runat="server" CssClass="list" AllowPaging="false" AllowSorting="false" 
-                            OnItemDataBound="dgReceivingHistory_ItemDataBound" OnItemCommand="dgReceivingHistory_ItemCommand" ShowActionRow="false">
+                            OnRowDataBound="dgReceivingHistory_RowDataBound" ShowActionRow="false">
                         <Columns>
                             <Rock:RockBoundField HeaderText="ReceiptID" DataField="ReceiptID" Visible="false" />
                             <Rock:RockBoundField HeaderText="Date Received" DataField="DateReceived" />
@@ -222,10 +222,10 @@
                             <Rock:RockTemplateField ItemStyle-Width="90" HeaderStyle-HorizontalAlign="Right" HeaderText="Actions">
                                 <ItemTemplate>
                                     <div style="width:90px">
-                                        <asp:LinkButton ID="lbShowReceipt" runat="server" CommandName="showreceipt" CssClass="btn btn-default" ToolTip="Show">
+                                        <asp:LinkButton ID="lbShowReceipt" runat="server" OnCommand="dgReceivingHistory_ItemCommand" CommandName="showreceipt" CommandArgument='<%# DataBinder.Eval(Container.DataItem, "ReceiptID") %>' CssClass="btn btn-default" ToolTip="Show">
                                             <i class="fa fa-bars"></i>
                                         </asp:LinkButton>&nbsp;
-                                        <asp:LinkButton ID="lbRemoveReceipt" runat="server" CommandName="removereceipt" CssClass="btn btn-default" ToolTip="Remove" Visible="false">
+                                        <asp:LinkButton ID="lbRemoveReceipt" runat="server" OnClientClick="return Rock.dialogs.confirmDelete(event, 'Receiving History');" OnCommand="dgReceivingHistory_ItemCommand" CommandName="removereceipt" CommandArgument='<%# DataBinder.Eval(Container.DataItem, "ReceiptID") %>' CssClass="btn btn-default" ToolTip="Remove" Visible="false">
                                             <i class="fa fa-remove"></i>
                                         </asp:LinkButton>
                                     </div>
@@ -237,9 +237,9 @@
                 <div class="category" id="catPayments">
                     <h3>Payments</h3>
                     <Rock:Grid ID="dgPayments" runat="server" CssClass="list" AllowPaging="false" AllowSorting="false" 
-                        OnItemDataBound="dgPayments_ItemDataBound" OnItemCommand="dgPayments_ItemCommand" ShowActionRow="false">
+                        OnRowDataBound="dgPayments_RowDataBound" ShowActionRow="false">
                         <Columns>
-                            <Rock:RockBoundField HeaderText="PaymentID" DataField="PaymentID" Visible="false" />
+                            <Rock:RockBoundField HeaderText="Payment ID" DataField="PaymentID" Visible="false" />
                             <Rock:RockBoundField HeaderText="Payment Date" DataField="PaymentDate" />
                             <Rock:RockBoundField HeaderText="Payment Method" DataField="PaymentMethod" />
                             <Rock:BoolField HeaderText="Fully Applied" DataField="FullyApplied" ItemStyle-HorizontalAlign="Center" HeaderStyle-HorizontalAlign="Center"  />
@@ -249,10 +249,10 @@
                             <Rock:RockTemplateField ItemStyle-Width="90" HeaderStyle-HorizontalAlign="Right" HeaderText="Actions">
                                 <ItemTemplate>
                                     <div style="width:90px">
-                                        <asp:LinkButton ID="lbDetails" runat="server" CommandName="details" CssClass="btn btn-default" ToolTip="Details">
+                                        <asp:LinkButton ID="lbDetails" runat="server" OnCommand="dgPayments_ItemCommand" CommandName="details" CommandArgument='<%# DataBinder.Eval(Container.DataItem, "PaymentID") %>' CssClass="btn btn-default" ToolTip="Details">
                                             <i class="fa fa-bars"></i>
                                         </asp:LinkButton>&nbsp;
-                                        <asp:LinkButton ID="lbRemove" runat="server" CommandName="remove" CssClass="btn btn-default" ToolTip="Remove" >
+                                        <asp:LinkButton ID="lbRemove" runat="server" OnCommand="dgPayments_ItemCommand" CommandName="remove" CommandArgument='<%# DataBinder.Eval(Container.DataItem, "PaymentID") %>' CssClass="btn btn-default" ToolTip="Remove" >
                                             <i class="fa fa-remove"></i>
                                         </asp:LinkButton>
                                     </div>
@@ -375,64 +375,31 @@
                 </asp:UpdatePanel>
             </Content>
         </Rock:ModalDialog>
-        <Rock:ModalDialog ID="mpShipToSelect" runat="server">
+        <Rock:ModalDialog ID="mpShipToSelect" runat="server" Title="Ship To" OnSaveClick="btnShipToSubmit_Click" SaveButtonText="Select">
             <Content>
                 <asp:UpdatePanel ID="upShipTo" runat="server" UpdateMode="Conditional">
                     <ContentTemplate>
                         <div id="shipToModal">
-                            <h3>
-                                Ship To:</h3>
-                            <div class="error">
-                                <asp:Label ID="Label1" runat="server" Visible="false" />
-                            </div>
-                            <div class="vendorRow">
-                                <div class="vendorHeader formLabel">
-                                    Campus:</div>
-                                <div class="vendorItem formItem">
-                                    <asp:DropDownList ID="ddlShipToCampus" runat="server" CssClass="smallText" OnSelectedIndexChanged="ddlShipToCampus_IndexChanged"
+                            <div class="alert alert-danger" ID="Label1" runat="server" Visible="false" />
+                            <Rock:RockDropDownList Label="Campus:" ID="ddlShipToCampus" runat="server" CssClass="smallText" OnSelectedIndexChanged="ddlShipToCampus_IndexChanged"
                                         AutoPostBack="true" />
-                                </div>
-                            </div>
+                            <Rock:RockTextBox Label="Name:" ID="txtShipToName" runat="server" />
+                            <Rock:RockTextBox Label="Attention:" ID="txtShipToAttention" runat="server" />
                             <div class="vendorRow">
-                                <div class="vendorHeader formLabel">
-                                    Name:</div>
-                                <div class="vendorItem formItem">
-                                    <asp:TextBox ID="txtShipToName" runat="server" Style="width: 175px;" />
-                                </div>
-                            </div>
-                            <div class="vendorRow">
-                                <div class="vendorHeader formLabel">
-                                    Attention:</div>
-                                <div class="vendorItem formItem">
-                                    <asp:TextBox ID="txtShipToAttention" runat="server" Style="width: 175px;" />
-                                </div>
-                            </div>
-                            <div class="vendorRow">
-                                <div class="vendorHeader formLabel">
-                                    Address:</div>
-                                <div class="vendorItem formItem">
-                                    <span style="width: 70px;">Street:</span>
-                                    <asp:TextBox ID="txtShipToAddress" runat="server" Style="width: 175px;" />
+                                <label class="form-label">Address:</label>
+                                <div class="form-inline">
+                                    <label class="form-label">Street:</label>
+                                    <asp:TextBox ID="txtShipToAddress" runat="server" Style="width: 350px;" />
                                     <br />
-                                    <span style="width: 80px;">City:</span>
-                                    <asp:TextBox ID="txtShipToCity" runat="server" Style="width: 75px;" />
-                                    State:&nbsp;<asp:TextBox ID="txtShipToState" runat="server" Style="width: 25px;" />
-                                    Zip:&nbsp;<asp:TextBox ID="txtShipToZip" runat="server" Style="width: 75px;" />
+                                    <label class="form-label">City:</span>
+                                    <asp:TextBox ID="txtShipToCity" runat="server"/>
+                                    
+                                    <label class="form-label">State:&nbsp;</label><asp:TextBox ID="txtShipToState" runat="server" Style="width: 25px;" />
+                                    <label class="form-label">Zip:&nbsp;</label><asp:TextBox ID="txtShipToZip" runat="server" Style="width: 75px;" />
                                 </div>
-                            </div>
-                            <div style="text-align: right; padding-top: 5px;">
-                                <asp:Button ID="btnShipToSubmit" runat="server" CssClass="smallText" Text="Select"
-                                    OnClick="btnShipToSubmit_Click" />
-                                <asp:Button ID="btnShipToReset" runat="server" CssClass="smallText" Text="Reset"
-                                    OnClick="btnShipToReset_Click" />
-                                <asp:Button ID="btnShipToCancel" runat="server" CssClass="smallText" Text="Cancel"
-                                    OnClick="btnShipToCancel_Click" />
                             </div>
                         </div>
                     </ContentTemplate>
-                    <Triggers>
-                        <asp:AsyncPostBackTrigger ControlID="lbChangeShipTo" />
-                    </Triggers>
                 </asp:UpdatePanel>
             </Content>
         </Rock:ModalDialog>
@@ -562,48 +529,28 @@
                 </asp:UpdatePanel>
             </Content>
         </Rock:ModalDialog>
-        <Rock:ModalDialog ID="mpReceivePackage" runat="server">
+        <Rock:ModalDialog ID="mpReceivePackage" runat="server" Title="Receive Package" OnSaveClick="btnReceivePackageSubmit_Click" SaveButtonText="Receive">
             <Content>
                 <asp:UpdatePanel ID="upReceivePackage" runat="server" UpdateMode="Conditional">
                     <ContentTemplate>
                         <div id="receivePackage">
                             <asp:HiddenField ID="hfReceiptID" runat="server" />
-                            <h3>Receive Package</h3>
-                            <div class="error">
-                                <asp:Label ID="lblReceivePackageError" runat="server" Visible="false" />
-                            </div>
-                            <div class="vendorRow">
-                                <div class="formLabel" style="width:20%; float:left;">Carrier</div>
-                                <div class="formItem" style="width:80%; float:left;"><asp:DropDownList ID="ddlReceivePackageCarriers" runat="server" CssClass="smallText" />
-                                    <asp:Label ID="lblReceivePackageCarriers" runat="server" Visible="false" /></div>
-                            </div>
-                            <div class="vendorRow">
-                                <div class="formLabel" style="width:20%; float:left;">Date Received</div>
-                                <div class="formItem" style="width:80%; float:left;"><Rock:DatePicker ID="txtReceivePackageDateReceived" runat="server" CssClass="smallText" />
-                                    <asp:Label ID="lblReceivePackageDateReceived" runat="server" />
-                                 </div>
-                            </div>
-                            <div class="vendorRow">
-                                <div class="formLabel" style="width:20%; float:left;">Received By</div>
-                                <div class="formItem" style="width:80%; float:left;">
-                                    <asp:DropDownList ID="ddlReceivedByUser" runat="server" AutoPostBack="true" CssClass="smallText" OnSelectedIndexChanged="ddlReceivedByUser_SelectedIndexChanged" style="max-width:95%;" /><asp:Label ID="lblRecevedByUser" runat="server" />
-                                </div>
-                            </div>
-                            <asp:Panel id="pnlOtherReceiver" runat="server" class="vendorRow" Visible="false" >
-                                <div class="formLabel" style="width:20%; float:left;">Other Receiver</div>
-                                <div class="formItem" style="width:80%; float:left; " >
-                                    <asp:Label ID="lblOtherReceiverName" runat="server" CssClass="smallText" />
-                                    <asp:LinkButton ID="lbOtherReceiverRemove" runat="server" OnClick="lbOtherReceiverRemove_Click" style="text-decoration: none;">
-                                        <img style="border:0px;" alt="Remove" src="/images/delete.png" />
-                                    </asp:LinkButton>
-                                    <asp:Button ID="btnOtherReceiverModalShow" runat="server" OnClick="btnOtherReceiverModalShow_Click" Text="..." CssClass="smallText"  />
-                                    <asp:HiddenField ID="hfOtherReceiverPersonID" runat="server" />
-                                    <asp:Button ID="btnOtherReceiverSelect" runat="server" OnClick="btnOtherReceiverSelect_Click" style="visibility:hidden; display:none;" />
-                                </div>
+                            <div class="alert alert-danger" ID="lblReceivePackageError" runat="server" Visible="false" />
+                            <Rock:RockDropDownList Label="Carrier" ID="ddlReceivePackageCarriers" runat="server" />
+                            <Rock:RockLiteral Label="Carrier" ID="lblReceivePackageCarriers" runat="server" Visible="false" />
+                            
+                            <Rock:DatePicker Label="Date Received" ID="txtReceivePackageDateReceived" runat="server" />
+                            <Rock:RockLiteral Label="Date Received" ID="lblReceivePackageDateReceived" runat="server" />
+                            
+                            <Rock:RockDropDownList Label="Received By" ID="ddlReceivedByUser" runat="server" AutoPostBack="true" CssClass="smallText" OnSelectedIndexChanged="ddlReceivedByUser_SelectedIndexChanged" style="max-width:95%;" /><asp:Label ID="lblRecevedByUser" runat="server" />
+                            
+                            <asp:Panel id="pnlOtherReceiver" runat="server" class="form-group" Visible="false" >
+                                <label class="form-label">Other Receiver</label>
+                                <secc:StaffPicker ID="ucStaffSearch" runat="server" AllowMultipleSelections="false" UserCanEdit="true" />
                             </asp:Panel>
 
                             <div class="vendorRow" style="margin-top:5px; padding-top:5px;max-height:350px;width:100%;overflow-x:hidden;overflow-y:auto;">
-                                <Rock:Grid ID="dgReceivePackageItems" runat="server" CssClass="list" OnItemDataBound="dgReceivePackageItems_ItemDataBound" AllowPaging="false"  OnReBind="dgReceivePackageItems_Rebind">
+                                <Rock:Grid ID="dgReceivePackageItems" DataKeyNames="POItemId" runat="server" CssClass="list" OnRowDataBound="dgReceivePackageItems_RowDataBound" AllowPaging="false"  OnReBind="dgReceivePackageItems_Rebind" ShowActionRow="false">
                                     <Columns>
                                         <Rock:RockBoundField HeaderText="POItemId" DataField="POItemId" Visible="false" />
                                         <Rock:RockBoundField HeaderText="Qty Ordered" DataField="QtyOrdered" ItemStyle-Width="50px" ItemStyle-HorizontalAlign="Center" HeaderStyle-HorizontalAlign="Center"/>
@@ -620,48 +567,30 @@
                                         </Rock:RockTemplateField>
                                     </Columns>
                                 </Rock:Grid>
-                                <secc:StaffPicker ID="ucStaffSearch" runat="server" AllowMultipleSelections="false" />
-                            </div>
-                            <div style="text-align:right; padding-top:3px;">
-                                <asp:Button ID="btnReceivePackageSubmit" runat="server" CssClass="smallText" Text="Receive" OnClick="btnReceivePackageSubmit_Click" />
-                                <asp:Button ID="btnReceivePackageReset" runat="server" CssClass="smallText" Text="Reset" OnClick="btnReceivePackageReset_Click" />
-                                <asp:Button ID="btnReceivePackageCancel" runat="server" CssClass="smallText" Text="Cancel" OnClick="btnReceivePackageCancel_Click" />
                             </div>
                         </div>
                     </ContentTemplate>
                 </asp:UpdatePanel>
             </Content>
         </Rock:ModalDialog>
-        <Rock:ModalDialog ID="mpPayments" runat="server" DefaultButtonControlID="btnPaymentMethodPaymentAdd" CancelControlID="btnPaymentMethodPaymentClose">
+        <Rock:ModalDialog ID="mpPayments" runat="server" DefaultButtonControlID="btnPaymentMethodPaymentAdd" CancelControlID="btnPaymentMethodPaymentClose" Title="Payment Details">
             <Content>
                 <asp:UpdatePanel ID="upPayment" runat="server" UpdateMode="Conditional">
                     <ContentTemplate>
                         <div id="paymentDetails">
-                            <h3>Payment Details</h3>
                             <asp:HiddenField ID="hfPaymentID" runat="server" />
-                            <div class="error">
-                                <asp:Label ID="lblPaymentMethodError" runat="server" />
-                            </div>
-                            <div class="vendorRow">
-                                <div class="formLabel" style="width:40%; float:left;">Payment Method:</div>
-                                <div class="formItem" style="width:60%; float:left;"><asp:DropDownList ID="ddlPaymentMethodPaymentType" runat="server" CssClass="smallText" /><asp:Label ID="lblPaymentMethodPaymentType" runat="server" Visible="false" /></div>
-                            </div>
-                            <div class="vendorRow">
-                                <div class="formLabel" style="width:40%; float:left;">Invoice Date:</div>
-                                <div class="formItem" style="width:60%; float:left;"><Rock:DatePicker ID="txtPaymentMethodPaymentDate" runat="server" /><asp:Label ID="lblPaymentMethodPaymentDate" runat="server" Visible="false" /></div>
-                            </div>
-                            <div class="vendorRow">
-                                <div class="formLabel" style="width:40%; float:left;">Payment Amount:</div>
-                                <div class="formItem" style="width:60%; float:left;"><asp:TextBox ID="txtPaymentMethodPaymentAmount" runat="server" /><asp:Label ID="lblPaymentMethodPaymentAmount" runat="server" Visible="false" /></div>
-                            </div>
+                            <div class="alert alert-danger" ID="lblPaymentMethodError" runat="server" visible="false" />
+
+                            <Rock:RockDropDownList Label="Payment Method:" ID="ddlPaymentMethodPaymentType" runat="server"/>
+                            <Rock:RockLiteral Label="Payment Method:" ID="lblPaymentMethodPaymentType" runat="server" Visible="false" />
+                            <Rock:DatePicker Label="Invoice Date:" ID="txtPaymentMethodPaymentDate" runat="server" />
+                            <Rock:RockLiteral Label="Invoice Date:" ID="lblPaymentMethodPaymentDate" runat="server" Visible="false" />
+                            <Rock:RockTextBox Label="Payment Amount:" ID="txtPaymentMethodPaymentAmount" runat="server" />
+                            <Rock:RockLiteral Label="Payment Amount:" ID="lblPaymentMethodPaymentAmount" runat="server" Visible="false" />
                             <div id="divPaymentMethodCharges" runat="server">
                                 <h4>Charges</h4>
-                                <Rock:Grid ID="dgPaymentDetailCharges" runat="server" CssClass="list" AllowPaging="false" AllowSorting="false" OnItemDataBound="dgPaymentDetialCharges_ItemDataBound" >
+                                <Rock:Grid ID="dgPaymentDetailCharges" DataKeyNames="RequisitionID,CompanyID,AccountNumber,FiscalYearStart" runat="server" CssClass="list" AllowPaging="false" AllowSorting="false" OnRowDataBound="dgPaymentDetailCharges_RowDataBound" ShowActionRow="false">
                                     <Columns>
-                                        <Rock:RockBoundField DataField="RequisitionID" HeaderText="RequisitionID" Visible="false" />
-                                        <Rock:RockBoundField DataField="CompanyID" HeaderText="CompanyID" Visible="false" />
-                                        <Rock:RockBoundField DataField="AccountNumber" HeaderText="AccountNumber" Visible="false" />
-                                        <Rock:RockBoundField DataField="FiscalYearStart" HeaderText="FiscalYearStart" Visible="false" />
                                         <Rock:RockBoundField DataField="Requisition" HeaderText="Requisition" Visible="true" ItemStyle-Width="40%" />
                                         <Rock:RockBoundField DataField="AccountNumber" HeaderText="Account" Visible="true" ItemStyle-Width="30%" />
                                         <Rock:RockTemplateField ItemStyle-HorizontalAlign="Right" HeaderStyle-HorizontalAlign="Right" ItemStyle-Width="30%">
@@ -673,14 +602,6 @@
                                         </Rock:RockTemplateField>
                                     </Columns>
                                 </Rock:Grid>
-                            </div>
-                            <div style="text-align:right; padding-top:3px;">
-                                <asp:Button ID="btnPaymentMethodPaymentAdd" runat="server" CssClass="smallText" Text="Add Payment" OnClick="btnPaymentMethodPaymentAdd_Click" />
-                                <asp:Button ID="btnPaymentMethodPaymentReset" runat="server" CssClass="smallText" text="Reset" OnClick="btnPaymentMethodPaymentReset_Click" />
-                                <asp:Button ID="btnPaymentMethodPaymementAddCharges" runat="server" CssClass="smallText" Text="Update Charges" OnClick="btnPaymentMethodPaymentUpdateCharges_Click" />
-                                <asp:Button ID="btnPaymentMethodPaymentResetCharges" runat="server" CssClass="smallText" Text="Reset Charges" OnClick="btnPaymentMethodPaymentResetCharges_Click" />
-                                <asp:Button ID="btnPaymentMethodPaymentClose" runat="server" CssClass="smallText" Text="Close" OnClick="btnPaymentMethodPaymentClose_Click" />
-
                             </div>
                         </div>
                     </ContentTemplate>
@@ -752,4 +673,7 @@
         </Rock:ModalDialog>
         <Rock:ModalIFrameDialog ID="mpiDocumentChooser" runat="server" />
     </ContentTemplate>
+    <Triggers>
+        <asp:PostBackTrigger ControlID="lbToolbarPrintPO" />
+    </Triggers>
 </asp:UpdatePanel>
