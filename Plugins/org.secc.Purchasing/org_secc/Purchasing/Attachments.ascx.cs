@@ -9,7 +9,9 @@ using System.Web.UI.WebControls;
 
 using org.secc.Purchasing;
 using Rock.Web.UI;
-
+using Rock.Data;
+using Rock.Model;
+using Rock;
 
 namespace RockWeb.Plugins.org_secc.Purchasing
 {
@@ -64,21 +66,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
         }
 
-        public string DocumentBrowserPage
-        {
-            get
-            {
-                string browserPage = String.Empty;
-                if (ViewState["Attachment_DocumentBrowserPage"] != null)
-                    browserPage = ViewState["Attachment_DocumentBrowserPage"].ToString();
-                return browserPage;
-            }
-            set
-            {
-                ViewState["Attachment_DocumentBrowserPage"] = value;
-            }
-        }
-
         private Rock.Model.UserLogin mCurrentUser = null;
         public Rock.Model.UserLogin CurrentUser
         {
@@ -121,11 +108,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 DataRowView DRV = (DataRowView)e.Row.DataItem;
                 LinkButton lbEdit = (LinkButton)e.Row.FindControl("lbEdit");
                 LinkButton lbHide = (LinkButton)e.Row.FindControl("lbHide");
-
-                lbHide.CommandArgument = DRV["AttachmentID"].ToString();
-
-                lbEdit.OnClientClick = "openChooseDocumentWindow(\"" + DRV["BlobID"].ToString()  +" \",\"" + Attachment.GetPurchasingDocumentType().TypeId + "\");return false;";
-
+                
                 bool IsEditable = UserCanEditItem(DRV["CreatedByUser"].ToString());
                 lbEdit.Visible = IsEditable;
                 lbHide.Visible = IsEditable;
@@ -133,25 +116,30 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
         }
 
-        protected void dgAttachment_ItemCommand(object sender, DataGridCommandEventArgs e)
+        protected void dgAttachment_ItemCommand(object sender, CommandEventArgs e)
         {
             bool ReloadList = false;
-            if (e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem)
+            int AttachmentID = 0;
+            if (!int.TryParse(e.CommandArgument.ToString(), out AttachmentID))
             {
-                int AttachmentID = 0;
-                if (!int.TryParse(e.CommandArgument.ToString(), out AttachmentID))
-                {
-                    throw new RequisitionException("Attachment ID not found");
-                }
+                throw new RequisitionException("Attachment ID not found");
+            }
 
-                switch (e.CommandName.ToLower())
-                {
-                    case "hide":
-                        HideAttachment(AttachmentID);
-                        ReloadList = true;
-                        RefreshParent(sender, e);
-                        break;
-                }
+            switch (e.CommandName.ToLower())
+            {
+                case "hide":
+                    HideAttachment(AttachmentID);
+                    ReloadList = true;
+                    RefreshParent(sender, e);
+                    break;
+                case "editattachment":
+                    Attachment attachment = new Attachment(AttachmentID);
+                    fuprAttachment.BinaryFileId = attachment.BlobID;
+                    tbAttachmentDesc.Text = attachment.DataBlob.Description;
+                    hdnAttachmentId.Value = AttachmentID.ToString();
+                    mdAttachment.Title = "Edit Attachment";
+                    mdAttachment.Show();
+                    break;
             }
 
             if (ReloadList)
@@ -205,7 +193,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     new DataColumn("CreatedByUser"),
                     new DataColumn("DateModified"),
                     new DataColumn("BlobID"),
-                    new DataColumn("BlobGuid")
+                    new DataColumn("Url")
                 });
 
             //Where display at top has not expired, place objects  in reverse order of expiration date and by AttachmentID 
@@ -224,7 +212,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 if (a.DataBlob != null)
                 {
                     dr["BlobID"] = a.DataBlob.Id;
-                    dr["BlobGuid"] = a.DataBlob.Guid;
+                    dr["Url"] = a.DataBlob.Url;
                     
                     dr["Title"] = a.DataBlob.FileName;
 
@@ -272,6 +260,47 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         }
 
+        public void Show()
+        {
+            hdnAttachmentId.Value = String.Empty;
+            fuprAttachment.BinaryFileId = null;
+            tbAttachmentDesc.Text = String.Empty;
+            mdAttachment.Title = "Add Attachment";
+            mdAttachment.Show();
+        }
+
         #endregion
-    }
+        protected void mdAttachment_SaveClick(object sender, EventArgs e)
+        {
+            SaveAttachment(fuprAttachment.BinaryFileId.Value, Identifier, ObjectTypeName);
+            LoadAttachmentList();
+            mdAttachment.Hide();
+        }
+
+        public void SaveAttachment(int binaryFileId, int parentIdentifier, String parentTypeName)
+        {
+            var attachmentParent = Attachment.GetPurchasingDocumentType();
+
+            RockContext rockContext = new RockContext();
+            var binaryFileService = new BinaryFileService(rockContext);
+
+            //get the binary file
+            var binaryFile = binaryFileService.Get(binaryFileId);
+
+            //set binary file type
+            binaryFile.BinaryFileType = new BinaryFileTypeService(rockContext)
+                .Get(attachmentParent.Guid);
+
+            //change settigns and save
+            binaryFile.IsTemporary = false;
+            binaryFile.Description = tbAttachmentDesc.Text;
+            rockContext.SaveChanges();
+
+            var attachment = new Attachment(hdnAttachmentId.Value.AsInteger());
+            attachment.ParentObjectTypeName = parentTypeName;
+            attachment.ParentIdentifier = parentIdentifier;
+            attachment.BlobID = binaryFile.Id;
+            attachment.Save(CurrentUser.UserName);
+        }
+}
 }

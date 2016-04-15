@@ -78,13 +78,13 @@
         <div id="pnlMain" class="panel panel-block">
             
             <div class="panel-heading">
+                <div class="pull-right">
+                    <asp:HyperLink ID="lnkNotes" runat="server" Visible="false" NavigateUrl="#catNotes"><i class="fa fa-sticky-note fa-2x" title="Notes"></i></asp:HyperLink>&nbsp; &nbsp;
+                    <asp:HyperLink ID="lnkAttachments" runat="server" Visible="false" NavigateUrl="#catAttachments"><i class="fa fa-paperclip fa-2x" title="Attachments"></i></asp:HyperLink>
+                </div>
                 <h1 class="panel-title">Summary</h1>
             </div>
             <div class="panel-body">
-                <div id="icons">
-                    <asp:HyperLink ID="lnkNotes" runat="server" Visible="false" NavigateUrl="#catNotes"><i class="fa fa-sticky-note fa-2x" title="Notes"></i></asp:HyperLink>
-                    <asp:HyperLink ID="lnkAttachments" runat="server" Visible="false" NavigateUrl="#catAttachments"><i class="fa fa-paperclip fa-2x" title="Attachments"></asp:HyperLink>
-                </div>
 
                 <div class="category" id="catSummary">
                     <div class="error">

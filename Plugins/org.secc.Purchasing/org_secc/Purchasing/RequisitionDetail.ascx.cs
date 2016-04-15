@@ -554,11 +554,14 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             base.CreateChildControls();
             ucStaffPickerApprover.MinistryAreaAttributeGuid = MinistryAreaAttribute.Guid;
             ucStaffPickerApprover.PositionAttributeGuid = PositionAttribute.Guid;
+            ucAttachments.CurrentUser = CurrentUser;
+            ucAttachments.Identifier = CurrentRequisition.RequisitionID;
+            ucAttachments.ObjectTypeName = typeof(Requisition).ToString();
         }
 
         protected override void OnInit(EventArgs e)
         {
-
+            
             definedValueService = new DefinedValueService(rockContext);
             systemEmailService = new SystemEmailService(rockContext);
             personAliasService = new PersonAliasService(rockContext);
@@ -1309,7 +1312,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if (ucAttachments.Identifier == 0)
                 ucAttachments.Identifier = RequisitionID;
 
-            mdAttachment.Show();
+            ucAttachments.Show();
         }
 
         private void LoadApprovals()
@@ -1319,9 +1322,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void LoadAttachments()
         {
+            ucAttachments.CurrentUser = CurrentUser;
             ucAttachments.ReadOnly = !CanUserEditAttachments();
             ucAttachments.LoadAttachmentControl(typeof(Requisition).ToString(), RequisitionID);
-            ucAttachments.CurrentUser = CurrentUser;
         }
 
         private void LoadCharges()
@@ -3526,32 +3529,5 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         }
 
-        protected void mdAttachment_SaveClick( object sender, EventArgs e )
-        {
-            var attachmentParent = Attachment.GetPurchasingDocumentType();
-
-            RockContext rockContext = new RockContext();
-            var binaryFileService = new BinaryFileService( rockContext );
-
-            //get the binary file
-            var binaryFile = binaryFileService.Get( fuprAttachment.BinaryFileId.Value );
-
-            //set binary file type
-            binaryFile.BinaryFileType = new BinaryFileTypeService( rockContext )
-                .Get( attachmentParent.Guid );
-
-            //change settigns and save
-            binaryFile.IsTemporary = false;
-            binaryFile.Description = tbAttachmentDesc.Text;
-            rockContext.SaveChanges();
-
-            var attachment = new Attachment();
-            attachment.ParentObjectTypeName = typeof(Requisition).ToString();
-            attachment.ParentIdentifier = PageParameter( "RequisitionID" ).AsInteger();
-            attachment.BlobID = binaryFile.Id;
-            attachment.Save(CurrentUser.UserName);
-            mdAttachment.Hide();
-            LoadAttachments();
-        }
     }
 }

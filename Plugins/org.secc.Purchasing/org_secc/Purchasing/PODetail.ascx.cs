@@ -187,6 +187,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             ucStaffSearch.MinistryAreaAttributeGuid = MinistryAreaAttributeIDSetting;
             ucStaffSearch.PositionAttributeGuid = PositionAttributeIDSetting;
 
+            ucAttachments.Identifier = PurchaseOrderID;
+            ucAttachments.ObjectTypeName = typeof(PurchaseOrder).ToString();
+            ucAttachments.CurrentUser = CurrentUser;
         }
 
         protected override void OnInit(EventArgs e)
@@ -201,13 +204,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             ucNotes.CurrentUserName = CurrentUser.UserName;
             ucNotes.UserHasParentEditPermission = UserCanEdit;
             ucAttachments.RefreshParent += new EventHandler(ucAttachments_RefreshParent);
-            // TODO: Fix the document/attachment stuff!
-            /*mpiDocumentChooser.Url = "/DocumentBrowser.aspx?callback=selectDocument&SelectedID=#selectedID#&DocumentTypeID=#documentTypeID#";
-            mpiDocumentChooser.Height = 300;
-            mpiDocumentChooser.Width = 320;
-            mpiDocumentChooser.JSFunctionName = "openChooseDocumentWindow(selectedID, documentTypeID)";
-            mpiDocumentChooser.Title = "Attach Item";
-            */
 
             base.OnInit(e);
         }
@@ -989,6 +985,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void LoadAttachments()
         {
+            ucAttachments.CurrentUser = CurrentUser;
             ucAttachments.ReadOnly = !CanUserEditAttachments();
             ucAttachments.LoadAttachmentControl(typeof(PurchaseOrder).ToString(), PurchaseOrderID);
         }
@@ -1387,12 +1384,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void ShowAddAttachmentDialog()
         {
-            if (ucAttachments.Identifier == 0)
-                ucAttachments.Identifier = PurchaseOrderID;
-
-            string attachmentScript = string.Format("openChooseDocumentWindow(\"-1\",\"{0}\");", Attachment.GetPurchasingDocumentType().TypeId);
-
-            ScriptManager.RegisterStartupScript(upMain, upMain.GetType(), "ShowAttachmentWindow" + DateTime.Now.Ticks, attachmentScript, true);
+            ucAttachments.Show();
         }
 
 

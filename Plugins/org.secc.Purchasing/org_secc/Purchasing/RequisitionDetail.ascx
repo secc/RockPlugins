@@ -153,6 +153,10 @@
         <div id="pnlMain" class="panel panel-block">
             
             <div class="panel-heading">
+                <div class="pull-right">
+                    <asp:HyperLink ID="lnkNotes" runat="server" Visible="false" NavigateUrl="#catNotes"><i class="fa fa-sticky-note fa-2x" title="Notes"></i></asp:HyperLink>&nbsp; &nbsp;
+                    <asp:HyperLink ID="lnkAttachments" runat="server" Visible="false" NavigateUrl="#catAttachments"><i class="fa fa-paperclip fa-2x" title="Attachments"></i></asp:HyperLink>
+                </div>
                 <h1 class="panel-title">
                     <asp:Label ID="lblTitle" runat="server" Text='<%= NewRequisitionTitleSetting %>' />
                 </h1>
@@ -165,10 +169,6 @@
                     </asp:Label>
                 </div>
                 <div id="content">
-                    <div id="icons">
-                        <asp:HyperLink ID="lnkNotes" runat="server" Visible="false" NavigateUrl="#notes"><i class="fa fa-sticky-note fa-2x" title="Notes"></i></asp:HyperLink>
-                        <asp:HyperLink ID="lnkAttachments" runat="server" Visible="false" NavigateUrl="#attachments"><img src="/UserControls/Custom/SECC/Purchasing/images/attachments.png" alt="Attachments" /></asp:HyperLink>
-                    </div>
                     <div class="summary">
                         <h3>Summary</h3>
                             <div class="smallText">
@@ -686,24 +686,6 @@
                         <asp:AsyncPostBackTrigger ControlID="dgItems" EventName="ItemCommand" />
                     </--%>
                 </asp:UpdatePanel>
-            </Content>
-        </Rock:ModalDialog>
-
-        <Rock:ModalDialog ID="mdAttachment" Title="Add Attachment" runat="server" OnCancelScript="Cancel"
-             SaveButtonText="Save" OnSaveClick="mdAttachment_SaveClick" ValidationGroup="Attachment">
-            <Content>
-                <div class="container">
-                    <div class="row">
-                        <div class="col-sm-3">
-                            <Rock:FileUploader  runat="server" ValidationGroup="Attachment" Label="Drag File or Click Upload"
-                                 Required="true" id="fuprAttachment"></Rock:FileUploader>
-                        </div>
-                            <div class="col-sm-8">
-                                <Rock:RockTextBox runat="server" ValidationGroup="Attachment" Rows="5" Label="Description"
-                                     TextMode="MultiLine" Required="true" ID="tbAttachmentDesc"></Rock:RockTextBox>
-                        </div>
-                    </div>
-                </div>
             </Content>
         </Rock:ModalDialog>
 
