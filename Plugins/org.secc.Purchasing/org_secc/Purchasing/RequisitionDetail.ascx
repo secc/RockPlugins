@@ -688,6 +688,25 @@
                 </asp:UpdatePanel>
             </Content>
         </Rock:ModalDialog>
+
+        <Rock:ModalDialog ID="mdAttachment" Title="Add Attachment" runat="server" OnCancelScript="Cancel"
+             SaveButtonText="Save" OnSaveClick="mdAttachment_SaveClick" ValidationGroup="Attachment">
+            <Content>
+                <div class="container">
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <Rock:FileUploader  runat="server" ValidationGroup="Attachment" Label="Drag File or Click Upload"
+                                 Required="true" id="fuprAttachment"></Rock:FileUploader>
+                        </div>
+                            <div class="col-sm-8">
+                                <Rock:RockTextBox runat="server" ValidationGroup="Attachment" Rows="5" Label="Description"
+                                     TextMode="MultiLine" Required="true" ID="tbAttachmentDesc"></Rock:RockTextBox>
+                        </div>
+                    </div>
+                </div>
+            </Content>
+        </Rock:ModalDialog>
+
     </ContentTemplate>
     <Triggers>
         <asp:AsyncPostBackTrigger ControlID="ucStaffPickerApprover" EventName="Select"/>

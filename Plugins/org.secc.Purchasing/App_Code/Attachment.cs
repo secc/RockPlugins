@@ -93,7 +93,7 @@ namespace org.secc.Purchasing
         #region Public
         public static BinaryFileType GetPurchasingDocumentType()
         {
-            return new BinaryFileTypeService(new Rock.Data.RockContext()).Queryable().Where(d => d.ForeignGuid == mPurchasingDocumentTypeGuid).FirstOrDefault();
+            return new BinaryFileTypeService(new Rock.Data.RockContext()).Get(mPurchasingDocumentTypeGuid);
         }
 
         public static List<Attachment> GetObjectAttachments(string otn, int identifier, bool activeOnly)
