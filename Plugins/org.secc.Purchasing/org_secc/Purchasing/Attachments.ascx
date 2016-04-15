@@ -24,19 +24,19 @@
         <asp:Button ID="btnRefresh" runat="server" OnClick="btnRefresh_Click" Style="visibility: hidden;
             display: none;" />
         <Rock:Grid ID="dgAttachment" runat="server" CssClass="list" AllowPaging="false"
-            AddEnabled="false" ExportEnabled="false" DataKeyField="AttachmentID" DeleteEnabled="false" OnItemCommand="dgAttachment_ItemCommand" OnItemDataBound="dgAttachment_ItemDataBind"
+            AddEnabled="false" ExportEnabled="false" DataKeyField="AttachmentID" DeleteEnabled="false" OnItemCommand="" OnRowDataBound="dgAttachment_RowDataBind"
             NoResultText="No Attachments found" ShowActionRow="false">
             <Columns>
                 <Rock:RockBoundField DataField="AttachmentID" Visible="false" />
-                <asp:HyperLinkField DataTextField="Title" HeaderText="Title" DataNavigateUrlFields="BlobGuid" DataNavigateUrlFormatString="/download.aspx?guid={0}" ItemStyle-Width="20%" />
+                <asp:HyperLinkField DataTextField="Title" HeaderText="Title" DataNavigateUrlFields="BlobGuid" DataNavigateUrlFormatString="{0}" ItemStyle-Width="20%" />
                 <Rock:RockBoundField DataField="Description" HeaderText="Description" ItemStyle-Width="25%" />
                 <Rock:RockBoundField DataField="FileType" HeaderText="File Type" ItemStyle-Width="15%" />
                 <Rock:RockBoundField DataField="CreatedBy" HeaderText="Created By" ItemStyle-Width="10%" />
                 <Rock:RockBoundField DataField="DateModified" HeaderText="Last Updated" ItemStyle-Width="20%" />
                 <Rock:RockTemplateField ItemStyle-HorizontalAlign="Right" ItemStyle-Width="10%">
                     <ItemTemplate>
-                        <asp:LinkButton ID="lbEdit" runat="server" CommandName="Edit"><img src="/images/edit.gif" alt="Edit" /></asp:LinkButton>
-                        <asp:LinkButton ID="lbHide" runat="server" CommandName="Hide"><img src="/images/delete.png" alt="Hide" /></asp:LinkButton>
+                        <asp:LinkButton ID="lbEdit" runat="server" OnCommand="dgAttachment_ItemCommand" CommandName="Edit" CommandArgument='<%# DataBinder.Eval(Container.DataItem, "AttachmentID"); %>'><i class="fa fa-pencil" title="Edit"></i></asp:LinkButton>
+                        <asp:LinkButton ID="lbHide" runat="server" OnCommand="dgAttachment_ItemCommand" CommandName="Hide" CommandArgument='<%# DataBinder.Eval(Container.DataItem, "AttachmentID"); %>'><i class="fa fa-remove" title="Hide"></i></asp:LinkButton>
                     </ItemTemplate>
                 </Rock:RockTemplateField>
             </Columns>

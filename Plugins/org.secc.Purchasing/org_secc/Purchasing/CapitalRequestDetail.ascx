@@ -1,5 +1,5 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="CapitalRequestDetail.ascx.cs" Inherits="RockWeb.Plugins.org_secc.Purchasing.CapitalRequestDetail" %>
-<%@ Register Src="~/Plugins/org_secc/Purchasing/StaffSearch.ascx" TagPrefix="secc" TagName="StaffSearch" %>
+<%@ Register Src="~/Plugins/org_secc/Purchasing/StaffPicker.ascx" TagPrefix="secc" TagName="StaffPicker" %>
 
 <script>
     $(document).ready(function () {
@@ -232,7 +232,7 @@
                                     <span class="required">*</span>
                                 </label>
                                 <div class="formItem">
-                                    <Rock:PersonPicker ID="prsnRequester" runat="server" />
+                                    <secc:StaffPicker ID="prsnRequester" runat="server" AllowMultipleSelections="false" UserCanEdit="true"/>
                                 </div>
                             </div>
                         </div>
@@ -306,7 +306,6 @@
                         </div>
                     </div>
                 </asp:Panel>
-                <secc:StaffSearch ID="ucStaffSearch" runat="server" AllowMultipleSelections="false" ShowPersonDetailLink="true" />
             </asp:Panel>
             <asp:Panel ID="pnlBids" runat="server" Visible="false" ClientIDMode="Static" CssClass="summaryPanels">
                 <div style="padding-bottom: 10px;">
@@ -329,7 +328,7 @@
                             </ItemTemplate>
                            
                         </Rock:RockTemplateField>
-                        <Rock:RockTemplateField ItemStyle-HorizontalAlign="Right" ItemStyle-VerticalAlign="Top">
+                        <Rock:RockTemplateField ItemStyle-HorizontalAlign="Right" ItemStyle-VerticalAlign="Top" HeaderText="Actions">
                             <ItemTemplate>
                                 <asp:LinkButton ID="lbEdit" runat="server" Visible="false" CommandName="editbid" CssClass="btn btn-default" ToolTip="Edit">
                                     <i class="fa fa-pencil"></i>
@@ -346,7 +345,7 @@
                 <div style="padding-bottom: 10px;">
                     <h3>Approval Requests</h3>
                 </div>
-                <Rock:Grid ID="grdApprovalRequests" runat="server" OnReBind="grdApprovalRequests_ReBind" OnPreRender="grdApprovalRequests_PreRender" OnRowCommand="grdApprovalRequests_RowCommand" OnRowDataBound="grdApprovalRequests_RowDataBound" DataKeyField="ApprovalId">
+                <Rock:Grid ID="grdApprovalRequests" runat="server" OnReBind="grdApprovalRequests_ReBind" OnRowCommand="grdApprovalRequests_RowCommand" OnRowDataBound="grdApprovalRequests_RowDataBound" DataKeyField="ApprovalId">
                     <Columns>
                         <Rock:RockBoundField DataField="ApprovalId" Visible="false" />
                         <Rock:RockBoundField DataField="ApprovalTypeName" SortExpression="ApprovalTypeName" HeaderText="Type" />
@@ -354,7 +353,7 @@
                         <Rock:RockBoundField DataField="ApprovalStatusName" HeaderText="Status" />
                         <Rock:RockBoundField DataField="DateApprovedString" HeaderText="Date Approved" />
                         <Rock:RockBoundField DataField="LastComment" HeaderText="Note" ItemStyle-Width="15%" />
-                        <Rock:RockTemplateField ItemStyle-HorizontalAlign="Right">
+                        <Rock:RockTemplateField ItemStyle-HorizontalAlign="Right" HeaderText="Actions">
                             <ItemTemplate>
                                 <asp:LinkButton ID="lbApprove" runat="server" CommandName="Approve" Visible="false" Title="Approve" CssClass="btn btn-default">
                                     <i class="fa fa-check"></i>
@@ -395,9 +394,6 @@
                     </Columns>
                 </Rock:Grid>
             </asp:Panel>
-
-            <asp:HiddenField ID="hfMinistryApproverResults" runat="server" />
-            <asp:Button ID="btnMinistryApproverSet" runat="server" OnClick="btnMinistryApproverSet_Click" Style="visibility: hidden; display: none;" />
             </div>
         </div>
         <Rock:ModalDialog ID="mpBidDetail" runat="server" SaveButtonText="Save" OnSaveClick="btnBidSave_Click">
@@ -554,7 +550,6 @@
                                     <asp:CheckBox ID="cbRequisitionAddOpenRequisition" runat="server" Text="Open Requisition in New Window" TextAlign="Right" />
                                 </div>
                             </div>
-                            <Rock:PersonPicker ID="ucStaffSearchRequester" runat="server" />
                         </div>
                     </ContentTemplate>
                     <Triggers>
@@ -591,7 +586,8 @@
                 </div>
             </Content>
         </Rock:ModalDialog>
-        
+        <secc:StaffPicker ID="ucStaffSearchRequester" runat="server" AllowMultipleSelections="false" OnSelect="SelectApprover_Click"/>
+
     </ContentTemplate>
     <Triggers>
         <%-- <asp:AsyncPostBackTrigger ControlID="btnBidSave" />

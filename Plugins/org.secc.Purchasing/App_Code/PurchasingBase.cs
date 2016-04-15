@@ -14,8 +14,16 @@ namespace org.secc.Purchasing
         protected UserLoginService userLoginService = new UserLoginService(new Rock.Data.RockContext());
         protected static DefinedTypeService definedTypeService = new DefinedTypeService(new Rock.Data.RockContext());
         protected static DefinedValueService definedValueService = new DefinedValueService(new Rock.Data.RockContext());
-        protected static CommunicationTemplateService communicationTemplateService = new CommunicationTemplateService(new Rock.Data.RockContext());
+        protected static SystemEmailService systemEmailService = new SystemEmailService(new Rock.Data.RockContext());
 
+        
+        private Person mCurrentPerson;
+        [XmlIgnore]
+        public Person CurrentPerson
+        {
+            get { return mCurrentPerson;  }
+            set { mCurrentPerson = value; }
+        }
 
         #region internal
         internal string Serialize(object toSerialize)

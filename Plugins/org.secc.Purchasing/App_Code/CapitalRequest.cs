@@ -5,7 +5,9 @@ using System.Text;
 using System.Xml.Serialization;
 
 using org.secc.Purchasing.DataLayer;
+using Rock;
 using Rock.Model;
+using Rock.Web.Cache;
 
 namespace org.secc.Purchasing
 {
@@ -676,7 +678,7 @@ namespace org.secc.Purchasing
             RefreshBids();
         }
 
-        public void RequestFinanceApproval( int templateId, int approverProfile, string userId, string cerLink )
+        public void RequestFinanceApproval( Guid? templateId, int approverProfile, string userId, string cerLink )
         {
             Approval approvalRequest = ApprovalRequests
                                         .Where( a => a.Active )
@@ -701,29 +703,19 @@ namespace org.secc.Purchasing
             approvalRequest.Save(userId);
             RefreshApprovalRequests();
 
-            Rock.Model.CommunicationTemplate template = communicationTemplateService.Get(templateId);
+            if (!templateId.HasValue)
+            {
+                return;
+            }
+            Rock.Model.SystemEmail template = systemEmailService.Get(templateId.Value);
+            Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
+            Fields.Add("RequestTitle", ProjectName);
+            Fields.Add("RequestDescription", ProjectDescription);
+            Fields.Add("RequestingMinistry", Ministry.Value);
+            Fields.Add("ProjectCost", string.Format("{0:c}", PurchaseCost));
+            Fields.Add("CERLink", cerLink);
 
-            StringBuilder htmlSB = new StringBuilder(template.MediumData.Where(md => md.Key ==  "HtmlMessage").Select(md => md.Value).FirstOrDefault());
-            StringBuilder textSB = new StringBuilder(template.MediumData.Where(md => md.Key == "TextMessage").Select(md => md.Value).FirstOrDefault());
-
-            htmlSB.Replace( "##RequestTitle##", ProjectName );
-            textSB.Replace( "##RequestTitle##", ProjectName );
-
-            htmlSB.Replace( "##RequestDescription##", ProjectDescription );
-            textSB.Replace( "##RequestDescription##", ProjectDescription );
-
-
-            htmlSB.Replace( "##RequestingMinistry##", Ministry.Value );
-            textSB.Replace( "##RequestingMinistry##", Ministry.Value );
-
-            htmlSB.Replace( "##ProjectCost##", string.Format( "{0:c}", PurchaseCost ) );
-            textSB.Replace( "##ProjectCost##", string.Format( "{0:c}", PurchaseCost ) );
-
-            htmlSB.Replace( "##CERLink##", cerLink );
-            textSB.Replace( "##CERLink##", cerLink );
-
-            template.MediumData["HtmlMessage"] = htmlSB.ToString();
-            template.MediumData["TextMessage"] = textSB.ToString();
+            template.Body = template.Body.ResolveMergeFields(Fields);
 
             List<Person> approvers = new List<Person>();
 
@@ -741,7 +733,7 @@ namespace org.secc.Purchasing
 
         }
 
-        public void RequestMinistryApproval(int templateId, string userId, string cerLink)
+        public void RequestMinistryApproval(Guid? templateId, string userId, string cerLink)
         {
             var currentRequest = ApprovalRequests.Where( a => a.Active )
                             .Where( a => a.ApprovalTypeLUID == Approval.MinistryApprovalTypeLUID() )
@@ -758,25 +750,19 @@ namespace org.secc.Purchasing
             currentRequest.Save( userId );
             RefreshApprovalRequests();
 
-            CommunicationTemplate template = communicationTemplateService.Get(templateId);
+            if (!templateId.HasValue)
+            {
+                return;
+            }
+            SystemEmail template = systemEmailService.Get(templateId.Value);
 
-            StringBuilder htmlSB = new StringBuilder( template.MediumData["HtmlMessage"]);
-            StringBuilder textSB = new StringBuilder(template.MediumData["TextMessage"]);
+            Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
+            Fields.Add("ApproverName", currentRequest.Approver.NickName);
+            Fields.Add("Requester", Requester.FullName);
+            Fields.Add("ProjectTitle", ProjectName);
+            Fields.Add("CERLink", cerLink);
 
-            htmlSB.Replace( "##ApproverName##", currentRequest.Approver.NickName );
-            textSB.Replace( "##ApproverName##", currentRequest.Approver.NickName );
-
-            htmlSB.Replace( "##Requester##", Requester.FullName );
-            textSB.Replace( "##Requester##", Requester.FullName );
-
-            htmlSB.Replace( "##ProjectTitle##", ProjectName );
-            textSB.Replace( "##ProjectTitle##", ProjectName );
-
-            htmlSB.Replace( "##CERLink##", cerLink );
-            textSB.Replace( "##CERLink##", cerLink );
-
-            template.MediumData["HtmlMessage"] = htmlSB.ToString();
-            template.MediumData["TextMessage"] = textSB.ToString();
+            template.Body = template.Body.ResolveMergeFields(Fields);
 
             List<Person> approver = new List<Person>() { currentRequest.Approver };
 
@@ -962,68 +948,49 @@ namespace org.secc.Purchasing
             RefreshBids();
         }
 
-        public void SendApprovedNotification( int templateId, string cerLink )
+        public void SendApprovedNotification( Guid? templateId, string cerLink )
         {
-            if(templateId <= 0)
+
+            if (!templateId.HasValue)
             {
-                return;                
+                return;
             }
+            SystemEmail template = systemEmailService.Get( templateId.Value );
 
-            CommunicationTemplate template = communicationTemplateService.Get( templateId );
+            Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
+            Fields.Add("RequesterName", Requester.NickName);
+            Fields.Add("ProjectTitle", ProjectName);
+            Fields.Add("CERLink", cerLink);
 
-            StringBuilder htmlSB = new StringBuilder( template.MediumData["HtmlMessage"] );
-            StringBuilder textSB = new StringBuilder( template.MediumData["TextMessage"] );
-
-            htmlSB.Replace( "##RequesterName##", Requester.NickName );
-            textSB.Replace( "##RequesterName##", Requester.NickName );
-
-            htmlSB.Replace( "##ProjectTitle##", ProjectName );
-            textSB.Replace( "##ProjectTitle##", ProjectName );
-
-            htmlSB.Replace( "##CERLink##", cerLink );
-            textSB.Replace( "##CERLink##", cerLink );
-
-            template.MediumData["HtmlMessage"] = htmlSB.ToString();
-            template.MediumData["TextMessage"] = textSB.ToString();
+            template.Body = template.Body.ResolveMergeFields(Fields);
 
             SendCommunication( template, null, new List<Person>() { Requester } );
         }
 
-        public void SendReturnToRequesterNotification( int templateId, int approvalId, string cerLink )
+        public void SendReturnToRequesterNotification( Guid? templateId, int approvalId, string cerLink )
         {
             Approval approvalReq = ApprovalRequests.Where( a => a.ApprovalID == approvalId ).FirstOrDefault();
 
-            if ( templateId <= 0 )
+            if ( !templateId.HasValue )
             {
                 return;
             }
 
-            CommunicationTemplate template = communicationTemplateService.Get( templateId );
-            StringBuilder htmlSB = new StringBuilder( template.MediumData["HtmlMessage"] );
-            StringBuilder textSB = new StringBuilder( template.MediumData["TextMessage"] );
+            SystemEmail template = systemEmailService.Get( templateId.Value );
 
-            htmlSB.Replace( "##RequesterName##", Requester.NickName );
-            textSB.Replace( "##RequesterName##", Requester.NickName );
 
-            htmlSB.Replace( "##ApproverName##", approvalReq.Approver.FullName );
-            textSB.Replace( "##ApproverName##", approvalReq.Approver.FullName );
+            Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
+            Fields.Add("RequesterName", Requester.NickName);
+            Fields.Add("ApproverName", approvalReq.Approver.FullName);
+            Fields.Add("ProjectName", ProjectName);
+            Fields.Add("ApprovalType", approvalReq.ApprovalType.Value);
+            var note = approvalReq.Notes.OrderByDescending(n => n.NoteID).FirstOrDefault();
 
-            htmlSB.Replace( "##ProjectName##", ProjectName );
-            textSB.Replace( "##ProjectName##", ProjectName );
+            Fields.Add("ReturnReason", note.Body);
+            Fields.Add("CERLink", cerLink);
 
-            htmlSB.Replace( "##ApprovalType##", approvalReq.ApprovalType.Value );
-            textSB.Replace( "##ApprovalType##", approvalReq.ApprovalType.Value );
+            template.Body = template.Body.ResolveMergeFields(Fields);
 
-            var note = approvalReq.Notes.OrderByDescending( n => n.NoteID ).FirstOrDefault();
-
-            htmlSB.Replace( "##ReturnReason##", note.Body );
-            textSB.Replace( "##ReturnReason##", note.Body );
-
-            htmlSB.Replace( "##CERLink##", cerLink );
-            textSB.Replace( "##CERLink##", cerLink );
-
-            template.MediumData["HtmlMessage"] = htmlSB.ToString();
-            template.MediumData["TextMessage"] = textSB.ToString();
 
             SendCommunication( template, null, new List<Person>() { Requester } );
 
@@ -1226,11 +1193,10 @@ namespace org.secc.Purchasing
             }
         }
 
-        private void SendCommunication(Rock.Model.CommunicationTemplate template, Person sender, List<Person> recepientList )
+        private void SendCommunication(Rock.Model.SystemEmail template, Person sender, List<Person> recepientList )
         {
             string fromName = null;
             string fromEmail = null;
-            string recepients = null;
             string replyToEmail = null;
 
             if ( sender != null )
@@ -1244,35 +1210,19 @@ namespace org.secc.Purchasing
                 }
                 else
                 {
-                    fromEmail = template.SenderPersonAlias.Person.Email;
-                    fromName = sender.FullName;
+                    fromEmail = template.From;
+                    fromName = template.FromName;
                 }
             }
             else
             {
-                fromEmail = template.SenderPersonAlias.Person.Email;
-                fromName = template.SenderPersonAlias.Name;
-                replyToEmail = template.MediumData.Where(md => md.Key == "ReplyTo").Select(md => md.Value).FirstOrDefault();
+                replyToEmail = template.From;
             }
 
+            List<String> recepients = recepientList.Select(p => p.Email).ToList();
 
-            StringBuilder recEmails = new StringBuilder();
-            if ( recepientList != null )
-            {
-                foreach ( var rec in recepientList )
-                {
-                    recEmails.Append( rec.Email );
-                    recEmails.Append( ";" );  
-                }
-                
-            }
-            else
-            {
-                throw new Exception("Rock does not support storing \"To\" email addresses for communications");
-            }
-            recepients = recEmails.ToString();
+            Rock.Communication.Email.Send(fromEmail, fromName, template.Subject, recepients, template.Body);
 
-            throw new Exception("Make Rock send the email!");
             //Arena.Utility.ArenaSendMail.SendMail( fromEmail, fromName, recepients, template.ReplyEmail, "", "", template.Subject, template.HtmlMessage, template.TextMessage );
         }
 

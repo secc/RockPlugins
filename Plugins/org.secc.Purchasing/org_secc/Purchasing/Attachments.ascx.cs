@@ -114,13 +114,13 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
         }
 
-        protected void dgAttachment_ItemDataBind(object sender, DataGridItemEventArgs e)
+        protected void dgAttachment_RowDataBind(object sender, GridViewRowEventArgs e)
         {
-            if (e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem)
+            if (e.Row.RowType == DataControlRowType.DataRow)
             {
-                DataRowView DRV = (DataRowView)e.Item.DataItem;
-                LinkButton lbEdit = (LinkButton)e.Item.FindControl("lbEdit");
-                LinkButton lbHide = (LinkButton)e.Item.FindControl("lbHide");
+                DataRowView DRV = (DataRowView)e.Row.DataItem;
+                LinkButton lbEdit = (LinkButton)e.Row.FindControl("lbEdit");
+                LinkButton lbHide = (LinkButton)e.Row.FindControl("lbHide");
 
                 lbHide.CommandArgument = DRV["AttachmentID"].ToString();
 

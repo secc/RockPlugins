@@ -1844,22 +1844,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         }
 
-        private void MergeTemplateFields( ref SystemEmail notificationTemplate, Dictionary<string, string> HTMLMerge, Dictionary<string, string> textMerge )
-        {
-            if (notificationTemplate == null)
-            {
-                return;
-            }
-            System.Text.StringBuilder htmlMessage = new System.Text.StringBuilder( notificationTemplate.Body );
-
-            foreach ( KeyValuePair<string, string> kvp in HTMLMerge )
-            {
-                htmlMessage.Replace( kvp.Key, kvp.Value );
-            }
-
-            notificationTemplate.Body = htmlMessage.ToString();
-        }
-
 
 
         private string GetItemListForCommunication( bool isHtml )
@@ -1922,23 +1906,16 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         private void SendRequesterSentToPurchasingNotification()
         {
             SystemEmail ct = systemEmailService.Get(RequisitionSubmittedToPurchasingSetting.Value);
-            Dictionary<string, string> HTMLMerge = new Dictionary<string, string>();
-            Dictionary<string, string> TextMerge = new Dictionary<string, string>();
+            Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
 
-            HTMLMerge.Add( "##Requester##", CurrentRequisition.Requester.FirstName );
-            TextMerge.Add( "##Requester##", CurrentRequisition.Requester.FirstName );
-
-            HTMLMerge.Add( "##RequisitionTitle##", CurrentRequisition.Title );
-            TextMerge.Add( "##RequisitionTitle##", CurrentRequisition.Title );
-
-            HTMLMerge.Add( "##DateSubmitted##", string.Format( "{0:g}", CurrentRequisition.DateSubmitted ) );
-            TextMerge.Add( "##DateSubmitted##", string.Format( "{0:g}", CurrentRequisition.DateSubmitted ) );
+            Fields.Add("Requester", CurrentRequisition.Requester.FirstName);
+            Fields.Add("RequisitionTitle", CurrentRequisition.Title);
+            Fields.Add("DateSubmitted", string.Format("{0:g}", CurrentRequisition.DateSubmitted));
 
             string Link = GetRequisitionLink();
-            HTMLMerge.Add( "##RequisitionLink##", string.Format( "<a href=\"{0}\">{0}</a>", Link ) );
-            TextMerge.Add( "##RequisitionLink##", string.Format( "<a href=\"{0}\">{0}</a>", Link ) );
+            Fields.Add("RequisitionLink", string.Format("<a href=\"{0}\">{0}</a>", Link));
 
-            MergeTemplateFields( ref ct, HTMLMerge, TextMerge );
+            ct.Body = ct.Body.ResolveMergeFields(Fields, false);
             SendCommunication( ct, null, CurrentRequisition.Requester );
         }
 
@@ -1950,35 +1927,26 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             PersonService personService = new PersonService(new Rock.Data.RockContext());
             foreach (var email in emails)
             {
-                Person recepient = personService.GetByEmail(email).FirstOrDefault();
+                Person recepient = personService.GetByEmail(email.Trim()).FirstOrDefault();
                 SystemEmail ct = ctOriginal;
-                Dictionary<string, string> HTMLMerge = new Dictionary<string, string>();
-                Dictionary<string, string> TextMerge = new Dictionary<string, string>();
+                Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
 
-                HTMLMerge.Add( "##RecipientName##", recepient.FirstName );
-                TextMerge.Add( "##RecipientName##", recepient.FirstName );
-
-                HTMLMerge.Add( "##RequisitionTitle##", CurrentRequisition.Title );
-                TextMerge.Add( "##RequisitionTitle##", CurrentRequisition.Title );
-
-                HTMLMerge.Add( "##Requester##", CurrentRequisition.Requester.FullName );
-                TextMerge.Add( "##Requester##", CurrentRequisition.Requester.FullName );
-
-                HTMLMerge.Add( "##DateSubmitted##", string.Format( "{0:g}", CurrentRequisition.DateSubmitted ) );
-                TextMerge.Add( "##DateSubmitted##", string.Format( "{0:g}", CurrentRequisition.DateSubmitted ) );
-
-                HTMLMerge.Add( "##IsApproved##", CurrentRequisition.IsApproved ? "Yes" : "No" );
-                TextMerge.Add( "##IsApproved##", CurrentRequisition.IsApproved ? "Yes" : "No" );
-
+                if (recepient == null)
+                {
+                    SetSummaryError("Purchasing Team Notification: Email Address " + email + " does not belong to a person in Rock");
+                    break;
+                }
+                Fields.Add("RecipientName", recepient.FirstName);
+                Fields.Add("RequisitionTitle", CurrentRequisition.Title);
+                Fields.Add("Requester", CurrentRequisition.Requester.FullName);
+                Fields.Add("DateSubmitted", string.Format("{0:g}", CurrentRequisition.DateSubmitted));
+                Fields.Add("IsApproved", CurrentRequisition.IsApproved ? "Yes" : "No");
                 string link = GetRequisitionLink();
-                HTMLMerge.Add( "##RequisitionLink##", string.Format( "<a href=\"{0}\">{0}</a>", link ) );
-                TextMerge.Add( "##RequisitionLink##", link );
-
+                Fields.Add("RequisitionLink", string.Format("<a href=\"{0}\">{0}</a>", link));
                 int ItemDetailCount = CurrentRequisition.GetItemDetailCount( true );
-                HTMLMerge.Add( "##ItemCount##", ItemDetailCount.ToString() );
-                TextMerge.Add( "##ItemCount##", ItemDetailCount.ToString() );
+                Fields.Add("ItemCount", ItemDetailCount.ToString());
 
-                MergeTemplateFields( ref ct, HTMLMerge, TextMerge );
+                ct.Body = ct.Body.ResolveMergeFields(Fields, false);
 
                 SendCommunication( ct, null, recepient );
             }
@@ -2010,66 +1978,44 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             SystemEmail ct = systemEmailService.Get(AcceptedByPurchasingNotificationSetting);
 
-            Dictionary<string, string> HTMLMerge = new Dictionary<string, string>();
-            Dictionary<string, string> TextMerge = new Dictionary<string, string>();
+            Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
 
-            HTMLMerge.Add( "##Requester##", CurrentRequisition.Requester.NickName );
-            TextMerge.Add( "##Requester##", CurrentRequisition.Requester.NickName );
-
-            HTMLMerge.Add( "##RequisitionTitle##", CurrentRequisition.Title );
-            TextMerge.Add( "##RequisitionTitle##", CurrentRequisition.Title );
-
-            HTMLMerge.Add( "##Approved##", CurrentRequisition.IsApproved ? "Yes" : "No" );
-            TextMerge.Add( "##Approved##", CurrentRequisition.IsApproved ? "Yes" : "No" );
-
+            Fields.Add("Requester", CurrentRequisition.Requester.NickName);
+            Fields.Add("RequisitionTitle", CurrentRequisition.Title);
+            Fields.Add("Approved", CurrentRequisition.IsApproved ? "Yes" : "No");
             int ItemDetailCount = CurrentRequisition.GetItemDetailCount( true );
-            HTMLMerge.Add( "##ItemCount##", ItemDetailCount.ToString() );
-            TextMerge.Add( "##ItemCount##", ItemDetailCount.ToString() );
-
-            HTMLMerge.Add( "##DateAccepted##", string.Format( "{0:g}", CurrentRequisition.DateAccepted ) );
-            TextMerge.Add( "##DateAccepted##", string.Format( "{0:g}", CurrentRequisition.DateAccepted ) );
-
-            HTMLMerge.Add( "##AcceptedBy##", CurrentRequisition.AcceptedBy.FullName );
-            TextMerge.Add( "##AcceptedBy##", CurrentRequisition.AcceptedBy.FullName );
-
-            HTMLMerge.Add( "##DateSubmitted##", string.Format( "{0:g}", CurrentRequisition.DateSubmitted ) );
-            TextMerge.Add( "##DateSubmitted##", string.Format( "{0:g}", CurrentRequisition.DateSubmitted ) );
-
+            Fields.Add("ItemCount", ItemDetailCount.ToString());
+            Fields.Add("DateAccepted", string.Format("{0:g}", CurrentRequisition.DateAccepted));
+            Fields.Add("AcceptedBy", CurrentRequisition.AcceptedBy.FullName);
+            Fields.Add("DateSubmitted", string.Format("{0:g}", CurrentRequisition.DateSubmitted));
             string Link = GetRequisitionLink();
-            HTMLMerge.Add( "##RequisitionLink##", string.Format( "<a href=\"{0}\">{0}</a>", Link ) );
-            TextMerge.Add( "##RequisitionLink##", Link );
+            Fields.Add("RequisitionLink", string.Format("<a href=\"{0}\">{0}</a>", Link));
 
-            MergeTemplateFields( ref ct, HTMLMerge, TextMerge );
+            ct.Body = ct.Body.ResolveMergeFields(Fields, false);
             SendCommunication( ct, null, CurrentRequisition.Requester );
         }
 
         private void SendReturnToRequesterNotification( string noteText )
         {
+            if (ReturnedToRequesterNotificationSetting == 0)
+            {
+                return;
+            }
             SystemEmail ct = systemEmailService.Get(ReturnedToRequesterNotificationSetting);
 
-            Dictionary<string, string> HTMLMerge = new Dictionary<string, string>();
-            Dictionary<string, string> TextMerge = new Dictionary<string, string>();
+            Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
+
             int ItemDetailCount = CurrentRequisition.GetItemDetailCount( true );
             string Link = GetRequisitionLink();
-            HTMLMerge.Add( "##Requester##", CurrentRequisition.Requester.NickName );
-            HTMLMerge.Add( "##RequisitionTitle##", CurrentRequisition.Title );
-            HTMLMerge.Add( "##Approved##", CurrentRequisition.IsApproved ? "Yes" : "No" );
-            HTMLMerge.Add( "##ItemCount##", ItemDetailCount.ToString() );
-            HTMLMerge.Add( "##ReturnedBy##", CurrentPerson.FullName );
-            HTMLMerge.Add( "##ReasonForReturn##", noteText.Replace( "Return to Requester -", "" ) );
-            HTMLMerge.Add( "##RequisitionLink##", string.Format( "<a href=\"{0}\">{0}</a>", Link ) );
+            Fields.Add("Requester", CurrentRequisition.Requester.NickName);
+            Fields.Add("RequisitionTitle", CurrentRequisition.Title);
+            Fields.Add("Approved", CurrentRequisition.IsApproved ? "Yes" : "No");
+            Fields.Add("ItemCount", ItemDetailCount.ToString());
+            Fields.Add("ReturnedBy", CurrentPerson.FullName);
+            Fields.Add("ReasonForReturn", noteText.Replace("Return to Requester -", ""));
+            Fields.Add("RequisitionLink", string.Format("<a href=\"{0}\">{0}</a>", Link));
 
-            TextMerge.Add( "##Requester##", CurrentRequisition.Requester.NickName );
-            TextMerge.Add( "##RequisitionTitle##", CurrentRequisition.Title );
-            TextMerge.Add( "##Approved##", CurrentRequisition.IsApproved ? "Yes" : "No" );
-            TextMerge.Add( "##ItemCount##", ItemDetailCount.ToString() );
-            TextMerge.Add( "##ReturnedBy##", CurrentPerson.FullName );
-            TextMerge.Add( "##ReasonForReturn##", noteText.Replace( "Return to Requester -", "" ) );
-
-
-            TextMerge.Add( "##RequisitionLink##", Link );
-
-            MergeTemplateFields( ref ct, HTMLMerge, TextMerge );
+            ct.Body = ct.Body.ResolveMergeFields(Fields, false);
             SendCommunication( ct, null, CurrentRequisition.Requester );
         }
 
@@ -2732,22 +2678,13 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             Approval DeclinedApproval = new Approval(approvalID);
 
             SystemEmail notificationTemplate = systemEmailService.Get(ApprovalDeclinedNotificationTemplateSetting);
-            Dictionary<string, string> HTMLMerge = new Dictionary<string, string>();
-            Dictionary<string,string> TextMerge = new Dictionary<string, string>();
+            Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
 
-            HTMLMerge.Add("##Requester##", CurrentRequisition.Requester.NickName);
-            TextMerge.Add("##Requester##", CurrentRequisition.Requester.NickName);
-
-            HTMLMerge.Add("##ApproverName##", DeclinedApproval.Approver.FullName);
-            TextMerge.Add("##ApproverName##", DeclinedApproval.Approver.FullName);
-
-            HTMLMerge.Add("##RequisitionTitle##", CurrentRequisition.Title);
-            TextMerge.Add("##RequisitionTitle##", CurrentRequisition.Title);
-
-            HTMLMerge.Add("##RequisitionLink##", string.Format("<a href=\"{0}\">{0}</a>", GetRequisitionLink()));
-            TextMerge.Add("##RequisitionLink##", GetRequisitionLink());
-
-            MergeTemplateFields(ref notificationTemplate, HTMLMerge, TextMerge);
+            Fields.Add("Requester", CurrentRequisition.Requester.NickName);
+            Fields.Add("ApproverName", DeclinedApproval.Approver.FullName);
+            Fields.Add("RequisitionTitle", CurrentRequisition.Title);
+            Fields.Add("RequisitionLink", string.Format("<a href=\"{0}\">{0}</a>", GetRequisitionLink()));
+            notificationTemplate.Body = notificationTemplate.Body.ResolveMergeFields(Fields, false);
 
             SendCommunication(notificationTemplate, DeclinedApproval.Approver, CurrentRequisition.Requester);
 
@@ -2762,26 +2699,17 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             SystemEmail notificationTemplate = systemEmailService.Get(RequisitionApprovedNotificationTemplateSetting);
 
-            Dictionary<string, string> HTMLMerge = new Dictionary<string, string>();
-            Dictionary<string, string> textmerge = new Dictionary<string, string>();
+            Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
 
-            HTMLMerge.Add("##RequesterName##", CurrentRequisition.Requester.NickName);
-            textmerge.Add("##RequesterName##", CurrentRequisition.Requester.NickName);
-
-            HTMLMerge.Add("##RequisitionTitle##", CurrentRequisition.Title);
-            textmerge.Add("##RequisitionTitle##", CurrentRequisition.Title);
-
-            HTMLMerge.Add("##ApproverName##", a.Approver.FullName);
-            textmerge.Add("##ApproverName##", a.Approver.FullName);
-
-            HTMLMerge.Add("##DateApproved##", a.DateApproved.ToShortDateString() + ' ' + a.DateApproved.ToShortTimeString());
-            textmerge.Add("##DateApproved##", a.DateApproved.ToShortDateString() + ' ' + a.DateApproved.ToShortTimeString());
-
+            Fields.Add("RequesterName", CurrentRequisition.Requester.NickName);
+            Fields.Add("RequisitionTitle", CurrentRequisition.Title);
+            Fields.Add("ApproverName", a.Approver.FullName);
+            Fields.Add("DateApproved", a.DateApproved.ToShortDateString() + ' ' + a.DateApproved.ToShortTimeString());
             string Link = GetRequisitionLink();
-            HTMLMerge.Add("##RequisitionLink##", string.Format("<a href=\"{0}\">{0}</a>", Link));
-            textmerge.Add("##RequisitionLink##", Link);
+            Fields.Add("RequisitionLink", string.Format("<a href=\"{0}\">{0}</a>", Link));
 
-            MergeTemplateFields(ref notificationTemplate, HTMLMerge, textmerge);
+            notificationTemplate.Body = notificationTemplate.Body.ResolveMergeFields(Fields, false);
+
             SendCommunication(notificationTemplate, CurrentPerson, CurrentRequisition.Requester);
 
         }
@@ -2795,42 +2723,23 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             SystemEmail notificationTemplate = systemEmailService.Get(ApprovalRequestNotificationTemplateSetting);
 
-            Dictionary<string, string> HTMLMerge = new Dictionary<string, string>();
-            Dictionary<string, string> textMerge = new Dictionary<string,string>();
-            
-            HTMLMerge.Add("##ApproverName##", a.Approver.NickName);
-            textMerge.Add("##ApproverName##", a.Approver.NickName);
+            Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
+            Fields.Add("ApproverName", a.Approver.NickName);
+            Fields.Add("RequisitionTitle", CurrentRequisition.Title);
+            Fields.Add("ApprovalRequester", CurrentPerson.FirstName);
+            Fields.Add("Requester", CurrentRequisition.Requester.FullName);
+            Fields.Add("RequisitionLink", string.Format("<a href=\"{0}\">{0}</a>", GetRequisitionLink()));
+            Fields.Add("ItemList", GetItemListForCommunication(true));
 
-            HTMLMerge.Add("##RequisitionTitle##", CurrentRequisition.Title);
-            textMerge.Add("##RequisitionTitle##", CurrentRequisition.Title);
+            notificationTemplate.Body = notificationTemplate.Body.ResolveMergeFields(Fields, false);
 
-            HTMLMerge.Add("##ApprovalRequester##", CurrentPerson.FirstName);
-            textMerge.Add("##ApprovalRequester##", CurrentPerson.FirstName);
-
-            HTMLMerge.Add("##Requester##", CurrentRequisition.Requester.FullName);
-            textMerge.Add("##Requester##", CurrentRequisition.Requester.FullName);
-
-            HTMLMerge.Add("##RequisitionLink##", string.Format("<a href=\"{0}\">{0}</a>", GetRequisitionLink()));
-            textMerge.Add("##RequisitionLink##", GetRequisitionLink());
-
-            HTMLMerge.Add("##ItemList##", GetItemListForCommunication(true));
-            textMerge.Add("##ItemList##", GetItemListForCommunication(false));
-
-
-            MergeTemplateFields(ref notificationTemplate, HTMLMerge, textMerge);
             SendCommunication(notificationTemplate, CurrentPerson, a.Approver);
         }
 
         private string GetRequisitionLink()
         {
-            // TODO: Doublecheck this;
-            return CurrentPageReference.BuildUrl();
-            /*string.Format("http://{0}/default.aspx?page={1}&RequisitionID={2}",
-                CurrentPortal.Domain,
-                CurrentPortalPage.PortalPageID,
-                RequisitionID);*/
-
-            
+            return GlobalAttributesCache.Value("InternalApplicationRoot").ReplaceLastOccurrence("/", "") + 
+                CurrentPageReference.BuildUrl();
         }
 
         private void SendCommunication(SystemEmail notificationTemplate, Person sender, Person recepient)
@@ -2864,10 +2773,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 fromName = notificationTemplate.FromName;
                 fromEmail = notificationTemplate.From;
             }
-            string RecepientEmail = recepient.Email + ";";
+            string RecepientEmail = recepient.Email;
     
                 if (EnableNotificationSetting || RequesterIsInBetaGroup())
-                    Rock.Communication.Email.Send(fromName + "<"+fromEmail+">", notificationTemplate.Subject, new List<String>() { RecepientEmail}, replyToEmail, notificationTemplate.Body);
+                    Rock.Communication.Email.Send(fromEmail, fromName, notificationTemplate.Subject, new List<String>() { RecepientEmail }, notificationTemplate.Body);
         }
 
         private bool RequesterIsInBetaGroup()
