@@ -15,6 +15,8 @@ using Rock.Model;
 using Rock.Web.UI.Controls;
 using Rock;
 using Rock.Web.Cache;
+using System.Web.UI.HtmlControls;
+using Rock.Data;
 
 namespace RockWeb.Plugins.org_secc.Purchasing
 {
@@ -1307,9 +1309,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if (ucAttachments.Identifier == 0)
                 ucAttachments.Identifier = RequisitionID;
 
-            string attachmentScript = string.Format("openChooseDocumentWindow(\"-1\",\"{0}\");", Attachment.GetPurchasingDocumentType().Id);
-
-            ScriptManager.RegisterStartupScript(upMain, upMain.GetType(), "ShowAttachmentWindow" + DateTime.Now.Ticks, attachmentScript, true);
+            mdAttachment.Show();
         }
 
         private void LoadApprovals()
@@ -3616,5 +3616,33 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             return;
 
         }
-}
+
+        protected void mdAttachment_SaveClick( object sender, EventArgs e )
+        {
+            var attachmentParent = Attachment.GetPurchasingDocumentType();
+
+            RockContext rockContext = new RockContext();
+            var binaryFileService = new BinaryFileService( rockContext );
+
+            //get the binary file
+            var binaryFile = binaryFileService.Get( fuprAttachment.BinaryFileId.Value );
+
+            //set binary file type
+            binaryFile.BinaryFileType = new BinaryFileTypeService( rockContext )
+                .Get( attachmentParent.Guid );
+
+            //change settigns and save
+            binaryFile.IsTemporary = false;
+            binaryFile.Description = tbAttachmentDesc.Text;
+            rockContext.SaveChanges();
+
+            var attachment = new Attachment();
+            attachment.ParentObjectTypeName = typeof(Requisition).ToString();
+            attachment.ParentIdentifier = PageParameter( "RequisitionID" ).AsInteger();
+            attachment.BlobID = binaryFile.Id;
+            attachment.Save(CurrentUser.UserName);
+            mdAttachment.Hide();
+            LoadAttachments();
+        }
+    }
 }
