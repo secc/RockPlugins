@@ -495,32 +495,13 @@
                 </asp:UpdatePanel>
             </Content>
         </Rock:ModalDialog>
-        <Rock:ModalDialog ID="mpOrderSubmit" runat="server">
+        <Rock:ModalDialog ID="mpOrderSubmit" runat="server" Title="Submit Order" OnSaveClick="btnOrderSubmit_Click" SaveButtonText="Submit Order">
             <Content>
                 <asp:UpdatePanel ID="upOrderSubmit" runat="server" UpdateMode="Conditional">
                     <ContentTemplate>
                         <div id="orderSubmit">
-                        <h3>Submit Order</h3>
-                            <div class="vendorRow">
-                                <div class="formLabel" style="width:25%; float:left;">
-                                    Order Date:
-                                </div>
-                                <div class="formItem" style="width:75%; float: left;">
-                                    <Rock:DatePicker ID="txtDateSubmitted" runat="server" />
-                                </div>
-                            </div>
-                            <div class="vendorRow">
-                                <div class="formLabel" style="width:25%; float: left;">
-                                    Order Notes:
-                                </div>
-                                <div class="formItem" style="width:75%; float:left;">
-                                    <asp:TextBox ID="txtOrderNotes" runat="server" TextMode="MultiLine" style="width:250px; height:75px;" />
-                                </div>
-                            </div>
-                            <div style="text-align:right; padding-top:3px;">
-                                <asp:Button ID="btnOrderSubmit" runat="server" Text="Submit Order" CssClass="smallText" OnClick="btnOrderSubmit_Click" />
-                                <asp:Button ID="btnOrderSubmitCancel" runat='server' Text="Cancel" CssClass="smallText" OnClick="btnOrderSubmitCancel_Click" />
-                            </div>
+                            <Rock:DatePicker Label="Order Date:" ID="txtDateSubmitted" runat="server" />
+                            <Rock:RockTextBox Label="Order Notes:" ID="txtOrderNotes" runat="server" TextMode="MultiLine" />
                         </div>
                     </ContentTemplate>
                     <Triggers>
@@ -608,51 +589,32 @@
                 </asp:UpdatePanel>
             </Content>
         </Rock:ModalDialog>
-        <Rock:ModalDialog ID="mpItemDetails" runat="server">
+        <Rock:ModalDialog ID="mpItemDetails" runat="server" Title="Item Details" SubTitle="Summary" SaveButtonText="Update" OnSaveClick="btnIDUpdate_Click">
             <Content>
                 <asp:UpdatePanel ID="upItemDetails" runat="server" UpdateMode="Conditional">
                     <ContentTemplate>
                         <div id="itemDetails">
                             <asp:HiddenField ID="hfIDItemID" runat="server" />
-                            <h3>Item Details</h3>
-                            <div class="error">
-                                <asp:Label ID="lblIDError" runat="server" Visible="false" />
+                            <div class="error" ID="lblIDError" runat="server" Visible="false" />
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <Rock:RockLiteral Label="Item #" ID="lblIDItemNumber" runat="server" />
+                                    <Rock:RockLiteral Label="Description" ID="lblIDDescription" runat="server" />
+                                    <Rock:RockLiteral Label="Date Needed" ID="lblIDDateNeeded" runat="server" />
+                                    <Rock:RockLiteral Label="Expedite" ID="imgIDExpedite" runat="server" />
+                                    <Rock:RockTextBox Label="Qty Assigned" ID="txtIDQtyAssigned" runat="server" Visible="false" />
+                                    <Rock:RockLiteral Label="Qty ASsigned" ID="lblIDQtyAssigned" runat="server" Visible="true" />
+                                </div>
+                                <div class="col-md-6">
+                                    <Rock:RockLiteral ID="lblIDReceivedUnassignedValue" runat="server" />
+                                    <Rock:RockLiteral Label="Acct #" ID="lblIDAccount" runat="server" />
+                                    <Rock:RockTextBox Label="Price" ID="txtIDPrice" runat="server" Visible="false" />
+                                    <Rock:RockLiteral Label="Price" ID="lblIDPrice" runat="server" Visible="true" />
+                                </div>
                             </div>
-                            <h4>Summary</h4>
-                            <div class="vendorRow" style="overflow:hidden; padding-top:3px;">
-                                <div style="width:40%;float:left;" class="formLabel">Item #</div>
-                                <div style="width:60%; float:left;" class="formItem"><asp:Label ID="lblIDItemNumber" runat="server" /></div>
-                            </div>
-                            <div class="vendorRow" style="overflow:hidden; padding-top:3px;">
-                                <div style="width:40%; float:left;" class="formLabel">Description</div>
-                                <div style="width:60%; float:left;" class="formItem"><asp:Label ID="lblIDDescription" runat="server" /></div>
-                            </div>
-                            <div class="vendorRow" style="overflow:hidden; padding-top:3px;">
-                                <div style="width:40%; float:left;" class="formLabel">Date Needed</div>
-                                <div style="width:60%; float:left;" class="formItem"><asp:Label ID="lblIDDateNeeded" runat="server" /></div>
-                            </div>
-                            <div class="vendorRow" style="overflow:hidden; padding-top:3px;">
-                                <div style="width:40%; float:left;" class="formLabel">Expedite</div>
-                                <div style="width:60%; float:left;" class="formItem"><asp:Image ID="imgIDExpedite" AlternateText="Yes" runat="server" Visible="false" ImageUrl="~/images/check.gif" /> &nbsp;</div>
-                            </div>
-                            <div class="vendorRow" style="overflow:hidden; padding-top:3px;">
-                                <div style="width:40%; float:left;" class="formLabel">Qty Assigned</div>
-                                <div style="width:60%; float:left;" class="formItem"><asp:TextBox ID="txtIDQtyAssigned" runat="server" style="width:20%;" CssClass="smallText" Visible="false" /><asp:Label ID="lblIDQtyAssigned" runat="server" Visible="true" /></div>
-                            </div>
-                            <div class="vendorRow" style="overflow:hidden; padding-top:3px;">
-                                <div style="width:40%; float:left;" class="formLabel"><asp:Label ID="lblIDReceivedUnassignedHeader" runat="server" /></div>
-                                <div style="width:60%; float:left;" class="formItem"><asp:Label ID="lblIDReceivedUnassignedValue" runat="server" /></div>
-                            </div>
-                            <div class="vendorRow" style="overflow:hidden; padding-top:3px;">
-                                <div style="width:40%; float:left;" class="formLabel">Acct #</div>
-                                <div style="width:60%; float:left;" class="formItem"><asp:Label ID="lblIDAccount" runat="server" /></div>
-                            </div>
-                            <div class="vendorRow" style="overflow:hidden; padding-top:3px;">
-                                <div style="width:40%; float:left;" class="formLabel">Price</div>
-                                <div style="width:60%; float:left;" class="formItem"><asp:TextBox ID="txtIDPrice" runat="server" Visible="false" style="width:20%;" /><asp:Label ID="lblIDPrice" runat="server" Visible="true" /></div>
-                            </div>    
+
                             <h4>Receipts</h4>
-                            <Rock:Grid ID="dgIDReceipts" runat="server" CssClass="list">
+                            <Rock:Grid ID="dgIDReceipts" runat="server" CssClass="list" ShowActionRow="false" AllowPaging="false">
                                 <Columns>
                                     <Rock:RockBoundField HeaderText="ReceiptID" DataField="ReceiptID" Visible="false" />
                                     <Rock:RockBoundField HeaderText="Date Received" DataField="DateReceived" />
@@ -661,11 +623,6 @@
                                     <Rock:RockBoundField HeaderText="Received By" DataField="ReceivedBy" />
                                 </Columns>
                             </Rock:Grid>
-                            <div style="text-align:right; padding-top:3px;">
-                                <asp:Button ID="btnIDUpdate" runat="server" CssClass="smallText" Text="Update" OnClick="btnIDUpdate_Click" />
-                                <asp:Button ID="btnIDReset" runat="server" CssClass="smallText" Text="Reset" OnClick="btnIDReset_Click" />
-                                <asp:Button ID="btnIDClose" runat="server" CssClass="smallText" Text="Close" OnClick="btnIDClose_Click" />
-                            </div>
                         </div>
                     </ContentTemplate>
                 </asp:UpdatePanel>

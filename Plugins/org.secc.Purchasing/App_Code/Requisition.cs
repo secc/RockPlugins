@@ -728,8 +728,8 @@ namespace org.secc.Purchasing
                             query2 = query2.Where( q => q.MinistryLUID == MyMinistryID );
 
                             DefinedValue Ministry = definedValueService.Get( MyMinistryID );
-
-                            if (Ministry != null && Ministry.Value != "Y" && filter.ContainsKey("MyLocationID") && int.TryParse(filter["MyLocationID"], out MyLocationID))
+                            Ministry.LoadAttributes();
+                            if (Ministry != null && !Ministry.GetAttributeValue("Active").AsBoolean() && filter.ContainsKey("MyLocationID") && int.TryParse(filter["MyLocationID"], out MyLocationID))
                             {
                                 query2 = query2.Where( q => q.LocationLUID == MyLocationID );
                             }
@@ -1478,7 +1478,8 @@ namespace org.secc.Purchasing
             bool IsFullyOrdered = false;
             bool IsFullyReceived = false;
 
-            if (DateAccepted == DateTime.MinValue || Status.Value == "Y" )
+            Status.LoadAttributes();
+            if (DateAccepted == DateTime.MinValue || Status.GetAttributeValue("IsClosed").AsBoolean() )
                 return;
 
 
@@ -1545,8 +1546,9 @@ namespace org.secc.Purchasing
             if (TempStatusLUID > 0)
             {
                 StatusLUID = TempStatusLUID;
-
-                IsOpen = !( definedValueService.Get( TempStatusLUID ).Value == "Y" );
+                DefinedValue status = definedValueService.Get( TempStatusLUID );
+                status.LoadAttributes();
+                IsOpen = !( status.GetAttributeValue("IsClosed").AsBoolean());
 
             }
 

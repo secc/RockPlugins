@@ -3311,12 +3311,12 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             lblIDDescription.Text = "&nbsp;";
             lblIDDateNeeded.Text = "&nbsp;";
             lblIDQtyAssigned.Text = "&nbsp;";
-            lblIDReceivedUnassignedHeader.Text = "&nbsp;";
+            lblIDReceivedUnassignedValue.Label = "&nbsp;";
             lblIDReceivedUnassignedValue.Text = "&nbsp;";
             lblIDAccount.Text = "&nbsp;";
             lblIDPrice.Text = "&nbsp;";
 
-            imgIDExpedite.Visible = false;
+            imgIDExpedite.Text = "No";
 
             txtIDQtyAssigned.Text = String.Empty;
             txtIDPrice.Text = String.Empty;
@@ -3368,17 +3368,17 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 txtIDQtyAssigned.Text = POI.Quantity.ToString();
                 lblIDQtyAssigned.Text = POI.Quantity.ToString();
 
-                imgIDExpedite.Visible = POI.RequisitionItem.IsExpeditiedShippingAllowed;
+                imgIDExpedite.Text = POI.RequisitionItem.IsExpeditiedShippingAllowed?"Yes":"No";
 
                 if (POI.PurchaseOrder.DateOrdered > DateTime.MinValue)
                 {
-                    lblIDReceivedUnassignedHeader.Text = "Qty Received";
+                    lblIDReceivedUnassignedValue.Label = "Qty Received";
                     lblIDReceivedUnassignedValue.Text = POI.ReceiptItems.Where(x => x.Active).Select(x => x.QuantityReceived).Sum().ToString();
 
                 }
                 else
                 {
-                    lblIDReceivedUnassignedHeader.Text = "Qty Unassigned";
+                    lblIDReceivedUnassignedValue.Label = "Qty Unassigned";
                     lblIDReceivedUnassignedValue.Text = (POI.RequisitionItem.Quantity - POI.RequisitionItem.POItems.Where(x => x.Active).Select(x => x.Quantity).Sum()).ToString();
                 }
 
@@ -3405,7 +3405,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void SetItemDetailsModalErrors(string msg)
         {
-            lblIDError.Text = msg;
+            lblIDError.InnerHtml = msg;
             lblIDError.Visible = !String.IsNullOrEmpty(msg);
         }
 
@@ -3421,8 +3421,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             txtIDPrice.Visible = ShowPriceTB;
             lblIDPrice.Visible = !ShowPriceTB;
 
-            btnIDUpdate.Visible = ShowQtyTB || ShowPriceTB;
-            btnIDReset.Visible = ShowQtyTB || ShowPriceTB;
+            if (!(ShowQtyTB || ShowPriceTB)) {
+                mpItemDetails.SaveButtonText = String.Empty;
+            }
         }
 
         private bool UpdateItemDetails()

@@ -1636,9 +1636,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void SetVendorModalButtonStatus(bool enabled)
         {
-            // TODO: Show/Hide action buttons
-            //btnVendorModalUpdate.Enabled = enabled;
-            //btnVendorModalReset.Enabled = enabled; 
+            if (!enabled)
+            {
+                mpChooseVendor.SaveButtonText = String.Empty;
+            }
         }
 
         private void UpdateVendorLabel()
@@ -2586,8 +2587,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     ucStaffPickerApprover.MinistryAreaAttributeGuid = MinistryAreaAttribute.Guid;
                     ucStaffPickerApprover.PositionAttributeGuid = PositionAttribute.Guid;
                     ucStaffPickerApprover.Show();
-                    //TODO: fix this
-                    //ShowStaffSelector("Select Approver", hfApproverID.ClientID, btnApproverAdd.ClientID);
                 }
             }
         }
@@ -2617,8 +2616,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             Approval approvalRequest = CurrentRequisition.Approvals.FirstOrDefault(a => a.ApprovalID == approvalID);
             approvalRequest.Approve(CurrentUser.UserName, Approval.ApprovedAndForwardLUID());
-            //TODO; Fix this
-            //ShowStaffSelector("Select Approver", hfApproverID.ClientID, btnApproverAdd.ClientID);
 
         }
 

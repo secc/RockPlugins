@@ -5,6 +5,7 @@ using System.Text;
 using System.Xml.Serialization;
 using org.secc.Purchasing.DataLayer;
 using Rock.Model;
+using Rock;
 
 namespace org.secc.Purchasing
 {
@@ -540,8 +541,8 @@ namespace org.secc.Purchasing
         {
             if (Status == null)
                 return false;
-
-            return Status.Value == "Y";
+            Status.LoadAttributes();
+            return Status.GetAttributeValue("IsClosed").AsBoolean();
         }
 
         public static List<PurchaseOrder> LoadOpenPOs()
@@ -590,7 +591,9 @@ namespace org.secc.Purchasing
 
         public void Reopen(string uid)
         {
-            if (Status.Value == "Y")
+            Status.LoadAttributes();
+
+            if (Status.GetAttributeValue("IsClosed").AsBoolean())
             {
                 StatusLUID = PurchaseOrderStatusReopenedLUID();
                 DateClosed = DateTime.MinValue;
@@ -738,7 +741,8 @@ namespace org.secc.Purchasing
             bool HasBeenRemoved = false;
             PurchaseOrderItem POItem = Items.FirstOrDefault(x => x.PurchaseOrderItemID == poItemID);
 
-            if (Status.Value != "Y" && POItem != null && POItem.ItemID > 0)
+            Status.LoadAttributes();
+            if (!Status.GetAttributeValue("IsClosed").AsBoolean() && POItem != null && POItem.ItemID > 0)
             {
                 POItem.Active = false;
                 POItem.Save(uid);
@@ -757,7 +761,8 @@ namespace org.secc.Purchasing
             Payment p = Payments.FirstOrDefault(x => x.PaymentID == paymentID);
 
             //PO is not closed.
-            if (Status.Value != "Y" && p.PaymentID > 0)
+            Status.LoadAttributes();
+            if (!Status.GetAttributeValue("IsClosed").AsBoolean() && p.PaymentID > 0)
             {
                 p.DeactivateCharges(uid);
                 p.Active = false;
