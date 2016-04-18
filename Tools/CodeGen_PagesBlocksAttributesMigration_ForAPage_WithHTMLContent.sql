@@ -4,7 +4,7 @@ declare
 
 begin
 
-DECLARE @PageId int = 446
+DECLARE @PageId int = 501
 
 IF OBJECT_ID('tempdb..#codeTable') IS NOT NULL
     DROP TABLE #codeTable
@@ -31,8 +31,7 @@ create table #codeTable (
     left outer join [Page] [pp] on [pp].[Id] = [p].[ParentPageId]
 	join [Layout] [l] on [l].[Id] = [p].[layoutId]
 	join [site] [s] on [s].[Id] = [l].[siteId]
-    --where [p].[Id] = @PageId
-	where [p].[Id] in 
+    where [p].[Id] = @PageId
 
     insert into #codeTable
     SELECT @crlf
