@@ -4,7 +4,7 @@ declare
 
 begin
 
-DECLARE @PageId VARCHAR(MAX) = '470,471,472,473,474,475,476'
+DECLARE @PageId VARCHAR(MAX) = '484,485,486,487,488,489,490'
 
 IF OBJECT_ID('tempdb..#codeTable') IS NOT NULL
     DROP TABLE #codeTable
@@ -77,8 +77,8 @@ create table #codeTable (
         CONVERT(nvarchar(50), [bt].[Guid])+ '","'+
         [b].[Name]+ '","'+
         [b].[Zone]+ '","'+
-		ISNULL([b].[PreHtml], '')+ '","'+
-		ISNULL([b].[PostHtml], '')+ '",'+
+		REPLACE(ISNULL([b].[PreHtml], ''), '"', '\"')+ '","'+
+		REPLACE(ISNULL([b].[PostHtml], ''), '"', '\"')+ '",'+
         CONVERT(varchar, [b].[Order])+ ',"'+
         CONVERT(nvarchar(50), [b].[Guid])+ '"); '+
         @crlf
@@ -106,7 +106,7 @@ create table #codeTable (
         a.[Key]+ '","'+ 
         ''+ '","'+ 
         --ISNULL(a.Category,'')+ '","'+ 
-        ISNULL(a.Description,'')+ '",'+ 
+        REPLACE(ISNULL(a.Description,''), '"', '\"')+ '",'+ 
         CONVERT(varchar, a.[Order])+ ',@"'+ 
         ISNULL(a.DefaultValue,'')+ '","'+
         CONVERT(nvarchar(50), a.Guid)+ '");' +
