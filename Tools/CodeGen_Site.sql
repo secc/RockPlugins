@@ -4,7 +4,7 @@ declare
 
 begin
 
-DECLARE @PageId VARCHAR(MAX) = '484,485,486,487,488,489,490'
+DECLARE @SiteId VARCHAR(MAX) = '12'
 
 IF OBJECT_ID('tempdb..#codeTable') IS NOT NULL
     DROP TABLE #codeTable
@@ -14,6 +14,20 @@ create table #codeTable (
     CodeText nvarchar(max),
     CONSTRAINT [pk_codeTable] PRIMARY KEY CLUSTERED  ( [Id]) );
     
+-- site
+insert into #codeTable
+    SELECT DISTINCT  '            RockMigrationHelper.AddSite("' +
+	[s].[Name] + '","' +
+	[s].[Description] + '","'+
+	[s].[Theme] + '");   //Site: '+ [s].[Name]
+	from [Site] [s]
+	where s.Id = @SiteId
+
+    insert into #codeTable
+    SELECT @crlf
+	insert into #codeTable
+    SELECT @crlf
+
 		-- layouts
     insert into #codeTable
     SELECT DISTINCT  '            RockMigrationHelper.AddLayout("' +
@@ -25,9 +39,11 @@ create table #codeTable (
     FROM [Layout] [l]
     join [Site] [s] on [s].[Id] = [l].[SiteId]
     join [Page] [p] on l.Id = p.LayoutId
-	where [l].[IsSystem] = 0
-	and [p].[Id] in (select item from dbo.fnSplit(@PageId))
+	where [s].Id = @SiteId
+
     insert into #codeTable
+    SELECT @crlf
+	insert into #codeTable
     SELECT @crlf
 
 	-- pages
@@ -45,10 +61,12 @@ create table #codeTable (
     FROM [Page] [p]
     left outer join [Page] [pp] on [pp].[Id] = [p].[ParentPageId]
 	join [Layout] [l] on [l].[Id] = [p].[layoutId]
-	join [site] [s] on [s].[Id] = [l].[siteId]
-	where [p].[Id] in (select item from dbo.fnSplit(@PageId))
+	join [Site] [s] on [s].[Id] = [l].[siteId]
+	where [s].Id = @SiteId
 
     insert into #codeTable
+    SELECT @crlf
+	insert into #codeTable
     SELECT @crlf
 
 	-- pages
@@ -59,9 +77,13 @@ create table #codeTable (
 		[r].[Route] + '");' 
     FROM [PageRoute] [r]
     inner join [Page] [p] on [p].[Id] = [r].[PageId]
-	where [p].[Id] in (select item from dbo.fnSplit(@PageId))
+	join [Layout] [l] on [l].[Id] = [p].[layoutId]
+	join [Site] [s] on [s].[Id] = [l].[siteId]
+	where [s].Id = @SiteId
 
     insert into #codeTable
+    SELECT @crlf
+	insert into #codeTable
     SELECT @crlf
 
     -- block types
@@ -71,16 +93,21 @@ create table #codeTable (
         ISNULL([Description],'')+ '","'+  
         [Path]+ '","'+  
         [Category]+ '","'+  
-        CONVERT( nvarchar(50),[Guid])+ '");'
+        CONVERT( nvarchar(50),[Guid])+ '"); //Block Type: ' + BlockType.Name
     from [BlockType]
     where [Id] in (
 		SELECT bt.[Id]
 		FROM [block] b
 		INNER JOIN [blocktype] bt on bt.[Id] = b.[BlockTypeId]
-		WHERE b.[PageId] in (select item from dbo.fnSplit(@PageId))
+		join [Page][p] on p.Id = b.PageId
+		join [Layout] [l] on [l].[Id] = [p].[layoutId]
+		join [Site] [s] on [s].[Id] = [l].[siteId]
+		where [s].Id = @SiteId
 	)
 
     insert into #codeTable
+    SELECT @crlf
+	insert into #codeTable
     SELECT @crlf
 
     -- blocks
@@ -95,8 +122,7 @@ create table #codeTable (
 		REPLACE(ISNULL([b].[PreHtml], ''), '"', '\"')+ '","'+
 		REPLACE(ISNULL([b].[PostHtml], ''), '"', '\"')+ '",'+
         CONVERT(varchar, [b].[Order])+ ',"'+
-        CONVERT(nvarchar(50), [b].[Guid])+ '"); '+
-        @crlf
+        CONVERT(nvarchar(50), [b].[Guid])+ '"); //Block of Type: ' + bt.Name
     from [Block] [b]
     join [BlockType] [bt] on [bt].[Id] = [b].[BlockTypeId]
     left outer join [Page] [p] on [p].[Id] = [b].[PageId]
@@ -106,10 +132,15 @@ create table #codeTable (
     where b.[Id] in (
 		SELECT b.[Id]
 		FROM [block] b
-		WHERE b.[PageId] in (select item from dbo.fnSplit(@PageId))
+		join [Page][p] on p.Id = b.PageId
+		join [Layout] [l] on [l].[Id] = [p].[layoutId]
+		join [Site] [s] on [s].[Id] = [l].[siteId]
+		where [s].Id = @SiteId
 	)
 
     insert into #codeTable
+    SELECT @crlf
+	insert into #codeTable
     SELECT @crlf
 
     insert into #codeTable
@@ -124,8 +155,7 @@ create table #codeTable (
         REPLACE(ISNULL(a.Description,''), '"', '\"')+ '",'+ 
         CONVERT(varchar, a.[Order])+ ',@"'+ 
         ISNULL(a.DefaultValue,'')+ '","'+
-        CONVERT(nvarchar(50), a.Guid)+ '");' +
-        @crlf
+        CONVERT(nvarchar(50), a.Guid)+ '");'
     from [Attribute] [a]
     left outer join [FieldType] [ft] on [ft].[Id] = [a].[FieldTypeId]
     left outer join [BlockType] [bt] on [bt].[Id] = cast([a].[EntityTypeQualifierValue] as int)
@@ -134,12 +164,18 @@ create table #codeTable (
 		SELECT bt.[Id]
 		FROM [block] b
 		INNER JOIN [blocktype] bt on bt.[Id] = b.[BlockTypeId]
-		WHERE b.[PageId] in (select item from dbo.fnSplit(@PageId))
+		left outer join [Page] [p] on [p].[Id] = [b].[PageId]
+		join [Layout] [l] on [l].[Id] = [p].[layoutId]
+		join [Site] [s] on [s].[Id] = [l].[siteId]
+		where [s].Id = @SiteId
 	)
 	order by a.[Order]
 
     insert into #codeTable
     SELECT @crlf
+	insert into #codeTable
+    SELECT @crlf
+
 
     -- attributes values (just Block Attributes)    
     insert into #codeTable
@@ -147,8 +183,7 @@ create table #codeTable (
         '            RockMigrationHelper.AddBlockAttributeValue("'+     
         CONVERT(nvarchar(50), b.Guid)+ '","'+ 
         CONVERT(nvarchar(50), a.Guid)+ '",@"'+ 
-        REPLACE(ISNULL(av.Value,''), '"', '""') + '"); // '+ a.[Name] + 
-        @crlf
+        REPLACE(ISNULL(av.Value,''), '"', '""') + '"); // '+ a.[Name]
     from [AttributeValue] [av]
     join Block b on b.Id = av.EntityId
     join Attribute a on a.id = av.AttributeId
@@ -159,13 +194,15 @@ create table #codeTable (
     where b.[Id] in (
 		SELECT b.[Id]
 		FROM [block] b
-		WHERE b.[PageId] in (select item from dbo.fnSplit(@PageId))
+		join [Page][p] on p.Id = b.PageId
+		join [Layout] [l] on [l].[Id] = [p].[layoutId]
+		join [Site] [s] on [s].[Id] = [l].[siteId]
+		WHERE s.Id = @SiteId
 	)
     order by b.Id
 
     insert into #codeTable
     SELECT @crlf
-
     insert into #codeTable
     SELECT @crlf
 
@@ -175,8 +212,7 @@ create table #codeTable (
 		'            RockMigrationHelper.UpdateHtmlContentBlock("'+     
 		CONVERT(nvarchar(50), b.Guid)+ '", @"'+ 
 		REPLACE(CONVERT(nvarchar(max), hc.Content), '"', '""')+ '","'+ 
-		CONVERT(nvarchar(50), hc.Guid)+ '"); //HTML Content'+ 
-		@crlf
+		CONVERT(nvarchar(50), hc.Guid)+ '"); //HTML Content'
 	from [HtmlContent][hc]
 	join [Block] [b] on b.Id = hc.BlockId
 	left outer join [Page] [p] on [p].[Id] = [b].[PageId]
@@ -186,12 +222,18 @@ create table #codeTable (
 	where b.[Id] in (
 		SELECT b.[Id]
 		FROM [block] b
-		WHERE b.[PageId] in (select item from dbo.fnSplit(@PageId))
+		join [Page][p] on p.Id = b.PageId
+		join [Layout] [l] on [l].[Id] = [p].[layoutId]
+		join [Site] [s] on [s].[Id] = [l].[siteId]
+		WHERE [s].Id = @SiteId
 	)
 	order by b.Id
 
 	insert into #codeTable
 	SELECT @crlf
+	insert into #codeTable
+	SELECT @crlf
+
 
     
     -- Page Contexts
@@ -201,9 +243,10 @@ create table #codeTable (
       + '            RockMigrationHelper.UpdatePageContext( "' + convert(nvarchar(max), p.Guid) + '", "' + pc.Entity +  '", "' + pc.IdParameter +  '", "' + convert(nvarchar(max), pc.Guid) + '");'
       + @crlf
     FROM [dbo].[PageContext] [pc]
-    join [Page] [p]
-    on [p].[Id] = [pc].[PageId]
-    where [p].[Id] in (select item from dbo.fnSplit(@PageId))
+    join [Page] [p] on [p].[Id] = [pc].[PageId]
+	join [Layout] [l] on [l].[Id] = [p].[layoutId]
+	join [Site] [s] on [s].[Id] = [l].[siteId]
+	WHERE [s].Id = @SiteId
 	
     select CodeText [MigrationUp] from #codeTable 
     where REPLACE(CodeText, @crlf, '') != ''
@@ -226,7 +269,10 @@ create table #codeTable (
 			SELECT bt.[Id]
 			FROM [block] b
 			INNER JOIN [blocktype] bt on bt.[Id] = b.[BlockTypeId]
-			WHERE b.[PageId] in (select item from dbo.fnSplit(@PageId))
+			join [Page][p] on p.Id = b.PageId
+			join [Layout] [l] on [l].[Id] = [p].[layoutId]
+			join [Site] [s] on [s].[Id] = [l].[siteId]
+			WHERE [s].Id = @SiteId
 		)
        
 		order by [A].[Id] desc   
@@ -245,7 +291,10 @@ create table #codeTable (
 		where b.[Id] in (
 			SELECT b.[Id]
 			FROM [block] b
-			WHERE b.[PageId] in (select item from dbo.fnSplit(@PageId))
+			join [Page][p] on p.Id = b.PageId
+			join [Layout] [l] on [l].[Id] = [p].[layoutId]
+			join [Site] [s] on [s].[Id] = [l].[siteId]
+			WHERE [s].Id = @SiteId
 		)
 		order by [b].[Id] desc
 
@@ -257,7 +306,10 @@ create table #codeTable (
 		SELECT bt.[Id]
 		FROM [block] b
 		INNER JOIN [blocktype] bt on bt.[Id] = b.[BlockTypeId]
-		WHERE b.[PageId] in (select item from dbo.fnSplit(@PageId))
+		join [Page][p] on p.Id = b.PageId
+		join [Layout] [l] on [l].[Id] = [p].[layoutId]
+		join [Site] [s] on [s].[Id] = [l].[siteId]
+		WHERE [s].Id = @SiteId
 	)
 	order by [Id] desc
 
@@ -270,7 +322,7 @@ create table #codeTable (
 	from [Page] [p]
 	join [Layout] [l] on [l].[Id] = [p].[layoutId]
 	join [site] [s] on [s].[Id] = [l].[siteId]
-    where [p].[Id] in (select item from dbo.fnSplit(@PageId))
+    where s.Id = @SiteId
 
 	    insert into #codeTable
     SELECT DISTINCT
@@ -279,7 +331,7 @@ create table #codeTable (
     join [Site] [s] on [s].[Id] = [l].[SiteId]
     join [Page] [p] on l.Id = p.LayoutId
 	where [l].[IsSystem] = 0
-	and [p].[Id] in (select item from dbo.fnSplit(@PageId))
+	and s.Id = @SiteId
 
     insert into #codeTable
     SELECT '            // Delete PageContext for Page:' + p.InternalName + ', Entity: ' + pc.Entity + ', Parameter: ' + pc.IdParameter  + @crlf +
@@ -288,7 +340,18 @@ create table #codeTable (
     FROM [dbo].[PageContext] [pc]
     join [Page] [p]
     on [p].[Id] = [pc].[PageId]
-    where [p].[Id] in (select item from dbo.fnSplit(@PageId))
+	join [Layout] [l] on [l].[Id] = [p].[layoutId]
+	join [Site] [s] on [s].[Id] = [l].[siteId]
+	WHERE [s].Id = @SiteId
+
+	insert into #codeTable
+    SELECT @crlf
+
+	insert into #codeTable
+    SELECT '            RockMigrationHelper.DeleteSite("' +
+	[s].[Guid] + '");'
+	from [Site] [s]
+	where s.Id = @SiteId
 
     select CodeText [MigrationDown] from #codeTable
     where REPLACE(CodeText, @crlf, '') != ''
