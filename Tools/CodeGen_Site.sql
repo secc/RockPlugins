@@ -19,7 +19,8 @@ insert into #codeTable
     SELECT DISTINCT  '            RockMigrationHelper.AddSite("' +
 	[s].[Name] + '","' +
 	[s].[Description] + '","'+
-	[s].[Theme] + '");   //Site: '+ [s].[Name]
+	[s].[Theme] + '","'+
+	CONVERT(nvarchar(50), [s].[Guid]) + '");   //Site: '+ [s].[Name]
 	from [Site] [s]
 	where s.Id = @SiteId
 
@@ -349,7 +350,7 @@ insert into #codeTable
 
 	insert into #codeTable
     SELECT '            RockMigrationHelper.DeleteSite("' +
-	[s].[Guid] + '");'
+	CONVERT(varchar(50), [s].[Guid]) + '");'
 	from [Site] [s]
 	where s.Id = @SiteId
 
