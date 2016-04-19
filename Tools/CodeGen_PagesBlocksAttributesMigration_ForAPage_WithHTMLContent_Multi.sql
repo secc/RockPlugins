@@ -15,6 +15,21 @@ create table #codeTable (
     CodeText nvarchar(max),
     CONSTRAINT [pk_codeTable] PRIMARY KEY CLUSTERED  ( [Id]) );
     
+		-- layouts
+    insert into #codeTable
+    SELECT DISTINCT  '            RockMigrationHelper.AddLayout("' +
+        CONVERT( nvarchar(50), [s].[Guid]) + '","'+ 
+        [l].[FileName] +  '","'+
+        [l].[Name] +  '","'+
+        ISNULL([l].[Description],'')+  '","'+
+        CONVERT( nvarchar(50), [l].[Guid])+  '");' + ' // Site:' + s.Name 
+    FROM [Layout] [l]
+    join [Site] [s] on [s].[Id] = [l].[SiteId]
+    join [Page] [p] on l.Id = p.LayoutId
+	where [p].[Id] in (select item from dbo.fnSplit(@PageId))
+    insert into #codeTable
+    SELECT @crlf
+
 	-- pages
     insert into #codeTable
     SELECT 
