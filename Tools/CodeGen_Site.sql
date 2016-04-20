@@ -149,11 +149,10 @@ insert into #codeTable
         '            RockMigrationHelper.AddBlockTypeAttribute("'+ 
         CONVERT(nvarchar(50), bt.Guid)+ '","'+   
         CONVERT(nvarchar(50), ft.Guid)+ '","'+     
-        a.Name+ '","'+  
+        REPLACE( a.Name , '''', '\"')+ '","'+  
         a.[Key]+ '","'+ 
         ''+ '","'+ 
-        --ISNULL(a.Category,'')+ '","'+ 
-        REPLACE(ISNULL(a.Description,''), '"', '\"')+ '",'+ 
+        REPLACE (REPLACE(ISNULL(a.Description,''), '"', '\"'), '''', '\"' ) + '",'+ 
         CONVERT(varchar, a.[Order])+ ',@"'+ 
         ISNULL(a.DefaultValue,'')+ '","'+
         CONVERT(nvarchar(50), a.Guid)+ '");'
