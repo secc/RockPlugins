@@ -8,7 +8,7 @@ using Rock.Plugin;
 
 namespace org.secc.Migrations
 {
-    [MigrationNumber( 1, "1.2.0" )]
+    [MigrationNumber( 4, "1.2.0" )]
     public class GroupFinderMap_PageData : Migration
     {
         /// <summary>
@@ -220,6 +220,7 @@ and by choosing whether or not you need the home to be handicap accessible or ha
 We didn't find any groups near you. Would you consider signing up to be a home host?" ); // Groupless Message
 
             RockMigrationHelper.AddBlockAttributeValue( "711FE071-B100-4E77-A251-BDE312A91BC3", "DFE6AF9A-917B-4007-8FEE-19942C46AAC5", @"2" ); // Max Results
+
         }
 
         public override void Down()

@@ -8,7 +8,7 @@ using Rock.Plugin;
 
 namespace org.secc.Migrations
 {
-    [MigrationNumber( 1, "1.2.0" )]
+    [MigrationNumber( 7, "1.2.0" )]
     class Purchasing_PageData :Migration 
     {
         public override void Up()
@@ -30,6 +30,7 @@ namespace org.secc.Migrations
             RockMigrationHelper.UpdateBlockType( "Capital Request List", "Lists all capital requests.", "~/Plugins/org_secc/Purchasing/CapitalRequestList.ascx", "Purchasing", "841A7C58-7902-4EA3-A2BE-668ACE74B491" );
             RockMigrationHelper.UpdateBlockType( "Requisition List", "Lists all requisitions.", "~/Plugins/org_secc/Purchasing/RequisitionList.ascx", "Purchasing", "FF7FBAAC-3203-4ADB-B084-C312885F4D39" );
             RockMigrationHelper.UpdateBlockType( "Vendor List", "List all vendors in the SECC Purchasing system.", "~/Plugins/org_secc/Purchasing/VendorList.ascx", "Purchasing", "FE8ED74E-F413-49D1-9A53-7CAB4A49A0ED" );
+            RockMigrationHelper.UpdateBlockType( "Payment Method List", "", "~/Plugins/org_secc/Purchasing/PaymentMethodList.ascx", "", "74D9FA79-09E8-4E2F-982F-99B6B78481C9" );
             RockMigrationHelper.UpdateBlockType( "Purchase Order List", "Lists/filters all Purchase Orders.", "~/Plugins/org_secc/Purchasing/POList.ascx", "Purchasing", "4A706E99-57E5-40D3-A537-9DB86297B819" );
             RockMigrationHelper.AddBlock( "BB8C1AEE-7976-4241-8FF1-2AA16C43BD53", "", "841A7C58-7902-4EA3-A2BE-668ACE74B491", "Capital Request List", "Main", "", "", 0, "B3FB6642-97DD-4D4B-905A-078AE1B4B211" );
 
@@ -122,11 +123,6 @@ namespace org.secc.Migrations
             RockMigrationHelper.DeleteBlock( "C61C2FC6-E901-4FB6-9AEF-52037DF5AC88" );
             RockMigrationHelper.DeleteBlock( "2E6F953A-370B-4DAF-BEAE-79FCEC6D6650" );
             RockMigrationHelper.DeleteBlock( "B3FB6642-97DD-4D4B-905A-078AE1B4B211" );
-            RockMigrationHelper.DeleteBlockType( "4A706E99-57E5-40D3-A537-9DB86297B819" );
-            RockMigrationHelper.DeleteBlockType( "74D9FA79-09E8-4E2F-982F-99B6B78481C9" );
-            RockMigrationHelper.DeleteBlockType( "FE8ED74E-F413-49D1-9A53-7CAB4A49A0ED" );
-            RockMigrationHelper.DeleteBlockType( "FF7FBAAC-3203-4ADB-B084-C312885F4D39" );
-            RockMigrationHelper.DeleteBlockType( "841A7C58-7902-4EA3-A2BE-668ACE74B491" );
             RockMigrationHelper.DeletePage( "9532BAA3-333F-42DB-A1E0-1628192ED668" ); //  Page: Purchasing
             RockMigrationHelper.DeletePage( "51D03BCC-7C6C-4912-9A92-4AB51A94367C" ); //  Page: Functions
             RockMigrationHelper.DeletePage( "BB8C1AEE-7976-4241-8FF1-2AA16C43BD53" ); //  Page: CERs
