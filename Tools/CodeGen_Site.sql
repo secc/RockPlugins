@@ -11,7 +11,7 @@ IF OBJECT_ID('tempdb..#codeTable') IS NOT NULL
 
 create table #codeTable (
     Id int identity(1,1) not null,
-    CodeText nvarchar(max),
+    CodeText nvarchar(max) not null,
     CONSTRAINT [pk_codeTable] PRIMARY KEY CLUSTERED  ( [Id]) );
     
 -- site
@@ -93,7 +93,7 @@ insert into #codeTable
         [Name]+ '","'+  
         ISNULL([Description],'')+ '","'+  
         [Path]+ '","'+  
-        [Category]+ '","'+  
+        ISNULL([Category],'')+ '","'+  
         CONVERT( nvarchar(50),[Guid])+ '"); //Block Type: ' + BlockType.Name
     from [BlockType]
     where [Id] in (

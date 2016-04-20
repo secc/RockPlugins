@@ -4,14 +4,14 @@ declare
 
 begin
 
-DECLARE @PageId VARCHAR(MAX) = '484,485,486,487,488,489,490'
+DECLARE @PageId VARCHAR(MAX) = '470,471,472,473,474,475,476'
 
 IF OBJECT_ID('tempdb..#codeTable') IS NOT NULL
     DROP TABLE #codeTable
 
 create table #codeTable (
     Id int identity(1,1) not null,
-    CodeText nvarchar(max),
+    CodeText nvarchar(max) not null,
     CONSTRAINT [pk_codeTable] PRIMARY KEY CLUSTERED  ( [Id]) );
     
 		-- layouts
@@ -70,7 +70,7 @@ create table #codeTable (
         [Name]+ '","'+  
         ISNULL([Description],'')+ '","'+  
         [Path]+ '","'+  
-        [Category]+ '","'+  
+        ISNULL( [Category], '')+ '","'+  
         CONVERT( nvarchar(50),[Guid])+ '");'
     from [BlockType]
     where [Id] in (
