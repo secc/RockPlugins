@@ -260,15 +260,6 @@ create table #codeTable (
 	join [site] [s] on [s].[Id] = [l].[siteId]
     where [p].[Id] in (select item from dbo.fnSplit(@PageId))
 
-	    insert into #codeTable
-    SELECT DISTINCT
-	'            RockMigrationHelper.DeleteLayout("'+ CONVERT(nvarchar(50), [l].[Guid])+ '"); // '  + ISNULL(' Layout: ' + l.Name, '')  +  ISNULL(', Site: ' + s.Name, '')  
-    FROM [Layout] [l]
-    join [Site] [s] on [s].[Id] = [l].[SiteId]
-    join [Page] [p] on l.Id = p.LayoutId
-	where [l].[IsSystem] = 0
-	and [p].[Id] in (select item from dbo.fnSplit(@PageId))
-
     insert into #codeTable
     SELECT '            // Delete PageContext for Page:' + p.InternalName + ', Entity: ' + pc.Entity + ', Parameter: ' + pc.IdParameter  + @crlf +
     + '            DeletePageContext( "' + convert(nvarchar(max), pc.Guid) + '");'
