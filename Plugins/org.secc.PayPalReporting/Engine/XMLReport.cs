@@ -2,7 +2,6 @@
 using System;
 using System.Data;
 using Rock;
-using org.secc.PayPalReporting.Services.PayPal;
 
 namespace org.secc.PayPalReporting.Engine
 {

@@ -77,11 +77,6 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Include="Service References\Services.PayPal\Reference.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </Compile>
     <Compile Include="Services\PayFlowProReportSvc.cs" />
     <Compile Include="Services\PayFlowProRequest.cs" />
     <Compile Include="Services\PayPalSvc.cs" />
