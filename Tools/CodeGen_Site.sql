@@ -235,8 +235,6 @@ insert into #codeTable
 	insert into #codeTable
 	SELECT @crlf
 
-
-    
     -- Page Contexts
     insert into #codeTable
       SELECT '            // Add/Update PageContext for Page:' + p.InternalName + ', Entity: ' + pc.Entity + ', Parameter: ' + pc.IdParameter  
@@ -298,24 +296,6 @@ insert into #codeTable
 			WHERE [s].Id = @SiteId
 		)
 		order by [b].[Id] desc
-
-    insert into #codeTable 
-	SELECT 
-		'            RockMigrationHelper.DeleteBlockType("'+ CONVERT(nvarchar(50), [Guid])+ '");'
-	from [BlockType] 
-	where [Id] in (
-		SELECT bt.[Id]
-		FROM [block] b
-		INNER JOIN [blocktype] bt on bt.[Id] = b.[BlockTypeId]
-		join [Page][p] on p.Id = b.PageId
-		join [Layout] [l] on [l].[Id] = [p].[layoutId]
-		join [Site] [s] on [s].[Id] = [l].[siteId]
-		WHERE [s].Id = @SiteId
-	)
-	order by [Id] desc
-
-    insert into #codeTable
-    SELECT @crlf
 
     insert into #codeTable 
 	SELECT 

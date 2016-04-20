@@ -249,18 +249,6 @@ create table #codeTable (
 		)
 		order by [b].[Id] desc
 
-    insert into #codeTable 
-	SELECT 
-		'            RockMigrationHelper.DeleteBlockType("'+ CONVERT(nvarchar(50), [Guid])+ '");'
-	from [BlockType] 
-	where [Id] in (
-		SELECT bt.[Id]
-		FROM [block] b
-		INNER JOIN [blocktype] bt on bt.[Id] = b.[BlockTypeId]
-		WHERE b.[PageId] in (select item from dbo.fnSplit(@PageId))
-	)
-	order by [Id] desc
-
     insert into #codeTable
     SELECT @crlf
 
