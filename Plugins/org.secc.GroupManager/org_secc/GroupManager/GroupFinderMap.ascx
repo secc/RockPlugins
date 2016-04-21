@@ -85,7 +85,7 @@
                                         <Rock:GroupTypePicker ID="gtpGeofenceGroupType" runat="server" Label="Geofence Group Type"
                                             Help="An optional group type that contains groups with geographic boundary (fence). If specified, user will be prompted for their address, and only groups that are located in the same geographic boundary ( as defined by one or more groups of this type ) will be displayed."
                                             ValidationGroup="GroupFinderSettings" />
-                                        <Rock:NumberUpDown runat="server" ID="nudMaxResults" Label="Max Results"
+                                        <Rock:NumberUpDown runat="server" ID="nudMaxResults" Label="Max Group Results"
                                             Help="Maximum number of results to display. 0 is no filter" Minimum="0" />
                                     </div>
                                     <div class="col-md-6">
@@ -105,8 +105,10 @@
                             <Rock:PanelWidget ID="wpMap" runat="server" Title="Map">
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <Rock:RockCheckBox ID="cbShowMap" runat="server" Label="Map" Text="Yes"
+                                        <Rock:Toggle ID="cbShowMap" runat="server" Label="Map" Text="Yes" OnCssClass="btn-success" OffCssClass="btn-danger"
                                             Help="Should a map be displayed that shows the location of each group?" ValidationGroup="GroupFinderSettings" />
+                                         <Rock:Toggle ID="cbShowPeople" runat="server" Label="Show People" Text="Yes" OnCssClass="btn-success" OffCssClass="btn-danger"
+                                            Help="Should people be shown on the map?" ValidationGroup="GroupFinderSettings" />
                                         <Rock:RockDropDownList ID="ddlMapStyle" runat="server" Label="Map Style"
                                             Help="The map theme that should be used for styling the map." ValidationGroup="GroupFinderSettings" />
                                         <Rock:NumberBox ID="nbMapHeight" runat="server" Label="Map Height"

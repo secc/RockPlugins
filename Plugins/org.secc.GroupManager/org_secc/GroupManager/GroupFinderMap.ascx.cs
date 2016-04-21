@@ -63,6 +63,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
     // Map Settings
     [BooleanField( "Show Map", "", false, "CustomSetting" )]
+    [BooleanField( "Show People", "Show people on map", false, "CustomSetting" )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.MAP_STYLES, "Map Style", "", true, false, Rock.SystemGuid.DefinedValue.MAP_STYLE_GOOGLE, "CustomSetting" )]
     [IntegerField( "Map Height", "", false, 600, "CustomSetting" )]
     [BooleanField( "Show Fence", "", false, "CustomSetting" )]
@@ -306,6 +307,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             SetAttributeValue( "HideFull", tgHideFull.Checked.ToString() );
 
             SetAttributeValue( "ShowMap", cbShowMap.Checked.ToString() );
+            SetAttributeValue( "ShowPeople", cbShowPeople.Checked.ToString() );
             SetAttributeValue( "MapStyle", ddlMapStyle.SelectedValue );
             SetAttributeValue( "MapHeight", nbMapHeight.Text );
             SetAttributeValue( "ShowFence", cbShowFence.Checked.ToString() );
@@ -454,6 +456,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             tgHideFull.Checked = GetAttributeValue( "HideFull" ).AsBoolean();
 
             cbShowMap.Checked = GetAttributeValue( "ShowMap" ).AsBoolean();
+            cbShowPeople.Checked = GetAttributeValue( "ShowPeople" ).AsBoolean();
             ddlMapStyle.BindToDefinedType( DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.MAP_STYLES.AsGuid() ) );
             ddlMapStyle.SetValue( GetAttributeValue( "MapStyle" ) );
             nbMapHeight.Text = GetAttributeValue( "MapHeight" );
@@ -871,7 +874,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 groups.ForEach( g => g.LoadAttributes() );
                 groups = groups
-                    .Where( g => g.GetAttributeValue( "Maximum Members" ).AsInteger() > g.Members.Where(m => m.GroupMemberStatus > 0).Count() )
+                    .Where( g => g.GetAttributeValue( "Maximum Members" ).AsInteger() > g.Members.Where( m => m.GroupMemberStatus > 0 ).Count() )
                     .ToList();
             }
 
@@ -890,17 +893,17 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 pnlSearch.Visible = false;
                 // Get the location for the address entered
-                Location personLocation = null;
+                Location searchLocation = null;
                 if ( fenceGroupTypeId.HasValue || showProximity )
                 {
-                    personLocation = new LocationService( rockContext )
+                    searchLocation = new LocationService( rockContext )
                         .Get( acAddress.Street1, acAddress.Street2, acAddress.City,
                             acAddress.State, acAddress.PostalCode, acAddress.Country );
                 }
 
                 // If showing a map, and person's location was found, save a mapitem for this location
                 FinderMapItem personMapItem = null;
-                if ( showMap && personLocation != null && personLocation.GeoPoint != null )
+                if ( showMap && searchLocation != null && searchLocation.GeoPoint != null )
                 {
                     var infoWindow = string.Format( @"
 <div style='width:250px'>
@@ -909,9 +912,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         <br/>{0}
     </div>
 </div>
-", personLocation.FormattedHtmlAddress );
+", searchLocation.FormattedHtmlAddress );
 
-                    personMapItem = new FinderMapItem( personLocation );
+                    personMapItem = new FinderMapItem( searchLocation );
                     personMapItem.Name = "Your Location";
                     personMapItem.InfoWindow = HttpUtility.HtmlEncode( infoWindow.Replace( Environment.NewLine, string.Empty ).Replace( "\n", string.Empty ).Replace( "\t", string.Empty ) );
                 }
@@ -925,9 +928,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     {
                         groupLocations.Add( groupLocation );
 
-                        if ( showProximity && personLocation != null && personLocation.GeoPoint != null )
+                        if ( showProximity && searchLocation != null && searchLocation.GeoPoint != null )
                         {
-                            double meters = groupLocation.Location.GeoPoint.Distance( personLocation.GeoPoint ) ?? 0.0D;
+                            double meters = groupLocation.Location.GeoPoint.Distance( searchLocation.GeoPoint ) ?? 0.0D;
                             double miles = meters * Location.MilesPerMeter;
 
                             // If this group already has a distance calculated, see if this location is closer and if so, use it instead
@@ -955,14 +958,14 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 if ( fenceGroupTypeId.HasValue )
                 {
                     fences = new List<GroupLocation>();
-                    if ( personLocation != null && personLocation.GeoPoint != null )
+                    if ( searchLocation != null && searchLocation.GeoPoint != null )
                     {
                         fences = new GroupLocationService( rockContext )
                             .Queryable( "Group,Location" )
                             .Where( gl =>
                                 gl.Group.GroupTypeId == fenceGroupTypeId &&
                                 gl.Location.GeoFence != null &&
-                                personLocation.GeoPoint.Intersects( gl.Location.GeoFence ) )
+                                searchLocation.GeoPoint.Intersects( gl.Location.GeoFence ) )
                             .ToList();
                     }
 
@@ -997,7 +1000,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
 
                 //if there is a max results will limit to that number, 0 means all
-                groups = groups.Take( GetAttributeValue( "MaxResults" ).AsInteger() ).ToList();
+                var maxResults = GetAttributeValue( "MaxResults" ).AsInteger();
+                if ( maxResults > 0 )
+                {
+                    groups = groups.Take( maxResults ).ToList();
+                }
 
                 // if limiting by PageSize, limit to the top X groups
                 int? pageSize = ddlPageSize.SelectedValue.AsIntegerOrNull();
@@ -1012,13 +1019,29 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                         groupLocations.Any( gl => gl.GroupId == g.Id ) )
                     .ToList();
 
-                // If a map is to be shown
-                if ( showMap && groups.Any() )
+                //If selected add nearby families to map
+                List<Group> families = new List<Group>();
+                if ( GetAttributeValue( "ShowPeople" ).AsBoolean() && searchLocation.GeoPoint != null )
                 {
+                    var meters = Location.MetersPerMile * ddlRange.SelectedValueAsInt();
 
+                    var familyGuid = Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid();
+
+                    families = groupService.Queryable()
+                        .Where( g => g.GroupType.Guid == familyGuid
+                                    && ( g.GroupLocations.Where(
+                                        gl =>
+                                            gl.Location.GeoPoint != null
+                                            && gl.Location.GeoPoint.Distance( searchLocation.GeoPoint ) <= meters
+                                        )
+                                        ).Any()
+                                ).ToList();
+                }
+
+                // If a map is to be shown
+                if ( showMap && (groups.Any() || families.Any()))
+                {
                     Template template = Template.Parse( GetAttributeValue( "MapInfo" ) );
-                    //string detailPageValue = GetAttributeValue("DetailPage");
-                    //string registerPageValue = GetAttributeValue("RegisterPage");
 
                     bool showDebug = UserCanEdit && GetAttributeValue( "MapInfoDebug" ).AsBoolean();
                     lMapInfoDebug.Visible = showDebug;
@@ -1076,6 +1099,17 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                         }
                     }
 
+                    var familyMapItems = new List<MapItem>();
+                    foreach ( var family in families )
+                    {
+                        var mapItem = new FinderMapItem( family.GroupLocations.FirstOrDefault().Location );
+                        mapItem.EntityTypeId = EntityTypeCache.Read( "Rock.Model.Group" ).Id;
+                        mapItem.EntityId = family.Id;
+                        mapItem.Name = family.Name;
+                        mapItem.InfoWindow = family.Name;
+                        familyMapItems.Add( mapItem );
+                    }
+
                     var campusMapItems = new List<MapItem>();
 
                     var campusList = CampusCache.All();
@@ -1094,7 +1128,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
 
                     // Show the map
-                    Map( personMapItem, fenceMapItems, groupMapItems, campusMapItems );
+                    Map( personMapItem, fenceMapItems, groupMapItems, familyMapItems, campusMapItems );
                     pnlMap.Visible = true;
                 }
                 else
@@ -1284,7 +1318,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         /// <param name="location">The location.</param>
         /// <param name="fences">The fences.</param>
         /// <param name="groups">The groups.</param>
-        private void Map( MapItem location, List<MapItem> fences, List<MapItem> groups, List<MapItem> campuses )
+        private void Map( MapItem location, List<MapItem> fences, List<MapItem> groups, List<MapItem> families, List<MapItem> campuses )
         {
             pnlMap.Visible = true;
             pnlMessage.Visible = false;
@@ -1343,6 +1377,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         var locationData = {0};
         var fenceData = {1};
         var groupData = {2}; 
+        var familyData = {11};
         var campusData = {10};
 
         var allMarkers = [];
@@ -1400,6 +1435,15 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             if ( groupData != null ) {{
                 for (var i = 0; i < groupData.length; i++) {{
                     var items = addMapItem(i, groupData[i], '{6}', true);
+                    for (var j = 0; j < items.length; j++) {{
+                        items[j].setMap(map);
+                    }}
+                }}
+            }}
+
+            if ( familyData != null ) {{
+                for (var i = 0; i < familyData.length; i++) {{
+                    var items = addMapItem(i, familyData[i], '{6}', true);
                     for (var j = 0; j < items.length; j++) {{
                         items[j].setMap(map);
                     }}
@@ -1600,6 +1644,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             var groupsJson = groups != null && groups.Any() ?
                 string.Format( "JSON.parse('{0}')", groups.ToJson().Replace( Environment.NewLine, "" ).EscapeQuotes().Replace( "\x0A", "" ) ) : "null";
 
+            var familiesJson = families != null && families.Any() ?
+                string.Format( "JSON.parse('{0}')", families.ToJson().Replace( Environment.NewLine, "" ).EscapeQuotes().Replace( "\x0A", "" ) ) : "null";
+
             var campusJson = campuses != null && campuses.Any() ?
                 string.Format( "JSON.parse('{0}')", campuses.ToJson().Replace( Environment.NewLine, "" ).EscapeQuotes().Replace( "\x0A", "" ) ) : "null";
 
@@ -1614,7 +1661,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 latitude,           // 7
                 longitude,          // 8
                 zoom,               // 9
-                campusJson          //10
+                campusJson  ,       //10
+                familiesJson        //11
                 );
 
             ScriptManager.RegisterStartupScript( pnlMap, pnlMap.GetType(), "group-finder-map-script", mapScript, true );
