@@ -39,12 +39,17 @@
     <Reference Include="EntityFramework.SqlServer">
       <HintPath>..\..\..\Rock\packages\EntityFramework.6.1.1\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
-    <Reference Include="log4net, Version=1.2.9.0, Culture=neutral, PublicKeyToken=b32731d11ce58905">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>References\log4net.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=7.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\..\..\Rock\packages\Newtonsoft.Json.7.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="paypal_base">
-      <HintPath>References\paypal_base.dll</HintPath>
+    <Reference Include="PayPalCoreSDK, Version=1.7.0.0, Culture=neutral, PublicKeyToken=5b4afc1ccaef40fb, processorArchitecture=MSIL">
+      <HintPath>..\..\..\Rock\packages\PayPalCoreSDK.1.7.0\lib\net451\PayPalCoreSDK.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="PayPalMerchantSDK, Version=2.16.117.0, Culture=neutral, PublicKeyToken=5b4afc1ccaef40fb, processorArchitecture=MSIL">
+      <HintPath>..\..\..\Rock\packages\PayPalMerchantSDK.2.16.117\lib\net20\PayPalMerchantSDK.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Quartz">
       <HintPath>..\..\..\Rock\Rock\bin\Quartz.dll</HintPath>
@@ -79,7 +84,6 @@
     </Compile>
     <Compile Include="Services\PayFlowProReportSvc.cs" />
     <Compile Include="Services\PayFlowProRequest.cs" />
-    <Compile Include="Services\PayPalSvc.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Rock\DotLiquid\DotLiquid.csproj">
@@ -98,383 +102,10 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-    <None Include="Service References\Services.PayPal\CoreComponentTypes.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Service References\Services.PayPal\eBLBaseComponents.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Service References\Services.PayPal\EnhancedDataTypes.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.AddressVerifyResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.AddressVerifyResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.BAUpdateResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.BillAgreementUpdateResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.BillOutstandingAmountResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.BillOutstandingAmountResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.BillUserResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.BillUserResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.BMButtonSearchResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.BMButtonSearchResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.BMCreateButtonResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.BMCreateButtonResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.BMGetButtonDetailsResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.BMGetButtonDetailsResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.BMGetInventoryResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.BMGetInventoryResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.BMManageButtonStatusResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.BMManageButtonStatusResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.BMSetInventoryResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.BMSetInventoryResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.BMUpdateButtonResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.BMUpdateButtonResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.CancelRecoupResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.CancelRecoupResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.CompleteRecoupResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.CompleteRecoupResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.CreateBillingAgreementResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.CreateBillingAgreementResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.CreateMobilePaymentResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.CreateMobilePaymentResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.CreateRecurringPaymentsProfileResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.CreateRecurringPaymentsProfileResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.CustomSecurityHeaderType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.DoAuthorizationResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.DoAuthorizationResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.DoCancelResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.DoCancelResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.DoCaptureResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.DoCaptureResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.DoDirectPaymentResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.DoDirectPaymentResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.DoExpressCheckoutPaymentResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.DoExpressCheckoutPaymentResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.DoMobileCheckoutPaymentResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.DoMobileCheckoutPaymentResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.DoNonReferencedCreditResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.DoNonReferencedCreditResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.DoReauthorizationResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.DoReauthorizationResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.DoReferenceTransactionResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.DoReferenceTransactionResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.DoUATPAuthorizationResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.DoUATPAuthorizationResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.DoUATPExpressCheckoutPaymentResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.DoUATPExpressCheckoutPaymentResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.DoVoidResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.DoVoidResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.EnterBoardingResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.EnterBoardingResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.ExecuteCheckoutOperationsResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.ExecuteCheckoutOperationsResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.ExternalRememberMeOptOutResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.ExternalRememberMeOptOutResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.GetAccessPermissionDetailsResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.GetAccessPermissionDetailsResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.GetAuthDetailsResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.GetAuthDetailsResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.GetBalanceResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.GetBalanceResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.GetBillingAgreementCustomerDetailsResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.GetBillingAgreementCustomerDetailsResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.GetBoardingDetailsResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.GetBoardingDetailsResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.GetExpressCheckoutDetailsResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.GetExpressCheckoutDetailsResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.GetIncentiveEvaluationResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.GetIncentiveEvaluationResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.GetMobileStatusResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.GetMobileStatusResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.GetPalDetailsResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.GetPalDetailsResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.GetRecurringPaymentsProfileDetailsResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.GetRecurringPaymentsProfileDetailsResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.GetTransactionDetailsResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.GetTransactionDetailsResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.InitiateRecoupResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.InitiateRecoupResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.ManagePendingTransactionStatusResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.ManagePendingTransactionStatusResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.ManageRecurringPaymentsProfileStatusResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.ManageRecurringPaymentsProfileStatusResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.MassPayResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.MassPayResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.RefundTransactionResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.RefundTransactionResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.ReverseTransactionResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.ReverseTransactionResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.SetAccessPermissionsResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.SetAccessPermissionsResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.SetAuthFlowParamResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.SetAuthFlowParamResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.SetCustomerBillingAgreementResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.SetCustomerBillingAgreementResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.SetExpressCheckoutResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.SetExpressCheckoutResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.SetMobileCheckoutResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.SetMobileCheckoutResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.TransactionSearchResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.TransactionSearchResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.UpdateAccessPermissionsResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.UpdateAccessPermissionsResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.UpdateAuthorizationResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.UpdateAuthorizationResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.UpdateRecurringPaymentsProfileResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\org.secc.PayPalReporting.Services.PayPal.UpdateRecurringPaymentsProfileResponseType.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\Services.PayPal\PayPalSvc.wsdl" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{3259AA49-8AA1-44D3-9025-A0B520596A8C}" />
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Service References\" />
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadataStorage Include="Service References\Services.PayPal\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\Services.PayPal\configuration91.svcinfo" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\Services.PayPal\configuration.svcinfo" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\Services.PayPal\Reference.svcmap">
-      <Generator>WCF Proxy Generator</Generator>
-      <LastGenOutput>Reference.cs</LastGenOutput>
-    </None>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
@@ -487,8 +118,9 @@
   </Target>
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.PayPalReporting.dll" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\paypal_base.dll" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\log4net.dll" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
+
+xcopy /Y /R "$(ProjectDir)bin\Debug\PayPal*" "$(SolutionDir)RockWeb\bin"
+</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
