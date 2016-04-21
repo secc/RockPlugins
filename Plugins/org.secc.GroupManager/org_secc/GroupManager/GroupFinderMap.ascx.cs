@@ -63,7 +63,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
     // Map Settings
     [BooleanField( "Show Map", "", false, "CustomSetting" )]
-    [BooleanField( "Show People", "Show people on map", false, "CustomSetting" )]
+    [BooleanField( "Show Families", "Show families on map", false, "CustomSetting" )]
+    [TextField("Search Color","Color of marker for searched location",false, "#FE7569" , "CustomSetting" )]
+    [TextField( "Group Color", "Color of marker for searched location", false, "#446F7A", "CustomSetting" )]
+    [TextField( "Family Color", "Color of marker for searched location", false, "#EE7624", "CustomSetting" )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.MAP_STYLES, "Map Style", "", true, false, Rock.SystemGuid.DefinedValue.MAP_STYLE_GOOGLE, "CustomSetting" )]
     [IntegerField( "Map Height", "", false, 600, "CustomSetting" )]
     [BooleanField( "Show Fence", "", false, "CustomSetting" )]
@@ -307,9 +310,12 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             SetAttributeValue( "HideFull", tgHideFull.Checked.ToString() );
 
             SetAttributeValue( "ShowMap", cbShowMap.Checked.ToString() );
-            SetAttributeValue( "ShowPeople", cbShowPeople.Checked.ToString() );
+            SetAttributeValue( "ShowFamilies", cbShowFamilies.Checked.ToString() );
             SetAttributeValue( "MapStyle", ddlMapStyle.SelectedValue );
             SetAttributeValue( "MapHeight", nbMapHeight.Text );
+            SetAttributeValue( "SearchColor", cpSearchColor.Text );
+            SetAttributeValue( "GroupColor", cpGroupColor.Text );
+            SetAttributeValue( "FamilyColor", cpFamilyColor.Text );
             SetAttributeValue( "ShowFence", cbShowFence.Checked.ToString() );
             SetAttributeValue( "PolygonColors", vlPolygonColors.Value );
             SetAttributeValue( "Ranges", vlRanges.Value );
@@ -456,10 +462,13 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             tgHideFull.Checked = GetAttributeValue( "HideFull" ).AsBoolean();
 
             cbShowMap.Checked = GetAttributeValue( "ShowMap" ).AsBoolean();
-            cbShowPeople.Checked = GetAttributeValue( "ShowPeople" ).AsBoolean();
+            cbShowFamilies.Checked = GetAttributeValue( "ShowFamilies" ).AsBoolean();
             ddlMapStyle.BindToDefinedType( DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.MAP_STYLES.AsGuid() ) );
             ddlMapStyle.SetValue( GetAttributeValue( "MapStyle" ) );
             nbMapHeight.Text = GetAttributeValue( "MapHeight" );
+            cpSearchColor.Text = GetAttributeValue( "SearchColor" );
+            cpGroupColor.Text = GetAttributeValue( "GroupColor" );
+            cpFamilyColor.Text = GetAttributeValue( "FamilyColor" );
             cbShowFence.Checked = GetAttributeValue( "ShowFence" ).AsBoolean();
             vlPolygonColors.Value = GetAttributeValue( "PolygonColors" );
             vlRanges.Value = GetAttributeValue( "Ranges" );
@@ -1021,7 +1030,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 //If selected add nearby families to map
                 List<Group> families = new List<Group>();
-                if ( GetAttributeValue( "ShowPeople" ).AsBoolean() && searchLocation.GeoPoint != null )
+                if ( GetAttributeValue( "ShowFamilies" ).AsBoolean() && searchLocation.GeoPoint != null )
                 {
                     var meters = Location.MetersPerMile * ddlRange.SelectedValueAsInt();
 
@@ -1355,10 +1364,28 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 markerColors.Add( "FE7569" );
             }
 
+
             string locationColor = markerColors[0].Replace( "#", string.Empty );
+            if (!string.IsNullOrWhiteSpace(GetAttributeValue("SearchColor")))
+            {
+                locationColor = GetAttributeValue( "SearchColor" ).Replace( "#", string.Empty );
+            }
+
             var polygonColorList = GetAttributeValue( "PolygonColors" ).Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries ).ToList();
             string polygonColors = "\"" + polygonColorList.AsDelimited( "\", \"" ) + "\"";
+
             string groupColor = ( markerColors.Count > 1 ? markerColors[1] : markerColors[0] ).Replace( "#", string.Empty );
+            if ( !string.IsNullOrWhiteSpace( GetAttributeValue( "GroupColor" ) ) )
+            {
+                groupColor = GetAttributeValue( "GroupColor" ).Replace( "#", string.Empty );
+            }
+
+            string familyColor = ( markerColors.Count > 2 ? markerColors[2] : markerColors[0] ).Replace( "#", string.Empty );
+            if ( !string.IsNullOrWhiteSpace( GetAttributeValue( "FamilyColor" ) ) )
+            {
+                familyColor = GetAttributeValue( "FamilyColor" ).Replace("#",string.Empty);
+            }
+
 
             string latitude = "39.8282";
             string longitude = "-98.5795";
@@ -1443,7 +1470,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             if ( familyData != null ) {{
                 for (var i = 0; i < familyData.length; i++) {{
-                    var items = addMapItem(i, familyData[i], '{6}', true);
+                    var items = addMapItem(i, familyData[i], '{12}', true);
                     for (var j = 0; j < items.length; j++) {{
                         items[j].setMap(map);
                     }}
@@ -1662,7 +1689,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 longitude,          // 8
                 zoom,               // 9
                 campusJson  ,       //10
-                familiesJson        //11
+                familiesJson,       //11
+                familyColor         //12
                 );
 
             ScriptManager.RegisterStartupScript( pnlMap, pnlMap.GetType(), "group-finder-map-script", mapScript, true );

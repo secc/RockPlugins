@@ -107,8 +107,8 @@
                                     <div class="col-md-6">
                                         <Rock:Toggle ID="cbShowMap" runat="server" Label="Map" Text="Yes" OnCssClass="btn-success" OffCssClass="btn-danger"
                                             Help="Should a map be displayed that shows the location of each group?" ValidationGroup="GroupFinderSettings" />
-                                         <Rock:Toggle ID="cbShowPeople" runat="server" Label="Show People" Text="Yes" OnCssClass="btn-success" OffCssClass="btn-danger"
-                                            Help="Should people be shown on the map?" ValidationGroup="GroupFinderSettings" />
+                                         <Rock:Toggle ID="cbShowFamilies" runat="server" Label="Show Families" Text="Yes" OnCssClass="btn-success" OffCssClass="btn-danger"
+                                            Help="Should families be shown on the map?" ValidationGroup="GroupFinderSettings" />
                                         <Rock:RockDropDownList ID="ddlMapStyle" runat="server" Label="Map Style"
                                             Help="The map theme that should be used for styling the map." ValidationGroup="GroupFinderSettings" />
                                         <Rock:NumberBox ID="nbMapHeight" runat="server" Label="Map Height"
@@ -117,6 +117,12 @@
                                             Help="A list of ranges which can be selected as a search distance" />
                                     </div>
                                     <div class="col-md-6">
+                                        <Rock:ColorPicker runat="server" ID="cpSearchColor" Label="Search Icon Color"
+                                             Help="Color for the pin on the map showing the location of the search address."></Rock:ColorPicker>
+                                        <Rock:ColorPicker runat="server" ID="cpGroupColor" Label="Search Group Color"
+                                            Help="Color for the pins on the map showing the location of groups."></Rock:ColorPicker>
+                                        <Rock:ColorPicker runat="server" ID="cpFamilyColor" Label="Search Family Color"
+                                            Help="Color for the pins on the map showing the location of families."></Rock:ColorPicker>
                                         <Rock:RockCheckBox ID="cbShowFence" runat="server" Label="Show Fence(s)" Text="Yes"
                                             Help="If a Geofence group type was selected, should that group's boundary be displayed on the map?" ValidationGroup="GroupFinderSettings" />
                                         <Rock:ValueList ID="vlPolygonColors" runat="server" Label="Fence Polygon Colors"
