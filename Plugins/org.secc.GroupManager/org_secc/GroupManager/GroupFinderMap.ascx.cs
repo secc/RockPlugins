@@ -62,9 +62,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [BooleanField( "Hide Full", "Hide groups that have reached their capacity?", true )]
 
     // Map Settings
+    [BooleanField( "Large Map", "Show a full width map", false, "CustomSetting" )]
     [BooleanField( "Show Map", "", false, "CustomSetting" )]
     [BooleanField( "Show Families", "Show families on map", false, "CustomSetting" )]
-    [TextField("Search Color","Color of marker for searched location",false, "#FE7569" , "CustomSetting" )]
+    [TextField( "Search Color", "Color of marker for searched location", false, "#FE7569", "CustomSetting" )]
     [TextField( "Group Color", "Color of marker for searched location", false, "#446F7A", "CustomSetting" )]
     [TextField( "Family Color", "Color of marker for searched location", false, "#EE7624", "CustomSetting" )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.MAP_STYLES, "Map Style", "", true, false, Rock.SystemGuid.DefinedValue.MAP_STYLE_GOOGLE, "CustomSetting" )]
@@ -312,6 +313,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             SetAttributeValue( "ShowMap", cbShowMap.Checked.ToString() );
             SetAttributeValue( "ShowFamilies", cbShowFamilies.Checked.ToString() );
             SetAttributeValue( "MapStyle", ddlMapStyle.SelectedValue );
+            SetAttributeValue( "LargeMap", cbLargeMap.Checked.ToString() );
             SetAttributeValue( "MapHeight", nbMapHeight.Text );
             SetAttributeValue( "SearchColor", cpSearchColor.Text );
             SetAttributeValue( "GroupColor", cpGroupColor.Text );
@@ -464,6 +466,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             cbShowMap.Checked = GetAttributeValue( "ShowMap" ).AsBoolean();
             cbShowFamilies.Checked = GetAttributeValue( "ShowFamilies" ).AsBoolean();
             ddlMapStyle.BindToDefinedType( DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.MAP_STYLES.AsGuid() ) );
+            cbLargeMap.Checked = GetAttributeValue( "LargeMap" ).AsBoolean();
             ddlMapStyle.SetValue( GetAttributeValue( "MapStyle" ) );
             nbMapHeight.Text = GetAttributeValue( "MapHeight" );
             cpSearchColor.Text = GetAttributeValue( "SearchColor" );
@@ -578,42 +581,19 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             // If the groups should be limited by geofence, or the distance should be displayed,
             // then we need to capture the person's address
-            Guid? fenceTypeGuid = GetAttributeValue( "GeofencedGroupType" ).AsGuidOrNull();
-            if ( fenceTypeGuid.HasValue || GetAttributeValue( "ShowProximity" ).AsBoolean() )
+            acAddress.Visible = true;
+            pnlMessage.Visible = true;
+
+            if ( CurrentPerson != null )
             {
-                acAddress.Visible = true;
-                pnlMessage.Visible = true;
-
-                if ( CurrentPerson != null )
-                {
-                    acAddress.SetValues( CurrentPerson.GetHomeLocation() );
-                }
-
-                btnSearch.Visible = true;
-                var ranges = GetAttributeValue( "Ranges" ).Split( '|' ).Where<string>( s => !string.IsNullOrEmpty( s ) ).ToList();
-                foreach ( var range in ranges )
-                {
-                    ddlRange.Items.Add( new ListItem( range + ( range == "1" ? " Mile" : " Miles" ), range ) );
-                }
+                acAddress.SetValues( CurrentPerson.GetHomeLocation() );
             }
-            else
-            {
-                acAddress.Visible = false;
-                pnlMessage.Visible = false;
 
-                // Check to see if there's any filters
-                string scheduleFilters = GetAttributeValue( "ScheduleFilters" );
-                if ( !string.IsNullOrWhiteSpace( scheduleFilters ) || AttributeFilters.Any() )
-                {
-                    btnSearch.Visible = true;
-                }
-                else
-                {
-                    // Hide the search button and show the results immediately since there is 
-                    // no filter criteria to be entered
-                    btnSearch.Visible = false;
-                    pnlResults.Visible = true;
-                }
+            btnSearch.Visible = true;
+            var ranges = GetAttributeValue( "Ranges" ).Split( '|' ).Where<string>( s => !string.IsNullOrEmpty( s ) ).ToList();
+            foreach ( var range in ranges )
+            {
+                ddlRange.Items.Add( new ListItem( range + ( range == "1" ? " Mile" : " Miles" ), range ) );
             }
 
             btnClear.Visible = btnSearch.Visible;
@@ -623,6 +603,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 ShowResults();
             }
+
+            if ( GetAttributeValue( "LargeMap" ).AsBoolean() )
+            {
+                pnlMap.CssClass = "margin-v-sm col-md-12";
+            } 
         }
 
         /// <summary>
@@ -902,13 +887,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 pnlSearch.Visible = false;
                 // Get the location for the address entered
-                Location searchLocation = null;
-                if ( fenceGroupTypeId.HasValue || showProximity )
-                {
-                    searchLocation = new LocationService( rockContext )
+                Location searchLocation = new LocationService( rockContext )
                         .Get( acAddress.Street1, acAddress.Street2, acAddress.City,
                             acAddress.State, acAddress.PostalCode, acAddress.Country );
-                }
+
 
                 // If showing a map, and person's location was found, save a mapitem for this location
                 FinderMapItem personMapItem = null;
@@ -937,7 +919,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     {
                         groupLocations.Add( groupLocation );
 
-                        if ( showProximity && searchLocation != null && searchLocation.GeoPoint != null )
+                        if ( searchLocation != null && searchLocation.GeoPoint != null )
                         {
                             double meters = groupLocation.Location.GeoPoint.Distance( searchLocation.GeoPoint ) ?? 0.0D;
                             double miles = meters * Location.MilesPerMeter;
@@ -1048,7 +1030,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
 
                 // If a map is to be shown
-                if ( showMap && (groups.Any() || families.Any()))
+                if ( showMap && ( groups.Any() || families.Any() ) )
                 {
                     Template template = Template.Parse( GetAttributeValue( "MapInfo" ) );
 
@@ -1366,7 +1348,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
 
             string locationColor = markerColors[0].Replace( "#", string.Empty );
-            if (!string.IsNullOrWhiteSpace(GetAttributeValue("SearchColor")))
+            if ( !string.IsNullOrWhiteSpace( GetAttributeValue( "SearchColor" ) ) )
             {
                 locationColor = GetAttributeValue( "SearchColor" ).Replace( "#", string.Empty );
             }
@@ -1383,7 +1365,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             string familyColor = ( markerColors.Count > 2 ? markerColors[2] : markerColors[0] ).Replace( "#", string.Empty );
             if ( !string.IsNullOrWhiteSpace( GetAttributeValue( "FamilyColor" ) ) )
             {
-                familyColor = GetAttributeValue( "FamilyColor" ).Replace("#",string.Empty);
+                familyColor = GetAttributeValue( "FamilyColor" ).Replace( "#", string.Empty );
             }
 
 
@@ -1459,18 +1441,18 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }}
             }}
 
-            if ( groupData != null ) {{
-                for (var i = 0; i < groupData.length; i++) {{
-                    var items = addMapItem(i, groupData[i], '{6}', true);
+            if ( familyData != null ) {{
+                for (var i = 0; i < familyData.length; i++) {{
+                    var items = addMapItem(i, familyData[i], '{12}', true);
                     for (var j = 0; j < items.length; j++) {{
                         items[j].setMap(map);
                     }}
                 }}
             }}
 
-            if ( familyData != null ) {{
-                for (var i = 0; i < familyData.length; i++) {{
-                    var items = addMapItem(i, familyData[i], '{12}', true);
+            if ( groupData != null ) {{
+                for (var i = 0; i < groupData.length; i++) {{
+                    var items = addMapItem(i, groupData[i], '{6}', true);
                     for (var j = 0; j < items.length; j++) {{
                         items[j].setMap(map);
                     }}
@@ -1688,7 +1670,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 latitude,           // 7
                 longitude,          // 8
                 zoom,               // 9
-                campusJson  ,       //10
+                campusJson,       //10
                 familiesJson,       //11
                 familyColor         //12
                 );

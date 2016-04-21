@@ -111,6 +111,8 @@
                                             Help="Should families be shown on the map?" ValidationGroup="GroupFinderSettings" />
                                         <Rock:RockDropDownList ID="ddlMapStyle" runat="server" Label="Map Style"
                                             Help="The map theme that should be used for styling the map." ValidationGroup="GroupFinderSettings" />
+                                        <Rock:Toggle ID="cbLargeMap" runat="server" Label="Large Map" Help="Set map to full width"
+                                             OnCssClass="btn-success" OffCssClass="btn-danger" />
                                         <Rock:NumberBox ID="nbMapHeight" runat="server" Label="Map Height"
                                             Help="The pixel height to use for the map." ValidationGroup="GroupFinderSettings" />
                                         <Rock:ValueList runat="server" ID="vlRanges" Label="List of Ranges"
