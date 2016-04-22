@@ -59,15 +59,16 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [TextField( "ScheduleFilters", "", false, "", "CustomSetting" )]
     [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Attribute Filters", "", false, true, "", "CustomSetting" )]
     [IntegerField( "Max Results", "Maximum number of results to display. 0 is no filter", false, 0, "CustomSetting" )]
-    [BooleanField( "Hide Full", "Hide groups that have reached their capacity?", true )]
+    [BooleanField( "Hide Full", "Hide groups that have reached their capacity?", true, "CustomSetting" )]
+    [BooleanField("Show Reset", "Display Reset Button", true, "CustomSetting")]
 
     // Map Settings
     [BooleanField( "Large Map", "Show a full width map", false, "CustomSetting" )]
     [BooleanField( "Show Map", "", false, "CustomSetting" )]
     [BooleanField( "Show Families", "Show families on map", false, "CustomSetting" )]
-    [TextField( "Search Color", "Color of marker for searched location", false, "#FE7569", "CustomSetting" )]
-    [TextField( "Group Color", "Color of marker for searched location", false, "#446F7A", "CustomSetting" )]
-    [TextField( "Family Color", "Color of marker for searched location", false, "#EE7624", "CustomSetting" )]
+    [TextField( "Search Icon", "URL of marker for searched location", false, "#FE7569", "CustomSetting" )]
+    [TextField( "Group Icon", "URL of marker for searched location", false, "#446F7A", "CustomSetting" )]
+    [TextField( "Family Icon", "URL of marker for searched location", false, "#EE7624", "CustomSetting" )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.MAP_STYLES, "Map Style", "", true, false, Rock.SystemGuid.DefinedValue.MAP_STYLE_GOOGLE, "CustomSetting" )]
     [IntegerField( "Map Height", "", false, 600, "CustomSetting" )]
     [BooleanField( "Show Fence", "", false, "CustomSetting" )]
@@ -100,6 +101,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     {% endif %}
 {% endif %}
 ", "CustomSetting" )]
+
+    [CodeEditorField( "Family Info", "", CodeEditorMode.Lava, CodeEditorTheme.Rock, 200, false, @"", "CustomSetting")]
     [BooleanField( "Map Info Debug", "", false, "CustomSetting" )]
 
     // Lava Output Settings
@@ -309,19 +312,20 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             SetAttributeValue( "AttributeFilters", cblAttributes.Items.Cast<ListItem>().Where( i => i.Selected ).Select( i => i.Value ).ToList().AsDelimited( "," ) );
             SetAttributeValue( "MaxResults", nudMaxResults.Value.ToString() );
             SetAttributeValue( "HideFull", tgHideFull.Checked.ToString() );
-
+            SetAttributeValue( "ShowReset", cbShowReset.Checked.ToString() );
             SetAttributeValue( "ShowMap", cbShowMap.Checked.ToString() );
             SetAttributeValue( "ShowFamilies", cbShowFamilies.Checked.ToString() );
             SetAttributeValue( "MapStyle", ddlMapStyle.SelectedValue );
             SetAttributeValue( "LargeMap", cbLargeMap.Checked.ToString() );
             SetAttributeValue( "MapHeight", nbMapHeight.Text );
-            SetAttributeValue( "SearchColor", cpSearchColor.Text );
-            SetAttributeValue( "GroupColor", cpGroupColor.Text );
-            SetAttributeValue( "FamilyColor", cpFamilyColor.Text );
+            SetAttributeValue( "SearchIcon", tbSearchIcon.Text );
+            SetAttributeValue( "GroupIcon", tbGroupIcon.Text );
+            SetAttributeValue( "FamilyIcon", tbFamilyIcon.Text );
             SetAttributeValue( "ShowFence", cbShowFence.Checked.ToString() );
             SetAttributeValue( "PolygonColors", vlPolygonColors.Value );
             SetAttributeValue( "Ranges", vlRanges.Value );
             SetAttributeValue( "MapInfo", ceMapInfo.Text );
+            SetAttributeValue( "FamilyInfo", ceFamilyInfo.Text );
             SetAttributeValue( "MapInfoDebug", cbMapInfoDebug.Checked.ToString() );
 
             SetAttributeValue( "Message", ceMessage.Text );
@@ -462,20 +466,21 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
             nudMaxResults.Value = GetAttributeValue( "MaxResults" ).AsInteger();
             tgHideFull.Checked = GetAttributeValue( "HideFull" ).AsBoolean();
-
+            cbShowReset.Checked = GetAttributeValue( "ShowReset" ).AsBoolean();
             cbShowMap.Checked = GetAttributeValue( "ShowMap" ).AsBoolean();
             cbShowFamilies.Checked = GetAttributeValue( "ShowFamilies" ).AsBoolean();
             ddlMapStyle.BindToDefinedType( DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.MAP_STYLES.AsGuid() ) );
             cbLargeMap.Checked = GetAttributeValue( "LargeMap" ).AsBoolean();
             ddlMapStyle.SetValue( GetAttributeValue( "MapStyle" ) );
             nbMapHeight.Text = GetAttributeValue( "MapHeight" );
-            cpSearchColor.Text = GetAttributeValue( "SearchColor" );
-            cpGroupColor.Text = GetAttributeValue( "GroupColor" );
-            cpFamilyColor.Text = GetAttributeValue( "FamilyColor" );
+            tbSearchIcon.Text = GetAttributeValue( "SearchIcon" );
+            tbGroupIcon.Text = GetAttributeValue( "GroupIcon" );
+            tbFamilyIcon.Text = GetAttributeValue( "FamilyIcon" );
             cbShowFence.Checked = GetAttributeValue( "ShowFence" ).AsBoolean();
             vlPolygonColors.Value = GetAttributeValue( "PolygonColors" );
             vlRanges.Value = GetAttributeValue( "Ranges" );
             ceMapInfo.Text = GetAttributeValue( "MapInfo" );
+            ceFamilyInfo.Text = GetAttributeValue( "FamilyInfo" );
             cbMapInfoDebug.Checked = GetAttributeValue( "MapInfoDebug" ).AsBoolean();
 
             ceMessage.Text = GetAttributeValue( "Message" );
@@ -583,6 +588,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             // then we need to capture the person's address
             acAddress.Visible = true;
             pnlMessage.Visible = true;
+            pnlSearch.Visible = true;
+            pnlMap.Visible = false;
+            pnlResults.Visible = false;
 
             if ( CurrentPerson != null )
             {
@@ -590,6 +598,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
 
             btnSearch.Visible = true;
+
+            ddlRange.Items.Clear();
             var ranges = GetAttributeValue( "Ranges" ).Split( '|' ).Where<string>( s => !string.IsNullOrEmpty( s ) ).ToList();
             foreach ( var range in ranges )
             {
@@ -607,7 +617,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             if ( GetAttributeValue( "LargeMap" ).AsBoolean() )
             {
                 pnlMap.CssClass = "margin-v-sm col-md-12";
-            } 
+            }
+
+            btnReset.Visible = GetAttributeValue( "ShowReset" ).AsBoolean();
         }
 
         /// <summary>
@@ -908,6 +920,12 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     personMapItem = new FinderMapItem( searchLocation );
                     personMapItem.Name = "Your Location";
                     personMapItem.InfoWindow = HttpUtility.HtmlEncode( infoWindow.Replace( Environment.NewLine, string.Empty ).Replace( "\n", string.Empty ).Replace( "\t", string.Empty ) );
+                    var searchIcon = GetAttributeValue( "SearchIcon" );
+                    //add custom icon to our search location
+                    if ( !string.IsNullOrWhiteSpace( searchIcon ) )
+                    {
+                        personMapItem.Icon = searchIcon;
+                    }
                 }
 
                 // Get the locations, and optionally calculate the distance for each of the groups
@@ -1032,12 +1050,20 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 // If a map is to be shown
                 if ( showMap && ( groups.Any() || families.Any() ) )
                 {
-                    Template template = Template.Parse( GetAttributeValue( "MapInfo" ) );
+                    Template groupInfoTemplate = Template.Parse( GetAttributeValue( "MapInfo" ) );
+                    Template familyInfoTemplate = Template.Parse( GetAttributeValue( "FamilyInfo" ) );
 
                     bool showDebug = UserCanEdit && GetAttributeValue( "MapInfoDebug" ).AsBoolean();
                     lMapInfoDebug.Visible = showDebug;
 
+                    var debugStatus = ShowDebugStatus.NoShow;
+                    if ( showDebug )
+                    {
+                        debugStatus = ShowDebugStatus.Show;
+                    }
+
                     // Add mapitems for all the remaining valid group locations
+                    var groupIcon = GetAttributeValue( "groupIcon" );
                     var groupMapItems = new List<MapItem>();
                     foreach ( var gl in groupLocations )
                     {
@@ -1072,12 +1098,12 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             securityActions.Add( "Administrate", group.IsAuthorized( Authorization.ADMINISTRATE, CurrentPerson ) );
                             mergeFields.Add( "AllowedActions", securityActions );
 
-                            string infoWindow = template.Render( Hash.FromDictionary( mergeFields ) );
+                            string infoWindow = groupInfoTemplate.Render( Hash.FromDictionary( mergeFields ) );
 
-                            if ( showDebug )
+                            if ( debugStatus == ShowDebugStatus.Show )
                             {
-                                lMapInfoDebug.Text = mergeFields.lavaDebugInfo( null, "<span class='label label-info'>Lava used for the map window.</span>", "" );
-                                showDebug = false;
+                                lMapInfoDebug.Text = mergeFields.lavaDebugInfo( null, "<span class='label label-info'>Lava used for the group map window.</span>", "" );
+                                debugStatus = ShowDebugStatus.GroupIncluded;
                             }
 
                             // Add a map item for group
@@ -1086,19 +1112,42 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             mapItem.EntityId = group.Id;
                             mapItem.Name = group.Name;
                             mapItem.InfoWindow = HttpUtility.HtmlEncode( infoWindow.Replace( Environment.NewLine, string.Empty ).Replace( "\n", string.Empty ).Replace( "\t", string.Empty ) );
+                            if ( !string.IsNullOrWhiteSpace( groupIcon ) )
+                            {
+                                mapItem.Icon = groupIcon;
+                            }
                             groupMapItems.Add( mapItem );
                         }
                     }
 
                     var familyMapItems = new List<MapItem>();
-                    foreach ( var family in families )
+
+                    if ( GetAttributeValue( "ShowFamilies" ).AsBoolean() )
                     {
-                        var mapItem = new FinderMapItem( family.GroupLocations.FirstOrDefault().Location );
-                        mapItem.EntityTypeId = EntityTypeCache.Read( "Rock.Model.Group" ).Id;
-                        mapItem.EntityId = family.Id;
-                        mapItem.Name = family.Name;
-                        mapItem.InfoWindow = family.Name;
-                        familyMapItems.Add( mapItem );
+                        var familyIcon = GetAttributeValue( "FamilyIcon" );
+                        foreach ( var family in families )
+                        {
+
+                            var mapItem = new FinderMapItem( family.GroupLocations.FirstOrDefault().Location );
+                            mapItem.EntityTypeId = EntityTypeCache.Read( "Rock.Model.Group" ).Id;
+                            mapItem.EntityId = family.Id;
+                            mapItem.Name = family.Name;
+                            if ( !string.IsNullOrWhiteSpace( familyIcon ) )
+                            {
+                                mapItem.Icon = familyIcon;
+                            }
+
+                            var mergeFields = new Dictionary<string, object>();
+                            mergeFields.Add( "Family", family );
+                            mapItem.InfoWindow = familyInfoTemplate.Render( Hash.FromDictionary( mergeFields ) );
+                            familyMapItems.Add( mapItem );
+
+                            if ( debugStatus == ShowDebugStatus.GroupIncluded )
+                            {
+                                lMapInfoDebug.Text += mergeFields.lavaDebugInfo( null, "<span class='label label-info'>Lava used for the family map window.</span>", "" );
+                                debugStatus = ShowDebugStatus.FamilyIncluded;
+                            }
+                        }
                     }
 
                     var campusMapItems = new List<MapItem>();
@@ -1113,10 +1162,14 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                         mapItem.InfoWindow = HttpUtility.HtmlEncode( "<b>" + campus.Name + "</b><br>" +
                             campus.Location.Street1 + "<br>" + campus.Location.City +
                             ", " + campus.Location.State + " " + campus.Location.PostalCode );
-                        mapItem.Icon = "https://apps.southeastchristian.org/UserControls/Custom/SECC/SmallGroupLocator/Images/920-campus.png";
+                        campus.LoadAttributes();
+                        var campusIcon = campus.GetAttributeValue( "MapIcon" );
+                        if ( !string.IsNullOrWhiteSpace( campusIcon ) )
+                        {
+                            mapItem.Icon = campusIcon;
+                        }
                         campusMapItems.Add( mapItem );
                     }
-
 
                     // Show the map
                     Map( personMapItem, fenceMapItems, groupMapItems, familyMapItems, campusMapItems );
@@ -1348,26 +1401,12 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
 
             string locationColor = markerColors[0].Replace( "#", string.Empty );
-            if ( !string.IsNullOrWhiteSpace( GetAttributeValue( "SearchColor" ) ) )
-            {
-                locationColor = GetAttributeValue( "SearchColor" ).Replace( "#", string.Empty );
-            }
 
             var polygonColorList = GetAttributeValue( "PolygonColors" ).Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries ).ToList();
             string polygonColors = "\"" + polygonColorList.AsDelimited( "\", \"" ) + "\"";
-
             string groupColor = ( markerColors.Count > 1 ? markerColors[1] : markerColors[0] ).Replace( "#", string.Empty );
-            if ( !string.IsNullOrWhiteSpace( GetAttributeValue( "GroupColor" ) ) )
-            {
-                groupColor = GetAttributeValue( "GroupColor" ).Replace( "#", string.Empty );
-            }
-
             string familyColor = ( markerColors.Count > 2 ? markerColors[2] : markerColors[0] ).Replace( "#", string.Empty );
-            if ( !string.IsNullOrWhiteSpace( GetAttributeValue( "FamilyColor" ) ) )
-            {
-                familyColor = GetAttributeValue( "FamilyColor" ).Replace( "#", string.Empty );
-            }
-
+            string campusColor = ( markerColors.Count > 2 ? markerColors[3] : markerColors[0] ).Replace( "#", string.Empty );
 
             string latitude = "39.8282";
             string longitude = "-98.5795";
@@ -1461,7 +1500,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             if ( campusData != null ) {{
                 for (var i = 0; i < campusData.length; i++) {{
-                    var items = addMapItem(i, campusData[i], '{6}', false);
+                    var items = addMapItem(i, campusData[i], '{13}', false);
                     for (var j = 0; j < items.length; j++) {{
                         items[j].setMap(map);
                     }}
@@ -1670,9 +1709,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 latitude,           // 7
                 longitude,          // 8
                 zoom,               // 9
-                campusJson,       //10
+                campusJson,         //10
                 familiesJson,       //11
-                familyColor         //12
+                familyColor,        //12
+                campusColor         //13
                 );
 
             ScriptManager.RegisterStartupScript( pnlMap, pnlMap.GetType(), "group-finder-map-script", mapScript, true );
@@ -1700,6 +1740,15 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         }
 
         #endregion
+
+        enum ShowDebugStatus
+        {
+            NoShow,
+            Show,
+            GroupIncluded,
+            FamilyIncluded
+
+        };
 
         /// <summary>
         /// A map item class specific to group finder
@@ -1758,6 +1807,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         protected void ddlPageSize_SelectedIndexChanged( object sender, EventArgs e )
         {
             ShowResults();
+        }
+
+        protected void btnReset_Click( object sender, EventArgs e )
+        {
+            ShowView();
         }
     }
 }

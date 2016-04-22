@@ -16,9 +16,9 @@
                 </asp:Panel>
 
                 <asp:Panel ID="pnlSearch" runat="server" CssClass="col-md-6 col-xs-12">
-                    <asp:ValidationSummary ID="valSummary" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-danger" />
+                    <asp:ValidationSummary ID="valSummary" runat="server" HeaderText="There was an issue:" CssClass="alert alert-info" />
 
-                    <Rock:AddressControl ID="acAddress" runat="server" Required="true" RequiredErrorMessage="Your Address is Required" />
+                    <Rock:AddressControl ID="acAddress" runat="server" Required="true" RequiredErrorMessage="Please enter an address to search near." />
                     <Rock:RockDropDownList ID="ddlRange" runat="server" Label="Range"></Rock:RockDropDownList>
                     <asp:PlaceHolder ID="phFilterControls" runat="server" />
 
@@ -62,7 +62,7 @@
 
                         </div>
                     </asp:Panel>
-
+                    <Rock:BootstrapButton runat="server" ID="btnReset" OnClick="btnReset_Click" Text="Reset Search" CssClass="btn btn-default"></Rock:BootstrapButton>
                 </asp:Panel>
             </div>
         </asp:Panel>
@@ -87,6 +87,9 @@
                                             ValidationGroup="GroupFinderSettings" />
                                         <Rock:NumberUpDown runat="server" ID="nudMaxResults" Label="Max Group Results"
                                             Help="Maximum number of results to display. 0 is no filter" Minimum="0" />
+                                        <Rock:Toggle runat="server" ID="cbShowReset" Label="Show Reset" Help="Should a reset button be displayed after searching?"
+                                            OnCssClass="btn-success" OffCssClass="btn-danger" />
+
                                     </div>
                                     <div class="col-md-6">
                                         <Rock:RockCheckBoxList ID="cblSchedule" runat="server" Label="Display Schedule Filters" RepeatDirection="Horizontal"
@@ -119,12 +122,13 @@
                                             Help="A list of ranges which can be selected as a search distance" />
                                     </div>
                                     <div class="col-md-6">
-                                        <Rock:ColorPicker runat="server" ID="cpSearchColor" Label="Search Icon Color"
-                                             Help="Color for the pin on the map showing the location of the search address."></Rock:ColorPicker>
-                                        <Rock:ColorPicker runat="server" ID="cpGroupColor" Label="Search Group Color"
-                                            Help="Color for the pins on the map showing the location of groups."></Rock:ColorPicker>
-                                        <Rock:ColorPicker runat="server" ID="cpFamilyColor" Label="Search Family Color"
-                                            Help="Color for the pins on the map showing the location of families."></Rock:ColorPicker>
+                                        Optional Map Icons: (34x34)
+                                        <Rock:RockTextBox runat="server" ID="tbSearchIcon" Label="Search Icon URL"
+                                             Help="URL for the pin on the map showing the location of the search address."></Rock:RockTextBox>
+                                        <Rock:RockTextBox runat="server" ID="tbGroupIcon" Label="Search Group URL"
+                                            Help="URL for the pins on the map showing the location of groups."></Rock:RockTextBox>
+                                        <Rock:RockTextBox runat="server" ID="tbFamilyIcon" Label="Search Family URL"
+                                            Help="URL for the pins on the map showing the location of families."></Rock:RockTextBox>
                                         <Rock:RockCheckBox ID="cbShowFence" runat="server" Label="Show Fence(s)" Text="Yes"
                                             Help="If a Geofence group type was selected, should that group's boundary be displayed on the map?" ValidationGroup="GroupFinderSettings" />
                                         <Rock:ValueList ID="vlPolygonColors" runat="server" Label="Fence Polygon Colors"
@@ -135,6 +139,9 @@
                                     <div class="col-md-12">
                                         <Rock:CodeEditor ID="ceMapInfo" runat="server" Label="Group Window Contents" EditorMode="Lava" EditorTheme="Rock" Height="300"
                                             Help="The Lava template to use for formatting the group information that is displayed when user clicks the group marker on the map."
+                                            ValidationGroup="GroupFinderSettings" />
+                                        <Rock:CodeEditor ID="ceFamilyInfo" runat="server" Label="Family Window Contents" EditorMode="Lava" EditorTheme="Rock" Height="300"
+                                            Help="The Lava template to use for formatting the group information that is displayed when user clicks the family marker on the map."
                                             ValidationGroup="GroupFinderSettings" />
                                         <Rock:RockCheckBox ID="cbMapInfoDebug" runat="server" Text="Enable Debug" />
                                     </div>
