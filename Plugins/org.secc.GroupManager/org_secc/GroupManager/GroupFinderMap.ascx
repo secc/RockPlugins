@@ -99,7 +99,9 @@
                                         </Rock:RockCheckBoxList>
                                         <Rock:RockCheckBoxList ID="cblAttributes" runat="server" Label="Display Attribute Filters" RepeatDirection="Horizontal"
                                             Help="The group attributes that should be available for user to filter results by." ValidationGroup="GroupFinderSettings" />
-                                        <Rock:Toggle runat="server" ID="tgHideFull" Label="Hide Full Groups" Help="Hide groups that have reached their capacity?"
+                                        <Rock:Toggle runat="server" ID="cbPreFill" Label="Pre Fill Out Address" Help="Should a logged in user have their address pre-filled out?"
+                                            OnCssClass="btn-success" OffCssClass="btn-danger" />
+                                        <Rock:Toggle runat="server" ID="cbHideFull" Label="Hide Full Groups" Help="Hide groups that have reached their capacity?"
                                             OnCssClass="btn-success" OffCssClass="btn-danger" />
                                     </div>
                                 </div>

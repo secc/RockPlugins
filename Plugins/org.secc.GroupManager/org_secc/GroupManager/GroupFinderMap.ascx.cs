@@ -59,6 +59,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [TextField( "ScheduleFilters", "", false, "", "CustomSetting" )]
     [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Attribute Filters", "", false, true, "", "CustomSetting" )]
     [IntegerField( "Max Results", "Maximum number of results to display. 0 is no filter", false, 0, "CustomSetting" )]
+    [BooleanField( "Pre Fill", "Pre fill loged in users email", true, "CustomSetting" )]
     [BooleanField( "Hide Full", "Hide groups that have reached their capacity?", true, "CustomSetting" )]
     [BooleanField("Show Reset", "Display Reset Button", true, "CustomSetting")]
 
@@ -66,9 +67,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [BooleanField( "Large Map", "Show a full width map", false, "CustomSetting" )]
     [BooleanField( "Show Map", "", false, "CustomSetting" )]
     [BooleanField( "Show Families", "Show families on map", false, "CustomSetting" )]
-    [TextField( "Search Icon", "URL of marker for searched location", false, "#FE7569", "CustomSetting" )]
-    [TextField( "Group Icon", "URL of marker for searched location", false, "#446F7A", "CustomSetting" )]
-    [TextField( "Family Icon", "URL of marker for searched location", false, "#EE7624", "CustomSetting" )]
+    [TextField( "Search Icon", "URL of marker for searched location", false, "", "CustomSetting" )]
+    [TextField( "Group Icon", "URL of marker for searched location", false, "", "CustomSetting" )]
+    [TextField( "Family Icon", "URL of marker for searched location", false, "", "CustomSetting" )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.MAP_STYLES, "Map Style", "", true, false, Rock.SystemGuid.DefinedValue.MAP_STYLE_GOOGLE, "CustomSetting" )]
     [IntegerField( "Map Height", "", false, 600, "CustomSetting" )]
     [BooleanField( "Show Fence", "", false, "CustomSetting" )]
@@ -311,7 +312,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             SetAttributeValue( "AttributeFilters", cblAttributes.Items.Cast<ListItem>().Where( i => i.Selected ).Select( i => i.Value ).ToList().AsDelimited( "," ) );
             SetAttributeValue( "MaxResults", nudMaxResults.Value.ToString() );
-            SetAttributeValue( "HideFull", tgHideFull.Checked.ToString() );
+            SetAttributeValue( "PreFill", cbPreFill.Checked.ToString() );
+            SetAttributeValue( "HideFull", cbHideFull.Checked.ToString() );
             SetAttributeValue( "ShowReset", cbShowReset.Checked.ToString() );
             SetAttributeValue( "ShowMap", cbShowMap.Checked.ToString() );
             SetAttributeValue( "ShowFamilies", cbShowFamilies.Checked.ToString() );
@@ -465,7 +467,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
             }
             nudMaxResults.Value = GetAttributeValue( "MaxResults" ).AsInteger();
-            tgHideFull.Checked = GetAttributeValue( "HideFull" ).AsBoolean();
+            cbPreFill.Checked = GetAttributeValue( "PreFill" ).AsBoolean();
+            cbHideFull.Checked = GetAttributeValue( "HideFull" ).AsBoolean();
             cbShowReset.Checked = GetAttributeValue( "ShowReset" ).AsBoolean();
             cbShowMap.Checked = GetAttributeValue( "ShowMap" ).AsBoolean();
             cbShowFamilies.Checked = GetAttributeValue( "ShowFamilies" ).AsBoolean();
@@ -592,7 +595,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             pnlMap.Visible = false;
             pnlResults.Visible = false;
 
-            if ( CurrentPerson != null )
+            if ( CurrentPerson != null && GetAttributeValue("PreFill").AsBoolean() )
             {
                 acAddress.SetValues( CurrentPerson.GetHomeLocation() );
             }
