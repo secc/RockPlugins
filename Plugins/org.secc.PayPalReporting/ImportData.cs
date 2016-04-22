@@ -97,10 +97,17 @@ namespace org.secc.PayPalReporting
                 }
             }
             dbContext.SaveChanges();
-
+            
             String message = "Payflow Transactions Retrieved: " + totalTransactions + " - "
-                        + "Fees Retreived Successfully:" + feesSuccessful + " - "
-                        + "Fees Retreival Failures:" + feesFailed;
+                        + "Fees Retrieved Successfully:" + feesSuccessful + " - "
+                        + "Fees Retrieval Failures:" + feesFailed;
+            
+            // If we have any fee retrieval errors, mark it as an error so it sends a notification.
+            if (feesFailed > 0)
+            {
+                throw new Exception(message);
+            }
+
             context.Result = message;
         }
 

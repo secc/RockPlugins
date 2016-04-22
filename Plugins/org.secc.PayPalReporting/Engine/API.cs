@@ -1,13 +1,25 @@
-﻿using com.paypal.soap.api;
-using org.secc.PayPalReporting.Services;
-using System;
+﻿using System;
 using System.Linq;
 using Rock;
+using PayPal.PayPalAPIInterfaceService.Model;
+using PayPal.PayPalAPIInterfaceService;
+using System.Collections.Generic;
 
 namespace org.secc.PayPalReporting.Engine
 {
     class API
     {
+        private String mode = "live";
+        public String Mode {
+            get {
+                return mode;
+            }
+            set
+            {
+                mode = value;
+            }
+        }
+        
         public String Username { get; set; }
         public String Password { get; set; }
         public String Signature { get; set; }
@@ -26,11 +38,31 @@ namespace org.secc.PayPalReporting.Engine
 
         public Decimal GetTransactionFee(Transaction tx)
         {
-            var profile = PayPalSvc.CreateProfile(Username, Password, Signature, Services.PayPalEnvironment.Live);
+            TransactionSearchReq request = new TransactionSearchReq();
 
-            TransactionSearchResponseType resp = PayPalSvc.TransactionSearchByID(profile, tx.MerchantTransactionId, tx.TimeCreated.Value, tx.TimeCreated.Value);
+            request.TransactionSearchRequest = new TransactionSearchRequestType();
 
+            request.TransactionSearchRequest.TransactionID = tx.MerchantTransactionId;
+            request.TransactionSearchRequest.StartDate = tx.TimeCreated.Value.ToString("yyyy-MM-ddTHH:mm:ss");
+            request.TransactionSearchRequest.EndDate = tx.TimeCreated.Value.ToString("yyyy-MM-ddTHH:mm:ss");
+
+            Dictionary<string, string> config = new Dictionary<string, string>();
+            config.Add("mode", Mode);
+            config.Add("account1.apiUsername", Username);
+            config.Add("account1.apiPassword", Password);
+            config.Add("account1.apiSignature", Signature);
+
+            // Create the PayPalAPIInterfaceServiceService service object to make the API call
+            PayPalAPIInterfaceServiceService service = new PayPalAPIInterfaceServiceService(config);
+
+            TransactionSearchResponseType resp = service.TransactionSearch(request);
+          
             PaymentTransactionSearchResultType payment;
+
+            if (resp.Errors.Count > 0)
+            {
+                throw new Exception(resp.Errors.Select(e => e.ShortMessage).Aggregate((current, next) => current + ", " + next));
+            }
 
             if (resp.PaymentTransactions.Count() <= 1)
             {
@@ -45,16 +77,16 @@ namespace org.secc.PayPalReporting.Engine
                     //transaction not found. try to search any linked transactions for timestamp, amount and type
                     //check previous day as well because of Paypal using GMT
                     payment = resp.PaymentTransactions.Where(x => x.Type.ToUpper() == GetTransactionType(tx.Type).ToString().ToUpper()
-                                                        && x.GrossAmount.Value.AsDouble() == tx.Amount
-                                                        && x.Timestamp.Date.AddDays(-1) <= tx.TimeCreated
-                                                        && x.Timestamp.Date >= tx.TimeCreated).FirstOrDefault();
+                                                        && x.GrossAmount.value.AsDouble() == tx.Amount
+                                                        && x.Timestamp.AsDateTime().Value.AddDays(-1) <= tx.TimeCreated
+                                                        && x.Timestamp.AsDateTime().Value >= tx.TimeCreated).FirstOrDefault();
                 }
 
             }
 
             if (payment != null)
             {
-                return decimal.Parse(payment.FeeAmount.Value);
+                return decimal.Parse(payment.FeeAmount.value);
             }
             return 0;
         }
