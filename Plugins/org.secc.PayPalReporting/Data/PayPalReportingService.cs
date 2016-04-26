@@ -1,7 +1,7 @@
 ﻿
 namespace org.secc.PayPalReporting.Data
 {
-    class PayPalReportingService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()
+    public class PayPalReportingService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="DocumentationService{T}"/> class.

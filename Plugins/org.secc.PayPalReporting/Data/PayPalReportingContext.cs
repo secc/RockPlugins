@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace org.secc.PayPalReporting.Data
 {
-    class PayPalReportingContext : Rock.Data.DbContext
+    public class PayPalReportingContext : Rock.Data.DbContext
     {
         #region Models
 

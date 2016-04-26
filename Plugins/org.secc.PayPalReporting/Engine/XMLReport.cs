@@ -58,7 +58,7 @@ namespace org.secc.PayPalReporting.Engine
                 paramName = "end_date",
                 paramValue = String.Format("{0:yyyy-MM-dd HH:mm:ss}", endDate)
             };
-
+            
             // Setup the report and bind parameters to it.
             reportingEngineRequestRunReportRequest reportRequest = new Services.reportingEngineRequestRunReportRequest();
             reportRequest.ItemElementName = reportType.templateName;

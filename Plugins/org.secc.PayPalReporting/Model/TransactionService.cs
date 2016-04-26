@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace org.secc.PayPalReporting.Model
 {
-    class TransactionService : PayPalReportingService<Transaction>
+    public class TransactionService : PayPalReportingService<Transaction>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="TransactionService"/> class.
