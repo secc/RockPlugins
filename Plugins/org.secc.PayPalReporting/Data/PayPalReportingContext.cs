@@ -1,20 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Data.Entity;
 
 namespace org.secc.PayPalReporting.Data
 {
     public class PayPalReportingContext : Rock.Data.DbContext
     {
-        #region Models
-
-        public DbSet<Transaction> ReferralAgencies { get; set; }
-
-        #endregion
-
         /// <summary>
         /// Initializes a new instance of the <see cref="PayPalReportingContext"/> class.
         /// </summary>

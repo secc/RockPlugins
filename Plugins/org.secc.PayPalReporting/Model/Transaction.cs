@@ -1,10 +1,8 @@
-namespace org.secc.PayPalReporting
+namespace org.secc.PayPalReporting.Model
 {
     using System;
-    using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using System.ComponentModel.DataAnnotations.Schema;
-    using System.Data.Entity.Spatial;
     using System.Runtime.Serialization;
     [Table("_org_secc_PayPalReporting_Transaction")]
     public partial class Transaction : Rock.Data.Model<Transaction>, Rock.Security.ISecured

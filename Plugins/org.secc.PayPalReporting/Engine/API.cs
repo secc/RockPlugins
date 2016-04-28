@@ -36,7 +36,7 @@ namespace org.secc.PayPalReporting.Engine
             Refund
         }
 
-        public Decimal GetTransactionFee(Transaction tx)
+        public Decimal GetTransactionFee(Model.Transaction tx)
         {
             TransactionSearchReq request = new TransactionSearchReq();
 
