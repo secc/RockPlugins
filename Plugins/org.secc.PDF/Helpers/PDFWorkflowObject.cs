@@ -68,6 +68,7 @@ namespace org.secc.PDF
             //load pdf binary file
             Guid? pdfGuid = action.Activity.Workflow.GetAttributeValue( "PDFGuid" ).AsGuidOrNull();
             PDF = new BinaryFileService( rockContext ).Get( pdfGuid ?? new Guid() );
+            MergeObjects.Add( "PDF", PDF );
 
             LavaInput = action.Activity.Workflow.GetAttributeValue( "XHTML" );
         }

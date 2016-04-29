@@ -16,18 +16,12 @@ namespace org.secc.PDF
     [Description( "Emails form to the person who completed the registration." )]
     [Export( typeof( Rock.Workflow.ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Email Registration" )]
-    [TextField( "Subject", "Email Subject, Lava Enabled", true, "Registration for {{Person.FullName}}", order: 0 )]
-    [CodeEditorField( "Body", "Email Body, Lava Enabled", Rock.Web.UI.Controls.CodeEditorMode.Text, order: 1 )]
-    [TextField( "From Name", "Name the email will be sent from.", false, "", order: 2 )]
-    [TextField( "From Email", "Address the email will be sent from.", false, "", order: 3 )]
+    [CommunicationTemplateField("Template", "Communication template to use.")]
 
     class EmailRegistration : ActionComponent
     {
         public override bool Execute( RockContext rockContext, WorkflowAction action, object entity, out List<string> errorMessages )
         {
-            errorMessages = new List<string>();
-
-
             errorMessages = new List<string>();
 
             PDFWorkflowObject pdfWorkflowObject = new PDFWorkflowObject();
@@ -50,30 +44,27 @@ namespace org.secc.PDF
             var registrationRegistrant = new RegistrationRegistrantService( rockContext ).Get( registrationRegistrantId );
             registration = registrationRegistrant.Registration;
 
-            SendEmail( registration, pdfWorkflowObject, action, rockContext );
-
-            return true;
-        }
-
-        private void SendEmail( Registration registration, PDFWorkflowObject pdfWorkflowObject, WorkflowAction action, RockContext rockContext )
-        {
-            string subject = GetActionAttributeValue( action, "Subject" ).ResolveMergeFields( pdfWorkflowObject.MergeObjects );
-            string body = GetActionAttributeValue( action, "Body" ).ResolveMergeFields( pdfWorkflowObject.MergeObjects );
-
             var communicationService = new CommunicationService( rockContext );
             var recipientService = new CommunicationRecipientService( rockContext );
 
-            Rock.Model.Communication communication = null;
             IQueryable<CommunicationRecipient> qryRecipients = null;
 
-            communication = new Rock.Model.Communication();
+            var template = new CommunicationTemplateService( rockContext ).Get( GetActionAttributeValue( action, "Template" ).AsGuid() );
+
+            if ( template == null )
+            {
+                errorMessages.Add( "Could not find template" );
+                return false;
+            }
+
+            Communication communication = new Rock.Model.Communication();
             communication.Status = CommunicationStatus.Transient;
             communicationService.Add( communication );
 
             qryRecipients = communication.GetRecipientsQry( rockContext );
 
             communication.IsBulkCommunication = false;
-
+            
             communication.FutureSendDateTime = null;
 
             if ( communication != null )
@@ -85,27 +76,27 @@ namespace org.secc.PDF
 
                 communication.MediumEntityTypeId = EntityTypeCache.Read( "Rock.Communication.Medium.Email" ).Id;
                 communication.MediumData.Clear();
-                communication.Subject = subject;
-                communication.MediumData.Add( "TextMessage", body );
-
-                var fromName = GetActionAttributeValue( action, "FromName" );
-                if ( string.IsNullOrWhiteSpace( fromName ) )
+                communication.Subject = template.Subject.ResolveMergeFields(pdfWorkflowObject.MergeObjects);
+                communication.MediumData = template.MediumData;
+                if ( !communication.MediumData.ContainsKey( "Subject" ) )
                 {
-                    fromName = GlobalAttributesCache.Read( rockContext ).GetValue( "OrganizationName" );
+                    communication.MediumData.Add( "Subject", communication.Subject );
                 }
-                communication.MediumData.Add( "FromName", fromName );
 
-                var fromEmail = GetActionAttributeValue( action, "FromEmail" );
-                if ( string.IsNullOrWhiteSpace( fromEmail ) )
+                if ( communication.MediumData.ContainsKey( "HtmlMessage" ) )
                 {
-                    fromEmail = GlobalAttributesCache.Read( rockContext ).GetValue( "OrganizationEmail" );
+                    communication.MediumData["HtmlMessage"] = communication.MediumData["HtmlMessage"].ResolveMergeFields( pdfWorkflowObject.MergeObjects );
                 }
-                communication.MediumData.Add( "FromAddress", fromEmail );
+
+                if ( communication.MediumData.ContainsKey( "TextMessage" ) )
+                {
+                    communication.MediumData["TextMessage"] = communication.MediumData["TextMessage"].ResolveMergeFields( pdfWorkflowObject.MergeObjects );
+                }
 
                 communication.Status = CommunicationStatus.Approved;
                 communication.ReviewedDateTime = RockDateTime.Now;
 
-                int managerAliasId=1;
+                int managerAliasId = 1;
                 if ( pdfWorkflowObject.MergeObjects.ContainsKey( "RegistrationInstance" ) )
                 {
                     managerAliasId = ( ( RegistrationInstance ) pdfWorkflowObject.MergeObjects["RegistrationInstance"] ).CreatedByPersonAliasId ?? 1;
@@ -118,6 +109,13 @@ namespace org.secc.PDF
                 transaction.CommunicationId = communication.Id;
                 Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
             }
+
+            return true;
+        }
+
+        private void SendEmail( Registration registration, PDFWorkflowObject pdfWorkflowObject, WorkflowAction action, RockContext rockContext )
+        {
+            
         }
     }
 }
