@@ -36,6 +36,14 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\..\Source\Repos\Rock\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\..\..\..\..\Source\Repos\Rock\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="itextsharp, Version=5.5.9.0, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL">
       <HintPath>..\..\..\..\..\Source\Repos\Rock\packages\iTextSharp.5.5.9\lib\itextsharp.dll</HintPath>
       <Private>True</Private>
@@ -46,6 +54,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -57,6 +66,12 @@
   <ItemGroup>
     <Compile Include="Helpers\PDFWorkflowObject.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utilities\Utility.cs" />
+    <Compile Include="Workflows\EmailRegistration.cs" />
+    <Compile Include="Workflows\InsertXHTMLLava.cs" />
+    <Compile Include="Workflows\InsertPDFFormFile.cs" />
+    <Compile Include="Workflows\InitializeWithGroupMember.cs" />
+    <Compile Include="Workflows\InitializeWithRegistration.cs" />
     <Compile Include="Workflows\LavaPDF.cs" />
     <Compile Include="Workflows\PDFFormMerge.cs" />
   </ItemGroup>

@@ -18,6 +18,7 @@ namespace org.secc.PDF
     [ExportMetadata( "ComponentName", "PDF Form Merge" )]
 
     //Settings
+    [WorkflowTextOrAttribute( "Registration Registrant Id", "RegistrationRegistrantId" )]
     [BooleanField( "Flatten", "Should the action flatten the PDF locking the form fields" )]
 
     class PDFFormMerge : ActionComponent
@@ -34,18 +35,24 @@ namespace org.secc.PDF
         {
             errorMessages = new List<string>();
 
-            PDFWorkflowObject pdfWorkflowObject = GetPDFFormMergeFromEntity( entity, out errorMessages );
+            PDFWorkflowObject pdfWorkflowObject = new PDFWorkflowObject();
 
-            if ( pdfWorkflowObject == null )
+            //A PDF merge can enter in two ways, kicked off with trigger or called from a block
+            //If it is called from a block we will get our information from a PDFWorkflowObject
+            //Otherwise we will need to get our information from the workflow attributes
+            if ( entity is PDFWorkflowObject )
             {
-                return false;
+                 pdfWorkflowObject = Utility.GetPDFFormMergeFromEntity( entity, out errorMessages );
+            }
+            else
+            {
+                pdfWorkflowObject = new PDFWorkflowObject( action, rockContext );
             }
 
-            var pdf = pdfWorkflowObject.PDFInput;
-
+            //Merge PDF
             using ( MemoryStream ms = new MemoryStream() )
             {
-                var pdfBytes = pdf.ContentStream.ReadBytesToEnd();
+                var pdfBytes = pdfWorkflowObject.PDF.ContentStream.ReadBytesToEnd();
                 var pdfReader = new PdfReader( pdfBytes );
 
                 var stamper = new PdfStamper( pdfReader, ms );
@@ -56,19 +63,23 @@ namespace org.secc.PDF
 
                 var fieldKeys = form.Fields.Keys;
 
+                //Field keys are the names of form fields in a pdf form
                 foreach ( string fieldKey in fieldKeys )
                 {
+                    //If this is a key value pairing
                     if ( pdfWorkflowObject.MergeObjects.ContainsKey( fieldKey ) )
                     {
                         if ( pdfWorkflowObject.MergeObjects[fieldKey] is string )
                         {
                             form.SetField( fieldKey, pdfWorkflowObject.MergeObjects[fieldKey] as string );
                         }
-                        else
-                        {
-                            errorMessages.Add( "Merge object is not string. Cannot insert non strings into form fields." );
-                            return false;
-                        }
+                    }
+                    //otherwise test for lava and use the form value as the lava input
+                    else
+                    {
+                        string fieldValue = form.GetField( fieldKey );
+                        if ( !string.IsNullOrWhiteSpace( fieldValue ) && fieldValue.HasMergeFields() )
+                            form.SetField( fieldKey, fieldValue.ResolveMergeFields( pdfWorkflowObject.MergeObjects ) );
                     }
                 }
 
@@ -78,8 +89,10 @@ namespace org.secc.PDF
                 stamper.Close();
                 pdfReader.Close();
 
+                //Generate New Object
+                
                 BinaryFile renderedPDF = new BinaryFile();
-                renderedPDF.CopyPropertiesFrom( pdf );
+                renderedPDF.CopyPropertiesFrom( pdfWorkflowObject.PDF );
                 renderedPDF.Guid = Guid.NewGuid();
                 renderedPDF.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( new Guid( Rock.SystemGuid.BinaryFiletype.DEFAULT ) ).Id;
 
@@ -88,25 +101,24 @@ namespace org.secc.PDF
 
                 renderedPDF.DatabaseData = pdfData;
 
-                pdfWorkflowObject.RenderedPDF = renderedPDF;
+                pdfWorkflowObject.PDF = renderedPDF;
 
                 pdfReader.Close();
             }
 
-            return true;
-        }
-
-        private PDFWorkflowObject GetPDFFormMergeFromEntity( object entity, out List<string> errorMessages )
-        {
-            errorMessages = new List<string>();
-
-            if ( entity is PDFWorkflowObject )
+            if (entity is PDFWorkflowObject )
             {
-                return ( PDFWorkflowObject ) entity;
+                entity = pdfWorkflowObject;
+            }
+            else
+            {
+                BinaryFileService binaryFileService = new BinaryFileService( rockContext );
+                binaryFileService.Add( pdfWorkflowObject.PDF );
+                rockContext.SaveChanges();
+                action.Activity.Workflow.SetAttributeValue( "PDFGuid", pdfWorkflowObject.PDF.Guid );
             }
 
-            errorMessages.Add( "Could not get PDFFormMergeEntity object" );
-            return null;
+            return true;
         }
 
         public static byte[] ReadFully( Stream input )

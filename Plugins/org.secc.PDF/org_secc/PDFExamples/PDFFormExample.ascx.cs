@@ -78,7 +78,7 @@ namespace RockWeb.Plugins.org_secc.PDFExamples
             if ( pdf != null && mergeFields.Count > 0 )
             {
                 var pdfEntity = new PDFWorkflowObject();
-                pdfEntity.PDFInput = pdf;
+                pdfEntity.PDF = pdf;
                 pdfEntity.MergeObjects = mergeFields;
 
                 Guid workflowTypeGuid = Guid.NewGuid();
@@ -106,7 +106,7 @@ namespace RockWeb.Plugins.org_secc.PDFExamples
                     }
                 }
 
-                var mergedPDF = pdfEntity.RenderedPDF;
+                var mergedPDF = pdfEntity.PDF;
                 //mergedPDF.Guid = Guid.NewGuid();
                 binaryFileService.Add( mergedPDF );
                 rockContext.SaveChanges();
