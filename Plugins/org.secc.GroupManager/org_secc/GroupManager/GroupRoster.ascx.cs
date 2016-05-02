@@ -19,7 +19,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 {
     [DisplayName( "Group Roster" )]
     [Category( "Groups" )]
-    [Description( "Presents roster of group in roster format only if current user is leader of group." )]
+    [Description( "Presents members of group in roster format." )]
 
     //Settings
     [CodeEditorField( "Roster Lava", "Lava to appear in member roster pannels", CodeEditorMode.Lava, CodeEditorTheme.Rock, 600 )]

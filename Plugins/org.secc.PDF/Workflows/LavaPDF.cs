@@ -31,15 +31,19 @@ namespace org.secc.PDF
         public override bool Execute( RockContext rockContext, WorkflowAction action, object entity, out List<string> errorMessages )
         {
             errorMessages = new List<string>();
+
             PDFWorkflowObject pdfWorkflowObject = new PDFWorkflowObject();
-            try
+
+            //A PDF merge can enter in two ways, kicked off with trigger or called from a block
+            //If it is called from a block we will get our information from a PDFWorkflowObject
+            //Otherwise we will need to get our information from the workflow attributes
+            if ( entity is PDFWorkflowObject )
             {
-                pdfWorkflowObject = entity as PDFWorkflowObject;
+                pdfWorkflowObject = Utility.GetPDFFormMergeFromEntity( entity, out errorMessages );
             }
-            catch
+            else
             {
-                errorMessages.Add( "Could not convert entity to LavaPDFEntity" );
-                return false;
+                pdfWorkflowObject = new PDFWorkflowObject( action, rockContext );
             }
 
             using ( MemoryStream msPDF = createPDF( pdfWorkflowObject.RenderedXHTML ) )
@@ -55,7 +59,19 @@ namespace org.secc.PDF
                 
                 pdfBinary.DatabaseData = pdfData;
 
-                pdfWorkflowObject.RenderedPDF = pdfBinary;
+                pdfWorkflowObject.PDF = pdfBinary;
+            }
+
+            if ( entity is PDFWorkflowObject )
+            {
+                entity = pdfWorkflowObject;
+            }
+            else
+            {
+                BinaryFileService binaryFileService = new BinaryFileService( rockContext );
+                binaryFileService.Add( pdfWorkflowObject.PDF );
+                rockContext.SaveChanges();
+                action.Activity.Workflow.SetAttributeValue( "PDFGuid", pdfWorkflowObject.PDF.Guid );
             }
 
             return true;
