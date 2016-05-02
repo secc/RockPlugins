@@ -13,7 +13,6 @@ using Rock;
 using org.secc.PersonMatch;
 using Rock.Security;
 using org.secc.PayPalReporting.Model;
-using org.secc.PayPalReporting;
 using Rock.Web.Cache;
 
 namespace org.secc.ServiceReef
@@ -56,6 +55,7 @@ namespace org.secc.ServiceReef
             FinancialGatewayService financialGatewayService = new FinancialGatewayService(dbContext);
             DefinedValueService definedValueService = new DefinedValueService(dbContext);
             DefinedTypeService definedTypeService = new DefinedTypeService(dbContext);
+            TransactionService transactionService = new TransactionService(new PayPalReporting.Data.PayPalReportingContext());
 
             // Get the datamap for loading attributes
             JobDataMap dataMap = context.JobDetail.JobDataMap;
@@ -159,19 +159,21 @@ namespace org.secc.ServiceReef
                                     trip = DefinedValueCache.Read(tripDV.Guid);
                                 }
 
-                                FinancialTransaction tran = new FinancialTransaction();
-                                tran.FinancialPaymentDetail = new FinancialPaymentDetail();
-                                if (result.Type == "CreditCard")
-                                {
-                                    tran.FinancialPaymentDetail.CurrencyTypeValueId = tenderType.DefinedValues.Where(t => t.Value == "Credit Card").FirstOrDefault().Id;
-                                } else
-                                {
-                                    tran.TransactionTypeValueId = tenderType.DefinedValues.Where(t => t.Value == "Credit Card").FirstOrDefault().Id;
-                                }
+                                FinancialTransaction tran = financialTransactionService.Queryable().Where(tx => tx.TransactionCode == result.PaymentProcessorTransactionId).FirstOrDefault();
+
                                 // We haven't processed this before so get busy!
-                                if (tran.Id == 0)
+                                if (tran == null)
                                 {
-                                    
+                                    tran = new FinancialTransaction();
+                                    tran.FinancialPaymentDetail = new FinancialPaymentDetail();
+                                    if (result.Type == "CreditCard")
+                                    {
+                                        tran.FinancialPaymentDetail.CurrencyTypeValueId = tenderType.DefinedValues.Where(t => t.Value == "Credit Card").FirstOrDefault().Id;
+                                    } else
+                                    {
+                                        tran.TransactionTypeValueId = tenderType.DefinedValues.Where(t => t.Value == "Credit Card").FirstOrDefault().Id;
+                                    }
+
                                     Person person = null;
                                     // Find the person this transaction belongs to
                                     // 1. First start by determining whether this was a person
@@ -258,7 +260,6 @@ namespace org.secc.ServiceReef
                                     }
                                     
                                     // Get details about the transaction from our PayPal report table
-                                    TransactionService transactionService = new TransactionService(new PayPalReporting.Data.PayPalReportingContext());
                                     Transaction tx = transactionService.Get(result.PaymentProcessorTransactionId);
                                     if (tx != null)
                                     {
@@ -308,7 +309,10 @@ namespace org.secc.ServiceReef
 
                                     tran.FinancialPaymentDetail = new FinancialPaymentDetail();
                                     tran.FinancialPaymentDetail.CurrencyTypeValueId = tenderType.DefinedValues.Where(type => type.Value.ToLower() == result.Type.ToLower()).FirstOrDefault().Id;
-                                    tran.FinancialPaymentDetail.CreditCardTypeValueId = creditCards.DefinedValues.Where(card => card.Value.ToLower() == result.Method.ToLower()).FirstOrDefault().Id;
+                                    if (result.Method != null)
+                                    {
+                                        tran.FinancialPaymentDetail.CreditCardTypeValueId = creditCards.DefinedValues.Where(card => card.Value.ToLower() == result.Method.ToLower()).FirstOrDefault().Id;
+                                    }
                                     tran.TransactionCode = result.PaymentProcessorTransactionId;
                                     tran.SourceTypeValueId = transactionSource.Id;
 
