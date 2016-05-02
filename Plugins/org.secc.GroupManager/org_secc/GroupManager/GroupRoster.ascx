@@ -7,7 +7,6 @@
         -webkit-column-fill: auto;
         -moz-column-count: 3;
         -moz-column-gap: 10px;
-        /*-moz-column-fill: auto;*/
         column-count: 3;
         column-gap: 10px;
         column-fill: auto;
@@ -32,6 +31,20 @@
             -webkit-column-count: 1;
             -moz-column-count: 1;
             column-count: 1;
+        }
+    }
+
+    @media print {
+        .columns {
+            width:90%;
+            -webkit-column-count: 2;
+            -moz-column-count: 2;
+            column-count: 2;
+            -webkit-column-gap: 2px;
+            -moz-column-gap: 2px;
+            column-count: 2;
+            column-gap: 2px;
+            column-fill: auto;
         }
     }
 </style>
@@ -83,13 +96,13 @@
         <asp:Panel ID="pnlMain" runat="server">
             <Rock:RockLiteral ID="ltTitle" runat="server" />
 
-            <Rock:BootstrapButton runat="server" Text="Membership List" CssClass="btn btn-primary" ID="btnMembership" OnClick="btnMembership_Click" />
-            <Rock:BootstrapButton runat="server" Text="Roster" ID="btnRoster" CssClass="btn btn-default" OnClick="btnRoster_Click" />
+            <Rock:BootstrapButton runat="server" Text="Membership List" CssClass="btn btn-primary hidden-print" ID="btnMembership" OnClick="btnMembership_Click" />
+            <Rock:BootstrapButton runat="server" Text="Roster" ID="btnRoster" CssClass="btn btn-default hidden-print" OnClick="btnRoster_Click" />
 
             <hr />
 
             <asp:Panel runat="server" ID="pnlMembership">
-
+                <div class="hidden-print">
                 <Rock:GridFilter ID="rFilter" runat="server" OnApplyFilterClick="rFilter_ApplyFilterClick">
                     <Rock:RockTextBox ID="txtFirstName" runat="server" Label="First Name"></Rock:RockTextBox>
                     <Rock:RockTextBox ID="txtLastName" runat="server" Label="Last Name"></Rock:RockTextBox>
@@ -100,7 +113,7 @@
                     <Rock:RockCheckBoxList runat="server" ID="cblStatus" Label="Status">
                     </Rock:RockCheckBoxList>
                 </Rock:GridFilter>
-
+                </div>
 
                 <Rock:Grid ID="gMembers" runat="server" OnRowSelected="gMembers_RowSelected">
                     <Columns>
@@ -115,8 +128,8 @@
                     </Columns>
                 </Rock:Grid>
 
-                <Rock:BootstrapButton runat="server" ID="btnEmail" CssClass="btn btn-default btn-lg pull-right" OnClick="btnEmail_Click"><i class="fa fa-laptop"></i> Email</Rock:BootstrapButton>
-                <Rock:BootstrapButton runat="server" ID="btnSMS" CssClass="btn btn-default btn-lg pull-right" OnClick="btnSMS_Click"><i class="fa fa-mobile-phone"></i> Text</Rock:BootstrapButton>
+                <Rock:BootstrapButton runat="server" ID="btnEmail" CssClass="btn btn-default btn-lg pull-right hidden-print" OnClick="btnEmail_Click"><i class="fa fa-laptop"></i> Email</Rock:BootstrapButton>
+                <Rock:BootstrapButton runat="server" ID="btnSMS" CssClass="btn btn-default btn-lg pull-right hidden-print" OnClick="btnSMS_Click"><i class="fa fa-mobile-phone"></i> Text</Rock:BootstrapButton>
             </asp:Panel>
 
             <asp:Panel runat="server" ID="pnlRoster" Visible="false" CssClass="wrapper">
