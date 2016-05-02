@@ -1,10 +1,12 @@
 ﻿using org.secc.PayPalReporting.Data;
+using System.Data.Entity;
 using System.Linq;
 
 namespace org.secc.PayPalReporting.Model
 {
     public class TransactionService : PayPalReportingService<Transaction>
     {
+
         /// <summary>
         /// Initializes a new instance of the <see cref="TransactionService"/> class.
         /// </summary>
