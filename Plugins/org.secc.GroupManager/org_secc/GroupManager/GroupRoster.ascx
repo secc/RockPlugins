@@ -14,8 +14,8 @@
 
     .panel {
         -webkit-column-break-inside: avoid;
-          page-break-inside: avoid;
-               break-inside: avoid;
+        page-break-inside: avoid;
+        break-inside: avoid;
     }
 
     @media (max-width: 990px) {
@@ -35,8 +35,13 @@
     }
 
     @media print {
+        @page {
+      margin: 0cm;   
+    }
+
+
         .columns {
-            width:90%;
+            width: 90%;
             -webkit-column-count: 2;
             -moz-column-count: 2;
             column-count: 2;
@@ -45,6 +50,10 @@
             column-count: 2;
             column-gap: 2px;
             column-fill: auto;
+        }
+
+        tfoot {
+            display: none;
         }
     }
 </style>
@@ -94,31 +103,37 @@
         </Rock:ModalDialog>
 
         <asp:Panel ID="pnlMain" runat="server">
-            <Rock:RockLiteral ID="ltTitle" runat="server" />
+            <asp:Literal ID="ltTitle" runat="server" />
 
             <Rock:BootstrapButton runat="server" Text="Membership List" CssClass="btn btn-primary hidden-print" ID="btnMembership" OnClick="btnMembership_Click" />
             <Rock:BootstrapButton runat="server" Text="Roster" ID="btnRoster" CssClass="btn btn-default hidden-print" OnClick="btnRoster_Click" />
-
-            <hr />
+            <asp:LinkButton runat="server" Text="Print Attendance Sheet" ID="btnPrint" CssClass="btn btn-success pull-right hidden-print" OnClientClick="window.print()"></asp:LinkButton>
+            <hr>
 
             <asp:Panel runat="server" ID="pnlMembership">
                 <div class="hidden-print">
-                <Rock:GridFilter ID="rFilter" runat="server" OnApplyFilterClick="rFilter_ApplyFilterClick">
-                    <Rock:RockTextBox ID="txtFirstName" runat="server" Label="First Name"></Rock:RockTextBox>
-                    <Rock:RockTextBox ID="txtLastName" runat="server" Label="Last Name"></Rock:RockTextBox>
-                    <br>
-                    <Rock:RockCheckBoxList ID="cblRole" runat="server" Label="Member Role"></Rock:RockCheckBoxList>
-                    <Rock:RockCheckBoxList ID="cblGender" runat="server" Label="Gender">
-                    </Rock:RockCheckBoxList>
-                    <Rock:RockCheckBoxList runat="server" ID="cblStatus" Label="Status">
-                    </Rock:RockCheckBoxList>
-                </Rock:GridFilter>
+                    <Rock:GridFilter ID="rFilter" runat="server" OnApplyFilterClick="rFilter_ApplyFilterClick">
+                        <Rock:RockTextBox ID="txtFirstName" runat="server" Label="First Name"></Rock:RockTextBox>
+                        <Rock:RockTextBox ID="txtLastName" runat="server" Label="Last Name"></Rock:RockTextBox>
+                        <br>
+                        <Rock:RockCheckBoxList ID="cblRole" runat="server" Label="Member Role"></Rock:RockCheckBoxList>
+                        <Rock:RockCheckBoxList ID="cblGender" runat="server" Label="Gender">
+                        </Rock:RockCheckBoxList>
+                        <Rock:RockCheckBoxList runat="server" ID="cblStatus" Label="Status">
+                        </Rock:RockCheckBoxList>
+                    </Rock:GridFilter>
                 </div>
 
-                <Rock:Grid ID="gMembers" runat="server" OnRowSelected="gMembers_RowSelected">
+                <Rock:Grid ID="gMembers" runat="server" OnRowSelected="gMembers_RowSelected"
+                    OnRowDataBound="gMembers_RowDataBound" HeaderStyle-CssClass="hidden-print">
                     <Columns>
-                        <Rock:SelectField></Rock:SelectField>
+                        <Rock:SelectField ItemStyle-CssClass="hidden-print grid-select-field select-all"></Rock:SelectField>
                         <Rock:RockBoundField DataField="Name" HeaderText="Name" ColumnPriority="AlwaysVisible" />
+                        <Rock:SelectField ItemStyle-CssClass="hidden-xs visible-print grid-select-field" ControlStyle-CssClass="hidden-xs"></Rock:SelectField>
+                        <Rock:SelectField ItemStyle-CssClass="hidden-xs visible-print grid-select-field" ControlStyle-CssClass="hidden-xs"></Rock:SelectField>
+                        <Rock:SelectField ItemStyle-CssClass="hidden-xs visible-print grid-select-field" ControlStyle-CssClass="hidden-xs"></Rock:SelectField>
+                        <Rock:SelectField ItemStyle-CssClass="hidden-xs visible-print grid-select-field" ControlStyle-CssClass="hidden-xs"></Rock:SelectField>
+                        <Rock:SelectField ItemStyle-CssClass="hidden-xs visible-print grid-select-field" ControlStyle-CssClass="hidden-xs"></Rock:SelectField>
                         <Rock:RockBoundField DataField="DateAdded" HeaderText="Date Added" ColumnPriority="Desktop" />
                         <Rock:RockBoundField DataField="Address" HeaderText="Address" ColumnPriority="Desktop" />
                         <Rock:RockBoundField DataField="City" HeaderText="City" ColumnPriority="Desktop" />

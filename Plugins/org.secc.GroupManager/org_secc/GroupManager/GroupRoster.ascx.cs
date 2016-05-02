@@ -119,6 +119,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             btnMembership.CssClass = "btn btn-primary";
             btnRoster.CssClass = "btn btn-default";
+            btnPrint.Text = "Print Attendance Sheet";
             pnlMembership.Visible = true;
             pnlRoster.Visible = false;
         }
@@ -127,6 +128,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             btnRoster.CssClass = "btn btn-primary";
             btnMembership.CssClass = "btn btn-default";
+            btnPrint.Text = "Print Roster";
             pnlRoster.Visible = true;
             pnlMembership.Visible = false;
         }
@@ -782,6 +784,19 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         }
 
 
+
+        protected void gMembers_RowDataBound( object sender, GridViewRowEventArgs e )
+        {
+            if (e.Row.RowType== DataControlRowType.Header )
+            {
+                //hides check boxes needed for printing
+                e.Row.Cells[2].CssClass = "hide";
+                e.Row.Cells[3].CssClass = "hide";
+                e.Row.Cells[4].CssClass = "hide";
+                e.Row.Cells[5].CssClass = "hide";
+                e.Row.Cells[6].CssClass = "hide";
+            }
+        }
     }
 
     public class MemberData
