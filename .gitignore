@@ -6,3 +6,6 @@ Plugins/org.secc.Purchasing/packages/
 Plugins/org.secc.Purchasing/.nuget/
 Plugins/org.secc.PDFMerge/bin/
 Plugins/org.secc.PDFMerge/obj/
+Plugins/org.secc.PayPalReporting/.nuget/
+Plugins/org.secc.PayPalReporting/bin/
+Plugins/org.secc.PayPalReporting/obj/
