@@ -1,9 +1,14 @@
-﻿using System.Data.Entity;
+﻿using org.secc.PayPalReporting.Model;
+using System.Data.Entity;
 
 namespace org.secc.PayPalReporting.Data
 {
     public class PayPalReportingContext : Rock.Data.DbContext
     {
+        #region Models
+        public DbSet<Transaction> Transactions { get; set; }
+        #endregion
+
         /// <summary>
         /// Initializes a new instance of the <see cref="PayPalReportingContext"/> class.
         /// </summary>
