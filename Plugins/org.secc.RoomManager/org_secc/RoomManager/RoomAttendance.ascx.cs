@@ -315,8 +315,15 @@ namespace RockWeb.Plugins.org_secc.RoomManager
             {
                 attendance.EndDateTime = RockDateTime.Now;
                 rockContext.SaveChanges();
+                ScriptManager.RegisterStartupScript(upMain, upMain.GetType(), "toast", "toastr.success('Checked out " + person.FullName + "')", true);
             }
-            ScriptManager.RegisterStartupScript(upMain, upMain.GetType(), "toast", "toastr.success('Checked out " + person.PrimaryAlias.Person.FullName + "')", true);
+            else
+            {
+                ScriptManager.RegisterStartupScript( upMain, upMain.GetType(), "toast", "toastr.error('Could not checkout " + person.FullName + 
+                    ". Attendance record not found. Child may not have been checked into room.')", true );
+            }
+        
+
             UpdateView();
         }
 
@@ -328,13 +335,24 @@ namespace RockWeb.Plugins.org_secc.RoomManager
                                                             DbFunctions.TruncateTime(a.StartDateTime) == RockDateTime.Now.Date &&
                                                             a.LocationId == locationId)
                                                             .FirstOrDefault();
-            attendance.StartDateTime = RockDateTime.Now;
-            attendance.DidAttend = true;
-            rockContext.SaveChanges();
+            if ( attendance != null )
+            {
+                attendance.StartDateTime = RockDateTime.Now;
+                attendance.DidAttend = true;
+                rockContext.SaveChanges();
 
-            ScriptManager.RegisterStartupScript(upMain, upMain.GetType(), "toast", "toastr.success('Checked In "
-                                                                + person.PrimaryAlias.Person.FullName +
-                                                                " to " + attendance.Location.Name +"')", true);
+                ScriptManager.RegisterStartupScript(upMain, upMain.GetType(), "toast", "toastr.success('Checked In "
+                                                                    + person.FullName +
+                                                                    " to " + attendance.Location.Name +"')", true);
+            }
+            else
+            {
+                ScriptManager.RegisterStartupScript( upMain, upMain.GetType(), "toast", "toastr.error('Could not check in: "
+                                                                    + person.PrimaryAlias.Person.FullName +
+                                                                    ". Attendance entry not found. Child may be checked into different room.')", true );
+            }
+
+
             UpdateView();
         }
 
