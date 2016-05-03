@@ -82,6 +82,7 @@
                                     <div class="col-md-6">
                                         <Rock:GroupTypePicker ID="gtpGroupType" runat="server" Label="Group Type" Help="The type of groups to look for."
                                             AutoPostBack="true" OnSelectedIndexChanged="gtpGroupType_SelectedIndexChanged" ValidationGroup="GroupFinderSettings" />
+                                        <Rock:GroupPicker ID="gpGroupParent" runat="server" Label="Groups Within" Help="Limit to the groups contained within this group." />
                                         <Rock:GroupTypePicker ID="gtpGeofenceGroupType" runat="server" Label="Geofence Group Type"
                                             Help="An optional group type that contains groups with geographic boundary (fence). If specified, user will be prompted for their address, and only groups that are located in the same geographic boundary ( as defined by one or more groups of this type ) will be displayed."
                                             ValidationGroup="GroupFinderSettings" />
