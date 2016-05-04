@@ -22,6 +22,10 @@
                     <Rock:RockDropDownList ID="ddlRange" runat="server" Label="Range"></Rock:RockDropDownList>
                     <asp:PlaceHolder ID="phFilterControls" runat="server" />
 
+                    <Rock:PanelWidget ID="wpConnectionStatus" runat="server" Title="Connection Status">
+                        <Rock:RockCheckBoxList ID="cblConnectionStatus" DataValueField="Id" DataTextField="Value" runat="server"></Rock:RockCheckBoxList>
+                    </Rock:PanelWidget>
+
                     <div class="actions">
                         <asp:LinkButton ID="btnSearch" runat="server" Text="Search" CssClass="btn btn-primary" OnClick="btnSearch_Click" />
                         <asp:LinkButton ID="btnClear" runat="server" Text="Clear" CssClass="btn btn-link" OnClick="btnClear_Click" />

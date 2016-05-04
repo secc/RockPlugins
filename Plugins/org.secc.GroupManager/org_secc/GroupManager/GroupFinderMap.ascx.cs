@@ -45,7 +45,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [IntegerField( "Max Results", "Maximum number of results to display. 0 is no filter", false, 0, "CustomSetting" )]
     [BooleanField( "Pre Fill", "Pre fill loged in users email", true, "CustomSetting" )]
     [BooleanField( "Hide Full", "Hide groups that have reached their capacity?", true, "CustomSetting" )]
-    [BooleanField("Show Reset", "Display Reset Button", true, "CustomSetting")]
+    [BooleanField( "Show Reset", "Display Reset Button", true, "CustomSetting" )]
 
     // Map Settings
     [BooleanField( "Large Map", "Show a full width map", false, "CustomSetting" )]
@@ -87,7 +87,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 {% endif %}
 ", "CustomSetting" )]
 
-    [CodeEditorField( "Family Info", "", CodeEditorMode.Lava, CodeEditorTheme.Rock, 200, false, @"", "CustomSetting")]
+    [CodeEditorField( "Family Info", "", CodeEditorMode.Lava, CodeEditorTheme.Rock, 200, false, @"", "CustomSetting" )]
     [BooleanField( "Map Info Debug", "", false, "CustomSetting" )]
 
     // Lava Output Settings
@@ -284,7 +284,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
 
             SetAttributeValue( "GroupType", GetGroupTypeGuid( gtpGroupType.SelectedGroupTypeId ) );
-            SetAttributeValue( "GroupParent",  gpGroupParent.SelectedValue);
+            SetAttributeValue( "GroupParent", gpGroupParent.SelectedValue );
             SetAttributeValue( "GeofencedGroupType", GetGroupTypeGuid( gtpGeofenceGroupType.SelectedGroupTypeId ) );
             if ( cblSchedule.Visible )
             {
@@ -429,7 +429,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             BindGroupType( gtpGroupType, groupTypes, "GroupType" );
             BindGroupType( gtpGeofenceGroupType, groupTypes, "GeofencedGroupType" );
 
-            gpGroupParent.SetValue(GetAttributeValue("GroupParent").AsInteger());
+            gpGroupParent.SetValue( GetAttributeValue( "GroupParent" ).AsInteger() );
 
             string scheduleFilters = GetAttributeValue( "ScheduleFilters" );
             if ( !string.IsNullOrEmpty( scheduleFilters ) )
@@ -582,7 +582,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             pnlMap.Visible = false;
             pnlResults.Visible = false;
 
-            if ( CurrentPerson != null && GetAttributeValue("PreFill").AsBoolean() )
+            if ( CurrentPerson != null && GetAttributeValue( "PreFill" ).AsBoolean() )
             {
                 acAddress.SetValues( CurrentPerson.GetHomeLocation() );
             }
@@ -751,6 +751,40 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             if ( GetAttributeValue( "SortByDistance" ).AsBoolean() )
             {
                 gGroups.AllowSorting = false;
+            }
+
+            //Add Connection Status checkboxes
+            if ( GetAttributeValue( "ShowFamilies" ).AsBoolean() )
+            {
+                wpConnectionStatus.Visible = true;
+                var connectionStatuses = DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS.AsGuid() );
+                cblConnectionStatus.DataSource = connectionStatuses.DefinedValues.OrderBy( dv => dv.Value );
+                cblConnectionStatus.DataBind();
+                //Check all when page is not postback
+                var connectionPreference = GetUserPreference( BlockId.ToString() + "ConnectionStatus" );
+                if ( string.IsNullOrWhiteSpace( connectionPreference ) )
+                {
+                    for ( int i = 0; i < cblConnectionStatus.Items.Count; i++ )
+
+                    {
+                        cblConnectionStatus.Items[i].Selected = true;
+                    }
+                }
+                else
+                {
+                    var preferences = connectionPreference.Split( '|' );
+                    for ( int i = 0; i < cblConnectionStatus.Items.Count; i++ )
+
+                    {
+                        if ( preferences.Contains( cblConnectionStatus.Items[i].Value ) )
+                            cblConnectionStatus.Items[i].Selected = true;
+                    }
+                }
+
+            }
+            else
+            {
+                wpConnectionStatus.Visible = false;
             }
         }
 
@@ -1035,14 +1069,29 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     var familyGuid = Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid();
 
                     families = groupService.Queryable()
-                        .Where( g => g.GroupType.Guid == familyGuid
-                                    && ( g.GroupLocations.Where(
-                                        gl =>
-                                            gl.Location.GeoPoint != null
-                                            && gl.Location.GeoPoint.Distance( searchLocation.GeoPoint ) <= meters
-                                        )
-                                        ).Any()
-                                ).ToList();
+                        .Where( g =>
+                        g.IsActive
+                        && g.GroupType.Guid == familyGuid
+                        && ( g.GroupLocations.Where(
+                            gl =>
+                            gl.Location.GeoPoint != null
+                            && gl.Location.GeoPoint.Distance( searchLocation.GeoPoint ) <= meters
+                            )
+                        ).Any()
+                    ).ToList();
+                    var connectionStatuses = cblConnectionStatus.Items.Cast<ListItem>()
+                    .Where( li => li.Selected ).Select( li => li.Value ).Select( s => s.AsInteger() )
+                    .ToList();
+
+                    families = families.Where(
+                        f => f.Members.Where(
+                            gm => connectionStatuses.Contains(
+                                gm.Person.ConnectionStatusValueId ?? 0
+                            )
+                        ).Any()
+                    ).ToList();
+
+                    SetUserPreference( BlockId.ToString() + "ConnectionStatus", string.Join( "|", connectionStatuses ) );
                 }
 
                 // If a map is to be shown
@@ -1302,7 +1351,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
         }
 
-        private List<Group> GetChildGroups(int groupId, GroupService groupService )
+        private List<Group> GetChildGroups( int groupId, GroupService groupService )
         {
             List<Group> childGroups = new List<Group>();
             var group = groupService.Get( groupId );
@@ -1310,7 +1359,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             List<Group> grandChildGroups = new List<Group>();
             foreach ( var childGroup in childGroups )
             {
-                grandChildGroups.AddRange(GetChildGroups(childGroup.Id, groupService ));
+                grandChildGroups.AddRange( GetChildGroups( childGroup.Id, groupService ) );
             }
             childGroups.AddRange( grandChildGroups );
             return childGroups;
