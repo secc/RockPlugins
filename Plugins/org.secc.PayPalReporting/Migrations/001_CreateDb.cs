@@ -60,11 +60,32 @@ namespace org.secc.PayPalReporting.Migrations
 
             ALTER TABLE[dbo].[_org_secc_PayPalReporting_Transaction]
                     CHECK CONSTRAINT[FK_dbo._org_secc_PayPalReporting_Transaction_dbo.PersonAlias_ModifiedByPersonAliasId]
-
-            CREATE NONCLUSTERED INDEX [IDX_org_secc_PayPalReporting_Transaction_TimeCreated] ON [dbo].[_org_secc_PayPalReporting_Transaction]
+            
+            CREATE NONCLUSTERED INDEX [IDX__org_secc_PayPalReporting_Transaction_TenderType] ON [dbo].[_org_secc_PayPalReporting_Transaction]
             (
-	            [TimeCreated] ASC
-            )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+                   [TenderType] ASC
+            )
+            INCLUDE (     [Id],
+                   [GatewayTransactionId],
+                   [Amount],
+                   [Comment1],
+                   [TimeCreated],
+                   [Type],
+                   [Comment2],
+                   [Fees],
+                   [MerchantTransactionId],
+                   [BatchId],
+                   [BillingFirstName],
+                   [BillingLastName],
+                   [IsZeroFee],
+                   [Guid],
+                   [CreatedDateTime],
+                   [ModifiedDateTime],
+                   [CreatedByPersonAliasId],
+                   [ModifiedByPersonAliasId],
+                   [ForeignKey],
+                   [ForeignId],
+                   [ForeignGuid]) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 
             ");
 
@@ -80,7 +101,7 @@ namespace org.secc.PayPalReporting.Migrations
             ALTER TABLE [dbo].[_org_secc_PayPalReporting_Transaction] DROP CONSTRAINT [DF_org_secc_PayPalReporting_Transaction_IsZeroFee]
             ALTER TABLE [dbo].[_org_secc_PayPalReporting_Transaction] DROP CONSTRAINT [FK_dbo._org_secc_PayPalReporting_Transaction_dbo.PersonAlias_CreatedByPersonAliasId]
             ALTER TABLE [dbo].[_org_secc_PayPalReporting_Transaction] DROP CONSTRAINT [FK_dbo._org_secc_PayPalReporting_Transaction_dbo.PersonAlias_ModifiedByPersonAliasId]
-            DROP INDEX DROP INDEX [dbo].[_org_secc_PayPalReporting_Transaction].[IDX_org_secc_PayPalReporting_Transaction_TimeCreated]
+            DROP INDEX DROP INDEX [dbo].[_org_secc_PayPalReporting_Transaction].[IDX__org_secc_PayPalReporting_Transaction_TenderType]
             DROP TABLE [dbo].[_org_secc_PayPalReporting_Transaction]
             ");
         }
