@@ -44,11 +44,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Rock\DotLiquid\DotLiquid.csproj">
+    <ProjectReference Include="$(SolutionDir)\DotLiquid\DotLiquid.csproj">
       <Project>{CB9372CD-9C1D-47AB-92D8-702D4D68324F}</Project>
       <Name>DotLiquid</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Rock\Rock\Rock.csproj">
+    <ProjectReference Include="$(SolutionDir)\Rock\Rock.csproj">
       <Project>{8F8C2A79-24F4-4157-8B99-45F75FA85799}</Project>
       <Name>Rock</Name>
     </ProjectReference>
