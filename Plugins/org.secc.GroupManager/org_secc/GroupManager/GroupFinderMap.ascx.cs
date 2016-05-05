@@ -111,6 +111,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [BooleanField( "Sort By Distance", "", true, "CustomSetting" )]
     [TextField( "Page Sizes", "To show a dropdown of page sizes, enter a comma delimited list of page sizes. For example: 10,20 will present a drop down with 10,20,All as options with the default as 10", false, "", "CustomSetting" )]
 
+    //FamilyGrid Settings
+    [BooleanField( "ShowFamilyGrid", "", false, "CustomSetting" )]
+
     public partial class GroupFinderMap : RockBlockCustomSettings
     {
 
@@ -220,7 +223,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 {
                     ShowView();
                 }
-
+            }
+            else
+            {
+                ShowResults();
             }
         }
 
@@ -330,6 +336,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             SetAttributeValue( "ShowCount", cbShowCount.Checked.ToString() );
             SetAttributeValue( "ShowAge", cbShowAge.Checked.ToString() );
             SetAttributeValue( "AttributeColumns", cblGridAttributes.Items.Cast<ListItem>().Where( i => i.Selected ).Select( i => i.Value ).ToList().AsDelimited( "," ) );
+            SetAttributeValue( "ShowFamilyGrid", cbFamilyGrid.Checked.ToString() );
 
             var ppFieldType = new PageReferenceFieldType();
             SetAttributeValue( "GroupDetailPage", ppFieldType.GetEditValue( ppGroupDetailPage, null ) );
@@ -496,6 +503,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
             }
 
+            cbFamilyGrid.Checked = GetAttributeValue( "ShowFamilyGrid" ).AsBoolean();
+
             var ppFieldType = new PageReferenceFieldType();
             ppFieldType.SetEditValue( ppGroupDetailPage, null, GetAttributeValue( "GroupDetailPage" ) );
             ppFieldType.SetEditValue( ppRegisterPage, null, GetAttributeValue( "RegisterPage" ) );
@@ -607,6 +616,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             if ( GetAttributeValue( "LargeMap" ).AsBoolean() )
             {
                 pnlMap.CssClass = "margin-v-sm col-md-12";
+                pnlGrid.CssClass = "margin-v-sm col-md-12";
+                pnlFamilyGrid.CssClass = "margin-v-sm col-md-12";
             }
 
             btnReset.Visible = GetAttributeValue( "ShowReset" ).AsBoolean();
@@ -925,7 +936,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             bool showFences = showMap && GetAttributeValue( "ShowFence" ).AsBoolean();
 
             var distances = new Dictionary<int, double>();
-
+            List<Group> families = new List<Group>();
             // If we care where these groups are located...
             if ( fenceGroupTypeId.HasValue || showMap || showProximity )
             {
@@ -1061,8 +1072,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     .ToList();
 
                 //If selected add nearby families to map
-                List<Group> families = new List<Group>();
-                if ( GetAttributeValue( "ShowFamilies" ).AsBoolean() && searchLocation.GeoPoint != null )
+
+                if ( ( GetAttributeValue( "ShowFamilies" ).AsBoolean() || GetAttributeValue( "ShowFamilyGrid" ).AsBoolean() ) && searchLocation.GeoPoint != null )
                 {
                     var meters = Location.MetersPerMile * ddlRange.SelectedValueAsInt();
 
@@ -1316,7 +1327,54 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 pnlGrid.Visible = false;
             }
 
-            if ( groups.Any() )
+            if ( GetAttributeValue( "ShowFamilyGrid" ).AsBoolean() )
+            {
+                pnlFamilyGrid.Visible = true;
+                var source = families.Select( f => new
+                {
+                    Name = f.Name,
+                    Members = f.Members.Where( m => m.GroupMemberStatus == GroupMemberStatus.Active )
+                        .OrderByDescending( m => m.Person.AgePrecise )
+                        .Select( m => string.Format( "{0}: {1}", m.Person.NickName, m.Person.FormatAge( true ) ) )
+                        .Aggregate( ( current, next ) => current + ", " + next ),
+                    Address = f.Members.First().Person.GetHomeLocation(),
+                    CellPhone = f.Members
+                        .Where( m => m.GroupMemberStatus == GroupMemberStatus.Active )
+                        .Select( m => m.Person )
+                        .Where( p => p.PhoneNumbers.Where( pn => pn.IsMessagingEnabled ).Any() )
+                        .Any()
+                        ?
+                        f.Members
+                        .Where( m => m.GroupMemberStatus == GroupMemberStatus.Active )
+                        .Select( m => m.Person ).Where( p => p.PhoneNumbers.Where( pn => pn.IsMessagingEnabled ).Any() )
+                        .Select( p => string.Format( "{0}: {1}", p.NickName, p.PhoneNumbers.Where( pn => pn.IsMessagingEnabled ).FirstOrDefault().NumberFormatted ) )
+                        .Aggregate( ( current, next ) => current + ", " + next )
+                        : "",
+                    Email = f.Members
+                        .Where( m => m.GroupMemberStatus == GroupMemberStatus.Active )
+                        .Where( m => !string.IsNullOrWhiteSpace( m.Person.Email ) && m.Person.EmailPreference == EmailPreference.EmailAllowed ).Any()
+                        ?
+                        f.Members
+                        .Where( m => m.GroupMemberStatus == GroupMemberStatus.Active )
+                        .Where( m => !string.IsNullOrWhiteSpace( m.Person.Email ) && m.Person.EmailPreference == EmailPreference.EmailAllowed )
+                        .Select( m => string.Format( "{0}: {1}", m.Person.NickName, m.Person.Email ) )
+                        .Aggregate( ( current, next ) => current + ", " + next )
+                        : "",
+                    Id = f.Members.Where( m => m.GroupMemberStatus == GroupMemberStatus.Active ).OrderByDescending(m => m.Person.AgePrecise).Select( m => m.PersonId ).First() 
+
+                } ).ToList();
+                if ( source.Any() )
+                {
+                    gFamilies.DataSource = source;
+                    gFamilies.DataBind();
+                }
+            }
+            else
+            {
+                pnlFamilyGrid.Visible = false;
+            }
+
+            if ( groups.Any() || families.Any())
             {
                 // Show the results
                 pnlResults.Visible = true;
@@ -1867,6 +1925,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         protected void btnReset_Click( object sender, EventArgs e )
         {
             ShowView();
+        }
+
+        protected void PersonSelected_Click( object sender, RowEventArgs e )
+        {
+            Response.Redirect( string.Format( "/Person/{0}", e.RowKeyValue ) );
         }
     }
 }
