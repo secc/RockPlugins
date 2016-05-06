@@ -226,7 +226,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
             else
             {
-                ShowResults();
+                if ( hfDidSearch.Value.AsBoolean() )
+                {
+                    ShowResults();
+                }
             }
         }
 
@@ -376,6 +379,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             pnlMap.Visible = false;
             pnlLavaOutput.Visible = false;
             pnlGrid.Visible = false;
+
+            hfDidSearch.Value = "False";
         }
 
         /// <summary>
@@ -839,13 +844,39 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             bool showProximity = GetAttributeValue( "ShowProximity" ).AsBoolean();
             gGroups.Columns[5].Visible = showProximity;  // Distance
 
-            // Get query of groups of the selected group type
-            var rockContext = new RockContext();
-            var groupService = new GroupService( rockContext );
+            //Get info on home locations for later
+            var homeAddressDv = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() );
+            double metersRange = Location.MetersPerMile * ddlRange.SelectedValueAsInt() ?? 0.0D;
 
-            IQueryable<Group> groupQry = groupService
-                .Queryable( "GroupLocations.Location" )
-                .Where( g => g.IsActive && g.GroupType.Guid.Equals( groupTypeGuid.Value ) && g.IsPublic );
+            var rockContext = new RockContext();
+
+            //Current User's Search Location
+            Location searchLocation = new LocationService( rockContext )
+                .Get( acAddress.Street1, acAddress.Street2, acAddress.City,
+                acAddress.State, acAddress.PostalCode, acAddress.Country );
+
+            // Get query of groups of the selected group type
+            var groupService = new GroupService( rockContext );
+            IQueryable<Group> groupQry = groupService.Queryable( "GroupLocations.Location" );
+
+            //Sort by group parent if option set
+            if ( GetAttributeValue( "GroupParent" ).AsInteger() != 0 )
+            {
+                var availableGroupIds = GetChildGroups( GetAttributeValue( "GroupParent" ).AsInteger(), groupService ).Select( g => g.Id );
+                groupQry = groupQry.Where( g => g.IsActive && g.GroupType.Guid.Equals( groupTypeGuid.Value ) && g.IsPublic && availableGroupIds.Contains( g.Id ) );
+            }
+            else
+            {
+                //else just get the available groups of type
+                groupQry = groupQry.Where( g => g.IsActive && g.GroupType.Guid.Equals( groupTypeGuid.Value ) && g.IsPublic );
+            }
+
+            //Limit groups by distance from geopoint
+            if ( ddlRange.SelectedValue.AsInteger() != 0 )
+            {
+                groupQry = groupQry.Where( g => g.GroupLocations.FirstOrDefault() != null 
+                    && g.GroupLocations.FirstOrDefault().Location.GeoPoint.Distance( searchLocation.GeoPoint ) <= metersRange );
+            }
 
             var groupParameterExpression = groupService.ParameterExpression;
             var schedulePropertyExpression = Expression.Property( groupParameterExpression, "Schedule" );
@@ -911,13 +942,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 groups = groupQry.OrderBy( g => g.Name ).ToList();
             }
 
-            //Sort by group parent if option set
-            if ( GetAttributeValue( "GroupParent" ).AsInteger() != 0 )
-            {
-                List<Group> availableGroups = GetChildGroups( GetAttributeValue( "GroupParent" ).AsInteger(), groupService );
-                groups = groups.Where( g => availableGroups.Contains( g ) ).ToList();
-            }
-
             //Hide full groups if it is set
             if ( GetAttributeValue( "HideFull" ).AsBoolean() )
             {
@@ -942,9 +966,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 pnlSearch.Visible = false;
                 // Get the location for the address entered
-                Location searchLocation = new LocationService( rockContext )
-                        .Get( acAddress.Street1, acAddress.Street2, acAddress.City,
-                            acAddress.State, acAddress.PostalCode, acAddress.Country );
+
 
 
                 // If showing a map, and person's location was found, save a mapitem for this location
@@ -1075,7 +1097,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 if ( ( GetAttributeValue( "ShowFamilies" ).AsBoolean() || GetAttributeValue( "ShowFamilyGrid" ).AsBoolean() ) && searchLocation.GeoPoint != null )
                 {
-                    var meters = Location.MetersPerMile * ddlRange.SelectedValueAsInt();
+
 
                     var familyGuid = Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid();
 
@@ -1085,8 +1107,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                         && g.GroupType.Guid == familyGuid
                         && ( g.GroupLocations.Where(
                             gl =>
-                            gl.Location.GeoPoint != null
-                            && gl.Location.GeoPoint.Distance( searchLocation.GeoPoint ) <= meters
+                            gl.GroupLocationTypeValueId == homeAddressDv.Id && gl.IsMappedLocation
+                            && gl.Location.GeoPoint.Distance( searchLocation.GeoPoint ) <= metersRange
                             )
                         ).Any()
                     ).ToList();
@@ -1146,7 +1168,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                                 linkedPages.Add( "RegisterPage", LinkedPageUrl( "RegisterPage", null ) );
                             }
 
-
                             mergeFields.Add( "LinkedPages", linkedPages );
 
                             // add collection of allowed security actions
@@ -1186,7 +1207,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                         foreach ( var family in families )
                         {
 
-                            var mapItem = new FinderMapItem( family.GroupLocations.FirstOrDefault().Location );
+                            var mapItem = new FinderMapItem( family.GroupLocations.Where( gl => gl.GroupLocationTypeValueId == homeAddressDv.Id ).First().Location );
                             mapItem.EntityTypeId = EntityTypeCache.Read( "Rock.Model.Group" ).Id;
                             mapItem.EntityId = family.Id;
                             mapItem.Name = family.Name;
@@ -1335,9 +1356,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     Name = f.Name,
                     Members = f.Members.Where( m => m.GroupMemberStatus == GroupMemberStatus.Active )
                         .OrderByDescending( m => m.Person.AgePrecise )
-                        .Select( m => string.Format( "{0}: {1}", m.Person.NickName, m.Person.FormatAge( true ) ) )
+                        .Select( m => string.Format( "{0}: {1}", m.Person.NickName, m.Person.Age ) )
                         .Aggregate( ( current, next ) => current + ", " + next ),
-                    Address = f.Members.First().Person.GetHomeLocation(),
+                    Address = f.GroupLocations.Where( gl => gl.GroupLocationTypeValueId == homeAddressDv.Id ).First().Location.FormattedAddress,
                     CellPhone = f.Members
                         .Where( m => m.GroupMemberStatus == GroupMemberStatus.Active )
                         .Select( m => m.Person )
@@ -1360,7 +1381,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                         .Select( m => string.Format( "{0}: {1}", m.Person.NickName, m.Person.Email ) )
                         .Aggregate( ( current, next ) => current + ", " + next )
                         : "",
-                    Id = f.Members.Where( m => m.GroupMemberStatus == GroupMemberStatus.Active ).OrderByDescending(m => m.Person.AgePrecise).Select( m => m.PersonId ).First() 
+                    Id = f.Members.Where( m => m.GroupMemberStatus == GroupMemberStatus.Active ).OrderByDescending( m => m.Person.AgePrecise ).Select( m => m.PersonId ).First()
 
                 } ).ToList();
                 if ( source.Any() )
@@ -1374,7 +1395,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 pnlFamilyGrid.Visible = false;
             }
 
-            if ( groups.Any() || families.Any())
+            if ( groups.Any() || families.Any() )
             {
                 // Show the results
                 pnlResults.Visible = true;
@@ -1407,6 +1428,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 lMessage.Text = template.Render( Hash.FromDictionary( mergeFields ) );
 
             }
+            hfDidSearch.Value = "True";
         }
 
         private List<Group> GetChildGroups( int groupId, GroupService groupService )
@@ -1924,6 +1946,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         protected void btnReset_Click( object sender, EventArgs e )
         {
+            hfDidSearch.Value = "False";
             ShowView();
         }
 

@@ -2,7 +2,7 @@
 
 <asp:UpdatePanel ID="upnlContent" runat="server" UpdateMode="Conditional">
     <ContentTemplate>
-
+        <asp:HiddenField runat="server" id="hfDidSearch" Value="False" />
         <Rock:NotificationBox ID="nbNotice" runat="server" Visible="false" />
 
         <%-- View Panel --%>
