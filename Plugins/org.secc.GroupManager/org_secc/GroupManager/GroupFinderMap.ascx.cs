@@ -770,24 +770,17 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
 
             //Add Connection Status checkboxes
-            if ( GetAttributeValue( "ShowFamilies" ).AsBoolean() )
+            if ( GetAttributeValue( "ShowFamilies" ).AsBoolean() || GetAttributeValue( "ShowFamilyGrid" ).AsBoolean() )
             {
                 wpConnectionStatus.Visible = true;
                 var connectionStatuses = DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS.AsGuid() );
                 cblConnectionStatus.DataSource = connectionStatuses.DefinedValues.OrderBy( dv => dv.Value );
                 cblConnectionStatus.DataBind();
-                //Check all when page is not postback
+                //Load user preferences
                 var connectionPreference = GetUserPreference( BlockId.ToString() + "ConnectionStatus" );
-                if ( string.IsNullOrWhiteSpace( connectionPreference ) )
+                if ( !string.IsNullOrWhiteSpace( connectionPreference ) )
                 {
-                    for ( int i = 0; i < cblConnectionStatus.Items.Count; i++ )
 
-                    {
-                        cblConnectionStatus.Items[i].Selected = true;
-                    }
-                }
-                else
-                {
                     var preferences = connectionPreference.Split( '|' );
                     for ( int i = 0; i < cblConnectionStatus.Items.Count; i++ )
 
@@ -862,7 +855,13 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             //Sort by group parent if option set
             if ( GetAttributeValue( "GroupParent" ).AsInteger() != 0 )
             {
-                var availableGroupIds = GetChildGroups( GetAttributeValue( "GroupParent" ).AsInteger(), groupService ).Select( g => g.Id );
+                var availableGroupIds = ( List<int> ) GetCacheItem( "AvailableGroupIds" );
+                if ( availableGroupIds == null )
+                {
+                    availableGroupIds = GetChildGroups( GetAttributeValue( "GroupParent" ).AsInteger(), groupService ).Select( g => g.Id ).ToList();
+                    AddCacheItem( "AvailableGroupIds", availableGroupIds );
+                }
+
                 groupQry = groupQry.Where( g => g.IsActive && g.GroupType.Guid.Equals( groupTypeGuid.Value ) && g.IsPublic && availableGroupIds.Contains( g.Id ) );
             }
             else
@@ -874,7 +873,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             //Limit groups by distance from geopoint
             if ( ddlRange.SelectedValue.AsInteger() != 0 )
             {
-                groupQry = groupQry.Where( g => g.GroupLocations.FirstOrDefault() != null 
+                groupQry = groupQry.Where( g => g.GroupLocations.FirstOrDefault() != null
                     && g.GroupLocations.FirstOrDefault().Location.GeoPoint.Distance( searchLocation.GeoPoint ) <= metersRange );
             }
 
@@ -1098,13 +1097,12 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 if ( ( GetAttributeValue( "ShowFamilies" ).AsBoolean() || GetAttributeValue( "ShowFamilyGrid" ).AsBoolean() ) && searchLocation.GeoPoint != null )
                 {
 
+                    int familyGroupTypeId = new GroupTypeService(rockContext).Get( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid()).Id;
 
-                    var familyGuid = Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid();
-
-                    families = groupService.Queryable()
+                   families = groupService.Queryable( "GroupLocations.Location")
                         .Where( g =>
                         g.IsActive
-                        && g.GroupType.Guid == familyGuid
+                        && g.GroupTypeId == familyGroupTypeId
                         && ( g.GroupLocations.Where(
                             gl =>
                             gl.GroupLocationTypeValueId == homeAddressDv.Id && gl.IsMappedLocation
@@ -1112,19 +1110,27 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             )
                         ).Any()
                     ).ToList();
+
+
+                    //Limit by connection statuses if needed
                     var connectionStatuses = cblConnectionStatus.Items.Cast<ListItem>()
                     .Where( li => li.Selected ).Select( li => li.Value ).Select( s => s.AsInteger() )
                     .ToList();
 
-                    families = families.Where(
-                        f => f.Members.Where(
-                            gm => connectionStatuses.Contains(
-                                gm.Person.ConnectionStatusValueId ?? 0
-                            )
-                        ).Any()
-                    ).ToList();
+                    if ( connectionStatuses.Count() > 0 )
+                    {
+                        families = families.Where(
+                            f => f.Members.Where(
+                                gm => connectionStatuses.Contains(
+                                    gm.Person.ConnectionStatusValueId ?? 0
+                                )
+                            ).Any()
+                        ).ToList();
 
+
+                    }
                     SetUserPreference( BlockId.ToString() + "ConnectionStatus", string.Join( "|", connectionStatuses ) );
+
                 }
 
                 // If a map is to be shown
