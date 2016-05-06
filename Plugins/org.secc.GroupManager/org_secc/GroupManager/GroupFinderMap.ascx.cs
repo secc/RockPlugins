@@ -1099,7 +1099,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                     int familyGroupTypeId = new GroupTypeService(rockContext).Get( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid()).Id;
 
-                   families = groupService.Queryable( "GroupLocations.Location")
+                   families = groupService.Queryable( "GroupLocations.Location Members.Person.PhoneNumbers" )
                         .Where( g =>
                         g.IsActive
                         && g.GroupTypeId == familyGroupTypeId
