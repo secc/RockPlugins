@@ -187,6 +187,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             gGroups.ShowActionRow = false;
             gGroups.AllowPaging = false;
 
+            gFamilies.GridRebind += gFamilies_GridRebind;
+
             this.BlockUpdated += Block_Updated;
             this.AddConfigurationUpdateTrigger( upnlContent );
 
@@ -222,13 +224,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 else
                 {
                     ShowView();
-                }
-            }
-            else
-            {
-                if ( hfDidSearch.Value.AsBoolean() )
-                {
-                    ShowResults();
                 }
             }
         }
@@ -379,8 +374,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             pnlMap.Visible = false;
             pnlLavaOutput.Visible = false;
             pnlGrid.Visible = false;
-
-            hfDidSearch.Value = "False";
         }
 
         /// <summary>
@@ -420,6 +413,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             ShowResults();
         }
 
+        private void gFamilies_GridRebind( object sender, EventArgs e )
+        {
+            ShowResults();
+        }
 
         #endregion
 
@@ -1434,7 +1431,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 lMessage.Text = template.Render( Hash.FromDictionary( mergeFields ) );
 
             }
-            hfDidSearch.Value = "True";
         }
 
         private List<Group> GetChildGroups( int groupId, GroupService groupService )
@@ -1952,7 +1948,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         protected void btnReset_Click( object sender, EventArgs e )
         {
-            hfDidSearch.Value = "False";
             ShowView();
         }
 
