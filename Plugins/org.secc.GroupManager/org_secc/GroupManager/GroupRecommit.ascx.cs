@@ -134,7 +134,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 //Copy schedule
                 var schedule = new Schedule();
-                
+
                 if ( _baseGroup.Schedule != null )
                 {
                     schedule.CopyPropertiesFrom( _baseGroup.Schedule );
@@ -151,9 +151,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 pnlMembers.Visible = true;
                 var members = _baseGroup.Members
-                    .Where(gm => gm.PersonId!=_person.Id)
-                    .OrderByDescending(gm => gm.GroupRole.IsLeader)
-                    .DistinctBy(gm => gm.PersonId)
+                    .Where( gm => gm.PersonId != _person.Id )
+                    .OrderByDescending( gm => gm.GroupRole.IsLeader )
+                    .DistinctBy( gm => gm.PersonId )
                     .ToList();
                 gMembers.DataSource = members;
                 gMembers.DataBind();
@@ -314,27 +314,58 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             //Add basic information
             _group.Name = tbName.Text;
+            new GroupService( _rockContext ).Add( _group );
+
+            //Add location
             Location location = new Location();
             location.CopyPropertiesFrom( lopAddress.Location );
             new LocationService( _rockContext ).Add( location );
             GroupLocation groupLocation = new GroupLocation() { Location = location };
-            new GroupLocationService( _rockContext ).Add( groupLocation);
+            new GroupLocationService( _rockContext ).Add( groupLocation );
             _group.GroupLocations.Add( groupLocation );
-            new GroupService( _rockContext ).Add( _group );
+
+            //Add Schedule
+            if ( _groupType.AllowedScheduleTypes != ScheduleType.None )
+            {
+                switch ( rblSchedule.SelectedValueAsEnum<ScheduleType>() )
+                {
+                    case ScheduleType.None:
+                        _group.ScheduleId = null;
+                        break;
+                    case ScheduleType.Weekly:
+                        var weeklySchedule = new Schedule() { WeeklyDayOfWeek = dowWeekly.SelectedDayOfWeek, WeeklyTimeOfDay = timeWeekly.SelectedTime };
+                        new ScheduleService( _rockContext ).Add( weeklySchedule );
+                        _group.Schedule = weeklySchedule;
+                        break;
+                    case ScheduleType.Custom:
+                        var customSchedule = new Schedule() { iCalendarContent = sbSchedule.iCalendarContent };
+                        new ScheduleService( _rockContext ).Add( customSchedule );
+                        _group.Schedule = customSchedule;
+                        break;
+                    case ScheduleType.Named:
+                        if (spSchedule.SelectedValue.AsInteger()!=0 )
+                        {
+                            _group.ScheduleId = spSchedule.SelectedValue.AsInteger();
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
 
             //Add Group Members
             GroupMemberService groupMemberService = new GroupMemberService( _rockContext );
             groupMemberService.Add( new GroupMember() { PersonId = _person.Id } );
 
-            if (pnlMembers.Visible && gMembers.SelectedKeys.Count() != 0 )
+            if ( pnlMembers.Visible && gMembers.SelectedKeys.Count() != 0 )
             {
-                foreach (int groupMemberId in gMembers.SelectedKeys )
+                foreach ( int groupMemberId in gMembers.SelectedKeys )
                 {
                     var groupMember = groupMemberService.Get( groupMemberId );
-                    groupMemberService.Add( new GroupMember() { PersonId =  groupMember.PersonId, GroupRoleId=groupMember.GroupRoleId} );
+                    groupMemberService.Add( new GroupMember() { PersonId = groupMember.PersonId, GroupRoleId = groupMember.GroupRoleId } );
                 }
             }
-            
+
             //Save attributes
             Rock.Attribute.Helper.GetEditValues( phAttributes, _group );
             _group.SaveAttributeValues();
