@@ -54,7 +54,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
     // Filter Settings
     [GroupTypeField( "Group Type", "", true, "", "CustomSetting" )]
-    [GroupField( "Group Parent", "", true, "", "CustomSetting" )]
+    [GroupField( "Group Parent", "", false, "", "CustomSetting" )]
     [GroupTypeField( "Geofenced Group Type", "", false, "", "CustomSetting" )]
     [TextField( "ScheduleFilters", "", false, "", "CustomSetting" )]
     [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Attribute Filters", "", false, true, "", "CustomSetting" )]
@@ -526,6 +526,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             var ppFieldType = new PageReferenceFieldType();
             ppFieldType.SetEditValue( ppGroupDetailPage, null, GetAttributeValue( "GroupDetailPage" ) );
             ppFieldType.SetEditValue( ppRegisterPage, null, GetAttributeValue( "RegisterPage" ) );
+
+            //Clear cache
+            FlushCacheItem( "AvailableGroupIds" );
 
             upnlContent.Update();
         }
@@ -1375,7 +1378,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     Name = f.Name,
                     Members = f.Members.Where( m => m.GroupMemberStatus == GroupMemberStatus.Active )
                         .OrderByDescending( m => m.Person.AgePrecise )
-                        .Select( m => string.Format( "{0}: {1}", m.Person.NickName, m.Person.Age ) )
+                        .Select( m => m.Person.Age!=null ? string.Format( "{0}: {1}", m.Person.NickName, m.Person.Age ) : m.Person.NickName )
                         .Aggregate( ( current, next ) => current + ", " + next ),
                     Address = f.GroupLocations.Where( gl => gl.GroupLocationTypeValueId == homeAddressDv.Id ).First().Location.FormattedAddress,
                     CellPhone = f.Members
