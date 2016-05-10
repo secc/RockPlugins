@@ -74,6 +74,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
+            rblSchedule.BindToEnum<ScheduleType>();
         }
 
         /// <summary>
@@ -133,6 +134,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 //Copy schedule
                 var schedule = new Schedule();
+                
                 if ( _baseGroup.Schedule != null )
                 {
                     schedule.CopyPropertiesFrom( _baseGroup.Schedule );
@@ -147,6 +149,15 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     _group.GroupLocations.Add( new GroupLocation() { Location = location } );
                 }
 
+                pnlMembers.Visible = true;
+                var members = _baseGroup.Members
+                    .Where(gm => gm.PersonId!=_person.Id)
+                    .OrderByDescending(gm => gm.GroupRole.IsLeader)
+                    .DistinctBy(gm => gm.PersonId)
+                    .ToList();
+                gMembers.DataSource = members;
+                gMembers.DataBind();
+
             }
             _group.ParentGroupId = new GroupService( _rockContext ).Get( GetAttributeValue( "DestinationGroup" ).AsGuid() ).Id;
             SaveViewState();
@@ -155,6 +166,40 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         private void LoadControls()
         {
             tbName.Text = _group.Name;
+
+            if ( _groupType.AllowedScheduleTypes != ScheduleType.None )
+            {
+                rblSchedule.Items.Clear();
+
+                ListItem liNone = new ListItem( "None", "0" );
+                liNone.Selected = _group != null && ( _group.Schedule == null || _group.Schedule.ScheduleType == ScheduleType.None );
+                rblSchedule.Items.Add( liNone );
+
+                if ( _groupType != null && ( _groupType.AllowedScheduleTypes & ScheduleType.Weekly ) == ScheduleType.Weekly )
+                {
+                    ListItem li = new ListItem( "Weekly", "1" );
+                    li.Selected = _group != null && _group.Schedule != null && _group.Schedule.ScheduleType == ScheduleType.Weekly;
+                    rblSchedule.Items.Add( li );
+                }
+
+                if ( _groupType != null && ( _groupType.AllowedScheduleTypes & ScheduleType.Custom ) == ScheduleType.Custom )
+                {
+                    ListItem li = new ListItem( "Custom", "2" );
+                    li.Selected = _group != null && _group.Schedule != null && _group.Schedule.ScheduleType == ScheduleType.Custom;
+                    rblSchedule.Items.Add( li );
+                }
+
+                if ( _groupType != null && ( _groupType.AllowedScheduleTypes & ScheduleType.Named ) == ScheduleType.Named )
+                {
+                    ListItem li = new ListItem( "Named", "4" );
+                    li.Selected = _group != null && _group.Schedule != null && _group.Schedule.ScheduleType == ScheduleType.Named;
+                    rblSchedule.Items.Add( li );
+                }
+            }
+            else
+            {
+                rblSchedule.Visible = false;
+            }
 
             if ( _group.Schedule != null )
             {
@@ -257,6 +302,87 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             nbWarning.Text = message;
             nbWarning.NotificationBoxType = notificationBoxType;
             nbWarning.Visible = true;
+        }
+
+        protected void btnSave_Click( object sender, EventArgs e )
+        {
+            if ( _group == null )
+            {
+                ShowMessage( "There was an issue with the viewstate." );
+                return;
+            }
+
+            //Add basic information
+            _group.Name = tbName.Text;
+            Location location = new Location();
+            location.CopyPropertiesFrom( lopAddress.Location );
+            new LocationService( _rockContext ).Add( location );
+            GroupLocation groupLocation = new GroupLocation() { Location = location };
+            new GroupLocationService( _rockContext ).Add( groupLocation);
+            _group.GroupLocations.Add( groupLocation );
+            new GroupService( _rockContext ).Add( _group );
+
+            //Add Group Members
+            GroupMemberService groupMemberService = new GroupMemberService( _rockContext );
+            groupMemberService.Add( new GroupMember() { PersonId = _person.Id } );
+
+            if (pnlMembers.Visible && gMembers.SelectedKeys.Count() != 0 )
+            {
+                foreach (int groupMemberId in gMembers.SelectedKeys )
+                {
+                    var groupMember = groupMemberService.Get( groupMemberId );
+                    groupMemberService.Add( new GroupMember() { PersonId =  groupMember.PersonId, GroupRoleId=groupMember.GroupRoleId} );
+                }
+            }
+            
+            //Save attributes
+            Rock.Attribute.Helper.GetEditValues( phAttributes, _group );
+            _group.SaveAttributeValues();
+            //_rockContext.SaveChanges();
+
+        }
+
+        protected void rblSchedule_SelectedIndexChanged( object sender, EventArgs e )
+        {
+            UpdateScheduleDisplay();
+        }
+
+        private void UpdateScheduleDisplay()
+        {
+            dowWeekly.Visible = false;
+            timeWeekly.Visible = false;
+            spSchedule.Visible = false;
+            sbSchedule.Visible = false;
+
+            if ( !string.IsNullOrWhiteSpace( rblSchedule.SelectedValue ) )
+            {
+                switch ( rblSchedule.SelectedValueAsEnum<ScheduleType>() )
+                {
+                    case ScheduleType.None:
+                        {
+                            break;
+                        }
+
+                    case ScheduleType.Weekly:
+                        {
+                            dowWeekly.Visible = true;
+                            timeWeekly.Visible = true;
+                            break;
+                        }
+
+                    case ScheduleType.Custom:
+                        {
+                            sbSchedule.Visible = true;
+                            break;
+                        }
+
+                    case ScheduleType.Named:
+                        {
+                            spSchedule.Visible = true;
+                            break;
+                        }
+                }
+            }
         }
     }
 }
