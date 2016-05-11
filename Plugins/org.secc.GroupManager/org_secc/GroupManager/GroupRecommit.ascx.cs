@@ -27,7 +27,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [GroupTypeField( "Group Type", "Type of group to copy or generate.", true, "", "", 0 )]
     [GroupField( "Group Parent", "If selected only groups under this group will be used.", true, "", "", 1 )]
     [GroupField( "Destination Group", "Location to place new groups.", true, "", "", 2 )]
-    [BooleanField( "Show Description", "Option to toggle if the description is to be shown for editing", true, "", 3 )]
+    [BooleanField( "Show Description", "Option to toggle if the group description is to be shown for editing", true, "", 3 )]
     [TextField( "Save Text", "Text to display on save button", true, "Sign Up To Lead Group", "", 4 )]
     [GroupRoleField( "", "Group Role", "Group role that the user will be saved as. You will need to select the group type before selecting the group role.", true, "", "", 5 )]
     [CodeEditorField("Success Text", "Text to display to user upon successfully creating new group.", CodeEditorMode.Text,CodeEditorTheme.Rock,
@@ -152,6 +152,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             _group = new Group() { GroupTypeId = _groupType.Id };
             if ( _baseGroup != null )
             {
+                ltTitle.Text = "Recommit To Lead Group";
                 _baseGroup.LoadAttributes();
 
                 //Copy group
@@ -180,6 +181,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
             else
             {
+                ltTitle.Text = "Lead New Group";
                 _group.LoadAttributes();
             }
 

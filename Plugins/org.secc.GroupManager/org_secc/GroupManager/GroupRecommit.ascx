@@ -9,11 +9,14 @@
                 <asp:Literal Text="Information" runat="server" ID="ltHeading" />
             </div>
             <div class="panel-body">
-                <asp:Literal Text="" runat="server" ID="ltBody"/>
+                <asp:Literal Text="" runat="server" ID="ltBody" />
             </div>
         </asp:Panel>
 
         <asp:Panel runat="server" ID="pnlMain">
+            <h2>
+                <asp:Literal Text="" runat="server" ID="ltTitle" />
+            </h2>
             <div class="panel panel-default">
                 <div class="panel-heading">Information</div>
                 <div class="panel-body">
