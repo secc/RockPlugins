@@ -1,4 +1,20 @@
-﻿using System;
+﻿// <copyright>
+// Copyright 2013 by the Spark Development Network
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+//
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Entity;
@@ -38,7 +54,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
     // Filter Settings
     [GroupTypeField( "Group Type", "", true, "", "CustomSetting" )]
-    [GroupField( "Group Parent", "", true, "", "CustomSetting" )]
+    [GroupField( "Group Parent", "", false, "", "CustomSetting" )]
     [GroupTypeField( "Geofenced Group Type", "", false, "", "CustomSetting" )]
     [TextField( "ScheduleFilters", "", false, "", "CustomSetting" )]
     [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Attribute Filters", "", false, true, "", "CustomSetting" )]
@@ -110,6 +126,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Attribute Columns", "", false, true, "", "CustomSetting" )]
     [BooleanField( "Sort By Distance", "", true, "CustomSetting" )]
     [TextField( "Page Sizes", "To show a dropdown of page sizes, enter a comma delimited list of page sizes. For example: 10,20 will present a drop down with 10,20,All as options with the default as 10", false, "", "CustomSetting" )]
+
+    //FamilyGrid Settings
+    [BooleanField( "ShowFamilyGrid", "", false, "CustomSetting" )]
 
     public partial class GroupFinderMap : RockBlockCustomSettings
     {
@@ -184,6 +203,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             gGroups.ShowActionRow = false;
             gGroups.AllowPaging = false;
 
+            gFamilies.GridRebind += gFamilies_GridRebind;
+
             this.BlockUpdated += Block_Updated;
             this.AddConfigurationUpdateTrigger( upnlContent );
 
@@ -220,7 +241,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 {
                     ShowView();
                 }
-
             }
         }
 
@@ -330,6 +350,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             SetAttributeValue( "ShowCount", cbShowCount.Checked.ToString() );
             SetAttributeValue( "ShowAge", cbShowAge.Checked.ToString() );
             SetAttributeValue( "AttributeColumns", cblGridAttributes.Items.Cast<ListItem>().Where( i => i.Selected ).Select( i => i.Value ).ToList().AsDelimited( "," ) );
+            SetAttributeValue( "ShowFamilyGrid", cbFamilyGrid.Checked.ToString() );
 
             var ppFieldType = new PageReferenceFieldType();
             SetAttributeValue( "GroupDetailPage", ppFieldType.GetEditValue( ppGroupDetailPage, null ) );
@@ -408,6 +429,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             ShowResults();
         }
 
+        private void gFamilies_GridRebind( object sender, EventArgs e )
+        {
+            ShowResults();
+        }
 
         #endregion
 
@@ -496,9 +521,14 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
             }
 
+            cbFamilyGrid.Checked = GetAttributeValue( "ShowFamilyGrid" ).AsBoolean();
+
             var ppFieldType = new PageReferenceFieldType();
             ppFieldType.SetEditValue( ppGroupDetailPage, null, GetAttributeValue( "GroupDetailPage" ) );
             ppFieldType.SetEditValue( ppRegisterPage, null, GetAttributeValue( "RegisterPage" ) );
+
+            //Clear cache
+            FlushCacheItem( "AvailableGroupIds" );
 
             upnlContent.Update();
         }
@@ -607,6 +637,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             if ( GetAttributeValue( "LargeMap" ).AsBoolean() )
             {
                 pnlMap.CssClass = "margin-v-sm col-md-12";
+                pnlGrid.CssClass = "margin-v-sm col-md-12";
+                pnlFamilyGrid.CssClass = "margin-v-sm col-md-12";
             }
 
             btnReset.Visible = GetAttributeValue( "ShowReset" ).AsBoolean();
@@ -754,24 +786,17 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
 
             //Add Connection Status checkboxes
-            if ( GetAttributeValue( "ShowFamilies" ).AsBoolean() )
+            if ( GetAttributeValue( "ShowFamilies" ).AsBoolean() || GetAttributeValue( "ShowFamilyGrid" ).AsBoolean() )
             {
                 wpConnectionStatus.Visible = true;
                 var connectionStatuses = DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS.AsGuid() );
                 cblConnectionStatus.DataSource = connectionStatuses.DefinedValues.OrderBy( dv => dv.Value );
                 cblConnectionStatus.DataBind();
-                //Check all when page is not postback
+                //Load user preferences
                 var connectionPreference = GetUserPreference( BlockId.ToString() + "ConnectionStatus" );
-                if ( string.IsNullOrWhiteSpace( connectionPreference ) )
+                if ( !string.IsNullOrWhiteSpace( connectionPreference ) )
                 {
-                    for ( int i = 0; i < cblConnectionStatus.Items.Count; i++ )
 
-                    {
-                        cblConnectionStatus.Items[i].Selected = true;
-                    }
-                }
-                else
-                {
                     var preferences = connectionPreference.Split( '|' );
                     for ( int i = 0; i < cblConnectionStatus.Items.Count; i++ )
 
@@ -828,13 +853,45 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             bool showProximity = GetAttributeValue( "ShowProximity" ).AsBoolean();
             gGroups.Columns[5].Visible = showProximity;  // Distance
 
-            // Get query of groups of the selected group type
-            var rockContext = new RockContext();
-            var groupService = new GroupService( rockContext );
+            //Get info on home locations for later
+            var homeAddressDv = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() );
+            double metersRange = Location.MetersPerMile * ddlRange.SelectedValueAsInt() ?? 0.0D;
 
-            IQueryable<Group> groupQry = groupService
-                .Queryable( "GroupLocations.Location" )
-                .Where( g => g.IsActive && g.GroupType.Guid.Equals( groupTypeGuid.Value ) && g.IsPublic );
+            var rockContext = new RockContext();
+
+            //Current User's Search Location
+            Location searchLocation = new LocationService( rockContext )
+                .Get( acAddress.Street1, acAddress.Street2, acAddress.City,
+                acAddress.State, acAddress.PostalCode, acAddress.Country );
+
+            // Get query of groups of the selected group type
+            var groupService = new GroupService( rockContext );
+            IQueryable<Group> groupQry = groupService.Queryable( "GroupLocations.Location" );
+
+            //Sort by group parent if option set
+            if ( GetAttributeValue( "GroupParent" ).AsInteger() != 0 )
+            {
+                var availableGroupIds = ( List<int> ) GetCacheItem( "AvailableGroupIds" );
+                if ( availableGroupIds == null )
+                {
+                    availableGroupIds = GetChildGroups( GetAttributeValue( "GroupParent" ).AsInteger(), groupService ).Select( g => g.Id ).ToList();
+                    AddCacheItem( "AvailableGroupIds", availableGroupIds );
+                }
+
+                groupQry = groupQry.Where( g => g.IsActive && g.GroupType.Guid.Equals( groupTypeGuid.Value ) && g.IsPublic && availableGroupIds.Contains( g.Id ) );
+            }
+            else
+            {
+                //else just get the available groups of type
+                groupQry = groupQry.Where( g => g.IsActive && g.GroupType.Guid.Equals( groupTypeGuid.Value ) && g.IsPublic );
+            }
+
+            //Limit groups by distance from geopoint
+            if ( ddlRange.SelectedValue.AsInteger() != 0 )
+            {
+                groupQry = groupQry.Where( g => g.GroupLocations.FirstOrDefault() != null
+                    && g.GroupLocations.FirstOrDefault().Location.GeoPoint.Distance( searchLocation.GeoPoint ) <= metersRange );
+            }
 
             var groupParameterExpression = groupService.ParameterExpression;
             var schedulePropertyExpression = Expression.Property( groupParameterExpression, "Schedule" );
@@ -900,13 +957,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 groups = groupQry.OrderBy( g => g.Name ).ToList();
             }
 
-            //Sort by group parent if option set
-            if ( GetAttributeValue( "GroupParent" ).AsInteger() != 0 )
-            {
-                List<Group> availableGroups = GetChildGroups( GetAttributeValue( "GroupParent" ).AsInteger(), groupService );
-                groups = groups.Where( g => availableGroups.Contains( g ) ).ToList();
-            }
-
             //Hide full groups if it is set
             if ( GetAttributeValue( "HideFull" ).AsBoolean() )
             {
@@ -925,15 +975,13 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             bool showFences = showMap && GetAttributeValue( "ShowFence" ).AsBoolean();
 
             var distances = new Dictionary<int, double>();
-
+            List<Group> families = new List<Group>();
             // If we care where these groups are located...
             if ( fenceGroupTypeId.HasValue || showMap || showProximity )
             {
                 pnlSearch.Visible = false;
                 // Get the location for the address entered
-                Location searchLocation = new LocationService( rockContext )
-                        .Get( acAddress.Street1, acAddress.Street2, acAddress.City,
-                            acAddress.State, acAddress.PostalCode, acAddress.Country );
+
 
 
                 // If showing a map, and person's location was found, save a mapitem for this location
@@ -1061,37 +1109,44 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     .ToList();
 
                 //If selected add nearby families to map
-                List<Group> families = new List<Group>();
-                if ( GetAttributeValue( "ShowFamilies" ).AsBoolean() && searchLocation.GeoPoint != null )
+
+                if ( ( GetAttributeValue( "ShowFamilies" ).AsBoolean() || GetAttributeValue( "ShowFamilyGrid" ).AsBoolean() ) && searchLocation.GeoPoint != null )
                 {
-                    var meters = Location.MetersPerMile * ddlRange.SelectedValueAsInt();
 
-                    var familyGuid = Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid();
+                    int familyGroupTypeId = new GroupTypeService(rockContext).Get( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid()).Id;
 
-                    families = groupService.Queryable()
+                   families = groupService.Queryable( "GroupLocations.Location Members.Person.PhoneNumbers" )
                         .Where( g =>
                         g.IsActive
-                        && g.GroupType.Guid == familyGuid
+                        && g.GroupTypeId == familyGroupTypeId
                         && ( g.GroupLocations.Where(
                             gl =>
-                            gl.Location.GeoPoint != null
-                            && gl.Location.GeoPoint.Distance( searchLocation.GeoPoint ) <= meters
+                            gl.GroupLocationTypeValueId == homeAddressDv.Id && gl.IsMappedLocation
+                            && gl.Location.GeoPoint.Distance( searchLocation.GeoPoint ) <= metersRange
                             )
                         ).Any()
                     ).ToList();
+
+
+                    //Limit by connection statuses if needed
                     var connectionStatuses = cblConnectionStatus.Items.Cast<ListItem>()
                     .Where( li => li.Selected ).Select( li => li.Value ).Select( s => s.AsInteger() )
                     .ToList();
 
-                    families = families.Where(
-                        f => f.Members.Where(
-                            gm => connectionStatuses.Contains(
-                                gm.Person.ConnectionStatusValueId ?? 0
-                            )
-                        ).Any()
-                    ).ToList();
+                    if ( connectionStatuses.Count() > 0 )
+                    {
+                        families = families.Where(
+                            f => f.Members.Where(
+                                gm => connectionStatuses.Contains(
+                                    gm.Person.ConnectionStatusValueId ?? 0
+                                )
+                            ).Any()
+                        ).ToList();
 
+
+                    }
                     SetUserPreference( BlockId.ToString() + "ConnectionStatus", string.Join( "|", connectionStatuses ) );
+
                 }
 
                 // If a map is to be shown
@@ -1135,7 +1190,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                                 linkedPages.Add( "RegisterPage", LinkedPageUrl( "RegisterPage", null ) );
                             }
 
-
                             mergeFields.Add( "LinkedPages", linkedPages );
 
                             // add collection of allowed security actions
@@ -1175,7 +1229,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                         foreach ( var family in families )
                         {
 
-                            var mapItem = new FinderMapItem( family.GroupLocations.FirstOrDefault().Location );
+                            var mapItem = new FinderMapItem( family.GroupLocations.Where( gl => gl.GroupLocationTypeValueId == homeAddressDv.Id ).First().Location );
                             mapItem.EntityTypeId = EntityTypeCache.Read( "Rock.Model.Group" ).Id;
                             mapItem.EntityId = family.Id;
                             mapItem.Name = family.Name;
@@ -1233,7 +1287,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
 
             // Should a lava output be displayed
-            if ( GetAttributeValue( "ShowLavaOutput" ).AsBoolean() )
+            if ( groups.Any() && GetAttributeValue( "ShowLavaOutput" ).AsBoolean() )
             {
                 string template = GetAttributeValue( "LavaOutput" );
 
@@ -1280,7 +1334,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
 
             // Should a grid be displayed
-            if ( GetAttributeValue( "ShowGrid" ).AsBoolean() )
+            if ( groups.Any() && GetAttributeValue( "ShowGrid" ).AsBoolean() )
             {
                 pnlGrid.Visible = true;
 
@@ -1316,7 +1370,54 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 pnlGrid.Visible = false;
             }
 
-            if ( groups.Any() )
+            if ( families.Any() && GetAttributeValue( "ShowFamilyGrid" ).AsBoolean() )
+            {
+                pnlFamilyGrid.Visible = true;
+                var source = families.Select( f => new
+                {
+                    Name = f.Name,
+                    Members = f.Members.Where( m => m.GroupMemberStatus == GroupMemberStatus.Active )
+                        .OrderByDescending( m => m.Person.AgePrecise )
+                        .Select( m => m.Person.Age!=null ? string.Format( "{0}: {1}", m.Person.NickName, m.Person.Age ) : m.Person.NickName )
+                        .Aggregate( ( current, next ) => current + ", " + next ),
+                    Address = f.GroupLocations.Where( gl => gl.GroupLocationTypeValueId == homeAddressDv.Id ).First().Location.FormattedAddress,
+                    CellPhone = f.Members
+                        .Where( m => m.GroupMemberStatus == GroupMemberStatus.Active )
+                        .Select( m => m.Person )
+                        .Where( p => p.PhoneNumbers.Where( pn => pn.IsMessagingEnabled ).Any() )
+                        .Any()
+                        ?
+                        f.Members
+                        .Where( m => m.GroupMemberStatus == GroupMemberStatus.Active )
+                        .Select( m => m.Person ).Where( p => p.PhoneNumbers.Where( pn => pn.IsMessagingEnabled ).Any() )
+                        .Select( p => string.Format( "{0}: {1}", p.NickName, p.PhoneNumbers.Where( pn => pn.IsMessagingEnabled ).FirstOrDefault().NumberFormatted ) )
+                        .Aggregate( ( current, next ) => current + ", " + next )
+                        : "",
+                    Email = f.Members
+                        .Where( m => m.GroupMemberStatus == GroupMemberStatus.Active )
+                        .Where( m => !string.IsNullOrWhiteSpace( m.Person.Email ) && m.Person.EmailPreference == EmailPreference.EmailAllowed ).Any()
+                        ?
+                        f.Members
+                        .Where( m => m.GroupMemberStatus == GroupMemberStatus.Active )
+                        .Where( m => !string.IsNullOrWhiteSpace( m.Person.Email ) && m.Person.EmailPreference == EmailPreference.EmailAllowed )
+                        .Select( m => string.Format( "{0}: {1}", m.Person.NickName, m.Person.Email ) )
+                        .Aggregate( ( current, next ) => current + ", " + next )
+                        : "",
+                    Id = f.Members.Where( m => m.GroupMemberStatus == GroupMemberStatus.Active ).OrderByDescending( m => m.Person.AgePrecise ).Select( m => m.PersonId ).First()
+
+                } ).ToList();
+                if ( source.Any() )
+                {
+                    gFamilies.DataSource = source;
+                    gFamilies.DataBind();
+                }
+            }
+            else
+            {
+                pnlFamilyGrid.Visible = false;
+            }
+
+            if ( groups.Any() || families.Any() )
             {
                 // Show the results
                 pnlResults.Visible = true;
@@ -1867,6 +1968,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         protected void btnReset_Click( object sender, EventArgs e )
         {
             ShowView();
+        }
+
+        protected void PersonSelected_Click( object sender, RowEventArgs e )
+        {
+            Response.Redirect( string.Format( "/Person/{0}", e.RowKeyValue ) );
         }
     }
 }

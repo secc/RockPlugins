@@ -2,7 +2,6 @@
 
 <asp:UpdatePanel ID="upnlContent" runat="server" UpdateMode="Conditional">
     <ContentTemplate>
-
         <Rock:NotificationBox ID="nbNotice" runat="server" Visible="false" />
 
         <%-- View Panel --%>
@@ -63,7 +62,20 @@
                                     <Rock:RockBoundField DataField="Distance" HeaderText="Distance" DataFormatString="{0:N2} M" ItemStyle-HorizontalAlign="Right" HeaderStyle-HorizontalAlign="Right" />
                                 </Columns>
                             </Rock:Grid>
-
+                        </div>
+                    </asp:Panel>
+                    <asp:Panel ID="pnlFamilyGrid" runat="server" CssClass="margin-v-sm col-md-6">
+                        <div class="grid">
+                            <Rock:Grid ID="gFamilies" DataKeyNames="Id" runat="server" RowItemText="Famly" AllowSorting="true">
+                                <Columns>
+                                    <Rock:RockBoundField DataField="Name" HeaderText="Name" SortExpression="Name" />
+                                    <Rock:RockBoundField DataField="Members" HeaderText="Family Members" SortExpression="Members" />
+                                    <Rock:RockBoundField DataField="Address" HeaderText="Address" SortExpression="Address" />
+                                    <Rock:RockBoundField DataField="CellPhone" HeaderText="Cell Numbers" SortExpression="CellPhone" />
+                                    <Rock:RockBoundField DataField="Email" HeaderText="Email Addresses" SortExpression="Email" />
+                                    <Rock:LinkButtonField  CssClass="btn btn-default" Text="<i class='fa fa-user'></i>" OnClick="PersonSelected_Click" ExcelExportBehavior="NeverInclude"/>
+                                </Columns>
+                            </Rock:Grid>
                         </div>
                     </asp:Panel>
                     <Rock:BootstrapButton runat="server" ID="btnReset" OnClick="btnReset_Click" Text="Reset Search" CssClass="btn btn-default"></Rock:BootstrapButton>
@@ -117,12 +129,12 @@
                                     <div class="col-md-6">
                                         <Rock:Toggle ID="cbShowMap" runat="server" Label="Map" Text="Yes" OnCssClass="btn-success" OffCssClass="btn-danger"
                                             Help="Should a map be displayed that shows the location of each group?" ValidationGroup="GroupFinderSettings" />
-                                         <Rock:Toggle ID="cbShowFamilies" runat="server" Label="Show Families" Text="Yes" OnCssClass="btn-success" OffCssClass="btn-danger"
+                                        <Rock:Toggle ID="cbShowFamilies" runat="server" Label="Show Families" Text="Yes" OnCssClass="btn-success" OffCssClass="btn-danger"
                                             Help="Should families be shown on the map?" ValidationGroup="GroupFinderSettings" />
                                         <Rock:RockDropDownList ID="ddlMapStyle" runat="server" Label="Map Style"
                                             Help="The map theme that should be used for styling the map." ValidationGroup="GroupFinderSettings" />
                                         <Rock:Toggle ID="cbLargeMap" runat="server" Label="Large Map" Help="Set map to full width"
-                                             OnCssClass="btn-success" OffCssClass="btn-danger" />
+                                            OnCssClass="btn-success" OffCssClass="btn-danger" />
                                         <Rock:NumberBox ID="nbMapHeight" runat="server" Label="Map Height"
                                             Help="The pixel height to use for the map." ValidationGroup="GroupFinderSettings" />
                                         <Rock:ValueList runat="server" ID="vlRanges" Label="List of Ranges"
@@ -131,7 +143,7 @@
                                     <div class="col-md-6">
                                         Optional Map Icons: (34x34)
                                         <Rock:RockTextBox runat="server" ID="tbSearchIcon" Label="Search Icon URL"
-                                             Help="URL for the pin on the map showing the location of the search address."></Rock:RockTextBox>
+                                            Help="URL for the pin on the map showing the location of the search address."></Rock:RockTextBox>
                                         <Rock:RockTextBox runat="server" ID="tbGroupIcon" Label="Search Group URL"
                                             Help="URL for the pins on the map showing the location of groups."></Rock:RockTextBox>
                                         <Rock:RockTextBox runat="server" ID="tbFamilyIcon" Label="Search Family URL"
@@ -180,7 +192,7 @@
                                 </div>
                             </Rock:PanelWidget>
 
-                            <Rock:PanelWidget ID="wpGrid" runat="server" Title="Grid">
+                            <Rock:PanelWidget ID="wpGrid" runat="server" Title="Group Grid">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <Rock:RockCheckBox ID="cbShowGrid" runat="server" Label="Show Grid" Text="Yes"
@@ -205,6 +217,15 @@
                                     </div>
                                 </div>
                             </Rock:PanelWidget>
+                            <Rock:PanelWidget ID="wpFamilyGrid" runat="server" Title="Family Grid">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <Rock:Toggle ID="cbFamilyGrid" runat="server" Label="Show Family Grid" Help="Show grid of family members."
+                                             OffCssClass="btn-danger" OnCssClass="btn-success" /> 
+                                    </div>
+                                </div>
+                            </Rock:PanelWidget>
+
 
                             <Rock:PanelWidget ID="wpLinkedPages" runat="server" Title="Linked Pages">
                                 <div class="row">
