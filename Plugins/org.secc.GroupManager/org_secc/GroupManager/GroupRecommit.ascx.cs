@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
-using System.IO;
-using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
@@ -14,8 +12,9 @@ using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
-using System.Web.UI.HtmlControls;
 using Newtonsoft.Json;
+using Rock.Web.UI;
+using System.Data.Entity;
 
 namespace RockWeb.Plugins.org_secc.GroupManager
 {
@@ -26,9 +25,21 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
     //Settings
     [GroupTypeField( "Group Type", "Type of group to copy or generate.", true, "", "", 0 )]
-    [GroupField( "Group Parent", "If selected only groups under this group will be used.", false, "", "", 1 )]
+    [GroupField( "Group Parent", "If selected only groups under this group will be used.", true, "", "", 1 )]
     [GroupField( "Destination Group", "Location to place new groups.", true, "", "", 2 )]
-    public partial class GroupRecommit : Rock.Web.UI.RockBlock
+    [BooleanField( "Show Description", "Option to toggle if the description is to be shown for editing", true, "", 3 )]
+    [TextField( "Save Text", "Text to display on save button", true, "Sign Up To Lead Group", "", 4 )]
+    [GroupRoleField( "", "Group Role", "Group role that the user will be saved as. You will need to select the group type before selecting the group role.", true, "", "", 5 )]
+    [CodeEditorField("Success Text", "Text to display to user upon successfully creating new group.", CodeEditorMode.Text,CodeEditorTheme.Rock,
+        200,true, "You have successfully signed up to lead a group.", "",5)]
+    [CodeEditorField( "Login Text", "Text to display when user account cannot be determined", CodeEditorMode.Text, CodeEditorTheme.Rock,
+        200, true, "We're sorry we could not find your account in our system. Please log-in to continue.", "", 6 )]
+    [CodeEditorField( "Multiple Groups Text", "Text to display when too many groups are found to make recomitment a possiblity.", CodeEditorMode.Text, CodeEditorTheme.Rock,
+        200, true, "We found multiple groups matched to you. Please contact your leader to help you create your groups for this cycle.", "", 7 )]
+    [CodeEditorField( "Destination Group Text", "Text to display when it is suspected that the user has already had a group made.", CodeEditorMode.Text, CodeEditorTheme.Rock,
+        200, true, "A group has already been created for you. If you think this is in error, or you would like to create another group please contact your leader.", "", 8 )]
+
+    public partial class GroupRecommit : RockBlock
     {
         private Person _person;
         private Group _baseGroup;
@@ -75,6 +86,13 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             base.OnInit( e );
             rblSchedule.BindToEnum<ScheduleType>();
+
+            if ( _rockContext == null )
+            {
+                _rockContext = new RockContext();
+            }
+
+            gMembers.GridRebind += gMembers_GridRebind;
         }
 
         /// <summary>
@@ -87,29 +105,35 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             LoadPerson();
             if ( _person == null )
             {
-                ShowMessage( "We're sorry we could not find your person in our system.", NotificationBoxType.Danger );
+                ShowMessage( GetAttributeValue("LoginText"), "Information");
                 return;
             }
 
             if ( string.IsNullOrWhiteSpace( GetAttributeValue( "GroupType" ) )
                 || string.IsNullOrWhiteSpace( GetAttributeValue( "DestinationGroup" ) ) )
             {
-                ShowMessage( "Block not configured. Please configure to use." );
+                ShowMessage( "Block not configured. Please configure to use.", "Configuration Error", "panel panel-danger" );
                 return;
             }
 
             _groupType = GroupTypeCache.Read( GetAttributeValue( "GroupType" ).AsGuid() );
 
+            if ( !IsDestinationAvailable() )
+            {
+                ShowMessage( GetAttributeValue("DestinationGroupText"));
+                return;
+            }
+
             var groups = LoadGroups();
             //if we load the groups and there are too many we need to stop because the logic needs a person
             if ( groups.Count() > 1 )
             {
-                ShowMessage( "Your group structure needs a human's help. Please contact your leader to continue." );
+                ShowMessage(GetAttributeValue( "Multiple Groups Text" ));
                 return;
             }
 
             _baseGroup = groups.FirstOrDefault();
-            _baseGroup.LoadAttributes();
+
 
             if ( !Page.IsPostBack )
             {
@@ -125,9 +149,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         private void HydrateGroup()
         {
-            _group = new Group();
+            _group = new Group() { GroupTypeId = _groupType.Id };
             if ( _baseGroup != null )
             {
+                _baseGroup.LoadAttributes();
+
                 //Copy group
                 _group.CopyPropertiesFrom( _baseGroup );
                 _group.CopyAttributesFrom( _baseGroup );
@@ -150,17 +176,30 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
 
                 pnlMembers.Visible = true;
-                var members = _baseGroup.Members
+                _group.Members = _baseGroup.Members;
+            }
+            else
+            {
+                _group.LoadAttributes();
+            }
+
+            SaveViewState();
+        }
+
+        private void gMembers_GridRebind( object sender, EventArgs e )
+        {
+            BindGrid();
+        }
+
+        private void BindGrid()
+        {
+            var members = _group.Members
                     .Where( gm => gm.PersonId != _person.Id )
                     .OrderByDescending( gm => gm.GroupRole.IsLeader )
                     .DistinctBy( gm => gm.PersonId )
                     .ToList();
-                gMembers.DataSource = members;
-                gMembers.DataBind();
-
-            }
-            _group.ParentGroupId = new GroupService( _rockContext ).Get( GetAttributeValue( "DestinationGroup" ).AsGuid() ).Id;
-            SaveViewState();
+            gMembers.DataSource = members;
+            gMembers.DataBind();
         }
 
         private void LoadControls()
@@ -221,6 +260,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     }
                     UpdateScheduleDisplay();
                 }
+                BindGrid();
             }
             else
             {
@@ -256,33 +296,41 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 lopAddress.AllowedPickerModes = modes;
             }
 
-                var groupLocation = _group.GroupLocations.FirstOrDefault();
+            var groupLocation = _group.GroupLocations.FirstOrDefault();
             if ( groupLocation != null )
             {
                 lopAddress.Location = groupLocation.Location;
             }
             Rock.Attribute.Helper.AddEditControls( _group, phAttributes, true );
-        }
 
+            tbDescription.Visible = GetAttributeValue( "ShowDescription" ).AsBoolean();
+            tbDescription.Text = _group.Description;
+            btnSave.Text = GetAttributeValue( "SaveText" );
+        }
         private List<Group> LoadGroups()
         {
-            if ( _rockContext == null )
-            {
-                _rockContext = new RockContext();
-            }
+            return LoadGroups( GetAttributeValue( "GroupParent" ).AsGuidOrNull() );
+        }
 
+        private List<Group> LoadGroups( Guid? groupGuid )
+        {
+            var groupRole = new GroupTypeRoleService( _rockContext ).Get( GetAttributeValue( "GroupRole" ).AsGuid() );
+            if ( groupRole == null )
+            {
+                return new List<Group>();
+            }
             var groupService = new GroupService( _rockContext );
             IQueryable<Group> groupQry = groupService.Queryable( "GroupLocations.Location" );
 
             //Sort by group parent if option set
-            if ( GetAttributeValue( "GroupParent" ).AsGuidOrNull() != null )
+            if ( groupGuid != null )
             {
-                var availableGroupIds = ( List<int> ) GetCacheItem( "AvailableGroupIds" );
+                var availableGroupIds = ( List<int> ) GetCacheItem( groupGuid.ToString() );
 
                 if ( availableGroupIds == null )
                 {
-                    availableGroupIds = GetChildGroups( GetAttributeValue( "GroupParent" ).AsGuid(), groupService ).Select( g => g.Id ).ToList();
-                    AddCacheItem( "AvailableGroupIds", availableGroupIds );
+                    availableGroupIds = GetChildGroups( groupGuid ?? new Guid(), groupService ).Select( g => g.Id ).ToList();
+                    AddCacheItem( groupGuid.ToString(), availableGroupIds );
                 }
 
                 groupQry = groupQry.Where( g => g.IsActive && g.GroupType.Guid.Equals( _groupType.Guid ) && g.IsPublic && availableGroupIds.Contains( g.Id ) );
@@ -293,8 +341,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 groupQry = groupQry.Where( g => g.IsActive && g.GroupType.Guid.Equals( _groupType.Guid ) && g.IsPublic );
             }
 
-
-            return new GroupMemberService( _rockContext ).Queryable().Where( m => m.PersonId == _person.Id && m.GroupRole.IsLeader )
+            return new GroupMemberService( _rockContext ).Queryable().Where( m => m.PersonId == _person.Id && m.GroupRoleId == groupRole.Id )
                 .Join( groupQry, gm => gm.GroupId, g => g.Id, ( gm, g ) => g ).ToList();
         }
 
@@ -314,12 +361,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         private void LoadPerson()
         {
-
-            if ( _rockContext == null )
-            {
-                _rockContext = new RockContext();
-            }
-
             var personAliasId = PageParameter( "PersonAlias" ).AsInteger();
             var personId = PageParameter( "Person" ).AsInteger();
             var urlEncodedKey = PageParameter( "UrlEncodedKey" );
@@ -346,32 +387,44 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         }
         #endregion
 
-        private void ShowMessage( string message, NotificationBoxType notificationBoxType = NotificationBoxType.Warning )
+        private void ShowMessage( string message, string header="Information", string cssClass="panel panel-warning" )
         {
-            nbWarning.Text = message;
-            nbWarning.NotificationBoxType = notificationBoxType;
-            nbWarning.Visible = true;
+            pnlMain.Visible = false;
+            pnlInfo.Visible = true;
+            ltHeading.Text = header;
+            ltBody.Text = message;
+            pnlInfo.CssClass = cssClass;
         }
 
         protected void btnSave_Click( object sender, EventArgs e )
         {
             if ( _group == null )
             {
-                ShowMessage( "There was an issue with the viewstate." );
+                ShowMessage( "There was an issue with the viewstate. Please reload and try again. If the problem perssits contact an administrator.", "Error", "panel panel-danger");
                 return;
             }
 
+            if ( !IsDestinationAvailable() )
+            {
+                ShowMessage( "There has already been a group created for you. If you think this is in error, or you would like to create another group please contact your leader" );
+                return;
+
+            }
+            GroupService groupService = new GroupService( _rockContext );
             //Add basic information
-            _group.Name = tbName.Text;
-            new GroupService( _rockContext ).Add( _group );
+            Group group = new Group() { GroupTypeId = _groupType.Id };
+            group.ParentGroupId = groupService.Get( GetAttributeValue( "DestinationGroup" ).AsGuid() ).Id;
+            group.Name = tbName.Text;
+            group.Description = tbDescription.Text;
+
+            group.CreatedByPersonAliasId = _person.PrimaryAliasId;
+            groupService.Add( group );
 
             //Add location
-            Location location = new Location();
-            location.CopyPropertiesFrom( lopAddress.Location );
-            new LocationService( _rockContext ).Add( location );
-            GroupLocation groupLocation = new GroupLocation() { Location = location };
-            new GroupLocationService( _rockContext ).Add( groupLocation );
-            _group.GroupLocations.Add( groupLocation );
+            if ( lopAddress.Location != null && lopAddress.Location.Id != 0 )
+            {
+                group.GroupLocations.Add( new GroupLocation() { LocationId = lopAddress.Location.Id } );
+            }
 
             //Add Schedule
             if ( _groupType.AllowedScheduleTypes != ScheduleType.None )
@@ -379,22 +432,20 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 switch ( rblSchedule.SelectedValueAsEnum<ScheduleType>() )
                 {
                     case ScheduleType.None:
-                        _group.ScheduleId = null;
+                        group.ScheduleId = null;
                         break;
                     case ScheduleType.Weekly:
                         var weeklySchedule = new Schedule() { WeeklyDayOfWeek = dowWeekly.SelectedDayOfWeek, WeeklyTimeOfDay = timeWeekly.SelectedTime };
-                        new ScheduleService( _rockContext ).Add( weeklySchedule );
-                        _group.Schedule = weeklySchedule;
+                        group.Schedule = weeklySchedule;
                         break;
                     case ScheduleType.Custom:
                         var customSchedule = new Schedule() { iCalendarContent = sbSchedule.iCalendarContent };
-                        new ScheduleService( _rockContext ).Add( customSchedule );
-                        _group.Schedule = customSchedule;
+                        group.Schedule = customSchedule;
                         break;
                     case ScheduleType.Named:
-                        if (spSchedule.SelectedValue.AsInteger()!=0 )
+                        if ( spSchedule.SelectedValue.AsInteger() != 0 )
                         {
-                            _group.ScheduleId = spSchedule.SelectedValue.AsInteger();
+                            group.ScheduleId = spSchedule.SelectedValue.AsInteger();
                         }
                         break;
                     default:
@@ -404,22 +455,30 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             //Add Group Members
             GroupMemberService groupMemberService = new GroupMemberService( _rockContext );
-            groupMemberService.Add( new GroupMember() { PersonId = _person.Id } );
+            var groupRoleId = new GroupTypeRoleService( _rockContext ).Get( GetAttributeValue( "GroupRole" ).AsGuid() ).Id;
+            group.Members.Add( new GroupMember() { PersonId = _person.Id, GroupRoleId = groupRoleId } );
 
             if ( pnlMembers.Visible && gMembers.SelectedKeys.Count() != 0 )
             {
                 foreach ( int groupMemberId in gMembers.SelectedKeys )
                 {
                     var groupMember = groupMemberService.Get( groupMemberId );
-                    groupMemberService.Add( new GroupMember() { PersonId = groupMember.PersonId, GroupRoleId = groupMember.GroupRoleId } );
+                    group.Members.Add( new GroupMember() { PersonId = groupMember.PersonId, GroupRoleId = groupMember.GroupRoleId } );
                 }
             }
 
-            //Save attributes
-            Rock.Attribute.Helper.GetEditValues( phAttributes, _group );
-            _group.SaveAttributeValues();
-            //_rockContext.SaveChanges();
 
+            //Save attributes
+            _rockContext.SaveChanges();
+            group.LoadAttributes();
+            Rock.Attribute.Helper.GetEditValues( phAttributes, group );
+            group.SaveAttributeValues();
+
+            //Update cache
+            var availableGroupIds = ( List<int> ) GetCacheItem( GetAttributeValue("DestinationGroup") );
+            availableGroupIds.Add( group.Id );
+            AddCacheItem(GetAttributeValue("DestinationGroup"), availableGroupIds );
+            ShowMessage(GetAttributeValue("SuccessText"), "Thank you!", "panel panel-success" );
         }
 
         protected void rblSchedule_SelectedIndexChanged( object sender, EventArgs e )
@@ -463,6 +522,17 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                         }
                 }
             }
+        }
+
+        private bool IsDestinationAvailable()
+        {
+            //Check to make sure there is no other group in destination where user is of selected group role
+            var destinationGuid = GetAttributeValue( "DestinationGroup" ).AsGuidOrNull();
+            if ( destinationGuid != null )
+            {
+                return LoadGroups( destinationGuid ).Count() == 0;
+            }
+            return false;
         }
     }
 }
