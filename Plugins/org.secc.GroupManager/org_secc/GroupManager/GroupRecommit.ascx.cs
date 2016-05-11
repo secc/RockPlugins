@@ -167,6 +167,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             tbName.Text = _group.Name;
 
+            //Load schedule control
             if ( _groupType.AllowedScheduleTypes != ScheduleType.None )
             {
                 rblSchedule.Items.Clear();
@@ -195,19 +196,67 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     li.Selected = _group != null && _group.Schedule != null && _group.Schedule.ScheduleType == ScheduleType.Named;
                     rblSchedule.Items.Add( li );
                 }
+                if ( _group.Schedule != null )
+                {
+                    //Load values into schedule controls
+                    switch ( _group.Schedule.ScheduleType )
+                    {
+                        case ScheduleType.None:
+                            break;
+                        case ScheduleType.Weekly:
+                            dowWeekly.SelectedDayOfWeek = _group.Schedule.WeeklyDayOfWeek;
+                            timeWeekly.Text = _group.Schedule.WeeklyTimeOfDay.ToString();
+                            rblSchedule.SelectedValue = "1";
+                            break;
+                        case ScheduleType.Custom:
+                            sbSchedule.iCalendarContent = _group.Schedule.iCalendarContent;
+                            rblSchedule.SelectedValue = "2";
+                            break;
+                        case ScheduleType.Named:
+                            spSchedule.SetValue( _group.ScheduleId );
+                            rblSchedule.SelectedValue = "4";
+                            break;
+                        default:
+                            break;
+                    }
+                    UpdateScheduleDisplay();
+                }
             }
             else
             {
                 rblSchedule.Visible = false;
             }
 
-            if ( _group.Schedule != null )
+
+            //Load location
+            GroupLocationPickerMode groupTypeModes = _groupType.LocationSelectionMode;
+            if ( groupTypeModes != GroupLocationPickerMode.None )
             {
-                dowWeekly.SelectedDayOfWeek = _group.Schedule.WeeklyDayOfWeek;
-                timeWeekly.Text = _group.Schedule.WeeklyTimeOfDay.ToString();
+                // Set the location picker modes allowed based on the group type's allowed modes
+                LocationPickerMode modes = LocationPickerMode.None;
+                if ( ( groupTypeModes & GroupLocationPickerMode.Named ) == GroupLocationPickerMode.Named )
+                {
+                    modes = modes | LocationPickerMode.Named;
+                }
+
+                if ( ( groupTypeModes & GroupLocationPickerMode.Address ) == GroupLocationPickerMode.Address )
+                {
+                    modes = modes | LocationPickerMode.Address;
+                }
+
+                if ( ( groupTypeModes & GroupLocationPickerMode.Point ) == GroupLocationPickerMode.Point )
+                {
+                    modes = modes | LocationPickerMode.Point;
+                }
+
+                if ( ( groupTypeModes & GroupLocationPickerMode.Polygon ) == GroupLocationPickerMode.Polygon )
+                {
+                    modes = modes | LocationPickerMode.Polygon;
+                }
+                lopAddress.AllowedPickerModes = modes;
             }
 
-            var groupLocation = _group.GroupLocations.FirstOrDefault();
+                var groupLocation = _group.GroupLocations.FirstOrDefault();
             if ( groupLocation != null )
             {
                 lopAddress.Location = groupLocation.Location;

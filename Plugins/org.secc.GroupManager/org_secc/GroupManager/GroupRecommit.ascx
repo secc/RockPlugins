@@ -36,7 +36,7 @@
         <asp:Panel runat="server" ID="pnlMembers" class="panel panel-default" Visible="false">
             <div class="panel-heading">Members</div>
             <div class="panel-body">
-                <Rock:Grid runat="server" ID="gMembers" ShowActionRow="false">
+                <Rock:Grid runat="server" ID="gMembers" ShowActionRow="false" DisplayType="Light">
                     <Columns>
                         <Rock:SelectField></Rock:SelectField>
                         <Rock:RockBoundField DataField="Person.FullName" HeaderText="Member"></Rock:RockBoundField>
