@@ -142,6 +142,7 @@ namespace org.secc.ServiceReef
                                     // Create the trip defined value
                                     DefinedValue tripDV = new DefinedValue();
                                     tripDV.Value = result.EventName;
+                                    tripDV.Description = result.EventName + " - " + result.EventUrl;
                                     tripDV.DefinedTypeId = tripDT.Id;
                                     definedValueService.Add(tripDV);
 
@@ -154,6 +155,29 @@ namespace org.secc.ServiceReef
                                     tripDV.AttributeValues["GLCode"] = new AttributeValueCache() { Value = result.EventCode };
 
                                     tripDV.SaveAttributeValues();
+
+                                    // Now load all the defined values of that type and sort them
+                                    tripDT = definedTypeService.Get(tripAttribute.AttributeQualifiers.Where(aq => aq.Key == "definedtype").FirstOrDefault().Value.AsInteger());
+                                    Rock.Web.UI.Controls.SortProperty property = new Rock.Web.UI.Controls.SortProperty();
+                                    List<DefinedValue> sortedTrips = tripDT.DefinedValues.AsQueryable().OrderBy(dv => dv.Value).ToList();
+                                    int i = 0;
+                                    Boolean changed = false;
+                                    foreach(DefinedValue sortedTrip in sortedTrips)
+                                    {
+                                        if (sortedTrip.Order != i)
+                                        {
+                                            sortedTrip.Order = i;
+                                            changed = true;
+                                        }
+                                        i++;
+                                    }
+                                    if (changed)
+                                    {
+                                        dbContext.SaveChanges();
+                                    }
+
+                                    // Flush the defined types
+                                    DefinedTypeCache.Flush(tripDT.Id);
 
                                     // Read the Defined Value from cache
                                     trip = DefinedValueCache.Read(tripDV.Guid);
