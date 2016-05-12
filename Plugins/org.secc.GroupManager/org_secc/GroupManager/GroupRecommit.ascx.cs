@@ -363,8 +363,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         private void LoadPerson()
         {
-            var personAliasId = PageParameter( "PersonAlias" ).AsInteger();
-            var personId = PageParameter( "Person" ).AsInteger();
+            var personAliasId = PageParameter( "PersonAliasId" ).AsInteger();
+            var personId = PageParameter( "PersonId" ).AsInteger();
             var urlEncodedKey = PageParameter( "UrlEncodedKey" );
 
             if ( personId != 0 )
