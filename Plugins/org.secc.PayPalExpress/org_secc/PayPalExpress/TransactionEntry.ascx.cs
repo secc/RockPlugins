@@ -128,11 +128,14 @@ namespace org.secc.PayPalExpress
 
                 lPanelTitle2.Text = GetAttributeValue("PanelTitle");
                 lConfirmationTitle.Text = GetAttributeValue("ConfirmationTitle");
+                lSuccessTitle.Text = GetAttributeValue("SuccessTitle");
 
                 // Resolve the text field merge fields
                 var configValues = new Dictionary<string, object>();
                 lConfirmationHeader.Text = GetAttributeValue("ConfirmationHeader").ResolveMergeFields(configValues);
                 lConfirmationFooter.Text = GetAttributeValue("ConfirmationFooter").ResolveMergeFields(configValues);
+                lSuccessHeader.Text = GetAttributeValue("SuccessHeader").ResolveMergeFields(configValues);
+
             }
         }
 
@@ -629,6 +632,16 @@ namespace org.secc.PayPalExpress
                 transactionDetail.Amount = account.Amount;
                 transactionDetail.AccountId = account.Id;
                 transaction.TransactionDetails.Add(transactionDetail);
+                // Put a breakdown of the details into the transaction summary column.
+                if (transaction.Summary == null)
+                {
+                    transaction.Summary = "";
+                }
+                if (transaction.Summary.Length > 0)
+                {
+                    transaction.Summary += " ";
+                }
+                transaction.Summary += "F" + account.Id + ":" + account.Amount.FormatAsCurrency();
                 History.EvaluateChange(txnChanges, account.Name, 0.0M.FormatAsCurrency(), transactionDetail.Amount.FormatAsCurrency());
             }
 
