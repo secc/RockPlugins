@@ -61,6 +61,7 @@ namespace org.secc.PayPalExpress
             {
                 _payPalExpressGateway = GetGateway(rockContext, "PayPalExpressGateway");
                 _payPalExpressGatewayComponent = GetGatewayComponent(rockContext, _payPalExpressGateway);
+                SetTargetPerson(rockContext);
             }
             if (PageParameter("token") != String.Empty && PageParameter("PayerID") != string.Empty)
             {
@@ -100,6 +101,7 @@ namespace org.secc.PayPalExpress
         }
         protected override void OnLoad(EventArgs e)
         {
+
             if (Page.IsPostBack)
             {
                 if (RockTransactionEntry != null)
@@ -405,6 +407,24 @@ namespace org.secc.PayPalExpress
 
             ScriptManager.RegisterStartupScript(Page, this.GetType(), "giving-profile-ppExpress", script, true);
 
+        }
+
+        private void SetTargetPerson(RockContext rockContext)
+        {
+            // If impersonation is allowed, and a valid person key was used, set the target to that person
+            if (GetAttributeValue("Impersonation").AsBooleanOrNull() ?? false)
+            {
+                string personKey = PageParameter("Person");
+                if (!string.IsNullOrWhiteSpace(personKey))
+                {
+                    _targetPerson = new PersonService(rockContext).GetByUrlEncodedKey(personKey);
+                }
+            }
+
+            if (_targetPerson == null)
+            {
+                _targetPerson = CurrentPerson;
+            }
         }
 
         private FinancialGateway GetGateway(RockContext rockContext, string attributeName)
