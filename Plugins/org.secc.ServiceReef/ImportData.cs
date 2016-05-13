@@ -27,12 +27,11 @@ namespace org.secc.ServiceReef
     [DecimalField("Start Date Offset", "The number of hours to subtract from the start date (Defaults to now - 48 hours).", true, 48)]
     [DecimalField("End Date Offset", "The number of hours to subtract from the end date (Defauts to now - 8 hours).", true, 8)]
 
-    [AttributeField("2C1CB26B-AB22-42D0-8164-AEDEE0DAE667", "ServiceReef Trip Attribute", "Attribute for a Financial Transaction to use for assigning the transaction to a ServiceReef trip.", true)]
-
-    [AccountField("Account", "Financial account to use for all transactions imported.", true)]
+    [AccountField("Account", "Financial account to use for the parent for all transactions imported (Sub-accounts will be created for each event).", true)]
     [FinancialGatewayField("Financial Gateway", "The financial gateway to use for these transactions.", true)]
     [DefinedValueField(Rock.SystemGuid.DefinedType.FINANCIAL_SOURCE_TYPE, "Transaction Source", "Transaction source for all Service Reef payments.", true, false, "9a3e36fa-634e-45e4-9244-d3d21646dba4")]
     [DefinedValueField(Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Connection Status", "The connection status to use for newly created people.", true)]
+    [DefinedValueField(Rock.SystemGuid.DefinedType.FINANCIAL_ACCOUNT_TYPE, "ServiceReef Account Type", "Account type for creating sub-accounts for each Service Reef Trip.", true, false, "51DC439B-2931-47CE-8FA8-C6DA1451B633")]
     [DisallowConcurrentExecution]
     public class ImportData : IJob
     {
@@ -49,7 +48,7 @@ namespace org.secc.ServiceReef
             FinancialBatchService financialBatchService = new FinancialBatchService(dbContext);
             PersonService personService = new PersonService(dbContext);
             PersonAliasService personAliasService = new PersonAliasService(dbContext);
-            AttributeService attributeService = new AttributeService(dbContext);
+            FinancialAccountService financialAccountService = new FinancialAccountService(dbContext);
             FinancialAccountService accountService = new FinancialAccountService(dbContext);
             FinancialTransactionService financialTransactionService = new FinancialTransactionService(dbContext);
             FinancialGatewayService financialGatewayService = new FinancialGatewayService(dbContext);
@@ -82,6 +81,10 @@ namespace org.secc.ServiceReef
                 DefinedTypeCache tenderType = DefinedTypeCache.Read(Rock.SystemGuid.DefinedType.FINANCIAL_CURRENCY_TYPE.AsGuid(), dbContext);
                 FinancialAccount specialFund = accountService.Get(dataMap.GetString("Account").AsGuid());
                 FinancialGateway gateway = financialGatewayService.Get(dataMap.GetString("FinancialGateway").AsGuid());
+                List<FinancialAccount> trips = financialAccountService.Queryable().Where(fa => fa.ParentAccountId == specialFund.Id).OrderBy(fa => fa.Order).ToList();
+
+                // Get the trips
+                DefinedValueCache serviceReefAccountType = DefinedValueCache.Read(dataMap.Get("ServiceReefAccountType").ToString().AsGuid());
 
                 // Setup the ServiceReef API Client
                 var client = new RestClient(SRApiUrl);
@@ -115,72 +118,55 @@ namespace org.secc.ServiceReef
                                     processed++;
                                     continue;
                                 }
-
-                                Rock.Model.Attribute tripAttribute = attributeService.Get(dataMap.Get("ServiceReefTripAttribute").ToString().AsGuid());
-                                DefinedType tripDT = definedTypeService.Get(tripAttribute.AttributeQualifiers.Where(aq => aq.Key == "definedtype").FirstOrDefault().Value.AsInteger());
-
-                                List<DefinedValueCache> trips = DefinedTypeCache.Read(tripDT.Guid, dbContext).DefinedValues ;
-
-                                DefinedValueCache trip = null;
-                                // Make sure we have a project to go with this transaction
+                                FinancialAccount trip = null;
+                                // Make sure we have a sub-account to go with this transaction
                                 if (result.EventId > 0)
                                 {
-                                    trip = trips.Where(t => t.AttributeValues.Where(av => av.Key == "ServiceReefTripId" && av.Value.Value.AsInteger() == result.EventId).Any()).FirstOrDefault();
-                                    //ProjectCollection pc = new ProjectCollection();
-                                    //pc.Load(1);
-                                    //project = pc.Where(p => p.Name.Contains(result.EventCode)).LastOrDefault();
+                                    trip = trips.Where(t => t.GlCode == result.EventCode && t.Url == result.EventUrl).FirstOrDefault();
                                 }
                                 if (trip == null)
                                 {
                                     if (result.EventCode == null)
                                     {
-                                        warnings += "Event Code (" + result.EventCode + ") with matching Project Name in Arena missing for ServiceReef transaction Id: " + result.TransactionId + Environment.NewLine;
+                                        warnings += "Event Code is missing on the Service Reef Trip for ServiceReef transaction Id: " + result.TransactionId + Environment.NewLine;
                                         processed++;
                                         continue;
                                     }
 
-                                    // Create the trip defined value
-                                    DefinedValue tripDV = new DefinedValue();
-                                    tripDV.Value = result.EventName;
-                                    tripDV.Description = result.EventName + " - " + result.EventUrl;
-                                    tripDV.DefinedTypeId = tripDT.Id;
-                                    definedValueService.Add(tripDV);
+                                    // Create the trip subaccount
+                                    FinancialAccount tripFA = new FinancialAccount();
+                                    tripFA.Name = specialFund.Name + ": " + result.EventName;
+                                    tripFA.Description = "Service Reef Event.  Name: " + result.EventName + " ID: " + result.EventId;
+                                    tripFA.GlCode = result.EventCode;
+                                    tripFA.Url = result.EventUrl;
+                                    tripFA.PublicName = result.EventCode + ": " + result.EventName;
+                                    // Public Name is limited to 50
+                                    if (tripFA.PublicName.Length > 50) {
+                                        tripFA.PublicName = tripFA.PublicName.Substring(0, 50);
+                                    }
+                                    tripFA.IsTaxDeductible = true;
+                                    tripFA.IsPublic = false;
+                                    tripFA.ParentAccountId = specialFund.Id;
+                                    tripFA.Order = specialFund.Order+1;
+                                    tripFA.AccountTypeValueId = serviceReefAccountType.Id;
+                                    // Figure out what order it should be;
+                                    foreach (FinancialAccount tmpTrip in trips)
+                                    {
+                                        if (tmpTrip.Name.CompareTo(tripFA.Name) < 0)
+                                        {
+                                            tripFA.Order++;
+                                        }
+                                    }
+
+                                    financialAccountService.Add(tripFA);
 
                                     // Now save the trip
                                     dbContext.SaveChanges();
-                                    
-                                    // Save the attributes;
-                                    tripDV.LoadAttributes();
-                                    tripDV.AttributeValues["ServiceReefTripId"] = new AttributeValueCache() { Value = result.EventId.ToString() };
-                                    tripDV.AttributeValues["GLCode"] = new AttributeValueCache() { Value = result.EventCode };
-
-                                    tripDV.SaveAttributeValues();
-
-                                    // Now load all the defined values of that type and sort them
-                                    tripDT = definedTypeService.Get(tripAttribute.AttributeQualifiers.Where(aq => aq.Key == "definedtype").FirstOrDefault().Value.AsInteger());
-                                    Rock.Web.UI.Controls.SortProperty property = new Rock.Web.UI.Controls.SortProperty();
-                                    List<DefinedValue> sortedTrips = tripDT.DefinedValues.AsQueryable().OrderBy(dv => dv.Value).ToList();
-                                    int i = 0;
-                                    Boolean changed = false;
-                                    foreach(DefinedValue sortedTrip in sortedTrips)
-                                    {
-                                        if (sortedTrip.Order != i)
-                                        {
-                                            sortedTrip.Order = i;
-                                            changed = true;
-                                        }
-                                        i++;
-                                    }
-                                    if (changed)
-                                    {
-                                        dbContext.SaveChanges();
-                                    }
-
-                                    // Flush the defined types
-                                    DefinedTypeCache.Flush(tripDT.Id);
-
-                                    // Read the Defined Value from cache
-                                    trip = DefinedValueCache.Read(tripDV.Guid);
+                                    // Increment all the rest of the Orders
+                                    financialAccountService.Queryable().Where(fa => fa.Order >= tripFA.Order && fa.Id != tripFA.Id).ToList().ForEach(c => c.Order++);
+                                    dbContext.SaveChanges();
+                                    trips = financialAccountService.Queryable().Where(fa => fa.ParentAccountId == specialFund.Id).OrderBy(fa => fa.Order).ToList();
+                                    trip = tripFA;
                                 }
 
                                 FinancialTransaction tran = financialTransactionService.Queryable().Where(tx => tx.TransactionCode == result.PaymentProcessorTransactionId).FirstOrDefault();
@@ -240,7 +226,7 @@ namespace org.secc.ServiceReef
                                             street1 = result.Address.Address1;
                                             postalCode = result.Address.Zip;
                                         }
-                                        List<Person> matches = personService.GetByMatch(result.FirstName, result.LastName, null, result.Email, null, street1, postalCode).ToList();
+                                        List<Person> matches = personService.GetByMatch(result.FirstName.Trim(), result.LastName.Trim(), null, result.Email, null, street1, postalCode).ToList();
                                         
                                         if (matches.Count > 1)
                                         {
@@ -262,9 +248,9 @@ namespace org.secc.ServiceReef
                                         {
                                             // Create the person
                                             person = new Person();
-                                            person.FirstName = result.FirstName;
-                                            person.LastName = result.LastName;
-                                            person.Email = result.Email;
+                                            person.FirstName = result.FirstName.Trim();
+                                            person.LastName = result.LastName.Trim();
+                                            person.Email = result.Email.Trim();
                                             Group family = PersonService.SaveNewPerson(person, dbContext);
                                             GroupLocation location = new GroupLocation();
                                             location.GroupLocationTypeValueId = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME).Id;
@@ -326,7 +312,7 @@ namespace org.secc.ServiceReef
                                     tran.FinancialGatewayId = gateway.Id;
                                     
                                     FinancialTransactionDetail financialTransactionDetail = new FinancialTransactionDetail();
-                                    financialTransactionDetail.AccountId = specialFund.Id;
+                                    financialTransactionDetail.AccountId = trip.Id;
                                     financialTransactionDetail.Amount = result.Amount.ToString().AsDecimal();
                                     tran.TransactionDetails.Add(financialTransactionDetail);
                                     tran.TransactionTypeValueId = contribution.Id;
@@ -342,9 +328,6 @@ namespace org.secc.ServiceReef
 
                                     financialTransactionService.Add(tran);
                                     dbContext.SaveChanges();
-                                    tran.LoadAttributes();
-                                    tran.AttributeValues["ServiceReefTrip"] = new AttributeValueCache() { Value = trip.Guid.ToString() };
-                                    tran.SaveAttributeValues();
                                     
                                     totalAmount += result.Amount;
                                 }
