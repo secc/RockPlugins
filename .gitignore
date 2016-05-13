@@ -1,5 +1,8 @@
 Plugins/org.secc.FamilyCheckin/bin/
 Plugins/org.secc.FamilyCheckin/obj/
+Plugins/org.secc.OAuth/bin/
+Plugins/org.secc.OAuth/obj/
+Plugins/org.secc.OAuth/.nuget/
 Plugins/org.secc.Purchasing/bin/
 Plugins/org.secc.Purchasing/obj/
 Plugins/org.secc.Purchasing/packages/
