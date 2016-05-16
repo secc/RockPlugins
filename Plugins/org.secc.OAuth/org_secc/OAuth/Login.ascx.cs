@@ -36,7 +36,7 @@ namespace RockWeb.Plugins.org_secc.OAuth
     /// OAuth login prompts user for login credentials.
     /// </summary>
     [DisplayName( "OAuth Login" )]
-    [Category( "Security" )]
+    [Category( "SECC > Security" )]
     [Description( "Prompts user for login credentials during the OAuth Login process." )]
 
     [LinkedPage( "New Account Page", "Page to navigate to when user selects 'Create New Account' (if blank will use 'NewAccountPage' page route)", false, "", "", 0 )]
@@ -77,11 +77,21 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
         {
             base.OnLoad( e );
 
+            if (CurrentUser != null)
+            {
+                CreateOAuthIdentity(CurrentUser);
+
+                if (!string.IsNullOrEmpty(PageParameter("ReturnUrl")) && IsLocalUrl(PageParameter("ReturnUrl")))
+                {
+                    Response.Redirect(PageParameter("ReturnUrl"));
+                }
+                else
+                {
+
+                }
+            }
             var authentication = HttpContext.Current.GetOwinContext().Authentication;
 
-            authentication.Challenge("OAuth");
-            Response.StatusCode = 401;
-            Response.Redirect("https://www.google.com", true);
             
 
             if ( !Page.IsPostBack )
@@ -118,7 +128,7 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
                     {
                         if ( component.Authenticate( userLogin, tbPassword.Text ) )
                         {
-                            if ( ( userLogin.IsConfirmed ?? true ) && !(userLogin.IsLockedOut ?? false ) )
+                            if ((userLogin.IsConfirmed ?? true) && !(userLogin.IsLockedOut ?? false))
                             {
 
                                 var authentication = HttpContext.Current.GetOwinContext().Authentication;
@@ -127,38 +137,32 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
 
                                 Rock.Security.Authorization.SetAuthCookie(tbUserName.Text, cbRememberMe.Checked, false);
 
-                                List<Claim> claims = new List<Claim>
+                                CreateOAuthIdentity(userLogin);
+
+                                if (!string.IsNullOrEmpty(PageParameter("ReturnUrl")) && IsLocalUrl(PageParameter("ReturnUrl")))
                                 {
-                                    new Claim(ClaimsIdentity.DefaultNameClaimType, tbUserName.Text),
-                                    new Claim("First_Name", userLogin.Person.FirstName),
-                                    new Claim("Nick_Name", userLogin.Person.NickName),
-                                    new Claim("Last_Name", userLogin.Person.LastName),
-                                    //new Claim("Gender", person.Gender),
-                                    //new Claim("Birthdate", person.BirthDate == null ? null : ((DateTime)person.BirthDate).ToShortDateString()),
-                                    //new Claim("PersonId", person.PersonID.ToString()),  
-                                    //new Claim("Primary_Email", person.Emails.FirstOrDefault().Address)
-
-                                };
-
-                                authentication.SignIn(new AuthenticationProperties { IsPersistent = cbRememberMe.Checked },
-                                    new ClaimsIdentity(claims.ToArray(), "Application"));
+                                    Response.Redirect(PageParameter("ReturnUrl"));
+                                } else
+                                {
+                                    
+                                }
                             }
                             else
-                            { 
+                            {
                                 var globalMergeFields = Rock.Web.Cache.GlobalAttributesCache.GetMergeFields(null);
 
-                                if ( userLogin.IsLockedOut ?? false )
+                                if (userLogin.IsLockedOut ?? false)
                                 {
-                                    lLockedOutCaption.Text = GetAttributeValue( "LockedOutCaption" ).ResolveMergeFields( globalMergeFields );
+                                    lLockedOutCaption.Text = GetAttributeValue("LockedOutCaption").ResolveMergeFields(globalMergeFields);
 
                                     pnlLogin.Visible = false;
                                     pnlLockedOut.Visible = true;
                                 }
                                 else
                                 {
-                                    SendConfirmation( userLogin );
+                                    SendConfirmation(userLogin);
 
-                                    lConfirmCaption.Text = GetAttributeValue( "ConfirmCaption" ).ResolveMergeFields( globalMergeFields );
+                                    lConfirmCaption.Text = GetAttributeValue("ConfirmCaption").ResolveMergeFields(globalMergeFields);
 
                                     pnlLogin.Visible = false;
                                     pnlConfirmation.Visible = true;
@@ -192,7 +196,7 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
         /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
         protected void btnNewAccount_Click( object sender, EventArgs e )
         {
-            string returnUrl = Request.QueryString["returnurl"];
+            string returnUrl = Server.UrlEncode(Request.QueryString["returnurl"]);
 
             if ( !string.IsNullOrWhiteSpace( GetAttributeValue( "NewAccountPage" ) ) )
             {
@@ -200,7 +204,7 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
                 
                 if ( !string.IsNullOrWhiteSpace( returnUrl ) )
                 {
-                    parms.Add( "returnurl", returnUrl );
+                    parms.Add( "returnurl", returnUrl);
                 }
 
                 NavigateToLinkedPage( "NewAccountPage", parms );
@@ -278,6 +282,51 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
             Email.Send( GetAttributeValue( "ConfirmAccountTemplate" ).AsGuid(), recipients, ResolveRockUrl( "~/" ), ResolveRockUrl( "~~/" ), false );
         }
 
+        private void CreateOAuthIdentity(UserLogin userLogin)
+        {
+
+
+            var authentication = HttpContext.Current.GetOwinContext().Authentication;
+
+            List<Claim> claims = new List<Claim>
+                                {
+                                    new Claim(ClaimsIdentity.DefaultNameClaimType, tbUserName.Text),
+                                    new Claim("First_Name", userLogin.Person.FirstName),
+                                    new Claim("Nick_Name", userLogin.Person.NickName),
+                                    new Claim("Last_Name", userLogin.Person.LastName),
+                                    //new Claim("Gender", person.Gender),
+                                    //new Claim("Birthdate", person.BirthDate == null ? null : ((DateTime)person.BirthDate).ToShortDateString()),
+                                    //new Claim("PersonId", person.PersonID.ToString()),  
+                                    //new Claim("Primary_Email", person.Emails.FirstOrDefault().Address)
+
+                                };
+
+            authentication.SignIn(new AuthenticationProperties { IsPersistent = cbRememberMe.Checked },
+                new ClaimsIdentity(claims.ToArray(), "OAuth"));
+
+
+        }
+        private bool IsLocalUrl(string url)
+        {
+            if (string.IsNullOrEmpty(url))
+            {
+                return false;
+            }
+
+            Uri absoluteUri;
+            if (Uri.TryCreate(url, UriKind.Absolute, out absoluteUri))
+            {
+                return String.Equals(this.Request.Url.Host, absoluteUri.Host,
+                            StringComparison.OrdinalIgnoreCase);
+            }
+            else
+            {
+                bool isLocal = !url.StartsWith("http:", StringComparison.OrdinalIgnoreCase)
+                    && !url.StartsWith("https:", StringComparison.OrdinalIgnoreCase)
+                    && Uri.IsWellFormedUriString(url, UriKind.Relative);
+                return isLocal;
+            }
+        }
         #endregion
     }
 }

@@ -134,7 +134,7 @@ namespace org.secc.OAuth
                 try
                 {
                     // TODO:  Check to see if the person is authenticated to Rock
-                    if (false )
+                    if (true )
                     {
                         context.Validated();
                     }
