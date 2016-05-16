@@ -21,7 +21,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 {
 
     [DisplayName("Capital Request Detail")]
-    [Category("Purchasing")]
+    [Category("SECC > Purchasing")]
     [Description("Capital Request Detail page (display/edit a single CR).")]
     [LinkedPage("List Page", "The page that displays the capital request list.", true)]
     [LinkedPage("Person Detail Page", "Person Detail Page", false)]

@@ -20,7 +20,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 {
 
     [DisplayName("Purchase Order Detail")]
-    [Category("Purchasing")]
+    [Category("SECC > Purchasing")]
     [Description("Manage a single Purchase Order.")]
 
     [TextField("Default Ship To Name", "Default value for Ship to (company) name. Setting defaults to Southeast Christian Church", false, "Southeast Christian Church", "Ship To")]

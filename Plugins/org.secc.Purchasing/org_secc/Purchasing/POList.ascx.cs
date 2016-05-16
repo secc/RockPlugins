@@ -20,7 +20,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 {
 
     [DisplayName("Purchase Order List")]
-    [Category("Purchasing")]
+    [Category("SECC > Purchasing")]
     [Description("Lists/filters all Purchase Orders.")]
 
     [LinkedPage("Purchase Order Detail Page", "Purchase Order Detail Page", true)]
