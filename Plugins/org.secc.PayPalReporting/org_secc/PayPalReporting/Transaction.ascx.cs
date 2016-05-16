@@ -6,7 +6,7 @@ using Rock;
 namespace RockWeb.Plugins.org_secc.PayPalReporting { 
 
     [DisplayName("PayPal Reporting Transaction")]
-    [Category("Finance")]
+    [Category("SECC > Finance")]
     [Description("Provides a way to view and edit transactions in the Custom PayPal Reporting table.")]
     public partial class Transaction : Rock.Web.UI.RockBlock
     {
