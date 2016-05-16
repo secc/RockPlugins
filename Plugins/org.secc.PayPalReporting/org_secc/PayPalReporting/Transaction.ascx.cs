@@ -4,13 +4,13 @@ using System.ComponentModel;
 using Rock;
 
 namespace RockWeb.Plugins.org_secc.PayPalReporting { 
+
+    [DisplayName("PayPal Reporting Transaction")]
+    [Category("Finance")]
+    [Description("Provides a way to view and edit transactions in the Custom PayPal Reporting table.")]
     public partial class Transaction : Rock.Web.UI.RockBlock
     {
         int transactionId = 0;
-
-        [DisplayName("PayPal Reporting Transaction")]
-        [Category("PayPal Reporting")]
-        [Description("Provides a way to view and edit transactions in the Custom PayPal Reporting table.")]
         protected void Page_Load(object sender, EventArgs e)
         {
             transactionId = PageParameter("TransactionId").AsInteger();
