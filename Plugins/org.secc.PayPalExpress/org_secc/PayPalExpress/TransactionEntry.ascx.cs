@@ -39,7 +39,7 @@ namespace org.secc.PayPalExpress
     /// Add a new one-time or scheduled transaction
     /// </summary>
     [DisplayName("Transaction Entry with PayPal Express")]
-    [Category("Finance")]
+    [Category("SECC > Finance")]
     [Description("Creates a new financial transaction or scheduled transaction including PayPal Express.")]
     [FinancialGatewayField("PayPal Express Gateway", "The PayPal Express gateway.", false, "", "", 1, "PayPalExpressGateway")]
     #endregion
