@@ -22,6 +22,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     [IntegerField("Refresh Interval", "How often (seconds) should page automatically query server for new Check-in data", false, 10)]
     [TextField("Search Regex", "Regular Expression to run the search input through before sending it to the workflow. Useful for stripping off characters.", false)]
     [DefinedValueField(Rock.SystemGuid.DefinedType.CHECKIN_SEARCH_TYPE, "Search Type", "The type of search to use for check-in (default is phone number).", true, false, Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER, order: 4)]
+    [CodeEditorField("Default Content", "Default content to display", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, true, "", "",12)]
     public partial class QuickSearch : CheckInBlock
     {
 
@@ -80,6 +81,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 SaveState();
                 Session["BlockGuid"] = BlockCache.Guid;
                 RefreshView();
+                ltContent.Text = GetAttributeValue( "DefaultContent" );
             }
         }
 
