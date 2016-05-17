@@ -20,7 +20,7 @@ using org.secc.Purchasing;
 namespace RockWeb.Plugins.org_secc.Purchasing
 {
     [DisplayName("Capital Request List")]
-    [Category("Purchasing")]
+    [Category("SECC > Purchasing")]
     [Description("Lists all capital requests.")]
     [LinkedPage("Capital Request Detail Page", "Page that shows the details of a selected capital request.", true)]
     [DefinedTypeField("Ministry Area Lookup Type", "The Lookup Type that contains the ministry lookup values.", true)]

@@ -20,7 +20,7 @@ using System.ComponentModel;
 namespace RockWeb.Plugins.org_secc.Purchasing
 {
     [DisplayName("Vendor List")]
-    [Category("Purchasing")]
+    [Category("SECC > Purchasing")]
     [Description("List all vendors in the SECC Purchasing system.")]
 
     [LinkedPage("Vendor Detail Page", "Vendor Detail Page", true)]

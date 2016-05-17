@@ -21,7 +21,7 @@ using Rock.Data;
 namespace RockWeb.Plugins.org_secc.Purchasing
 {
     [DisplayName("Requisition Detail")]
-    [Category("Purchasing")]
+    [Category("SECC > Purchasing")]
     [Description("Requisition Details page (display/edit a single Req).")]
 
     [TextField("New Requisition Title", "Title to show for new requisitions", false, "", "General")]

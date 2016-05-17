@@ -13,7 +13,7 @@ using System.ComponentModel;
 namespace RockWeb.Plugins.org_secc.Purchasing
 {
     [DisplayName("Vendor Detail")]
-    [Category("Purchasing")]
+    [Category("SECC > Purchasing")]
     [Description("View/Edit a specific vendor.")]
     public partial class VendorDetail : RockBlock
     {

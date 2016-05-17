@@ -19,7 +19,7 @@ using org.secc.Purchasing;
 namespace RockWeb.Plugins.org_secc.Purchasing
 {
     [DisplayName("Requisition List")]
-    [Category("Purchasing")]
+    [Category("SECC > Purchasing")]
     [Description("Lists all requisitions.")]
     [LinkedPage("Requisition Detail Page", "Requisition Detail Page.", true)]
     [AttributeField(Rock.SystemGuid.EntityType.PERSON, "Ministry Location Person Attribute", "The person attribute that stores the user's Location.", false, false, null, "Staff Selector")]

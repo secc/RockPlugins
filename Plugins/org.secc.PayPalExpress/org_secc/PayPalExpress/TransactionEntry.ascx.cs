@@ -39,7 +39,7 @@ namespace org.secc.PayPalExpress
     /// Add a new one-time or scheduled transaction
     /// </summary>
     [DisplayName("Transaction Entry with PayPal Express")]
-    [Category("Finance")]
+    [Category("SECC > Finance")]
     [Description("Creates a new financial transaction or scheduled transaction including PayPal Express.")]
     [FinancialGatewayField("PayPal Express Gateway", "The PayPal Express gateway.", false, "", "", 1, "PayPalExpressGateway")]
     #endregion
@@ -61,6 +61,7 @@ namespace org.secc.PayPalExpress
             {
                 _payPalExpressGateway = GetGateway(rockContext, "PayPalExpressGateway");
                 _payPalExpressGatewayComponent = GetGatewayComponent(rockContext, _payPalExpressGateway);
+                SetTargetPerson(rockContext);
             }
             if (PageParameter("token") != String.Empty && PageParameter("PayerID") != string.Empty)
             {
@@ -100,6 +101,7 @@ namespace org.secc.PayPalExpress
         }
         protected override void OnLoad(EventArgs e)
         {
+
             if (Page.IsPostBack)
             {
                 if (RockTransactionEntry != null)
@@ -128,11 +130,14 @@ namespace org.secc.PayPalExpress
 
                 lPanelTitle2.Text = GetAttributeValue("PanelTitle");
                 lConfirmationTitle.Text = GetAttributeValue("ConfirmationTitle");
+                lSuccessTitle.Text = GetAttributeValue("SuccessTitle");
 
                 // Resolve the text field merge fields
                 var configValues = new Dictionary<string, object>();
                 lConfirmationHeader.Text = GetAttributeValue("ConfirmationHeader").ResolveMergeFields(configValues);
                 lConfirmationFooter.Text = GetAttributeValue("ConfirmationFooter").ResolveMergeFields(configValues);
+                lSuccessHeader.Text = GetAttributeValue("SuccessHeader").ResolveMergeFields(configValues);
+
             }
         }
 
@@ -404,6 +409,24 @@ namespace org.secc.PayPalExpress
 
         }
 
+        private void SetTargetPerson(RockContext rockContext)
+        {
+            // If impersonation is allowed, and a valid person key was used, set the target to that person
+            if (GetAttributeValue("Impersonation").AsBooleanOrNull() ?? false)
+            {
+                string personKey = PageParameter("Person");
+                if (!string.IsNullOrWhiteSpace(personKey))
+                {
+                    _targetPerson = new PersonService(rockContext).GetByUrlEncodedKey(personKey);
+                }
+            }
+
+            if (_targetPerson == null)
+            {
+                _targetPerson = CurrentPerson;
+            }
+        }
+
         private FinancialGateway GetGateway(RockContext rockContext, string attributeName)
         {
             var financialGatewayService = new FinancialGatewayService(rockContext);
@@ -629,6 +652,16 @@ namespace org.secc.PayPalExpress
                 transactionDetail.Amount = account.Amount;
                 transactionDetail.AccountId = account.Id;
                 transaction.TransactionDetails.Add(transactionDetail);
+                // Put a breakdown of the details into the transaction summary column.
+                if (transaction.Summary == null)
+                {
+                    transaction.Summary = "";
+                }
+                if (transaction.Summary.Length > 0)
+                {
+                    transaction.Summary += " ";
+                }
+                transaction.Summary += "F" + account.Id + ":" + account.Amount.FormatAsCurrency();
                 History.EvaluateChange(txnChanges, account.Name, 0.0M.FormatAsCurrency(), transactionDetail.Amount.FormatAsCurrency());
             }
 

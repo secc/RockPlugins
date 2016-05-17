@@ -18,7 +18,7 @@ using System.ComponentModel;
 namespace RockWeb.Plugins.org_secc.Purchasing
 {
     [DisplayName("Payment Method List")]
-    [Category("Purchasing")]
+    [Category("SECC > Purchasing")]
     [Description("List all payment methods in the SECC Purchasing system.")]
 
     [BooleanField("Show Active By Default", "Show only active payment methods by default.", true)]
