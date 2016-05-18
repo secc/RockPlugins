@@ -290,7 +290,7 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
 
             List<Claim> claims = new List<Claim>
                                 {
-                                    new Claim(ClaimsIdentity.DefaultNameClaimType, tbUserName.Text),
+                                    new Claim(ClaimsIdentity.DefaultNameClaimType, userLogin.UserName),
                                     new Claim("First_Name", userLogin.Person.FirstName),
                                     new Claim("Nick_Name", userLogin.Person.NickName),
                                     new Claim("Last_Name", userLogin.Person.LastName),

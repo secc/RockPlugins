@@ -7,14 +7,14 @@
 
             <div class="row">
                 <div class="col-md-10 col-md-offset-1">
-                    <h4>Authorization for <asp:PlaceHolder ID="phClientName" runat="server" /></h4>
+                    <h4>Authorization for <asp:Literal ID="lClientName" runat="server" /></h4>
                     <form method="POST">
-                        <p><br />Hello <asp:PlaceHolder ID="phUsername" runat="server" />,</p>
-                        <p><asp:PlaceHolder ID="phClientName2" runat="server" /> wants to access the following information on your behalf:</p>
+                        <p><br />Hello <asp:Literal ID="lUsername" runat="server" />,</p>
+                        <p><asp:Literal ID="lClientName2" runat="server" /> wants to access the following information on your behalf:</p>
                         <ul>
                             <asp:Repeater ID="rptScopes" runat="server">
                                 <ItemTemplate>
-                                    <li> @scope.ScopeIdentifier - @scope.Description</li>
+                                    <li><%# Eval("Identifier") %> - <%# Eval("Description") %></li>
                                 </ItemTemplate>
                             </asp:Repeater>
                         </ul>
@@ -22,8 +22,7 @@
                             <input type="submit" name="submit.Grant" class="btn-normal pull-right" value="Grant and Continue" />
                         </p>
                         <p style="margin-top: 150px">
-                            If you this is not your account, please
-                            <input type="submit" name="submit.Login" style="text-decoration: underline" value="click here" /> to sign in as different user.
+                            If you this is not your account, please <asp:LinkButton ID="logout" runat="server">logout</asp:LinkButton> to sign in as different user.
                         </p>
                     </form>
                 </div>

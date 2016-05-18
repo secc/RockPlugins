@@ -29,6 +29,9 @@ using Rock.Web.UI.Controls;
 using System.Web;
 using System.Security.Claims;
 using Microsoft.Owin.Security;
+using System.Linq;
+using org.secc.OAuth.Model;
+using org.secc.OAuth.Data;
 
 namespace RockWeb.Plugins.org_secc.OAuth
 {
@@ -64,37 +67,60 @@ namespace RockWeb.Plugins.org_secc.OAuth
             var ticket = authentication.AuthenticateAsync("OAuth").Result;
             var identity = ticket != null ? ticket.Identity : null;
             string userName = null;
-            string apiSession = null;
-            bool scopesApproved = false;
-            /*List<Models.ScopeSummary> ScopesNeedingApproval = new List<Models.ScopeSummary>();
             string[] authorizedScopes = null;
             var scopes = (Request.QueryString.Get("scope") ?? "").Split(' ');
             bool scopesApproved = false;
-            OAuthClient oauthClient = null;
-            */
             if (identity == null)
             {
                 authentication.Challenge("OAuth");
                 Response.Redirect("/page/4569?ReturnUrl="+ Server.UrlEncode(Request.RawUrl), true);
             }
-            /*else
+            else
             {
-                userName = identity.Name;
-                apiSession = identity.Claims
-                                        .Where(c => c.Type == "session_id")
-                                        .Select(c => c.Value)
-                                        .FirstOrDefault();
-
-                oauthClient = GetOAuthClient(apiSession);
-
-                authorizedScopes = GetAuthorizedScopes(apiSession);
-                if (authorizedScopes != null && scopes.Where(s => !authorizedScopes.Select(a => a.ToLower()).Contains(s.ToLower())).Count() == 0)
+                OAuthContext context = new OAuthContext();
+                ClientService clientService = new ClientService(context);
+                Client OAuthClient = clientService.GetByApiKey(PageParameter("client_id").AsGuid());
+                if (OAuthClient != null)
                 {
-                    scopesApproved = true;
-                }
+                    ClientScopeService clientScopeService = new ClientScopeService(context);
 
+                    userName = identity.Name;
+                    AuthorizationService authorizationService = new AuthorizationService(context);
+                
+                    authorizedScopes = authorizationService.Queryable().Where(a => a.Client.Id == OAuthClient.Id && a.UserLogin.UserName == identity.Name).Select(a => a.Scope.Identifier).ToArray<string>();
+                    if (authorizedScopes != null && scopes.Where(s => !authorizedScopes.Select(a => a.ToLower()).Contains(s.ToLower())).Count() == 0)
+                    {
+                        scopesApproved = true;
+                    }
+
+                    if (scopesApproved)
+                    {
+                        identity = new ClaimsIdentity(identity.Claims, "Bearer", identity.NameClaimType, identity.RoleClaimType);
+
+                        //only allow claims that have been requested and the client has been authorized for
+                        foreach (var scope in scopes.Where(s => clientScopeService.Queryable().Where(cs => cs.ClientId == OAuthClient.Id).Select(cs => cs.Scope.Identifier.ToLower()).Contains(s.ToLower())))
+                        {
+                            identity.AddClaim(new Claim("urn:oauth:scope", scope));
+                        }
+                        authentication.SignIn(identity);
+                    }
+                    else
+                    {
+                        rptScopes.DataSource = clientScopeService.Queryable().Where(cs => cs.ClientId == OAuthClient.Id).Select(s => s.Scope).ToList();
+                        rptScopes.DataBind();
+                    }
+                        
+
+
+                    lClientName.Text = OAuthClient.ClientName;
+                    lClientName2.Text = OAuthClient.ClientName;
+                    lUsername.Text = CurrentUser.Person.FullName + " ("+userName+")";
+                } else
+                {
+                    throw new Exception("Invalid Client ID for OAuth authentication.");
+                }
             }
-            */
+
             if (Request.HttpMethod == "POST")
             {
                 if (!string.IsNullOrEmpty(Request.Form.Get("submit.Grant")))
@@ -121,53 +147,12 @@ namespace RockWeb.Plugins.org_secc.OAuth
                 }
             }
 
-            if (scopesApproved)
-            {
-                identity = new ClaimsIdentity(identity.Claims, "Bearer", identity.NameClaimType, identity.RoleClaimType);
-
-                //only allow claims that have been requested and the client has been authorized for
-                /*foreach (var scope in scopes.Where(s => oauthClient.Scopes.Select(cs => cs.Identifier.ToLower()).Contains(s.ToLower())))
-                {
-                    identity.AddClaim(new Claim("urn:oauth:scope", scope));
-                }*/
-                authentication.SignIn(identity);
-            }
-            else
-            {
-                /*if (oauthClient != null)
-                {
-                    ViewBag.ClientName = oauthClient.Name;
-                    ScopesNeedingApproval.AddRange(oauthClient.Scopes.Where(cs => scopes.Select(s => s.ToLower()).Contains(cs.Identifier.ToLower()))
-                        .Select(cs => new Models.ScopeSummary { ScopeID = cs.ScopeID, ScopeIdentifier = cs.Identifier, Description = cs.Description }).ToList());
-                }*/
-            }
             //ViewBag.ScopesNeedingApproval = ScopesNeedingApproval;
 
         }
 
         #endregion
 
-
-        #region Methods
         
-        private string[] GetAuthorizedScopes(string apiSession)
-        {
-            /*
-            ApiClient apiClient = new ApiClient(apiSession);
-            string clientApiKey = Request.QueryString["client_id"];
-
-            try
-            {
-                GenericListResult<OAuthAuthorization> auths = apiClient.getOAuthUserAuthorizations(clientApiKey);
-                return auths.Items.Select(a => a.ScopeIdentifier).ToArray();
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-            */
-            return null;
-        }
-        #endregion
     }
 }

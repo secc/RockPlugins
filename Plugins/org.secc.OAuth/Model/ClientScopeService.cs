@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace org.secc.OAuth.Model
 {
-    public class ClientScopeService : OAuthService<Client>
+    public class ClientScopeService : OAuthService<ClientScope>
     {
 
         /// <summary>

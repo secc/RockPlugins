@@ -5,11 +5,11 @@ using System.Linq;
 
 namespace org.secc.OAuth.Model
 {
-    public class AuthorizationService : OAuthService<Client>
+    public class AuthorizationService : OAuthService<Authorization>
     {
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ClientScopeService"/> class.
+        /// Initializes a new instance of the <see cref="AuthorizationService"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
         public AuthorizationService(OAuthContext context) : base( context ) { }

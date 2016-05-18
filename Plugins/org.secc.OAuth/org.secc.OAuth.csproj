@@ -75,6 +75,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Web.Http, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\Microsoft.AspNet.WebApi.Core.5.2.3\lib\net45\System.Web.Http.dll</HintPath>
       <Private>True</Private>
@@ -93,6 +94,10 @@
   <ItemGroup>
     <Compile Include="Data\OAuthContext.cs" />
     <Compile Include="Data\OAuthService.cs" />
+    <Compile Include="Migrations\201605171249414_InitialCreate.cs" />
+    <Compile Include="Migrations\201605171249414_InitialCreate.Designer.cs">
+      <DependentUpon>201605171249414_InitialCreate.cs</DependentUpon>
+    </Compile>
     <Compile Include="Model\Authorization.cs" />
     <Compile Include="Model\AuthorizationService.cs" />
     <Compile Include="Model\Scope.cs" />
@@ -117,6 +122,15 @@
       <Project>{8f8c2a79-24f4-4157-8b99-45f75fa85799}</Project>
       <Name>Rock</Name>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)\Rock.Migrations\Rock.Migrations.csproj">
+      <Project>{957B1DBE-B921-4FAE-8E5E-B7AD7F01B161}</Project>
+      <Name>Rock.Migrations</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\201605171249414_InitialCreate.resx">
+      <DependentUpon>201605171249414_InitialCreate.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

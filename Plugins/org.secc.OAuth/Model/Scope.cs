@@ -4,7 +4,7 @@ namespace org.secc.OAuth.Model
     using System.ComponentModel.DataAnnotations;
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Runtime.Serialization;
-    [Table("_org_secc_OAuth_ClientScope")]
+    [Table("_org_secc_OAuth_Scope")]
     public partial class Scope : Rock.Data.Model<Scope>, Rock.Security.ISecured
     {
         [StringLength(255)]
@@ -12,7 +12,7 @@ namespace org.secc.OAuth.Model
         public string Identifier { get; set; }
         
         [DataMember]
-        public Guid Description { get; set; }
+        public string Description { get; set; }
 
         [DataMember]
         public bool Active { get; set; }

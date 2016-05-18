@@ -11,10 +11,9 @@ using Microsoft.Owin.Security.Infrastructure;
 using Microsoft.Owin.Security.OAuth;
 using Owin;
 
-[assembly: OwinStartup("OAuthPlugin", typeof(org.secc.OAuth.Startup))]
 namespace org.secc.OAuth
 {
-    public partial class Startup
+    public partial class Startup : Rock.Plugin.IStartup
     {
         public void ConfigureAuth( IAppBuilder app )
         {
@@ -224,7 +223,6 @@ namespace org.secc.OAuth
         public void Configuration(IAppBuilder app)
         {
             ConfigureAuth(app);
-            app.MapSignalR();
         }
     }
 }
