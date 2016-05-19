@@ -13,13 +13,6 @@
     .close {
         visibility: hidden;
     }
-
-    .header {
-        border-radius: 3px;
-        background-color: #F5F5F5;
-        padding: 20px;
-        margin-bottom: 15px;
-    }
 </style>
 
 <asp:UpdatePanel ID="upContent" runat="server">
@@ -62,7 +55,7 @@
                         success.style.transform = "translateY(-90vh)";
                         __doPostBack("<%= btnCheckin.UniqueID%>", "OnClick");
                     }, 0
-            )
+                )
             }
 
         </script>
@@ -78,23 +71,21 @@
             <div class="container" id="quickCheckinContainer">
                 <div id="pgtSelect">
                     <h1>
-                        <asp:Literal ID="ltMessage" Text="Where would you like to check-in to today?" runat="server" />
+                        <asp:Literal ID="ltMessage" Text="" runat="server" />
                     </h1>
                     <asp:PlaceHolder runat="server" ID="phPgtSelect"></asp:PlaceHolder>
                 </div>
                 <div class="container" id="quickCheckinContent">
-                    <div style="margin: 0px auto; width: 1410px">
+                    <div id="quickCheckinPeople">
                         <div class="header">
                             <span class="ParentGroupTypeHeader">
                                 <Rock:BootstrapButton CssClass="headerPgt" ID="btnParentGroupTypeHeader" OnClick="btnParentGroupTypeHeader_Click"
                                     runat="server">
                                 </Rock:BootstrapButton>
                             </span>
-                            <span class="pull-right" style="padding-top: 10px;">
                                 <a href="javascript:doCheckin()" class="btn btn-lg btn-primary doCheckin">Check-In</a>
                                 <Rock:BootstrapButton runat="server" Visible="false" ID="btnCheckin" CssClass="btn btn-lg btn-primary" OnClick="btnCheckin_Click"></Rock:BootstrapButton>
 
-                            </span>
                         </div>
                         <asp:PlaceHolder runat="server" ID="phPeople" />
                     </div>
