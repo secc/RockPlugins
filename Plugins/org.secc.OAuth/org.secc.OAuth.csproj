@@ -95,9 +95,6 @@
     <Compile Include="Data\OAuthContext.cs" />
     <Compile Include="Data\OAuthService.cs" />
     <Compile Include="Migrations\201605171249414_InitialCreate.cs" />
-    <Compile Include="Migrations\201605171249414_InitialCreate.Designer.cs">
-      <DependentUpon>201605171249414_InitialCreate.cs</DependentUpon>
-    </Compile>
     <Compile Include="Model\Authorization.cs" />
     <Compile Include="Model\AuthorizationService.cs" />
     <Compile Include="Model\Scope.cs" />
@@ -126,11 +123,6 @@
       <Project>{957B1DBE-B921-4FAE-8E5E-B7AD7F01B161}</Project>
       <Name>Rock.Migrations</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Migrations\201605171249414_InitialCreate.resx">
-      <DependentUpon>201605171249414_InitialCreate.cs</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
