@@ -25,7 +25,7 @@
 @font-weight-bold: 700;
 @font-weight-semibold: 600;
 
-@bg-color: #4b5c65;
+@bg-color: #FFC074;
 @text-color: #000;
 
 @modal-body-bg: @bg-color;
@@ -126,6 +126,10 @@ body {
     overflow: hidden;
 }
 
+.btn-success {
+    background-color:#12A158;
+}
+
 #signOuter {
     z-index: 99;
     transition: ease-out .1s;
@@ -196,7 +200,7 @@ body {
     position: relative;
     top: 50%;
     transform: translateY(-50%);
-    color:rgba(142, 34, 0,0.8);
+    color: rgba(142, 34, 0,0.8);
     text-shadow: 1px 1px 3px #FFC074, 0px 0px 0px #000, 1px 1px 3px #FFC074;
 }
 
@@ -313,7 +317,7 @@ body {
     border: solid 5px #F17148;
     padding: 5px 30px;
     font-size: 1.6em;
-    box-shadow: 3px 3px 1px black;
+    box-shadow: 3px 3px 1px black, inset 2px 2px 0px #232323;
 }
 
 #familyDiv {
@@ -327,8 +331,8 @@ body {
 
 .familyButton {
     padding: 15px 0px;
-    margin:5px;
-    width:90%;
+    margin: 5px;
+    width: 90%;
     background-color: #DB562D;
     border: 0px;
     border-radius: 3px;
@@ -340,7 +344,7 @@ body {
 }
 
 #familyDiv h2 {
-    margin:0px;
+    margin: 0px;
     font-weight: 600;
     color: rgba(255,255,255,0.8);
     text-shadow: .5px .5px 1px #4b5c65, 0 0 0 #000, .5px .5px 1px #4b5c65;
@@ -348,11 +352,184 @@ body {
 
 #familyDiv .btn-success {
     padding: 15px 0px;
-    margin:5px;
-    width:90%;
+    margin: 5px;
+    width: 90%;
     background-color: #12A158;
     border: 0px;
     box-shadow: 1px 1px 2px;
     border-radius: 3px;
     box-shadow: 2px 2px 1px black;
+}
+
+#quickCheckinContainer {
+    max-width: 1400px;
+    margin: 0px auto;
+    height: 100vh;
+    overflow-x: hidden;
+}
+
+#pgtSelect {
+    text-align: center;
+    position: relative;
+}
+
+#pgtSelect h1 {
+    font-weight: 600;
+    font-size: 6em;
+    color: rgba(255, 255, 255,0.8);
+    text-shadow: 1px 4px 6px #558EB0, 0 0 0 #000, 1px 4px 6px #558EB0;
+}
+
+#quickCheckinContent {
+    position: absolute;
+    top: 0px;
+    left: -100vw;
+    width: 100vw;
+    padding-bottom: 50px;
+    overflow-y: auto;
+}
+
+#quickCheckinPeople {
+    max-width: 1400px;
+    margin: 0px auto;
+}
+
+.pgtSelectButton, .pgtSelectButton:hover {
+    font-size: 5em;
+    padding: 15px 0px;
+    margin: 25px;
+    width: 90%;
+    background-color: #DB562D;
+    border: 0px;
+    border-radius: 3px;
+    color: white;
+    box-shadow: 2px 2px 1px black;
+}
+
+.pgtSelectButton:active {
+    box-shadow: -2px -2px 1px black;
+}
+
+.checkinPerson span {
+    font-size: 1.4em;
+}
+
+.checkinPersonSelected, .checkinPersonSelected:hover {
+    box-shadow: 1px 1px 1px black;
+    border: 3px solid #12A158;
+    text-shadow: 1px 2px 4px #56BE89, 0 0 0 #000, 1px 2px 4px #56BE89;
+    background-color: #12A158;
+}
+
+.checkinPersonSelected:active {
+    box-shadow: none;
+}
+
+.checkinPersonNotSelected {
+    box-shadow: inset 1px 1px 1px black;
+    border: 3px solid #DB562D;
+    color: #DB562D;
+}
+
+.doCheckin, .doCheckin:hover, .doCheckin:active {
+    border: none;
+    color: white;
+    text-shadow: 1px 2px 4px #56BE89, 0 0 0 #000, 1px 2px 4px #56BE89;
+    font-size: 3em;
+    background-color: #12A158;
+    box-shadow: 2px 2px 1px black;
+    margin-top: 1vw;
+    float: right;
+}
+
+.doCheckin:active {
+    box-shadow: -2px -2px 1px black;
+}
+
+.header {
+    background-image: url("../Assets/Images/header.png");
+    background-size: contain;
+    background-position: center top;
+    background-repeat: no-repeat;
+    margin: 15px;
+    padding: 3.5vw 40px 0px 40px;
+    height: 183px;
+}
+
+@media only screen and (max-width: 1200px) {
+    .header {
+        height: auto;
+        padding: 10px;
+        background-image: url("../Assets/Images/headerSmall.png");
+        background-size: cover;
+        background-position: center top;
+        background-repeat: no-repeat;
+        border: solid 7px #F17148;
+        box-shadow: 2px 2px 0px black, inset 2px 2px 0px black;
+        border-radius: 3px;
+    }
+}
+
+.personContainer {
+    margin-bottom: 20px;
+    border-radius: 5px;
+    background-color: rgba(230, 74, 25,0.1);
+    padding: 25px;
+}
+
+.ParentGroupTypeHeader a, .ParentGroupTypeHeader a:hover, .modal h1 {
+    display: inline;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 5em;
+    text-decoration: none;
+    color: rgba(219,85,45,0.8);
+    text-shadow: 1px 1px 3px #FFC074, 0px 0px 0px #000, 1px 1px 3px #FFC074;
+}
+
+
+.cancelButton {
+    position: absolute;
+    top: 0px;
+    height: 60px;
+    left: 0px;
+}
+
+.cancelButton a {
+    color: #176593;
+}
+
+.scheduleSelected {
+    background-color: #DB562D;
+    border: none;
+    box-shadow: 1px 1px 1px black;
+}
+
+.scheduleNotSelected {
+    border-color: #DB562D;
+}
+
+.rock-modal {
+    width: 90vw;
+    height: 90vh;
+    box-shadow:3px 3px 1px black;
+}
+
+.modal-content.rock-modal  {
+    border: 7px solid #F17148;
+}
+
+.successModal {
+    display: none;
+    position: absolute;
+    width: 70vw;
+    left: 15vw;
+    top: 100vh;
+    box-shadow:3px 3px 1px black;
+    border: 7px solid #F17148;
+    background-color:#FFC074;
+    font-weight: bold;
+    font-size: 5em;
+    color: rgba(219,85,45,0.8);
+    text-shadow: 1px 1px 3px #FFC074, 0px 0px 0px #000, 1px 1px 3px #FFC074;
 }

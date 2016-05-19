@@ -22,7 +22,7 @@ using Rock.Data;
 namespace RockWeb.Plugins.org_secc.FamilyCheckin
 {
     [DisplayName( "QuickCheckin" )]
-    [Category( "Check-in" )]
+    [Category( "SECC > Check-in" )]
     [Description( "QuickCheckin block for helping parents check in their family quickly." )]
     [TextField("Preselect Activity", "Activity for preselecting classes.", false)]
 
@@ -42,6 +42,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 NavigateToHomePage();
             }
 
+            mdChoose.Header.Visible = false;
             mdChoose.Footer.Visible = false;
         }
 
@@ -71,11 +72,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     .Where( pgt => pgt.ChildGroupTypes.Count() > 1 ).DistinctBy( pgt => pgt.Guid ).ToList();
                 Session["parentGroupTypesList"] = parentGroupTypesList;
 
-
-
-
                 currentParentGroupType = getCurrentParentGroupType();
-
 
                 Session["currentParentGroupType"] = currentParentGroupType;
                 Session["selectPgt"] = true;
@@ -348,7 +345,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                         btnRoom.ID = "c" + person.Guid.ToString() + schedule.Schedule.Guid.ToString() + room.Location.Guid.ToString();
                         btnRoom.Text = groupType.GroupType.Name + ": " + group.Group.Name + "<br>" +
                             room.Location.Name + " - Count: " + KioskLocationAttendance.Read( room.Location.Id ).CurrentCount;
-                        btnRoom.CssClass = "btn btn-default btn-block btn-lg";
+                        btnRoom.CssClass = "btn btn-success btn-block btn-lg";
                         btnRoom.Click += ( s, e ) =>
                         {
                             ChangeRoomSelection( person, schedule, groupType, group, room );

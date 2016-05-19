@@ -5,14 +5,6 @@
         margin-left: 0px;
     }
 
-    .modal {
-        width: 90vw;
-        height: 90vh;
-    }
-
-    .close {
-        visibility: hidden;
-    }
 </style>
 
 <asp:UpdatePanel ID="upContent" runat="server">
@@ -62,6 +54,7 @@
         <asp:Panel ID="pnlMain" runat="server" Style="margin-top: 10px;">
             <Rock:ModalDialog ID="mdChoose" CssClass="modal" runat="server">
                 <Content>
+                    <h1>Select Room To Check-in To:</h1>
                     <div class="row">
                         <asp:PlaceHolder runat="server" ID="phModal" />
                     </div>
