@@ -179,6 +179,9 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             btnParentGroupTypeHeader.Text = currentParentGroupType.Name;
             btnParentGroupTypeHeader.DataLoadingText = currentParentGroupType.Name + " <i class='fa fa-refresh fa-spin'>";
 
+            //Ensure all people are selected
+            CurrentCheckInState.CheckIn.Families.SelectMany( f => f.People ).ToList().ForEach(p => p.Selected=true);
+
             //Show updated people info
             phPeople.Controls.Clear();
             DisplayPeople();
@@ -204,15 +207,15 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     person.Selected = false;
                     SaveState();
                 }
-                //Display person checkin informatoni
+                //Display person checkin information
                 if ( GetCheckinSchedules( person.Person ).Count() > 0 )
                 {
                     HtmlGenericControl hgcPadding = new HtmlGenericControl( "div" );
-                    hgcPadding.AddCssClass( "col-xs-12 col-md-6" );
+                    hgcPadding.AddCssClass( "col-xs-12 col-lg-6" );
                     hgcRow.Controls.Add( hgcPadding );
 
                     HtmlGenericControl hgcCell = new HtmlGenericControl( "div" );
-                    hgcCell.AddCssClass( "well col-xs-12" );
+                    hgcCell.AddCssClass( "personContainer col-xs-12" );
                     hgcPadding.Controls.Add( hgcCell );
                     DisplayPersonButton( person, hgcCell );
                     DisplayPersonCheckinAreas( person.Person, hgcCell );
@@ -247,7 +250,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             BootstrapButton btnSchedule = new BootstrapButton();
             btnSchedule.Text = schedule.Schedule.Name + "<br>(Select Room To Checkin)";
             hgcAreaRow.Controls.Add( btnSchedule );
-            btnSchedule.CssClass = "btn btn-default col-xs-8";
+            btnSchedule.CssClass = "btn btn-default col-sm-8 col-xs-12 scheduleNotSelected";
             btnSchedule.ID = person.Guid.ToString() + currentParentGroupType.Guid.ToString() + schedule.Schedule.Guid.ToString();
             btnSchedule.Click += ( s, e ) => { ShowRoomChangeModal( person, schedule ); };
             btnSchedule.DataLoadingText = "<i class='fa fa-refresh fa-spin'></i><br>Loading Rooms...";
@@ -276,7 +279,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     //If a room is selected
                     if ( room != null )
                     {
-                        btnSchedule.CssClass = "btn btn-primary col-xs-8";
+                        btnSchedule.CssClass = "btn btn-primary col-xs-8 scheduleSelected";
                         btnSchedule.Text = "<b>" + schedule.Schedule.Name + "</b><br>" + group + " > " + room;
                     }
                     else
@@ -397,6 +400,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             CheckInGroupType groupType, CheckInGroup group, CheckInLocation room )
         {
             ClearRoomSelection( person, schedule );
+            CurrentCheckInState.CheckIn.Families.SelectMany( f => f.People ).Where( p => p.Person.Id == person.Id ).First().Selected = true;
             room.Selected = true;
             group.Selected = true;
             groupType.Selected = true;
@@ -404,6 +408,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             SaveState();
         }
 
+        /// <summary>
+        /// Clears all room selections from room without clearing pre-selections
+        /// </summary>
+        /// <param name="person"></param>
+        /// <param name="schedule"></param>
         private void ClearRoomSelection( Person person, CheckInSchedule schedule )
         {
             List<CheckInGroupType> groupTypes = GetGroupTypes( person, schedule );
@@ -486,7 +495,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         {
             //Padding div to make it look nice.
             HtmlGenericControl hgcPadding = new HtmlGenericControl( "div" );
-            hgcPadding.AddCssClass( "col-xs-4" );
+            hgcPadding.AddCssClass( "col-sm-4 col-xs-12" );
             hgcRow.Controls.Add( hgcPadding );
 
             //Checkin Button
@@ -504,15 +513,15 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             if ( person.Selected )
             {
-                btnPerson.DataLoadingText = icon+"<br /> Please Wait...";
-                btnPerson.Text = icon+"<br/>" + person.Person.NickName;
-                btnPerson.CssClass = "btn btn-success btn-lg col-xs-12";
+                btnPerson.DataLoadingText = icon+"<br /><span>Please Wait...</span>";
+                btnPerson.Text = icon+"<br/><span>" + person.Person.NickName+"</span>";
+                btnPerson.CssClass = "btn btn-success btn-lg col-xs-12 checkinPerson checkinPersonSelected";
             }
             else
             {
-                btnPerson.DataLoadingText = "<i class='fa fa-square-o fa-5x'></i><br /> Please Wait...";
-                btnPerson.Text = "<i class='fa fa-square-o fa-5x'></i><br/>" + person.Person.NickName;
-                btnPerson.CssClass = "btn btn-default btn-lg col-xs-12";
+                btnPerson.DataLoadingText = "<i class='fa fa-square-o fa-5x'></i><br /><span> Please Wait...</span>";
+                btnPerson.Text = "<i class='fa fa-square-o fa-5x'></i><br/><span>" + person.Person.NickName+"</span>";
+                btnPerson.CssClass = "btn btn-default btn-lg col-xs-12 checkinPerson checkinPersonNotSelected";
             }
         }
 
@@ -571,7 +580,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     {
                         
                         var checkinLocations = GetLocations( checkinPerson.Person, checkinSchedule, checkinGroupType, checkinGroup );
-                        var checkinLocation = checkinLocations.FirstOrDefault();
+                        var checkinLocation = checkinLocations.OrderBy(l => KioskLocationAttendance.Read( l.Location.Id ).CurrentCount ).FirstOrDefault();
                         if (checkinLocations.Where(l => l.PreSelected ).Any() )
                         {
                             checkinLocation = checkinLocations.Where( l => l.PreSelected ).FirstOrDefault();
