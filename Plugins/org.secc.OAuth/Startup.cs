@@ -24,8 +24,7 @@ namespace org.secc.OAuth
                     AuthenticationMode = AuthenticationMode.Active,
                     LoginPath = new PathString( AppSettingValue("OAuthLoginPath") ),
                     LogoutPath = new PathString( AppSettingValue("OAuthLogoutPath") ),
-                    SlidingExpiration = false,
-                    ExpireTimeSpan = new TimeSpan(0, 0, 30)
+                    SlidingExpiration = false
                 } );
 
             int tokenLifespan = 0;

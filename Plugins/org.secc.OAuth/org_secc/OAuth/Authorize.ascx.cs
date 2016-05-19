@@ -52,7 +52,49 @@ namespace RockWeb.Plugins.org_secc.OAuth
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
-            
+
+            // Log the user out
+            if (!String.IsNullOrEmpty(PageParameter("OAuthLogout")))
+            {
+                var authentication = HttpContext.Current.GetOwinContext().Authentication;
+                authentication.SignOut("OAuth");
+                authentication.Challenge("OAuth");
+                Response.Redirect("/page/4569?logout=true&ReturnUrl=" + Server.UrlEncode(Request.RawUrl.Replace("&OAuthLogout=true", "")));
+            }
+            if (IsPostBack)
+            {
+                if (!string.IsNullOrEmpty(Request.Form.Get("__EVENTTARGET")) && Request.Form.Get("__EVENTTARGET") == btnGrant.UniqueID)
+                {
+                    
+                    if (CurrentUser != null)
+                    {
+                        OAuthContext context = new OAuthContext();
+                        ClientService clientService = new ClientService(context);
+                        Client OAuthClient = clientService.GetByApiKey(PageParameter("client_id").AsGuid());
+                        if (OAuthClient != null && OAuthClient.Active == true)
+                        {
+                            ClientScopeService clientScopeService = new ClientScopeService(context);
+                            AuthorizationService authorizationService = new AuthorizationService(context);
+
+                            foreach (var clientScope in clientScopeService.Queryable().Where(cs => cs.ClientId == OAuthClient.Id && cs.Active == true).Select(cs => cs.Scope))
+                            {
+                                var authorization = authorizationService.Queryable().Where(a => a.Client.Id == OAuthClient.Id && a.UserLoginId == CurrentUser.Id && a.ScopeId == clientScope.Id).FirstOrDefault();
+                                if (authorization == null)
+                                {
+                                    authorization = new org.secc.OAuth.Model.Authorization();
+                                    authorizationService.Add(authorization);
+                                }
+                                authorization.Active = true;
+                                authorization.ClientId = OAuthClient.Id;
+                                authorization.UserLoginId = CurrentUser.Id;
+                                authorization.ScopeId = clientScope.Id;
+                            }
+                            context.SaveChanges();
+                            Response.Redirect(Request.RawUrl);
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -87,7 +129,7 @@ namespace RockWeb.Plugins.org_secc.OAuth
                     userName = identity.Name;
                     AuthorizationService authorizationService = new AuthorizationService(context);
                 
-                    authorizedScopes = authorizationService.Queryable().Where(a => a.Client.Id == OAuthClient.Id && a.UserLogin.UserName == identity.Name).Select(a => a.Scope.Identifier).ToArray<string>();
+                    authorizedScopes = authorizationService.Queryable().Where(a => a.Client.Id == OAuthClient.Id && a.UserLogin.UserName == identity.Name && a.Active == true).Select(a => a.Scope.Identifier).ToArray<string>();
                     if (authorizedScopes != null && scopes.Where(s => !authorizedScopes.Select(a => a.ToLower()).Contains(s.ToLower())).Count() == 0)
                     {
                         scopesApproved = true;
@@ -98,7 +140,7 @@ namespace RockWeb.Plugins.org_secc.OAuth
                         identity = new ClaimsIdentity(identity.Claims, "Bearer", identity.NameClaimType, identity.RoleClaimType);
 
                         //only allow claims that have been requested and the client has been authorized for
-                        foreach (var scope in scopes.Where(s => clientScopeService.Queryable().Where(cs => cs.ClientId == OAuthClient.Id).Select(cs => cs.Scope.Identifier.ToLower()).Contains(s.ToLower())))
+                        foreach (var scope in scopes.Where(s => clientScopeService.Queryable().Where(cs => cs.ClientId == OAuthClient.Id && cs.Active == true).Select(cs => cs.Scope.Identifier.ToLower()).Contains(s.ToLower())))
                         {
                             identity.AddClaim(new Claim("urn:oauth:scope", scope));
                         }
@@ -109,50 +151,27 @@ namespace RockWeb.Plugins.org_secc.OAuth
                         rptScopes.DataSource = clientScopeService.Queryable().Where(cs => cs.ClientId == OAuthClient.Id).Select(s => s.Scope).ToList();
                         rptScopes.DataBind();
                     }
-                        
-
 
                     lClientName.Text = OAuthClient.ClientName;
                     lClientName2.Text = OAuthClient.ClientName;
                     lUsername.Text = CurrentUser.Person.FullName + " ("+userName+")";
-                } else
+                    hlLogout.NavigateUrl = Request.RawUrl + "&OAuthLogout=true";
+                }
+                else
                 {
                     throw new Exception("Invalid Client ID for OAuth authentication.");
                 }
             }
-
-            if (Request.HttpMethod == "POST")
-            {
-                if (!string.IsNullOrEmpty(Request.Form.Get("submit.Grant")))
-                {
-                    /*if (oauthClient != null)
-                    {
-                        foreach (var clientScope in oauthClient.Scopes.Where(cs => scopes.Select(s => s.ToLower()).Contains(cs.Identifier.ToLower())))
-                        {
-                            if (!authorizedScopes.Select(s => s.ToLower()).Contains(clientScope.Identifier.ToLower()))
-                            {
-                                UpdateUserAuthorization(apiSession, clientScope, oauthClient.ClientID, userName);
-                            }
-
-                        }
-                        scopesApproved = true;
-                    }
-                    */
-                }
-                if (!string.IsNullOrEmpty(Request.Form.Get("submit.Login")))
-                {
-                    authentication.SignOut("OAuth");
-                    authentication.Challenge("OAuth");
-                    Response.Redirect("/page/4569?ReturnUrl=" + Server.UrlEncode(Request.RawUrl), true);
-                }
-            }
-
-            //ViewBag.ScopesNeedingApproval = ScopesNeedingApproval;
-
         }
 
         #endregion
 
-        
+
+
+
+        protected void btnGrant_Click(object sender, EventArgs e)
+        {
+            btnGrant.Text = "This stinks";
+        }
     }
 }
