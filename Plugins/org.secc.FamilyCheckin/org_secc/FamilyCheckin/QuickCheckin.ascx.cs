@@ -22,7 +22,7 @@ using Rock.Data;
 namespace RockWeb.Plugins.org_secc.FamilyCheckin
 {
     [DisplayName( "QuickCheckin" )]
-    [Category( "Check-in" )]
+    [Category( "SECC > Check-in" )]
     [Description( "QuickCheckin block for helping parents check in their family quickly." )]
     [TextField("Preselect Activity", "Activity for preselecting classes.", false)]
 

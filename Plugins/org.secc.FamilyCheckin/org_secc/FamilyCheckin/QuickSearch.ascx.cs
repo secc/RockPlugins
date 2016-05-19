@@ -15,7 +15,7 @@ using System.Web.UI;
 namespace RockWeb.Plugins.org_secc.FamilyCheckin
 {
     [DisplayName("QuickSearch")]
-    [Category("Check-in")]
+    [Category("SECC > Check-in")]
     [Description("QuickSearch block for helping parents find their family quickly.")]
     [IntegerField("Minimum Phone Number Length", "Minimum length for phone number searches (defaults to 4).", false, 4)]
     [IntegerField("Maximum Phone Number Length", "Maximum length for phone number searches (defaults to 10).", false, 10)]
