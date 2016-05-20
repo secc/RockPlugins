@@ -94,6 +94,7 @@
   <ItemGroup>
     <Compile Include="Data\OAuthContext.cs" />
     <Compile Include="Data\OAuthService.cs" />
+    <Compile Include="Migrations\201605201037000_CreatePlugin.cs" />
     <Compile Include="Migrations\201605171249414_InitialCreate.cs" />
     <Compile Include="Model\Authorization.cs" />
     <Compile Include="Model\AuthorizationService.cs" />

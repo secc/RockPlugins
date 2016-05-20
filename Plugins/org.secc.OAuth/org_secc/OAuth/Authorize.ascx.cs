@@ -59,7 +59,7 @@ namespace RockWeb.Plugins.org_secc.OAuth
                 var authentication = HttpContext.Current.GetOwinContext().Authentication;
                 authentication.SignOut("OAuth");
                 authentication.Challenge("OAuth");
-                Response.Redirect("/page/4569?logout=true&ReturnUrl=" + Server.UrlEncode(Request.RawUrl.Replace("&OAuthLogout=true", "")));
+                Response.Redirect("/OAuth/Login?logout=true&ReturnUrl=" + Server.UrlEncode(Request.RawUrl.Replace("&OAuthLogout=true", "")));
             }
             if (IsPostBack)
             {
@@ -115,7 +115,14 @@ namespace RockWeb.Plugins.org_secc.OAuth
             if (identity == null)
             {
                 authentication.Challenge("OAuth");
-                Response.Redirect("/page/4569?ReturnUrl="+ Server.UrlEncode(Request.RawUrl), true);
+                Response.Redirect("/OAuth/Login?ReturnUrl=" + Server.UrlEncode(Request.RawUrl), true);
+            }
+            else if (CurrentUser == null)
+            {
+                // Kill the OAuth session
+                authentication.SignOut("OAuth");
+                authentication.Challenge("OAuth");
+                Response.Redirect("/OAuth/Login?ReturnUrl=" + Server.UrlEncode(Request.RawUrl), true);
             }
             else
             {

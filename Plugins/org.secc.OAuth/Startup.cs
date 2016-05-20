@@ -18,14 +18,14 @@ namespace org.secc.OAuth
         public void ConfigureAuth( IAppBuilder app )
         {
             //Enable Application Sign In Cookie
-            app.UseCookieAuthentication( new CookieAuthenticationOptions
-                {
-                    AuthenticationType = "OAuth",
-                    AuthenticationMode = AuthenticationMode.Active,
-                    LoginPath = new PathString( AppSettingValue("OAuthLoginPath") ),
-                    LogoutPath = new PathString( AppSettingValue("OAuthLogoutPath") ),
-                    SlidingExpiration = false
-                } );
+            app.UseCookieAuthentication(new CookieAuthenticationOptions
+            {
+                AuthenticationType = "OAuth",
+                AuthenticationMode = AuthenticationMode.Passive,
+                LoginPath = new PathString(AppSettingValue("Login_Path")),
+                LogoutPath = new PathString(AppSettingValue("Logout_Path")),
+                SlidingExpiration = false
+            });
 
             int tokenLifespan = 0;
 
