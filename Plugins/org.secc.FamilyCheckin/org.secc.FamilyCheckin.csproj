@@ -85,7 +85,9 @@
     <Compile Include="Rest\Handlers\SessionControllerHandler.cs" />
     <Compile Include="Rest\Handlers\SessionRouteHandler.cs" />
     <Compile Include="Workflows\CreateLabelsAggregate.cs" />
+    <Compile Include="Workflows\LoadSchedulesOverride.cs" />
     <Compile Include="Workflows\ReserveAttendance.cs" />
+    <Compile Include="Workflows\LoadGroupTypesOverride.cs" />
     <Compile Include="Workflows\SelectAllPeople.cs" />
   </ItemGroup>
   <ItemGroup>
