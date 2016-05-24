@@ -68,7 +68,7 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
                 CurrentKioskId = (int)Session["CheckInKioskId"];
                 Guid blockGuid = (Guid)Session["BlockGuid"];
                 List<int> CheckInGroupTypeIds = (List<int>)Session["CheckInGroupTypeIds"];
-                CurrentCheckInState = new CheckInState(CurrentKioskId, CheckInGroupTypeIds);
+                CurrentCheckInState = new CheckInState(CurrentKioskId, null, CheckInGroupTypeIds);
                 CurrentCheckInState.CheckIn.UserEnteredSearch = true;
                 CurrentCheckInState.CheckIn.ConfirmSingleFamily = true;
                 CurrentCheckInState.CheckIn.SearchType = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER);

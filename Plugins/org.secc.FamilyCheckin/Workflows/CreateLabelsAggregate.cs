@@ -166,7 +166,7 @@ namespace org.secc.FamilyCheckin
                         var labelCache = KioskLabel.Read(new Guid(GetAttributeValue(action, "AggregatedLabel")));
                         if (labelCache != null)
                         {
-                            var checkInLabel = new CheckInLabel(labelCache, new Dictionary<string, object>());
+                            var checkInLabel = new CheckInLabel(labelCache, new Dictionary<string, object>(), new List<int>());
                             checkInLabel.FileGuid = new Guid(GetAttributeValue(action, "AggregatedLabel"));
 
                             foreach (var keyValue in mergeDict)
@@ -265,7 +265,7 @@ namespace org.secc.FamilyCheckin
                         var labelCache = KioskLabel.Read( binaryFileGuid.Value );
                         if ( labelCache != null )
                         {
-                            var checkInLabel = new CheckInLabel( labelCache, mergeObjects );
+                            var checkInLabel = new CheckInLabel( labelCache, mergeObjects, new List<int>() );
                             checkInLabel.FileGuid = binaryFileGuid.Value;
                             labels.Add( checkInLabel );
                         }
