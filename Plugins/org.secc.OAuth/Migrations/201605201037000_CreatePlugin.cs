@@ -29,7 +29,7 @@ namespace org.secc.OAuth.Migrations
             RockMigrationHelper.AddBlock("DA7D63B0-73A8-4321-AB3F-AC041F67E85B", "", "ED369489-5844-4BE5-8ACE-18A75F9E805C", "OAuth Login", "Main", "", "", 0, "69946856-0950-468C-9853-A887AAB95201");
 
             // Add the global attribute
-            RockMigrationHelper.AddGlobalAttribute(Rock.SystemGuid.FieldType.KEY_VALUE_LIST, null, null, "OAuth Settings", "Settings for the OAuth server plugin.", 0, "OAuthRequireSsl^True|OAuthAuthorizePath^/OAuth/Authorize|OAuthLoginPath^/OAuth/Login|OAuthLoginPath^/OAuth/Logout|OAuthTokenPath^/OAuth/Token|OAuthTokenLifespan^60", "9A85BBE0-ECC2-4A81-990F-D9318AE36DA9");
+            RockMigrationHelper.AddGlobalAttribute(Rock.SystemGuid.FieldType.KEY_VALUE_LIST, null, null, "OAuth Settings", "Settings for the OAuth server plugin.", 0, "OAuthRequireSsl^True|OAuthAuthorizePath^/OAuth/Authorize|OAuthLoginPath^/OAuth/Login|OAuthLogoutPath^/OAuth/Logout|OAuthTokenPath^/OAuth/Logout|OAuthTokenPath^/OAuth/Token|OAuthTokenLifespan^60", "9A85BBE0-ECC2-4A81-990F-D9318AE36DA9");
             Sql("INSERT INTO [dbo].[AttributeCategory] (AttributeId, CategoryId) SELECT Id, 5 from [dbo].[attribute] WHERE GUID = '9A85BBE0-ECC2-4A81-990F-D9318AE36DA9';");
 
         }

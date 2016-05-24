@@ -10,6 +10,8 @@ using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.Infrastructure;
 using Microsoft.Owin.Security.OAuth;
 using Owin;
+using Rock.Web.Cache;
+using Rock;
 
 namespace org.secc.OAuth
 {
@@ -17,19 +19,21 @@ namespace org.secc.OAuth
     {
         public void ConfigureAuth( IAppBuilder app )
         {
+            var settings = GlobalAttributesCache.Value("OAuthSettings").AsDictionary();
+            
             //Enable Application Sign In Cookie
             app.UseCookieAuthentication(new CookieAuthenticationOptions
             {
                 AuthenticationType = "OAuth",
                 AuthenticationMode = AuthenticationMode.Passive,
-                LoginPath = new PathString(AppSettingValue("Login_Path")),
-                LogoutPath = new PathString(AppSettingValue("Logout_Path")),
+                LoginPath = new PathString(settings["OAuthLoginPath"]),
+                LogoutPath = new PathString(settings["OAuthLogoutPath"]),
                 SlidingExpiration = false
             });
 
             int tokenLifespan = 0;
 
-            if ( int.TryParse( AppSettingValue("OAuthTokenLifespan"), out tokenLifespan ) )
+            if ( int.TryParse( settings["OAuthTokenPath"], out tokenLifespan ) )
             {
                 tokenLifespan = 10;
             }
@@ -37,9 +41,9 @@ namespace org.secc.OAuth
             //Setup Authorization Server
             app.UseOAuthAuthorizationServer( new OAuthAuthorizationServerOptions
                 {
-                    AuthorizeEndpointPath = new PathString( AppSettingValue("OAuthAuthorizePath") ),
+                    AuthorizeEndpointPath = new PathString(settings["OAuthAuthorizePath"] ),
                     AuthorizationCodeExpireTimeSpan = new TimeSpan(0,tokenLifespan, 0),
-                    TokenEndpointPath = new PathString( AppSettingValue("OAuthTokenPath") ),
+                    TokenEndpointPath = new PathString(settings["OAuthTokenPath"] ),
                     ApplicationCanDisplayErrors = false,
                     AllowInsecureHttp = AllowInsecureHttp(),
                      
@@ -199,24 +203,13 @@ namespace org.secc.OAuth
         {
             bool allowInsecure = false;
 
-            if (ConfigurationManager.AppSettings["OAuthRequireSsl"] != null )
+            var settings = GlobalAttributesCache.Value("OAuthSettings").AsDictionary();
+            if (settings["OAuthRequireSsl"] != null )
             {
-                allowInsecure = !bool.Parse(ConfigurationManager.AppSettings["OAuthRequireSsl"] );
+                allowInsecure = !settings["OAuthRequireSsl"].AsBoolean();
             }
 
             return allowInsecure;
-        }
-
-        private string AppSettingValue( string key )
-        {
-            if (ConfigurationManager.AppSettings[key] == null )
-            {
-                return null;
-            }
-            else
-            {
-                return ConfigurationManager.AppSettings[key];
-            }
         }
 
         public void Configuration(IAppBuilder app)
