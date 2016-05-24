@@ -12,6 +12,7 @@ using Rock.Web.UI.Controls;
 using Rock.Model;
 using System.Web.UI.WebControls;
 using Rock.Data;
+using Rock.Security;
 
 namespace RockWeb.Plugins.org_secc.CheckinMonitor
 {
@@ -19,6 +20,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [Category( "SECC > Check-in" )]
     [Description( "Advanced tool for managing checkin." )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Connection Status", "Connection status for new people." )]
+    [AttributeCategoryField( "Checkin Category", "The Attribute Category to display checkin attributes from", false, "Rock.Model.Person", true, "", "", 0 )]
     public partial class SuperCheckin : CheckInBlock
     {
         protected override void OnInit( EventArgs e )
@@ -66,6 +68,15 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     DisplayFamilyMemberMenu();
                     BuildGroupTypeModal();
                 }
+
+                if( pnlEditPerson.Visible )
+                {
+                    var personId = ( int ) ViewState["SelectedPersonId"];
+                    if ( personId != 0 )
+                    {
+                        EditPerson( new PersonService( new RockContext() ).Get( personId ), false );
+                    }
+                }
             }
         }
 
@@ -91,6 +102,10 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 BootstrapButton btnMember = new BootstrapButton();
                 btnMember.CssClass = "btn btn-default btn-block btn-lg";
                 btnMember.Text = "<b>" + checkinPerson.Person.FullName + " (" + GetSelectedCount( checkinPerson ).ToString() + ")</b><br>" + checkinPerson.Person.FormatAge();
+                if ( !checkinPerson.FamilyMember )
+                {
+                    btnMember.Text = "<i class='fa fa-exchange'></i> " + btnMember.Text;
+                }
                 btnMember.ID = checkinPerson.Person.Id.ToString();
                 btnMember.Click += ( s, e ) =>
                 {
@@ -113,6 +128,10 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         private void DisplayPersonInformation()
         {
+            pnlAddPerson.Visible = false;
+            pnlPersonInformation.Visible = true;
+            pnlEditPerson.Visible = false;
+
             int selectedPersonId;
             if ( ViewState["SelectedPersonId"] != null )
             {
@@ -228,9 +247,13 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
         }
 
-        protected void btnPrint_Click( object sender, EventArgs e )
+        protected void btnEditPerson_Click( object sender, EventArgs e )
         {
-
+            var personId = ( int ) ViewState["SelectedPersonId"];
+            if ( personId != 0 )
+            {
+                EditPerson( new PersonService( new RockContext() ).Get( personId ) );
+            }
         }
 
         protected void btnBack_Click( object sender, EventArgs e )
@@ -255,6 +278,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         private void ShowAddNewPerson()
         {
+            pnlEditPerson.Visible = false;
             pnlPersonInformation.Visible = false;
             pnlAddPerson.Visible = true;
 
@@ -311,8 +335,116 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 {
                     Person.CreateCheckinRelationship( member.Id, person.Id, rockContext );
                 }
-                //rockContext.SaveChanges();
             }
+            ViewState["SelectedPersonId"] = person.Id;
+            ActivateFamily();
+            EditPerson( person );
+        }
+
+        private void EditPerson( Person person , bool setValue = true)
+        {
+            pnlAddPerson.Visible = false;
+            pnlPersonInformation.Visible = false;
+            pnlEditPerson.Visible = true;
+
+            ltEditName.Text = person.FullName;
+
+            var AttributeList = new List<int>();
+
+            string categoryGuid = GetAttributeValue( "CheckinCategory" );
+            Guid guid = Guid.Empty;
+            if ( Guid.TryParse( categoryGuid, out guid ) )
+            {
+                var category = CategoryCache.Read( guid );
+                if ( category != null )
+                {
+                    AttributeList = new AttributeService( new RockContext() ).GetByCategoryId( category.Id )
+                        .OrderBy( a => a.Order ).ThenBy( a => a.Name ).Select( a => a.Id ).ToList();
+                }
+            }
+            person.LoadAttributes();
+
+            foreach ( int attributeId in AttributeList )
+            {
+                var attribute = AttributeCache.Read( attributeId );
+                string attributeValue = person.GetAttributeValue( attribute.Key );
+                attribute.AddControl( fsAttributes.Controls, attributeValue, "", setValue, true );
+            }
+        }
+
+        protected void btnSaveAttributes_Click( object sender, EventArgs e )
+        {
+            var personId = ( int ) ViewState["SelectedPersonId"];
+
+            var person = new PersonService( new RockContext() ).Get( personId );
+
+            int personEntityTypeId = EntityTypeCache.Read( typeof( Person ) ).Id;
+
+            var rockContext = new RockContext();
+
+            var AttributeList = new List<int>();
+
+            string categoryGuid = GetAttributeValue( "CheckinCategory" );
+            Guid guid = Guid.Empty;
+            if ( Guid.TryParse( categoryGuid, out guid ) )
+            {
+                var category = CategoryCache.Read( guid );
+                if ( category != null )
+                {
+                    AttributeList = new AttributeService( new RockContext() ).GetByCategoryId( category.Id )
+                        .OrderBy( a => a.Order ).ThenBy( a => a.Name ).Select( a => a.Id ).ToList();
+                }
+            }
+            person.LoadAttributes();
+
+            var changes = new List<string>();
+            foreach ( int attributeId in AttributeList )
+            {
+                var attribute = AttributeCache.Read( attributeId );
+
+                if ( person != null &&
+                    attribute.IsAuthorized( Authorization.EDIT, CurrentPerson ) )
+                {
+                    System.Web.UI.Control attributeControl = fsAttributes.FindControl( string.Format( "attribute_field_{0}", attribute.Id ) );
+                    if ( attributeControl != null )
+                    {
+                        string originalValue = person.GetAttributeValue( attribute.Key );
+                        string newValue = attribute.FieldType.Field.GetEditValue( attributeControl, attribute.QualifierValues );
+                        Rock.Attribute.Helper.SaveAttributeValue( person, attribute, newValue, rockContext );
+
+                        // Check for changes to write to history
+                        if ( ( originalValue ?? string.Empty ).Trim() != ( newValue ?? string.Empty ).Trim() )
+                        {
+                            string formattedOriginalValue = string.Empty;
+                            if ( !string.IsNullOrWhiteSpace( originalValue ) )
+                            {
+                                formattedOriginalValue = attribute.FieldType.Field.FormatValue( null, originalValue, attribute.QualifierValues, false );
+                            }
+
+                            string formattedNewValue = string.Empty;
+                            if ( !string.IsNullOrWhiteSpace( newValue ) )
+                            {
+                                formattedNewValue = attribute.FieldType.Field.FormatValue( null, newValue, attribute.QualifierValues, false );
+                            }
+
+                            History.EvaluateChange( changes, attribute.Name, formattedOriginalValue, formattedNewValue );
+                        }
+                    }
+                }
+            }
+            if ( changes.Any() )
+            {
+                HistoryService.SaveChanges( rockContext, typeof( Person ), Rock.SystemGuid.Category.HISTORY_PERSON_DEMOGRAPHIC_CHANGES.AsGuid(),
+                    person.Id, changes );
+            }
+            pnlPersonInformation.Visible = true;
+            pnlEditPerson.Visible = false;
+        }
+
+        protected void btnCancelAttributes_Click( object sender, EventArgs e )
+        {
+            pnlPersonInformation.Visible = true;
+            pnlEditPerson.Visible = false;
         }
     }
 }

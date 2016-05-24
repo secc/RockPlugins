@@ -1,7 +1,6 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="SuperCheckin.ascx.cs" Inherits="RockWeb.Plugins.org_secc.CheckinMonitor.SuperCheckin" %>
 <asp:UpdatePanel ID="upContent" runat="server">
     <ContentTemplate>
-
         <Rock:ModalAlert ID="maWarning" runat="server" />
 
         <Rock:ModalDialog ID="mdCheckin" runat="server" Title="Check-In" OnSaveClick="mdCheckin_SaveClick" CancelLinkVisible="false" SaveButtonText="Save Check-In State">
@@ -41,8 +40,8 @@
                             <div class="col-md-4">
                                 <Rock:BootstrapButton ID="btnCheckin" CssClass="btn btn-primary btn-lg"
                                     runat="server" Text="<i class='fa fa-check' aria-hidden='true'></i>" OnClick="btnCheckin_Click" />
-                                <Rock:BootstrapButton ID="btnPrint" CssClass="btn btn-primary btn-lg"
-                                    runat="server" Text="<i class='fa fa-print' aria-hidden='true'></i>" OnClick="btnPrint_Click" />
+                                <Rock:BootstrapButton ID="btnEditPerson" CssClass="btn btn-primary btn-lg"
+                                    runat="server" Text="<i class='fa fa-pencil' aria-hidden='true'></i>" OnClick="btnEditPerson_Click" />
                             </div>
                         </div>
                         <asp:PlaceHolder runat="server" />
@@ -55,34 +54,40 @@
                             OnCssClass="btn-success" OffCssClass="btn-success" />
                         <div class="row">
                             <div class="col-xs-12 col-sm-4">
-                                <Rock:RockTextBox ID="tbNewPersonFirstName" runat="server" Label="First Name"  />
+                                <Rock:RockTextBox ID="tbNewPersonFirstName" runat="server" Label="First Name" />
                             </div>
                             <div class="col-xs-12 col-sm-4">
                                 <Rock:RockTextBox ID="tbNewPersonLastName" runat="server" Label="Last Name" />
                             </div>
                             <div class="col-xs-12 col-sm-4">
-                                <Rock:RockDropDownList ID="ddlNewPersonSuffix" runat="server" Label="Suffix"  CssClass="input-width-md" />
+                                <Rock:RockDropDownList ID="ddlNewPersonSuffix" runat="server" Label="Suffix" CssClass="input-width-md" />
                             </div>
                             <div class="col-xs-12 col-sm-4">
-                                <Rock:RockRadioButtonList ID="rblNewPersonGender" runat="server" Label="Gender" RepeatDirection="Horizontal"  />
+                                <Rock:RockRadioButtonList ID="rblNewPersonGender" runat="server" Label="Gender" RepeatDirection="Horizontal" />
                             </div>
                             <div class="col-xs-12 col-sm-4">
-                                <Rock:DatePicker ID="dpNewPersonBirthDate" runat="server" Label="Birthdate"  />
+                                <Rock:DatePicker ID="dpNewPersonBirthDate" runat="server" Label="Birthdate" />
                             </div>
                             <div class="col-xs-12 col-sm-4">
-                                <Rock:GradePicker ID="ddlGradePicker" runat="server" Label="Grade"  UseAbbreviation="true" UseGradeOffsetAsValue="true" />
-                            </div>
-                            <div class="col-xs-12 col-sm-6">
-                                <Rock:RockTextBox runat="server" ID="tbAlergy" Label="Alergy Information"></Rock:RockTextBox>
-                            </div>
-                            <div class="col-xs-12 col-sm-6">
-                                <Rock:RockTextBox runat="server" ID="tbLegal" Label="Legal Information"></Rock:RockTextBox>
+                                <Rock:GradePicker ID="ddlGradePicker" runat="server" Label="Grade" UseAbbreviation="true" UseGradeOffsetAsValue="true" />
                             </div>
                         </div>
+                        <Rock:BootstrapButton runat="server" ID="btnSaveAddPerson" Text="Next" CssClass="btn btn-default"
+                            OnClick="btnSaveAddPerson_Click"></Rock:BootstrapButton>
+                    </asp:Panel>
+                    <asp:Panel runat="server" ID="pnlEditPerson" Visible="false">
+                        <div class="col-xs-12">
+                            <h1>
+                                <asp:Literal Text="" ID="ltEditName" runat="server" />
+                            </h1>
+                            <fieldset id="fsAttributes" runat="server" class="attribute-values"></fieldset>
+                            <Rock:BootstrapButton runat="server" ID="btnSaveAttributes" CssClass="btn btn-primary"
+                                 OnClick="btnSaveAttributes_Click" Text="Save"></Rock:BootstrapButton>
+                            <Rock:BootstrapButton runat="server" Text="Cancel" OnClick="btnCancelAttributes_Click"
+                                 ID="btnCancelAttributes" CssClass="btn btn-danger">
 
-
-                        <Rock:BootstrapButton runat="server" ID="btnSaveAddPerson" Text="Save New Person" CssClass="btn btn-default"
-                             OnClick="btnSaveAddPerson_Click"></Rock:BootstrapButton>
+                            </Rock:BootstrapButton>
+                        </div>
                     </asp:Panel>
 
                 </div>
