@@ -25,9 +25,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [Description( "Advanced tool for managing checkin." )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Connection Status", "Connection status for new people." )]
     [AttributeCategoryField( "Checkin Category", "The Attribute Category to display checkin attributes from", false, "Rock.Model.Person", true, "", "", 0 )]
-    [TextField("Checkin Activity", "Name of the activity to complete checkin", true)]
+    [TextField( "Checkin Activity", "Name of the activity to complete checkin", true )]
     public partial class SuperCheckin : CheckInBlock
     {
+
+        private RockContext _rockContext;
+
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
@@ -36,6 +39,11 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 NavigateToHomePage();
                 return;
+            }
+
+            if ( _rockContext == null )
+            {
+                _rockContext = new RockContext();
             }
 
             RockPage.AddScriptLink( "~/Scripts/CheckinClient/ZebraPrint.js" );
@@ -76,15 +84,33 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     BuildGroupTypeModal();
                 }
 
-                if( pnlEditPerson.Visible )
+                if ( pnlEditPerson.Visible )
                 {
                     var personId = ( int ) ViewState["SelectedPersonId"];
                     if ( personId != 0 )
                     {
-                        EditPerson( new PersonService( new RockContext() ).Get( personId ), false );
+                        EditPerson( new PersonService( _rockContext ).Get( personId ), false );
                     }
                 }
             }
+
+            if ( CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
+                .FirstOrDefault()
+                .People.SelectMany( p => p.GroupTypes )
+                .SelectMany( gt => gt.Groups )
+                .SelectMany( g => g.Locations )
+                .SelectMany( l => l.Schedules )
+                .Where( s => s.Selected )
+                .Any()
+                )
+            {
+                btnCompleteCheckin.Visible = true;
+            }
+            else
+            {
+                btnCompleteCheckin.Visible = false;
+            }
+
         }
 
         private void ActivateFamily()
@@ -96,8 +122,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 NavigateToPreviousPage();
             }
             DisplayFamilyMemberMenu();
-            DisplayPersonInformation();
-
         }
 
         private void DisplayFamilyMemberMenu()
@@ -147,11 +171,95 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 pnlPersonInformation.Visible = true;
                 pnlAddPerson.Visible = false;
                 ltName.Text = checkinPerson.Person.FullName;
+                BuildPersonCheckinDetails();
+            }
+
+        }
+
+        private void BuildPersonCheckinDetails()
+        {
+            if ( ViewState["SelectedPersonId"] != null )
+            {
+                var selectedPersonId = ( int ) ViewState["SelectedPersonId"];
+                Person person = new PersonService( _rockContext ).Get( selectedPersonId );
+                AttendanceService attendanceService = new AttendanceService( _rockContext );
+                var reserved = attendanceService.Queryable().Where( a => a.CreatedDateTime > Rock.RockDateTime.Today
+                    && a.DidAttend == false && a.PersonAliasId == person.PrimaryAliasId ).ToList();
+                var current = attendanceService.Queryable().Where( a => a.CreatedDateTime > Rock.RockDateTime.Today
+                    && a.DidAttend == true && a.EndDateTime == null && a.PersonAliasId == person.PrimaryAliasId ).ToList();
+                var history = attendanceService.Queryable().Where( a => a.CreatedDateTime > Rock.RockDateTime.Today
+                    && a.DidAttend == true && a.EndDateTime != null && a.PersonAliasId == person.PrimaryAliasId ).ToList();
+                if ( reserved.Any() )
+                {
+                    pnlReserved.Visible = true;
+                    gReserved.DataSource = reserved;
+                    gReserved.DataBind();
+                }
+                else
+                {
+                    pnlReserved.Visible = false;
+                }
+                if ( current.Any() )
+                {
+                    pnlCheckedin.Visible = true;
+                    gCheckedin.DataSource = current;
+                    gCheckedin.DataBind();
+                }
+                else
+                {
+                    pnlCheckedin.Visible = false;
+                }
+                if ( history.Any() )
+                {
+                    pnlHistory.Visible = true;
+                    gHistory.DataSource = history;
+                    gHistory.DataBind();
+                }
+                else
+                {
+                    pnlHistory.Visible = false;
+                }
             }
         }
 
+        protected void CheckinReserved_Click( object sender, RowEventArgs e )
+        {
+            var attendanceItemId = ( int ) e.RowKeyValue;
+            var attendanceItem = new AttendanceService( _rockContext ).Get( attendanceItemId );
+            attendanceItem.DidAttend = true;
+            attendanceItem.StartDateTime = Rock.RockDateTime.Now;
+            _rockContext.SaveChanges();
+            BuildPersonCheckinDetails();
+        }
+
+        protected void CancelReserved_Click( object sender, RowEventArgs e )
+        {
+            var attendanceItemId = ( int ) e.RowKeyValue;
+            var attendanceService = new AttendanceService( _rockContext );
+            var attendanceItem = attendanceService.Get( attendanceItemId );
+            attendanceService.Delete( attendanceItem );
+            _rockContext.SaveChanges();
+            BuildPersonCheckinDetails();
+        }
+
+        protected void Checkout_Click( object sender, RowEventArgs e )
+        {
+            var attendanceItemId = ( int ) e.RowKeyValue;
+            var attendanceItem = new AttendanceService( _rockContext ).Get( attendanceItemId );
+            attendanceItem.EndDateTime = Rock.RockDateTime.Now;
+            _rockContext.SaveChanges();
+            BuildPersonCheckinDetails();
+        }
+
+
         protected void btnCheckin_Click( object sender, EventArgs e )
         {
+            if ( CurrentCheckInState == null )
+            {
+                NavigateToHomePage();
+                return;
+            }
+
             int selectedPersonId;
             if ( ViewState["SelectedPersonId"] != null )
             {
@@ -259,7 +367,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             var personId = ( int ) ViewState["SelectedPersonId"];
             if ( personId != 0 )
             {
-                EditPerson( new PersonService( new RockContext() ).Get( personId ) );
+                EditPerson( new PersonService( _rockContext ).Get( personId ) );
             }
         }
 
@@ -276,6 +384,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         protected void mdCheckin_SaveClick( object sender, EventArgs e )
         {
             mdCheckin.Hide();
+            BuildPersonCheckinDetails();
         }
 
         protected void btnNewMember_Click( object sender, EventArgs e )
@@ -299,7 +408,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected void btnSaveAddPerson_Click( object sender, EventArgs e )
         {
-            var rockContext = new RockContext();
             Person person = new Person();
             person.FirstName = tbNewPersonFirstName.Text;
             person.LastName = tbNewPersonLastName.Text;
@@ -321,15 +429,15 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             var family = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault().Group;
             if ( cbRelationship.Checked )
             {
-                PersonService.AddPersonToFamily( person, true, family.Id, familyRoleId, rockContext );
+                PersonService.AddPersonToFamily( person, true, family.Id, familyRoleId, _rockContext );
             }
             else
             {
                 //save the person with new family
-                var newFamily = PersonService.SaveNewPerson( person, rockContext );
+                var newFamily = PersonService.SaveNewPerson( person, _rockContext );
 
                 //create connection
-                var memberService = new GroupMemberService( rockContext );
+                var memberService = new GroupMemberService( _rockContext );
                 var adultFamilyMembers = memberService.Queryable()
                     .Where( m =>
                         m.GroupId == family.Id
@@ -340,7 +448,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                 foreach ( var member in adultFamilyMembers )
                 {
-                    Person.CreateCheckinRelationship( member.Id, person.Id, rockContext );
+                    Person.CreateCheckinRelationship( member.Id, person.Id, _rockContext );
                 }
             }
             ViewState["SelectedPersonId"] = person.Id;
@@ -348,7 +456,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             EditPerson( person );
         }
 
-        private void EditPerson( Person person , bool setValue = true)
+        private void EditPerson( Person person, bool setValue = true )
         {
             pnlAddPerson.Visible = false;
             pnlPersonInformation.Visible = false;
@@ -365,7 +473,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 var category = CategoryCache.Read( guid );
                 if ( category != null )
                 {
-                    AttributeList = new AttributeService( new RockContext() ).GetByCategoryId( category.Id )
+                    AttributeList = new AttributeService( _rockContext ).GetByCategoryId( category.Id )
                         .OrderBy( a => a.Order ).ThenBy( a => a.Name ).Select( a => a.Id ).ToList();
                 }
             }
@@ -383,11 +491,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         {
             var personId = ( int ) ViewState["SelectedPersonId"];
 
-            var person = new PersonService( new RockContext() ).Get( personId );
+            var person = new PersonService( _rockContext ).Get( personId );
 
             int personEntityTypeId = EntityTypeCache.Read( typeof( Person ) ).Id;
-
-            var rockContext = new RockContext();
 
             var AttributeList = new List<int>();
 
@@ -398,7 +504,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 var category = CategoryCache.Read( guid );
                 if ( category != null )
                 {
-                    AttributeList = new AttributeService( new RockContext() ).GetByCategoryId( category.Id )
+                    AttributeList = new AttributeService( _rockContext ).GetByCategoryId( category.Id )
                         .OrderBy( a => a.Order ).ThenBy( a => a.Name ).Select( a => a.Id ).ToList();
                 }
             }
@@ -417,7 +523,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     {
                         string originalValue = person.GetAttributeValue( attribute.Key );
                         string newValue = attribute.FieldType.Field.GetEditValue( attributeControl, attribute.QualifierValues );
-                        Rock.Attribute.Helper.SaveAttributeValue( person, attribute, newValue, rockContext );
+                        Rock.Attribute.Helper.SaveAttributeValue( person, attribute, newValue, _rockContext );
 
                         // Check for changes to write to history
                         if ( ( originalValue ?? string.Empty ).Trim() != ( newValue ?? string.Empty ).Trim() )
@@ -441,7 +547,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
             if ( changes.Any() )
             {
-                HistoryService.SaveChanges( rockContext, typeof( Person ), Rock.SystemGuid.Category.HISTORY_PERSON_DEMOGRAPHIC_CHANGES.AsGuid(),
+                HistoryService.SaveChanges( _rockContext, typeof( Person ), Rock.SystemGuid.Category.HISTORY_PERSON_DEMOGRAPHIC_CHANGES.AsGuid(),
                     person.Id, changes );
             }
             pnlPersonInformation.Visible = true;
@@ -456,22 +562,22 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected void btnCompleteCheckin_Click( object sender, EventArgs e )
         {
-            foreach(var person in CurrentCheckInState.CheckIn.Families.Where(f => f.Selected ).FirstOrDefault().People )
+            foreach ( var person in CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault().People )
             {
-                if (person.GroupTypes.SelectMany(gt => gt.Groups).SelectMany(g => g.Locations).SelectMany(l => l. Schedules).Where(s => s.Selected ).Any() )
+                if ( person.GroupTypes.SelectMany( gt => gt.Groups ).SelectMany( g => g.Locations ).SelectMany( l => l.Schedules ).Where( s => s.Selected ).Any() )
                 {
                     person.Selected = true;
-                    foreach(var groupType in person.GroupTypes )
+                    foreach ( var groupType in person.GroupTypes )
                     {
                         groupType.Selected = true;
                         if ( groupType.Groups.SelectMany( g => g.Locations ).SelectMany( l => l.Schedules ).Where( s => s.Selected ).Any() )
                         {
-                            foreach(var group in groupType.Groups )
+                            foreach ( var group in groupType.Groups )
                             {
                                 if ( group.Locations.SelectMany( l => l.Schedules ).Where( s => s.Selected ).Any() )
                                 {
                                     group.Selected = true;
-                                    foreach (var location in group.Locations )
+                                    foreach ( var location in group.Locations )
                                     {
                                         if ( location.Schedules.Where( s => s.Selected ).Any() )
                                         {
@@ -507,35 +613,33 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 {
                     foreach ( var groupType in selectedPerson.GroupTypes.Where( gt => gt.Selected ) )
                     {
-                        using ( var rockContext = new RockContext() )
+
+                        foreach ( var label in groupType.Labels )
                         {
-                            foreach ( var label in groupType.Labels )
+                            var file = new BinaryFileService( _rockContext ).Get( label.FileGuid );
+                            file.LoadAttributes( _rockContext );
+                            string isFamilyLabel = file.GetAttributeValue( "IsFamilyLabel" );
+                            if ( isFamilyLabel != "True" )
                             {
-                                var file = new BinaryFileService( rockContext ).Get( label.FileGuid );
-                                file.LoadAttributes( rockContext );
-                                string isFamilyLabel = file.GetAttributeValue( "IsFamilyLabel" );
-                                if ( isFamilyLabel != "True" )
+                                labels.Add( label );
+                            }
+                            else
+                            {
+                                List<string> mergeCodes = file.GetAttributeValue( "MergeCodes" ).TrimEnd( '|' ).Split( '|' ).ToList();
+                                FamilyLabel familyLabel = familyLabels.FirstOrDefault( fl => fl.FileGuid == label.FileGuid &&
+                                                                                 fl.MergeFields.Count < mergeCodes.Count );
+                                if ( familyLabel == null )
                                 {
-                                    labels.Add( label );
-                                }
-                                else
-                                {
-                                    List<string> mergeCodes = file.GetAttributeValue( "MergeCodes" ).TrimEnd( '|' ).Split( '|' ).ToList();
-                                    FamilyLabel familyLabel = familyLabels.FirstOrDefault( fl => fl.FileGuid == label.FileGuid &&
-                                                                                     fl.MergeFields.Count < mergeCodes.Count );
-                                    if ( familyLabel == null )
+                                    familyLabel = new FamilyLabel();
+                                    familyLabel.FileGuid = label.FileGuid;
+                                    familyLabel.LabelObj = label;
+                                    foreach ( var mergeCode in mergeCodes )
                                     {
-                                        familyLabel = new FamilyLabel();
-                                        familyLabel.FileGuid = label.FileGuid;
-                                        familyLabel.LabelObj = label;
-                                        foreach ( var mergeCode in mergeCodes )
-                                        {
-                                            familyLabel.MergeKeys.Add( mergeCode.Split( '^' )[0] );
-                                        }
-                                        familyLabels.Add( familyLabel );
+                                        familyLabel.MergeKeys.Add( mergeCode.Split( '^' )[0] );
                                     }
-                                    familyLabel.MergeFields.Add( ( selectedPerson.Person.Age.ToString() ?? "#" ) + "yr-" + selectedPerson.SecurityCode );
+                                    familyLabels.Add( familyLabel );
                                 }
+                                familyLabel.MergeFields.Add( ( selectedPerson.Person.Age.ToString() ?? "#" ) + "yr-" + selectedPerson.SecurityCode );
                             }
                         }
                     }
@@ -618,6 +722,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     printQueue.Clear();
                 }
             }
+            ClearCheckin();
         }
 
         /// <summary>
@@ -654,6 +759,33 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     }
                 }
             }
+
+        }
+
+        private void ClearCheckin()
+        {
+            foreach ( var person in CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault().People )
+            {
+                person.Selected = false;
+                foreach ( var groupType in person.GroupTypes )
+                {
+                    groupType.Selected = false;
+                    foreach ( var group in groupType.Groups )
+                    {
+                        group.Selected = false;
+                        foreach ( var location in group.Locations )
+                        {
+                            location.Selected = false;
+                            foreach ( var schedule in location.Schedules )
+                            {
+                                schedule.Selected = false;
+                            }
+                        }
+                    }
+                }
+            }
+            SaveState();
+            BuildPersonCheckinDetails();
         }
 
         /// <summary>
@@ -686,7 +818,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 try{{
             printLabels();
 }} catch(e){{}}
-            __doPostBack('{1}','OnClick');
             ", jsonObject, btnBack.UniqueID );
             ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "addLabelScript", script, true );
         }
@@ -702,8 +833,6 @@ try{{
                 return input.Replace( "é", @"\82" );  // fix acute e
             }
         }
-
-
     }
     public class FamilyLabel
     {

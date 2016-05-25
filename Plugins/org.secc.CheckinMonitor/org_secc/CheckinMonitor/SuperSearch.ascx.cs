@@ -128,6 +128,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         private void DisplayFamilies()
         {
+            if (CurrentCheckInState == null )
+            {
+                NavigateToHomePage();
+                return;
+            }
+
             phFamilies.Controls.Clear();
             foreach ( var family in CurrentCheckInState.CheckIn.Families )
             {
