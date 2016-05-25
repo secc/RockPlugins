@@ -13,6 +13,10 @@ using Rock.Model;
 using System.Web.UI.WebControls;
 using Rock.Data;
 using Rock.Security;
+using System.Web.UI;
+using System.Net.Sockets;
+using System.Text;
+using System.Net;
 
 namespace RockWeb.Plugins.org_secc.CheckinMonitor
 {
@@ -21,6 +25,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [Description( "Advanced tool for managing checkin." )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Connection Status", "Connection status for new people." )]
     [AttributeCategoryField( "Checkin Category", "The Attribute Category to display checkin attributes from", false, "Rock.Model.Person", true, "", "", 0 )]
+    [TextField("Checkin Activity", "Name of the activity to complete checkin", true)]
     public partial class SuperCheckin : CheckInBlock
     {
         protected override void OnInit( EventArgs e )
@@ -32,6 +37,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 NavigateToHomePage();
                 return;
             }
+
+            RockPage.AddScriptLink( "~/Scripts/CheckinClient/ZebraPrint.js" );
         }
 
         protected override void OnLoad( EventArgs e )
@@ -403,7 +410,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 var attribute = AttributeCache.Read( attributeId );
 
                 if ( person != null &&
-                    attribute.IsAuthorized( Authorization.EDIT, CurrentPerson ) )
+                    attribute.IsAuthorized( Rock.Security.Authorization.EDIT, CurrentPerson ) )
                 {
                     System.Web.UI.Control attributeControl = fsAttributes.FindControl( string.Format( "attribute_field_{0}", attribute.Id ) );
                     if ( attributeControl != null )
@@ -445,6 +452,289 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         {
             pnlPersonInformation.Visible = true;
             pnlEditPerson.Visible = false;
+        }
+
+        protected void btnCompleteCheckin_Click( object sender, EventArgs e )
+        {
+            foreach(var person in CurrentCheckInState.CheckIn.Families.Where(f => f.Selected ).FirstOrDefault().People )
+            {
+                if (person.GroupTypes.SelectMany(gt => gt.Groups).SelectMany(g => g.Locations).SelectMany(l => l. Schedules).Where(s => s.Selected ).Any() )
+                {
+                    person.Selected = true;
+                    foreach(var groupType in person.GroupTypes )
+                    {
+                        groupType.Selected = true;
+                        if ( groupType.Groups.SelectMany( g => g.Locations ).SelectMany( l => l.Schedules ).Where( s => s.Selected ).Any() )
+                        {
+                            foreach(var group in groupType.Groups )
+                            {
+                                if ( group.Locations.SelectMany( l => l.Schedules ).Where( s => s.Selected ).Any() )
+                                {
+                                    group.Selected = true;
+                                    foreach (var location in group.Locations )
+                                    {
+                                        if ( location.Schedules.Where( s => s.Selected ).Any() )
+                                        {
+                                            location.Selected = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    person.Selected = false;
+                }
+            }
+            SaveState();
+            var activity = GetAttributeValue( "CheckinActivity" );
+            List<string> errorMessages;
+            ProcessActivity( activity, out errorMessages );
+            ProcessLabels();
+        }
+        private void ProcessLabels()
+        {
+            var printQueue = new Dictionary<string, StringBuilder>();
+            foreach ( var selectedFamily in CurrentCheckInState.CheckIn.Families.Where( p => p.Selected ) )
+            {
+                List<CheckInLabel> labels = new List<CheckInLabel>();
+                List<CheckInPerson> selectedPeople = selectedFamily.People.Where( p => p.Selected ).ToList();
+                List<FamilyLabel> familyLabels = new List<FamilyLabel>();
+
+                foreach ( CheckInPerson selectedPerson in selectedPeople )
+                {
+                    foreach ( var groupType in selectedPerson.GroupTypes.Where( gt => gt.Selected ) )
+                    {
+                        using ( var rockContext = new RockContext() )
+                        {
+                            foreach ( var label in groupType.Labels )
+                            {
+                                var file = new BinaryFileService( rockContext ).Get( label.FileGuid );
+                                file.LoadAttributes( rockContext );
+                                string isFamilyLabel = file.GetAttributeValue( "IsFamilyLabel" );
+                                if ( isFamilyLabel != "True" )
+                                {
+                                    labels.Add( label );
+                                }
+                                else
+                                {
+                                    List<string> mergeCodes = file.GetAttributeValue( "MergeCodes" ).TrimEnd( '|' ).Split( '|' ).ToList();
+                                    FamilyLabel familyLabel = familyLabels.FirstOrDefault( fl => fl.FileGuid == label.FileGuid &&
+                                                                                     fl.MergeFields.Count < mergeCodes.Count );
+                                    if ( familyLabel == null )
+                                    {
+                                        familyLabel = new FamilyLabel();
+                                        familyLabel.FileGuid = label.FileGuid;
+                                        familyLabel.LabelObj = label;
+                                        foreach ( var mergeCode in mergeCodes )
+                                        {
+                                            familyLabel.MergeKeys.Add( mergeCode.Split( '^' )[0] );
+                                        }
+                                        familyLabels.Add( familyLabel );
+                                    }
+                                    familyLabel.MergeFields.Add( ( selectedPerson.Person.Age.ToString() ?? "#" ) + "yr-" + selectedPerson.SecurityCode );
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //Format all FamilyLabels and add to list of labels to print.
+                foreach ( FamilyLabel familyLabel in familyLabels )
+                {
+                    //create padding to clear unused merge fields
+                    List<string> padding = Enumerable.Repeat( " ", familyLabel.MergeKeys.Count ).ToList();
+                    familyLabel.MergeFields.AddRange( padding );
+                    for ( int i = 0; i < familyLabel.MergeKeys.Count; i++ )
+                    {
+                        familyLabel.LabelObj.MergeFields[familyLabel.MergeKeys[i]] = familyLabel.MergeFields[i];
+                    }
+                    labels.Add( familyLabel.LabelObj );
+                }
+
+                // Print client labels
+                if ( labels.Any( l => l.PrintFrom == Rock.Model.PrintFrom.Client ) )
+                {
+                    var clientLabels = labels.Where( l => l.PrintFrom == PrintFrom.Client ).ToList();
+                    var urlRoot = string.Format( "{0}://{1}", Request.Url.Scheme, Request.Url.Authority );
+                    clientLabels.ForEach( l => l.LabelFile = urlRoot + l.LabelFile );
+                    AddLabelScript( clientLabels.ToJson() );
+                }
+
+                // Print server labels
+                if ( labels.Any( l => l.PrintFrom == Rock.Model.PrintFrom.Server ) )
+                {
+                    string delayCut = @"^XB";
+                    string endingTag = @"^XZ";
+                    var printerIp = string.Empty;
+                    var labelContent = new StringBuilder();
+
+                    // make sure labels have a valid ip
+                    var lastLabel = labels.Last();
+                    foreach ( var label in labels.Where( l => l.PrintFrom == PrintFrom.Server && !string.IsNullOrEmpty( l.PrinterAddress ) ) )
+                    {
+                        var labelCache = KioskLabel.Read( label.FileGuid );
+                        if ( labelCache != null )
+                        {
+                            if ( printerIp != label.PrinterAddress )
+                            {
+                                printQueue.AddOrReplace( label.PrinterAddress, labelContent );
+                                printerIp = label.PrinterAddress;
+                                labelContent = new StringBuilder();
+                            }
+
+                            var printContent = labelCache.FileContent;
+                            foreach ( var mergeField in label.MergeFields )
+                            {
+                                if ( !string.IsNullOrWhiteSpace( mergeField.Value ) )
+                                {
+                                    printContent = Regex.Replace( printContent, string.Format( @"(?<=\^FD){0}(?=\^FS)", mergeField.Key ), ZebraFormatString( mergeField.Value ) );
+                                }
+                                else
+                                {
+                                    printContent = Regex.Replace( printContent, string.Format( @"\^FO.*\^FS\s*(?=\^FT.*\^FD{0}\^FS)", mergeField.Key ), string.Empty );
+                                    printContent = Regex.Replace( printContent, string.Format( @"\^FD{0}\^FS", mergeField.Key ), "^FD^FS" );
+                                }
+                            }
+
+                            // send a Delay Cut command at the end to prevent cutting intermediary labels
+                            if ( label != lastLabel )
+                            {
+                                printContent = Regex.Replace( printContent.Trim(), @"\" + endingTag + @"$", delayCut + endingTag );
+                            }
+
+                            labelContent.Append( printContent );
+                        }
+                    }
+
+                    printQueue.AddOrReplace( printerIp, labelContent );
+                }
+
+                if ( printQueue.Any() )
+                {
+                    PrintLabels( printQueue );
+                    printQueue.Clear();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Prints the labels.
+        /// </summary>
+        /// <param name="families">The families.</param>
+        private void PrintLabels( Dictionary<string, StringBuilder> printerContent )
+        {
+            foreach ( var printerIp in printerContent.Keys.Where( k => !string.IsNullOrEmpty( k ) ) )
+            {
+                StringBuilder labelContent;
+                if ( printerContent.TryGetValue( printerIp, out labelContent ) )
+                {
+                    var socket = new Socket( AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp );
+                    var printerIpEndPoint = new IPEndPoint( IPAddress.Parse( printerIp ), 9100 );
+                    var result = socket.BeginConnect( printerIpEndPoint, null, null );
+                    bool success = result.AsyncWaitHandle.WaitOne( 5000, true );
+
+                    if ( socket.Connected )
+                    {
+                        var ns = new NetworkStream( socket );
+                        byte[] toSend = System.Text.Encoding.ASCII.GetBytes( labelContent.ToString() );
+                        ns.Write( toSend, 0, toSend.Length );
+                    }
+                    else
+                    {
+                        //phPrinterStatus.Controls.Add(new LiteralControl(string.Format("Can't connect to printer: {0}", printerIp)));
+                    }
+
+                    if ( socket != null && socket.Connected )
+                    {
+                        socket.Shutdown( SocketShutdown.Both );
+                        socket.Close();
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Adds the label script.
+        /// </summary>
+        /// <param name="jsonObject">The json object.</param>
+        private void AddLabelScript( string jsonObject )
+        {
+            string script = string.Format( @"
+            var labelData = {0};
+		    function printLabels() {{
+		        ZebraPrintPlugin.printTags(
+            	    JSON.stringify(labelData),
+            	    function(result) {{
+			        }},
+			        function(error) {{
+				        // error is an array where:
+				        // error[0] is the error message
+				        // error[1] determines if a re-print is possible (in the case where the JSON is good, but the printer was not connected)
+			            console.log('An error occurred: ' + error[0]);
+                        navigator.notification.alert(
+                            'An error occurred while printing the labels.' + error[0],  // message
+                            alertDismissed,         // callback
+                            'Error',            // title
+                            'Ok'                  // buttonName
+                        );
+			        }}
+                );
+	        }}
+try{{
+            printLabels();
+}} catch(e){{}}
+            __doPostBack('{1}','OnClick');
+            ", jsonObject, btnBack.UniqueID );
+            ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "addLabelScript", script, true );
+        }
+
+        private static string ZebraFormatString( string input, bool isJson = false )
+        {
+            if ( isJson )
+            {
+                return input.Replace( "é", @"\\82" );  // fix acute e
+            }
+            else
+            {
+                return input.Replace( "é", @"\82" );  // fix acute e
+            }
+        }
+
+
+    }
+    public class FamilyLabel
+    {
+        public Guid FileGuid { get; set; }
+
+        public CheckInLabel LabelObj { get; set; }
+
+        private List<string> _mergeFields = new List<string>();
+        public List<string> MergeFields
+        {
+            get
+            {
+                return _mergeFields;
+            }
+            set
+            {
+                _mergeFields = value;
+            }
+        }
+        private List<string> _mergeKeys = new List<string>();
+
+        public List<string> MergeKeys
+        {
+            get
+            {
+                return _mergeKeys;
+            }
+            set
+            {
+                _mergeKeys = value;
+            }
         }
     }
 }

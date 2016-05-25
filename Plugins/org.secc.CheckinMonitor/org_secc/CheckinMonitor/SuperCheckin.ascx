@@ -89,7 +89,8 @@
                             </Rock:BootstrapButton>
                         </div>
                     </asp:Panel>
-
+                    <Rock:BootstrapButton runat="server" ID="btnCompleteCheckin" CssClass="btn btn-success" OnClick="btnCompleteCheckin_Click"
+                        Text="Complete Checkin"></Rock:BootstrapButton>
                 </div>
             </div>
         </asp:Panel>
