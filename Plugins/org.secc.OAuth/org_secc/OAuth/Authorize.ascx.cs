@@ -41,8 +41,16 @@ namespace RockWeb.Plugins.org_secc.OAuth
     [DisplayName( "OAuth Authorize" )]
     [Category( "SECC > Security" )]
     [Description( "Check to make sure the user has authorized this OAuth request (or prompt for permissions)." )]
+    [TextField("OAuth Config Attribute Key", "The OAuth Configuration Attribute's Key", true, "OAuthSettings")]
     public partial class Authorize : Rock.Web.UI.RockBlock
     {
+        Dictionary<string, string> OAuthSettings
+        {
+            get
+            {
+                return GlobalAttributesCache.Value(GetAttributeValue("OAuthConfigAttributeKey")).AsDictionary(); ;
+            }
+        }
         #region Base Control Methods
 
         /// <summary>
@@ -53,13 +61,18 @@ namespace RockWeb.Plugins.org_secc.OAuth
         {
             base.OnInit( e );
 
+            if (OAuthSettings["OAuthRequireSsl"].AsBoolean() && Request.Url.Scheme != "Https")
+            {
+                throw new Exception("OAuth requires SSL.");
+            }
+
             // Log the user out
             if (!String.IsNullOrEmpty(PageParameter("OAuthLogout")))
             {
                 var authentication = HttpContext.Current.GetOwinContext().Authentication;
                 authentication.SignOut("OAuth");
                 authentication.Challenge("OAuth");
-                Response.Redirect("/OAuth/Login?logout=true&ReturnUrl=" + Server.UrlEncode(Request.RawUrl.Replace("&OAuthLogout=true", "")));
+                Response.Redirect(OAuthSettings["OAuthLoginPath"] +"?logout=true&ReturnUrl=" + Server.UrlEncode(Request.RawUrl.Replace("&OAuthLogout=true", "")));
             }
             if (IsPostBack)
             {
@@ -115,14 +128,14 @@ namespace RockWeb.Plugins.org_secc.OAuth
             if (identity == null)
             {
                 authentication.Challenge("OAuth");
-                Response.Redirect("/OAuth/Login?ReturnUrl=" + Server.UrlEncode(Request.RawUrl), true);
+                Response.Redirect(OAuthSettings["OAuthLoginPath"] + "?ReturnUrl=" + Server.UrlEncode(Request.RawUrl), true);
             }
             else if (CurrentUser == null)
             {
                 // Kill the OAuth session
                 authentication.SignOut("OAuth");
                 authentication.Challenge("OAuth");
-                Response.Redirect("/OAuth/Login?ReturnUrl=" + Server.UrlEncode(Request.RawUrl), true);
+                Response.Redirect(OAuthSettings["OAuthLoginPath"] + "?ReturnUrl=" + Server.UrlEncode(Request.RawUrl), true);
             }
             else
             {
