@@ -139,7 +139,7 @@
       <Project>{957B1DBE-B921-4FAE-8E5E-B7AD7F01B161}</Project>
       <Name>Rock.Migrations</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Rock\Rock.Rest\Rock.Rest.csproj">
+    <ProjectReference Include="$(SolutionDir)\Rock.Rest\Rock.Rest.csproj">
       <Project>{B89DFD33-CE93-44E1-8616-C31ACDFE89CB}</Project>
       <Name>Rock.Rest</Name>
     </ProjectReference>
