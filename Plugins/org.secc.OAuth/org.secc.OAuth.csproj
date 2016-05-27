@@ -110,6 +110,7 @@
     <Compile Include="Data\OAuthService.cs" />
     <Compile Include="Migrations\201605201037000_CreatePlugin.cs" />
     <Compile Include="Migrations\201605171249414_InitialCreate.cs" />
+    <Compile Include="Migrations\201605271634000_CreateAdminPage.cs" />
     <Compile Include="Model\Authorization.cs" />
     <Compile Include="Model\AuthorizationService.cs" />
     <Compile Include="Model\Scope.cs" />
@@ -146,7 +147,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.OAuth.dll" "$(SolutionDir)RockWeb\bin"
+    <PostBuildEvent>xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"
+xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.OAuth.dll" "$(SolutionDir)RockWeb\bin"
 xcopy /Y /R "$(ProjectDir)bin\Debug\Microsoft.Owin.Security*" "$(SolutionDir)RockWeb\bin"
 xcopy /Y /R "$(ProjectDir)bin\Debug\System.Web.Http.Owin*" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
   </PropertyGroup>
