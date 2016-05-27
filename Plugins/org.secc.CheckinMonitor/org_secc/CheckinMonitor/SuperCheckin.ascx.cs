@@ -26,6 +26,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Connection Status", "Connection status for new people." )]
     [AttributeCategoryField( "Checkin Category", "The Attribute Category to display checkin attributes from", false, "Rock.Model.Person", true, "", "", 0 )]
     [TextField( "Checkin Activity", "Name of the activity to complete checkin", true )]
+    [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_PHONE_TYPE, "SMS Phone", "Phone number type to save as when SMS enabled" )]
+    [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_PHONE_TYPE, "Other Phone", "Phone number type to save as when SMS NOT enabled" )]
     public partial class SuperCheckin : CheckInBlock
     {
 
@@ -72,6 +74,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 {
                     ViewState.Add( "ExistingFamily", false );
                     pnlNewFamily.Visible = true;
+                    BuildNewFamilyControls();
                     SaveViewState();
                 }
             }
@@ -94,7 +97,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 }
             }
 
-            if ( CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
+            if ( CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).Any() &&
+                CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
                 .FirstOrDefault()
                 .People.SelectMany( p => p.GroupTypes )
                 .SelectMany( gt => gt.Groups )
@@ -111,6 +115,32 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 btnCompleteCheckin.Visible = false;
             }
 
+        }
+
+        private void BuildNewFamilyControls()
+        {
+            ddlAdult1Suffix.BindToDefinedType( DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ), true );
+            ddlAdult2Suffix.BindToDefinedType( DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ), true );
+
+            rblAdult1Gender.Items.Clear();
+            rblAdult1Gender.Items.Add( new ListItem( Gender.Male.ConvertToString(), Gender.Male.ConvertToInt().ToString() ) );
+            rblAdult1Gender.Items.Add( new ListItem( Gender.Female.ConvertToString(), Gender.Female.ConvertToInt().ToString() ) );
+            rblAdult1Gender.Items.Add( new ListItem( Gender.Unknown.ConvertToString(), Gender.Unknown.ConvertToInt().ToString() ) );
+
+            rblAdult2Gender.Items.Clear();
+            rblAdult2Gender.Items.Add( new ListItem( Gender.Male.ConvertToString(), Gender.Male.ConvertToInt().ToString() ) );
+            rblAdult2Gender.Items.Add( new ListItem( Gender.Female.ConvertToString(), Gender.Female.ConvertToInt().ToString() ) );
+            rblAdult2Gender.Items.Add( new ListItem( Gender.Unknown.ConvertToString(), Gender.Unknown.ConvertToInt().ToString() ) );
+
+            pnbAdult1Phone.Text = CurrentCheckInState.CheckIn.SearchValue;
+
+            var campusList = CampusCache.All();
+
+            if ( campusList.Any() )
+            {
+                cpNewFamilyCampus.DataSource = campusList;
+                cpNewFamilyCampus.DataBind();
+            }
         }
 
         private void ActivateFamily()
@@ -413,6 +443,14 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             person.LastName = tbNewPersonLastName.Text;
             person.SetBirthDate( dpNewPersonBirthDate.Text.AsDateTime() );
             person.ConnectionStatusValueId = DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id;
+            if ( !string.IsNullOrWhiteSpace( rblAdult1Gender.SelectedValue ) )
+            {
+                person.Gender = rblNewPersonGender.SelectedValueAsEnum<Gender>();
+            }
+            else
+            {
+                person.Gender = Gender.Unknown;
+            }
 
             var familyGroupType = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY );
             var adultRoleId = familyGroupType.Roles
@@ -832,6 +870,100 @@ try{{
             {
                 return input.Replace( "é", @"\82" );  // fix acute e
             }
+        }
+
+        protected void btnNewFamily_Click( object sender, EventArgs e )
+        {
+            var familyGroupType = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY );
+            var adultRoleId = familyGroupType.Roles
+                .Where( r => r.Guid.Equals( Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() ) )
+                .Select( r => r.Id )
+                .FirstOrDefault();
+
+            //Adult1 Basic Info
+            Person adult1 = new Person();
+            adult1.FirstName = tbAdult1FirstName.Text;
+            adult1.LastName = tbAdult1LastName.Text;
+            adult1.SuffixValueId = ddlAdult1Suffix.SelectedValueAsId();
+            adult1.ConnectionStatusValueId = DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id;
+
+
+
+            if ( !string.IsNullOrWhiteSpace( rblAdult1Gender.SelectedValue ) )
+            {
+                adult1.Gender = rblAdult1Gender.SelectedValueAsEnum<Gender>();
+            }
+            else
+            {
+                adult1.Gender = Gender.Unknown;
+            }
+
+            var newFamily = PersonService.SaveNewPerson( adult1, _rockContext );
+            newFamily.Members.Where( m => m.Person == adult1 ).FirstOrDefault().GroupRoleId = adultRoleId;
+
+            int homeLocationTypeId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() ).Id;
+            var familyLocation = new Location();
+            familyLocation.Street1 = acNewFamilyAddress.Street1;
+            familyLocation.Street2 = acNewFamilyAddress.Street2;
+            familyLocation.City = acNewFamilyAddress.City;
+            familyLocation.State = acNewFamilyAddress.State;
+            familyLocation.PostalCode = acNewFamilyAddress.PostalCode;
+            newFamily.GroupLocations.Add( new GroupLocation() { Location = familyLocation, GroupLocationTypeValueId = homeLocationTypeId } );
+            newFamily.CampusId = cpNewFamilyCampus.SelectedCampusId;
+
+            _rockContext.SaveChanges();
+
+            if ( cbAdult1SMS.Checked )
+            {
+                var smsPhone = DefinedValueCache.Read( GetAttributeValue( "SMSPhone" ).AsGuid() ).Id;
+                adult1.UpdatePhoneNumber( smsPhone, PhoneNumber.DefaultCountryCode(), pnbAdult1Phone.Text, true, false, _rockContext );
+            }
+            else
+            {
+                var otherPhone = DefinedValueCache.Read( GetAttributeValue( "OtherPhone" ).AsGuid() ).Id;
+                adult1.UpdatePhoneNumber( otherPhone, PhoneNumber.DefaultCountryCode(), pnbAdult1Phone.Text, false, false, _rockContext );
+            }
+
+            if ( !string.IsNullOrWhiteSpace( tbAdult2FirstName.Text ) && !string.IsNullOrWhiteSpace( tbAdult2LastName.Text ) )
+            {
+                //Adult2 Basic Info
+                Person adult2 = new Person();
+                adult2.FirstName = tbAdult2FirstName.Text;
+                adult2.LastName = tbAdult2LastName.Text;
+                adult2.SuffixValueId = ddlAdult2Suffix.SelectedValueAsId();
+                adult2.ConnectionStatusValueId = DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id;
+
+                if ( !string.IsNullOrWhiteSpace( rblAdult2Gender.SelectedValue ) )
+                {
+                    adult2.Gender = rblAdult1Gender.SelectedValueAsEnum<Gender>();
+                }
+                else
+                {
+                    adult2.Gender = Gender.Unknown;
+                }
+
+                PersonService.AddPersonToFamily( adult2, true, newFamily.Id, adultRoleId, _rockContext );
+
+                if ( cbAdult2SMS.Checked )
+                {
+                    var smsPhone = DefinedValueCache.Read( GetAttributeValue( "SMSPhone" ).AsGuid() ).Id;
+                    adult2.UpdatePhoneNumber( smsPhone, PhoneNumber.DefaultCountryCode(), pnbAdult2Phone.Text, true, false, _rockContext );
+                }
+                else
+                {
+                    var otherPhone = DefinedValueCache.Read( GetAttributeValue( "OtherPhone" ).AsGuid() ).Id;
+                    adult2.UpdatePhoneNumber( otherPhone, PhoneNumber.DefaultCountryCode(), pnbAdult2Phone.Text, false, false, _rockContext );
+                }
+            }
+
+            CurrentCheckInState.CheckIn.Families.Add( new CheckInFamily() { Group = newFamily, Selected = true } );
+            SaveState();
+            ViewState.Add( "ExistingFamily", true );
+            pnlManageFamily.Visible = true;
+            pnlNewFamily.Visible = false;
+            SaveViewState();
+            ActivateFamily();
+
         }
     }
     public class FamilyLabel

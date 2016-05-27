@@ -14,13 +14,62 @@
 
         <!-- New Family -->
         <asp:Panel ID="pnlNewFamily" Visible="false" runat="server">
-            New Family
+            <h1>New Family</h1>
+            <h2>Adult 1</h2>
+            <div class="row">
+                <div class="col-xs-12 col-sm-5">
+                    <Rock:RockTextBox ID="tbAdult1FirstName" runat="server" Label="First Name" />
+                </div>
+                <div class="col-xs-12 col-sm-5">
+                    <Rock:RockTextBox ID="tbAdult1LastName" runat="server" Label="Last Name" />
+                </div>
+                <div class="col-xs-12 col-sm-2">
+                    <Rock:RockDropDownList ID="ddlAdult1Suffix" runat="server" Label="Suffix" CssClass="input-width-md" />
+                </div>
+                <div class="col-xs-12 col-sm-4">
+                    <Rock:RockRadioButtonList ID="rblAdult1Gender" runat="server" Label="Gender" RepeatDirection="Horizontal" />
+                </div>
+                <div class="col-xs-8 col-sm-6">
+                    <Rock:PhoneNumberBox ID="pnbAdult1Phone" runat="server" Label="Phone Number"></Rock:PhoneNumberBox>
+                </div>
+                <div class="col-xs-4 col-sm-2">
+                    <Rock:Toggle runat="server" ID="cbAdult1SMS" Label="Is Cell Phone?" OnCssClass="btn-success"
+                        OffCssClass="btn-danger" OnText="Yes" OffText="No" />
+                </div>
+            </div>
+            <h2>Adult 2</h2>
+            <div class="row">
+                <div class="col-xs-12 col-sm-5">
+                    <Rock:RockTextBox ID="tbAdult2FirstName" runat="server" Label="First Name" />
+                </div>
+                <div class="col-xs-12 col-sm-5">
+                    <Rock:RockTextBox ID="tbAdult2LastName" runat="server" Label="Last Name" />
+                </div>
+                <div class="col-xs-12 col-sm-2">
+                    <Rock:RockDropDownList ID="ddlAdult2Suffix" runat="server" Label="Suffix" CssClass="input-width-md" />
+                </div>
+                <div class="col-xs-12 col-sm-4">
+                    <Rock:RockRadioButtonList ID="rblAdult2Gender" runat="server" Label="Gender" RepeatDirection="Horizontal" />
+                </div>
+                <div class="col-xs-8 col-sm-6">
+                    <Rock:PhoneNumberBox ID="pnbAdult2Phone" runat="server" Label="Phone Number"></Rock:PhoneNumberBox>
+                </div>
+                <div class="col-xs-4 col-sm-2">
+                    <Rock:Toggle runat="server" ID="cbAdult2SMS" Label="Is Cell Phone?" OnCssClass="btn-success"
+                        OffCssClass="btn-danger" OnText="Yes" OffText="No" />
+                </div>
+            </div>
+            <h2>Family Info</h2>
+            <Rock:CampusPicker runat="server" ID="cpNewFamilyCampus"></Rock:CampusPicker>
+            <Rock:AddressControl runat="server" ID="acNewFamilyAddress" />
+            <Rock:BootstrapButton runat="server" ID="btnNewFamily" Text="Create New Family"
+                 CssClass="btn btn-primary" OnClick="btnNewFamily_Click"></Rock:BootstrapButton>
         </asp:Panel>
 
         <!-- Manage Family -->
         <asp:Panel ID="pnlManageFamily" Visible="false" runat="server" CssClass="container">
             <div class="row">
-                <div class="col-md-3" style="background-color: black; color: white; padding:5px;">
+                <div class="col-md-3" style="background-color: black; color: white; padding: 5px;">
                     <Rock:BootstrapButton runat="server" ID="btnCompleteCheckin" CssClass="btn btn-success btn-lg btn-block" OnClick="btnCompleteCheckin_Click"
                         Text="Complete Checkin<br>& Print Tags" Visible="false"></Rock:BootstrapButton>
                     <h2>Members:</h2>
@@ -126,7 +175,7 @@
                             </Rock:BootstrapButton>
                         </div>
                     </asp:Panel>
-                    
+
                 </div>
             </div>
         </asp:Panel>

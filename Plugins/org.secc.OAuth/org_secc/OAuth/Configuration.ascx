@@ -4,6 +4,9 @@
         <ContentTemplate>
             <div class="panel-heading"><h1 class="panel-title"><i class="fa fa-cloud"></i> OAuth Server Configuration</h1></div>
             <div class="panel-body">
+                
+                <asp:ValidationSummary ID="vsDetails" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-danger" />
+
                 <div class="row">
                     <div class="col-md-6">
                         <Rock:RockDropDownList ID="ddlAuthorizeRoute" runat="server" Label="Authorize Route" Help="Route which points to the page containing the Authorize block.  This setting is also used by the OAuth middleware to configure the server and is the endpoint the client will need to access your OAuth server. " />
@@ -14,7 +17,8 @@
                     <div class="col-md-6">
                         <Rock:RockDropDownList ID="ddlTokenRoute" runat="server" Label="Token Route" Help="Route which points to the page containing the Logout block.  This setting is also used by the OAuth middleware to configure the server and is the endpoint the client will need to renew OAuth tokens." />
                         <Rock:RockCheckBox ID="cbSSLRequired" runat="server" Label="SSL Required" Checked="true" Help="This should default to true and only be set to false when in debug mode!" />
-                        <Rock:RockTextBox ID="tbTokenLifespan" runat="server" Label="Token Lifespan (minutes)" Help="The OAuth token lifespan in minutes." />
+                        <Rock:RockTextBox ID="tbTokenLifespan" runat="server" Label="Token Lifespan (minutes)" Help="The OAuth token lifespan in minutes." Required="true" DisplayRequiredIndicator="false"/>
+                        <asp:RegularExpressionValidator ControlToValidate="tbTokenLifespan" ValidationExpression="^\d+" ErrorMessage="Please enter a numeric token lifespan." runat="server" CssClass="hidden" />
                     </div>
                     <div class="col-md-12">
                         <Rock:BootstrapButton ID="btnSave" CssClass="btn btn-primary pull-right" runat="server" Text="Save" OnClick="btnSave_Click" />
@@ -29,7 +33,8 @@
                         <Rock:RockBoundField DataField="APIKey" HeaderText="Api Key" />
                         <Rock:RockBoundField DataField="APISecret" HeaderText="Api Secret" />
                         <Rock:RockBoundField DataField="CallBackURL" HeaderText="Callback Url" />
-                        <Rock:BoolField DataField="Active" HeaderText="Active" />
+                        <Rock:BoolField DataField="Active" HeaderText="Active" HeaderStyle-HorizontalAlign="Center" />
+                        <Rock:DeleteField OnClick="gOAuthClientsDelete_Click" HeaderText="Delete" HeaderStyle-HorizontalAlign="Center" />
                     </Columns>
                 </Rock:Grid>
                 <div>
@@ -39,8 +44,8 @@
                     <Columns>
                         <Rock:RockBoundField DataField="Identifier" HeaderText="Identifier" />
                         <Rock:RockBoundField DataField="Description" HeaderText="Description" />
-                        <Rock:BoolField DataField="Active" HeaderText="Active" />
-                        <Rock:DeleteField OnClick="gOAuthScopesDelete_Click" HeaderText="Delete" />
+                        <Rock:BoolField DataField="Active" HeaderText="Active" HeaderStyle-HorizontalAlign="Center" />
+                        <Rock:DeleteField OnClick="gOAuthScopesDelete_Click" HeaderText="Delete" HeaderStyle-HorizontalAlign="Center" />
                     </Columns>
                 </Rock:Grid>
                 <Rock:ModalDialog ID="gOAuthClientEdit" runat="server" OnSaveClick="gOAuthClientEdit_SaveClick" Title="OAuth Client" >

@@ -115,8 +115,43 @@ namespace RockWeb.Plugins.org_secc.OAuth
 
         protected void btnSave_Click(object sender, EventArgs e)
         {
+            string attributeKey = GetAttributeValue("OAuthConfigAttributeKey");
+            Dictionary<string, string> settings = GlobalAttributesCache.Value(attributeKey).AsDictionary();
+            settings["OAuthAuthorizePath"] = "/" + ddlAuthorizeRoute.SelectedValue;
+            settings["OAuthLoginPath"] = "/" + ddlLoginRoute.SelectedValue;
+            settings["OAuthLogoutPath"] = "/" + ddlLogoutRoute.SelectedValue;
+            settings["OAuthTokenPath"] = "/" + ddlTokenRoute.SelectedValue;
+            settings["OAuthRequireSsl"] = cbSSLRequired.Checked.ToString();
+            settings["OAuthTokenLifespan"] = tbTokenLifespan.Text;
 
-            gOAuthClientEdit.Show();
+            RockContext context = new RockContext();
+            AttributeService attributeService = new AttributeService(context);
+            Rock.Model.Attribute attribute = attributeService.Queryable().Where(a => a.Key== attributeKey).FirstOrDefault();
+            if (attribute == null)
+            { 
+                attribute = new Rock.Model.Attribute();
+                attribute.Name = "OAuth Settings";
+                attribute.Description = "Settings for the OAuth server plugin.";
+                attribute.Key = "OAuthSettings";
+                FieldTypeService fieldTypeService = new FieldTypeService(context);
+                attribute.FieldType = fieldTypeService.Get(Rock.SystemGuid.FieldType.KEY_VALUE_LIST.AsGuid());
+                context.SaveChanges();
+            }
+            // Update the actual attribute value.
+            AttributeValueService attributeValueService = new AttributeValueService(context);
+            AttributeValue attributeValue = attributeValueService.GetByAttributeIdAndEntityId(attribute.Id, null);
+            if (attributeValue == null)
+            {
+                attributeValue = new AttributeValue();
+                attributeValue.AttributeId = attribute.Id;
+                attributeValueService.Add(attributeValue);
+            }
+            attributeValue.Value = string.Join("|", settings.Select(a => a.Key + "^" + a.Value).ToList());
+            context.SaveChanges();
+
+            // Flush the cache(s)
+            AttributeCache.Flush(attribute.Id);
+            GlobalAttributesCache.Flush();
         }
 
         #region Clients
@@ -184,7 +219,25 @@ namespace RockWeb.Plugins.org_secc.OAuth
             client.ApiKey = tbApiKey.Text.AsGuid();
             client.ApiSecret = tbApiSecret.Text.AsGuid();
             client.CallbackUrl = tbCallbackUrl.Text;
-            client.Active = cbScopeActive.Checked;
+            client.Active = cbActive.Checked;
+            
+            foreach (System.Web.UI.WebControls.ListItem item in cblClientScopes.Items)
+            {
+                int scopeId = item.Value.AsInteger();
+                ClientScope clientScope = clientScopeService.Queryable().Where(cs => cs.ClientId == client.Id && cs.ScopeId == scopeId).FirstOrDefault();
+                if (clientScope != null)
+                {
+                    clientScope.Active = item.Selected;
+                }
+                else if (item.Selected)
+                {
+                    clientScope = new ClientScope();
+                    clientScope.ClientId = client.Id;
+                    clientScope.ScopeId = item.Value.AsInteger();
+                    clientScope.Active = item.Selected;
+                    clientScopeService.Add(clientScope);
+                }
+            }
             OAuthContext.SaveChanges();
             OAuthContext = new OAuthContext();
             gOAuthClients_Bind(sender, e);
@@ -210,6 +263,15 @@ namespace RockWeb.Plugins.org_secc.OAuth
                 cblClientScopes.Items.FindByValue(cs.ScopeId.ToString()).Selected = true
             );
             gOAuthClientEdit.Show();
+        }
+        protected void gOAuthClientsDelete_Click(object sender, Rock.Web.UI.Controls.RowEventArgs e)
+        {
+
+            ClientService clientService = new ClientService(OAuthContext);
+            clientService.Delete(clientService.Get(e.RowKeyId));
+            OAuthContext.SaveChanges();
+            OAuthContext = new OAuthContext();
+            gOAuthClients_Bind(sender, e);
         }
         #endregion Clients
 

@@ -12,6 +12,8 @@ using Microsoft.Owin.Security.OAuth;
 using Owin;
 using Rock.Web.Cache;
 using Rock;
+using org.secc.OAuth.Model;
+using org.secc.OAuth.Data;
 
 namespace org.secc.OAuth
 {
@@ -19,31 +21,34 @@ namespace org.secc.OAuth
     {
         public void ConfigureAuth( IAppBuilder app )
         {
+
             var settings = GlobalAttributesCache.Value("OAuthSettings").AsDictionary();
-            
+
+            int tokenLifespan = 0;
+
+            if (int.TryParse(settings["OAuthTokenLifespan"], out tokenLifespan))
+            {
+                tokenLifespan = 10;
+            }
+
             //Enable Application Sign In Cookie
             app.UseCookieAuthentication(new CookieAuthenticationOptions
             {
                 AuthenticationType = "OAuth",
                 AuthenticationMode = AuthenticationMode.Passive,
-                LoginPath = new PathString(settings["OAuthLoginPath"]),
-                LogoutPath = new PathString(settings["OAuthLogoutPath"]),
-                SlidingExpiration = false
+                LoginPath = new PathString("/" + settings["OAuthLoginPath"].Trim('/')),
+                LogoutPath = new PathString("/" + settings["OAuthLogoutPath"].Trim('/')),
+                SlidingExpiration = false,
+                ExpireTimeSpan = new TimeSpan(0, tokenLifespan, 0)
             });
 
-            int tokenLifespan = 0;
-
-            if ( int.TryParse( settings["OAuthTokenPath"], out tokenLifespan ) )
-            {
-                tokenLifespan = 10;
-            }
 
             //Setup Authorization Server
             app.UseOAuthAuthorizationServer( new OAuthAuthorizationServerOptions
                 {
-                    AuthorizeEndpointPath = new PathString(settings["OAuthAuthorizePath"] ),
+                    AuthorizeEndpointPath = new PathString("/" + settings["OAuthAuthorizePath"].Trim('/')),
                     AuthorizationCodeExpireTimeSpan = new TimeSpan(0,tokenLifespan, 0),
-                    TokenEndpointPath = new PathString(settings["OAuthTokenPath"] ),
+                    TokenEndpointPath = new PathString("/" + settings["OAuthTokenPath"].Trim('/')),
                     ApplicationCanDisplayErrors = false,
                     AllowInsecureHttp = AllowInsecureHttp(),
                      
@@ -71,6 +76,8 @@ namespace org.secc.OAuth
                     }
 
                 } );
+
+            app.UseOAuthBearerAuthentication(new OAuthBearerAuthenticationOptions());
         }
 
         #region Refresh Token Provider
@@ -129,14 +136,16 @@ namespace org.secc.OAuth
             string clientId;
             string clientSecret;
 
-            if ( context.TryGetBasicCredentials( out clientId, out clientSecret ) ||
-                context.TryGetFormCredentials( out clientId, out clientSecret ) )
+            if (context.TryGetBasicCredentials(out clientId, out clientSecret) ||
+                context.TryGetFormCredentials(out clientId, out clientSecret))
             {
 
                 try
                 {
-                    // TODO:  Check to see if the person is authenticated to Rock
-                    if (true )
+                    ClientService clientService = new ClientService(new OAuthContext());
+                    Client client = clientService.Queryable().Where(c => c.ApiKey.ToString() == clientId && c.ApiSecret.ToString() == clientSecret).FirstOrDefault();
+
+                    if (client != null && client.Active)
                     {
                         context.Validated();
                     }
@@ -163,12 +172,12 @@ namespace org.secc.OAuth
 
             try
             {
-                // TODO: Implement client stuff here (A new entity).
-                
+                ClientService clientService = new ClientService(new OAuthContext());
+                Client client = clientService.Queryable().Where(c => c.ApiKey.ToString() == context.ClientId).FirstOrDefault();
 
-                if ( true) // client.ClientID > 0 && client.Active )
+                if (client != null && client.Active )
                 {
-                    if ( true )//client.CallbackURL.Equals( context.RedirectUri, StringComparison.OrdinalIgnoreCase ) )
+                    if (client.CallbackUrl.Equals( context.RedirectUri, StringComparison.OrdinalIgnoreCase ) )
                     {
                         context.Validated();
                     }
