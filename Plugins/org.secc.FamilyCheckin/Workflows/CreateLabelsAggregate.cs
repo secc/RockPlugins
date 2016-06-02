@@ -19,7 +19,7 @@ namespace org.secc.FamilyCheckin
     /// <summary>
     /// Creates Check-in Labels
     /// </summary>
-    [ActionCategory( "Check-In" )]
+    [ActionCategory( "SECC > Check-In" )]
     [Description( "Creates Check-in Labels with Aggregate Family Label" )]
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Aggregate Checkin Label" )]

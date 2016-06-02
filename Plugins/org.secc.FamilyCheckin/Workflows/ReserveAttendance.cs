@@ -16,7 +16,7 @@ namespace Rock.Workflow.Action.CheckIn
     /// <summary>
     /// Saves the selected check-in data as attendance
     /// </summary>
-    [ActionCategory( "Check-In" )]
+    [ActionCategory( "SECC > Check-In" )]
     [Description( "Acts like Save Attendance except is doesn't set attendance date or did attend to true" )]
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Reserve Attendance" )]
