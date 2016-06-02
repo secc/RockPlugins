@@ -162,7 +162,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 BootstrapButton btnMember = new BootstrapButton();
                 btnMember.CssClass = "btn btn-default btn-block btn-lg";
-                btnMember.Text = "<b>" + checkinPerson.Person.FullName + " (" + GetSelectedCount( checkinPerson ).ToString() + ")</b><br>" + checkinPerson.Person.FormatAge();
+                btnMember.Text = "<b>" + checkinPerson.Person.FullName +" " +  GetSelectedCountString( checkinPerson ) + "</b><br>" + checkinPerson.Person.FormatAge();
                 if ( !checkinPerson.FamilyMember )
                 {
                     btnMember.Text = "<i class='fa fa-exchange'></i> " + btnMember.Text;
@@ -178,13 +178,19 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
         }
 
-        private int GetSelectedCount( CheckInPerson checkinPerson )
+        private string GetSelectedCountString( CheckInPerson checkinPerson )
         {
-            return checkinPerson.GroupTypes
+            int count = checkinPerson.GroupTypes
                 .SelectMany( gt => gt.Groups )
                 .SelectMany( g => g.Locations )
                 .SelectMany( l => l.Schedules )
                 .Where( s => s.Selected ).Count();
+            if ( count > 0 )
+            {
+                return "<span class=badge>" + count.ToString() + "</span>";
+            }
+            return "";
+
         }
 
         private void DisplayPersonInformation()
@@ -637,6 +643,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             List<string> errorMessages;
             ProcessActivity( activity, out errorMessages );
             ProcessLabels();
+            btnCompleteCheckin.Visible = false;
+            DisplayFamilyMemberMenu();
+            BuildGroupTypeModal();
         }
         private void ProcessLabels()
         {
