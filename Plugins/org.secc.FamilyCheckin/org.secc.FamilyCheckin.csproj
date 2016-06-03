@@ -84,6 +84,8 @@
     <Compile Include="Rest\Controllers\FamilyCheckinController.Partial.cs" />
     <Compile Include="Rest\Handlers\SessionControllerHandler.cs" />
     <Compile Include="Rest\Handlers\SessionRouteHandler.cs" />
+    <Compile Include="Utilities\LabelPrinter.cs" />
+    <Compile Include="Workflows\ReprintAggregate.cs" />
     <Compile Include="Workflows\CreateLabelsAggregate.cs" />
     <Compile Include="Workflows\LoadSchedulesOverride.cs" />
     <Compile Include="Workflows\ReserveAttendance.cs" />

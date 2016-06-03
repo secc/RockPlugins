@@ -17,6 +17,7 @@ using System.Web.UI;
 using System.Net.Sockets;
 using System.Text;
 using System.Net;
+using org.secc.FamilyCheckin.Utilities;
 
 namespace RockWeb.Plugins.org_secc.CheckinMonitor
 {
@@ -26,6 +27,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Connection Status", "Connection status for new people." )]
     [AttributeCategoryField( "Checkin Category", "The Attribute Category to display checkin attributes from", false, "Rock.Model.Person", true, "", "", 0 )]
     [TextField( "Checkin Activity", "Name of the activity to complete checkin", true )]
+    [TextField( "Reprint Activity", "Name of the activity to reprint tag", true )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_PHONE_TYPE, "SMS Phone", "Phone number type to save as when SMS enabled" )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_PHONE_TYPE, "Other Phone", "Phone number type to save as when SMS NOT enabled" )]
     public partial class SuperCheckin : CheckInBlock
@@ -973,6 +975,19 @@ try{{
             SaveViewState();
             ActivateFamily();
 
+        }
+
+        protected void btnPrint_Click( object sender, EventArgs e )
+        {
+            List<string> errorMessages = new List<string>();
+            ProcessActivity( GetAttributeValue( "ReprintActivity" ), out errorMessages );
+            if ( !errorMessages.Any() )
+            {
+                LabelPrinter labelPrinter = new LabelPrinter( CurrentCheckInState, Request );
+                labelPrinter.PrintNetworkLabels();
+                var script = labelPrinter.GetClientScript();
+                ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "addLabelScript", script, true );
+            }
         }
     }
     public class FamilyLabel

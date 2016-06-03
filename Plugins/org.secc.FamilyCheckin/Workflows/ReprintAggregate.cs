@@ -22,11 +22,11 @@ namespace org.secc.FamilyCheckin
     [ActionCategory( "SECC > Check-In" )]
     [Description( "Creates Check-in Labels with Aggregate Family Label" )]
     [Export( typeof( ActionComponent ) )]
-    [ExportMetadata( "ComponentName", "Aggregate Checkin Label" )]
+    [ExportMetadata( "ComponentName", "Reprint Aggregate" )]
     [BinaryFileField( Rock.SystemGuid.BinaryFiletype.CHECKIN_LABEL, "Aggregated Label", "Label to aggregate", true )]
     //[DefinedValueField("E4D289A9-70FA-4381-913E-2A757AD11147","Label Merge Field","Merge field to replace text with")]
     [TextField( "Merge Text", "Text to merge label merge field into separated by commas.", true, "AAA,BBB,CCC,DDD" )]
-    public class CreateLabelsAggregate : CheckInActionComponent
+    public class ReprintAggregate : CheckInActionComponent
     {
         /// <summary>
         /// Executes the specified workflow.
@@ -52,91 +52,27 @@ namespace org.secc.FamilyCheckin
 
                 var groupMemberService = new GroupMemberService( rockContext );
 
+                AttendanceService attendanceService = new AttendanceService( rockContext );
+                PersonService personService = new PersonService( rockContext );
+
                 foreach ( var family in checkInState.CheckIn.Families.Where( f => f.Selected ) )
                 {
-                    foreach ( var person in family.People.Where( p => p.Selected ) )
+                    foreach ( var person in family.People)
                     {
                         if ( person.SecurityCode != null )
                         {
                             labelCodes.Add( person.SecurityCode + "-" + LabelAge( person.Person ) );
                         }
-                        foreach ( var groupType in person.GroupTypes.Where( g => g.Selected ) )
+                        else
                         {
-                            lastCheckinGroupType = groupType;
-                            var mergeObjects = new Dictionary<string, object>();
-                            foreach ( var keyValue in globalMergeValues )
+                            //we have to load the person entity in because the person.Person doesn't load enough information
+                            var personEntity = personService.Get( person.Person.Id );
+                            var attendances = attendanceService.Queryable("AttendanceCode")
+                                .Where( a => a.CreatedDateTime >= Rock.RockDateTime.Today && personEntity.PrimaryAliasId == a.PersonAliasId )
+                                .DistinctBy(a => a.AttendanceCode).ToList();
+                            foreach ( var attendance in attendances )
                             {
-                                mergeObjects.Add( keyValue.Key, keyValue.Value );
-                            }
-                            mergeObjects.Add( "Person", person );
-                            mergeObjects.Add( "GroupType", groupType );
-
-                            var groupIds = groupType.Groups.Where( g => g.Selected && g.Group != null ).Select( g => g.Group.Id ).ToList();
-                            var groupMembers = groupMemberService.Queryable().AsNoTracking()
-                                .Where( m =>
-                                    m.PersonId == person.Person.Id &&
-                                    groupIds.Contains( m.GroupId ) )
-                                .ToList();
-                            mergeObjects.Add( "GroupMembers", groupMembers );
-
-                            groupType.Labels = new List<CheckInLabel>();
-
-                            GetGroupTypeLabels( groupType.GroupType, groupType.Labels, mergeObjects );
-
-                            var PrinterIPs = new Dictionary<int, string>();
-
-                            foreach ( var label in groupType.Labels )
-                            {
-                                label.PrintFrom = checkInState.Kiosk.Device.PrintFrom;
-                                label.PrintTo = checkInState.Kiosk.Device.PrintToOverride;
-
-                                if ( label.PrintTo == PrintTo.Default )
-                                {
-                                    label.PrintTo = groupType.GroupType.AttendancePrintTo;
-                                }
-
-                                if ( label.PrintTo == PrintTo.Kiosk )
-                                {
-                                    var device = checkInState.Kiosk.Device;
-                                    if ( device != null )
-                                    {
-                                        label.PrinterDeviceId = device.PrinterDeviceId;
-                                    }
-                                }
-                                else if ( label.PrintTo == PrintTo.Location )
-                                {
-                                    // Should only be one
-                                    var group = groupType.Groups.Where( g => g.Selected ).FirstOrDefault();
-                                    if ( group != null )
-                                    {
-                                        var location = group.Locations.Where( l => l.Selected ).FirstOrDefault();
-                                        if ( location != null )
-                                        {
-                                            var device = location.Location.PrinterDevice;
-                                            if ( device != null )
-                                            {
-                                                label.PrinterDeviceId = device.PrinterDeviceId;
-                                            }
-                                        }
-                                    }
-                                }
-
-                                if ( label.PrinterDeviceId.HasValue )
-                                {
-                                    if ( PrinterIPs.ContainsKey( label.PrinterDeviceId.Value ) )
-                                    {
-                                        label.PrinterAddress = PrinterIPs[label.PrinterDeviceId.Value];
-                                    }
-                                    else
-                                    {
-                                        var printerDevice = new DeviceService( rockContext ).Get( label.PrinterDeviceId.Value );
-                                        if ( printerDevice != null )
-                                        {
-                                            PrinterIPs.Add( printerDevice.Id, printerDevice.IPAddress );
-                                            label.PrinterAddress = printerDevice.IPAddress;
-                                        }
-                                    }
-                                }
+                                labelCodes.Add( attendance.AttendanceCode.Code + "-" + LabelAge( person.Person ) );
                             }
                         }
                     }
@@ -219,12 +155,16 @@ namespace org.secc.FamilyCheckin
                                 var printerDevice = new DeviceService( rockContext ).Get( checkInLabel.PrinterDeviceId.Value );
                                 checkInLabel.PrinterAddress = printerDevice.IPAddress;
                             }
-                            if ( lastCheckinGroupType != null )
+                            var firstPerson = family.People.Where(p => p.GroupTypes.Any()).FirstOrDefault();
+                            if ( firstPerson != null )
                             {
-                                lastCheckinGroupType.Labels.Add( checkInLabel );
+                                //we have to set as selected or it wil not print
+                                firstPerson.Selected = true;
+                                var firstGroupType = firstPerson.GroupTypes.FirstOrDefault();
+                                firstGroupType.Selected = true;
+                                firstGroupType.Labels = new List<CheckInLabel>() { checkInLabel };
                             }
                         }
-
                     }
                 }
 
@@ -250,30 +190,6 @@ namespace org.secc.FamilyCheckin
                 return Math.Floor( ( today.Subtract( birthday ).Days / ( 365.25 / 12 ) ) ).ToString() + "mo";
             }
             return "N/A";
-        }
-
-        private void GetGroupTypeLabels( GroupTypeCache groupType, List<CheckInLabel> labels, Dictionary<string, object> mergeObjects )
-        {
-            //groupType.LoadAttributes();
-            foreach ( var attribute in groupType.Attributes.OrderBy( a => a.Value.Order ) )
-            {
-                if ( attribute.Value.FieldType.Guid == Rock.SystemGuid.FieldType.BINARY_FILE.AsGuid() &&
-                    attribute.Value.QualifierValues.ContainsKey( "binaryFileType" ) &&
-                    attribute.Value.QualifierValues["binaryFileType"].Value.Equals( Rock.SystemGuid.BinaryFiletype.CHECKIN_LABEL, StringComparison.OrdinalIgnoreCase ) )
-                {
-                    Guid? binaryFileGuid = groupType.GetAttributeValue( attribute.Key ).AsGuidOrNull();
-                    if ( binaryFileGuid != null )
-                    {
-                        var labelCache = KioskLabel.Read( binaryFileGuid.Value );
-                        if ( labelCache != null )
-                        {
-                            var checkInLabel = new CheckInLabel( labelCache, mergeObjects, new List<int>() );
-                            checkInLabel.FileGuid = binaryFileGuid.Value;
-                            labels.Add( checkInLabel );
-                        }
-                    }
-                }
-            }
         }
     }
 }
