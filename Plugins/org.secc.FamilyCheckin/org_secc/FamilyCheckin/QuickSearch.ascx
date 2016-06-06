@@ -246,7 +246,7 @@
 
                                     <asp:Panel ID="pnlSearchPhone" runat="server">
                                         <Rock:RockTextBox ID="tbPhone" MaxLength="10" CssClass="checkin-phone-entry" runat="server"
-                                            onkeyup="findFamilies(this.value)" autocomplete="off" />
+                                            autocomplete="off" />
                                         <div class="tenkey checkin-phone-keypad">
                                             <div>
                                                 <a href="#" class="btn btn-default btn-lg digit">1</a>
