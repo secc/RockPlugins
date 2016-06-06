@@ -84,7 +84,7 @@
                     showSign("Sorry, we could not find your phone number.",false, "2vw")
                     return;
                 }else{
-                    showSign("Select your family to continue.",false, "2.5vw")
+                    setTimeout(function(){ showSign("Select your family to continue.",false, "2.5vw")},300)
 
                 }
                 var content = document.getElementById("contentDiv");
