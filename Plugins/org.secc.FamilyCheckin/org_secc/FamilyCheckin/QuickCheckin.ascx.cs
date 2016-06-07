@@ -95,7 +95,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 btnParentGroupTypeHeader.DataLoadingText = "Check-In";
             }
 
-            if ( ( bool ) Session["selectPgt"] )
+            if ( Session["selectPgt"] !=null && ( bool ) Session["selectPgt"] )
             {
                 DisplayPgtSelection();
             }
@@ -113,7 +113,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     ShowRoomChangeModal( ( Person ) Session["modalPerson"], ( CheckInSchedule ) Session["modalSchedule"] );
                 }
             }
-            ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "makeScroll", "$('#peopleContainer').niceScroll({touchbehavior:true,grabcursorenabled: false});", true );
         }
 
         protected void btnParentGroupTypeHeader_Click( object sender, EventArgs e )
