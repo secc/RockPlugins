@@ -113,7 +113,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     ShowRoomChangeModal( ( Person ) Session["modalPerson"], ( CheckInSchedule ) Session["modalSchedule"] );
                 }
             }
-            ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "makeScroll", "$('#peopleContainer').niceScroll();", true );
+            ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "makeScroll", "$('#peopleContainer').niceScroll({touchbehavior:true,grabcursorenabled: false});", true );
         }
 
         protected void btnParentGroupTypeHeader_Click( object sender, EventArgs e )
