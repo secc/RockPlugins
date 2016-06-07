@@ -113,6 +113,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     ShowRoomChangeModal( ( Person ) Session["modalPerson"], ( CheckInSchedule ) Session["modalSchedule"] );
                 }
             }
+            ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "makeScroll", "$('#peopleContainer').niceScroll();", true );
         }
 
         protected void btnParentGroupTypeHeader_Click( object sender, EventArgs e )
@@ -184,7 +185,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             SaveState();
             
             //add sweet animation
-            ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "selectPGT", "setTimeout(function(){showContent()},50);$('#peopleContainer').niceScroll();", true );
+            ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "selectPGT", "setTimeout(function(){showContent()},50);", true );
         }
 
         private void DisplayPeople()
