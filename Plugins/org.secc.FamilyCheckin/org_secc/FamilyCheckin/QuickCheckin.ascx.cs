@@ -88,12 +88,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 btnParentGroupTypeHeader.Text = currentParentGroupType.Name;
                 btnParentGroupTypeHeader.DataLoadingText = currentParentGroupType.Name + " <i class='fa fa-refresh fa-spin'>";
+                //btnParentGroupTypeHeader.Enabled = true;
             }
             else
             {
                 btnParentGroupTypeHeader.Text = "Check-In";
                 btnParentGroupTypeHeader.DataLoadingText = "Check-In";
-                btnParentGroupTypeHeader.Enabled = false;
+                //btnParentGroupTypeHeader.Enabled = false;
             }
 
             if ( ( bool ) Session["selectPgt"] )
@@ -773,10 +774,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                         byte[] toSend = System.Text.Encoding.ASCII.GetBytes( labelContent.ToString() );
                         ns.Write( toSend, 0, toSend.Length );
                     }
-                    else
-                    {
-                        //phPrinterStatus.Controls.Add(new LiteralControl(string.Format("Can't connect to printer: {0}", printerIp)));
-                    }
 
                     if ( socket != null && socket.Connected )
                     {
@@ -817,7 +814,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 try{{
             printLabels();
 }} catch(e){{}}
-            __doPostBack('{1}','OnClick');
+setTimeout(function(){{__doPostBack('{1}','OnClick');}},2000)
             ", jsonObject, btnCancel.UniqueID );
             ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "addLabelScript", script, true );
         }

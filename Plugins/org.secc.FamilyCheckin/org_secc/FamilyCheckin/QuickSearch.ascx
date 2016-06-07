@@ -81,7 +81,7 @@
                     content.style.transform="translateX(0px)";
                     var families = document.getElementById("familyDiv");
                     families.style.transform="translateX(0px)";
-                    showSign("Sorry, we could not find your phone number.",false, "2vw")
+                    setTimeout(function(){ showSign("Sorry, we could not find your phone number.",false, "2vw")},300);
                     return;
                 }else{
                     setTimeout(function(){ showSign("Select your family to continue.",false, "2.5vw")},300)

@@ -91,7 +91,7 @@
         <div id="success" class="text-center alert alert-success successModal">
 
             <h2>Welcome.</h2>
-            <h2>We are printing your name tags now.</h2>
+            <h2>We are preparing your security labels now.</h2>
         </div>
     </ContentTemplate>
 </asp:UpdatePanel>
