@@ -88,13 +88,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 btnParentGroupTypeHeader.Text = currentParentGroupType.Name;
                 btnParentGroupTypeHeader.DataLoadingText = currentParentGroupType.Name + " <i class='fa fa-refresh fa-spin'>";
-                //btnParentGroupTypeHeader.Enabled = true;
             }
             else
             {
                 btnParentGroupTypeHeader.Text = "Check-In";
                 btnParentGroupTypeHeader.DataLoadingText = "Check-In";
-                //btnParentGroupTypeHeader.Enabled = false;
             }
 
             if ( ( bool ) Session["selectPgt"] )
@@ -186,7 +184,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             SaveState();
             
             //add sweet animation
-            ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "selectPGT", "setTimeout(function(){showContent()},50)", true );
+            ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "selectPGT", "setTimeout(function(){showContent()},50);$('#peopleContainer').niceScroll();", true );
         }
 
         private void DisplayPeople()

@@ -9593,6 +9593,12 @@ body {
   font-family: Arial, sans-serif;
   height: 100vh;
   overflow: hidden;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 .btn-success {
   background-color: #12A158;
@@ -9762,8 +9768,7 @@ body {
   position: relative;
   left: 0px;
   height: 498px;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
   background-color: #FFC074;
   border-radius: 5px;
   border: solid 5px #F17148;
@@ -9776,8 +9781,7 @@ body {
   position: relative;
   top: -499px;
   left: -800px;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
 }
 .familyButton {
   padding: 15px 0px;
@@ -9811,7 +9815,7 @@ body {
   max-width: 1400px;
   margin: 0px auto;
   height: 100vh;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 #pgtSelect {
   text-align: center;
@@ -9829,7 +9833,6 @@ body {
   left: -100vw;
   width: 100vw;
   padding-bottom: 50px;
-  overflow-y: auto;
 }
 #quickCheckinPeople {
   max-width: 1400px;
@@ -9904,6 +9907,9 @@ body {
     box-shadow: 2px 2px 0px black, inset 2px 2px 0px black;
     border-radius: 3px;
   }
+}
+.peopleContainer {
+  height: 70vh;
 }
 .personContainer {
   margin-bottom: 20px;

@@ -124,10 +124,16 @@ body {
     font-family: Arial,sans-serif;
     height: 100vh;
     overflow: hidden;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none; 
+    -moz-user-select: none; 
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .btn-success {
-    background-color:#12A158;
+    background-color: #12A158;
 }
 
 #signOuter {
@@ -310,8 +316,7 @@ body {
     position: relative;
     left: 0px;
     height: 498px;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: hidden;
     background-color: #FFC074;
     border-radius: 5px;
     border: solid 5px #F17148;
@@ -325,8 +330,7 @@ body {
     position: relative;
     top: -499px;
     left: -800px;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: hidden;
 }
 
 .familyButton {
@@ -365,7 +369,7 @@ body {
     max-width: 1400px;
     margin: 0px auto;
     height: 100vh;
-    overflow-x: hidden;
+    overflow: hidden;
 }
 
 #pgtSelect {
@@ -386,7 +390,6 @@ body {
     left: -100vw;
     width: 100vw;
     padding-bottom: 50px;
-    overflow-y: auto;
 }
 
 #quickCheckinPeople {
@@ -470,6 +473,10 @@ body {
     }
 }
 
+.peopleContainer {
+    height: 70vh;
+}
+
 .personContainer {
     margin-bottom: 20px;
     border-radius: 5px;
@@ -503,21 +510,21 @@ body {
     background-color: #DB562D;
     border: none;
     box-shadow: 1px 1px 1px black;
-    margin-bottom:5px;
+    margin-bottom: 5px;
 }
 
 .scheduleNotSelected {
     border-color: #DB562D;
-    margin-bottom:5px;
+    margin-bottom: 5px;
 }
 
 .rock-modal {
     width: 90vw;
     height: 90vh;
-    box-shadow:3px 3px 1px black;
+    box-shadow: 3px 3px 1px black;
 }
 
-.modal-content.rock-modal  {
+.modal-content.rock-modal {
     border: 7px solid #F17148;
 }
 
@@ -527,9 +534,9 @@ body {
     width: 70vw;
     left: 15vw;
     top: 100vh;
-    box-shadow:3px 3px 1px black;
+    box-shadow: 3px 3px 1px black;
     border: 7px solid #F17148;
-    background-color:#FFC074;
+    background-color: #FFC074;
     font-weight: bold;
     font-size: 5em;
     color: rgba(219,85,45,0.8);
@@ -537,5 +544,5 @@ body {
 }
 
 .body-content {
-    position:inherit
+    position: inherit;
 }
