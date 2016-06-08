@@ -60,57 +60,35 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected void lbSearch_Click( object sender, EventArgs e )
         {
-            if ( KioskCurrentlyActive )
-            {
-                // check search type
-                var searchTypeValue = GetAttributeValue( "SearchType" ).AsGuid();
+            Search();
 
-                if ( searchTypeValue == Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER.AsGuid() )
-                {
-                    SearchByPhone();
-                }
-            }
         }
 
-        private void SearchByPhone()
+        private void Search()
         {
             CurrentCheckInState.CheckIn.Families = new List<CheckInFamily>();
 
-            int minLength = GetAttributeValue( "MinimumPhoneNumberLength" ).AsInteger();
-            int maxLength = GetAttributeValue( "MaximumPhoneNumberLength" ).AsInteger();
-            if ( tbPhone.Text.Length >= minLength && tbPhone.Text.Length <= maxLength )
+            string searchInput = tbPhone.Text.Trim();
+            if ( string.IsNullOrWhiteSpace( searchInput ) )
             {
-                string searchInput = tbPhone.Text;
+                return;
+            }
 
-                // run regex expression on input if provided
-                if ( !string.IsNullOrWhiteSpace( GetAttributeValue( "SearchRegex" ) ) )
-                {
-                    Regex regex = new Regex( GetAttributeValue( "SearchRegex" ) );
-                    Match match = regex.Match( searchInput );
-                    if ( match.Success )
-                    {
-                        if ( match.Groups.Count == 2 )
-                        {
-                            searchInput = match.Groups[1].ToString();
-                        }
-                    }
-                }
-
-                CurrentCheckInState.CheckIn.UserEnteredSearch = true;
-                CurrentCheckInState.CheckIn.ConfirmSingleFamily = true;
+            CurrentCheckInState.CheckIn.SearchValue = searchInput;
+            
+            if ( Regex.IsMatch( searchInput, @"^\d+$" ) )
+            {
                 CurrentCheckInState.CheckIn.SearchType = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER );
-                CurrentCheckInState.CheckIn.SearchValue = searchInput;
-
-                ProcessSelection();
             }
             else
             {
-                string errorMsg = ( tbPhone.Text.Length > maxLength )
-                    ? string.Format( "<p>Please enter no more than {0} numbers</p>", maxLength )
-                    : string.Format( "<p>Please enter at least {0} numbers</p>", minLength );
-
-                maWarning.Show( errorMsg, Rock.Web.UI.Controls.ModalAlertType.Warning );
+                CurrentCheckInState.CheckIn.SearchType = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_NAME );
             }
+
+
+            CurrentCheckInState.CheckIn.UserEnteredSearch = true;
+            CurrentCheckInState.CheckIn.ConfirmSingleFamily = true;
+            ProcessSelection();
         }
 
         protected void ProcessSelection()
@@ -128,7 +106,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         private void DisplayFamilies()
         {
-            if (CurrentCheckInState == null )
+            if ( CurrentCheckInState == null )
             {
                 NavigateToHomePage();
                 return;
