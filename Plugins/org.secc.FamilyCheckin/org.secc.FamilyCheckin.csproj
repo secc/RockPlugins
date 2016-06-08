@@ -92,6 +92,7 @@
     <Compile Include="Workflows\ReserveAttendance.cs" />
     <Compile Include="Workflows\LoadGroupTypesOverride.cs" />
     <Compile Include="Workflows\SearchByPIN.cs" />
+    <Compile Include="Workflows\HistoricalPreselect.cs" />
     <Compile Include="Workflows\SelectAllPeople.cs" />
   </ItemGroup>
   <ItemGroup>

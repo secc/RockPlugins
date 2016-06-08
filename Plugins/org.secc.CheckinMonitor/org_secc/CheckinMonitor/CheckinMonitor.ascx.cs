@@ -30,6 +30,7 @@ using Rock.Web.UI.Controls;
 using System.Collections.Generic;
 using System.Web;
 using Rock.CheckIn;
+using System.Data.Entity;
 
 namespace RockWeb.Plugins.org_secc.CheckinMonitor
 {
@@ -495,6 +496,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             newRecord.CopyPropertiesFrom( attendanceRecord );
             newRecord.StartDateTime = Rock.RockDateTime.Now;
             newRecord.EndDateTime = null;
+            newRecord.DeviceId = null;
             newRecord.DidAttend = true;
             newRecord.LocationId = ddlMove.SelectedValue.AsInteger();
             attendanceService.Add( newRecord );

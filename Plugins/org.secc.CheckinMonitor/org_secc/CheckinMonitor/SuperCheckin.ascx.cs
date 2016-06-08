@@ -18,6 +18,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Net;
 using org.secc.FamilyCheckin.Utilities;
+using System.Data.Entity;
 
 namespace RockWeb.Plugins.org_secc.CheckinMonitor
 {
@@ -116,7 +117,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 btnCompleteCheckin.Visible = false;
             }
-
         }
 
         private void BuildNewFamilyControls()
@@ -164,7 +164,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 BootstrapButton btnMember = new BootstrapButton();
                 btnMember.CssClass = "btn btn-default btn-block btn-lg";
-                btnMember.Text = "<b>" + checkinPerson.Person.FullName +" " +  GetSelectedCountString( checkinPerson ) + "</b><br>" + checkinPerson.Person.FormatAge();
+                btnMember.Text = "<b>" + checkinPerson.Person.FullName + " " + GetSelectedCountString( checkinPerson ) + "</b><br>" + checkinPerson.Person.FormatAge();
                 if ( !checkinPerson.FamilyMember )
                 {
                     btnMember.Text = "<i class='fa fa-exchange'></i> " + btnMember.Text;
