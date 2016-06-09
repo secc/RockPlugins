@@ -40,12 +40,6 @@
             $phoneNumber.val('');
             showWelcome();
         });
-
-        // set focus to the input unless on a touch device
-        var isTouchDevice = 'ontouchstart' in document.documentElement;
-        if (!isTouchDevice) {
-            $('.checkin-phone-entry').focus();
-        }
     });
 
     var doSearch = function(){

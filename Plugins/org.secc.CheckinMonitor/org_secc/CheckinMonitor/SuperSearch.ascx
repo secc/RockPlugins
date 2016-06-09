@@ -38,7 +38,7 @@
         <div class="row">
             <div class="col-xs-12 col-sm-4" style="margin-bottom:20px">
 
-                <Rock:RockTextBox ID="tbPhone" CssClass="checkin-phone-entry" runat="server" Label="Phone Number Or Name" />
+                <Rock:RockTextBox ID="tbPhone" CssClass="checkin-phone-entry" autocomplete="off" runat="server" Label="Phone Number Or Name" />
 
                 <div class="tenkey checkin-phone-keypad">
                     <div>

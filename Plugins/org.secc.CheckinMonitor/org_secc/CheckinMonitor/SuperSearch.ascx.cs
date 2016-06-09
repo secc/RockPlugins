@@ -15,10 +15,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [DisplayName( "Super Search" )]
     [Category( "SECC > Check-in" )]
     [Description( "Displays keypad for searching on phone numbers." )]
-    [IntegerField( "Minimum Phone Number Length", "Minimum length for phone number searches (defaults to 4).", false, 4 )]
-    [IntegerField( "Maximum Phone Number Length", "Maximum length for phone number searches (defaults to 10).", false, 10 )]
-    [TextField( "Search Regex", "Regular Expression to run the search input through before sending it to the workflow. Useful for stripping off characters.", false )]
-    [DefinedValueField( Rock.SystemGuid.DefinedType.CHECKIN_SEARCH_TYPE, "Search Type", "The type of search to use for check-in (default is phone number).", true, false, Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER, order: 4 )]
     public partial class SuperSearch : CheckInBlock
     {
         protected override void OnInit( EventArgs e )
@@ -50,6 +46,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 else
                 {
                     NavigateToPreviousPage();
+                    Response.End();
                 }
             }
             else
