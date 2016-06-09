@@ -32,22 +32,19 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected override void OnLoad( EventArgs e )
         {
+            if ( CurrentCheckInState == null )
+            {
+                NavigateToPreviousPage();
+                return;
+            }
+
             base.OnLoad( e );
             if ( !Page.IsPostBack )
             {
                 this.Page.Form.DefaultButton = lbSearch.UniqueID;
-
-                if ( CurrentCheckInState != null )
-                {
-                    CurrentWorkflow = null;
-                    CurrentCheckInState.CheckIn = new CheckInStatus();
-                    SaveState();
-                }
-                else
-                {
-                    NavigateToPreviousPage();
-                    Response.End();
-                }
+                CurrentWorkflow = null;
+                CurrentCheckInState.CheckIn = new CheckInStatus();
+                SaveState();
             }
             else
             {
@@ -63,6 +60,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         private void Search()
         {
+            if ( CurrentCheckInState == null )
+            {
+                NavigateToPreviousPage();
+                return;
+            }
+
             CurrentCheckInState.CheckIn.Families = new List<CheckInFamily>();
 
             string searchInput = tbPhone.Text.Trim();
@@ -72,7 +75,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
 
             CurrentCheckInState.CheckIn.SearchValue = searchInput;
-            
+
             if ( Regex.IsMatch( searchInput, @"^\d+$" ) )
             {
                 CurrentCheckInState.CheckIn.SearchType = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER );
@@ -133,6 +136,10 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 NavigateToNextPage();
             };
             phFamilies.Controls.Add( btnNewFamily );
+        }
+
+        protected void Timer1_Tick( object sender, EventArgs e )
+        {
         }
     }
 }
