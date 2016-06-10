@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text.RegularExpressions;
@@ -148,23 +147,37 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             if (CurrentCheckInState.Kiosk.FilteredGroupTypes(CurrentCheckInState.ConfiguredGroupTypes).Count == 0)
             {
                 pnlNotActive.Visible = true;
+                HideSign();
             }
             else if (!CurrentCheckInState.Kiosk.HasLocations(CurrentCheckInState.ConfiguredGroupTypes))
             {
                 DateTime activeAt = CurrentCheckInState.Kiosk.FilteredGroupTypes(CurrentCheckInState.ConfiguredGroupTypes).Select(g => g.NextActiveTime).Min();
                 lblActiveWhen.Text = activeAt.ToString("o");
                 pnlNotActiveYet.Visible = true;
+                HideSign();
             }
             else if (!CurrentCheckInState.Kiosk.HasActiveLocations(CurrentCheckInState.ConfiguredGroupTypes))
             {
                 pnlClosed.Visible = true;
+                HideSign();
             }
             else
             {
                 pnlActive.Visible = true;
+                ShowWelcomeSign();
             }
         }
-        
+
+        private void HideSign()
+        {
+            ScriptManager.RegisterStartupScript( Page, Page.GetType(), "HideSign", "hideSign();", true );
+        }
+
+        private void ShowWelcomeSign()
+        {
+            ScriptManager.RegisterStartupScript( Page, Page.GetType(), "ShowWelcomeSign", "showWelcome();", true );
+        }
+
         /// <summary>
         /// Registers the script.
         /// </summary>

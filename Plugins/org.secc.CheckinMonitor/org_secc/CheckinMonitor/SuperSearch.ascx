@@ -20,6 +20,7 @@
                 {
                     $phoneNumber = $("input[id$='tbPhone']");
                     $phoneNumber.val('');
+                    $phoneNumber.focus();
                 });
 
                 // set focus to the input unless on a touch device
@@ -37,7 +38,7 @@
         <div class="row">
             <div class="col-xs-12 col-sm-4" style="margin-bottom:20px">
 
-                <Rock:RockTextBox ID="tbPhone" MaxLength="10" CssClass="checkin-phone-entry" runat="server" Label="Phone Number" />
+                <Rock:RockTextBox ID="tbPhone" CssClass="checkin-phone-entry" autocomplete="off" runat="server" Label="Phone Number Or Name" />
 
                 <div class="tenkey checkin-phone-keypad">
                     <div>
@@ -69,4 +70,9 @@
             </div>
         </div>
     </ContentTemplate>
+    <Triggers>
+        <asp:AsyncPostBackTrigger  ControlID="Timer1" EventName="Tick" />
+    </Triggers>
 </asp:UpdatePanel>
+<asp:Timer ID="Timer1" runat="server" Interval="300000" OnTick="Timer1_Tick">
+</asp:Timer>
