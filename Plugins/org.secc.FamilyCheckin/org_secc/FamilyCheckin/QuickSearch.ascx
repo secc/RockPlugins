@@ -40,12 +40,6 @@
             $phoneNumber.val('');
             showWelcome();
         });
-
-        // set focus to the input unless on a touch device
-        var isTouchDevice = 'ontouchstart' in document.documentElement;
-        if (!isTouchDevice) {
-            $('.checkin-phone-entry').focus();
-        }
     });
 
     var doSearch = function(){
@@ -81,10 +75,10 @@
                     content.style.transform="translateX(0px)";
                     var families = document.getElementById("familyDiv");
                     families.style.transform="translateX(0px)";
-                    showSign("Sorry, we could not find your phone number.",false, "2vw")
+                    setTimeout(function(){ showSign("Sorry, we could not find your phone number.",false, "2vw")},300);
                     return;
                 }else{
-                    showSign("Select your family to continue.",false, "2.5vw")
+                    setTimeout(function(){ showSign("Select your family to continue.",false, "2.5vw")},300)
 
                 }
                 var content = document.getElementById("contentDiv");
@@ -246,7 +240,7 @@
 
                                     <asp:Panel ID="pnlSearchPhone" runat="server">
                                         <Rock:RockTextBox ID="tbPhone" MaxLength="10" CssClass="checkin-phone-entry" runat="server"
-                                            onkeyup="findFamilies(this.value)" autocomplete="off" />
+                                            autocomplete="off" />
                                         <div class="tenkey checkin-phone-keypad">
                                             <div>
                                                 <a href="#" class="btn btn-default btn-lg digit">1</a>

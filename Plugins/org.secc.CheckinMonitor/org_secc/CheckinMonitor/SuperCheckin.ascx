@@ -63,7 +63,7 @@
             <Rock:CampusPicker runat="server" ID="cpNewFamilyCampus"></Rock:CampusPicker>
             <Rock:AddressControl runat="server" ID="acNewFamilyAddress" />
             <Rock:BootstrapButton runat="server" ID="btnNewFamily" Text="Create New Family"
-                 CssClass="btn btn-primary" OnClick="btnNewFamily_Click"></Rock:BootstrapButton>
+                CssClass="btn btn-primary" OnClick="btnNewFamily_Click"></Rock:BootstrapButton>
         </asp:Panel>
 
         <!-- Manage Family -->
@@ -76,7 +76,11 @@
                     <asp:PlaceHolder runat="server" ID="phFamilyMembers" />
                     <Rock:BootstrapButton runat="server" ID="btnNewMember" Text="Add Person" OnClick="btnNewMember_Click"
                         CssClass="btn btn-primary btn-block btn-lg"></Rock:BootstrapButton>
-                    <Rock:BootstrapButton runat="server" ID="btnBack" CssClass="btn btn-danger btn-block" Text="<i class='fa fa-arrow-left' aria-hidden='true'></i>" OnClick="btnBack_Click" />
+                    <div style="margin-top:4px">
+                        <Rock:BootstrapButton runat="server" ID="btnBack" CssClass="btn btn-danger col-sm-6 btn-lg" Text="<i class='fa fa-arrow-left'></i>" OnClick="btnBack_Click" />
+
+                        <Rock:BootstrapButton runat="server" ID="btnPrint" CssClass="btn btn-warning col-sm-6 btn-lg" Text="<i class='fa fa-print'></i>" OnClick="btnPrint_Click" />
+                    </div>
                 </div>
                 <div class="col-md-9">
                     <!-- Personal Info Pannel-->

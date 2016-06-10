@@ -32,7 +32,7 @@ namespace org.secc.FamilyCheckin
     /// <summary>
     /// Finds family members in a given family
     /// </summary>
-    [ActionCategory( "Check-In" )]
+    [ActionCategory( "SECC > Check-In" )]
     [Description( "Marks all people as selected." )]
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Select All People" )]

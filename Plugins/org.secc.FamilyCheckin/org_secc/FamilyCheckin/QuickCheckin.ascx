@@ -50,6 +50,8 @@
                 )
             }
 
+            
+
         </script>
         <asp:Panel ID="pnlMain" runat="server" Style="margin-top: 10px;">
             <Rock:ModalDialog ID="mdChoose" CssClass="modal" runat="server">
@@ -80,7 +82,9 @@
                                 <Rock:BootstrapButton runat="server" Visible="false" ID="btnCheckin" CssClass="btn btn-lg btn-primary" OnClick="btnCheckin_Click"></Rock:BootstrapButton>
 
                         </div>
-                        <asp:PlaceHolder runat="server" ID="phPeople" />
+                        <div id="peopleContainer" class="peopleContainer">
+                            <asp:PlaceHolder runat="server" ID="phPeople" />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -91,7 +95,7 @@
         <div id="success" class="text-center alert alert-success successModal">
 
             <h2>Welcome.</h2>
-            <h2>We are printing your name tags now.</h2>
+            <h2>We are preparing your security labels now.</h2>
         </div>
     </ContentTemplate>
 </asp:UpdatePanel>

@@ -18,13 +18,14 @@ using System.Text;
 using System.Net.Sockets;
 using System.Net;
 using Rock.Data;
+using org.secc.FamilyCheckin.Utilities;
 
 namespace RockWeb.Plugins.org_secc.FamilyCheckin
 {
     [DisplayName( "QuickCheckin" )]
     [Category( "SECC > Check-in" )]
     [Description( "QuickCheckin block for helping parents check in their family quickly." )]
-    [TextField("Preselect Activity", "Activity for preselecting classes.", false)]
+    [TextField( "Preselect Activity", "Activity for preselecting classes.", false )]
 
     public partial class QuickCheckin : CheckInBlock
     {
@@ -93,10 +94,9 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 btnParentGroupTypeHeader.Text = "Check-In";
                 btnParentGroupTypeHeader.DataLoadingText = "Check-In";
-                btnParentGroupTypeHeader.Enabled = false;
             }
 
-            if ( ( bool ) Session["selectPgt"] )
+            if ( Session["selectPgt"] != null && ( bool ) Session["selectPgt"] )
             {
                 DisplayPgtSelection();
             }
@@ -125,11 +125,12 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         private void DisplayPgtSelection()
         {
             var parentGroupTypes = ( List<GroupTypeCache> ) Session["parentGroupTypesList"];
-            if ( !(bool)Session["selectPgt"] || parentGroupTypes.Count == 1 )
+            if ( !( bool ) Session["selectPgt"] || parentGroupTypes.Count == 1 )
             {
                 ltMessage.Text = "<style>#pgtSelect{display:none} #quickCheckinContent{left:0px;}</style>";
                 return;
-            } else
+            }
+            else
             {
                 ltMessage.Text = "Where would you like to check-in to today?";
             }
@@ -144,7 +145,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 link.DataLoadingText = "<i class='fa fa-refresh fa-spin'></i> Loading checkin...";
                 phPgtSelect.Controls.Add( link );
             }
-            
+
         }
 
         private GroupTypeCache getCurrentParentGroupType()
@@ -177,15 +178,15 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             btnParentGroupTypeHeader.DataLoadingText = currentParentGroupType.Name + " <i class='fa fa-refresh fa-spin'>";
 
             //Ensure all people are selected
-            CurrentCheckInState.CheckIn.Families.SelectMany( f => f.People ).ToList().ForEach(p => p.Selected=true);
+            CurrentCheckInState.CheckIn.Families.SelectMany( f => f.People ).ToList().ForEach( p => p.Selected = true );
 
             //Show updated people info
             phPeople.Controls.Clear();
             DisplayPeople();
             SaveState();
-            
+
             //add sweet animation
-            ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "selectPGT", "setTimeout(function(){showContent()},50)", true );
+            ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "selectPGT", "setTimeout(function(){showContent()},50);", true );
         }
 
         private void DisplayPeople()
@@ -199,7 +200,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             foreach ( var person in people )
             {
                 //Unselect person if no groups selected
-                if (person.Selected && !PersonHasSelectedGroup( person ) )
+                if ( person.Selected && !PersonHasSelectedGroup( person ) )
                 {
                     person.Selected = false;
                     SaveState();
@@ -502,22 +503,22 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             hgcPadding.Controls.Add( btnPerson );
 
             var icon = "<i class='fa  fa-check-square-o fa-5x'></i>";
-            
-            if (person.Person.DaysToBirthday < 8 )
+
+            if ( person.Person.DaysToBirthday < 8 )
             {
                 icon = "<i class='fa fa-birthday-cake fa-5x'></i>";
             }
 
             if ( person.Selected )
             {
-                btnPerson.DataLoadingText = icon+"<br /><span>Please Wait...</span>";
-                btnPerson.Text = icon+"<br/><span>" + person.Person.NickName+"</span>";
+                btnPerson.DataLoadingText = icon + "<br /><span>Please Wait...</span>";
+                btnPerson.Text = icon + "<br/><span>" + person.Person.NickName + "</span>";
                 btnPerson.CssClass = "btn btn-success btn-lg col-xs-12 checkinPerson checkinPersonSelected";
             }
             else
             {
                 btnPerson.DataLoadingText = "<i class='fa fa-square-o fa-5x'></i><br /><span> Please Wait...</span>";
-                btnPerson.Text = "<i class='fa fa-square-o fa-5x'></i><br/><span>" + person.Person.NickName+"</span>";
+                btnPerson.Text = "<i class='fa fa-square-o fa-5x'></i><br/><span>" + person.Person.NickName + "</span>";
                 btnPerson.CssClass = "btn btn-default btn-lg col-xs-12 checkinPerson checkinPersonNotSelected";
             }
         }
@@ -560,31 +561,31 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 var checkinGroupTypes = GetGroupTypes( checkinPerson.Person, checkinSchedule );
                 var checkinGroupType = checkinGroupTypes.FirstOrDefault();
-                if(checkinGroupTypes.Where(gt => gt.PreSelected ).Any() )
+                if ( checkinGroupTypes.Where( gt => gt.PreSelected ).Any() )
                 {
                     checkinGroupType = checkinGroupTypes.Where( gt => gt.PreSelected ).FirstOrDefault();
                 }
                 if ( checkinGroupType != null )
                 {
-                    
+
                     var checkinGroups = GetGroups( checkinPerson.Person, checkinSchedule, checkinGroupType );
                     var checkinGroup = checkinGroups.FirstOrDefault();
-                    if (checkinGroups.Where(g => g.PreSelected ).Any() )
+                    if ( checkinGroups.Where( g => g.PreSelected ).Any() )
                     {
                         checkinGroup = checkinGroups.Where( g => g.PreSelected ).FirstOrDefault();
                     }
                     if ( checkinGroup != null )
                     {
-                        
+
                         var checkinLocations = GetLocations( checkinPerson.Person, checkinSchedule, checkinGroupType, checkinGroup );
-                        var checkinLocation = checkinLocations.OrderBy(l => KioskLocationAttendance.Read( l.Location.Id ).CurrentCount ).FirstOrDefault();
-                        if (checkinLocations.Where(l => l.PreSelected ).Any() )
+                        var checkinLocation = checkinLocations.OrderBy( l => KioskLocationAttendance.Read( l.Location.Id ).CurrentCount ).FirstOrDefault();
+                        if ( checkinLocations.Where( l => l.PreSelected ).Any() )
                         {
                             checkinLocation = checkinLocations.Where( l => l.PreSelected ).FirstOrDefault();
                         }
                         if ( checkinLocation != null )
                         {
-                            
+
                             var locationSchedule = checkinLocation.Schedules.Where( s => s.Schedule.Id == checkinSchedule.Schedule.Id ).FirstOrDefault();
                             if ( locationSchedule != null )
                             {
@@ -601,7 +602,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 }
 
             }
-       }
+        }
 
         protected void btnCancel_Click( object sender, EventArgs e )
         {
@@ -610,6 +611,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         protected void btnCheckin_Click( object sender, EventArgs e )
         {
+            if ( !CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).SelectMany( f => f.People ).Where( p => p.Selected ).Any() )
+            {
+                NavigateToNextPage();
+                return;
+            }
             //Unselect all groups not in parent group
             var groupTypes = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
                 .SelectMany( f => f.People )
@@ -627,251 +633,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private void ProcessLabels()
         {
-            var printQueue = new Dictionary<string, StringBuilder>();
-            foreach ( var selectedFamily in CurrentCheckInState.CheckIn.Families.Where( p => p.Selected ) )
-            {
-                List<CheckInLabel> labels = new List<CheckInLabel>();
-                List<CheckInPerson> selectedPeople = selectedFamily.People.Where( p => p.Selected ).ToList();
-                List<FamilyLabel> familyLabels = new List<FamilyLabel>();
-
-                foreach ( CheckInPerson selectedPerson in selectedPeople )
-                {
-                    foreach ( var groupType in selectedPerson.GroupTypes.Where( gt => gt.Selected ) )
-                    {
-                        using ( var rockContext = new RockContext() )
-                        {
-                            foreach ( var label in groupType.Labels )
-                            {
-                                var file = new BinaryFileService( rockContext ).Get( label.FileGuid );
-                                file.LoadAttributes( rockContext );
-                                string isFamilyLabel = file.GetAttributeValue( "IsFamilyLabel" );
-                                if ( isFamilyLabel != "True" )
-                                {
-                                    labels.Add( label );
-                                }
-                                else
-                                {
-                                    List<string> mergeCodes = file.GetAttributeValue( "MergeCodes" ).TrimEnd( '|' ).Split( '|' ).ToList();
-                                    FamilyLabel familyLabel = familyLabels.FirstOrDefault( fl => fl.FileGuid == label.FileGuid &&
-                                                                                     fl.MergeFields.Count < mergeCodes.Count );
-                                    if ( familyLabel == null )
-                                    {
-                                        familyLabel = new FamilyLabel();
-                                        familyLabel.FileGuid = label.FileGuid;
-                                        familyLabel.LabelObj = label;
-                                        foreach ( var mergeCode in mergeCodes )
-                                        {
-                                            familyLabel.MergeKeys.Add( mergeCode.Split( '^' )[0] );
-                                        }
-                                        familyLabels.Add( familyLabel );
-                                    }
-                                    familyLabel.MergeFields.Add( ( selectedPerson.Person.Age.ToString() ?? "#" ) + "yr-" + selectedPerson.SecurityCode );
-                                }
-                            }
-                        }
-                    }
-                }
-
-                //Format all FamilyLabels and add to list of labels to print.
-                foreach ( FamilyLabel familyLabel in familyLabels )
-                {
-                    //create padding to clear unused merge fields
-                    List<string> padding = Enumerable.Repeat( " ", familyLabel.MergeKeys.Count ).ToList();
-                    familyLabel.MergeFields.AddRange( padding );
-                    for ( int i = 0; i < familyLabel.MergeKeys.Count; i++ )
-                    {
-                        familyLabel.LabelObj.MergeFields[familyLabel.MergeKeys[i]] = familyLabel.MergeFields[i];
-                    }
-                    labels.Add( familyLabel.LabelObj );
-                }
-
-                // Print client labels
-                if ( labels.Any( l => l.PrintFrom == Rock.Model.PrintFrom.Client ) )
-                {
-                    var clientLabels = labels.Where( l => l.PrintFrom == PrintFrom.Client ).ToList();
-                    var urlRoot = string.Format( "{0}://{1}", Request.Url.Scheme, Request.Url.Authority );
-                    clientLabels.ForEach( l => l.LabelFile = urlRoot + l.LabelFile );
-                    AddLabelScript( clientLabels.ToJson() );
-                }
-
-                // Print server labels
-                if ( labels.Any( l => l.PrintFrom == Rock.Model.PrintFrom.Server ) )
-                {
-                    string delayCut = @"^XB";
-                    string endingTag = @"^XZ";
-                    var printerIp = string.Empty;
-                    var labelContent = new StringBuilder();
-
-                    // make sure labels have a valid ip
-                    var lastLabel = labels.Last();
-                    foreach ( var label in labels.Where( l => l.PrintFrom == PrintFrom.Server && !string.IsNullOrEmpty( l.PrinterAddress ) ) )
-                    {
-                        var labelCache = KioskLabel.Read( label.FileGuid );
-                        if ( labelCache != null )
-                        {
-                            if ( printerIp != label.PrinterAddress )
-                            {
-                                printQueue.AddOrReplace( label.PrinterAddress, labelContent );
-                                printerIp = label.PrinterAddress;
-                                labelContent = new StringBuilder();
-                            }
-
-                            var printContent = labelCache.FileContent;
-                            foreach ( var mergeField in label.MergeFields )
-                            {
-                                if ( !string.IsNullOrWhiteSpace( mergeField.Value ) )
-                                {
-                                    printContent = Regex.Replace( printContent, string.Format( @"(?<=\^FD){0}(?=\^FS)", mergeField.Key ), ZebraFormatString( mergeField.Value ) );
-                                }
-                                else
-                                {
-                                    printContent = Regex.Replace( printContent, string.Format( @"\^FO.*\^FS\s*(?=\^FT.*\^FD{0}\^FS)", mergeField.Key ), string.Empty );
-                                    printContent = Regex.Replace( printContent, string.Format( @"\^FD{0}\^FS", mergeField.Key ), "^FD^FS" );
-                                }
-                            }
-
-                            // send a Delay Cut command at the end to prevent cutting intermediary labels
-                            if ( label != lastLabel )
-                            {
-                                printContent = Regex.Replace( printContent.Trim(), @"\" + endingTag + @"$", delayCut + endingTag );
-                            }
-
-                            labelContent.Append( printContent );
-                        }
-                    }
-
-                    printQueue.AddOrReplace( printerIp, labelContent );
-                }
-
-                if ( printQueue.Any() )
-                {
-                    PrintLabels( printQueue );
-                    printQueue.Clear();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Prints the labels.
-        /// </summary>
-        /// <param name="families">The families.</param>
-        private void PrintLabels( Dictionary<string, StringBuilder> printerContent )
-        {
-            foreach ( var printerIp in printerContent.Keys.Where( k => !string.IsNullOrEmpty( k ) ) )
-            {
-                StringBuilder labelContent;
-                if ( printerContent.TryGetValue( printerIp, out labelContent ) )
-                {
-                    var socket = new Socket( AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp );
-                    var printerIpEndPoint = new IPEndPoint( IPAddress.Parse( printerIp ), 9100 );
-                    var result = socket.BeginConnect( printerIpEndPoint, null, null );
-                    bool success = result.AsyncWaitHandle.WaitOne( 5000, true );
-
-                    if ( socket.Connected )
-                    {
-                        var ns = new NetworkStream( socket );
-                        byte[] toSend = System.Text.Encoding.ASCII.GetBytes( labelContent.ToString() );
-                        ns.Write( toSend, 0, toSend.Length );
-                    }
-                    else
-                    {
-                        //phPrinterStatus.Controls.Add(new LiteralControl(string.Format("Can't connect to printer: {0}", printerIp)));
-                    }
-
-                    if ( socket != null && socket.Connected )
-                    {
-                        socket.Shutdown( SocketShutdown.Both );
-                        socket.Close();
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Adds the label script.
-        /// </summary>
-        /// <param name="jsonObject">The json object.</param>
-        private void AddLabelScript( string jsonObject )
-        {
-            string script = string.Format( @"
-            var labelData = {0};
-		    function printLabels() {{
-		        ZebraPrintPlugin.printTags(
-            	    JSON.stringify(labelData),
-            	    function(result) {{
-			        }},
-			        function(error) {{
-				        // error is an array where:
-				        // error[0] is the error message
-				        // error[1] determines if a re-print is possible (in the case where the JSON is good, but the printer was not connected)
-			            console.log('An error occurred: ' + error[0]);
-                        navigator.notification.alert(
-                            'An error occurred while printing the labels.' + error[0],  // message
-                            alertDismissed,         // callback
-                            'Error',            // title
-                            'Ok'                  // buttonName
-                        );
-			        }}
-                );
-	        }}
-try{{
-            printLabels();
-}} catch(e){{}}
-            __doPostBack('{1}','OnClick');
-            ", jsonObject, btnCancel.UniqueID );
+            LabelPrinter labelPrinter = new LabelPrinter( CurrentCheckInState, Request );
+            labelPrinter.PrintNetworkLabels();
+            var script = labelPrinter.GetClientScript();
+            script += "setTimeout( function(){ __doPostBack( '" + btnCancel.UniqueID + "', 'OnClick' ); },4000)";
             ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "addLabelScript", script, true );
-        }
-
-        /// <summary>
-        /// Formats the Zebra string.
-        /// </summary>
-        /// <param name="input">The input.</param>
-        /// <param name="isJson">if set to <c>true</c> [is json].</param>
-        /// <returns></returns>
-        private static string ZebraFormatString( string input, bool isJson = false )
-        {
-            if ( isJson )
-            {
-                return input.Replace( "é", @"\\82" );  // fix acute e
-            }
-            else
-            {
-                return input.Replace( "é", @"\82" );  // fix acute e
-            }
-        }
-
-
-    }
-    public class FamilyLabel
-    {
-        public Guid FileGuid { get; set; }
-
-        public CheckInLabel LabelObj { get; set; }
-
-        private List<string> _mergeFields = new List<string>();
-        public List<string> MergeFields
-        {
-            get
-            {
-                return _mergeFields;
-            }
-            set
-            {
-                _mergeFields = value;
-            }
-        }
-        private List<string> _mergeKeys = new List<string>();
-
-        public List<string> MergeKeys
-        {
-            get
-            {
-                return _mergeKeys;
-            }
-            set
-            {
-                _mergeKeys = value;
-            }
         }
     }
 }
