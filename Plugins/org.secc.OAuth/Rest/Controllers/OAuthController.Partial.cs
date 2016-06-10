@@ -118,7 +118,7 @@ namespace org.secc.OAuth.Rest.Controllers
                 return ControllerContext.Request.CreateResponse(HttpStatusCode.InternalServerError, "Internal Server Error");
             }
         }
-
+        
         /// <summary>
         /// A profile object for describing a person in Rock
         /// </summary>
