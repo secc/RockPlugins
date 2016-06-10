@@ -17,6 +17,8 @@ using System.Web.UI;
 using System.Net.Sockets;
 using System.Text;
 using System.Net;
+using org.secc.FamilyCheckin.Utilities;
+using System.Data.Entity;
 
 namespace RockWeb.Plugins.org_secc.CheckinMonitor
 {
@@ -26,6 +28,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Connection Status", "Connection status for new people." )]
     [AttributeCategoryField( "Checkin Category", "The Attribute Category to display checkin attributes from", false, "Rock.Model.Person", true, "", "", 0 )]
     [TextField( "Checkin Activity", "Name of the activity to complete checkin", true )]
+    [TextField( "Reprint Activity", "Name of the activity to reprint tag", true )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_PHONE_TYPE, "SMS Phone", "Phone number type to save as when SMS enabled" )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_PHONE_TYPE, "Other Phone", "Phone number type to save as when SMS NOT enabled" )]
     public partial class SuperCheckin : CheckInBlock
@@ -114,7 +117,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 btnCompleteCheckin.Visible = false;
             }
-
         }
 
         private void BuildNewFamilyControls()
@@ -162,7 +164,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 BootstrapButton btnMember = new BootstrapButton();
                 btnMember.CssClass = "btn btn-default btn-block btn-lg";
-                btnMember.Text = "<b>" + checkinPerson.Person.FullName + " (" + GetSelectedCount( checkinPerson ).ToString() + ")</b><br>" + checkinPerson.Person.FormatAge();
+                btnMember.Text = "<b>" + checkinPerson.Person.FullName + " " + GetSelectedCountString( checkinPerson ) + "</b><br>" + checkinPerson.Person.FormatAge();
                 if ( !checkinPerson.FamilyMember )
                 {
                     btnMember.Text = "<i class='fa fa-exchange'></i> " + btnMember.Text;
@@ -178,13 +180,19 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
         }
 
-        private int GetSelectedCount( CheckInPerson checkinPerson )
+        private string GetSelectedCountString( CheckInPerson checkinPerson )
         {
-            return checkinPerson.GroupTypes
+            int count = checkinPerson.GroupTypes
                 .SelectMany( gt => gt.Groups )
                 .SelectMany( g => g.Locations )
                 .SelectMany( l => l.Schedules )
                 .Where( s => s.Selected ).Count();
+            if ( count > 0 )
+            {
+                return "<span class=badge>" + count.ToString() + "</span>";
+            }
+            return "";
+
         }
 
         private void DisplayPersonInformation()
@@ -637,6 +645,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             List<string> errorMessages;
             ProcessActivity( activity, out errorMessages );
             ProcessLabels();
+            btnCompleteCheckin.Visible = false;
+            DisplayFamilyMemberMenu();
+            BuildGroupTypeModal();
         }
         private void ProcessLabels()
         {
@@ -964,6 +975,19 @@ try{{
             SaveViewState();
             ActivateFamily();
 
+        }
+
+        protected void btnPrint_Click( object sender, EventArgs e )
+        {
+            List<string> errorMessages = new List<string>();
+            ProcessActivity( GetAttributeValue( "ReprintActivity" ), out errorMessages );
+            if ( !errorMessages.Any() )
+            {
+                LabelPrinter labelPrinter = new LabelPrinter( CurrentCheckInState, Request );
+                labelPrinter.PrintNetworkLabels();
+                var script = labelPrinter.GetClientScript();
+                ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "addLabelScript", script, true );
+            }
         }
     }
     public class FamilyLabel
