@@ -14,6 +14,9 @@ using Rock.Web.Cache;
 using Rock;
 using org.secc.OAuth.Model;
 using org.secc.OAuth.Data;
+using Rock.Model;
+using Rock.Data;
+using Rock.Security;
 
 namespace org.secc.OAuth
 {
@@ -126,8 +129,83 @@ namespace org.secc.OAuth
 
         private System.Threading.Tasks.Task GrantResourceOwnerCredentials( OAuthGrantResourceOwnerCredentialsContext context )
         {
-            var identity = new ClaimsIdentity( new GenericIdentity( context.UserName, OAuthDefaults.AuthenticationType ), context.Scope.Select( x => new Claim( "urn:oauth:scope", x ) ) );
-            context.Validated( identity );
+            if (!string.IsNullOrEmpty(context.UserName) && !string.IsNullOrEmpty(context.Password))
+            {
+                var userLoginService = new UserLoginService(new RockContext());
+                var userLogin = userLoginService.GetByUserName(context.UserName);
+                if (userLogin != null && userLogin.EntityType != null)
+                {
+                    var component = AuthenticationContainer.GetComponent(userLogin.EntityType.Name);
+                    if (component != null && component.IsActive && !component.RequiresRemoteAuthentication)
+                    {
+                        if (component.Authenticate(userLogin, context.Password))
+                        {
+                            if ((userLogin.IsConfirmed ?? true) && !(userLogin.IsLockedOut ?? false))
+                            {
+                                OAuthContext oAuthContext = new OAuthContext();
+                                ClientScopeService clientScopeService = new ClientScopeService(oAuthContext);
+                                AuthorizationService authorizationService = new AuthorizationService(oAuthContext);
+                                ClientService clientService = new ClientService(oAuthContext);
+
+                                var scopes = (context.Scope.FirstOrDefault() ?? "").Split(',');
+
+                                bool scopesApproved = false;
+                                Client OAuthClient = clientService.GetByApiKey(context.ClientId.AsGuid());
+                                string[] authorizedScopes = authorizationService.Queryable().Where(a => a.Client.Id == OAuthClient.Id && a.UserLogin.UserName == context.UserName && a.Active == true).Select(a => a.Scope.Identifier).ToArray<string>();
+                                if (!clientScopeService.Queryable().Where(cs => cs.ClientId == OAuthClient.Id && cs.Active == true).Any() ||
+                                    (authorizedScopes != null && scopes.Where(s => !authorizedScopes.Select(a => a.ToLower()).Contains(s.ToLower())).Count() == 0))
+                                {
+                                    scopesApproved = true;
+                                }
+
+                                if (scopesApproved)
+                                {
+                                    var identity = new ClaimsIdentity(new GenericIdentity(context.UserName, OAuthDefaults.AuthenticationType));
+
+                                    //only allow claims that have been requested and the client has been authorized for
+                                    foreach (var scope in scopes.Where(s => clientScopeService.Queryable().Where(cs => cs.ClientId == OAuthClient.Id && cs.Active == true).Select(cs => cs.Scope.Identifier.ToLower()).Contains(s.ToLower())))
+                                    {
+                                        identity.AddClaim(new Claim("urn:oauth:scope", scope));
+                                    }
+                                    UserLoginService.UpdateLastLogin(context.UserName);
+                                    context.Validated(identity);
+                                    return System.Threading.Tasks.Task.FromResult(0);
+                                }
+                                else
+                                {
+                                    context.SetError("Authentication Error", "All scopes are not authorized for this user.");
+                                }
+                            }
+                            if (!userLogin.IsConfirmed ?? true)
+                            {
+                                context.SetError("Authentication Error", "Account email is unconfirmed.");
+                            }
+                            if (userLogin.IsLockedOut ?? false)
+                            {
+                                context.SetError("Authentication Error", "Account is locked.");
+                            }
+                        }
+                        else
+                        {
+                            context.SetError("Authentication Error", "Invalid Username/Password.");
+                        }
+                    }
+                    else
+                    {
+                        context.SetError("Authentication Error", "Invalid Authentication Configuration.");
+                    }
+                }
+                else
+                {
+                    context.SetError("Authentication Error", "Invalid Username/Password.");
+                }
+            }
+            else
+            {
+                context.SetError("Authentication Error", "Invalid Username/Password.");
+            }
+
+            context.Rejected();
             return System.Threading.Tasks.Task.FromResult( 0 );
         }
 

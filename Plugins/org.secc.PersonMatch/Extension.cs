@@ -34,23 +34,26 @@ namespace org.secc.PersonMatch
                 // Check to see if the email exists anywhere in the family
                 Boolean emailExists = person.GetFamilies().Where(f => f.Members.Where(m => m.Person.Email == email).Any()).Any();
 
-                // Check the address
                 Boolean addressMatches = false;
-                if (person.GetHomeLocation() != null) { 
-                    if (person.GetHomeLocation().Street1 == street1)
-                    {
-                        addressMatches = true;
-                    }
-                    // If it doesn't match, we need to geocode it and check it again
-                    if (!addressMatches) {
-                        Location location = new Location();
-                        location.Street1 = street1;
-                        location.PostalCode = postalCode;
-                        locationService.Verify(location, true);
-
-                        if (person.GetHomeLocation().Street1 == location.Street1)
+                // Check the address if it was passed
+                if (!string.IsNullOrEmpty(street1) && !string.IsNullOrEmpty(postalCode))
+                { 
+                    if (person.GetHomeLocation() != null) { 
+                        if (person.GetHomeLocation().Street1 == street1)
                         {
                             addressMatches = true;
+                        }
+                        // If it doesn't match, we need to geocode it and check it again
+                        if (!addressMatches) {
+                            Location location = new Location();
+                            location.Street1 = street1;
+                            location.PostalCode = postalCode;
+                            locationService.Verify(location, true);
+
+                            if (person.GetHomeLocation().Street1 == location.Street1)
+                            {
+                                addressMatches = true;
+                            }
                         }
                     }
                 }
