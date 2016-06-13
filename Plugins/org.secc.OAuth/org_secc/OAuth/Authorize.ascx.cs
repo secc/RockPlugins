@@ -150,7 +150,8 @@ namespace RockWeb.Plugins.org_secc.OAuth
                     AuthorizationService authorizationService = new AuthorizationService(context);
                 
                     authorizedScopes = authorizationService.Queryable().Where(a => a.Client.Id == OAuthClient.Id && a.UserLogin.UserName == identity.Name && a.Active == true).Select(a => a.Scope.Identifier).ToArray<string>();
-                    if (authorizedScopes != null && scopes.Where(s => !authorizedScopes.Select(a => a.ToLower()).Contains(s.ToLower())).Count() == 0)
+                    if (!clientScopeService.Queryable().Where(cs => cs.ClientId == OAuthClient.Id && cs.Active == true).Any() ||
+                        (authorizedScopes != null && scopes.Where(s => !authorizedScopes.Select(a => a.ToLower()).Contains(s.ToLower())).Count() == 0))
                     {
                         scopesApproved = true;
                     }
@@ -168,7 +169,7 @@ namespace RockWeb.Plugins.org_secc.OAuth
                     }
                     else
                     {
-                        rptScopes.DataSource = clientScopeService.Queryable().Where(cs => cs.ClientId == OAuthClient.Id).Select(s => s.Scope).ToList();
+                        rptScopes.DataSource = clientScopeService.Queryable().Where(cs => cs.ClientId == OAuthClient.Id && cs.Active == true).Select(s => s.Scope).ToList();
                         rptScopes.DataBind();
                     }
 
