@@ -2,8 +2,9 @@
 
 <asp:UpdatePanel ID="upContent" runat="server">
     <ContentTemplate>
+        <Rock:ModalAlert ID="maError" runat="server" />
         <asp:Panel runat="server" ID="pnlMain">
-            <div>
+            <div class="row">
                 <asp:PlaceHolder runat="server" ID="phMembers"></asp:PlaceHolder>
             </div>
             <Rock:BootstrapButton ID="btnCancel" runat="server" Text="Cancel" CssClass="btn btn-danger" OnClick="btnCancel_Click"></Rock:BootstrapButton>
