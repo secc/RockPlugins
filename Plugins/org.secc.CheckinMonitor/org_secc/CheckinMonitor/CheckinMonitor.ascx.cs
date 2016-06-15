@@ -77,8 +77,40 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             AttendanceService attendanceSerivce = new AttendanceService( _rockContext );
             var attendanceData = attendanceSerivce.Queryable()
                                     .Where( a => a.StartDateTime > Rock.RockDateTime.Today );
-            var b = attendanceData.ToList();
-            var GroupTypes = CurrentCheckInState.Kiosk.ActiveGroupTypes( CurrentCheckInState.ConfiguredGroupTypes );
+            List<KioskGroupType> GroupTypes;
+            if ( cbAll.Checked )
+            {
+                //All configured Kiosk group types
+                GroupTypes = new List<KioskGroupType>();
+                var groupService = new GroupService( _rockContext );
+                var groupLocationService = new GroupLocationService( _rockContext );
+                foreach (var id in CurrentCheckInState.ConfiguredGroupTypes )
+                {
+                    var kgt = new KioskGroupType( id );
+                    GroupTypes.Add( kgt );
+                    var a = kgt.KioskGroups;
+                    var childGroups = groupService.Queryable().Where( g => g.GroupTypeId == id );
+                    foreach(var childGroup in childGroups )
+                    {
+                        var kg = new KioskGroup( childGroup );
+                        kgt.KioskGroups.Add( kg );
+                        var childLocations = groupLocationService.Queryable()
+                            .Where( gl => gl.GroupId == childGroup.Id )
+                            .Select( gl => gl.Location ).ToList();
+                        foreach(var childLocation in childLocations )
+                        {
+                            var kl = new KioskLocation( childLocation );
+                            kg.KioskLocations.Add( kl );
+                        }
+                    }
+                }
+            }
+            else
+            {
+                //O
+                GroupTypes = CurrentCheckInState.Kiosk.ActiveGroupTypes( CurrentCheckInState.ConfiguredGroupTypes );
+            }
+
             var Groups = GroupTypes.SelectMany( gt => gt.KioskGroups );
             var Locations = Groups.SelectMany( g => g.KioskLocations );
 
@@ -144,6 +176,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                     foreach ( var room in source )
                     {
+                        room.Location.LoadAttributes();
                         TableRow tr = new TableRow();
                         table.Controls.Add( tr );
 
@@ -502,6 +535,11 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             attendanceService.Add( newRecord );
             _rockContext.SaveChanges();
             BindTable();
+        }
+
+        protected void cbAll_CheckedChanged( object sender, EventArgs e )
+        {
+            //This is an empty function because we just need to reload the page
         }
     }
 }
