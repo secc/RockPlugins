@@ -25,7 +25,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     [DisplayName( "QuickCheckin" )]
     [Category( "SECC > Check-in" )]
     [Description( "QuickCheckin block for helping parents check in their family quickly." )]
-    [TextField( "Preselect Activity", "Activity for preselecting classes.", false )]
 
     public partial class QuickCheckin : CheckInBlock
     {
@@ -73,7 +72,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     .Where( pgt => pgt.ChildGroupTypes.Count() > 1 ).DistinctBy( pgt => pgt.Guid ).ToList();
                 Session["parentGroupTypesList"] = parentGroupTypesList;
 
-                currentParentGroupType = getCurrentParentGroupType();
+                if ( !parentGroupTypesList.Any() )
+                {
+                    NavigateToPreviousPage();
+                    return;
+                }
+
+                currentParentGroupType = parentGroupTypesList.FirstOrDefault();
 
                 Session["currentParentGroupType"] = currentParentGroupType;
                 Session["selectPgt"] = true;
@@ -96,7 +101,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 btnParentGroupTypeHeader.DataLoadingText = "Check-In";
             }
 
-            if ( Session["selectPgt"] != null && ( bool ) Session["selectPgt"] )
+            if ( Session["selectPgt"] != null && ( bool ) Session["selectPgt"] && parentGroupTypesList.Count()>1)
             {
                 DisplayPgtSelection();
             }
