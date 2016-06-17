@@ -38,6 +38,11 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(SolutionDir)\RockWeb\Bin\System.Web.Http.dll</HintPath>
     </Reference>
+    <Reference Include="System.Web.Http.OData, Version=5.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Rock\RockWeb\Bin\System.Web.Http.OData.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Services" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -46,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controllers\GroupMemberExtensionsController.Partial.cs" />
     <Compile Include="Controllers\GroupExtensionsController.Partial.cs" />
     <Compile Include="Controllers\PeopleExtensionsController.Partial.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
