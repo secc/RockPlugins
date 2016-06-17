@@ -36,7 +36,7 @@
                 <Rock:BootstrapButton ID="btnMove" runat="server" Text="Move" OnClick="btnMove_Click"  CssClass="btn btn-success"></Rock:BootstrapButton>
             </Content>
         </Rock:ModalDialog>
-
+        <Rock:Toggle runat="server" ID="cbAll" OnText="Show All Groups" OffText="Show Active Groups" OnCssClass="btn-warning" OffCssClass="btn-warning" OnCheckedChanged="cbAll_CheckedChanged"/>
         <asp:PlaceHolder runat="server" ID="phContent" />
     </ContentTemplate>
 </asp:UpdatePanel>

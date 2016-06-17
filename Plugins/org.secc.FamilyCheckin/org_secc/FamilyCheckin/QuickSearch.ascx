@@ -62,104 +62,109 @@
             });
         } else {
             showSign("Please enter at least <br> <%= minLength.ToString()%> digits to search.", false, "2vw")
-                    $("#familyDiv").empty();
-                }
+            $("#familyDiv").empty();
+        }
     }
 
-            var showFamilies = function(families) {
-                if (selectionActive){
-                    return;
-                }
-                if (families.length==0){
-                    var content = document.getElementById("contentDiv");
-                    content.style.transform="translateX(0px)";
-                    var families = document.getElementById("familyDiv");
-                    families.style.transform="translateX(0px)";
-                    setTimeout(function(){ showSign("Sorry, we could not find your phone number.",false, "2vw")},300);
-                    return;
-                }else{
-                    setTimeout(function(){ showSign("Select your family to continue.",false, "2.5vw")},300)
+    var showFamilies = function(families) {
+        if (selectionActive){
+            return;
+        }
+        if (families.length==0){
+            var content = document.getElementById("contentDiv");
+            content.style.transform="translateX(0px)";
+            var families = document.getElementById("familyDiv");
+            families.style.transform="translateX(0px)";
+            setTimeout(function(){ showSign("Sorry, we could not find your phone number.",false, "2vw")},300);
+            return;
+        }else{
+            setTimeout(function(){ showSign("Select your family to continue.",false, "2.5vw")},300)
 
-                }
-                var content = document.getElementById("contentDiv");
-                content.style.transform="translateX(800px)";
+        }
+        var content = document.getElementById("contentDiv");
+        content.style.transform="translateX(800px)";
 
-                familyDiv = $("#familyDiv");
-                familyDiv.empty();
-                families.forEach(
-                    function(family){
-                        var link = $("<a>");
-                        link.html("<h2>"+family["Caption"] +"</h2>"+ family["SubCaption"]);
-                        link.attr("id",family["Group"]["Id"]);
-                        link.click(chooseFamily)
-                        link.addClass("btn btn-primary btn-block familyButton");
-                        familyDiv.append(link);
-                    }
-                );
-                familyDiv.get(0).style.transform = "translateX(800px)";
+        familyDiv = $("#familyDiv");
+        familyDiv.empty();
+        families.forEach(
+            function(family){
+                var link = $("<a>");
+                link.html("<h2>"+family["Caption"] +"</h2>"+ family["SubCaption"]);
+                link.attr("id",family["Group"]["Id"]);
+                link.click(chooseFamily)
+                link.addClass("btn btn-primary btn-block familyButton");
+                familyDiv.append(link);
             }
+        );
+        familyDiv.get(0).style.transform = "translateX(800px)";
+    }
 
-            var chooseFamily = function(event){
-                if (selectionActive){
-                    return;
-                }
-                selectionActive=true
-                this.innerHTML = "<h2><i class='fa fa-refresh fa-spin'></i> Loading Family</h2>Please wait..."
-                this.className = "btn btn-success btn-block"
+    var chooseFamily = function(event){
+        if (selectionActive){
+            return;
+        }
+        selectionActive=true
+        this.innerHTML = "<h2><i class='fa fa-refresh fa-spin'></i> Loading Family</h2>Please wait..."
+        this.className = "btn btn-success btn-block"
             
-                __doPostBack("ChooseFamily", this.id);
-            }
+        __doPostBack("ChooseFamily", this.id);
+    }
 
-            var signVisible=false;
-            var signTimeout;
+    var signVisible=false;
+    var signTimeout;
  
-            var showSign = function(text, showLoading, fontSize){
-                if (signVisible) {
-                    hideSign();
-                    if (signTimeout)clearTimeout(signTimeout);
-                    signTimeout= setTimeout(function() {showSign(text,showLoading, fontSize) },100)
-                    return;
-                }
-                signVisible=true;
-                var signText = document.getElementById("signText");
-                signText.innerHTML = text;
-                if (fontSize) {
-                    signText.style.fontSize=fontSize;
-                }else {
-                    signText.style.fontSize="4vw";
-                }
+    var showSign = function(text, showLoading, fontSize){
+        if (signVisible) {
+            hideSign();
+            if (signTimeout)clearTimeout(signTimeout);
+            signTimeout= setTimeout(function() {showSign(text,showLoading, fontSize) },100)
+            return;
+        }
+        signVisible=true;
+        var signText = document.getElementById("signText");
+        signText.innerHTML = text;
+        if (fontSize) {
+            signText.style.fontSize=fontSize;
+        }else {
+            signText.style.fontSize="4vw";
+        }
   
-                if (!showLoading) {
-                    document.getElementById("signFlower").style.display="none";
-                    document.getElementById("signFlowerShadow").style.display="none";
-                } else {
-                    document.getElementById("signFlower").style.display="block";
-                    document.getElementById("signFlowerShadow").style.display="block";
-                }
-                var signOuter = document.getElementById("signOuter");
-                signOuter.style.transform="translateY(13vw)";
-                showingWelcome=false;
-            }
+        if (!showLoading) {
+            document.getElementById("signFlower").style.display="none";
+            document.getElementById("signFlowerShadow").style.display="none";
+        } else {
+            document.getElementById("signFlower").style.display="block";
+            document.getElementById("signFlowerShadow").style.display="block";
+        }
+        var signOuter = document.getElementById("signOuter");
+        signOuter.style.transform="translateY(13vw)";
+        showingWelcome=false;
+    }
  
-            var hideSign = function(){
-                signVisible=false;
-                var signOuter = document.getElementById("signOuter");
-                signOuter.style.transform="translateY(-15vw)";
-                showingWelcome=false;
-            }
+    var hideSign = function(){
+        signVisible=false;
+        var signOuter = document.getElementById("signOuter");
+        signOuter.style.transform="translateY(-15vw)";
+        showingWelcome=false;
+    }
 
-            var showWelcome =function(){
-                if (showingWelcome){
-                    return;
-                }
-                showSign("<span style='font-size:3vw'>Welcome!</span><br>Please enter your phone number.", false, "1.5vw")
-                var content = document.getElementById("contentDiv");
-                content.style.transform="translateX(0px)";
-                var families = document.getElementById("familyDiv");
-                families.style.transform="translateX(0px)";
+    var showWelcome =function(){
+        if (showingWelcome){
+            return;
+        }
+        showSign("<span style='font-size:3vw'>Welcome!</span><br>Please enter your phone number.", false, "1.5vw")
+        try{
+            var content = document.getElementById("contentDiv");
+            content.style.transform="translateX(0px)";
+        } catch(e) {}
+        try {
+            var families = document.getElementById("familyDiv");
+            families.style.transform="translateX(0px)";
+        }
+        catch(e){}
 
-                setTimeout(function(){showingWelcome=true},150);
-            }
+        setTimeout(function(){showingWelcome=true},150);
+    }
 </script>
 
 <asp:UpdatePanel ID="upContent" runat="server" CssClass="">
@@ -272,7 +277,7 @@
                                 <div id="contentDiv">
                                     <asp:Literal ID="ltContent" runat="server" />
                                 </div>
-                                <div id="familyDiv"></div>
+                                <div id="familyDiv" style="overflow-y: auto;height:500px;"></div>
                             </div>
                         </div>
                     </div>

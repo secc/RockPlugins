@@ -15,6 +15,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [DisplayName( "Super Search" )]
     [Category( "SECC > Check-in" )]
     [Description( "Displays keypad for searching on phone numbers." )]
+    [BooleanField( "Add Family Option", "Should the option to add a new family be available after search?", true )]
     public partial class SuperSearch : CheckInBlock
     {
         protected override void OnInit( EventArgs e )
@@ -127,15 +128,19 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                  };
                 phFamilies.Controls.Add( btnFamily );
             }
-            BootstrapButton btnNewFamily = new BootstrapButton();
-            btnNewFamily.CssClass = "btn btn-primary btn-block";
-            btnNewFamily.Text = "Add New Family";
-            btnNewFamily.ID = "NewFamily";
-            btnNewFamily.Click += ( s, e ) =>
+            if ( GetAttributeValue( "AddFamilyOption" ).AsBoolean() )
             {
-                NavigateToNextPage();
-            };
-            phFamilies.Controls.Add( btnNewFamily );
+                BootstrapButton btnNewFamily = new BootstrapButton();
+                btnNewFamily.CssClass = "btn btn-primary btn-block";
+                btnNewFamily.Text = "Add New Family";
+                btnNewFamily.ID = "NewFamily";
+                btnNewFamily.Click += ( s, e ) =>
+                {
+                    NavigateToNextPage();
+                };
+                phFamilies.Controls.Add( btnNewFamily );
+            }
+
         }
 
         protected void Timer1_Tick( object sender, EventArgs e )

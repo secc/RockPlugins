@@ -24,12 +24,16 @@ Plugins/org.secc.LessInclude/obj/
 Plugins/org.secc.PersonMatch/obj/
 Plugins/org.secc.RoomManager/bin/
 Plugins/org.secc.RoomManager/obj/
+Plugins/org.secc.SportsAndFitness/bin/
+Plugins/org.secc.SportsAndFitness/obj/
 Tools/org.secc.OAuthTestClient/.vs/
 Tools/org.secc.OAuthTestClient/bin/
 Tools/org.secc.OAuthTestClient/obj/
 Tools/org.secc.OAuthTestClient/packages/
 Plugins/org.secc.Rest/bin/
 Plugins/org.secc.Rest/obj/
+Plugins/org.secc.Migrations/bin/
+Plugins/org.secc.Migrations/obj/
 Plugins/org.secc.ServiceReef/bin/
 Plugins/org.secc.ServiceReef/obj/
 Plugins/org.secc.PersonMatch/bin/
