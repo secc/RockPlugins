@@ -89,7 +89,6 @@
     <Compile Include="Workflows\FilterGroupsByMembership.cs" />
     <Compile Include="Workflows\ReprintAggregate.cs" />
     <Compile Include="Workflows\CreateLabelsAggregate.cs" />
-    <Compile Include="Workflows\LoadSchedulesOverride.cs" />
     <Compile Include="Workflows\ReserveAttendance.cs" />
     <Compile Include="Workflows\LoadAllOverride.cs" />
     <Compile Include="Workflows\SearchByPIN.cs" />
