@@ -25,6 +25,7 @@ using Rock.CheckIn;
 using Rock.Data;
 using Rock.Model;
 using Rock.Workflow.Action.CheckIn;
+using Rock.Web.Cache;
 
 namespace org.secc.FamilyCheckin
 {
@@ -32,9 +33,9 @@ namespace org.secc.FamilyCheckin
     /// Loads the group types allowed for each person in a family
     /// </summary>
     [ActionCategory( "SECC > Check-In" )]
-    [Description( "Loads the group types for each person in a family open or not." )]
+    [Description( "Loads all kiosk data for all people in selected family" )]
     [Export( typeof( ActionComponent ) )]
-    [ExportMetadata( "ComponentName", "Load Group Types Override" )]
+    [ExportMetadata( "ComponentName", "Load All Override" )]
     public class LoadGroupTypesOverride : CheckInActionComponent
     {
         /// <summary>
@@ -51,25 +52,52 @@ namespace org.secc.FamilyCheckin
             var checkInState = GetCheckInState( entity, out errorMessages );
             if ( checkInState != null )
             {
+                var groupService = new GroupService( rockContext );
+
                 foreach ( var family in checkInState.CheckIn.Families.Where( f => f.Selected ).ToList() )
                 {
                     foreach ( var person in family.People )
                     {
-                        foreach ( var kioskGroupType in checkInState.Kiosk.ActiveGroupTypes( checkInState.ConfiguredGroupTypes ) )
+                        var checkinGroupTypes = new List<CheckInGroupType>();
+
+                        foreach ( var id in checkInState.ConfiguredGroupTypes )
                         {
-                            if ( !person.GroupTypes.Any( g => g.GroupType.Id == kioskGroupType.GroupType.Id ) )
+                            var cgt = new CheckInGroupType();
+                            cgt.GroupType = GroupTypeCache.Read( id );
+                            checkinGroupTypes.Add( cgt );
+                            var groups = groupService.Queryable().Where( g => g.GroupTypeId == id );
+                            List<CheckInGroup> checkinGroups = new List<CheckInGroup>();
+                            foreach ( var group in groups )
                             {
-                                var checkinGroupType = new CheckInGroupType();
-                                checkinGroupType.GroupType = kioskGroupType.GroupType;
-                                person.GroupTypes.Add( checkinGroupType );
+                                var cg = new CheckInGroup();
+                                cg.Group = group;
+                                group.LoadAttributes();
+                                checkinGroups.Add( cg );
+                                var groupLocations = group.GroupLocations;
+                                List<CheckInLocation> checkinLocations = new List<CheckInLocation>();
+                                foreach(var groupLocation in groupLocations )
+                                {
+                                    var cl = new CheckInLocation();
+                                    cl.Location = groupLocation.Location;
+                                    checkinLocations.Add( cl );
+                                    var schedules = new List<CheckInSchedule>();
+                                    foreach(var schedule in groupLocation.Schedules )
+                                    {
+                                        var cs = new CheckInSchedule();
+                                        cs.Schedule = schedule;
+                                        schedules.Add( cs );
+                                    }
+                                    cl.Schedules = schedules;
+                                }
+                                cg.Locations = checkinLocations;
                             }
+                            cgt.Groups = checkinGroups;
                         }
+                        person.GroupTypes = checkinGroupTypes;
                     }
                 }
-
                 return true;
             }
-
             return false;
         }
     }
