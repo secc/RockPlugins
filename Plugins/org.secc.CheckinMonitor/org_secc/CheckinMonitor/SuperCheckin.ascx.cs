@@ -39,13 +39,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
-
-            if ( !KioskCurrentlyActive )
-            {
-                NavigateToHomePage();
-                return;
-            }
-
             if ( _rockContext == null )
             {
                 _rockContext = new RockContext();
