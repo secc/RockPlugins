@@ -10,20 +10,23 @@ create PROC [dbo].[_org_secc_spSportsAndFitnessMigrate]
 
 AS
 
-declare @newGroupId int = 315299
+declare @newGroupId int = 315318
 declare @activeGroupId int = 295567
 declare @expiredGroupId int = 312961
 declare @redflagGroupId int = 304444
 
-declare @expirationAttributeID int = 3797
-declare @sessionsAttributeId int = 3798
+declare @oldGroupFitnessId int = 295563
+declare @newGroupFitnessId int = 315319
+
+declare @expirationAttributeID int = 3868
+declare @sessionsAttributeId int = 3869
 declare @sessionsPersonAttributeId int = 1954
 
 
 --Move non-expired card members
 insert into GroupMember
 (PersonId, GroupRoleId, GroupMemberStatus, GroupId, CreatedDateTime, IsSystem, [GUID])
-select PersonId, GroupRoleId, 1,@newGroupID, GetDate(), 0, NEWID()
+select PersonId, GroupRoleId, 1, @newGroupID, GetDate(), 0, NEWID()
  from GroupMember as GM
  where GroupId = @activeGroupId
 
@@ -51,8 +54,8 @@ select PersonId, GroupRoleId, 0,@newGroupID, GetDate(), 0, NEWID()
 
  --insert expired dates for expired cards
 insert into AttributeValue
-(EntityId, [Value], IsSystem, AttributeId,	[Guid])
- select   GM.Id, OGM.CreatedDateTime , 0, @expirationAttributeId, NEWID()
+(EntityId, [Value], IsSystem, AttributeId,	[Guid], CreatedDateTime)
+ select   GM.Id, OGM.CreatedDateTime , 0, @expirationAttributeId, NEWID(), GETDATE()
  from GroupMember as GM
  join GroupMember as OGM on GM.PersonID = OGM.PersonID and OGM.GroupID = @expiredGroupId
  where GM.GroupId = @newGroupId and GM.GroupMemberStatus = 0
@@ -64,17 +67,25 @@ insert into AttributeValue
  set GroupMemberStatus = 1
  where GroupId = @newGroupId
 
---Insert values for Membership Sessions
-insert into AttributeValue
-(EntityId, [Value], IsSystem, AttributeId,	[Guid])
- select   GM.Id, AV.Value, 0, @sessionsAttributeId, NEWID()
- from GroupMember as GM
- join AttributeValue as AV on AV.EntityId = GM.PersonId and AV.AttributeId = @sessionsPersonAttributeId
- where GM.GroupId = @newGroupId
-
- --finally move over the red flagged members with a note
+ --move over the red flagged members with a note
  insert into GroupMember
 (PersonId, GroupRoleId, GroupMemberStatus, GroupId, CreatedDateTime, IsSystem, [GUID], Note)
 select PersonId, GroupRoleId, 1,@newGroupID, GetDate(), 0, NEWID(), 'DO NOT CHECK-IN!'
  from GroupMember as GM
  where GroupId = @redflagGroupId
+
+ --move over the group fitness members
+ insert into GroupMember
+(PersonId, GroupRoleId, GroupMemberStatus, GroupId, CreatedDateTime, IsSystem, [GUID])
+select PersonId, GroupRoleId, 1, @newGroupFitnessId, GetDate(), 0, NEWID()
+ from GroupMember as GM
+ where GroupId = @oldGroupFitnessId
+
+
+ --Insert values for group fitness Sessions
+insert into AttributeValue
+(EntityId, [Value], IsSystem, AttributeId,	[Guid], CreatedDateTime)
+ select   GM.Id, AV.Value, 0, @sessionsAttributeId, NEWID(), GetDate()
+ from GroupMember as GM
+ join AttributeValue as AV on AV.EntityId = GM.PersonId and AV.AttributeId = @sessionsPersonAttributeId
+ where GM.GroupId = @newGroupFitnessId
