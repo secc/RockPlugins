@@ -20,13 +20,13 @@ using System.Net;
 using Rock.Data;
 using org.secc.FamilyCheckin.Utilities;
 
-namespace RockWeb.Plugins.org_secc.FamilyCheckin
+namespace RockWeb.Plugins.org_secc.SportsAndFitness
 {
     [DisplayName( "Activities Checkin" )]
     [Category( "SECC > Check-in" )]
     [Description( "Block to check into activites center." )]
     [TextField( "Checkin Activity", "Activity for completing checkin.", false )]
-    [AttributeField( Rock.SystemGuid.EntityType.GROUP_MEMBER, "Expiration Date Attribute", "Select the attribute used to filter by number of sessions.", true, false, order: 3 )]
+    [AttributeField( Rock.SystemGuid.EntityType.GROUP_MEMBER, "Expiration Date Attribute", "Select the attribute used to filter by expiration.", true, false, order: 3 )]
 
     public partial class ActivitiesCheckin : CheckInBlock
     {
@@ -53,10 +53,10 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         {
             base.OnLoad( e );
 
-            var groupSessionsAttributeGuid = GetAttributeValue( "Expiration Date Attribute" ).AsGuid();
-            if ( groupSessionsAttributeGuid != Guid.Empty )
+            var expirationDateAttributeGuid = GetAttributeValue( "Expiration Date Attribute" ).AsGuid();
+            if ( expirationDateAttributeGuid != Guid.Empty )
             {
-                _expirationDateKey = AttributeCache.Read( groupSessionsAttributeGuid, _rockContext ).Key;
+                _expirationDateKey = AttributeCache.Read( expirationDateAttributeGuid, _rockContext ).Key;
             }
 
             if ( !Page.IsPostBack )
@@ -304,7 +304,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
 
             groupMember.LoadAttributes();
-            var expirationDate = groupMember.GetAttributeValue( "ExpirationDate" ).AsDateTime() ?? Rock.RockDateTime.Today.AddDays( -1 );
+            var expirationDate = groupMember.GetAttributeValue( _expirationDateKey ).AsDateTime() ?? Rock.RockDateTime.Today.AddDays( -1 );
 
             if ( expirationDate < Rock.RockDateTime.Today )
             {
