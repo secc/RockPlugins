@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="ActivitiesCheckin.ascx.cs" Inherits="RockWeb.Plugins.org_secc.FamilyCheckin.ActivitiesCheckin" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="ActivitiesCheckin.ascx.cs" Inherits="RockWeb.Plugins.org_secc.SportsAndFitness.ActivitiesCheckin" %>
 
 <asp:UpdatePanel ID="upContent" runat="server">
     <ContentTemplate>
