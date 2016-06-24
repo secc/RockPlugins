@@ -18,7 +18,7 @@
     var startTimeout = function ()
     {
         clearTimeout(resetTimeout);
-        resetTimeout = setTimeout(function () { location.reload(); }, 5000)
+        resetTimeout = setTimeout(function () { location.reload(); }, 300000)
     }
 
     var stopTimeout = function ()
