@@ -20,6 +20,7 @@ namespace org.secc.PayPalReporting
     [EncryptedTextField("PayPal API Username", "Username for authenticating to the PayPal API", true, "", "PayPal API")]
     [EncryptedTextField("PayPal API Password", "Password for authenticating to the PayPal API", true, "", "PayPal API")]
     [EncryptedTextField("PayPal API Signature", "Signature for authenticating to the PayPal API", true, "", "PayPal API")]
+    [SlidingDateRangeField( "Date Range", "The range of dates to import.", true, "Previous|24|Hour||" )]
 
     [DisallowConcurrentExecution]
     public class ImportData : IJob
@@ -64,7 +65,9 @@ namespace org.secc.PayPalReporting
                 report.Gateway = gateway;
                 report.URL = dataMap.GetString("PayPalReportURL");
                 report.name = dataMap.GetString("ReportName");
-                DataTable data = report.RunReport(DateTime.Now.Date.AddDays(-1), DateTime.Now.Date.AddSeconds(-1));
+
+                DateRange dateRange = Rock.Web.UI.Controls.SlidingDateRangePicker.CalculateDateRangeFromDelimitedValues( dataMap.GetString( "DateRange" ) ?? "-1||" );
+                DataTable data = report.RunReport( dateRange.Start ?? DateTime.Now.AddHours(0 - 24), dateRange.End ?? DateTime.Now.Date.AddSeconds(-1));
 
                 foreach(DataRow row in data.Rows)
                 {
