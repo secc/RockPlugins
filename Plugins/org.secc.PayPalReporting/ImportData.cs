@@ -58,7 +58,7 @@ namespace org.secc.PayPalReporting
             int feesFailed = 0;
 
             Rock.Model.FinancialGatewayService fgs = new Rock.Model.FinancialGatewayService(new Rock.Data.RockContext());
-            List<Rock.Model.FinancialGateway> gateways = fgs.Queryable().Where(fg => fg.IsActive && fg.EntityTypeId == 161).ToList();
+            List<Rock.Model.FinancialGateway> gateways = fgs.Queryable().Where(fg => fg.IsActive && fg.EntityType.Name.Contains("PayFlowPro")).ToList();
             foreach (Rock.Model.FinancialGateway gateway in gateways)
             {
                 XMLReport report = new XMLReport();
