@@ -137,7 +137,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             var groupMember = new GroupMemberService( _rockContext ).GetByGroupIdAndPersonId( group.Id, person.Person.Id ).FirstOrDefault();
             if ( groupMember == null )
             {
-                maError.Show( "Could not find group member entity", ModalAlertType.Alert );
+                ShowPersonNotFound();
                 return;
             }
             groupMember.LoadAttributes();

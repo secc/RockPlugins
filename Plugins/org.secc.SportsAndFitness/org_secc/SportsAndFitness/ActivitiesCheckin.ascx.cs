@@ -53,7 +53,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
         {
             base.OnLoad( e );
 
-            var expirationDateAttributeGuid = GetAttributeValue( "Expiration Date Attribute" ).AsGuid();
+            var expirationDateAttributeGuid = GetAttributeValue( "ExpirationDateAttribute" ).AsGuid();
             if ( expirationDateAttributeGuid != Guid.Empty )
             {
                 _expirationDateKey = AttributeCache.Read( expirationDateAttributeGuid, _rockContext ).Key;
@@ -159,7 +159,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                 pnlImage.Controls.Add( imgPhoto );
 
                 Literal ltName = new Literal();
-                ltName.Text = "<h1>" + person.Person.FullNameFormal + "</h1>";
+                ltName.Text = "<h1 class='col-xs-12'>" + person.Person.FullNameFormal + "</h1>";
                 card.Controls.Add( ltName );
 
                 foreach ( var gt in person.GroupTypes )
