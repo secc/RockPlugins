@@ -91,7 +91,9 @@
     <Compile Include="Workflows\CreateLabelsAggregate.cs" />
     <Compile Include="Workflows\ReserveAttendance.cs" />
     <Compile Include="Workflows\LoadAllOverride.cs" />
+    <Compile Include="Workflows\SaveAttendanceAndRemoveSession.cs" />
     <Compile Include="Workflows\SearchByPIN.cs" />
+    <Compile Include="Workflows\LoadPersonByPIN.cs" />
     <Compile Include="Workflows\HistoricalPreselect.cs" />
     <Compile Include="Workflows\SelectAllPeople.cs" />
   </ItemGroup>
