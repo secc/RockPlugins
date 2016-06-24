@@ -54,15 +54,15 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)\Rock\DotLiquid\DotLiquid.csproj">
+    <ProjectReference Include="$(SolutionDir)\DotLiquid\DotLiquid.csproj">
       <Project>{cb9372cd-9c1d-47ab-92d8-702d4d68324f}</Project>
       <Name>DotLiquid</Name>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\Rock\Rock.PayFlowPro\Rock.PayFlowPro.csproj">
+    <ProjectReference Include="$(SolutionDir)\Rock.PayFlowPro\Rock.PayFlowPro.csproj">
       <Project>{05f3587d-86dd-4cf3-a80a-d8cf598e1fd1}</Project>
       <Name>Rock.PayFlowPro</Name>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\Rock\Rock\Rock.csproj">
+    <ProjectReference Include="$(SolutionDir)\Rock\Rock.csproj">
       <Project>{8f8c2a79-24f4-4157-8b99-45f75fa85799}</Project>
       <Name>Rock</Name>
     </ProjectReference>
