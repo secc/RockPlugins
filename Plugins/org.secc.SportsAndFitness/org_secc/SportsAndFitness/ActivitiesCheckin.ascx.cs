@@ -26,12 +26,14 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     [Category( "SECC > Check-in" )]
     [Description( "Block to check into activites center." )]
     [TextField( "Checkin Activity", "Activity for completing checkin.", false )]
+    [AttributeField( Rock.SystemGuid.EntityType.GROUP_MEMBER, "Expiration Date Attribute", "Select the attribute used to filter by number of sessions.", true, false, order: 3 )]
 
     public partial class ActivitiesCheckin : CheckInBlock
     {
 
         private RockContext _rockContext;
         private int _noteTypeId;
+        private string _expirationDateKey;
 
         private List<GroupTypeCache> parentGroupTypesList;
         private GroupTypeCache currentParentGroupType;
@@ -51,6 +53,12 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         {
             base.OnLoad( e );
 
+            var groupSessionsAttributeGuid = GetAttributeValue( "Expiration Date Attribute" ).AsGuid();
+            if ( groupSessionsAttributeGuid != Guid.Empty )
+            {
+                _expirationDateKey = AttributeCache.Read( groupSessionsAttributeGuid, _rockContext ).Key;
+            }
+
             if ( !Page.IsPostBack )
             {
                 List<string> errors = new List<string>();
@@ -63,6 +71,12 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 {
                     NavigateToPreviousPage();
                     Response.End();
+                    return;
+                }
+
+                if ( CurrentCheckInState == null )
+                {
+                    NavigateToPreviousPage();
                     return;
                 }
 
@@ -256,7 +270,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 Note note = new Note();
                 note.Text = groupMember.Note;
-                note.IsAlert = false;
+                note.IsAlert = true;
                 notes.Add( note );
             }
 

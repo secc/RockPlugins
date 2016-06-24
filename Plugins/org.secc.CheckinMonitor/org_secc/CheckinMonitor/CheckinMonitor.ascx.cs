@@ -107,7 +107,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
             else
             {
-                //O
                 GroupTypes = CurrentCheckInState.Kiosk.ActiveGroupTypes( CurrentCheckInState.ConfiguredGroupTypes );
             }
 

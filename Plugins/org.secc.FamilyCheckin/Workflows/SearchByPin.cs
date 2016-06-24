@@ -59,8 +59,8 @@ namespace org.secc.FamilyCheckin
 
                     var searchValue = checkInState.CheckIn.SearchValue.Trim();
 
-                    int n;
-                    bool isNumeric = int.TryParse( searchValue, out n );
+                    long n;
+                    bool isNumeric = long.TryParse( searchValue, out n );
 
                     if ( isNumeric )
                     {
