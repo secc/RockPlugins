@@ -193,6 +193,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             {
                 nbNotOpen.Visible = true;
             }
+            StartTimeout();
         }
 
         private void ToggleClass( CheckInGroup chGroup, CheckInLocation chLocation, CheckInSchedule chSchedule, bool alreadySelected )
@@ -226,6 +227,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
 
         private void ShowPersonNotFound()
         {
+            StartTimeout();
             pnlCheckin.Visible = false;
             pnlSearch.Visible = false;
             pnlNotFound.Visible = true;
@@ -250,6 +252,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
 
         protected void btnCancel_Click( object sender, EventArgs e )
         {
+            StopTimeout();
             tbPhone.Text = "";
             CurrentCheckInState.CheckIn = new CheckInStatus();
             SaveState();
@@ -261,6 +264,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
 
         protected void btnCheckin_Click( object sender, EventArgs e )
         {
+            StopTimeout();
             var checkinAction = GetAttributeValue( "CheckinActivity" );
             List<string> Errors;
             ProcessActivity( checkinAction, out Errors );
@@ -276,5 +280,18 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             script += "setTimeout( function(){ __doPostBack( '" + btnDone.UniqueID + "', 'OnClick' ); },6000)";
             ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "addLabelScript", script, true );
         }
+
+        private void StartTimeout()
+        {
+            var script = "startTimeout()";
+            ScriptManager.RegisterClientScriptBlock( upContent, upContent.GetType(), "StartTimeout", script, true );
+        }
+
+        private void StopTimeout()
+        {
+            var script = "stopTimeout()";
+            ScriptManager.RegisterClientScriptBlock( upContent, upContent.GetType(), "StopTimeout", script, true );
+        }
+
     }
 }
