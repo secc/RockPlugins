@@ -24,9 +24,7 @@ namespace org.secc.ServiceReef
     [EncryptedTextField("Service Reef API Key", "Key for authenticating to the ServiceReef API", true, "", "ServiceReef API")]
     [EncryptedTextField("Service Reef API Secret", "Secret for authenticating to the ServiceReef API", true, "", "ServiceReef API")]
     [TextField("Service Reef API URL", "Service Reef API URL.", true, "", "ServiceReef API")]
-    [DecimalField("Start Date Offset", "The number of hours to subtract from the start date (Defaults to now - 48 hours).", true, 48)]
-    [DecimalField("End Date Offset", "The number of hours to subtract from the end date (Defauts to now - 8 hours).", true, 8)]
-
+    [SlidingDateRangeField("Date Range", "The range of dates to import.", true, "Previous|2|Day||")]
     [AccountField("Account", "Financial account to use for the parent for all transactions imported (Sub-accounts will be created for each event).", true)]
     [FinancialGatewayField("Financial Gateway", "The financial gateway to use for these transactions.", true)]
     [DefinedValueField(Rock.SystemGuid.DefinedType.FINANCIAL_SOURCE_TYPE, "Transaction Source", "Transaction source for all Service Reef payments.", true, false, "9a3e36fa-634e-45e4-9244-d3d21646dba4")]
@@ -67,11 +65,11 @@ namespace org.secc.ServiceReef
             var processed = 0;
             try
             {
+                DateRange dateRange = Rock.Web.UI.Controls.SlidingDateRangePicker.CalculateDateRangeFromDelimitedValues( dataMap.GetString( "DateRange" ) ?? "-1||" );
+ 
                 String SRApiKey = Encryption.DecryptString(dataMap.GetString("ServiceReefAPIKey"));
                 String SRApiSecret = Encryption.DecryptString(dataMap.GetString("ServiceReefAPISecret"));
                 String SRApiUrl = dataMap.GetString("ServiceReefAPIURL");
-                Double StartDateOffset = dataMap.GetString("StartDateOffset").AsDouble();
-                Double EndDateOffset = dataMap.GetString("EndDateOffset").AsDouble();
                 DefinedValueCache transactionSource = DefinedValueCache.Read(dataMap.GetString("TransactionSource").AsGuid(), dbContext);
                 DefinedValueCache connectionStatus = DefinedValueCache.Read(dataMap.GetString("ConnectionStatus").AsGuid(), dbContext);
                 DefinedValueCache contribution = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.TRANSACTION_TYPE_CONTRIBUTION);
@@ -93,8 +91,8 @@ namespace org.secc.ServiceReef
                 // Get all payments from ServiceReef
                 var request = new RestRequest("v1/payments", Method.GET);
                 request.AddParameter("pageSize", 100);
-                request.AddParameter("startDate", DateTime.Now.AddHours(0 - StartDateOffset).ToString());
-                request.AddParameter("endDate", DateTime.Now.AddHours(0 - EndDateOffset).ToString());
+                request.AddParameter("startDate", dateRange.Start );
+                request.AddParameter("endDate", dateRange.End );
                 request.AddParameter("page", 1);
 
                 while (total > processed)
