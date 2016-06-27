@@ -77,7 +77,7 @@ create table #codeTable (
 		SELECT bt.[Id]
 		FROM [block] b
 		INNER JOIN [blocktype] bt on bt.[Id] = b.[BlockTypeId]
-		WHERE b.[PageId] in (select item from dbo.fnSplit(@PageId))
+		WHERE b.[PageId] in (select item from dbo.fnSplit(@PageId)) and bt.IsSystem!=1
 	)
 
     insert into #codeTable
@@ -134,7 +134,7 @@ create table #codeTable (
 		SELECT bt.[Id]
 		FROM [block] b
 		INNER JOIN [blocktype] bt on bt.[Id] = b.[BlockTypeId]
-		WHERE b.[PageId] in (select item from dbo.fnSplit(@PageId))
+		WHERE b.[PageId] in (select item from dbo.fnSplit(@PageId)) and bt.IsSystem!=1
 	)
 	order by a.[Order]
 

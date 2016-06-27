@@ -103,7 +103,7 @@ insert into #codeTable
 		join [Page][p] on p.Id = b.PageId
 		join [Layout] [l] on [l].[Id] = [p].[layoutId]
 		join [Site] [s] on [s].[Id] = [l].[siteId]
-		where [s].Id = @SiteId
+		where [s].Id = @SiteId and bt.IsSystem!=1
 	)
 
     insert into #codeTable
@@ -167,7 +167,7 @@ insert into #codeTable
 		left outer join [Page] [p] on [p].[Id] = [b].[PageId]
 		join [Layout] [l] on [l].[Id] = [p].[layoutId]
 		join [Site] [s] on [s].[Id] = [l].[siteId]
-		where [s].Id = @SiteId
+		where [s].Id = @SiteId and bt.IsSystem!=1
 	)
 	order by a.[Order]
 
