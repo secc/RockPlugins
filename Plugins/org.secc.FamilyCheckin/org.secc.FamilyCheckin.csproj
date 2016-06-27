@@ -54,6 +54,7 @@
       <HintPath>$(SolutionDir)\packages\Microsoft.AspNet.WebApi.Client.5.2.2\lib\net45\System.Net.Http.Formatting.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Cors">
       <HintPath>$(SolutionDir)\packages\Microsoft.AspNet.Cors.5.2.3\lib\net45\System.Web.Cors.dll</HintPath>
@@ -80,6 +81,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\FamilyCheckinContext.cs" />
+    <Compile Include="Data\FamilyCheckinService.cs" />
+    <Compile Include="Migrations\201606272016469_Init.cs" />
+    <Compile Include="Migrations\201606272016469_Init.Designer.cs">
+      <DependentUpon>201606272016469_Init.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Model\Kiosk.cs" />
+    <Compile Include="Model\KioskType.cs" />
+    <Compile Include="Model\KioskService.cs" />
+    <Compile Include="Model\KioskTypeService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rest\Controllers\FamilyCheckinController.Partial.cs" />
     <Compile Include="Rest\Handlers\SessionControllerHandler.cs" />
@@ -119,6 +131,11 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="org_secc\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\201606272016469_Init.resx">
+      <DependentUpon>201606272016469_Init.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
