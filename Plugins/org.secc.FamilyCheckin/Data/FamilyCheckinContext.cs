@@ -1,13 +1,16 @@
 ﻿using org.secc.FamilyCheckin.Model;
 using System.Data.Entity;
+using Rock.Model;
+using Rock.Data;
 
 namespace org.secc.FamilyCheckin.Data
 {
-    public class FamilyCheckinContext : Rock.Data.DbContext
+    public class FamilyCheckinContext : RockContext
     {
         #region Models
         public DbSet<KioskType> KioskTypes { get; set; }
         public DbSet<Kiosk> Kiosks { get; set; }
+
         #endregion
 
         /// <summary>

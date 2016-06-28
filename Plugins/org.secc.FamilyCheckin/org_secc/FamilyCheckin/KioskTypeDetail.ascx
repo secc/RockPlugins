@@ -11,7 +11,7 @@
     <ContentTemplate>
         <asp:Panel ID="pnlDetails" CssClass="panel panel-block" runat="server" Visible="false">
 
-            <asp:HiddenField ID="hfDeviceId" runat="server" />
+            <asp:HiddenField ID="hfKioskTypeId" runat="server" />
 
             <div class="panel-heading">
                 <h1 class="panel-title"><i class="fa fa-desktop"></i>
@@ -80,6 +80,12 @@
             </Content>
         </Rock:ModalDialog>
 
+         <Rock:ModalDialog ID="mdSchedulepicker" runat="server" SaveButtonText="Save" OnSaveClick="mdSchedulepicker_SaveClick" Title="Select Check-in Location" OnCancelScript="clearActiveDialog();" ValidationGroup="Location">
+            <Content ID="mdsSchedulePickerContent">
+                <asp:HiddenField ID="HiddenField1" runat="server" />
+                <Rock:SchedulePicker runat="server" ID="schedulePicker" Label="Kiosk Schedule"/>
+            </Content>
+        </Rock:ModalDialog>
 
     </ContentTemplate>
 </asp:UpdatePanel>

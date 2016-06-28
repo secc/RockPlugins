@@ -31,6 +31,7 @@ using Rock.Web.UI;
 using org.secc.FamilyCheckin.Model;
 using org.secc.FamilyCheckin.Data;
 using System.Data.Entity;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.FamilyCheckin
 {
@@ -96,6 +97,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             gLocations.Actions.ShowAdd = true;
             gLocations.Actions.AddClick += gLocations_AddClick;
             gLocations.GridRebind += gLocations_GridRebind;
+
+            gSchedules.DataKeyNames = new string[] { "Id" };
+            gSchedules.Actions.ShowAdd = true;
+            gSchedules.Actions.AddClick += gSchedules_AddClick;
+            gSchedules.GridRebind += gSchedules_GridRebind;
         }
 
         /// <summary>
@@ -125,78 +131,99 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         #region Events
 
 
-        /// <summary>
-        /// Handles the Click event of the btnSave control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
         protected void btnSave_Click( object sender, EventArgs e )
         {
-            Device Device = null;
+            KioskType KioskType = null;
 
             var rockContext = new RockContext();
-            var deviceService = new DeviceService( rockContext );
+            var checkinContext = new FamilyCheckinContext();
+            var kioskTypeService = new KioskTypeService( checkinContext );
             var attributeService = new AttributeService( rockContext );
             var locationService = new LocationService( rockContext );
+            var scheduleService = new ScheduleService( rockContext );
+            var groupTypeService = new GroupTypeService( rockContext );
 
-            int DeviceId = int.Parse( hfDeviceId.Value );
+            int KioskTypeId = int.Parse( hfKioskTypeId.Value );
 
-            if ( DeviceId != 0 )
+            if ( KioskTypeId != 0 )
             {
-                Device = deviceService.Get( DeviceId );
+                KioskType = kioskTypeService.Get( KioskTypeId );
             }
 
-            if ( Device == null )
+            if ( KioskType == null )
             {
-                // Check for existing
-                var existingDevice = deviceService.Queryable()
-                    .Where( d => d.Name == tbName.Text )
-                    .FirstOrDefault();
-                if ( existingDevice != null )
-                {
-                    nbDuplicateDevice.Text = string.Format( "A device already exists with the name '{0}'. Please use a different device name.", existingDevice.Name );
-                    nbDuplicateDevice.Visible = true;
-                }
-                else
-                {
-                    Device = new Device();
-                    deviceService.Add( Device );
-                }
+                KioskType = new KioskType();
+                kioskTypeService.Add( KioskType );
+
             }
 
-            if ( Device != null )
+            if ( KioskType != null )
             {
-                Device.Name = tbName.Text;
-                Device.Description = tbDescription.Text;
+                KioskType.Name = tbName.Text;
+                KioskType.Description = tbDescription.Text;
 
-                if ( !Device.IsValid || !Page.IsValid )
+                if ( !KioskType.IsValid || !Page.IsValid )
                 {
                     // Controls will render the error messages
                     return;
                 }
 
                 // Remove any deleted locations
-                foreach ( var location in Device.Locations
+                foreach ( var location in KioskType.Locations
                     .Where( l =>
                         !Locations.Keys.Contains( l.Id ) )
                     .ToList() )
                 {
-                    Device.Locations.Remove( location );
+                    KioskType.Locations.Remove( location );
+                }
+
+                // Remove any deleted schedules
+                foreach ( var schedule in KioskType.Schedules
+                    .Where( s =>
+                        !Schedules.Keys.Contains( s.Id ) )
+                    .ToList() )
+                {
+                    KioskType.Schedules.Remove( schedule );
                 }
 
                 // Add any new locations
-                var existingLocationIDs = Device.Locations.Select( l => l.Id ).ToList();
+                var existingLocationIDs = KioskType.Locations.Select( l => l.Id ).ToList();
                 foreach ( var location in locationService.Queryable()
                     .Where( l =>
                         Locations.Keys.Contains( l.Id ) &&
                         !existingLocationIDs.Contains( l.Id ) ) )
                 {
-                    Device.Locations.Add( location );
+                    KioskType.Locations.Add( location );
                 }
 
-                rockContext.SaveChanges();
+                // Add any new schedules
+                var existingScheduleIDs = KioskType.Schedules.Select( s => s.Id ).ToList();
+                foreach ( var schedule in scheduleService.Queryable()
+                    .Where( l =>
+                        Locations.Keys.Contains( l.Id ) &&
+                        !existingScheduleIDs.Contains( l.Id ) ) )
+                {
+                    KioskType.Schedules.Add( schedule );
+                }
 
-                Rock.CheckIn.KioskDevice.Flush( Device.Id );
+                //Save checkin template
+                KioskType.CheckinTemplateId = ddlTemplates.SelectedValue.AsInteger();
+                
+
+                //var GroupTypes = KioskType.GroupTypes;
+                //GroupTypes.Clear();
+
+                //foreach ( ListItem item in cblPrimaryGroupTypes.Items )
+                //{
+                //    if ( item.Selected )
+                //    {
+                //        GroupTypes.Add( groupTypeService.Get( item.Value.AsInteger() ) );
+                //    }
+                //}
+
+                checkinContext.SaveChanges();
+
+                //Rock.CheckIn.KioskDevice.Flush( KioskType.Id );
 
                 NavigateToParentPage();
             }
@@ -212,36 +239,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             NavigateToParentPage();
         }
 
-        /// <summary>
-        /// Handles the ServerValidate event of the cvIpAddress control.
-        /// </summary>
-        /// <param name="source">The source of the event.</param>
-        /// <param name="args">The <see cref="ServerValidateEventArgs"/> instance containing the event data.</param>
-        protected void cvIpAddress_ServerValidate( object source, ServerValidateEventArgs args )
-        {
-            args.IsValid = VerifyUniqueIpAddress();
-        }
-
-        /// <summary>
-        /// Handles when the device type selection is changed.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void ddlDeviceType_SelectedIndexChanged( object sender, EventArgs e )
-        {
-
-        }
-
-        /// <summary>
-        /// Handles when the Print To selection is changed.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void ddlPrintTo_SelectedIndexChanged( object sender, EventArgs e )
-        {
-
-        }
-
         protected void gLocations_AddClick( object sender, EventArgs e )
         {
             hfAddLocationId.Value = "0";
@@ -255,13 +252,33 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 Locations.Remove( e.RowKeyId );
             }
             BindLocations();
-            BindSchedules();
         }
 
         protected void gLocations_GridRebind( object sender, EventArgs e )
         {
-            BindLocations();
+            BindSchedules();
         }
+
+        protected void gSchedules_AddClick( object sender, EventArgs e )
+        {
+            schedulePicker.SetValue( 0 );
+            mdSchedulepicker.Show();
+        }
+
+        protected void gSchedules_Delete( object sender, Rock.Web.UI.Controls.RowEventArgs e )
+        {
+            if ( Schedules.ContainsKey( e.RowKeyId ) )
+            {
+                Schedules.Remove( e.RowKeyId );
+            }
+            BindSchedules();
+        }
+
+        protected void gSchedules_GridRebind( object sender, EventArgs e )
+        {
+            BindSchedules();
+        }
+
 
         protected void btnAddLocation_Click( object sender, EventArgs e )
         {
@@ -280,10 +297,23 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
 
             BindLocations();
-            BindSchedules();
 
             hfAddLocationId.Value = string.Empty;
             mdLocationPicker.Hide();
+        }
+
+        protected void mdSchedulepicker_SaveClick( object sender, EventArgs e )
+        {
+            var schedule = new ScheduleService( new RockContext() ).Get( schedulePicker.SelectedValue.AsInteger() );
+            if ( schedule != null )
+            {
+                if ( !Schedules.ContainsKey( schedule.Id ) )
+                {
+                    Schedules.Add( schedule.Id, schedule.Name );
+                }
+            }
+            BindSchedules();
+            mdSchedulepicker.Hide();
         }
 
         #endregion
@@ -314,7 +344,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 lActionTitle.Text = ActionTitle.Add( KioskType.FriendlyTypeName ).FormatAsHtmlTitle();
             }
 
-            hfDeviceId.Value = KioskType.Id.ToString();
+            hfKioskTypeId.Value = KioskType.Id.ToString();
 
             tbName.Text = KioskType.Name;
             tbDescription.Text = KioskType.Description;
@@ -331,6 +361,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 }
                 Locations.Add( location.Id, path );
             }
+
+            Schedules = new Dictionary<int, string>();
+            foreach ( var schedule in KioskType.Schedules )
+            {
+                Locations.Add( schedule.Id, schedule.Name );
+            }
+
             BindDropDownList();
             BindLocations();
             BindSchedules();
@@ -376,18 +413,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 } )
                 .ToList();
             ddlTemplates.DataBind();
+            BindGroupTypes();
         }
-
-        /// <summary>
-        /// Verifies the ip address is unique.
-        /// </summary>
-        private bool VerifyUniqueIpAddress()
-        {
-            bool isValid = true;
-            int currentDeviceId = int.Parse( hfDeviceId.Value );
-            return isValid;
-        }
-
 
 
         private void BindLocations()
@@ -445,14 +472,34 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             var templateGroupTypeId = ddlTemplates.SelectedValue.AsInteger();
             GroupTypeService groupTypeService = new GroupTypeService( new RockContext() );
             var templateGroupType = groupTypeService.Get( templateGroupTypeId );
-            var primary = templateGroupType.ChildGroupTypes.Where(gt => gt.TakesAttendance).Select(gt => new { Id = gt.Id, Name = gt.Name } ).ToList();
-            cblPrimaryGroupTypes.DataSource = primary;
+            List<GroupType> primaryGroups = GetPrimaryGroupTypesFromTemplate( templateGroupType );
+
+            cblPrimaryGroupTypes.DataSource = primaryGroups;
             cblPrimaryGroupTypes.DataBind();
         }
 
-        protected void gSchedules_Delete( object sender, Rock.Web.UI.Controls.RowEventArgs e )
+        //finds all the lowest level group types
+        //this only goes one level down which is good enough for me
+        //not good enough for long term
+        private List<GroupType> GetPrimaryGroupTypesFromTemplate( GroupType templateGroupType )
         {
-
+            List<GroupType> primaryGroupTypes = new List<GroupType>();
+            var primary = templateGroupType.ChildGroupTypes.Where( gt => gt.TakesAttendance );
+            foreach ( var groupType in primary )
+            {
+                var children = groupType.ChildGroupTypes;
+                if ( children.Any() )
+                {
+                    primaryGroupTypes.AddRange( children );
+                }
+                else
+                {
+                    primaryGroupTypes.Add( groupType );
+                }
+            }
+            return primaryGroupTypes;
         }
+
+
     }
 }
