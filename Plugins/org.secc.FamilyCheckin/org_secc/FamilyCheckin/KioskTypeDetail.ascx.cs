@@ -208,7 +208,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
                 //Save checkin template
                 KioskType.CheckinTemplateId = ddlTemplates.SelectedValue.AsInteger();
-                
+
 
                 //var GroupTypes = KioskType.GroupTypes;
                 //GroupTypes.Clear();
@@ -365,13 +365,12 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             Schedules = new Dictionary<int, string>();
             foreach ( var schedule in KioskType.Schedules )
             {
-                Locations.Add( schedule.Id, schedule.Name );
+                Schedules.Add( schedule.Id, schedule.Name );
             }
 
-            BindDropDownList();
+            BindDropDownList( KioskType );
             BindLocations();
             BindSchedules();
-
 
             // render UI based on Authorized and IsSystem
             bool readOnly = false;
@@ -395,7 +394,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             btnSave.Visible = !readOnly;
         }
 
-        private void BindDropDownList()
+        private void BindDropDownList( KioskType kioskType = null )
         {
             RockContext rockContext = new RockContext();
             GroupTypeService groupTypeService = new GroupTypeService( rockContext );
@@ -413,7 +412,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 } )
                 .ToList();
             ddlTemplates.DataBind();
-            BindGroupTypes();
+            if ( kioskType != null )
+            {
+                ddlTemplates.SetValue( kioskType.CheckinTemplateId );
+            }
+            BindGroupTypes( kioskType );
         }
 
 
@@ -451,14 +454,22 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             BindGroupTypes();
         }
 
-        private void BindGroupTypes()
+        private void BindGroupTypes( KioskType kioskType = null )
         {
+
             var groupTypeIds = new List<string>();
-            foreach ( ListItem item in cblPrimaryGroupTypes.Items )
+            if ( kioskType != null )
             {
-                if ( item.Selected )
+                groupTypeIds.AddRange( kioskType.GroupTypes.Select( gt => gt.Id.ToString() ).ToList() );
+            }
+            else
+            {
+                foreach ( ListItem item in cblPrimaryGroupTypes.Items )
                 {
-                    groupTypeIds.Add( item.Value );
+                    if ( item.Selected )
+                    {
+                        groupTypeIds.Add( item.Value );
+                    }
                 }
             }
 
@@ -473,9 +484,20 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             GroupTypeService groupTypeService = new GroupTypeService( new RockContext() );
             var templateGroupType = groupTypeService.Get( templateGroupTypeId );
             List<GroupType> primaryGroups = GetPrimaryGroupTypesFromTemplate( templateGroupType );
-
             cblPrimaryGroupTypes.DataSource = primaryGroups;
             cblPrimaryGroupTypes.DataBind();
+
+            if ( selectedValues != string.Empty )
+            {
+                foreach ( string id in selectedValues.Split( ',' ) )
+                {
+                    ListItem item = cblPrimaryGroupTypes.Items.FindByValue( id );
+                    if ( item != null )
+                    {
+                        item.Selected = true;
+                    }
+                }
+            }
         }
 
         //finds all the lowest level group types
