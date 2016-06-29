@@ -17,14 +17,14 @@
                 <fieldset>
 
                     <Rock:NotificationBox ID="nbEditModeMessage" runat="server" NotificationBoxType="Info" />
-                    <Rock:NotificationBox ID="nbDuplicateDevice" runat="server" NotificationBoxType="Warning" Title="Sorry" Visible="false" />
+                    <Rock:NotificationBox ID="nbDuplicateKiosk" runat="server" NotificationBoxType="Warning" Title="Sorry" Visible="false" />
 
                     <div class="row">
                         <div class="col-md-6">
                             <Rock:DataTextBox ID="tbName" runat="server" SourceTypeName="org.secc.FamilyCheckin.Model.Kiosk, org.secc.FamilyCheckin" PropertyName="Name" Required="true" />
                         </div>
                         <div class="col-md-6">
-                            <Rock:DataTextBox ID="tbIPAddress" runat="server" SourceTypeName="org.secc.FamilyCheckin.Model.Kiosk, org.secc.FamilyCheckin" PropertyName="IPAddress" Required="true" />
+                            <Rock:DataTextBox ID="tbIPAddress" runat="server" SourceTypeName="org.secc.FamilyCheckin.Model.Kiosk, org.secc.FamilyCheckin" PropertyName="IPAddress" />
                         </div>
                     </div>
 
@@ -47,7 +47,6 @@
                         Help="The printer that this device should use for printing" />
                     <Rock:RockDropDownList ID="ddlPrintFrom" runat="server" Label="Print From" Required="false"
                         Help="When this device needs to print, where should the printing be initiated from?  Either the server running Rock, or from the actual client device? " />
-
 
                 </fieldset>
 
