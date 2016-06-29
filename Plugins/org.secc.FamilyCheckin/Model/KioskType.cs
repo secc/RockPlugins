@@ -9,12 +9,8 @@ namespace org.secc.FamilyCheckin.Model
     using System.Runtime.Serialization;
     using Rock.Model;
     [Table( "_org_secc_FamilyCheckin_KioskType" )]
-<<<<<<< HEAD
-    public partial class KioskType : Rock.Data.Model<KioskType>, Rock.Data.IRockEntity
-=======
     [DataContract]
     public partial class KioskType : Rock.Data.Model<KioskType>, Rock.Security.ISecured, Rock.Data.IRockEntity
->>>>>>> f0633f6cc6bd14f3c44132746f50960575905644
     {
         public override string ToString()
         {
