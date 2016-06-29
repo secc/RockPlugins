@@ -9,7 +9,8 @@ namespace org.secc.FamilyCheckin.Model
     using System.Runtime.Serialization;
     using Rock.Model;
     [Table( "_org_secc_FamilyCheckin_Kiosk" )]
-    public partial class Kiosk : Rock.Data.Model<Kiosk>, Rock.Security.ISecured
+    [DataContract]
+    public partial class Kiosk : Rock.Data.Model<Kiosk>, Rock.Security.ISecured, Rock.Data.IRockEntity
     {
         public override string ToString()
         {
@@ -58,7 +59,7 @@ namespace org.secc.FamilyCheckin.Model
         {
             this.HasOptional( k => k.KioskType ).WithMany().HasForeignKey( k => k.KioskTypeId ).WillCascadeOnDelete( false );
             this.HasOptional( k => k.PrinterDevice ).WithMany().HasForeignKey( k => k.PrinterDeviceId ).WillCascadeOnDelete( false );
-
+            this.HasEntitySetName( "Kiosks" );
         }
     }
 }
