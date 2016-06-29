@@ -14,7 +14,7 @@
             <asp:HiddenField ID="hfKioskTypeId" runat="server" />
 
             <div class="panel-heading">
-                <h1 class="panel-title"><i class="fa fa-desktop"></i>
+                <h1 class="panel-title"><i class="fa fa-hand-pointer-o"></i>
                     <asp:Literal ID="lActionTitle" runat="server" /></h1>
             </div>
             <div class="panel-body">
