@@ -81,7 +81,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Data\FamilyCheckinContext.cs" />
     <Compile Include="Data\FamilyCheckinService.cs" />
     <Compile Include="Migrations\201606272016469_Init.cs" />
     <Compile Include="Migrations\Configuration.cs" />

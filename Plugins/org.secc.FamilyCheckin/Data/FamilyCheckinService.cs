@@ -1,4 +1,6 @@
 ﻿
+using Rock.Data;
+
 namespace org.secc.FamilyCheckin.Data
 {
     public class FamilyCheckinService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()
@@ -6,7 +8,7 @@ namespace org.secc.FamilyCheckin.Data
         /// <summary>
         /// Initializes a new instance of the <see cref="FamilyCheckinService{T}"/> class.
         /// </summary>
-        public FamilyCheckinService( FamilyCheckinContext context )
+        public FamilyCheckinService( RockContext context )
             : base( context )
         {
         }
