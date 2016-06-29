@@ -136,8 +136,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             KioskType KioskType = null;
 
             var rockContext = new RockContext();
-            var checkinContext = new FamilyCheckinContext();
-            var kioskTypeService = new KioskTypeService( checkinContext );
+            var kioskTypeService = new KioskTypeService( rockContext );
             var attributeService = new AttributeService( rockContext );
             var locationService = new LocationService( rockContext );
             var scheduleService = new ScheduleService( rockContext );
@@ -221,7 +220,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     }
                 }
 
-                checkinContext.SaveChanges();
+                rockContext.SaveChanges();
 
                 //Rock.CheckIn.KioskDevice.Flush( KioskType.Id );
 
@@ -330,7 +329,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             pnlDetails.Visible = true;
             KioskType KioskType = null;
 
-            var checkinContext = new FamilyCheckinContext();
+            var checkinContext = new RockContext();
 
             if ( !KioskTypeId.Equals( 0 ) )
             {

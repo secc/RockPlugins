@@ -9,7 +9,12 @@ namespace org.secc.FamilyCheckin.Model
     using System.Runtime.Serialization;
     using Rock.Model;
     [Table( "_org_secc_FamilyCheckin_KioskType" )]
+<<<<<<< HEAD
     public partial class KioskType : Rock.Data.Model<KioskType>, Rock.Data.IRockEntity
+=======
+    [DataContract]
+    public partial class KioskType : Rock.Data.Model<KioskType>, Rock.Security.ISecured, Rock.Data.IRockEntity
+>>>>>>> f0633f6cc6bd14f3c44132746f50960575905644
     {
         public override string ToString()
         {
@@ -70,6 +75,7 @@ namespace org.secc.FamilyCheckin.Model
             this.HasMany( kt => kt.Locations ).WithMany().Map( kt => { kt.MapLeftKey( "KioskTypeId" ); kt.MapRightKey( "LocationId" ); kt.ToTable( "_org_secc_FamilyCheckin_KioskTypeLocation" ); } );
             this.HasMany( kt => kt.Schedules ).WithMany().Map( kt => { kt.MapLeftKey( "KioskTypeId" ); kt.MapRightKey( "ScheduleId" ); kt.ToTable( "_org_secc_FamilyCheckin_KioskTypeSchedule" ); } );
             this.HasMany( kt => kt.GroupTypes ).WithMany().Map( kt => { kt.MapLeftKey( "KioskTypeId" ); kt.MapRightKey( "GroupTypeId" ); kt.ToTable( "_org_secc_FamilyCheckin_KioskTypeGroupType" ); } );
+            this.HasEntitySetName( "KioskTypes" );
         }
     }
 
