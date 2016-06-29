@@ -5,14 +5,14 @@ namespace org.secc.FamilyCheckin.Migrations
     using System.Data.Entity.Migrations;
     using System.Linq;
 
-    internal sealed class Configuration : DbMigrationsConfiguration<org.secc.FamilyCheckin.Data.FamilyCheckinContext>
+    internal sealed class Configuration : DbMigrationsConfiguration<Rock.Data.RockContext>
     {
         public Configuration()
         {
             AutomaticMigrationsEnabled = false;
         }
 
-        protected override void Seed(org.secc.FamilyCheckin.Data.FamilyCheckinContext context)
+        protected override void Seed(Rock.Data.RockContext context)
         {
             //  This method will be called after migrating to the latest version.
 
