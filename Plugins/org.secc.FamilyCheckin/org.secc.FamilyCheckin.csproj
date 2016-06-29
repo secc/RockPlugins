@@ -84,9 +84,6 @@
     <Compile Include="Data\FamilyCheckinContext.cs" />
     <Compile Include="Data\FamilyCheckinService.cs" />
     <Compile Include="Migrations\201606272016469_Init.cs" />
-    <Compile Include="Migrations\201606272016469_Init.Designer.cs">
-      <DependentUpon>201606272016469_Init.cs</DependentUpon>
-    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Model\Kiosk.cs" />
     <Compile Include="Model\KioskType.cs" />

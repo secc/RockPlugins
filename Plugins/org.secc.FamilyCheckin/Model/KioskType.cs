@@ -9,7 +9,7 @@ namespace org.secc.FamilyCheckin.Model
     using System.Runtime.Serialization;
     using Rock.Model;
     [Table( "_org_secc_FamilyCheckin_KioskType" )]
-    public partial class KioskType : Rock.Data.Model<KioskType>, Rock.Security.ISecured
+    public partial class KioskType : Rock.Data.Model<KioskType>, Rock.Data.IRockEntity
     {
         public override string ToString()
         {
