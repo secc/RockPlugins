@@ -210,16 +210,16 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 KioskType.CheckinTemplateId = ddlTemplates.SelectedValue.AsInteger();
 
 
-                //var GroupTypes = KioskType.GroupTypes;
-                //GroupTypes.Clear();
+                var GroupTypes = KioskType.GroupTypes;
+                GroupTypes.Clear();
 
-                //foreach ( ListItem item in cblPrimaryGroupTypes.Items )
-                //{
-                //    if ( item.Selected )
-                //    {
-                //        GroupTypes.Add( groupTypeService.Get( item.Value.AsInteger() ) );
-                //    }
-                //}
+                foreach ( ListItem item in cblPrimaryGroupTypes.Items )
+                {
+                    if ( item.Selected )
+                    {
+                        GroupTypes.Add( groupTypeService.Get( item.Value.AsInteger() ) );
+                    }
+                }
 
                 checkinContext.SaveChanges();
 
