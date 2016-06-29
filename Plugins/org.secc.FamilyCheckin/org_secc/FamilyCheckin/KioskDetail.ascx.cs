@@ -62,7 +62,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         {
             base.OnLoad( e );
 
-            nbDuplicateDevice.Visible = false;
+            nbDuplicateKiosk.Visible = false;
 
             if ( !Page.IsPostBack )
             {
@@ -80,8 +80,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             Kiosk Kiosk = null;
 
             var rockContext = new RockContext();
-            var checkinContext = new FamilyCheckinContext();
-            var kioskService = new KioskService( checkinContext );
+            var kioskService = new KioskService( rockContext );
             var attributeService = new AttributeService( rockContext );
 
             int KioskId = int.Parse( hfKioskId.Value );
@@ -93,10 +92,22 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             if ( Kiosk == null )
             {
-                Kiosk = new Kiosk();
-                kioskService.Add( Kiosk );
-
+                // Check for existing
+                var existingDevice = kioskService.Queryable()
+                    .Where( k => k.Name == tbName.Text )
+                    .FirstOrDefault();
+                if ( existingDevice != null )
+                {
+                    nbDuplicateKiosk.Text = string.Format( "A kiosk already exists with the name '{0}'. Please use a different device name.", existingDevice.Name );
+                    nbDuplicateKiosk.Visible = true;
+                }
+                else
+                {
+                    Kiosk = new Kiosk();
+                    kioskService.Add( Kiosk );
+                }
             }
+
 
             if ( Kiosk != null )
             {
@@ -113,9 +124,14 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 //Save kiosk's checkin type
                 Kiosk.KioskTypeId = ddlKioskType.SelectedValue.AsInteger();
 
-                checkinContext.SaveChanges();
+                Kiosk.PrintToOverride = ( PrintTo ) System.Enum.Parse( typeof( PrintTo ), ddlPrintTo.SelectedValue );
+                Kiosk.PrinterDeviceId = ddlPrinter.SelectedValueAsInt();
+                Kiosk.PrintFrom = ( PrintFrom ) System.Enum.Parse( typeof( PrintFrom ), ddlPrintFrom.SelectedValue );
 
-                //Rock.CheckIn.KioskDevice.Flush( KioskType.Id );
+
+                rockContext.SaveChanges();
+
+                Rock.CheckIn.KioskDevice.Flush( Kiosk.Id );
 
                 NavigateToParentPage();
             }
@@ -145,11 +161,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             pnlDetails.Visible = true;
             Kiosk Kiosk = null;
 
-            var checkinContext = new FamilyCheckinContext();
+            var rockContext = new RockContext();
 
             if ( !KioskId.Equals( 0 ) )
             {
-                Kiosk = new KioskService( checkinContext ).Get( KioskId );
+                Kiosk = new KioskService( rockContext ).Get( KioskId );
                 lActionTitle.Text = ActionTitle.Edit( Kiosk.FriendlyTypeName ).FormatAsHtmlTitle();
             }
 
@@ -190,8 +206,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private void BindDropDownList( Kiosk kiosk = null )
         {
-            FamilyCheckinContext checkinContext = new FamilyCheckinContext();
-            KioskTypeService kioskTypeService = new KioskTypeService( checkinContext );
+            RockContext rockContext = new RockContext();
+            KioskTypeService kioskTypeService = new KioskTypeService( rockContext );
             
            
             ddlKioskType.DataSource = kioskTypeService
@@ -204,10 +220,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 } )
                 .ToList();
             ddlKioskType.DataBind();
-            if ( kiosk != null )
-            {
-                ddlKioskType.SetValue( kiosk.KioskTypeId );
-            }
+
 
             ddlPrintFrom.BindToEnum<PrintFrom>();
 
@@ -218,6 +231,15 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 .ToList();
             ddlPrinter.DataBind();
             ddlPrinter.Items.Insert( 0, new ListItem( None.Text, None.IdValue ) );
+
+            if ( kiosk != null )
+            {
+                ddlKioskType.SetValue( kiosk.KioskTypeId );
+                ddlPrintTo.SetValue( kiosk.PrintToOverride.ConvertToInt().ToString() );
+                ddlPrinter.SetValue( kiosk.PrinterDeviceId );
+                ddlPrintFrom.SetValue( kiosk.PrintFrom.ConvertToInt().ToString() );
+            }
+
         }
         #endregion
 

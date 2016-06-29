@@ -15,6 +15,7 @@
                     <Rock:Grid ID="gKioskTypes" runat="server" AllowSorting="true" OnRowSelected="gKioskType_Edit">
                         <Columns>
                             <Rock:RockBoundField DataField="Name" HeaderText="Name" SortExpression="Name" />
+                            <Rock:RockBoundField DataField="CheckinTemplate" HeaderText="Check-in Template" SortExpression="Name" />
                             <Rock:DeleteField OnClick="gKioskType_Delete" />
                         </Columns>
                     </Rock:Grid>

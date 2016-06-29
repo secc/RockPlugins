@@ -93,8 +93,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
        
         protected void gKiosk_Delete( object sender, RowEventArgs e )
         {
-            var checkinContext = new FamilyCheckinContext();
-            KioskService KioskService = new KioskService( checkinContext );
+            var rockContext = new RockContext();
+            KioskService KioskService = new KioskService( rockContext );
             Kiosk Kiosk = KioskService.Get( e.RowKeyId );
 
             if ( Kiosk != null )
@@ -109,7 +109,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 }
 
                 KioskService.Delete( Kiosk );
-                checkinContext.SaveChanges();
+                rockContext.SaveChanges();
 
                 Rock.CheckIn.KioskDevice.Flush( kioskId );
             }
@@ -135,7 +135,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         /// </summary>
         private void BindGrid()
         {
-            var kioskService = new KioskService( new FamilyCheckinContext() );
+            var kioskService = new KioskService( new RockContext() );
             var kiosks = kioskService.Queryable().Select( kt => kt ).ToList();
 
             gKiosks.DataSource = kiosks;
