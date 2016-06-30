@@ -64,6 +64,9 @@ namespace org.secc.PDF
                 MergeObjects.Add( "RegistrationInstance", registrationRegistrant.Registration.RegistrationInstance );
             }
 
+            var workflow = action.Activity.Workflow;
+            workflow.LoadAttributes();
+            MergeObjects.Add( "Workflow", workflow );
 
             //load pdf binary file
             Guid? pdfGuid = action.Activity.Workflow.GetAttributeValue( "PDFGuid" ).AsGuidOrNull();
