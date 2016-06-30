@@ -1,6 +1,7 @@
 namespace org.secc.FamilyCheckin.Model
 {
     using System;
+    using System.Linq;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.ComponentModel.DataAnnotations;
@@ -8,6 +9,7 @@ namespace org.secc.FamilyCheckin.Model
     using System.Data.Entity.ModelConfiguration;
     using System.Runtime.Serialization;
     using Rock.Model;
+    using Rock;
     [Table( "_org_secc_FamilyCheckin_KioskType" )]
     [DataContract]
     public partial class KioskType : Rock.Data.Model<KioskType>, Rock.Security.ISecured, Rock.Data.IRockEntity
@@ -55,6 +57,23 @@ namespace org.secc.FamilyCheckin.Model
             set { _groupTypes = value; }
         }
         private ICollection<GroupType> _groupTypes;
+
+        public bool IsOpen()
+        {
+            return this.Schedules.Where( s => s.IsScheduleActive ).Any();
+        }
+
+        public DateTime? GetNextOpen()
+        {
+            var now = RockDateTime.Now;
+            var tomorrow = RockDateTime.Today.AddDays( 1 );
+            var times = this.Schedules
+                .Where( s => s.GetScheduledStartTimes( now, tomorrow ).FirstOrDefault() > now )
+                .OrderBy( t => t.NextStartDateTime )
+                .FirstOrDefault();
+            return times != null ? times.NextStartDateTime : ( DateTime? ) null;
+        }
+
     }
 
     /// <summary>
