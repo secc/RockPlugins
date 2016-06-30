@@ -198,9 +198,9 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 // Add any new schedules
                 var existingScheduleIDs = KioskType.Schedules.Select( s => s.Id ).ToList();
                 foreach ( var schedule in scheduleService.Queryable()
-                    .Where( l =>
-                        Locations.Keys.Contains( l.Id ) &&
-                        !existingScheduleIDs.Contains( l.Id ) ) )
+                    .Where( s =>
+                        Schedules.Keys.Contains( s.Id ) &&
+                        !existingScheduleIDs.Contains( s.Id ) ) )
                 {
                     KioskType.Schedules.Add( schedule );
                 }
