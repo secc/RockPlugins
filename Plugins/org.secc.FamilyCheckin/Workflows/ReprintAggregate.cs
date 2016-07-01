@@ -117,6 +117,8 @@ namespace org.secc.FamilyCheckin
                                 }
                             }
 
+                            checkInLabel.MergeFields.Add( "Date", Rock.RockDateTime.Today.DayOfWeek.ToString().Substring( 0, 3 ) + " " + Rock.RockDateTime.Today.ToMonthDayString() );
+
                             checkInLabel.PrintFrom = checkInState.Kiosk.Device.PrintFrom;
                             checkInLabel.PrintTo = checkInState.Kiosk.Device.PrintToOverride;
 
