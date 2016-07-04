@@ -163,6 +163,8 @@ namespace org.secc.FamilyCheckin
                             }
                         }
 
+                        mergeDict.Add( "Date", Rock.RockDateTime.Today.DayOfWeek.ToString().Substring( 0, 3 ) + " "+  Rock.RockDateTime.Today.ToMonthDayString() );
+
                         var labelCache = KioskLabel.Read( new Guid( GetAttributeValue( action, "AggregatedLabel" ) ) );
                         if ( labelCache != null )
                         {

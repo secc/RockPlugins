@@ -196,6 +196,12 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private void DisplayPeople()
         {
+            if ( CurrentCheckInState ==null )
+            {
+                NavigateToPreviousPage();
+                return;
+            }
+
             var people = CurrentCheckInState.CheckIn.Families.SelectMany( f => f.People );
 
             HtmlGenericControl hgcRow = new HtmlGenericControl( "div" );
