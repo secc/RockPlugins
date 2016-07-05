@@ -20,18 +20,25 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     {
         protected override void OnLoad( EventArgs e )
         {
-            
-                var ip = Rock.Web.UI.RockPage.GetClientIpAddress();
 
+            var ip = Rock.Web.UI.RockPage.GetClientIpAddress();
+
+            try
+            {
                 ltDNS.Text = System.Net.Dns.GetHostEntry( ip ).HostName + " : " + ip;
+            }
+            catch
+            {
+                ltDNS.Text = "Unknown Host : " + ip;
+            }
 
-                AttemptKioskMatchByIpOrName( ip );
+            AttemptKioskMatchByIpOrName( ip );
 
-                if ( string.IsNullOrWhiteSpace( GetAttributeValue( "NextPage" ) ) )
-                {
-                    nbNotConfigured.Visible = true;
-                    nbNotFound.Visible = false;
-                }
+            if ( string.IsNullOrWhiteSpace( GetAttributeValue( "NextPage" ) ) )
+            {
+                nbNotConfigured.Visible = true;
+                nbNotFound.Visible = false;
+            }
 
 
         }
