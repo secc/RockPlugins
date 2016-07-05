@@ -101,6 +101,10 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 maWarning.Show( "Error processing workflow activity.", Rock.Web.UI.Controls.ModalAlertType.Alert );
                 return;
             }
+
+            //sort by last name
+            CurrentCheckInState.CheckIn.Families = CurrentCheckInState.CheckIn.Families.OrderBy( f => f.Caption ).ToList();
+
             DisplayFamilies();
             SaveState();
         }
