@@ -82,15 +82,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     DisplayFamilyMemberMenu();
                     BuildGroupTypeModal();
                 }
-
-                if ( pnlEditPerson.Visible )
-                {
-                    var personId = ( int ) ViewState["SelectedPersonId"];
-                    if ( personId != 0 )
-                    {
-                        EditPerson( new PersonService( _rockContext ).Get( personId ), false );
-                    }
-                }
             }
 
             if ( CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).Any() &&
@@ -435,6 +426,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             rblNewPersonGender.Items.Add( new ListItem( Gender.Male.ConvertToString(), Gender.Male.ConvertToInt().ToString() ) );
             rblNewPersonGender.Items.Add( new ListItem( Gender.Female.ConvertToString(), Gender.Female.ConvertToInt().ToString() ) );
             rblNewPersonGender.Items.Add( new ListItem( Gender.Unknown.ConvertToString(), Gender.Unknown.ConvertToInt().ToString() ) );
+
+            ScriptManager.RegisterStartupScript( ddlGradePicker, ddlGradePicker.GetType(), "grade-selection-" + BlockId.ToString(), ddlGradePicker.GetJavascriptForYearPicker( ypNewGraduation ), true );
         }
 
         protected void btnSaveAddPerson_Click( object sender, EventArgs e )
@@ -443,6 +436,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             person.FirstName = tbNewPersonFirstName.Text;
             person.LastName = tbNewPersonLastName.Text;
             person.SetBirthDate( dpNewPersonBirthDate.Text.AsDateTime() );
+            person.GraduationYear = ypNewGraduation.SelectedYear.Value;
+
             person.ConnectionStatusValueId = DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id;
             if ( !string.IsNullOrWhiteSpace( rblAdult1Gender.SelectedValue ) )
             {
@@ -503,6 +498,30 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             ltEditName.Text = person.FullName;
 
+            if ( !person.HasGraduated ?? false )
+            {
+                ypEditGraduation.SelectedYear = person.GraduationYear;
+
+                int gradeOffset = person.GradeOffset.Value;
+                var maxGradeOffset = gpEditGrade.MaxGradeOffset;
+
+                // keep trying until we find a Grade that has a gradeOffset that that includes the Person's gradeOffset (for example, there might be combined grades)
+                while ( !gpEditGrade.Items.OfType<ListItem>().Any( a => a.Value.AsInteger() == gradeOffset ) && gradeOffset <= maxGradeOffset )
+                {
+                    gradeOffset++;
+                }
+
+                gpEditGrade.SetValue( gradeOffset );
+            }
+            else
+            {
+                ypEditGraduation.SelectedYear = null;
+                gpEditGrade.SelectedIndex = 0;
+            }
+
+            ScriptManager.RegisterStartupScript( gpEditGrade, gpEditGrade.GetType(), "grade-selection-" + BlockId.ToString(), gpEditGrade.GetJavascriptForYearPicker( ypEditGraduation ), true );
+            dpEditBirthDate.SelectedDate = person.BirthDate;
+
             var AttributeList = new List<int>();
 
             string categoryGuid = GetAttributeValue( "CheckinCategory" );
@@ -528,9 +547,24 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected void btnSaveAttributes_Click( object sender, EventArgs e )
         {
+            var changes = new List<string>();
             var personId = ( int ) ViewState["SelectedPersonId"];
 
             var person = new PersonService( _rockContext ).Get( personId );
+
+            History.EvaluateChange( changes, "Birth Date", person.BirthDate, dpEditBirthDate.Text.AsDateTime() );
+            person.SetBirthDate( dpEditBirthDate.Text.AsDateTime() );
+
+            if ( ypEditGraduation.SelectedYear.HasValue )
+            {
+                History.EvaluateChange( changes, "Graduation Year", person.GraduationYear, ypEditGraduation.SelectedYear.Value );
+                person.GraduationYear = ypEditGraduation.SelectedYear.Value;
+            }
+            else
+            {
+                History.EvaluateChange( changes, "Graduation Year", person.GraduationYear, null );
+                person.GraduationYear = null;
+            }
 
             int personEntityTypeId = EntityTypeCache.Read( typeof( Person ) ).Id;
 
@@ -549,7 +583,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
             person.LoadAttributes();
 
-            var changes = new List<string>();
             foreach ( int attributeId in AttributeList )
             {
                 var attribute = AttributeCache.Read( attributeId );
@@ -584,10 +617,11 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     }
                 }
             }
-            if ( changes.Any() )
+            if ( person.IsValid && changes.Any() )
             {
                 HistoryService.SaveChanges( _rockContext, typeof( Person ), Rock.SystemGuid.Category.HISTORY_PERSON_DEMOGRAPHIC_CHANGES.AsGuid(),
                     person.Id, changes );
+                _rockContext.SaveChanges();
             }
             pnlPersonInformation.Visible = true;
             pnlEditPerson.Visible = false;
