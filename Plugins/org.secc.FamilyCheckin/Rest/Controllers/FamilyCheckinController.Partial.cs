@@ -98,6 +98,7 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
                         CurrentWorkflow.CompletedDateTime = null;
                         SaveState(Session);
                         List<CheckInFamily> families = CurrentCheckInState.CheckIn.Families;
+                        families = families.OrderBy( f => f.Caption ).ToList();
                         return ControllerContext.Request.CreateResponse(HttpStatusCode.OK, families);
                     }
                 }
