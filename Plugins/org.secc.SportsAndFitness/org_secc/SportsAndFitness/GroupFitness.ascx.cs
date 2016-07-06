@@ -28,6 +28,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
     [TextField( "Checkin Activity", "Activity for completing checkin.", false )]
     [AttributeField( Rock.SystemGuid.EntityType.GROUP_MEMBER, "Sessions Attribute", "Select the attribute used to filter by number of sessions.", true, false, order: 3 )]
     [GroupField( "Group Fitness Group", "Group that group fitness members are in. Needed for reading the number of sessions left.", true )]
+    [IntegerField( "Minimum Digits", "Minimum number of digits required.", true, 7 )]
 
     public partial class GroupFitness : CheckInBlock
     {
@@ -100,8 +101,17 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             }
 
             if ( string.IsNullOrWhiteSpace( tbPhone.Text ) )
-            { return; }
-            CurrentCheckInState.CheckIn.SearchValue = tbPhone.Text;
+            {
+                return;
+            }
+
+            if ( tbPhone.Text.Trim().Length < ( GetAttributeValue( "MinimumDigits" ).AsIntegerOrNull() ?? 7 ) )
+            {
+                maError.Show( "Please enter at least " + ( GetAttributeValue( "MinimumDigits" ) + "digits."), ModalAlertType.Information );
+                return;
+            }
+
+                CurrentCheckInState.CheckIn.SearchValue = tbPhone.Text;
             CurrentCheckInState.CheckIn.SearchType = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER ); //this is a lie
             List<string> errors = new List<string>();
             try
@@ -144,7 +154,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             int sessions = groupMember.GetAttributeValue( _groupSessionsKey ).AsInteger();
             ltSessions.Text = sessions.ToString();
 
-            if (sessions == 0 )
+            if ( sessions == 0 )
             {
                 return;
             }
