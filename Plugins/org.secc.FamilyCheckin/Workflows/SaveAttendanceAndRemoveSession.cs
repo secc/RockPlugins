@@ -149,6 +149,10 @@ namespace Rock.Workflow.Action.CheckIn
                                                 attendanceService.Add( attendance );
                                             }
                                         }
+                                        else
+                                        {
+                                            return false;
+                                        }
 
                                         attendance.AttendanceCodeId = attendanceCode.Id;
                                         attendance.StartDateTime = startDateTime;
