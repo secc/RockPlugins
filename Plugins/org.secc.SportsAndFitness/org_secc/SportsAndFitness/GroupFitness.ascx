@@ -3,6 +3,23 @@
 
     Sys.Application.add_load(function ()
     {
+        $('.tenkey a.digit').click(function ()
+        {
+            $phoneNumber = $("input[id$='tbPhone']");
+            $phoneNumber.val($phoneNumber.val() + $(this).html());
+        });
+        $('.tenkey a.back').click(function ()
+        {
+            $phoneNumber = $("input[id$='tbPhone']");
+            $phoneNumber.val($phoneNumber.val().slice(0, -1));
+        });
+        $('.tenkey a.clear').click(function ()
+        {
+            $phoneNumber = $("input[id$='tbPhone']");
+            $phoneNumber.val('');
+            $phoneNumber.focus();
+        });
+
         $('.checkin-phone-entry').focus();
 
         $('.checkin-phone-entry').blur(function ()
@@ -32,21 +49,57 @@
     hr {
         visibility: hidden;
     }
+
+    .digit, .command, .search {
+        font-size: 2em;
+    }
+
+    .checkin-phone-entry {
+        font-size: 3em;
+        height: 70px;
+        margin-bottom: 5px;
+    }
 </style>
 <asp:UpdatePanel ID="upContent" runat="server">
     <ContentTemplate>
         <Rock:ModalAlert ID="maError" runat="server" />
         <asp:Panel runat="server" ID="pnlSearch">
-            <h1>Welcome!</h1>
-            <h2>Please scan your card to sign into a group fitness class.</h2>
-            <Rock:RockTextBox ID="tbPhone" CssClass="checkin-phone-entry" autocomplete="off" runat="server" Style="opacity: 0; height: 0px;" />
-            <asp:LinkButton runat="server" ID="lbSearch" OnClick="lbSearch_Click" Text="SEARCH" Style="opacity: 0"></asp:LinkButton>
+            <div class="col-sm-6">
+                <h1>Welcome!</h1>
+                <h2>Please scan your card or enter your phone number to sign into a group fitness class.</h2>
+            </div>
+            <div class="tenkey checkin-phone-keypad col-sm-6">
+                <Rock:RockTextBox ID="tbPhone" CssClass="checkin-phone-entry" autocomplete="off" runat="server" />
+                <div>
+                    <a href="#" class="btn btn-default btn-lg digit col-xs-4">1</a>
+                    <a href="#" class="btn btn-default btn-lg digit col-xs-4">2</a>
+                    <a href="#" class="btn btn-default btn-lg digit col-xs-4">3</a>
+                </div>
+                <div>
+                    <a href="#" class="btn btn-default btn-lg digit col-xs-4">4</a>
+                    <a href="#" class="btn btn-default btn-lg digit col-xs-4">5</a>
+                    <a href="#" class="btn btn-default btn-lg digit col-xs-4">6</a>
+                </div>
+                <div>
+                    <a href="#" class="btn btn-default btn-lg digit col-xs-4">7</a>
+                    <a href="#" class="btn btn-default btn-lg digit col-xs-4">8</a>
+                    <a href="#" class="btn btn-default btn-lg digit col-xs-4">9</a>
+                </div>
+                <div>
+                    <a href="#" class="btn btn-default btn-lg command back col-xs-4">Back</a>
+                    <a href="#" class="btn btn-default btn-lg digit col-xs-4">0</a>
+                    <a href="#" class="btn btn-default btn-lg command clear col-xs-4">Clear</a>
+                </div>
+                <Rock:BootstrapButton runat="server" ID="lbSearch" OnClick="lbSearch_Click"
+                     CssClass="btn btn-primary btn-lg col-xs-12 search" DataLoadingText="Searching.." Text="SEARCH">
+                </Rock:BootstrapButton>
+            </div>
         </asp:Panel>
         <asp:Panel runat="server" ID="pnlNotFound" Visible="false">
             <Rock:NotificationBox runat="server" ID="nbNotFound" NotificationBoxType="Warning">
                <h2>Person Not Found</h2>
                We're sorry, we could not find your information in our system. If you think this is in error please
-               contact one of our volunteers or staff.
+               contact one of our volunteers or staff. 
             </Rock:NotificationBox>
             <Rock:BootstrapButton runat="server" ID="btnBack" CssClass="btn btn-danger" Text="Back" OnClick="btnCancel_Click"></Rock:BootstrapButton>
         </asp:Panel>
