@@ -74,11 +74,13 @@ namespace org.secc.FamilyCheckin.Utilities
                     {
                         foreach ( var groupType in selectedPerson.GroupTypes.Where( gt => gt.Selected ) )
                         {
-
-                            foreach ( var label in groupType.Labels )
+                            if ( groupType.Labels != null )
                             {
-                                var file = new BinaryFileService( rockContext ).Get( label.FileGuid );
-                                _labels.Add( label );
+                                foreach ( var label in groupType.Labels )
+                                {
+                                    var file = new BinaryFileService( rockContext ).Get( label.FileGuid );
+                                    _labels.Add( label );
+                                }
                             }
                         }
                     }
