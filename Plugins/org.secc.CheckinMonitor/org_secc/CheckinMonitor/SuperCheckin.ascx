@@ -152,14 +152,17 @@
                             <div class="col-xs-12 col-sm-4">
                                 <Rock:RockDropDownList ID="ddlNewPersonSuffix" runat="server" Label="Suffix" CssClass="input-width-md" />
                             </div>
-                            <div class="col-xs-12 col-sm-4">
+                            <div class="col-xs-12 col-sm-6">
                                 <Rock:RockRadioButtonList ID="rblNewPersonGender" runat="server" Label="Gender" RepeatDirection="Horizontal" />
                             </div>
-                            <div class="col-xs-12 col-sm-4">
+                            <div class="col-xs-12 col-sm-6">
                                 <Rock:DatePicker ID="dpNewPersonBirthDate" runat="server" Label="Birthdate" />
                             </div>
-                            <div class="col-xs-12 col-sm-4">
+                            <div class="col-xs-12 col-sm-6">
                                 <Rock:GradePicker ID="ddlGradePicker" runat="server" Label="Grade" UseAbbreviation="true" UseGradeOffsetAsValue="true" />
+                            </div>
+                             <div class="col-xs-12 col-sm-6">
+                                <Rock:YearPicker runat="server" ID="ypNewGraduation" Label="Graduation"></Rock:YearPicker>
                             </div>
                         </div>
                         <Rock:BootstrapButton runat="server" ID="btnSaveAddPerson" Text="Next" CssClass="btn btn-default"
@@ -170,6 +173,17 @@
                             <h1>
                                 <asp:Literal Text="" ID="ltEditName" runat="server" />
                             </h1>
+
+                             <div class="col-xs-12 col-sm-4">
+                                <Rock:DatePicker ID="dpEditBirthDate" runat="server" Label="Birthdate" />
+                            </div>
+                            <div class="col-xs-12 col-sm-4">
+                                <Rock:GradePicker ID="gpEditGrade" runat="server" Label="Grade" UseAbbreviation="true" UseGradeOffsetAsValue="true" />
+                            </div>
+                            <div class="col-xs-12 col-sm-4">
+                                <Rock:YearPicker runat="server" ID="ypEditGraduation" Label="Graduation"></Rock:YearPicker>
+                            </div>
+
                             <fieldset id="fsAttributes" runat="server" class="attribute-values"></fieldset>
                             <Rock:BootstrapButton runat="server" ID="btnSaveAttributes" CssClass="btn btn-primary"
                                 OnClick="btnSaveAttributes_Click" Text="Save"></Rock:BootstrapButton>

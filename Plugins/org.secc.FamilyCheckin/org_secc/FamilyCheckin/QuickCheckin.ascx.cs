@@ -66,6 +66,12 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     return;
                 }
 
+                if ( !CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).Any() )
+                {
+                    NavigateToPreviousPage();
+                    return;
+                }
+
                 //Find the parent group types
                 parentGroupTypesList = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault()
                     .People.SelectMany( p => p.GroupTypes ).SelectMany( gt => gt.GroupType.ParentGroupTypes )
@@ -74,7 +80,10 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
                 if ( !parentGroupTypesList.Any() )
                 {
-                    NavigateToPreviousPage();
+                    pnlMain.Visible = false;
+                    pnlNoCheckin.Visible = true;
+                    var script = "setTimeout( function(){ __doPostBack( '" + btnCancel.UniqueID + "', 'OnClick' ); },15000)";
+                    ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "goBack", script, true );
                     return;
                 }
 
@@ -101,7 +110,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 btnParentGroupTypeHeader.DataLoadingText = "Check-In";
             }
 
-            if ( Session["selectPgt"] != null && ( bool ) Session["selectPgt"] && parentGroupTypesList.Count()>1)
+            if ( Session["selectPgt"] != null && ( bool ) Session["selectPgt"] && parentGroupTypesList.Count() > 1 )
             {
                 DisplayPgtSelection();
             }
@@ -112,7 +121,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
 
 
-            if ( ( bool ) Session["modalActive"] )
+            if ( Session["modalActive"] != null && ( bool ) Session["modalActive"] )
             {
                 if ( Session["modalPerson"] != null && Session["modalSchedule"] != null )
                 {
@@ -196,7 +205,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private void DisplayPeople()
         {
-            if ( CurrentCheckInState ==null )
+            if ( CurrentCheckInState == null )
             {
                 NavigateToPreviousPage();
                 return;
@@ -649,6 +658,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             var script = labelPrinter.GetClientScript();
             script += "setTimeout( function(){ __doPostBack( '" + btnCancel.UniqueID + "', 'OnClick' ); },4000)";
             ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "addLabelScript", script, true );
+        }
+
+        protected void btnNoCheckin_Click( object sender, EventArgs e )
+        {
+            NavigateToPreviousPage();
         }
     }
 }
