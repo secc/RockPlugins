@@ -54,18 +54,17 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 NavigateToHomePage();
                 return;
             }
-            BindTable();
 
-            if ( ViewState["ModalLocation"] != null )
-            {
-                LocationModal( ( int ) ViewState["ModalLocation"] );
-            }
+            BindTable();
 
             if ( !Page.IsPostBack )
             {
                 BindDropDown();
                 ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
             }
+
+            //Open modal if it is active
+            OccurrenceModal();
         }
 
         private void BindDropDown()
@@ -86,7 +85,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 new { Id = s.Id, Name = s.Name } )
                 .ToList();
 
-            schedules.Insert( 0, new { Id = 0, Name = "All Schedules" } );
+            schedules.Insert( 0, new { Id = -1, Name = "[ All Schedules ]" } );
+            schedules.Insert( 0, new { Id = 0, Name = "[ Active Schedules ]" } );
 
             ddlSchedules.DataSource = schedules;
             ddlSchedules.DataBind();
@@ -103,19 +103,20 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             var definedTypeGuid = GetAttributeValue( "DeactivatedDefinedType" ).AsGuidOrNull();
             if ( definedTypeGuid == null )
             {
-                //We need to change this to show an error.
+                //Need to change this to show an error.
                 return;
             }
-                var scheduleService = new ScheduleService( _rockContext );
-                var groupLocationService = new GroupLocationService( _rockContext );
-                var dtDeactivated = DefinedTypeCache.Read( definedTypeGuid ?? new Guid() );
-                var dvDeactivated = dtDeactivated.DefinedValues;
-                var deactivatedGroupLocationSchedules = dvDeactivated.Select( dv => dv.Value.Split( '|' ) )
-                    .Select( s => new {
-                        GroupLocation = groupLocationService.Get( s[0].AsInteger() ),
-                        Schedule = scheduleService.Get( s[1].AsInteger() ),
-                        Active = false
-                    } ).ToList();
+            var scheduleService = new ScheduleService( _rockContext );
+            var groupLocationService = new GroupLocationService( _rockContext );
+            var dtDeactivated = DefinedTypeCache.Read( definedTypeGuid ?? new Guid() );
+            var dvDeactivated = dtDeactivated.DefinedValues;
+            var deactivatedGroupLocationSchedules = dvDeactivated.Select( dv => dv.Value.Split( '|' ) )
+                .Select( s => new
+                {
+                    GroupLocation = groupLocationService.Get( s[0].AsInteger() ),
+                    Schedule = scheduleService.Get( s[1].AsInteger() ),
+                    Active = false
+                } ).ToList();
 
             var groupTypes = new GroupTypeService( _rockContext )
                 .GetByIds( CurrentCheckInState.ConfiguredGroupTypes );
@@ -132,7 +133,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 {
                     var source = group.GroupLocations
                         .SelectMany( gl => gl.Schedules, ( gl, s ) => new { GroupLocation = gl, Schedule = s, Active = true } )
-                        .Concat( deactivatedGroupLocationSchedules.Where( dGLS => dGLS.GroupLocation.GroupId == group.Id) )
+                        .Concat( deactivatedGroupLocationSchedules.Where( dGLS => dGLS.GroupLocation.GroupId == group.Id ) )
                         .GroupJoin( attendanceData,
                             gls => new { LocationId = gls.GroupLocation.LocationId, ScheduleId = gls.Schedule.Id },
                             a => new { LocationId = a.LocationId.Value, ScheduleId = a.ScheduleId.Value },
@@ -147,7 +148,19 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                                 Active = gls.Active
                             }
                         )
+                        .OrderBy( o => o.GroupLocationSchedule.GroupLocation.Id)
+                        .ThenBy( o => o.GroupLocationSchedule.Schedule.Id)
                         .ToList();
+                    var selectedScheduleId = ddlSchedules.SelectedValue.AsInteger();
+                    if ( selectedScheduleId > 0 )
+                    {
+                        source = source.Where( o => o.GroupLocationSchedule.Schedule.Id == selectedScheduleId ).ToList();
+                    }
+                    else if ( selectedScheduleId == 0 )
+                    {
+                        source = source.Where( o => o.GroupLocationSchedule.Schedule.IsScheduleOrCheckInActive ).ToList();
+                    }
+
                     Literal ltG = new Literal();
                     phContent.Controls.Add( ltG );
 
@@ -159,13 +172,24 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     thcName.Style.Add( "width", "35%" );
                     thr.Controls.Add( thcName );
 
+
                     TableHeaderCell thcRatio = new TableHeaderCell();
-                    thcRatio.Text = "Kid/Adult Ratio";
+                    if ( source.Any() )
+                    {
+                        thcRatio.Text = "Kid/Adult Ratio";
+                    }
+                    else
+                    {
+                        thcRatio.Text = "[No selected schedues]";
+                    }
                     thcRatio.Style.Add( "width", "20%" );
                     thr.Controls.Add( thcRatio );
 
                     TableHeaderCell thcCount = new TableHeaderCell();
-                    thcCount.Text = "Count";
+                    if ( source.Any() )
+                    {
+                        thcCount.Text = "Count";
+                    }
                     thcCount.Style.Add( "width", "20%" );
                     thr.Controls.Add( thcCount );
 
@@ -219,7 +243,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         {
                             if ( occurrence.GroupLocationSchedule.GroupLocation.Location.IsActive && occurrence.Total != 0 && occurrence.Total >= ( occurrence.GroupLocationSchedule.GroupLocation.Location.FirmRoomThreshold ?? 0 ) )
                             {
-                                CloseLocation( occurrence.GroupLocationSchedule.GroupLocation.Location.Id );
+                                CloseOccurrence( occurrence.GroupLocationSchedule.GroupLocation, occurrence.GroupLocationSchedule.Schedule );
                             }
                             tcCapacity.CssClass = "danger";
                         }
@@ -233,43 +257,61 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                         TableCell tcToggle = new TableCell();
                         tr.Controls.Add( tcToggle );
-                        BootstrapButton btnActive = new BootstrapButton();
-                        if ( occurrence.Active )
-                        {
-                            btnActive.CssClass = "btn btn-success btn-block";
-                            btnActive.Text = "Open";
-                        }
-                        else
-                        {
-                            btnActive.CssClass = "btn btn-danger btn-block";
-                            btnActive.Text = "Closed";
-                        }
-                        btnActive.ID = "btnL" + group.Id.ToString() + occurrence.GroupLocationSchedule.GroupLocation.Id + occurrence.GroupLocationSchedule.Schedule.Id;
-                        btnActive.Click += ( s, ee ) => { ToggleLocation( occurrence.GroupLocationSchedule.GroupLocation.Id, occurrence.GroupLocationSchedule.Schedule ); };
-                        tcToggle.Controls.Add( btnActive );
+
+                        Toggle cbActive = new Toggle();
+                        cbActive.OnCssClass = "btn-success";
+                        cbActive.OffCssClass = "btn-danger";
+                        cbActive.Checked = occurrence.Active;
+                        cbActive.OnText = "Open";
+                        cbActive.OffText = "Closed";
+                        cbActive.ID="btnL" + group.Id.ToString() + occurrence.GroupLocationSchedule.GroupLocation.Id + occurrence.GroupLocationSchedule.Schedule.Id;
+                        cbActive.CheckedChanged += ( s, ee ) => { ToggleLocation( occurrence.GroupLocationSchedule.GroupLocation, occurrence.GroupLocationSchedule.Schedule ); };
+                        tcToggle.Controls.Add( cbActive );
 
                         TableCell tcLocation = new TableCell();
                         tr.Controls.Add( tcLocation );
                         BootstrapButton btnLocation = new BootstrapButton();
-                        btnLocation.ID = "btn" + group.Id.ToString() + occurrence.GroupLocationSchedule.GroupLocation.Location.Id + occurrence.GroupLocationSchedule.Schedule.Id;
+                        btnLocation.ID = "btn" + group.Id.ToString() + occurrence.GroupLocationSchedule.GroupLocation.Id + occurrence.GroupLocationSchedule.Schedule.Id;
                         btnLocation.Text = "<i class='fa fa-users'></i>";
                         btnLocation.CssClass = "btn btn-default";
-                        btnLocation.Click += ( s, e ) => { LocationModal( occurrence.GroupLocationSchedule.GroupLocation.Location.Id + occurrence.GroupLocationSchedule.Schedule.Id ); };
+                        btnLocation.Click += ( s, e ) => { OccurrenceModal( occurrence.GroupLocationSchedule.GroupLocation, occurrence.GroupLocationSchedule.Schedule ); };
                         tcLocation.Controls.Add( btnLocation );
                     }
                 }
             }
         }
 
-        private void LocationModal( int id )
+
+        private void OccurrenceModal()
+        {
+            if ( ViewState["ModalGroupLocation"] != null && ViewState["ModalGroupLocationSchedule"] != null )
+            {
+                var groupLocationId = ( int ) ViewState["ModalGroupLocation"];
+                var scheduleId = ( int ) ViewState["ModalGroupLocationSchedule"];
+                var groupLocation = new GroupLocationService( _rockContext ).Get( groupLocationId );
+                var schedule = new ScheduleService( _rockContext ).Get( scheduleId );
+                if ( groupLocation != null && schedule != null )
+                {
+                    OccurrenceModal( groupLocation, schedule );
+                    return;
+                }
+            }
+            mdOccurrence.Hide();
+        }
+
+        private void OccurrenceModal( GroupLocation groupLocation, Schedule schedule )
         {
             phLocation.Controls.Clear();
             ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "stopTimer", "clearInterval(timer);", true );
-            mdLocation.Show();
+            mdOccurrence.Show();
             AttendanceService attendanceService = new AttendanceService( _rockContext );
             //Get all attendance data for location for today
             var data = attendanceService.Queryable( "PersonAlias.Person,Location,Group,Schedule" )
-                .Where( a => a.LocationId == id && a.CreatedDateTime >= Rock.RockDateTime.Today )
+                .Where( a =>
+                        a.LocationId == groupLocation.LocationId
+                        && a.ScheduleId == schedule.Id
+                        && a.CreatedDateTime >= Rock.RockDateTime.Today
+                        )
                 .ToList();
             var current = data.Where( a => a.DidAttend == true && a.EndDateTime == null ).ToList();
             var reserved = data.Where( a => a.DidAttend != true ).ToList();
@@ -390,7 +432,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     }
                 }
             }
-            ViewState.Add( "ModalLocation", id );
+            ViewState.Add( "ModalGroupLocation", groupLocation.Id );
+            ViewState.Add( "ModalGroupLocationSchedule", schedule.Id );
         }
 
         private void CancelReservation( int id )
@@ -402,9 +445,10 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 var locationId = record.LocationId ?? 0;
                 attendanceService.Delete( record );
                 _rockContext.SaveChanges();
-                LocationModal( locationId );
+                OccurrenceModal();
             }
         }
+
 
         private void Checkin( int id )
         {
@@ -415,7 +459,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 record.StartDateTime = Rock.RockDateTime.Now;
                 record.DidAttend = true;
                 _rockContext.SaveChanges();
-                LocationModal( record.LocationId ?? 0 );
+                OccurrenceModal();
             }
         }
 
@@ -427,7 +471,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 record.EndDateTime = Rock.RockDateTime.Now;
                 _rockContext.SaveChanges();
-                LocationModal( record.LocationId ?? 0 );
+                OccurrenceModal();
             }
         }
 
@@ -435,7 +479,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         {
             ViewState["ModalLocation"] = null;
             ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "stopTimer", "clearInterval(timer);", true );
-            mdLocation.Hide();
+            mdOccurrence.Hide();
             mdMove.Show();
             ViewState.Add( "ModalMove", id );
             AttendanceService attendanceService = new AttendanceService( _rockContext );
@@ -463,9 +507,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             ddlMove.DataBind();
         }
 
-        private void ToggleLocation( int GroupLocationId, Schedule schedule )
+        private void ToggleLocation( GroupLocation groupLocation, Schedule schedule )
         {
-            var groupLocation = new GroupLocationService( _rockContext ).Get( GroupLocationId );
             if ( groupLocation != null )
             {
                 if ( groupLocation.Schedules.Contains( schedule ) )
@@ -495,7 +538,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             var value = string.Format( "{0}|{1}", groupLocation.Id, schedule.Id );
             var definedValueService = new DefinedValueService( _rockContext );
             var definedValue = definedValueService.Queryable().Where( dv => dv.DefinedTypeId == definedType.Id && dv.Value == value ).FirstOrDefault();
-            if (definedValue == null )
+            if ( definedValue == null )
             {
                 return;
             }
@@ -515,7 +558,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 return;
             }
             var definedType = new DefinedTypeService( _rockContext ).Get( definedTypeGuid ?? new Guid() );
-            var definedValue = new DefinedValue() { Id = 0};
+            var definedValue = new DefinedValue() { Id = 0 };
             definedValue.Value = groupLocation.Id.ToString() + "|" + schedule.Id.ToString();
             definedValue.Description = string.Format( "Deactivated {0} for schedule {1} at {2}", groupLocation.ToString(), schedule.Name, Rock.RockDateTime.Now.ToString() );
             definedValue.DefinedTypeId = definedType.Id;
@@ -536,12 +579,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             _rockContext.SaveChanges();
         }
 
-        private void CloseLocation( int id )
+        private void CloseOccurrence( GroupLocation groupLocation, Schedule schedule )
         {
-            var location = new LocationService( _rockContext ).Get( id );
-            if ( location != null )
+            if ( groupLocation.Schedules.Contains( schedule ) )
             {
-                location.IsActive = false;
+                groupLocation.Schedules.Remove( schedule );
+                RecordGroupLocationSchedule( groupLocation, schedule );
                 _rockContext.SaveChanges();
                 Rock.CheckIn.KioskDevice.FlushAll();
                 BindTable();
@@ -550,8 +593,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected void mdLocation_SaveClick( object sender, EventArgs e )
         {
-            mdLocation.Hide();
-            ViewState["ModalLocation"] = null;
+            mdOccurrence.Hide();
+            ViewState["ModalGroupLocation"] = null;
+            ViewState["ModalGroupLocationSchedule"] = null;
             ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
         }
 
@@ -604,7 +648,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected void ddlSchedules_SelectedIndexChanged( object sender, EventArgs e )
         {
-
+            BindTable();
         }
     }
 }

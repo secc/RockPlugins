@@ -22,7 +22,7 @@
         <asp:HiddenField ID="hfReloader" runat="server" />
         <Rock:ModalAlert ID="mdGridWarning" runat="server" />
 
-        <Rock:ModalDialog runat="server" ID="mdLocation" SaveButtonText="Done" OnSaveClick="mdLocation_SaveClick" CancelLinkVisible="false">
+        <Rock:ModalDialog runat="server" ID="mdOccurrence" SaveButtonText="Done" OnSaveClick="mdLocation_SaveClick" CancelLinkVisible="false">
             <Content>
                 <h1>
                     <asp:Literal ID="ltLocation" runat="server" /></h1>
