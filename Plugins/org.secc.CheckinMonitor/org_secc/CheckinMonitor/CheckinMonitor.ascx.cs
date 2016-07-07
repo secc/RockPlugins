@@ -129,11 +129,10 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 table.CssClass = "table";
                 table.Style.Add( "margin-bottom", "10px" );
                 phContent.Controls.Add( table );
-                foreach ( var group in groupType.Groups )
-                {
-                    var source = group.GroupLocations
+
+                var sources = groupType.Groups.SelectMany( g => g.GroupLocations )
                         .SelectMany( gl => gl.Schedules, ( gl, s ) => new { GroupLocation = gl, Schedule = s, Active = true } )
-                        .Concat( deactivatedGroupLocationSchedules.Where( dGLS => dGLS.GroupLocation.GroupId == group.Id ) )
+                        .Concat( deactivatedGroupLocationSchedules.Where( dGLS => groupType.Groups.Contains( dGLS.GroupLocation.Group ) ) )
                         .GroupJoin( attendanceData,
                             gls => new { LocationId = gls.GroupLocation.LocationId, ScheduleId = gls.Schedule.Id },
                             a => new { LocationId = a.LocationId.Value, ScheduleId = a.ScheduleId.Value },
@@ -148,18 +147,22 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                                 Active = gls.Active
                             }
                         )
-                        .OrderBy( o => o.GroupLocationSchedule.GroupLocation.Id)
-                        .ThenBy( o => o.GroupLocationSchedule.Schedule.Id)
+                        .OrderBy( o => o.GroupLocationSchedule.GroupLocation.Id )
+                        .ThenBy( o => o.GroupLocationSchedule.Schedule.Id )
                         .ToList();
-                    var selectedScheduleId = ddlSchedules.SelectedValue.AsInteger();
-                    if ( selectedScheduleId > 0 )
-                    {
-                        source = source.Where( o => o.GroupLocationSchedule.Schedule.Id == selectedScheduleId ).ToList();
-                    }
-                    else if ( selectedScheduleId == 0 )
-                    {
-                        source = source.Where( o => o.GroupLocationSchedule.Schedule.IsScheduleOrCheckInActive ).ToList();
-                    }
+                var selectedScheduleId = ddlSchedules.SelectedValue.AsInteger();
+                if ( selectedScheduleId > 0 )
+                {
+                    sources = sources.Where( o => o.GroupLocationSchedule.Schedule.Id == selectedScheduleId ).ToList();
+                }
+                else if ( selectedScheduleId == 0 )
+                {
+                    sources = sources.Where( o => o.GroupLocationSchedule.Schedule.IsScheduleOrCheckInActive ).ToList();
+                }
+
+                foreach ( var group in groupType.Groups )
+                {
+                    var source = sources.Where( s => s.GroupLocationSchedule.GroupLocation.GroupId == group.Id );
 
                     Literal ltG = new Literal();
                     phContent.Controls.Add( ltG );
@@ -264,7 +267,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         cbActive.Checked = occurrence.Active;
                         cbActive.OnText = "Open";
                         cbActive.OffText = "Closed";
-                        cbActive.ID="btnL" + group.Id.ToString() + occurrence.GroupLocationSchedule.GroupLocation.Id + occurrence.GroupLocationSchedule.Schedule.Id;
+                        cbActive.ID = "btnL" + group.Id.ToString() + occurrence.GroupLocationSchedule.GroupLocation.Id + occurrence.GroupLocationSchedule.Schedule.Id;
                         cbActive.CheckedChanged += ( s, ee ) => { ToggleLocation( occurrence.GroupLocationSchedule.GroupLocation, occurrence.GroupLocationSchedule.Schedule ); };
                         tcToggle.Controls.Add( cbActive );
 
