@@ -11,7 +11,12 @@
 
     var startTimer = function ()
     {
-       // timer = setInterval(function () { UpdPanelUpdate() }, 10000);
+        timer = setInterval(function () { UpdPanelUpdate() }, 10000);
+    }
+
+    var stopTimer = function ()
+    {
+        clearInterval(timer);
     }
 
 </script>
@@ -20,15 +25,7 @@
 <asp:UpdatePanel ID="upDevice" runat="server" UpdateMode="Conditional">
     <ContentTemplate>
         <asp:HiddenField ID="hfReloader" runat="server" />
-        <Rock:ModalAlert ID="mdGridWarning" runat="server" />
-
-        <Rock:ModalDialog runat="server" ID="mdOccurrence" SaveButtonText="Done" OnSaveClick="mdLocation_SaveClick" CancelLinkVisible="false">
-            <Content>
-                <h1>
-                    <asp:Literal ID="ltLocation" runat="server" /></h1>
-                <asp:PlaceHolder runat="server" ID="phLocation" />
-            </Content>
-        </Rock:ModalDialog>
+        <Rock:ModalAlert ID="maError" runat="server" />
 
         <Rock:ModalDialog runat="server" ID="mdMove" SaveButtonText="Cancel" OnSaveClick="mdMove_CancelClick" CancelLinkVisible="false">
             <Content>
@@ -38,12 +35,22 @@
                 <Rock:BootstrapButton ID="btnMove" runat="server" Text="Move" OnClick="btnMove_Click" CssClass="btn btn-success"></Rock:BootstrapButton>
             </Content>
         </Rock:ModalDialog>
+
+        <Rock:ModalDialog runat="server" ID="mdOccurrence" SaveButtonText="Done" OnSaveClick="mdOccurrence_SaveClick" CancelLinkVisible="false">
+            <Content>
+                <h1>
+                    <asp:Literal ID="ltLocation" runat="server" />
+                </h1>
+                <asp:PlaceHolder runat="server" ID="phLocation" />
+            </Content>
+        </Rock:ModalDialog>
         <div class="col-md-6">
             <Rock:Toggle runat="server" ID="cbAll" OnText="Show All Groups" OffText="Show Active Groups" OnCssClass="btn-warning" OffCssClass="btn-warning" OnCheckedChanged="cbAll_CheckedChanged" />
         </div>
         <div class="col-md-6">
             <Rock:RockDropDownList runat="server" ID="ddlSchedules" DataValueField="Id" DataTextField="Name"
-                 CssClass="btn btn-default" OnSelectedIndexChanged="ddlSchedules_SelectedIndexChanged" AutoPostBack="true"></Rock:RockDropDownList>
+                CssClass="btn btn-default" OnSelectedIndexChanged="ddlSchedules_SelectedIndexChanged" AutoPostBack="true">
+            </Rock:RockDropDownList>
         </div>
         <asp:PlaceHolder runat="server" ID="phContent" />
     </ContentTemplate>
