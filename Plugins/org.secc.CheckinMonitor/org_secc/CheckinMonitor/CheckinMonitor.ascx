@@ -45,13 +45,15 @@
             </Content>
         </Rock:ModalDialog>
         <div class="col-md-6">
-            <Rock:Toggle runat="server" ID="cbAll" OnText="Show All Groups" OffText="Show Active Groups" OnCssClass="btn-warning" OffCssClass="btn-warning" OnCheckedChanged="cbAll_CheckedChanged" />
+            <Rock:BootstrapButton runat="server" ID="btnBack" Text="Back" OnClick="btnBack_Click" CssClass="btn btn-warning"></Rock:BootstrapButton>
+            <Rock:BootstrapButton runat="server" ID="btnRefresh" Text="Refresh" OnClick="btnRefresh_Click" CssClass="btn btn-primary"></Rock:BootstrapButton>
         </div>
         <div class="col-md-6">
             <Rock:RockDropDownList runat="server" ID="ddlSchedules" DataValueField="Id" DataTextField="Name"
                 CssClass="btn btn-default" OnSelectedIndexChanged="ddlSchedules_SelectedIndexChanged" AutoPostBack="true">
             </Rock:RockDropDownList>
         </div>
+        <br /><br />
         <asp:PlaceHolder runat="server" ID="phContent" />
     </ContentTemplate>
 </asp:UpdatePanel>

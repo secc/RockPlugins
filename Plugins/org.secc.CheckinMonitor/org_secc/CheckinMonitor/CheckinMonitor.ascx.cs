@@ -57,6 +57,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             BindTable();
 
+
             if ( !Page.IsPostBack )
             {
                 BindDropDown();
@@ -65,6 +66,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             //Open modal if it is active
             OccurrenceModal();
+
         }
 
         private void BindDropDown()
@@ -98,7 +100,10 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             _rockContext = new RockContext();
             AttendanceService attendanceSerivce = new AttendanceService( _rockContext );
             var attendanceData = attendanceSerivce.Queryable()
-                                    .Where( a => a.StartDateTime > Rock.RockDateTime.Today );
+                                    .Where( a =>
+                                            a.StartDateTime > Rock.RockDateTime.Today
+                                            && a.PersonAliasId != null
+                                    );
 
             var definedTypeGuid = GetAttributeValue( "DeactivatedDefinedType" ).AsGuidOrNull();
             if ( definedTypeGuid == null )
@@ -293,7 +298,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
         }
 
-
         private void OccurrenceModal()
         {
             if ( ViewState["ModalGroupLocation"] != null && ViewState["ModalGroupLocationSchedule"] != null )
@@ -308,7 +312,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     return;
                 }
             }
-            mdOccurrence.Hide();
+            //mdOccurrence.Hide();
         }
 
         private void OccurrenceModal( GroupLocation groupLocation, Schedule schedule )
@@ -320,7 +324,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             //Get all attendance data for grouplocationschedule for today
             var data = attendanceService.Queryable( "PersonAlias.Person,Location,Group,Schedule" )
                 .Where( a =>
-                        a.LocationId == groupLocation.LocationId
+                        a.PersonAliasId != null
+                        && a.LocationId == groupLocation.LocationId
                         && a.ScheduleId == schedule.Id
                         && a.CreatedDateTime >= Rock.RockDateTime.Today
                         )
@@ -489,8 +494,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         private void MoveModal( int id )
         {
+            ViewState["ModalGroupLocation"] = null;
+            ViewState["ModalGroupLocationSchedule"] = null;
             ViewState["ModalLocation"] = null;
-            ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "stopTimer", "stopTimer()", true );
             mdOccurrence.Hide();
             mdMove.Show();
             ViewState.Add( "ModalMove", id );
@@ -637,19 +643,25 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 return;
             }
+
+            //Remove all other attendance records for this person today at this schedule
             var currentRecords = attendanceService.Queryable()
                  .Where( a =>
                  a.CreatedDateTime >= Rock.RockDateTime.Today
                 && a.DidAttend == true
-                && a.PersonAliasId == a.PersonAliasId
+                && a.PersonAliasId == attendanceRecord.PersonAliasId
+                && a.ScheduleId == attendanceRecord.ScheduleId
                 && a.EndDateTime == null ).ToList();
-
             foreach ( var record in currentRecords )
             {
                 record.EndDateTime = Rock.RockDateTime.Now;
             }
+
+            //Create a new attendance record
             Attendance newRecord = new Attendance();
-            newRecord.CopyPropertiesFrom( attendanceRecord );
+            newRecord.ScheduleId = attendanceRecord.ScheduleId;
+            newRecord.PersonAliasId = attendanceRecord.PersonAliasId;
+            newRecord.GroupId = attendanceRecord.GroupId;
             newRecord.StartDateTime = Rock.RockDateTime.Now;
             newRecord.EndDateTime = null;
             newRecord.DeviceId = null;
@@ -660,14 +672,19 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             BindTable();
         }
 
-        protected void cbAll_CheckedChanged( object sender, EventArgs e )
-        {
-            //This is an empty function because we just need to reload the page
-        }
-
         protected void ddlSchedules_SelectedIndexChanged( object sender, EventArgs e )
         {
             BindTable();
+        }
+
+        protected void btnBack_Click( object sender, EventArgs e )
+        {
+            NavigateToPreviousPage();
+        }
+
+        protected void btnRefresh_Click( object sender, EventArgs e )
+        {
+            //This is an empty function because we just need to reload the page
         }
     }
 }
