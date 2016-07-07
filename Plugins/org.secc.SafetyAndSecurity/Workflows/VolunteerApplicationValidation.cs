@@ -20,7 +20,7 @@ namespace org.secc.SafetyAndSecurity
     [ExportMetadata( "ComponentName", "Volunteer Application Validation" )]
     [CustomDropdownListField( "Action Step", "Action Step to Validate",  "Personal Information,First Reference,Second Reference,Third Reference,Fourth Reference,Special Circumstances,Statement of Faith", true)]
     [WorkflowAttribute("Error Messages", "Error Messages Attribute", true)]
-    [WorkflowActivityType( "Success Activity", "The activity type to activate upon success.", true, "", "", 0 )]
+    [WorkflowActivityType( "Success Activity", "The activity type to activate upon success.  Leave blank to end here.", false, "", "", 0 )]
     [WorkflowActivityType( "Fail Activity", "The activity type to activate upon failure.", true, "", "", 0 )]
     class VolunteerApplicationValidation : ActionComponent
     {
@@ -35,9 +35,28 @@ namespace org.secc.SafetyAndSecurity
 
             switch (actionStep) {
                 case "Statement of Faith":
-                    // Should we fall through and validate everything in all the previous actions?
+                    if ( !action.Activity.Workflow.GetAttributeValue( "ReadStatementOfFaith" ).AsBoolean() )
+                    {
+                        sbErrorMessages.AppendLine( "<li>Please acknowledge that you have read the statement of faith.</li>" );
+                    }
+                    if ( !action.Activity.Workflow.GetAttributeValue( "AgreeStatementOfFaith" ).AsBoolean() 
+                        && string.IsNullOrEmpty( action.Activity.Workflow.GetAttributeValue( "CommentsStatementOfFaith" ) ) )
+                    {
+                        sbErrorMessages.AppendLine( "<li>Please explain your disagreement with the statement of faith.</li>" );
+                    }
                     break;
                 case "Special Circumstances":
+
+                    if ( action.Activity.Workflow.GetAttributeValue( "Crime" ).AsBoolean()
+                        && string.IsNullOrEmpty( action.Activity.Workflow.GetAttributeValue( "CrimeCounsel" ) ) )
+                    {
+                        sbErrorMessages.AppendLine( "<li>Please select whether you have ben counselled about the issue.</li>" );
+                    }
+                    if ( action.Activity.Workflow.GetAttributeValue( "PhysicalLimitations" ).AsBoolean()
+                        && string.IsNullOrEmpty( action.Activity.Workflow.GetAttributeValue( "PhysicalLimitationsExplanation" ) ) )
+                    {
+                        sbErrorMessages.AppendLine( "<li>Please explain the limitations.</li>" );
+                    }
                     break;
                 case "Fourth Reference":
                     Guid? reference4Guid = action.Activity.Workflow.GetAttributeValue( "Reference4Address" ).AsGuidOrNull();
@@ -46,6 +65,16 @@ namespace org.secc.SafetyAndSecurity
 
                     // Verify phone numbers
                     validatePhones( action, "Reference4HomePhone", "Reference4CellPhone", sbErrorMessages );
+
+                    // Verify Relative/Staff
+                    if ( action.Activity.Workflow.GetAttributeValue( "Reference4Relative" ).AsBoolean() )
+                    {
+                        sbErrorMessages.AppendLine( "<li>Your reference must not be a relative.</li>" );
+                    }
+                    if ( action.Activity.Workflow.GetAttributeValue( "Reference4Staff" ).AsBoolean() )
+                    {
+                        sbErrorMessages.AppendLine( "<li>Your reference must not be a staff member of Southeast Christian Church.</li>" );
+                    }
                     break;
                 case "Third Reference":
                     Guid? reference3Guid = action.Activity.Workflow.GetAttributeValue( "Reference3Address" ).AsGuidOrNull();
@@ -54,6 +83,16 @@ namespace org.secc.SafetyAndSecurity
                     
                     // Verify phone numbers
                     validatePhones( action, "Reference3HomePhone", "Reference3CellPhone", sbErrorMessages );
+
+                    // Verify Relative/Staff
+                    if ( action.Activity.Workflow.GetAttributeValue( "Reference3Relative" ).AsBoolean() )
+                    {
+                        sbErrorMessages.AppendLine( "<li>Your reference must not be a relative.</li>" );
+                    }
+                    if (  action.Activity.Workflow.GetAttributeValue( "Reference3Staff" ).AsBoolean() )
+                    {
+                        sbErrorMessages.AppendLine( "<li>Your reference must not be a staff member of Southeast Christian Church.</li>" );
+                    }
                     break;
                 case "Second Reference":
                     Guid? reference2Guid = action.Activity.Workflow.GetAttributeValue( "Reference2Address" ).AsGuidOrNull();
@@ -62,6 +101,16 @@ namespace org.secc.SafetyAndSecurity
 
                     // Verify phone numbers
                     validatePhones( action, "Reference2HomePhone", "Reference2CellPhone", sbErrorMessages );
+
+                    // Verify Relative/Staff
+                    if ( action.Activity.Workflow.GetAttributeValue( "Reference2Relative" ).AsBoolean() )
+                    {
+                        sbErrorMessages.AppendLine( "<li>Your reference must not be a relative.</li>" );
+                    }
+                    if ( action.Activity.Workflow.GetAttributeValue( "Reference2Staff" ).AsBoolean() )
+                    {
+                        sbErrorMessages.AppendLine( "<li>Your reference must not be a staff member of Southeast Christian Church.</li>" );
+                    }
                     break;
                 case "First Reference":
                     Guid? reference1Guid = action.Activity.Workflow.GetAttributeValue( "Reference1Address" ).AsGuidOrNull();
@@ -70,6 +119,16 @@ namespace org.secc.SafetyAndSecurity
 
                     // Verify phone numbers
                     validatePhones( action, "Reference1HomePhone", "Reference1CellPhone", sbErrorMessages );
+
+                    // Verify Relative/Staff
+                    if ( action.Activity.Workflow.GetAttributeValue( "Reference1Relative" ).AsBoolean() )
+                    {
+                        sbErrorMessages.AppendLine( "<li>Your reference must not be a relative.</li>" );
+                    }
+                    if ( action.Activity.Workflow.GetAttributeValue( "Reference1Staff" ).AsBoolean() )
+                    {
+                        sbErrorMessages.AppendLine( "<li>Your reference must not be a staff member of Southeast Christian Church.</li>" );
+                    }
                     break;
                 case "Personal Information":
                     // Check out lots of stuff with the current mailing address
@@ -100,6 +159,19 @@ namespace org.secc.SafetyAndSecurity
                     {
                         sbErrorMessages.AppendLine( "<li>Work Phone must be in a valid format (XXX) XXX-XXXX.</li>" );
                     }
+
+                    // Make sure we have data for required fields which depend on other fields
+                    if ( action.Activity.Workflow.GetAttributeValue( "OutsideKentuckyIndiana" ).AsBoolean() )
+                    {
+                        if ( string.IsNullOrEmpty( action.Activity.Workflow.GetAttributeValue( "WhenOutsideKentuckyIndiana" ) ) )
+                        {
+                            sbErrorMessages.AppendLine( "<li>Please indicate when you lived out of state.</li>" );
+                        }
+                        if ( string.IsNullOrEmpty( action.Activity.Workflow.GetAttributeValue( "StatesOutsideKentuckyIndiana" ) ) )
+                        {
+                            sbErrorMessages.AppendLine( "<li>Please enter any states you lived in outside of Kentucky or Indiana.</li>" );
+                        }
+                    }
                     break;
             }
             if ( sbErrorMessages.Length > 0)
@@ -123,8 +195,8 @@ namespace org.secc.SafetyAndSecurity
             Guid guid = GetAttributeValue( action, activityAttributeName ).AsGuid();
             if ( guid.IsEmpty() )
             {
-                action.AddLogEntry( "Invalid Activity Property", true );
-                return false;
+                // No activity.  Just be done.
+                return true;
             }
 
             var workflow = action.Activity.Workflow;
