@@ -11,7 +11,7 @@
 
     var startTimer = function ()
     {
-        timer = setInterval(function () { UpdPanelUpdate() }, 10000);
+        timer = setInterval(function () { UpdPanelUpdate() }, 30000);
     }
 
     var stopTimer = function ()
@@ -44,6 +44,18 @@
                 <asp:PlaceHolder runat="server" ID="phLocation" />
             </Content>
         </Rock:ModalDialog>
+
+        <Rock:ModalDialog runat="server" ID="mdLocation" SaveButtonText="Save" OnSaveClick="mdLocation_SaveClick" CancelLinkVisible="false">
+            <Content>
+                <h1>
+                    <asp:Literal ID="ltLocationName" runat="server" />
+                </h1>
+                <asp:HiddenField ID="hfLocationId" runat="server" />
+                <Rock:RockTextBox ID="tbThreshold" runat="server" Label="Limit" Help="Total number of people who can occupy a room."></Rock:RockTextBox>
+                <Rock:RockTextBox ID="tbRatio" runat="server" Label="Ratio" Help="The number of kids per adult allowed."></Rock:RockTextBox>
+            </Content>
+        </Rock:ModalDialog>
+
         <div class="col-md-6">
             <Rock:BootstrapButton runat="server" ID="btnBack" Text="Back" OnClick="btnBack_Click" CssClass="btn btn-warning"></Rock:BootstrapButton>
             <Rock:BootstrapButton runat="server" ID="btnRefresh" Text="Refresh" OnClick="btnRefresh_Click" CssClass="btn btn-primary"></Rock:BootstrapButton>
