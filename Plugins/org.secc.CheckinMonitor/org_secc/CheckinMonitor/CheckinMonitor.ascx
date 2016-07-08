@@ -6,7 +6,7 @@
     var UpdPanelUpdate = function ()
     {
         console.log("Updating!");
-        //__doPostBack("<%= hfReloader.ClientID %>", "");
+        __doPostBack("<%= hfReloader.ClientID %>", "");
     }
 
     var startTimer = function ()
