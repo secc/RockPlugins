@@ -38,6 +38,9 @@
       <HintPath>$(SolutionDir)Rock\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="itextsharp">
+      <HintPath>..\..\..\Rock\RockWeb\Bin\itextsharp.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -52,6 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Workflows\VolunteerApplicationMerge.cs" />
     <Compile Include="Workflows\VolunteerApplicationValidation.cs" />
   </ItemGroup>
   <ItemGroup>
