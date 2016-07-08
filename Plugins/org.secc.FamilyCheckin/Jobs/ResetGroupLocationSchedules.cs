@@ -61,6 +61,9 @@ namespace org.secc.FamilyCheckin
             Rock.Web.Cache.DefinedTypeCache.Flush( dtDeactivated.Id );
 
             rockContext.SaveChanges();
+            
+            //flush kiosk cache
+            Rock.CheckIn.KioskDevice.FlushAll();
 
             context.Result = string.Format("Finished at {0}. Reset {1} GroupScheduleLocations.", Rock.RockDateTime.Now, deactivatedGroupLocationSchedules.Count);
         }
