@@ -34,6 +34,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [Category( "SECC > Check-in" )]
     [Description( "Helps manage rooms and room ratios." )]
     [DefinedTypeField( "Deactivated Defined Type", "Check-in monitor needs a place to save deactivated checkin configurations." )]
+    [TextField("Room Ratio Attribute Key", "Attribute key for room ratios", true, "RoomRatio")]
 
 
     public partial class CheckinMonitor : CheckInBlock
@@ -150,6 +151,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                                 Active = gls.Active
                             }
                         )
+                        .DistinctBy( o => new { GroupLocationId = o.GroupLocationSchedule.GroupLocation.Id, ScheduleId = o.GroupLocationSchedule.Schedule.Id } ) //this is here because bad cache can cause problems
                         .OrderBy( o => o.GroupLocationSchedule.GroupLocation.Id )
                         .ThenBy( o => o.GroupLocationSchedule.Schedule.Id )
                         .ToList();
@@ -200,11 +202,11 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     thr.Controls.Add( thcCount );
 
                     TableHeaderCell thcToggle = new TableHeaderCell();
-                    thcToggle.Style.Add( "width", "20%" );
+                    thcToggle.Style.Add( "width", "15%" );
                     thr.Controls.Add( thcToggle );
 
                     TableHeaderCell thcRoom = new TableHeaderCell();
-                    thcRoom.Style.Add( "width", "5%" );
+                    thcRoom.Style.Add( "width", "10%" );
                     thr.Controls.Add( thcRoom );
 
                     foreach ( var occurrence in source )
@@ -226,7 +228,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         tr.Controls.Add( name );
 
                         TableCell tcRatio = new TableCell();
-                        var ratio = occurrence.GroupLocationSchedule.GroupLocation.Location.GetAttributeValue( "RoomRatio" ).AsInteger();
+                        occurrence.GroupLocationSchedule.GroupLocation.Location.LoadAttributes();
+                        var ratio = occurrence.GroupLocationSchedule.GroupLocation.Location.GetAttributeValue( GetAttributeValue( "RoomRatioAttributeKey" ) ).AsInteger();
                         var ratioDistance = ( occurrence.AdultCount * ratio ) - occurrence.KidCount;
                         tcRatio.Text = occurrence.KidCount.ToString() + "/" + occurrence.AdultCount.ToString();
                         if ( occurrence.Total != 0 && ratioDistance == 0 )
@@ -298,9 +301,30 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         btnOccurrence.CssClass = "btn btn-default";
                         btnOccurrence.Click += ( s, e ) => { OccurrenceModal( occurrence.GroupLocationSchedule.GroupLocation, occurrence.GroupLocationSchedule.Schedule ); };
                         tcLocation.Controls.Add( btnOccurrence );
+
+                        BootstrapButton btnLocation = new BootstrapButton();
+                        btnLocation.ID = "btnLocation" + occurrence.GroupLocationSchedule.GroupLocation.Id.ToString() + occurrence.GroupLocationSchedule.Schedule.Id;
+                        btnLocation.Text = "<i class='fa fa-map-marker'></i>";
+                        btnLocation.CssClass = "btn btn-default";
+                        btnLocation.Click += ( s, e ) => { ShowLocationModal( occurrence.GroupLocationSchedule.GroupLocation.Location ); };
+
+                        tcLocation.Controls.Add( btnLocation );
                     }
                 }
             }
+        }
+
+        private void ShowLocationModal( Location location )
+        {
+            ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "stopTimer", "stopTimer();", true );
+            ltLocationName.Text = location.Name;
+            hfLocationId.Value = location.Id.ToString();
+            location.LoadAttributes();
+            var roomRatioKey = GetAttributeValue( "RoomRatioAttributeKey" );
+            var roomRatio = location.GetAttributeValue( roomRatioKey );
+            tbRatio.Text = roomRatio;
+            tbThreshold.Text = location.FirmRoomThreshold.ToString();
+            mdLocation.Show();
         }
 
         private void OccurrenceModal()
@@ -470,7 +494,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 OccurrenceModal();
             }
         }
-
 
         private void Checkin( int id )
         {
@@ -690,6 +713,24 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         protected void btnRefresh_Click( object sender, EventArgs e )
         {
             //This is an empty function because we just need to reload the page
+        }
+
+        protected void mdLocation_SaveClick( object sender, EventArgs e )
+        {
+            LocationService locationService = new LocationService( _rockContext );
+            var location = locationService.Get( hfLocationId.ValueAsInt() );
+            if (location == null )
+            {
+                return;
+            }
+            location.LoadAttributes();
+            location.SetAttributeValue( GetAttributeValue( "RoomRatioAttributeKey" ), tbRatio.Text.AsInteger() );
+            location.SaveAttributeValues();
+            location.FirmRoomThreshold = tbThreshold.Text.AsInteger();
+            _rockContext.SaveChanges();
+            mdLocation.Hide();
+            ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
+            BindTable();
         }
     }
 }
