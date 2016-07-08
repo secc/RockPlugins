@@ -57,7 +57,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             BindTable();
 
-
             if ( !Page.IsPostBack )
             {
                 BindDropDown();
@@ -66,7 +65,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             //Open modal if it is active
             OccurrenceModal();
-
         }
 
         private void BindDropDown()
@@ -274,15 +272,22 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         TableCell tcToggle = new TableCell();
                         tr.Controls.Add( tcToggle );
 
-                        Toggle cbActive = new Toggle();
-                        cbActive.OnCssClass = "btn-success";
-                        cbActive.OffCssClass = "btn-danger";
-                        cbActive.Checked = occurrence.Active;
-                        cbActive.OnText = "Open";
-                        cbActive.OffText = "Closed";
-                        cbActive.ID = "btnL" + group.Id.ToString() + occurrence.GroupLocationSchedule.GroupLocation.Id + occurrence.GroupLocationSchedule.Schedule.Id;
-                        cbActive.CheckedChanged += ( s, ee ) => { ToggleLocation( occurrence.GroupLocationSchedule.GroupLocation, occurrence.GroupLocationSchedule.Schedule ); };
-                        tcToggle.Controls.Add( cbActive );
+                        BootstrapButton btnToggle = new BootstrapButton();
+                        btnToggle.ID = "btnL" + group.Id.ToString() + occurrence.GroupLocationSchedule.GroupLocation.Id + occurrence.GroupLocationSchedule.Schedule.Id;
+                        btnToggle.Click += ( s, ee ) => { ToggleLocation( occurrence.GroupLocationSchedule.GroupLocation, occurrence.GroupLocationSchedule.Schedule ); };
+                        if ( occurrence.Active )
+                        {
+                            btnToggle.Text = "Active";
+                            btnToggle.ToolTip = "Click to deactivate.";
+                            btnToggle.CssClass = "btn btn-success btn-block";
+                        }
+                        else
+                        {
+                            btnToggle.Text = "Inactive";
+                            btnToggle.ToolTip = "Click to activate.";
+                            btnToggle.CssClass = "btn btn-danger btn-block";
+                        }
+                        tcToggle.Controls.Add( btnToggle );
 
                         TableCell tcLocation = new TableCell();
                         tr.Controls.Add( tcLocation );
