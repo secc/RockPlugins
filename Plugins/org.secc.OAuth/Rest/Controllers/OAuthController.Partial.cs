@@ -100,9 +100,12 @@ namespace org.secc.OAuth.Rest.Controllers
                 }
 
                 List<FamilyMemberProfile> familyMembers = new List<FamilyMemberProfile>();
-                foreach (GroupMember member in currentUser.Person.GetFamilyMembers())
+                // Add the current person
+
+                FamilyMemberProfile familyMember = new FamilyMemberProfile();
+                foreach (GroupMember member in currentUser.Person.GetFamilyMembers(true))
                 {
-                    FamilyMemberProfile familyMember = new FamilyMemberProfile();
+                     familyMember = new FamilyMemberProfile();
                     familyMember.FamilyRole = member.GroupRole.Name;
                     familyMember.FullName = member.Person.FullName;
                     familyMember.PersonId = member.Person.PrimaryAliasId.Value;
@@ -145,7 +148,7 @@ namespace org.secc.OAuth.Rest.Controllers
                 Gender = p.Gender.ToString();
                 Birthdate = p.BirthDate;
                 EmailAddress = p.Email;
-                PreviousPersonIDs = p.Aliases.AsQueryable().Select(pa => pa.AliasPersonId).ToList();
+                PreviousPersonIDs = p.Aliases.AsQueryable().Where(pa => pa.Id != pa.Person.PrimaryAliasId).Select(pa => pa.Id).ToList();
             }
         }
 
