@@ -108,6 +108,7 @@
     <Compile Include="Utilities\LabelPrinter.cs" />
     <Compile Include="Workflows\FilterGroupsByBirthday.cs" />
     <Compile Include="Workflows\FilterGroupsByMembership.cs" />
+    <Compile Include="Workflows\LoadAllLocations.cs" />
     <Compile Include="Workflows\ReprintAggregate.cs" />
     <Compile Include="Workflows\CreateLabelsAggregate.cs" />
     <Compile Include="Workflows\ReserveAttendance.cs" />
@@ -116,6 +117,7 @@
     <Compile Include="Workflows\SearchByPIN.cs" />
     <Compile Include="Workflows\LoadPersonByPIN.cs" />
     <Compile Include="Workflows\HistoricalPreselect.cs" />
+    <Compile Include="Workflows\RemoveFullGroupLocationSchedules.cs" />
     <Compile Include="Workflows\SelectAllPeople.cs" />
   </ItemGroup>
   <ItemGroup>
