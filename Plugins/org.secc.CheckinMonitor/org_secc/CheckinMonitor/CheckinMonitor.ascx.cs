@@ -730,6 +730,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             _rockContext.SaveChanges();
             mdLocation.Hide();
             ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
+            Rock.CheckIn.KioskDevice.FlushAll();
             BindTable();
         }
     }
