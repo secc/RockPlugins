@@ -64,6 +64,8 @@
             <Rock:AddressControl runat="server" ID="acNewFamilyAddress" />
             <Rock:BootstrapButton runat="server" ID="btnNewFamily" Text="Create New Family"
                 CssClass="btn btn-primary" OnClick="btnNewFamily_Click"></Rock:BootstrapButton>
+            <Rock:BootstrapButton runat="server" ID="btnCancel" Text="Cancel" CssClass="btn btn-danger" OnClick="btnCancel_Click">
+            </Rock:BootstrapButton>
         </asp:Panel>
 
         <!-- Manage Family -->
@@ -76,7 +78,7 @@
                     <asp:PlaceHolder runat="server" ID="phFamilyMembers" />
                     <Rock:BootstrapButton runat="server" ID="btnNewMember" Text="Add Person" OnClick="btnNewMember_Click"
                         CssClass="btn btn-primary btn-block btn-lg"></Rock:BootstrapButton>
-                    <div style="margin-top:4px">
+                    <div style="margin-top: 4px">
                         <Rock:BootstrapButton runat="server" ID="btnBack" CssClass="btn btn-danger col-sm-6 btn-lg" Text="<i class='fa fa-arrow-left'></i>" OnClick="btnBack_Click" />
 
                         <Rock:BootstrapButton runat="server" ID="btnPrint" CssClass="btn btn-warning col-sm-6 btn-lg" Text="<i class='fa fa-print'></i>" OnClick="btnPrint_Click" />
@@ -161,7 +163,7 @@
                             <div class="col-xs-12 col-sm-6">
                                 <Rock:GradePicker ID="ddlGradePicker" runat="server" Label="Grade" UseAbbreviation="true" UseGradeOffsetAsValue="true" />
                             </div>
-                             <div class="col-xs-12 col-sm-6">
+                            <div class="col-xs-12 col-sm-6">
                                 <Rock:YearPicker runat="server" ID="ypNewGraduation" Label="Graduation"></Rock:YearPicker>
                             </div>
                         </div>
@@ -174,7 +176,7 @@
                                 <asp:Literal Text="" ID="ltEditName" runat="server" />
                             </h1>
 
-                             <div class="col-xs-12 col-sm-4">
+                            <div class="col-xs-12 col-sm-4">
                                 <Rock:DatePicker ID="dpEditBirthDate" runat="server" Label="Birthdate" />
                             </div>
                             <div class="col-xs-12 col-sm-4">
