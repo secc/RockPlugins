@@ -440,7 +440,10 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             person.FirstName = tbNewPersonFirstName.Text;
             person.LastName = tbNewPersonLastName.Text;
             person.SetBirthDate( dpNewPersonBirthDate.Text.AsDateTime() );
-            person.GraduationYear = ypNewGraduation.SelectedYear.Value;
+            if ( ypNewGraduation.SelectedYear.HasValue )
+            {
+                person.GraduationYear = ypNewGraduation.SelectedYear.Value;
+            }
 
             person.ConnectionStatusValueId = DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id;
             if ( !string.IsNullOrWhiteSpace( rblAdult1Gender.SelectedValue ) )
