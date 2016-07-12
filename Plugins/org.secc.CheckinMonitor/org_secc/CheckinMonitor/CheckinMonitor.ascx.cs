@@ -34,7 +34,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [Category( "SECC > Check-in" )]
     [Description( "Helps manage rooms and room ratios." )]
     [DefinedTypeField( "Deactivated Defined Type", "Check-in monitor needs a place to save deactivated checkin configurations." )]
-    [TextField("Room Ratio Attribute Key", "Attribute key for room ratios", true, "RoomRatio")]
+    [TextField( "Room Ratio Attribute Key", "Attribute key for room ratios", true, "RoomRatio" )]
 
 
     public partial class CheckinMonitor : CheckInBlock
@@ -65,7 +65,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
 
             //Open modal if it is active
-            OccurrenceModal();
+            RebuildModal();
         }
 
         private void BindDropDown()
@@ -327,7 +327,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             mdLocation.Show();
         }
 
-        private void OccurrenceModal()
+        private void RebuildModal()
         {
             if ( ViewState["ModalGroupLocation"] != null && ViewState["ModalGroupLocationSchedule"] != null )
             {
@@ -341,7 +341,21 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     return;
                 }
             }
-            //mdOccurrence.Hide();
+            else if ( ViewState["SearchType"] != null )
+            {
+                var searchBy = ( SearchType ) ViewState["SearchType"];
+                switch ( searchBy )
+                {
+                    case SearchType.Code:
+                        SearchByCode();
+                        break;
+                    case SearchType.Name:
+                        SearchByName();
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
 
         private void OccurrenceModal( GroupLocation groupLocation, Schedule schedule )
@@ -407,18 +421,25 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         trRecord.Controls.Add( tcButtons );
                         tcButtons.Style.Add( "width", "15%" );
 
-                        BootstrapButton btnMove = new BootstrapButton();
-                        btnMove.ID = "move" + record.Id.ToString();
-                        btnMove.CssClass = "btn btn-warning btn-xs";
-                        btnMove.Text = "Move";
-                        btnMove.Click += ( s, e ) => { MoveModal( record.Id ); };
-                        tcButtons.Controls.Add( btnMove );
+                        BootstrapButton btnTableMove = new BootstrapButton();
+                        btnTableMove.ID = "move" + record.Id.ToString();
+                        btnTableMove.CssClass = "btn btn-warning btn-xs";
+                        btnTableMove.Text = "Move";
+                        btnTableMove.Click += ( s, e ) =>
+                        {
+                            mdOccurrence.Hide();
+                            MoveModal( record.Id );
+                        };
+                        tcButtons.Controls.Add( btnTableMove );
 
                         BootstrapButton btnCheckout = new BootstrapButton();
                         btnCheckout.ID = "checkout" + record.Id.ToString();
                         btnCheckout.CssClass = "btn btn-danger btn-xs";
                         btnCheckout.Text = "Check-Out";
-                        btnCheckout.Click += ( s, e ) => { Checkout( record.Id ); };
+                        btnCheckout.Click += ( s, e ) =>
+                        {
+                            Checkout( record.Id );
+                        };
                         tcButtons.Controls.Add( btnCheckout );
                     }
                 }
@@ -491,7 +512,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 var locationId = record.LocationId ?? 0;
                 attendanceService.Delete( record );
                 _rockContext.SaveChanges();
-                OccurrenceModal();
+                RebuildModal();
             }
         }
 
@@ -504,7 +525,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 record.StartDateTime = Rock.RockDateTime.Now;
                 record.DidAttend = true;
                 _rockContext.SaveChanges();
-                OccurrenceModal();
+                RebuildModal();
             }
         }
 
@@ -516,7 +537,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 record.EndDateTime = Rock.RockDateTime.Now;
                 _rockContext.SaveChanges();
-                OccurrenceModal();
+                RebuildModal();
             }
         }
 
@@ -525,7 +546,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             ViewState["ModalGroupLocation"] = null;
             ViewState["ModalGroupLocationSchedule"] = null;
             ViewState["ModalLocation"] = null;
-            mdOccurrence.Hide();
             mdMove.Show();
             ViewState.Add( "ModalMove", id );
             AttendanceService attendanceService = new AttendanceService( _rockContext );
@@ -698,6 +718,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             attendanceService.Add( newRecord );
             _rockContext.SaveChanges();
             BindTable();
+            RebuildModal();
         }
 
         protected void ddlSchedules_SelectedIndexChanged( object sender, EventArgs e )
@@ -719,7 +740,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         {
             LocationService locationService = new LocationService( _rockContext );
             var location = locationService.Get( hfLocationId.ValueAsInt() );
-            if (location == null )
+            if ( location == null )
             {
                 return;
             }
@@ -730,7 +751,154 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             _rockContext.SaveChanges();
             mdLocation.Hide();
             ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
+            Rock.CheckIn.KioskDevice.FlushAll();
             BindTable();
+        }
+
+        protected void mdSearch_SaveClick( object sender, EventArgs e )
+        {
+            ViewState["SearchType"] = null;
+            ltLocation.Text = "";
+            ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
+            mdSearch.Hide();
+        }
+
+        protected void btnCodeSearch_Click( object sender, EventArgs e )
+        {
+            ViewState["SearchType"] = SearchType.Code;
+            SearchByCode();
+        }
+        private void SearchByCode()
+        {
+            var code = tbSearch.Text.ToUpper();
+            if ( string.IsNullOrWhiteSpace( code ) )
+            {
+                return;
+            }
+            AttendanceCodeService attendanceCodeService = new AttendanceCodeService( _rockContext );
+            var attendanceCode = attendanceCodeService.Queryable()
+                .Where( ac => ac.Code == code && ac.IssueDateTime >= Rock.RockDateTime.Today )
+                .FirstOrDefault();
+            if ( attendanceCode == null )
+            {
+                ltSearch.Text = "Attendance matching code not found";
+                return;
+            }
+            DisplaySearchRecords( attendanceCode.Attendances.Where(a => a.EndDateTime==null).ToList() );
+        }
+
+        protected void btnNameSearch_Click( object sender, EventArgs e )
+        {
+            ViewState["SearchType"] = SearchType.Name;
+            SearchByName();
+        }
+        private void SearchByName()
+        {
+            var name = tbSearch.Text;
+            if ( string.IsNullOrWhiteSpace( name ) )
+            {
+                return;
+            }
+            var people = new PersonService( _rockContext ).GetByFullName( name, false );
+            if ( !people.Any() )
+            {
+                ltSearch.Text = "Could not find person's attendance record.";
+                return;
+            }
+            var aliasIds = people.ToList().Select( p => p.PrimaryAliasId );
+            var attendanceRecords = new AttendanceService( _rockContext ).Queryable()
+                .Where( a => a.CreatedDateTime >= Rock.RockDateTime.Today && a.EndDateTime==null && aliasIds.Contains( a.PersonAliasId ) )
+                .ToList();
+            if ( !attendanceRecords.Any() )
+            {
+                ltSearch.Text = "Could not find person's attendance record.";
+                return;
+            }
+            DisplaySearchRecords( attendanceRecords );
+        }
+
+        private void DisplaySearchRecords( List<Attendance> attendanceRecords )
+        {
+            phSearchResults.Controls.Clear();
+
+            Table table = new Table();
+            table.CssClass = "table";
+            phSearchResults.Controls.Add( table );
+
+            TableHeaderRow trHeader = new TableHeaderRow();
+            table.Controls.Add( trHeader );
+
+            TableHeaderCell thcName = new TableHeaderCell();
+            thcName.Text = "Name";
+            trHeader.Controls.Add( thcName );
+
+            TableHeaderCell thcLocation = new TableHeaderCell();
+            thcLocation.Text = "Location";
+            trHeader.Controls.Add( thcLocation );
+
+            TableHeaderCell thcSchedule = new TableHeaderCell();
+            thcSchedule.Text = "Schedule";
+            trHeader.Controls.Add( thcSchedule );
+
+            TableHeaderCell thcButtons = new TableHeaderCell();
+            trHeader.Controls.Add( thcButtons );
+
+            foreach ( var attendance in attendanceRecords )
+            {
+                TableRow trRow = new TableRow();
+                table.Controls.Add( trRow );
+
+                TableCell tcName = new TableCell();
+                tcName.Text = attendance.PersonAlias.Person.FullName;
+                trRow.Controls.Add( tcName );
+
+                TableCell tcLocation = new TableCell();
+                tcLocation.Text = attendance.Location.Name;
+                trRow.Controls.Add( tcLocation );
+
+                TableCell tcSchedule = new TableCell();
+                tcSchedule.Text = attendance.Schedule.Name;
+                trRow.Controls.Add( tcSchedule );
+
+                TableCell tcButtons = new TableCell();
+                trRow.Controls.Add( tcButtons );
+
+                if ( attendance.EndDateTime == null )
+                {
+                    BootstrapButton btnSearchMove = new BootstrapButton();
+                    btnSearchMove.ID = string.Format( "btnSearchMove{0}", attendance.Id );
+                    btnSearchMove.Text = "Move";
+                    btnSearchMove.CssClass = "btn btn-xs btn-warning";
+                    btnSearchMove.Click += ( s, e ) => { MoveModal( attendance.Id ); };
+                    tcButtons.Controls.Add( btnSearchMove );
+                }
+
+                if ( attendance.DidAttend == true && attendance.EndDateTime == null )
+                {
+                    BootstrapButton btnCheckout = new BootstrapButton();
+                    btnCheckout.ID = string.Format( "btnSearchCheckout{0}", attendance.Id );
+                    btnCheckout.Text = "Checkout";
+                    btnCheckout.CssClass = "btn btn-xs btn-danger";
+                    btnCheckout.Click += ( s, e ) => { Checkout( attendance.Id ); };
+                    tcButtons.Controls.Add( btnCheckout );
+                }
+            }
+
+        }
+
+        protected void btnSearch_Click( object sender, EventArgs e )
+        {
+            tbSearch.Text = "";
+            ltSearch.Text = "";
+            phSearchResults.Controls.Clear();
+            ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "stopTimer", "stopTimer();", true );
+            mdSearch.Show();
+        }
+
+        enum SearchType
+        {
+            Code,
+            Name
         }
     }
 }

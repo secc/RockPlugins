@@ -31,6 +31,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [TextField( "Reprint Activity", "Name of the activity to reprint tag", true )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_PHONE_TYPE, "SMS Phone", "Phone number type to save as when SMS enabled" )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_PHONE_TYPE, "Other Phone", "Phone number type to save as when SMS NOT enabled" )]
+    [BooleanField( "Allow Reprint", "Should we allow for reprints of parent tags from this page?", false )]
     public partial class SuperCheckin : CheckInBlock
     {
 
@@ -59,6 +60,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             if ( !Page.IsPostBack )
             {
+
+                btnPrint.Visible = GetAttributeValue( "AllowReprint" ).AsBoolean();
+
                 if ( CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).Any() )
                 {
                     ViewState.Add( "ExistingFamily", true );
@@ -436,7 +440,10 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             person.FirstName = tbNewPersonFirstName.Text;
             person.LastName = tbNewPersonLastName.Text;
             person.SetBirthDate( dpNewPersonBirthDate.Text.AsDateTime() );
-            person.GraduationYear = ypNewGraduation.SelectedYear.Value;
+            if ( ypNewGraduation.SelectedYear.HasValue )
+            {
+                person.GraduationYear = ypNewGraduation.SelectedYear.Value;
+            }
 
             person.ConnectionStatusValueId = DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id;
             if ( !string.IsNullOrWhiteSpace( rblAdult1Gender.SelectedValue ) )
@@ -1006,6 +1013,10 @@ try{{
 
         protected void btnPrint_Click( object sender, EventArgs e )
         {
+            if ( !GetAttributeValue( "AllowReprint" ).AsBoolean() )
+            {
+                return;
+            }
             List<string> errorMessages = new List<string>();
             ProcessActivity( GetAttributeValue( "ReprintActivity" ), out errorMessages );
             if ( !errorMessages.Any() )
@@ -1015,6 +1026,11 @@ try{{
                 var script = labelPrinter.GetClientScript();
                 ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "addLabelScript", script, true );
             }
+        }
+
+        protected void btnCancel_Click( object sender, EventArgs e )
+        {
+            NavigateToPreviousPage();
         }
     }
     public class FamilyLabel
