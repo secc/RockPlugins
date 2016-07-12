@@ -27,12 +27,23 @@
         <asp:HiddenField ID="hfReloader" runat="server" />
         <Rock:ModalAlert ID="maError" runat="server" />
 
-        <Rock:ModalDialog runat="server" ID="mdMove" SaveButtonText="Cancel" OnSaveClick="mdMove_CancelClick" CancelLinkVisible="false">
+        <Rock:ModalDialog runat="server" ID="mdSearch" SaveButtonText="Done" OnSaveClick="mdSearch_SaveClick" CancelLinkVisible="false" Title="Search">
             <Content>
-                <h1>
-                    <asp:Literal ID="ltMove" runat="server" /></h1>
-                <asp:DropDownList runat="server" ID="ddlMove" CssClass="btn btn-default" Label="Move To:"></asp:DropDownList>
-                <Rock:BootstrapButton ID="btnMove" runat="server" Text="Move" OnClick="btnMove_Click" CssClass="btn btn-success"></Rock:BootstrapButton>
+                <div class="container">
+                    <div class="row">
+                        <div class="col-xs-6">
+                            <Rock:RockTextBox runat="server" ID="tbSearch"></Rock:RockTextBox>
+                        </div>
+                        <div class="col-xs-6">
+                            <Rock:BootstrapButton runat="server" ID="btnCodeSearch" Text="Search Code" OnClick="btnCodeSearch_Click" CssClass="btn btn-primary"></Rock:BootstrapButton>
+                            <Rock:BootstrapButton runat="server" ID="btnNameSearch" Text="Search Name" OnClick="btnNameSearch_Click" CssClass="btn btn-primary"></Rock:BootstrapButton>
+                        </div>
+                    </div>
+                </div>
+                <hr />
+                <asp:Literal Text="" runat="server" ID="ltSearch" />
+                <asp:PlaceHolder runat="server" ID="phSearchResults" />
+
             </Content>
         </Rock:ModalDialog>
 
@@ -56,16 +67,27 @@
             </Content>
         </Rock:ModalDialog>
 
+         <Rock:ModalDialog runat="server" ID="mdMove" SaveButtonText="Cancel" OnSaveClick="mdMove_CancelClick" CancelLinkVisible="false">
+            <Content>
+                <h1>
+                    <asp:Literal ID="ltMove" runat="server" /></h1>
+                <asp:DropDownList runat="server" ID="ddlMove" CssClass="btn btn-default" Label="Move To:"></asp:DropDownList>
+                <Rock:BootstrapButton ID="btnMove" runat="server" Text="Move" OnClick="btnMove_Click" CssClass="btn btn-success"></Rock:BootstrapButton>
+            </Content>
+        </Rock:ModalDialog>
+
         <div class="col-md-6">
             <Rock:BootstrapButton runat="server" ID="btnBack" Text="Back" OnClick="btnBack_Click" CssClass="btn btn-warning"></Rock:BootstrapButton>
             <Rock:BootstrapButton runat="server" ID="btnRefresh" Text="Refresh" OnClick="btnRefresh_Click" CssClass="btn btn-primary"></Rock:BootstrapButton>
+            <Rock:BootstrapButton runat="server" ID="btnSearch" Text="Search" OnClick="btnSearch_Click" CssClass="btn btn-info"></Rock:BootstrapButton>
         </div>
         <div class="col-md-6">
             <Rock:RockDropDownList runat="server" ID="ddlSchedules" DataValueField="Id" DataTextField="Name"
                 CssClass="btn btn-default" OnSelectedIndexChanged="ddlSchedules_SelectedIndexChanged" AutoPostBack="true">
             </Rock:RockDropDownList>
         </div>
-        <br /><br />
+        <br />
+        <br />
         <asp:PlaceHolder runat="server" ID="phContent" />
     </ContentTemplate>
 </asp:UpdatePanel>
