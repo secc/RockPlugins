@@ -134,6 +134,11 @@ namespace org.secc.ServiceReef
                                     // Create the trip subaccount
                                     FinancialAccount tripFA = new FinancialAccount();
                                     tripFA.Name = specialFund.Name + ": " + result.EventName;
+                                    // Name is limited to 50
+                                    if ( tripFA.Name.Length > 50 )
+                                    {
+                                        tripFA.Name = tripFA.Name.Substring( 0, 50 );
+                                    }
                                     tripFA.Description = "Service Reef Event.  Name: " + result.EventName + " ID: " + result.EventId;
                                     tripFA.GlCode = result.EventCode;
                                     tripFA.Url = result.EventUrl;
