@@ -13,17 +13,22 @@ using Rock.Model;
 using System.Web.UI.HtmlControls;
 using Rock.Data;
 using org.secc.FamilyCheckin.Utilities;
+using Rock.Attribute;
 
 namespace RockWeb.Plugins.org_secc.FamilyCheckin
 {
     [DisplayName( "QuickCheckin" )]
     [Category( "SECC > Check-in" )]
     [Description( "QuickCheckin block for helping parents check in their family quickly." )]
+    [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Location Link Attribute", "Group attribute which determines if group is location linking." )]
 
     public partial class QuickCheckin : CheckInBlock
     {
+
         private List<GroupTypeCache> parentGroupTypesList;
         private GroupTypeCache currentParentGroupType;
+        private string locationLinkAttributeKey = string.Empty;
+
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
@@ -43,6 +48,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
+
+            var locationLinkAtributeGuid = GetAttributeValue( "LocationLinkAttribute" ).AsGuid();
+            if ( locationLinkAtributeGuid != Guid.Empty )
+            {
+                locationLinkAttributeKey = AttributeCache.Read( locationLinkAtributeGuid ).Key;
+            }
+
 
             if ( !Page.IsPostBack )
             {
@@ -153,7 +165,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 link.DataLoadingText = "<i class='fa fa-refresh fa-spin'></i> Loading checkin...";
                 phPgtSelect.Controls.Add( link );
             }
-
         }
 
         private GroupTypeCache getCurrentParentGroupType()
@@ -284,55 +295,71 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                         .SelectMany( f => f.People.Where( p => p.Person.Guid == person.Guid ) )
                         .SelectMany( p => p.GroupTypes.Where( gt => gt.GroupType.ParentGroupTypes.Select( pgt => pgt.Guid ).Contains( currentParentGroupType.Guid ) == true && gt == groupType ) )
                         .SelectMany( gt => gt.Groups.Where( g => g.Selected && g.Group.Guid == group.Group.Guid ) )
-                        .SelectMany( g => g.Locations ).Where( l => l.Selected && l.Schedules.FirstOrDefault( s => s.Schedule.Guid == schedule.Schedule.Guid ).Selected )
+                        .SelectMany( g => g.Locations.Where( l => l.Schedules.Select( s => s.Schedule.Id ).Contains( schedule.Schedule.Id ) && l.Selected ) )
                         .FirstOrDefault();
 
                     //If a room is selected
                     if ( room != null )
                     {
+                        var i = group.Group.GetAttributeValue( locationLinkAttributeKey ).AsBoolean();
+                        if ( !Page.IsPostBack && room.Selected && group.Group.GetAttributeValue( locationLinkAttributeKey ).AsBoolean() )
+                        {
+                            LinkLocations( person, group, room );
+                        }
                         btnSchedule.CssClass = "btn btn-primary col-xs-8 scheduleSelected";
                         btnSchedule.Text = "<b>" + schedule.Schedule.Name + "</b><br>" + group + " > " + room;
                     }
-                    else
+                }
+            }
+        }
+
+        private void LinkLocations( Person person, CheckInGroup group, CheckInLocation room )
+        {
+            var groupTypes = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault().People.Where( p => p.Person.Id == person.Id ).FirstOrDefault().GroupTypes;
+            foreach ( var groupType in groupTypes.ToList() )
+            {
+                if ( !groupType.Groups.Contains( group ) )
+                {
+                    groupType.Selected = false;
+                    continue;
+                }
+                groupType.Selected = true;
+                foreach ( var cGroup in groupType.Groups )
+                {
+                    if ( cGroup.Group.Id == group.Group.Id )
                     {
-                        //if group is selected by a room isn't selected we need to pick a room
-                        //Get the rooms 
-                        var availableRooms = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
-                        .SelectMany( f => f.People.Where( p => p.Person.Guid == person.Guid ) )
-                        .SelectMany( p => p.GroupTypes.Where( gt => gt.GroupType.ParentGroupTypes.Select( pgt => pgt.Guid ).Contains( currentParentGroupType.Guid ) == true && gt == groupType ) )
-                        .SelectMany( gt => gt.Groups.Where( g => g.Selected && g.Group.Guid == group.Group.Guid ) )
-                        .SelectMany( g => g.Locations ).Where( l => l.Schedules.FirstOrDefault( s => s.Schedule.Guid == schedule.Schedule.Guid ).Selected )
-                        .OrderBy( l => l.Location );
-
-                        //Find the room with the fewest number of people in it
-                        if ( availableRooms.Count() > 0 )
+                        cGroup.Selected = true;
+                        foreach ( var location in cGroup.Locations )
                         {
-                            var autoRoom = new AttendanceService( new RockContext() ).Queryable()
-                                 .Where( a => a.StartDateTime.Date == RockDateTime.Today.Date
-                                                 && a.EndDateTime == null
-                                                 && availableRooms.Select( ar => ar.Location ).Contains( a.Location ) )
-                                 .GroupBy( a => a )
-                                 .OrderBy( g => g.Count() )
-                                 .Select( g => g.Key )
-                                 .FirstOrDefault().Location;
-
-                            //set room as selected and show on page
-                            if ( autoRoom != null )
+                            if ( location.Location.Id == room.Location.Id )
                             {
-                                CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
-                                    .SelectMany( f => f.People.Where( p => p.Person.Guid == person.Guid ) )
-                                    .SelectMany( p => p.GroupTypes.Where( gt => gt.GroupType.ParentGroupTypes.Select( pgt => pgt.Guid ).Contains( currentParentGroupType.Guid ) == true && gt == groupType ) )
-                                    .SelectMany( gt => gt.Groups.Where( g => g.Selected && g.Group.Guid == group.Group.Guid ) )
-                                    .SelectMany( g => g.Locations ).Where( l => l.Schedules.FirstOrDefault( s => s.Schedule.Guid == schedule.Schedule.Guid ).Selected )
-                                    .Where( l => l.Location.Guid == autoRoom.Guid ).FirstOrDefault().Selected = true;
-
-                                btnSchedule.CssClass = "btn btn-primary col-xs-8";
-                                btnSchedule.Text = "<b>" + schedule.Schedule.Name + "</b><br>" + group + " > " + autoRoom.Name;
+                                location.Selected = true;
+                                foreach ( var schedule in location.Schedules )
+                                {
+                                    schedule.Selected = true;
+                                }
+                            }
+                            else
+                            {
+                                location.Selected = false;
                             }
                         }
                     }
+                    else
+                    {
+                        foreach ( var location in cGroup.Locations )
+                        {
+                            foreach ( var schedule in location.Schedules )
+                            {
+                                schedule.Selected = false;
+                            }
+                            location.Selected = false;
+                        }
+                        cGroup.Selected = false;
+                    }
                 }
             }
+            SaveState();
         }
 
         private void ShowRoomChangeModal( Person person, CheckInSchedule schedule )
@@ -412,6 +439,10 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         {
             ClearRoomSelection( person, schedule );
             CurrentCheckInState.CheckIn.Families.SelectMany( f => f.People ).Where( p => p.Person.Id == person.Id ).First().Selected = true;
+            if ( group.Group.GetAttributeValue( locationLinkAttributeKey ).AsBoolean() )
+            {
+                LinkLocations( person, group, room );
+            }
             room.Selected = true;
             group.Selected = true;
             groupType.Selected = true;
@@ -444,6 +475,10 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                             if ( roomSchedule.Schedule.Guid == schedule.Schedule.Guid )
                             {
                                 roomSchedule.Selected = false;
+                                if ( group.Group.GetAttributeValue( locationLinkAttributeKey ).AsBoolean() )
+                                {
+                                    room.Selected = false;
+                                }
                             }
                         }
                         //Set location as not selected if no schedules selected
