@@ -40,10 +40,10 @@ namespace RockWeb.Blocks.Reporting
     /// <summary>
     /// Block to execute a sql command and display the result (if any).
     /// </summary>
-    [DisplayName( "Hospital List" )]
+    [DisplayName( "Communion List" )]
     [Category( "SECC > Reporting > Pastoral" )]
-    [Description( "A summary of all the current hospitalizations that have been reported to Southeast." )]
-    public partial class HospitalList : RockBlock
+    [Description( "A list of all the pastoral care patients/residents that have been requested communion." )]
+    public partial class CommunionList : RockBlock
     {
         #region Control Methods
 
@@ -61,10 +61,6 @@ namespace RockWeb.Blocks.Reporting
             {
                 BindGrid();
             }
-            gReport.Actions.ShowAdd = true;
-            gReport.Actions.AddButton.Text = "<i class=\"fa fa-plus\" Title=\"Add Hospitalization\"></i>";
-            gReport.Actions.AddButton.Enabled = true;
-            gReport.Actions.AddClick += addHospitalization_Click;
             gReport.Actions.ShowMergeTemplate = false;
         }
 
@@ -95,38 +91,43 @@ namespace RockWeb.Blocks.Reporting
                 var definedValueService = new DefinedValueService( rockContext );
 
                 var qry = workflowService.Queryable().AsNoTracking()
-                    .Where( w => w.WorkflowTypeId == 27 && w.Status == "Active" ).ToList();
-                 qry.ForEach(
-                     w =>
-                     {
-                         w.LoadAttributes();
-                         w.Activities.ToList().ForEach( a => { a.LoadAttributes(); } );
-                     } );
+                    .Where( w => ( w.WorkflowTypeId == 27 || w.WorkflowTypeId == 28 || w.WorkflowTypeId == 29 ) && w.Status == "Active" ).ToList();
+                qry.ForEach(
+                    w =>
+                    {
+                        w.LoadAttributes();
+                        w.Activities.ToList().ForEach( a => { a.LoadAttributes(); } );
+                    } );
                 var newQry = qry.Select( w => new
                 {
                     Workflow = w,
                     Name = w.Name,
-                    Hospital = w.AttributeValues["Hospital"].ValueFormatted,
-                    HospitalAddress = new Func<string>( () => {
-                        DefinedValue dv = definedValueService.Get( w.AttributeValues["Hospital"].Value.AsGuid() );
-                        dv.LoadAttributes();
-                        return dv.AttributeValues["Qualifier1"].ValueFormatted + " " + 
-                            dv.AttributeValues["Qualifier2"].ValueFormatted + " " + 
-                            dv.AttributeValues["Qualifier3"].ValueFormatted + ", " +
-                            dv.AttributeValues["Qualifier4"].ValueFormatted; })(),
-                    PersonToVisit = w.AttributeValues["PersonToVisit"].ValueFormatted,
-                    Age = personAliasService.Get( w.AttributeValues["PersonToVisit"].Value.AsGuid() ).Person.Age,
-                    Room = w.AttributeValues["Room"].ValueFormatted,
-                    AdmitDate = w.AttributeValues["AdmitDate"].ValueFormatted,
-                    Description = w.AttributeValues["VisitationRequestDescription"].ValueFormatted,
-                    Visits = w.Activities.Where( a => a.ActivityType.Name == "Visitation Info" ).Count(),
-                    LastVisitor = ( w.Activities.Where( a => a.ActivityType.Name == "Visitation Info" ).Any() ) ? w.Activities.Where( a => a.ActivityType.Name == "Visitation Info" ).LastOrDefault().AttributeValues["Visitor"].ValueFormatted : "N/A",
-                    LastVisitDate = ( w.Activities.Where( a => a.ActivityType.Name == "Visitation Info" ).Any() ) ? w.Activities.Where( a => a.ActivityType.Name == "Visitation Info" ).LastOrDefault().AttributeValues["VisitDate"].ValueFormatted : "N/A",
-                    LastVisitNotes = ( w.Activities.Where( a => a.ActivityType.Name == "Visitation Info" ).Any() ) ? w.Activities.Where( a => a.ActivityType.Name == "Visitation Info" ).LastOrDefault().AttributeValues["VisitNote"].ValueFormatted : "N/A",
+                    Campus = personAliasService.Get( w.AttributeValues.ContainsKey( "PersonToVisit" ) ? w.AttributeValues["PersonToVisit"].Value.AsGuid() : w.AttributeValues["HomeboundPerson"].Value.AsGuid() ).Person.GetCampus(),
+                    Location = w.AttributeValues.ContainsKey( "NursingHome" ) ? w.AttributeValues["NursingHome"].ValueFormatted : "Home",
+                    Address = new Func<Location>( () => {
+                        if ( w.AttributeValues.ContainsKey( "NursingHome" ) )
+                        {
+                            DefinedValue dv = definedValueService.Get( w.AttributeValues["NursingHome"].Value.AsGuid() );
+                            dv.LoadAttributes();
+                            Location location = new Location();
+                            location.Street1 = dv.AttributeValues["Qualifier1"].ValueFormatted;
+                            location.City = dv.AttributeValues["Qualifier2"].ValueFormatted;
+                            location.State = dv.AttributeValues["Qualifier3"].ValueFormatted;
+                            location.PostalCode = dv.AttributeValues["Qualifier4"].ValueFormatted;
+                            return location;
+                        }
+                        Person person = personAliasService.Get( w.AttributeValues.ContainsKey( "PersonToVisit" ) ? w.AttributeValues["PersonToVisit"].Value.AsGuid() : w.AttributeValues["HomeboundPerson"].Value.AsGuid() ).Person;
+                        return person.GetHomeLocation();
+                    } )(),
+                    PersonName = w.AttributeValues.ContainsKey( "PersonToVisit" )?w.AttributeValues["PersonToVisit"].ValueFormatted: w.AttributeValues["HomeboundPerson"].ValueFormatted,
+                    Age = personAliasService.Get( w.AttributeValues.ContainsKey( "PersonToVisit" )?w.AttributeValues["PersonToVisit"].Value.AsGuid() : w.AttributeValues["HomeboundPerson"].Value.AsGuid() ).Person.Age,
+                    Room = w.AttributeValues.ContainsKey( "Room" ) ? w.AttributeValues["Room"].ValueFormatted:"",
+                    Date = w.AttributeValues.ContainsKey( "AdmitDate" ) ? w.AttributeValues["AdmitDate"].ValueFormatted : w.AttributeValues["StartDate"].ValueFormatted,
+                    Description = w.AttributeValues.ContainsKey( "VisitationRequestDescription" ) ? w.AttributeValues["VisitationRequestDescription"].ValueFormatted: w.AttributeValues["HomeboundResidentDescription"].ValueFormatted,
                     Status = w.Status,
                     Communion = w.AttributeValues["Communion"].ValueFormatted,
                     Actions = ""
-                } ).OrderBy(w=>w.Hospital).ToList().AsQueryable();
+                } ).Where(o => o.Communion.AsBoolean()).OrderBy( w => w.Campus.Name ).ThenBy(w=>w.Address.PostalCode).ThenBy( p => p.PersonName ).ToList().AsQueryable();
 
                 //AddGridColumns( newQry.FirstOrDefault() );
 
@@ -137,7 +138,7 @@ namespace RockWeb.Blocks.Reporting
                 }
                 else
                 {
-                    gReport.SetLinqDataSource( newQry.OrderBy( p => p.Hospital ).ThenBy( p => p.PersonToVisit ) );
+                    gReport.SetLinqDataSource( newQry );
                 }
                 gReport.DataBind();
 
@@ -147,7 +148,7 @@ namespace RockWeb.Blocks.Reporting
         }
         protected void addHospitalization_Click( object sender, EventArgs e )
         {
-            Response.Redirect( "/Pastoral/Hospitalization/" );
+            Response.Redirect( "/Pastoral/NursingHome/" );
         }
 
         /// <summary>

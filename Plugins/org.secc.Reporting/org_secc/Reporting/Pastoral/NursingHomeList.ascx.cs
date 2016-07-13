@@ -91,6 +91,7 @@ namespace RockWeb.Blocks.Reporting
             {
                 var workflowService = new WorkflowService( rockContext );
                 var attributeValueService = new WorkflowService( rockContext );
+                var personAliasService = new PersonAliasService( rockContext );
                 var definedValueService = new DefinedValueService( rockContext );
 
                 var qry = workflowService.Queryable().AsNoTracking()
@@ -114,7 +115,7 @@ namespace RockWeb.Blocks.Reporting
                             dv.AttributeValues["Qualifier3"].ValueFormatted + ", " +
                             dv.AttributeValues["Qualifier4"].ValueFormatted; })(),
                     PersonToVisit = w.AttributeValues["PersonToVisit"].ValueFormatted,
-                    Age = w.AttributeValues["Age"].ValueFormatted,
+                    Age = personAliasService.Get( w.AttributeValues["PersonToVisit"].Value.AsGuid() ).Person.Age,
                     Room = w.AttributeValues["Room"].ValueFormatted,
                     AdmitDate = w.AttributeValues["AdmitDate"].ValueFormatted,
                     Description = w.AttributeValues["VisitationRequestDescription"].ValueFormatted,
