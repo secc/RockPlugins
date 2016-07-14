@@ -20,15 +20,16 @@
                             <Rock:RockBoundField DataField="AdmitDate" HeaderText="Admit Date"></Rock:RockBoundField>
                             <Rock:RockBoundField DataField="Description" HeaderText="Description"></Rock:RockBoundField>
                             <Rock:RockBoundField DataField="Visits" HeaderText="Visits"></Rock:RockBoundField>
-                            <Rock:RockBoundField DataField="LastVisitor" HeaderText="LastVisitor"></Rock:RockBoundField>
-                            <Rock:RockBoundField DataField="LastVisitDate" HeaderText="LastVisitDate"></Rock:RockBoundField>
-                            <Rock:RockBoundField DataField="LastVisitNotes" HeaderText="LastVisitNotes"></Rock:RockBoundField>
+                            <Rock:RockBoundField DataField="LastVisitor" HeaderText="Last Visitor"></Rock:RockBoundField>
+                            <Rock:RockBoundField DataField="LastVisitDate" HeaderText="Last Visit Date"></Rock:RockBoundField>
+                            <Rock:RockBoundField DataField="LastVisitNotes" HeaderText="Last Visit Notes"></Rock:RockBoundField>
                             <Rock:RockTemplateField HeaderText="Status">
                                 <ItemTemplate>
                                     <span class="label label-success"><%# Eval("Status") %></span>
                                 </ItemTemplate>
                             </Rock:RockTemplateField>
-                            <Rock:RockTemplateField HeaderText="Actions">
+                            <Rock:BoolField DataField="Communion" HeaderText="Communion" />
+                            <Rock:RockTemplateField HeaderText="Actions" ItemStyle-Width="120px">
                                 <ItemTemplate>
                                     <a href="<%# "https://maps.google.com/?q="+Eval("HospitalAddress").ToString() %>" target="_blank" class="btn btn-default"><i class="fa fa-map-o" title="View Map"></i></a>
                                     <a href="<%# "/Pastoral/Hospitalization/"+Eval("Workflow.Id") %>" class="btn btn-default"><i class="fa fa-pencil"></i></a>
