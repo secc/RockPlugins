@@ -54,6 +54,10 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 locationLinkAttributeKey = AttributeCache.Read( locationLinkAtributeGuid ).Key;
             }
+            else
+            {
+                maAlert.Show( "LocationLink attribute not configured", ModalAlertType.Alert );
+            }
 
 
             if ( !Page.IsPostBack )
@@ -301,7 +305,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     //If a room is selected
                     if ( room != null )
                     {
-                        var i = group.Group.GetAttributeValue( locationLinkAttributeKey ).AsBoolean();
                         if ( !Page.IsPostBack && room.Selected && group.Group.GetAttributeValue( locationLinkAttributeKey ).AsBoolean() )
                         {
                             LinkLocations( person, group, room );
@@ -321,27 +324,33 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 if ( !groupType.Groups.Contains( group ) )
                 {
                     groupType.Selected = false;
+                    groupType.PreSelected = false;
                     continue;
                 }
                 groupType.Selected = true;
+                groupType.PreSelected = true;
                 foreach ( var cGroup in groupType.Groups )
                 {
                     if ( cGroup.Group.Id == group.Group.Id )
                     {
                         cGroup.Selected = true;
+                        cGroup.PreSelected = true;
                         foreach ( var location in cGroup.Locations )
                         {
                             if ( location.Location.Id == room.Location.Id )
                             {
                                 location.Selected = true;
+                                location.PreSelected = true;
                                 foreach ( var schedule in location.Schedules )
                                 {
                                     schedule.Selected = true;
+                                    schedule.PreSelected = true;
                                 }
                             }
                             else
                             {
                                 location.Selected = false;
+                                location.PreSelected = false;
                             }
                         }
                     }
@@ -352,10 +361,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                             foreach ( var schedule in location.Schedules )
                             {
                                 schedule.Selected = false;
+                                schedule.PreSelected = false;
                             }
                             location.Selected = false;
+                            location.PreSelected = false;
                         }
                         cGroup.Selected = false;
+                        cGroup.PreSelected = false;
                     }
                 }
             }
@@ -385,7 +397,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                         BootstrapButton btnRoom = new BootstrapButton();
                         btnRoom.ID = "c" + person.Guid.ToString() + schedule.Schedule.Guid.ToString() + room.Location.Guid.ToString();
                         btnRoom.Text = groupType.GroupType.Name + ": " + group.Group.Name + "<br>" +
-                            room.Location.Name + " - Count: " + KioskLocationAttendance.Read( room.Location.Id ).CurrentCount;
+                            room.Location.Name;
                         btnRoom.CssClass = "btn btn-success btn-block btn-lg";
                         btnRoom.Click += ( s, e ) =>
                         {
@@ -633,7 +645,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                         }
                         if ( checkinLocation != null )
                         {
-
                             var locationSchedule = checkinLocation.Schedules.Where( s => s.Schedule.Id == checkinSchedule.Schedule.Id ).FirstOrDefault();
                             if ( locationSchedule != null )
                             {
@@ -644,6 +655,10 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                                 checkinGroup.PreSelected = true;
                                 checkinLocation.Selected = true;
                                 checkinLocation.PreSelected = true;
+                                if (  checkinGroup.Group.GetAttributeValue( locationLinkAttributeKey ).AsBoolean() )
+                                {
+                                    LinkLocations( checkinPerson.Person, checkinGroup, checkinLocation );
+                                }
                             }
                         }
                     }
