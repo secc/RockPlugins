@@ -4,55 +4,54 @@
         margin-right: 0px;
         margin-left: 0px;
     }
-
 </style>
+
+<script>
+
+    var showContent = function ()
+    {
+        var content = document.getElementById("quickCheckinContent")
+        content.style.transition = "linear .2s"
+        content.style.transform = "translateX(100vw)"
+        var pgt = document.getElementById("pgtSelect")
+        pgt.style.transition = "linear .2s"
+        pgt.style.transform = "translateX(100vw)"
+    }
+
+    var showPgt = function ()
+    {
+        var content = document.getElementById("quickCheckinContent")
+        content.style.transition = "linear .2s"
+        content.style.transform = "translateX(0px)"
+        var pgt = document.getElementById("pgtSelect")
+        pgt.style.transition = "linear .2s"
+        pgt.style.transform = "translateX(0px)"
+    }
+
+    var doCheckin = function ()
+    {
+        setTimeout(
+            function ()
+            {
+                var content = document.getElementById("quickCheckinContainer");
+                document.body.style.overflow = "hidden";
+                content.style.transitionDuration = "0.2s";
+                content.style.transform = "translateY(100vh)";
+
+                var success = document.getElementById("success");
+                success.style.display = "block";
+                success.style.transform = "translateY(-90vh)";
+                __doPostBack("<%= btnCheckin.UniqueID%>", "OnClick");
+                    }, 0
+                )
+            }
+</script>
 
 <asp:UpdatePanel ID="upContent" runat="server">
     <ContentTemplate>
 
-        <script>
+        <Rock:ModalAlert runat="server" ID="maAlert"></Rock:ModalAlert>
 
-            var showContent = function ()
-            {
-                var content = document.getElementById("quickCheckinContent")
-                content.style.transition = "linear .2s"
-                content.style.transform = "translateX(100vw)"
-                var pgt = document.getElementById("pgtSelect")
-                pgt.style.transition = "linear .2s"
-                pgt.style.transform = "translateX(100vw)"
-            }
-
-            var showPgt = function ()
-            {
-                var content = document.getElementById("quickCheckinContent")
-                content.style.transition = "linear .2s"
-                content.style.transform = "translateX(0px)"
-                var pgt = document.getElementById("pgtSelect")
-                pgt.style.transition = "linear .2s"
-                pgt.style.transform = "translateX(0px)"
-            }
-
-            var doCheckin = function ()
-            {
-                setTimeout(
-                    function ()
-                    {
-                        var content = document.getElementById("quickCheckinContainer");
-                        document.body.style.overflow = "hidden";
-                        content.style.transitionDuration = "0.2s";
-                        content.style.transform = "translateY(100vh)";
-
-                        var success = document.getElementById("success");
-                        success.style.display = "block";
-                        success.style.transform = "translateY(-90vh)";
-                        __doPostBack("<%= btnCheckin.UniqueID%>", "OnClick");
-                    }, 0
-                )
-            }
-
-            
-
-        </script>
         <asp:Panel ID="pnlMain" runat="server" Style="margin-top: 10px;">
             <Rock:ModalDialog ID="mdChoose" CssClass="modal" runat="server">
                 <Content>
@@ -78,8 +77,8 @@
                                     runat="server">
                                 </Rock:BootstrapButton>
                             </span>
-                                <a href="javascript:doCheckin()" class="btn btn-lg btn-primary doCheckin">Check-In</a>
-                                <Rock:BootstrapButton runat="server" Visible="false" ID="btnCheckin" CssClass="btn btn-lg btn-primary" OnClick="btnCheckin_Click"></Rock:BootstrapButton>
+                            <a href="javascript:doCheckin()" class="btn btn-lg btn-primary doCheckin">Check-In</a>
+                            <Rock:BootstrapButton runat="server" Visible="false" ID="btnCheckin" CssClass="btn btn-lg btn-primary" OnClick="btnCheckin_Click"></Rock:BootstrapButton>
 
                         </div>
                         <div id="peopleContainer" class="peopleContainer">
@@ -92,13 +91,15 @@
                 <Rock:BootstrapButton runat="server" ID="btnCancel" CssClass="btn btn-lg" OnClick="btnCancel_Click" DataLoadingText="<i class='fa fa-refresh fa-spin'></i>"><i class='fa fa-close'></i></Rock:BootstrapButton>
             </div>
         </asp:Panel>
-        <asp:Panel runat="server" ID="pnlNoCheckin" class="text-center alert alert-warning" Visible="false" style="margin-top:100px">
+        <asp:Panel runat="server" ID="pnlNoCheckin" class="text-center alert alert-warning" Visible="false" Style="margin-top: 100px">
             <h2>We are sorry</h2>
             <h3>There are no members of your family who are able to check-in at this kiosk right now.</h3>
             <h4>Check-in may become available for your family members at a future time today.
-                <br />If you need assistance or believe this is in error, please contact one of our volunteers.</h4>
+                <br />
+                If you need assistance or believe this is in error, please contact one of our volunteers.</h4>
             <Rock:BootstrapButton runat="server" ID="btnNoCheckin" OnClick="btnNoCheckin_Click" Text="OK" CssClass="btn btn-primary btn-lg pull-right"></Rock:BootstrapButton>
-            <br /><br />
+            <br />
+            <br />
         </asp:Panel>
         <div id="success" class="text-center alert alert-success successModal">
 
