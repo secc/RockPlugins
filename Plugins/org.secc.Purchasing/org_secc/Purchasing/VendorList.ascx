@@ -3,7 +3,7 @@
     <ContentTemplate>     
 
         <div class="panel-heading">
-            <h1 class="panel-title"><i class="fa fa-columns"></i>&nbsp;Vendor List</h1>
+            <h1 class="panel-title"><i class="fa fa-list"></i>&nbsp;Vendor List</h1>
             <asp:placeholder ID="phNewVendor" runat="server">
                 <a href="#" ID="lbNewVendor" class="btn-add btn btn-default btn-sm pull-right" OnClick="Rock.controls.modal.show($('this'), '/page/<%= VendorDetailPageSetting.Id %>?t=New Vendor&pb=&sb='); return false;"><i class="fa fa-plus"></i> New Vendor</a>
             </asp:placeholder>
@@ -16,8 +16,8 @@
             </Rock:GridFilter>
             <Rock:Grid ID="dgVendors" runat="server" AllowSorting="true" AllowPaging="true" DataKeyNames="VendorID" OnRowDataBound="dgVendors_RowDataBound">
                 <Columns>
-                    <Rock:RockBoundField HeaderText="ID" DataField="VendorID" />
-                    <Rock:RockTemplateField HeaderText="Name">                     
+                    <Rock:RockBoundField HeaderText="ID" DataField="VendorID" SortExpression="VendorID" />
+                    <Rock:RockTemplateField HeaderText="Name" SortExpression="VendorName">                     
                         <ItemTemplate>
                             <a href="#" onclick="javascript: Rock.controls.modal.show($('this'), '/page/<%=VendorDetailPageSetting.Id %>?t=View Vendor&VendorID=<%# Eval("VendorID") %>&pb=&sb='); return false;"><%# Eval("VendorName") %></a>
                         </ItemTemplate>

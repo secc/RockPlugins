@@ -470,94 +470,54 @@ namespace org.secc.Purchasing
                 .GroupJoin(
                         Context.PersonAliasDatas,
                         req => req.requisition.requester_id,
-                        merged => merged.AliasPersonId,
-                        ( req, merged ) => new
+                        alias => alias.Id,
+                        ( req, alias ) => new
                         {
                             requisition = req.requisition,
                             requisitionStatus = req.requisitionStatus,
                             requisitionType = req.requisitionType,
-                            requesterMerged = merged
+                            requesterMerged = alias
                         }
                     )
                 .SelectMany(
                         joinedReq => joinedReq.requesterMerged.DefaultIfEmpty(),
-                        ( joinedReq, merged ) => new
+                        ( joinedReq, alias ) => new
                         {
                             requisition = joinedReq.requisition,
                             requisitionStatus = joinedReq.requisitionStatus,
                             requisitionType = joinedReq.requisitionType,
-                            requesterMerged = merged
-                        }
-                    )
-                .Join(
-                        Context.PersonAliasDatas,
-                            joinedReq => joinedReq.requesterMerged == null ?
-                            joinedReq.requisition.requester_id :
-                            joinedReq.requesterMerged.AliasPersonId,
-                        person => person.AliasPersonId,
-                        ( joinedReq, person ) => new
-                        {
-                            requisition = joinedReq.requisition,
-                            requisitionStatus = joinedReq.requisitionStatus,
-                            requisitionType = joinedReq.requisitionType,
-                            requester = person
+                            requester = alias
                         }
                     )
                 .GroupJoin(
                         Context.PersonAliasDatas,
                         joinedReq => joinedReq.requisition.assigned_to_person_id,
-                        merged => merged.AliasPersonId,
+                        merged => merged.Id,
                         ( joinedReq, merged ) => new
                         {
                             requisition = joinedReq.requisition,
                             requisitionStatus = joinedReq.requisitionStatus,
                             requisitionType = joinedReq.requisitionType,
                             requester = joinedReq.requester,
-                            assigneeMerged = merged
-                        }
-                    )
-                .SelectMany(
-                        joinedReq => joinedReq.assigneeMerged.DefaultIfEmpty(),
-                        ( joinedReq, merged ) => new
-                        {
-                            requisition = joinedReq.requisition,
-                            requisitionStatus = joinedReq.requisitionStatus,
-                            requisitionType = joinedReq.requisitionType,
-                            requester = joinedReq.requester,
-                            assigneeMerged = merged
-                        }
-                    )
-                .GroupJoin(
-                        Context.PersonAliasDatas,
-                            joinedReq => joinedReq.assigneeMerged == null ?
-                            joinedReq.requisition.assigned_to_person_id :
-                            joinedReq.assigneeMerged.AliasPersonId,
-                        person => person.AliasPersonId,
-                        ( joinedReq, person ) => new
-                        {
-                            requisition = joinedReq.requisition,
-                            requisitionStatus = joinedReq.requisitionStatus,
-                            requisitionType = joinedReq.requisitionType,
-                            requester = joinedReq.requester,
-                            assignee = person
+                            assignee = merged
                         }
                     )
                 .SelectMany(
                         joinedReq => joinedReq.assignee.DefaultIfEmpty(),
-                        ( joinedReq, assignee ) => new
+                        ( joinedReq, merged ) => new
                         {
                             requisition = joinedReq.requisition,
                             requisitionStatus = joinedReq.requisitionStatus,
                             requisitionType = joinedReq.requisitionType,
                             requester = joinedReq.requester,
-                            assignee = assignee
+                            assignee = merged
                         }
-                )
+                    )
                 .Select(
                     joinedReq => new
                     {
                         RequisitionId = joinedReq.requisition.requisition_id,
-                        RequesterId = joinedReq.requester.AliasPersonId,
+                        RequesterId = joinedReq.requester.Id,
                         RequesterLastFirst = string.Format( "{0}, {1}", joinedReq.requester.PersonData.LastName, joinedReq.requester.PersonData.NickName ),
                         Title = joinedReq.requisition.title,
                         DateSubmitted = joinedReq.requisition.date_submitted,
@@ -584,7 +544,7 @@ namespace org.secc.Purchasing
                                     .Where( attach => attach.parent_identifier == joinedReq.requisition.requisition_id )
                                     .Where( attach => attach.active )
                                     .Count(),
-                        AssignedToPersonId = joinedReq.assignee == null ? (Int32?)null : (Int32?)joinedReq.assignee.AliasPersonId,
+                        AssignedToPersonId = joinedReq.assignee == null ? (Int32?)null : (Int32?)joinedReq.assignee.Id,
                         //AssignedToLastFirst = joinedReq.assignee == null ? null : string.Format( "{0}, {1}", joinedReq.assignee.last_name, joinedReq.assignee.nick_name ),
                         ApproverPersonIds = Context.ApprovalDatas
                                             .Where( approval => approval.object_type_name == typeof( Requisition ).ToString() )
@@ -593,7 +553,7 @@ namespace org.secc.Purchasing
                                             .GroupJoin(
                                                     Context.PersonAliasDatas,
                                                     approval => approval.approver_id,
-                                                    merged => merged.AliasPersonId,
+                                                    merged => merged.Id,
                                                     ( approval, merged ) => new
                                                     {
                                                         approval = approval,
@@ -605,7 +565,7 @@ namespace org.secc.Purchasing
                                                     ( approvalJoined, merged ) =>
                                                         new
                                                         {
-                                                            ApproverId = merged == null ? approvalJoined.approval.approver_id : merged.AliasPersonId
+                                                            ApproverId = merged == null ? approvalJoined.approval.approver_id : merged.Id
                                                         }
                             ),
                         ReqPOIDs = joinedReq.requisition.RequisitionItemDatas

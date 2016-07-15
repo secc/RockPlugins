@@ -18,16 +18,16 @@
 
                 <Rock:Grid ID="dgPayMethods" runat="server" AllowSorting="true" AllowPaging="true" DataKeyNames="PaymentMethodID" CssClass="list" AutoGenerateColumns="false">
                     <Columns>
-                        <Rock:RockBoundField HeaderText="ID" DataField="PaymentMethodID" />
-                        <Rock:RockTemplateField SortExpression="Name" HeaderText="Name" >
+                        <Rock:RockBoundField HeaderText="ID" DataField="PaymentMethodID" SortExpression="PaymentMethodID" />
+                        <Rock:RockTemplateField SortExpression="Name" HeaderText="Name">
                             <ItemTemplate>
                                 <asp:LinkButton ID="lnkName" runat="server" Text='<%# Eval("Name") %>' CommandArgument='<%# Eval("PaymentMethodID") %>' />
                             </ItemTemplate>
                         </Rock:RockTemplateField>
                         <Rock:RockBoundField HeaderText="Description" DataField="Description" />
-                        <Rock:BoolField DataField="IsCreditCard" HeaderText="Credit Card" SortExpression="IsCreditCard" />
-                        <Rock:RockBoundField HeaderText="Owner" DataField="Owner" SortExpression="Owner" />
-                        <Rock:RockBoundField HeaderText="Expiration Date" DataField="ExpirationDate" SortExpression="ExpirationDate" />
+                        <Rock:BoolField DataField="IsCreditCard" HeaderText="Credit Card"/>
+                        <Rock:RockBoundField HeaderText="Owner" DataField="Owner" />
+                        <Rock:RockBoundField HeaderText="Expiration Date" DataField="ExpirationDate" />
                         <Rock:BoolField HeaderText="Active" SortExpression="Active" DataField="ActiveString" />
                         <Rock:EditField HeaderText="Edit" OnClick="Edit_Click" />
                     </Columns>

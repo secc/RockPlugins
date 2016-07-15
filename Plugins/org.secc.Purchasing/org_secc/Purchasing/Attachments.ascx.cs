@@ -193,7 +193,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     new DataColumn("CreatedByUser"),
                     new DataColumn("DateModified"),
                     new DataColumn("BlobID"),
-                    new DataColumn("Url")
+                    new DataColumn("BlobGuid")
                 });
 
             //Where display at top has not expired, place objects  in reverse order of expiration date and by AttachmentID 
@@ -212,7 +212,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 if (a.DataBlob != null)
                 {
                     dr["BlobID"] = a.DataBlob.Id;
-                    dr["Url"] = a.DataBlob.Url;
+                    dr["BlobGuid"] = a.DataBlob.Guid;
                     
                     dr["Title"] = a.DataBlob.FileName;
 

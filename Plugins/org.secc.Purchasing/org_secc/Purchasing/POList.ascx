@@ -32,7 +32,7 @@
                     OnReBind="dgPurchaseOrders_Rebind" OnItemCommand="dgPurchaseOrders_ItemCommand" >
                     <Columns>
                        <Rock:RockBoundField HeaderText="PurchaseOrderID" DataField="PurchaseOrderID" Visible="false" />
-                       <Rock:RockTemplateField HeaderText="PO Number">     
+                       <Rock:RockTemplateField HeaderText="PO Number" SortExpression="PurchaseOrderID" >     
                             <ItemTemplate>
                                 <asp:HyperLink runat="server" text='<%# Eval("PurchaseOrderID") %>' NavigateUrl='<%# String.Format("{0}?poid={1}", PurchaseOrderDetailPageSetting, Eval("PurchaseOrderID")) %>'></asp:HyperLink> 
                             </ItemTemplate>
@@ -40,7 +40,7 @@
                        <Rock:RockBoundField HeaderText="Vendor" DataField="VendorName" SortExpression="VendorName" />
                        <Rock:RockBoundField HeaderText="Type" DataField="POType" SortExpression="POType" />
                        <Rock:RockBoundField HeaderText="Status" DataField="Status" SortExpression="Status" />
-                       <Rock:RockBoundField HeaderText="Items Details" DataField="ItemDetails" SortExpression="ItemDetails" />
+                       <Rock:RockBoundField HeaderText="Items Details" DataField="ItemDetails" SortExpression="ItemDetailCount" />
                        <Rock:RockBoundField HeaderText="Total Payments" DataField="TotalPayments" SortExpression="TotalPayments" />
                        <Rock:RockBoundField HeaderText="Notes" DataField="NoteCount" SortExpression="NoteCount" />
                        <Rock:RockBoundField HeaderText="Attachments" DataField="AttachmentCount" SortExpression="AttachmentCount" />

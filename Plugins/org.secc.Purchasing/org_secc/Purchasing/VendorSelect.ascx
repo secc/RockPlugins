@@ -31,7 +31,7 @@
 <div id="vendorChooser" runat="server" >
     <div ID="lblStatus" CssClass="alert alert-danger" runat="server" />
 
-    <Rock:RockDropDownList Label="Choose Vendor:" ID="ddlVendor" runat="server" AutoPostBack="true" OnSelectedIndexChanged="ddlVendor_SelectedIndexChanged" style="max-width:95%;" />
+    <Rock:RockDropDownList CssClass="form-control" Label="Choose Vendor:" ID="ddlVendor" runat="server" AutoPostBack="true" OnSelectedIndexChanged="ddlVendor_SelectedIndexChanged" style="max-width:95%;" />
     <table border="0" style="width:100%; border: 1px solid grey;">
         <tr>
             <td class="formLabel">Name:</td>
