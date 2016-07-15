@@ -72,6 +72,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 BindPOGrid();
                 lbAddPO.Visible = CanUserCreatePurchaseOrder();                
             }
+            dgPurchaseOrders.GridRebind += dgPurchaseOrders_Rebind;
         }
 
         protected void btnFilterApply_Click(object sender, EventArgs e)
@@ -123,7 +124,61 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         private void BindPOGrid()
         {
             ConfigurePOGrid();
-            dgPurchaseOrders.DataSource = GetPurchaseOrders();
+            
+            DataTable dt = new DataTable();
+
+            dt.Columns.AddRange( new DataColumn[] {
+                new DataColumn("PurchaseOrderID", typeof(int)),
+                new DataColumn("VendorName", typeof(string)),
+                new DataColumn("POType", typeof(string)),
+                new DataColumn("Status", typeof(string)),
+                new DataColumn("ItemDetails", typeof(int)),
+                new DataColumn("TotalPayments", typeof(string)),
+                new DataColumn("NoteCount", typeof(int)),
+                new DataColumn("AttachmentCount", typeof(int))
+            } );
+
+
+            if ( GetUserPreferences( PersonSettingKeyPrefix ).Count() > 0 )
+            {
+                var POListItems = PurchaseOrder.GetPurchaseOrderList( BuildFilter() );
+
+
+                SortProperty sortProperty = dgPurchaseOrders.SortProperty;
+                if ( sortProperty != null )
+                {
+                    if ( sortProperty.Direction == SortDirection.Ascending )
+                    {
+                        POListItems = POListItems.OrderBy( r => r.GetType().GetProperty( sortProperty.Property ).GetValue( r ) ).ToList();
+                    }
+                    else
+                    {
+                        POListItems = POListItems.OrderByDescending( r => r.GetType().GetProperty( sortProperty.Property ).GetValue( r ) ).ToList();
+                    }
+                }
+                else
+                {
+                    POListItems = POListItems.OrderByDescending( p => p.PurchaseOrderID ).ToList();
+                }
+
+                foreach ( var po in POListItems )
+                {
+                    DataRow dr = dt.NewRow();
+                    dr["PurchaseOrderID"] = po.PurchaseOrderID;
+                    dr["VendorName"] = po.VendorName;
+                    dr["POType"] = po.POType;
+                    dr["Status"] = po.Status;
+                    dr["ItemDetails"] = po.ItemDetailCount;
+                    dr["TotalPayments"] = string.Format( "{0:c}", po.TotalPayments );
+                    dr["NoteCount"] = po.NoteCount;
+                    dr["AttachmentCount"] = po.AttachmentCount;
+
+                    dt.Rows.Add( dr );
+                }
+
+            }
+
+            dgPurchaseOrders.DataSource = dt;
             dgPurchaseOrders.DataBind();
         }
 
@@ -228,48 +283,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             dgPurchaseOrders.Visible = true;
             dgPurchaseOrders.ItemType = "Items";
             dgPurchaseOrders.AllowSorting = true;
-        }
-
-        private DataTable GetPurchaseOrders()
-        {
-            DataTable dt = new DataTable();
-
-            dt.Columns.AddRange(new DataColumn[] {
-                new DataColumn("PurchaseOrderID", typeof(int)),
-                new DataColumn("VendorName", typeof(string)),
-                new DataColumn("POType", typeof(string)),
-                new DataColumn("Status", typeof(string)),
-                new DataColumn("ItemDetails", typeof(int)),
-                new DataColumn("TotalPayments", typeof(string)),
-                new DataColumn("NoteCount", typeof(int)),
-                new DataColumn("AttachmentCount", typeof(int))
-            });
-
-
-            if (GetUserPreferences(PersonSettingKeyPrefix).Count() > 0)
-            {
-                var POListItems = PurchaseOrder.GetPurchaseOrderList(BuildFilter());
-
-                foreach (var po in POListItems)
-                {
-                    DataRow dr = dt.NewRow();
-                    dr["PurchaseOrderID"] = po.PurchaseOrderID;
-                    dr["VendorName"] = po.VendorName;
-                    dr["POType"] = po.POType;
-                    dr["Status"] = po.Status;
-                    dr["ItemDetails"] = po.ItemDetailCount;
-                    dr["TotalPayments"] = string.Format("{0:c}", po.TotalPayments);
-                    dr["NoteCount"] = po.NoteCount;
-                    dr["AttachmentCount"] = po.AttachmentCount;
-
-                    dt.Rows.Add(dr);
-                }
-                
-            }
-
-
-
-            return dt;
         }
 
         private void LoadUserFilterSettings()

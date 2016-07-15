@@ -285,27 +285,24 @@
                             <div class="error">
                                 <asp:Label ID="lblVendorSelectError" runat="server" Visible="false" />
                             </div>
-                            <div class="vendorRow">
-                                <div class="vendorHeader formLabel">
-                                    Vendor:</div>
-                                <div class="vendorItem formItem">
-                                    <asp:DropDownList ID="ddlVendorSelect" runat="server" CssClass="smallText" OnSelectedIndexChanged="ddlVendorSelect_IndexChanged"
+                            <div class="form-inline">
+                                <label class="form-label">Vendor:</label>
+                                    <asp:DropDownList ID="ddlVendorSelect" runat="server" CssClass="form-control" OnSelectedIndexChanged="ddlVendorSelect_IndexChanged"
                                         AutoPostBack="true" style="width:65%;" />
-                                    <asp:CheckBox ID="chkVendorShowInactive" runat="server" CssClass="smallText" Text="Show Inactive"
+                                    <asp:CheckBox ID="chkVendorShowInactive" runat="server" Text="Show Inactive"
                                         OnCheckedChanged="chkVendorShowInactive_Changed" AutoPostBack="true" style="width:35%;" />
-                                </div>
                             </div>
-                            <div class="vendorRow">
-                                <div class="vendorHeader formLabel">
-                                    Name:</div>
+                            <div class="form-inline">
+                                <label class="form-label">
+                                    Name:</label>
                                 <div class="vendorItem formItem">
                                     <asp:TextBox ID="txtVendorName" runat="server" Style="width: 175px;" /><asp:Label
                                         ID="lblVendorSelectName" runat="server" Visible="false" />
                                 </div>
                             </div>
-                            <div class="vendorRow">
-                                <div class="vendorHeader formLabel">
-                                    Address:</div>
+                            <div class="form-inline">
+                                <label class="form-label">
+                                    Address:</label>
                                 <div class="vendorItem formItem">
                                     <span style="width: 70px;">
                                         <asp:Label ID="lblVendorSelectStreetHeader" runat="server" Text="Street:" /></span>
@@ -324,9 +321,9 @@
                                             runat="server" Visible="false" />
                                 </div>
                             </div>
-                            <div class="vendorRow">
-                                <div class="vendorHeader formLabel">
-                                    Phone:</div>
+                            <div class="form-inline">
+                                <label class="form-label">
+                                    Phone:</label>
                                 <div class="vendorItem formItem">
                                     <asp:TextBox ID="txtVendorPhone" runat="server" /><asp:Label ID="lblVendorSelectPhone"
                                         runat="server" Visible="false" />
@@ -335,25 +332,22 @@
                                         runat="server" Visible="false" />
                                 </div>
                             </div>
-                            <div class="vendorRow">
-                                <div class="vendorHeader formLabel">
-                                    Web Address:</div>
-                                <div class="vendorItem formItem">
-                                    <asp:TextBox ID="txtVendorWebAddress" runat="server" Style="width: 175px;" /><asp:Label
-                                        ID="lblVendorSelectWebAddress" runat="server" Visible="false" /></div>
+                            <div class="form-inline">
+                                <label class="form-label">
+                                    Web Address:</label>
+                                    <asp:TextBox ID="txtVendorWebAddress" CssClass="form-control" runat="server" />
                             </div>
-                            <div class="vendorRow">
-                                <div class="vendorHeader formLabel">
+                            <div class="form-inline">
+                                <label class="form-label">
                                     Terms:
-                                </div>
+                                </label>
                                 <div>
                                     <asp:TextBox ID="txtVendorSelectTerms" runat="server" style="width:175px;" />
                                     <asp:Label ID="lblVendorSelectTerms" runat="server" />
                                 </div>
                             </div>
-                            <div class="vendorRow">
-                                <div class="vendorHeader formLabel">
-                                    Active:</div>
+                            <div class="form-inline"><label class="form-label">
+                                    Active:</label>
                                 <div class="vendorItem formItem">
                                     <asp:CheckBox ID="chkVendorActive" runat="server" CssClass="smallText" /></div>
                             </div>

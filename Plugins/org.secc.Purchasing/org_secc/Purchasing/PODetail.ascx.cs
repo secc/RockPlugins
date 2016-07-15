@@ -1570,7 +1570,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             txtVendorPhoneExtn.Text = string.Empty;
             lblVendorSelectPhoneExtn.Text = "&nbsp;";
             txtVendorWebAddress.Text = string.Empty;
-            lblVendorSelectWebAddress.Text = "&nbsp;";
             txtVendorSelectTerms.Text = string.Empty;
             lblVendorSelectTerms.Text = "&nbsp;";
             chkVendorActive.Checked = false;
@@ -1632,7 +1631,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 if (!String.IsNullOrEmpty(v.WebAddress))
                 {
                     txtVendorWebAddress.Text = v.WebAddress;
-                    lblVendorSelectWebAddress.Text = v.WebAddress;
                 }
 
                 string Terms = String.Empty;
@@ -1764,39 +1762,28 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void SetVendorModalVisibility(bool canEdit)
         {
-            txtVendorName.Visible = canEdit;
-            txtVendorAddress.Visible = canEdit;
-            txtVendorCity.Visible = canEdit;
-            txtVendorState.Visible = canEdit;
-            txtVendorZip.Visible = canEdit;
-            txtVendorPhone.Visible = canEdit;
-            txtVendorPhoneExtn.Visible = canEdit;
-            txtVendorWebAddress.Visible = canEdit;
-            lblVendorSelectStreetHeader.Visible = canEdit;
-            lblVendorSelectCityHeader.Visible = canEdit;
-            lblVendorSelectStateHeader.Visible = canEdit;
-            lblVendorSelectZipHeader.Visible = canEdit;
-            lblVendorSelectPhoneExtnHeader.Visible = canEdit;
+            txtVendorName.ReadOnly = !canEdit;
+            txtVendorAddress.ReadOnly = !canEdit;
+            txtVendorCity.ReadOnly = !canEdit;
+            txtVendorState.ReadOnly = !canEdit;
+            txtVendorZip.ReadOnly = !canEdit;
+            txtVendorPhone.ReadOnly = !canEdit;
+            txtVendorPhoneExtn.ReadOnly = !canEdit;
+            txtVendorWebAddress.ReadOnly = !canEdit;
+            lblVendorSelectStreetHeader.Enabled = canEdit;
+            lblVendorSelectCityHeader.Enabled = canEdit;
+            lblVendorSelectStateHeader.Enabled = canEdit;
+            lblVendorSelectZipHeader.Enabled = canEdit;
+            lblVendorSelectPhoneExtnHeader.Enabled = canEdit;
             
-
-            lblVendorSelectName.Visible = !canEdit;
-            lblVendorSelectAddress.Visible = !canEdit;
-            lblVendorSelectCity.Visible = !canEdit;
-            lblVendorSelectState.Visible = !canEdit;
-            lblVendorSelectZip.Visible = !canEdit;
-            lblVendorSelectPhone.Visible = !canEdit;
-            lblVendorSelectPhoneExtn.Visible = !canEdit;
-            lblVendorSelectWebAddress.Visible = !canEdit;
 
             if (ddlVendorSelect.SelectedValue == "-1")
             {
-                txtVendorSelectTerms.Visible = false;
-                lblVendorSelectTerms.Visible = true;
+                txtVendorSelectTerms.ReadOnly = false;
             }
             else
             {
-                txtVendorSelectTerms.Visible = true;
-                lblVendorSelectTerms.Visible = false;
+                txtVendorSelectTerms.ReadOnly = true;
             }
         }
 

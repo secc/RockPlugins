@@ -2241,7 +2241,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         protected void SelectApprover_Click(object sender, EventArgs e)
         {
             PersonAlias test = ((StaffPicker)sender).StaffPerson;
-            AddMinistryApprovalRequest(test.AliasPersonId);
+            AddMinistryApprovalRequest(test.Id);
 
             // Clear the picker back out
             ucStaffSearchRequester.StaffPerson = null;

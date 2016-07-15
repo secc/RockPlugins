@@ -152,6 +152,24 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             ConfigureDataGrid();
             var vendors = Vendor.LoadVendors(!chkIncludeInactive.Checked);
+            
+            SortProperty sortProperty = dgVendors.SortProperty;
+            if ( sortProperty != null )
+            {
+                if ( sortProperty.Direction == SortDirection.Ascending )
+                {
+                    vendors = vendors.OrderBy( r => r.GetType().GetProperty( sortProperty.Property ).GetValue( r ) ).ToList();
+                }
+                else
+                {
+                    vendors = vendors.OrderByDescending( r => r.GetType().GetProperty( sortProperty.Property ).GetValue( r ) ).ToList();
+                }
+            }
+            else
+            {
+                vendors = vendors.OrderBy( v => v.VendorID ).ToList();
+            }
+
             if (!string.IsNullOrEmpty(txtFilterVendorName.Text)) {
                 vendors = vendors.Where(v => v.VendorName.ToLower().Contains(txtFilterVendorName.Text.ToLower())).ToList();
             }

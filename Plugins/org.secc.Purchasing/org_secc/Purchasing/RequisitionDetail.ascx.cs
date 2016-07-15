@@ -555,7 +555,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             ucStaffPickerApprover.MinistryAreaAttributeGuid = MinistryAreaAttribute.Guid;
             ucStaffPickerApprover.PositionAttributeGuid = PositionAttribute.Guid;
             ucAttachments.CurrentUser = CurrentUser;
-            ucAttachments.Identifier = CurrentRequisition.RequisitionID;
+            ucAttachments.Identifier = CurrentRequisition==null?0:CurrentRequisition.RequisitionID;
             ucAttachments.ObjectTypeName = typeof(Requisition).ToString();
         }
 
@@ -945,6 +945,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             {
                 DefinedValueService definedValueService = new DefinedValueService(new Rock.Data.RockContext());
                 var typeLU = definedValueService.Get(typeLUID );
+                typeLU.LoadAttributes();
                 if (typeLU != null && typeLU.AttributeValues["CERRequired"].Value.AsBoolean())
                 {
                     requiresCER = true;
@@ -1745,7 +1746,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             if ( CurrentRequisition.MinistryLUID == 0 )
             {
-                var MinistryAttribute = CurrentRequisition.Requester.Attributes.Where( x => x.Key == MinistryAreaAttribute.Key ).FirstOrDefault();
+                   CurrentRequisition.Requester.LoadAttributes();
+                   var MinistryAttribute = CurrentRequisition.Requester.Attributes.Where( x => x.Key == MinistryAreaAttribute.Key ).FirstOrDefault();
 
                 if (MinistryAttribute.Value != null )
                 {
@@ -3413,7 +3415,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         protected void SelectApprover_Click(object sender, EventArgs e)
         {
             PersonAlias test = ((StaffPicker)sender).StaffPerson;
-            AddApprover(test.AliasPersonId);
+            AddApprover(test.Id);
             CurrentRequisition = new Requisition(RequisitionID);
             LoadRequisition();
 
