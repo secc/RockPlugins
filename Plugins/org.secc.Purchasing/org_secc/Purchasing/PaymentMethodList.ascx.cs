@@ -280,6 +280,24 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             ConfigureGrid();
 
             List<PaymentMethod> PayMethods = PaymentMethod.GetPaymentMethods(chkActiveOnly.Checked).OrderBy(x => x.Name).ToList();
+
+            SortProperty sortProperty = dgPayMethods.SortProperty;
+            if ( sortProperty != null )
+            {
+                if ( sortProperty.Direction == SortDirection.Ascending )
+                {
+                    PayMethods = PayMethods.OrderBy( r => r.GetType().GetProperty( sortProperty.Property ) != null?r.GetType().GetProperty( sortProperty.Property ).GetValue( r ):null ).ToList();
+                }
+                else
+                {
+                    PayMethods = PayMethods.OrderByDescending( r => r.GetType().GetProperty( sortProperty.Property ) != null?r.GetType().GetProperty( sortProperty.Property ).GetValue( r ):null ).ToList();
+                }
+            }
+            else
+            {
+                PayMethods = PayMethods.OrderBy( pm => pm.PaymentMethodID ).ToList();
+            }
+
             if (!String.IsNullOrEmpty(txtFilterPaymentMethodName.Text))
                 PayMethods.RemoveAll(p => !(p.Name.ToLower().Contains(txtFilterPaymentMethodName.Text.ToLower())));
             if (chkFilterCreditCard.Checked)

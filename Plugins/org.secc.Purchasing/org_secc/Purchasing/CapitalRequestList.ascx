@@ -48,7 +48,7 @@
                     <Columns>
                                 
                         <Rock:RockBoundField DataField="CapitalRequestId" Visible="false" />
-                        <Rock:RockTemplateField HeaderText="Project Name">                     
+                        <Rock:RockTemplateField HeaderText="Project Name" SortExpression="ProjectName">                     
                             <ItemTemplate>
                                 <asp:HyperLink runat="server" text='<%# Eval("ProjectName") %>' NavigateUrl='<%# String.Format("{0}?CER={1}", CapitalRequestDetailPageSetting, Eval("CapitalRequestId")) %>'></asp:HyperLink> 
                             </ItemTemplate>

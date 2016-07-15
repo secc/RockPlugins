@@ -11,7 +11,7 @@
             NoResultText="No Attachments found" ShowActionRow="false">
             <Columns>
                 <Rock:RockBoundField DataField="AttachmentID" Visible="false" />
-                <asp:HyperLinkField DataTextField="Title" HeaderText="Title" DataNavigateUrlFields="Url" DataNavigateUrlFormatString="{0}" ItemStyle-Width="20%" />
+                <asp:HyperLinkField DataTextField="Title" HeaderText="Title" DataNavigateUrlFields="BlobGuid" DataNavigateUrlFormatString="/GetFile.ashx?guid={0}" ItemStyle-Width="20%" />
                 <Rock:RockBoundField DataField="Description" HeaderText="Description" ItemStyle-Width="25%" />
                 <Rock:RockBoundField DataField="FileType" HeaderText="File Type" ItemStyle-Width="15%" />
                 <Rock:RockBoundField DataField="CreatedBy" HeaderText="Created By" ItemStyle-Width="10%" />

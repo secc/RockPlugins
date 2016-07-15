@@ -385,7 +385,7 @@ namespace org.secc.Purchasing
                                 )
                                 .GroupJoin( context.PersonAliasDatas,
                                     cr => cr.capitalRequest.requester_id,
-                                    merged => merged.AliasPersonId,
+                                    merged => merged.Id,
                                     ( cr, merged ) => new
                                     {
                                         capitalRequest = cr.capitalRequest,
@@ -395,33 +395,20 @@ namespace org.secc.Purchasing
                                     }
                                 )
                                 .SelectMany( joinedCR => joinedCR.requesterMerged.DefaultIfEmpty(),
-                                             ( joinedCR, merged ) => new
+                                             ( joinedCR, alias ) => new
                                              {
                                                  capitalRequest = joinedCR.capitalRequest,
                                                  capitalRequestStatus = joinedCR.capitalRequestStatus,
                                                  capitalRequestMinistry = joinedCR.capitalRequestMinistry,
-                                                 merged = merged
+                                                 requester = alias
                                              }
-                                )
-                                .Join( context.PersonAliasDatas,
-                                        joinedCR => joinedCR.merged == null ?
-                                        joinedCR.capitalRequest.requester_id :
-                                        joinedCR.merged.AliasPersonId,
-                                     person => person.AliasPersonId,
-                                     ( joinedCR, person ) => new
-                                     {
-                                         capitalRequest = joinedCR.capitalRequest,
-                                         capitalRequestStatus = joinedCR.capitalRequestStatus,
-                                         capitalRequestMinistry = joinedCR.capitalRequestMinistry,
-                                         requester = person
-                                     }
                                 )
                                 .Select( cr => new CapitalRequestListItem()
                                     {
                                         CapitalRequestId = cr.capitalRequest.capital_request_id,
                                         ProjectName = cr.capitalRequest.project_name,
                                         RequestingMinistryLUID = cr.capitalRequest.ministry_luid,
-                                        RequesterId = cr.requester.AliasPersonId,
+                                        RequesterId = cr.requester.Id,
                                         RequestingMinistry = cr.capitalRequestMinistry.Value,
                                         RequesterNickName = cr.requester.PersonData.NickName,
                                         RequesterLastName = cr.requester.PersonData.LastName,
@@ -446,7 +433,7 @@ namespace org.secc.Purchasing
                                                             .Where( a => a.active )
                                                             .GroupJoin( context.PersonAliasDatas,
                                                                         a => a.approver_id,
-                                                                        merged => merged.AliasPersonId,
+                                                                        merged => merged.Id,
                                                                         ( a, merged ) => new
                                                                         {
                                                                             approval = a,
@@ -461,8 +448,8 @@ namespace org.secc.Purchasing
                                                             .GroupJoin( context.PersonAliasDatas,
                                                                         joinedApproval => joinedApproval.merged == null ?
                                                                         joinedApproval.approval.approver_id :
-                                                                        joinedApproval.merged.AliasPersonId,
-                                                                        person => person.AliasPersonId,
+                                                                        joinedApproval.merged.Id,
+                                                                        person => person.Id,
                                                                         ( joinedApproval, person ) => new
                                                                         {
                                                                             approval = joinedApproval.approval,
@@ -478,7 +465,7 @@ namespace org.secc.Purchasing
                                                             {
                                                                 ApprovalId = a.approval.approval_id,
                                                                 ApprovalTypeLUID = a.approval.approval_type_luid,
-                                                                ApproverId = a.approver.AliasPersonId,
+                                                                ApproverId = a.approver.Id,
                                                                 ApprovalStatusLUID = a.approval.approval_status_luid,
                                                                 DateApprovedString = a.approval.date_approved.ToString()
                                                             } )
