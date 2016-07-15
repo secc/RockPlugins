@@ -80,8 +80,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 LoadFilterOptions(UserCanEdit);
                 LoadUserFilterSettings();
                 BindRequisitionGrid();
-
             }
+            dgRequisitions.GridRebind += dgRequisitions_ReBind;
         }
 
         protected void btnFilterSubmittedBySelect_Click(object sender, EventArgs e)
@@ -133,12 +133,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             Rock.Model.Attribute locationAttribute = attributeService.Get(MinistryLocationAttributeIDSetting);
             
-            int locationLTID = 0;
-
-            if ( locationAttribute != null && int.TryParse( locationAttribute.EntityTypeQualifierValue, out locationLTID ) )
+            if ( locationAttribute != null )
             {
                 ddlLocation.Items.Clear();
-                ddlLocation.DataSource = definedTypeService.Get(locationLTID).DefinedValues.OrderBy(l => l.Order);
+                ddlLocation.DataSource = definedTypeService.Get( locationAttribute.AttributeQualifiers.Where( aq => aq.Key == "definedtype" ).FirstOrDefault().Value.AsInteger() ).DefinedValues.OrderBy( l => l.Order );
                 ddlLocation.DataTextField = "Value";
                 ddlLocation.DataValueField = "Id";
                 ddlLocation.DataBind();
@@ -152,13 +150,12 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             AttributeService attributeService = new AttributeService(new RockContext());
 
             Rock.Model.Attribute ministryAttribute = attributeService.Get(MinistryAreaAttributeIDSetting);
-            int ministryLTID = 0;
 
-            if (ministryAttribute != null && int.TryParse(ministryAttribute.EntityTypeQualifierValue, out ministryLTID))
+            if (ministryAttribute != null)
             {
-
+                
                 ddlMinistry.Items.Clear();
-                ddlMinistry.DataSource = definedTypeService.Get(ministryLTID).DefinedValues.OrderBy(l => l.Value);
+                ddlMinistry.DataSource = definedTypeService.Get( ministryAttribute.AttributeQualifiers.Where( aq => aq.Key == "definedtype" ).FirstOrDefault().Value.AsInteger() ).DefinedValues.OrderBy(l => l.Value);
                 ddlMinistry.DataTextField = "Value";
                 ddlMinistry.DataValueField = "Id";
                 ddlMinistry.DataBind();
@@ -190,7 +187,65 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         private void BindRequisitionGrid()
         {
             ConfigureRequisitionGrid();
-            dgRequisitions.DataSource = GetRequisitions();
+            List<RequisitionListItem> Requisitions = GetRequisitions();
+
+            SortProperty sortProperty = dgRequisitions.SortProperty;
+            if ( sortProperty != null )
+            {
+                if ( sortProperty.Direction == SortDirection.Ascending )
+                {
+                    Requisitions = Requisitions.OrderBy( r => r.GetType().GetProperty(sortProperty.Property).GetValue(r)  ).ToList();
+                } else
+                {
+                    Requisitions = Requisitions.OrderByDescending( r => r.GetType().GetProperty( sortProperty.Property ).GetValue( r ) ).ToList();
+                }
+            }
+            else
+            {
+                Requisitions = Requisitions.OrderByDescending( r => r.DateSubmitted ).ToList();
+            }
+
+            DataTable dt = new DataTable( "Requisitions" );
+
+            dt.Columns.AddRange(
+                    new DataColumn[] {
+                        new DataColumn("RequisitionID", typeof(int)),
+                        new DataColumn("Title", typeof(string)),
+                        new DataColumn("RequesterID", typeof(int)),
+                        new DataColumn("Requester_Last_First", typeof(string)),
+                        new DataColumn("Status", typeof(string)),
+                        new DataColumn("RequisitionType", typeof(string)),
+                        new DataColumn("ItemCount", typeof(int)),
+                        new DataColumn("NoteCount", typeof(int)),
+                        new DataColumn("AttachmentCount", typeof(int)),
+                        new DataColumn("DateSubmitted", typeof(DateTime)),
+                        new DataColumn("IsApproved", typeof(bool)),
+                        new DataColumn("IsAccepted", typeof(bool))
+                    } );
+
+            foreach ( RequisitionListItem item in Requisitions )
+            {
+                DataRow dr = dt.NewRow();
+
+                dr["RequisitionID"] = item.RequisitionID;
+                dr["Title"] = item.Title;
+                dr["RequesterID"] = item.RequesterID;
+                dr["Requester_Last_First"] = item.RequesterLastFirst;
+                dr["Status"] = item.Status;
+                dr["RequisitionType"] = item.RequisitionType;
+                dr["ItemCount"] = item.ItemCount;
+                dr["NoteCount"] = item.NoteCount;
+                dr["AttachmentCount"] = item.AttachmentCount;
+                if ( item.DateSubmitted != null )
+                    dr["DateSubmitted"] = item.DateSubmitted;
+                dr["IsApproved"] = item.IsApproved;
+                dr["IsAccepted"] = item.IsAccepted;
+
+                dt.Rows.Add( dr );
+            }
+
+
+            dgRequisitions.DataSource = dt;
             dgRequisitions.DataBind();
 
         }
@@ -274,7 +329,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 DefinedValue locationValue = org.secc.Purchasing.Helpers.Person.GetMyMinistryLookup(CurrentPerson.Id, locationAttribute.Key);
                 if (locationValue != null)
                 {
-                    Filter.Add("MyMinistryID", locationValue.Id.ToString());
+                    Filter.Add( "MyLocationID", locationValue.Id.ToString());
                 }
             }
             return Filter;
@@ -334,25 +389,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             dgRequisitions.SourceTableKeyColumnName = "RequisitionID";*/
         }
 
-        private DataTable GetRequisitions()
+        private List<RequisitionListItem> GetRequisitions()
         {
-            DataTable dt = new DataTable("Requisitions");
-           
-            dt.Columns.AddRange(
-                    new DataColumn[] {
-                        new DataColumn("RequisitionID", typeof(int)),
-                        new DataColumn("Title", typeof(string)),
-                        new DataColumn("RequesterID", typeof(int)),
-                        new DataColumn("Requester_Last_First", typeof(string)),
-                        new DataColumn("Status", typeof(string)),
-                        new DataColumn("RequisitionType", typeof(string)),
-                        new DataColumn("ItemCount", typeof(int)),
-                        new DataColumn("NoteCount", typeof(int)),
-                        new DataColumn("AttachmentCount", typeof(int)),
-                        new DataColumn("DateSubmitted", typeof(DateTime)),
-                        new DataColumn("IsApproved", typeof(bool)),
-                        new DataColumn("IsAccepted", typeof(bool))
-                    } );
 
             List<RequisitionListItem> Requisitions = new List<RequisitionListItem>();
 
@@ -362,28 +400,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 Requisitions.AddRange(Requisition.GetRequisitionList(BuildFilter()));
             }
 
-            foreach (RequisitionListItem item in Requisitions)
-            {
-                DataRow dr = dt.NewRow();
-
-                dr["RequisitionID"] = item.RequisitionID;
-                dr["Title"] = item.Title;
-                dr["RequesterID"] = item.RequesterID;
-                dr["Requester_Last_First"] = item.RequesterLastFirst;
-                dr["Status"] = item.Status;
-                dr["RequisitionType"] = item.RequisitionType;
-                dr["ItemCount"] = item.ItemCount;
-                dr["NoteCount"] = item.NoteCount;
-                dr["AttachmentCount"] = item.AttachmentCount;
-                if(item.DateSubmitted != null)
-                    dr["DateSubmitted"] = item.DateSubmitted;
-                dr["IsApproved"] = item.IsApproved;
-                dr["IsAccepted"] = item.IsAccepted;
-
-                dt.Rows.Add(dr);
-            }
-
-            return dt;
+            return Requisitions;
         }
 
         private void LoadFilterOptions(bool isEditor)

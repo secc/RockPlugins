@@ -319,7 +319,7 @@ namespace org.secc.Purchasing
                 var Query = Context.PurchaseOrderDatas
                     .GroupJoin(Context.PersonAliasDatas,
                         po => po.ordered_by,
-                        pm1 => (Int32?)(pm1.AliasPersonId),
+                        pm1 => (Int32?)(pm1.Id),
                         (po, pm2) => new
                         {
                             po = po,

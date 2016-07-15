@@ -19,17 +19,17 @@ using org.secc.Purchasing;
 
 namespace RockWeb.Plugins.org_secc.Purchasing
 {
-    [DisplayName("Capital Request List")]
-    [Category("SECC > Purchasing")]
-    [Description("Lists all capital requests.")]
-    [LinkedPage("Capital Request Detail Page", "Page that shows the details of a selected capital request.", true)]
-    [DefinedTypeField("Ministry Area Lookup Type", "The Lookup Type that contains the ministry lookup values.", true)]
-    [DefinedTypeField("Location Lookup Type", "The lookup Type that contains the Location lookup values. If no value is selected, the Location filter will not be available.", true)]
-    [IntegerField("Position Attribute", "Position Attribute ID. Default is 29.", false)]
+    [DisplayName( "Capital Request List" )]
+    [Category( "SECC > Purchasing" )]
+    [Description( "Lists all capital requests." )]
+    [LinkedPage( "Capital Request Detail Page", "Page that shows the details of a selected capital request.", true )]
+    [DefinedTypeField( "Ministry Area Lookup Type", "The Lookup Type that contains the ministry lookup values.", true )]
+    [DefinedTypeField( "Location Lookup Type", "The lookup Type that contains the Location lookup values. If no value is selected, the Location filter will not be available.", true )]
+    [IntegerField( "Position Attribute", "Position Attribute ID. Default is 29.", false )]
     public partial class CapitalRequestList : RockBlock
     {
         private string PersonSettingKey = "CapitalRequestList";
-        private DefinedTypeService definedTypeService = new DefinedTypeService(new Rock.Data.RockContext());
+        private DefinedTypeService definedTypeService = new DefinedTypeService( new Rock.Data.RockContext() );
         #region Module Settings
 
 
@@ -37,10 +37,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-                if (!String.IsNullOrEmpty(GetAttributeValue("CapitalRequestDetailPage")))
+                if ( !String.IsNullOrEmpty( GetAttributeValue( "CapitalRequestDetailPage" ) ) )
                 {
-                    PageService pageService = new PageService(new Rock.Data.RockContext());
-                    return "~/page/"+pageService.Get(new Guid(GetAttributeValue("CapitalRequestDetailPage"))).Id;
+                    PageService pageService = new PageService( new Rock.Data.RockContext() );
+                    return "~/page/" + pageService.Get( new Guid( GetAttributeValue( "CapitalRequestDetailPage" ) ) ).Id;
                 }
                 return null;
             }
@@ -50,7 +50,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-                return GetAttributeValue("LocationLookupType").AsGuidOrNull();
+                return GetAttributeValue( "LocationLookupType" ).AsGuidOrNull();
             }
         }
 
@@ -63,8 +63,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             {
                 LoadFilters();
                 LoadUserPreferences();
+                LoadCapitalRequests();
             }
-            LoadCapitalRequests();
+            gRequestList.GridRebind += grdCapitalRequests_ReBind;
         }
 
         protected void btnFilterApply_Click( object sender, EventArgs e )
@@ -97,24 +98,24 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         protected void lbCreateCapitalRequest_Click( object sender, EventArgs e )
         {
-            NavigateToPage(new Guid(GetAttributeValue("CapitalRequestDetailPage")), null);
+            NavigateToPage( new Guid( GetAttributeValue( "CapitalRequestDetailPage" ) ), null );
         }
         #endregion
 
-        
+
         #region Private Methods
 
-        private Dictionary<string,string> BuildFilters()
+        private Dictionary<string, string> BuildFilters()
         {
             Dictionary<string, string> filter = new Dictionary<string, string>();
 
             filter.Add( "PersonId", CurrentPerson.Id.ToString() );
-            filter.Add("UserId", CurrentUser.UserName);
+            filter.Add( "UserId", CurrentUser.UserName );
             CurrentPerson.LoadAttributes();
-            filter.Add( "MinistryId", CurrentPerson.Attributes.Where( a => a.Key == "MinistryAreaAttribute" ).Select(a => a.Value.ToString()).FirstOrDefault() );
+            filter.Add( "MinistryId", CurrentPerson.Attributes.Where( a => a.Key == "MinistryAreaAttribute" ).Select( a => a.Value.ToString() ).FirstOrDefault() );
             //filter.Add( "FinanceApprover", UserIsFinanceApprover().ToString() );
 
-            if ( LocationLookupTypeIdSetting != null && UserCanEdit)
+            if ( LocationLookupTypeIdSetting != null && UserCanEdit )
             {
                 filter.Add( "LocationId", ddlSCCLocation.SelectedValue );
             }
@@ -132,7 +133,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             filter.Add( "StatusLUID", statusFilter.ToString() );
 
             filter.Add( "RequestingMinistry", ddlMinistry.SelectedValue );
-            filter.Add( "Requester", requester.PersonAliasId.ToString());
+            filter.Add( "Requester", requester.PersonAliasId.ToString() );
             filter.Add( "GLAccount", txtGLAccount.Text );
             filter.Add( "FiscalYear", ddlFiscalYear.SelectedValue );
 
@@ -173,13 +174,30 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 return string.Format( "~/default.aspx?page={0}", CapitalRequestDetailPageSetting );
             */
         }
-            
+
         private void LoadCapitalRequests()
         {
             //ConfigureCapitalRequestGrid();
 
             Dictionary<string, string> filterValues = BuildFilters();
             List<CapitalRequestListItem> requests = CapitalRequest.GetCapitalRequestList( filterValues );
+
+            SortProperty sortProperty = gRequestList.SortProperty;
+            if ( sortProperty != null )
+            {
+                if ( sortProperty.Direction == SortDirection.Ascending )
+                {
+                    requests = requests.OrderBy( r => r.GetType().GetProperty( sortProperty.Property ).GetValue( r ) ).ToList();
+                }
+                else
+                {
+                    requests = requests.OrderByDescending( r => r.GetType().GetProperty( sortProperty.Property ).GetValue( r ) ).ToList();
+                }
+            }
+            else
+            {
+                requests = requests.OrderByDescending( r => r.CapitalRequestId ).ToList();
+            }
 
             DataTable capRequestDT = new DataTable();
             capRequestDT.Columns.Add( "CapitalRequestId", typeof( string ) );
@@ -218,7 +236,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             gRequestList.Actions.AddClick += lbCreateCapitalRequest_Click;
             gRequestList.Actions.ShowExcelExport = false;
             gRequestList.Actions.ShowMergeTemplate = false;
-            
+
 
             //grdCapitalRequests.DataSource = capRequestDT;
             //grdCapitalRequests.DataBind();
@@ -229,9 +247,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         private void LoadStatusList()
         {
             cblStatus.Items.Clear();
-            var statusLookups = definedTypeService.Get(new Guid(CapitalRequest.STATUS_LOOKUP_TYPE_GUID));
+            var statusLookups = definedTypeService.Get( new Guid( CapitalRequest.STATUS_LOOKUP_TYPE_GUID ) );
 
-            cblStatus.DataSource = statusLookups.DefinedValues.Where(l => l.IsValid).OrderBy(l => l.Order);
+            cblStatus.DataSource = statusLookups.DefinedValues.Where( l => l.IsValid ).OrderBy( l => l.Order );
             cblStatus.DataValueField = "Id";
             cblStatus.DataTextField = "Value";
             cblStatus.DataBind();
@@ -248,20 +266,20 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             pnlSCCLocation.Visible = userIsEditor && LocationLookupTypeIdSetting > 0;
 */
             SetRequestedByAllOption( UserCanEdit );
-            
+
         }
 
         private void LoadFiscalYearList()
         {
             int companyId = org.secc.Purchasing.Accounting.Company.GetDefaultCompany().CompanyID;
 
-            var fiscalYears = org.secc.Purchasing.Accounting.FiscalYear.GetFiscalYearsByCompany(companyId)
+            var fiscalYears = org.secc.Purchasing.Accounting.FiscalYear.GetFiscalYearsByCompany( companyId )
                                 .Select( y => new
-                                    {
-                                        Year = y.StartDate.Year,
-                                        StartDate = y.StartDate,
-                                        EndDate = y.EndDate
-                                    } )
+                                {
+                                    Year = y.StartDate.Year,
+                                    StartDate = y.StartDate,
+                                    EndDate = y.EndDate
+                                } )
                                 .OrderByDescending( y => y.StartDate );
 
             ddlFiscalYear.DataSource = fiscalYears;
@@ -270,7 +288,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             ddlFiscalYear.DataBind();
 
             ddlFiscalYear.Items.Insert( 0, new ListItem( "All", DateTime.MinValue.ToString() ) );
-            
+
         }
 
         private void LoadLocationList()
@@ -279,7 +297,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             if ( LocationLookupTypeIdSetting.HasValue )
             {
-                ddlSCCLocation.DataSource = definedTypeService.Get(LocationLookupTypeIdSetting.Value).DefinedValues
+                ddlSCCLocation.DataSource = definedTypeService.Get( LocationLookupTypeIdSetting.Value ).DefinedValues
                                                 .Where( l => l.IsValid )
                                                 .Select( l => new { l.Id, l.Value } )
                                                 .OrderBy( l => l.Value );
@@ -296,7 +314,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             ddlMinistry.Items.Clear();
 
-            if (String.IsNullOrEmpty(GetAttributeValue("MinistryAreaLookupType"))) return;
+            if ( String.IsNullOrEmpty( GetAttributeValue( "MinistryAreaLookupType" ) ) )
+                return;
             var ministries = definedTypeService.Get( GetAttributeValue( "MinistryAreaLookupType" ).AsGuid() ).DefinedValues
                                 .Where( l => l.IsValid )
                                 .OrderBy( l => l.Value );
@@ -315,30 +334,30 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             {
                 bool isSelected = false;
                 string keyName = string.Format( "{0}_Status_{1}", PersonSettingKey, item.Value );
-                bool.TryParse( GetUserPreference(keyName), out isSelected );
+                bool.TryParse( GetUserPreference( keyName ), out isSelected );
                 item.Selected = isSelected;
             }
 
             int requestingMinistry = 0;
-            int.TryParse( GetUserPreference(string.Format( "{0}_RequestingMinistry", PersonSettingKey )), out requestingMinistry );
+            int.TryParse( GetUserPreference( string.Format( "{0}_RequestingMinistry", PersonSettingKey ) ), out requestingMinistry );
             ddlMinistry.SelectedValue = requestingMinistry.ToString();
 
             if ( LocationLookupTypeIdSetting != null )
             {
                 int locationLUID = 0;
-                int.TryParse( GetUserPreference(string.Format( "{0}_Location", PersonSettingKey )), out locationLUID );
+                int.TryParse( GetUserPreference( string.Format( "{0}_Location", PersonSettingKey ) ), out locationLUID );
                 ddlSCCLocation.SelectedValue = locationLUID.ToString();
             }
 
             int requesterId = 0;
-            int.TryParse( GetUserPreference(string.Format( "{0}_Requester", PersonSettingKey )), out requesterId );
+            int.TryParse( GetUserPreference( string.Format( "{0}_Requester", PersonSettingKey ) ), out requesterId );
             /*Person requester = new Person( requesterId, true );
             SetRequesterFilter( requester.PersonID );*/
 
-            txtGLAccount.Text = GetUserPreference(string.Format( "{0}_GLAccount", PersonSettingKey ));
+            txtGLAccount.Text = GetUserPreference( string.Format( "{0}_GLAccount", PersonSettingKey ) );
 
             DateTime fyStartDate;
-            DateTime.TryParse( GetUserPreference(string.Format( "{0}_FiscalYear", PersonSettingKey )), out fyStartDate );
+            DateTime.TryParse( GetUserPreference( string.Format( "{0}_FiscalYear", PersonSettingKey ) ), out fyStartDate );
 
             ddlFiscalYear.SelectedValue = fyStartDate.ToString();
 
@@ -346,29 +365,29 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             {
                 bool isSelected = false;
                 string keyName = string.Format( "{0}_Show_{1}", PersonSettingKey, item.Value );
-                bool.TryParse( GetUserPreference(keyName), out isSelected );
+                bool.TryParse( GetUserPreference( keyName ), out isSelected );
                 item.Selected = isSelected;
 
             }
-            
+
         }
 
         private void SaveUserPreferences()
         {
             foreach ( ListItem item in cblStatus.Items )
             {
-                SetUserPreference(string.Format( "{0}_Status_{1}", PersonSettingKey, item.Value ), item.Selected.ToString());
+                SetUserPreference( string.Format( "{0}_Status_{1}", PersonSettingKey, item.Value ), item.Selected.ToString() );
             }
 
-            SetUserPreference(string.Format( "{0}_RequestingMinistry", PersonSettingKey ), ddlMinistry.SelectedValue);
+            SetUserPreference( string.Format( "{0}_RequestingMinistry", PersonSettingKey ), ddlMinistry.SelectedValue );
 
-            SetUserPreference(string.Format( "{0}_Requester", PersonSettingKey ), requester.PersonAliasId.ToString());
+            SetUserPreference( string.Format( "{0}_Requester", PersonSettingKey ), requester.PersonAliasId.ToString() );
 
-            SetUserPreference(string.Format( "{0}_GLAccount", PersonSettingKey ), txtGLAccount.Text);
+            SetUserPreference( string.Format( "{0}_GLAccount", PersonSettingKey ), txtGLAccount.Text );
 
             if ( LocationLookupTypeIdSetting != null )
             {
-                SetUserPreference(string.Format( "{0}_Location", PersonSettingKey ), ddlSCCLocation.SelectedValue);
+                SetUserPreference( string.Format( "{0}_Location", PersonSettingKey ), ddlSCCLocation.SelectedValue );
             }
 
             DateTime selectedFYStartDate;
@@ -377,19 +396,19 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             if ( selectedFYStartDate > DateTime.MinValue )
             {
-                SetUserPreference(string.Format( "{0}_FiscalYear", PersonSettingKey ), selectedFYStartDate.ToString());
+                SetUserPreference( string.Format( "{0}_FiscalYear", PersonSettingKey ), selectedFYStartDate.ToString() );
             }
             else
             {
-                SetUserPreference(string.Format( "{0}_FiscalYear", PersonSettingKey ), String.Empty);
+                SetUserPreference( string.Format( "{0}_FiscalYear", PersonSettingKey ), String.Empty );
             }
 
             foreach ( ListItem item in cblShow.Items )
             {
-                SetUserPreference(string.Format( "{0}_Show_{1}", PersonSettingKey, item.Value ), item.Selected.ToString());
+                SetUserPreference( string.Format( "{0}_Show_{1}", PersonSettingKey, item.Value ), item.Selected.ToString() );
             }
 
-            
+
         }
 
         private void SetRequestedByAllOption( bool isVisible )
@@ -463,18 +482,18 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             return isApprover;
         }
 
+    */
         #endregion
-
 
         #region Capital Request Grid Events
 
         protected void grdCapitalRequests_ReBind( object sender, EventArgs e )
         {
             LoadCapitalRequests();
-             
-        }*/
+
+        }
 
         #endregion
-}
-}
+    }
 
+}

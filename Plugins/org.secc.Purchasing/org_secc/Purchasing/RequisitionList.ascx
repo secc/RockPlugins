@@ -4,7 +4,7 @@
 <asp:UpdatePanel ID="upMain" runat="server" UpdateMode="Conditional" class="panel panel-block">
     <ContentTemplate>
         <div class="panel-heading">
-            <h1 class="panel-title"><i class="fa fa-columns"></i>&nbsp;Requisition List</h1>
+            <h1 class="panel-title"><i class="fa fa-file-text"></i>&nbsp;Requisition List</h1>
             <Rock:BootstrapButton runat="server" CssClass="btn-add btn btn-default btn-sm pull-right" id="btnAdd" OnClick="lbCreateRequisition_Click"><i class="fa fa-plus"></i>&nbsp;Add Requisition</Rock:BootstrapButton>
         </div>
         <div class="panel-body">
@@ -43,7 +43,7 @@
                             </ItemTemplate>
                         </Rock:RockTemplateField>
                         <Rock:RockBoundField HeaderText="Type" DataField="RequisitionType" SortExpression="RequisitionType" />
-                        <Rock:RockBoundField HeaderText="Requester" DataField="Requester_Last_First" SortExpression="Requester_Last_First" />
+                        <Rock:RockBoundField HeaderText="Requester" DataField="Requester_Last_First" SortExpression="RequesterLastFirst" />
                         <Rock:RockBoundField HeaderText="Status" DataField="Status" SortExpression="Status" />
                         <Rock:RockBoundField HeaderText="Items" DataField="ItemCount" HeaderStyle-HorizontalAlign="Center"
                             SortExpression="ItemCount" ItemStyle-HorizontalAlign="Center" />
