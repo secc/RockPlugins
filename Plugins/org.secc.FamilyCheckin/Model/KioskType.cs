@@ -63,6 +63,9 @@ namespace org.secc.FamilyCheckin.Model
             return this.Schedules.Where( s => s.IsScheduleActive ).Any();
         }
 
+        [DataMember]
+        public string Message { get; set; }
+
         public DateTime? GetNextOpen()
         {
             var now = RockDateTime.Now;
