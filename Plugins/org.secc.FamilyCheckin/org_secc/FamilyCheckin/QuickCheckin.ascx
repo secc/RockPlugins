@@ -42,9 +42,25 @@
                 success.style.display = "block";
                 success.style.transform = "translateY(-90vh)";
                 __doPostBack("<%= btnCheckin.UniqueID%>", "OnClick");
-                    }, 0
+            }, 0
                 )
-            }
+    }
+
+    var disableCheckin = function ()
+    {
+        var button = document.getElementById("checkinButton");
+        button.onclick = function () { return false; }
+        button.className = "btn btn-lg btn-primary doCheckin disabled"
+    }
+
+    var enableCheckin = function ()
+    {
+        var button = document.getElementById("checkinButton");
+        button.onclick = function () {}
+        button.className = "btn btn-lg btn-primary doCheckin"
+    }
+
+
 </script>
 
 <asp:UpdatePanel ID="upContent" runat="server">
@@ -77,7 +93,7 @@
                                     runat="server">
                                 </Rock:BootstrapButton>
                             </span>
-                            <a href="javascript:doCheckin()" class="btn btn-lg btn-primary doCheckin">Check-In</a>
+                            <a href="javascript:doCheckin()" id="checkinButton" class="btn btn-lg btn-primary doCheckin">Check-In</a>
                             <Rock:BootstrapButton runat="server" Visible="false" ID="btnCheckin" CssClass="btn btn-lg btn-primary" OnClick="btnCheckin_Click"></Rock:BootstrapButton>
 
                         </div>
