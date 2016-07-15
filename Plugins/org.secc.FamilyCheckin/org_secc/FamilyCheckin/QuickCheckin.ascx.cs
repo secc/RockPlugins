@@ -247,6 +247,15 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     DisplayPersonCheckinAreas( person.Person, hgcCell );
                 }
             }
+            if ( people.Where(p => p.Selected).Any() )
+            {
+                ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "enableCheckin", "enableCheckin();", true );
+            }
+            else
+            {
+                ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "disableCheckin", "disableCheckin();", true );
+            }
+            
         }
 
         private void DisplayPersonCheckinAreas( Person person, HtmlGenericControl hgcRow )
