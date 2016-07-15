@@ -125,8 +125,8 @@ body {
     overflow: hidden;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
-    -khtml-user-select: none; 
-    -moz-user-select: none; 
+    -khtml-user-select: none;
+    -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
 }
@@ -448,6 +448,10 @@ body {
     box-shadow: -2px -2px 1px black;
 }
 
+.doCheckin.disabled {
+    text-shadow:none;
+}
+
 .header {
     background-image: url("../Assets/Images/header.png");
     background-size: contain;
@@ -474,7 +478,7 @@ body {
 
 .peopleContainer {
     height: 75vh;
-    overflow:auto;
+    overflow: auto;
 }
 
 .personContainer {
@@ -545,4 +549,15 @@ body {
 
 .body-content {
     position: inherit;
+}
+
+#contentDiv {
+    color:#A54217;
+    font-size:1.8em;
+}
+
+#contentDiv h1, #contentDiv h2, #contentDiv h3, #contentDiv h4, #contentDiv h5 {
+    color: #A54217;
+    font-weight:bold;
+    font-size-adjust:1;
 }
