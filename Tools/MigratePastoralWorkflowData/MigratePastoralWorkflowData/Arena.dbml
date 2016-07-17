@@ -1,0 +1,191 @@
+﻿<?xml version="1.0" encoding="utf-8"?><Database Name="ArenaDB" Class="ArenaDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+  <Connection Mode="AppSettings" ConnectionString="Data Source=p10-ardevsql02;Initial Catalog=ArenaDB;Integrated Security=True" SettingsObjectName="MigratePastoralWorkflowData.Properties.Settings" SettingsPropertyName="ArenaDBConnectionString" Provider="System.Data.SqlClient" />
+  <Table Name="dbo.asgn_assignment" Member="asgn_assignments">
+    <Type Name="asgn_assignment">
+      <Column Name="assignment_id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="assignment_type_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="title" Type="System.String" DbType="VarChar(200) NOT NULL" CanBeNull="false" />
+      <Column Name="description" Type="System.String" DbType="VarChar(MAX) NOT NULL" CanBeNull="false" />
+      <Column Name="requester_person_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="worker_person_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="status_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="priority_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="due_date" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="resolved_date" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="resolution_text" Type="System.String" DbType="VarChar(MAX) NOT NULL" CanBeNull="false" />
+      <Column Name="date_created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="date_modified" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="created_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="modified_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="context_guid" Type="System.Guid" DbType="UniqueIdentifier" CanBeNull="true" />
+      <Column Name="context_table_name" Type="System.String" DbType="VarChar(128)" CanBeNull="true" />
+      <Column Name="state_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="active" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
+      <Column Name="state_last_updated" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="organization_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Association Name="asgn_assignment_asgn_assignment_action_log" Member="asgn_assignment_action_logs" ThisKey="assignment_id" OtherKey="assignment_id" Type="asgn_assignment_action_log" />
+      <Association Name="asgn_assignment_asgn_assignment_field_value" Member="asgn_assignment_field_values" ThisKey="assignment_id" OtherKey="assignment_id" Type="asgn_assignment_field_value" />
+      <Association Name="asgn_assignment_asgn_assignment_history" Member="asgn_assignment_histories" ThisKey="assignment_id" OtherKey="assignment_id" Type="asgn_assignment_history" />
+      <Association Name="asgn_assignment_type_asgn_assignment" Member="asgn_assignment_type" ThisKey="assignment_type_id" OtherKey="assignment_type_id" Type="asgn_assignment_type" IsForeignKey="true" />
+      <Association Name="asgn_assignment_type_state_asgn_assignment" Member="asgn_assignment_type_state" ThisKey="state_id" OtherKey="state_id" Type="asgn_assignment_type_state" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.asgn_assignment_type_worker" Member="asgn_assignment_type_workers">
+    <Type Name="asgn_assignment_type_worker">
+      <Column Name="assignment_type_id" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="person_id" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="active" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="context_guid" Type="System.String" DbType="VarChar(40) NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="context_table_name" Type="System.String" DbType="VarChar(128) NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Association Name="asgn_assignment_type_asgn_assignment_type_worker" Member="asgn_assignment_type" ThisKey="assignment_type_id" OtherKey="assignment_type_id" Type="asgn_assignment_type" IsForeignKey="true" DeleteRule="CASCADE" DeleteOnNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.asgn_assignment_action" Member="asgn_assignment_actions">
+    <Type Name="asgn_assignment_action">
+      <Column Name="action_id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="state_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="action_order" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="action_assembly" Type="System.String" DbType="VarChar(400) NOT NULL" CanBeNull="false" />
+      <Association Name="asgn_assignment_action_asgn_assignment_action_log" Member="asgn_assignment_action_logs" ThisKey="action_id" OtherKey="action_id" Type="asgn_assignment_action_log" />
+      <Association Name="asgn_assignment_action_asgn_assignment_action_setting" Member="asgn_assignment_action_settings" ThisKey="action_id" OtherKey="action_id" Type="asgn_assignment_action_setting" />
+      <Association Name="asgn_assignment_type_state_asgn_assignment_action" Member="asgn_assignment_type_state" ThisKey="state_id" OtherKey="state_id" Type="asgn_assignment_type_state" IsForeignKey="true" DeleteRule="CASCADE" DeleteOnNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.asgn_assignment_action_log" Member="asgn_assignment_action_logs">
+    <Type Name="asgn_assignment_action_log">
+      <Column Name="action_log_id" Type="System.Guid" DbType="UniqueIdentifier NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="assignment_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="action_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="action_last_run" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Association Name="asgn_assignment_asgn_assignment_action_log" Member="asgn_assignment" ThisKey="assignment_id" OtherKey="assignment_id" Type="asgn_assignment" IsForeignKey="true" DeleteRule="CASCADE" DeleteOnNull="true" />
+      <Association Name="asgn_assignment_action_asgn_assignment_action_log" Member="asgn_assignment_action" ThisKey="action_id" OtherKey="action_id" Type="asgn_assignment_action" IsForeignKey="true" DeleteRule="CASCADE" DeleteOnNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.asgn_assignment_action_setting" Member="asgn_assignment_action_settings">
+    <Type Name="asgn_assignment_action_setting">
+      <Column Name="action_setting_id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="action_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="name" Type="System.String" DbType="VarChar(100) NOT NULL" CanBeNull="false" />
+      <Column Name="value" Type="System.String" DbType="VarChar(MAX) NOT NULL" CanBeNull="false" />
+      <Column Name="type_id" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Association Name="asgn_assignment_action_asgn_assignment_action_setting" Member="asgn_assignment_action" ThisKey="action_id" OtherKey="action_id" Type="asgn_assignment_action" IsForeignKey="true" DeleteRule="CASCADE" DeleteOnNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.asgn_assignment_field_value" Member="asgn_assignment_field_values">
+    <Type Name="asgn_assignment_field_value">
+      <Column Name="assignment_id" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="custom_field_id" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="selected_value" Type="System.String" DbType="VarChar(MAX) NOT NULL" CanBeNull="false" />
+      <Column Name="date_created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="date_modified" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="created_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="modified_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Association Name="asgn_assignment_asgn_assignment_field_value" Member="asgn_assignment" ThisKey="assignment_id" OtherKey="assignment_id" Type="asgn_assignment" IsForeignKey="true" DeleteRule="CASCADE" DeleteOnNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.asgn_assignment_history" Member="asgn_assignment_histories">
+    <Type Name="asgn_assignment_history">
+      <Column Name="assignment_history_id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="assignment_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="action" Type="System.String" DbType="NVarChar(2000) NOT NULL" CanBeNull="false" />
+      <Column Name="person_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="note" Type="System.String" DbType="NVarChar(MAX) NOT NULL" CanBeNull="false" />
+      <Column Name="changes" Type="System.String" DbType="NVarChar(2000) NOT NULL" CanBeNull="false" />
+      <Column Name="private" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="date_created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Association Name="asgn_assignment_asgn_assignment_history" Member="asgn_assignment" ThisKey="assignment_id" OtherKey="assignment_id" Type="asgn_assignment" IsForeignKey="true" DeleteRule="CASCADE" DeleteOnNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.asgn_assignment_type" Member="asgn_assignment_types">
+    <Type Name="asgn_assignment_type">
+      <Column Name="assignment_type_id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="guid" Type="System.Guid" DbType="UniqueIdentifier NOT NULL" CanBeNull="false" />
+      <Column Name="name" Type="System.String" DbType="VarChar(200) NOT NULL" CanBeNull="false" />
+      <Column Name="description" Type="System.String" DbType="VarChar(2000) NOT NULL" CanBeNull="false" />
+      <Column Name="sla_days" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="parent_assignment_type_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="auto_assign" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="default_status_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="email_worker_on_entry" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="email_requester_on_entry" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="email_requester_on_update" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="email_requester_on_close" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="owner_person_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="icon_blob_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="request_term" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="allow_change_requester" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="active" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="date_created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="date_modified" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="modified_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="created_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="default_worker_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="default_priority_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="assignment_order" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="detail_url" Type="System.String" DbType="VarChar(200) NOT NULL" CanBeNull="false" />
+      <Column Name="allow_requester_pick_worker" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="email_worker_on_update" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="allow_requester_set_due_date" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="workflow_type_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="workflow_custom_field_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="email_subscriber_on_entry" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="email_subscriber_on_update" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="organization_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Association Name="asgn_assignment_type_asgn_assignment" Member="asgn_assignments" ThisKey="assignment_type_id" OtherKey="assignment_type_id" Type="asgn_assignment" />
+      <Association Name="asgn_assignment_type_asgn_assignment_type_worker" Member="asgn_assignment_type_workers" ThisKey="assignment_type_id" OtherKey="assignment_type_id" Type="asgn_assignment_type_worker" />
+      <Association Name="asgn_assignment_type_asgn_assignment_type" Member="asgn_assignment_types" ThisKey="assignment_type_id" OtherKey="parent_assignment_type_id" Type="asgn_assignment_type" />
+      <Association Name="asgn_assignment_type_asgn_assignment_type_field" Member="asgn_assignment_type_fields" ThisKey="assignment_type_id" OtherKey="assignment_type_id" Type="asgn_assignment_type_field" />
+      <Association Name="asgn_assignment_type_asgn_assignment_type_priority" Member="asgn_assignment_type_priorities" ThisKey="assignment_type_id" OtherKey="assignment_type_id" Type="asgn_assignment_type_priority" />
+      <Association Name="asgn_assignment_type_asgn_assignment_type_state" Member="asgn_assignment_type_states" ThisKey="assignment_type_id" OtherKey="assignment_type_id" Type="asgn_assignment_type_state" />
+      <Association Name="asgn_assignment_type_asgn_assignment_type_status" Member="asgn_assignment_type_status" ThisKey="assignment_type_id" OtherKey="assignment_type_id" Type="asgn_assignment_type_status" />
+      <Association Name="asgn_assignment_type_asgn_assignment_type_subscribe" Member="asgn_assignment_type_subscribes" ThisKey="assignment_type_id" OtherKey="assignment_type_id" Type="asgn_assignment_type_subscribe" />
+      <Association Name="asgn_assignment_type_asgn_assignment_type" Member="asgn_assignment_type1" ThisKey="parent_assignment_type_id" OtherKey="assignment_type_id" Type="asgn_assignment_type" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.asgn_assignment_type_field" Member="asgn_assignment_type_fields">
+    <Type Name="asgn_assignment_type_field">
+      <Column Name="assignment_type_id" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="custom_field_id" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="field_order" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="[public]" Member="public" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Association Name="asgn_assignment_type_asgn_assignment_type_field" Member="asgn_assignment_type" ThisKey="assignment_type_id" OtherKey="assignment_type_id" Type="asgn_assignment_type" IsForeignKey="true" DeleteRule="CASCADE" DeleteOnNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.asgn_assignment_type_priority" Member="asgn_assignment_type_priorities">
+    <Type Name="asgn_assignment_type_priority">
+      <Column Name="priority_id" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="assignment_type_id" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Association Name="asgn_assignment_type_asgn_assignment_type_priority" Member="asgn_assignment_type" ThisKey="assignment_type_id" OtherKey="assignment_type_id" Type="asgn_assignment_type" IsForeignKey="true" DeleteRule="CASCADE" DeleteOnNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.asgn_assignment_type_state" Member="asgn_assignment_type_states">
+    <Type Name="asgn_assignment_type_state">
+      <Column Name="state_id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="assignment_type_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="state_order" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="state_name" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="user_can_select" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="action_assembly" Type="System.String" DbType="VarChar(400)" CanBeNull="true" />
+      <Column Name="increment_state" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="temp_status_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Association Name="asgn_assignment_type_state_asgn_assignment" Member="asgn_assignments" ThisKey="state_id" OtherKey="state_id" Type="asgn_assignment" />
+      <Association Name="asgn_assignment_type_state_asgn_assignment_action" Member="asgn_assignment_actions" ThisKey="state_id" OtherKey="state_id" Type="asgn_assignment_action" />
+      <Association Name="asgn_assignment_type_asgn_assignment_type_state" Member="asgn_assignment_type" ThisKey="assignment_type_id" OtherKey="assignment_type_id" Type="asgn_assignment_type" IsForeignKey="true" DeleteRule="CASCADE" DeleteOnNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.asgn_assignment_type_status" Member="asgn_assignment_type_status">
+    <Type Name="asgn_assignment_type_status">
+      <Column Name="assignment_type_id" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="status_id" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Association Name="asgn_assignment_type_asgn_assignment_type_status" Member="asgn_assignment_type" ThisKey="assignment_type_id" OtherKey="assignment_type_id" Type="asgn_assignment_type" IsForeignKey="true" DeleteRule="CASCADE" DeleteOnNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.asgn_assignment_type_subscribe" Member="asgn_assignment_type_subscribes">
+    <Type Name="asgn_assignment_type_subscribe">
+      <Column Name="assignment_type_id" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="person_id" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="display_order" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Association Name="asgn_assignment_type_asgn_assignment_type_subscribe" Member="asgn_assignment_type" ThisKey="assignment_type_id" OtherKey="assignment_type_id" Type="asgn_assignment_type" IsForeignKey="true" DeleteRule="CASCADE" DeleteOnNull="true" />
+    </Type>
+  </Table>
+</Database>
