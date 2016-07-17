@@ -93,9 +93,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\FamilyCheckinContext.cs" />
     <Compile Include="Data\FamilyCheckinService.cs" />
     <Compile Include="Jobs\ResetGroupLocationSchedules.cs" />
     <Compile Include="Migrations\201606272016469_Init.cs" />
+    <Compile Include="Migrations\201607151453103_Message.cs" />
+    <Compile Include="Migrations\201607151453103_Message.Designer.cs">
+      <DependentUpon>201607151453103_Message.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Model\Kiosk.cs" />
     <Compile Include="Model\KioskType.cs" />
@@ -147,6 +152,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations\201606272016469_Init.resx">
       <DependentUpon>201606272016469_Init.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201607151453103_Message.resx">
+      <DependentUpon>201607151453103_Message.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

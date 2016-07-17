@@ -36,16 +36,16 @@
 
                     <div class="row">
                         <div class="col-md-12">
-                            <Rock:DataTextBox  CausesValidation="false" ID="tbDescription" runat="server" SourceTypeName="org.secc.FamilyCheckin.Model.KioskType, org.secc.FamilyCheckin" PropertyName="Description" TextMode="MultiLine" Rows="3" />
+                            <Rock:DataTextBox CausesValidation="false" ID="tbDescription" runat="server" SourceTypeName="org.secc.FamilyCheckin.Model.KioskType, org.secc.FamilyCheckin" PropertyName="Description" TextMode="MultiLine" Rows="3" />
                         </div>
                     </div>
 
-                    <Rock:DataDropDownList CausesValidation="false" runat="server" ID="ddlTemplates" Label="Checkin Template" OnSelectedIndexChanged="ddlTemplates_SelectedIndexChanged" AutoPostBack="true"  DataTextField="Name" DataValueField="Id" SourceTypeName="org.secc.FamilyCheckin.Model.KioskType, org.secc.FamilyCheckin" PropertyName="CheckinTemplateId"></Rock:DataDropDownList>
+                    <Rock:DataDropDownList CausesValidation="false" runat="server" ID="ddlTemplates" Label="Checkin Template" OnSelectedIndexChanged="ddlTemplates_SelectedIndexChanged" AutoPostBack="true" DataTextField="Name" DataValueField="Id" SourceTypeName="org.secc.FamilyCheckin.Model.KioskType, org.secc.FamilyCheckin" PropertyName="CheckinTemplateId"></Rock:DataDropDownList>
                     <div class="row">
-                    <div class="col-md-6">
-                        <Rock:RockCheckBoxList CausesValidation="false" ID="cblPrimaryGroupTypes" runat="server" Label="Check-in Area(s)" DataTextField="Name" DataValueField="Id" ></Rock:RockCheckBoxList>
+                        <div class="col-md-6">
+                            <Rock:RockCheckBoxList CausesValidation="false" ID="cblPrimaryGroupTypes" runat="server" Label="Check-in Area(s)" DataTextField="Name" DataValueField="Id"></Rock:RockCheckBoxList>
+                        </div>
                     </div>
-                </div>
                     <h3>Locations</h3>
                     <Rock:Grid ID="gLocations" runat="server" DisplayType="Light" RowItemText="Location" ShowConfirmDeleteDialog="false">
                         <Columns>
@@ -62,7 +62,10 @@
                         </Columns>
                     </Rock:Grid>
 
+                    <Rock:HtmlEditor runat="server" Label="HTML Message" ID="tbMessage" SourceTypeName="org.secc.FamilyCheckin.Model.KioskType, org.secc.FamilyCheckin" PropertyName="Message"></Rock:HtmlEditor>
+
                 </fieldset>
+
 
                 <div class="actions">
                     <asp:LinkButton ID="btnSave" runat="server" AccessKey="s" Text="Save" CssClass="btn btn-primary" OnClick="btnSave_Click" />
@@ -80,10 +83,10 @@
             </Content>
         </Rock:ModalDialog>
 
-         <Rock:ModalDialog ID="mdSchedulepicker" runat="server" SaveButtonText="Save" OnSaveClick="mdSchedulepicker_SaveClick" Title="Select Check-in Location" OnCancelScript="clearActiveDialog();" ValidationGroup="Location">
+        <Rock:ModalDialog ID="mdSchedulepicker" runat="server" SaveButtonText="Save" OnSaveClick="mdSchedulepicker_SaveClick" Title="Select Check-in Location" OnCancelScript="clearActiveDialog();" ValidationGroup="Location">
             <Content ID="mdsSchedulePickerContent">
                 <asp:HiddenField ID="HiddenField1" runat="server" />
-                <Rock:SchedulePicker runat="server" ID="schedulePicker" Label="Kiosk Schedule"/>
+                <Rock:SchedulePicker runat="server" ID="schedulePicker" Label="Kiosk Schedule" />
             </Content>
         </Rock:ModalDialog>
 

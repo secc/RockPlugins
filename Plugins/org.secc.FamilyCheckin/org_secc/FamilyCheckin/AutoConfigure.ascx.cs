@@ -89,6 +89,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                         CurrentCheckInState = null;
                         CurrentWorkflow = null;
                         Session["KioskTypeId"] = kiosk.KioskType.Id;
+                        Session["KioskMessage"] = kiosk.KioskType.Message;
                         SaveState();
                         NavigateToNextPage();
                     }

@@ -84,7 +84,14 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 SaveState();
                 Session["BlockGuid"] = BlockCache.Guid;
                 RefreshView();
-                ltContent.Text = GetAttributeValue( "DefaultContent" );
+                if ( Session["KioskMessage"] != null && !string.IsNullOrWhiteSpace( ( string ) Session["KioskMessage"] ) )
+                {
+                    ltContent.Text = ( string ) Session["KioskMessage"];
+                }
+                else
+                {
+                    ltContent.Text = GetAttributeValue( "DefaultContent" );
+                }
             }
         }
 
