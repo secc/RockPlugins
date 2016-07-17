@@ -62,7 +62,7 @@ namespace MigratePastoralWorkflowData
             var conn = new SqlConnection( arenaContext.Connection.ConnectionString );
             conn.Open();
 
-            var Assignments = arenaContext.asgn_assignments.AsQueryable().Where( a => a.assignment_type_id == ARENA_ASSIGNMENT_TYPE_ID ));
+            var Assignments = arenaContext.asgn_assignments.AsQueryable().Where( a => a.assignment_type_id == ARENA_ASSIGNMENT_TYPE_ID );
             var i = 0;
             foreach ( asgn_assignment assignment in Assignments )
             {
