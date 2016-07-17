@@ -67,6 +67,9 @@ namespace MigratePastoralWorkflowData
             foreach ( asgn_assignment assignment in Assignments )
             {
                 i++;
+                // Give us some feedback that we are still doing stuff.
+                Console.WriteLine( "Loading " + i + " of " + Assignments.Count() );
+
                 PersonAlias requestorPersonAlias = personAliasService.Queryable().Where( pa => pa.AliasPersonId == assignment.requester_person_id ).First();
                 Workflow workflow = new Workflow();
                 workflow.WorkflowTypeId = WORKFLOW_TYPE_ID;
@@ -158,8 +161,6 @@ namespace MigratePastoralWorkflowData
                 {
                     activity.SaveAttributeValues();
                 }
-                if ( i == 10 )
-                    break;
             }
             Console.WriteLine( "Loaded " + i + " Hospital Admission Workflows." );
 
