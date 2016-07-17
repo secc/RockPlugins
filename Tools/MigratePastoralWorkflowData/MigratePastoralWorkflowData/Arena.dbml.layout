@@ -1,0 +1,189 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ordesignerObjectsDiagram dslVersion="1.0.0.0" absoluteBounds="0, 0, 14.25, 22.375" name="Arena">
+  <DataContextMoniker Name="/ArenaDataContext" />
+  <nestedChildShapes>
+    <classShape Id="6d1ed2ce-3b73-43b8-8924-b490c6ae798e" absoluteBounds="6.25, 10.75, 2, 4.8477197265624987">
+      <DataClassMoniker Name="/ArenaDataContext/asgn_assignment" />
+      <nestedChildShapes>
+        <elementListCompartment Id="781ee300-8b55-454d-b525-a8fcb84e258b" absoluteBounds="6.265, 11.21, 1.9700000000000002, 4.2877197265625" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="6ae32b64-f9b2-48ce-8160-46b8142ef357" absoluteBounds="3.5, 14.375, 2, 1.7708968098958344">
+      <DataClassMoniker Name="/ArenaDataContext/asgn_assignment_type_worker" />
+      <nestedChildShapes>
+        <elementListCompartment Id="f32e92d7-a21f-40b9-9f5b-40d677ea8759" absoluteBounds="3.515, 14.835, 1.9700000000000002, 1.2108968098958333" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="4dd17e6e-986e-4f03-a19b-67641bc4db27" absoluteBounds="6.25, 17.375, 2, 1.5785953776041666">
+      <DataClassMoniker Name="/ArenaDataContext/asgn_assignment_action" />
+      <nestedChildShapes>
+        <elementListCompartment Id="19c43ff4-d18f-4dfd-81e7-601ff80d5ea3" absoluteBounds="6.265, 17.835, 1.9700000000000002, 1.0185953776041665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="154b7fc8-e651-4750-9dea-751808e3a0b5" absoluteBounds="12, 14, 2, 1.5785953776041666">
+      <DataClassMoniker Name="/ArenaDataContext/asgn_assignment_action_log" />
+      <nestedChildShapes>
+        <elementListCompartment Id="3c972e99-f54c-43bd-ba40-50d225430e2e" absoluteBounds="12.015, 14.46, 1.9700000000000002, 1.0185953776041665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="23eaa1dc-f763-449e-a9ee-615b242d4fcc" absoluteBounds="9, 17.25, 2, 1.7708968098958309">
+      <DataClassMoniker Name="/ArenaDataContext/asgn_assignment_action_setting" />
+      <nestedChildShapes>
+        <elementListCompartment Id="75ffe1e3-ceec-49d2-b522-cd9aac51b77f" absoluteBounds="9.015, 17.71, 1.9700000000000002, 1.2108968098958333" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="c2105dc9-dc3a-4a2f-aec9-ad4a0aa2ed62" absoluteBounds="9, 12.875, 2, 2.1554996744791666">
+      <DataClassMoniker Name="/ArenaDataContext/asgn_assignment_field_value" />
+      <nestedChildShapes>
+        <elementListCompartment Id="07010067-8fdd-4634-9f3c-fb4a4a9b5b06" absoluteBounds="9.015, 13.335, 1.9700000000000002, 1.5954996744791665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="893ec870-30e8-4844-ab8e-9ee01c57267f" absoluteBounds="9, 19.75, 2, 2.3478011067708309">
+      <DataClassMoniker Name="/ArenaDataContext/asgn_assignment_history" />
+      <nestedChildShapes>
+        <elementListCompartment Id="6d2efafc-e055-4cad-aee6-5f2d2ca40e75" absoluteBounds="9.015, 20.21, 1.9700000000000002, 1.7878011067708335" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="e2b2da41-b36a-4ea2-a713-e3659cff59b1" absoluteBounds="0.75, 9.125, 2, 7.1553369140624987">
+      <DataClassMoniker Name="/ArenaDataContext/asgn_assignment_type" />
+      <nestedChildShapes>
+        <elementListCompartment Id="3142e007-e526-474f-b580-d21356167988" absoluteBounds="0.765, 9.585, 1.9700000000000002, 6.5953369140625" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="6ee5d6c4-ac6b-4f01-9278-c13c0769c2d2" absoluteBounds="3.5, 12.125, 2, 1.5785953776041666">
+      <DataClassMoniker Name="/ArenaDataContext/asgn_assignment_type_field" />
+      <nestedChildShapes>
+        <elementListCompartment Id="7b0adc9f-5b76-4621-a2c5-20d74a57b3de" absoluteBounds="3.515, 12.585, 1.9700000000000002, 1.0185953776041665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="796ace67-54d9-4de9-a1da-85f7d381d7dc" absoluteBounds="3.5, 6.125, 2, 1.1939925130208344">
+      <DataClassMoniker Name="/ArenaDataContext/asgn_assignment_type_priority" />
+      <nestedChildShapes>
+        <elementListCompartment Id="833bd01c-346e-4e77-ab4b-f10a5eca6682" absoluteBounds="3.515, 6.585, 1.9700000000000002, 0.63399251302083326" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="ca3cad96-c897-4332-a1cf-c99a2f6d7e4f" absoluteBounds="3.5, 17, 2, 2.3478011067708309">
+      <DataClassMoniker Name="/ArenaDataContext/asgn_assignment_type_state" />
+      <nestedChildShapes>
+        <elementListCompartment Id="c3ab273c-44a9-4a8a-a0b1-8961174420ac" absoluteBounds="3.515, 17.46, 1.9700000000000002, 1.7878011067708335" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="ec41b513-8047-428e-98f2-8c40d2fe3d77" absoluteBounds="3.5, 8, 2, 1.1939925130208344">
+      <DataClassMoniker Name="/ArenaDataContext/asgn_assignment_type_status" />
+      <nestedChildShapes>
+        <elementListCompartment Id="a8c62916-d466-43d6-99f4-3a3518283e17" absoluteBounds="3.515, 8.46, 1.9700000000000002, 0.63399251302083326" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="664ed58d-f802-4c0d-9722-0bd1a94778b2" absoluteBounds="3.5, 10, 2, 1.3862939453124987">
+      <DataClassMoniker Name="/ArenaDataContext/asgn_assignment_type_subscribe" />
+      <nestedChildShapes>
+        <elementListCompartment Id="dcb0f898-abe4-4b47-926d-ddeddfc19be0" absoluteBounds="3.515, 10.46, 1.9700000000000002, 0.8262939453125" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <associationConnector edgePoints="[(8.25 : 15.3357975260417); (12 : 15.3357975260417)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/ArenaDataContext/asgn_assignment/asgn_assignment_asgn_assignment_action_log" />
+      <nodes>
+        <classShapeMoniker Id="6d1ed2ce-3b73-43b8-8924-b490c6ae798e" />
+        <classShapeMoniker Id="154b7fc8-e651-4750-9dea-751808e3a0b5" />
+      </nodes>
+    </associationConnector>
+    <associationConnector edgePoints="[(8.25 : 17.375); (8.625 : 17); (8.625 : 15.9535953776042); (11.625 : 15.9535953776042); (12 : 15.5785953776042)]" fixedFrom="NotFixed" fixedTo="NotFixed">
+      <AssociationMoniker Name="/ArenaDataContext/asgn_assignment_action/asgn_assignment_action_asgn_assignment_action_log" />
+      <nodes>
+        <classShapeMoniker Id="4dd17e6e-986e-4f03-a19b-67641bc4db27" />
+        <classShapeMoniker Id="154b7fc8-e651-4750-9dea-751808e3a0b5" />
+      </nodes>
+    </associationConnector>
+    <associationConnector edgePoints="[(8.25 : 18.1955501888021); (8.72916666666667 : 18.1955501888021 : JumpStart); (8.89583333333333 : 18.1955501888021 : JumpEnd); (9 : 18.1955501888021)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/ArenaDataContext/asgn_assignment_action/asgn_assignment_action_asgn_assignment_action_setting" />
+      <nodes>
+        <classShapeMoniker Id="4dd17e6e-986e-4f03-a19b-67641bc4db27" />
+        <classShapeMoniker Id="23eaa1dc-f763-449e-a9ee-615b242d4fcc" />
+      </nodes>
+    </associationConnector>
+    <associationConnector edgePoints="[(8.25 : 13.9527498372396); (9 : 13.9527498372396)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/ArenaDataContext/asgn_assignment/asgn_assignment_asgn_assignment_field_value" />
+      <nodes>
+        <classShapeMoniker Id="6d1ed2ce-3b73-43b8-8924-b490c6ae798e" />
+        <classShapeMoniker Id="c2105dc9-dc3a-4a2f-aec9-ad4a0aa2ed62" />
+      </nodes>
+    </associationConnector>
+    <associationConnector edgePoints="[(8.25 : 15.536180265024); (8.8125 : 16.098680265024); (8.8125 : 20.9239005533854); (9 : 20.9239005533854)]" fixedFrom="NotFixed" fixedTo="Algorithm">
+      <AssociationMoniker Name="/ArenaDataContext/asgn_assignment/asgn_assignment_asgn_assignment_history" />
+      <nodes>
+        <classShapeMoniker Id="6d1ed2ce-3b73-43b8-8924-b490c6ae798e" />
+        <classShapeMoniker Id="893ec870-30e8-4844-ab8e-9ee01c57267f" />
+      </nodes>
+    </associationConnector>
+    <associationConnector edgePoints="[(2.75 : 11.7556469726562); (6.25 : 11.7556469726562)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/ArenaDataContext/asgn_assignment_type/asgn_assignment_type_asgn_assignment" />
+      <nodes>
+        <classShapeMoniker Id="e2b2da41-b36a-4ea2-a713-e3659cff59b1" />
+        <classShapeMoniker Id="6d1ed2ce-3b73-43b8-8924-b490c6ae798e" />
+      </nodes>
+    </associationConnector>
+    <associationConnector edgePoints="[(2.75 : 15.2604484049479); (3.5 : 15.2604484049479)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/ArenaDataContext/asgn_assignment_type/asgn_assignment_type_asgn_assignment_type_worker" />
+      <nodes>
+        <classShapeMoniker Id="e2b2da41-b36a-4ea2-a713-e3659cff59b1" />
+        <classShapeMoniker Id="6ae32b64-f9b2-48ce-8160-46b8142ef357" />
+      </nodes>
+    </associationConnector>
+    <associationConnector edgePoints="[(1.45923076923077 : 16.2803369140625); (1.45923076923077 : 16.5303369140625); (2.05461538461538 : 16.5303369140625); (2.05461538461538 : 16.2803369140625)]" fixedFrom="NotFixed" fixedTo="NotFixed">
+      <AssociationMoniker Name="/ArenaDataContext/asgn_assignment_type/asgn_assignment_type_asgn_assignment_type" />
+      <nodes>
+        <classShapeMoniker Id="e2b2da41-b36a-4ea2-a713-e3659cff59b1" />
+        <classShapeMoniker Id="e2b2da41-b36a-4ea2-a713-e3659cff59b1" />
+      </nodes>
+    </associationConnector>
+    <associationConnector edgePoints="[(2.75 : 12.9142976888021); (3.5 : 12.9142976888021)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/ArenaDataContext/asgn_assignment_type/asgn_assignment_type_asgn_assignment_type_field" />
+      <nodes>
+        <classShapeMoniker Id="e2b2da41-b36a-4ea2-a713-e3659cff59b1" />
+        <classShapeMoniker Id="6ee5d6c4-ac6b-4f01-9278-c13c0769c2d2" />
+      </nodes>
+    </associationConnector>
+    <associationConnector edgePoints="[(1.75 : 9.125); (1.75 : 6.72199625651042); (3.5 : 6.72199625651042)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/ArenaDataContext/asgn_assignment_type/asgn_assignment_type_asgn_assignment_type_priority" />
+      <nodes>
+        <classShapeMoniker Id="e2b2da41-b36a-4ea2-a713-e3659cff59b1" />
+        <classShapeMoniker Id="796ace67-54d9-4de9-a1da-85f7d381d7dc" />
+      </nodes>
+    </associationConnector>
+    <associationConnector edgePoints="[(5.5 : 17); (5.875 : 16.625); (5.875 : 13.7079353496094); (6.25 : 13.7079353496094)]" fixedFrom="NotFixed" fixedTo="Algorithm">
+      <AssociationMoniker Name="/ArenaDataContext/asgn_assignment_type_state/asgn_assignment_type_state_asgn_assignment" />
+      <nodes>
+        <classShapeMoniker Id="ca3cad96-c897-4332-a1cf-c99a2f6d7e4f" />
+        <classShapeMoniker Id="6d1ed2ce-3b73-43b8-8924-b490c6ae798e" />
+      </nodes>
+    </associationConnector>
+    <associationConnector edgePoints="[(5.5 : 18.1642976888021); (6.25 : 18.1642976888021)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/ArenaDataContext/asgn_assignment_type_state/asgn_assignment_type_state_asgn_assignment_action" />
+      <nodes>
+        <classShapeMoniker Id="ca3cad96-c897-4332-a1cf-c99a2f6d7e4f" />
+        <classShapeMoniker Id="4dd17e6e-986e-4f03-a19b-67641bc4db27" />
+      </nodes>
+    </associationConnector>
+    <associationConnector edgePoints="[(1.07336288461538 : 16.2803369140625); (1.07336288461538 : 18.1739005533854); (3.5 : 18.1739005533854)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/ArenaDataContext/asgn_assignment_type/asgn_assignment_type_asgn_assignment_type_state" />
+      <nodes>
+        <classShapeMoniker Id="e2b2da41-b36a-4ea2-a713-e3659cff59b1" />
+        <classShapeMoniker Id="ca3cad96-c897-4332-a1cf-c99a2f6d7e4f" />
+      </nodes>
+    </associationConnector>
+    <associationConnector edgePoints="[(2.2812525 : 9.125); (2.2812525 : 8.5312475); (3.5 : 8.5312475)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/ArenaDataContext/asgn_assignment_type/asgn_assignment_type_asgn_assignment_type_status" />
+      <nodes>
+        <classShapeMoniker Id="e2b2da41-b36a-4ea2-a713-e3659cff59b1" />
+        <classShapeMoniker Id="ec41b513-8047-428e-98f2-8c40d2fe3d77" />
+      </nodes>
+    </associationConnector>
+    <associationConnector edgePoints="[(2.75 : 10.6931469726562); (3.5 : 10.6931469726562)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/ArenaDataContext/asgn_assignment_type/asgn_assignment_type_asgn_assignment_type_subscribe" />
+      <nodes>
+        <classShapeMoniker Id="e2b2da41-b36a-4ea2-a713-e3659cff59b1" />
+        <classShapeMoniker Id="664ed58d-f802-4c0d-9722-0bd1a94778b2" />
+      </nodes>
+    </associationConnector>
+  </nestedChildShapes>
+</ordesignerObjectsDiagram>
