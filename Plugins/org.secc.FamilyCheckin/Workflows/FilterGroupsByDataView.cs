@@ -1,0 +1,102 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.ComponentModel.Composition;
+using System.Linq;
+using Rock;
+using Rock.Attribute;
+using Rock.Data;
+using Rock.Model;
+using Rock.Web.Cache;
+using Rock.Workflow;
+using Rock.Workflow.Action.CheckIn;
+
+namespace org.secc.FamilyCheckin
+{
+    /// <summary>
+    /// Removes or excludes checkin groups that require the member to be in a particular group
+    /// </summary>
+    [ActionCategory( "SECC > Check-In" )]
+    [Description( "Removes or excludes checkin groups that require the member to be in a dataview" )]
+    [Export( typeof( ActionComponent ) )]
+    [ExportMetadata( "ComponentName", "Filter Groups By DataView" )]
+    [AttributeField( Rock.SystemGuid.EntityType.GROUP, "DataView Group Attribute", "Select the attribute used to filter by DataView.", true, false)]
+    [BooleanField( "Remove", "Select 'Yes' if groups should be be removed.  Select 'No' if they should just be marked as excluded.", true, order: 5 )]
+    public class FilterGroupsByDataView : CheckInActionComponent
+    {
+        /// <summary>
+        /// Executes the specified workflow.
+        /// </summary>
+        /// <param name="rockContext">The rock context.</param>
+        /// <param name="action">The workflow action.</param>
+        /// <param name="entity">The entity.</param>
+        /// <param name="errorMessages">The error messages.</param>
+        /// <returns></returns>
+        /// <exception cref="System.NotImplementedException"></exception>
+        public override bool Execute( RockContext rockContext, Rock.Model.WorkflowAction action, Object entity, out List<string> errorMessages )
+        {
+            var checkInState = GetCheckInState( entity, out errorMessages );
+            if ( checkInState == null )
+            {
+                return false;
+            }
+
+            var dataViewAttributeKey = string.Empty;
+            var dataViewAttributeGuid = GetAttributeValue( action, "DataViewGroupAttribute" ).AsGuid();
+            if ( dataViewAttributeGuid != Guid.Empty )
+            {
+                dataViewAttributeKey = AttributeCache.Read( dataViewAttributeGuid, rockContext ).Key;
+            }
+
+            var dataViewService = new DataViewService( rockContext );
+
+            var family = checkInState.CheckIn.CurrentFamily;
+            if ( family != null )
+            {
+                GroupMemberService groupMemberService = new GroupMemberService( rockContext );
+                var remove = GetAttributeValue( action, "Remove" ).AsBoolean();
+
+                foreach ( var person in family.People )
+                {
+                    foreach ( var groupType in person.GroupTypes.ToList() )
+                    {
+                        foreach ( var group in groupType.Groups.ToList() )
+                        {
+                            if ( group.ExcludedByFilter == true )
+                            {
+                                continue;
+                            }
+
+                            var approvedPeopleGuid = group.Group.GetAttributeValue( dataViewAttributeKey );
+                            if ( string.IsNullOrWhiteSpace( approvedPeopleGuid ) )
+                            {
+                                continue;
+                            }
+
+                            var approvedPeople = dataViewService.Get( approvedPeopleGuid.AsGuid() );
+
+                            if ( approvedPeople == null )
+                            {
+                                continue;
+                            }
+                            var errors = new List<string>();
+                            var approvedPeopleQry = approvedPeople.GetQuery( null, 30, out errors );
+                            if (approvedPeopleQry!=null && !approvedPeopleQry.Where( e => e.Id == person.Person.Id ).Any() )
+                            {
+                                if ( remove )
+                                {
+                                    groupType.Groups.Remove( group );
+                                }
+                                else
+                                {
+                                    group.ExcludedByFilter = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+    }
+}
