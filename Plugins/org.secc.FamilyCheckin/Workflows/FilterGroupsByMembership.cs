@@ -8,8 +8,10 @@ using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
+using Rock.Workflow;
+using Rock.Workflow.Action.CheckIn;
 
-namespace Rock.Workflow.Action.CheckIn
+namespace org.secc.FamilyCheckin
 {
     /// <summary>
     /// Removes or excludes checkin groups that require the member to be in a particular group
@@ -31,7 +33,7 @@ namespace Rock.Workflow.Action.CheckIn
         /// <param name="errorMessages">The error messages.</param>
         /// <returns></returns>
         /// <exception cref="System.NotImplementedException"></exception>
-        public override bool Execute( RockContext rockContext, Model.WorkflowAction action, Object entity, out List<string> errorMessages )
+        public override bool Execute( RockContext rockContext, Rock.Model.WorkflowAction action, Object entity, out List<string> errorMessages )
         {
             var checkInState = GetCheckInState( entity, out errorMessages );
             if ( checkInState == null )
@@ -63,10 +65,10 @@ namespace Rock.Workflow.Action.CheckIn
                         foreach ( var group in groupType.Groups.ToList() )
                         {
                             var groupGuid = group.Group.GetAttributeValue( groupIdAttributeKey ).AsGuidOrNull();
-                            if ( groupGuid!=null )
+                            if ( groupGuid != null )
                             {
-                                if ( !groupMemberService.GetByGroupGuid ( groupGuid ?? new Guid())
-                                    .Where(gm => gm.PersonId == person.Person.Id && gm.GroupMemberStatus==GroupMemberStatus.Active).Any() )
+                                if ( !groupMemberService.GetByGroupGuid( groupGuid ?? new Guid() )
+                                    .Where( gm => gm.PersonId == person.Person.Id && gm.GroupMemberStatus == GroupMemberStatus.Active ).Any() )
                                 {
                                     if ( remove )
                                     {
