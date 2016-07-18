@@ -21,14 +21,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
-
-            //RockPage.AddScriptLink( "~/Scripts/iscroll.js" );
-            //RockPage.AddScriptLink( "~/Scripts/CheckinClient/checkin-core.js" );
-
-            if ( !KioskCurrentlyActive )
-            {
-                NavigateToHomePage();
-            }
         }
 
         protected override void OnLoad( EventArgs e )

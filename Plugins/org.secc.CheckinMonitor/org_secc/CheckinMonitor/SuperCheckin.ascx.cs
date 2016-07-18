@@ -32,6 +32,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_PHONE_TYPE, "SMS Phone", "Phone number type to save as when SMS enabled" )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_PHONE_TYPE, "Other Phone", "Phone number type to save as when SMS NOT enabled" )]
     [BooleanField( "Allow Reprint", "Should we allow for reprints of parent tags from this page?", false )]
+    [DataViewField( "Approved People", "Data view which contains the members who may check-in.", entityTypeName: "Rock.Model.Person" )]
     public partial class SuperCheckin : CheckInBlock
     {
 
@@ -146,6 +147,17 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         private void DisplayFamilyMemberMenu()
         {
+            var approvedPeopleGuid = GetAttributeValue( "ApprovedPeople" ).AsGuid();
+            var approvedPeople = new DataViewService( _rockContext ).Get( approvedPeopleGuid );
+
+            if ( approvedPeople == null )
+            {
+                maWarning.Show( "Approved people block setting not found.", ModalAlertType.Alert );
+                return;
+            }
+            var errorMessages = new List<string>();
+            var approvedPeopleQry = approvedPeople.GetQuery( null, 30, out errorMessages );
+
             phFamilyMembers.Controls.Clear();
 
             foreach ( var checkinPerson in CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).First().People )
@@ -153,6 +165,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 BootstrapButton btnMember = new BootstrapButton();
                 btnMember.CssClass = "btn btn-default btn-block btn-lg";
                 btnMember.Text = "<b>" + checkinPerson.Person.FullName + " " + GetSelectedCountString( checkinPerson ) + "</b><br>" + checkinPerson.Person.FormatAge();
+
+                if ( approvedPeopleQry.Where( dv => dv.Id == checkinPerson.Person.Id ).Any() )
+                {
+                    btnMember.Text = "<i class='fa-thumbs-o-up'></i> " + btnMember.Text;
+                }
+
                 if ( !checkinPerson.FamilyMember )
                 {
                     btnMember.Text = "<i class='fa fa-exchange'></i> " + btnMember.Text;
