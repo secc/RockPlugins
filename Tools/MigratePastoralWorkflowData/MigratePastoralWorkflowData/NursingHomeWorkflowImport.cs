@@ -8,29 +8,29 @@ using Rock.Model;
 
 namespace MigratePastoralWorkflowData
 {
-    class HospitalWorkflowImport : WorkflowImport
+    class NursingHomeWorkflowImport : WorkflowImport
     {
 
-        const int DISCHARGE_ACTIVITY_ID = 1087;
-        const int VISIT_ACTIVITY_ID = 1085;
-        const int SUMMARY_ACTIVITY_ID = 2086;
-        const int WORKFLOW_TYPE_ID = 27;
-        const int ARENA_ASSIGNMENT_TYPE_ID = 14;
+        const int DISCHARGE_ACTIVITY_ID = 2090;
+        const int VISIT_ACTIVITY_ID = 2089;
+        const int SUMMARY_ACTIVITY_ID = 2088;
+        const int WORKFLOW_TYPE_ID = 28;
+        const int ARENA_ASSIGNMENT_TYPE_ID = 15;
 
-        public HospitalWorkflowImport() : base()
+        public NursingHomeWorkflowImport() : base()
         {
             attributeMap = new Dictionary<int, string>() {
-                { 5262, "PersonToVisit" },
-                { 5263, "Hospital" },
-                { 5264, "Room"},
-                { 5265, "AdmitDate"},
-                { 5266, "NotifiedBy"},
-                { 5267, "NotifiedOn"},
-                { 5268, "Communion"},
-                { 5269, "Visitor"},
-                { 5270, "VisitDate"},
-                { 5271, "VisitNote"},
-                { 5272, "DischargeDate"}
+                { 5273, "PersonToVisit" },
+                { 5274, "NursingHome" },
+                { 5275, "Room"},
+                { 5276, "AdmitDate"},
+                { 5277, "NotifiedBy"},
+                { 5278, "NotifiedOn"},
+                { 5279, "Communion"},
+                { 5280, "Visitor"},
+                { 5281, "VisitDate"},
+                { 5282, "VisitNote"},
+                { 5283, "DischargeDate"}
             };
         }
 
@@ -52,7 +52,7 @@ namespace MigratePastoralWorkflowData
                 j++;
             }
             rockContext.SaveChanges();
-            Console.WriteLine( "Removed " + j + " Hospital Admission Workflows." );
+            Console.WriteLine( "Removed " + j + " Nursing Home Resident Workflows." );
         }
 
         public void Run()
@@ -132,7 +132,7 @@ namespace MigratePastoralWorkflowData
 
                 // Set more attributes from custom fields
                 SetPersonAliasAttribute( workflow, fieldValues, "PersonToVisit" );
-                SetDefinedValueAttribute( workflow, fieldValues, "Hospital" );
+                SetDefinedValueAttribute( workflow, fieldValues, "NursingHome" );
                 SetAttribute( workflow, fieldValues, "Room" );
                 SetDateAttribute( workflow, fieldValues, "AdmitDate" );
                 SetAttribute( workflow, fieldValues, "NotifiedBy" );
@@ -182,7 +182,7 @@ namespace MigratePastoralWorkflowData
                     activity.SaveAttributeValues();
                 }
             }
-            Console.WriteLine( "Loaded " + i + " Hospital Admission Workflows." );
+            Console.WriteLine( "Loaded " + i + " Nursing Home Resident Workflows." );
 
         }
     }
