@@ -46,7 +46,7 @@ namespace MigratePastoralWorkflowData
             var aliasId = fieldValues.Where( v => v.custom_field_id == attributeMap.Where( am => am.Value == key ).First().Key ).Select( v => v.selected_value ).FirstOrDefault().AsIntegerOrNull();
             if ( aliasId.HasValue )
             {
-                workflow.SetAttributeValue( key, personAliasService.Queryable().Where( p => p.AliasPersonId == aliasId ).FirstOrDefault().Guid );
+                workflow.SetAttributeValue( key, personAliasService.Queryable().Where( p => p.AliasPersonId == aliasId ).Select(p => p.Guid).FirstOrDefault() );
             }
         }
 

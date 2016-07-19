@@ -59,6 +59,8 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Arena.dbml</DependentUpon>
     </Compile>
+    <Compile Include="HomeboundWorkflowImport.cs" />
+    <Compile Include="NursingHomeWorkflowImport.cs" />
     <Compile Include="HospitalWorkflowImport.cs" />
     <Compile Include="WorkflowImport.cs" />
     <Compile Include="Program.cs" />

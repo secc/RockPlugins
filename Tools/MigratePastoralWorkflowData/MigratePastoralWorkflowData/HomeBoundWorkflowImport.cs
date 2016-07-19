@@ -8,29 +8,27 @@ using Rock.Model;
 
 namespace MigratePastoralWorkflowData
 {
-    class HospitalWorkflowImport : WorkflowImport
+    class HomeboundWorkflowImport : WorkflowImport
     {
 
-        const int DISCHARGE_ACTIVITY_ID = 1087;
-        const int VISIT_ACTIVITY_ID = 1085;
-        const int SUMMARY_ACTIVITY_ID = 2086;
-        const int WORKFLOW_TYPE_ID = 27;
-        const int ARENA_ASSIGNMENT_TYPE_ID = 14;
+        const int DISCHARGE_ACTIVITY_ID = 2094;
+        const int VISIT_ACTIVITY_ID = 2093;
+        const int SUMMARY_ACTIVITY_ID = 2092;
+        const int WORKFLOW_TYPE_ID = 29;
+        const int ARENA_ASSIGNMENT_TYPE_ID = 16;
 
-        public HospitalWorkflowImport() : base()
+        public HomeboundWorkflowImport() : base()
         {
             attributeMap = new Dictionary<int, string>() {
-                { 5262, "PersonToVisit" },
-                { 5263, "Hospital" },
-                { 5264, "Room"},
-                { 5265, "AdmitDate"},
-                { 5266, "NotifiedBy"},
-                { 5267, "NotifiedOn"},
-                { 5268, "Communion"},
-                { 5269, "Visitor"},
-                { 5270, "VisitDate"},
-                { 5271, "VisitNote"},
-                { 5272, "DischargeDate"}
+                { 5284, "HomeboundPerson" },
+                { 5285, "StartDate"},
+                { 5287, "NotifiedBy"},
+                { 5288, "NotifiedOn"},
+                { 5289, "Communion"},
+                { 5290, "Visitor"},
+                { 5291, "VisitDate"},
+                { 5292, "VisitNote"},
+                { 5286, "EndDate"}
             };
         }
 
@@ -52,7 +50,7 @@ namespace MigratePastoralWorkflowData
                 j++;
             }
             rockContext.SaveChanges();
-            Console.WriteLine( "Removed " + j + " Hospital Admission Workflows." );
+            Console.WriteLine( "Removed " + j + " Homebound Resident Workflows." );
         }
 
         public void Run()
@@ -126,19 +124,17 @@ namespace MigratePastoralWorkflowData
                     workflowActivity.LastProcessedDateTime = assignment.date_created;
                 }
                 // Set some attributes from data in the assignment
-                workflow.SetAttributeValue( "DischargeReason", assignment.resolution_text );
-                workflow.SetAttributeValue( "VisitationRequestDescription", assignment.description );
+                workflow.SetAttributeValue( "CloseNote", assignment.resolution_text );
+                workflow.SetAttributeValue( "HomeboundResidentDescription", assignment.description );
                 workflow.SetAttributeValue( "Requestor", requestorPersonAlias.Guid );
 
                 // Set more attributes from custom fields
-                SetPersonAliasAttribute( workflow, fieldValues, "PersonToVisit" );
-                SetDefinedValueAttribute( workflow, fieldValues, "Hospital" );
-                SetAttribute( workflow, fieldValues, "Room" );
-                SetDateAttribute( workflow, fieldValues, "AdmitDate" );
+                SetPersonAliasAttribute( workflow, fieldValues, "HomeboundPerson" );
+                SetDateAttribute( workflow, fieldValues, "StartDate" );
                 SetAttribute( workflow, fieldValues, "NotifiedBy" );
                 SetAttribute( workflow, fieldValues, "NotifiedOn" );
                 SetYesNoAttribute( workflow, fieldValues, "Communion" );
-                SetDateAttribute( workflow, fieldValues, "DischargeDate" );
+                SetDateAttribute( workflow, fieldValues, "EndDate" );
 
                 // Now load all the visits (Let's kick it old school with some sp fun!)
                 SqlCommand visitCmd = new SqlCommand( "cust_secc_sp_rept_pastoralVisit_migration", conn );
@@ -182,7 +178,7 @@ namespace MigratePastoralWorkflowData
                     activity.SaveAttributeValues();
                 }
             }
-            Console.WriteLine( "Loaded " + i + " Hospital Admission Workflows." );
+            Console.WriteLine( "Loaded " + i + " Homebound Resident Workflows." );
 
         }
     }
