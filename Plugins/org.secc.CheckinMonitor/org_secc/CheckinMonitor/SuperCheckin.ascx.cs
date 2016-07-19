@@ -168,7 +168,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                 if ( approvedPeopleQry.Where( dv => dv.Id == checkinPerson.Person.Id ).Any() )
                 {
-                    btnMember.Text = "<i class='fa-thumbs-o-up'></i> " + btnMember.Text;
+                    btnMember.Text = "<i class='fa fa-thumbs-o-up'></i> " + btnMember.Text;
                 }
 
                 if ( !checkinPerson.FamilyMember )
