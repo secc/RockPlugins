@@ -13,17 +13,14 @@
                 <div class="grid">
                     <Rock:Grid ID="gReport" runat="server" AllowSorting="true" EmptyDataText="No Results">
                         <Columns>
-                            <Rock:RockBoundField DataField="Campus" HeaderText="Campus"></Rock:RockBoundField>
-                            <Rock:RockBoundField DataField="Location" HeaderText="Location"></Rock:RockBoundField>
-                            <Rock:RockBoundField DataField="PersonName" HeaderText="Person To Visit"></Rock:RockBoundField>
+                            <Rock:RockBoundField DataField="Campus" HeaderText="Campus" SortExpression="Campus"></Rock:RockBoundField>
+                            <Rock:RockBoundField DataField="Location" HeaderText="Location" SortExpression="Location"></Rock:RockBoundField>
+                            <Rock:PersonField DataField="Person" HeaderText="Person" SortExpression="Person" />
+                            <Rock:RockBoundField DataField="Person.Age" HeaderText="Age" SortExpression="Person.Age"></Rock:RockBoundField>
                             <Rock:RockBoundField DataField="Address.Street1" HeaderText="Street Address"></Rock:RockBoundField>
                             <Rock:RockBoundField DataField="Address.City" HeaderText="City"></Rock:RockBoundField>
-                            <Rock:RockBoundField DataField="Address.State" HeaderText="State" SortExpression="Address.State"></Rock:RockBoundField>
-                            <Rock:RockBoundField DataField="Address.PostalCode" HeaderText="Zip"></Rock:RockBoundField>
-                            <Rock:RockBoundField DataField="Age" HeaderText="Age"></Rock:RockBoundField>
-                            <Rock:RockBoundField DataField="Room" HeaderText="Room"></Rock:RockBoundField>
-                            <Rock:RockBoundField DataField="Date" HeaderText="Admit/Start Date"></Rock:RockBoundField>
-                            <Rock:RockBoundField DataField="Description" HeaderText="Description"></Rock:RockBoundField>
+                            <Rock:RockBoundField DataField="Address.State" HeaderText="State"></Rock:RockBoundField>
+                            <Rock:RockBoundField DataField="PostalCode" HeaderText="Zip" SortExpression="PostalCode"></Rock:RockBoundField>
                             <Rock:RockTemplateField HeaderText="Status">
                                 <ItemTemplate>
                                     <span class="label label-success"><%# Eval("Status") %></span>
@@ -32,7 +29,7 @@
                             <Rock:BoolField DataField="Communion" HeaderText="Communion" />
                             <Rock:RockTemplateField HeaderText="Actions">
                                 <ItemTemplate>
-                                    <a href="<%# "https://maps.google.com/?q="+Eval("Address").ToString() %>" target="_blank" class="btn btn-default"><i class="fa fa-map-o" title="View Map"></i></a>                                </ItemTemplate>
+                                    <a href="<%# "https://maps.google.com/?q="+Eval("Address") %>" target="_blank" class="btn btn-default"><i class="fa fa-map-o" title="View Map"></i></a>                                </ItemTemplate>
                             </Rock:RockTemplateField>
                         </Columns>
                     </Rock:Grid>

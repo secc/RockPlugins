@@ -86,29 +86,66 @@ namespace RockWeb.Blocks.Reporting
             using ( var rockContext = new RockContext() )
             {
                 var workflowService = new WorkflowService( rockContext );
-                var attributeValueService = new WorkflowService( rockContext );
+                var attributeService = new AttributeService( rockContext );
+                var attributeValueService = new AttributeValueService( rockContext );
                 var personAliasService = new PersonAliasService( rockContext );
                 var definedValueService = new DefinedValueService( rockContext );
 
                 var qry = workflowService.Queryable().AsNoTracking()
-                    .Where( w => ( w.WorkflowTypeId == 27 || w.WorkflowTypeId == 28 || w.WorkflowTypeId == 29 ) && w.Status == "Active" ).ToList();
-                qry.ForEach(
-                    w =>
-                    {
-                        w.LoadAttributes();
-                        w.Activities.ToList().ForEach( a => { a.LoadAttributes(); } );
-                    } );
+                    .Join( attributeService.Queryable() ,
+                    w => new { EntityTypeId = 113, WorkflowTypeId = w.WorkflowTypeId.ToString() },
+                    a => new { EntityTypeId = a.EntityTypeId.Value, WorkflowTypeId = a.EntityTypeQualifierValue},
+                    (w, a) => new { Workflow = w, Attribute = a } )
+                    .Join( attributeValueService.Queryable(),
+                    obj => new { AttributeId = obj.Attribute.Id, EntityId = obj.Workflow.Id },
+                    av => new { AttributeId = av.AttributeId, EntityId = av.EntityId.Value },
+                    ( obj, av ) => new { Workflow = obj.Workflow, Attribute = obj.Attribute, AttributeValue = av  } )
+                    .GroupBy(obj => obj.Workflow)
+                    .Select( obj => new { Workflow = obj.Key, Attributes = obj.Select(a => a.Attribute).ToList(), AttributeValues=obj.Select( a => a.AttributeValue )} )
+                    .Where( w => ( w.Workflow.WorkflowTypeId == 27 || w.Workflow.WorkflowTypeId == 28 || w.Workflow.WorkflowTypeId == 29 ) && w.Workflow.Status == "Active" ).ToList();
+
+                List<DefinedValue> facilities = definedValueService.Queryable().Where( dv => dv.DefinedTypeId == 108 || dv.DefinedTypeId == 139 ).ToList();
+                facilities.ForEach(h => {
+                    h.LoadAttributes();
+                });
+
                 var newQry = qry.Select( w => new
                 {
                     Workflow = w,
-                    Name = w.Name,
-                    Campus = personAliasService.Get( w.AttributeValues.ContainsKey( "PersonToVisit" ) ? w.AttributeValues["PersonToVisit"].Value.AsGuid() : w.AttributeValues["HomeboundPerson"].Value.AsGuid() ).Person.GetCampus(),
-                    Location = w.AttributeValues.ContainsKey( "NursingHome" ) ? w.AttributeValues["NursingHome"].ValueFormatted : "Home",
-                    Address = new Func<Location>( () => {
-                        if ( w.AttributeValues.ContainsKey( "NursingHome" ) )
+                    Name = w.Workflow.Name,
+                    Campus = new Func<Campus>( () =>
+                    {
+                        Campus campus = null;
+                        AttributeValue personAliasAV = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "PersonToVisit" || av.AttributeKey == "HomeboundPerson" ).FirstOrDefault();
+                        if ( personAliasAV != null )
                         {
-                            DefinedValue dv = definedValueService.Get( w.AttributeValues["NursingHome"].Value.AsGuid() );
-                            dv.LoadAttributes();
+                            campus = personAliasService.Get( personAliasAV.Value.AsGuid() ).Person.GetCampus();
+                        }
+                        if ( campus == null )
+                        {
+                            campus = new Campus() { Name = "Unknown" };
+                        }
+                        return campus;
+                    } )(),
+                    Person = new Func<Person>( () =>
+                    {
+                        AttributeValue personAliasAV = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "PersonToVisit" || av.AttributeKey == "HomeboundPerson" ).FirstOrDefault();
+                        if ( personAliasAV != null )
+                        {
+                            return personAliasService.Get( personAliasAV.Value.AsGuid() ).Person;
+                        }
+                        return null;
+                    } )(),
+                    Location = new Func<string>( () =>
+                    {
+                        return w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "NursingHome" || av.AttributeKey == "Hospital" ).Select( av => av.ValueFormatted ).DefaultIfEmpty("Home").FirstOrDefault();
+                    } ) (),
+                    Address = new Func<Location>( () => {
+                        string locationGuid = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "NursingHome" || av.AttributeKey == "Hospital" ).Select( av => av.Value ).FirstOrDefault();
+                        
+                        if ( locationGuid != null )
+                        {
+                            DefinedValue dv = facilities.Where( h => h.Guid == locationGuid.AsGuid() ).FirstOrDefault();
                             Location location = new Location();
                             location.Street1 = dv.AttributeValues["Qualifier1"].ValueFormatted;
                             location.City = dv.AttributeValues["Qualifier2"].ValueFormatted;
@@ -116,18 +153,43 @@ namespace RockWeb.Blocks.Reporting
                             location.PostalCode = dv.AttributeValues["Qualifier4"].ValueFormatted;
                             return location;
                         }
-                        Person person = personAliasService.Get( w.AttributeValues.ContainsKey( "PersonToVisit" ) ? w.AttributeValues["PersonToVisit"].Value.AsGuid() : w.AttributeValues["HomeboundPerson"].Value.AsGuid() ).Person;
-                        return person.GetHomeLocation();
+
+                        int? personId = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "HomeboundPerson" || av.AttributeKey == "PersonToVisit" ).Select( av => av.ValueAsPersonId ).FirstOrDefault();
+                        if ( personId.HasValue)
+                        {
+                            return personAliasService.Get( personId.Value ).Person.GetHomeLocation();
+                        }
+                        return new Location();
                     } )(),
-                    PersonName = w.AttributeValues.ContainsKey( "PersonToVisit" )?w.AttributeValues["PersonToVisit"].ValueFormatted: w.AttributeValues["HomeboundPerson"].ValueFormatted,
-                    Age = personAliasService.Get( w.AttributeValues.ContainsKey( "PersonToVisit" )?w.AttributeValues["PersonToVisit"].Value.AsGuid() : w.AttributeValues["HomeboundPerson"].Value.AsGuid() ).Person.Age,
-                    Room = w.AttributeValues.ContainsKey( "Room" ) ? w.AttributeValues["Room"].ValueFormatted:"",
-                    Date = w.AttributeValues.ContainsKey( "AdmitDate" ) ? w.AttributeValues["AdmitDate"].ValueFormatted : w.AttributeValues["StartDate"].ValueFormatted,
-                    Description = w.AttributeValues.ContainsKey( "VisitationRequestDescription" ) ? w.AttributeValues["VisitationRequestDescription"].ValueFormatted: w.AttributeValues["HomeboundResidentDescription"].ValueFormatted,
-                    Status = w.Status,
-                    Communion = w.AttributeValues["Communion"].ValueFormatted,
+                    PostalCode = new Func<string>( () => {
+                        string postalCode = "";
+                        string locationGuid = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "NursingHome" || av.AttributeKey == "Hospital" ).Select( av => av.Value ).FirstOrDefault();
+                        
+                        if ( locationGuid != null )
+                        {
+                            DefinedValue dv = facilities.Where( h => h.Guid == locationGuid.AsGuid() ).FirstOrDefault();
+                            postalCode = dv.AttributeValues["Qualifier4"].ValueFormatted;
+                        }
+                        if (String.IsNullOrEmpty(postalCode))
+                        {
+                            int? personId = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "HomeboundPerson" || av.AttributeKey == "PersonToVisit" ).Select( av => av.ValueAsPersonId ).FirstOrDefault();
+                            if ( personId != null && personId.HasValue )
+                            {
+                                Location location = personAliasService.Get( personId.Value ).Person.GetHomeLocation();
+                                if ( location != null)
+                                 postalCode = location.PostalCode;
+                            }
+                        }
+                        return postalCode != null?postalCode:"";
+                    } )(),
+                    Room = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "Room" ).Select(av => av.ValueFormatted).FirstOrDefault(),
+                    Date = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "AdmitDate" || av.AttributeKey == "StartDate" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
+                    Description = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "VisitationRequestDescription" || av.AttributeKey == "HomeboundResidentDescription" ).Select(av => av.ValueFormatted).FirstOrDefault(),
+                    Status = w.Workflow.Status,
+                    Communion = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "Communion" ).FirstOrDefault().ValueFormatted,
                     Actions = ""
-                } ).Where(o => o.Communion.AsBoolean()).OrderBy( w => w.Campus.Name ).ThenBy(w=>w.Address.PostalCode).ThenBy( p => p.PersonName ).ToList().AsQueryable();
+                } ).Where( o => o.Communion.AsBoolean() ).OrderBy( w => w.Campus.Name ).ThenBy( w => w.Address == null?"":w.Address.PostalCode ).ThenBy( p => p.Person == null ? "" : p.Person.FullName ).ToList().AsQueryable();
+
 
                 //AddGridColumns( newQry.FirstOrDefault() );
 
