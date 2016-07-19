@@ -308,7 +308,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                         .SelectMany( f => f.People.Where( p => p.Person.Guid == person.Guid ) )
                         .SelectMany( p => p.GroupTypes.Where( gt => gt.GroupType.ParentGroupTypes.Select( pgt => pgt.Guid ).Contains( currentParentGroupType.Guid ) == true && gt == groupType ) )
                         .SelectMany( gt => gt.Groups.Where( g => g.Selected && g.Group.Guid == group.Group.Guid ) )
-                        .SelectMany( g => g.Locations.Where( l => l.Schedules.Select( s => s.Schedule.Id ).Contains( schedule.Schedule.Id ) && l.Selected ) )
+                        .SelectMany( g => g.Locations.Where( l => l.Schedules.Where(s => s.Selected).Select( s => s.Schedule.Id ).Contains( schedule.Schedule.Id ) && l.Selected ) )
                         .FirstOrDefault();
 
                     //If a room is selected
