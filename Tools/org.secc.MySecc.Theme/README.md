@@ -36,7 +36,7 @@ gulp build
 ```
 
 ## Configuration
-The project includes 2 configuration files, `default.config.json` and `user.config.json` 
+The project includes 2 configuration files, `config/default.json` and `config/user.json` 
 
 The default configuration file contains default values for all configuration parameters.
 
