@@ -1,0 +1,258 @@
+// Load Master Styles
+// -------------------------
+@import "_inc/_init.less";
+
+
+@nav-padding: 2em;
+@site-image-height: 3.5em;
+@site-name-font-size: 1.2em;
+@mobile-nav-width: 85vw;
+@nav-z-index: 1000;
+@primary-nav-color: @text-color;
+
+
+html,
+body {
+	width: 100%;
+	overflow-x: hidden;
+}
+
+
+#NavScrim {
+	display: none;
+	position: absolute;
+	width: 100vw;
+	height: 100vh;
+	background: fade(#000, 75%);
+	z-index: (@nav-z-index - 1);
+}
+
+#NavToggle {
+	border: none;
+	background: transparent;
+	outline: none;
+
+	position: absolute;
+	top: @nav-padding + ( @site-image-height / 2 ) - (@site-name-font-size / 2);
+	right: 1.25em;
+	z-index: @nav-z-index;
+
+	span {
+		font-size: @site-name-font-size;
+
+		body.menu-open & { color: #fff; }
+	}
+}
+
+
+#SiteHeader {
+	padding-top: @nav-padding;
+	padding-bottom: @nav-padding;
+	font-family: @proxima;
+}
+
+
+.masthead-wrapper {
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: flex-start;
+	align-items: center;
+
+	.site-logo, .site-name {
+		flex: 0 1 auto;
+	}
+
+	.site-logo img {
+		height: @site-image-height;
+		margin-right: 0.5rem;
+	}
+
+	.site-name {
+		font-family: @proxima-bold;
+		font-weight: 600;
+		font-size: @site-name-font-size;
+		text-transform: uppercase;
+	}
+}
+
+
+#SiteNavigation {
+	display: flex;
+	justify-content: flex-start;
+
+	//#UserPanel
+	.login-status {
+		display: flex;
+		flex-flow: row nowrap;
+		justify-content: space-between;
+		align-items: stretch;
+
+		.profile-photo {
+			display: none;
+			flex: 0 1 50px;
+			padding-right: 10px;
+		}
+
+		.user-name { 
+			margin-top: 0;
+			margin-bottom: 0;
+			font-family: @proxima;
+			font-weight: 400; 
+		}
+	}
+
+	#NavBar {
+		.navbar-nav { margin: 0; }
+
+		a, a:active, a:visited, a:link {
+			text-transform: uppercase;
+		}
+	}
+}
+
+@media (max-width: 767px) {
+
+	body.menu-open {
+
+		#DocumentWrapper {
+			position: fixed;
+			max-height: 100vh;
+			width: 100vw;
+			overflow-y: hidden;
+		}
+
+		#NavScrim {
+			display: block;
+		}
+	}
+
+	#SiteNavigation {
+		position: absolute;
+		width: @mobile-nav-width;
+		min-height: 100vh;
+		background: @primary-nav-color;
+		top: 0px;
+		left: -1 * @mobile-nav-width;
+		z-index: @nav-z-index;
+		transition: left 0.5s ease;
+
+		flex-flow: column nowrap;
+		align-items: stretch;
+
+		body.menu-open & {
+			left: 0;
+		}
+
+		.login-status {
+			padding: 1.5rem @nav-padding;
+			background: #fff;		
+
+			.user-info { flex: 1 0 235px; }
+
+			.user-nav {	margin-top: 1em; }
+		}
+
+		#NavBar {
+			margin-top: (@nav-padding / 2); 
+
+			a, a:active, a:visited, a:link {
+				color: #fff;
+				padding: 1em @nav-padding;
+			}
+
+			a:hover { background: transparent; }
+		}
+	}
+}
+
+@media (min-width: 768px) {
+
+	#SiteHeader {
+		display: flex;
+		flex-flow: row nowrap;
+		justify-content: flex-start;
+		align-items: center;
+		border-bottom: 1px solid @primary-nav-color;
+
+		& > section, aside {
+			flex: 0 1 auto;
+
+			.zone-highlight &,
+			.block-highlight & {
+				min-width: 131px;
+			}
+		}
+	}
+
+	#SiteNavigation {
+		flex: 1 1 auto !important;
+		flex-flow: row nowrap;
+		align-items: center;
+
+		#NavBar { 
+			order: 1;
+			flex: 2 1 auto;
+			margin-left: .5em;
+
+			.navbar-nav > li {
+				float: none;
+				display:inline-block;
+			}
+
+			a, a:active, a:visited, a:link {
+				color: @primary-nav-color;
+				padding: .5em 1em;
+				border: 1px solid transparent;
+				transition: border-color .5s ease;
+			}
+
+			a:hover { border: 1px solid @primary-nav-color; }
+		}
+
+		#UserPanel {
+			order: 2;
+			flex: 0 1 auto;
+		}
+
+		.user-info {
+			position: relative;
+			flex: 0 1 auto;
+			
+			&:hover .user-details { display: block; }
+		}
+
+		.user-name {
+			font-size: 1.2em;
+			cursor: default;
+
+			&::after {
+				font-family: FontAwesome;
+				content: "\f0d7";
+				margin-left: .25em;
+				font-size: .8em;
+			}
+		}
+
+		.user-details {
+			display: none;
+			position: absolute;
+			top: 2em;
+			right: 0;
+			z-index: @nav-z-index;
+			background: @gray-lighter;
+			border: 1px solid @gray-light;
+			padding: .5em 1em;
+		}
+
+		.user-email { display: none; }
+
+		.user-nav {
+			text-align: right;
+
+			ul { 
+				white-space: nowrap; 
+				margin-bottom: 0;
+			}
+		}
+	}
+}

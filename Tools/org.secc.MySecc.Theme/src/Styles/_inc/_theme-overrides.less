@@ -1,0 +1,77 @@
+// The variables and styles in this file define settings for the theme
+// that override the defaults, AND will override settings in the Theme
+// editor. If you want to override certain settings from the _variables.less 
+// file and make them un-editable, put them here. Note that in that case
+// you should probably also remove the setting from the _variables.less files
+// so that it will not appear in the theme editor. Users will get frustrated
+// if they set a value in the theme editor and it doesn't show up on their site.
+
+@border-radius-base: 0;
+@font-family-sans-serif: 'Helvetica Neue', Helvetica, Arial, sans-serif; // The base font to use for text. Be sure when defining this font that the various weights are configured.
+@font-family-serif: 'minion-pro', Georgia, 'Times New Roman', serif;
+
+
+@breadcrumb-bg: #fff;
+
+
+// BUTTONS
+// =======
+
+@btn-default-color:              #fff;
+@btn-default-bg:                 fade(#000, 80%);
+@btn-default-border:             @btn-default-bg;
+//--
+@btn-primary-color:              @btn-default-color;
+@btn-primary-bg:                 @btn-default-bg;
+@btn-primary-border:             @btn-default-border;
+//--
+@btn-success-color:              @brand-success;
+@btn-success-bg:                 transparent;
+@btn-success-border:             darken(@btn-success-color, 5%);
+//--
+@btn-warning-color:              @brand-warning;
+@btn-warning-bg:                 transparent;
+@btn-warning-border:             darken(@btn-warning-color, 5%);
+//--
+@btn-danger-color:               @brand-danger;
+@btn-danger-bg:                  transparent;
+@btn-danger-border:              darken(@btn-danger-color, 5%);
+//--
+@btn-info-color:                 @brand-info;
+@btn-info-bg:                    transparent;
+@btn-info-border:                darken(@btn-info-color, 5%);
+//--
+@btn-action-color:              #222;
+@btn-action-bg:                 transparent;
+@btn-action-border:             darken(@btn-action-color, 5%);
+//--
+@btn-security-color:            @btn-default-color;
+@btn-security-bg:               @btn-default-bg;
+@btn-security-border:           @btn-default-border;
+
+
+// PANELS
+// ======
+
+@panel-bg:                    #fff;                  // The background color of the panel body.
+@panel-text:                  @text-color; // The text color of the panel.
+@panel-border:                @gray-light;                  // The panel's border color.
+@panel-top-border-color:      @panel-border;           // Color of the panel's top border often used as an accent color.
+@panel-border-radius:         @border-radius-base;
+//--
+@panel-heading-bg:            @gray-lighter;                  // The background color of the panel's header.
+@panel-heading-text-color:    @text-color;              // The heading's text color.
+@panel-heading-border:        @panel-border; // The headings border color.
+//--
+@panel-following-active-bg:   @panel-top-border-color;   // The background color of the following square when it's active at the top of panels that support the following feature (e.g. Group Details block).
+//--
+@panel-footer-bg:             @panel-bg;                 // The background color of the panel's footer.
+@panel-footer-color:          @panel-text;              // The color text of the panel's footer.
+
+
+// PILLS
+// =====
+
+@nav-pills-active-link-hover-bg:         @gray-dark;
+@nav-pills-active-link-hover-color:      #fff;
+@nav-pills-link-color: @link-color;  // The color of the none active pill link.
