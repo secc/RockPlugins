@@ -49,15 +49,21 @@
         var disableCheckin = function ()
         {
             var button = document.getElementById("checkinButton");
-            button.onclick = function () { return false; }
-            button.className = "btn btn-lg btn-primary doCheckin disabled"
+            if (button)
+            {
+                button.onclick = function () { return false; }
+                button.className = "btn btn-lg btn-primary doCheckin disabled"
+            }
         }
 
         var enableCheckin = function ()
         {
             var button = document.getElementById("checkinButton");
-            button.onclick = function () { }
-            button.className = "btn btn-lg btn-primary doCheckin"
+            if (button)
+            {
+                button.onclick = function () { }
+                button.className = "btn btn-lg btn-primary doCheckin"
+            }
         }
 
 
