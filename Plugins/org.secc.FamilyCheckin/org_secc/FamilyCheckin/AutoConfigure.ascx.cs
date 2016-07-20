@@ -20,96 +20,90 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     {
         protected override void OnLoad( EventArgs e )
         {
-
-            var ip = Rock.Web.UI.RockPage.GetClientIpAddress();
-
-            try
+            if ( !Page.IsPostBack )
             {
-                ltDNS.Text = System.Net.Dns.GetHostEntry( ip ).HostName + " : " + ip;
+                ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "GetClient", "setTimeout(function(){getClientName()},100);", true );
             }
-            catch
+            else
             {
-                ltDNS.Text = "Unknown Host : " + ip;
+                if ( Request["__EVENTTARGET"] == "ClientName" )
+                {
+                    SetKiosk( Request["__EVENTARGUMENT"] );
+                }
+                else
+                {
+                    ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "GetClient", "setTimeout(function(){getClientName()},100);", true );
+                }
             }
+        }
 
-            AttemptKioskMatchByIpOrName( ip );
+        private void SetKiosk( string clientName )
+        {
+            var rockContext = new RockContext();
 
-            if ( string.IsNullOrWhiteSpace( GetAttributeValue( "NextPage" ) ) )
+            var kioskService = new KioskService( rockContext );
+            var kiosk = kioskService.GetByClientName( clientName );
+            if ( kiosk == null )
             {
-                nbNotConfigured.Visible = true;
-                nbNotFound.Visible = false;
+                kiosk = new Kiosk();
+                kiosk.Name = clientName;
+                kiosk.Description = "Automatically created Kiosk";
+                kioskService.Add( kiosk );
+                rockContext.SaveChanges();
             }
-
-
+            GetKioskType( kiosk, rockContext );
         }
 
         /// <summary>
         /// Attempts to match a known kiosk based on the IP address of the client.
         /// </summary>
-        private void AttemptKioskMatchByIpOrName( string ip )
+        private void GetKioskType( Kiosk kiosk, RockContext rockContext )
         {
-            // try to find matching kiosk by REMOTE_ADDR (ip/name).
-            using ( var rockContext = new RockContext() )
+            if ( kiosk.KioskType != null )
             {
-                var kioskService = new KioskService( rockContext );
-                var kiosk = kioskService.GetByIPAddress( ip );
-                if ( kiosk != null )
+                DeviceService deviceService = new DeviceService( rockContext );
+                //Load matching device and update or create information
+                var device = deviceService.Queryable().Where( d => d.Name == kiosk.Name ).FirstOrDefault();
+
+                //create new device to match our kiosk
+                if ( device == null )
                 {
-                    //if the kiosk exists but doesn't have a kiosk type, we can't to use it
-                    if ( kiosk.KioskType != null )
-                    {
-                        DeviceService deviceService = new DeviceService( rockContext );
-                        //Load matching device and update or create information
-                        var device = deviceService.Queryable().Where( d => d.Name == kiosk.Name ).FirstOrDefault();
-
-                        //create new device to match our kiosk
-                        if ( device == null )
-                        {
-                            device = new Device();
-                            device.DeviceTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.DEVICE_TYPE_CHECKIN_KIOSK ).Id;
-                            deviceService.Add( device );
-                        }
-
-                        device.Name = kiosk.Name;
-                        device.IPAddress = kiosk.IPAddress;
-                        device.Locations.Clear();
-                        foreach ( var loc in kiosk.KioskType.Locations.ToList() )
-                        {
-                            device.Locations.Add( loc );
-                        }
-                        device.PrintFrom = kiosk.PrintFrom;
-                        device.PrintToOverride = kiosk.PrintToOverride;
-                        device.PrinterDeviceId = kiosk.PrinterDeviceId;
-                        rockContext.SaveChanges();
-                        CurrentKioskId = device.Id;
-                        CurrentGroupTypeIds = kiosk.KioskType.GroupTypes.Select( gt => gt.Id ).ToList();
-
-                        CurrentCheckinTypeId = kiosk.KioskType.CheckinTemplateId;
-
-                        CurrentCheckInState = null;
-                        CurrentWorkflow = null;
-                        Session["KioskTypeId"] = kiosk.KioskType.Id;
-                        Session["KioskMessage"] = kiosk.KioskType.Message;
-                        SaveState();
-                        NavigateToNextPage();
-                    }
+                    device = new Device();
+                    device.DeviceTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.DEVICE_TYPE_CHECKIN_KIOSK ).Id;
+                    deviceService.Add( device );
                 }
-                else
+
+                device.Name = kiosk.Name;
+                device.IPAddress = kiosk.IPAddress;
+                device.Locations.Clear();
+                foreach ( var loc in kiosk.KioskType.Locations.ToList() )
                 {
-                    //Else make the kiosk so we don't have to manually
-                    kiosk = new Kiosk();
-                    kiosk.Name = System.Net.Dns.GetHostEntry( ip ).HostName;
-                    kiosk.IPAddress = ip;
-                    kiosk.Description = "Automatically created Kiosk";
-                    kioskService.Add( kiosk );
-                    rockContext.SaveChanges();
+                    device.Locations.Add( loc );
                 }
+                device.PrintFrom = kiosk.PrintFrom;
+                device.PrintToOverride = kiosk.PrintToOverride;
+                device.PrinterDeviceId = kiosk.PrinterDeviceId;
+                rockContext.SaveChanges();
+                CurrentKioskId = device.Id;
+                CurrentGroupTypeIds = kiosk.KioskType.GroupTypes.Select( gt => gt.Id ).ToList();
+
+                CurrentCheckinTypeId = kiosk.KioskType.CheckinTemplateId;
+
+                CurrentCheckInState = null;
+                CurrentWorkflow = null;
+                Session["KioskTypeId"] = kiosk.KioskType.Id;
+                Session["KioskMessage"] = kiosk.KioskType.Message;
+                SaveState();
+                NavigateToNextPage();
+            }
+            else
+            {
+                pnlMain.Visible = true;
             }
         }
 
         protected void Timer1_Tick( object sender, EventArgs e )
         {
-
         }
     }
 }

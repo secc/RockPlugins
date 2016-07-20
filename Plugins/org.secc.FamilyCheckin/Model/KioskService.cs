@@ -41,7 +41,6 @@ namespace org.secc.FamilyCheckin.Model
             }
 
             Kiosk kiosk = null;
-
             // If we still have an IPv4 address then try to find it based on IP
             if ( Regex.IsMatch( hostValue, @"\d+\.\d+\.\d+\.\d+" ) )
             {
@@ -59,7 +58,15 @@ namespace org.secc.FamilyCheckin.Model
                         k.Name == hostValue )
                     .FirstOrDefault();
             }
+            return kiosk;
+        }
 
+        public Kiosk GetByClientName( string ClientName )
+        {
+            Kiosk kiosk = null;
+            kiosk = Queryable()
+                .Where( k => k.Name == ClientName )
+                .FirstOrDefault();
             return kiosk;
         }
     }
