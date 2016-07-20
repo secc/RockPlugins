@@ -53,30 +53,40 @@ If you need to change the default configuration values (and you probably will), 
 
 #### rock_path
 Type: `string`
+
 Default: `../../../../../rockrms/RockWeb`
+
 
 This should be the path to the RockWeb folder in your local Rock installation. Note that if providing a fully qualified windows path, you should escape backslashes in the file path. For example `c:\\DEV\\WebProjects\\rock\\rockrms\\RockWeb`
 
 #### src_host
 Type: `string`
+
 Default: `my.rocktheme.secc.org`
+
 
 This is the hostname of your local site that you will use to test your theme during development.
 
 #### dist_path
 Type: `string`
+
 Default: `../../Themes/my-secc`
+
 
 This is the path (relative to the project folder) to your `RockWeb/Themes` folder where distribution builds of your theme should be output.
 
 #### version_styles
 Type: `boolean`
+
 Default: `true`
+
 
 Wether or not to direct Rock to include version querystring parameters when outputing production ready css link tags. Rock's default is to version css files, so this project's default is to do the same.
 
 #### version_scripts
 Type: `boolean`
+
 Default: `true`
+
 
 Wether or not to direct Rock to include version querystring parameters when outputing production ready javascript script tags. Rock's default is to version js files, so this project's default is to do the same.
