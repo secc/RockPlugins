@@ -35,6 +35,11 @@ To build for distribution to a production webserver:
 gulp build
 ```
 
+Your best bet is to create 2 symlinks in your RockWeb/Themes folder:
+1.) Create a symlink that points to the project's src/ folder. During development, set your site in rock to use the theme referenced by this symlink, and you will be able to see your updates in realtime. 
+2.) Create a 2nd symlink that points to `dist_path` folder specified in your configuration (see below for configuration details and options). When you compile for production, you can then change your site in rock to use the theme referenced by this symlink to make sure that the production compile worked properly and everything is ready.
+
+
 ## Configuration
 The project includes a configuration file, `config-default.json`. 
 
