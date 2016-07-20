@@ -150,12 +150,17 @@ gulp.task('browser-sync', function() {
  */
 gulp.task('clean', function() {
 	var path = [];
+	var forceClean = false;
 
 	path.push(SRC_PATH + "/Styles/**/*.css");
 	if (buildMode == BUILD_MODE_DIST) {
 		path.push(CONFIG.dist_path + "/**/*");
+		path.push("!"+CONFIG.dist_path);
+		forceClean = true;
 	}
-	return del.sync(path);
+
+
+	return del.sync(path, {force: forceClean});
 });
 
 
@@ -491,15 +496,20 @@ function showError(level) {
  * and sets a single set of configuration values.
  */
 function loadConfig() {
-	var defaultConfig = require('./config/default.json');
-	var user = require('./config/user.json');
+	var defaultConfig = require('./config-default.json');
 
-	//Update the default values, overriding them with
-	//values set in the user config.
-	for (var key in defaultConfig) {
-		if (user.hasOwnProperty(key)) {
-			defaultConfig[key] = user[key];
+	try {
+		var user = require('./config-user.json');
+
+		//Update the default values, overriding them with
+		//values set in the user config.
+		for (var key in defaultConfig) {
+			if (user.hasOwnProperty(key)) {
+				defaultConfig[key] = user[key];
+			}
 		}
+	} catch(ex) {
+		console.log("No user-config.json file found. Using defaults.");
 	}
 
 	//Now that the default has been updated with user settings, return it.
