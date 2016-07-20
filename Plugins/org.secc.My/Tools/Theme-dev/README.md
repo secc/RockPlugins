@@ -36,19 +36,19 @@ gulp build
 ```
 
 ## Configuration
-The project includes 2 configuration files, `config/default.json` and `config/user.json` 
-
-The default configuration file contains default values for all configuration parameters.
+The project includes a configuration file, `config-default.json`. 
 
  **DO NOT EDIT THE VALUES IN THE DEFAULT CONFIGURATION FILE!!**
 
-If you need to change the default configuration values (and you probably will), you can copy the entry from the `default.config.json` and put it in the `user.config.json` and edit its value to your liking.
+The default configuration file contains default values for all configuration parameters.
+
+If you need to change the default configuration values (and you probably will), make a copy of the `config-default.json` and name it `config-user.json`. Any properties in the user config file will override their corresponding values in the default config file, and any properties that are missing from the user config file will use the value from the default config file.
 
 ### options
 
 #### rock_path
 Type: `string`
-Default: `../../../`
+Default: `../../../../../rockrms/RockWeb`
 
 This should be the path to the RockWeb folder in your local Rock installation. Note that if providing a fully qualified windows path, you should escape backslashes in the file path. For example `c:\\DEV\\WebProjects\\rock\\rockrms\\RockWeb`
 
