@@ -491,8 +491,8 @@ function showError(level) {
  * and sets a single set of configuration values.
  */
 function loadConfig() {
-	var defaultConfig = require('./default.config.json');
-	var user = require('./user.config.json');
+	var defaultConfig = require('./config/default.json');
+	var user = require('./config/user.json');
 
 	//Update the default values, overriding them with
 	//values set in the user config.
