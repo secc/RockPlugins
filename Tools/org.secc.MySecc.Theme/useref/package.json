@@ -1,0 +1,61 @@
+{
+  "name": "useref",
+  "version": "1.2.0",
+  "description": "Parse build blocks in HTML files to replace references",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "scripts": {
+    "test": "mocha",
+    "coverage": "nyc npm test && nyc report",
+    "coveralls": "nyc npm test && nyc report --reporter=text-lcov | coveralls"
+  },
+  "files": [
+    "index.js",
+    "lib"
+  ],
+  "keywords": [
+    "build",
+    "blocks",
+    "build",
+    "comments",
+    "replace",
+    "scripts",
+    "link",
+    "ref"
+  ],
+  "author": {
+    "name": "Jonathan Kemp",
+    "email": "kempdogg@gmail.com",
+    "url": "http://jonkemp.com/"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "chai": "^3.4.1",
+    "coveralls": "^2.11.4",
+    "gulp": "^3.9.0",
+    "gulp-eslint": "^1.1.1",
+    "gulp-mocha": "^2.2.0",
+    "mocha": "*",
+    "nyc": "^3.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/jonkemp/useref"
+  },
+  "readme": "# useref [![Build Status](https://travis-ci.org/jonkemp/useref.svg?branch=master)](https://travis-ci.org/jonkemp/useref) [![Coverage Status](https://coveralls.io/repos/jonkemp/useref/badge.svg?branch=master&service=github)](https://coveralls.io/github/jonkemp/useref?branch=master)\n\n[![NPM](https://nodei.co/npm/useref.png?downloads=true)](https://nodei.co/npm/useref/)\n\n> Parse build blocks in HTML files to replace references\n\nExtracted from the grunt plugin [grunt-useref](https://github.com/pajtai/grunt-useref).\n\n## Installation\n\n```\nnpm install useref\n```\n\n## Usage\n\n```js\nvar useref = require('useref');\nvar result = useref(inputHtml);\n// result = [ replacedHtml, { type: { path: { 'assets': [ replacedFiles] }}} ]\n```\n\n\nBlocks are expressed as:\n\n```html\n<!-- build:<type>(alternate search path) <path> <parameters> -->\n... HTML Markup, list of script / link tags.\n<!-- endbuild -->\n```\n\n- **type**: either `js`, `css` or `remove`\n- **alternate search path**: (optional) By default the input files are relative to the treated file. Alternate search path allows one to change that\n- **path**: the file path of the optimized file, the target output\n- **parameters**: extra parameters that should be added to the tag\n\nAn example of this in completed form can be seen below:\n\n```html\n<html>\n<head>\n  <!-- build:css css/combined.css -->\n  <link href=\"css/one.css\" rel=\"stylesheet\">\n  <link href=\"css/two.css\" rel=\"stylesheet\">\n  <!-- endbuild -->\n</head>\n<body>\n  <!-- build:js scripts/combined.js -->\n  <script type=\"text/javascript\" src=\"scripts/one.js\"></script>\n  <script type=\"text/javascript\" src=\"scripts/two.js\"></script>\n  <!-- endbuild -->\n\n  <!-- build:js scripts/async.js async data-foo=\"bar\" -->\n  <script type=\"text/javascript\" src=\"scripts/three.js\"></script>\n  <script type=\"text/javascript\" src=\"scripts/four.js\"></script>\n  <!-- endbuild -->\n</body>\n</html>\n```\n\nThe module would be used with the above sample HTML as follows:\n\n```js\nvar result = useref(sampleHtml);\n\n// [\n//   resultHtml,\n//   {\n//     css: {\n//       'css/combined.css': {\n//         'assets': [ 'css/one.css', 'css/two.css' ]\n//       }\n//     },\n//     js: {\n//       'scripts/combined.js': {\n//         'assets': [ 'scripts/one.js', 'scripts/two.js' ]\n//       },\n//       'scripts/async.js': {\n//          'assets': [ 'scripts/three.js', 'scripts/four.js' ]\n//        }\n//     }\n//   }\n// ]\n```\n\n\nThe resulting HTML would be:\n\n```html\n<html>\n<head>\n  <link rel=\"stylesheet\" href=\"css/combined.css\"/>\n</head>\n<body>\n  <script src=\"scripts/combined.js\"></script>\n  <script src=\"scripts/async.js\" async data-foo=\"bar\" ></script>\n</body>\n</html>\n```\n\n## IE Conditional Comments\n\nInternet Explorer Conditional Comments are preserved. The code below:\n\n```html\n<!-- build:js scripts/combined.js   -->\n<!--[if lt IE 9]>\n<script type=\"text/javascript\" src=\"scripts/this.js\"></script>\n<script type=\"text/javascript\" src=\"scripts/that.js\"></script>\n<![endif]-->\n<!-- endbuild -->\n```\n\nResults in:\n\n```html\n<!--[if lt IE 9]>\n<script src=\"scripts/combined.js\"></script>\n<![endif]-->\n```\n\n### Custom blocks\n\nSometimes you need a bit more. If you would like to do custom processing, this is possible with a custom block, as demonstrated below.\n\n```html\n<!-- build:import components -->\n<link rel=\"import\" href=\"/bower_components/some/path\"></link>\n<!-- endbuild -->\n```\n\nWith\n\n```js\nvar useref = require('useref');\nvar result = useref(inputHtml, {\n  // each property corresponds to any blocks with the same name, e.g. \"build:import\"\n  import: function (content, target, options, alternateSearchPath) {\n    // do something with `content` and return the desired HTML to replace the block content\n    return content.replace('bower_components', target);\n  }\n});\n```\n\nBecomes\n\n```html\n<link rel=\"import\" href=\"/components/some/path\"></link>\n```\n\nThe handler function gets the following arguments:\n\n- *content* (String): The content of the custom use block\n- *target* (String): The \"path\" value of the use block definition\n- *options* (String): The extra attributes from the use block definition, the developer can parse as JSON or do whatever they want with it\n- *alternateSearchPath* (String): The alternate search path that can be used to maintain a coherent interface with standard handlers\n\nInclude a handler for each custom block type.\n\n### Options\n\n#### options.noconcat\n\nType: `Boolean`  \nDefault: `false`  \n\nStrips out build comments but leaves the rest of the block intact without replacing any tags.\n\n```html\n<!-- build:js scripts/combined.js   -->\n<script type=\"text/javascript\" src=\"scripts/this.js\"></script>\n<script type=\"text/javascript\" src=\"scripts/that.js\"></script>\n<!-- endbuild -->\n```\n\nResults in:\n\n```html\n<script type=\"text/javascript\" src=\"scripts/this.js\"></script>\n<script type=\"text/javascript\" src=\"scripts/that.js\"></script>\n```\n\n## Contributing\n\nSee the [CONTRIBUTING Guidelines](https://github.com/jonkemp/useref/blob/master/CONTRIBUTING.md)\n\n## License\n\nMIT © [Jonathan Kemp](http://jonkemp.com)\n",
+  "readmeFilename": "README.md",
+  "bugs": {
+    "url": "https://github.com/jonkemp/useref/issues"
+  },
+  "_id": "useref@1.2.0",
+  "dist": {
+    "shasum": "e297cdb80e0bbda219bbd3d72dd4266a65b7377d"
+  },
+  "_from": "useref@^1.2.0",
+  "_resolved": "https://registry.npmjs.org/useref/-/useref-1.2.0.tgz"
+}
