@@ -1,0 +1,112 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" Inherits="Rock.Web.UI.RockMasterPage" %>
+<!DOCTYPE html>
+
+<html class="no-js">
+<head runat="server">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=10" />
+    <meta charset="utf-8">
+    <title></title>
+    
+    <script src="<%# ResolveRockUrl("~/Scripts/jquery-1.10.2.min.js" ) %>"></script>
+
+    <!-- Set the viewport width to device width for mobile -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <asp:ContentPlaceHolder ID="css" runat="server" />
+
+    <script src="https://use.typekit.net/jwz2kgc.js"></script>
+    <script>try{Typekit.load({ async: true });}catch(e){}</script>
+
+	<!-- Included CSS Files -->
+    <!--build:css /Styles/theme-styles.css -->
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/bootstrap.css", false) %>"/>
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/theme.css", false) %>"/>
+	<link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/layout.css", false) %>"/>
+	<link rel="stylesheet" href="<%# ResolveRockUrl("~/Styles/developer.css", false) %>"/>
+    <!-- endbuild -->
+
+    <script src="<%# ResolveRockUrl("~/Scripts/modernizr.js" ) %>" ></script>
+
+    <asp:ContentPlaceHolder ID="head" runat="server"></asp:ContentPlaceHolder>
+
+    <!-- Icons -->
+    <link rel="shortcut icon" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/favicon.ico", true) %>">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/touch-icon-ipad-retina.png", true) %>">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/touch-icon-iphone-retina.png", true) %>">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/touch-icon-ipad.png", true) %>">
+    <link rel="apple-touch-icon-precomposed" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/touch-icon-iphone.png", true) %>">
+</head>
+<body>
+
+    <form id="form1" runat="server">
+        <div id="NavScrim"></div>
+        <button type="button" id="NavToggle" class="visible-xs-inline pull-right"><span class="fa fa-bars"></span></button>
+
+        <!-- Page Header -->
+        <header id="SiteHeader" class="container">
+            <aside id="MastHead">
+                <Rock:Zone Name="Header" runat="server" />
+            </aside>
+            <section id="SiteNavigation">
+                <div id="UserPanel">
+                    <Rock:Zone Name="Login" runat="server" />
+                </div>
+                <div id="NavBar">
+                    <Rock:Zone Name="Navigation" runat="server" />
+                </div>
+            </section>
+        </header>
+
+        <section id="DocumentWrapper">
+		
+            <asp:ContentPlaceHolder ID="feature" runat="server"></asp:ContentPlaceHolder>
+
+            <asp:ContentPlaceHolder ID="main" runat="server"></asp:ContentPlaceHolder>
+
+    	    <footer>
+                <div class="container">
+    		    
+                    <hr />
+
+                    <div class="row">
+    			        <div class="col-md-12">
+    				        <Rock:Zone Name="Footer" runat="server" />
+    			        </div>
+    		        </div>
+
+                </div>
+    	    </footer>
+        </section>
+        
+        <%-- controls for scriptmanager and update panel --%>
+        <asp:ScriptManager ID="sManager" runat="server"/>
+        <asp:UpdateProgress id="updateProgress" runat="server" DisplayAfter="800">
+		        <ProgressTemplate>
+		            <div class="updateprogress-status">
+                        <div class="spinner">
+                          <div class="rect1"></div>
+                          <div class="rect2"></div>
+                          <div class="rect3"></div>
+                          <div class="rect4"></div>
+                          <div class="rect5"></div>
+                        </div>
+                    </div>
+                    <div class="updateprogress-bg modal-backdrop"></div>
+		        </ProgressTemplate>
+        </asp:UpdateProgress>
+
+        <script>
+        $("#NavToggle").click(function() {
+            var $body = $("body");
+  
+            $body.toggleClass("menu-open");
+  
+        });
+
+        </script>
+    </form>
+
+</body>
+
+</html>

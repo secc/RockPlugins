@@ -1,0 +1,49 @@
+﻿
+@fa-font-path: '../../../Assets/Fonts/FontAwesome';
+
+@import "../../../Styles/FontAwesome/font-awesome.less";
+@import "_inc/_init.less";
+@import "../../../../Styles/_rock-core.less";
+
+legend {
+	font-family: @proxima-light;
+	font-weight: 300;
+}
+
+.page-title {
+	margin-bottom: 0;
+}
+
+
+
+
+.btn-default:hover when (@btn-default-bg = transparent) {
+  background-color: fade(@btn-default-color, 75%);
+}
+.btn-primary:hover when (@btn-primary-bg = transparent) {
+  background-color: fade(@btn-primary-color, 75%);
+}
+// Success appears as green
+.btn-success:hover when (@btn-success-bg = transparent) {
+  background-color: fade(@btn-success-color, 75%);
+}
+// Info appears as blue-green
+.btn-info:hover when (@btn-info-bg = transparent) {
+  background-color: fade(@btn-info-color, 75%);
+}
+// Warning appears as orange
+.btn-warning:hover when (@btn-warning-bg = transparent) {
+  background-color: fade(@btn-warning-color, 75%);
+}
+// Danger and error appear as red
+.btn-danger:hover when (@btn-danger-bg = transparent) {
+  background-color: fade(@btn-danger-color, 75%);
+}
+
+.btn-security:hover when (@btn-security-bg = transparent) {
+  background-color: fade(@btn-security-color, 75%);
+}
+
+.btn-action:hover when (@btn-action-bg = transparent) {
+	background-color: fade(#fff, 25%);
+}
