@@ -28,7 +28,22 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 if ( Request["__EVENTTARGET"] == "ClientName" )
                 {
+                    //Use Kiosk given client name
                     SetKiosk( Request["__EVENTARGUMENT"] );
+                }
+                else if ( Request["__EVENTTARGET"] == "UseDNS" )
+                {
+                    //if the Javascript request throws an error
+                    //try to get kiosk name via Javascript
+                    try
+                    {
+                        var ip = Rock.Web.UI.RockPage.GetClientIpAddress();
+                        SetKiosk( System.Net.Dns.GetHostEntry( ip ).HostName );
+                    }
+                    catch
+                    {
+
+                    }
                 }
                 else
                 {
@@ -98,6 +113,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
             else
             {
+                ltDNS.Text = kiosk.Name;
                 pnlMain.Visible = true;
             }
         }

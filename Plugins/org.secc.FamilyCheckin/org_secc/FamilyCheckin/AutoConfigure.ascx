@@ -3,8 +3,14 @@
 <script>
     var getClientName = function ()
     {
-        var client = window.external.GetClientName();
-        __doPostBack("ClientName", client);
+        try {
+            var client = window.external.GetClientName();
+            __doPostBack("ClientName", client);
+        }
+        catch (e)
+        {
+            __doPostBack("UseDNS", "");
+        }
     }
 </script>
 
