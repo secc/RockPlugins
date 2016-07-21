@@ -300,7 +300,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 var group = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
                 .SelectMany( f => f.People.Where( p => p.Person.Guid == person.Guid ) )
                 .SelectMany( p => p.GroupTypes.Where( gt => gt.GroupType.ParentGroupTypes.Select( pgt => pgt.Guid ).Contains( currentParentGroupType.Guid ) == true && gt == groupType ) )
-                .SelectMany( gt => gt.Groups ).FirstOrDefault( g => g.Selected );
+                .SelectMany( gt => gt.Groups ).Where(g => g.Selected && g.Locations.Where( l => l.Schedules.Where( s => s.Selected ).Select( s => s.Schedule.Id ).Contains( schedule.Schedule.Id ) && l.Selected ).Any())
+                .FirstOrDefault();
 
                 if ( group != null )
                 {
