@@ -42,7 +42,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     }
                     catch
                     {
-
+                        ltDNS.Text = "Unable to determine device name.";
+                        pnlMain.Visible = true;
                     }
                 }
                 else
