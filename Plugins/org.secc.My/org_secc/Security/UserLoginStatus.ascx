@@ -2,12 +2,8 @@
 
 <div class="login-status">
 
-    <div class="profile-photo">
-        <asp:Image ID="ProfilePhoto" runat="server" CssClass="img-responsive img-circle" />
-    </div>
-
     <div class="user-info">
-        <h3 id="PersonName" class="user-name" runat="server"></h3>
+        <h3 id="PersonName" class="user-name" runat="server"><i class="fa fa-lock"></i></h3>
         <div class="user-details">
             <div id="PersonEmail" class="user-email" runat="server"></div>
 
