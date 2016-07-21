@@ -148,6 +148,8 @@
             <asp:LinkButton ID="lbAcceptRequisition" CssClass="btn btn-default" runat="server" CommandName="acceptrequisition" OnClick="ToolbarItem_click" Visible="false">Accept Requisition</asp:LinkButton>
             <asp:LinkButton ID="lbReturnToRequester" CssClass="btn btn-default" runat="server" CommandName="returntorequester" OnClick="ToolbarItem_click" Visible="false">Return to Requester</asp:LinkButton>
             <asp:LinkButton ID="lbCancel" CssClass="btn btn-default" runat="server" CommandName="cancelrequisition" OnClick="ToolbarItem_click" Visible="false">Cancel Requisition</asp:LinkButton>
+            <asp:LinkButton ID="lbReopen" CssClass="btn btn-default" runat="server" CommandName="reopenrequisition" OnClick="ToolbarItem_click" Visible="false">Reopen Requisition</asp:LinkButton>
+
             <asp:LinkButton ID="lbReturn" CssClass="btn btn-default" runat="server" CommandName="return" OnClick="ToolbarItem_click" Visible="true">Return To List</asp:LinkButton>
         </div>
         <div id="pnlMain" class="panel panel-block">
@@ -218,7 +220,7 @@
                             <div class="row">
                             
                                 <div class="col-md-4">
-                                    <div class="form-group required">
+                                    <div class="form-group">
                                         <label class="control-label">Pref. Vendor:</label>
                                         <div>
                                             <asp:Label ID="lblVendor" runat="server" />
