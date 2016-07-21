@@ -46,5 +46,21 @@
             </Rock:Grid>
             <Rock:ModalAlert ID="maAlert" runat="server" />
         </div>
+        <script type="text/javascript">
+            $(document).ready(function ()
+            {
+                el = $('.grid-filter header').get();
+                $('i.toggle-filter', el).toggleClass('fa-chevron-down fa-chevron-up');
+                var $hf = $('input', el).first();
+                if ($hf.val() != 'true')
+                {
+                    $hf.val('true');
+                } else
+                {
+                    $hf.val('false');
+                }
+                $(el).siblings('div').slideToggle();
+            });
+        </script>
     </ContentTemplate>
 </asp:UpdatePanel>

@@ -37,7 +37,7 @@
                         </div>
                             <div class="col-sm-8">
                                 <Rock:RockTextBox runat="server" ValidationGroup="Attachment" Rows="5" Label="Description"
-                                     TextMode="MultiLine" Required="true" ID="tbAttachmentDesc"></Rock:RockTextBox>
+                                     TextMode="MultiLine" ID="tbAttachmentDesc"></Rock:RockTextBox>
                         </div>
                     </div>
                 </div>

@@ -506,62 +506,27 @@
                 </asp:UpdatePanel>
             </Content>
         </Rock:ModalDialog>
-        <Rock:ModalDialog ID="mpAddRequistion" runat="server">
+        <Rock:ModalDialog ID="mpAddRequistion" runat="server" Title="Add Requisition" OnSaveClick="btnRequisitionAddSave_Click">
             <Content>
-                <asp:UpdatePanel ID="upAddRequisition" runat="server" UpdateMode="Conditional">
-                    <ContentTemplate>
-                        <div id="pnlAddRequisition">
-                            <h3>Add Requisition</h3>
-                            <div class="smallText" style="padding-top: 5px; padding-bottom: 5px; color: red;">
-                                <asp:Literal ID="lAddRequisitionError" runat="server" Visible="false" />
-                            </div>
-                            <div class="field">
-                                <label>
-                                    Requisition Title
-                                    <span class="required">*</span>
-                                </label>
-                                <div class="formItem">
-                                    <asp:TextBox ID="txtRequisitionAddTitle" runat="server" />
-                                </div>
-                            </div>
-                            <div class="field">
-                                <label>
-                                    Requester
-                                </label>
-                                <div class="formItem">
-                                    <asp:HiddenField ID="hfRequisitionAddRequesterId" runat="server" />
-                                    <asp:Literal ID="lRequisitionAddRequesterName" runat="server" />
-                                    <asp:Button ID="btnRequisitionAddSelectRequester" runat="server" Text="..." CssClass="smallText" OnClick="btnRequisitionAddSelectRequester_Click" Visible="true" />
-                                    <asp:HiddenField ID="hfRequisitionAddSearchResults" runat="server" />
-                                    <asp:Button ID="btnRequisitionAddRequesterSet" runat="server" Style="display: none; visibility: hidden;" OnClick="btnRequisitionAddRequesterSet_Click" />
-                                </div>
-                            </div>
-                            <div class="field">
-                                <label>
-                                    Deliver To:
-                                    <span class="required">*</span>
-                                </label>
-                                <div class="formItem">
-                                    <asp:TextBox ID="txtRequisitionAddDeliverTo" runat="server" />
-                                </div>
-                            </div>
-                            <div class="field">
-                                <div class="formItem">
-                                    <asp:CheckBox ID="cbRequisitionAddOpenRequisition" runat="server" Text="Open Requisition in New Window" TextAlign="Right" />
-                                </div>
-                            </div>
+                <div id="pnlAddRequisition">
+                    <div class="alert alert-danger" ID="lAddRequisitionError" runat="server" Visible="false" />
+                    <Rock:RockTextBox Label="Requisition Title:" ID="txtRequisitionAddTitle" runat="server" CssClass="form-control" ValidationGroup="AddReq" Required="true" />
+                    <div class="form-group">
+                        <label>
+                            Requester
+                        </label>
+                        <div class="formItem">
+                            <secc:StaffPicker ID="spRequisitionRequester" runat="server" AllowMultipleSelections="false" UserCanEdit="true"/>
                         </div>
-                    </ContentTemplate>
-                    <Triggers>
+                    </div>
+                    <Rock:RockTextBox Label="Deliver To:" ID="txtRequisitionAddDeliverTo" runat="server" CssClass="form-control" ValidationGroup="AddReq" Required="true" />
 
-                        <asp:AsyncPostBackTrigger ControlID="btnRequisitionAddSave" />
-                        <asp:AsyncPostBackTrigger ControlID="btnRequisitionAddCancel" />
-                        <asp:AsyncPostBackTrigger ControlID="lbMenuItem_AddRequisition" />
-                    </Triggers>
-                </asp:UpdatePanel>
-                <asp:Button ID="btnRequisitionAddSave" runat="server" CssClass="button" Text="Save" OnClick="btnRequisitionAddSave_Click" />
-                <asp:Button ID="btnRequisitionAddCancel" runat="server" CssClass="button" Text="Cancel" OnClick="btnRequisitionAddCancel_Click" />
-    
+                    <div class="field">
+                        <div class="formItem">
+                            <asp:CheckBox ID="cbRequisitionAddOpenRequisition" runat="server" Text="Open Requisition in New Window" TextAlign="Right" />
+                        </div>
+                    </div>
+                </div>
             </Content>
         </Rock:ModalDialog>
         <Rock:ModalDialog ID="mpCancelRequest" runat="server">
