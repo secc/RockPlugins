@@ -494,6 +494,17 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 if ( children.Any() )
                 {
                     primaryGroupTypes.AddRange( children );
+                    foreach(var child in children )
+                    {
+                        if ( child.ChildGroupTypes.Any() )
+                        {
+                            primaryGroupTypes.AddRange( child.ChildGroupTypes.ToList() );
+                        }
+                        else
+                        {
+                            primaryGroupTypes.Add( child );
+                        }
+                    }
                 }
                 else
                 {
