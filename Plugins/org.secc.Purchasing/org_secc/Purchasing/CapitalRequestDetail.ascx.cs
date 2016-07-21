@@ -268,6 +268,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             prsnRequester.PositionAttributeGuid = PositionPersonAttributeSetting;
             ucStaffSearchRequester.MinistryAreaAttributeGuid = MinistryAreaPersonAttributeSetting;
             ucStaffSearchRequester.PositionAttributeGuid = PositionPersonAttributeSetting;
+            spRequisitionRequester.MinistryAreaAttributeGuid = MinistryAreaPersonAttributeSetting;
+            spRequisitionRequester.PositionAttributeGuid = PositionPersonAttributeSetting;
         }
 
         protected override void OnInit( EventArgs e )
@@ -562,16 +564,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             ucStaffSearchRequester.PersonDetailPage = PersonDetailPageSetting;
             ucStaffSearchRequester.Show();*/
         }
-        protected void btnRequisitionAddRequesterSet_Click( object sender, EventArgs e )
-        {
-            string[] personList = hfRequisitionAddSearchResults.Value.Split( ",".ToCharArray() );
-            int pId = 0;
-
-            if ( personList.Length > 0 && int.TryParse( personList[0], out pId ) )
-            {
-                SetRequisitionRequester( pId );
-            }
-        }
 
         protected void btnRequisitionAddSave_Click( object sender, EventArgs e )
         {
@@ -579,19 +571,19 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             SetAddRequisitionErrorMessage( null );
             try
             {
-                int.TryParse( hfRequisitionAddRequesterId.Value, out requesterId );
 
-                int requisitionID = CurrentCapitalRequest.AddRequisition( txtRequisitionAddTitle.Text, requesterId, txtRequisitionAddDeliverTo.Text, CurrentUser.UserName );
+                int requisitionID = CurrentCapitalRequest.AddRequisition( txtRequisitionAddTitle.Text, spRequisitionRequester.StaffPersonAliasId.Value, txtRequisitionAddDeliverTo.Text, CurrentUser.UserName );
 
                 mpAddRequistion.Hide();
 
                 if ( requisitionID > 0 && cbRequisitionAddOpenRequisition.Checked )
                 {
-                    string reqLink = string.Format( "/default.aspx?page={0}&RequisitionId={1}", RequisitionDetailPageSetting, requisitionID );
+                    PageService pageService = new PageService( new RockContext() );
+                    string reqLink = string.Format( "/page/{0}?RequisitionId={1}", pageService.Get( new Guid( GetAttributeValue( "RequisitionDetailPage" ) ) ).Id, requisitionID );
 
                     string script = string.Format( "window.open(\"{0}\", \"_blank\");", reqLink );
 
-                    ScriptManager.RegisterStartupScript( upAddRequisition, upAddRequisition.GetType(), "AddRequisition" + DateTime.Now.Ticks, script, true );
+                    ScriptManager.RegisterStartupScript( mpAddRequistion, mpAddRequistion.GetType(), "AddRequisition" + DateTime.Now.Ticks, script, true );
                 }
 
                 LoadRequest();
@@ -1450,7 +1442,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             SetAddRequisitionErrorMessage( null );
             txtRequisitionAddTitle.Text = null;
-            SetRequisitionRequester( CurrentPerson.PrimaryAliasId.Value );
+            spRequisitionRequester.StaffPersonAliasId = CurrentPerson.PrimaryAliasId;
             txtRequisitionAddDeliverTo.Text = null;
             cbRequisitionAddOpenRequisition.Checked = false;
         }
@@ -1784,7 +1776,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void SetAddRequisitionErrorMessage( string message )
         {
-            lAddRequisitionError.Text = message;
+            lAddRequisitionError.InnerHtml = message;
 
             lAddRequisitionError.Visible = !String.IsNullOrWhiteSpace( message );
         }
@@ -1818,20 +1810,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             lRequestError.Text = message;
             pnlCERError.Visible = !String.IsNullOrWhiteSpace( message );
-        }
-
-        private void SetRequisitionRequester( int personId )
-        {
-            PersonAliasService personAliasService = new PersonAliasService(new Rock.Data.RockContext());
-            Person p = personAliasService.Get(personId).Person;
-
-            if (p.PrimaryAliasId <= 0)
-            {
-                return;
-            }
-
-            hfRequisitionAddRequesterId.Value = p.PrimaryAliasId.ToString();
-            lRequisitionAddRequesterName.Text = p.FullName;
         }
 
         private void SetRequesterEdit( int requesterId )

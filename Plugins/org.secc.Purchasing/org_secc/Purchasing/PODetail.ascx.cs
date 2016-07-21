@@ -23,7 +23,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
     [Category("SECC > Purchasing")]
     [Description("Manage a single Purchase Order.")]
 
-    [TextField("Default Ship To Name", "Default value for Ship to (company) name. Setting defaults to Southeast Christian Church", false, "Southeast Christian Church", "Ship To")]
+    [TextField("Default Ship To Name", "Default value for Ship to (company) name. Setting defaults to (blank)", false, "", "Ship To")]
     [TextField("Default Ship To Attention", "Default value for Ship To Attention. Setting defaults to (blank)", false, "", "Ship To")]
     [CampusField("Default Ship To Campus", "Default ship to campus. Setting defaults to 920 campus.", false, "1", "Ship To")]
     [BooleanField("Show Inactive Vendors", "Show Inactive Vendors by default. Setting defaults to false", false, "Vendors")]
@@ -183,7 +183,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             };
             button.Click += btnPaymentMethodPaymentUpdateCharges_Click;
             mpPayments.Footer.Controls.Add(button);
-
+            
             ucStaffSearch.MinistryAreaAttributeGuid = MinistryAreaAttributeIDSetting;
             ucStaffSearch.PositionAttributeGuid = PositionAttributeIDSetting;
 
@@ -840,7 +840,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             dgItems.NoResultText = "No items found";*/
 
             HyperLinkField hlc = (HyperLinkField)dgItems.Columns[8];
-            hlc.DataNavigateUrlFormatString = "~/default.aspx?page=" + RequisitionDetailPageSetting + "&RequisitionID={0}";
+            PageService pageService = new PageService( new Rock.Data.RockContext() );
+            hlc.DataNavigateUrlFormatString = "/page/" + (pageService.Get( RequisitionDetailPageSetting.AsGuid()).Id) + "?RequisitionID={0}";
         }
 
         private DataTable GetReceivingHistory()
@@ -1304,7 +1305,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             if ( VendorID <= 0 )
             {
-                SetSummaryError( "Please select vendor before saving." );
+                SetSummaryError( "Please select vendor before saving or adding items." );
                 return false;
             }
 
@@ -1370,7 +1371,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void SetSummaryError(string errorMessage)
         {
-            lblSummaryError.Text = errorMessage;
+            lblSummaryError.InnerText = errorMessage;
             lblSummaryError.Visible = !String.IsNullOrEmpty(errorMessage);
         }
 
@@ -1414,15 +1415,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         #region Vendor Modal
         protected void btnVendorAdd_Click(object sender, EventArgs e)
         {
-            if (AddNewVendor())
-            {
-                BindVendorList(chkVendorShowInactive.Checked);
-                int vendorID = 0;
-                int.TryParse(hfVendorSelectID.Value, out vendorID);
-
-                if (vendorID > 0 && ddlVendorSelect.Items.FindByValue(vendorID.ToString()) != null)
-                    ddlVendorSelect.SelectedValue = vendorID.ToString();
-            }
         }
 
         protected void btnVendorCancel_Click(object sender, EventArgs e)
@@ -1443,7 +1435,19 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         protected void btnVendorSelect_Click(object sender, EventArgs e)
         {
-            if (SelectVendor())
+            
+            if ( String.IsNullOrEmpty(hfVendorSelectID.Value)) {
+                if ( AddNewVendor() )
+                {
+                    BindVendorList( chkVendorShowInactive.Checked );
+                    int vendorID = 0;
+                    int.TryParse( hfVendorSelectID.Value, out vendorID );
+
+                    if ( vendorID > 0 && ddlVendorSelect.Items.FindByValue( vendorID.ToString() ) != null )
+                        ddlVendorSelect.SelectedValue = vendorID.ToString();
+                }
+            }
+            else if (SelectVendor())
             {
                 CloseVendorModal();
             }
@@ -1464,13 +1468,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             ClearVendorModalFields();
             int selectedVendor = 0;
             int.TryParse(ddlVendorSelect.SelectedValue, out selectedVendor);
-
-            if (selectedVendor == 0)
-            {
-                btnVendorAdd.CssClass = btnVendorAdd.CssClass.Replace("btnAddHide", "");
-                btnVendorSelect.CssClass = btnVendorSelect.CssClass + " btnAddHide";
-
-            }
+            
             PopulateVendorModalFields(selectedVendor);
         }
 
@@ -1560,24 +1558,16 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             txtVendorAddress.Text = String.Empty;
             lblVendorSelectAddress.Text = "&nbsp;";
             txtVendorCity.Text = String.Empty;
-            lblVendorSelectCity.Text = "&nbsp;";   
             txtVendorState.Text = String.Empty;
-            lblVendorSelectState.Text = "&nbsp;";
             txtVendorZip.Text = string.Empty;
-            lblVendorSelectZip.Text = "&nbsp;";
             txtVendorPhone.Text = string.Empty;
-            lblVendorSelectPhone.Text = "&nbsp;";
             txtVendorPhoneExtn.Text = string.Empty;
-            lblVendorSelectPhoneExtn.Text = "&nbsp;";
             txtVendorWebAddress.Text = string.Empty;
             txtVendorSelectTerms.Text = string.Empty;
             lblVendorSelectTerms.Text = "&nbsp;";
             chkVendorActive.Checked = false;
+            
 
-            if (!btnVendorAdd.CssClass.Contains("btnAddHide"))
-                btnVendorAdd.CssClass = btnVendorAdd.CssClass + " btnAddHide";
-
-            btnVendorSelect.CssClass = btnVendorSelect.CssClass.Replace("btnAddHide", "");
         }
 
         private void CloseVendorModal()
@@ -1615,18 +1605,13 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     txtVendorAddress.Text = v.Address.StreetAddress;
                     lblVendorSelectAddress.Text = v.Address.StreetAddress;
                     txtVendorCity.Text = v.Address.City;
-                    lblVendorSelectCity.Text = v.Address.City;
                     txtVendorState.Text = v.Address.State;
-                    lblVendorSelectState.Text = v.Address.State;
                     txtVendorZip.Text = v.Address.PostalCode;
-                    lblVendorSelectZip.Text = v.Address.PostalCode;
                 }
                 if (v.Phone != null)
                 {
                     txtVendorPhone.Text = v.Phone.FormatNumber(false);
-                    lblVendorSelectPhone.Text = v.Phone.FormatNumber(false);
                     txtVendorPhoneExtn.Text = v.Phone.Extension;
-                    lblVendorSelectPhoneExtn.Text = v.Phone.Extension;
                 }
                 if (!String.IsNullOrEmpty(v.WebAddress))
                 {
@@ -1770,21 +1755,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             txtVendorPhone.ReadOnly = !canEdit;
             txtVendorPhoneExtn.ReadOnly = !canEdit;
             txtVendorWebAddress.ReadOnly = !canEdit;
-            lblVendorSelectStreetHeader.Enabled = canEdit;
-            lblVendorSelectCityHeader.Enabled = canEdit;
-            lblVendorSelectStateHeader.Enabled = canEdit;
-            lblVendorSelectZipHeader.Enabled = canEdit;
+            txtVendorSelectTerms.ReadOnly = !canEdit;
             lblVendorSelectPhoneExtnHeader.Enabled = canEdit;
             
-
-            if (ddlVendorSelect.SelectedValue == "-1")
-            {
-                txtVendorSelectTerms.ReadOnly = false;
-            }
-            else
-            {
-                txtVendorSelectTerms.ReadOnly = true;
-            }
+            
         }
 
         private void SetToolbarVisibility()
@@ -1836,7 +1810,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void SetVendorError(string errorMsg)
         {
-            lblVendorSelectError.Text = errorMsg;
+            lblVendorSelectError.InnerText = errorMsg;
             lblVendorSelectError.Visible = !String.IsNullOrEmpty(errorMsg);
         }
         #endregion
@@ -2615,7 +2589,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             foreach (GroupMember pm in pmc.Members)
             {
                 if (pm.GroupMemberStatus == GroupMemberStatus.Active)
-                    ConnectedMembers.Add(pm.PersonId, pm.Person.FullName);
+                    ConnectedMembers.Add(pm.Person.PrimaryAliasId.Value, pm.Person.FullName);
             }
 
             ddlReceivedByUser.Items.Clear();

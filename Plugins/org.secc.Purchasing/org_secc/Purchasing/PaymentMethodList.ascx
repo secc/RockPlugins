@@ -5,7 +5,7 @@
         <div class="panel-heading">
             <h1 class="panel-title"><i class="fa fa-credit-card"></i>&nbsp;Payment Methods</h1>
             <asp:placeholder ID="phNewVendor" runat="server">
-                <a href="#" ID="lbNewVendor" class="btn-add btn btn-default btn-sm pull-right"><i class="fa fa-plus"></i> New Payment Method</a>
+                <asp:LinkButton OnClick="dgPayMethods_AddItem" id="lbNewVendor" runat="server" CssClass="btn-add btn btn-default btn-sm pull-right"><i class="fa fa-plus"></i> New Payment Method</asp:LinkButton>
             </asp:placeholder>
         </div>
         <div class="panel-body">
@@ -72,9 +72,18 @@
                                         &nbsp;
                                     </div>
                                 </div>
+                                    <div class="form-group">
+                                        <label class="control-label">
+                                            Active Flag:
+                                        </label>
+                                        <div>      
+                                            <Rock:RockCheckBox ID="chkActive" runat="server" AutoPostBack="false" Text="Active"/>
+                                        </div>
+
+                                    </div>
                             </div>
                             <div class="col-md-6">
-                                <div id="pnlCC" runat="server" visible="true" >
+                                <div id="pnlCC" runat="server" visible="false" >
                                     <div class="form-group">
                                         <label class="control-label">
                                             Account Owner:
@@ -103,15 +112,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="form-group">
-                                        <label class="control-label">
-                                            Active Flag:
-                                        </label>
-                                        <div>      
-                                            <Rock:RockCheckBox ID="chkActive" runat="server" AutoPostBack="false" Text="Active"/>
-                                        </div>
-
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -124,5 +124,21 @@
                         </div>
             </Content>
         </Rock:ModalDialog>
+        <script type="text/javascript">
+            $(document).ready(function ()
+            {
+                el = $('.grid-filter header').get();
+                $('i.toggle-filter', el).toggleClass('fa-chevron-down fa-chevron-up');
+                var $hf = $('input', el).first();
+                if ($hf.val() != 'true')
+                {
+                    $hf.val('true');
+                } else
+                {
+                    $hf.val('false');
+                }
+                $(el).siblings('div').slideToggle();
+            });
+        </script>
     </ContentTemplate>
 </asp:UpdatePanel>
