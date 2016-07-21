@@ -46,7 +46,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
     [SystemEmailField("New Requisition in Purchasing Queue Notification", "Notification for when new requisition has been added to the purchasing queue.", true, "", "Notifications")]
     [SystemEmailField("Requisition Submitted To Purchasing Notification", "Notification to requester when requisition has been submitted to purchasing.", true, "", "Notifications")]
     [SystemEmailField("Requisition Returned To Requester Notification", "Notification to requester when requisition has been returned to requester.", true, "", "Notifications")]
-    [SystemEmailField("Requisition Accepted by Purchasing Notification", "Notification to requester when purchasing has accepted the requisition.", true, "", "Notifications")]
+    [SystemEmailField("Requisition Accepted By Purchasing Notification", "Notification to requester when purchasing has accepted the requisition.", true, "", "Notifications")]
     [LinkedPage("Requisition List Page", "Page that shows the requisition list", true, "", "General")]
     [LinkedPage("Purchase Order Detail Page", "Page that shows the Purchase Order", true, "", "General")]
     [LinkedPage("Capital Request Detail Page", "Page that shows the Capital Request", true, "", "General")]
@@ -237,7 +237,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             get
             {
                 int templateID = 0;
-                int.TryParse(GetAttributeValue("AcceptedByPurchasingNotification"), out templateID);
+                int.TryParse(GetAttributeValue( "RequisitionAcceptedByPurchasingNotification" ), out templateID);
 
                 return templateID;
 
@@ -877,6 +877,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                         break;
                     case "additemtopo":
                         ShowSelectPurchaseOrderModal();
+                        break;
+                    case "reopenrequisition":
+                        ReopenRequisition();
                         break;
                     default:
                         break;
@@ -1534,6 +1537,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             bool CanAcceptOrReturn = CanUserAcceptOrReturnRequisition();
             lbAcceptRequisition.Visible = CanAcceptOrReturn;
             lbReturnToRequester.Visible = CanAcceptOrReturn;
+            lbReopen.Visible = UserCanEdit && CurrentRequisition != null && !CurrentRequisition.IsOpen;
 
 
         }
@@ -2041,6 +2045,19 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if ( CurrentRequisition != null )
                 CurrentRequisition.Cancel( CurrentUser.UserName );
         }
+
+        private void ReopenRequisition()
+        {
+            if ( CurrentRequisition != null )
+            {
+
+                CurrentRequisition.StatusLUID = Requisition.DraftLUID();
+                CurrentRequisition.IsOpen = true;
+                CurrentRequisition.Save( CurrentUser.UserName );
+                LoadRequisition();
+            }
+        }
+
         protected void btnCapitalRequestModalShow_Click( object sender, EventArgs e )
         {
             LoadCERList();
