@@ -171,28 +171,34 @@
                             OnClick="btnSaveAddPerson_Click"></Rock:BootstrapButton>
                     </asp:Panel>
                     <asp:Panel runat="server" ID="pnlEditPerson" Visible="false">
-                        <div class="col-xs-12">
-                            <h1>
-                                <asp:Literal Text="" ID="ltEditName" runat="server" />
-                            </h1>
+                        <div class="row">
 
-                            <div class="col-xs-12 col-sm-4">
-                                <Rock:DatePicker ID="dpEditBirthDate" runat="server" Label="Birthdate" />
-                            </div>
-                            <div class="col-xs-12 col-sm-4">
-                                <Rock:GradePicker ID="gpEditGrade" runat="server" Label="Grade" UseAbbreviation="true" UseGradeOffsetAsValue="true" />
-                            </div>
-                            <div class="col-xs-12 col-sm-4">
-                                <Rock:YearPicker runat="server" ID="ypEditGraduation" Label="Graduation"></Rock:YearPicker>
+                            <div class="col-xs-12">
+                                <h1>
+                                    <asp:Literal Text="" ID="ltEditName" runat="server" />
+                                </h1>
+
+                                <div class="col-xs-12 col-sm-4">
+                                    <Rock:DatePicker ID="dpEditBirthDate" runat="server" Label="Birthdate" />
+                                </div>
+                                <div class="col-xs-12 col-sm-4">
+                                    <Rock:GradePicker ID="gpEditGrade" runat="server" Label="Grade" UseAbbreviation="true" UseGradeOffsetAsValue="true" />
+                                </div>
+                                <div class="col-xs-12 col-sm-4">
+                                    <Rock:YearPicker runat="server" ID="ypEditGraduation" Label="Graduation"></Rock:YearPicker>
+                                </div>
+
+                                <div class="col-xs-12">
+                                    <fieldset id="fsAttributes" runat="server" class="attribute-values"></fieldset>
+                                    <Rock:BootstrapButton runat="server" ID="btnSaveAttributes" CssClass="btn btn-primary"
+                                        OnClick="btnSaveAttributes_Click" Text="Save"></Rock:BootstrapButton>
+                                    <Rock:BootstrapButton runat="server" Text="Cancel" OnClick="btnCancelAttributes_Click"
+                                        ID="btnCancelAttributes" CssClass="btn btn-danger">
+
+                                    </Rock:BootstrapButton>
+                                </div>
                             </div>
 
-                            <fieldset id="fsAttributes" runat="server" class="attribute-values"></fieldset>
-                            <Rock:BootstrapButton runat="server" ID="btnSaveAttributes" CssClass="btn btn-primary"
-                                OnClick="btnSaveAttributes_Click" Text="Save"></Rock:BootstrapButton>
-                            <Rock:BootstrapButton runat="server" Text="Cancel" OnClick="btnCancelAttributes_Click"
-                                ID="btnCancelAttributes" CssClass="btn btn-danger">
-
-                            </Rock:BootstrapButton>
                         </div>
                     </asp:Panel>
 
