@@ -77,8 +77,7 @@ namespace RockWeb.Plugins.org_secc.Security
             var currentPerson = CurrentPerson;
             if ( currentPerson != null )
             {
-
-                ProfilePhoto.ImageUrl = Rock.Model.Person.GetPersonPhotoUrl(currentPerson, 200, 200);
+                
                 PersonName.InnerText = currentPerson.FullName;
                 PersonEmail.InnerText = currentPerson.Email;
 
