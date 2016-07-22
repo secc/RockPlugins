@@ -962,7 +962,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 groups.ForEach( g => g.LoadAttributes() );
                 groups = groups
-                    .Where( g => g.GetAttributeValue( "Maximum Members" ).AsInteger() > g.Members.Where( m => m.GroupMemberStatus > 0 ).Count() )
+                    .Where( g => g.GetAttributeValue( "MaxMembers" ).AsInteger() > g.Members.Where( m => m.GroupMemberStatus > 0 ).Count() )
                     .ToList();
             }
 
