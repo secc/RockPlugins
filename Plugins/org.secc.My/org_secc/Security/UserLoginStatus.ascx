@@ -3,7 +3,7 @@
 <div class="login-status">
 
     <div class="user-info">
-        <h3 id="PersonName" class="user-name" runat="server"><i class="fa fa-lock"></i></h3>
+        <h3 id="PersonName" class="user-name" runat="server"><i class="fa fa-lock hidden-xs"></i></h3>
         <div class="user-details">
             <div id="PersonEmail" class="user-email" runat="server"></div>
 
