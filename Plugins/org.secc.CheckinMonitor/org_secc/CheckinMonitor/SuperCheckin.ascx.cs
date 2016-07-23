@@ -339,7 +339,14 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 }
 
                 PanelWidget panelWidget = new PanelWidget();
-                panelWidget.Title = groupType.GroupType.Name;
+                if ( !groupType.Groups.Where( g => !g.ExcludedByFilter ).Any() )
+                {
+                    panelWidget.Title = "<i class='fa fa-exclamation-triangle'></i> " + groupType.GroupType.Name;
+                }
+                else
+                {
+                    panelWidget.Title = groupType.GroupType.Name;
+                }
                 panelWidget.ID = groupType.GroupType.Guid.ToString();
                 phCheckin.Controls.Add( panelWidget );
                 foreach ( var group in groupType.Groups )
