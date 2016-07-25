@@ -26,9 +26,6 @@
                 <div class="col-xs-12 col-sm-2">
                     <Rock:RockDropDownList ID="ddlAdult1Suffix" runat="server" Label="Suffix" CssClass="input-width-md" />
                 </div>
-                <div class="col-xs-12 col-sm-4">
-                    <Rock:RockRadioButtonList ID="rblAdult1Gender" runat="server" Label="Gender" RepeatDirection="Horizontal" />
-                </div>
                 <div class="col-xs-8 col-sm-6">
                     <Rock:PhoneNumberBox ID="pnbAdult1Phone" runat="server" Label="Phone Number"></Rock:PhoneNumberBox>
                 </div>
@@ -48,9 +45,6 @@
                 <div class="col-xs-12 col-sm-2">
                     <Rock:RockDropDownList ID="ddlAdult2Suffix" runat="server" Label="Suffix" CssClass="input-width-md" />
                 </div>
-                <div class="col-xs-12 col-sm-4">
-                    <Rock:RockRadioButtonList ID="rblAdult2Gender" runat="server" Label="Gender" RepeatDirection="Horizontal" />
-                </div>
                 <div class="col-xs-8 col-sm-6">
                     <Rock:PhoneNumberBox ID="pnbAdult2Phone" runat="server" Label="Phone Number"></Rock:PhoneNumberBox>
                 </div>
@@ -60,7 +54,7 @@
                 </div>
             </div>
             <h2>Family Info</h2>
-            <Rock:CampusPicker runat="server" ID="cpNewFamilyCampus"></Rock:CampusPicker>
+            <Rock:CampusPicker runat="server" ID="cpNewFamilyCampus" DataValueField="Id" DataTextField="Name"></Rock:CampusPicker>
             <Rock:AddressControl runat="server" ID="acNewFamilyAddress" />
             <Rock:BootstrapButton runat="server" ID="btnNewFamily" Text="Create New Family"
                 CssClass="btn btn-primary" OnClick="btnNewFamily_Click"></Rock:BootstrapButton>
