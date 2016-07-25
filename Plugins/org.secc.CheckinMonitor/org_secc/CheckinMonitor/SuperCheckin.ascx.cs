@@ -106,22 +106,19 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 btnCompleteCheckin.Visible = false;
             }
+
+            if ( ViewState["SelectedPersonId"] != null )
+            {
+                var personId = ( int ) ViewState["SelectedPersonId"];
+                var person = new PersonService( _rockContext ).Get( personId );
+                EditPerson( person, false );
+            }
         }
 
         private void BuildNewFamilyControls()
         {
             ddlAdult1Suffix.BindToDefinedType( DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ), true );
             ddlAdult2Suffix.BindToDefinedType( DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ), true );
-
-            rblAdult1Gender.Items.Clear();
-            rblAdult1Gender.Items.Add( new ListItem( Gender.Male.ConvertToString(), Gender.Male.ConvertToInt().ToString() ) );
-            rblAdult1Gender.Items.Add( new ListItem( Gender.Female.ConvertToString(), Gender.Female.ConvertToInt().ToString() ) );
-            rblAdult1Gender.Items.Add( new ListItem( Gender.Unknown.ConvertToString(), Gender.Unknown.ConvertToInt().ToString() ) );
-
-            rblAdult2Gender.Items.Clear();
-            rblAdult2Gender.Items.Add( new ListItem( Gender.Male.ConvertToString(), Gender.Male.ConvertToInt().ToString() ) );
-            rblAdult2Gender.Items.Add( new ListItem( Gender.Female.ConvertToString(), Gender.Female.ConvertToInt().ToString() ) );
-            rblAdult2Gender.Items.Add( new ListItem( Gender.Unknown.ConvertToString(), Gender.Unknown.ConvertToInt().ToString() ) );
 
             pnbAdult1Phone.Text = CurrentCheckInState.CheckIn.SearchValue;
 
@@ -164,7 +161,14 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 BootstrapButton btnMember = new BootstrapButton();
                 btnMember.CssClass = "btn btn-default btn-block btn-lg";
-                btnMember.Text = "<b>" + checkinPerson.Person.FullName + " " + GetSelectedCountString( checkinPerson ) + "</b><br>" + checkinPerson.Person.FormatAge();
+                if ( checkinPerson.Person.Age.HasValue && checkinPerson.Person.Age < 18 )
+                {
+                    btnMember.Text = "<b>" + checkinPerson.Person.FullName + " " + GetSelectedCountString( checkinPerson ) + "</b><br>" + checkinPerson.Person.FormatAge();
+                }
+                else
+                {
+                    btnMember.Text = "<b>" + checkinPerson.Person.FullName + " " + GetSelectedCountString( checkinPerson ) + "</b>";
+                }
 
                 if ( approvedPeopleQry.Where( dv => dv.Id == checkinPerson.Person.Id ).Any() )
                 {
@@ -452,9 +456,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             ddlNewPersonSuffix.BindToDefinedType( DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ), true );
 
             rblNewPersonGender.Items.Clear();
-            rblNewPersonGender.Items.Add( new ListItem( Gender.Male.ConvertToString(), Gender.Male.ConvertToInt().ToString() ) );
-            rblNewPersonGender.Items.Add( new ListItem( Gender.Female.ConvertToString(), Gender.Female.ConvertToInt().ToString() ) );
-            rblNewPersonGender.Items.Add( new ListItem( Gender.Unknown.ConvertToString(), Gender.Unknown.ConvertToInt().ToString() ) );
+            rblNewPersonGender.BindToEnum<Gender>();
 
             ScriptManager.RegisterStartupScript( ddlGradePicker, ddlGradePicker.GetType(), "grade-selection-" + BlockId.ToString(), ddlGradePicker.GetJavascriptForYearPicker( ypNewGraduation ), true );
         }
@@ -464,6 +466,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             Person person = new Person();
             person.FirstName = tbNewPersonFirstName.Text;
             person.LastName = tbNewPersonLastName.Text;
+            person.Gender = rblNewPersonGender.SelectedValueAsEnum<Gender>();
             person.SetBirthDate( dpNewPersonBirthDate.Text.AsDateTime() );
             if ( ypNewGraduation.SelectedYear.HasValue )
             {
@@ -471,14 +474,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
 
             person.ConnectionStatusValueId = DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id;
-            if ( !string.IsNullOrWhiteSpace( rblAdult1Gender.SelectedValue ) )
-            {
-                person.Gender = rblNewPersonGender.SelectedValueAsEnum<Gender>();
-            }
-            else
-            {
-                person.Gender = Gender.Unknown;
-            }
 
             var familyGroupType = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY );
             var adultRoleId = familyGroupType.Roles
@@ -530,27 +525,31 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             ltEditName.Text = person.FullName;
 
-            if ( !person.HasGraduated ?? false )
+            if ( setValue )
             {
-                ypEditGraduation.SelectedYear = person.GraduationYear;
 
-                int gradeOffset = person.GradeOffset.Value;
-                var maxGradeOffset = gpEditGrade.MaxGradeOffset;
 
-                // keep trying until we find a Grade that has a gradeOffset that that includes the Person's gradeOffset (for example, there might be combined grades)
-                while ( !gpEditGrade.Items.OfType<ListItem>().Any( a => a.Value.AsInteger() == gradeOffset ) && gradeOffset <= maxGradeOffset )
+                if ( !person.HasGraduated ?? false )
                 {
-                    gradeOffset++;
+                    ypEditGraduation.SelectedYear = person.GraduationYear;
+
+                    int gradeOffset = person.GradeOffset.Value;
+                    var maxGradeOffset = gpEditGrade.MaxGradeOffset;
+
+                    // keep trying until we find a Grade that has a gradeOffset that that includes the Person's gradeOffset (for example, there might be combined grades)
+                    while ( !gpEditGrade.Items.OfType<ListItem>().Any( a => a.Value.AsInteger() == gradeOffset ) && gradeOffset <= maxGradeOffset )
+                    {
+                        gradeOffset++;
+                    }
+
+                    gpEditGrade.SetValue( gradeOffset );
                 }
-
-                gpEditGrade.SetValue( gradeOffset );
+                else
+                {
+                    ypEditGraduation.SelectedYear = null;
+                    gpEditGrade.SelectedIndex = 0;
+                }
             }
-            else
-            {
-                ypEditGraduation.SelectedYear = null;
-                gpEditGrade.SelectedIndex = 0;
-            }
-
             ScriptManager.RegisterStartupScript( gpEditGrade, gpEditGrade.GetType(), "grade-selection-" + BlockId.ToString(), gpEditGrade.GetJavascriptForYearPicker( ypEditGraduation ), true );
             dpEditBirthDate.SelectedDate = person.BirthDate;
 
@@ -568,6 +567,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 }
             }
             person.LoadAttributes();
+
+            fsAttributes.Controls.Clear();
 
             foreach ( int attributeId in AttributeList )
             {
@@ -957,17 +958,6 @@ try{{
             adult1.SuffixValueId = ddlAdult1Suffix.SelectedValueAsId();
             adult1.ConnectionStatusValueId = DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id;
 
-
-
-            if ( !string.IsNullOrWhiteSpace( rblAdult1Gender.SelectedValue ) )
-            {
-                adult1.Gender = rblAdult1Gender.SelectedValueAsEnum<Gender>();
-            }
-            else
-            {
-                adult1.Gender = Gender.Unknown;
-            }
-
             var newFamily = PersonService.SaveNewPerson( adult1, _rockContext );
             newFamily.Members.Where( m => m.Person == adult1 ).FirstOrDefault().GroupRoleId = adultRoleId;
 
@@ -1003,15 +993,6 @@ try{{
                 adult2.SuffixValueId = ddlAdult2Suffix.SelectedValueAsId();
                 adult2.ConnectionStatusValueId = DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id;
 
-                if ( !string.IsNullOrWhiteSpace( rblAdult2Gender.SelectedValue ) )
-                {
-                    adult2.Gender = rblAdult1Gender.SelectedValueAsEnum<Gender>();
-                }
-                else
-                {
-                    adult2.Gender = Gender.Unknown;
-                }
-
                 PersonService.AddPersonToFamily( adult2, true, newFamily.Id, adultRoleId, _rockContext );
 
                 if ( cbAdult2SMS.Checked )
@@ -1025,7 +1006,7 @@ try{{
                     adult2.UpdatePhoneNumber( otherPhone, PhoneNumber.DefaultCountryCode(), pnbAdult2Phone.Text, false, false, _rockContext );
                 }
             }
-
+            _rockContext.SaveChanges();
             CurrentCheckInState.CheckIn.Families.Add( new CheckInFamily() { Group = newFamily, Selected = true } );
             SaveState();
             ViewState.Add( "ExistingFamily", true );
