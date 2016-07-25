@@ -57,7 +57,7 @@ namespace org.secc.FamilyCheckin
 
                 foreach ( var family in checkInState.CheckIn.Families.Where( f => f.Selected ) )
                 {
-                    foreach ( var person in family.People)
+                    foreach ( var person in family.People )
                     {
                         if ( person.SecurityCode != null )
                         {
@@ -67,12 +67,15 @@ namespace org.secc.FamilyCheckin
                         {
                             //we have to load the person entity in because the person.Person doesn't load enough information
                             var personEntity = personService.Get( person.Person.Id );
-                            var attendances = attendanceService.Queryable("AttendanceCode")
+                            var attendances = attendanceService.Queryable( "AttendanceCode" )
                                 .Where( a => a.CreatedDateTime >= Rock.RockDateTime.Today && personEntity.PrimaryAliasId == a.PersonAliasId )
-                                .DistinctBy(a => a.AttendanceCode).ToList();
+                                .DistinctBy( a => a.AttendanceCode ).ToList();
                             foreach ( var attendance in attendances )
                             {
-                                labelCodes.Add( attendance.AttendanceCode.Code + "-" + LabelAge( person.Person ) );
+                                if ( attendance != null && attendance.AttendanceCode != null )
+                                {
+                                    labelCodes.Add( attendance.AttendanceCode.Code + "-" + LabelAge( person.Person ) );
+                                }
                             }
                         }
                     }
@@ -102,7 +105,7 @@ namespace org.secc.FamilyCheckin
                         var labelCache = KioskLabel.Read( new Guid( GetAttributeValue( action, "AggregatedLabel" ) ) );
                         if ( labelCache != null )
                         {
-                            var checkInLabel = new CheckInLabel( labelCache, new Dictionary<string, object>());
+                            var checkInLabel = new CheckInLabel( labelCache, new Dictionary<string, object>() );
                             checkInLabel.FileGuid = new Guid( GetAttributeValue( action, "AggregatedLabel" ) );
 
                             foreach ( var keyValue in mergeDict )
@@ -157,7 +160,7 @@ namespace org.secc.FamilyCheckin
                                 var printerDevice = new DeviceService( rockContext ).Get( checkInLabel.PrinterDeviceId.Value );
                                 checkInLabel.PrinterAddress = printerDevice.IPAddress;
                             }
-                            var firstPerson = family.People.Where(p => p.GroupTypes.Any()).FirstOrDefault();
+                            var firstPerson = family.People.Where( p => p.GroupTypes.Any() ).FirstOrDefault();
                             if ( firstPerson != null )
                             {
                                 //we have to set as selected or it wil not print
