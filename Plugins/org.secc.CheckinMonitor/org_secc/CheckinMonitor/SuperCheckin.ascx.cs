@@ -523,7 +523,22 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             pnlPersonInformation.Visible = false;
             pnlEditPerson.Visible = true;
 
-            ltEditName.Text = person.FullName;
+            if ( person.ConnectionStatusValueId == DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id )
+            {
+                pnlEditNameLiteral.Visible = false;
+                pnlEditNameTextBox.Visible = true;
+                if ( setValue )
+                {
+                    tbEditFirst.Text = person.FirstName;
+                    tbEditLast.Text = person.LastName;
+                }
+            }
+            else
+            {
+                pnlEditNameLiteral.Visible = true;
+                pnlEditNameTextBox.Visible = false;
+                ltEditName.Text = person.FullName;
+            }
 
             if ( setValue )
             {
@@ -584,6 +599,21 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             var personId = ( int ) ViewState["SelectedPersonId"];
 
             var person = new PersonService( _rockContext ).Get( personId );
+
+            if ( person.ConnectionStatusValueId == DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id )
+            {
+                History.EvaluateChange( changes, "First Name", person.FirstName, tbEditFirst.Text );
+                person.FirstName = tbEditFirst.Text;
+                person.NickName = tbEditFirst.Text;
+                History.EvaluateChange( changes, "Last Name", person.LastName, tbEditLast.Text );
+                person.LastName = tbEditLast.Text;
+
+                var checkinPerson = CurrentCheckInState.CheckIn.CurrentFamily.People.Where( p => p.Person.Id == person.Id ).FirstOrDefault();
+                if ( checkinPerson != null )
+                {
+                    checkinPerson.Person = person.Clone( false );
+                }
+            }
 
             History.EvaluateChange( changes, "Birth Date", person.BirthDate, dpEditBirthDate.Text.AsDateTime() );
             person.SetBirthDate( dpEditBirthDate.Text.AsDateTime() );
@@ -658,6 +688,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
             pnlPersonInformation.Visible = true;
             pnlEditPerson.Visible = false;
+            Response.Redirect( Request.RawUrl );
         }
 
         protected void btnCancelAttributes_Click( object sender, EventArgs e )

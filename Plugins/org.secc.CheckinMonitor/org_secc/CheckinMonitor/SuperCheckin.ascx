@@ -164,13 +164,20 @@
                         <Rock:BootstrapButton runat="server" ID="btnSaveAddPerson" Text="Next" CssClass="btn btn-default"
                             OnClick="btnSaveAddPerson_Click"></Rock:BootstrapButton>
                     </asp:Panel>
+                    <!-- Edit Person -->
                     <asp:Panel runat="server" ID="pnlEditPerson" Visible="false">
                         <div class="row">
 
                             <div class="col-xs-12">
-                                <h1>
-                                    <asp:Literal Text="" ID="ltEditName" runat="server" />
-                                </h1>
+                                <asp:Panel runat="server" ID="pnlEditNameLiteral">
+                                    <h1>
+                                        <asp:Literal Text="" ID="ltEditName" runat="server" />
+                                    </h1>
+                                </asp:Panel>
+                                <asp:Panel runat="server" ID="pnlEditNameTextBox" Visible="false">
+                                    <Rock:RockTextBox CssClass="col-sm-6" runat="server" ID="tbEditFirst" Label="First Name" />
+                                    <Rock:RockTextBox CssClass="col-sm-6" runat="server" ID="tbEditLast" Label="Last Name" />
+                                </asp:Panel>
 
                                 <div class="col-xs-12 col-sm-4">
                                     <Rock:DatePicker ID="dpEditBirthDate" runat="server" Label="Birthdate" />
