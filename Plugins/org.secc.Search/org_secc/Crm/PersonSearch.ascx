@@ -29,6 +29,15 @@
                         HeaderText="Age"  
                         SortExpression="BirthYear desc,BirthMonth desc,BirthDay desc" 
                         ColumnPriority="Desktop" />
+                    <Rock:RockBoundField 
+                        ItemStyle-HorizontalAlign="Right"
+                        HeaderStyle-HorizontalAlign="Right"
+                        DataField="BirthDate"  
+                        DataFormatString="{0:d}"
+                        HeaderText="DOB" 
+                        Visible="false"
+                        SortExpression="BirthYear desc,BirthMonth desc,BirthDay desc" 
+                        ColumnPriority="Desktop" />
                     <Rock:DefinedValueField
                         DataField="ConnectionStatusValueId"
                         HeaderText="Connection Status"
