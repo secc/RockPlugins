@@ -30,7 +30,7 @@
     <link rel="apple-touch-icon-precomposed" sizes="72x72" href="<%# ResolveRockUrl("~/Assets/Icons/touch-icon-ipad.png", true) %>">
     <link rel="apple-touch-icon-precomposed" href="<%# ResolveRockUrl("~/Assets/Icons/touch-icon-iphone.png", true) %>">
 </head>
-<body oncontextmenu="return false">
+<body oncontextmenu="return false" style="touch-action: pan-x">
     <form id="form1" runat="server">
 
         <asp:ContentPlaceHolder ID="main" runat="server"></asp:ContentPlaceHolder>
