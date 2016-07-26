@@ -26,9 +26,6 @@
                 <div class="col-xs-12 col-sm-2">
                     <Rock:RockDropDownList ID="ddlAdult1Suffix" runat="server" Label="Suffix" CssClass="input-width-md" />
                 </div>
-                <div class="col-xs-12 col-sm-4">
-                    <Rock:RockRadioButtonList ID="rblAdult1Gender" runat="server" Label="Gender" RepeatDirection="Horizontal" />
-                </div>
                 <div class="col-xs-8 col-sm-6">
                     <Rock:PhoneNumberBox ID="pnbAdult1Phone" runat="server" Label="Phone Number"></Rock:PhoneNumberBox>
                 </div>
@@ -48,9 +45,6 @@
                 <div class="col-xs-12 col-sm-2">
                     <Rock:RockDropDownList ID="ddlAdult2Suffix" runat="server" Label="Suffix" CssClass="input-width-md" />
                 </div>
-                <div class="col-xs-12 col-sm-4">
-                    <Rock:RockRadioButtonList ID="rblAdult2Gender" runat="server" Label="Gender" RepeatDirection="Horizontal" />
-                </div>
                 <div class="col-xs-8 col-sm-6">
                     <Rock:PhoneNumberBox ID="pnbAdult2Phone" runat="server" Label="Phone Number"></Rock:PhoneNumberBox>
                 </div>
@@ -60,7 +54,7 @@
                 </div>
             </div>
             <h2>Family Info</h2>
-            <Rock:CampusPicker runat="server" ID="cpNewFamilyCampus"></Rock:CampusPicker>
+            <Rock:CampusPicker runat="server" ID="cpNewFamilyCampus" DataValueField="Id" DataTextField="Name"></Rock:CampusPicker>
             <Rock:AddressControl runat="server" ID="acNewFamilyAddress" />
             <Rock:BootstrapButton runat="server" ID="btnNewFamily" Text="Create New Family"
                 CssClass="btn btn-primary" OnClick="btnNewFamily_Click"></Rock:BootstrapButton>
@@ -170,29 +164,42 @@
                         <Rock:BootstrapButton runat="server" ID="btnSaveAddPerson" Text="Next" CssClass="btn btn-default"
                             OnClick="btnSaveAddPerson_Click"></Rock:BootstrapButton>
                     </asp:Panel>
+                    <!-- Edit Person -->
                     <asp:Panel runat="server" ID="pnlEditPerson" Visible="false">
-                        <div class="col-xs-12">
-                            <h1>
-                                <asp:Literal Text="" ID="ltEditName" runat="server" />
-                            </h1>
+                        <div class="row">
 
-                            <div class="col-xs-12 col-sm-4">
-                                <Rock:DatePicker ID="dpEditBirthDate" runat="server" Label="Birthdate" />
-                            </div>
-                            <div class="col-xs-12 col-sm-4">
-                                <Rock:GradePicker ID="gpEditGrade" runat="server" Label="Grade" UseAbbreviation="true" UseGradeOffsetAsValue="true" />
-                            </div>
-                            <div class="col-xs-12 col-sm-4">
-                                <Rock:YearPicker runat="server" ID="ypEditGraduation" Label="Graduation"></Rock:YearPicker>
+                            <div class="col-xs-12">
+                                <asp:Panel runat="server" ID="pnlEditNameLiteral">
+                                    <h1>
+                                        <asp:Literal Text="" ID="ltEditName" runat="server" />
+                                    </h1>
+                                </asp:Panel>
+                                <asp:Panel runat="server" ID="pnlEditNameTextBox" Visible="false">
+                                    <Rock:RockTextBox CssClass="col-sm-6" runat="server" ID="tbEditFirst" Label="First Name" />
+                                    <Rock:RockTextBox CssClass="col-sm-6" runat="server" ID="tbEditLast" Label="Last Name" />
+                                </asp:Panel>
+
+                                <div class="col-xs-12 col-sm-4">
+                                    <Rock:DatePicker ID="dpEditBirthDate" runat="server" Label="Birthdate" />
+                                </div>
+                                <div class="col-xs-12 col-sm-4">
+                                    <Rock:GradePicker ID="gpEditGrade" runat="server" Label="Grade" UseAbbreviation="true" UseGradeOffsetAsValue="true" />
+                                </div>
+                                <div class="col-xs-12 col-sm-4">
+                                    <Rock:YearPicker runat="server" ID="ypEditGraduation" Label="Graduation"></Rock:YearPicker>
+                                </div>
+
+                                <div class="col-xs-12">
+                                    <fieldset id="fsAttributes" runat="server" class="attribute-values"></fieldset>
+                                    <Rock:BootstrapButton runat="server" ID="btnSaveAttributes" CssClass="btn btn-primary"
+                                        OnClick="btnSaveAttributes_Click" Text="Save"></Rock:BootstrapButton>
+                                    <Rock:BootstrapButton runat="server" Text="Cancel" OnClick="btnCancelAttributes_Click"
+                                        ID="btnCancelAttributes" CssClass="btn btn-danger">
+
+                                    </Rock:BootstrapButton>
+                                </div>
                             </div>
 
-                            <fieldset id="fsAttributes" runat="server" class="attribute-values"></fieldset>
-                            <Rock:BootstrapButton runat="server" ID="btnSaveAttributes" CssClass="btn btn-primary"
-                                OnClick="btnSaveAttributes_Click" Text="Save"></Rock:BootstrapButton>
-                            <Rock:BootstrapButton runat="server" Text="Cancel" OnClick="btnCancelAttributes_Click"
-                                ID="btnCancelAttributes" CssClass="btn btn-danger">
-
-                            </Rock:BootstrapButton>
                         </div>
                     </asp:Panel>
 

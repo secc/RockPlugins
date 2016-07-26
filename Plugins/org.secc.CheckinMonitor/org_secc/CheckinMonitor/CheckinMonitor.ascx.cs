@@ -710,6 +710,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             newRecord.ScheduleId = attendanceRecord.ScheduleId;
             newRecord.PersonAliasId = attendanceRecord.PersonAliasId;
             newRecord.GroupId = attendanceRecord.GroupId;
+            newRecord.AttendanceCode = attendanceRecord.AttendanceCode;
             newRecord.StartDateTime = Rock.RockDateTime.Now;
             newRecord.EndDateTime = null;
             newRecord.DeviceId = null;
