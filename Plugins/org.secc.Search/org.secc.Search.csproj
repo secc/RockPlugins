@@ -52,6 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Person\DOB.cs" />
     <Compile Include="Person\Envelope.cs" />
     <Compile Include="Person\Address.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
