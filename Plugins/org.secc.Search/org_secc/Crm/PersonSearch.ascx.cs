@@ -271,18 +271,24 @@ namespace RockWeb.Plugins.org_secc.Crm
                         }
                     case ( "dob" ):
                         {
-                            var shortDateSearch = personService.Queryable().AsEnumerable().Where( p => p.BirthDate != null && (p.BirthDate.Value.ToString( "d" ).Contains( term.ToLower() ) || p.BirthDate.Value.ToString( "MM/dd/yyyy" ).Contains( term.ToLower() ) ) );
-                            var longDateSearch = personService.Queryable().AsEnumerable().Where( p => p.BirthDate != null && p.BirthDate.Value.ToString( "MMMM d, yyyy" ).ToLower().Contains( term.ToLower() ) );
+                            term = term.ToLower();
+                            List<DateTime?> birthDateList = new List<DateTime?>();
+                            var birthDates = personService.Queryable().Where( p => p.BirthDate.HasValue ).Select( p => p.BirthDate ).Distinct().AsEnumerable();
+                            var shortDateSearch = birthDates.Where( p => p.Value.ToString( "d" ).ToLower().Contains( term ) || p.Value.ToString( "MM/dd/yyyy" ).ToLower().Contains( term ) );
+                            var longDateSearch = birthDates.Where( p => p.Value.ToString( "MMMM d, yyyy" ).ToLower().Contains( term ) );
                             if ( shortDateSearch.Union( longDateSearch ).Any() )
                             {
-                                people = shortDateSearch.Union( longDateSearch ).Distinct().AsQueryable();
-                            } else
+                                birthDateList = shortDateSearch.Union( longDateSearch ).Distinct().ToList();
+                            }
+                            else
                             {
                                 // Just get crazy with things (Yep, you can find out who was born on a Tuesday)
-                                people = personService.Queryable().AsEnumerable().Where( p => p.BirthDate != null && p.BirthDate.Value.ToString( "D" ).ToLower().Contains( term.ToLower() ) ).Distinct().AsQueryable();
+                                var longestDateSearch = birthDates.Where( p => p.Value.ToString( "D" ).ToLower().Contains( term ) );
+                                birthDateList = longestDateSearch.Distinct().ToList();
 
                             }
-                            gPeople.Columns[3].Visible = true;
+
+                            people = personService.Queryable().Where( p => birthDateList.Contains( p.BirthDate ) );
                             break;
                         }
 
