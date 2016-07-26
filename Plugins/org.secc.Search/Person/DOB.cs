@@ -63,14 +63,15 @@ namespace org.secc.Search.Person
             var rockContext = new RockContext();
 
             var personService = new PersonService(rockContext);
-            var shortDateSearch = personService.Queryable().AsEnumerable().Where( p => p.BirthDate != null && (p.BirthDate.Value.ToString( "d" ).ToLower().Contains( searchterm ) || p.BirthDate.Value.ToString( "MM/dd/yyyy" ).ToLower().Contains( searchterm ) ) ).Select( p => p.BirthDate.Value.ToString( "d" ) );
-            var longDateSearch =  personService.Queryable().AsEnumerable().Where( p => p.BirthDate != null && p.BirthDate.Value.ToString( "MMMM d, yyyy" ).ToLower().Contains( searchterm ) ).Select( p => p.BirthDate.Value.ToString( "MMMM d, yyyy" ) );
+            var birthDates = personService.Queryable().Where( p => p.BirthDate.HasValue ).Select( p => p.BirthDate ).Distinct().AsEnumerable();
+            var shortDateSearch = birthDates.Where( p => p.Value.ToString( "d" ).ToLower().Contains( searchterm ) || p.Value.ToString( "MM/dd/yyyy" ).ToLower().Contains( searchterm ) ).Select( p => p.Value.ToString( "d" ) );
+            var longDateSearch =  birthDates.Where( p => p.Value.ToString( "MMMM d, yyyy" ).ToLower().Contains( searchterm ) ).Select( p => p.Value.ToString( "MMMM d, yyyy" ) );
             if ( shortDateSearch.Union( longDateSearch ).Any() )
             {
                 return shortDateSearch.Union( longDateSearch ).Distinct().AsQueryable();
             }
             // Just get crazy with things (Yep, you can find out who was born on a Tuesday)
-            var longestDateSearch = personService.Queryable().AsEnumerable().Where( p => p.BirthDate != null && p.BirthDate.Value.ToString( "D" ).ToLower().Contains( searchterm ) ).Select( p => p.BirthDate.Value.ToString( "D" ) );
+            var longestDateSearch = birthDates.Where( p => p.Value.ToString( "D" ).ToLower().Contains( searchterm ) ).Select( p => p.Value.ToString( "D" ) );
             return longestDateSearch.Distinct().AsQueryable();
         }
     }
