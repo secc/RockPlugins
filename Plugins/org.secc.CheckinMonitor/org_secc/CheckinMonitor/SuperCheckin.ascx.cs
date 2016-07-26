@@ -33,6 +33,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_PHONE_TYPE, "Other Phone", "Phone number type to save as when SMS NOT enabled" )]
     [BooleanField( "Allow Reprint", "Should we allow for reprints of parent tags from this page?", false )]
     [DataViewField( "Approved People", "Data view which contains the members who may check-in.", entityTypeName: "Rock.Model.Person" )]
+    [BooleanField( "Allow NonApproved Adults", "Should adults who are not in the approved person list be allowed to checkin?", false, key: "AllowNonApproved" )]
     public partial class SuperCheckin : CheckInBlock
     {
 
@@ -161,19 +162,41 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 BootstrapButton btnMember = new BootstrapButton();
                 btnMember.CssClass = "btn btn-default btn-block btn-lg";
-                if ( checkinPerson.Person.Age.HasValue && checkinPerson.Person.Age < 18 )
-                {
-                    btnMember.Text = "<b>" + checkinPerson.Person.FullName + " " + GetSelectedCountString( checkinPerson ) + "</b><br>" + checkinPerson.Person.FormatAge();
-                }
-                else
-                {
-                    btnMember.Text = "<b>" + checkinPerson.Person.FullName + " " + GetSelectedCountString( checkinPerson ) + "</b>";
-                }
-
+                var name = new StringBuilder();
+                //Can work with kids
                 if ( approvedPeopleQry.Where( dv => dv.Id == checkinPerson.Person.Id ).Any() )
                 {
-                    btnMember.Text = "<i class='fa fa-thumbs-o-up'></i> " + btnMember.Text;
+                    name.Append( "<i class='fa fa-thumbs-o-up'></i> " );
                 }
+                //is not a family member
+                if ( !checkinPerson.FamilyMember )
+                {
+                    name.Append( "<i class='fa fa-exchange'></i> " );
+                }
+
+                //legal
+                checkinPerson.Person.LoadAttributes();
+                if ( !string.IsNullOrWhiteSpace( checkinPerson.Person.GetAttributeValue( "LegalNotes" ) ) )
+                {
+                    name.Append( "<i class='fa fa-legal'></i> " );
+                }
+                //allergy
+                if ( !string.IsNullOrWhiteSpace( checkinPerson.Person.GetAttributeValue( "Allergy" ) ) )
+                {
+                    name.Append( "<i class='fa fa-medkit'></i> " );
+                }
+
+                name.Append( "<b>" );
+                name.Append( checkinPerson.Person.FullName );
+                name.Append( "</b>" );
+
+                if ( checkinPerson.Person.Age.HasValue && checkinPerson.Person.Age < 18 )
+                {
+                    name.Append( "<br>" );
+                    name.Append( checkinPerson.Person.FormatAge() );
+                }
+
+                btnMember.Text = name.ToString();
 
                 if ( !checkinPerson.FamilyMember )
                 {
@@ -211,6 +234,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             pnlPersonInformation.Visible = true;
             pnlEditPerson.Visible = false;
 
+
             int selectedPersonId;
             if ( ViewState["SelectedPersonId"] != null )
             {
@@ -220,7 +244,35 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 pnlAddPerson.Visible = false;
                 ltName.Text = checkinPerson.Person.FullName;
                 BuildPersonCheckinDetails();
+
+                if ( !GetAttributeValue( "AllowNonApproved" ).AsBoolean() )
+                {
+                    var approvedPeopleGuid = GetAttributeValue( "ApprovedPeople" ).AsGuid();
+                    var approvedPeople = new DataViewService( _rockContext ).Get( approvedPeopleGuid );
+
+                    if ( approvedPeople == null )
+                    {
+                        maWarning.Show( "Approved people block setting not found.", ModalAlertType.Alert );
+                        return;
+                    }
+                    var errorMessages = new List<string>();
+                    var approvedPeopleQry = approvedPeople.GetQuery( null, 30, out errorMessages );
+
+                    if ( checkinPerson.Person.Age > 18 && !approvedPeopleQry.Where( dv => dv.Id == checkinPerson.Person.Id ).Any() )
+                    {
+                        btnCheckin.Visible = false;
+                    }
+                    else
+                    {
+                        btnCheckin.Visible = true;
+                    }
+                }
+                else
+                {
+                    btnCheckin.Visible = true;
+                }
             }
+
 
         }
 
