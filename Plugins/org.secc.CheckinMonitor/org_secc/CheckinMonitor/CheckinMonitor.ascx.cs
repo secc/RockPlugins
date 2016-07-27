@@ -100,7 +100,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             AttendanceService attendanceSerivce = new AttendanceService( _rockContext );
             var attendanceData = attendanceSerivce.Queryable()
                                     .Where( a =>
-                                            a.StartDateTime > Rock.RockDateTime.Today
+                                            a.LocationId!=null
+                                            && a.Schedule!=null
+                                            && a.StartDateTime > Rock.RockDateTime.Today
                                             && a.PersonAliasId != null
                                     );
 
