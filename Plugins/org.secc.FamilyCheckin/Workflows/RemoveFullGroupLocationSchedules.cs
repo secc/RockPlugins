@@ -66,7 +66,7 @@ namespace org.secc.FamilyCheckin
                                 {
                                     foreach ( var schedule in location.Schedules.ToList() )
                                     {
-                                        if ( (person.Person.Age ?? 0) > 17 )
+                                        if ( (person.Person.Age ?? 0) > 12 )
                                         {
                                             var threshold = Math.Max( location.Location.FirmRoomThreshold ?? 0, location.Location.SoftRoomThreshold ?? 0);
                                             if ( attendanceService.Where( a =>
