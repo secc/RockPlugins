@@ -198,7 +198,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     TableHeaderCell thcCount = new TableHeaderCell();
                     if ( source.Any() )
                     {
-                        thcCount.Text = "Count";
+                        thcCount.Text = "Kid / Total Count";
                     }
                     thcCount.Style.Add( "width", "20%" );
                     thr.Controls.Add( thcCount );
@@ -213,7 +213,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                     foreach ( var occurrence in source )
                     {
-
                         occurrence.GroupLocationSchedule.GroupLocation.Location.LoadAttributes();
                         TableRow tr = new TableRow();
                         table.Controls.Add( tr );
@@ -270,7 +269,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         {
                             tcCapacity.CssClass = "warning";
                         }
-                        tcCapacity.Text = occurrence.Total.ToString() + " of " + ( occurrence.GroupLocationSchedule.GroupLocation.Location.FirmRoomThreshold ?? 0 ).ToString() + ( occurrence.Reserved > 0 ? " (+" + occurrence.Reserved + " reserved)" : "" );
+                        tcCapacity.Text = occurrence.KidCount.ToString() +" of " + (occurrence.GroupLocationSchedule.GroupLocation.Location.SoftRoomThreshold ?? 0) + " / " +  occurrence.Total.ToString() + " of " + ( occurrence.GroupLocationSchedule.GroupLocation.Location.FirmRoomThreshold ?? 0 ).ToString() + ( occurrence.Reserved > 0 ? " (+" + occurrence.Reserved + " reserved)" : "" );
 
                         tr.Controls.Add( tcCapacity );
 

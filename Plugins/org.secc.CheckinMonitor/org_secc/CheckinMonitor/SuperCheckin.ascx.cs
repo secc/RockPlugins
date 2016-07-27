@@ -198,6 +198,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 name.Append( checkinPerson.Person.FullName );
                 name.Append( "</b>" );
 
+                name.Append( GetSelectedCountString( checkinPerson ) );
+
                 if ( checkinPerson.Person.Age.HasValue && checkinPerson.Person.Age < 18 )
                 {
                     name.Append( "<br>" );
@@ -227,7 +229,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 .Where( s => s.Selected ).Count();
             if ( count > 0 )
             {
-                return "<span class=badge>" + count.ToString() + "</span>";
+                return " <span class=badge>" + count.ToString() + "</span>";
             }
             return "";
 
@@ -238,7 +240,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             pnlAddPerson.Visible = false;
             pnlPersonInformation.Visible = true;
             pnlEditPerson.Visible = false;
-
 
             int selectedPersonId;
             if ( ViewState["SelectedPersonId"] != null )
