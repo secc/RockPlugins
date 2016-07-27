@@ -160,7 +160,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             phFamilyMembers.Controls.Clear();
 
-            if (!CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).Any() )
+            if ( !CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).Any() )
             {
                 NavigateToPreviousPage();
                 return;
@@ -1131,13 +1131,13 @@ try{{
 
         protected void btnReprintPerson_Click( object sender, EventArgs e )
         {
-            if ( ViewState["SelectedPersonId"] != null)
+            if ( ViewState["SelectedPersonId"] != null )
             {
                 var personId = ( int ) ViewState["SelectedPersonId"];
-                
-                foreach(var checkinPerson in CurrentCheckInState.CheckIn.CurrentFamily.People )
+
+                foreach ( var checkinPerson in CurrentCheckInState.CheckIn.CurrentFamily.People )
                 {
-                    if (checkinPerson.Person.Id == personId )
+                    if ( checkinPerson.Person.Id == personId )
                     {
                         checkinPerson.Selected = true;
                     }
@@ -1162,6 +1162,26 @@ try{{
         protected void btnCancel_Click( object sender, EventArgs e )
         {
             NavigateToPreviousPage();
+        }
+
+        protected void btnPhone_Click( object sender, EventArgs e )
+        {
+            if ( ViewState["SelectedPersonId"] != null )
+            {
+                var person = new PersonService( _rockContext ).Get( ( int ) ViewState["SelectedPersonId"] );
+                if (person!=null)
+                {
+                    var phone = person.PhoneNumbers.Where( pn => !pn.IsUnlisted ).FirstOrDefault();
+                    if ( phone != null )
+                    {
+                        maWarning.Show( phone.NumberFormatted , ModalAlertType.Information);
+                    }
+                    else
+                    {
+                        maWarning.Show( "No phone number found.", ModalAlertType.Alert );
+                    }
+                }
+            }
         }
     }
     public class FamilyLabel
