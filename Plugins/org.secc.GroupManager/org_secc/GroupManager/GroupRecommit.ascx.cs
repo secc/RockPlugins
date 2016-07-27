@@ -311,6 +311,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         }
         private List<Group> LoadGroups()
         {
+            var parent = GetAttributeValue( "GroupParent" );
             return LoadGroups( GetAttributeValue( "GroupParent" ).AsGuidOrNull() );
         }
 
@@ -329,22 +330,21 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 var availableGroupIds = ( List<int> ) GetCacheItem( groupGuid.ToString() );
 
-                if ( availableGroupIds == null )
+                if ( availableGroupIds == null || !availableGroupIds.Any())
                 {
                     availableGroupIds = GetChildGroups( groupGuid ?? new Guid(), groupService ).Select( g => g.Id ).ToList();
                     AddCacheItem( groupGuid.ToString(), availableGroupIds );
                 }
 
-                groupQry = groupQry.Where( g => g.IsActive && g.GroupType.Guid.Equals( _groupType.Guid ) && g.IsPublic && availableGroupIds.Contains( g.Id ) );
+                groupQry = groupQry.Where( g => g.IsActive && g.GroupTypeId == _groupType.Id && availableGroupIds.Contains( g.Id ) );
             }
             else
             {
                 //else just get the available groups of type
-                groupQry = groupQry.Where( g => g.IsActive && g.GroupType.Guid.Equals( _groupType.Guid ) && g.IsPublic );
+                groupQry = groupQry.Where( g => g.IsActive && g.GroupTypeId == _groupType.Id );
             }
 
-            return new GroupMemberService( _rockContext ).Queryable().Where( m => m.PersonId == _person.Id && m.GroupRoleId == groupRole.Id )
-                .Join( groupQry, gm => gm.GroupId, g => g.Id, ( gm, g ) => g ).ToList();
+            return groupQry.Where( g => g.Members.Where( gm => gm.GroupRoleId == groupRole.Id && gm.PersonId==_person.Id ).Any() ).ToList();
         }
 
         private List<Group> GetChildGroups( Guid groupGuid, GroupService groupService )
