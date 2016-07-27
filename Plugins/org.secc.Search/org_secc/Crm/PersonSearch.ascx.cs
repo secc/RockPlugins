@@ -269,6 +269,29 @@ namespace RockWeb.Plugins.org_secc.Crm
                             }
                             break;
                         }
+                    case ( "dob" ):
+                        {
+                            term = term.ToLower();
+                            List<DateTime?> birthDateList = new List<DateTime?>();
+                            var birthDates = personService.Queryable().Where( p => p.BirthDate.HasValue ).Select( p => p.BirthDate ).Distinct().AsEnumerable();
+                            var shortDateSearch = birthDates.Where( p => p.Value.ToString( "d" ).ToLower().Contains( term ) || p.Value.ToString( "MM/dd/yyyy" ).ToLower().Contains( term ) );
+                            var longDateSearch = birthDates.Where( p => p.Value.ToString( "MMMM d, yyyy" ).ToLower().Contains( term ) );
+                            if ( shortDateSearch.Union( longDateSearch ).Any() )
+                            {
+                                birthDateList = shortDateSearch.Union( longDateSearch ).Distinct().ToList();
+                            }
+                            else
+                            {
+                                // Just get crazy with things (Yep, you can find out who was born on a Tuesday)
+                                var longestDateSearch = birthDates.Where( p => p.Value.ToString( "D" ).ToLower().Contains( term ) );
+                                birthDateList = longestDateSearch.Distinct().ToList();
+
+                            }
+
+                            people = personService.Queryable().Where( p => birthDateList.Contains( p.BirthDate ) );
+                            break;
+                        }
+
                 }
 
                 SortProperty sortProperty = gPeople.SortProperty;
