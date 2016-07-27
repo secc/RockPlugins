@@ -68,7 +68,7 @@ namespace org.secc.FamilyCheckin
                                     {
                                         if ( (person.Person.Age ?? 0) > 12 )
                                         {
-                                            var threshold = Math.Max( location.Location.FirmRoomThreshold ?? 0, location.Location.SoftRoomThreshold ?? 0);
+                                            var threshold = location.Location.FirmRoomThreshold ?? 0;
                                             if ( attendanceService.Where( a =>
                                                  a.DidAttend == true
                                                  && a.EndDateTime == null
@@ -82,7 +82,8 @@ namespace org.secc.FamilyCheckin
                                         }
                                         else
                                         {
-                                            var threshold = location.Location.SoftRoomThreshold ?? 0;
+                                            var threshold = Math.Min( location.Location.FirmRoomThreshold ?? 0, location.Location.SoftRoomThreshold ?? 0 );
+                                            var thirteen = Rock.RockDateTime.Today.AddYears( -13 );
                                             if ( 
                                                 attendanceService.Where( a =>
                                                  a.DidAttend == true
@@ -90,7 +91,7 @@ namespace org.secc.FamilyCheckin
                                                  && a.ScheduleId == schedule.Schedule.Id
                                                  && a.LocationId == location.Location.Id
                                                  && a.CreatedDateTime >= Rock.RockDateTime.Today
-                                                 && a.PersonAlias.Person.Age <13
+                                                 && a.PersonAlias.Person.BirthDate > thirteen
                                                 )
                                                 .Count() >= threshold )
                                             {
