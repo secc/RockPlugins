@@ -523,6 +523,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             Person person = new Person();
             person.FirstName = tbNewPersonFirstName.Text;
             person.LastName = tbNewPersonLastName.Text;
+            person.RecordTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+            person.RecordStatusValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING.AsGuid() ).Id;
             person.Gender = rblNewPersonGender.SelectedValueAsEnum<Gender>();
             person.SetBirthDate( dpNewPersonBirthDate.Text.AsDateTime() );
             if ( ypNewGraduation.SelectedYear.HasValue )
@@ -1082,6 +1084,8 @@ try{{
                 adult2.LastName = tbAdult2LastName.Text;
                 adult2.SuffixValueId = ddlAdult2Suffix.SelectedValueAsId();
                 adult2.ConnectionStatusValueId = DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id;
+                adult2.RecordTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+                adult2.RecordStatusValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING.AsGuid() ).Id;
 
                 PersonService.AddPersonToFamily( adult2, true, newFamily.Id, adultRoleId, _rockContext );
 
