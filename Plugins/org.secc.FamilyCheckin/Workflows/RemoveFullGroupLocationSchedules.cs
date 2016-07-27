@@ -83,13 +83,16 @@ namespace org.secc.FamilyCheckin
                                         else
                                         {
                                             var threshold = location.Location.SoftRoomThreshold ?? 0;
-                                            if ( attendanceService.Where( a =>
+                                            if ( 
+                                                attendanceService.Where( a =>
                                                  a.DidAttend == true
                                                  && a.EndDateTime == null
                                                  && a.ScheduleId == schedule.Schedule.Id
                                                  && a.LocationId == location.Location.Id
                                                  && a.CreatedDateTime >= Rock.RockDateTime.Today
-                                                ).Count() >= threshold )
+                                                 && a.PersonAlias.Person.Age <13
+                                                )
+                                                .Count() >= threshold )
                                             {
                                                 location.Schedules.Remove( schedule );
                                             }
