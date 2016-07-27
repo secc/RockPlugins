@@ -32,7 +32,7 @@ namespace org.secc.FamilyCheckin
     /// Removes (or excludes) the groups for each selected family member that are not specific to their age.
     /// </summary>
     [ActionCategory( "SECC > Check-In" )]
-    [Description( "Removes (or excludes) the groups for each selected family member that are not specific to their birthday. Also removes/excludes children who have a grade" )]
+    [Description( "Removes (or excludes) the groups for each selected family member that are not specific to their birthday. Also removes/excludes children who have a graduation year." )]
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Filter Groups By Birthday" )]
 
@@ -152,20 +152,18 @@ namespace org.secc.FamilyCheckin
                             }
 
                             //Filter kids out who are in school
-                            if ( person.Person.GradeOffset!=null && person.Person.GradeOffset < 12 )
+                            if ( person.Person.GraduationYear != null )
                             {
-                                if ( person.Person.BirthDate > maxDate )
+                                if ( remove )
                                 {
-                                    if ( remove )
-                                    {
-                                        groupType.Groups.Remove( group );
-                                    }
-                                    else
-                                    {
-                                        group.ExcludedByFilter = true;
-                                    }
-                                    continue;
+                                    groupType.Groups.Remove( group );
                                 }
+                                else
+                                {
+                                    group.ExcludedByFilter = true;
+                                }
+                                continue;
+
                             }
                         }
                     }
