@@ -96,6 +96,8 @@
                                     runat="server" Text="<i class='fa fa-check' aria-hidden='true'></i>" OnClick="btnCheckin_Click" />
                                 <Rock:BootstrapButton ID="btnEditPerson" CssClass="btn btn-primary btn-lg"
                                     runat="server" Text="<i class='fa fa-pencil' aria-hidden='true'></i>" OnClick="btnEditPerson_Click" />
+                                <Rock:BootstrapButton ID="btnPhone" CssClass="btn btn-primary btn-lg"
+                                    runat="server" Text="<i class='fa fa-phone' aria-hidden='true'></i>" OnClick="btnPhone_Click" />
                                 <Rock:BootstrapButton ID="btnReprintPerson" CssClass="btn btn-primary btn-lg"
                                     runat="server" Text="<i class='fa fa-print' aria-hidden='true'></i>" OnClick="btnReprintPerson_Click" />
                             </div>
