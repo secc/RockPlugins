@@ -66,15 +66,33 @@ namespace org.secc.FamilyCheckin
                                 {
                                     foreach ( var schedule in location.Schedules.ToList() )
                                     {
-                                        if ( attendanceService.Where( a =>
-                                             a.DidAttend == true
-                                             && a.EndDateTime == null
-                                             && a.ScheduleId == schedule.Schedule.Id
-                                             && a.LocationId == location.Location.Id
-                                             && a.CreatedDateTime >= Rock.RockDateTime.Today
-                                            ).Count() >= location.Location.FirmRoomThreshold )
+                                        if ( (person.Person.Age ?? 0) > 17 )
                                         {
-                                            location.Schedules.Remove( schedule );
+                                            var threshold = Math.Max( location.Location.FirmRoomThreshold ?? 0, location.Location.SoftRoomThreshold ?? 0);
+                                            if ( attendanceService.Where( a =>
+                                                 a.DidAttend == true
+                                                 && a.EndDateTime == null
+                                                 && a.ScheduleId == schedule.Schedule.Id
+                                                 && a.LocationId == location.Location.Id
+                                                 && a.CreatedDateTime >= Rock.RockDateTime.Today
+                                                ).Count() >= threshold )
+                                            {
+                                                location.Schedules.Remove( schedule );
+                                            }
+                                        }
+                                        else
+                                        {
+                                            var threshold = location.Location.SoftRoomThreshold ?? 0;
+                                            if ( attendanceService.Where( a =>
+                                                 a.DidAttend == true
+                                                 && a.EndDateTime == null
+                                                 && a.ScheduleId == schedule.Schedule.Id
+                                                 && a.LocationId == location.Location.Id
+                                                 && a.CreatedDateTime >= Rock.RockDateTime.Today
+                                                ).Count() >= threshold )
+                                            {
+                                                location.Schedules.Remove( schedule );
+                                            }
                                         }
                                     }
                                 }

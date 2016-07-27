@@ -62,8 +62,9 @@
                     <asp:Literal ID="ltLocationName" runat="server" />
                 </h1>
                 <asp:HiddenField ID="hfLocationId" runat="server" />
-                <Rock:RockTextBox ID="tbThreshold" runat="server" Label="Limit" Help="Total number of people who can occupy a room."></Rock:RockTextBox>
                 <Rock:RockTextBox ID="tbRatio" runat="server" Label="Number of kids for every adult" Help="The number of kids per adult allowed."></Rock:RockTextBox>
+                <Rock:RockTextBox ID="tbSoftThreshold" runat="server" Label="Child Limit" Help="Total number of children who can check into a room."></Rock:RockTextBox>
+                <Rock:RockTextBox ID="tbFirmThreshold" runat="server" Label="Hard Limit" Help="Total number of people who can occupy a room."></Rock:RockTextBox>
             </Content>
         </Rock:ModalDialog>
 

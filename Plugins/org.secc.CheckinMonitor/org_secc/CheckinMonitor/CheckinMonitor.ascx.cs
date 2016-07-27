@@ -323,7 +323,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             var roomRatioKey = GetAttributeValue( "RoomRatioAttributeKey" );
             var roomRatio = location.GetAttributeValue( roomRatioKey );
             tbRatio.Text = roomRatio;
-            tbThreshold.Text = location.FirmRoomThreshold.ToString();
+            tbFirmThreshold.Text = location.FirmRoomThreshold.ToString();
+            tbSoftThreshold.Text = location.SoftRoomThreshold.ToString();
             mdLocation.Show();
         }
 
@@ -748,7 +749,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             location.LoadAttributes();
             location.SetAttributeValue( GetAttributeValue( "RoomRatioAttributeKey" ), tbRatio.Text.AsInteger() );
             location.SaveAttributeValues();
-            location.FirmRoomThreshold = tbThreshold.Text.AsInteger();
+            location.FirmRoomThreshold = tbFirmThreshold.Text.AsInteger();
+            location.SoftRoomThreshold = tbSoftThreshold.Text.AsInteger();
             _rockContext.SaveChanges();
             mdLocation.Hide();
             ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
@@ -807,7 +809,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 return;
             }
             var aliasIds = people.ToList().Select( p => p.PrimaryAliasId );
-            var attendanceRecords = new AttendanceService( _rockContext ).Queryable()
+            var attendanceRecords = new AttendanceService( _rockContext ).Queryable("AttendanceCode")
                 .Where( a => a.CreatedDateTime >= Rock.RockDateTime.Today && a.EndDateTime==null && aliasIds.Contains( a.PersonAliasId ) )
                 .ToList();
             if ( !attendanceRecords.Any() )
@@ -820,6 +822,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         private void DisplaySearchRecords( List<Attendance> attendanceRecords )
         {
+            ltSearch.Text = "";
             phSearchResults.Controls.Clear();
 
             Table table = new Table();
@@ -832,6 +835,14 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             TableHeaderCell thcName = new TableHeaderCell();
             thcName.Text = "Name";
             trHeader.Controls.Add( thcName );
+
+            TableHeaderCell thcCode = new TableHeaderCell();
+            thcCode.Text = "Code";
+            trHeader.Controls.Add( thcCode );
+
+            TableHeaderCell thcDevice = new TableHeaderCell();
+            thcDevice.Text = "Kiosk";
+            trHeader.Controls.Add( thcDevice );
 
             TableHeaderCell thcLocation = new TableHeaderCell();
             thcLocation.Text = "Location";
@@ -852,6 +863,14 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 TableCell tcName = new TableCell();
                 tcName.Text = attendance.PersonAlias.Person.FullName;
                 trRow.Controls.Add( tcName );
+
+                TableCell tcCode = new TableCell();
+                tcCode.Text = attendance.AttendanceCode.Code;
+                trRow.Controls.Add( tcCode );
+
+                TableCell tcDevice = new TableCell();
+                tcDevice.Text = attendance.Device.Name;
+                trRow.Controls.Add( tcDevice );
 
                 TableCell tcLocation = new TableCell();
                 tcLocation.Text = attendance.Location.Name;
@@ -884,7 +903,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     tcButtons.Controls.Add( btnCheckout );
                 }
             }
-
         }
 
         protected void btnSearch_Click( object sender, EventArgs e )
