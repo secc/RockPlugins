@@ -222,8 +222,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             var people = CurrentCheckInState.CheckIn.Families.SelectMany( f => f.People );
 
+            int i = 0;
             HtmlGenericControl hgcRow = new HtmlGenericControl( "div" );
-            phPeople.Controls.Add( hgcRow );
 
             foreach ( var person in people )
             {
@@ -236,6 +236,16 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 //Display person checkin information
                 if ( GetCheckinSchedules( person.Person ).Count() > 0 )
                 {
+                    i++;
+
+                    if ( i % 2 > 0 )
+                    {
+                        hgcRow = new HtmlGenericControl( "div" );
+                        phPeople.Controls.Add( hgcRow );
+                        hgcRow.AddCssClass( "row" );
+                    }
+
+
                     HtmlGenericControl hgcPadding = new HtmlGenericControl( "div" );
                     hgcPadding.AddCssClass( "col-xs-12 col-lg-6" );
                     hgcRow.Controls.Add( hgcPadding );
