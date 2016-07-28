@@ -513,6 +513,11 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             ddlNewPersonSuffix.BindToDefinedType( DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ), true );
 
+            tbNewPersonFirstName.Text = "";
+            tbNewPersonLastName.Text = "";
+            dpNewPersonBirthDate.Text = "";
+            ypNewGraduation.Text = "";
+
             rblNewPersonGender.Items.Clear();
             rblNewPersonGender.BindToEnum<Gender>();
 
@@ -521,12 +526,23 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected void btnSaveAddPerson_Click( object sender, EventArgs e )
         {
+            if (string.IsNullOrWhiteSpace(tbNewPersonFirstName.Text)
+                || string.IsNullOrWhiteSpace(tbNewPersonLastName.Text)
+                || string.IsNullOrWhiteSpace(dpNewPersonBirthDate.Text))
+            {
+                maWarning.Show( "First Name, Last Name, and Birthdate are required.", ModalAlertType.Alert );
+                return;
+            }
+
             Person person = new Person();
             person.FirstName = tbNewPersonFirstName.Text;
             person.LastName = tbNewPersonLastName.Text;
             person.RecordTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
             person.RecordStatusValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING.AsGuid() ).Id;
-            person.Gender = rblNewPersonGender.SelectedValueAsEnum<Gender>();
+            if ( !string.IsNullOrWhiteSpace( rblNewPersonGender.SelectedValue ) )
+            {
+                person.Gender = rblNewPersonGender.SelectedValueAsEnum<Gender>();
+            }
             person.SetBirthDate( dpNewPersonBirthDate.Text.AsDateTime() );
             if ( ypNewGraduation.SelectedYear.HasValue )
             {
@@ -1169,12 +1185,12 @@ try{{
             if ( ViewState["SelectedPersonId"] != null )
             {
                 var person = new PersonService( _rockContext ).Get( ( int ) ViewState["SelectedPersonId"] );
-                if (person!=null)
+                if ( person != null )
                 {
                     var phone = person.PhoneNumbers.Where( pn => !pn.IsUnlisted ).FirstOrDefault();
                     if ( phone != null )
                     {
-                        maWarning.Show( phone.NumberFormatted , ModalAlertType.Information);
+                        maWarning.Show( phone.NumberFormatted, ModalAlertType.Information );
                     }
                     else
                     {
