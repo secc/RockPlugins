@@ -398,6 +398,11 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             phCheckin.Controls.Clear();
 
+            if (checkinPerson==null)
+            {
+                return;
+            }
+
             foreach ( var groupType in checkinPerson.GroupTypes )
             {
                 //ignore group types with no non-excluded groups on non-super checkin
