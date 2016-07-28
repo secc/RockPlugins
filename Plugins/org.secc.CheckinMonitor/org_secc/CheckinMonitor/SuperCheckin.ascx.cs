@@ -383,12 +383,18 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         private void BuildGroupTypeModal()
         {
+            if (CurrentCheckInState == null )
+            {
+                NavigateToPreviousPage();
+                return;
+            }
+
             if ( ViewState["SelectedPersonId"] == null )
             {
                 return;
             }
             var selectedPersonId = ( int ) ViewState["SelectedPersonId"];
-            var checkinPerson = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).First().People.Where( p => p.Person.Id == selectedPersonId ).First();
+            var checkinPerson = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).First().People.Where( p => p.Person.Id == selectedPersonId ).FirstOrDefault();
 
             phCheckin.Controls.Clear();
 
