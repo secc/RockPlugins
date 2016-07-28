@@ -803,7 +803,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 return;
             }
-            var people = new PersonService( _rockContext ).GetByFullName( name, false );
+            var people = new PersonService( _rockContext ).GetByFullName( name, true );
             if ( !people.Any() )
             {
                 ltSearch.Text = "Could not find person's attendance record.";
