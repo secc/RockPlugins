@@ -42,11 +42,6 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
         {
             base.OnInit( e );
 
-            if ( !KioskCurrentlyActive )
-            {
-                NavigateToHomePage();
-            }
-
             RockPage.AddScriptLink( "~/Scripts/CheckinClient/cordova-2.4.0.js", false );
             RockPage.AddScriptLink( "~/Scripts/CheckinClient/ZebraPrint.js" );
 
