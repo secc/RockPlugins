@@ -40,6 +40,7 @@ namespace RockWeb.Blocks.Reporting
     /// <summary>
     /// Block to execute a sql command and display the result (if any).
     /// </summary>
+    [ContextAware( typeof( Person ) )]
     [DisplayName( "Homebound List" )]
     [Category( "SECC > Reporting > Pastoral" )]
     [Description( "A summary of all the current homebound residents that have been reported to Southeast." )]
@@ -89,6 +90,9 @@ namespace RockWeb.Blocks.Reporting
         {
             using ( var rockContext = new RockContext() )
             {
+
+                var contextEntity = this.ContextEntity();
+
                 var workflowService = new WorkflowService( rockContext );
                 var attributeValueService = new WorkflowService( rockContext );
                 var personAliasService = new PersonAliasService( rockContext );
@@ -101,8 +105,15 @@ namespace RockWeb.Blocks.Reporting
                          w.LoadAttributes();
                          w.Activities.ToList().ForEach( a => { a.LoadAttributes(); } );
                      } );
+
+                if ( contextEntity != null )
+                {
+                    qry = qry.Where( w => w.AttributeValues["HomeboundPerson"].Value == ( ( Person ) contextEntity ).PrimaryAlias.Guid.ToString() ).ToList();
+                }
+
                 var newQry = qry.Select( w => new
                 {
+                    Id = w.Id,
                     Workflow = w,
                     Name = w.Name,
                     Address = new Func<string>( () => {
@@ -116,7 +127,10 @@ namespace RockWeb.Blocks.Reporting
                             homeLocation.City + " " +
                             homeLocation.State + ", " +
                             homeLocation.PostalCode; })(),
-                    HomeboundPerson = w.AttributeValues["HomeboundPerson"].ValueFormatted,
+                    HomeboundPerson = new Func<Person>( () =>
+                    {
+                        return personAliasService.Get( w.AttributeValues["HomeboundPerson"].Value.AsGuid() ).Person;
+                    } )(),
                     Age = personAliasService.Get( w.AttributeValues["HomeboundPerson"].Value.AsGuid() ).Person.Age,
                     StartDate = w.AttributeValues["StartDate"].ValueFormatted,
                     Description = w.AttributeValues["HomeboundResidentDescription"].ValueFormatted,
@@ -146,9 +160,20 @@ namespace RockWeb.Blocks.Reporting
         }
         protected void addHomeboundResident_Click( object sender, EventArgs e )
         {
-            Response.Redirect( "/Pastoral/Homebound/" );
+            string url = "/Pastoral/Homebound/";
+            var contextEntity = this.ContextEntity();
+
+            if ( contextEntity != null )
+            {
+                url += "?PersonId=" + contextEntity.Id;
+            }
+            Response.Redirect( url );
         }
 
+        protected void gReport_RowSelected( object sender, RowEventArgs e )
+        {
+            Response.Redirect( "~/Pastoral/Homebound/" + e.RowKeyId );
+        }
         #endregion
     }
 }
