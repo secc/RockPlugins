@@ -28,12 +28,14 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Connection Status", "Connection status for new people." )]
     [AttributeCategoryField( "Checkin Category", "The Attribute Category to display checkin attributes from", false, "Rock.Model.Person", true, "", "", 0 )]
     [TextField( "Checkin Activity", "Name of the activity to complete checkin", true )]
-    [TextField( "Reprint Activity", "Name of the activity to reprint tag", true )]
+    [TextField( "Reprint Activity", "Name of the activity to reprint family tag", true )]
+    [TextField( "Child Reprint Activity", "Name of the activity to reprint child's tag", true )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_PHONE_TYPE, "SMS Phone", "Phone number type to save as when SMS enabled" )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_PHONE_TYPE, "Other Phone", "Phone number type to save as when SMS NOT enabled" )]
     [BooleanField( "Allow Reprint", "Should we allow for reprints of parent tags from this page?", false )]
     [DataViewField( "Approved People", "Data view which contains the members who may check-in.", entityTypeName: "Rock.Model.Person" )]
     [BooleanField( "Allow NonApproved Adults", "Should adults who are not in the approved person list be allowed to checkin?", false, key: "AllowNonApproved" )]
+
     public partial class SuperCheckin : CheckInBlock
     {
 
@@ -108,7 +110,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 btnCompleteCheckin.Visible = false;
             }
 
-            if ( ViewState["SelectedPersonId"] != null )
+            if ( ViewState["SelectedPersonId"] != null && pnlEditPerson.Visible )
             {
                 var personId = ( int ) ViewState["SelectedPersonId"];
                 var person = new PersonService( _rockContext ).Get( personId );
@@ -121,7 +123,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             ddlAdult1Suffix.BindToDefinedType( DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ), true );
             ddlAdult2Suffix.BindToDefinedType( DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ), true );
 
-            pnbAdult1Phone.Text = CurrentCheckInState.CheckIn.SearchValue;
+            pnbAdult1Phone.Text = CurrentCheckInState.CheckIn.SearchValue.AsDouble().ToString();
 
             var campusList = CampusCache.All();
 
@@ -158,6 +160,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             phFamilyMembers.Controls.Clear();
 
+            if ( !CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).Any() )
+            {
+                NavigateToPreviousPage();
+                return;
+            }
+
             foreach ( var checkinPerson in CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).First().People )
             {
                 BootstrapButton btnMember = new BootstrapButton();
@@ -190,6 +198,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 name.Append( checkinPerson.Person.FullName );
                 name.Append( "</b>" );
 
+                name.Append( GetSelectedCountString( checkinPerson ) );
+
                 if ( checkinPerson.Person.Age.HasValue && checkinPerson.Person.Age < 18 )
                 {
                     name.Append( "<br>" );
@@ -198,10 +208,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                 btnMember.Text = name.ToString();
 
-                if ( !checkinPerson.FamilyMember )
-                {
-                    btnMember.Text = "<i class='fa fa-exchange'></i> " + btnMember.Text;
-                }
                 btnMember.ID = checkinPerson.Person.Id.ToString();
                 btnMember.Click += ( s, e ) =>
                 {
@@ -209,6 +215,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     SaveViewState();
                     DisplayPersonInformation();
                 };
+
                 phFamilyMembers.Controls.Add( btnMember );
             }
         }
@@ -222,7 +229,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 .Where( s => s.Selected ).Count();
             if ( count > 0 )
             {
-                return "<span class=badge>" + count.ToString() + "</span>";
+                return " <span class=badge>" + count.ToString() + "</span>";
             }
             return "";
 
@@ -233,7 +240,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             pnlAddPerson.Visible = false;
             pnlPersonInformation.Visible = true;
             pnlEditPerson.Visible = false;
-
 
             int selectedPersonId;
             if ( ViewState["SelectedPersonId"] != null )
@@ -377,14 +383,25 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         private void BuildGroupTypeModal()
         {
+            if (CurrentCheckInState == null )
+            {
+                NavigateToPreviousPage();
+                return;
+            }
+
             if ( ViewState["SelectedPersonId"] == null )
             {
                 return;
             }
             var selectedPersonId = ( int ) ViewState["SelectedPersonId"];
-            var checkinPerson = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).First().People.Where( p => p.Person.Id == selectedPersonId ).First();
+            var checkinPerson = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).First().People.Where( p => p.Person.Id == selectedPersonId ).FirstOrDefault();
 
             phCheckin.Controls.Clear();
+
+            if (checkinPerson==null)
+            {
+                return;
+            }
 
             foreach ( var groupType in checkinPerson.GroupTypes )
             {
@@ -507,6 +524,11 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             ddlNewPersonSuffix.BindToDefinedType( DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ), true );
 
+            tbNewPersonFirstName.Text = "";
+            tbNewPersonLastName.Text = "";
+            dpNewPersonBirthDate.Text = "";
+            ypNewGraduation.Text = "";
+
             rblNewPersonGender.Items.Clear();
             rblNewPersonGender.BindToEnum<Gender>();
 
@@ -515,10 +537,23 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected void btnSaveAddPerson_Click( object sender, EventArgs e )
         {
+            if (string.IsNullOrWhiteSpace(tbNewPersonFirstName.Text)
+                || string.IsNullOrWhiteSpace(tbNewPersonLastName.Text)
+                || string.IsNullOrWhiteSpace(dpNewPersonBirthDate.Text))
+            {
+                maWarning.Show( "First Name, Last Name, and Birthdate are required.", ModalAlertType.Alert );
+                return;
+            }
+
             Person person = new Person();
             person.FirstName = tbNewPersonFirstName.Text;
             person.LastName = tbNewPersonLastName.Text;
-            person.Gender = rblNewPersonGender.SelectedValueAsEnum<Gender>();
+            person.RecordTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+            person.RecordStatusValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING.AsGuid() ).Id;
+            if ( !string.IsNullOrWhiteSpace( rblNewPersonGender.SelectedValue ) )
+            {
+                person.Gender = rblNewPersonGender.SelectedValueAsEnum<Gender>();
+            }
             person.SetBirthDate( dpNewPersonBirthDate.Text.AsDateTime() );
             if ( ypNewGraduation.SelectedYear.HasValue )
             {
@@ -1040,6 +1075,8 @@ try{{
             adult1.LastName = tbAdult1LastName.Text;
             adult1.SuffixValueId = ddlAdult1Suffix.SelectedValueAsId();
             adult1.ConnectionStatusValueId = DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id;
+            adult1.RecordTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+            adult1.RecordStatusValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING.AsGuid() ).Id;
 
             var newFamily = PersonService.SaveNewPerson( adult1, _rockContext );
             newFamily.Members.Where( m => m.Person == adult1 ).FirstOrDefault().GroupRoleId = adultRoleId;
@@ -1075,6 +1112,8 @@ try{{
                 adult2.LastName = tbAdult2LastName.Text;
                 adult2.SuffixValueId = ddlAdult2Suffix.SelectedValueAsId();
                 adult2.ConnectionStatusValueId = DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id;
+                adult2.RecordTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+                adult2.RecordStatusValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING.AsGuid() ).Id;
 
                 PersonService.AddPersonToFamily( adult2, true, newFamily.Id, adultRoleId, _rockContext );
 
@@ -1117,9 +1156,59 @@ try{{
             }
         }
 
+        protected void btnReprintPerson_Click( object sender, EventArgs e )
+        {
+            if ( ViewState["SelectedPersonId"] != null )
+            {
+                var personId = ( int ) ViewState["SelectedPersonId"];
+
+                foreach ( var checkinPerson in CurrentCheckInState.CheckIn.CurrentFamily.People )
+                {
+                    if ( checkinPerson.Person.Id == personId )
+                    {
+                        checkinPerson.Selected = true;
+                    }
+                    else
+                    {
+                        checkinPerson.Selected = false;
+                    }
+                }
+
+            }
+            List<string> errorMessages = new List<string>();
+            ProcessActivity( GetAttributeValue( "ChildReprintActivity" ), out errorMessages );
+            if ( !errorMessages.Any() )
+            {
+                LabelPrinter labelPrinter = new LabelPrinter( CurrentCheckInState, Request );
+                labelPrinter.PrintNetworkLabels();
+                var script = labelPrinter.GetClientScript();
+                ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "addLabelScript", script, true );
+            }
+        }
+
         protected void btnCancel_Click( object sender, EventArgs e )
         {
             NavigateToPreviousPage();
+        }
+
+        protected void btnPhone_Click( object sender, EventArgs e )
+        {
+            if ( ViewState["SelectedPersonId"] != null )
+            {
+                var person = new PersonService( _rockContext ).Get( ( int ) ViewState["SelectedPersonId"] );
+                if ( person != null )
+                {
+                    var phone = person.PhoneNumbers.Where( pn => !pn.IsUnlisted ).FirstOrDefault();
+                    if ( phone != null )
+                    {
+                        maWarning.Show( phone.NumberFormatted, ModalAlertType.Information );
+                    }
+                    else
+                    {
+                        maWarning.Show( "No phone number found.", ModalAlertType.Alert );
+                    }
+                }
+            }
         }
     }
     public class FamilyLabel

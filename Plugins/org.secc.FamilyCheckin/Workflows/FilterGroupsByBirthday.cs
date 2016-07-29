@@ -32,7 +32,7 @@ namespace org.secc.FamilyCheckin
     /// Removes (or excludes) the groups for each selected family member that are not specific to their age.
     /// </summary>
     [ActionCategory( "SECC > Check-In" )]
-    [Description( "Removes (or excludes) the groups for each selected family member that are not specific to their birthday." )]
+    [Description( "Removes (or excludes) the groups for each selected family member that are not specific to their birthday. Also removes/excludes children who have a graduation year." )]
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Filter Groups By Birthday" )]
 
@@ -136,7 +136,7 @@ namespace org.secc.FamilyCheckin
                             if ( maxDate != null )
                             {
 
-                                if ( person.Person.BirthDate > maxDate)
+                                if ( person.Person.BirthDate > maxDate )
                                 {
                                     if ( remove )
                                     {
@@ -148,6 +148,21 @@ namespace org.secc.FamilyCheckin
                                     }
                                     continue;
                                 }
+
+                            }
+
+                            //Filter kids out who are in school
+                            if ( person.Person.GraduationYear != null )
+                            {
+                                if ( remove )
+                                {
+                                    groupType.Groups.Remove( group );
+                                }
+                                else
+                                {
+                                    group.ExcludedByFilter = true;
+                                }
+                                continue;
 
                             }
                         }

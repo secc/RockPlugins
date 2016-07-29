@@ -46,27 +46,6 @@
                 )
     }
 
-        var disableCheckin = function ()
-        {
-            var button = document.getElementById("checkinButton");
-            if (button)
-            {
-                button.onclick = function () { return false; }
-                button.className = "btn btn-lg btn-primary doCheckin disabled"
-            }
-        }
-
-        var enableCheckin = function ()
-        {
-            var button = document.getElementById("checkinButton");
-            if (button)
-            {
-                button.onclick = function () { }
-                button.className = "btn btn-lg btn-primary doCheckin"
-            }
-        }
-
-
 </script>
 
 <asp:UpdatePanel ID="upContent" runat="server">
@@ -99,7 +78,7 @@
                                     runat="server">
                                 </Rock:BootstrapButton>
                             </span>
-                            <a href="javascript:doCheckin()" id="checkinButton" class="btn btn-lg btn-primary doCheckin">Check-In</a>
+                            <Rock:BootstrapButton ID="btnInterfaceCheckin" runat="server" CssClass="btn btn-lg btn-primary doCheckin" OnClick="btnInterfaceCheckin_Click">Check-In</Rock:BootstrapButton>
                             <Rock:BootstrapButton runat="server" Visible="false" ID="btnCheckin" CssClass="btn btn-lg btn-primary" OnClick="btnCheckin_Click"></Rock:BootstrapButton>
 
                         </div>
