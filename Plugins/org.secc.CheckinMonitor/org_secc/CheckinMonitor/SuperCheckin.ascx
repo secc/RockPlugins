@@ -15,6 +15,7 @@
         <!-- New Family -->
         <asp:Panel ID="pnlNewFamily" Visible="false" runat="server">
             <h1>New Family</h1>
+            <asp:ValidationSummary runat="server" ValidationGroup="NewFamily" CssClass="danger" />
             <h2>Adult 1</h2>
             <div class="row">
                 <div class="col-xs-12 col-sm-5">
@@ -27,7 +28,9 @@
                     <Rock:RockDropDownList ID="ddlAdult1Suffix" runat="server" Label="Suffix" CssClass="input-width-md" />
                 </div>
                 <div class="col-xs-8 col-sm-6">
-                    <Rock:PhoneNumberBox ID="pnbAdult1Phone" runat="server" Label="Phone Number"></Rock:PhoneNumberBox>
+                    <Rock:PhoneNumberBox ID="pnbAdult1Phone" Required="true" ValidationGroup="NewFamily" runat="server" Label="Phone Number"></Rock:PhoneNumberBox>
+                    <asp:RegularExpressionValidator ID="RegularExpressionValidator" runat="server"
+                        ControlToValidate="pnbAdult1Phone" ValidationExpression="[0-9]{10}"></asp:RegularExpressionValidator>
                 </div>
                 <div class="col-xs-4 col-sm-2">
                     <Rock:Toggle runat="server" ID="cbAdult1SMS" Label="Is Cell Phone?" OnCssClass="btn-success"
@@ -56,9 +59,9 @@
             <h2>Family Info</h2>
             <Rock:CampusPicker runat="server" ID="cpNewFamilyCampus" DataValueField="Id" DataTextField="Name"></Rock:CampusPicker>
             <Rock:AddressControl runat="server" ID="acNewFamilyAddress" />
-            <Rock:BootstrapButton runat="server" ID="btnNewFamily" Text="Create New Family"
+            <Rock:BootstrapButton runat="server" CausesValidation="true" ValidationGroup="NewFamily" ID="btnNewFamily" Text="Create New Family"
                 CssClass="btn btn-primary" OnClick="btnNewFamily_Click"></Rock:BootstrapButton>
-            <Rock:BootstrapButton runat="server" ID="btnCancel" Text="Cancel" CssClass="btn btn-danger" OnClick="btnCancel_Click">
+            <Rock:BootstrapButton runat="server" ID="btnCancel" CausesValidation="false" Text="Cancel" CssClass="btn btn-danger" OnClick="btnCancel_Click">
             </Rock:BootstrapButton>
         </asp:Panel>
 
@@ -93,6 +96,10 @@
                                     runat="server" Text="<i class='fa fa-check' aria-hidden='true'></i>" OnClick="btnCheckin_Click" />
                                 <Rock:BootstrapButton ID="btnEditPerson" CssClass="btn btn-primary btn-lg"
                                     runat="server" Text="<i class='fa fa-pencil' aria-hidden='true'></i>" OnClick="btnEditPerson_Click" />
+                                <Rock:BootstrapButton ID="btnPhone" CssClass="btn btn-primary btn-lg"
+                                    runat="server" Text="<i class='fa fa-phone' aria-hidden='true'></i>" OnClick="btnPhone_Click" />
+                                <Rock:BootstrapButton ID="btnReprintPerson" CssClass="btn btn-primary btn-lg"
+                                    runat="server" Text="<i class='fa fa-print' aria-hidden='true'></i>" OnClick="btnReprintPerson_Click" />
                             </div>
                         </div>
                         <asp:Panel runat="server" ID="pnlReserved" Visible="false">

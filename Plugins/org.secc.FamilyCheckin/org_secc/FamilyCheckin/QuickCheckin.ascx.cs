@@ -14,6 +14,7 @@ using System.Web.UI.HtmlControls;
 using Rock.Data;
 using org.secc.FamilyCheckin.Utilities;
 using Rock.Attribute;
+using System.Data.Entity;
 
 namespace RockWeb.Plugins.org_secc.FamilyCheckin
 {
@@ -24,7 +25,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
     public partial class QuickCheckin : CheckInBlock
     {
-
         private List<GroupTypeCache> parentGroupTypesList;
         private GroupTypeCache currentParentGroupType;
         private string locationLinkAttributeKey = string.Empty;
@@ -222,8 +222,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             var people = CurrentCheckInState.CheckIn.Families.SelectMany( f => f.People );
 
+            int i = 0;
             HtmlGenericControl hgcRow = new HtmlGenericControl( "div" );
-            phPeople.Controls.Add( hgcRow );
 
             foreach ( var person in people )
             {
@@ -236,6 +236,16 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 //Display person checkin information
                 if ( GetCheckinSchedules( person.Person ).Count() > 0 )
                 {
+                    i++;
+
+                    if ( i % 2 > 0 )
+                    {
+                        hgcRow = new HtmlGenericControl( "div" );
+                        phPeople.Controls.Add( hgcRow );
+                        hgcRow.AddCssClass( "row" );
+                    }
+
+
                     HtmlGenericControl hgcPadding = new HtmlGenericControl( "div" );
                     hgcPadding.AddCssClass( "col-xs-12 col-lg-6" );
                     hgcRow.Controls.Add( hgcPadding );
@@ -247,15 +257,15 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     DisplayPersonCheckinAreas( person.Person, hgcCell );
                 }
             }
-            if ( people.Where(p => p.Selected).Any() )
+            if ( people.Where( p => p.Selected ).Any() )
             {
-                ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "enableCheckin", "enableCheckin();", true );
+                btnInterfaceCheckin.Visible = true;
             }
             else
             {
-                ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "disableCheckin", "disableCheckin();", true );
+                btnInterfaceCheckin.Visible = false;
             }
-            
+
         }
 
         private void DisplayPersonCheckinAreas( Person person, HtmlGenericControl hgcRow )
@@ -300,7 +310,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 var group = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
                 .SelectMany( f => f.People.Where( p => p.Person.Guid == person.Guid ) )
                 .SelectMany( p => p.GroupTypes.Where( gt => gt.GroupType.ParentGroupTypes.Select( pgt => pgt.Guid ).Contains( currentParentGroupType.Guid ) == true && gt == groupType ) )
-                .SelectMany( gt => gt.Groups ).Where(g => g.Selected && g.Locations.Where( l => l.Schedules.Where( s => s.Selected ).Select( s => s.Schedule.Id ).Contains( schedule.Schedule.Id ) && l.Selected ).Any())
+                .SelectMany( gt => gt.Groups ).Where( g => g.Selected && g.Locations.Where( l => l.Schedules.Where( s => s.Selected ).Select( s => s.Schedule.Id ).Contains( schedule.Schedule.Id ) && l.Selected ).Any() )
                 .FirstOrDefault();
 
                 if ( group != null )
@@ -309,7 +319,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                         .SelectMany( f => f.People.Where( p => p.Person.Guid == person.Guid ) )
                         .SelectMany( p => p.GroupTypes.Where( gt => gt.GroupType.ParentGroupTypes.Select( pgt => pgt.Guid ).Contains( currentParentGroupType.Guid ) == true && gt == groupType ) )
                         .SelectMany( gt => gt.Groups.Where( g => g.Selected && g.Group.Guid == group.Group.Guid ) )
-                        .SelectMany( g => g.Locations.Where( l => l.Schedules.Where(s => s.Selected).Select( s => s.Schedule.Id ).Contains( schedule.Schedule.Id ) && l.Selected ) )
+                        .SelectMany( g => g.Locations.Where( l => l.Schedules.Where( s => s.Selected ).Select( s => s.Schedule.Id ).Contains( schedule.Schedule.Id ) && l.Selected ) )
                         .FirstOrDefault();
 
                     //If a room is selected
@@ -665,7 +675,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                                 checkinGroup.PreSelected = true;
                                 checkinLocation.Selected = true;
                                 checkinLocation.PreSelected = true;
-                                if (  checkinGroup.Group.GetAttributeValue( locationLinkAttributeKey ).AsBoolean() )
+                                if ( checkinGroup.Group.GetAttributeValue( locationLinkAttributeKey ).AsBoolean() )
                                 {
                                     LinkLocations( checkinPerson.Person, checkinGroup, checkinLocation );
                                 }
@@ -689,14 +699,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 NavigateToNextPage();
                 return;
             }
-            //Unselect all groups not in parent group
-            var groupTypes = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
-                .SelectMany( f => f.People )
-                .SelectMany( p => p.GroupTypes.Where( gt => gt.GroupType.ParentGroupTypes.Select( pgt => pgt.Guid ).Contains( currentParentGroupType.Guid ) == false ) );
-            foreach ( var groupType in groupTypes )
-            {
-                groupType.Selected = false;
-            }
+
             //Check-in and print tags.
             List<string> errors = new List<string>();
             bool test = ProcessActivity( "Save Attendance", out errors );
@@ -716,6 +719,101 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         protected void btnNoCheckin_Click( object sender, EventArgs e )
         {
             NavigateToPreviousPage();
+        }
+
+        protected void btnInterfaceCheckin_Click( object sender, EventArgs e )
+        {
+            if ( !CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).SelectMany( f => f.People ).Where( p => p.Selected ).Any() )
+            {
+                NavigateToNextPage();
+                return;
+            }
+
+            //Unselect all groups not in parent group
+            var groupTypes = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
+                .SelectMany( f => f.People )
+                .SelectMany( p => p.GroupTypes.Where( gt => gt.GroupType.ParentGroupTypes.Select( pgt => pgt.Guid ).Contains( currentParentGroupType.Guid ) == false ) );
+            foreach ( var groupType in groupTypes )
+            {
+                groupType.Selected = false;
+            }
+
+            var rockContext = new RockContext();
+
+            //Test for overloaded rooms
+            var overload = false;
+            var locationService = new LocationService( rockContext );
+
+            var attendanceService = new AttendanceService( rockContext ).Queryable().AsNoTracking();
+            foreach ( var person in CurrentCheckInState.CheckIn.CurrentFamily.People.Where( p => p.Selected ) )
+            {
+                foreach ( var groupType in person.GroupTypes.Where( gt => gt.Selected ) )
+                {
+                    foreach ( var group in groupType.Groups.Where( g => g.Selected ) )
+                    {
+                        foreach ( var location in group.Locations.Where( l => l.Selected ) )
+                        {
+                            var locationEntity = locationService.Get( location.Location.Id );
+                            if ( locationEntity == null )
+                            {
+                                continue;
+                            }
+                            foreach ( var schedule in location.Schedules.Where( s => s.Selected ).ToList() )
+                            {
+                                if ( ( person.Person.Age ?? 0 ) > 12 )
+                                {
+                                    var threshold = locationEntity.FirmRoomThreshold ?? 0;
+                                    if ( attendanceService.Where( a =>
+                                         a.DidAttend == true
+                                         && a.EndDateTime == null
+                                         && a.ScheduleId == schedule.Schedule.Id
+                                         && a.LocationId == location.Location.Id
+                                         && a.CreatedDateTime >= Rock.RockDateTime.Today
+                                        ).Count() >= threshold )
+                                    {
+                                        person.Selected = false;
+                                        location.Schedules.Remove( schedule );
+                                        overload = true;
+                                    }
+                                }
+                                else
+                                {
+                                    var threshold = Math.Min( locationEntity.FirmRoomThreshold ?? 0, locationEntity.SoftRoomThreshold ?? 0 );
+                                    var thirteen = Rock.RockDateTime.Today.AddYears( -13 );
+                                    if (
+                                        attendanceService.Where( a =>
+                                         a.DidAttend == true
+                                         && a.EndDateTime == null
+                                         && a.ScheduleId == schedule.Schedule.Id
+                                         && a.LocationId == location.Location.Id
+                                         && a.CreatedDateTime >= Rock.RockDateTime.Today
+                                         && a.PersonAlias.Person.BirthDate > thirteen
+                                        )
+                                        .Count() >= threshold )
+                                    {
+                                        person.Selected = false;
+                                        location.Schedules.Remove( schedule );
+                                        overload = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if ( overload )
+            {
+                //a room just closed
+                maAlert.Show( "We're sorry, but a location that you selected has just reached capacity. That location has been removed from your options, we are sorry for the inconvenience.", ModalAlertType.Alert );
+                phPeople.Controls.Clear();
+                DisplayPeople();
+            }
+            else
+            {
+                //trigger the final checkin process!
+                ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "doCheckin", "doCheckin();", true );
+            }
+
         }
     }
 }

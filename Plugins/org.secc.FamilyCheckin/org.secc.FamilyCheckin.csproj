@@ -116,6 +116,7 @@
     <Compile Include="Workflows\FilterGroupsByDataView.cs" />
     <Compile Include="Workflows\FilterGroupsByMembership.cs" />
     <Compile Include="Workflows\LoadAllLocations.cs" />
+    <Compile Include="Workflows\ReprintChildTag.cs" />
     <Compile Include="Workflows\ReprintAggregate.cs" />
     <Compile Include="Workflows\CreateLabelsAggregate.cs" />
     <Compile Include="Workflows\ReserveAttendance.cs" />
