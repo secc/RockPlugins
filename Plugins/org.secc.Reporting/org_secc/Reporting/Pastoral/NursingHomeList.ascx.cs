@@ -40,6 +40,7 @@ namespace RockWeb.Blocks.Reporting
     /// <summary>
     /// Block to execute a sql command and display the result (if any).
     /// </summary>
+    [ContextAware( typeof( Person ) )]
     [DisplayName( "Nursing Home List" )]
     [Category( "SECC > Reporting > Pastoral" )]
     [Description( "A summary of all the current nursing home residents that have been reported to Southeast." )]
@@ -89,6 +90,8 @@ namespace RockWeb.Blocks.Reporting
         {
             using ( var rockContext = new RockContext() )
             {
+                var contextEntity = this.ContextEntity();
+
                 var workflowService = new WorkflowService( rockContext );
                 var attributeService = new AttributeService( rockContext );
                 var attributeValueService = new AttributeValueService( rockContext );
@@ -117,14 +120,21 @@ namespace RockWeb.Blocks.Reporting
                     .Select( obj => new { Workflow = obj.Key, Attributes = obj.Select( a => a.Attribute ), AttributeValues = obj.Select( a => a.AttributeValue ) } )
                     .Where( w => ( w.Workflow.WorkflowTypeId == 28 ) && w.Workflow.Status == "Active" ).ToList();
 
+                if ( contextEntity != null )
+                {
+                    qry = qry.Where( w => w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).Select(av => av.Value).FirstOrDefault() == ( ( Person ) contextEntity ).PrimaryAlias.Guid.ToString() ).ToList();
+                }
+
                 qry.ForEach(
                      w =>
                      {
                          w.Workflow.Activities.Where( a => a.ActivityType.Name == "Visitation Info" ).LastOrDefault().LoadAttributes();
                      } );
 
+
                 var newQry = qry.Select( w => new
                 {
+                    Id = w.Workflow.Id,
                     Workflow = w.Workflow,
                     NursingHome = new Func<string>( () =>
                     {
@@ -181,7 +191,14 @@ namespace RockWeb.Blocks.Reporting
         }
         protected void addHospitalization_Click( object sender, EventArgs e )
         {
-            Response.Redirect( "/Pastoral/NursingHome/" );
+            string url = "/Pastoral/NursingHome/";
+            var contextEntity = this.ContextEntity();
+
+            if ( contextEntity != null )
+            {
+                url += "?PersonId=" + contextEntity.Id;
+            }
+            Response.Redirect( url );
         }
 
         /// <summary>
@@ -217,6 +234,10 @@ namespace RockWeb.Blocks.Reporting
             }
         }
 
+        protected void gReport_RowSelected( object sender, RowEventArgs e )
+        {
+            Response.Redirect( "~/Pastoral/NursingHome/" + e.RowKeyId );
+        }
         #endregion
     }
 }

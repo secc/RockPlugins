@@ -208,10 +208,6 @@ namespace RockWeb.Blocks.Reporting
 
             }
         }
-        protected void addHospitalization_Click( object sender, EventArgs e )
-        {
-            Response.Redirect( "/Pastoral/NursingHome/" );
-        }
 
         /// <summary>
         /// Adds the grid columns.
