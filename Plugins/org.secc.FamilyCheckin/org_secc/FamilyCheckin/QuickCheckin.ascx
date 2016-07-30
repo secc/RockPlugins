@@ -50,9 +50,8 @@
 
 <asp:UpdatePanel ID="upContent" runat="server">
     <ContentTemplate>
-
         <Rock:ModalAlert runat="server" ID="maAlert"></Rock:ModalAlert>
-
+        <asp:HiddenField runat="server" ID="hfCull" />
         <asp:Panel ID="pnlMain" runat="server" Style="margin-top: 10px;">
             <Rock:ModalDialog ID="mdChoose" CssClass="modal" runat="server">
                 <Content>
