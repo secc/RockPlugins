@@ -115,16 +115,16 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             CurrentCheckInState.CheckIn.SearchValue = tbPhone.Text;
             CurrentCheckInState.CheckIn.SearchType = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER );
             List<string> errors = new List<string>();
-            //try
-            //{
+            try
+            {
                 bool test = ProcessActivity( GetAttributeValue( "WorkflowActivity" ), out errors );
-            //}
-            //catch
-            //{
-             //   NavigateToPreviousPage();
-              //  Response.End();
-               // return;
-           // }
+            }
+            catch
+            {
+                NavigateToPreviousPage();
+                Response.End();
+                return;
+            }
             if ( CurrentCheckInState.CheckIn.Families.Any() )
             {
                 if ( CurrentCheckInState.CheckIn.Families.Count() == 1 )
@@ -211,7 +211,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             pnlNotFound.Visible = false;
             pnlSearch.Visible = false;
             pnlCheckin.Visible = true;
-            var person = CurrentCheckInState.CheckIn.Families.Where(f => f.Selected).SelectMany(f => f.People).Where(p => p.Selected).FirstOrDefault();
+            var person = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).SelectMany( f => f.People ).Where( p => p.Selected ).FirstOrDefault();
             if ( person == null )
             {
                 maError.Show( "There was an error processing your request.", ModalAlertType.Warning );
@@ -348,7 +348,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
 
         protected void btnCancel_Click( object sender, EventArgs e )
         {
-            if (CurrentCheckInState == null)
+            if ( CurrentCheckInState == null )
             {
                 NavigateToPreviousPage();
                 return;
