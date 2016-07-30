@@ -40,6 +40,8 @@ namespace RockWeb.Blocks.Reporting
     /// <summary>
     /// Block to execute a sql command and display the result (if any).
     /// </summary>
+    ///     
+    [ContextAware( typeof( Person ) )]
     [DisplayName( "Hospital List" )]
     [Category( "SECC > Reporting > Pastoral" )]
     [Description( "A summary of all the current hospitalizations that have been reported to Southeast." )]
@@ -89,6 +91,9 @@ namespace RockWeb.Blocks.Reporting
         {
             using ( var rockContext = new RockContext() )
             {
+
+                var contextEntity = this.ContextEntity();
+
                 var workflowService = new WorkflowService( rockContext );
                 var attributeValueService = new WorkflowService( rockContext );
                 var personAliasService = new PersonAliasService( rockContext );
@@ -96,14 +101,22 @@ namespace RockWeb.Blocks.Reporting
 
                 var qry = workflowService.Queryable().AsNoTracking()
                     .Where( w => w.WorkflowTypeId == 27 && w.Status == "Active" ).ToList();
+
                  qry.ForEach(
                      w =>
                      {
                          w.LoadAttributes();
                          w.Activities.ToList().ForEach( a => { a.LoadAttributes(); } );
                      } );
+
+                if (contextEntity != null)
+                {
+                    qry = qry.Where( w => w.AttributeValues["PersonToVisit"].Value == ((Person)contextEntity).PrimaryAlias.Guid.ToString() ).ToList();
+                }
+
                 var newQry = qry.Select( w => new
                 {
+                    Id = w.Id,
                     Workflow = w,
                     Name = w.Name,
                     Hospital = w.AttributeValues["Hospital"].ValueFormatted,
@@ -114,7 +127,10 @@ namespace RockWeb.Blocks.Reporting
                             dv.AttributeValues["Qualifier2"].ValueFormatted + " " + 
                             dv.AttributeValues["Qualifier3"].ValueFormatted + ", " +
                             dv.AttributeValues["Qualifier4"].ValueFormatted; })(),
-                    PersonToVisit = w.AttributeValues["PersonToVisit"].ValueFormatted,
+                    PersonToVisit = new Func<Person>( () =>
+                    {
+                        return personAliasService.Get( w.AttributeValues["PersonToVisit"].Value.AsGuid() ).Person;
+                    } )(),
                     Age = personAliasService.Get( w.AttributeValues["PersonToVisit"].Value.AsGuid() ).Person.Age,
                     Room = w.AttributeValues["Room"].ValueFormatted,
                     AdmitDate = w.AttributeValues["AdmitDate"].ValueFormatted,
@@ -137,7 +153,7 @@ namespace RockWeb.Blocks.Reporting
                 }
                 else
                 {
-                    gReport.SetLinqDataSource( newQry.OrderBy( p => p.Hospital ).ThenBy( p => p.PersonToVisit ) );
+                    gReport.SetLinqDataSource( newQry.OrderBy( p => p.Hospital ).ThenBy( p => p.PersonToVisit.LastName ) );
                 }
                 gReport.DataBind();
 
@@ -147,7 +163,14 @@ namespace RockWeb.Blocks.Reporting
         }
         protected void addHospitalization_Click( object sender, EventArgs e )
         {
-            Response.Redirect( "/Pastoral/Hospitalization/" );
+            string url = "/Pastoral/Hospitalization/";
+            var contextEntity = this.ContextEntity();
+
+            if ( contextEntity != null )
+            {
+                url += "?PersonId=" + contextEntity.Id;
+            }
+            Response.Redirect( url );
         }
 
         /// <summary>
@@ -182,7 +205,11 @@ namespace RockWeb.Blocks.Reporting
                 gReport.Columns.Add( bf );
             }
         }
-
         #endregion
+
+        protected void gReport_RowSelected( object sender, RowEventArgs e )
+        {
+            Response.Redirect( "~/Pastoral/Hospitalization/" + e.RowKeyId );
+        }
     }
 }
