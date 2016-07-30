@@ -1,20 +1,4 @@
-﻿// <copyright>
-// Copyright 2013 by the Spark Development Network
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
-//
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
@@ -37,8 +21,9 @@ namespace org.secc.FamilyCheckin
     [Description( "Searches and loads person by PIN (does not load family)." )]
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Load Person By PIN" )]
-    [BooleanField( "Search By Phone", "Should we also allow searching by phone number? This will only return true if a person is found." )]
+    [BooleanField( "Search By Phone", "Should we also allow searching by phone number? This will only return true if a person is found by PIN." )]
     [IntegerField( "Minimum Phone Length", "The minimum number of digits for a phone number.", false, 7 )]
+    [BooleanField("Search By Pin", "Should we search by PIN?")]
     public class LoadPersonByPIN : CheckInActionComponent
     {
         /// <summary>
@@ -64,7 +49,7 @@ namespace org.secc.FamilyCheckin
                 {
                     UserLoginService userLogin = new UserLoginService( rockContext );
                     var user = userLogin.GetByUserName( searchValue );
-                    if ( user != null )
+                    if ( user != null && GetAttributeValue(action, "SearchByPin").AsBoolean() )
                     {
                         var memberService = new GroupMemberService( rockContext );
                         var families = user.Person.GetFamilies();
@@ -91,37 +76,32 @@ namespace org.secc.FamilyCheckin
                     else if ( GetAttributeValue( action, "SearchByPhone" ).AsBoolean() )
                     {
                         //Look for person by phone number
-                        if ( searchValue.Length < ( GetAttributeValue( action, "MinimumPhoneLength" ).AsIntegerOrNull() ?? 7) )
+                        if ( searchValue.Length < ( GetAttributeValue( action, "MinimumPhoneLength" ).AsIntegerOrNull() ?? 7 ) )
                         {
                             return false;
                         }
                         PhoneNumberService phoneNumberService = new PhoneNumberService( rockContext );
-                        var phoneNumbers = phoneNumberService.GetBySearchterm( searchValue ).DistinctBy( pn => pn.Number ).DistinctBy( pn => pn.PersonId ).ToList();
-                        if ( phoneNumbers.Count() != 1 )
+                        var phoneNumbers = phoneNumberService.GetBySearchterm( searchValue ).DistinctBy( pn => pn.PersonId ).Take(20).ToList();
+
+                        foreach ( var phoneNumber in phoneNumbers )
                         {
-                            return false;
+                            var person = phoneNumber.Person;
+                            var family = person.GetFamilies().FirstOrDefault();
+                            var cFamily = new CheckInFamily();
+                            cFamily.Group = family.Clone( false );
+                            cFamily.Group.LoadAttributes( rockContext );
+                            cFamily.Caption = family.ToString();
+                            cFamily.SubCaption = "";
+                            checkInState.CheckIn.Families.Add( cFamily );
+                            var cPerson = new CheckInPerson();
+                            cPerson.Person = person;
+                            cFamily.People = new List<CheckInPerson>() { cPerson };
                         }
-                        var phoneNumber = phoneNumbers.FirstOrDefault();
-                        var person = phoneNumber.Person;
-                        var family = person.GetFamilies().FirstOrDefault();
-
-                        var cFamily = new CheckInFamily();
-                        cFamily.Group = family.Clone( false );
-                        cFamily.Group.LoadAttributes( rockContext );
-                        cFamily.Caption = family.ToString();
-                        cFamily.SubCaption = "";
-                        cFamily.Selected = true;
-                        checkInState.CheckIn.Families.Add( cFamily );
-
-                        var cPerson = new CheckInPerson();
-                        cPerson.Person = person;
-                        cPerson.Selected = true;
-                        cFamily.People = new List<CheckInPerson>() { cPerson };
+                        return true;
                     }
                 }
                 return true;
             }
-
             return false;
         }
     }

@@ -25,7 +25,8 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
     [DisplayName( "Group Fitness Checkin" )]
     [Category( "SECC > Check-in" )]
     [Description( "Block to check into group fitness." )]
-    [TextField( "Checkin Activity", "Activity for completing checkin.", false )]
+    [TextField( "Process Activity", "Action to search", true, "Process" )]
+    [TextField( "Checkin Activity", "Activity for completing checkin.", true, "Checkin" )]
     [AttributeField( Rock.SystemGuid.EntityType.GROUP_MEMBER, "Sessions Attribute", "Select the attribute used to filter by number of sessions.", true, false, order: 3 )]
     [GroupField( "Group Fitness Group", "Group that group fitness members are in. Needed for reading the number of sessions left.", true )]
     [IntegerField( "Minimum Digits", "Minimum number of digits required.", true, 7 )]
@@ -71,16 +72,21 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             {
                 this.Page.Form.DefaultButton = lbSearch.UniqueID;
 
-
                 CurrentCheckInState.CheckIn = new CheckInStatus();
                 SaveState();
-                //people can be preselected coming out of the workflow, we want to unselect them
             }
             else
             {
-                if ( CurrentCheckInState.CheckIn.CurrentPerson != null )
+                if ( CurrentCheckInState.CheckIn.Families.Any() )
                 {
-                    ShowPersonCheckin();
+                    if ( CurrentCheckInState.CheckIn.CurrentPerson != null )
+                    {
+                        ShowPersonCheckin();
+                    }
+                    else
+                    {
+                        ShowPeopleList();
+                    }
                 }
             }
         }
@@ -102,41 +108,115 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
 
             if ( tbPhone.Text.Trim().Length < ( GetAttributeValue( "MinimumDigits" ).AsIntegerOrNull() ?? 7 ) )
             {
-                maError.Show( "Please enter at least " + ( GetAttributeValue( "MinimumDigits" ) + "digits."), ModalAlertType.Information );
+                maError.Show( "Please enter at least " + ( GetAttributeValue( "MinimumDigits" ) + "digits." ), ModalAlertType.Information );
                 return;
             }
-
-                CurrentCheckInState.CheckIn.SearchValue = tbPhone.Text;
-            CurrentCheckInState.CheckIn.SearchType = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER ); //this is a lie
+            CurrentCheckInState.CheckIn = new CheckInStatus();
+            CurrentCheckInState.CheckIn.SearchValue = tbPhone.Text;
+            CurrentCheckInState.CheckIn.SearchType = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER );
             List<string> errors = new List<string>();
-            try
-            {
+            //try
+            //{
                 bool test = ProcessActivity( GetAttributeValue( "WorkflowActivity" ), out errors );
-            }
-            catch
+            //}
+            //catch
+            //{
+             //   NavigateToPreviousPage();
+              //  Response.End();
+               // return;
+           // }
+            if ( CurrentCheckInState.CheckIn.Families.Any() )
             {
-                NavigateToPreviousPage();
-                Response.End();
-                return;
-            }
-            if ( CurrentCheckInState.CheckIn.CurrentFamily == null
-                || CurrentCheckInState.CheckIn.CurrentPerson == null )
-            {
-                ShowPersonNotFound();
+                if ( CurrentCheckInState.CheckIn.Families.Count() == 1 )
+                {
+                    var family = CurrentCheckInState.CheckIn.Families.FirstOrDefault();
+                    if ( family == null )
+                    {
+                        ShowPersonNotFound();
+                        return;
+                    }
+                    family.Selected = true;
+                    var person = family.People.FirstOrDefault();
+                    if ( person == null )
+                    {
+                        person.Selected = true;
+                        ShowPersonNotFound();
+                        return;
+                    }
+                    person.Selected = true;
+                    ShowPersonCheckin();
+                }
+                else
+                {
+                    ShowPeopleList();
+                }
             }
             else
             {
-                ShowPersonCheckin();
+                ShowPersonNotFound();
             }
 
         }
 
+        private void ShowPeopleList()
+        {
+            pnlMessage.Visible = false;
+            phPeople.Controls.Clear();
+            foreach ( var family in CurrentCheckInState.CheckIn.Families )
+            {
+                foreach ( var person in family.People )
+                {
+                    BootstrapButton btnPerson = new BootstrapButton();
+                    btnPerson.Text = person.Person.FullName;
+                    btnPerson.CssClass = "btn btn-default btn-lg btn-block";
+                    btnPerson.ID = "btnPerson" + person.Person.Guid.ToString();
+                    btnPerson.Click += ( s, e ) =>
+                    {
+                        family.Selected = true;
+                        person.Selected = true;
+                        SaveState();
+                        ShowPersonCheckin();
+                    };
+                    phPeople.Controls.Add( btnPerson );
+                }
+            }
+            BootstrapButton btnCancel = new BootstrapButton();
+            btnCancel.ID = "btnPhoneCancel";
+            btnCancel.CssClass = "btn btn-danger btn-lg btn-block";
+            btnCancel.Text = "Cancel";
+            btnCancel.Click += ( s, e ) =>
+            {
+                if ( CurrentCheckInState == null )
+                {
+                    NavigateToPreviousPage();
+                    return;
+                }
+                tbPhone.Text = "";
+                CurrentCheckInState.CheckIn = new CheckInStatus();
+                pnlMessage.Visible = true;
+                phPeople.Controls.Clear();
+            };
+            phPeople.Controls.Add( btnCancel );
+        }
+
         private void ShowPersonCheckin()
         {
+            if ( CurrentCheckInState == null )
+            {
+                NavigateToPreviousPage();
+                return;
+            }
+
+
             pnlNotFound.Visible = false;
             pnlSearch.Visible = false;
             pnlCheckin.Visible = true;
-            var person = CurrentCheckInState.CheckIn.CurrentPerson;
+            var person = CurrentCheckInState.CheckIn.Families.Where(f => f.Selected).SelectMany(f => f.People).Where(p => p.Selected).FirstOrDefault();
+            if ( person == null )
+            {
+                maError.Show( "There was an error processing your request.", ModalAlertType.Warning );
+                return;
+            }
             ltNickName.Text = person.Person.NickName;
             var group = GetMembershipGroup();
             var groupMember = new GroupMemberService( _rockContext ).GetByGroupIdAndPersonId( group.Id, person.Person.Id ).FirstOrDefault();
@@ -154,6 +234,17 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                 return;
             }
 
+            List<string> errors = new List<string>();
+            try
+            {
+                bool test = ProcessActivity( GetAttributeValue( "ProcessActivity" ), out errors );
+            }
+            catch
+            {
+                NavigateToPreviousPage();
+                Response.End();
+                return;
+            }
             //This is a cheat to know if any groups are active and display a no active message if not.
             var checkinCount = 0;
 
@@ -187,7 +278,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                             pnlClass.Controls.Add( btnSelect );
 
                             Literal ltClassName = new Literal();
-                            ltClassName.Text = " " + chGroup.Group.Name + " @ " + schedule.Schedule.Name + " in " + location.Location.Name;
+                            ltClassName.Text = " " + chGroup.Group.Name + ": " + schedule.Schedule.Name + " in " + location.Location.Name;
                             pnlClass.Controls.Add( ltClassName );
                             checkinCount++;
                         }
@@ -257,6 +348,11 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
 
         protected void btnCancel_Click( object sender, EventArgs e )
         {
+            if (CurrentCheckInState == null)
+            {
+                NavigateToPreviousPage();
+                return;
+            }
             StopTimeout();
             tbPhone.Text = "";
             CurrentCheckInState.CheckIn = new CheckInStatus();
@@ -265,6 +361,8 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             pnlCheckin.Visible = false;
             pnlNotFound.Visible = false;
             pnlSearch.Visible = true;
+            pnlMessage.Visible = true;
+            phPeople.Controls.Clear();
         }
 
         protected void btnCheckin_Click( object sender, EventArgs e )

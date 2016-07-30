@@ -26,7 +26,7 @@
         {
             setTimeout(function ()
             {
-                $('.checkin-phone-entry').focus();
+                // $('.checkin-phone-entry').focus();
             }, 100)
         })
     })
@@ -52,6 +52,8 @@
 
     .digit, .command, .search {
         font-size: 2em;
+        height: 75px;
+        padding-top: 20px;
     }
 
     .checkin-phone-entry {
@@ -59,14 +61,49 @@
         height: 70px;
         margin-bottom: 5px;
     }
+
+    h1 {
+        font-size: 4em;
+    }
+
+    h2 {
+        font-size: 3em;
+    }
+
+    .btn-block {
+        font-size: 2em;
+    }
+
+    .alert {
+        font-size: 1.5em;
+    }
+
+    .well .btn-danger, .well .btn-success {
+        height: 60px;
+        font-size: 2em;
+    }
+
+    .ClassList {
+        font-size: 1.5em;
+    }
+
+        .ClassList .btn {
+            height: 75px;
+            width: 75px;
+            font-size: 2em;
+        }
+
 </style>
 <asp:UpdatePanel ID="upContent" runat="server">
     <ContentTemplate>
         <Rock:ModalAlert ID="maError" runat="server" />
         <asp:Panel runat="server" ID="pnlSearch">
             <div class="col-sm-6">
-                <h1>Welcome!</h1>
-                <h2>Please scan your card or enter your phone number to sign into a group fitness class.</h2>
+                <asp:Panel ID="pnlMessage" runat="server">
+                    <h1>Welcome!</h1>
+                    <h2>Please enter your phone number to sign into a group fitness class.</h2>
+                </asp:Panel>
+                <asp:PlaceHolder runat="server" ID="phPeople" />
             </div>
             <div class="tenkey checkin-phone-keypad col-sm-6">
                 <Rock:RockTextBox ID="tbPhone" CssClass="checkin-phone-entry" autocomplete="off" runat="server" />
@@ -91,17 +128,17 @@
                     <a href="#" class="btn btn-default btn-lg command clear col-xs-4">Clear</a>
                 </div>
                 <Rock:BootstrapButton runat="server" ID="lbSearch" OnClick="lbSearch_Click"
-                     CssClass="btn btn-primary btn-lg col-xs-12 search" DataLoadingText="Searching.." Text="SEARCH">
+                    CssClass="btn btn-primary btn-lg col-xs-12 search" DataLoadingText="Searching.." Text="SEARCH">
                 </Rock:BootstrapButton>
             </div>
         </asp:Panel>
         <asp:Panel runat="server" ID="pnlNotFound" Visible="false">
             <Rock:NotificationBox runat="server" ID="nbNotFound" NotificationBoxType="Warning">
-               <h2>Person Not Found</h2>
+               <h3>Group Fitness Record Not Found</h3>
                We're sorry, we could not find your information in our system. If you think this is in error please
                contact one of our volunteers or staff. 
             </Rock:NotificationBox>
-            <Rock:BootstrapButton runat="server" ID="btnBack" CssClass="btn btn-danger" Text="Back" OnClick="btnCancel_Click"></Rock:BootstrapButton>
+            <Rock:BootstrapButton runat="server" ID="btnBack" CssClass="btn btn-danger btn-lg" Text="Back" OnClick="btnCancel_Click"></Rock:BootstrapButton>
         </asp:Panel>
         <asp:Panel runat="server" ID="pnlCheckin" Visible="false" CssClass="well">
             <h1>Welcome
@@ -113,7 +150,11 @@
             <br />
             <br />
             <Rock:NotificationBox runat="server" ID="nbNotOpen" NotificationBoxType="Info" Visible="false">There are no current group fitness sessions available to check-in at this time</Rock:NotificationBox>
-            <asp:PlaceHolder runat="server" ID="phClasses" />
+            <div class="ClassList">
+                <asp:PlaceHolder runat="server" ID="phClasses" />
+            </div>
+            <br />
+            <br />
             <Rock:BootstrapButton runat="server" ID="btnCheckin" Visible="false" CssClass="btn btn-success btn-lg" Text="Check-In To Class" OnClick="btnCheckin_Click"></Rock:BootstrapButton>
             <Rock:BootstrapButton runat="server" ID="btnCancel" CssClass="btn btn-danger btn-lg" Text="Back" OnClick="btnCancel_Click"></Rock:BootstrapButton>
         </asp:Panel>
