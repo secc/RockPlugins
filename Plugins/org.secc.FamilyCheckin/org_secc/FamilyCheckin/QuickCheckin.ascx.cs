@@ -25,9 +25,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
     public partial class QuickCheckin : CheckInBlock
     {
-        private List<GroupTypeCache> parentGroupTypesList;
-        private GroupTypeCache currentParentGroupType;
         private string locationLinkAttributeKey = string.Empty;
+        private CullStatus _cullStatus;
 
         protected override void OnInit( EventArgs e )
         {
@@ -82,13 +81,14 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     return;
                 }
 
-                //Find the parent group types
-                parentGroupTypesList = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault()
-                    .People.SelectMany( p => p.GroupTypes ).SelectMany( gt => gt.GroupType.ParentGroupTypes )
-                    .Where( pgt => pgt.ChildGroupTypes.Count() > 1 ).DistinctBy( pgt => pgt.Guid ).ToList();
-                Session["parentGroupTypesList"] = parentGroupTypesList;
+                var schedules = CurrentCheckInState.CheckIn.CurrentFamily.People
+                    .SelectMany( p => p.GroupTypes )
+                    .SelectMany( gt => gt.Groups )
+                    .SelectMany( g => g.Locations )
+                    .SelectMany( l => l.Schedules )
+                    .DistinctBy( s => s.Schedule.Id );
 
-                if ( !parentGroupTypesList.Any() )
+                if ( !schedules.Any() )
                 {
                     pnlMain.Visible = false;
                     pnlNoCheckin.Visible = true;
@@ -97,39 +97,63 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     return;
                 }
 
-                currentParentGroupType = parentGroupTypesList.FirstOrDefault();
+                var culledSchedules = CurrentCheckInState.CheckIn.CurrentFamily.People
+                    .SelectMany( p => p.GroupTypes )
+                    .SelectMany( gt => gt.Groups )
+                    .SelectMany( g => g.Locations )
+                    .SelectMany( l => l.Schedules )
+                    .DistinctBy( s => s.Schedule.Id )
+                    .Where( s => s.Schedule.Description.ToLower().Contains( "cull" ) );
 
-                Session["currentParentGroupType"] = currentParentGroupType;
-                Session["selectPgt"] = true;
-                Session["modalActive"] = false;
-                Session["modalPerson"] = null;
-                Session["modalSchedule"] = null;
+                var ncs = schedules.ToList();
+                var cs = culledSchedules.ToList();
+
+                //Counts aren't the same and there are available non-culled schedules give options
+                if ( schedules.Count() != culledSchedules.Count()
+                    && culledSchedules.Any() )
+                {
+                    Session["CullStatus"] = CullStatus.Select;
+                }
+                else
+                {
+                    Session["CullStatus"] = CullStatus.None;
+                }
             }
 
-            parentGroupTypesList = ( List<GroupTypeCache> ) Session["parentGroupTypesList"];
-            currentParentGroupType = ( GroupTypeCache ) Session["currentParentGroupType"];
-
-            if ( currentParentGroupType != null && parentGroupTypesList.Count > 1 )
+            if ( Session["CullStatus"] == null )
             {
-                btnParentGroupTypeHeader.Text = currentParentGroupType.Name;
-                btnParentGroupTypeHeader.DataLoadingText = currentParentGroupType.Name + " <i class='fa fa-refresh fa-spin'>";
-            }
-            else
-            {
-                btnParentGroupTypeHeader.Text = "Check-In";
-                btnParentGroupTypeHeader.DataLoadingText = "Check-In";
+                NavigateToPreviousPage();
+                return;
             }
 
-            if ( Session["selectPgt"] != null && ( bool ) Session["selectPgt"] && parentGroupTypesList.Count() > 1 )
-            {
-                DisplayPgtSelection();
-            }
-            else
-            {
-                ltMessage.Text = "<style>#pgtSelect{display:none} #quickCheckinContent{left:0px;}</style>";
-                DisplayPeople();
-            }
+            _cullStatus = ( CullStatus ) Session["CullStatus"];
 
+            switch ( _cullStatus )
+            {
+                case CullStatus.None:
+                    btnParentGroupTypeHeader.Text = "Check-In";
+                    btnParentGroupTypeHeader.DataLoadingText = "Check-In";
+                    ltMessage.Text = "<style>#pgtSelect{display:none} #quickCheckinContent{left:0px;}</style>";
+                    DisplayPeople();
+                    break;
+                case CullStatus.Active:
+                    btnParentGroupTypeHeader.Text = "Worship";
+                    btnParentGroupTypeHeader.DataLoadingText = "Worship <i class='fa fa-refresh fa-spin'>";
+                    ltMessage.Text = "<style>#pgtSelect{display:none} #quickCheckinContent{left:0px;}</style>";
+                    DisplayPeople();
+                    break;
+                case CullStatus.Inactive:
+                    btnParentGroupTypeHeader.Text = "Worship Plus";
+                    btnParentGroupTypeHeader.DataLoadingText = "Worship Plus <i class='fa fa-refresh fa-spin'>";
+                    ltMessage.Text = "<style>#pgtSelect{display:none} #quickCheckinContent{left:0px;}</style>";
+                    DisplayPeople();
+                    break;
+                case CullStatus.Select:
+                    DisplayPgtSelection();
+                    break;
+                default:
+                    break;
+            }
 
             if ( Session["modalActive"] != null && ( bool ) Session["modalActive"] )
             {
@@ -142,74 +166,119 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         protected void btnParentGroupTypeHeader_Click( object sender, EventArgs e )
         {
-            Session["selectPgt"] = true;
+            if ( _cullStatus == CullStatus.None )
+            {
+                return;
+            }
+            Session["CullStatus"] = CullStatus.Select;
+            _cullStatus = CullStatus.Select;
             DisplayPgtSelection();
         }
 
         private void DisplayPgtSelection()
         {
-            var parentGroupTypes = ( List<GroupTypeCache> ) Session["parentGroupTypesList"];
-            if ( !( bool ) Session["selectPgt"] || parentGroupTypes.Count == 1 )
+            if ( _cullStatus == CullStatus.Select )
+            {
+                ltMessage.Text = "Where would you like to check-in to today?";
+            }
+            else
             {
                 ltMessage.Text = "<style>#pgtSelect{display:none} #quickCheckinContent{left:0px;}</style>";
                 return;
             }
-            else
-            {
-                ltMessage.Text = "Where would you like to check-in to today?";
-            }
 
-            foreach ( var pgt in parentGroupTypes )
-            {
-                BootstrapButton link = new BootstrapButton();
-                link.CssClass = "btn btn-default btn-block pgtSelectButton";
-                link.Text = pgt.Name;
-                link.Click += ( s, e ) => ChangeParentGroupType( pgt );
-                link.ID = pgt.Id.ToString();
-                link.DataLoadingText = "<i class='fa fa-refresh fa-spin'></i> Loading checkin...";
-                phPgtSelect.Controls.Add( link );
-            }
+            BootstrapButton btnActive = new BootstrapButton();
+            btnActive.CssClass = "btn btn-default btn-block pgtSelectButton";
+            btnActive.Text = "Worship";
+            btnActive.Click += ( s, e ) => ChangeCullStatus( CullStatus.Active );
+            btnActive.ID = "btnActive";
+            btnActive.DataLoadingText = "<i class='fa fa-refresh fa-spin'></i> Loading checkin...";
+            phPgtSelect.Controls.Add( btnActive );
+
+            BootstrapButton btnInactive = new BootstrapButton();
+            btnInactive.CssClass = "btn btn-default btn-block pgtSelectButton";
+            btnInactive.Text = "Worship Plus";
+            btnInactive.Click += ( s, e ) => ChangeCullStatus( CullStatus.Inactive );
+            btnInactive.ID = "btnInactive";
+            btnInactive.DataLoadingText = "<i class='fa fa-refresh fa-spin'></i> Loading checkin...";
+            phPgtSelect.Controls.Add( btnInactive );
         }
 
-        private GroupTypeCache getCurrentParentGroupType()
+        private void ChangeCullStatus( CullStatus cullStatus )
         {
-            var lastCheckin = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
-                .SelectMany( f => f.People.Where( p => p.Selected ) ).Select( p => p.LastCheckIn ).Where( dt => dt != null ).Max();
+            Session["cullStatus"] = cullStatus;
+            _cullStatus = cullStatus;
 
-            //Find the current parent group type
-            foreach ( var parentGroupType in parentGroupTypesList )
+            switch ( cullStatus )
             {
-                if ( CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault()
-                       .People.Where( p => p.LastCheckIn == lastCheckin ).SelectMany( p => p.GroupTypes )
-                       .Where( gt => gt.Selected == true && gt.GroupType.ParentGroupTypes.Contains( parentGroupType ) ).Count() > 0 )
-                {
-                    return parentGroupType;
-                }
+                case CullStatus.Active:
+                    DeselectCulled();
+                    btnParentGroupTypeHeader.Text = "Worship";
+                    btnParentGroupTypeHeader.DataLoadingText = "Worship <i class='fa fa-refresh fa-spin'>";
+                    break;
+                case CullStatus.Inactive:
+                    btnParentGroupTypeHeader.Text = "Worship Plus";
+                    btnParentGroupTypeHeader.DataLoadingText = "Worship Plus <i class='fa fa-refresh fa-spin'>";
+                    break;
+                default:
+                    break;
             }
-            return null;
-        }
-
-        private void ChangeParentGroupType( GroupTypeCache parentGroupType )
-        {
-            //Save pgt
-            currentParentGroupType = parentGroupType;
-            Session["currentParentGroupType"] = currentParentGroupType;
-            Session["selectPgt"] = false;
-
-            //change name
-            btnParentGroupTypeHeader.Text = currentParentGroupType.Name;
-            btnParentGroupTypeHeader.DataLoadingText = currentParentGroupType.Name + " <i class='fa fa-refresh fa-spin'>";
-
-            //Ensure all people are selected
-            CurrentCheckInState.CheckIn.Families.SelectMany( f => f.People ).ToList().ForEach( p => p.Selected = true );
 
             //Show updated people info
             phPeople.Controls.Clear();
             DisplayPeople();
-            SaveState();
 
             //add sweet animation
             ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "selectPGT", "setTimeout(function(){showContent()},50);", true );
+        }
+
+        private void DeselectCulled()
+        {
+            foreach ( var family in CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ) )
+            {
+                foreach ( var person in family.People.Where( p => p.Selected ) )
+                {
+                    foreach ( var groupType in person.GroupTypes.Where( gt => gt.Selected ) )
+                    {
+                        foreach ( var group in groupType.Groups.Where( g => g.Selected ) )
+                        {
+                            foreach ( var location in group.Locations.Where( l => l.Selected ) )
+                            {
+                                if ( location.Location.Attributes == null || !location.Location.Attributes.Any() )
+                                {
+                                    location.Location.LoadAttributes();
+                                }
+
+                                if ( location.Location.GetAttributeValue( "Cull" ).AsBoolean() )
+                                {
+                                    location.Selected = false;
+                                }
+
+                                foreach ( var schedule in location.Schedules.Where( s => s.Selected && s.Schedule.Description.ToLower().Contains( "cull" ) ) )
+                                {
+                                    schedule.Selected = false;
+                                }
+                                if ( !location.Schedules.Where( s => s.Selected ).Any() )
+                                {
+                                    location.Selected = false;
+                                }
+                            }
+                            if ( !group.Locations.Where( l => l.Selected ).Any() )
+                            {
+                                group.Selected = false;
+                            }
+                        }
+                        if ( !groupType.Groups.Where( g => g.Selected ).Any() )
+                        {
+                            groupType.Selected = false;
+                        }
+                    }
+                    if ( !person.GroupTypes.Where( gt => gt.Selected ).Any() )
+                    {
+                        person.Selected = false;
+                    }
+                }
+            }
         }
 
         private void DisplayPeople()
@@ -245,7 +314,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                         hgcRow.AddCssClass( "row" );
                     }
 
-
                     HtmlGenericControl hgcPadding = new HtmlGenericControl( "div" );
                     hgcPadding.AddCssClass( "col-xs-12 col-lg-6" );
                     hgcRow.Controls.Add( hgcPadding );
@@ -265,7 +333,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 btnInterfaceCheckin.Visible = false;
             }
-
         }
 
         private void DisplayPersonCheckinAreas( Person person, HtmlGenericControl hgcRow )
@@ -283,49 +350,91 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private List<CheckInSchedule> GetCheckinSchedules( Person person )
         {
-            return CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
+            if ( _cullStatus == CullStatus.Active )
+            {
+                var locations = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
+                    .SelectMany( f => f.People.Where( p => p.Person.Guid == person.Guid ) )
+                    .SelectMany( p => p.GroupTypes )
+                    .SelectMany( gt => gt.Groups )
+                    .SelectMany( g => g.Locations );
+
+                foreach ( var location in locations )
+                {
+                    if ( location.Location.Attributes == null || !location.Location.Attributes.Any() )
+                    {
+                        location.Location.LoadAttributes();
+                    }
+                }
+
+                return CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
+                    .SelectMany( f => f.People.Where( p => p.Person.Guid == person.Guid ) )
+                    .SelectMany( p => p.GroupTypes )
+                    .SelectMany( gt => gt.Groups )
+                    .SelectMany( g => g.Locations )
+                    .Where( l => !l.Location.GetAttributeValue( "Cull" ).AsBoolean() )
+                    .SelectMany( l => l.Schedules )
+                    .DistinctBy( s => s.Schedule.Id )
+                    .Where( s => !s.Schedule.Description.ToLower().Contains( "cull" ) )
+                    .ToList();
+            }
+            else
+            {
+                return CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
                 .SelectMany( f => f.People.Where( p => p.Person.Guid == person.Guid ) )
-                .SelectMany( p => p.GroupTypes.Where( gt => gt.GroupType.ParentGroupTypes.Select( pgt => pgt.Guid ).Contains( currentParentGroupType.Guid ) == true ) )
-                .SelectMany( gt => gt.Groups ).SelectMany( g => g.Locations ).SelectMany( l => l.Schedules )
-                .DistinctBy( s => s.Schedule.Guid ).ToList();
+                .SelectMany( p => p.GroupTypes )
+                .SelectMany( gt => gt.Groups )
+                .SelectMany( g => g.Locations )
+                .SelectMany( l => l.Schedules )
+                .DistinctBy( s => s.Schedule.Id ).ToList();
+            }
         }
 
         private void DisplayPersonSchedule( Person person, CheckInSchedule schedule, HtmlGenericControl hgcAreaRow )
         {
             BootstrapButton btnSchedule = new BootstrapButton();
-            btnSchedule.Text = schedule.Schedule.Name + "<br>(Select Room To Checkin)";
             hgcAreaRow.Controls.Add( btnSchedule );
+            btnSchedule.Text = schedule.Schedule.Name + "<br>(Select Room To Checkin)";
             btnSchedule.CssClass = "btn btn-default col-sm-8 col-xs-12 scheduleNotSelected";
-            btnSchedule.ID = person.Guid.ToString() + currentParentGroupType.Guid.ToString() + schedule.Schedule.Guid.ToString();
+            btnSchedule.ID = person.Guid.ToString() + schedule.Schedule.Guid.ToString();
             btnSchedule.Click += ( s, e ) => { ShowRoomChangeModal( person, schedule ); };
             btnSchedule.DataLoadingText = "<i class='fa fa-refresh fa-spin'></i><br>Loading Rooms...";
 
-            var groupType = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
-                .SelectMany( f => f.People.Where( p => p.Person.Guid == person.Guid ) )
-                .SelectMany( p => p.GroupTypes.Where( gt => gt.GroupType.ParentGroupTypes.Select( pgt => pgt.Guid ).Contains( currentParentGroupType.Guid ) == true ) )
-                .FirstOrDefault( gt => gt.Selected && gt.Groups.SelectMany( g => g.Locations ).SelectMany( l => l.Schedules.Where( s => s.Selected ) ).Select( s => s.Schedule.Guid ).Contains( schedule.Schedule.Guid ) == true );
+            CheckInGroupType groupType = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
+                  .SelectMany( f => f.People.Where( p => p.Person.Guid == person.Guid ) )
+                  .SelectMany( p => p.GroupTypes )
+                  .FirstOrDefault( gt => gt.Selected && gt.Groups.SelectMany( g => g.Locations ).SelectMany( l => l.Schedules.Where( s => s.Selected ) ).Select( s => s.Schedule.Guid ).Contains( schedule.Schedule.Guid ) == true );
 
             if ( groupType != null )
             {
                 var group = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
                 .SelectMany( f => f.People.Where( p => p.Person.Guid == person.Guid ) )
-                .SelectMany( p => p.GroupTypes.Where( gt => gt.GroupType.ParentGroupTypes.Select( pgt => pgt.Guid ).Contains( currentParentGroupType.Guid ) == true && gt == groupType ) )
+                .SelectMany( p => p.GroupTypes )
                 .SelectMany( gt => gt.Groups ).Where( g => g.Selected && g.Locations.Where( l => l.Schedules.Where( s => s.Selected ).Select( s => s.Schedule.Id ).Contains( schedule.Schedule.Id ) && l.Selected ).Any() )
                 .FirstOrDefault();
 
                 if ( group != null )
                 {
-                    var room = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
+                    var rooms = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
                         .SelectMany( f => f.People.Where( p => p.Person.Guid == person.Guid ) )
-                        .SelectMany( p => p.GroupTypes.Where( gt => gt.GroupType.ParentGroupTypes.Select( pgt => pgt.Guid ).Contains( currentParentGroupType.Guid ) == true && gt == groupType ) )
+                        .SelectMany( p => p.GroupTypes )
                         .SelectMany( gt => gt.Groups.Where( g => g.Selected && g.Group.Guid == group.Group.Guid ) )
-                        .SelectMany( g => g.Locations.Where( l => l.Schedules.Where( s => s.Selected ).Select( s => s.Schedule.Id ).Contains( schedule.Schedule.Id ) && l.Selected ) )
-                        .FirstOrDefault();
+                        .SelectMany( g => g.Locations.Where( l => l.Schedules.Where( s => s.Selected ).Select( s => s.Schedule.Id ).Contains( schedule.Schedule.Id ) && l.Selected ) );
+
+                    CheckInLocation room;
+
+                    if ( _cullStatus == CullStatus.Active )
+                    {
+                        room = rooms.Where( l => !l.Location.GetAttributeValue( "Cull" ).AsBoolean() ).FirstOrDefault();
+                    }
+                    else
+                    {
+                        room = rooms.FirstOrDefault();
+                    }
 
                     //If a room is selected
                     if ( room != null )
                     {
-                        if ( !Page.IsPostBack && room.Selected && group.Group.GetAttributeValue( locationLinkAttributeKey ).AsBoolean() )
+                        if ( room.Selected && group.Group.GetAttributeValue( locationLinkAttributeKey ).AsBoolean() )
                         {
                             LinkLocations( person, group, room );
                         }
@@ -536,22 +645,38 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private List<CheckInLocation> GetLocations( Person person, CheckInSchedule schedule, CheckInGroupType groupType, CheckInGroup group )
         {
-            return CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
+            var locations = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
                         .SelectMany( f => f.People.Where( p => p.Person.Guid == person.Guid ) )
-                        .SelectMany( p => p.GroupTypes.Where( gt => gt.GroupType.ParentGroupTypes.Select( pgt => pgt.Guid ).Contains( currentParentGroupType.Guid ) == true ) )
+                        .SelectMany( p => p.GroupTypes )
                         .Where( gt => gt.GroupType.Guid == groupType.GroupType.Guid )
                         .SelectMany( gt => gt.Groups )
                         .Where( g => g.Group.Guid == group.Group.Guid )
                         .SelectMany( g => g.Locations.Where(
                              l => l.Schedules.Where(
-                                 s => s.Schedule.Guid == schedule.Schedule.Guid ).Count() != 0 ) ).ToList();
+                                 s => s.Schedule.Guid == schedule.Schedule.Guid ).Count() != 0 ) );
+
+            if ( _cullStatus == CullStatus.Active )
+            {
+                foreach ( var location in locations )
+                {
+                    if ( location.Location.Attributes == null || !location.Location.Attributes.Any() )
+                    {
+                        location.Location.LoadAttributes();
+                    }
+                }
+                return locations.Where( l => !l.Location.GetAttributeValue( "Cull" ).AsBoolean() ).ToList();
+            }
+            else
+            {
+                return locations.ToList();
+            }
         }
 
         private List<CheckInGroup> GetGroups( Person person, CheckInSchedule schedule, CheckInGroupType groupType )
         {
             return CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
                 .SelectMany( f => f.People.Where( p => p.Person.Guid == person.Guid ) )
-                .SelectMany( p => p.GroupTypes.Where( gt => gt.GroupType.ParentGroupTypes.Select( pgt => pgt.Guid ).Contains( currentParentGroupType.Guid ) == true ) )
+                .SelectMany( p => p.GroupTypes )
                 .Where( gt => gt.GroupType.Guid == groupType.GroupType.Guid )
                 .SelectMany( gt => gt.Groups )
                 .Where( g => g.Locations.Where(
@@ -563,7 +688,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         {
             return CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
                 .SelectMany( f => f.People.Where( p => p.Person.Guid == person.Guid ) )
-                .SelectMany( p => p.GroupTypes.Where( gt => gt.GroupType.ParentGroupTypes.Select( pgt => pgt.Guid ).Contains( currentParentGroupType.Guid ) == true ) )
+                .SelectMany( p => p.GroupTypes )
                 .Where( gt => gt.Groups.Where( g => g.Locations.Where(
                       l => l.Schedules.Where(
                           s => s.Schedule.Guid == schedule.Schedule.Guid ).Count() != 0 ).Count() != 0 ).Count() != 0 ).ToList();
@@ -605,8 +730,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private bool PersonHasSelectedGroup( CheckInPerson checkinPerson )
         {
-            return checkinPerson.GroupTypes.Where( gt => gt.GroupType.ParentGroupTypes.Select( pgt => pgt.Guid ).Contains( currentParentGroupType.Guid ) )
-            .SelectMany( gt => gt.Groups ).Where( g => g.Selected ).Any();
+            return checkinPerson.GroupTypes.SelectMany( gt => gt.Groups ).Where( g => g.Selected ).Any();
         }
 
         private void TogglePerson( CheckInPerson person )
@@ -683,7 +807,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                         }
                     }
                 }
-
             }
         }
 
@@ -729,13 +852,10 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 return;
             }
 
-            //Unselect all groups not in parent group
-            var groupTypes = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
-                .SelectMany( f => f.People )
-                .SelectMany( p => p.GroupTypes.Where( gt => gt.GroupType.ParentGroupTypes.Select( pgt => pgt.Guid ).Contains( currentParentGroupType.Guid ) == false ) );
-            foreach ( var groupType in groupTypes )
+            //Unselect all schedules if culled
+            if ( _cullStatus == CullStatus.Active )
             {
-                groupType.Selected = false;
+                DeselectCulled();
             }
 
             var rockContext = new RockContext();
@@ -815,5 +935,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
 
         }
+    }
+
+    enum CullStatus
+    {
+        None,
+        Active,
+        Inactive,
+        Select
     }
 }
