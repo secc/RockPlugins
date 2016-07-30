@@ -26,7 +26,7 @@
         {
             setTimeout(function ()
             {
-                // $('.checkin-phone-entry').focus();
+                 $('.checkin-phone-entry').focus();
             }, 100)
         })
     })
