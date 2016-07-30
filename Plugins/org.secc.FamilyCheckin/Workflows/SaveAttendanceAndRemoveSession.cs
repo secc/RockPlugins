@@ -151,7 +151,12 @@ namespace Rock.Workflow.Action.CheckIn
                                         }
                                         else
                                         {
-                                            return false;
+                                            foreach (var cPerson in checkInState.CheckIn.Families.SelectMany(f => f.People ) )
+                                            {
+                                                cPerson.Selected = false;
+                                                cPerson.GroupTypes.ForEach( gt => gt.Selected = false );
+                                            }
+                                            return true;
                                         }
 
                                         attendance.AttendanceCodeId = attendanceCode.Id;
