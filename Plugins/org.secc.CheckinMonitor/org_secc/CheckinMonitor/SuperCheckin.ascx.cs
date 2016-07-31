@@ -147,6 +147,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         private void DisplayFamilyMemberMenu()
         {
+            nbChange.Visible = false;
             var approvedPeopleGuid = GetAttributeValue( "ApprovedPeople" ).AsGuid();
             var approvedPeople = new DataViewService( _rockContext ).Get( approvedPeopleGuid );
 
@@ -775,7 +776,15 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
             pnlPersonInformation.Visible = true;
             pnlEditPerson.Visible = false;
-            Response.Redirect( Request.RawUrl );
+
+            var cPerson = CurrentCheckInState.CheckIn.CurrentFamily.People.Where( p => p.Person.Id == person.Id ).FirstOrDefault();
+            if ( cPerson != null )
+            {
+                cPerson.Person.SetBirthDate(person.BirthDate);
+            }
+
+            DisplayFamilyMemberMenu();
+            nbChange.Visible = true;
         }
 
         protected void btnCancelAttributes_Click( object sender, EventArgs e )
