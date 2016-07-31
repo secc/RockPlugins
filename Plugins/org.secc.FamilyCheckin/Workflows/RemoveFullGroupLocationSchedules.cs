@@ -1,20 +1,4 @@
-﻿// <copyright>
-// Copyright 2013 by the Spark Development Network
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
-//
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
@@ -55,6 +39,8 @@ namespace org.secc.FamilyCheckin
                 var family = checkInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault();
                 if ( family != null )
                 {
+                    var twelve = Rock.RockDateTime.Today.AddYears( -12 );
+                    var locationService = new LocationService( rockContext );
                     var attendanceService = new AttendanceService( rockContext ).Queryable();
                     foreach ( var person in family.People )
                     {
@@ -64,36 +50,30 @@ namespace org.secc.FamilyCheckin
                             {
                                 foreach ( var location in group.Locations )
                                 {
+                                    //Get a new copy of the entity because otherwise the threshold data may be stale
+                                    var locationEntity = locationService.Get( location.Location.Id );
+
                                     foreach ( var schedule in location.Schedules.ToList() )
                                     {
-                                        if ( (person.Person.Age ?? 0) > 12 )
+                                        var attendanceQry = attendanceService.Where( a =>
+                                             a.DidAttend == true
+                                             && a.EndDateTime == null
+                                             && a.ScheduleId == schedule.Schedule.Id
+                                             && a.LocationId == location.Location.Id
+                                             && a.CreatedDateTime >= Rock.RockDateTime.Today );
+
+                                        var threshold = locationEntity.FirmRoomThreshold ?? 0;
+
+                                        if ( attendanceQry.Count() >= threshold )
                                         {
-                                            var threshold = location.Location.FirmRoomThreshold ?? 0;
-                                            if ( attendanceService.Where( a =>
-                                                 a.DidAttend == true
-                                                 && a.EndDateTime == null
-                                                 && a.ScheduleId == schedule.Schedule.Id
-                                                 && a.LocationId == location.Location.Id
-                                                 && a.CreatedDateTime >= Rock.RockDateTime.Today
-                                                ).Count() >= threshold )
-                                            {
-                                                location.Schedules.Remove( schedule );
-                                            }
+                                            location.Schedules.Remove( schedule );
                                         }
-                                        else
+
+                                        if ( ( person.Person.Age ?? 0 ) < 13 )
                                         {
-                                            var threshold = Math.Min( location.Location.FirmRoomThreshold ?? 0, location.Location.SoftRoomThreshold ?? 0 );
-                                            var thirteen = Rock.RockDateTime.Today.AddYears( -13 );
-                                            if ( 
-                                                attendanceService.Where( a =>
-                                                 a.DidAttend == true
-                                                 && a.EndDateTime == null
-                                                 && a.ScheduleId == schedule.Schedule.Id
-                                                 && a.LocationId == location.Location.Id
-                                                 && a.CreatedDateTime >= Rock.RockDateTime.Today
-                                                 && a.PersonAlias.Person.BirthDate > thirteen
-                                                )
-                                                .Count() >= threshold )
+                                            threshold = Math.Min( locationEntity.FirmRoomThreshold ?? 0, locationEntity.SoftRoomThreshold ?? 0 );
+
+                                            if ( attendanceQry.Where( a => a.PersonAlias.Person.BirthDate > twelve ).Count() >= threshold )
                                             {
                                                 location.Schedules.Remove( schedule );
                                             }
