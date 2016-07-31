@@ -149,7 +149,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     DisplayPeople();
                     break;
                 case CullStatus.Select:
-                    DisplayPgtSelection();
+                    DisplayCullSelection();
                     break;
                 default:
                     break;
@@ -172,10 +172,10 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
             Session["CullStatus"] = CullStatus.Select;
             _cullStatus = CullStatus.Select;
-            DisplayPgtSelection();
+            DisplayCullSelection();
         }
 
-        private void DisplayPgtSelection()
+        private void DisplayCullSelection()
         {
             if ( _cullStatus == CullStatus.Select )
             {
@@ -863,6 +863,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             //Test for overloaded rooms
             var overload = false;
             var locationService = new LocationService( rockContext );
+            var twelve = Rock.RockDateTime.Today.AddYears( -12 );
 
             var attendanceService = new AttendanceService( rockContext ).Queryable().AsNoTracking();
             foreach ( var person in CurrentCheckInState.CheckIn.CurrentFamily.People.Where( p => p.Selected ) )
@@ -880,36 +881,26 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                             }
                             foreach ( var schedule in location.Schedules.Where( s => s.Selected ).ToList() )
                             {
-                                if ( ( person.Person.Age ?? 0 ) > 12 )
+                                var threshold = locationEntity.FirmRoomThreshold ?? 0;
+                                var attendanceQry = attendanceService.Where( a =>
+                                     a.DidAttend == true
+                                     && a.EndDateTime == null
+                                     && a.ScheduleId == schedule.Schedule.Id
+                                     && a.LocationId == location.Location.Id
+                                     && a.CreatedDateTime >= Rock.RockDateTime.Today );
+
+                                if ( attendanceQry.Count() >= threshold )
                                 {
-                                    var threshold = locationEntity.FirmRoomThreshold ?? 0;
-                                    if ( attendanceService.Where( a =>
-                                         a.DidAttend == true
-                                         && a.EndDateTime == null
-                                         && a.ScheduleId == schedule.Schedule.Id
-                                         && a.LocationId == location.Location.Id
-                                         && a.CreatedDateTime >= Rock.RockDateTime.Today
-                                        ).Count() >= threshold )
-                                    {
-                                        person.Selected = false;
-                                        location.Schedules.Remove( schedule );
-                                        overload = true;
-                                    }
+                                    person.Selected = false;
+                                    location.Schedules.Remove( schedule );
+                                    overload = true;
                                 }
-                                else
+
+                                if ( ( person.Person.Age ?? 0 ) < 13 )
                                 {
-                                    var threshold = Math.Min( locationEntity.FirmRoomThreshold ?? 0, locationEntity.SoftRoomThreshold ?? 0 );
-                                    var thirteen = Rock.RockDateTime.Today.AddYears( -13 );
-                                    if (
-                                        attendanceService.Where( a =>
-                                         a.DidAttend == true
-                                         && a.EndDateTime == null
-                                         && a.ScheduleId == schedule.Schedule.Id
-                                         && a.LocationId == location.Location.Id
-                                         && a.CreatedDateTime >= Rock.RockDateTime.Today
-                                         && a.PersonAlias.Person.BirthDate > thirteen
-                                        )
-                                        .Count() >= threshold )
+                                    threshold = Math.Min( locationEntity.FirmRoomThreshold ?? 0, locationEntity.SoftRoomThreshold ?? 0 );
+                                    
+                                    if ( attendanceQry.Where( a => a.PersonAlias.Person.BirthDate > twelve ).Count() >= threshold )
                                     {
                                         person.Selected = false;
                                         location.Schedules.Remove( schedule );
