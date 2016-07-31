@@ -383,7 +383,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         private void BuildGroupTypeModal()
         {
-            if (CurrentCheckInState == null )
+            if ( CurrentCheckInState == null )
             {
                 NavigateToPreviousPage();
                 return;
@@ -398,7 +398,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             phCheckin.Controls.Clear();
 
-            if (checkinPerson==null)
+            if ( checkinPerson == null )
             {
                 return;
             }
@@ -537,9 +537,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected void btnSaveAddPerson_Click( object sender, EventArgs e )
         {
-            if (string.IsNullOrWhiteSpace(tbNewPersonFirstName.Text)
-                || string.IsNullOrWhiteSpace(tbNewPersonLastName.Text)
-                || string.IsNullOrWhiteSpace(dpNewPersonBirthDate.Text))
+            if ( string.IsNullOrWhiteSpace( tbNewPersonFirstName.Text )
+                || string.IsNullOrWhiteSpace( tbNewPersonLastName.Text )
+                || string.IsNullOrWhiteSpace( dpNewPersonBirthDate.Text ) )
             {
                 maWarning.Show( "First Name, Last Name, and Birthdate are required.", ModalAlertType.Alert );
                 return;
@@ -629,6 +629,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             if ( setValue )
             {
+                dpEditBirthDate.SelectedDate = person.BirthDate;
 
 
                 if ( !person.HasGraduated ?? false )
@@ -653,7 +654,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 }
             }
             ScriptManager.RegisterStartupScript( gpEditGrade, gpEditGrade.GetType(), "grade-selection-" + BlockId.ToString(), gpEditGrade.GetJavascriptForYearPicker( ypEditGraduation ), true );
-            dpEditBirthDate.SelectedDate = person.BirthDate;
 
             var AttributeList = new List<int>();
 
@@ -1198,10 +1198,18 @@ try{{
                 var person = new PersonService( _rockContext ).Get( ( int ) ViewState["SelectedPersonId"] );
                 if ( person != null )
                 {
-                    var phone = person.PhoneNumbers.Where( pn => !pn.IsUnlisted ).FirstOrDefault();
-                    if ( phone != null )
+                    var phoneNumbers = person.PhoneNumbers.Where( pn => !pn.IsUnlisted );
+                    if ( phoneNumbers.Any() )
                     {
-                        maWarning.Show( phone.NumberFormatted, ModalAlertType.Information );
+                        var phoneDisplay = new StringBuilder();
+                        foreach (var phoneNumber in phoneNumbers )
+                        {
+                            phoneDisplay.Append(phoneNumber.NumberTypeValue);
+                            phoneDisplay.Append( ": " );
+                            phoneDisplay.Append( phoneNumber.NumberFormatted );
+                            phoneDisplay.Append( "<br />" );
+                        }
+                        maWarning.Show( phoneDisplay.ToString(), ModalAlertType.Information );
                     }
                     else
                     {
