@@ -12,6 +12,11 @@
             </Content>
         </Rock:ModalDialog>
 
+        <Rock:NotificationBox runat="server" NotificationBoxType="Warning" ID="nbChange" Visible="false">
+            Changes have been saved. If birthday or grade have been changed, the check-in information on this page may not
+            be accurate. To update check-in information reload page. 
+        </Rock:NotificationBox>
+
         <!-- New Family -->
         <asp:Panel ID="pnlNewFamily" Visible="false" runat="server">
             <h1>New Family</h1>
