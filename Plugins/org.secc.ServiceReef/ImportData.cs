@@ -133,7 +133,7 @@ namespace org.secc.ServiceReef
 
                                     // Create the trip subaccount
                                     FinancialAccount tripFA = new FinancialAccount();
-                                    tripFA.Name = specialFund.Name + ": " + result.EventName;
+                                    tripFA.Name = result.EventName;
                                     // Name is limited to 50
                                     if ( tripFA.Name.Length > 50 )
                                     {
@@ -142,7 +142,7 @@ namespace org.secc.ServiceReef
                                     tripFA.Description = "Service Reef Event.  Name: " + result.EventName + " ID: " + result.EventId;
                                     tripFA.GlCode = result.EventCode;
                                     tripFA.Url = result.EventUrl;
-                                    tripFA.PublicName = result.EventCode + ": " + result.EventName;
+                                    tripFA.PublicName = result.EventName;
                                     // Public Name is limited to 50
                                     if (tripFA.PublicName.Length > 50) {
                                         tripFA.PublicName = tripFA.PublicName.Substring(0, 50);
