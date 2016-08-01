@@ -198,7 +198,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                                 btnLocation.CssClass = "btn btn-default";
                                 btnLocation.Text = "<i class='fa fa-square-o'></i>";
                             }
-                            btnLocation.ID = "c" + person.Person.Id.ToString() + l.Location.Id.ToString();
+                            btnLocation.ID = "c" + person.Person.Id.ToString() + g.Group.Guid + l.Location.Id.ToString();
                             btnLocation.Click += ( s, e ) => { SelectLocation( person, gt, g, l ); };
                             card.Controls.Add( btnLocation );
                             Literal ltLocation = new Literal();
