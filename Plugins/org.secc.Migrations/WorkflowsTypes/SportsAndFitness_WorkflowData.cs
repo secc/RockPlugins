@@ -8,7 +8,7 @@ using Rock.Plugin;
 
 namespace org.secc.Migrations
 {
-    [MigrationNumber( 9, "1.2.0" )]
+    [MigrationNumber( 12, "1.2.0" )]
     class SportsAndFitness_WorkflowData : Migration
     {
         public override void Up()
