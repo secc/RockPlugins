@@ -108,7 +108,7 @@ namespace org.secc.OAuth.Rest.Controllers
                      familyMember = new FamilyMemberProfile();
                     familyMember.FamilyRole = member.GroupRole.Name;
                     familyMember.FullName = member.Person.FullName;
-                    familyMember.PersonId = member.Person.PrimaryAliasId.Value;
+                    familyMember.PersonId = member.Person.Id;
                     familyMember.Profile = new OAuthController.Profile(member.Person);
                     familyMembers.Add(familyMember);
                 }
@@ -141,14 +141,14 @@ namespace org.secc.OAuth.Rest.Controllers
             public Profile(Person p)
             {
 
-                PersonId = p.PrimaryAliasId;
+                PersonId = p.Id;
                 FirstName = p.FirstName;
                 NickName = p.NickName;
                 LastName = p.LastName;
                 Gender = p.Gender.ToString();
                 Birthdate = p.BirthDate;
                 EmailAddress = p.Email;
-                PreviousPersonIDs = p.Aliases.AsQueryable().Where(pa => pa.Id != pa.Person.PrimaryAliasId).Select(pa => pa.Id).ToList();
+                PreviousPersonIDs = p.Aliases.AsQueryable().Where(pa => pa.Id != pa.Person.PrimaryAliasId).Select(pa => pa.AliasPersonId).ToList();
             }
         }
 

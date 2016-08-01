@@ -61,7 +61,7 @@ namespace RockWeb.Plugins.org_secc.OAuth
         {
             base.OnInit( e );
 
-            if (OAuthSettings["OAuthRequireSsl"].AsBoolean() && Request.Url.Scheme != "Https")
+            if (OAuthSettings["OAuthRequireSsl"].AsBoolean() && Request.Url.Scheme.ToLower() != "https")
             {
                 throw new Exception("OAuth requires SSL.");
             }
