@@ -38,6 +38,7 @@ namespace org.secc.FamilyCheckin
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Search By PIN" )]
     [BooleanField( "Always Search", "Should we search even if a family has been found?", false )]
+    [BooleanField("Clear Families", "Should we clear families if we find a PIN", false)]
     public class SearchByPIN : CheckInActionComponent
     {
         /// <summary>
@@ -68,6 +69,12 @@ namespace org.secc.FamilyCheckin
                         var user = userLogin.GetByUserName( searchValue );
                         if ( user != null )
                         {
+                            //Short PINs can be confused for phone numbers. Clear families if we have selected.
+                            if (GetActionAttributeValue(action, "ClearFamilies" ).AsBoolean() )
+                            {
+                                checkInState.CheckIn.Families.Clear();
+                            }
+
                             var memberService = new GroupMemberService( rockContext );
                             var families = user.Person.GetFamilies();
                             foreach ( var group in families )
@@ -83,7 +90,6 @@ namespace org.secc.FamilyCheckin
                                     checkInState.CheckIn.Families.Add( family );
                                 }
                             }
-
                         }
                     }
 
