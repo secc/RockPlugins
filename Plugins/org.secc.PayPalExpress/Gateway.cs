@@ -39,8 +39,7 @@ namespace org.secc.PayPalExpress
     {
 
         public const string CURRENCY_TYPE_PAYPAL = "2D6FC5FA-A49F-4D20-BCDF-2F0D7E67AD86";
-
-        private GetExpressCheckoutDetailsResponseType _gExpressCheckoutDetailsResponse = null;
+        
         #region Gateway Component Implementation
 
         /// <summary>
@@ -470,11 +469,7 @@ namespace org.secc.PayPalExpress
         private GetExpressCheckoutDetailsResponseType GetExpressCheckoutDetailsResponse(FinancialGateway financialGateway, String token, out string errorMessage)
         {
             errorMessage = string.Empty;
-
-            if (_gExpressCheckoutDetailsResponse != null)
-            {
-                return _gExpressCheckoutDetailsResponse;
-            }
+            
 
             // Create the GetExpressCheckoutDetailsResponseType object
             GetExpressCheckoutDetailsResponseType responseGetExpressCheckoutDetailsResponseType = new GetExpressCheckoutDetailsResponseType();
@@ -500,7 +495,6 @@ namespace org.secc.PayPalExpress
                     // # Success values
                     if (responseGetExpressCheckoutDetailsResponseType.Ack.ToString().Trim().ToUpper().Equals("SUCCESS"))
                     {
-                        _gExpressCheckoutDetailsResponse = responseGetExpressCheckoutDetailsResponseType;
                         return responseGetExpressCheckoutDetailsResponseType;
                     }
                     // # Error Values
