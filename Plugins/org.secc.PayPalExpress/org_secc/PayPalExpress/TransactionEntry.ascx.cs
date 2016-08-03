@@ -54,8 +54,10 @@ namespace org.secc.PayPalExpress
         HtmlGenericControl liPayPal = new HtmlGenericControl("li");
         HtmlGenericControl redirectDiv = new HtmlGenericControl("div");
         private Person _targetPerson = null;
+        PaymentInfo paymentInfo = null;
+        List<AccountItem> TokenSelectedAccounts = null;
 
-        protected override void OnInit(EventArgs e)
+    protected override void OnInit(EventArgs e)
         {
             using (var rockContext = new RockContext())
             {
@@ -231,6 +233,11 @@ namespace org.secc.PayPalExpress
 
             if (PageParameter("token") != String.Empty && PageParameter("PayerID") != string.Empty)
             {
+                // Load this once per token request
+                if (TokenSelectedAccounts != null)
+                {
+                    return TokenSelectedAccounts;
+                }
                 SelectedAccounts = new List<AccountItem>();
                 String errorMessage = string.Empty;
                 var selectedAccounts = ((org.secc.PayPalExpress.Gateway)_payPalExpressGatewayComponent).GetSelectedAccounts(_payPalExpressGateway, PageParameter("token"), out errorMessage);
@@ -246,6 +253,7 @@ namespace org.secc.PayPalExpress
                     item.Amount = accountItem.Amount;
                     SelectedAccounts.Add(item);
                 }
+                TokenSelectedAccounts = SelectedAccounts;
             }
             return SelectedAccounts;
         }
@@ -528,9 +536,9 @@ namespace org.secc.PayPalExpress
         /// <returns></returns>
         private PaymentInfo GetPaymentInfo()
         {
-            PaymentInfo paymentInfo = new PaymentInfo();
             if (RockTransactionEntry != null)
             {
+                paymentInfo = new PaymentInfo();
                 acAddress = (AddressControl)RockTransactionEntry.FindControl("acAddress");
                 pnbPhone = (PhoneNumberBox)RockTransactionEntry.FindControl("pnbPhone");
                 paymentInfo.Amount = GetSelectedAccounts().Sum(a => a.Amount);
@@ -546,6 +554,11 @@ namespace org.secc.PayPalExpress
             }
             else if (PageParameter("token") != String.Empty)
             {
+                if (paymentInfo != null)
+                {
+                    return paymentInfo;
+                }
+                paymentInfo = new PaymentInfo();
                 String errorMessage = string.Empty;
                 paymentInfo = ((org.secc.PayPalExpress.Gateway)_payPalExpressGatewayComponent).GetPaymentInfo(_payPalExpressGateway, PageParameter("token"), out errorMessage);
                 if (errorMessage != string.Empty)
