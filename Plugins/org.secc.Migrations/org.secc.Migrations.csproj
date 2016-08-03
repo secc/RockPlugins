@@ -55,7 +55,9 @@
     <Compile Include="Pages\MOC_PageData.cs" />
     <Compile Include="Pages\Purchasing_PageData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WorkflowsTypes\GroupTreasurerReport_WorkflowData.cs" />
     <Compile Include="WorkflowsTypes\SportsAndFitness_WorkflowData.cs" />
+    <Compile Include="WorkflowsTypes\Pastoral_WorkflowData.cs" />
     <Compile Include="WorkflowsTypes\SuperCheckin_WorkflowData .cs" />
     <Compile Include="WorkflowsTypes\MOC_WorkflowData.cs" />
     <Compile Include="WorkflowsTypes\FamilyCheckin_WorkflowData.cs" />
