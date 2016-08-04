@@ -165,6 +165,34 @@
 
         setTimeout(function(){showingWelcome=true},150);
     }
+
+    var captureKey = function(e){
+        $phoneNumber = $("input[id$='tbPhone']");
+        e = e || event;
+        if (e.keyCode == 13){
+            doSearch();
+            e.preventDefault();
+        } else if(e.keyCode == 8){
+            if (!$phoneNumber.is(":focus")){
+                $phoneNumber.val($phoneNumber.val().slice(0, -1));
+                if ($phoneNumber.val().length==0){
+                    showWelcome();
+                }
+
+            }
+            e.preventDefault();
+        } else{
+            if (!$phoneNumber.is(":focus")){
+                var char = String.fromCharCode(e.keyCode || e.charCode);
+                if (["0","1","2","3","4","5","6","7","8","9"].indexOf(char)>-1){
+                    $phoneNumber = $("input[id$='tbPhone']");
+                    $phoneNumber.val($phoneNumber.val() + char);
+                }
+            }
+        }
+    }
+
+    document.body.onkeypress = captureKey;
 </script>
 
 <asp:UpdatePanel ID="upContent" runat="server" CssClass="">
@@ -277,7 +305,7 @@
                                 <div id="contentDiv">
                                     <asp:Literal ID="ltContent" runat="server" />
                                 </div>
-                                <div id="familyDiv" style="overflow-y: auto;height:500px;"></div>
+                                <div id="familyDiv" style="overflow-y: auto; height: 500px;"></div>
                             </div>
                         </div>
                     </div>
