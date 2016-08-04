@@ -287,7 +287,7 @@ namespace RockWeb.Plugins.org_secc.Crm
                                 birthDateList = longestDateSearch.Distinct().ToList();
 
                             }
-
+                            gPeople.Columns[3].Visible = true;
                             people = personService.Queryable().Where( p => birthDateList.Contains( p.BirthDate ) );
                             break;
                         }
