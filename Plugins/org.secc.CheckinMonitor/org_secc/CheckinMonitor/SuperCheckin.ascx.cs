@@ -780,7 +780,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             var cPerson = CurrentCheckInState.CheckIn.CurrentFamily.People.Where( p => p.Person.Id == person.Id ).FirstOrDefault();
             if ( cPerson != null )
             {
-                cPerson.Person.SetBirthDate(person.BirthDate);
+                cPerson.Person.SetBirthDate( person.BirthDate );
             }
 
             DisplayFamilyMemberMenu();
@@ -1211,9 +1211,9 @@ try{{
                     if ( phoneNumbers.Any() )
                     {
                         var phoneDisplay = new StringBuilder();
-                        foreach (var phoneNumber in phoneNumbers )
+                        foreach ( var phoneNumber in phoneNumbers )
                         {
-                            phoneDisplay.Append(phoneNumber.NumberTypeValue);
+                            phoneDisplay.Append( phoneNumber.NumberTypeValue );
                             phoneDisplay.Append( ": " );
                             phoneDisplay.Append( phoneNumber.NumberFormatted );
                             phoneDisplay.Append( "<br />" );
@@ -1226,6 +1226,50 @@ try{{
                     }
                 }
             }
+        }
+
+        protected void btnPIN_Click( object sender, EventArgs e )
+        {
+            tbPIN.Text = "";
+            mdPIN.Show();
+        }
+
+        protected void mdPIN_SaveClick( object sender, EventArgs e )
+        {
+            var pin = tbPIN.Text.AsNumeric();
+            if ( !string.IsNullOrWhiteSpace( pin ) && pin.Length > 7 )
+            {
+                if ( ViewState["SelectedPersonId"] != null )
+                {
+                    var person = new PersonService( _rockContext ).Get( ( int ) ViewState["SelectedPersonId"] );
+                    if ( person != null )
+                    {
+                        var userLoginService = new UserLoginService( _rockContext );
+                        var userLogin = userLoginService.GetByUserName( pin );
+                        if ( userLogin == null )
+                        {
+                            userLogin = new UserLogin();
+                            userLogin.UserName = pin;
+                            userLogin.IsConfirmed = true;
+                            userLogin.PersonId = person.Id;
+                            userLogin.EntityTypeId = EntityTypeCache.Read( "Rock.Security.Authentication.PINAuthentication" ).Id;
+                            userLoginService.Add( userLogin );
+                            _rockContext.SaveChanges();
+                            maWarning.Show( "PIN number linked to person", ModalAlertType.Information );
+                        }
+                        else
+                        {
+                            maWarning.Show( "This PIN has already been assigned to a person, and cannot be assigned to this person.", ModalAlertType.Warning );
+                        }
+                    }
+
+                }
+            }
+            else
+            {
+                maWarning.Show("PIN number was of invalid length", ModalAlertType.Warning);
+            }
+            mdPIN.Hide();
         }
     }
     public class FamilyLabel
