@@ -92,19 +92,19 @@ namespace RockWeb.Blocks.Reporting
                 var definedValueService = new DefinedValueService( rockContext );
 
                 var qry = workflowService.Queryable().AsNoTracking()
-                    .Join( attributeService.Queryable() ,
+                    .Join( attributeService.Queryable(),
                     w => new { EntityTypeId = 113, WorkflowTypeId = w.WorkflowTypeId.ToString() },
-                    a => new { EntityTypeId = a.EntityTypeId.Value, WorkflowTypeId = a.EntityTypeQualifierValue},
-                    (w, a) => new { Workflow = w, Attribute = a } )
+                    a => new { EntityTypeId = a.EntityTypeId.Value, WorkflowTypeId = a.EntityTypeQualifierValue },
+                    ( w, a ) => new { Workflow = w, Attribute = a } )
                     .Join( attributeValueService.Queryable(),
                     obj => new { AttributeId = obj.Attribute.Id, EntityId = obj.Workflow.Id },
                     av => new { AttributeId = av.AttributeId, EntityId = av.EntityId.Value },
-                    ( obj, av ) => new { Workflow = obj.Workflow, Attribute = obj.Attribute, AttributeValue = av  } )
-                    .GroupBy(obj => obj.Workflow)
-                    .Select( obj => new { Workflow = obj.Key, Attributes = obj.Select(a => a.Attribute).ToList(), AttributeValues=obj.Select( a => a.AttributeValue )} )
-                    .Where( w => ( w.Workflow.WorkflowTypeId == 27 || w.Workflow.WorkflowTypeId == 28 || w.Workflow.WorkflowTypeId == 29 ) && w.Workflow.Status == "Active" ).ToList();
+                    ( obj, av ) => new { Workflow = obj.Workflow, Attribute = obj.Attribute, AttributeValue = av } )
+                    .GroupBy( obj => obj.Workflow )
+                    .Select( obj => new { Workflow = obj.Key, Attributes = obj.Select( a => a.Attribute ).ToList(), AttributeValues = obj.Select( a => a.AttributeValue ) } )
+                    .Where( w => ( w.Workflow.WorkflowTypeId == 38 || w.Workflow.WorkflowTypeId == 39 || w.Workflow.WorkflowTypeId == 40 ) && w.Workflow.Status == "Active" ).ToList();
 
-                List<DefinedValue> facilities = definedValueService.Queryable().Where( dv => dv.DefinedTypeId == 108 || dv.DefinedTypeId == 139 ).ToList();
+                List<DefinedValue> facilities = definedValueService.Queryable().Where( dv => dv.DefinedTypeId == 109 || dv.DefinedTypeId == 140 ).ToList();
                 facilities.ForEach(h => {
                     h.LoadAttributes();
                 });

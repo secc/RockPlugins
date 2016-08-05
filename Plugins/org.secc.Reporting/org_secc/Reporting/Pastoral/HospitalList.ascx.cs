@@ -100,9 +100,9 @@ namespace RockWeb.Blocks.Reporting
                 var definedValueService = new DefinedValueService( rockContext );
 
                 var qry = workflowService.Queryable().AsNoTracking()
-                    .Where( w => w.WorkflowTypeId == 27 && w.Status == "Active" ).ToList();
+                    .Where( w => w.WorkflowTypeId == 40 && w.Status == "Active" ).ToList();
 
-                 qry.ForEach(
+                qry.ForEach(
                      w =>
                      {
                          w.LoadAttributes();
