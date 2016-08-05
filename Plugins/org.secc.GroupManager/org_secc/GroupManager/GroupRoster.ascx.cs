@@ -22,7 +22,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [Description( "Presents members of group in roster format." )]
 
     //Settings
-    [CodeEditorField( "Roster Lava", "Lava to appear in member roster pannels", CodeEditorMode.Lava, CodeEditorTheme.Rock, 600 )]
+    [CodeEditorField( "Roster Lava", "Lava to appear in member roster pannels", CodeEditorMode.Lava, CodeEditorTheme.Rock, 600, false )]
+    [BooleanField( "Allow Email", "Allow email to be sent from this block.", false )]
+    [BooleanField( "Allow SMS", "Allow test messages to be sent from this block.", false )]
     public partial class GroupRoster : RockBlock
     {
         Group group = new Group();
@@ -57,6 +59,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
+
+            btnEmail.Visible = GetAttributeValue( "AllowEmail" ).AsBoolean();
+            btnSMS.Visible = GetAttributeValue( "AllowSMS" ).AsBoolean();
+
             nbAlert.Visible = false;
             var personAlias = RockPage.CurrentPersonAlias;
             groupId = PageParameter( "GroupId" ).AsInteger();
@@ -220,7 +226,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             pnlEmail.Visible = false;
             pnlSMS.Visible = false;
             pnlMain.Visible = true;
-            maSent.Show( "Your message has been sent.", ModalAlertType.Information );
+            maSent.Show( "Your message will be been sent shortly.", ModalAlertType.Information );
         }
 
         protected void btnEmail_Click( object sender, EventArgs e )
@@ -281,7 +287,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             pnlEmail.Visible = false;
             pnlSMS.Visible = false;
             pnlMain.Visible = true;
-            maSent.Show( "Your message has been sent.", ModalAlertType.Information );
+            maSent.Show( "Your message will be sent shortly.", ModalAlertType.Information );
         }
 
         protected void btnCancel_Click( object sender, EventArgs e )
@@ -742,6 +748,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 foreach ( int key in gMembers.SelectedKeys )
                 {
                     MemberData member = memberData.Where( md => md.Id == key ).FirstOrDefault();
+                    member.LoadParents();
                     if ( member.IsParent || !sendParents )
                     {
                         if ( !addedIds.Contains( member.Id ) )
@@ -787,7 +794,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         protected void gMembers_RowDataBound( object sender, GridViewRowEventArgs e )
         {
-            if (e.Row.RowType== DataControlRowType.Header )
+            if ( e.Row.RowType == DataControlRowType.Header )
             {
                 //hides check boxes needed for printing
                 e.Row.Cells[2].CssClass = "hide";

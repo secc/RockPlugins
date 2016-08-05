@@ -35,6 +35,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [BooleanField( "Allow Reprint", "Should we allow for reprints of parent tags from this page?", false )]
     [DataViewField( "Approved People", "Data view which contains the members who may check-in.", entityTypeName: "Rock.Model.Person" )]
     [BooleanField( "Allow NonApproved Adults", "Should adults who are not in the approved person list be allowed to checkin?", false, key: "AllowNonApproved" )]
+    [DataViewField( "Security Role Dataview", "Data view which people who are in a security role. It will not allow adding PINs for people in this group.", entityTypeName: "Rock.Model.Person", required:false )]
 
     public partial class SuperCheckin : CheckInBlock
     {
@@ -233,7 +234,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 return " <span class=badge>" + count.ToString() + "</span>";
             }
             return "";
-
         }
 
         private void DisplayPersonInformation()
@@ -279,8 +279,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     btnCheckin.Visible = true;
                 }
             }
-
-
         }
 
         private void BuildPersonCheckinDetails()
@@ -780,7 +778,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             var cPerson = CurrentCheckInState.CheckIn.CurrentFamily.People.Where( p => p.Person.Id == person.Id ).FirstOrDefault();
             if ( cPerson != null )
             {
-                cPerson.Person.SetBirthDate(person.BirthDate);
+                cPerson.Person.SetBirthDate( person.BirthDate );
             }
 
             DisplayFamilyMemberMenu();
@@ -1211,9 +1209,9 @@ try{{
                     if ( phoneNumbers.Any() )
                     {
                         var phoneDisplay = new StringBuilder();
-                        foreach (var phoneNumber in phoneNumbers )
+                        foreach ( var phoneNumber in phoneNumbers )
                         {
-                            phoneDisplay.Append(phoneNumber.NumberTypeValue);
+                            phoneDisplay.Append( phoneNumber.NumberTypeValue );
                             phoneDisplay.Append( ": " );
                             phoneDisplay.Append( phoneNumber.NumberFormatted );
                             phoneDisplay.Append( "<br />" );
@@ -1226,6 +1224,68 @@ try{{
                     }
                 }
             }
+        }
+
+        protected void btnPIN_Click( object sender, EventArgs e )
+        {
+            tbPIN.Text = "";
+            mdPIN.Show();
+        }
+
+        protected void mdPIN_SaveClick( object sender, EventArgs e )
+        {
+            var pin = tbPIN.Text.AsNumeric();
+            if ( !string.IsNullOrWhiteSpace( pin ) && pin.Length > 7 )
+            {
+                if ( ViewState["SelectedPersonId"] != null )
+                {
+                    var person = new PersonService( _rockContext ).Get( ( int ) ViewState["SelectedPersonId"] );
+                    if ( person != null )
+                    {
+                        //check to see if person is in a security role and disallow if in security role
+                        var securityRoleGuid = GetAttributeValue( "SecurityRoleDataview" ).AsGuid();
+                        var securityMembers = new DataViewService( _rockContext ).Get( securityRoleGuid );
+
+                        if ( securityMembers == null )
+                        {
+                            maWarning.Show( "Security role dataview not found.", ModalAlertType.Warning );
+                            mdPIN.Hide();
+                            return;
+                        }
+                        var errorMessages = new List<string>();
+                        var securityMembersQry = securityMembers.GetQuery( null, 30, out errorMessages );
+                        if ( securityMembersQry.Where(p => p.Id == person.Id).Any() )
+                        {
+                            maWarning.Show( "Unable to add PIN to person. This person is in a security role and cannot have a PIN added from this tool.", ModalAlertType.Warning );
+                            mdPIN.Hide();
+                        }
+
+                        var userLoginService = new UserLoginService( _rockContext );
+                        var userLogin = userLoginService.GetByUserName( pin );
+                        if ( userLogin == null )
+                        {
+                            userLogin = new UserLogin();
+                            userLogin.UserName = pin;
+                            userLogin.IsConfirmed = true;
+                            userLogin.PersonId = person.Id;
+                            userLogin.EntityTypeId = EntityTypeCache.Read( "Rock.Security.Authentication.PINAuthentication" ).Id;
+                            userLoginService.Add( userLogin );
+                            _rockContext.SaveChanges();
+                            maWarning.Show( "PIN number linked to person", ModalAlertType.Information );
+                        }
+                        else
+                        {
+                            maWarning.Show( "This PIN has already been assigned to a person, and cannot be assigned to this person.", ModalAlertType.Warning );
+                        }
+                    }
+
+                }
+            }
+            else
+            {
+                maWarning.Show("PIN number was of invalid length", ModalAlertType.Warning);
+            }
+            mdPIN.Hide();
         }
     }
     public class FamilyLabel

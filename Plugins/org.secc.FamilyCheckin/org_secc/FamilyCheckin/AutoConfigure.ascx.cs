@@ -22,7 +22,14 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         {
             if ( !Page.IsPostBack )
             {
-                ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "GetClient", "setTimeout(function(){getClientName()},100);", true );
+                if (CurrentUser!=null && CurrentUser.IsAuthenticated && !string.IsNullOrWhiteSpace( PageParameter( "KioskName" ) ) )
+                {
+                    SetKiosk( PageParameter( "KioskName" ) );
+                }
+                else
+                {
+                    ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "GetClient", "setTimeout(function(){getClientName()},100);", true );
+                }
             }
             else
             {
