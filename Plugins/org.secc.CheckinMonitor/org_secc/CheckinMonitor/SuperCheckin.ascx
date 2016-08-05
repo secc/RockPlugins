@@ -41,7 +41,7 @@
                 </div>
                 <div class="col-xs-8 col-sm-6">
                     <Rock:PhoneNumberBox ID="pnbAdult1Phone" Required="true" ValidationGroup="NewFamily" runat="server" Label="Phone Number"></Rock:PhoneNumberBox>
-                    <asp:RegularExpressionValidator ID="RegularExpressionValidator" runat="server"
+                    <asp:RegularExpressionValidator ID="RegularExpressionValidator" runat="server" ValidationGroup="NewFamily"
                         ControlToValidate="pnbAdult1Phone" ValidationExpression="[0-9]{10}"></asp:RegularExpressionValidator>
                 </div>
                 <div class="col-xs-4 col-sm-2">
@@ -73,8 +73,8 @@
             <Rock:AddressControl runat="server" ID="acNewFamilyAddress" />
             <Rock:BootstrapButton runat="server" CausesValidation="true" ValidationGroup="NewFamily" ID="btnNewFamily" Text="Create New Family"
                 CssClass="btn btn-primary" OnClick="btnNewFamily_Click"></Rock:BootstrapButton>
-            <Rock:BootstrapButton runat="server" ID="btnCancel" CausesValidation="false" Text="Cancel" CssClass="btn btn-danger" OnClick="btnCancel_Click">
-            </Rock:BootstrapButton>
+            <asp:LinkButton runat="server" ID="btnCancel" CausesValidation="false" ValidationGroup="NewFamily" Text="Cancel" CssClass="btn btn-danger" OnClick="btnCancel_Click">
+            </asp:LinkButton>
         </asp:Panel>
 
         <!-- Manage Family -->
