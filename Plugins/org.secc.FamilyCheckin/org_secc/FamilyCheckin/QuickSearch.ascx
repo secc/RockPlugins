@@ -179,9 +179,9 @@
                 if ($phoneNumber.val().length==0){
                     showWelcome();
                 }
+                pushHistory();
+                e.preventDefault();
             }
-            pushHistory();
-            e.preventDefault();
         }
     }
 
