@@ -35,7 +35,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [BooleanField( "Allow Reprint", "Should we allow for reprints of parent tags from this page?", false )]
     [DataViewField( "Approved People", "Data view which contains the members who may check-in.", entityTypeName: "Rock.Model.Person" )]
     [BooleanField( "Allow NonApproved Adults", "Should adults who are not in the approved person list be allowed to checkin?", false, key: "AllowNonApproved" )]
-    [DataViewField( "Security Role Dataview", "Data view which people who are in a security role. It will not allow adding PINs for people in this group.", entityTypeName: "Rock.Model.Person", required:false )]
+    [DataViewField( "Security Role Dataview", "Data view which people who are in a security role. It will not allow adding PINs for people in this group.", entityTypeName: "Rock.Model.Person", required: false )]
 
     public partial class SuperCheckin : CheckInBlock
     {
@@ -1254,7 +1254,7 @@ try{{
                         }
                         var errorMessages = new List<string>();
                         var securityMembersQry = securityMembers.GetQuery( null, 30, out errorMessages );
-                        if ( securityMembersQry.Where(p => p.Id == person.Id).Any() )
+                        if ( securityMembersQry.Where( p => p.Id == person.Id ).Any() )
                         {
                             maWarning.Show( "Unable to add PIN to person. This person is in a security role and cannot have a PIN added from this tool.", ModalAlertType.Warning );
                             mdPIN.Hide();
@@ -1283,7 +1283,7 @@ try{{
             }
             else
             {
-                maWarning.Show("PIN number was of invalid length", ModalAlertType.Warning);
+                maWarning.Show( "PIN number was of invalid length", ModalAlertType.Warning );
             }
             mdPIN.Hide();
         }
