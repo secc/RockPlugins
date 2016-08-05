@@ -420,12 +420,25 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             Group parentGroup = groupService.Get( GetAttributeValue( "DestinationGroup" ).AsGuid() );
             // If we don't find it, this will go into the parent level.
             group.ParentGroupId = parentGroup.Id;
+
             foreach ( Group childGroup in parentGroup.Groups )
             {
-                // If we find a group with the same name as the old child's, we've found where this should land
-                if(_baseGroup.ParentGroup.Name == childGroup.Name)
+                if ( _baseGroup != null )
                 {
-                    group.ParentGroupId = childGroup.Id;
+                    // If we find a group with the same name as the old child's, we've found where this should land
+                    if ( _baseGroup.ParentGroup.Name == childGroup.Name )
+                    {
+                        group.ParentGroupId = childGroup.Id;
+                    }
+                }
+                else
+                {
+                    // If this is a new group, drop them in "Other"
+                    if ( "Other" == childGroup.Name )
+                    {
+                        group.ParentGroupId = childGroup.Id;
+                    }
+
                 }
             }
 
