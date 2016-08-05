@@ -11,10 +11,10 @@ namespace MigratePastoralWorkflowData
     class NursingHomeWorkflowImport : WorkflowImport
     {
 
-        const int DISCHARGE_ACTIVITY_ID = 2090;
-        const int VISIT_ACTIVITY_ID = 2089;
-        const int SUMMARY_ACTIVITY_ID = 2088;
-        const int WORKFLOW_TYPE_ID = 28;
+        const int DISCHARGE_ACTIVITY_ID = 89;
+        const int VISIT_ACTIVITY_ID = 88;
+        const int SUMMARY_ACTIVITY_ID = 87;
+        const int WORKFLOW_TYPE_ID = 39;
         const int ARENA_ASSIGNMENT_TYPE_ID = 15;
 
         public NursingHomeWorkflowImport() : base()

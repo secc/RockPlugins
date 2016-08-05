@@ -134,6 +134,9 @@ namespace org.secc.PayFlowPro
         /// <returns></returns>
         public override List<Payment> GetPayments( FinancialGateway financialGateway, DateTime startDate, DateTime endDate, out string errorMessage )
         {
+            // set the encryption protocols that are permissible for external SSL connections
+            System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls | System.Net.SecurityProtocolType.Tls11 | System.Net.SecurityProtocolType.Tls12;
+
             var reportingApi = new Rock.PayFlowPro.Reporting.Api(
                 GetAttributeValue( financialGateway, "User" ),
                 GetAttributeValue( financialGateway, "Vendor" ),

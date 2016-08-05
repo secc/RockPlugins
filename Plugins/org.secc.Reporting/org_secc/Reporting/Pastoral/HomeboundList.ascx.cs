@@ -98,8 +98,8 @@ namespace RockWeb.Blocks.Reporting
                 var personAliasService = new PersonAliasService( rockContext );
 
                 var qry = workflowService.Queryable().AsNoTracking()
-                    .Where( w => w.WorkflowTypeId == 29 && w.Status == "Active" ).ToList();
-                 qry.ForEach(
+                    .Where( w => w.WorkflowTypeId == 38 && w.Status == "Active" ).ToList();
+                qry.ForEach(
                      w =>
                      {
                          w.LoadAttributes();
