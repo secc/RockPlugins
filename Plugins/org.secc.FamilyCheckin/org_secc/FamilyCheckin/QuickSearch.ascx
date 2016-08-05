@@ -171,7 +171,6 @@
         e = e || event;
         if (e.keyCode == 13){
             doSearch();
-            e.preventDefault();
         } else if(e.keyCode == 8){
             if (!$phoneNumber.is(":focus")){
                 $phoneNumber.val($phoneNumber.val().slice(0, -1));
@@ -180,7 +179,6 @@
                 }
 
             }
-            e.preventDefault();
         } else{
             if (!$phoneNumber.is(":focus")){
                 var char = String.fromCharCode(e.keyCode || e.charCode);
@@ -190,6 +188,8 @@
                 }
             }
         }
+        e.preventDefault();
+        return true;
     }
 
     document.body.onkeypress = captureKey;
@@ -237,10 +237,8 @@
 
                 <div class="checkin-scroll-panel">
                     <div class="scroller">
-
                         <p>This kiosk is not active yet.  Countdown until active: <span class="countdown-timer"></span></p>
                         <asp:HiddenField ID="hfActiveTime" runat="server" />
-
                     </div>
                 </div>
 
