@@ -12,6 +12,13 @@
             </Content>
         </Rock:ModalDialog>
 
+        <Rock:ModalDialog runat="server" Title="Add Card" ID="mdPIN" OnSaveClick="mdPIN_SaveClick" CancelLinkVisible="false" SaveButtonText="Save Card Number">
+            <Content>
+                <h1>Enter PIN Code</h1>
+                <Rock:RockTextBox runat="server" ID="tbPIN"></Rock:RockTextBox>
+            </Content>
+        </Rock:ModalDialog>
+
         <Rock:NotificationBox runat="server" NotificationBoxType="Warning" ID="nbChange" Visible="false">
             Changes have been saved. If birthday or grade have been changed, the check-in information on this page may not
             be accurate. To update check-in information reload page. 
@@ -90,19 +97,21 @@
                     <!-- Personal Info Pannel-->
                     <asp:Panel runat="server" ID="pnlPersonInformation" Visible="false">
                         <div class="row">
-                            <div class="col-md-8">
+                            <div class="col-md-7">
                                 <h1>
                                     <asp:Literal Text="" ID="ltName" runat="server" />
                                 </h1>
 
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-5">
                                 <Rock:BootstrapButton ID="btnCheckin" CssClass="btn btn-primary btn-lg"
                                     runat="server" Text="<i class='fa fa-check' aria-hidden='true'></i>" OnClick="btnCheckin_Click" />
                                 <Rock:BootstrapButton ID="btnEditPerson" CssClass="btn btn-primary btn-lg"
                                     runat="server" Text="<i class='fa fa-pencil' aria-hidden='true'></i>" OnClick="btnEditPerson_Click" />
                                 <Rock:BootstrapButton ID="btnPhone" CssClass="btn btn-primary btn-lg"
                                     runat="server" Text="<i class='fa fa-phone' aria-hidden='true'></i>" OnClick="btnPhone_Click" />
+                                <Rock:BootstrapButton ID="btnPIN" CssClass="btn btn-primary btn-lg"
+                                    runat="server" Text="<i class='fa fa-barcode' aria-hidden='true'></i>" OnClick="btnPIN_Click" />
                                 <Rock:BootstrapButton ID="btnReprintPerson" CssClass="btn btn-primary btn-lg"
                                     runat="server" Text="<i class='fa fa-print' aria-hidden='true'></i>" OnClick="btnReprintPerson_Click" />
                             </div>
