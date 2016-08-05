@@ -11,10 +11,10 @@ namespace MigratePastoralWorkflowData
     class HomeboundWorkflowImport : WorkflowImport
     {
 
-        const int DISCHARGE_ACTIVITY_ID = 2094;
-        const int VISIT_ACTIVITY_ID = 2093;
-        const int SUMMARY_ACTIVITY_ID = 2092;
-        const int WORKFLOW_TYPE_ID = 29;
+        const int DISCHARGE_ACTIVITY_ID = 85;
+        const int VISIT_ACTIVITY_ID = 84;
+        const int SUMMARY_ACTIVITY_ID = 83;
+        const int WORKFLOW_TYPE_ID = 38;
         const int ARENA_ASSIGNMENT_TYPE_ID = 16;
 
         public HomeboundWorkflowImport() : base()
