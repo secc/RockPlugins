@@ -171,6 +171,7 @@
         e = e || event;
         if (e.keyCode == 13){
             doSearch();
+            e.preventDefault();
         } else if(e.keyCode == 8){
             if (!$phoneNumber.is(":focus")){
                 $phoneNumber.val($phoneNumber.val().slice(0, -1));
@@ -179,6 +180,7 @@
                 }
 
             }
+            e.preventDefault();
         } else{
             if (!$phoneNumber.is(":focus")){
                 var char = String.fromCharCode(e.keyCode || e.charCode);
@@ -188,8 +190,6 @@
                 }
             }
         }
-        e.preventDefault();
-        return true;
     }
 
     document.body.onkeypress = captureKey;
