@@ -238,11 +238,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 foreach ( var person in family.People.Where( p => p.Selected ) )
                 {
-                    foreach ( var groupType in person.GroupTypes.Where( gt => gt.Selected ) )
+                    foreach ( var groupType in person.GroupTypes )
                     {
-                        foreach ( var group in groupType.Groups.Where( g => g.Selected ) )
+                        foreach ( var group in groupType.Groups )
                         {
-                            foreach ( var location in group.Locations.Where( l => l.Selected ) )
+                            foreach ( var location in group.Locations)
                             {
                                 if ( location.Location.Attributes == null || !location.Location.Attributes.Any() )
                                 {
@@ -254,7 +254,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                                     location.Selected = false;
                                 }
 
-                                foreach ( var schedule in location.Schedules.Where( s => s.Selected && s.Schedule.Description.ToLower().Contains( "cull" ) ) )
+                                foreach ( var schedule in location.Schedules.Where( s => s.Schedule.Description.ToLower().Contains( "cull" ) ) )
                                 {
                                     schedule.Selected = false;
                                 }
