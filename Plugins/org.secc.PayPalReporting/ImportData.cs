@@ -47,6 +47,10 @@ namespace org.secc.PayPalReporting
         /// <param name="context">The context.</param>
         public void Execute( IJobExecutionContext context )
         {
+
+            // set the encryption protocols that are permissible for external SSL connections
+            System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls | System.Net.SecurityProtocolType.Tls11 | System.Net.SecurityProtocolType.Tls12;
+
             JobDataMap dataMap = context.JobDetail.JobDataMap;
 
             String apiUsername = Encryption.DecryptString(dataMap.GetString("PayPalAPIUsername"));
