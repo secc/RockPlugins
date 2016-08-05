@@ -118,7 +118,7 @@ namespace RockWeb.Blocks.Reporting
                     ( obj, av ) => new { Workflow = obj.Workflow, Attribute = obj.Attribute, AttributeValue = av } )
                     .GroupBy( obj => obj.Workflow )
                     .Select( obj => new { Workflow = obj.Key, Attributes = obj.Select( a => a.Attribute ), AttributeValues = obj.Select( a => a.AttributeValue ) } )
-                    .Where( w => ( w.Workflow.WorkflowTypeId == 28 ) && w.Workflow.Status == "Active" ).ToList();
+                    .Where( w => ( w.Workflow.WorkflowTypeId == 39 ) && w.Workflow.Status == "Active" ).ToList();
 
                 if ( contextEntity != null )
                 {
