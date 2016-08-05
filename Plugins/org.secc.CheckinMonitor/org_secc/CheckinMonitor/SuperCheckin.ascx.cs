@@ -234,7 +234,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 return " <span class=badge>" + count.ToString() + "</span>";
             }
             return "";
-
         }
 
         private void DisplayPersonInformation()
@@ -280,8 +279,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     btnCheckin.Visible = true;
                 }
             }
-
-
         }
 
         private void BuildPersonCheckinDetails()
@@ -1260,9 +1257,8 @@ try{{
                         if ( securityMembersQry.Where(p => p.Id == person.Id).Any() )
                         {
                             maWarning.Show( "Unable to add PIN to person. This person is in a security role and cannot have a PIN added from this tool.", ModalAlertType.Warning );
-                                mdPIN.Hide();
+                            mdPIN.Hide();
                         }
-
 
                         var userLoginService = new UserLoginService( _rockContext );
                         var userLogin = userLoginService.GetByUserName( pin );
