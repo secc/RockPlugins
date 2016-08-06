@@ -830,10 +830,27 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             List<string> errorMessages;
             ProcessActivity( activity, out errorMessages );
             ProcessLabels();
+            ClearLabels();
             btnCompleteCheckin.Visible = false;
             DisplayFamilyMemberMenu();
             BuildGroupTypeModal();
         }
+
+        private void ClearLabels()
+        {
+            foreach (var family in CurrentCheckInState.CheckIn.Families.Where(f => f.Selected ) )
+            {
+                foreach (var person in family.People )
+                {
+                    foreach (var groupType in person.GroupTypes )
+                    {
+                        groupType.Labels = null;
+                    }
+                }
+            }
+
+        }
+
         private void ProcessLabels()
         {
             var printQueue = new Dictionary<string, StringBuilder>();
@@ -1161,6 +1178,7 @@ try{{
                 var script = labelPrinter.GetClientScript();
                 ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "addLabelScript", script, true );
             }
+            ClearLabels();
         }
 
         protected void btnReprintPerson_Click( object sender, EventArgs e )
@@ -1191,6 +1209,7 @@ try{{
                 var script = labelPrinter.GetClientScript();
                 ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "addLabelScript", script, true );
             }
+            ClearLabels();
         }
 
         protected void btnCancel_Click( object sender, EventArgs e )
