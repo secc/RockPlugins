@@ -167,7 +167,14 @@ namespace org.secc.FamilyCheckin
                                 firstPerson.Selected = true;
                                 var firstGroupType = firstPerson.GroupTypes.FirstOrDefault();
                                 firstGroupType.Selected = true;
-                                firstGroupType.Labels = new List<CheckInLabel>() { checkInLabel };
+                                if ( firstGroupType.Labels == null )
+                                {
+                                    firstGroupType.Labels = new List<CheckInLabel>() { checkInLabel };
+                                }
+                                else
+                                {
+                                    firstGroupType.Labels.Add( checkInLabel );
+                                }
                             }
                         }
                     }
