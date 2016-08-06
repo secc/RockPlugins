@@ -59,7 +59,7 @@ namespace org.secc.FamilyCheckin
                 {
                     foreach ( var person in family.People )
                     {
-                        if ( person.SecurityCode != null )
+                        if ( person.SecurityCode != null && person.Person.Age !=null && person.Person.Age <= 18 )
                         {
                             labelCodes.Add( person.SecurityCode + "-" + LabelAge( person.Person ) );
                         }
