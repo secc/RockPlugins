@@ -793,36 +793,41 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected void btnCompleteCheckin_Click( object sender, EventArgs e )
         {
-            foreach ( var person in CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault().People )
+            if ( CurrentCheckInState == null )
             {
-                if ( person.GroupTypes.SelectMany( gt => gt.Groups ).SelectMany( g => g.Locations ).SelectMany( l => l.Schedules ).Where( s => s.Selected ).Any() )
+                NavigateToPreviousPage();
+                return;
+            }
+
+            var currentFamily = CurrentCheckInState.CheckIn.CurrentFamily;
+            if ( currentFamily == null )
+            {
+                NavigateToPreviousPage();
+                return;
+            }
+
+            foreach ( var person in currentFamily.People )
+            {
+                person.Selected = false;
+                foreach ( var groupType in person.GroupTypes )
                 {
-                    person.Selected = true;
-                    foreach ( var groupType in person.GroupTypes )
+                    groupType.Selected = false;
+                    foreach ( var group in groupType.Groups )
                     {
-                        groupType.Selected = true;
-                        if ( groupType.Groups.SelectMany( g => g.Locations ).SelectMany( l => l.Schedules ).Where( s => s.Selected ).Any() )
+                        group.Selected = false;
+                        foreach ( var location in group.Locations )
                         {
-                            foreach ( var group in groupType.Groups )
+                            location.Selected = false;
+                            foreach ( var schedule in location.Schedules.Where(s => s.Selected) )
                             {
-                                if ( group.Locations.SelectMany( l => l.Schedules ).Where( s => s.Selected ).Any() )
-                                {
-                                    group.Selected = true;
-                                    foreach ( var location in group.Locations )
-                                    {
-                                        if ( location.Schedules.Where( s => s.Selected ).Any() )
-                                        {
-                                            location.Selected = true;
-                                        }
-                                    }
-                                }
+                                location.Selected = false;
+                                person.Selected = true;
+                                groupType.Selected = true;
+                                group.Selected = true;
+                                location.Selected = true;
                             }
                         }
                     }
-                }
-                else
-                {
-                    person.Selected = false;
                 }
             }
             SaveState();
@@ -838,11 +843,11 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         private void ClearLabels()
         {
-            foreach (var family in CurrentCheckInState.CheckIn.Families.Where(f => f.Selected ) )
+            foreach ( var family in CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ) )
             {
-                foreach (var person in family.People )
+                foreach ( var person in family.People )
                 {
-                    foreach (var groupType in person.GroupTypes )
+                    foreach ( var groupType in person.GroupTypes )
                     {
                         groupType.Labels = null;
                     }
