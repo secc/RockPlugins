@@ -56,7 +56,7 @@ namespace org.secc.FamilyCheckin
                 {
                     foreach ( var person in family.People.Where( p => p.Selected ) )
                     {
-                        if ( person.SecurityCode != null )
+                        if ( person.SecurityCode != null && person.Person.Age != null && person.Person.Age <= 18 )
                         {
                             labelCodes.Add( person.SecurityCode + "-" + LabelAge( person.Person ) );
                         }
@@ -84,10 +84,10 @@ namespace org.secc.FamilyCheckin
                                     ).ToList()
                                 )
                                 .SelectMany( a => a )
-                                .OrderBy(a => a.Schedule.StartTimeOfDay)
+                                .OrderBy( a => a.Schedule.StartTimeOfDay )
                                 .ToList();
 
-                            foreach (var pair in pairs )
+                            foreach ( var pair in pairs )
                             {
                                 mergeLocations.Add( pair.Location );
                                 mergeSchedules.Add( pair.Schedule );
