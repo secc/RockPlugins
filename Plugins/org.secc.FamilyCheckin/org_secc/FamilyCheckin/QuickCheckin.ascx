@@ -78,8 +78,9 @@
                                 </Rock:BootstrapButton>
                             </span>
                             <Rock:BootstrapButton ID="btnInterfaceCheckin" runat="server" CssClass="btn btn-lg btn-primary doCheckin" OnClick="btnInterfaceCheckin_Click">Check-In</Rock:BootstrapButton>
-                            <Rock:BootstrapButton runat="server" Visible="false" ID="btnCheckin" CssClass="btn btn-lg btn-primary" OnClick="btnCheckin_Click"></Rock:BootstrapButton>
-
+                            <div style="height: 0px; width: 0px; visibility: hidden">
+                                <Rock:BootstrapButton runat="server" ID="btnCheckin" CssClass="btn btn-lg btn-primary" OnClick="btnCheckin_Click"></Rock:BootstrapButton>
+                            </div>
                         </div>
                         <div id="peopleContainer" class="peopleContainer">
                             <asp:PlaceHolder runat="server" ID="phPeople" />
