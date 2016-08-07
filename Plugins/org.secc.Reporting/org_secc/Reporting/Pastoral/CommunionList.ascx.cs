@@ -92,16 +92,16 @@ namespace RockWeb.Blocks.Reporting
                 var definedValueService = new DefinedValueService( rockContext );
 
                 var qry = workflowService.Queryable().AsNoTracking()
-                    .Join( attributeService.Queryable(),
+                    .Join( attributeService.Queryable() ,
                     w => new { EntityTypeId = 113, WorkflowTypeId = w.WorkflowTypeId.ToString() },
-                    a => new { EntityTypeId = a.EntityTypeId.Value, WorkflowTypeId = a.EntityTypeQualifierValue },
-                    ( w, a ) => new { Workflow = w, Attribute = a } )
+                    a => new { EntityTypeId = a.EntityTypeId.Value, WorkflowTypeId = a.EntityTypeQualifierValue},
+                    (w, a) => new { Workflow = w, Attribute = a } )
                     .Join( attributeValueService.Queryable(),
                     obj => new { AttributeId = obj.Attribute.Id, EntityId = obj.Workflow.Id },
                     av => new { AttributeId = av.AttributeId, EntityId = av.EntityId.Value },
-                    ( obj, av ) => new { Workflow = obj.Workflow, Attribute = obj.Attribute, AttributeValue = av } )
-                    .GroupBy( obj => obj.Workflow )
-                    .Select( obj => new { Workflow = obj.Key, Attributes = obj.Select( a => a.Attribute ).ToList(), AttributeValues = obj.Select( a => a.AttributeValue ) } )
+                    ( obj, av ) => new { Workflow = obj.Workflow, Attribute = obj.Attribute, AttributeValue = av  } )
+                    .GroupBy(obj => obj.Workflow)
+                    .Select( obj => new { Workflow = obj.Key, Attributes = obj.Select(a => a.Attribute).ToList(), AttributeValues=obj.Select( a => a.AttributeValue )} )
                     .Where( w => ( w.Workflow.WorkflowTypeId == 38 || w.Workflow.WorkflowTypeId == 39 || w.Workflow.WorkflowTypeId == 40 ) && w.Workflow.Status == "Active" ).ToList();
 
                 List<DefinedValue> facilities = definedValueService.Queryable().Where( dv => dv.DefinedTypeId == 109 || dv.DefinedTypeId == 140 ).ToList();
@@ -119,7 +119,10 @@ namespace RockWeb.Blocks.Reporting
                         AttributeValue personAliasAV = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "PersonToVisit" || av.AttributeKey == "HomeboundPerson" ).FirstOrDefault();
                         if ( personAliasAV != null )
                         {
-                            campus = personAliasService.Get( personAliasAV.Value.AsGuid() ).Person.GetCampus();
+							PersonAlias pa = personAliasService.Get( personAliasAV.Value.AsGuid() );
+							if (pa != null) {
+								campus = pa.Person.GetCampus();
+							}
                         }
                         if ( campus == null )
                         {
@@ -132,7 +135,10 @@ namespace RockWeb.Blocks.Reporting
                         AttributeValue personAliasAV = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "PersonToVisit" || av.AttributeKey == "HomeboundPerson" ).FirstOrDefault();
                         if ( personAliasAV != null )
                         {
-                            return personAliasService.Get( personAliasAV.Value.AsGuid() ).Person;
+							PersonAlias pa = personAliasService.Get( personAliasAV.Value.AsGuid() );
+							if (pa != null) {
+								return pa.Person;
+							}
                         }
                         return null;
                     } )(),
@@ -157,7 +163,10 @@ namespace RockWeb.Blocks.Reporting
                         int? personId = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "HomeboundPerson" || av.AttributeKey == "PersonToVisit" ).Select( av => av.ValueAsPersonId ).FirstOrDefault();
                         if ( personId.HasValue)
                         {
-                            return personAliasService.Get( personId.Value ).Person.GetHomeLocation();
+							PersonAlias pa = personAliasService.Get( personId.Value );
+							if (pa != null) {
+								return pa.Person.GetHomeLocation();
+							}
                         }
                         return new Location();
                     } )(),
@@ -175,9 +184,12 @@ namespace RockWeb.Blocks.Reporting
                             int? personId = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "HomeboundPerson" || av.AttributeKey == "PersonToVisit" ).Select( av => av.ValueAsPersonId ).FirstOrDefault();
                             if ( personId != null && personId.HasValue )
                             {
-                                Location location = personAliasService.Get( personId.Value ).Person.GetHomeLocation();
-                                if ( location != null)
-                                 postalCode = location.PostalCode;
+								PersonAlias pa = personAliasService.Get( personId.Value );
+								if (pa != null) {
+									Location location = pa.Person.GetHomeLocation();
+									if ( location != null)
+									 postalCode = location.PostalCode;
+								}
                             }
                         }
                         return postalCode != null?postalCode:"";
