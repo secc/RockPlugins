@@ -1,4 +1,23 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="CheckinMonitor.ascx.cs" Inherits="RockWeb.Plugins.org_secc.CheckinMonitor.CheckinMonitor" %>
+<style>
+    #htmlAutoRefresh {
+        position: fixed;
+        top: 0px;
+        left: 0px;
+        display: none;
+    }
+
+
+    .close {
+        visibility: hidden;
+    }
+</style>
+
+<div id="htmlAutoRefresh">
+    <a href="javascript:startTimer();" class="btn btn-danger">Auto-refresh Stopped
+    </a>
+</div>
+
 
 <script type="text/javascript">
     var timer;
@@ -11,15 +30,18 @@
 
     var startTimer = function ()
     {
+        clearInterval(timer);
         timer = setInterval(function () { UpdPanelUpdate() }, 30000);
+        document.getElementById("htmlAutoRefresh").style.display = "none";
     }
 
     var stopTimer = function ()
     {
+        document.getElementById("htmlAutoRefresh").style.display = "block";
         clearInterval(timer);
     }
-
 </script>
+
 
 
 <asp:UpdatePanel ID="upDevice" runat="server" UpdateMode="Conditional">
@@ -68,12 +90,20 @@
             </Content>
         </Rock:ModalDialog>
 
-         <Rock:ModalDialog runat="server" ID="mdMove" SaveButtonText="Cancel" OnSaveClick="mdMove_CancelClick" CancelLinkVisible="false">
+        <Rock:ModalDialog runat="server" ID="mdMove" SaveButtonText="Cancel" OnSaveClick="mdMove_CancelClick" CancelLinkVisible="false">
             <Content>
                 <h1>
-                    <asp:Literal ID="ltMove" runat="server" /></h1>
-                <asp:DropDownList runat="server" ID="ddlMove" CssClass="btn btn-default" Label="Move To:"></asp:DropDownList>
-                <Rock:BootstrapButton ID="btnMove" runat="server" Text="Move" OnClick="btnMove_Click" CssClass="btn btn-success"></Rock:BootstrapButton>
+                    <asp:Literal ID="ltMove" runat="server" />
+                </h1>
+                <h3>
+                    <asp:Literal ID="ltMoveInfo" runat="server" />
+                </h3>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <Rock:RockDropDownList runat="server" ID="ddlMove" Label="Move To:"></Rock:RockDropDownList>
+                        <Rock:BootstrapButton ID="btnMove" runat="server" Text="Move" OnClick="btnMove_Click" CssClass="btn btn-success"></Rock:BootstrapButton>
+                    </div>
+                </div>
             </Content>
         </Rock:ModalDialog>
 
