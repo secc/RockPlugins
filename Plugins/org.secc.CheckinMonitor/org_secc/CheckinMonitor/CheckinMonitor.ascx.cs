@@ -147,7 +147,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                             {
                                 GroupLocationSchedule = gls,
                                 KidCount = a.Where( at => at.PersonAlias.Person.Age <= 12 && at.DidAttend == true && at.EndDateTime == null ).Count(),
-                                AdultCount = a.Where( at => at.PersonAlias.Person.Age > 12 && at.DidAttend == true && at.EndDateTime == null ).Count(),
+                                AdultCount = a.Where( at => at.PersonAlias.Person.Age >= 18 && at.DidAttend == true && at.EndDateTime == null ).Count(),
                                 Reserved = a.Where( at => at.DidAttend != true ).Count(),
                                 Total = a.Where( at => at.DidAttend == true && at.DidAttend == true && at.EndDateTime == null ).Count(),
                                 Active = gls.Active
