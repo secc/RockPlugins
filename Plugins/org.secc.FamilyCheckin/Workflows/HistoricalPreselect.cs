@@ -54,16 +54,16 @@ namespace org.secc.FamilyCheckin
                             .Select( pa => pa.Id ).ToList();
 
                         var attendance = attendanceService.Queryable().AsNoTracking()
-                            .Where( a => personAlias.Contains( a.PersonAliasId ?? 0 )
-                            && sundayList.Contains( a.SundayDate )
-                            && a.DeviceId != null
-                            )
-                            .Where( a =>
-                                a.Location.IsActive
+                            .Where( a => 
+                                personAlias.Contains( a.PersonAliasId ?? 0 )
+                                && a.EndDateTime==null //we ask for a null end time to favor where the child was moved last
+                                && sundayList.Contains( a.SundayDate )
+                                && a.DeviceId != null
+                                && a.Location.IsActive
                                 && acceptableGroupIds.Contains( a.GroupId ?? 0 )
                                 && acceptableLocations.Contains( a.LocationId ?? 0 )
                                 && acceptableScheduleIds.Contains( a.ScheduleId ?? 0 )
-                                )
+                            )
                             .GroupBy( a => new
                             {
                                 ScheduleId = a.ScheduleId,
