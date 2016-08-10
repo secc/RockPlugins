@@ -147,7 +147,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                             {
                                 GroupLocationSchedule = gls,
                                 KidCount = a.Where( at => at.PersonAlias.Person.Age <= 12 && at.DidAttend == true && at.EndDateTime == null ).Count(),
-                                AdultCount = a.Where( at => at.PersonAlias.Person.Age > 12 && at.DidAttend == true && at.EndDateTime == null ).Count(),
+                                AdultCount = a.Where( at => at.PersonAlias.Person.Age >= 18 && at.DidAttend == true && at.EndDateTime == null ).Count(),
                                 Reserved = a.Where( at => at.DidAttend != true ).Count(),
                                 Total = a.Where( at => at.DidAttend == true && at.DidAttend == true && at.EndDateTime == null ).Count(),
                                 Active = gls.Active
@@ -385,7 +385,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
             else
             {
-                ltLocation.Text = data.FirstOrDefault().Location.Name;
+                ltLocation.Text = string.Format( "{0} @ {1}", groupLocation.Location.Name, schedule.Name);
                 if ( current.Any() )
                 {
                     Literal ltCurrent = new Literal();
@@ -543,15 +543,15 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
         }
 
-        private void MoveModal( int id )
+        private void MoveModal( int attendanceId )
         {
             ViewState["ModalGroupLocation"] = null;
             ViewState["ModalGroupLocationSchedule"] = null;
             ViewState["ModalLocation"] = null;
             mdMove.Show();
-            ViewState.Add( "ModalMove", id );
+            ViewState.Add( "ModalMove", attendanceId );
             AttendanceService attendanceService = new AttendanceService( _rockContext );
-            var attendanceRecord = attendanceService.Get( id );
+            var attendanceRecord = attendanceService.Get( attendanceId );
             if ( attendanceRecord == null )
             {
                 ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
@@ -560,7 +560,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 return;
             }
 
-            ltMove.Text = attendanceRecord.PersonAlias.Person.FullName;
+            ltMove.Text = string.Format("{0} @ {1}", attendanceRecord.PersonAlias.Person.FullName, attendanceRecord.Schedule.Name);
+            ltMoveInfo.Text = string.Format(
+                "{0} is currently in: {1} for the schedule {2}",
+                attendanceRecord.PersonAlias.Person.NickName, 
+                attendanceRecord.Location.Name,
+                attendanceRecord.Schedule.Name );
 
             var locations = CurrentCheckInState.Kiosk.KioskGroupTypes
                 .SelectMany( gt => gt.KioskGroups )
@@ -694,7 +699,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 return;
             }
 
-            //Remove all other attendance records for this person today at this schedule
+            //Close all other attendance records for this person today at this schedule
             var currentRecords = attendanceService.Queryable()
                  .Where( a =>
                  a.CreatedDateTime >= Rock.RockDateTime.Today
@@ -708,17 +713,18 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
 
             //Create a new attendance record
-            Attendance newRecord = new Attendance();
-            newRecord.ScheduleId = attendanceRecord.ScheduleId;
-            newRecord.PersonAliasId = attendanceRecord.PersonAliasId;
-            newRecord.GroupId = attendanceRecord.GroupId;
-            newRecord.AttendanceCode = attendanceRecord.AttendanceCode;
+            Attendance newRecord = (Attendance) attendanceRecord.Clone();
+            newRecord.Id = 0;
+            newRecord.Guid = new Guid();
+            newRecord.AttendanceCode = null;
             newRecord.StartDateTime = Rock.RockDateTime.Now;
             newRecord.EndDateTime = null;
-            newRecord.DeviceId = null;
             newRecord.DidAttend = true;
+            newRecord.Device = null;
+            newRecord.SearchTypeValue = null;
             newRecord.LocationId = ddlMove.SelectedValue.AsInteger();
             attendanceService.Add( newRecord );
+            KioskLocationAttendance.AddAttendance( newRecord );
             _rockContext.SaveChanges();
             BindTable();
             RebuildModal();

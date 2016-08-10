@@ -3,7 +3,8 @@
 <script>
     var getClientName = function ()
     {
-        try {
+        try
+        {
             var client = window.external.GetClientName();
             __doPostBack("ClientName", client);
         }
@@ -26,6 +27,15 @@
         This block needs to know which page to forward checkin to.
             </Rock:NotificationBox>
             <asp:Literal Text="text" ID="ltDNS" runat="server" />
+        </asp:Panel>
+        <asp:Panel ID="pnlManual" Visible="false" runat="server">
+            <Rock:PanelWidget runat="server" Expanded="true" Title="Manual Configuration">
+                Please select the kiosk type to use:
+                <Rock:RockDropDownList runat="server" ID="ddlKioskType" Label="Kiosk Type" DataTextField="Name" DataValueField="Id"></Rock:RockDropDownList>
+                <Rock:BootstrapButton ID="btnSelectKiosk" runat="server" OnClick="btnSelectKiosk_Click" CssClass="btn btn-primary" Text="Select">
+                </Rock:BootstrapButton>
+            </Rock:PanelWidget>
+
         </asp:Panel>
     </ContentTemplate>
     <Triggers>
