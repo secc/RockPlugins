@@ -204,12 +204,12 @@ namespace org.secc.ServiceReef
                                         {
                                             try
                                             {
-                                                PersonAlias personAlias = personAliasService.Get(memberResult.Data.ArenaId);
-                                                if (personAlias == null)
+                                                Person personMatch = personService.Get(memberResult.Data.ArenaId);
+                                                if ( personMatch == null)
                                                 {
-                                                    throw new Exception("PersonAlias not found: " + memberResult.Data.ArenaId);
+                                                    throw new Exception("Person not found: " + memberResult.Data.ArenaId);
                                                 }
-                                                person = personAlias.Person;
+                                                person = personMatch;
                                             } catch (Exception e)
                                             {
                                                 warnings += "Loading the person failed transaction id " + result.TransactionId  + " for " + result.FirstName + " " + result.LastName + " with the following error: " + e.Message + Environment.NewLine;
