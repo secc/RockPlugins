@@ -6,6 +6,8 @@ using System.Net;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using org.secc.FamilyCheckin.Model;
+using Rock;
+using Rock.Attribute;
 using Rock.CheckIn;
 using Rock.Data;
 using Rock.Model;
@@ -16,24 +18,39 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     [DisplayName( "AutoConfigure" )]
     [Category( "SECC > Check-in" )]
     [Description( "Checkin auto configure block" )]
+
+    [BooleanField( "Manual", "Allow for manual configuration" )]
+
     public partial class AutoConfigure : CheckInBlock
     {
         protected override void OnLoad( EventArgs e )
         {
             if ( !Page.IsPostBack )
             {
-                if (CurrentUser!=null && CurrentUser.IsAuthenticated && !string.IsNullOrWhiteSpace( PageParameter( "KioskName" ) ) )
+                if ( GetAttributeValue( "Manual" ).AsBoolean() )
                 {
-                    SetKiosk( PageParameter( "KioskName" ) );
+                    ShowManual();
                 }
                 else
                 {
-                    ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "GetClient", "setTimeout(function(){getClientName()},100);", true );
+                    if ( CurrentUser != null && CurrentUser.IsAuthenticated && !string.IsNullOrWhiteSpace( PageParameter( "KioskName" ) ) )
+                    {
+                        SetKiosk( PageParameter( "KioskName" ) );
+                    }
+                    else
+                    {
+                        ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "GetClient", "setTimeout(function(){getClientName()},100);", true );
+                    }
                 }
             }
             else
             {
-                if ( Request["__EVENTTARGET"] == "ClientName" )
+                if ( GetAttributeValue( "Manual" ).AsBoolean() )
+                {
+                    return;
+                }
+
+                    if ( Request["__EVENTTARGET"] == "ClientName" )
                 {
                     //Use Kiosk given client name
                     SetKiosk( Request["__EVENTARGUMENT"] );
@@ -57,6 +74,16 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 {
                     ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "GetClient", "setTimeout(function(){getClientName()},100);", true );
                 }
+            }
+        }
+
+        private void ShowManual()
+        {
+            if ( CurrentUser != null )
+            {
+                pnlMain.Visible = false;
+                pnlManual.Visible = true;
+                BindDropDownList();
             }
         }
 
@@ -128,6 +155,50 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         protected void Timer1_Tick( object sender, EventArgs e )
         {
+        }
+
+        protected void btnSelectKiosk_Click( object sender, EventArgs e )
+        {
+            var rockContext = new RockContext();
+
+            var kioskTypeService = new KioskTypeService( rockContext );
+            var kioskType = kioskTypeService.Get( ddlKioskType.SelectedValue.AsInteger() );
+            if ( kioskType == null )
+            {
+                return;
+            }
+
+
+            var kioskService = new KioskService( rockContext );
+            var kiosk = kioskService.GetByClientName( CurrentUser.UserName );
+            if ( kiosk == null )
+            {
+                kiosk = new Kiosk();
+                kiosk.Name = CurrentUser.UserName;
+                kiosk.Description = "Automatically created personal Kiosk";
+                kioskService.Add( kiosk );
+            }
+            kiosk.KioskTypeId = kioskType.Id;
+            rockContext.SaveChanges();
+            GetKioskType( kiosk, rockContext );
+        }
+
+        private void BindDropDownList( Kiosk kiosk = null )
+        {
+            RockContext rockContext = new RockContext();
+            KioskTypeService kioskTypeService = new KioskTypeService( rockContext );
+
+
+            ddlKioskType.DataSource = kioskTypeService
+                .Queryable()
+                .OrderBy( t => t.Name )
+                .Select( t => new
+                {
+                    t.Name,
+                    t.Id
+                } )
+                .ToList();
+            ddlKioskType.DataBind();
         }
     }
 }
