@@ -99,7 +99,7 @@ namespace RockWeb.Blocks.Reporting
                 var definedValueService = new DefinedValueService( rockContext );
                 var entityTypeService = new EntityTypeService( rockContext );
 
-                List<DefinedValue> facilities = definedValueService.Queryable().Where( dv => dv.DefinedTypeId == 139 ).ToList();
+                List<DefinedValue> facilities = definedValueService.Queryable().Where( dv => dv.DefinedTypeId == 140 ).ToList();
                 facilities.ForEach( h => {
                     h.LoadAttributes();
                 } );
@@ -149,16 +149,21 @@ namespace RockWeb.Blocks.Reporting
                         AttributeValue personAliasAV = w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).FirstOrDefault();
                         if ( personAliasAV != null )
                         {
-                            return personAliasService.Get( personAliasAV.Value.AsGuid() ).Person;
+							PersonAlias pa = personAliasService.Get( personAliasAV.Value.AsGuid() );
+							
+                            return pa!=null?pa.Person:new Person();
                         }
                         return new Person();
                     } )(),
                     Address = new Func<string>( () => {
                         DefinedValue dv = facilities.Where( h => h.Guid == w.AttributeValues.Where( av => av.AttributeKey == "NursingHome" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).FirstOrDefault();
+						if (dv != null) {
                         return dv.AttributeValues["Qualifier1"].ValueFormatted + " " +
                             dv.AttributeValues["Qualifier2"].ValueFormatted + " " +
                             dv.AttributeValues["Qualifier3"].ValueFormatted + ", " +
                             dv.AttributeValues["Qualifier4"].ValueFormatted;
+							}
+							return "";
                     } )(),
                     Room = w.AttributeValues.Where( av => av.AttributeKey == "Room" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                     AdmitDate = w.AttributeValues.Where( av => av.AttributeKey == "AdmitDate" ).Select( av => av.ValueFormatted ).FirstOrDefault(),

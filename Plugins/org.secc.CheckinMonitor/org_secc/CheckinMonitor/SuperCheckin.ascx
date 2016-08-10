@@ -42,7 +42,7 @@
                 <div class="col-xs-8 col-sm-6">
                     <Rock:PhoneNumberBox ID="pnbAdult1Phone" Required="true" ValidationGroup="NewFamily" runat="server" Label="Phone Number"></Rock:PhoneNumberBox>
                     <asp:RegularExpressionValidator ID="RegularExpressionValidator" runat="server" ValidationGroup="NewFamily"
-                        ControlToValidate="pnbAdult1Phone" ValidationExpression="[0-9]{10}"></asp:RegularExpressionValidator>
+                        ControlToValidate="pnbAdult1Phone" ValidationExpression="^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$"></asp:RegularExpressionValidator>
                 </div>
                 <div class="col-xs-4 col-sm-2">
                     <Rock:Toggle runat="server" ID="cbAdult1SMS" Label="Is Cell Phone?" OnCssClass="btn-success"
