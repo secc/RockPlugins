@@ -11,7 +11,7 @@
                 <ul class="list-inline">
                     <li id="MyAccountItem" runat="server"><asp:HyperLink id="MyAccountLink" runat="server">My Account</asp:HyperLink></li>
                     <li id="MyProfileItem" runat="server"><asp:HyperLink id="MyProfileLink" runat="server">My Profile</asp:HyperLink></li>
-                    <li><asp:Button ID="LoginLogout" Text="Logout" CssClass="btn btn-action" runat="server" OnClick="lbLoginLogout_Click" CausesValidation="false"></asp:Button></li>
+                    <li><asp:LinkButton ID="LoginLogout" Text="Logout" CssClass="btn btn-action" runat="server" OnClick="lbLoginLogout_Click" CausesValidation="false"></asp:LinkButton></li>
                 </ul>
             </nav>
         </div>
