@@ -34,10 +34,10 @@ namespace org.secc.FamilyCheckin
     /// <summary>
     /// Finds families based on a given search critieria (i.e. phone, barcode, etc)
     /// </summary>
-    [ActionCategory( "Check-In" )]
-    [Description( "Finds families based on a given search critieria (i.e. phone, barcode, etc)" )]
+    [ActionCategory( "SECC > Check-In" )]
+    [Description( "Finds families based on a given search critieria (improved by Chuck)" )]
     [Export( typeof( ActionComponent ) )]
-    [ExportMetadata( "ComponentName", "Find Families" )]
+    [ExportMetadata( "ComponentName", "Customr Find Families" )]
     public class CustFindFamilies : CheckInActionComponent
     {
         /// <summary>
