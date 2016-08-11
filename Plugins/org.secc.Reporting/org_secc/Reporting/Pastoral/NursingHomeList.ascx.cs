@@ -44,6 +44,8 @@ namespace RockWeb.Blocks.Reporting
     [DisplayName( "Nursing Home List" )]
     [Category( "SECC > Reporting > Pastoral" )]
     [Description( "A summary of all the current nursing home residents that have been reported to Southeast." )]
+    [WorkflowTypeField( "Nursing Home Resident Workflow" )]
+    [DefinedTypeField( "Nursing Home List" )]
     public partial class NursingHomeList : RockBlock
     {
         #region Control Methods
@@ -55,6 +57,12 @@ namespace RockWeb.Blocks.Reporting
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
+
+            if ( string.IsNullOrWhiteSpace( GetAttributeValue( "NursingHomeResidentWorkflow" ) ) )
+            {
+                ShowMessage( "Block not configured. Please configure to use.", "Configuration Error", "panel panel-danger" );
+                return;
+            }
 
             gReport.GridRebind += gReport_GridRebind;
 
@@ -99,15 +107,20 @@ namespace RockWeb.Blocks.Reporting
                 var definedValueService = new DefinedValueService( rockContext );
                 var entityTypeService = new EntityTypeService( rockContext );
 
-                List<DefinedValue> facilities = definedValueService.Queryable().Where( dv => dv.DefinedTypeId == 140 ).ToList();
+                Guid nursingHomeAdmissionWorkflow = GetAttributeValue( "NursingHomeResidentWorkflow" ).AsGuid();
+                Guid nursingHomeList = GetAttributeValue( "NursingHomeList" ).AsGuid();
+
+                List<DefinedValue> facilities = definedValueService.Queryable().Where( dv => dv.DefinedType.Guid == nursingHomeList ).ToList();
                 facilities.ForEach( h => {
                     h.LoadAttributes();
                 } );
 
                 int entityTypeId = entityTypeService.Queryable().Where(et => et.Name == typeof(Workflow).FullName).FirstOrDefault().Id;
-
+                string status = ( contextEntity != null ? "Completed" : "Active" );
+                
+                
                 // A little linq to load workflows with attributes and values
-                var qry = workflowService.Queryable().AsNoTracking()
+                var tmpqry = workflowService.Queryable().AsNoTracking()
                     .Join( attributeService.Queryable(),
                     w => new { EntityTypeId = entityTypeId, WorkflowTypeId = w.WorkflowTypeId.ToString() },
                     a => new { EntityTypeId = a.EntityTypeId.Value, WorkflowTypeId = a.EntityTypeQualifierValue },
@@ -118,12 +131,15 @@ namespace RockWeb.Blocks.Reporting
                     ( obj, av ) => new { Workflow = obj.Workflow, Attribute = obj.Attribute, AttributeValue = av } )
                     .GroupBy( obj => obj.Workflow )
                     .Select( obj => new { Workflow = obj.Key, Attributes = obj.Select( a => a.Attribute ), AttributeValues = obj.Select( a => a.AttributeValue ) } )
-                    .Where( w => ( w.Workflow.WorkflowTypeId == 39 ) && w.Workflow.Status == "Active" ).ToList();
+                    .Where( w => ( w.Workflow.WorkflowType.Guid == nursingHomeAdmissionWorkflow ) && (w.Workflow.Status == "Active" || w.Workflow.Status == status) );
 
                 if ( contextEntity != null )
                 {
-                    qry = qry.Where( w => w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).Select(av => av.Value).FirstOrDefault() == ( ( Person ) contextEntity ).PrimaryAlias.Guid.ToString() ).ToList();
+                    String personGuid = ( ( Person ) contextEntity ).PrimaryAlias.Guid.ToString();
+                    tmpqry = tmpqry.Where( w => w.AttributeValues.Where( av => av.Attribute.Key == "PersonToVisit" && av.Value == personGuid ).Any());
                 }
+
+                var qry = tmpqry.ToList();
 
                 qry.ForEach(
                      w =>
@@ -242,6 +258,36 @@ namespace RockWeb.Blocks.Reporting
         protected void gReport_RowSelected( object sender, RowEventArgs e )
         {
             Response.Redirect( "~/Pastoral/NursingHome/" + e.RowKeyId );
+        }
+
+        private void ShowMessage( string message, string header = "Information", string cssClass = "panel panel-warning" )
+        {
+            pnlMain.Visible = false;
+            pnlInfo.Visible = true;
+            ltHeading.Text = header;
+            ltBody.Text = message;
+            pnlInfo.CssClass = cssClass;
+        }
+        protected void btnReopen_Command( object sender, CommandEventArgs e )
+        {
+            using ( RockContext rockContext = new RockContext() )
+            {
+
+                WorkflowService workflowService = new WorkflowService( rockContext );
+                Workflow workflow = workflowService.Get( e.CommandArgument.ToString().AsInteger() );
+                if ( workflow != null && !workflow.IsActive )
+                {
+                    workflow.Status = "Active";
+                    workflow.CompletedDateTime = null;
+
+                    // Find the summary activity and activate it.
+                    WorkflowActivityType workflowActivityType = workflow.WorkflowType.ActivityTypes.Where( at => at.Name.Contains( "Summary" ) ).FirstOrDefault();
+                    WorkflowActivity workflowActivity = WorkflowActivity.Activate( workflowActivityType, workflow, rockContext );
+
+                }
+                rockContext.SaveChanges();
+            }
+            BindGrid();
         }
         #endregion
     }
