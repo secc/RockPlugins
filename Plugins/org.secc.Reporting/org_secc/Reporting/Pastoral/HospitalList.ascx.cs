@@ -138,6 +138,15 @@ namespace RockWeb.Blocks.Reporting
 
                 var qry = tmpqry.ToList();
 
+                if ( contextEntity == null )
+                {
+                    // Make sure they aren't deceased
+                    qry = qry.AsQueryable().Where( w => !
+                        ( personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ) != null ?
+                        personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).Person.IsDeceased :
+                        false ) ).ToList();
+                }
+
                 qry.ForEach(
                      w =>
                      {

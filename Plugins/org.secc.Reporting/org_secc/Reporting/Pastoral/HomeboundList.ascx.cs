@@ -128,10 +128,20 @@ namespace RockWeb.Blocks.Reporting
                 if ( contextEntity != null )
                 {
                     String personGuid = ( ( Person ) contextEntity ).PrimaryAlias.Guid.ToString();
-                    tmpqry = tmpqry.Where( w => w.AttributeValues.Where( av => av.Attribute.Key == "PersonToVisit" && av.Value == personGuid ).Any() );
+                    tmpqry = tmpqry.Where( w => w.AttributeValues.Where( av => av.Attribute.Key == "HomeboundPerson" && av.Value == personGuid ).Any() );
                 }
 
-                var qry = tmpqry.ToList();
+                var qry = tmpqry.ToList(); 
+
+                if (contextEntity == null)
+                {
+                    // Make sure they aren't deceased
+                    qry = qry.AsQueryable().Where( w => !
+                        ( personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "HomeboundPerson" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ) != null ?
+                        personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "HomeboundPerson" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).Person.IsDeceased :
+                        false ) ).ToList();
+                }
+
                 qry.ForEach(
                  w =>
                  {

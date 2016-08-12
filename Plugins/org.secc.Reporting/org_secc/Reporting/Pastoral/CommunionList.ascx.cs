@@ -26,8 +26,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using System.Drawing;
 using System.Xml.Linq;
-
+using OfficeOpenXml;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -53,7 +54,7 @@ namespace RockWeb.Blocks.Reporting
         #region Control Methods
 
         public enum COMMUNION_STATES { KY = 1, IN = 2, Other = 3}
-
+        
         /// <summary>
         /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
         /// </summary>
@@ -67,7 +68,6 @@ namespace RockWeb.Blocks.Reporting
                 ShowMessage( "Block not configured. Please configure to use.", "Configuration Error", "panel panel-danger" );
                 return;
             }
-
             gReport.GridRebind += gReport_GridRebind;
 
             if ( !Page.IsPostBack )
@@ -99,6 +99,12 @@ namespace RockWeb.Blocks.Reporting
         /// </summary>
         private void BindGrid()
         {
+            gReport.SetLinqDataSource<CommunionData>( getQuery<CommunionData>() );
+            gReport.DataBind();
+
+        }
+
+        private IQueryable<CommunionData> getQuery<T>( ) {
             using ( var rockContext = new RockContext() )
             {
                 var workflowService = new WorkflowService( rockContext );
@@ -134,8 +140,8 @@ namespace RockWeb.Blocks.Reporting
                 facilities.ForEach( h => {
                     h.LoadAttributes();
                 } );
-
-                var newQry = qry.Select( w => new
+                
+                var newQry = qry.Select( w => new CommunionData
                 {
                     Campus = new Func<Campus>( () =>
                     {
@@ -154,7 +160,7 @@ namespace RockWeb.Blocks.Reporting
                         }
                         return campus;
                     } )(),
-                    Person = GetPerson( personAliasService, w.AttributeValues ).FullName,
+                    Person = GetPerson( personAliasService, w.AttributeValues ),
                     Age = GetPerson( personAliasService, w.AttributeValues ).Age,
                     Description = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "VisitationRequestDescription" || av.AttributeKey == "HomeboundResidentDescription" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                     Location = new Func<string>( () =>
@@ -169,7 +175,7 @@ namespace RockWeb.Blocks.Reporting
                     AdmitDate = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "AdmitDate" || av.AttributeKey == "StartDate" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                     Status = w.Workflow.Status,
                     Communion = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "Communion" ).FirstOrDefault().ValueFormatted
-                } ).Where( o => o.Communion.AsBoolean() ).OrderBy( w => w.Campus.Name ).ThenBy( w => w.Address == null?"":w.PostalCode ).ThenBy( p => p.Person ).ToList().AsQueryable();
+                } ).Where( o => o.Communion.AsBoolean() && !o.Person.IsDeceased ).OrderBy( w => w.Campus.Name ).ThenBy( w => w.Address == null?"":w.PostalCode ).ThenBy( p => p.Person.LastName ).ToList().AsQueryable();
 
 
                 List<COMMUNION_STATES> states = cblState.Items.Cast<ListItem>().Where( i => i.Selected ).Select( i => (COMMUNION_STATES)int.Parse(i.Value)).ToList();
@@ -192,16 +198,11 @@ namespace RockWeb.Blocks.Reporting
 
                 SortProperty sortProperty = gReport.SortProperty;
                 if ( sortProperty != null )
-                { 
-                    gReport.SetLinqDataSource( newQry.Sort( sortProperty ) );
-                }
-                else
                 {
-                    gReport.SetLinqDataSource( newQry );
+                    newQry = newQry.Sort( sortProperty );
                 }
-                gReport.DataBind();
-
-
+                
+                return newQry;
 
             }
         }
@@ -296,5 +297,202 @@ namespace RockWeb.Blocks.Reporting
         {
             BindGrid();
         }
+
+
+        /// <summary>
+        /// Handles the ExcelExportClick event of the Actions control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
+        protected void Actions_ExcelExportClick( object sender, EventArgs e )
+        {
+
+            // create default settings
+            string filename = gReport.ExportFilename;
+            string workSheetName = "List";
+            string title = "Communion List";
+
+            ExcelPackage excel = new ExcelPackage();
+            excel.Workbook.Properties.Title = title;
+
+            // add author info
+            Rock.Model.UserLogin userLogin = Rock.Model.UserLoginService.GetCurrentUser();
+            if ( userLogin != null )
+            {
+                excel.Workbook.Properties.Author = userLogin.Person.FullName;
+            }
+            else
+            {
+                excel.Workbook.Properties.Author = "Rock";
+            }
+
+            // add the page that created this
+            excel.Workbook.Properties.SetCustomPropertyValue( "Source", this.Page.Request.Url.OriginalString );
+
+            ExcelWorksheet worksheet = excel.Workbook.Worksheets.Add( workSheetName );
+
+            //// write data to worksheet there are three supported data sources
+            //// DataTables, DataViews and ILists
+
+            int rowCounter = 4;
+            int columnCounter = 0;
+            
+            // print headings
+            foreach ( String column in new List<String>() { "Zip", "Name", "Campus", "Address", "Phone", "Notes"} )
+            {
+                columnCounter++;
+                worksheet.Cells[3, columnCounter].Value = column.SplitCase();
+            }
+            PhoneNumberService phoneNumberService = new PhoneNumberService( new RockContext() );
+            Guid homePhone = Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME.AsGuid();
+            // print data
+            foreach ( CommunionData row in getQuery<CommunionData>() )
+            {
+                SetExcelValue( worksheet.Cells[rowCounter, 1], row.PostalCode );
+                SetExcelValue( worksheet.Cells[rowCounter, 2], row.Person.FullName );
+                SetExcelValue( worksheet.Cells[rowCounter, 3], row.Campus );
+                SetExcelValue( worksheet.Cells[rowCounter, 4], (row.Location!="Home"?row.Location + "\r\n":"")+row.Address+ ( !string.IsNullOrEmpty( row.Room ) ?"\r\nRoom: " +row.Room:"" ) );
+                SetExcelValue( worksheet.Cells[rowCounter, 5], phoneNumberService.GetByPersonId(row.Person.Id).Where(p=>p.NumberTypeValue.Guid == homePhone ).Select(p => p.NumberFormatted).FirstOrDefault() );
+                SetExcelValue( worksheet.Cells[rowCounter, 6], row.Description );
+
+                rowCounter++;
+            }
+            var range = worksheet.Cells[3, 1, rowCounter, columnCounter];
+
+            // use conditionalFormatting to create the alternate row style
+            var conditionalFormatting = range.ConditionalFormatting.AddExpression();
+            conditionalFormatting.Formula = "MOD(ROW()+1,2)=0";
+            conditionalFormatting.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+            conditionalFormatting.Style.Fill.BackgroundColor.Color = Color.FromArgb( 240, 240, 240 );
+
+            var table = worksheet.Tables.Add( range, "table1" );
+
+            // ensure each column in the table has a unique name
+            var columnNames = worksheet.Cells[3, 1, 3, columnCounter].Select( a => new { OrigColumnName = a.Text, Cell = a } ).ToList();
+            columnNames.Reverse();
+            foreach ( var col in columnNames )
+            {
+                int duplicateSuffix = 0;
+                string uniqueName = col.OrigColumnName;
+
+                // increment the suffix by 1 until there is only one column with that name
+                while ( columnNames.Where( a => a.Cell.Text == uniqueName ).Count() > 1 )
+                {
+                    duplicateSuffix++;
+                    uniqueName = col.OrigColumnName + duplicateSuffix.ToString();
+                    col.Cell.Value = uniqueName;
+                }
+            }
+
+            table.ShowFilter = true;
+            table.TableStyle = OfficeOpenXml.Table.TableStyles.None;
+
+            // format header range
+            using ( ExcelRange r = worksheet.Cells[3, 1, 3, columnCounter] )
+            {
+                r.Style.Font.Bold = true;
+                r.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                r.Style.Fill.BackgroundColor.SetColor( Color.FromArgb( 223, 223, 223 ) );
+                r.Style.Font.Color.SetColor( Color.Black );
+                r.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+            }
+
+            // format and set title
+            worksheet.Cells[1, 1].Value = title;
+            using ( ExcelRange r = worksheet.Cells[1, 1, 1, columnCounter] )
+            {
+                r.Merge = true;
+                r.Style.Font.SetFromFont( new Font( "Calibri", 22, FontStyle.Regular ) );
+                r.Style.Font.Color.SetColor( Color.White );
+                r.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+                r.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                r.Style.Fill.BackgroundColor.SetColor( Color.FromArgb( 34, 41, 55 ) );
+
+                // set border
+                r.Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                r.Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                r.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                r.Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+            }
+
+            // TODO: add image to worksheet
+
+            // freeze panes
+            worksheet.View.FreezePanes( 3, 1 );
+
+            // autofit columns for all cells
+            worksheet.Cells.AutoFitColumns( 0 );
+
+            // Set the address column width
+            worksheet.Column( 4 ).Width = 30;
+
+            // add alternating highlights
+
+            // set some footer text
+            worksheet.HeaderFooter.OddHeader.CenteredText = title;
+            worksheet.HeaderFooter.OddFooter.RightAlignedText = string.Format( "Page {0} of {1}", ExcelHeaderFooter.PageNumber, ExcelHeaderFooter.NumberOfPages );
+            byte[] byteArray;
+            using ( MemoryStream ms = new MemoryStream() )
+            {
+                excel.SaveAs( ms );
+                byteArray = ms.ToArray();
+            }
+
+            // send the spreadsheet to the browser
+            this.Page.EnableViewState = false;
+            this.Page.Response.Clear();
+            this.Page.Response.ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            this.Page.Response.AppendHeader( "Content-Disposition", "attachment; filename=" + filename );
+
+            this.Page.Response.Charset = string.Empty;
+            this.Page.Response.BinaryWrite( byteArray );
+            this.Page.Response.Flush();
+            this.Page.Response.End();
+        }
+
+        /// <summary>
+        /// Formats the export value.
+        /// </summary>
+        /// <param name="range">The range.</param>
+        /// <param name="exportValue">The export value.</param>
+        private void SetExcelValue( ExcelRange range, object exportValue )
+        {
+            if ( exportValue != null &&
+                ( exportValue is decimal || exportValue is decimal? ||
+                exportValue is int || exportValue is int? ||
+                exportValue is double || exportValue is double? ||
+                exportValue is DateTime || exportValue is DateTime? ) )
+            {
+                range.Value = exportValue;
+            }
+            else
+            {
+                string value = exportValue != null ? exportValue.ToString().ConvertBrToCrLf().Replace( "&nbsp;", " " ) : string.Empty;
+                range.Value = value;
+                if ( value.Contains( Environment.NewLine ) )
+                {
+                    range.Style.WrapText = true;
+                }
+            }
+        }
+
+        protected class CommunionData
+        {
+            public Campus Campus { get; set; }
+            public Person Person { get; set; }
+            public int? Age { get; set; }
+            public string Description { get; set; }
+            public string Location { get; set; }
+            public string Address { get; set; }
+            public string City { get; set; }
+            public string State { get; set; }
+            public string PostalCode { get; set; }
+            public string Room { get; set; }
+            public string AdmitDate { get; set; }
+            public string Status { get; set; }
+            public string Communion { get; set; }
+        }
+
+
     }
 }
