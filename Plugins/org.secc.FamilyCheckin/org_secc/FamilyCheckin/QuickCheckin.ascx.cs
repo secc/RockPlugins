@@ -865,7 +865,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             //Test for overloaded rooms
             var overload = false;
             var locationService = new LocationService( rockContext );
-            var twelve = Rock.RockDateTime.Today.AddYears( -12 );
+            var seventeen = Rock.RockDateTime.Today.AddYears( -17 );
 
             var attendanceService = new AttendanceService( rockContext ).Queryable().AsNoTracking();
             foreach ( var person in CurrentCheckInState.CheckIn.CurrentFamily.People.Where( p => p.Selected ) )
@@ -898,11 +898,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                                     overload = true;
                                 }
 
-                                if ( ( person.Person.Age ?? 0 ) < 13 )
+                                if ( ( person.Person.Age ?? 0 ) < 18 )
                                 {
                                     threshold = Math.Min( locationEntity.FirmRoomThreshold ?? 0, locationEntity.SoftRoomThreshold ?? 0 );
                                     
-                                    if ( attendanceQry.Where( a => a.PersonAlias.Person.BirthDate > twelve ).Count() >= threshold )
+                                    if ( attendanceQry.Where( a => a.PersonAlias.Person.BirthDate > seventeen ).Count() >= threshold )
                                     {
                                         person.Selected = false;
                                         location.Schedules.Remove( schedule );

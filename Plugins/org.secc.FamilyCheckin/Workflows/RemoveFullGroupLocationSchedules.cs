@@ -44,7 +44,7 @@ namespace org.secc.FamilyCheckin
                 var family = checkInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault();
                 if ( family != null )
                 {
-                    var twelve = Rock.RockDateTime.Today.AddYears( -12 );
+                    var seventeen = Rock.RockDateTime.Today.AddYears( -17 );
                     var locationService = new LocationService( rockContext );
                     var attendanceService = new AttendanceService( rockContext ).Queryable();
                     foreach ( var person in family.People )
@@ -87,11 +87,11 @@ namespace org.secc.FamilyCheckin
                                             location.Schedules.Remove( schedule );
                                         }
 
-                                        if ( ( person.Person.Age ?? 0 ) < 13 )
+                                        if ( ( person.Person.Age ?? 0 ) < 18 )
                                         {
                                             threshold = Math.Min( locationEntity.FirmRoomThreshold ?? 0, locationEntity.SoftRoomThreshold ?? 0 );
 
-                                            if ( attendanceQry.Where( a => a.LocationId == location.Location.Id && a.PersonAlias.Person.BirthDate > twelve ).Count() >= threshold )
+                                            if ( attendanceQry.Where( a => a.LocationId == location.Location.Id && a.PersonAlias.Person.BirthDate > seventeen ).Count() >= threshold )
                                             {
                                                 location.Schedules.Remove( schedule );
                                             }
