@@ -20,7 +20,7 @@
                     <Rock:CampusesPicker ID="cpCampus" runat="server" Label="Campus" />
                     <Rock:RockCheckBoxList id="cblState" runat="server" RepeatDirection="Horizontal" Label="State"/>
                 </Rock:GridFilter>
-                <Rock:Grid ID="gReport" runat="server" AllowSorting="true" EmptyDataText="No Results" ExportFilename="CommunionList">
+                <Rock:Grid ID="gReport" runat="server" AllowSorting="true" EmptyDataText="No Results" ExportFilename="CommunionList" ShowActionRow="false">
                     <Columns>
                         <Rock:RockBoundField DataField="Campus" HeaderText="Campus" SortExpression="Campus" ExcelExportBehavior="AlwaysInclude"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="Location" HeaderText="Location" SortExpression="Location" ExcelExportBehavior="AlwaysInclude"></Rock:RockBoundField>
@@ -42,7 +42,11 @@
                         </Rock:RockTemplateField>
                     </Columns>
                 </Rock:Grid>
+                <asp:LinkButton id="excel" runat="server" OnClick="Actions_ExcelExportClick" CssClass="btn btn-default pull-right" style="margin-top: 5px;" ><i class="fa fa-table"></i></asp:LinkButton>
             </div>
         </asp:Panel>
     </ContentTemplate>
+    <Triggers>
+        <asp:PostBackTrigger ControlID="excel" />
+    </Triggers>
 </asp:UpdatePanel>
