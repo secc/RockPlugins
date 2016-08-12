@@ -22,6 +22,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     [Category( "SECC > Check-in" )]
     [Description( "QuickCheckin block for helping parents check in their family quickly." )]
     [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Location Link Attribute", "Group attribute which determines if group is location linking." )]
+    [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Volunteer Group Attribute" )]
 
     public partial class QuickCheckin : CheckInBlock
     {
@@ -242,7 +243,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     {
                         foreach ( var group in groupType.Groups )
                         {
-                            foreach ( var location in group.Locations)
+                            foreach ( var location in group.Locations )
                             {
                                 if ( location.Location.Attributes == null || !location.Location.Attributes.Any() )
                                 {
@@ -375,7 +376,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     .SelectMany( l => l.Schedules )
                     .DistinctBy( s => s.Schedule.Id )
                     .Where( s => !s.Schedule.Description.ToLower().Contains( "cull" ) )
-                    .OrderBy(s => s.Schedule.StartTimeOfDay)
+                    .OrderBy( s => s.Schedule.StartTimeOfDay )
                     .ToList();
             }
             else
@@ -785,10 +786,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
                         var checkinLocations = GetLocations( checkinPerson.Person, checkinSchedule, checkinGroupType, checkinGroup );
                         var checkinLocation = checkinLocations.OrderBy( l => KioskLocationAttendance.Read( l.Location.Id ).CurrentCount ).FirstOrDefault();
-                        if ( checkinLocations.Where( l => l.PreSelected ).Any() )
-                        {
-                            checkinLocation = checkinLocations.Where( l => l.PreSelected ).FirstOrDefault();
-                        }
                         if ( checkinLocation != null )
                         {
                             var locationSchedule = checkinLocation.Schedules.Where( s => s.Schedule.Id == checkinSchedule.Schedule.Id ).FirstOrDefault();
@@ -860,12 +857,25 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 DeselectCulled();
             }
 
+            var volAttributeGuid = GetAttributeValue( "VolunteerGroupAttribute" );
+
+            if ( string.IsNullOrWhiteSpace( volAttributeGuid ) )
+            {
+                maAlert.Show( "Volunteer attribute not set.", ModalAlertType.Alert );
+                return;
+            }
+            var volAttributeKey = AttributeCache.Read( volAttributeGuid.AsGuid() ).Key;
+
+            List<int> volunteerGroupIds = CurrentCheckInState.Kiosk.KioskGroupTypes
+                .SelectMany( g => g.KioskGroups )
+                .Where( g => g.Group.GetAttributeValue( volAttributeKey ).AsBoolean() )
+                .Select( g => g.Group.Id ).ToList();
+
             var rockContext = new RockContext();
 
             //Test for overloaded rooms
             var overload = false;
             var locationService = new LocationService( rockContext );
-            var seventeen = Rock.RockDateTime.Today.AddYears( -17 );
 
             var attendanceService = new AttendanceService( rockContext ).Queryable().AsNoTracking();
             foreach ( var person in CurrentCheckInState.CheckIn.CurrentFamily.People.Where( p => p.Selected ) )
@@ -898,11 +908,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                                     overload = true;
                                 }
 
-                                if ( ( person.Person.Age ?? 0 ) < 18 )
+                                if ( !volunteerGroupIds.Contains( group.Group.Id ) )
                                 {
                                     threshold = Math.Min( locationEntity.FirmRoomThreshold ?? 0, locationEntity.SoftRoomThreshold ?? 0 );
-                                    
-                                    if ( attendanceQry.Where( a => a.PersonAlias.Person.BirthDate > seventeen ).Count() >= threshold )
+
+                                    if ( attendanceQry.Where( a => !volunteerGroupIds.Contains( a.GroupId ?? 0 ) ).Count() >= threshold )
                                     {
                                         person.Selected = false;
                                         location.Schedules.Remove( schedule );

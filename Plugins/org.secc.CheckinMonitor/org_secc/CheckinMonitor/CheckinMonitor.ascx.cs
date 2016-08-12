@@ -35,7 +35,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [Description( "Helps manage rooms and room ratios." )]
     [DefinedTypeField( "Deactivated Defined Type", "Check-in monitor needs a place to save deactivated checkin configurations." )]
     [TextField( "Room Ratio Attribute Key", "Attribute key for room ratios", true, "RoomRatio" )]
-
+    [AttributeField(Rock.SystemGuid.EntityType.GROUP, "Volunteer Group Attribute" )]
 
     public partial class CheckinMonitor : CheckInBlock
     {
@@ -124,8 +124,23 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     Active = false
                 } ).ToList();
 
+
             var groupTypes = new GroupTypeService( _rockContext )
                 .GetByIds( CurrentCheckInState.ConfiguredGroupTypes );
+
+            var volAttributeGuid = GetAttributeValue( "VolunteerGroupAttribute" );
+            
+            if ( string.IsNullOrWhiteSpace( volAttributeGuid )){
+                maError.Show( "Volunteer attribute not set.", ModalAlertType.Alert );
+                return;
+            }
+            var volAttributeKey = AttributeCache.Read( volAttributeGuid.AsGuid() ).Key;
+
+            List <int> volunteerGroupIds = CurrentCheckInState.Kiosk.KioskGroupTypes
+                .SelectMany( g => g.KioskGroups )
+                .Where( g => g.Group.GetAttributeValue( volAttributeKey ).AsBoolean() )
+                .Select( g => g.Group.Id ).ToList();
+
             foreach ( var groupType in groupTypes.ToList() )
             {
                 Literal ltGt = new Literal();
@@ -146,8 +161,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                             new
                             {
                                 GroupLocationSchedule = gls,
-                                KidCount = a.Where( at => at.PersonAlias.Person.Age <= 17 && at.DidAttend == true && at.EndDateTime == null ).Count(),
-                                AdultCount = a.Where( at => at.PersonAlias.Person.Age >= 18 && at.DidAttend == true && at.EndDateTime == null ).Count(),
+                                KidCount = a.Where( at => !volunteerGroupIds.Contains(at.GroupId ?? 0) && at.DidAttend == true && at.EndDateTime == null ).Count(),
+                                AdultCount = a.Where( at => volunteerGroupIds.Contains( at.GroupId ?? 0 ) && at.DidAttend == true && at.EndDateTime == null ).Count(),
                                 Reserved = a.Where( at => at.DidAttend != true ).Count(),
                                 Total = a.Where( at => at.DidAttend == true && at.DidAttend == true && at.EndDateTime == null ).Count(),
                                 Active = gls.Active

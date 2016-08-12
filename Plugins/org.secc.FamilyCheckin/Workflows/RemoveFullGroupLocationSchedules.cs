@@ -11,6 +11,7 @@ using Rock.Data;
 using Rock.Model;
 using Rock.Workflow.Action.CheckIn;
 using Rock.Attribute;
+using Rock.Web.Cache;
 
 namespace org.secc.FamilyCheckin
 {
@@ -23,6 +24,7 @@ namespace org.secc.FamilyCheckin
     [ExportMetadata( "ComponentName", "Remove Full GroupLocationSchedules" )]
 
     [BooleanField( "Filter Attendance Schedules", "Filter out schedules that the person has already checked into" )]
+    [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Volunteer Group Attribute" )]
     public class RemoveFullGroupLocationScheduels : CheckInActionComponent
     {
         /// <summary>
@@ -44,7 +46,20 @@ namespace org.secc.FamilyCheckin
                 var family = checkInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault();
                 if ( family != null )
                 {
-                    var seventeen = Rock.RockDateTime.Today.AddYears( -17 );
+
+                    var volAttributeGuid = GetAttributeValue( action, "VolunteerGroupAttribute" );
+
+                    if ( string.IsNullOrWhiteSpace( volAttributeGuid ) )
+                    {
+                        return true;
+                    }
+                    var volAttributeKey = AttributeCache.Read( volAttributeGuid.AsGuid() ).Key;
+
+                    List<int> volunteerGroupIds = checkInState.Kiosk.KioskGroupTypes
+                        .SelectMany( g => g.KioskGroups )
+                        .Where( g => g.Group.GetAttributeValue( volAttributeKey ).AsBoolean() )
+                        .Select( g => g.Group.Id ).ToList();
+
                     var locationService = new LocationService( rockContext );
                     var attendanceService = new AttendanceService( rockContext ).Queryable();
                     foreach ( var person in family.People )
@@ -87,11 +102,11 @@ namespace org.secc.FamilyCheckin
                                             location.Schedules.Remove( schedule );
                                         }
 
-                                        if ( ( person.Person.Age ?? 0 ) < 18 )
+                                        if ( !volunteerGroupIds.Contains( group.Group.Id ) )
                                         {
                                             threshold = Math.Min( locationEntity.FirmRoomThreshold ?? 0, locationEntity.SoftRoomThreshold ?? 0 );
 
-                                            if ( attendanceQry.Where( a => a.LocationId == location.Location.Id && a.PersonAlias.Person.BirthDate > seventeen ).Count() >= threshold )
+                                            if ( attendanceQry.Where( a => !volunteerGroupIds.Contains( a.GroupId??0 ) ).Count() >= threshold )
                                             {
                                                 location.Schedules.Remove( schedule );
                                             }
