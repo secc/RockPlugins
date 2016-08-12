@@ -375,6 +375,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     .SelectMany( l => l.Schedules )
                     .DistinctBy( s => s.Schedule.Id )
                     .Where( s => !s.Schedule.Description.ToLower().Contains( "cull" ) )
+                    .OrderBy(s => s.Schedule.StartTimeOfDay)
                     .ToList();
             }
             else
@@ -385,6 +386,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 .SelectMany( gt => gt.Groups )
                 .SelectMany( g => g.Locations )
                 .SelectMany( l => l.Schedules )
+                .OrderBy( s => s.Schedule.StartTimeOfDay )
                 .DistinctBy( s => s.Schedule.Id ).ToList();
             }
         }
