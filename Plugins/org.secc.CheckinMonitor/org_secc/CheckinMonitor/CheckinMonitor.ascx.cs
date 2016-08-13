@@ -141,7 +141,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 .Where( g => g.Group.GetAttributeValue( volAttributeKey ).AsBoolean() )
                 .Select( g => g.Group.Id ).ToList();
 
-            foreach ( var groupType in groupTypes.ToList() )
+            foreach ( var groupType in groupTypes.OrderBy(gt => gt.Order).ToList() )
             {
                 Literal ltGt = new Literal();
                 ltGt.Text = "<br><b>" + groupType.Name + "</b>";
@@ -182,7 +182,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     sources = sources.Where( o => o.GroupLocationSchedule.Schedule.IsScheduleOrCheckInActive ).ToList();
                 }
 
-                foreach ( var group in groupType.Groups.ToList() )
+                foreach ( var group in groupType.Groups.OrderBy(g => g.Order).ToList() )
                 {
                     var source = sources.Where( s => s.GroupLocationSchedule.GroupLocation.GroupId == group.Id ).ToList();
 
