@@ -106,7 +106,7 @@ namespace org.secc.FamilyCheckin
                                         {
                                             threshold = Math.Min( locationEntity.FirmRoomThreshold ?? 0, locationEntity.SoftRoomThreshold ?? 0 );
 
-                                            if ( attendanceQry.Where( a => !volunteerGroupIds.Contains( a.GroupId??0 ) ).Count() >= threshold )
+                                            if ( attendanceQry.Where( a => a.LocationId == location.Location.Id && !volunteerGroupIds.Contains( a.GroupId??0 ) ).Count() >= threshold )
                                             {
                                                 location.Schedules.Remove( schedule );
                                             }

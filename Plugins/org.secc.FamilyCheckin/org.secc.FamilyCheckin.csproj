@@ -118,6 +118,7 @@
     <Compile Include="Workflows\FilterGroupsByMembership.cs" />
     <Compile Include="Workflows\LoadAllLocations.cs" />
     <Compile Include="Workflows\LoadAllCacheless.cs" />
+    <Compile Include="Workflows\LoadAllGroupTypes.cs" />
     <Compile Include="Workflows\ReprintChildTag.cs" />
     <Compile Include="Workflows\ReprintAggregate.cs" />
     <Compile Include="Workflows\CreateLabelsAggregate.cs" />
