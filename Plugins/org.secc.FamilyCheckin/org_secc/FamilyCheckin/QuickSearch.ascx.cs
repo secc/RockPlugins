@@ -183,11 +183,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 pnlNotActiveYet.Visible = true;
                 HideSign();
             }
-            else if ( !CurrentCheckInState.Kiosk.HasActiveLocations( CurrentCheckInState.ConfiguredGroupTypes ) )
-            {
-                pnlClosed.Visible = true;
-                HideSign();
-            }
             else
             {
                 pnlActive.Visible = true;
