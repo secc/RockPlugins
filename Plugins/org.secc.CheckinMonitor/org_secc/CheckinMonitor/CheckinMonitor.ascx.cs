@@ -55,6 +55,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 NavigateToHomePage();
                 return;
             }
+            var kioskGroups = CurrentCheckInState.Kiosk.KioskGroupTypes
+                .SelectMany( g => g.KioskGroups );
+            foreach(KioskGroup group in kioskGroups)
+            {
+                group.Group.LoadAttributes();
+            }
 
             BindTable();
 
@@ -98,13 +104,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             phContent.Controls.Clear();
             _rockContext = new RockContext();
             AttendanceService attendanceSerivce = new AttendanceService( _rockContext );
-            var attendanceData = attendanceSerivce.Queryable()
-                                    .Where( a =>
-                                            a.LocationId!=null
-                                            && a.Schedule!=null
-                                            && a.StartDateTime > Rock.RockDateTime.Today
-                                            && a.PersonAliasId != null
-                                    );
 
             var definedTypeGuid = GetAttributeValue( "DeactivatedDefinedType" ).AsGuidOrNull();
             if ( definedTypeGuid == null )
@@ -125,8 +124,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 } ).ToList();
 
 
-            var groupTypes = new GroupTypeService( _rockContext )
-                .GetByIds( CurrentCheckInState.ConfiguredGroupTypes );
+            var groupTypes = new GroupTypeService( _rockContext ).Queryable( "Groups, Groups.GroupLocations, Groups.GroupLocations.Schedules" )
+                .Where(gt => CurrentCheckInState.ConfiguredGroupTypes.Contains(gt.Id) );
 
             var volAttributeGuid = GetAttributeValue( "VolunteerGroupAttribute" );
             
@@ -154,24 +153,37 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 var sources = groupType.Groups.SelectMany( g => g.GroupLocations )
                         .SelectMany( gl => gl.Schedules, ( gl, s ) => new { GroupLocation = gl, Schedule = s, Active = true } )
                         .Concat( deactivatedGroupLocationSchedules.Where( dGLS => groupType.Groups.Contains( dGLS.GroupLocation.Group ) ) )
-                        .GroupJoin( attendanceData,
-                            gls => new { LocationId = gls.GroupLocation.LocationId, ScheduleId = gls.Schedule.Id },
-                            a => new { LocationId = a.LocationId.Value, ScheduleId = a.ScheduleId.Value },
-                            ( gls, a ) =>
-                            new
+                        .Select( gls => new
+                        {
+                            GroupLocationSchedule = gls,
+                            KidCount = new Func<int>( () =>
                             {
-                                GroupLocationSchedule = gls,
-                                KidCount = a.Where( at => !volunteerGroupIds.Contains(at.GroupId ?? 0) && at.DidAttend == true && at.EndDateTime == null ).Count(),
-                                AdultCount = a.Where( at => volunteerGroupIds.Contains( at.GroupId ?? 0 ) && at.DidAttend == true && at.EndDateTime == null ).Count(),
-                                Reserved = a.Where( at => at.DidAttend != true ).Count(),
-                                Total = a.Where( at => at.DidAttend == true && at.DidAttend == true && at.EndDateTime == null ).Count(),
-                                Active = gls.Active
-                            }
-                        )
-                        .DistinctBy( o => new { GroupLocationId = o.GroupLocationSchedule.GroupLocation.Id, ScheduleId = o.GroupLocationSchedule.Schedule.Id } ) //this is here because bad cache can cause problems
-                        .OrderBy( o => o.GroupLocationSchedule.GroupLocation.Id )
-                        .ThenBy( o => o.GroupLocationSchedule.Schedule.Id )
-                        .ToList();
+                                var kgas = KioskLocationAttendance.Read( gls.GroupLocation.LocationId ).Groups.Where( g => gls.GroupLocation.Schedules.Where( s => s.Id == gls.Schedule.Id ).Any() );
+                                return kgas.Where( kga => !volunteerGroupIds.Contains( kga.GroupId ) ).Select( kga => kga.CurrentCount ).FirstOrDefault();
+                            } )(),
+                            AdultCount = new Func<int>( () =>
+                            {
+                                var kgas = KioskLocationAttendance.Read( gls.GroupLocation.LocationId ).Groups.Where( g => gls.GroupLocation.Schedules.Where( s => s.Id == gls.Schedule.Id ).Any() );
+                                return kgas.Where( kga => volunteerGroupIds.Contains( kga.GroupId ) ).Select( kga => kga.CurrentCount ).FirstOrDefault();
+                            } )(),
+                            Reserved = new Func<int>( () =>
+                            {
+                                return 0; // This isn't implemented yet.  Someday . . . .
+                            } )(),
+                            Total = new Func<int>( () =>
+                            {
+                                var kgas = KioskLocationAttendance.Read( gls.GroupLocation.LocationId ).Groups.Where( g => gls.GroupLocation.Schedules.Where( s => s.Id == gls.Schedule.Id ).Any() );
+                                return kgas.Select( kga => kga.DistinctPersonIds ).Distinct().Count();
+                            } )(),
+                            Active = gls.Active
+                        } );
+
+                // Load the attributes on the locations so we can pull the ratios.
+                foreach(var gl in sources)
+                {
+                    gl.GroupLocationSchedule.GroupLocation.Location.LoadAttributes();
+                }
+
                 var selectedScheduleId = ddlSchedules.SelectedValue.AsInteger();
                 if ( selectedScheduleId > 0 )
                 {
@@ -244,7 +256,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         tr.Controls.Add( name );
 
                         TableCell tcRatio = new TableCell();
-                        occurrence.GroupLocationSchedule.GroupLocation.Location.LoadAttributes();
+                        //occurrence.GroupLocationSchedule.GroupLocation.Location.LoadAttributes();
                         var ratio = occurrence.GroupLocationSchedule.GroupLocation.Location.GetAttributeValue( GetAttributeValue( "RoomRatioAttributeKey" ) ).AsInteger();
                         var ratioDistance = ( occurrence.AdultCount * ratio ) - occurrence.KidCount;
                         tcRatio.Text = occurrence.KidCount.ToString() + "/" + occurrence.AdultCount.ToString();

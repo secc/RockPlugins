@@ -143,6 +143,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 CurrentWorkflow = null;
                 Session["KioskTypeId"] = kiosk.KioskType.Id;
                 Session["KioskMessage"] = kiosk.KioskType.Message;
+                KioskDevice.Flush( device.Id );
                 SaveState();
                 NavigateToNextPage();
             }
