@@ -430,6 +430,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     {
                         group.ParentGroupId = childGroup.Id;
                     }
+                        group.Name = tbName.Text;
                 }
                 else
                 {
@@ -438,11 +439,16 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     {
                         group.ParentGroupId = childGroup.Id;
                     }
-
+                    var zip = "No Zip";
+                    if (lopAddress.Location!=null && !string.IsNullOrWhiteSpace( lopAddress.Location.PostalCode ) )
+                    {
+                        zip = lopAddress.Location.PostalCode;
+                    }
+                    group.Name = string.Format( "{0} [{1}]", tbName.Text,  zip  );
                 }
             }
 
-            group.Name = tbName.Text;
+            
             group.Description = tbDescription.Text;
 
             group.CreatedByPersonAliasId = _person.PrimaryAliasId;
