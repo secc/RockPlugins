@@ -290,7 +290,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 return;
             }
 
-            var people = CurrentCheckInState.CheckIn.Families.SelectMany( f => f.People );
+            var people = CurrentCheckInState.CheckIn.Families.SelectMany( f => f.People ).OrderBy(p => p.Person.BirthDate);
 
             int i = 0;
             HtmlGenericControl hgcRow = new HtmlGenericControl( "div" );

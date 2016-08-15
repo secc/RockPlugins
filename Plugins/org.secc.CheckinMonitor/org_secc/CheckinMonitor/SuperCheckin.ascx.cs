@@ -168,7 +168,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 return;
             }
 
-            foreach ( var checkinPerson in CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).First().People )
+            foreach ( var checkinPerson in CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).First().People.OrderBy(p => p.Person.BirthDate) )
             {
                 BootstrapButton btnMember = new BootstrapButton();
                 btnMember.CssClass = "btn btn-default btn-block btn-lg";
