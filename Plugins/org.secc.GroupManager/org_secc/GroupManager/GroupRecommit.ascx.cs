@@ -30,8 +30,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [BooleanField( "Show Description", "Option to toggle if the group description is to be shown for editing", true, "", 3 )]
     [TextField( "Save Text", "Text to display on save button", true, "Sign Up To Lead Group", "", 4 )]
     [GroupRoleField( "", "Group Role", "Group role that the user will be saved as. You will need to select the group type before selecting the group role.", true, "", "", 5 )]
-    [CodeEditorField("Success Text", "Text to display to user upon successfully creating new group.", CodeEditorMode.Text,CodeEditorTheme.Rock,
-        200,true, "You have successfully signed up to lead a group.", "",5)]
+    [CodeEditorField( "Success Text", "Text to display to user upon successfully creating new group.", CodeEditorMode.Text, CodeEditorTheme.Rock,
+        200, true, "You have successfully signed up to lead a group.", "", 5 )]
     [CodeEditorField( "Login Text", "Text to display when user account cannot be determined", CodeEditorMode.Text, CodeEditorTheme.Rock,
         200, true, "We're sorry we could not find your account in our system. Please log-in to continue.", "", 6 )]
     [CodeEditorField( "Multiple Groups Text", "Text to display when too many groups are found to make recomitment a possiblity.", CodeEditorMode.Text, CodeEditorTheme.Rock,
@@ -105,7 +105,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             LoadPerson();
             if ( _person == null )
             {
-                ShowMessage( GetAttributeValue("LoginText"), "Information");
+                ShowMessage( GetAttributeValue( "LoginText" ), "Information" );
                 return;
             }
 
@@ -120,7 +120,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             if ( !IsDestinationAvailable() )
             {
-                ShowMessage( GetAttributeValue("DestinationGroupText"));
+                ShowMessage( GetAttributeValue( "DestinationGroupText" ) );
                 return;
             }
 
@@ -128,7 +128,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             //if we load the groups and there are too many we need to stop because the logic needs a person
             if ( groups.Count() > 1 )
             {
-                ShowMessage(GetAttributeValue( "Multiple Groups Text" ));
+                ShowMessage( GetAttributeValue( "Multiple Groups Text" ) );
                 return;
             }
 
@@ -140,6 +140,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 //Create/copy group and fill it full of properties and attributes
                 HydrateGroup();
                 LoadControls();
+                if ( CurrentUser != null )
+                {
+                    tbName.Text = CurrentUser.Person.LastName;
+                }
             }
             else if ( _group != null )
             {
@@ -330,7 +334,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 var availableGroupIds = ( List<int> ) GetCacheItem( groupGuid.ToString() );
 
-                if ( availableGroupIds == null || !availableGroupIds.Any())
+                if ( availableGroupIds == null || !availableGroupIds.Any() )
                 {
                     availableGroupIds = GetChildGroups( groupGuid ?? new Guid(), groupService ).Select( g => g.Id ).ToList();
                     AddCacheItem( groupGuid.ToString(), availableGroupIds );
@@ -344,7 +348,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 groupQry = groupQry.Where( g => g.IsActive && g.GroupTypeId == _groupType.Id );
             }
 
-            return groupQry.Where( g => g.Members.Where( gm => gm.GroupRoleId == groupRole.Id && gm.PersonId==_person.Id ).Any() ).ToList();
+            return groupQry.Where( g => g.Members.Where( gm => gm.GroupRoleId == groupRole.Id && gm.PersonId == _person.Id ).Any() ).ToList();
         }
 
         private List<Group> GetChildGroups( Guid groupGuid, GroupService groupService )
@@ -389,7 +393,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         }
         #endregion
 
-        private void ShowMessage( string message, string header="Information", string cssClass="panel panel-warning" )
+        private void ShowMessage( string message, string header = "Information", string cssClass = "panel panel-warning" )
         {
             pnlMain.Visible = false;
             pnlInfo.Visible = true;
@@ -400,9 +404,23 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         protected void btnSave_Click( object sender, EventArgs e )
         {
+            if ( lopAddress.Location == null
+                || string.IsNullOrWhiteSpace( lopAddress.Location.Street1 )
+                || string.IsNullOrWhiteSpace( lopAddress.Location.PostalCode ) )
+            {
+                nbValidation.Visible = true;
+                ScriptManager.RegisterStartupScript( Page, this.GetType(), "ScrollPage", "setTimeout(function(){window.scroll(0,0);},200)", true );
+                return;
+            }
+            else
+            {
+                nbValidation.Visible = false;
+            }
+
+
             if ( _group == null )
             {
-                ShowMessage( "There was an issue with the viewstate. Please reload and try again. If the problem perssits contact an administrator.", "Error", "panel panel-danger");
+                ShowMessage( "There was an issue with the viewstate. Please reload and try again. If the problem perssits contact an administrator.", "Error", "panel panel-danger" );
                 return;
             }
 
@@ -410,7 +428,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 ShowMessage( "There has already been a group created for you. If you think this is in error, or you would like to create another group please contact your leader" );
                 return;
-
             }
             GroupService groupService = new GroupService( _rockContext );
             //Add basic information
@@ -430,7 +447,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     {
                         group.ParentGroupId = childGroup.Id;
                     }
-                        group.Name = tbName.Text;
                 }
                 else
                 {
@@ -439,16 +455,17 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     {
                         group.ParentGroupId = childGroup.Id;
                     }
-                    var zip = "No Zip";
-                    if (lopAddress.Location!=null && !string.IsNullOrWhiteSpace( lopAddress.Location.PostalCode ) )
-                    {
-                        zip = lopAddress.Location.PostalCode;
-                    }
-                    group.Name = string.Format( "{0} [{1}]", tbName.Text,  zip  );
                 }
             }
 
-            
+            var zip = "No Zip";
+            if ( lopAddress.Location != null && !string.IsNullOrWhiteSpace( lopAddress.Location.PostalCode ) )
+            {
+                zip = lopAddress.Location.PostalCode;
+            }
+            group.Name = string.Format( "{0} {1}", tbName.Text, zip );
+
+
             group.Description = tbDescription.Text;
 
             group.CreatedByPersonAliasId = _person.PrimaryAliasId;
@@ -509,10 +526,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             group.SaveAttributeValues();
 
             //Update cache
-            var availableGroupIds = ( List<int> ) GetCacheItem( GetAttributeValue("DestinationGroup") );
+            var availableGroupIds = ( List<int> ) GetCacheItem( GetAttributeValue( "DestinationGroup" ) );
             availableGroupIds.Add( group.Id );
-            AddCacheItem(GetAttributeValue("DestinationGroup"), availableGroupIds );
-            ShowMessage(GetAttributeValue("SuccessText"), "Thank you!", "panel panel-success" );
+            AddCacheItem( GetAttributeValue( "DestinationGroup" ), availableGroupIds );
+            ShowMessage( GetAttributeValue( "SuccessText" ), "Thank you!", "panel panel-success" );
         }
 
         protected void rblSchedule_SelectedIndexChanged( object sender, EventArgs e )

@@ -17,10 +17,16 @@
             <h2>
                 <asp:Literal Text="" runat="server" ID="ltTitle" />
             </h2>
+            <Rock:NotificationBox runat="server" ID="nbValidation" NotificationBoxType="Danger" Visible="false">
+                <b>Please correct the following:</b>
+                <ul>
+                    <li>An address is required.</li>
+                </ul>
+            </Rock:NotificationBox>
             <div class="panel panel-default">
                 <div class="panel-heading">Information</div>
                 <div class="panel-body">
-                    <Rock:RockTextBox runat="server" ID="tbName" Required="true" ValidationGroup="main"
+                    <Rock:RockTextBox runat="server" ID="tbName" Enabled="false"
                         Label="Group Name" Help="The name of your group."></Rock:RockTextBox>
                     <Rock:RockTextBox runat="server" ID="tbDescription" Label="Description" Visible="false" TextMode="MultiLine"></Rock:RockTextBox>
 
@@ -34,7 +40,7 @@
 
                     <Rock:ScheduleBuilder ID="sbSchedule" runat="server" ShowDuration="false" ShowScheduleFriendlyTextAsToolTip="true" Visible="false" Label="Custom Schedule" />
 
-                    <Rock:LocationPicker runat="server" ID="lopAddress" Label="Address" AllowedPickerModes="Address" />
+                    <Rock:LocationPicker runat="server" ID="lopAddress" ValidationGroup="main" Required="true" Label="Address" AllowedPickerModes="Address" />
                 </div>
             </div>
             <div class="panel panel-default">
