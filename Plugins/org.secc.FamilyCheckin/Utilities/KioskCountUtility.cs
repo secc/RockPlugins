@@ -37,42 +37,14 @@ namespace org.secc.FamilyCheckin.Utilities
             GroupTypes = groupTypeService
                 .Where( gt => ConfiguredGroupTypes.Contains( gt.Id ) ).ToList();
 
-            foreach ( var gt in GroupTypes )
-            {
-                foreach ( var g in gt.Groups )
-                {
-                    g.LoadAttributes();
-                }
-            }
-
-            //if ( GroupTypes.Any() )
-            //{
-            //    var allGroupTypes = groupTypeService.Where( gt => gt.ChildGroupTypes.Contains( GroupTypes.FirstOrDefault() ) )
-            //        .Select( gt => gt.ChildGroupTypes.Where( cgt => !ConfiguredGroupTypes.Contains( cgt.Id ) ) ).ToList();
-
-            //    foreach ( var gt in allGroupTypes )
-            //    {
-            //        foreach ( var g in gt.Groups )
-            //        {
-            //            g.LoadAttributes();
-            //        }
-            //    }
-            //}
 
 
+            var volAttribute = AttributeCache.Read( VolunteerAttributeGuid );
 
-            var volAttributeKey = AttributeCache.Read( VolunteerAttributeGuid ).Key;
-
-            VolunteerGroupIds = GroupTypes
-                .SelectMany( gt => gt.Groups )
-                .Where( g => g.GetAttributeValue( volAttributeKey ).AsBoolean() )
-                .Select( g => g.Id ).ToList();
-
-            ChildGroupIds = GroupTypes
-                .SelectMany( gt => gt.Groups )
-                .Where( g => !g.GetAttributeValue( volAttributeKey ).AsBoolean() )
-                .Select( g => g.Id ).ToList();
-
+            AttributeValueService attributeValueService = new AttributeValueService( rockContext );
+            VolunteerGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "True" ).Select( av => av.EntityId.Value ).ToList();
+            ChildGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "False" ).Select( av => av.EntityId.Value ).ToList();
+            
             var groupLocations = GroupTypes
                 .SelectMany( gt => gt.Groups )
                 .SelectMany( g => g.GroupLocations );

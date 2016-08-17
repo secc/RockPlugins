@@ -111,7 +111,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 if ( loc.Attributes == null || !loc.Attributes.Any() )
                 {
-                    loc.LoadAttributes();
+                    //loc.LoadAttributes();
                 }
             }
 
