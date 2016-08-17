@@ -110,6 +110,7 @@
     <Compile Include="Rest\Controllers\FamilyCheckinController.Partial.cs" />
     <Compile Include="Rest\Handlers\SessionControllerHandler.cs" />
     <Compile Include="Rest\Handlers\SessionRouteHandler.cs" />
+    <Compile Include="Utilities\KioskCountUtility.cs" />
     <Compile Include="Utilities\LabelPrinter.cs" />
     <Compile Include="Workflows\CustFindFamilies.cs" />
     <Compile Include="Workflows\FilterGroupsByAbility.cs" />
