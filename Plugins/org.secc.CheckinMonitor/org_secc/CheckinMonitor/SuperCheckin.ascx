@@ -5,9 +5,18 @@
 
         <Rock:ModalDialog ID="mdCheckin" runat="server" Title="Check-In" OnSaveClick="mdCheckin_SaveClick" CancelLinkVisible="false" SaveButtonText="Save Check-In State">
             <Content>
-                <Rock:Toggle runat="server" ID="cbSuperCheckin" OnCssClass="btn-success"
-                    OffCssClass="btn-danger" OnCheckedChanged="cbSuperCheckin_CheckedChanged"
-                    Checked="false" Label="Super Check-In" />
+                <div class="row">
+                    <div class="col-sm-6">
+                        <Rock:Toggle runat="server" ID="cbSuperCheckin" OnCssClass="btn-success"
+                            OffCssClass="btn-danger" OnCheckedChanged="cbSuperCheckin_CheckedChanged"
+                            Checked="false" Label="Super Check-In" />
+                    </div>
+                    <div class="col-sm-6">
+                        <Rock:Toggle runat="server" ID="cbVolunteer" OnCssClass="btn-success" OffCssClass="btn-success"
+                            OnText="Volunteers Groups" OffText="Children's Groups" Checked="false" Label="Check-In Group Type"
+                            OnCheckedChanged="cbVolunteer_CheckedChanged" />
+                    </div>
+                </div>
                 <asp:PlaceHolder ID="phCheckin" runat="server" />
             </Content>
         </Rock:ModalDialog>

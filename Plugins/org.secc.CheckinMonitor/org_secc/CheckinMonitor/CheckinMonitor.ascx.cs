@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using Rock.CheckIn;
 using Rock.Attribute;
 using Rock.Web.Cache;
+using org.secc.FamilyCheckin.Utilities;
 
 namespace RockWeb.Plugins.org_secc.CheckinMonitor
 {
@@ -35,12 +36,10 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [Description( "Helps manage rooms and room ratios." )]
     [DefinedTypeField( "Deactivated Defined Type", "Check-in monitor needs a place to save deactivated checkin configurations." )]
     [TextField( "Room Ratio Attribute Key", "Attribute key for room ratios", true, "RoomRatio" )]
-    [AttributeField(Rock.SystemGuid.EntityType.GROUP, "Volunteer Group Attribute" )]
+    [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Volunteer Group Attribute" )]
 
     public partial class CheckinMonitor : CheckInBlock
     {
-
-        private RockContext _rockContext;
 
         /// <summary>
         /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
@@ -55,13 +54,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 NavigateToHomePage();
                 return;
             }
-            var kioskGroups = CurrentCheckInState.Kiosk.KioskGroupTypes
-                .SelectMany( g => g.KioskGroups );
-            foreach(KioskGroup group in kioskGroups)
-            {
-                group.Group.LoadAttributes();
-            }
-
             BindTable();
 
             if ( !Page.IsPostBack )
@@ -81,66 +73,61 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 NavigateToHomePage();
                 return;
             }
+            using ( RockContext _rockContext = new RockContext() )
+            {
 
-            var schedules = new GroupTypeService( _rockContext )
-                .GetByIds( CurrentCheckInState.ConfiguredGroupTypes )
-                .SelectMany( gt => gt.Groups )
-                .SelectMany( g => g.GroupLocations )
-                .SelectMany( gl => gl.Schedules )
-                .DistinctBy( s => s.Id )
-                .Select( s =>
-                new { Id = s.Id, Name = s.Name } )
-                .ToList();
+                var schedules = new GroupTypeService( _rockContext )
+                    .GetByIds( CurrentCheckInState.ConfiguredGroupTypes )
+                    .SelectMany( gt => gt.Groups )
+                    .SelectMany( g => g.GroupLocations )
+                    .SelectMany( gl => gl.Schedules )
+                    .DistinctBy( s => s.Id )
+                    .Select( s =>
+                    new { Id = s.Id, Name = s.Name } )
+                    .ToList();
 
-            schedules.Insert( 0, new { Id = -1, Name = "[ All Schedules ]" } );
-            schedules.Insert( 0, new { Id = 0, Name = "[ Active Schedules ]" } );
+                schedules.Insert( 0, new { Id = -1, Name = "[ All Schedules ]" } );
+                schedules.Insert( 0, new { Id = 0, Name = "[ Active Schedules ]" } );
 
-            ddlSchedules.DataSource = schedules;
-            ddlSchedules.DataBind();
+                ddlSchedules.DataSource = schedules;
+                ddlSchedules.DataBind();
+            }
         }
 
         private void BindTable()
         {
             phContent.Controls.Clear();
-            _rockContext = new RockContext();
-            AttendanceService attendanceSerivce = new AttendanceService( _rockContext );
 
-            var definedTypeGuid = GetAttributeValue( "DeactivatedDefinedType" ).AsGuidOrNull();
-            if ( definedTypeGuid == null )
+            KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes,
+                                                                        GetAttributeValue( "VolunteerGroupAttribute" ).AsGuid(),
+                                                                        GetAttributeValue( "DeactivatedDefinedType" ).AsGuid() );
+
+            //preload location attributes
+            var allLocations = kioskCountUtility.GroupTypes
+                .SelectMany( gt => gt.Groups )
+                .SelectMany( g => g.GroupLocations )
+                .Select( gl => gl.Location ).ToList();
+            foreach ( var loc in allLocations )
             {
-                maError.Show( "This block is not configured", ModalAlertType.Warning );
-                return;
-            }
-            var scheduleService = new ScheduleService( _rockContext );
-            var groupLocationService = new GroupLocationService( _rockContext );
-            var dtDeactivated = DefinedTypeCache.Read( definedTypeGuid ?? new Guid() );
-            var dvDeactivated = dtDeactivated.DefinedValues;
-            var deactivatedGroupLocationSchedules = dvDeactivated.Select( dv => dv.Value.Split( '|' ) )
-                .Select( s => new
+                if ( loc.Attributes == null || !loc.Attributes.Any() )
                 {
-                    GroupLocation = groupLocationService.Get( s[0].AsInteger() ),
-                    Schedule = scheduleService.Get( s[1].AsInteger() ),
-                    Active = false
-                } ).ToList();
-
-
-            var groupTypes = new GroupTypeService( _rockContext ).Queryable( "Groups, Groups.GroupLocations, Groups.GroupLocations.Schedules" )
-                .Where(gt => CurrentCheckInState.ConfiguredGroupTypes.Contains(gt.Id) );
-
-            var volAttributeGuid = GetAttributeValue( "VolunteerGroupAttribute" );
-            
-            if ( string.IsNullOrWhiteSpace( volAttributeGuid )){
-                maError.Show( "Volunteer attribute not set.", ModalAlertType.Alert );
-                return;
+                    loc.LoadAttributes();
+                }
             }
-            var volAttributeKey = AttributeCache.Read( volAttributeGuid.AsGuid() ).Key;
 
-            List <int> volunteerGroupIds = CurrentCheckInState.Kiosk.KioskGroupTypes
-                .SelectMany( g => g.KioskGroups )
-                .Where( g => g.Group.GetAttributeValue( volAttributeKey ).AsBoolean() )
-                .Select( g => g.Group.Id ).ToList();
+            var groupLocationSchedules = kioskCountUtility.GroupLocationSchedules;
 
-            foreach ( var groupType in groupTypes.OrderBy(gt => gt.Order).ToList() )
+            var selectedScheduleId = ddlSchedules.SelectedValue.AsInteger();
+            if ( selectedScheduleId > 0 )
+            {
+                groupLocationSchedules = groupLocationSchedules.Where( gls => gls.Schedule.Id == selectedScheduleId ).ToList();
+            }
+            else if ( selectedScheduleId == 0 )
+            {
+                groupLocationSchedules = groupLocationSchedules.Where( gls => gls.Schedule.IsScheduleOrCheckInActive ).ToList();
+            }
+
+            foreach ( var groupType in kioskCountUtility.GroupTypes.OrderBy( gt => gt.Order ).ToList() )
             {
                 Literal ltGt = new Literal();
                 ltGt.Text = "<br><b>" + groupType.Name + "</b>";
@@ -150,53 +137,13 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 table.Style.Add( "margin-bottom", "10px" );
                 phContent.Controls.Add( table );
 
-                var sources = groupType.Groups.SelectMany( g => g.GroupLocations )
-                        .SelectMany( gl => gl.Schedules, ( gl, s ) => new { GroupLocation = gl, Schedule = s, Active = true } )
-                        .Concat( deactivatedGroupLocationSchedules.Where( dGLS => groupType.Groups.Contains( dGLS.GroupLocation.Group ) ) )
-                        .Select( gls => new
-                        {
-                            GroupLocationSchedule = gls,
-                            KidCount = new Func<int>( () =>
-                            {
-                                var kgas = KioskLocationAttendance.Read( gls.GroupLocation.LocationId ).Groups.Where( g => gls.GroupLocation.Schedules.Where( s => s.Id == gls.Schedule.Id ).Any() );
-                                return kgas.Where( kga => !volunteerGroupIds.Contains( kga.GroupId ) ).Select( kga => kga.CurrentCount ).FirstOrDefault();
-                            } )(),
-                            AdultCount = new Func<int>( () =>
-                            {
-                                var kgas = KioskLocationAttendance.Read( gls.GroupLocation.LocationId ).Groups.Where( g => gls.GroupLocation.Schedules.Where( s => s.Id == gls.Schedule.Id ).Any() );
-                                return kgas.Where( kga => volunteerGroupIds.Contains( kga.GroupId ) ).Select( kga => kga.CurrentCount ).FirstOrDefault();
-                            } )(),
-                            Reserved = new Func<int>( () =>
-                            {
-                                return 0; // This isn't implemented yet.  Someday . . . .
-                            } )(),
-                            Total = new Func<int>( () =>
-                            {
-                                var kgas = KioskLocationAttendance.Read( gls.GroupLocation.LocationId ).Groups.Where( g => gls.GroupLocation.Schedules.Where( s => s.Id == gls.Schedule.Id ).Any() );
-                                return kgas.Select( kga => kga.DistinctPersonIds ).Distinct().Count();
-                            } )(),
-                            Active = gls.Active
-                        } );
-
-                // Load the attributes on the locations so we can pull the ratios.
-                foreach(var gl in sources)
+                foreach ( var group in groupType.Groups.OrderBy( g => g.Order ) )
                 {
-                    gl.GroupLocationSchedule.GroupLocation.Location.LoadAttributes();
-                }
-
-                var selectedScheduleId = ddlSchedules.SelectedValue.AsInteger();
-                if ( selectedScheduleId > 0 )
-                {
-                    sources = sources.Where( o => o.GroupLocationSchedule.Schedule.Id == selectedScheduleId ).ToList();
-                }
-                else if ( selectedScheduleId == 0 )
-                {
-                    sources = sources.Where( o => o.GroupLocationSchedule.Schedule.IsScheduleOrCheckInActive ).ToList();
-                }
-
-                foreach ( var group in groupType.Groups.OrderBy(g => g.Order).ToList() )
-                {
-                    var source = sources.Where( s => s.GroupLocationSchedule.GroupLocation.GroupId == group.Id ).ToList();
+                    var occurance = groupLocationSchedules
+                        .Where( gls => gls.GroupLocation.GroupId == group.Id )
+                        .OrderBy( gls => gls.GroupLocation.Location.Name )
+                        .ThenBy( gls => gls.Schedule.StartTimeOfDay )
+                        .ToList();
 
                     Literal ltG = new Literal();
                     phContent.Controls.Add( ltG );
@@ -211,7 +158,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
 
                     TableHeaderCell thcRatio = new TableHeaderCell();
-                    if ( source.Any() )
+                    if ( occurance.Any() )
                     {
                         thcRatio.Text = "Kid/Adult Ratio";
                     }
@@ -223,7 +170,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     thr.Controls.Add( thcRatio );
 
                     TableHeaderCell thcCount = new TableHeaderCell();
-                    if ( source.Any() )
+                    if ( occurance.Any() )
                     {
                         thcCount.Text = "Kid / Total Count";
                     }
@@ -238,41 +185,40 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     thcRoom.Style.Add( "width", "10%" );
                     thr.Controls.Add( thcRoom );
 
-                    foreach ( var occurrence in source )
+                    foreach ( var gls in occurance )
                     {
-                        occurrence.GroupLocationSchedule.GroupLocation.Location.LoadAttributes();
                         TableRow tr = new TableRow();
                         table.Controls.Add( tr );
 
                         TableCell name = new TableCell();
                         if ( selectedScheduleId > 0 )
                         {
-                            name.Text = occurrence.GroupLocationSchedule.GroupLocation.Location.Name;
+                            name.Text = gls.GroupLocation.Location.Name;
                         }
                         else
                         {
-                            name.Text = occurrence.GroupLocationSchedule.GroupLocation.Location.Name + " @ " + occurrence.GroupLocationSchedule.Schedule.Name;
+                            name.Text = gls.GroupLocation.Location.Name + " @ " + gls.Schedule.Name;
                         }
                         tr.Controls.Add( name );
 
                         TableCell tcRatio = new TableCell();
-                        //occurrence.GroupLocationSchedule.GroupLocation.Location.LoadAttributes();
-                        var ratio = occurrence.GroupLocationSchedule.GroupLocation.Location.GetAttributeValue( GetAttributeValue( "RoomRatioAttributeKey" ) ).AsInteger();
-                        var ratioDistance = ( occurrence.AdultCount * ratio ) - occurrence.KidCount;
-                        tcRatio.Text = occurrence.KidCount.ToString() + "/" + occurrence.AdultCount.ToString();
-                        if ( occurrence.Total != 0 && ratioDistance == 0 )
+                        var ratio = gls.GroupLocation.Location.GetAttributeValue( GetAttributeValue( "RoomRatioAttributeKey" ) ).AsInteger();
+                        var lsCount = kioskCountUtility.GetLocationScheduleCount( gls.GroupLocation.Location.Id, gls.Schedule.Id );
+                        var ratioDistance = ( lsCount.VolunteerCount * ratio ) - lsCount.ChildCount;
+                        tcRatio.Text = lsCount.ChildCount.ToString() + "/" + lsCount.VolunteerCount.ToString();
+                        if ( lsCount.TotalCount != 0 && ratioDistance == 0 )
                         {
                             tcRatio.Text += " [Room at ratio]";
                             tcRatio.CssClass = "warning";
                         }
-                        else if ( occurrence.Total != 0 && ratioDistance < 0 )
+                        else if ( lsCount.TotalCount != 0 && ratioDistance < 0 )
                         {
                             tcRatio.Text += " [" + ( ratioDistance * -1 ).ToString() + " over ratio]";
                             tcRatio.CssClass = "danger";
                         }
                         else
                         {
-                            if ( ratioDistance < 4 && occurrence.Total != 0 )
+                            if ( ratioDistance < 4 && lsCount.TotalCount != 0 )
                             {
                                 tcRatio.CssClass = "info";
                             }
@@ -282,21 +228,21 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         tr.Controls.Add( tcRatio );
 
                         TableCell tcCapacity = new TableCell();
-                        if ( ( occurrence.Total + occurrence.Reserved ) != 0
-                            && ( occurrence.Total + occurrence.Reserved ) >= ( occurrence.GroupLocationSchedule.GroupLocation.Location.FirmRoomThreshold ?? 0 ) )
+                        if ( ( lsCount.TotalCount + lsCount.ReservedCount ) != 0
+                            && ( lsCount.TotalCount + lsCount.ReservedCount ) >= ( gls.GroupLocation.Location.FirmRoomThreshold ?? 0 ) )
                         {
-                            if ( occurrence.Active && occurrence.Total != 0 && occurrence.Total >= ( occurrence.GroupLocationSchedule.GroupLocation.Location.FirmRoomThreshold ?? 0 ) )
+                            if ( gls.Active && lsCount.TotalCount != 0 && lsCount.TotalCount >= ( gls.GroupLocation.Location.FirmRoomThreshold ?? 0 ) )
                             {
-                                CloseOccurrence( occurrence.GroupLocationSchedule.GroupLocation, occurrence.GroupLocationSchedule.Schedule );
+                                CloseOccurrence( gls.GroupLocation.Id, gls.Schedule.Id );
                                 return;
                             }
                             tcCapacity.CssClass = "danger";
                         }
-                        else if ( ( occurrence.Total + occurrence.Reserved ) != 0 && ( occurrence.Total + occurrence.Reserved ) >= ( occurrence.GroupLocationSchedule.GroupLocation.Location.FirmRoomThreshold ?? 0 ) + 3 )
+                        else if ( ( lsCount.TotalCount + lsCount.ReservedCount ) != 0 && ( lsCount.TotalCount + lsCount.ReservedCount ) >= ( gls.GroupLocation.Location.FirmRoomThreshold ?? 0 ) + 3 )
                         {
                             tcCapacity.CssClass = "warning";
                         }
-                        tcCapacity.Text = occurrence.KidCount.ToString() +" of " + (occurrence.GroupLocationSchedule.GroupLocation.Location.SoftRoomThreshold ?? 0) + " / " +  occurrence.Total.ToString() + " of " + ( occurrence.GroupLocationSchedule.GroupLocation.Location.FirmRoomThreshold ?? 0 ).ToString() + ( occurrence.Reserved > 0 ? " (+" + occurrence.Reserved + " reserved)" : "" );
+                        tcCapacity.Text = lsCount.ChildCount.ToString() + " of " + ( gls.GroupLocation.Location.SoftRoomThreshold ?? 0 ) + " / " + lsCount.TotalCount.ToString() + " of " + ( gls.GroupLocation.Location.FirmRoomThreshold ?? 0 ).ToString() + ( lsCount.ReservedCount > 0 ? " (+" + lsCount.ReservedCount + " reserved)" : "" );
 
                         tr.Controls.Add( tcCapacity );
 
@@ -304,9 +250,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         tr.Controls.Add( tcToggle );
 
                         BootstrapButton btnToggle = new BootstrapButton();
-                        btnToggle.ID = "btnL" + group.Id.ToString() + occurrence.GroupLocationSchedule.GroupLocation.Id + occurrence.GroupLocationSchedule.Schedule.Id;
-                        btnToggle.Click += ( s, ee ) => { ToggleLocation( occurrence.GroupLocationSchedule.GroupLocation, occurrence.GroupLocationSchedule.Schedule ); };
-                        if ( occurrence.Active )
+                        btnToggle.ID = "btnL" + group.Id.ToString() + gls.GroupLocation.Id + gls.Schedule.Id;
+                        btnToggle.Click += ( s, ee ) => { ToggleLocation( gls.GroupLocation.Id, gls.Schedule.Id ); };
+                        if ( gls.Active )
                         {
                             btnToggle.Text = "Active";
                             btnToggle.ToolTip = "Click to deactivate.";
@@ -324,17 +270,17 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         tr.Controls.Add( tcLocation );
 
                         BootstrapButton btnOccurrence = new BootstrapButton();
-                        btnOccurrence.ID = "btn" + occurrence.GroupLocationSchedule.GroupLocation.Id.ToString() + occurrence.GroupLocationSchedule.Schedule.Id;
+                        btnOccurrence.ID = "btn" + gls.GroupLocation.Id.ToString() + gls.Schedule.Id;
                         btnOccurrence.Text = "<i class='fa fa-users'></i>";
                         btnOccurrence.CssClass = "btn btn-default";
-                        btnOccurrence.Click += ( s, e ) => { OccurrenceModal( occurrence.GroupLocationSchedule.GroupLocation, occurrence.GroupLocationSchedule.Schedule ); };
+                        btnOccurrence.Click += ( s, e ) => { OccurrenceModal( gls.GroupLocation, gls.Schedule ); };
                         tcLocation.Controls.Add( btnOccurrence );
 
                         BootstrapButton btnLocation = new BootstrapButton();
-                        btnLocation.ID = "btnLocation" + occurrence.GroupLocationSchedule.GroupLocation.Id.ToString() + occurrence.GroupLocationSchedule.Schedule.Id;
+                        btnLocation.ID = "btnLocation" + gls.GroupLocation.Id.ToString() + gls.Schedule.Id;
                         btnLocation.Text = "<i class='fa fa-map-marker'></i>";
                         btnLocation.CssClass = "btn btn-default";
-                        btnLocation.Click += ( s, e ) => { ShowLocationModal( occurrence.GroupLocationSchedule.GroupLocation.Location ); };
+                        btnLocation.Click += ( s, e ) => { ShowLocationModal( gls.GroupLocation.Location ); };
 
                         tcLocation.Controls.Add( btnLocation );
                     }
@@ -360,14 +306,17 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         {
             if ( ViewState["ModalGroupLocation"] != null && ViewState["ModalGroupLocationSchedule"] != null )
             {
-                var groupLocationId = ( int ) ViewState["ModalGroupLocation"];
-                var scheduleId = ( int ) ViewState["ModalGroupLocationSchedule"];
-                var groupLocation = new GroupLocationService( _rockContext ).Get( groupLocationId );
-                var schedule = new ScheduleService( _rockContext ).Get( scheduleId );
-                if ( groupLocation != null && schedule != null )
+                using ( RockContext _rockContext = new RockContext() )
                 {
-                    OccurrenceModal( groupLocation, schedule );
-                    return;
+                    var groupLocationId = ( int ) ViewState["ModalGroupLocation"];
+                    var scheduleId = ( int ) ViewState["ModalGroupLocationSchedule"];
+                    var groupLocation = new GroupLocationService( _rockContext ).Get( groupLocationId );
+                    var schedule = new ScheduleService( _rockContext ).Get( scheduleId );
+                    if ( groupLocation != null && schedule != null )
+                    {
+                        OccurrenceModal( groupLocation, schedule );
+                        return;
+                    }
                 }
             }
             else if ( ViewState["SearchType"] != null )
@@ -392,181 +341,196 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             phLocation.Controls.Clear();
             ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "stopTimer", "stopTimer();", true );
             mdOccurrence.Show();
-            AttendanceService attendanceService = new AttendanceService( _rockContext );
-            //Get all attendance data for grouplocationschedule for today
-            var data = attendanceService.Queryable( "PersonAlias.Person,Location,Group,Schedule" )
-                .Where( a =>
-                        a.PersonAliasId != null
-                        && a.LocationId == groupLocation.LocationId
-                        && a.ScheduleId == schedule.Id
-                        && a.CreatedDateTime >= Rock.RockDateTime.Today
-                        )
-                .ToList();
-            var current = data.Where( a => a.DidAttend == true && a.EndDateTime == null ).ToList();
-            var reserved = data.Where( a => a.DidAttend != true ).ToList();
-            var history = data.Where( a => a.DidAttend == true && a.EndDateTime != null ).ToList();
+            using ( RockContext _rockContext = new RockContext() )
+            {
 
-            if ( !data.Any() )
-            {
-                ltLocation.Text = "There are currently no attendance records for this location today.";
-            }
-            else
-            {
-                ltLocation.Text = string.Format( "{0} @ {1}", groupLocation.Location.Name, schedule.Name);
-                if ( current.Any() )
+
+                AttendanceService attendanceService = new AttendanceService( _rockContext );
+                //Get all attendance data for grouplocationschedule for today
+                var data = attendanceService.Queryable( "PersonAlias.Person,Location,Group,Schedule" )
+                    .Where( a =>
+                            a.PersonAliasId != null
+                            && a.LocationId == groupLocation.LocationId
+                            && a.ScheduleId == schedule.Id
+                            && a.CreatedDateTime >= Rock.RockDateTime.Today
+                            )
+                    .ToList();
+                var current = data.Where( a => a.DidAttend == true && a.EndDateTime == null ).ToList();
+                var reserved = data.Where( a => a.DidAttend != true ).ToList();
+                var history = data.Where( a => a.DidAttend == true && a.EndDateTime != null ).ToList();
+
+                if ( !data.Any() )
                 {
-                    Literal ltCurrent = new Literal();
-                    ltCurrent.Text = "<b>Current</b>";
-                    phLocation.Controls.Add( ltCurrent );
-
-                    Table tblCurrent = new Table();
-                    tblCurrent.CssClass = "table";
-                    phLocation.Controls.Add( tblCurrent );
-
-                    foreach ( var record in current )
+                    ltLocation.Text = "There are currently no attendance records for this location today.";
+                }
+                else
+                {
+                    ltLocation.Text = string.Format( "{0} @ {1}", groupLocation.Location.Name, schedule.Name );
+                    if ( current.Any() )
                     {
-                        TableRow trRecord = new TableRow();
-                        tblCurrent.Controls.Add( trRecord );
+                        Literal ltCurrent = new Literal();
+                        ltCurrent.Text = "<b>Current</b>";
+                        phLocation.Controls.Add( ltCurrent );
 
-                        TableCell tcName = new TableCell();
-                        tcName.Text = record.PersonAlias.Person.FullName;
-                        trRecord.Controls.Add( tcName );
-                        tcName.Style.Add( "width", "30%" );
+                        Table tblCurrent = new Table();
+                        tblCurrent.CssClass = "table";
+                        phLocation.Controls.Add( tblCurrent );
 
-                        TableCell tcGroup = new TableCell();
-                        trRecord.Controls.Add( tcGroup );
-                        tcGroup.Style.Add( "width", "30%" );
-                        if ( record.Group != null )
+                        foreach ( var record in current )
                         {
-                            tcGroup.Text = record.Group.Name;
+                            TableRow trRecord = new TableRow();
+                            tblCurrent.Controls.Add( trRecord );
+
+                            TableCell tcName = new TableCell();
+                            tcName.Text = record.PersonAlias.Person.FullName;
+                            trRecord.Controls.Add( tcName );
+                            tcName.Style.Add( "width", "30%" );
+
+                            TableCell tcGroup = new TableCell();
+                            trRecord.Controls.Add( tcGroup );
+                            tcGroup.Style.Add( "width", "30%" );
+                            if ( record.Group != null )
+                            {
+                                tcGroup.Text = record.Group.Name;
+                            }
+
+                            TableCell tcSchedule = new TableCell();
+                            trRecord.Controls.Add( tcSchedule );
+                            tcSchedule.Style.Add( "width", "25%" );
+                            tcSchedule.Text = "Arrived: " + record.StartDateTime.ToString();
+
+                            TableCell tcButtons = new TableCell();
+                            trRecord.Controls.Add( tcButtons );
+                            tcButtons.Style.Add( "width", "15%" );
+
+                            BootstrapButton btnTableMove = new BootstrapButton();
+                            btnTableMove.ID = "move" + record.Id.ToString();
+                            btnTableMove.CssClass = "btn btn-warning btn-xs";
+                            btnTableMove.Text = "Move";
+                            btnTableMove.Click += ( s, e ) =>
+                            {
+                                mdOccurrence.Hide();
+                                MoveModal( record.Id );
+                            };
+                            tcButtons.Controls.Add( btnTableMove );
+
+                            BootstrapButton btnCheckout = new BootstrapButton();
+                            btnCheckout.ID = "checkout" + record.Id.ToString();
+                            btnCheckout.CssClass = "btn btn-danger btn-xs";
+                            btnCheckout.Text = "Check-Out";
+                            btnCheckout.Click += ( s, e ) =>
+                            {
+                                Checkout( record.Id );
+                            };
+                            tcButtons.Controls.Add( btnCheckout );
                         }
+                    }
+                    if ( reserved.Any() )
+                    {
 
-                        TableCell tcSchedule = new TableCell();
-                        trRecord.Controls.Add( tcSchedule );
-                        tcSchedule.Style.Add( "width", "25%" );
-                        tcSchedule.Text = "Arrived: " + record.StartDateTime.ToString();
+                        Literal ltReserved = new Literal();
+                        ltReserved.Text = "<b>Reserved</b>";
+                        phLocation.Controls.Add( ltReserved );
 
-                        TableCell tcButtons = new TableCell();
-                        trRecord.Controls.Add( tcButtons );
-                        tcButtons.Style.Add( "width", "15%" );
-
-                        BootstrapButton btnTableMove = new BootstrapButton();
-                        btnTableMove.ID = "move" + record.Id.ToString();
-                        btnTableMove.CssClass = "btn btn-warning btn-xs";
-                        btnTableMove.Text = "Move";
-                        btnTableMove.Click += ( s, e ) =>
+                        Table tblReserved = new Table();
+                        tblReserved.CssClass = "table";
+                        phLocation.Controls.Add( tblReserved );
+                        foreach ( var record in reserved.ToList() )
                         {
-                            mdOccurrence.Hide();
-                            MoveModal( record.Id );
-                        };
-                        tcButtons.Controls.Add( btnTableMove );
+                            TableRow trRecord = new TableRow();
+                            tblReserved.Controls.Add( trRecord );
 
-                        BootstrapButton btnCheckout = new BootstrapButton();
-                        btnCheckout.ID = "checkout" + record.Id.ToString();
-                        btnCheckout.CssClass = "btn btn-danger btn-xs";
-                        btnCheckout.Text = "Check-Out";
-                        btnCheckout.Click += ( s, e ) =>
-                        {
-                            Checkout( record.Id );
-                        };
-                        tcButtons.Controls.Add( btnCheckout );
+                            TableCell tcName = new TableCell();
+                            tcName.Text = record.PersonAlias.Person.FullName;
+                            trRecord.Controls.Add( tcName );
+                            tcName.Style.Add( "width", "30%" );
+
+                            TableCell tcGroup = new TableCell();
+                            trRecord.Controls.Add( tcGroup );
+                            tcGroup.Style.Add( "width", "30%" );
+                            if ( record.Group != null )
+                            {
+                                tcGroup.Text = record.Group.Name;
+                            }
+
+                            TableCell tcSchedule = new TableCell();
+                            trRecord.Controls.Add( tcSchedule );
+                            tcSchedule.Style.Add( "width", "25%" );
+                            if ( record.Schedule != null )
+                            {
+                                tcSchedule.Text = record.Schedule.Name;
+                            }
+
+                            TableCell tcButtons = new TableCell();
+                            trRecord.Controls.Add( tcButtons );
+                            tcButtons.Style.Add( "width", "15%" );
+
+                            BootstrapButton btnCheckin = new BootstrapButton();
+                            btnCheckin.ID = "checkin" + record.Id.ToString();
+                            btnCheckin.CssClass = "btn btn-success btn-xs";
+                            btnCheckin.Text = "Check-In";
+                            btnCheckin.Click += ( s, e ) => { Checkin( record.Id ); };
+                            tcButtons.Controls.Add( btnCheckin );
+
+                            BootstrapButton btnCancel = new BootstrapButton();
+                            btnCancel.ID = "cancel" + record.Id.ToString();
+                            btnCancel.CssClass = "btn btn-danger btn-xs";
+                            btnCancel.Text = "Cancel";
+                            btnCancel.Click += ( s, e ) => { CancelReservation( record.Id ); };
+                            tcButtons.Controls.Add( btnCancel );
+                        }
                     }
                 }
-                if ( reserved.Any() )
-                {
-
-                    Literal ltReserved = new Literal();
-                    ltReserved.Text = "<b>Reserved</b>";
-                    phLocation.Controls.Add( ltReserved );
-
-                    Table tblReserved = new Table();
-                    tblReserved.CssClass = "table";
-                    phLocation.Controls.Add( tblReserved );
-                    foreach ( var record in reserved.ToList() )
-                    {
-                        TableRow trRecord = new TableRow();
-                        tblReserved.Controls.Add( trRecord );
-
-                        TableCell tcName = new TableCell();
-                        tcName.Text = record.PersonAlias.Person.FullName;
-                        trRecord.Controls.Add( tcName );
-                        tcName.Style.Add( "width", "30%" );
-
-                        TableCell tcGroup = new TableCell();
-                        trRecord.Controls.Add( tcGroup );
-                        tcGroup.Style.Add( "width", "30%" );
-                        if ( record.Group != null )
-                        {
-                            tcGroup.Text = record.Group.Name;
-                        }
-
-                        TableCell tcSchedule = new TableCell();
-                        trRecord.Controls.Add( tcSchedule );
-                        tcSchedule.Style.Add( "width", "25%" );
-                        if ( record.Schedule != null )
-                        {
-                            tcSchedule.Text = record.Schedule.Name;
-                        }
-
-                        TableCell tcButtons = new TableCell();
-                        trRecord.Controls.Add( tcButtons );
-                        tcButtons.Style.Add( "width", "15%" );
-
-                        BootstrapButton btnCheckin = new BootstrapButton();
-                        btnCheckin.ID = "checkin" + record.Id.ToString();
-                        btnCheckin.CssClass = "btn btn-success btn-xs";
-                        btnCheckin.Text = "Check-In";
-                        btnCheckin.Click += ( s, e ) => { Checkin( record.Id ); };
-                        tcButtons.Controls.Add( btnCheckin );
-
-                        BootstrapButton btnCancel = new BootstrapButton();
-                        btnCancel.ID = "cancel" + record.Id.ToString();
-                        btnCancel.CssClass = "btn btn-danger btn-xs";
-                        btnCancel.Text = "Cancel";
-                        btnCancel.Click += ( s, e ) => { CancelReservation( record.Id ); };
-                        tcButtons.Controls.Add( btnCancel );
-                    }
-                }
+                ViewState.Add( "ModalGroupLocation", groupLocation.Id );
+                ViewState.Add( "ModalGroupLocationSchedule", schedule.Id );
             }
-            ViewState.Add( "ModalGroupLocation", groupLocation.Id );
-            ViewState.Add( "ModalGroupLocationSchedule", schedule.Id );
         }
 
         private void CancelReservation( int id )
         {
-            AttendanceService attendanceService = new AttendanceService( _rockContext );
-            var record = attendanceService.Get( id );
-            if ( record != null )
+            using ( RockContext _rockContext = new RockContext() )
             {
-                var locationId = record.LocationId ?? 0;
-                attendanceService.Delete( record );
-                _rockContext.SaveChanges();
-                RebuildModal();
+                AttendanceService attendanceService = new AttendanceService( _rockContext );
+                var record = attendanceService.Get( id );
+                if ( record != null )
+                {
+                    var locationId = record.LocationId ?? 0;
+                    attendanceService.Delete( record );
+                    _rockContext.SaveChanges();
+                    RebuildModal();
+                }
             }
         }
 
         private void Checkin( int id )
         {
-            AttendanceService attendanceService = new AttendanceService( _rockContext );
-            var record = attendanceService.Get( id );
-            if ( record != null )
+            using ( RockContext _rockContext = new RockContext() )
             {
-                record.StartDateTime = Rock.RockDateTime.Now;
-                record.DidAttend = true;
-                _rockContext.SaveChanges();
-                RebuildModal();
+                AttendanceService attendanceService = new AttendanceService( _rockContext );
+                var record = attendanceService.Get( id );
+                if ( record != null )
+                {
+                    record.StartDateTime = Rock.RockDateTime.Now;
+                    record.DidAttend = true;
+                    _rockContext.SaveChanges();
+                    RebuildModal();
+                }
             }
         }
 
         private void Checkout( int id )
         {
-            AttendanceService attendanceService = new AttendanceService( _rockContext );
-            var record = attendanceService.Get( id );
-            if ( record != null )
+            using ( RockContext _rockContext = new RockContext() )
             {
-                record.EndDateTime = Rock.RockDateTime.Now;
-                _rockContext.SaveChanges();
-                RebuildModal();
+                AttendanceService attendanceService = new AttendanceService( _rockContext );
+                var record = attendanceService.Get( id );
+                if ( record != null )
+                {
+                    record.EndDateTime = Rock.RockDateTime.Now;
+                    _rockContext.SaveChanges();
+                    KioskLocationAttendance.Flush( record.LocationId ?? 0 );
+                    RebuildModal();
+                }
             }
         }
 
@@ -577,124 +541,153 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             ViewState["ModalLocation"] = null;
             mdMove.Show();
             ViewState.Add( "ModalMove", attendanceId );
-            AttendanceService attendanceService = new AttendanceService( _rockContext );
-            var attendanceRecord = attendanceService.Get( attendanceId );
-            if ( attendanceRecord == null )
+            using ( RockContext _rockContext = new RockContext() )
             {
-                ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
-                ViewState["ModalMove"] = null;
-                mdMove.Hide();
-                return;
+                AttendanceService attendanceService = new AttendanceService( _rockContext );
+                var attendanceRecord = attendanceService.Get( attendanceId );
+                if ( attendanceRecord == null )
+                {
+                    ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
+                    ViewState["ModalMove"] = null;
+                    mdMove.Hide();
+                    return;
+                }
+
+                ltMove.Text = string.Format( "{0} @ {1}", attendanceRecord.PersonAlias.Person.FullName, attendanceRecord.Schedule.Name );
+                ltMoveInfo.Text = string.Format(
+                    "{0} is currently in: {1} for the schedule {2}",
+                    attendanceRecord.PersonAlias.Person.NickName,
+                    attendanceRecord.Location.Name,
+                    attendanceRecord.Schedule.Name );
+
+                var locations = CurrentCheckInState.Kiosk.KioskGroupTypes
+                    .SelectMany( gt => gt.KioskGroups )
+                    .SelectMany( g => g.KioskLocations )
+                    .Select( l => l.Location )
+                    .DistinctBy( l => l.Id )
+                    .ToList();
+
+                ddlMove.DataSource = locations;
+                ddlMove.DataValueField = "Id";
+                ddlMove.DataTextField = "Name";
+                ddlMove.DataBind();
             }
-
-            ltMove.Text = string.Format("{0} @ {1}", attendanceRecord.PersonAlias.Person.FullName, attendanceRecord.Schedule.Name);
-            ltMoveInfo.Text = string.Format(
-                "{0} is currently in: {1} for the schedule {2}",
-                attendanceRecord.PersonAlias.Person.NickName, 
-                attendanceRecord.Location.Name,
-                attendanceRecord.Schedule.Name );
-
-            var locations = CurrentCheckInState.Kiosk.KioskGroupTypes
-                .SelectMany( gt => gt.KioskGroups )
-                .SelectMany( g => g.KioskLocations )
-                .Select( l => l.Location )
-                .DistinctBy( l => l.Id )
-                .ToList();
-
-            ddlMove.DataSource = locations;
-            ddlMove.DataValueField = "Id";
-            ddlMove.DataTextField = "Name";
-            ddlMove.DataBind();
         }
 
-        private void ToggleLocation( GroupLocation groupLocation, Schedule schedule )
+        private void ToggleLocation( int groupLocationId, int scheduleId )
         {
-            if ( groupLocation != null )
+            using ( RockContext _rockContext = new RockContext() )
             {
-                if ( groupLocation.Schedules.Contains( schedule ) )
+                var groupLocation = new GroupLocationService( _rockContext ).Get( groupLocationId );
+                if ( groupLocation != null )
                 {
-                    groupLocation.Schedules.Remove( schedule );
-                    RecordGroupLocationSchedule( groupLocation, schedule );
+                    var schedule = groupLocation.Schedules.Where( s => s.Id == scheduleId ).FirstOrDefault();
+                    if ( schedule != null )
+                    {
+                        groupLocation.Schedules.Remove( schedule );
+                        RecordGroupLocationSchedule( groupLocation, schedule );
+                    }
+                    else
+                    {
+                        schedule = new ScheduleService( _rockContext ).Get( scheduleId );
+                        if ( schedule != null )
+                        {
+                            groupLocation.Schedules.Add( schedule );
+                            RemoveDisabledGroupLocationSchedule( groupLocation, schedule );
+                        }
+                    }
+                    _rockContext.SaveChanges();
+                    Rock.CheckIn.KioskDevice.Flush( groupLocation.LocationId );
                 }
-                else
-                {
-                    groupLocation.Schedules.Add( schedule );
-                    RemoveDisabledGroupLocationSchedule( groupLocation, schedule );
-                }
-                _rockContext.SaveChanges();
-                Rock.CheckIn.KioskDevice.FlushAll();
                 BindTable();
             }
         }
 
         private void RemoveDisabledGroupLocationSchedule( GroupLocation groupLocation, Schedule schedule )
         {
-            var definedTypeGuid = GetAttributeValue( "DeactivatedDefinedType" ).AsGuidOrNull();
-            if ( definedTypeGuid == null )
+            using ( RockContext _rockContext = new RockContext() )
             {
-                return;
-            }
-            var definedType = new DefinedTypeService( _rockContext ).Get( definedTypeGuid ?? new Guid() );
-            var value = string.Format( "{0}|{1}", groupLocation.Id, schedule.Id );
-            var definedValueService = new DefinedValueService( _rockContext );
-            var definedValue = definedValueService.Queryable().Where( dv => dv.DefinedTypeId == definedType.Id && dv.Value == value ).FirstOrDefault();
-            if ( definedValue == null )
-            {
-                return;
-            }
+                var definedTypeGuid = GetAttributeValue( "DeactivatedDefinedType" ).AsGuidOrNull();
+                if ( definedTypeGuid == null )
+                {
+                    return;
+                }
+                var definedType = new DefinedTypeService( _rockContext ).Get( definedTypeGuid ?? new Guid() );
+                var value = string.Format( "{0}|{1}", groupLocation.Id, schedule.Id );
+                var definedValueService = new DefinedValueService( _rockContext );
+                var definedValue = definedValueService.Queryable().Where( dv => dv.DefinedTypeId == definedType.Id && dv.Value == value ).FirstOrDefault();
+                if ( definedValue == null )
+                {
+                    return;
+                }
 
-            Rock.Web.Cache.DefinedTypeCache.Flush( definedValue.DefinedTypeId );
-            Rock.Web.Cache.DefinedValueCache.Flush( definedValue.Id );
+                Rock.Web.Cache.DefinedTypeCache.Flush( definedValue.DefinedTypeId );
+                Rock.Web.Cache.DefinedValueCache.Flush( definedValue.Id );
 
-            definedValueService.Delete( definedValue );
-            _rockContext.SaveChanges();
+                definedValueService.Delete( definedValue );
+                _rockContext.SaveChanges();
+            }
         }
 
         private void RecordGroupLocationSchedule( GroupLocation groupLocation, Schedule schedule )
         {
-            var definedTypeGuid = GetAttributeValue( "DeactivatedDefinedType" ).AsGuidOrNull();
-            if ( definedTypeGuid == null )
+            using ( RockContext _rockContext = new RockContext() )
             {
-                return;
+                var definedTypeGuid = GetAttributeValue( "DeactivatedDefinedType" ).AsGuidOrNull();
+                if ( definedTypeGuid == null )
+                {
+                    return;
+                }
+                var definedType = new DefinedTypeService( _rockContext ).Get( definedTypeGuid ?? new Guid() );
+                var definedValueService = new DefinedValueService( _rockContext );
+                var value = groupLocation.Id.ToString() + "|" + schedule.Id.ToString();
+                var definedValue = definedValueService.Queryable().Where( dv => dv.DefinedTypeId == definedType.Id && dv.Value == value ).FirstOrDefault();
+                if ( definedValue != null )
+                {
+                    return;
+                }
+
+                definedValue = new DefinedValue() { Id = 0 };
+                definedValue.Value = value;
+                definedValue.Description = string.Format( "Deactivated {0} for schedule {1} at {2}", groupLocation.ToString(), schedule.Name, Rock.RockDateTime.Now.ToString() );
+                definedValue.DefinedTypeId = definedType.Id;
+                definedValue.IsSystem = false;
+                var orders = definedValueService.Queryable()
+                       .Where( d => d.DefinedTypeId == definedType.Id )
+                       .Select( d => d.Order )
+                       .ToList();
+
+                definedValue.Order = orders.Any() ? orders.Max() + 1 : 0;
+
+                definedValueService.Add( definedValue );
+
+                Rock.Web.Cache.DefinedTypeCache.Flush( definedValue.DefinedTypeId );
+                Rock.Web.Cache.DefinedValueCache.Flush( definedValue.Id );
+
+                _rockContext.SaveChanges();
             }
-            var definedType = new DefinedTypeService( _rockContext ).Get( definedTypeGuid ?? new Guid() );
-            var definedValueService = new DefinedValueService( _rockContext );
-            var value = groupLocation.Id.ToString() + "|" + schedule.Id.ToString();
-            var definedValue = definedValueService.Queryable().Where( dv => dv.DefinedTypeId == definedType.Id && dv.Value == value ).FirstOrDefault();
-            if ( definedValue != null )
-            {
-                return;
-            }
-
-            definedValue = new DefinedValue() { Id = 0 };
-            definedValue.Value = value;
-            definedValue.Description = string.Format( "Deactivated {0} for schedule {1} at {2}", groupLocation.ToString(), schedule.Name, Rock.RockDateTime.Now.ToString() );
-            definedValue.DefinedTypeId = definedType.Id;
-            definedValue.IsSystem = false;
-            var orders = definedValueService.Queryable()
-                   .Where( d => d.DefinedTypeId == definedType.Id )
-                   .Select( d => d.Order )
-                   .ToList();
-
-            definedValue.Order = orders.Any() ? orders.Max() + 1 : 0;
-
-            definedValueService.Add( definedValue );
-
-            Rock.Web.Cache.DefinedTypeCache.Flush( definedValue.DefinedTypeId );
-            Rock.Web.Cache.DefinedValueCache.Flush( definedValue.Id );
-
-            _rockContext.SaveChanges();
         }
 
-        private void CloseOccurrence( GroupLocation groupLocation, Schedule schedule )
+        private void CloseOccurrence( int groupLocationId, int scheduleId )
         {
-            if ( groupLocation.Schedules.Contains( schedule ) )
+            using ( RockContext _rockContext = new RockContext() )
             {
-                RecordGroupLocationSchedule( groupLocation, schedule );
-                groupLocation.Schedules.Remove( schedule );
-                _rockContext.SaveChanges();
-                Rock.CheckIn.KioskDevice.FlushAll();
-                BindTable();
+                var groupLocation = new GroupLocationService( _rockContext ).Get( groupLocationId );
+                if ( groupLocation != null )
+                {
+                    var schedule = groupLocation.Schedules.Where( s => s.Id == scheduleId ).FirstOrDefault();
+                    if ( schedule != null )
+                    {
+                        if ( groupLocation.Schedules.Contains( schedule ) )
+                        {
+                            RecordGroupLocationSchedule( groupLocation, schedule );
+                            groupLocation.Schedules.Remove( schedule );
+                            _rockContext.SaveChanges();
+                            Rock.CheckIn.KioskDevice.Flush( groupLocation.Id );
+                            BindTable();
+                        }
+                    }
+                }
             }
         }
 
@@ -715,51 +708,55 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected void btnMove_Click( object sender, EventArgs e )
         {
-            AttendanceService attendanceService = new AttendanceService( _rockContext );
-            int id = ( int ) ViewState["ModalMove"];
-            ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
-            ViewState["ModalMove"] = null;
-            mdMove.Hide();
-            var attendanceRecord = attendanceService.Get( id );
-            if ( attendanceRecord == null )
+            using ( RockContext _rockContext = new RockContext() )
             {
-                return;
-            }
+                AttendanceService attendanceService = new AttendanceService( _rockContext );
+                int id = ( int ) ViewState["ModalMove"];
+                ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
+                ViewState["ModalMove"] = null;
+                mdMove.Hide();
+                var attendanceRecord = attendanceService.Get( id );
+                if ( attendanceRecord == null )
+                {
+                    return;
+                }
 
-            //Close all other attendance records for this person today at this schedule
-            var currentRecords = attendanceService.Queryable()
-                 .Where( a =>
-                 a.CreatedDateTime >= Rock.RockDateTime.Today
-                && a.DidAttend == true
-                && a.PersonAliasId == attendanceRecord.PersonAliasId
-                && a.ScheduleId == attendanceRecord.ScheduleId
-                && a.EndDateTime == null ).ToList();
-            foreach ( var record in currentRecords )
-            {
-                record.EndDateTime = Rock.RockDateTime.Now;
-            }
+                //Close all other attendance records for this person today at this schedule
+                var currentRecords = attendanceService.Queryable()
+                     .Where( a =>
+                     a.CreatedDateTime >= Rock.RockDateTime.Today
+                    && a.DidAttend == true
+                    && a.PersonAliasId == attendanceRecord.PersonAliasId
+                    && a.ScheduleId == attendanceRecord.ScheduleId
+                    && a.EndDateTime == null ).ToList();
+                foreach ( var record in currentRecords )
+                {
+                    record.EndDateTime = Rock.RockDateTime.Now;
+                }
 
-            //Create a new attendance record
-            Attendance newRecord = (Attendance) attendanceRecord.Clone();
-            newRecord.Id = 0;
-            newRecord.Guid = new Guid();
-            newRecord.AttendanceCode = null;
-            newRecord.StartDateTime = Rock.RockDateTime.Now;
-            newRecord.EndDateTime = null;
-            newRecord.DidAttend = true;
-            newRecord.Device = null;
-            newRecord.SearchTypeValue = null;
-            newRecord.LocationId = ddlMove.SelectedValue.AsInteger();
-            attendanceService.Add( newRecord );
-            KioskLocationAttendance.AddAttendance( newRecord );
-            _rockContext.SaveChanges();
+                //Create a new attendance record
+                Attendance newRecord = ( Attendance ) attendanceRecord.Clone();
+                newRecord.Id = 0;
+                newRecord.Guid = new Guid();
+                newRecord.AttendanceCode = null;
+                newRecord.StartDateTime = Rock.RockDateTime.Now;
+                newRecord.EndDateTime = null;
+                newRecord.DidAttend = true;
+                newRecord.Device = null;
+                newRecord.SearchTypeValue = null;
+                newRecord.LocationId = ddlMove.SelectedValue.AsInteger();
+                attendanceService.Add( newRecord );
+                _rockContext.SaveChanges();
+                KioskLocationAttendance.AddAttendance( newRecord );
+                KioskLocationAttendance.Flush( attendanceRecord.LocationId ?? 0 );
+            }
             BindTable();
             RebuildModal();
         }
 
         protected void ddlSchedules_SelectedIndexChanged( object sender, EventArgs e )
         {
-            BindTable();
+            //This is an empty function because we just need to reload the page
         }
 
         protected void btnBack_Click( object sender, EventArgs e )
@@ -774,21 +771,25 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected void mdLocation_SaveClick( object sender, EventArgs e )
         {
-            LocationService locationService = new LocationService( _rockContext );
-            var location = locationService.Get( hfLocationId.ValueAsInt() );
-            if ( location == null )
+            using ( RockContext _rockContext = new RockContext() )
             {
-                return;
+
+                LocationService locationService = new LocationService( _rockContext );
+                var location = locationService.Get( hfLocationId.ValueAsInt() );
+                if ( location == null )
+                {
+                    return;
+                }
+                location.LoadAttributes();
+                location.SetAttributeValue( GetAttributeValue( "RoomRatioAttributeKey" ), tbRatio.Text.AsInteger() );
+                location.SaveAttributeValues();
+                location.FirmRoomThreshold = tbFirmThreshold.Text.AsInteger();
+                location.SoftRoomThreshold = tbSoftThreshold.Text.AsInteger();
+                _rockContext.SaveChanges();
+                mdLocation.Hide();
+                ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
+                Rock.CheckIn.KioskDevice.Flush( location.Id );
             }
-            location.LoadAttributes();
-            location.SetAttributeValue( GetAttributeValue( "RoomRatioAttributeKey" ), tbRatio.Text.AsInteger() );
-            location.SaveAttributeValues();
-            location.FirmRoomThreshold = tbFirmThreshold.Text.AsInteger();
-            location.SoftRoomThreshold = tbSoftThreshold.Text.AsInteger();
-            _rockContext.SaveChanges();
-            mdLocation.Hide();
-            ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
-            Rock.CheckIn.KioskDevice.FlushAll();
             BindTable();
         }
 
@@ -812,16 +813,19 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 return;
             }
-            AttendanceCodeService attendanceCodeService = new AttendanceCodeService( _rockContext );
-            var attendanceCode = attendanceCodeService.Queryable()
-                .Where( ac => ac.Code == code && ac.IssueDateTime >= Rock.RockDateTime.Today )
-                .FirstOrDefault();
-            if ( attendanceCode == null )
+            using ( RockContext _rockContext = new RockContext() )
             {
-                ltSearch.Text = "Attendance matching code not found";
-                return;
+                AttendanceCodeService attendanceCodeService = new AttendanceCodeService( _rockContext );
+                var attendanceCode = attendanceCodeService.Queryable()
+                    .Where( ac => ac.Code == code && ac.IssueDateTime >= Rock.RockDateTime.Today )
+                    .FirstOrDefault();
+                if ( attendanceCode == null )
+                {
+                    ltSearch.Text = "Attendance matching code not found";
+                    return;
+                }
+                DisplaySearchRecords( attendanceCode.Attendances.Where( a => a.EndDateTime == null ).ToList() );
             }
-            DisplaySearchRecords( attendanceCode.Attendances.Where(a => a.EndDateTime==null).ToList() );
         }
 
         protected void btnNameSearch_Click( object sender, EventArgs e )
@@ -836,22 +840,25 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 return;
             }
-            var people = new PersonService( _rockContext ).GetByFullName( name, true );
-            if ( !people.Any() )
+            using ( RockContext _rockContext = new RockContext() )
             {
-                ltSearch.Text = "Could not find person's attendance record.";
-                return;
+                var people = new PersonService( _rockContext ).GetByFullName( name, true );
+                if ( !people.Any() )
+                {
+                    ltSearch.Text = "Could not find person's attendance record.";
+                    return;
+                }
+                var aliasIds = people.ToList().Select( p => p.PrimaryAliasId );
+                var attendanceRecords = new AttendanceService( _rockContext ).Queryable( "AttendanceCode" )
+                    .Where( a => a.CreatedDateTime >= Rock.RockDateTime.Today && a.EndDateTime == null && aliasIds.Contains( a.PersonAliasId ) )
+                    .ToList();
+                if ( !attendanceRecords.Any() )
+                {
+                    ltSearch.Text = "Could not find person's attendance record.";
+                    return;
+                }
+                DisplaySearchRecords( attendanceRecords );
             }
-            var aliasIds = people.ToList().Select( p => p.PrimaryAliasId );
-            var attendanceRecords = new AttendanceService( _rockContext ).Queryable("AttendanceCode")
-                .Where( a => a.CreatedDateTime >= Rock.RockDateTime.Today && a.EndDateTime==null && aliasIds.Contains( a.PersonAliasId ) )
-                .ToList();
-            if ( !attendanceRecords.Any() )
-            {
-                ltSearch.Text = "Could not find person's attendance record.";
-                return;
-            }
-            DisplaySearchRecords( attendanceRecords );
         }
 
         private void DisplaySearchRecords( List<Attendance> attendanceRecords )

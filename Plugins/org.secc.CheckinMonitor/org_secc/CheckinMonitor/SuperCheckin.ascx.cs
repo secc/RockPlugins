@@ -36,6 +36,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [DataViewField( "Approved People", "Data view which contains the members who may check-in.", entityTypeName: "Rock.Model.Person" )]
     [BooleanField( "Allow NonApproved Adults", "Should adults who are not in the approved person list be allowed to checkin?", false, key: "AllowNonApproved" )]
     [DataViewField( "Security Role Dataview", "Data view which people who are in a security role. It will not allow adding PINs for people in this group.", entityTypeName: "Rock.Model.Person", required: false )]
+    [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Volunteer Group Attribute" )]
 
     public partial class SuperCheckin : CheckInBlock
     {
@@ -168,7 +169,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 return;
             }
 
-            foreach ( var checkinPerson in CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).First().People.OrderBy(p => p.Person.BirthDate) )
+            foreach ( var checkinPerson in CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).First().People.OrderBy( p => p.Person.BirthDate ) )
             {
                 BootstrapButton btnMember = new BootstrapButton();
                 btnMember.CssClass = "btn btn-default btn-block btn-lg";
@@ -353,6 +354,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             var attendanceItem = new AttendanceService( _rockContext ).Get( attendanceItemId );
             attendanceItem.EndDateTime = Rock.RockDateTime.Now;
             _rockContext.SaveChanges();
+            KioskLocationAttendance.Flush( attendanceItem.LocationId??0 );
             BuildPersonCheckinDetails();
         }
 
@@ -392,6 +394,35 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 return;
             }
+
+            var volAttributeGuid = GetAttributeValue( "VolunteerGroupAttribute" );
+
+            if ( string.IsNullOrWhiteSpace( volAttributeGuid ) )
+            {
+                maWarning.Show( "Volunteer attribute not set.", ModalAlertType.Alert );
+                return;
+            }
+            var volAttributeKey = AttributeCache.Read( volAttributeGuid.AsGuid() ).Key;
+
+            List<int> volunteerGroupIds = CurrentCheckInState.Kiosk.KioskGroupTypes
+                .SelectMany( g => g.KioskGroups )
+                .Where( g => g.Group.GetAttributeValue( volAttributeKey ).AsBoolean() )
+                .Select( g => g.Group.Id ).ToList();
+
+            List<int> childGroupIds = CurrentCheckInState.Kiosk.KioskGroupTypes
+                .SelectMany( g => g.KioskGroups )
+                .Where( g => !g.Group.GetAttributeValue( volAttributeKey ).AsBoolean() )
+                .Select( g => g.Group.Id ).ToList();
+
+            if ( cbSuperCheckin.Checked )
+            {
+                cbVolunteer.Visible = true;
+            }
+            else
+            {
+                cbVolunteer.Visible = false;
+            }
+
             var selectedPersonId = ( int ) ViewState["SelectedPersonId"];
             var checkinPerson = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).First().People.Where( p => p.Person.Id == selectedPersonId ).FirstOrDefault();
 
@@ -406,6 +437,18 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 //ignore group types with no non-excluded groups on non-super checkin
                 if ( !cbSuperCheckin.Checked && !groupType.Groups.Where( g => !g.ExcludedByFilter ).Any() )
+                {
+                    continue;
+                }
+
+                //ignore if volunteer selected and does not contain volunteers
+                if ( cbSuperCheckin.Checked && cbVolunteer.Checked && !groupType.Groups.Where( g => volunteerGroupIds.Contains( g.Group.Id ) ).Any() )
+                {
+                    continue;
+                }
+
+                //ignore if volunteer not selected and does not contain children
+                if ( cbSuperCheckin.Checked && !cbVolunteer.Checked && !groupType.Groups.Where( g => childGroupIds.Contains( g.Group.Id ) ).Any() )
                 {
                     continue;
                 }
@@ -427,6 +470,17 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     {
                         continue;
                     }
+
+                    if (cbSuperCheckin.Checked && cbVolunteer.Checked && !volunteerGroupIds.Contains( group.Group.Id ) )
+                    {
+                        continue;
+                    }
+
+                    if ( cbSuperCheckin.Checked && !cbVolunteer.Checked && !childGroupIds.Contains( group.Group.Id ) )
+                    {
+                        continue;
+                    }
+
                     PanelWidget groupWidget = new PanelWidget();
                     groupWidget.Title = group.Group.Name;
                     if ( group.ExcludedByFilter )
@@ -818,7 +872,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         foreach ( var location in group.Locations )
                         {
                             location.Selected = false;
-                            foreach ( var schedule in location.Schedules.Where(s => s.Selected) )
+                            foreach ( var schedule in location.Schedules.Where( s => s.Selected ) )
                             {
                                 location.Selected = false;
                                 person.Selected = true;
@@ -1302,7 +1356,6 @@ try{{
                             maWarning.Show( "This PIN has already been assigned to a person, and cannot be assigned to this person.", ModalAlertType.Warning );
                         }
                     }
-
                 }
             }
             else
@@ -1310,6 +1363,11 @@ try{{
                 maWarning.Show( "PIN number was of invalid length", ModalAlertType.Warning );
             }
             mdPIN.Hide();
+        }
+
+        protected void cbVolunteer_CheckedChanged( object sender, EventArgs e )
+        {
+
         }
     }
     public class FamilyLabel
