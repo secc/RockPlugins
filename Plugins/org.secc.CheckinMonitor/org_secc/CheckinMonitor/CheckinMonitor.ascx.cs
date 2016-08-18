@@ -96,24 +96,34 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                                                                         GetAttributeValue( "DeactivatedDefinedType" ).AsGuid() );
 
             //preload location attributes
-            List<dynamic> locationRatios = new List<dynamic>();
 
-            using ( var _rockContext = new RockContext() )
+            Dictionary<int, int> locationRatios = new Dictionary<int, int>();
+
+            if ( ViewState["LocationRatios"] != null && ( ( Dictionary<int, int> ) ViewState["LocationRatios"] ).Any() )
             {
-                var ratioKey = GetAttributeValue( "RoomRatioAttributeKey" );
-                var ratioAttribute = new AttributeService( _rockContext ).Queryable()
-                    .Where( a => a.Key == ratioKey )
-                    .FirstOrDefault();
-                if ( ratioAttribute != null )
+                locationRatios = ( ( Dictionary<int, int> ) ViewState["LocationRatios"] );
+            }
+            else
+            {
+                using ( var _rockContext = new RockContext() )
                 {
-                    var attributeValueService = new AttributeValueService( _rockContext ).Queryable();
-                    locationRatios.AddRange( attributeValueService
-                        .Where( av => av.AttributeId == ratioAttribute.Id )
-                        .Select( av => new
-                        {
-                            LocationId = av.EntityId.Value,
-                            Ratio = av.Value
-                        } ) );
+                    var ratioKey = GetAttributeValue( "RoomRatioAttributeKey" );
+                    var ratioAttribute = new AttributeService( _rockContext ).Queryable()
+                        .Where( a => a.Key == ratioKey )
+                        .FirstOrDefault();
+                    if ( ratioAttribute != null )
+                    {
+                        var attributeValueService = new AttributeValueService( _rockContext ).Queryable();
+                        attributeValueService
+                            .Where( av => av.AttributeId == ratioAttribute.Id )
+                            .Select( av => new
+                            {
+                                LocationId = av.EntityId.Value,
+                                Ratio = av.Value
+                            } ).ToList()
+                            .ForEach( anon => locationRatios[anon.LocationId] = anon.Ratio.AsInteger() );
+                    }
+                    ViewState["LocationRatios"] = locationRatios;
                 }
             }
 
@@ -206,10 +216,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                         TableCell tcRatio = new TableCell();
                         int ratio = 0;
-                        var ratioObject = locationRatios.Where( lr => lr.LocationId == gls.GroupLocation.LocationId ).FirstOrDefault();
-                        if ( ratioObject != null )
+                        if ( locationRatios.ContainsKey(gls.GroupLocation.LocationId) )
                         {
-                            ratio = ( ( string ) ( ratioObject.Ratio ) ).AsInteger();
+                            ratio = locationRatios[ gls.GroupLocation.LocationId ];
                         }
 
                         var lsCount = kioskCountUtility.GetLocationScheduleCount( gls.GroupLocation.Location.Id, gls.Schedule.Id );
@@ -1004,6 +1013,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected void btnFlush_Click( object sender, EventArgs e )
         {
+            ViewState["LocationRatios"] = null;
             KioskDevice.FlushAll();
             BindTable();
         }
