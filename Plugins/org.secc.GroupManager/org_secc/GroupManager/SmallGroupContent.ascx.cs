@@ -167,7 +167,7 @@ $(document).ready(function() {
                 GroupService groupService = new GroupService( rockContext );
                 _group = groupService.Get( groupId );
 
-                Group parentGroup = _group.ParentGroup.ParentGroup;
+                Group parentGroup = _group.ParentGroup;
 
                 parentGroup.LoadAttributes();
                 ChannelGuid = new Guid( parentGroup.GetAttributeValue( "ContentChannel" ) );

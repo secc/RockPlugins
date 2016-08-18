@@ -937,7 +937,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         public MemberData( GroupMember member )
         {
             this.Person = member.Person;
-            DateAdded = member.DateTimeAdded.Value.ToString( "d" );
+            if ( member.DateTimeAdded != null)
+            {
+                DateAdded = member.DateTimeAdded.Value.ToString( "d" );
+            }
 
             Location _address = member.Person.GetHomeLocation();
 
