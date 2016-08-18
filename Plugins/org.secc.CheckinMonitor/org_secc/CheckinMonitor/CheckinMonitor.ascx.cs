@@ -822,6 +822,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
                 Rock.CheckIn.KioskDevice.Flush( location.Id );
             }
+            ViewState["LocationRatios"] = null;
             BindTable();
         }
 
