@@ -1,20 +1,4 @@
-﻿// <copyright>
-// Copyright 2013 by the Spark Development Network
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
-//
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Web.UI;
@@ -28,6 +12,7 @@ using Rock.CheckIn;
 using Rock.Attribute;
 using Rock.Web.Cache;
 using org.secc.FamilyCheckin.Utilities;
+using System.Data.Entity;
 
 namespace RockWeb.Plugins.org_secc.CheckinMonitor
 {
@@ -40,6 +25,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
     public partial class CheckinMonitor : CheckInBlock
     {
+        KioskCountUtility kioskCountUtility;
 
         /// <summary>
         /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
@@ -98,22 +84,32 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         {
             phContent.Controls.Clear();
 
-            KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes,
+            kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes,
                                                                         GetAttributeValue( "VolunteerGroupAttribute" ).AsGuid(),
                                                                         GetAttributeValue( "DeactivatedDefinedType" ).AsGuid() );
 
             //preload location attributes
-            var allLocations = kioskCountUtility.GroupTypes
-                .SelectMany( gt => gt.Groups )
-                .SelectMany( g => g.GroupLocations )
-                .Select( gl => gl.Location ).ToList();
-            foreach ( var loc in allLocations )
+            List<dynamic> locationRatios = new List<dynamic>();
+
+            using ( var _rockContext = new RockContext() )
             {
-                if ( loc.Attributes == null || !loc.Attributes.Any() )
+                var ratioKey = GetAttributeValue( "RoomRatioAttributeKey" );
+                var ratioAttribute = new AttributeService( _rockContext ).Queryable()
+                    .Where( a => a.Key == ratioKey )
+                    .FirstOrDefault();
+                if ( ratioAttribute != null )
                 {
-                    //loc.LoadAttributes();
+                    var attributeValueService = new AttributeValueService( _rockContext ).Queryable();
+                    locationRatios.AddRange( attributeValueService
+                        .Where( av => av.AttributeId == ratioAttribute.Id )
+                        .Select( av => new
+                        {
+                            LocationId = av.EntityId.Value,
+                            Ratio = av.Value
+                        } ) );
                 }
             }
+
 
             var groupLocationSchedules = kioskCountUtility.GroupLocationSchedules;
 
@@ -202,7 +198,13 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         tr.Controls.Add( name );
 
                         TableCell tcRatio = new TableCell();
-                        var ratio = gls.GroupLocation.Location.GetAttributeValue( GetAttributeValue( "RoomRatioAttributeKey" ) ).AsInteger();
+                        int ratio = 0;
+                        var ratioObject = locationRatios.Where( lr => lr.LocationId == gls.GroupLocation.LocationId ).FirstOrDefault();
+                        if ( ratioObject != null )
+                        {
+                            ratio = ( ( string ) ( ratioObject.Ratio ) ).AsInteger();
+                        }
+
                         var lsCount = kioskCountUtility.GetLocationScheduleCount( gls.GroupLocation.Location.Id, gls.Schedule.Id );
                         var ratioDistance = ( lsCount.VolunteerCount * ratio ) - lsCount.ChildCount;
                         tcRatio.Text = lsCount.ChildCount.ToString() + "/" + lsCount.VolunteerCount.ToString();
@@ -216,12 +218,15 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                             tcRatio.Text += " [" + ( ratioDistance * -1 ).ToString() + " over ratio]";
                             tcRatio.CssClass = "danger";
                         }
-                        else
+                        else if ( ratioDistance < 4 && lsCount.TotalCount != 0 )
                         {
-                            if ( ratioDistance < 4 && lsCount.TotalCount != 0 )
-                            {
-                                tcRatio.CssClass = "info";
-                            }
+
+                            tcRatio.CssClass = "info";
+                            tcRatio.Text += " [" + ratioDistance.ToString() + " remaining]";
+                        }
+                        else if ( lsCount.TotalCount != 0 )
+                        {
+                            tcRatio.CssClass = "success";
                             tcRatio.Text += " [" + ratioDistance.ToString() + " remaining]";
                         }
 
@@ -668,7 +673,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
         }
 
-        private void CloseOccurrence( int groupLocationId, int scheduleId )
+        private void CloseOccurrence( int groupLocationId, int scheduleId, bool bindTable = true )
         {
             using ( RockContext _rockContext = new RockContext() )
             {
@@ -684,7 +689,10 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                             groupLocation.Schedules.Remove( schedule );
                             _rockContext.SaveChanges();
                             Rock.CheckIn.KioskDevice.Flush( groupLocation.Id );
-                            BindTable();
+                            if ( bindTable )
+                            {
+                                BindTable();
+                            }
                         }
                     }
                 }
@@ -756,7 +764,15 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected void ddlSchedules_SelectedIndexChanged( object sender, EventArgs e )
         {
-            //This is an empty function because we just need to reload the page
+            if ( ddlSchedules.SelectedValue.AsInteger() > 0 )
+            {
+                btnCloseAll.Visible = true;
+                btnCloseAll.Text = string.Format( "Close all at {0}", ddlSchedules.SelectedItem.Text );
+            }
+            else
+            {
+                btnCloseAll.Visible = false;
+            }
         }
 
         protected void btnBack_Click( object sender, EventArgs e )
@@ -959,6 +975,24 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         {
             Code,
             Name
+        }
+
+        protected void btnCloseAll_Click( object sender, EventArgs e )
+        {
+            var scheduleName = ddlSchedules.SelectedItem.Text;
+            ltConfirmClose.Text = string.Format( "Are you sure you want to close all locations for {0}", scheduleName );
+            mdConfirmClose.Show();
+        }
+
+        protected void mdConfirmClose_SaveClick( object sender, EventArgs e )
+        {
+            var scheduleId = ddlSchedules.SelectedValue.AsInteger();
+            foreach ( var gls in kioskCountUtility.GroupLocationSchedules.Where( gls => gls.Schedule.Id == scheduleId ) )
+            {
+                CloseOccurrence( gls.GroupLocation.Id, scheduleId, false );
+            }
+            mdConfirmClose.Hide();
+            BindTable();
         }
     }
 }
