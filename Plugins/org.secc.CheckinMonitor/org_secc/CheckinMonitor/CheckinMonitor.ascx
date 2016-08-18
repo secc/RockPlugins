@@ -119,6 +119,7 @@
             <Rock:BootstrapButton runat="server" ID="btnSearch" Text="Search" OnClick="btnSearch_Click" CssClass="btn btn-info"></Rock:BootstrapButton>
             <Rock:BootstrapButton runat="server" ID="btnCloseAll" Visible="false" CssClass="btn btn-danger"
                 OnClick="btnCloseAll_Click" Text="Close All For This Schedule"></Rock:BootstrapButton>
+            <Rock:BootstrapButton runat="server" ID="btnFlush" Visible="false" CssClass="btn btn-danger" Text="Flush All" OnClick="btnFlush_Click"></Rock:BootstrapButton>
         </div>
         <div class="col-md-6">
             <Rock:RockDropDownList runat="server" ID="ddlSchedules" DataValueField="Id" DataTextField="Name"

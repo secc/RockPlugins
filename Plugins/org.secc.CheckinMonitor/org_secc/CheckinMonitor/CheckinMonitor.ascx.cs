@@ -13,6 +13,7 @@ using Rock.Attribute;
 using Rock.Web.Cache;
 using org.secc.FamilyCheckin.Utilities;
 using System.Data.Entity;
+using Rock.Security;
 
 namespace RockWeb.Plugins.org_secc.CheckinMonitor
 {
@@ -59,6 +60,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 NavigateToHomePage();
                 return;
             }
+
+            if ( IsUserAuthorized( Authorization.ADMINISTRATE ) )
+            {
+                btnFlush.Visible = true;
+            }
+
             using ( RockContext _rockContext = new RockContext() )
             {
 
@@ -992,6 +999,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 CloseOccurrence( gls.GroupLocation.Id, scheduleId, false );
             }
             mdConfirmClose.Hide();
+            BindTable();
+        }
+
+        protected void btnFlush_Click( object sender, EventArgs e )
+        {
+            KioskDevice.FlushAll();
             BindTable();
         }
     }
