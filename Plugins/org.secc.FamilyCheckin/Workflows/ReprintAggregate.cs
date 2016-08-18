@@ -26,6 +26,7 @@ namespace org.secc.FamilyCheckin
     [BinaryFileField( Rock.SystemGuid.BinaryFiletype.CHECKIN_LABEL, "Aggregated Label", "Label to aggregate", true )]
     //[DefinedValueField("E4D289A9-70FA-4381-913E-2A757AD11147","Label Merge Field","Merge field to replace text with")]
     [TextField( "Merge Text", "Text to merge label merge field into separated by commas.", true, "AAA,BBB,CCC,DDD" )]
+    [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Volunteer Group Attribute" )]
     public class ReprintAggregate : CheckInActionComponent
     {
         /// <summary>
@@ -40,42 +41,49 @@ namespace org.secc.FamilyCheckin
         public override bool Execute( RockContext rockContext, WorkflowAction action, Object entity, out List<string> errorMessages )
         {
             var checkInState = GetCheckInState( entity, out errorMessages );
-
-            CheckInGroupType lastCheckinGroupType = null;
-
-            List<string> labelCodes = new List<string>();
-
             if ( checkInState != null )
             {
+                CheckInGroupType lastCheckinGroupType = null;
+
+                List<string> labelCodes = new List<string>();
+
+                var volAttributeGuid = GetAttributeValue( action, "VolunteerGroupAttribute" ).AsGuid();
+                var volAttribute = AttributeCache.Read( volAttributeGuid );
+
+                List<int> ChildGroupIds;
+
+                if ( volAttribute != null )
+                {
+                    AttributeValueService attributeValueService = new AttributeValueService( rockContext );
+                    ChildGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "False" ).Select( av => av.EntityId.Value ).ToList();
+                }
+                else
+                {
+                    ChildGroupIds = new List<int>();
+                }
+
+
                 var globalAttributes = Rock.Web.Cache.GlobalAttributesCache.Read( rockContext );
                 var globalMergeValues = Rock.Lava.LavaHelper.GetCommonMergeFields( null );
 
                 var groupMemberService = new GroupMemberService( rockContext );
 
                 AttendanceService attendanceService = new AttendanceService( rockContext );
-                PersonService personService = new PersonService( rockContext );
 
                 foreach ( var family in checkInState.CheckIn.Families.Where( f => f.Selected ) )
                 {
                     foreach ( var person in family.People )
                     {
-                        if ( person.SecurityCode != null && person.Person.Age !=null && person.Person.Age <= 18 )
+                        var attendances = attendanceService.Queryable( "AttendanceCode" )
+                            .Where( a => a.CreatedDateTime >= Rock.RockDateTime.Today
+                                         && person.Person.Id == a.PersonAlias.PersonId
+                                         && ChildGroupIds.Contains( a.GroupId ?? 0 ) )
+                            .DistinctBy( a => a.AttendanceCode.Id ).ToList();
+                        foreach ( var attendance in attendances )
                         {
-                            labelCodes.Add( person.SecurityCode + "-" + LabelAge( person.Person ) );
-                        }
-                        else
-                        {
-                            //we have to load the person entity in because the person.Person doesn't load enough information
-                            var personEntity = personService.Get( person.Person.Id );
-                            var attendances = attendanceService.Queryable( "AttendanceCode" )
-                                .Where( a => a.CreatedDateTime >= Rock.RockDateTime.Today && personEntity.PrimaryAliasId == a.PersonAliasId )
-                                .DistinctBy( a => a.AttendanceCode ).ToList();
-                            foreach ( var attendance in attendances )
+                            if ( attendance != null && attendance.AttendanceCode != null )
                             {
-                                if ( attendance != null && attendance.AttendanceCode != null )
-                                {
-                                    labelCodes.Add( attendance.AttendanceCode.Code + "-" + LabelAge( person.Person ) );
-                                }
+                                labelCodes.Add( attendance.AttendanceCode.Code + "-" + LabelAge( person.Person ) );
                             }
                         }
                     }
