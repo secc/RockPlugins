@@ -330,6 +330,10 @@ namespace RockWeb.Blocks.Reporting
             excel.Workbook.Properties.SetCustomPropertyValue( "Source", this.Page.Request.Url.OriginalString );
 
             ExcelWorksheet worksheet = excel.Workbook.Worksheets.Add( workSheetName );
+            worksheet.PrinterSettings.LeftMargin = .5m;
+            worksheet.PrinterSettings.RightMargin = .5m;
+            worksheet.PrinterSettings.TopMargin = .5m;
+            worksheet.PrinterSettings.BottomMargin = .5m;
 
             //// write data to worksheet there are three supported data sources
             //// DataTables, DataViews and ILists
@@ -348,12 +352,13 @@ namespace RockWeb.Blocks.Reporting
             // print data
             foreach ( CommunionData row in getQuery<CommunionData>() )
             {
-                SetExcelValue( worksheet.Cells[rowCounter, 1], row.PostalCode );
+                SetExcelValue( worksheet.Cells[rowCounter, 1], row.PostalCode.Length>5?row.PostalCode.Substring(0, 5):row.PostalCode);
                 SetExcelValue( worksheet.Cells[rowCounter, 2], row.Person.FullName );
                 SetExcelValue( worksheet.Cells[rowCounter, 3], row.Campus );
                 SetExcelValue( worksheet.Cells[rowCounter, 4], (row.Location!="Home"?row.Location + "\r\n":"")+row.Address+ ( !string.IsNullOrEmpty( row.Room ) ?"\r\nRoom: " +row.Room:"" ) );
                 SetExcelValue( worksheet.Cells[rowCounter, 5], phoneNumberService.GetByPersonId(row.Person.Id).Where(p=>p.NumberTypeValue.Guid == homePhone ).Select(p => p.NumberFormatted).FirstOrDefault() );
                 SetExcelValue( worksheet.Cells[rowCounter, 6], row.Description );
+                worksheet.Cells[rowCounter, 6].Style.WrapText = true;
 
                 rowCounter++;
             }
@@ -423,8 +428,10 @@ namespace RockWeb.Blocks.Reporting
             // autofit columns for all cells
             worksheet.Cells.AutoFitColumns( 0 );
 
-            // Set the address column width
+            // Set all the column widths
+            worksheet.Column( 2 ).Width = 20;
             worksheet.Column( 4 ).Width = 30;
+            worksheet.Column( 6 ).Width = 45;
 
             // add alternating highlights
 
