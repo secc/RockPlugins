@@ -140,9 +140,14 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 //Create/copy group and fill it full of properties and attributes
                 HydrateGroup();
                 LoadControls();
-                if ( CurrentUser != null )
+                if ( _person != null && CurrentPerson.Id == _person.Id)
                 {
-                    tbName.Text = CurrentUser.Person.LastName;
+                    tbName.Text = _person.LastName + " Home";
+                }
+                else
+                {
+                    tbName.ReadOnly = false;
+                    tbName.Enabled = true;
                 }
             }
             else if ( _group != null )
@@ -463,7 +468,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 zip = lopAddress.Location.PostalCode;
             }
-            group.Name = string.Format( "{0} {1}", tbName.Text, zip );
+            group.Name = string.Format( "{0} - {1}", tbName.Text, zip );
 
 
             group.Description = tbDescription.Text;
