@@ -168,9 +168,22 @@ namespace RockWeb.Blocks.Reporting
                             dv.AttributeValues["Qualifier4"].ValueFormatted; })(),
                     PersonToVisit = new Func<Person>( () =>
                     {
-                        return personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).Person;
+                        PersonAlias pa = personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).Select( av => av.Value ).FirstOrDefault().AsGuid() );
+                        if (pa != null)
+                        {
+                            return pa.Person;
+                        }
+                        return new Person();
                     } )(),
-                    Age = personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).Person.Age,
+                    Age = new Func<int?> ( () =>
+                    {
+                        PersonAlias pa = personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).Select( av => av.Value ).FirstOrDefault().AsGuid() );
+                        if ( pa != null )
+                        {
+                            return pa.Person.Age;
+                        }
+                        return null;
+                    } )(),
                     Room = w.AttributeValues.Where( av => av.AttributeKey == "Room" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                     AdmitDate = w.AttributeValues.Where( av => av.AttributeKey == "AdmitDate" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                     Description = w.AttributeValues.Where( av => av.AttributeKey == "VisitationRequestDescription" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
