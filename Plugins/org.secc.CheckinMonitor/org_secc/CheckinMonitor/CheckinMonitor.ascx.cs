@@ -90,10 +90,18 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         private void BindTable()
         {
             phContent.Controls.Clear();
+            try
+            {
+                kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes,
+                                                            GetAttributeValue( "VolunteerGroupAttribute" ).AsGuid(),
+                                                            GetAttributeValue( "DeactivatedDefinedType" ).AsGuid() );
+            }
+            catch
+            {
+                maError.Show( "Block Not Configured", ModalAlertType.Alert );
+                return;
+            }
 
-            kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes,
-                                                                        GetAttributeValue( "VolunteerGroupAttribute" ).AsGuid(),
-                                                                        GetAttributeValue( "DeactivatedDefinedType" ).AsGuid() );
 
             //preload location attributes
 
@@ -216,9 +224,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                         TableCell tcRatio = new TableCell();
                         int ratio = 0;
-                        if ( locationRatios.ContainsKey(gls.GroupLocation.LocationId) )
+                        if ( locationRatios.ContainsKey( gls.GroupLocation.LocationId ) )
                         {
-                            ratio = locationRatios[ gls.GroupLocation.LocationId ];
+                            ratio = locationRatios[gls.GroupLocation.LocationId];
                         }
 
                         var lsCount = kioskCountUtility.GetLocationScheduleCount( gls.GroupLocation.Location.Id, gls.Schedule.Id );
@@ -252,16 +260,25 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         if ( ( lsCount.TotalCount + lsCount.ReservedCount ) != 0
                             && ( lsCount.TotalCount + lsCount.ReservedCount ) >= ( gls.GroupLocation.Location.FirmRoomThreshold ?? 0 ) )
                         {
-                            if ( gls.Active && lsCount.TotalCount != 0 && lsCount.TotalCount >= ( gls.GroupLocation.Location.FirmRoomThreshold ?? 0 ) )
+                            if ( gls.Active && lsCount.TotalCount != 0
+                                && ( lsCount.TotalCount >= ( gls.GroupLocation.Location.FirmRoomThreshold ?? 0 )
+                                || lsCount.ChildCount >= ( gls.GroupLocation.Location.SoftRoomThreshold ?? 0 ) ) )
                             {
                                 CloseOccurrence( gls.GroupLocation.Id, gls.Schedule.Id );
                                 return;
                             }
                             tcCapacity.CssClass = "danger";
                         }
-                        else if ( ( lsCount.TotalCount + lsCount.ReservedCount ) != 0 && ( lsCount.TotalCount + lsCount.ReservedCount ) >= ( gls.GroupLocation.Location.FirmRoomThreshold ?? 0 ) + 3 )
+                        else if ( ( lsCount.TotalCount + lsCount.ReservedCount ) != 0
+                            && (
+                                  ( ( lsCount.TotalCount + lsCount.ReservedCount ) + 3 ) >= ( gls.GroupLocation.Location.FirmRoomThreshold ?? 0 ) 
+                                    || ( lsCount.ChildCount + 3 ) >= ( gls.GroupLocation.Location.SoftRoomThreshold ?? 0 ) + 3 ) )
                         {
                             tcCapacity.CssClass = "warning";
+                        }
+                        else
+                        {
+                            tcCapacity.CssClass = "success";
                         }
                         tcCapacity.Text = lsCount.ChildCount.ToString() + " of " + ( gls.GroupLocation.Location.SoftRoomThreshold ?? 0 ) + " / " + lsCount.TotalCount.ToString() + " of " + ( gls.GroupLocation.Location.FirmRoomThreshold ?? 0 ).ToString() + ( lsCount.ReservedCount > 0 ? " (+" + lsCount.ReservedCount + " reserved)" : "" );
 
@@ -277,13 +294,13 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         {
                             btnToggle.Text = "Active";
                             btnToggle.ToolTip = "Click to deactivate.";
-                            btnToggle.CssClass = "btn btn-success btn-block";
+                            btnToggle.CssClass = "btn btn-sm btn-success btn-block";
                         }
                         else
                         {
                             btnToggle.Text = "Inactive";
                             btnToggle.ToolTip = "Click to activate.";
-                            btnToggle.CssClass = "btn btn-danger btn-block";
+                            btnToggle.CssClass = "btn btn-sm btn-danger btn-block";
                         }
                         tcToggle.Controls.Add( btnToggle );
 
@@ -293,14 +310,14 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         BootstrapButton btnOccurrence = new BootstrapButton();
                         btnOccurrence.ID = "btn" + gls.GroupLocation.Id.ToString() + gls.Schedule.Id;
                         btnOccurrence.Text = "<i class='fa fa-users'></i>";
-                        btnOccurrence.CssClass = "btn btn-default";
+                        btnOccurrence.CssClass = "btn btn-sm btn-default";
                         btnOccurrence.Click += ( s, e ) => { OccurrenceModal( gls.GroupLocation, gls.Schedule ); };
                         tcLocation.Controls.Add( btnOccurrence );
 
                         BootstrapButton btnLocation = new BootstrapButton();
                         btnLocation.ID = "btnLocation" + gls.GroupLocation.Id.ToString() + gls.Schedule.Id;
                         btnLocation.Text = "<i class='fa fa-map-marker'></i>";
-                        btnLocation.CssClass = "btn btn-default";
+                        btnLocation.CssClass = "btn btn-sm btn-default";
                         btnLocation.Click += ( s, e ) => { ShowLocationModal( gls.GroupLocation.Location ); };
 
                         tcLocation.Controls.Add( btnLocation );
