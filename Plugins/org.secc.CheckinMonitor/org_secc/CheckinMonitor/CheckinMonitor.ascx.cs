@@ -138,6 +138,11 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             var groupLocationSchedules = kioskCountUtility.GroupLocationSchedules;
 
+            //Remove duplicates to prevent collisions
+            groupLocationSchedules = groupLocationSchedules
+                .DistinctBy( gls => new { GroupLocationId = gls.GroupLocation.Id, ScheduleId = gls.Schedule.Id } )
+                .ToList();
+
             var selectedScheduleId = ddlSchedules.SelectedValue.AsInteger();
             if ( selectedScheduleId > 0 )
             {
