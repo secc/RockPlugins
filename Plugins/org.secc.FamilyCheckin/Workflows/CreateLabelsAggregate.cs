@@ -26,6 +26,7 @@ namespace org.secc.FamilyCheckin
     [BinaryFileField( Rock.SystemGuid.BinaryFiletype.CHECKIN_LABEL, "Aggregated Label", "Label to aggregate", true )]
     //[DefinedValueField("E4D289A9-70FA-4381-913E-2A757AD11147","Label Merge Field","Merge field to replace text with")]
     [TextField( "Merge Text", "Text to merge label merge field into separated by commas.", true, "AAA,BBB,CCC,DDD" )]
+    [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Volunteer Group Attribute" )]
     public class CreateLabelsAggregate : CheckInActionComponent
     {
         /// <summary>
@@ -44,6 +45,22 @@ namespace org.secc.FamilyCheckin
             CheckInGroupType lastCheckinGroupType = null;
 
             List<string> labelCodes = new List<string>();
+            List<int> childGroupIds;
+
+            var volAttributeGuid = GetAttributeValue( action, "VolunteerGroupAttribute" );
+            string volAttributeKey = "";
+            if ( !string.IsNullOrWhiteSpace( volAttributeGuid ) )
+            {
+                volAttributeKey = AttributeCache.Read( volAttributeGuid.AsGuid() ).Key;
+                childGroupIds = checkInState.Kiosk.KioskGroupTypes
+                    .SelectMany( g => g.KioskGroups )
+                    .Where( g => !g.Group.GetAttributeValue( volAttributeKey ).AsBoolean() )
+                    .Select( g => g.Group.Id ).ToList();
+            }
+            else
+            {
+                childGroupIds = new List<int>();
+            }
 
             if ( checkInState != null )
             {
@@ -56,7 +73,7 @@ namespace org.secc.FamilyCheckin
                 {
                     foreach ( var person in family.People.Where( p => p.Selected ) )
                     {
-                        if ( person.SecurityCode != null && person.Person.Age != null && person.Person.Age <= 18 )
+                        if ( person.GroupTypes.Where(gt => gt.Selected).SelectMany( gt => gt.Groups ).Where( g => g.Selected && childGroupIds.Contains( g.Group.Id ) ).Any() )
                         {
                             labelCodes.Add( person.SecurityCode + "-" + LabelAge( person.Person ) );
                         }
