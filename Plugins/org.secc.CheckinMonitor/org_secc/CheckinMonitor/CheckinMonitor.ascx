@@ -7,6 +7,13 @@
         display: none;
     }
 
+    td {
+        padding-bottom:0px !important;
+    }
+
+    .btn-sm {
+        margin-top:-5px !important;
+    }
 
     .close {
         visibility: hidden;
