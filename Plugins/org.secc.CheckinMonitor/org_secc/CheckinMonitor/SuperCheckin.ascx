@@ -12,7 +12,7 @@
                             Checked="false" Label="Show All" />
                     </div>
                     <div class="col-sm-6">
-                        <Rock:Toggle runat="server" ID="cbVolunteer" OnCssClass="btn-success" OffCssClass="btn-success"
+                        <Rock:Toggle runat="server" ID="cbVolunteer" OnCssClass="btn-info" OffCssClass="btn-warning"
                             OnText="Volunteers Groups" OffText="Children's Groups" Checked="false" Label="Check-In Group Type"
                             OnCheckedChanged="cbVolunteer_CheckedChanged" />
                     </div>
