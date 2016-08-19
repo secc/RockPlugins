@@ -164,6 +164,7 @@
         catch(e){}
 
         setTimeout(function(){showingWelcome=true},150);
+        document.body.focus();
     }
 
     var captureSpecialKey = function(e){
