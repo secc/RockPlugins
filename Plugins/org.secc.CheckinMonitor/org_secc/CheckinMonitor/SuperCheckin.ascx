@@ -9,7 +9,7 @@
                     <div class="col-sm-6">
                         <Rock:Toggle runat="server" ID="cbSuperCheckin" OnCssClass="btn-success"
                             OffCssClass="btn-danger" OnCheckedChanged="cbSuperCheckin_CheckedChanged"
-                            Checked="false" Label="Super Check-In" />
+                            Checked="false" Label="Show All" />
                     </div>
                     <div class="col-sm-6">
                         <Rock:Toggle runat="server" ID="cbVolunteer" OnCssClass="btn-success" OffCssClass="btn-success"
