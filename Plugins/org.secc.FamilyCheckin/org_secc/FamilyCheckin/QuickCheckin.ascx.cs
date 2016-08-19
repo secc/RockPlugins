@@ -821,6 +821,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                                 {
                                     LinkLocations( checkinPerson.Person, checkinGroup, checkinLocation );
                                 }
+                                RemoveOverlappingSchedules( checkinPerson.Person, locationSchedule );
                             }
                         }
                     }
