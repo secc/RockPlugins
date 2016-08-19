@@ -290,7 +290,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 return;
             }
 
-            var people = CurrentCheckInState.CheckIn.Families.SelectMany( f => f.People ).OrderBy(p => p.Person.BirthDate);
+            var people = CurrentCheckInState.CheckIn.Families.SelectMany( f => f.People ).OrderBy( p => p.Person.BirthDate );
 
             int i = 0;
             HtmlGenericControl hgcRow = new HtmlGenericControl( "div" );
@@ -587,11 +587,30 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 LinkLocations( person, group, room );
             }
+
+            RemoveOverlappingSchedules( person, schedule );
+           
             room.Selected = true;
             group.Selected = true;
             groupType.Selected = true;
             room.Schedules.Where( s => s.Schedule.Guid == schedule.Schedule.Guid ).FirstOrDefault().Selected = true;
             SaveState();
+        }
+
+        private void RemoveOverlappingSchedules( Person person, CheckInSchedule schedule )
+        {
+            var otherSchedules = GetCheckinSchedules( person ).Where( s => s.Schedule.Id != schedule.Schedule.Id );
+            var start = schedule.Schedule.GetCalenderEvent().DTStart;
+            var end = schedule.Schedule.GetCalenderEvent().DTEnd;
+
+            foreach ( var otherSchedule in otherSchedules )
+            {
+                if ( start.LessThan( otherSchedule.Schedule.GetCalenderEvent().DTEnd )
+                    && otherSchedule.Schedule.GetCalenderEvent().DTStart.LessThan( end ) )
+                {
+                    ClearRoomSelection( person, otherSchedule );
+                }
+            }
         }
 
         /// <summary>
