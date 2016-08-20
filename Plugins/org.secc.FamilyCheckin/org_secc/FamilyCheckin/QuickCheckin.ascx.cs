@@ -36,11 +36,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             RockPage.AddScriptLink( "~/Scripts/CheckinClient/cordova-2.4.0.js", false );
             RockPage.AddScriptLink( "~/Scripts/CheckinClient/ZebraPrint.js" );
 
-            if ( !KioskCurrentlyActive )
-            {
-                NavigateToHomePage();
-            }
-
             mdChoose.Header.Visible = false;
             mdChoose.Footer.Visible = false;
         }
@@ -589,7 +584,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
 
             RemoveOverlappingSchedules( person, schedule );
-           
+
             room.Selected = true;
             group.Selected = true;
             groupType.Selected = true;
@@ -877,21 +872,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 DeselectCulled();
             }
 
-            var volAttributeGuid = GetAttributeValue( "VolunteerGroupAttribute" );
-
-            if ( string.IsNullOrWhiteSpace( volAttributeGuid ) )
-            {
-                maAlert.Show( "Volunteer attribute not set.", ModalAlertType.Alert );
-                return;
-            }
-            var volAttributeKey = AttributeCache.Read( volAttributeGuid.AsGuid() ).Key;
-
-            List<int> volunteerGroupIds = CurrentCheckInState.Kiosk.KioskGroupTypes
-                .SelectMany( g => g.KioskGroups )
-                .Where( g => g.Group.GetAttributeValue( volAttributeKey ).AsBoolean() )
-                .Select( g => g.Group.Id ).ToList();
-
             var rockContext = new RockContext();
+
+            var volAttributeGuid = GetAttributeValue( "VolunteerGroupAttribute" ).AsGuid();
+            var volAttribute = AttributeCache.Read( volAttributeGuid );
+            AttributeValueService attributeValueService = new AttributeValueService( rockContext );
+            List<int> volunteerGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "True" ).Select( av => av.EntityId.Value ).ToList();
+
 
             //Test for overloaded rooms
             var overload = false;
