@@ -80,7 +80,7 @@ namespace org.secc.FamilyCheckin
                                              a.DidAttend == true
                                              && a.EndDateTime == null
                                              && a.ScheduleId == schedule.Schedule.Id
-                                             && a.CreatedDateTime >= Rock.RockDateTime.Today );
+                                             && a.StartDateTime >= Rock.RockDateTime.Today );
 
                                         if ( filterAttendanceSchedules && attendanceQry.Where( a => a.PersonAlias.PersonId == person.Person.Id ).Any() )
                                         {

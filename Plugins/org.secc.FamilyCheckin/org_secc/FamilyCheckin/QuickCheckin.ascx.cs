@@ -906,7 +906,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                                      && a.EndDateTime == null
                                      && a.ScheduleId == schedule.Schedule.Id
                                      && a.LocationId == location.Location.Id
-                                     && a.CreatedDateTime >= Rock.RockDateTime.Today );
+                                     && a.StartDateTime >= Rock.RockDateTime.Today );
 
                                 if ( attendanceQry.Count() >= threshold )
                                 {
