@@ -395,7 +395,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                             a.PersonAliasId != null
                             && a.LocationId == groupLocation.LocationId
                             && a.ScheduleId == schedule.Id
-                            && a.CreatedDateTime >= Rock.RockDateTime.Today
+                            && a.StartDateTime >= Rock.RockDateTime.Today
                             )
                     .ToList();
                 var current = data.Where( a => a.DidAttend == true && a.EndDateTime == null ).ToList();
@@ -641,6 +641,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     }
                     _rockContext.SaveChanges();
                     Rock.CheckIn.KioskDevice.Flush( groupLocation.LocationId );
+                    KioskLocationAttendance.Flush( groupLocation.LocationId );
                 }
                 BindTable();
             }
@@ -727,6 +728,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                             groupLocation.Schedules.Remove( schedule );
                             _rockContext.SaveChanges();
                             Rock.CheckIn.KioskDevice.Flush( groupLocation.Id );
+                            KioskLocationAttendance.Flush( groupLocation.Id );
                             if ( bindTable )
                             {
                                 BindTable();
@@ -770,7 +772,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 //Close all other attendance records for this person today at this schedule
                 var currentRecords = attendanceService.Queryable()
                      .Where( a =>
-                     a.CreatedDateTime >= Rock.RockDateTime.Today
+                     a.StartDateTime >= Rock.RockDateTime.Today
                     && a.DidAttend == true
                     && a.PersonAliasId == attendanceRecord.PersonAliasId
                     && a.ScheduleId == attendanceRecord.ScheduleId
@@ -843,6 +845,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 mdLocation.Hide();
                 ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
                 Rock.CheckIn.KioskDevice.Flush( location.Id );
+                KioskLocationAttendance.Flush( location.Id );
             }
             ViewState["LocationRatios"] = null;
             BindTable();
@@ -905,7 +908,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 }
                 var aliasIds = people.ToList().Select( p => p.PrimaryAliasId );
                 var attendanceRecords = new AttendanceService( _rockContext ).Queryable( "AttendanceCode" )
-                    .Where( a => a.CreatedDateTime >= Rock.RockDateTime.Today && a.EndDateTime == null && aliasIds.Contains( a.PersonAliasId ) )
+                    .Where( a => a.StartDateTime >= Rock.RockDateTime.Today && a.EndDateTime == null && aliasIds.Contains( a.PersonAliasId ) )
                     .ToList();
                 if ( !attendanceRecords.Any() )
                 {
@@ -1038,6 +1041,10 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         {
             ViewState["LocationRatios"] = null;
             KioskDevice.FlushAll();
+            foreach (var locationId in kioskCountUtility.GroupLocationSchedules.Select(gls => gls.GroupLocation.LocationId ).Distinct() )
+            {
+                KioskLocationAttendance.Flush( locationId );
+            }
             BindTable();
         }
     }
