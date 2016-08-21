@@ -276,7 +276,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         }
                         else if ( ( lsCount.TotalCount + lsCount.ReservedCount ) != 0
                             && (
-                                  ( ( lsCount.TotalCount + lsCount.ReservedCount ) + 3 ) >= ( gls.GroupLocation.Location.FirmRoomThreshold ?? 0 ) 
+                                  ( ( lsCount.TotalCount + lsCount.ReservedCount ) + 3 ) >= ( gls.GroupLocation.Location.FirmRoomThreshold ?? 0 )
                                     || ( lsCount.ChildCount + 3 ) >= ( gls.GroupLocation.Location.SoftRoomThreshold ?? 0 ) + 3 ) )
                         {
                             tcCapacity.CssClass = "warning";
@@ -386,8 +386,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             mdOccurrence.Show();
             using ( RockContext _rockContext = new RockContext() )
             {
-
-
                 AttendanceService attendanceService = new AttendanceService( _rockContext );
                 //Get all attendance data for grouplocationschedule for today
                 var data = attendanceService.Queryable( "PersonAlias.Person,Location,Group,Schedule" )
@@ -398,7 +396,20 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                             && a.StartDateTime >= Rock.RockDateTime.Today
                             )
                     .ToList();
-                var current = data.Where( a => a.DidAttend == true && a.EndDateTime == null ).ToList();
+                var currentVolunteers = data.Where( a => a.DidAttend == true
+                                                    && a.EndDateTime == null
+                                                    && kioskCountUtility.VolunteerGroupIds.Contains( a.GroupId ?? 0 ) )
+                                                    .OrderBy( a => a.PersonAlias.Person.LastName )
+                                                    .ThenBy( a => a.PersonAlias.Person.NickName );
+                var currentChildren = data.Where( a => a.DidAttend == true
+                                                    && a.EndDateTime == null
+                                                    && !kioskCountUtility.VolunteerGroupIds.Contains( a.GroupId ?? 0 ) )
+                                                    .OrderBy( a => a.PersonAlias.Person.LastName )
+                                                    .ThenBy( a => a.PersonAlias.Person.NickName );
+
+                var current = new List<Attendance>();
+                current.AddRange( currentVolunteers );
+                current.AddRange( currentChildren );
                 var reserved = data.Where( a => a.DidAttend != true ).ToList();
                 var history = data.Where( a => a.DidAttend == true && a.EndDateTime != null ).ToList();
 
@@ -1041,7 +1052,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         {
             ViewState["LocationRatios"] = null;
             KioskDevice.FlushAll();
-            foreach (var locationId in kioskCountUtility.GroupLocationSchedules.Select(gls => gls.GroupLocation.LocationId ).Distinct() )
+            foreach ( var locationId in kioskCountUtility.GroupLocationSchedules.Select( gls => gls.GroupLocation.LocationId ).Distinct() )
             {
                 KioskLocationAttendance.Flush( locationId );
             }
