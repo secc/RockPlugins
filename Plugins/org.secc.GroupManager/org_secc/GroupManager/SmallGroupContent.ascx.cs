@@ -204,7 +204,8 @@ $('#updateProgress').hide();
 document.getElementById('{0}').onchange = function() {{
 $('#updateProgress').show();
     __doPostBack('{1}', 'OnClick');
-}}", dpCalendar.ClientID, btnCalendar.UniqueID );
+}};
+", dpCalendar.ClientID, btnCalendar.UniqueID );
                     ScriptManager.RegisterStartupScript( Page, Page.GetType(), "CalendarScript",
                         script, true );
                 }
