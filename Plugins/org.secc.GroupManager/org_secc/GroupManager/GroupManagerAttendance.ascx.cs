@@ -407,6 +407,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             occurrence.ScheduleId = null;
                             occurrence.ScheduleName = string.Empty;
                             occurrence.Date = occurrenceDate.Value;
+                        } else
+                        {
+                            // Just make sure the date matches exactly what we are looking for
+                            occurrence.Date = occurrenceDate.Value;
                         }
                         return occurrence;
                     }
@@ -416,7 +420,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 // occurrences can be added, create a new one
                 if ( _allowAddDate )
                 {
-                    return new ScheduleOccurrence( occurrenceDate.Value.Date, occurrenceDate.Value.TimeOfDay );
+                    DateTime startDateTime = occurrenceDate.Value.Date.Add( tpOccurrenceTime.SelectedTime.Value );
+                    return new ScheduleOccurrence( startDateTime, tpOccurrenceTime.SelectedTime.Value );
                 }
             }
 
@@ -487,7 +492,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     }
                     else
                     {
-                        tpOccurrenceTime.SelectedTime = RockDateTime.Today.TimeOfDay;
+                        tpOccurrenceTime.SelectedTime = RockDateTime.Now.TimeOfDay;
                     }
 
                 }
