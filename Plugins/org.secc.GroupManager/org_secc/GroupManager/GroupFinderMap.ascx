@@ -144,10 +144,12 @@
                                         Optional Map Icons: (34x34)
                                         <Rock:RockTextBox runat="server" ID="tbSearchIcon" Label="Search Icon URL"
                                             Help="URL for the pin on the map showing the location of the search address."></Rock:RockTextBox>
-                                        <Rock:RockTextBox runat="server" ID="tbGroupIcon" Label="Search Group URL"
+                                        <Rock:RockTextBox runat="server" ID="tbGroupIcon" Label="Group Icon URL"
                                             Help="URL for the pins on the map showing the location of groups."></Rock:RockTextBox>
-                                        <Rock:RockTextBox runat="server" ID="tbFamilyIcon" Label="Search Family URL"
+                                        <Rock:RockTextBox runat="server" ID="tbFamilyIcon" Label="Family Icon URL"
                                             Help="URL for the pins on the map showing the location of families."></Rock:RockTextBox>
+                                        <Rock:RockTextBox runat="server" ID="tbCampusIcon" Label="Campus Icon URL"
+                                            Help="URL for the pins on the map showing the location of campuses."></Rock:RockTextBox>
                                         <Rock:RockCheckBox ID="cbShowFence" runat="server" Label="Show Fence(s)" Text="Yes"
                                             Help="If a Geofence group type was selected, should that group's boundary be displayed on the map?" ValidationGroup="GroupFinderSettings" />
                                         <Rock:ValueList ID="vlPolygonColors" runat="server" Label="Fence Polygon Colors"

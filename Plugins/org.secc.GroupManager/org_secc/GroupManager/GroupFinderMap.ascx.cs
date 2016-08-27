@@ -1165,7 +1165,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     }
 
                     // Add mapitems for all the remaining valid group locations
-                    var groupIcon = GetAttributeValue( "groupIcon" );
+                    var groupIcon = GetAttributeValue( "GroupIcon" );
                     var groupMapItems = new List<MapItem>();
                     foreach ( var gl in groupLocations )
                     {
