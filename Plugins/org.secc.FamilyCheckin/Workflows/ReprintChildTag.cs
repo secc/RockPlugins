@@ -72,6 +72,37 @@ namespace org.secc.FamilyCheckin
                             person.SecurityCode = attendanceCode.FirstOrDefault();
                             Dictionary<string, object> mergeObjects = new Dictionary<string, object>();
                             mergeObjects.Add( "Person", person );
+                            mergeObjects.Add( "GroupTypes", person.GroupTypes.Where( g => g.Selected ).ToList() );
+                            List<Group> mergeGroups = new List<Group>();
+                            List<Location> mergeLocations = new List<Location>();
+                            List<Schedule> mergeSchedules = new List<Schedule>();
+
+                            var sets = new AttendanceService( rockContext )
+                                .Queryable().AsNoTracking().Where( a =>
+                                     a.PersonAlias.Person.Id == person.Person.Id
+                                     && a.StartDateTime >= Rock.RockDateTime.Today
+                                     && a.EndDateTime == null
+                                    )
+                                    .Select( a =>
+                                         new
+                                         {
+                                             Group = a.Group,
+                                             Location = a.Location,
+                                             Schedule = a.Schedule
+                                         }
+                                    )
+                                    .ToList()
+                                    .OrderBy( a => a.Schedule.StartTimeOfDay );
+
+                            foreach ( var set in sets )
+                            {
+                                mergeGroups.Add( set.Group );
+                                mergeLocations.Add( set.Location );
+                                mergeSchedules.Add( set.Schedule );
+                            }
+                            mergeObjects.Add( "Groups", mergeGroups );
+                            mergeObjects.Add( "Locations", mergeLocations );
+                            mergeObjects.Add( "Schedules", mergeSchedules );
 
                             var labelCache = KioskLabel.Read( new Guid( GetAttributeValue( action, "ChildLabel" ) ) );
                             if ( labelCache != null )

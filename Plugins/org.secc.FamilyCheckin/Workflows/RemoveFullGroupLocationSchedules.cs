@@ -47,18 +47,12 @@ namespace org.secc.FamilyCheckin
                 if ( family != null )
                 {
 
-                    var volAttributeGuid = GetAttributeValue( action, "VolunteerGroupAttribute" );
+                    var volAttributeGuid = GetAttributeValue( action, "VolunteerGroupAttribute" ).AsGuid();
 
-                    if ( string.IsNullOrWhiteSpace( volAttributeGuid ) )
-                    {
-                        return true;
-                    }
-                    var volAttributeKey = AttributeCache.Read( volAttributeGuid.AsGuid() ).Key;
+                    var volAttribute = AttributeCache.Read( volAttributeGuid );
 
-                    List<int> volunteerGroupIds = checkInState.Kiosk.KioskGroupTypes
-                        .SelectMany( g => g.KioskGroups )
-                        .Where( g => g.Group.GetAttributeValue( volAttributeKey ).AsBoolean() )
-                        .Select( g => g.Group.Id ).ToList();
+                    AttributeValueService attributeValueService = new AttributeValueService( rockContext );
+                    List <int> volunteerGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "True" ).Select( av => av.EntityId.Value ).ToList();
 
                     var locationService = new LocationService( rockContext );
                     var attendanceService = new AttendanceService( rockContext ).Queryable();
@@ -86,7 +80,7 @@ namespace org.secc.FamilyCheckin
                                              a.DidAttend == true
                                              && a.EndDateTime == null
                                              && a.ScheduleId == schedule.Schedule.Id
-                                             && a.CreatedDateTime >= Rock.RockDateTime.Today );
+                                             && a.StartDateTime >= Rock.RockDateTime.Today );
 
                                         if ( filterAttendanceSchedules && attendanceQry.Where( a => a.PersonAlias.PersonId == person.Person.Id ).Any() )
                                         {
