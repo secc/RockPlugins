@@ -353,6 +353,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             var attendanceItemId = ( int ) e.RowKeyValue;
             var attendanceItem = new AttendanceService( _rockContext ).Get( attendanceItemId );
             attendanceItem.EndDateTime = Rock.RockDateTime.Now;
+            attendanceItem.DidAttend = false;
             _rockContext.SaveChanges();
             KioskLocationAttendance.Flush( attendanceItem.LocationId??0 );
             BuildPersonCheckinDetails();
