@@ -90,26 +90,34 @@ namespace org.secc.FamilyCheckin
                             }
                             mergeObjects.Add( "Person", person );
                             mergeObjects.Add( "GroupTypes", person.GroupTypes.Where( g => g.Selected ).ToList() );
+                            List<Group> mergeGroups = new List<Group>();
                             List<Location> mergeLocations = new List<Location>();
                             List<Schedule> mergeSchedules = new List<Schedule>();
 
-                            var pairs = person.GroupTypes.Where( gt => gt.Selected )
-                                .SelectMany( gt => gt.Groups ).Where( g => g.Selected )
-                                .SelectMany( g => g.Locations ).Where( l => l.Selected )
-                                .Select( l => l.Schedules.Where( s => s.Selected )
-                                    .Select( s => new { Location = l.Location, Schedule = s.Schedule }
-                                    ).ToList()
-                                )
-                                .SelectMany( a => a )
-                                .OrderBy( a => a.Schedule.StartTimeOfDay )
-                                .ToList();
+                            var sets = new AttendanceService( rockContext )
+                                .Queryable().AsNoTracking().Where( a =>
+                                     a.PersonAlias.Person.Id == person.Person.Id
+                                     && a.StartDateTime >= Rock.RockDateTime.Today
+                                     && a.EndDateTime == null
+                                    )
+                                    .Select( a =>
+                                         new
+                                         {
+                                             Group = a.Group,
+                                             Location = a.Location,
+                                             Schedule = a.Schedule
+                                         }
+                                    )
+                                    .ToList()
+                                    .OrderBy( a => a.Schedule.StartTimeOfDay );
 
-                            foreach ( var pair in pairs )
+                            foreach ( var set in sets )
                             {
-                                mergeLocations.Add( pair.Location );
-                                mergeSchedules.Add( pair.Schedule );
+                                mergeGroups.Add( set.Group );
+                                mergeLocations.Add( set.Location );
+                                mergeSchedules.Add( set.Schedule );
                             }
-
+                            mergeObjects.Add( "Groups", mergeGroups );
                             mergeObjects.Add( "Locations", mergeLocations );
                             mergeObjects.Add( "Schedules", mergeSchedules );
 

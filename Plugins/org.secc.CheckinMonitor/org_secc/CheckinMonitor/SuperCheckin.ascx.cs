@@ -289,11 +289,11 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 var selectedPersonId = ( int ) ViewState["SelectedPersonId"];
                 Person person = new PersonService( _rockContext ).Get( selectedPersonId );
                 AttendanceService attendanceService = new AttendanceService( _rockContext );
-                var reserved = attendanceService.Queryable().Where( a => a.CreatedDateTime > Rock.RockDateTime.Today
+                var reserved = attendanceService.Queryable().Where( a => a.StartDateTime > Rock.RockDateTime.Today
                     && a.DidAttend == false && a.PersonAliasId == person.PrimaryAliasId ).ToList();
-                var current = attendanceService.Queryable().Where( a => a.CreatedDateTime > Rock.RockDateTime.Today
+                var current = attendanceService.Queryable().Where( a => a.StartDateTime > Rock.RockDateTime.Today
                     && a.DidAttend == true && a.EndDateTime == null && a.PersonAliasId == person.PrimaryAliasId ).ToList();
-                var history = attendanceService.Queryable().Where( a => a.CreatedDateTime > Rock.RockDateTime.Today
+                var history = attendanceService.Queryable().Where( a => a.StartDateTime > Rock.RockDateTime.Today
                     && a.DidAttend == true && a.EndDateTime != null && a.PersonAliasId == person.PrimaryAliasId ).ToList();
                 if ( reserved.Any() )
                 {

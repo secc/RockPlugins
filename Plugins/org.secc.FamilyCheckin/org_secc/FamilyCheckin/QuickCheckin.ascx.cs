@@ -36,11 +36,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             RockPage.AddScriptLink( "~/Scripts/CheckinClient/cordova-2.4.0.js", false );
             RockPage.AddScriptLink( "~/Scripts/CheckinClient/ZebraPrint.js" );
 
-            if ( !KioskCurrentlyActive )
-            {
-                NavigateToHomePage();
-            }
-
             mdChoose.Header.Visible = false;
             mdChoose.Footer.Visible = false;
         }
@@ -138,14 +133,14 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     DisplayPeople();
                     break;
                 case CullStatus.Active:
-                    btnParentGroupTypeHeader.Text = "Worship";
-                    btnParentGroupTypeHeader.DataLoadingText = "Worship <i class='fa fa-refresh fa-spin'>";
+                    btnParentGroupTypeHeader.Text = "Worship Only";
+                    btnParentGroupTypeHeader.DataLoadingText = "Worship Only <i class='fa fa-refresh fa-spin'>";
                     ltMessage.Text = "<style>#pgtSelect{display:none} #quickCheckinContent{left:0px;}</style>";
                     DisplayPeople();
                     break;
                 case CullStatus.Inactive:
-                    btnParentGroupTypeHeader.Text = "Worship Plus";
-                    btnParentGroupTypeHeader.DataLoadingText = "Worship Plus <i class='fa fa-refresh fa-spin'>";
+                    btnParentGroupTypeHeader.Text = "Worship + Second Hour";
+                    btnParentGroupTypeHeader.DataLoadingText = "Worship + Second Hour <i class='fa fa-refresh fa-spin'>";
                     ltMessage.Text = "<style>#pgtSelect{display:none} #quickCheckinContent{left:0px;}</style>";
                     DisplayPeople();
                     break;
@@ -190,7 +185,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             BootstrapButton btnActive = new BootstrapButton();
             btnActive.CssClass = "btn btn-default btn-block pgtSelectButton";
-            btnActive.Text = "Worship";
+            btnActive.Text = "Worship Only";
             btnActive.Click += ( s, e ) => ChangeCullStatus( CullStatus.Active );
             btnActive.ID = "btnActive";
             btnActive.DataLoadingText = "<i class='fa fa-refresh fa-spin'></i> Loading checkin...";
@@ -198,7 +193,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             BootstrapButton btnInactive = new BootstrapButton();
             btnInactive.CssClass = "btn btn-default btn-block pgtSelectButton";
-            btnInactive.Text = "Worship Plus";
+            btnInactive.Text = "Worship + Second Hour";
             btnInactive.Click += ( s, e ) => ChangeCullStatus( CullStatus.Inactive );
             btnInactive.ID = "btnInactive";
             btnInactive.DataLoadingText = "<i class='fa fa-refresh fa-spin'></i> Loading checkin...";
@@ -214,12 +209,12 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 case CullStatus.Active:
                     DeselectCulled();
-                    btnParentGroupTypeHeader.Text = "Worship";
-                    btnParentGroupTypeHeader.DataLoadingText = "Worship <i class='fa fa-refresh fa-spin'>";
+                    btnParentGroupTypeHeader.Text = "Worship Only";
+                    btnParentGroupTypeHeader.DataLoadingText = "Worship Only <i class='fa fa-refresh fa-spin'>";
                     break;
                 case CullStatus.Inactive:
-                    btnParentGroupTypeHeader.Text = "Worship Plus";
-                    btnParentGroupTypeHeader.DataLoadingText = "Worship Plus <i class='fa fa-refresh fa-spin'>";
+                    btnParentGroupTypeHeader.Text = "Worship + Second Hour";
+                    btnParentGroupTypeHeader.DataLoadingText = "Worship + Second Hour <i class='fa fa-refresh fa-spin'>";
                     break;
                 default:
                     break;
@@ -290,7 +285,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 return;
             }
 
-            var people = CurrentCheckInState.CheckIn.Families.SelectMany( f => f.People ).OrderBy(p => p.Person.BirthDate);
+            var people = CurrentCheckInState.CheckIn.Families.SelectMany( f => f.People ).OrderBy( p => p.Person.BirthDate );
 
             int i = 0;
             HtmlGenericControl hgcRow = new HtmlGenericControl( "div" );
@@ -587,11 +582,30 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 LinkLocations( person, group, room );
             }
+
+            RemoveOverlappingSchedules( person, schedule );
+
             room.Selected = true;
             group.Selected = true;
             groupType.Selected = true;
             room.Schedules.Where( s => s.Schedule.Guid == schedule.Schedule.Guid ).FirstOrDefault().Selected = true;
             SaveState();
+        }
+
+        private void RemoveOverlappingSchedules( Person person, CheckInSchedule schedule )
+        {
+            var otherSchedules = GetCheckinSchedules( person ).Where( s => s.Schedule.Id != schedule.Schedule.Id );
+            var start = schedule.Schedule.GetCalenderEvent().DTStart;
+            var end = schedule.Schedule.GetCalenderEvent().DTEnd;
+
+            foreach ( var otherSchedule in otherSchedules )
+            {
+                if ( start.LessThan( otherSchedule.Schedule.GetCalenderEvent().DTEnd )
+                    && otherSchedule.Schedule.GetCalenderEvent().DTStart.LessThan( end ) )
+                {
+                    ClearRoomSelection( person, otherSchedule );
+                }
+            }
         }
 
         /// <summary>
@@ -802,6 +816,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                                 {
                                     LinkLocations( checkinPerson.Person, checkinGroup, checkinLocation );
                                 }
+                                RemoveOverlappingSchedules( checkinPerson.Person, locationSchedule );
                             }
                         }
                     }
@@ -857,21 +872,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 DeselectCulled();
             }
 
-            var volAttributeGuid = GetAttributeValue( "VolunteerGroupAttribute" );
-
-            if ( string.IsNullOrWhiteSpace( volAttributeGuid ) )
-            {
-                maAlert.Show( "Volunteer attribute not set.", ModalAlertType.Alert );
-                return;
-            }
-            var volAttributeKey = AttributeCache.Read( volAttributeGuid.AsGuid() ).Key;
-
-            List<int> volunteerGroupIds = CurrentCheckInState.Kiosk.KioskGroupTypes
-                .SelectMany( g => g.KioskGroups )
-                .Where( g => g.Group.GetAttributeValue( volAttributeKey ).AsBoolean() )
-                .Select( g => g.Group.Id ).ToList();
-
             var rockContext = new RockContext();
+
+            var volAttributeGuid = GetAttributeValue( "VolunteerGroupAttribute" ).AsGuid();
+            var volAttribute = AttributeCache.Read( volAttributeGuid );
+            AttributeValueService attributeValueService = new AttributeValueService( rockContext );
+            List<int> volunteerGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "True" ).Select( av => av.EntityId.Value ).ToList();
+
 
             //Test for overloaded rooms
             var overload = false;
@@ -899,7 +906,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                                      && a.EndDateTime == null
                                      && a.ScheduleId == schedule.Schedule.Id
                                      && a.LocationId == location.Location.Id
-                                     && a.CreatedDateTime >= Rock.RockDateTime.Today );
+                                     && a.StartDateTime >= Rock.RockDateTime.Today );
 
                                 if ( attendanceQry.Count() >= threshold )
                                 {
