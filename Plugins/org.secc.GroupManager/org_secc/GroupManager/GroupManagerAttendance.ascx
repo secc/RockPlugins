@@ -51,12 +51,12 @@
 
                     <div class="row">
                         <div class="col-sm-3">
-                            <Rock:RockLiteral ID="lOccurrenceDate" runat="server" Label="Attendance For" />
-                            <Rock:DatePicker ID="dpOccurrenceDate" runat="server" Label="Attendance For" Required="true" />
+                            <Rock:RockLiteral ID="lOccurrenceDate" runat="server" Label="Attendance Date" />
+                            <Rock:DatePicker ID="dpOccurrenceDate" runat="server" Label="Attendance Date" Required="true" />
                         </div>
                         <div class="col-sm-3">
-                            <Rock:RockLiteral ID="lOccurrenceTime" runat="server" Label=" " />
-                            <Rock:TimePicker ID="tpOccurrenceTime" runat="server" Required="true" Label=" " />
+                            <Rock:RockLiteral ID="lOccurrenceTime" runat="server" Label="Time" />
+                            <Rock:TimePicker ID="tpOccurrenceTime" runat="server" Required="true" Label="Time" />
                         </div>
                         <div class="col-sm-3">
                             <Rock:ButtonDropDownList runat="server" ID="ddlPastOccurrences" Label=" " Title="Previous Attendance" OnSelectionChanged="ddlPastOccurrences_SelectionChanged">
