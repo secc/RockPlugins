@@ -572,7 +572,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
         }
 
-        private void Checkout( int id )
+        private void Checkout(int id)
+        {
+            Checkout( id, false );
+        }
+
+        private void Checkout( int id, bool didAttend )
         {
             using ( RockContext _rockContext = new RockContext() )
             {
@@ -580,6 +585,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 var record = attendanceService.Get( id );
                 if ( record != null )
                 {
+                    record.DidAttend = didAttend;
                     record.EndDateTime = Rock.RockDateTime.Now;
                     _rockContext.SaveChanges();
                     KioskLocationAttendance.Flush( record.LocationId ?? 0 );
@@ -805,9 +811,11 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 newRecord.SearchTypeValue = null;
                 newRecord.LocationId = ddlMove.SelectedValue.AsInteger();
                 attendanceService.Add( newRecord );
+                attendanceRecord.DidAttend = false;
                 _rockContext.SaveChanges();
                 KioskLocationAttendance.AddAttendance( newRecord );
                 KioskLocationAttendance.Flush( attendanceRecord.LocationId ?? 0 );
+                KioskLocationAttendance.Flush( newRecord.Location.Id );
             }
             BindTable();
             RebuildModal();
