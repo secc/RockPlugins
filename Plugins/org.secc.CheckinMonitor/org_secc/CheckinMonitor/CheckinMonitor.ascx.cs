@@ -62,11 +62,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 return;
             }
 
-            if ( IsUserAuthorized( Authorization.ADMINISTRATE ) )
-            {
-                btnFlush.Visible = true;
-            }
-
             using ( RockContext _rockContext = new RockContext() )
             {
 
@@ -884,7 +879,13 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected void btnRefresh_Click( object sender, EventArgs e )
         {
-            //This is an empty function because we just need to reload the page
+            ViewState["LocationRatios"] = null;
+            KioskDevice.FlushAll();
+            foreach ( var locationId in kioskCountUtility.GroupLocationSchedules.Select( gls => gls.GroupLocation.LocationId ).Distinct() )
+            {
+                KioskLocationAttendance.Flush( locationId );
+            }
+            BindTable();
         }
 
         protected void mdLocation_SaveClick( object sender, EventArgs e )
@@ -1096,17 +1097,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 CloseOccurrence( gls.GroupLocation.Id, scheduleId, false );
             }
             mdConfirmClose.Hide();
-            BindTable();
-        }
-
-        protected void btnFlush_Click( object sender, EventArgs e )
-        {
-            ViewState["LocationRatios"] = null;
-            KioskDevice.FlushAll();
-            foreach ( var locationId in kioskCountUtility.GroupLocationSchedules.Select( gls => gls.GroupLocation.LocationId ).Distinct() )
-            {
-                KioskLocationAttendance.Flush( locationId );
-            }
             BindTable();
         }
     }
