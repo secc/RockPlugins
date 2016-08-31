@@ -105,9 +105,9 @@
         <asp:Panel ID="pnlMain" runat="server">
             <asp:Literal ID="ltTitle" runat="server" />
 
-            <Rock:BootstrapButton runat="server" Text="Membership List" CssClass="btn btn-primary hidden-print" ID="btnMembership" OnClick="btnMembership_Click" />
+            <Rock:BootstrapButton runat="server" Text="Member List" CssClass="btn btn-primary hidden-print" ID="btnMembership" OnClick="btnMembership_Click" />
             <Rock:BootstrapButton runat="server" Text="Roster" ID="btnRoster" CssClass="btn btn-default hidden-print" OnClick="btnRoster_Click" />
-            <asp:LinkButton runat="server" Text="Print Attendance Sheet" ID="btnPrint" CssClass="btn btn-success pull-right hidden-print" OnClientClick="window.print()"></asp:LinkButton>
+            <asp:LinkButton runat="server" Text="Print Attendance" ID="btnPrint" CssClass="btn btn-success pull-right hidden-print" OnClientClick="window.print()"></asp:LinkButton>
             <hr>
 
             <asp:Panel runat="server" ID="pnlMembership">
