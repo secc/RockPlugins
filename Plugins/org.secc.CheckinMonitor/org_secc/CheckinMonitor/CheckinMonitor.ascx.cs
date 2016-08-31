@@ -45,6 +45,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             if ( !Page.IsPostBack )
             {
+                ViewState["MinimizedGroupTypes"] = new List<int>();
                 BindDropDown();
                 ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
             }
@@ -59,11 +60,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 NavigateToHomePage();
                 return;
-            }
-
-            if ( IsUserAuthorized( Authorization.ADMINISTRATE ) )
-            {
-                btnFlush.Visible = true;
             }
 
             using ( RockContext _rockContext = new RockContext() )
@@ -135,7 +131,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 }
             }
 
-
             var groupLocationSchedules = kioskCountUtility.GroupLocationSchedules;
 
             //Remove duplicates to prevent collisions
@@ -155,9 +150,22 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             foreach ( var groupType in kioskCountUtility.GroupTypes.OrderBy( gt => gt.Order ).ToList() )
             {
-                Literal ltGt = new Literal();
-                ltGt.Text = "<br><b>" + groupType.Name + "</b>";
-                phContent.Controls.Add( ltGt );
+                if ( ViewState["MinimizedGroupTypes"] != null
+                    && ( ( List<int> ) ViewState["MinimizedGroupTypes"] ).Contains( groupType.Id ) )
+                {
+                    LinkButton lbMaximize = new LinkButton();
+                    lbMaximize.ID = "max" + groupType.Id.ToString();
+                    lbMaximize.Text = string.Format( "<br><i class='fa fa-plus-square'></i> <b>{0}</b>", groupType.Name );
+                    lbMaximize.Click += ( s, e ) => MaximizeGroupType( groupType.Id ); 
+                    phContent.Controls.Add( lbMaximize );
+                    continue;
+                }
+
+                LinkButton lbMinimize = new LinkButton();
+                lbMinimize.ID = "min" + groupType.Id.ToString();
+                lbMinimize.Text = string.Format( "<br> <i class='fa fa-minus-square'></i> <b>{0}</b>", groupType.Name );
+                lbMinimize.Click += ( s, e ) => MinimizeGroupType( groupType.Id );
+                phContent.Controls.Add( lbMinimize );
                 Table table = new Table();
                 table.CssClass = "table";
                 table.Style.Add( "margin-bottom", "10px" );
@@ -329,6 +337,36 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     }
                 }
             }
+        }
+
+        private void MinimizeGroupType( int groupTypeId )
+        {
+            if ( ViewState["MinimizedGroupTypes"] == null )
+            {
+                ViewState["MinimizedGroupTypes"] = new List<int>();
+            }
+            var minimizedGroupTypes = ( List<int> ) ViewState["MinimizedGroupTypes"];
+            if ( !minimizedGroupTypes.Contains( groupTypeId ) )
+            {
+                minimizedGroupTypes.Add( groupTypeId );
+            }
+            ViewState["MinimizedGroupTypes"] = minimizedGroupTypes;
+            BindTable();
+        }
+
+        private void MaximizeGroupType( int groupTypeId )
+        {
+            if ( ViewState["MinimizedGroupTypes"] == null )
+            {
+                ViewState["MinimizedGroupTypes"] = new List<int>();
+            }
+            var minimizedGroupTypes = ( List<int> ) ViewState["MinimizedGroupTypes"];
+            while ( minimizedGroupTypes.Contains( groupTypeId ) )
+            {
+                minimizedGroupTypes.Remove( groupTypeId );
+            }
+            ViewState["MinimizedGroupTypes"] = minimizedGroupTypes;
+            BindTable();
         }
 
         private void ShowLocationModal( Location location )
@@ -572,7 +610,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
         }
 
-        private void Checkout(int id)
+        private void Checkout( int id )
         {
             Checkout( id, false );
         }
@@ -841,7 +879,13 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected void btnRefresh_Click( object sender, EventArgs e )
         {
-            //This is an empty function because we just need to reload the page
+            ViewState["LocationRatios"] = null;
+            KioskDevice.FlushAll();
+            foreach ( var locationId in kioskCountUtility.GroupLocationSchedules.Select( gls => gls.GroupLocation.LocationId ).Distinct() )
+            {
+                KioskLocationAttendance.Flush( locationId );
+            }
+            BindTable();
         }
 
         protected void mdLocation_SaveClick( object sender, EventArgs e )
@@ -1053,17 +1097,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 CloseOccurrence( gls.GroupLocation.Id, scheduleId, false );
             }
             mdConfirmClose.Hide();
-            BindTable();
-        }
-
-        protected void btnFlush_Click( object sender, EventArgs e )
-        {
-            ViewState["LocationRatios"] = null;
-            KioskDevice.FlushAll();
-            foreach ( var locationId in kioskCountUtility.GroupLocationSchedules.Select( gls => gls.GroupLocation.LocationId ).Distinct() )
-            {
-                KioskLocationAttendance.Flush( locationId );
-            }
             BindTable();
         }
     }
