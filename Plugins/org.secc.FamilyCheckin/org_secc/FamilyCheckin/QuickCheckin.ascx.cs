@@ -113,6 +113,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 {
                     Session["CullStatus"] = CullStatus.None;
                 }
+
+                foreach (var person in CurrentCheckInState.CheckIn.CurrentFamily.People )
+                {
+                    person.Selected = false;
+                    SaveState();
+                }
+
             }
 
             if ( Session["CullStatus"] == null )
