@@ -855,7 +855,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             //Get info on home locations for later
             var homeAddressDv = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() );
-            double metersRange = Location.MetersPerMile * ddlRange.SelectedValueAsInt() ?? 0.0D;
+            double metersRange = Location.MetersPerMile * ddlRange.SelectedValue.AsDoubleOrNull() ?? 0.0D;
 
             var rockContext = new RockContext();
 
@@ -887,7 +887,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
 
             //Limit groups by distance from geopoint
-            if ( ddlRange.SelectedValue.AsInteger() != 0 )
+            if ( ddlRange.SelectedValue.AsDouble() != 0 )
             {
                 groupQry = groupQry.Where( g => g.GroupLocations.FirstOrDefault() != null
                     && g.GroupLocations.FirstOrDefault().Location.GeoPoint.Distance( searchLocation.GeoPoint ) <= metersRange );
@@ -1039,7 +1039,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
                 //Only show those in range.
                 groupLocations = groupLocations
-                    .Where( gl => distances.ContainsKey( gl.GroupId ) && distances[gl.GroupId] < Int32.Parse( ddlRange.SelectedValue ) && gl.Location.GeoPoint != null )
+                    .Where( gl => distances.ContainsKey( gl.GroupId ) && distances[gl.GroupId] < ddlRange.SelectedValue.AsDouble() && gl.Location.GeoPoint != null )
                     .ToList();
 
                 // If groups should be limited by a geofence
@@ -1361,7 +1361,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     Distance = distances.Where( d => d.Key == g.Id )
                         .Select( d => d.Value ).FirstOrDefault()
                 } )
-                .Where( a => a.Distance < ddlRange.SelectedValue.AsInteger() && distances.ContainsKey( a.Id ) )
+                .Where( a => a.Distance < ddlRange.SelectedValue.AsDouble() && distances.ContainsKey( a.Id ) )
                 .ToList();
                 gGroups.DataBind();
             }
@@ -1369,6 +1369,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 pnlGrid.Visible = false;
             }
+
+            var phoneType = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE );
 
             if ( families.Any() && GetAttributeValue( "ShowFamilyGrid" ).AsBoolean() )
             {
@@ -1384,13 +1386,13 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     CellPhone = f.Members
                         .Where( m => m.GroupMemberStatus == GroupMemberStatus.Active )
                         .Select( m => m.Person )
-                        .Where( p => p.PhoneNumbers.Where( pn => pn.IsMessagingEnabled ).Any() )
+                        .Where( p => p.PhoneNumbers.Where( pn => pn.NumberTypeValueId == phoneType.Id ).Any() )
                         .Any()
                         ?
                         f.Members
                         .Where( m => m.GroupMemberStatus == GroupMemberStatus.Active )
-                        .Select( m => m.Person ).Where( p => p.PhoneNumbers.Where( pn => pn.IsMessagingEnabled ).Any() )
-                        .Select( p => string.Format( "{0}: {1}", p.NickName, p.PhoneNumbers.Where( pn => pn.IsMessagingEnabled ).FirstOrDefault().NumberFormatted ) )
+                        .Select( m => m.Person ).Where( p => p.PhoneNumbers.Where( pn => pn.NumberTypeValueId == phoneType.Id ).Any() )
+                        .Select( p => string.Format( "{0}: {1}", p.NickName, p.PhoneNumbers.Where( pn => pn.NumberTypeValueId == phoneType.Id ).FirstOrDefault().NumberFormatted ) )
                         .Aggregate( ( current, next ) => current + ", " + next )
                         : "",
                     Email = f.Members
