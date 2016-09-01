@@ -131,7 +131,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
                 rockContext.SaveChanges();
 
-                Rock.CheckIn.KioskDevice.Flush( Kiosk.Id );
+                Rock.CheckIn.KioskDevice.FlushAll( );
 
                 NavigateToParentPage();
             }

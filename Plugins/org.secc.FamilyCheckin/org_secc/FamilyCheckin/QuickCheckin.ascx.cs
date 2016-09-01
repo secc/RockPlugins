@@ -54,7 +54,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 maAlert.Show( "LocationLink attribute not configured", ModalAlertType.Alert );
             }
 
-
             if ( !Page.IsPostBack )
             {
                 List<string> errors = new List<string>();

@@ -203,7 +203,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
                 rockContext.SaveChanges();
 
-                //Rock.CheckIn.KioskDevice.Flush( KioskType.Id );
+                Rock.CheckIn.KioskDevice.FlushAll();
 
                 NavigateToParentPage();
             }
@@ -494,7 +494,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 if ( children.Any() )
                 {
                     primaryGroupTypes.AddRange( children );
-                    foreach(var child in children )
+                    foreach ( var child in children )
                     {
                         if ( child.ChildGroupTypes.Any() )
                         {

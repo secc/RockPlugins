@@ -77,26 +77,30 @@
             families.style.transform="translateX(0px)";
             setTimeout(function(){ showSign("Sorry, we could not find your phone number.",false, "2vw")},300);
             return;
-        }else{
-            setTimeout(function(){ showSign("Select your family to continue.",false, "2.5vw")},300)
-
         }
-        var content = document.getElementById("contentDiv");
-        content.style.transform="translateX(800px)";
 
         familyDiv = $("#familyDiv");
-        familyDiv.empty();
-        families.forEach(
-            function(family){
-                var link = $("<a>");
-                link.html("<h2>"+family["Caption"] +"</h2>"+ family["SubCaption"]);
-                link.attr("id",family["Group"]["Id"]);
-                link.click(chooseFamily)
-                link.addClass("btn btn-primary btn-block familyButton");
-                familyDiv.append(link);
-            }
-        );
-        familyDiv.get(0).style.transform = "translateX(800px)";
+        if(families.length==1){
+            setTimeout(function(){ showSign("Loading your family",true, "2.5vw")},300);
+            __doPostBack("ChooseFamily", families[0]["Group"]["Id"]);
+        }
+        else{
+            var content = document.getElementById("contentDiv");
+            content.style.transform="translateX(800px)";
+            familyDiv.empty();
+            families.forEach(
+                function(family){
+                    var link = $("<a>");
+                    link.html("<h2>"+family["Caption"] +"</h2>"+ family["SubCaption"]);
+                    link.attr("id",family["Group"]["Id"]);
+                    link.click(chooseFamily)
+                    link.addClass("btn btn-primary btn-block familyButton");
+                    familyDiv.append(link);
+                }
+            );
+            setTimeout(function(){ showSign("Select your family to continue.",false, "2.5vw")},300)
+            familyDiv.get(0).style.transform = "translateX(800px)";
+        }
     }
 
     var chooseFamily = function(event){
@@ -284,7 +288,7 @@
 
                                     <asp:Panel ID="pnlSearchPhone" runat="server">
                                         <Rock:RockTextBox ID="tbPhone" MaxLength="10" CssClass="checkin-phone-entry" runat="server"
-                                            autocomplete="off" />
+                                            autocomplete="off" Enabled="false" />
                                         <div class="tenkey checkin-phone-keypad">
                                             <div>
                                                 <a href="#" class="btn btn-default btn-lg digit">1</a>

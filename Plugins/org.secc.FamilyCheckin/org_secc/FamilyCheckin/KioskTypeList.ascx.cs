@@ -111,7 +111,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 KioskTypeService.Delete( KioskType );
                 checkinContext.SaveChanges();
 
-                Rock.CheckIn.KioskDevice.Flush( kosktypeId );
+                Rock.CheckIn.KioskDevice.FlushAll();
             }
 
             BindGrid();

@@ -156,7 +156,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     LinkButton lbMaximize = new LinkButton();
                     lbMaximize.ID = "max" + groupType.Id.ToString();
                     lbMaximize.Text = string.Format( "<br><i class='fa fa-plus-square'></i> <b>{0}</b>", groupType.Name );
-                    lbMaximize.Click += ( s, e ) => MaximizeGroupType( groupType.Id ); 
+                    lbMaximize.Click += ( s, e ) => MaximizeGroupType( groupType.Id );
                     phContent.Controls.Add( lbMaximize );
                     continue;
                 }
@@ -695,7 +695,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         }
                     }
                     _rockContext.SaveChanges();
-                    Rock.CheckIn.KioskDevice.Flush( groupLocation.LocationId );
+                    Rock.CheckIn.KioskDevice.FlushAll();
                     KioskLocationAttendance.Flush( groupLocation.LocationId );
                 }
                 BindTable();
@@ -782,7 +782,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                             RecordGroupLocationSchedule( groupLocation, schedule );
                             groupLocation.Schedules.Remove( schedule );
                             _rockContext.SaveChanges();
-                            Rock.CheckIn.KioskDevice.Flush( groupLocation.Id );
+                            Rock.CheckIn.KioskDevice.FlushAll();
                             KioskLocationAttendance.Flush( groupLocation.Id );
                             if ( bindTable )
                             {
@@ -907,7 +907,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 _rockContext.SaveChanges();
                 mdLocation.Hide();
                 ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
-                Rock.CheckIn.KioskDevice.Flush( location.Id );
+                Rock.CheckIn.KioskDevice.FlushAll();
                 KioskLocationAttendance.Flush( location.Id );
             }
             ViewState["LocationRatios"] = null;
