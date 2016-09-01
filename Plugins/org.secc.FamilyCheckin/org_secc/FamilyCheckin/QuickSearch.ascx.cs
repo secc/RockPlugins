@@ -209,12 +209,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             // everytime the setting is set which is why the clearCountdown method is used to prevent 
             // a plethora of partial postbacks occurring when the countdown expires.
             string script = string.Format( @"
-
 var timeoutSeconds = $('.js-refresh-timer-seconds').val();
 if (timeout) {{
     window.clearTimeout(timeout);
 }}
-var timeout = window.setTimeout(refreshKiosk, timeoutSeconds * 1000);
+var timeout = window.setTimeout(refreshKiosk, timeoutSeconds * 100);
 
 var $ActiveWhen = $('.active-when');
 var $CountdownTimer = $('.countdown-timer');
@@ -223,8 +222,10 @@ function refreshKiosk() {{
     window.clearTimeout(timeout);
     var input = $('input[id$= \'tbPhone\']').get(0);
     if (input) {{
-        if (input.value.length<3) {{
+        if (input.value.length<1) {{
             {0};
+        }} else {{
+            timeout = window.setTimeout(refreshKiosk, timeoutSeconds * 100)
         }}
     }} else {{
         {0};

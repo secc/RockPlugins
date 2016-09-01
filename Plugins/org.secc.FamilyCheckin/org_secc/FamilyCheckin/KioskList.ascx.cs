@@ -36,9 +36,9 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     [Category( "SECC > Check-in" )]
     [Description( "Lists all the kiosks." )]
 
-    [LinkedPage("Detail Page")]
+    [LinkedPage( "Detail Page" )]
     public partial class KioskList : RockBlock
-    { 
+    {
         #region Control Methods
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         {
             base.OnInit( e );
 
-            
+
             gKiosks.DataKeyNames = new string[] { "Id" };
             gKiosks.Actions.ShowAdd = true;
             gKiosks.Actions.AddClick += gKiosk_Add;
@@ -90,7 +90,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             NavigateToLinkedPage( "DetailPage", "KioskId", e.RowKeyId );
         }
 
-       
+
         protected void gKiosk_Delete( object sender, RowEventArgs e )
         {
             var rockContext = new RockContext();
@@ -111,7 +111,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 KioskService.Delete( Kiosk );
                 rockContext.SaveChanges();
 
-                Rock.CheckIn.KioskDevice.Flush( kioskId );
+                Rock.CheckIn.KioskDevice.FlushAll();
             }
 
             BindGrid();
