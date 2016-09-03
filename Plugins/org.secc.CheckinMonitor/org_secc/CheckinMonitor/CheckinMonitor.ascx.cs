@@ -448,7 +448,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 var current = new List<Attendance>();
                 current.AddRange( currentVolunteers );
                 current.AddRange( currentChildren );
-                var reserved = data.Where( a => a.DidAttend != true ).ToList();
+                var reserved = data.Where( a => a.DidAttend != true && a.EndDateTime == null ).ToList();
                 var history = data.Where( a => a.DidAttend == true && a.EndDateTime != null ).ToList();
 
                 if ( !data.Any() )
@@ -835,7 +835,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 foreach ( var record in currentRecords )
                 {
                     record.EndDateTime = Rock.RockDateTime.Now;
+                    record.DidAttend = false;
                 }
+                var newLocationId = ddlMove.SelectedValue.AsInteger();
 
                 //Create a new attendance record
                 Attendance newRecord = ( Attendance ) attendanceRecord.Clone();
@@ -847,13 +849,13 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 newRecord.DidAttend = true;
                 newRecord.Device = null;
                 newRecord.SearchTypeValue = null;
-                newRecord.LocationId = ddlMove.SelectedValue.AsInteger();
+                newRecord.LocationId = newLocationId;
                 attendanceService.Add( newRecord );
                 attendanceRecord.DidAttend = false;
                 _rockContext.SaveChanges();
                 KioskLocationAttendance.AddAttendance( newRecord );
                 KioskLocationAttendance.Flush( attendanceRecord.LocationId ?? 0 );
-                KioskLocationAttendance.Flush( newRecord.Location.Id );
+                KioskLocationAttendance.Flush( newLocationId );
             }
             BindTable();
             RebuildModal();
