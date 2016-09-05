@@ -198,7 +198,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     }
                     else
                     {
-                        thcRatio.Text = "[No selected schedues]";
+                        thcRatio.Text = "[No selected schedules]";
                     }
                     thcRatio.Style.Add( "width", "20%" );
                     thr.Controls.Add( thcRatio );
