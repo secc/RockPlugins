@@ -82,7 +82,7 @@
       <Project>{cb9372cd-9c1d-47ab-92d8-702d4d68324f}</Project>
       <Name>DotLiquid</Name>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Rock\Rock.SignNow\Rock.SignNow.csproj">
+    <ProjectReference Include="..\..\..\Rock\Rock.SignNow\Rock.SignNow.csproj">
       <Project>{1F5956F2-2B0F-49B8-AAF1-2CC28F01426A}</Project>
       <Name>Rock.SignNow</Name>
     </ProjectReference>
