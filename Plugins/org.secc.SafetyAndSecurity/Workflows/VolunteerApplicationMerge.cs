@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
@@ -8,9 +7,6 @@ using Rock.Data;
 using Rock.Model;
 using Rock.Workflow;
 using Rock.Attribute;
-using System.Text.RegularExpressions;
-using System.Text;
-using Rock.Security;
 using iTextSharp.text.pdf;
 using System.IO;
 using Rock.Web.Cache;
@@ -38,6 +34,10 @@ namespace org.secc.SafetyAndSecurity
             LocationService locationService = new LocationService( rockContext );
             Location currentMailingAddress = locationService.Get( action.Activity.Workflow.GetAttributeValue( "CurrentMailingAddress" ).AsGuid() );
             Location previousMailingAddress = locationService.Get( action.Activity.Workflow.GetAttributeValue( "PreviousMailingAddress" ).AsGuid() );
+            if ( previousMailingAddress == null)
+            {
+                previousMailingAddress = new Location();
+            }
             Location reference1Address = locationService.Get( action.Activity.Workflow.GetAttributeValue( "Reference1Address" ).AsGuid() );
             Location reference2Address = locationService.Get( action.Activity.Workflow.GetAttributeValue( "Reference2Address" ).AsGuid() );
             Location reference3Address = locationService.Get( action.Activity.Workflow.GetAttributeValue( "Reference3Address" ).AsGuid() );
@@ -45,8 +45,7 @@ namespace org.secc.SafetyAndSecurity
 
             Dictionary<string, string> fields = new Dictionary<string, string>()
                 {
-				    //TODO Add ministry
-				    {"ministryOfInterest", action.Activity.Workflow.GetAttributeValue("") },
+				    {"ministryOfInterest", action.Activity.Workflow.GetAttributeValue("MinistryOfInterest") },
                     {"intPersonID", person.Id.ToString()},
 
                     {"txtLastName", action.Activity.Workflow.GetAttributeValue("LastName")},
@@ -55,7 +54,7 @@ namespace org.secc.SafetyAndSecurity
                     {"txtMaidenOtherName", action.Activity.Workflow.GetAttributeValue("MaidenOtherNames")},
                     {"txtParent", action.Activity.Workflow.GetAttributeValue("")},
 
-                    {"txtDateOfBirth", action.Activity.Workflow.GetAttributeValue("DateofBirth")},
+                    {"txtDateOfBirth", action.Activity.Workflow.GetAttributeValue("DateofBirth").AsDateTime().Value.ToShortDateString()},
 				    //{"txtSSN", action.Activity.Workflow.GetAttributeValue("")},
 				    {"radGender", action.Activity.Workflow.GetAttributeValue("")},
                     {"radMale", action.Activity.Workflow.GetAttributeValue("Gender") == "Male"?"Yes":"No" },
@@ -138,10 +137,10 @@ namespace org.secc.SafetyAndSecurity
                     {"txtRef4Name", action.Activity.Workflow.GetAttributeValue("Reference4Name")},
                     //{"txtRef4Relationship", action.Activity.Workflow.GetAttributeValue("")},
 				    {"radRef4YearsKnow", action.Activity.Workflow.GetAttributeValue("Reference4YearsKnown")},
-                    {"txtRef4Address", reference3Address.Street1},
-                    {"txtRef4City", reference3Address.City},
-                    {"txtRef4State", reference3Address.State},
-                    {"txtRef4Zip", reference3Address.PostalCode},
+                    {"txtRef4Address", reference4Address.Street1},
+                    {"txtRef4City", reference4Address.City},
+                    {"txtRef4State", reference4Address.State},
+                    {"txtRef4Zip", reference4Address.PostalCode},
 				    //{"txtRef4PersPhone", action.Activity.Workflow.GetAttributeValue("")},
 				    //{"txtRef4PersPhoneTime", action.Activity.Workflow.GetAttributeValue("")},
 				    {"txtRef4WorkPhone", action.Activity.Workflow.GetAttributeValue("Reference4WorkPhone")},
@@ -152,7 +151,7 @@ namespace org.secc.SafetyAndSecurity
                 
                     //{"txtPhysLimitations", action.Activity.Workflow.GetAttributeValue("")},
                     {"txtPhysLimitations",  action.Activity.Workflow.GetAttributeValue("PhysicalLimitationsExplanation") },
-                    {"txtPhysLimitationsPDF", action.Activity.Workflow.GetAttributeValue("PhysicalLimitations")},
+                    {"txtPhysLimitationsPDF", action.Activity.Workflow.GetAttributeValue("PhysicalLimitationsExplanation")},
                     {"radPhysLimitationsPDFYes", action.Activity.Workflow.GetAttributeValue("PhysicalLimitations").AsBoolean()?"Yes":"No" },
                     {"radPhysLimitationsPDFNo", action.Activity.Workflow.GetAttributeValue("PhysicalLimitations").AsBoolean()?"No":"Yes" },
                     {"radCrimePersons", action.Activity.Workflow.GetAttributeValue("Crime").AsBoolean()?"Yes":"No" },
@@ -167,13 +166,19 @@ namespace org.secc.SafetyAndSecurity
                     {"radNeedsStaffContactPDFNo", action.Activity.Workflow.GetAttributeValue("Contact").AsBoolean()?"No":"Yes" },
                     {"personDetailPage", GlobalAttributesCache.Value("InternalApplicationRoot") + "/Person/" + person.Id },
 
-                    {"txtSOFDated", DateTime.Now.ToString(@"MM\/dd\/yyyy HH:mm") },
+                    {"txtAppSigned", "{{t:s;r:y;o:\"Applicant\";}}" },
+                    {"txtAppDated", "{{t:t;r:y;o:\"Applicant\";l:\"Date\";}}" },
+                    {"txtAppPrintedName", person.FullNameFormal },
+
+                    {"txtSOFSigned", "{{t:s;r:n;o:\"Applicant\";}}" },
+                    {"txtSOFDated", "{{t:t;r:n;o:\"Applicant\";l:\"Date\";}}" },
                     {"txtSOFPrintedName", person.FullNameFormal },
+
                     {"radReadSOFYes", action.Activity.Workflow.GetAttributeValue("ReadStatementOfFaith").AsBoolean()?"Yes":"No" },
                     {"radReadSOFNo", action.Activity.Workflow.GetAttributeValue("ReadStatementOfFaith").AsBoolean()?"No":"Yes" },
                     {"radAgreeSOFYes", action.Activity.Workflow.GetAttributeValue("AgreeStatementOfFaith").AsBoolean()?"Yes":"No" },
                     {"radAgreeSOFNo", action.Activity.Workflow.GetAttributeValue("AgreeStatementOfFaith").AsBoolean()?"No":"Yes" },
-                    {"txtSOFCommentsAmendments", action.Activity.Workflow.GetAttributeValue("CommentsStatementOfFaith") },
+                    {"txtSOFCommentsAmendments", String.IsNullOrEmpty(action.Activity.Workflow.GetAttributeValue("CommentsStatementOfFaith"))?" ":action.Activity.Workflow.GetAttributeValue("CommentsStatementOfFaith") },
                 };
 
             BinaryFileService binaryFileService = new BinaryFileService( rockContext );
@@ -195,14 +200,13 @@ namespace org.secc.SafetyAndSecurity
 
                 // flatten the form to remove editting options, set it to false
                 // to leave the form open to subsequent manual edits
-                pdfStamper.FormFlattening = false;
+                pdfStamper.FormFlattening = true;
 
                 // close the pdf
                 pdfStamper.Close();
                 //pdfReader.Close();
                 pdfStamper.Dispose();
                 pdfStamper = null;
-
 
                 BinaryFile renderedPDF = new BinaryFile();
                 renderedPDF.CopyPropertiesFrom( adultPDF );
