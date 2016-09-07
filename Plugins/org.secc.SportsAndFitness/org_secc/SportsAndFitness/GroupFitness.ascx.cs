@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text.RegularExpressions;
 using System.Linq;
 
 using Rock;
@@ -12,13 +11,9 @@ using Rock.Web.Cache;
 using System.Web.UI.WebControls;
 using System.Web.UI;
 using Rock.Model;
-using System.Reflection;
-using System.Web.UI.HtmlControls;
-using System.Text;
-using System.Net.Sockets;
-using System.Net;
 using Rock.Data;
 using org.secc.FamilyCheckin.Utilities;
+using System.Data.Entity;
 
 namespace RockWeb.Plugins.org_secc.SportsAndFitness
 {
@@ -27,8 +22,8 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
     [Description( "Block to check into group fitness." )]
     [TextField( "Process Activity", "Action to search", true, "Process" )]
     [TextField( "Checkin Activity", "Activity for completing checkin.", true, "Checkin" )]
-    [AttributeField( Rock.SystemGuid.EntityType.GROUP_MEMBER, "Sessions Attribute", "Select the attribute used to filter by number of sessions.", true, false, order: 3 )]
-    [GroupField( "Group Fitness Group", "Group that group fitness members are in. Needed for reading the number of sessions left.", true )]
+    [TextField( "Sessions Attribute Key", "Attribute key which contains the session count", true, "Sessions" )]
+    [GroupField( "Group Fitness Parent Group", "Group which contains all group fitness groups. Needed for reading the number of sessions left.", true )]
     [IntegerField( "Minimum Digits", "Minimum number of digits required.", true, 7 )]
 
     public partial class GroupFitness : CheckInBlock
@@ -39,6 +34,11 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
 
         private List<GroupTypeCache> parentGroupTypesList;
         private GroupTypeCache currentParentGroupType;
+
+        /// <summary>
+        /// Raises the <see cref="E:System.Web.UI.Control.Init" /> event.
+        /// </summary>
+        /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
@@ -49,6 +49,10 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             _rockContext = new RockContext();
         }
 
+        /// <summary>
+        /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
+        /// </summary>
+        /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
@@ -59,13 +63,8 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                 return;
             }
 
-            var groupSessionsAttributeGuid = GetAttributeValue( "SessionsAttribute" ).AsGuid();
-            if ( groupSessionsAttributeGuid != Guid.Empty )
-            {
-                _groupSessionsKey = AttributeCache.Read( groupSessionsAttributeGuid, _rockContext ).Key;
-            }
+            _groupSessionsKey = GetAttributeValue( "SessionsAttributeKey" );
 
-            nbNotOpen.Visible = false;
             btnCheckin.Visible = false;
 
             if ( !Page.IsPostBack )
@@ -91,8 +90,11 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             }
         }
 
-
-
+        /// <summary>
+        /// Search button handler
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         protected void lbSearch_Click( object sender, EventArgs e )
         {
             if ( CurrentCheckInState == null )
@@ -158,6 +160,9 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
 
         }
 
+        /// <summary>
+        /// Generates a dynamic list of people to be selected as the check-in person
+        /// </summary>
         private void ShowPeopleList()
         {
             pnlMessage.Visible = false;
@@ -199,14 +204,18 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             phPeople.Controls.Add( btnCancel );
         }
 
+        /// <summary>
+        /// Runs the process workflow and generated the dynamic controls
+        /// </summary>
         private void ShowPersonCheckin()
         {
+            phClasses.Controls.Clear();
+
             if ( CurrentCheckInState == null )
             {
                 NavigateToPreviousPage();
                 return;
             }
-
 
             pnlNotFound.Visible = false;
             pnlSearch.Visible = false;
@@ -218,19 +227,10 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                 return;
             }
             ltNickName.Text = person.Person.NickName;
-            var group = GetMembershipGroup();
-            var groupMember = new GroupMemberService( _rockContext ).GetByGroupIdAndPersonId( group.Id, person.Person.Id ).FirstOrDefault();
-            if ( groupMember == null )
+            var groups = GetMembershipGroups();
+            if ( !groups.Any() )
             {
-                ShowPersonNotFound();
-                return;
-            }
-            groupMember.LoadAttributes();
-            int sessions = groupMember.GetAttributeValue( _groupSessionsKey ).AsInteger();
-            ltSessions.Text = sessions.ToString();
-
-            if ( sessions == 0 )
-            {
+                maError.Show( "No group fitness groups found.", ModalAlertType.Warning );
                 return;
             }
 
@@ -245,53 +245,110 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                 Response.End();
                 return;
             }
-            //This is a cheat to know if any groups are active and display a no active message if not.
-            var checkinCount = 0;
 
-            phClasses.Controls.Clear();
-
-            foreach ( var groupType in person.GroupTypes )
+            GroupMemberService groupMemberService = new GroupMemberService( _rockContext );
+            int groupCount = 0;
+            int checkinCount = 0;
+            foreach ( var group in groups )
             {
-                foreach ( var chGroup in groupType.Groups )
+                var groupMember = new GroupMemberService( _rockContext ).GetByGroupIdAndPersonId( group.Id, person.Person.Id ).FirstOrDefault();
+                if ( groupMember != null )
                 {
-                    foreach ( var location in chGroup.Locations )
+                    Panel pnlWell = new Panel();
+                    pnlWell.CssClass = "well";
+                    phClasses.Controls.Add( pnlWell );
+
+                    groupMember.LoadAttributes();
+                    int sessions = groupMember.GetAttributeValue( _groupSessionsKey ).AsInteger();
+                    if ( sessions > 0 )
                     {
-                        foreach ( var schedule in location.Schedules )
+                        var checkinGroups = CurrentCheckInState.CheckIn.CurrentPerson
+                            .GroupTypes.SelectMany( gt => gt.Groups )
+                            .Where( g => g.Group.GetAttributeValue( "Group" ).AsGuid() == group.Guid )
+                            .ToList();
+                        if ( checkinGroups.Any() )
                         {
-                            Panel pnlClass = new Panel();
-                            pnlClass.Style.Add( "margin", "5px" );
-                            phClasses.Controls.Add( pnlClass );
+                            Literal sessionCount = new Literal();
+                            sessionCount.Text = string.Format( "<h2>You have {0} {1} sessions remaining</h2>", sessions, group.Name );
+                            pnlWell.Controls.Add( sessionCount );
 
-                            BootstrapButton btnSelect = new BootstrapButton();
-                            if ( schedule.Selected )
+                            foreach ( var chGroup in checkinGroups )
                             {
-                                btnSelect.Text = "<i class='fa fa-check-square-o'></i>";
-                                btnSelect.CssClass = "btn btn-success btn-lg";
-                            }
-                            else
-                            {
-                                btnSelect.Text = "<i class='fa fa-square-o'></i>";
-                                btnSelect.CssClass = "btn btn-default btn-lg";
-                            }
-                            btnSelect.ID = "s" + chGroup.Group.Id.ToString() + location.Location.Id.ToString() + schedule.Schedule.Id.ToString();
-                            btnSelect.Click += ( s, e ) => { ToggleClass( chGroup, location, schedule, schedule.Selected ); };
-                            pnlClass.Controls.Add( btnSelect );
+                                foreach ( var location in chGroup.Locations )
+                                {
+                                    foreach ( var schedule in location.Schedules )
+                                    {
+                                        Panel pnlClass = new Panel();
+                                        pnlClass.Style.Add( "margin", "5px" );
+                                        pnlWell.Controls.Add( pnlClass );
 
-                            Literal ltClassName = new Literal();
-                            ltClassName.Text = " " + chGroup.Group.Name + ": " + schedule.Schedule.Name + " in " + location.Location.Name;
-                            pnlClass.Controls.Add( ltClassName );
-                            checkinCount++;
+                                        BootstrapButton btnSelect = new BootstrapButton();
+                                        if ( schedule.Selected )
+                                        {
+                                            btnSelect.Text = "<i class='fa fa-check-square-o'></i>";
+                                            btnSelect.CssClass = "btn btn-success btn-lg";
+                                        }
+                                        else
+                                        {
+                                            btnSelect.Text = "<i class='fa fa-square-o'></i>";
+                                            btnSelect.CssClass = "btn btn-default btn-lg";
+                                        }
+                                        btnSelect.ID = "s" + chGroup.Group.Id.ToString() + location.Location.Id.ToString() + schedule.Schedule.Id.ToString();
+                                        btnSelect.Click += ( s, e ) => { ToggleClass( chGroup, location, schedule, schedule.Selected ); };
+                                        pnlWell.Controls.Add( btnSelect );
+
+                                        Literal ltClassName = new Literal();
+                                        ltClassName.Text = string.Format( "<span class='classText'> {0}: {1} in {2}</span>",
+                                            chGroup.Group.Name,
+                                            schedule.Schedule.Name,
+                                            location.Location.Name );
+                                        pnlWell.Controls.Add( ltClassName );
+                                        checkinCount++;
+                                    }
+                                }
+                            }
                         }
+                        else
+                        {
+                            Literal ltNoActiveSessions = new Literal();
+                            ltNoActiveSessions.Text = string.Format( "<h2>You have {0} {1} sessions remaining, but there are no active check-ins.</h2>", sessions, group.Name );
+                            pnlWell.Controls.Add( ltNoActiveSessions );
+                        }
+
                     }
+                    else
+                    {
+                        Literal ltNoSessions = new Literal();
+                        ltNoSessions.Text = string.Format( "<h2>You have no {0} sessions remaining</h2>", group.Name );
+                        pnlWell.Controls.Add( ltNoSessions );
+                    }
+                    groupCount++;
                 }
             }
+
+            //If the person is not a member of any fitness groups don't show a not found 
+            if ( groupCount == 0 )
+            {
+                ShowPersonNotFound();
+                StartTimeout();
+                return;
+            }
+
+            //If the person does not have any groups to check into send them back after a time
             if ( checkinCount == 0 )
             {
-                nbNotOpen.Visible = true;
+                StartTimeout();
             }
             StartTimeout();
         }
 
+        /// <summary>
+        /// Toggles on or off one check-in GroupLocationSchedule (it will deselct others)
+        /// </summary>
+        /// <param name="chGroup">Checkin Group</param>
+        /// <param name="chLocation">Checkin Location</param>
+        /// <param name="chSchedule">Checkin Schedule</param>
+        /// <param name="alreadySelected">Is the Group Location Schedule already selected</param>
         private void ToggleClass( CheckInGroup chGroup, CheckInLocation chLocation, CheckInSchedule chSchedule, bool alreadySelected )
         {
             foreach ( var groupType in CurrentCheckInState.CheckIn.CurrentPerson.GroupTypes )
@@ -321,6 +378,9 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             ShowPersonCheckin();
         }
 
+        /// <summary>
+        /// Hides all other pannels and shows person not found pannel
+        /// </summary>
         private void ShowPersonNotFound()
         {
             StartTimeout();
@@ -329,23 +389,42 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             pnlNotFound.Visible = true;
         }
 
+        /// <summary>
+        /// Handler for refresh timer
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         protected void Timer1_Tick( object sender, EventArgs e )
         {
 
         }
 
-        private Rock.Model.Group GetMembershipGroup()
+        /// <summary>
+        /// Gets a list of all fitness groups
+        /// </summary>
+        /// <returns>List of fitness groups</returns>
+        private List<Group> GetMembershipGroups()
         {
-            string membershipGroupGuid = null;
-            membershipGroupGuid = GetAttributeValue( "GroupFitnessGroup" );
-            if ( string.IsNullOrWhiteSpace( membershipGroupGuid ) )
+            string parentGroupGuid = null;
+            parentGroupGuid = GetAttributeValue( "GroupFitnessParentGroup" );
+            if ( string.IsNullOrWhiteSpace( parentGroupGuid ) )
             {
-                return null;
+                return new List<Group>();
             }
-            var membershipGroup = new GroupService( _rockContext ).Get( membershipGroupGuid.AsGuid() );
-            return membershipGroup;
+            GroupService groupService = new GroupService( _rockContext );
+            var parentGroup = groupService.Get( parentGroupGuid.AsGuid() );
+            if ( parentGroup != null )
+            {
+                return groupService.Queryable().AsNoTracking().Where( g => g.ParentGroupId == parentGroup.Id ).ToList();
+            }
+            return new List<Group>();
         }
 
+        /// <summary>
+        /// Handler for cancel button
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         protected void btnCancel_Click( object sender, EventArgs e )
         {
             if ( CurrentCheckInState == null )
@@ -365,6 +444,11 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             phPeople.Controls.Clear();
         }
 
+        /// <summary>
+        /// Handler for checkin button.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         protected void btnCheckin_Click( object sender, EventArgs e )
         {
             StopTimeout();
@@ -375,6 +459,10 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             pnlCheckin.Visible = false;
             pnlDone.Visible = true;
         }
+
+        /// <summary>
+        /// Generates labels and attaches appropriate scripts to print labels client side
+        /// </summary>
         private void ProcessLabels()
         {
             LabelPrinter labelPrinter = new LabelPrinter( CurrentCheckInState, Request );
@@ -384,17 +472,22 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "addLabelScript", script, true );
         }
 
+        /// <summary>
+        /// Registers script to update page
+        /// </summary>
         private void StartTimeout()
         {
             var script = "startTimeout()";
             ScriptManager.RegisterClientScriptBlock( upContent, upContent.GetType(), "StartTimeout", script, true );
         }
 
+        /// <summary>
+        /// Registers script that stops script that updates page
+        /// </summary>
         private void StopTimeout()
         {
             var script = "stopTimeout()";
             ScriptManager.RegisterClientScriptBlock( upContent, upContent.GetType(), "StopTimeout", script, true );
         }
-
     }
 }

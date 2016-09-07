@@ -1,20 +1,4 @@
-﻿// <copyright>
-// Copyright by the Spark Development Network
-//
-// Licensed under the Rock Community License (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.rockrms.com/license
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
-//
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
@@ -29,14 +13,14 @@ using Rock.Web.Cache;
 namespace Rock.Workflow.Action.CheckIn
 {
     /// <summary>
-    /// Saves the selected check-in data as attendance
+    /// Saves the selected check-in data as attendance and removes session credits
     /// </summary>
     [ActionCategory( "SECC > Check-In" )]
     [Description( "Saves the selected check-in data as attendance and removes 1 session" )]
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Save Attendance And Remove Session" )]
-    [GroupField( "Group Fitness Group", "Group that group fitness members are in. Needed for reading the number of sessions left.", true )]
-    [AttributeField( Rock.SystemGuid.EntityType.GROUP_MEMBER, "Sessions Attribute", "Select the attribute used to filter by number of sessions.", true, false, order: 3 )]
+    [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Checkin Group Attribute", "Group attribute which contains the group to check-in against." )]
+    [TextField( "Session Attribute Key", "Key name of the group which contains the session count.", true, "Sessions" )]
     public class SaveAttendanceAndRemoveSession : CheckInActionComponent
     {
         /// <summary>
@@ -53,19 +37,14 @@ namespace Rock.Workflow.Action.CheckIn
             var checkInState = GetCheckInState( entity, out errorMessages );
             if ( checkInState != null )
             {
-                var groupSessionsAttributeGuid = GetAttributeValue( action, "SessionsAttribute" ).AsGuid();
-                if ( groupSessionsAttributeGuid == Guid.Empty )
+                Guid checkinGroupAttributeGuid = GetAttributeValue( action, "CheckinGroupAttribute" ).AsGuid();
+                if ( checkinGroupAttributeGuid == Guid.Empty )
                 {
-                    return false;
+                    throw new Exception( "CheckInGroupAttribute not set. Set attribute to continue." );
                 }
-                var groupSessionsKey = AttributeCache.Read( groupSessionsAttributeGuid, rockContext ).Key;
+                string checkinGroupAttributeKey = AttributeCache.Read( checkinGroupAttributeGuid, rockContext ).Key;
 
-                string membershipGroupGuid = GetAttributeValue( action, "GroupFitnessGroup" );
-                if ( string.IsNullOrWhiteSpace( membershipGroupGuid ) )
-                {
-                    return false;
-                }
-                var membershipGroup = new GroupService( rockContext ).Get( membershipGroupGuid.AsGuid() );
+                string sessionAttributeKey = GetAttributeValue( action, "SessionAttributeKey" );
 
                 AttendanceCode attendanceCode = null;
                 DateTime startDateTime = RockDateTime.Now;
@@ -73,10 +52,11 @@ namespace Rock.Workflow.Action.CheckIn
                 bool reuseCodeForFamily = checkInState.CheckInType != null && checkInState.CheckInType.ReuseSameCode;
                 int securityCodeLength = checkInState.CheckInType != null ? checkInState.CheckInType.SecurityCodeLength : 3;
 
-                var attendanceCodeService = new AttendanceCodeService( rockContext );
-                var attendanceService = new AttendanceService( rockContext );
-                var groupMemberService = new GroupMemberService( rockContext );
-                var personAliasService = new PersonAliasService( rockContext );
+                AttendanceCodeService attendanceCodeService = new AttendanceCodeService( rockContext );
+                AttendanceService attendanceService = new AttendanceService( rockContext );
+                GroupMemberService groupMemberService = new GroupMemberService( rockContext );
+                PersonAliasService personAliasService = new PersonAliasService( rockContext );
+                GroupService groupService = new GroupService( rockContext );
 
                 var family = checkInState.CheckIn.CurrentFamily;
                 if ( family != null )
@@ -93,28 +73,25 @@ namespace Rock.Workflow.Action.CheckIn
                             person.SecurityCode = attendanceCode.Code;
                         }
 
-                        var fitnessGroupMember = new GroupMemberService( rockContext ).GetByGroupIdAndPersonId( membershipGroup.Id, person.Person.Id ).FirstOrDefault();
-                        if ( fitnessGroupMember == null )
-                        {
-                            return false;
-                        }
-                        fitnessGroupMember.LoadAttributes();
-                        int sessions = fitnessGroupMember.GetAttributeValue( groupSessionsKey ).AsInteger();
-
                         foreach ( var groupType in person.GetGroupTypes( true ) )
                         {
                             foreach ( var group in groupType.GetGroups( true ) )
                             {
-                                if ( groupType.GroupType.AttendanceRule == AttendanceRule.AddOnCheckIn &&
-                                    groupType.GroupType.DefaultGroupRoleId.HasValue &&
-                                    !groupMemberService.GetByGroupIdAndPersonId( group.Group.Id, person.Person.Id, true ).Any() )
+                                var referenceGroupGuid = group.Group.GetAttributeValue( checkinGroupAttributeKey ).AsGuid();
+                                var referenceGroup = groupService.Get( referenceGroupGuid );
+                                if ( referenceGroup == null )
                                 {
-                                    var groupMember = new GroupMember();
-                                    groupMember.GroupId = group.Group.Id;
-                                    groupMember.PersonId = person.Person.Id;
-                                    groupMember.GroupRoleId = groupType.GroupType.DefaultGroupRoleId.Value;
-                                    groupMemberService.Add( groupMember );
+                                    group.Selected = false;
+                                    continue;
                                 }
+                                GroupMember groupMember = groupMemberService.GetByGroupIdAndPersonId( referenceGroup.Id, person.Person.Id ).FirstOrDefault();
+                                if (groupMember == null )
+                                {
+                                    group.Selected = false;
+                                    continue;
+                                }
+                                groupMember.LoadAttributes();
+                                int sessions = groupMember.GetAttributeValue( sessionAttributeKey ).AsInteger();
 
                                 foreach ( var location in group.GetLocations( true ) )
                                 {
@@ -129,11 +106,6 @@ namespace Rock.Workflow.Action.CheckIn
                                         var attendance = attendanceService.Get( startDateTime, location.Location.Id, schedule.Schedule.Id, group.Group.Id, person.Person.Id );
                                         if ( attendance == null )
                                         {
-                                            //decrement sessions and save
-                                            sessions--;
-                                            fitnessGroupMember.SetAttributeValue( groupSessionsKey, sessions );
-                                            fitnessGroupMember.SaveAttributeValues();
-
                                             var primaryAlias = personAliasService.GetPrimaryAlias( person.Person.Id );
                                             if ( primaryAlias != null )
                                             {
@@ -148,10 +120,15 @@ namespace Rock.Workflow.Action.CheckIn
                                                 attendance.SearchTypeValueId = checkInState.CheckIn.SearchType.Id;
                                                 attendanceService.Add( attendance );
                                             }
+
+                                            //decrement sessions and save
+                                            sessions--;
+                                            groupMember.SetAttributeValue( sessionAttributeKey, sessions );
+                                            groupMember.SaveAttributeValues();
                                         }
                                         else
                                         {
-                                            foreach (var cPerson in checkInState.CheckIn.Families.SelectMany(f => f.People ) )
+                                            foreach ( var cPerson in checkInState.CheckIn.Families.SelectMany( f => f.People ) )
                                             {
                                                 cPerson.Selected = false;
                                                 cPerson.GroupTypes.ForEach( gt => gt.Selected = false );
@@ -175,11 +152,7 @@ namespace Rock.Workflow.Action.CheckIn
                 rockContext.SaveChanges();
                 return true;
             }
-
             return false;
         }
-
-
-
     }
 }
