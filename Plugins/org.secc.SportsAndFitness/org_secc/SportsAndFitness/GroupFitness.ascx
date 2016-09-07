@@ -26,7 +26,7 @@
         {
             setTimeout(function ()
             {
-                 $('.checkin-phone-entry').focus();
+                $('.checkin-phone-entry').focus();
             }, 100)
         })
     })
@@ -63,6 +63,7 @@
     }
 
     h1 {
+        margin:0px;
         font-size: 4em;
     }
 
@@ -78,9 +79,13 @@
         font-size: 1.5em;
     }
 
-    .well .btn-danger, .well .btn-success {
+    .well .btn {
         height: 60px;
         font-size: 2em;
+    }
+
+    .classText {
+        font-size:2em;
     }
 
     .ClassList {
@@ -140,24 +145,21 @@
             </Rock:NotificationBox>
             <Rock:BootstrapButton runat="server" ID="btnBack" CssClass="btn btn-danger btn-lg" Text="Back" OnClick="btnCancel_Click"></Rock:BootstrapButton>
         </asp:Panel>
-        <asp:Panel runat="server" ID="pnlCheckin" Visible="false" CssClass="well">
+
+        <asp:Panel runat="server" ID="pnlCheckin" Visible="false">
             <h1>Welcome
                 <asp:Literal runat="server" ID="ltNickName" />
             </h1>
-            <h2>You have
-                <asp:Literal runat="server" ID="ltSessions" />
-                sessions remaining.</h2>
             <br />
             <br />
-            <Rock:NotificationBox runat="server" ID="nbNotOpen" NotificationBoxType="Info" Visible="false">There are no current group fitness sessions available to check-in at this time</Rock:NotificationBox>
-            <div class="ClassList">
-                <asp:PlaceHolder runat="server" ID="phClasses" />
+            <asp:PlaceHolder runat="server" ID="phClasses" />
             </div>
             <br />
             <br />
             <Rock:BootstrapButton runat="server" ID="btnCheckin" Visible="false" CssClass="btn btn-success btn-lg" Text="Check-In To Class" OnClick="btnCheckin_Click"></Rock:BootstrapButton>
             <Rock:BootstrapButton runat="server" ID="btnCancel" CssClass="btn btn-danger btn-lg" Text="Back" OnClick="btnCancel_Click"></Rock:BootstrapButton>
         </asp:Panel>
+
         <asp:Panel runat="server" ID="pnlDone" Visible="false">
             <Rock:NotificationBox ID="nbText" NotificationBoxType="Success" runat="server">
                 <h1>Welcome!</h1>
