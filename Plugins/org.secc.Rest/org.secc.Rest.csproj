@@ -75,6 +75,9 @@
       <Name>org.secc.PersonMatch</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.Rest.dll" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
