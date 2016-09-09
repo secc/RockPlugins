@@ -38,6 +38,7 @@ namespace org.secc.FamilyCheckin
 
     [BooleanField( "Remove", "Select 'Yes' if groups should be be removed.  Select 'No' if they should just be marked as excluded.", true, "", 0 )]
     [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Group Birthday Range Attribute", "Select the attribute used to define the inclusive birthday range of the group", true, false, "43511B8F-71D9-423A-85BF-D1CD08C1998E", order: 2 )]
+    [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Group Filter GradeSchool Attribute", "Attribute which describes if children with grades should be removed." )]
     public class FilterGroupsByBirthday : CheckInActionComponent
     {
         /// <summary>
@@ -75,6 +76,17 @@ namespace org.secc.FamilyCheckin
                 if ( string.IsNullOrWhiteSpace( birthdayRangeAttributeKey ) )
                 {
                     action.AddLogEntry( string.Format( "The Group Age Range attribute is not selected or invalid for '{0}'.", action.ActionType.Name ) );
+                }
+
+                var filterGradeSchoolGuid = GetAttributeValue( action, "GroupFilterGradeSchoolAttribute" ).AsGuid();
+                if ( filterGradeSchoolGuid == Guid.Empty )
+                {
+                    return false;
+                }
+                string filterGradeSchoolKey = AttributeCache.Read( filterGradeSchoolGuid, rockContext ).Key;
+                if ( string.IsNullOrWhiteSpace( filterGradeSchoolKey ) )
+                {
+                    return false;
                 }
 
                 foreach ( var person in family.People )
@@ -148,22 +160,24 @@ namespace org.secc.FamilyCheckin
                                     }
                                     continue;
                                 }
-
                             }
 
                             //Filter kids out who are in school
-                            if ( person.Person.GraduationYear != null )
+                            if ( group.Group.GetAttributeValue( filterGradeSchoolKey ).AsBoolean() )
                             {
-                                if ( remove )
+                                if ( person.Person.GradeOffset != null && person.Person.GradeOffset < 13 && person.Person.GradeOffset >= 0 )
                                 {
-                                    groupType.Groups.Remove( group );
-                                }
-                                else
-                                {
-                                    group.ExcludedByFilter = true;
-                                }
-                                continue;
+                                    if ( remove )
+                                    {
+                                        groupType.Groups.Remove( group );
+                                    }
+                                    else
+                                    {
+                                        group.ExcludedByFilter = true;
+                                    }
+                                    continue;
 
+                                }
                             }
                         }
                     }
