@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{9888DDD0-463D-40A5-A8C8-7B91248F72B6}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CustomIcons</RootNamespace>
+    <AssemblyName>CustomIcons</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Fonts\CustomIcons\CustomIcons.eot" />
+    <Content Include="Fonts\CustomIcons\CustomIcons.svg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Fonts\CustomIcons\CustomIcons.ttf" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Fonts\CustomIcons\CustomIcons.woff" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Overrides\font-awesome.less" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Styles\CustomIcons\style.less" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Styles\CustomIcons\variables.less" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>xcopy /Y /R /E /I "$(ProjectDir)Fonts\*" "$(SolutionDir)RockWeb\Assets\Fonts"
+xcopy /Y /R /E /I "$(ProjectDir)Styles\*" "$(SolutionDir)RockWeb\Styles"
+xcopy /Y /R /E /I "$(ProjectDir)Overrides\*" "$(SolutionDir)RockWeb\Styles\FontAwesome"</PreBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
