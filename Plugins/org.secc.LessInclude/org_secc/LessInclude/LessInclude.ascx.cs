@@ -44,7 +44,8 @@ namespace RockWeb.Plugins.org_secc.LessInclude
 
             //Remove fallback css
             var ctrl = (ContentPlaceHolder)Page.Header.FindControl("CSSDefault");
-            ctrl.Visible = false;
+            if (ctrl != null)
+                ctrl.Visible = false;
 
             //Load our new css
             string bootstrapFileLocation = GetFileLocation("bootstrap.css");
