@@ -1254,6 +1254,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     var campusMapItems = new List<MapItem>();
 
                     var campusList = CampusCache.All();
+                    CampusService campusService = new CampusService( rockContext );
                     foreach ( var campus in campusList )
                     {
                         var mapItem = new FinderMapItem( campus );
@@ -1263,8 +1264,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                         mapItem.InfoWindow = HttpUtility.HtmlEncode( "<b>" + campus.Name + "</b><br>" +
                             campus.Location.Street1 + "<br>" + campus.Location.City +
                             ", " + campus.Location.State + " " + campus.Location.PostalCode );
-                        campus.LoadAttributes();
-                        var campusIcon = campus.GetAttributeValue( "MapIcon" );
+                        Campus campusEntity = campusService.Get( campus.Guid );
+                        campusEntity.LoadAttributes();
+                        var campusIcon = campusEntity.GetAttributeValue( "MapIcon" );
                         if ( !string.IsNullOrWhiteSpace( campusIcon ) )
                         {
                             mapItem.Icon = campusIcon;
