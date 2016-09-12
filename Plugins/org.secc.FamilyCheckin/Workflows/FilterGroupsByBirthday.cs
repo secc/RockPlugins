@@ -19,9 +19,12 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Web;
+
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Workflow;
 using Rock.Workflow.Action.CheckIn;
@@ -55,7 +58,7 @@ namespace org.secc.FamilyCheckin
             var checkInState = GetCheckInState( entity, out errorMessages );
             if ( checkInState == null )
             {
-                return false;
+                throw new Exception( "Check-In state lost: Filter Groups By Birthday" );
             }
 
             var family = checkInState.CheckIn.CurrentFamily;
@@ -75,18 +78,19 @@ namespace org.secc.FamilyCheckin
                 // log a warning if the attribute is missing or invalid
                 if ( string.IsNullOrWhiteSpace( birthdayRangeAttributeKey ) )
                 {
-                    action.AddLogEntry( string.Format( "The Group Age Range attribute is not selected or invalid for '{0}'.", action.ActionType.Name ) );
+
+                    throw new Exception( "Workflow attribute not set: Filter Groups By Birthday | Birthday Range Attribute" );
                 }
 
                 var filterGradeSchoolGuid = GetAttributeValue( action, "GroupFilterGradeSchoolAttribute" ).AsGuid();
                 if ( filterGradeSchoolGuid == Guid.Empty )
                 {
-                    return false;
+                    throw new Exception( "Workflow attribute not set: Filter Groups By Birthday | Filter GradeSchool Students" );
                 }
                 string filterGradeSchoolKey = AttributeCache.Read( filterGradeSchoolGuid, rockContext ).Key;
                 if ( string.IsNullOrWhiteSpace( filterGradeSchoolKey ) )
                 {
-                    return false;
+                    throw new Exception( "Workflow attribute not set: Filter Groups By Birthday | Filter GradeSchool Students" );
                 }
 
                 foreach ( var person in family.People )
@@ -176,7 +180,6 @@ namespace org.secc.FamilyCheckin
                                         group.ExcludedByFilter = true;
                                     }
                                     continue;
-
                                 }
                             }
                         }

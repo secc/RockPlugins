@@ -355,7 +355,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             attendanceItem.EndDateTime = Rock.RockDateTime.Now;
             attendanceItem.DidAttend = false;
             _rockContext.SaveChanges();
-            KioskLocationAttendance.Flush( attendanceItem.LocationId??0 );
+            KioskLocationAttendance.Flush( attendanceItem.LocationId ?? 0 );
             BuildPersonCheckinDetails();
         }
 
@@ -403,17 +403,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 maWarning.Show( "Volunteer attribute not set.", ModalAlertType.Alert );
                 return;
             }
-            var volAttributeKey = AttributeCache.Read( volAttributeGuid.AsGuid() ).Key;
 
-            List<int> volunteerGroupIds = CurrentCheckInState.Kiosk.KioskGroupTypes
-                .SelectMany( g => g.KioskGroups )
-                .Where( g => g.Group.GetAttributeValue( volAttributeKey ).AsBoolean() )
-                .Select( g => g.Group.Id ).ToList();
-
-            List<int> childGroupIds = CurrentCheckInState.Kiosk.KioskGroupTypes
-                .SelectMany( g => g.KioskGroups )
-                .Where( g => !g.Group.GetAttributeValue( volAttributeKey ).AsBoolean() )
-                .Select( g => g.Group.Id ).ToList();
+            KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes, volAttributeGuid.AsGuid() );
 
             if ( cbSuperCheckin.Checked )
             {
@@ -443,13 +434,15 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 }
 
                 //ignore if volunteer selected and does not contain volunteers
-                if ( cbSuperCheckin.Checked && cbVolunteer.Checked && !groupType.Groups.Where( g => volunteerGroupIds.Contains( g.Group.Id ) ).Any() )
+                if ( cbSuperCheckin.Checked && cbVolunteer.Checked
+                    && !groupType.Groups.Where( g => kioskCountUtility.VolunteerGroupIds.Contains( g.Group.Id ) ).Any() )
                 {
                     continue;
                 }
 
                 //ignore if volunteer not selected and does not contain children
-                if ( cbSuperCheckin.Checked && !cbVolunteer.Checked && !groupType.Groups.Where( g => childGroupIds.Contains( g.Group.Id ) ).Any() )
+                if ( cbSuperCheckin.Checked && !cbVolunteer.Checked
+                    && !groupType.Groups.Where( g => kioskCountUtility.ChildGroupIds.Contains( g.Group.Id ) ).Any() )
                 {
                     continue;
                 }
@@ -472,12 +465,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         continue;
                     }
 
-                    if (cbSuperCheckin.Checked && cbVolunteer.Checked && !volunteerGroupIds.Contains( group.Group.Id ) )
+                    if ( cbSuperCheckin.Checked && cbVolunteer.Checked && !kioskCountUtility.VolunteerGroupIds.Contains( group.Group.Id ) )
                     {
                         continue;
                     }
 
-                    if ( cbSuperCheckin.Checked && !cbVolunteer.Checked && !childGroupIds.Contains( group.Group.Id ) )
+                    if ( cbSuperCheckin.Checked && !cbVolunteer.Checked && !kioskCountUtility.ChildGroupIds.Contains( group.Group.Id ) )
                     {
                         continue;
                     }
@@ -1230,7 +1223,15 @@ try{{
                 return;
             }
             List<string> errorMessages = new List<string>();
-            ProcessActivity( GetAttributeValue( "ReprintActivity" ), out errorMessages );
+            try
+            {
+                ProcessActivity( GetAttributeValue( "ReprintActivity" ), out errorMessages );
+            }
+            catch (Exception ex)
+            {
+                LogException( ex );
+                maWarning.Show( "There was an exception while processing your request. The error has been logged.", ModalAlertType.Alert );
+            }
             if ( !errorMessages.Any() )
             {
                 LabelPrinter labelPrinter = new LabelPrinter( CurrentCheckInState, Request );

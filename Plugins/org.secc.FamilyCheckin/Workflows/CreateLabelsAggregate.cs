@@ -73,9 +73,9 @@ namespace org.secc.FamilyCheckin
                 {
                     foreach ( var person in family.People.Where( p => p.Selected ) )
                     {
-                        if ( person.GroupTypes.Where(gt => gt.Selected).SelectMany( gt => gt.Groups ).Where( g => g.Selected && childGroupIds.Contains( g.Group.Id ) ).Any() )
+                        if ( person.GroupTypes.Where( gt => gt.Selected ).SelectMany( gt => gt.Groups ).Where( g => g.Selected && childGroupIds.Contains( g.Group.Id ) ).Any() )
                         {
-                            labelCodes.Add( person.SecurityCode + "-" + LabelAge( person.Person ) );
+                            labelCodes.Add( ( person.SecurityCode ) + "-" + LabelAge( person.Person ) );
                         }
 
                         var firstCheckinGroupType = person.GroupTypes.Where( g => g.Selected ).FirstOrDefault();
@@ -99,6 +99,9 @@ namespace org.secc.FamilyCheckin
                                      a.PersonAlias.Person.Id == person.Person.Id
                                      && a.StartDateTime >= Rock.RockDateTime.Today
                                      && a.EndDateTime == null
+                                     && a.Group != null
+                                     && a.Schedule != null
+                                     && a.Location != null
                                     )
                                     .Select( a =>
                                          new

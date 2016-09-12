@@ -10,10 +10,7 @@ using Rock.Web.UI.Controls;
 using System.Collections.Generic;
 using Rock.CheckIn;
 using Rock.Attribute;
-using Rock.Web.Cache;
 using org.secc.FamilyCheckin.Utilities;
-using System.Data.Entity;
-using Rock.Security;
 
 namespace RockWeb.Plugins.org_secc.CheckinMonitor
 {
@@ -92,8 +89,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                                                             GetAttributeValue( "VolunteerGroupAttribute" ).AsGuid(),
                                                             GetAttributeValue( "DeactivatedDefinedType" ).AsGuid() );
             }
-            catch
+            catch (Exception ex)
             {
+                LogException( ex );
                 maError.Show( "Block Not Configured", ModalAlertType.Alert );
                 return;
             }
@@ -929,6 +927,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             ViewState["SearchType"] = SearchType.Code;
             SearchByCode();
         }
+
         private void SearchByCode()
         {
             var code = tbSearch.Text.ToUpper();
@@ -940,14 +939,24 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 AttendanceCodeService attendanceCodeService = new AttendanceCodeService( _rockContext );
                 var attendanceCode = attendanceCodeService.Queryable()
-                    .Where( ac => ac.Code == code && ac.IssueDateTime >= Rock.RockDateTime.Today )
+                    .Where( ac =>
+                        ac.Code == code && ac.IssueDateTime >= Rock.RockDateTime.Today
+                    )
                     .FirstOrDefault();
                 if ( attendanceCode == null )
                 {
                     ltSearch.Text = "Attendance matching code not found";
                     return;
                 }
-                DisplaySearchRecords( attendanceCode.Attendances.Where( a => a.EndDateTime == null ).ToList() );
+                var attendanceRecords = attendanceCode.Attendances
+                    .Where( a => 
+                        a.EndDateTime == null
+                        && a.ScheduleId != null
+                        && a.AttendanceCodeId != null
+                        && a.LocationId != null 
+                    )
+                    .ToList();
+                DisplaySearchRecords( attendanceRecords );
             }
         }
 
@@ -973,7 +982,14 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 }
                 var aliasIds = people.ToList().Select( p => p.PrimaryAliasId );
                 var attendanceRecords = new AttendanceService( _rockContext ).Queryable( "AttendanceCode" )
-                    .Where( a => a.StartDateTime >= Rock.RockDateTime.Today && a.EndDateTime == null && aliasIds.Contains( a.PersonAliasId ) )
+                    .Where( a =>
+                        a.StartDateTime >= Rock.RockDateTime.Today
+                        && a.EndDateTime == null
+                        && aliasIds.Contains( a.PersonAliasId )
+                        && a.ScheduleId != null
+                        && a.AttendanceCodeId != null
+                        && a.LocationId != null
+                    )
                     .ToList();
                 if ( !attendanceRecords.Any() )
                 {
@@ -1029,19 +1045,31 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 trRow.Controls.Add( tcName );
 
                 TableCell tcCode = new TableCell();
-                tcCode.Text = attendance.AttendanceCode.Code;
+                if ( attendance.AttendanceCode != null && attendance.AttendanceCode.Code != null )
+                {
+                    tcCode.Text = attendance.AttendanceCode.Code;
+                }
                 trRow.Controls.Add( tcCode );
 
                 TableCell tcDevice = new TableCell();
-                tcDevice.Text = attendance.Device.Name;
+                if ( attendance.Device != null )
+                {
+                    tcDevice.Text = attendance.Device.Name;
+                }
                 trRow.Controls.Add( tcDevice );
 
                 TableCell tcLocation = new TableCell();
-                tcLocation.Text = attendance.Location.Name;
+                if ( attendance.Location != null )
+                {
+                    tcLocation.Text = attendance.Location.Name;
+                }
                 trRow.Controls.Add( tcLocation );
 
                 TableCell tcSchedule = new TableCell();
-                tcSchedule.Text = attendance.Schedule.Name;
+                if ( attendance.Schedule != null )
+                {
+                    tcSchedule.Text = attendance.Schedule.Name;
+                }
                 trRow.Controls.Add( tcSchedule );
 
                 TableCell tcButtons = new TableCell();
