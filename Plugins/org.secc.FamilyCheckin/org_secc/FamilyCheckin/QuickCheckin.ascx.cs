@@ -853,6 +853,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             catch ( Exception ex )
             {
                 LogException( ex );
+                NavigateToHomePage();
+                return;
             }
             ProcessLabels();
             pnlMain.Visible = false;
