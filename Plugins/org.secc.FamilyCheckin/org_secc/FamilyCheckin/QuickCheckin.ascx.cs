@@ -63,8 +63,9 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     //Sometimes this blows up if the session state is lost
                     bool test = ProcessActivity( workflowActivity, out errors );
                 }
-                catch
+                catch ( Exception ex )
                 {
+                    LogException( ex );
                     NavigateToPreviousPage();
                     Response.End();
                     return;
@@ -114,7 +115,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     Session["CullStatus"] = CullStatus.None;
                 }
 
-                foreach (var person in CurrentCheckInState.CheckIn.CurrentFamily.People )
+                foreach ( var person in CurrentCheckInState.CheckIn.CurrentFamily.People )
                 {
                     person.Selected = false;
                     SaveState();
@@ -845,7 +846,14 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             //Check-in and print tags.
             List<string> errors = new List<string>();
-            bool test = ProcessActivity( "Save Attendance", out errors );
+            try
+            {
+                bool test = ProcessActivity( "Save Attendance", out errors );
+            }
+            catch ( Exception ex )
+            {
+                LogException( ex );
+            }
             ProcessLabels();
             pnlMain.Visible = false;
         }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -7,7 +6,6 @@ using System.Web.Http;
 
 using Rock;
 using Rock.Model;
-using Rock.Rest.Filters;
 using Rock.Rest;
 using Rock.CheckIn;
 using System.Web;
@@ -21,7 +19,7 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
     /// <summary>
     /// TaggedItems REST API
     /// </summary>
-    public partial class FamilyCheckinController :  ApiController, IHasCustomRoutes
+    public partial class FamilyCheckinController : ApiController, IHasCustomRoutes
     {
 
         protected CheckInState CurrentCheckInState;
@@ -53,79 +51,79 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
         /// <param name="entityGuid">The entity unique identifier.</param>
         /// <param name="name">The name.</param>
         /// <returns></returns>
-        public HttpResponseMessage Post(string phone)
+        public HttpResponseMessage Post( string phone )
         {
-            
-            return ControllerContext.Request.CreateResponse(HttpStatusCode.OK, phone);
+
+            return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, phone );
         }
-        
-        public HttpResponseMessage Get(string phone)
+
+        public HttpResponseMessage Get( string phone )
         {
             try
             {
                 var Session = HttpContext.Current.Session;
 
-                CurrentKioskId = (int)Session["CheckInKioskId"];
-                Guid blockGuid = (Guid)Session["BlockGuid"];
-                List<int> CheckInGroupTypeIds = (List<int>)Session["CheckInGroupTypeIds"];
-                CurrentCheckInState = new CheckInState(CurrentKioskId, null, CheckInGroupTypeIds);
+                CurrentKioskId = ( int ) Session["CheckInKioskId"];
+                Guid blockGuid = ( Guid ) Session["BlockGuid"];
+                List<int> CheckInGroupTypeIds = ( List<int> ) Session["CheckInGroupTypeIds"];
+                CurrentCheckInState = new CheckInState( CurrentKioskId, null, CheckInGroupTypeIds );
                 CurrentCheckInState.CheckIn.UserEnteredSearch = true;
                 CurrentCheckInState.CheckIn.ConfirmSingleFamily = true;
-                CurrentCheckInState.CheckIn.SearchType = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER);
+                CurrentCheckInState.CheckIn.SearchType = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER );
                 CurrentCheckInState.CheckIn.SearchValue = phone;
-                
 
                 var rockContext = new Rock.Data.RockContext();
-                var block = BlockCache.Read(blockGuid, rockContext);
-                string workflowActivity = block.GetAttributeValue("WorkflowActivity");
-                Guid? workflowGuid = block.GetAttributeValue("WorkflowType").AsGuidOrNull();
+                var block = BlockCache.Read( blockGuid, rockContext );
+                string workflowActivity = block.GetAttributeValue( "WorkflowActivity" );
+                Guid? workflowGuid = block.GetAttributeValue( "WorkflowType" ).AsGuidOrNull();
 
                 List<string> errors;
-                var workflowTypeService = new WorkflowTypeService(rockContext);
-                var workflowService = new WorkflowService(rockContext);
-                var workflowType = workflowTypeService.Queryable("ActivityTypes")
-                    .Where(w => w.Guid.Equals(workflowGuid.Value))
+                var workflowTypeService = new WorkflowTypeService( rockContext );
+                var workflowService = new WorkflowService( rockContext );
+                var workflowType = workflowTypeService.Queryable( "ActivityTypes" )
+                    .Where( w => w.Guid.Equals( workflowGuid.Value ) )
                     .FirstOrDefault();
-                var CurrentWorkflow = Rock.Model.Workflow.Activate(workflowType, CurrentCheckInState.Kiosk.Device.Name, rockContext);
+                var CurrentWorkflow = Rock.Model.Workflow.Activate( workflowType, CurrentCheckInState.Kiosk.Device.Name, rockContext );
 
-                var activityType = workflowType.ActivityTypes.Where(a => a.Name == workflowActivity).FirstOrDefault();
-                if (activityType != null)
+                var activityType = workflowType.ActivityTypes.Where( a => a.Name == workflowActivity ).FirstOrDefault();
+                if ( activityType != null )
                 {
-                    WorkflowActivity.Activate(activityType, CurrentWorkflow, rockContext);
-                    if (workflowService.Process(CurrentWorkflow, CurrentCheckInState, out errors))
+                    WorkflowActivity.Activate( activityType, CurrentWorkflow, rockContext );
+                    if ( workflowService.Process( CurrentWorkflow, CurrentCheckInState, out errors ) )
                     {
                         // Keep workflow active for continued processing
                         CurrentWorkflow.CompletedDateTime = null;
-                        SaveState(Session);
+                        SaveState( Session );
                         List<CheckInFamily> families = CurrentCheckInState.CheckIn.Families;
                         families = families.OrderBy( f => f.Caption ).ToList();
-                        return ControllerContext.Request.CreateResponse(HttpStatusCode.OK, families);
+                        return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, families );
                     }
                 }
                 else
                 {
-                    return ControllerContext.Request.CreateResponse(HttpStatusCode.InternalServerError, string.Format("Workflow type does not have a '{0}' activity type", workflowActivity));
+                    return ControllerContext.Request.CreateResponse( HttpStatusCode.InternalServerError, string.Format( "Workflow type does not have a '{0}' activity type", workflowActivity ) );
                 }
-                return ControllerContext.Request.CreateResponse(HttpStatusCode.InternalServerError, String.Join("\n", errors));
+                return ControllerContext.Request.CreateResponse( HttpStatusCode.InternalServerError, String.Join( "\n", errors ) );
 
             }
-            catch
+            catch ( Exception ex )
             {
-                return ControllerContext.Request.CreateResponse(HttpStatusCode.Forbidden, "Forbidden");
+                ExceptionLogService.LogException( ex, HttpContext.Current );
+                return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden, "Forbidden" );
             }
         }
 
-        private void SaveState(HttpSessionState Session)
+        private void SaveState( HttpSessionState Session )
         {
-            if(Session != null)
+            if ( Session != null )
             {
-                if (CurrentCheckInState != null)
+                if ( CurrentCheckInState != null )
                 {
                     Session["CheckInState"] = CurrentCheckInState;
                 }
                 else
                 {
-                    Session.Remove("CheckInState");
+                    Session.Remove( "CheckInState" );
                 }
             }
 

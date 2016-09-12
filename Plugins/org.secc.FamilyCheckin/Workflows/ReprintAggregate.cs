@@ -77,8 +77,9 @@ namespace org.secc.FamilyCheckin
                         var attendances = attendanceService.Queryable( "AttendanceCode" )
                             .Where( a => a.CreatedDateTime >= Rock.RockDateTime.Today
                                          && person.Person.Id == a.PersonAlias.PersonId
-                                         && ChildGroupIds.Contains( a.GroupId ?? 0 ) )
-                            .DistinctBy( a => a.AttendanceCode.Id ).ToList();
+                                         && ChildGroupIds.Contains( a.GroupId ?? 0 )
+                                         && a.AttendanceCode != null )
+                            .DistinctBy( a => a.AttendanceCodeId ).ToList();
                         foreach ( var attendance in attendances )
                         {
                             if ( attendance != null && attendance.AttendanceCode != null )

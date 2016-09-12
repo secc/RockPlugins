@@ -86,8 +86,15 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected void ProcessSelection()
         {
-            List<string> errorMessages;
-            ProcessActivity( GetAttributeValue( "WorkflowActivity" ), out errorMessages );
+            List<string> errorMessages = new List<string>();
+            try
+            {
+                ProcessActivity( GetAttributeValue( "WorkflowActivity" ), out errorMessages );
+            }
+            catch (Exception ex)
+            {
+                LogException( ex );
+            }
             if ( errorMessages.Any() )
             {
                 maWarning.Show( "Error processing workflow activity.", Rock.Web.UI.Controls.ModalAlertType.Alert );
