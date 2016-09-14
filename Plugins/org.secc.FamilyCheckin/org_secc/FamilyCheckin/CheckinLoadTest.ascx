@@ -8,7 +8,7 @@
             {
                 console.log("Reloading");
                 location.reload();
-            }, 200
+            }, 5000
             );
     };
 </script>
