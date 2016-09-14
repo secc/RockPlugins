@@ -166,6 +166,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.FamilyCheckin.dll" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.FamilyCheckin.pdb" "$(SolutionDir)RockWeb\bin"
 xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"
 xcopy /Y /R /E /I "$(ProjectDir)Themes\*" "$(SolutionDir)RockWeb\Themes\"
 </PostBuildEvent>
