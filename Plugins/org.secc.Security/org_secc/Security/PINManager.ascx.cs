@@ -69,7 +69,7 @@ namespace RockWeb.Plugins.org_secc.Security
 
             RockContext rockContext = new RockContext();
             var userLoginEntity = new EntityTypeService( rockContext ).Get( pinEntityId );
-            var userAuthorized = userLoginEntity.IsAuthorized( Authorization.EDIT, CurrentPerson );
+            var userAuthorized = userLoginEntity.IsAuthorized( Authorization.ADMINISTRATE, CurrentPerson );
             if ( userAuthorized )
             {
                 lbAdd.Visible = true;
@@ -94,16 +94,25 @@ namespace RockWeb.Plugins.org_secc.Security
 
                 pin.LoadAttributes();
                 List<string> purpose = new List<string>();
-                var purposeIds = pin.GetAttributeValue( "PINPurpose" ).Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries ).ToList();
-                if ( purposeIds.Any() )
+                if ( pin.GetAttributeValue( "PINPurpose" ) != null )
                 {
-                    foreach ( var purposeId in purposeIds )
+                    var purposeIds = pin.GetAttributeValue( "PINPurpose" )
+                        .Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries )
+                        .ToList();
+                    if ( purposeIds.Any() )
                     {
-                        var dvPurpose = DefinedValueCache.Read( purposeId.AsInteger() );
-                        if ( dvPurpose != null )
+                        foreach ( var purposeId in purposeIds )
                         {
-                            purpose.Add( dvPurpose.Value );
+                            var dvPurpose = DefinedValueCache.Read( purposeId.AsInteger() );
+                            if ( dvPurpose != null )
+                            {
+                                purpose.Add( dvPurpose.Value );
+                            }
                         }
+                    }
+                    else
+                    {
+                        purpose.Add( "[No Purpose]" );
                     }
                 }
                 else
@@ -169,17 +178,21 @@ namespace RockWeb.Plugins.org_secc.Security
                     tbPin.Text = pin.UserName;
 
                     pin.LoadAttributes();
-                    var purposeIds = pin.GetAttributeValue( "PINPurpose" )
-                        .Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries )
-                        .ToList();
-                    foreach ( var checkbox in cblPurpose.Items.Cast<ListItem>() )
+                    if ( pin.GetAttributeValue( "PINPurpose" ) != null )
                     {
-                        checkbox.Selected = false;
-                        if ( purposeIds.Contains( checkbox.Value ) )
+                        var purposeIds = pin.GetAttributeValue( "PINPurpose" )
+                            .Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries )
+                            .ToList();
+                        foreach ( var checkbox in cblPurpose.Items.Cast<ListItem>() )
                         {
-                            checkbox.Selected = true;
+                            checkbox.Selected = false;
+                            if ( purposeIds.Contains( checkbox.Value ) )
+                            {
+                                checkbox.Selected = true;
+                            }
                         }
                     }
+
                 }
                 btnDelete.Visible = true;
                 hfConfirmDelete.Value = "";
@@ -208,7 +221,7 @@ namespace RockWeb.Plugins.org_secc.Security
 
             int pinEntityId = EntityTypeCache.Read( "Rock.Security.Authentication.PINAuthentication" ).Id;
             var userLoginEntity = new EntityTypeService( rockContext ).Get( pinEntityId );
-            var userAuthorized = userLoginEntity.IsAuthorized( Authorization.EDIT, CurrentPerson );
+            var userAuthorized = userLoginEntity.IsAuthorized( Authorization.ADMINISTRATE, CurrentPerson );
             if ( !userAuthorized )
             {
                 mdEditPin.Hide();
@@ -293,7 +306,7 @@ namespace RockWeb.Plugins.org_secc.Security
 
                 int pinEntityId = EntityTypeCache.Read( "Rock.Security.Authentication.PINAuthentication" ).Id;
                 var userLoginEntity = new EntityTypeService( rockContext ).Get( pinEntityId );
-                var userAuthorized = userLoginEntity.IsAuthorized( Authorization.EDIT, CurrentPerson );
+                var userAuthorized = userLoginEntity.IsAuthorized( Authorization.ADMINISTRATE, CurrentPerson );
                 if ( !userAuthorized )
                 {
                     mdEditPin.Hide();
