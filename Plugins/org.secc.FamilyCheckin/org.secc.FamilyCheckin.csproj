@@ -32,9 +32,6 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup>
-    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
-  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Common.Logging, Version=3.0.0.0, Culture=neutral, PublicKeyToken=af08829b84f0328e, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\Common.Logging.3.0.0\lib\net40\Common.Logging.dll</HintPath>
@@ -169,7 +166,6 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.FamilyCheckin.dll" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.FamilyCheckin.pdb" "$(SolutionDir)RockWeb\bin"
 xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"
 xcopy /Y /R /E /I "$(ProjectDir)Themes\*" "$(SolutionDir)RockWeb\Themes\"
 </PostBuildEvent>
