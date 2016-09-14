@@ -37,7 +37,7 @@ namespace org.secc.FamilyCheckin
     [ActionCategory( "SECC > Check-In" )]
     [Description( "Finds families based on a given search critieria (improved by Chuck)" )]
     [Export( typeof( ActionComponent ) )]
-    [ExportMetadata( "ComponentName", "Customr Find Families" )]
+    [ExportMetadata( "ComponentName", "Custom Find Families" )]
     public class CustFindFamilies : CheckInActionComponent
     {
         /// <summary>
@@ -77,8 +77,10 @@ namespace org.secc.FamilyCheckin
 
                     if ( checkInState.CheckInType == null || checkInState.CheckInType.PhoneSearchType == PhoneSearchType.EndsWith )
                     {
+                        char[] charArray = numericPhone.ToCharArray();
+                        Array.Reverse( charArray );
                         familyQry = familyQry.Where( o =>
-                            o.PersonNumber.Number.EndsWith( numericPhone ) );
+                            o.PersonNumber.NumberReversed.StartsWith( new string( charArray ) ) );
                     }
                     else
                     {
