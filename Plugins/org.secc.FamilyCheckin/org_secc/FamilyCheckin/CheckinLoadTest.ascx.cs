@@ -15,6 +15,8 @@ using Rock.Data;
 using org.secc.FamilyCheckin.Utilities;
 using Rock.Attribute;
 using System.Data.Entity;
+using System.Text;
+using System.Diagnostics;
 
 namespace RockWeb.Plugins.org_secc.FamilyCheckin
 {
@@ -44,10 +46,22 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
                 Random rnd = new Random();
 
+                StringBuilder output = new StringBuilder( "Search Results:<hr>" );
+                Stopwatch sw = new Stopwatch();
+
                 int count = 0;
                 for ( var i = 0; i < 10; i++ )
                 {
-                    CurrentCheckInState.CheckIn.SearchValue = LongRandom( 0000, 9999999999, rnd );
+                    var searchString = LongRandom( 0000, 9999999999, rnd );
+                    if ( i % 2 == 0 )
+                    {
+                        searchString = searchString.Substring( 0, 4 );
+                    }
+                    CurrentCheckInState.CheckIn.SearchValue = searchString;
+
+                    output.Append( "<br>Searched: " + searchString );
+                    sw.Reset();
+                    sw.Start();
 
                     List<string> errors = new List<string>();
                     string workflowActivity = GetAttributeValue( "WorkflowActivity" );
@@ -66,10 +80,12 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                         ltErrors.Text = "Error:" + ex.Message;
                         return;
                     }
+                    sw.Stop();
+                    output.Append( " in " + sw.ElapsedMilliseconds + "ms" );
                 }
 
-                ltErrors.Text = "Success. Ran " + count.ToString() + " times. Reloading page. "+Rock.RockDateTime.Now.ToString();
-                ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "reload", "reload();",true );
+                ltErrors.Text = output.ToString();
+                ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "reload", "reload();", true );
             }
         }
 
