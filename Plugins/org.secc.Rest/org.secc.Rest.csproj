@@ -38,9 +38,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(SolutionDir)\RockWeb\Bin\System.Web.Http.dll</HintPath>
     </Reference>
-    <Reference Include="System.Web.Http.OData, Version=5.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+    <Reference Include="System.Web.Http.OData, Version=5.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Rock\RockWeb\Bin\System.Web.Http.OData.dll</HintPath>
+      <HintPath>..\..\..\Rock1.5.0\RockWeb\Bin\System.Web.Http.OData.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.Services" />
     <Reference Include="System.Xml.Linq" />
@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controllers\FinancialTransactionsExtensionsController.Partial.cs" />
     <Compile Include="Controllers\GroupMemberExtensionsController.Partial.cs" />
     <Compile Include="Controllers\GroupExtensionsController.Partial.cs" />
     <Compile Include="Controllers\PeopleExtensionsController.Partial.cs" />
