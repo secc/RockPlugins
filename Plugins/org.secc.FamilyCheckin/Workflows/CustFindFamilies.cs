@@ -56,7 +56,8 @@ namespace org.secc.FamilyCheckin
             {
                 var personService = new PersonService( rockContext );
                 var memberService = new GroupMemberService( rockContext );
-                PhoneNumberService phoneNumberservice = new PhoneNumberService( rockContext );
+                GroupService groupService = new GroupService( rockContext );
+                PhoneNumberService phoneNumberService = new PhoneNumberService( rockContext );
 
                 int familyGroupTypeId = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid() ).Id;
 
@@ -67,29 +68,31 @@ namespace org.secc.FamilyCheckin
                     var personRecordTypeId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
 
                     // Find the families with any member who has a phone number that contains selected value
-                    var familyQry = phoneNumberservice.Queryable().AsNoTracking()
-                        .Join( memberService.Queryable(),
-                        pn => pn.PersonId,
-                        m => m.PersonId,
-                        ( pn, m ) => new { PersonNumber = pn, GroupMember = m } )
-                        .Where( o => o.PersonNumber.Person.RecordTypeValueId == personRecordTypeId
-                         && o.GroupMember.Group.GroupTypeId == familyGroupTypeId );
+                    var familyQry = phoneNumberService.Queryable().AsNoTracking();
 
                     if ( checkInState.CheckInType == null || checkInState.CheckInType.PhoneSearchType == PhoneSearchType.EndsWith )
                     {
                         char[] charArray = numericPhone.ToCharArray();
                         Array.Reverse( charArray );
                         familyQry = familyQry.Where( o =>
-                            o.PersonNumber.NumberReversed.StartsWith( new string( charArray ) ) );
+                            o.NumberReversed.StartsWith( new string( charArray ) ) );
                     }
                     else
                     {
                         familyQry = familyQry.Where( o =>
-                            o.PersonNumber.Number.Contains( numericPhone ) );
+                            o.Number.Contains( numericPhone ) );
                     }
+                    var tmpQry = familyQry.Join( personService.Queryable().AsNoTracking(),
+                        o => new { PersonId = o.PersonId, IsDeceased = false, RecordTypeValueId = personRecordTypeId },
+                        p => new { PersonId = p.Id, IsDeceased = p.IsDeceased, RecordTypeValueId = p.RecordTypeValueId.Value },
+                        ( pn, p ) => new { Person = p, PhoneNumber = pn } )
+                        .Join( memberService.Queryable().AsNoTracking(),
+                        pn => pn.Person.Id,
+                        m => m.PersonId,
+                        ( o, m ) => new { PersonNumber = o.PhoneNumber, GroupMember = m } );
 
-                    var familyIdQry = familyQry
-                        .Select( o => o.GroupMember.GroupId )
+                    var familyIdQry = groupService.Queryable().Where( g => tmpQry.Any( o => o.GroupMember.GroupId == g.Id ) && g.GroupTypeId == familyGroupTypeId )
+                        .Select( g => g.Id )
                         .Distinct();
 
                     int maxResults = checkInState.CheckInType != null ? checkInState.CheckInType.MaxSearchResults : 100;
