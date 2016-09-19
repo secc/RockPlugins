@@ -91,7 +91,8 @@ namespace org.secc.SafetyAndSecurity
 
                     {"txtRef1Name", action.Activity.Workflow.GetAttributeValue("Reference1Name")},
                     //{"txtRef1Relationship", action.Activity.Workflow.GetAttributeValue("")},
-				    {"radRef1YearsKnow", action.Activity.Workflow.GetAttributeValue("Reference1YearsKnown")},
+				    {"radRef1YearsKnow", action.Activity.Workflow.GetAttributeValue("Reference1Relationship")
+                                        + "/" + action.Activity.Workflow.GetAttributeValue("Reference1YearsKnown")},
                     {"txtRef1Address", reference1Address.Street1},
                     {"txtRef1City", reference1Address.City},
                     {"txtRef1State", reference1Address.State},
@@ -106,7 +107,8 @@ namespace org.secc.SafetyAndSecurity
 
                     {"txtRef2Name", action.Activity.Workflow.GetAttributeValue("Reference2Name")},
                     //{"txtRef2Relationship", action.Activity.Workflow.GetAttributeValue("")},
-				    {"radRef2YearsKnow", action.Activity.Workflow.GetAttributeValue("Reference2YearsKnown")},
+				    {"radRef2YearsKnow", action.Activity.Workflow.GetAttributeValue("Reference2Relationship") 
+                                        + "/" + action.Activity.Workflow.GetAttributeValue("Reference2YearsKnown")},
                     {"txtRef2Address", reference2Address.Street1},
                     {"txtRef2City", reference2Address.City},
                     {"txtRef2State", reference2Address.State},
@@ -121,7 +123,8 @@ namespace org.secc.SafetyAndSecurity
 
                     {"txtRef3Name", action.Activity.Workflow.GetAttributeValue("Reference3Name")},
                     //{"txtRef3Relationship", action.Activity.Workflow.GetAttributeValue("")},
-				    {"radRef3YearsKnow", action.Activity.Workflow.GetAttributeValue("Reference3YearsKnown")},
+				    {"radRef3YearsKnow", action.Activity.Workflow.GetAttributeValue("Reference3Relationship")
+                                        + "/" + action.Activity.Workflow.GetAttributeValue("Reference3YearsKnown")},
                     {"txtRef3Address", reference3Address.Street1},
                     {"txtRef3City", reference3Address.City},
                     {"txtRef3State", reference3Address.State},
@@ -136,7 +139,8 @@ namespace org.secc.SafetyAndSecurity
 
                     {"txtRef4Name", action.Activity.Workflow.GetAttributeValue("Reference4Name")},
                     //{"txtRef4Relationship", action.Activity.Workflow.GetAttributeValue("")},
-				    {"radRef4YearsKnow", action.Activity.Workflow.GetAttributeValue("Reference4YearsKnown")},
+				    {"radRef4YearsKnow", action.Activity.Workflow.GetAttributeValue("Reference4Relationship")
+                                        + "/" + action.Activity.Workflow.GetAttributeValue("Reference4YearsKnown")},
                     {"txtRef4Address", reference4Address.Street1},
                     {"txtRef4City", reference4Address.City},
                     {"txtRef4State", reference4Address.State},
