@@ -23,6 +23,7 @@ namespace org.secc.SafetyAndSecurity
     [WorkflowAttribute( "SignNow Document Id", "The attribute to save the SignNow document id.", true, "", "", 0, null, new string[] { "Rock.Field.Types.TextFieldType" } )]
     [WorkflowAttribute ( "Document", "The attribute to store the signed document from SignNow.", true, "", "", 0, null, new string[] { "Rock.Field.Types.BinaryFileFieldType" } ) ]
     [WorkflowActivityType ( "Fail Activity", "The activity type to activate upon failure (optional).", false, "", "", 0 )]
+    [WorkflowAttribute( "PDF Signed", "Indicator that we have a signed document from SignNow.", true, "", "", 0, null, new string[] { "Rock.Field.Types.BooleanFieldType" } )]
     class SignNowLanding : ActionComponent
     {
 
@@ -81,8 +82,15 @@ namespace org.secc.SafetyAndSecurity
 
                 // Delete the file when we are done:
                 File.Delete( tempPath + tempFileName );
+                
+                // We have a signed copy
+                SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "PDFSigned" ).AsGuid(), "True" );
+
                 return true;
             }
+
+            // It wasn't signed!  Need to go back.
+            SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "PDFSigned" ).AsGuid(), "False" );
 
             action.AddLogEntry( "Missing Document Id: Unable to process document." );
 
