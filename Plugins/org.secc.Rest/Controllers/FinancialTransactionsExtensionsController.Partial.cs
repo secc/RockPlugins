@@ -104,7 +104,7 @@ namespace org.secc.Rest.Controllers
 
             var selectQry = qry.Where(a => a.FinancialPaymentDetail == null ||
                                             (a.FinancialPaymentDetail != null && a.FinancialPaymentDetail.CurrencyTypeValue == null) || 
-                                            ( a.FinancialPaymentDetail != null  && a.FinancialPaymentDetail.CurrencyTypeValue != null  && a.FinancialPaymentDetail.CurrencyTypeValue.Guid == new Guid(NONCASH))
+                                            ( a.FinancialPaymentDetail != null  && a.FinancialPaymentDetail.CurrencyTypeValue != null  && a.FinancialPaymentDetail.CurrencyTypeValue.Guid != new Guid(NONCASH))
                                      ).Select( a => new
             {
                 a.TransactionDateTime,
