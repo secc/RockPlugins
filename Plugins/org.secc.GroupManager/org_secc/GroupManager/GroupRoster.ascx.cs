@@ -89,7 +89,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             Page.Title = group.Name;
             ltTitle.Text = "<h1>" + group.Name + "</h1>";
 
-
             GetGroupMembers();
 
             if ( !Page.IsPostBack )
@@ -116,9 +115,18 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 memberData.Add( new MemberData( member ) );
             }
 
+            if ( !Page.IsPostBack )
+            {
+                memberData = memberData.Where( m => m.Status != GroupMemberStatus.Inactive ).ToList();
+            }
+
             //Rock allows for people to be in the same group twice as long as their group roles are different
             //We need to filter down to one person with leaders at top
-            memberData = memberData.OrderByDescending( m => m.IsLeader ).DistinctBy( m => m.Id ).ToList();
+            memberData = memberData
+                .OrderByDescending( m => m.IsLeader )
+                .ThenBy( m => m.LastName )
+                .ThenBy( m => m.FirstName )
+                .DistinctBy( m => m.Id ).ToList();
         }
 
         protected void btnMembership_Click( object sender, EventArgs e )
@@ -501,7 +509,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         private void BindRoster()
         {
-            rRoster.DataSource = memberData;
+            rRoster.DataSource = memberData.Where(m => m.Status!=GroupMemberStatus.Inactive);
             rRoster.DataBind();
         }
 
@@ -538,7 +546,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
                 foreach ( ListItem item in cblStatus.Items )
                 {
-                    item.Selected = true;
+                    //Select all except for inactive
+                    if ( item.Value != "0" )
+                    {
+                        item.Selected = true;
+                    }
                 }
             }
         }
@@ -937,7 +949,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         public MemberData( GroupMember member )
         {
             this.Person = member.Person;
-            if ( member.DateTimeAdded != null)
+            if ( member.DateTimeAdded != null )
             {
                 DateAdded = member.DateTimeAdded.Value.ToString( "d" );
             }
