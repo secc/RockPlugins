@@ -37,6 +37,8 @@ namespace org.secc.Rest.Controllers
     public class FinancialTransactionsExtensionsController : Rock.Rest.ApiControllerBase
     {
 
+        public const string NONCASH = "F64662E7-0E12-4604-BBB0-DB774AC3C830" ;
+
         /// <summary>
         /// Gets the contribution transactions.
         /// </summary>
@@ -98,8 +100,12 @@ namespace org.secc.Rest.Controllers
             {
                 qry = qry.Where( a => a.TransactionDetails.Any( x => options.AccountIds.Contains( x.AccountId ) ) );
             }
+            
 
-            var selectQry = qry.Select( a => new
+            var selectQry = qry.Where(a => a.FinancialPaymentDetail == null ||
+                                            (a.FinancialPaymentDetail != null && a.FinancialPaymentDetail.CurrencyTypeValue == null) || 
+                                            ( a.FinancialPaymentDetail != null  && a.FinancialPaymentDetail.CurrencyTypeValue != null  && a.FinancialPaymentDetail.CurrencyTypeValue.Guid == new Guid(NONCASH))
+                                     ).Select( a => new
             {
                 a.TransactionDateTime,
                 a.TransactionCode,
