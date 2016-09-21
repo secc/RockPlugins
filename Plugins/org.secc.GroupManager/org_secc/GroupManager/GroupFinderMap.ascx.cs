@@ -1240,7 +1240,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                             var mergeFields = new Dictionary<string, object>();
                             mergeFields.Add( "Family", family );
-                            mapItem.InfoWindow = familyInfoTemplate.Render( Hash.FromDictionary( mergeFields ) );
+                            string infoWindow = familyInfoTemplate.Render( Hash.FromDictionary( mergeFields ) );
+                            mapItem.InfoWindow = HttpUtility.HtmlEncode( infoWindow.Replace( Environment.NewLine, string.Empty ).Replace( "\n", string.Empty ).Replace( "\t", string.Empty ) );
                             familyMapItems.Add( mapItem );
 
                             if ( debugStatus == ShowDebugStatus.GroupIncluded )
