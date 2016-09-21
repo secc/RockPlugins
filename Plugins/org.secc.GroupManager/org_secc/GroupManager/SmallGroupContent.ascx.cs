@@ -469,6 +469,7 @@ $('#updateProgress').show();
             if ( GetAttributeValue( "MergeContent" ).AsBoolean() )
             {
                 var itemMergeFields = new Dictionary<string, object>();
+
                 if ( CurrentPerson != null )
                 {
                     itemMergeFields.Add( "CurrentPerson", CurrentPerson );
@@ -498,6 +499,7 @@ $('#updateProgress').show();
 
 
             var mergeFields = new Dictionary<string, object>();
+            mergeFields.Add( "PageParameter", RockPage.PageParameters() );
             mergeFields.Add( "Pagination", pagination );
             mergeFields.Add( "LinkedPages", linkedPages );
             mergeFields.Add( "Items", currentPageContent );
