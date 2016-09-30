@@ -415,12 +415,14 @@
             </Content>
         </Rock:ModalDialog>
 
-        <Rock:ModalDialog ID="mpPurchaseOrderSelect" runat="server">
+        <Rock:ModalDialog ID="mpPurchaseOrderSelect" runat="server" Title="Select Purchase Order">
             <Content>
                 <asp:UpdatePanel ID="upPurchaseOrderSelect" runat="server" UpdateMode="Conditional">
                     <ContentTemplate>
+                        <style>
+                            #<%=mpPurchaseOrderSelect.ClientID%>_modal_dialog_panel .modal-footer {display: none}
+                        </style>
                         <div id="purchaseOrderSelect">
-                            <h3>Select Purchase Order</h3>
                             <div style=" max-height:400px; overflow:auto;">
                                 <Rock:Grid ID="dgSelectPurchaseOrder" runat="server" CssClass="list" AllowPaging="false" AllowSorting="false">
                                     <Columns>
@@ -438,56 +440,48 @@
                                 </Rock:Grid>
                             </div>
                             <div style="padding-top:3px; text-align:right;">
-                                <asp:Button ID="btnSelectPurchaseOrderSelect" runat="server" CssClass="smallText" Text="Select PO"  OnClick="btnSelectPurchaseOrderSelect_Click" />
-                                <asp:Button ID="btnSelectPurchaseOrderNew" runat="server" CssClass="smallText" Text="New PO" OnClick="btnSelectPurchaseOrderNew_Click" />
-                                <asp:Button ID="btnSelectPurchaseOrderCancel" runat="server" CssClass="smallText" Text="Cancel" OnClick="btnSelectPurchaseOrderCancel_Click" />
+                                <asp:Button ID="btnSelectPurchaseOrderSelect" runat="server" Text="Select PO"  CssClass="btn btn-primary" OnClick="btnSelectPurchaseOrderSelect_Click" />
+                                <asp:Button ID="btnSelectPurchaseOrderNew" runat="server" Text="New PO"  CssClass="btn btn-info" OnClick="btnSelectPurchaseOrderNew_Click" />
+                                <asp:Button ID="btnSelectPurchaseOrderCancel" runat="server" Text="Cancel" CssClass="btn btn-default" OnClick="btnSelectPurchaseOrderCancel_Click" />
                             </div>
                         </div>
                     </ContentTemplate>
                     <Triggers>
-                        <asp:AsyncPostBackTrigger ControlID="lbAddItemToPO" />
+                        <asp:PostBackTrigger ControlID="btnSelectPurchaseOrderSelect" />
+                        <asp:PostBackTrigger ControlID="btnSelectPurchaseOrderNew" />
+                        <asp:PostBackTrigger ControlID="btnSelectPurchaseOrderCancel" />
                     </Triggers>
                 </asp:UpdatePanel>
             </Content>
         </Rock:ModalDialog>
-        <Rock:ModalDialog ID="mpSelectPurchaseOrderItems" runat="server">
+        <Rock:ModalDialog ID="mpSelectPurchaseOrderItems" runat="server" Title="Select PO Items" SaveButtonText="Add" OnSaveClick="btnSelectPOItemsAdd_Click">
             <Content>
                 <asp:UpdatePanel ID="upSelectPurchaseOrderItems" runat="server" UpdateMode="Conditional">
                     <ContentTemplate>
                         <div id="selectPurchaseOrderItems">
-                            <h3>Select PO Items</h3>
                             <asp:HiddenField ID="hfSelectPOItemsPONumber" runat="server" />
                             <div id="selectPurchaseOrderError">
                                 <asp:Label ID="lblSelectPurchaseOrderError" runat="server" CssClass="smallText" Visible="false" style="color:Red;" />
                             </div>
-                            <div style="width:100%;">
-                                <div style="width:125px; float:left;" class="formLabel">
-                                    PO Number:
+                            <div class="form-inline">
+                                <div class="form-group col-sm-4">
+                                    <label>PO Number:</label>
+                                    <asp:Label ID="lblSelectPOItemsPONumber" runat="server"></asp:Label>
                                 </div>
-                                <div style="width:150px; float:left;" class="formItem">
-                                    <asp:Label ID="lblSelectPOItemsPONumber" runat="server" />
+                                <div class="form-group col-sm-4">
+                                    <label>PO Number:</label>
+                                    <asp:DropDownList ID="ddlSelectPOItemsVendor" label="Vendor:" runat="server" />
+                                    <asp:Label label="Vendor:" ID="lblSelectPOItemsVendor" runat="server"></asp:Label>
                                 </div>
-                                <div style="width:75px; float:left;" class="formLabel">
-                                    Vendor:
-                                </div>
-                                <div style="width:250px; float: left;" class="formItem">
-                                    <asp:DropDownList ID="ddlSelectPOItemsVendor" runat="server" CssClass="smallText" style="max-width:95%;" />
-                                    <asp:Label ID="lblSelectPOItemsVendor" runat="server" Visible="false" />
-                                </div>
-                            </div>
-                            <div style="width:100%;">
-                                <div style="width:125px; float:left;" class="formLabel">
-                                    Type:
-                                </div>
-                                <div style="width:475px; float:left;" class="formItem">
-                                    <asp:DropDownList ID="ddlSelectPOItemsType" runat="server" CssClass="smallText" />
-                                    <asp:Label ID="lblSelectPOItemsType" runat="server" CssClass="smallText" />
+                                <div class="form-group col-sm-4">
+                                    <label>Type:</label>
+                                    <asp:DropDownList ID="ddlSelectPOItemsType" runat="server" />
+                                    <asp:Label ID="lblSelectPOItemsType" runat="server"></asp:Label>
                                 </div>
                             </div>
                             <div style="width:99%; max-height:350px; overflow-y:auto; overflow-x:hidden;">
-                                <Rock:Grid ID="dgSelectPOItems" runat="server" class="list" AllowPaging="false" AllowSorting="false" OnItemDataBound="dgSelectPOItems_ItemDataBound">
+                                <Rock:Grid ID="dgSelectPOItems" DataKeyNames="ItemID" runat="server" class="list" AllowPaging="false" AllowSorting="false" OnRowDataBound="dgSelectPOItems_ItemDataBound">
                                     <Columns>
-                                        <Rock:RockBoundField DataField="ItemID" HeaderText="ItemID" Visible="false" />
                                         <Rock:RockBoundField DataField="ItemNumber" HeaderText="Item Number" ItemStyle-Width="15%"
                                             HeaderStyle-HorizontalAlign="Center" />
                                         <Rock:RockBoundField DataField="Description" HeaderText="Description" ItemStyle-Width="20%" ItemStyle-CssClass="wrap" />
@@ -504,8 +498,8 @@
                                                 Remaining
                                             </HeaderTemplate>
                                             <ItemTemplate>
-                                                <asp:TextBox ID="txtQtyRemaining" runat="server" Visible="false" Style="width: 25px;" />
-                                                <asp:Label ID="lblQuantityRemaining" runat="server" CssClass="smallText"
+                                                <asp:TextBox ID="txtQtyRemaining" CssClass="form-control" runat="server" Visible="false" Style="width: 35px;" />
+                                                <asp:Label ID="lblQuantityRemaining" runat="server"
                                                     Visible="false" />
                                             </ItemTemplate>
                                         </Rock:RockTemplateField>
@@ -513,18 +507,18 @@
                                             <HeaderTemplate>
                                                 Price</HeaderTemplate>
                                             <ItemTemplate>
-                                                <asp:TextBox ID="txtRequisitionItemPrice" runat="server" CssClass="smallText" Visible="false"
-                                                    Style="width: 50px;" />
+                                                <asp:TextBox ID="txtRequisitionItemPrice" runat="server" CssClass="form-control" Visible="false"
+                                                    Style="width: 100px;" />
                                             </ItemTemplate>
                                         </Rock:RockTemplateField>
                                     </Columns>
                                 </Rock:Grid>
                             </div>
-                            <div style="text-align:right; padding-top:3px;">
-                                <asp:Button ID="btnSelectPOItemsAdd" runat="server" Text="Add" CssClass="smallText" OnClick="btnSelectPOItemsAdd_Click" />
+                            <%--<div style="text-align:right; padding-top:3px;">
+                                <asp:Button ID="" runat="server" Text="" CssClass="btn btn-primary" OnClick="btnSelectPOItemsAdd_Click" />
                                 <asp:Button ID="btnSelectPOItemsReset" runat="server" Text="Reset" CssClass="smallText" OnClick="btnSelectPOItemsReset_Click" />
                                 <asp:Button ID="btnSelectPOItemsCancel" runat="server" Text="Cancel" CssClass="smallText" OnClick="btnSelectPOItemsCancel_Click" />
-                            </div>
+                            </div>--%>
                         </div>
                     </ContentTemplate>
                     <%-- Triggers>

@@ -43,12 +43,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-                bool mSuccess = false;
-
-                if (Request.QueryString["Success"] != null)
-                    bool.TryParse(Request.QueryString["Success"], out mSuccess);
-
-                return mSuccess;
+                return PageParameter("Success").AsBoolean();
             }
         }
 

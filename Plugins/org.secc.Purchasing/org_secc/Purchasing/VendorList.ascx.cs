@@ -167,7 +167,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
             else
             {
-                vendors = vendors.OrderBy( v => v.VendorID ).ToList();
+                vendors = vendors.OrderBy( v => v.VendorName ).ToList();
             }
 
             if (!string.IsNullOrEmpty(txtFilterVendorName.Text)) {
@@ -194,7 +194,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             if (vendorId > 0 && (currentVendor = new Vendor(vendorId)) != null) {
                 if (!IsVendorUsed(currentVendor.VendorID)) {
-                    //Vendor.Delete(vendorId, "system");
+                    Vendor.Delete(vendorId, "system");
                 }
                 else { 
                     maAlert.Show(
