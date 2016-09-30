@@ -530,9 +530,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
                 hfExpeditedShippingDays.Value = ExpeditedShippingWindowDaysSetting;
                 ucVendorSelect.CanAddNewVendor = AllowNewVendorSelectionSetting;
-                ucStaffPicker.MinistryAreaAttributeGuid = MinistryAreaAttribute.Guid;
-                ucStaffPicker.PositionAttributeGuid = PositionAttribute.Guid;
             }
+            ucStaffPicker.MinistryAreaAttributeGuid = MinistryAreaAttribute.Guid;
+            ucStaffPicker.PositionAttributeGuid = PositionAttribute.Guid;
             string baseUrl = CurrentPageReference.BuildUrl();
 
             /*if (CurrentRequisition != null && CurrentRequisition.RequisitionID > 0)
@@ -708,7 +708,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     LoadItemDetailModal(Argument);
                     break;
                 case "loadpurchaseorder":
-                    ScriptManager.RegisterStartupScript(upMain, upMain.GetType(), "LoadPOPopup" + DateTime.Now.Ticks, "window.open(\"/default.aspx?page=" + PurchaseOrderDetailPageSetting + "&poid=" + Argument.ToString() + "\",\"_blank\");", true);
+                    ScriptManager.RegisterStartupScript(upMain, upMain.GetType(), "LoadPOPopup" + DateTime.Now.Ticks, "window.open(\"/page/" + PageCache.Read( PurchaseOrderDetailPageSetting.AsGuid() ).Id + "?poid=" + Argument.ToString() + "\",\"_blank\");", true);
                     break;
                 case "viewpolist":
                     ShowItemPurchaseOrdersModal(Argument);
@@ -747,7 +747,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     {
                         if (UserCanEdit)
                         {
-                            sb.AppendFormat("<a href=\"/default.aspx?page={0}&poid={1}\" target=\"_blank\">{2}</a>", PurchaseOrderDetailPageSetting, Item.PONumbers[i], Item.PONumbers[i]);
+                            sb.AppendFormat("<a href=\"/page/{0}?poid={1}\" target=\"_blank\">{2}</a>", PageCache.Read( PurchaseOrderDetailPageSetting.AsGuid() ).Id, Item.PONumbers[i], Item.PONumbers[i]);
                         }
                         else
                         {
@@ -2076,7 +2076,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if ( capitalRequestId > 0 )
             {
                 var capitalRequest = new CapitalRequest( capitalRequestId );
-                lCapitalRequest.Text = String.Format( "<a href=\"/default.aspx?page={0}&CER={1}\" target=\"_blank\" class=\"CERLink\">{2}</a>", CapitalRequestDetailPageSetting, capitalRequestId, capitalRequest.ProjectName );
+                lCapitalRequest.Text = String.Format( "<a href=\"/page/{0}?CER={1}\" target=\"_blank\" class=\"CERLink\">{2}</a>", PageCache.Read( CapitalRequestDetailPageSetting.AsGuid() ).Id, capitalRequestId, capitalRequest.ProjectName );
             }
             else
             {
@@ -2825,7 +2825,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         protected void btnSelectPurchaseOrderSelect_Click(object sender, EventArgs e)
         {
             int PurchaseOrderID = 0;
-            foreach (DataGridItem item in dgSelectPurchaseOrder.Rows)
+            foreach (GridViewRow item in dgSelectPurchaseOrder.Rows)
             {
                 RadioButton rb = (RadioButton)item.FindControl("rdoSelectPO");
                 if (rb != null && rb.Checked)
@@ -2921,16 +2921,13 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         protected void btnSelectPOItemsAdd_Click(object sender, EventArgs e)
         {
             SetSelectPurchaseOrderItemError(string.Empty);
+            BindSelectPOItemsGrid();
             if (UpdatePurchaseOrderItems())
             {
                 ScriptManager.RegisterStartupScript(upSelectPurchaseOrderItems, upSelectPurchaseOrderItems.GetType(), "Show PO Number" + DateTime.Now.Ticks, string.Format("alert(\"Items added to PO Number: {0}\");", hfSelectPOItemsPONumber.Value), true);
                 HideSelectPOItems();
                 LoadItems();
                 
-            }
-            else
-            {
-                BindSelectPOItemsGrid();
             }
         }
 
@@ -2948,17 +2945,17 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             HideSelectPOItems();
         }
 
-        protected void dgSelectPOItems_ItemDataBound(object sender, DataGridItemEventArgs e)
+        protected void dgSelectPOItems_ItemDataBound(object sender, GridViewRowEventArgs e )
         {
-            if (e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem)
+            if (e.Row.RowType == DataControlRowType.DataRow )
             {
-                DataRowView drv = (DataRowView)e.Item.DataItem;
+                DataRowView drv = (DataRowView)e.Row.DataItem;
                 int QtyRemaining = 0;
                 int.TryParse(drv["QtyRemaining"].ToString(), out QtyRemaining);
 
-                TextBox txtQtyRemaining = (TextBox)e.Item.FindControl("txtQtyRemaining");
-                Label lblQuantityRemaining = (Label)e.Item.FindControl("lblQuantityRemaining");
-                TextBox txtRequisitionItemPrice = (TextBox)e.Item.FindControl("txtRequisitionItemPrice");
+                TextBox txtQtyRemaining = (TextBox)e.Row.FindControl("txtQtyRemaining");
+                Label lblQuantityRemaining = (Label)e.Row.FindControl("lblQuantityRemaining");
+                TextBox txtRequisitionItemPrice = (TextBox)e.Row.FindControl("txtRequisitionItemPrice");
 
                 if (QtyRemaining > 0)
                 {
@@ -2994,7 +2991,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             ddlSelectPOItemsType.Items.Clear();
             ddlSelectPOItemsType.DataSource = PurchaseOrder.GetPurchaseOrderTypes(true).OrderBy(x => x.Order);
-            ddlSelectPOItemsType.DataValueField = "LookupID";
+            ddlSelectPOItemsType.DataValueField = "Id";
             ddlSelectPOItemsType.DataTextField = "Value";
             ddlSelectPOItemsType.DataBind();
 
@@ -3160,12 +3157,12 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
                 List<ItemToAddToPO> AddItems = new List<ItemToAddToPO>();
 
-                foreach (DataGridItem dgi in dgSelectPOItems.Rows)
+                foreach (GridViewRow dgi in dgSelectPOItems.Rows)
                 {
                     int itemID = 0;
                     int QtyRequested = 0;
                     decimal ItemPrice = 0;
-                    int.TryParse(dgi.Cells[0].Text, out itemID);
+                    int.TryParse( dgSelectPOItems.DataKeys[dgi.RowIndex].Value.ToString(), out itemID);
                     TextBox tbQty = (TextBox)dgi.FindControl("txtQtyRemaining");
                     TextBox tbPrice = (TextBox)dgi.FindControl("txtRequisitionItemPrice");
 
@@ -3248,9 +3245,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             RadioButton selectedRB = (RadioButton)sender;
 
-            foreach ( DataGridItem item in dgSelectPurchaseOrder.Rows )
+            foreach ( GridViewRow item in dgSelectPurchaseOrder.Rows )
             {
-                if ( item.ItemType == ListItemType.Item || item.ItemType == ListItemType.AlternatingItem )
+                if ( item.RowType == DataControlRowType.DataRow )
                 {
                     RadioButton rb = (RadioButton)item.FindControl( "rdoSelectPO" );
 
@@ -3281,7 +3278,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 HyperLink hLinkPO = (HyperLink)e.Item.FindControl("hlPurchaseOrderID");
                 Label lblPO = (Label)e.Item.FindControl("lblPurchaseOrderID");
                 hLinkPO.Text = POID.ToString();
-                hLinkPO.NavigateUrl = string.Format("~/default.aspx?page={0}&poid={1}", PurchaseOrderDetailPageSetting, POID);
+                hLinkPO.NavigateUrl = string.Format("~/page/{0}?poid={1}", PageCache.Read( PurchaseOrderDetailPageSetting.AsGuid() ).Id, POID);
                 lblPO.Text = POID.ToString();
 
                 if (UserCanEdit)
