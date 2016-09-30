@@ -1,6 +1,7 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="RequisitionList.ascx.cs"
     Inherits="RockWeb.Plugins.org_secc.Purchasing.RequisitionList" %>
 <%@ Register Src="~/Plugins/org_secc/Purchasing/StaffSearch.ascx" TagPrefix="secc" TagName="StaffSearch" %>
+<%@ Register Src="StaffPicker.ascx" TagName="StaffPicker" TagPrefix="secc" %>
 <asp:UpdatePanel ID="upMain" runat="server" UpdateMode="Conditional" class="panel panel-block">
     <ContentTemplate>
         <div class="panel-heading">
@@ -30,7 +31,11 @@
                     <Rock:RockTextBox ID="txtPONumber" runat="server" Label="PO Number"/>
                 
                     <Rock:DateRangePicker ID="txtFilterSubmitted" runat="server" Visible="true" Label="Submitted On" />
-                    <Rock:PersonPicker ID="hfFilterSubmittedBy" runat="server" Label="Requester"/>
+                    <asp:Panel runat="server" CssClass="form-group">
+                        <label>Requester:</label>
+                        <secc:StaffPicker ID="hfFilterSubmittedBy" runat="server" AllowMultipleSelections="false" 
+                                                ShowPersonDetailLink="true" ShowPhoto="true" UserCanEdit="true"/>
+                    </asp:Panel>
                     <Rock:RockCheckBox ID="chkShowInactive" runat="server" CssClass="smallText" Label="Show Inactive" />
                 </Rock:GridFilter>
                 <Rock:Grid ID="dgRequisitions" runat="server" CssClass="list" AllowPaging="true"

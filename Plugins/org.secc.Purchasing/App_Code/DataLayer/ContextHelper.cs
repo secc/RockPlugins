@@ -21,10 +21,7 @@ namespace org.secc.Purchasing.DataLayer
         /// <returns></returns>
         public static ShelbyContext GetShelbyContext()
         {
-            //return new ShelbyContext(ConfigurationManager.ConnectionStrings[SHELBY_CSN].ConnectionString);
-
-            return new ShelbyContext(ConfigurationManager.AppSettings["ShelbyConnString"]);
-
+            return new ShelbyContext(ConfigurationManager.ConnectionStrings["ShelbyContext"].ConnectionString);
         }
     }
 }

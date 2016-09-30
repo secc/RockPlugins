@@ -81,6 +81,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 LoadUserFilterSettings();
                 BindRequisitionGrid();
             }
+            hfFilterSubmittedBy.MinistryAreaAttributeGuid = MinistryAreaAttributeIDSetting;
+            hfFilterSubmittedBy.PositionAttributeGuid = PositionAttributeIDSetting;
             dgRequisitions.GridRebind += dgRequisitions_ReBind;
         }
 
@@ -293,8 +295,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 Filter.Add("SubmitOnEnd", txtFilterSubmitted.UpperValue.Value.ToShortDateString());
             }
 
-            if (hfFilterSubmittedBy.Visible && hfFilterSubmittedBy.PersonAliasId.HasValue)
-                Filter.Add("RequesterID", hfFilterSubmittedBy.PersonAliasId.ToString());
+            if (hfFilterSubmittedBy.Visible && hfFilterSubmittedBy.StaffPersonAliasId.HasValue)
+                Filter.Add("RequesterID", hfFilterSubmittedBy.StaffPersonAliasId.ToString());
 
             int MinistryID = 0;
             if (ddlMinistry.Visible && int.TryParse(ddlMinistry.SelectedValue, out MinistryID))
@@ -365,7 +367,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void ClearSubmittedByFilter()
         {
-            hfFilterSubmittedBy.PersonId = null;
+            hfFilterSubmittedBy.StaffPerson = null;
             /*lblFilterSubmittedBy.Text = "(any)";
             lbRemoveSubmittedBy.Visible = false;
             */
@@ -477,7 +479,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 int.TryParse(GetUserPreference(string.Format("{0}_RequesterID", PersonSettingsKeyPrefix)), out RequesterID);
                 if (RequesterID > 0)
                 {
-                    hfFilterSubmittedBy.PersonId = RequesterID;
+                    hfFilterSubmittedBy.StaffPersonAliasId = RequesterID;
                     /*
                     PersonAliasService personAliasService = new PersonAliasService(new RockContext());
                     lblFilterSubmittedBy.Text = personAliasService.Get(RequesterID).Person.FullName;
@@ -587,8 +589,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 SetUserPreference(string.Format("{0}_PONumber", PersonSettingsKeyPrefix), String.Empty);
             }
 
-            if (hfFilterSubmittedBy.Visible && hfFilterSubmittedBy.PersonAliasId.HasValue)
-                SetUserPreference(string.Format("{0}_RequesterID", PersonSettingsKeyPrefix), hfFilterSubmittedBy.PersonAliasId.Value.ToString());
+            if (hfFilterSubmittedBy.Visible && hfFilterSubmittedBy.StaffPersonAliasId.HasValue)
+                SetUserPreference(string.Format("{0}_RequesterID", PersonSettingsKeyPrefix), hfFilterSubmittedBy.StaffPersonAliasId.Value.ToString());
             else
                 SetUserPreference(string.Format("{0}_RequesterID", PersonSettingsKeyPrefix), String.Empty);
 
