@@ -16,7 +16,7 @@
             </Rock:GridFilter>
             <Rock:Grid ID="dgVendors" runat="server" AllowSorting="true" AllowPaging="true" DataKeyNames="VendorID" OnRowDataBound="dgVendors_RowDataBound">
                 <Columns>
-                    <Rock:RockBoundField HeaderText="ID" DataField="VendorID" SortExpression="VendorID" />
+                    <Rock:RockBoundField HeaderText="ID" DataField="VendorID" SortExpression="VendorID" Visible="false" />
                     <Rock:RockTemplateField HeaderText="Name" SortExpression="VendorName">                     
                         <ItemTemplate>
                             <a href="#" onclick="javascript: Rock.controls.modal.show($('this'), '/page/<%=VendorDetailPageSetting.Id %>?t=View Vendor&VendorID=<%# Eval("VendorID") %>&pb=&sb='); return false;"><%# Eval("VendorName") %></a>
