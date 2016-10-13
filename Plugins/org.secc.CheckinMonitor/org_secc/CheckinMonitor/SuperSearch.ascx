@@ -21,6 +21,7 @@
                     $phoneNumber = $("input[id$='tbPhone']");
                     $phoneNumber.val('');
                     $phoneNumber.focus();
+                    documenent.getElementById("responseDiv").innerHTML = "";
                 });
 
                 // set focus to the input unless on a touch device
@@ -62,10 +63,10 @@
                         <a href="#" class="btn btn-default btn-lg command clear col-xs-4">Clear</a>
                     </div>
                 </div>
-                <Rock:BootstrapButton CssClass="btn btn-primary col-xs-12" ID="lbSearch" runat="server" OnClick="lbSearch_Click" Text="Search" DataLoadingText="Searching..."></Rock:BootstrapButton>
+                <Rock:BootstrapButton CssClass="btn btn-primary col-xs-12 search" ID="lbSearch" runat="server" OnClick="lbSearch_Click" Text="Search" DataLoadingText="Searching..."></Rock:BootstrapButton>
             </div>
 
-            <div class="col-xs-12 col-sm-8">
+            <div class="col-xs-12 col-sm-8" id="responseDiv">
                 <asp:PlaceHolder ID="phFamilies" runat="server" />
             </div>
         </div>
