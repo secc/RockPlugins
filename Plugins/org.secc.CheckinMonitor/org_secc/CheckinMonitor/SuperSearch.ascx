@@ -21,7 +21,7 @@
                     $phoneNumber = $("input[id$='tbPhone']");
                     $phoneNumber.val('');
                     $phoneNumber.focus();
-                    documenent.getElementById("responseDiv").innerHTML = "";
+                    document.getElementById("responseDiv").innerHTML = "";
                 });
 
                 // set focus to the input unless on a touch device
