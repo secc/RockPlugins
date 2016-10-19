@@ -20,7 +20,8 @@ namespace org.secc.PersonMatch
             {
                 
                 LocationService locationService = new LocationService( context );
-                DefinedTypeService definedTypeService = new DefinedTypeService( context );
+                AttributeValueService attributeValueService = new AttributeValueService( context );
+                List<AttributeValue> attributeValues = attributeValueService.GetByAttributeId( AttributeCache.Read( GOES_BY_ATTRIBUTE.AsGuid() ).Id ).ToList();
                 var diminutiveName = DefinedTypeCache.Read( DIMINUTIVE_NAMES.AsGuid() );
 
                 firstName = firstName ?? string.Empty;
@@ -84,8 +85,9 @@ namespace org.secc.PersonMatch
                     {
                         foreach ( DefinedValueCache dv in diminutiveName.DefinedValues )
                         {
+                            AttributeValue av = attributeValues.Where( av2 => av2.EntityId == dv.Id ).FirstOrDefault();
                             List<string> nameList = new List<string>();
-                            nameList = dv.GetAttributeValue( "GoesBy" ).Split( '|' ).ToList();
+                            nameList = av.Value.Split( '|' ).ToList();
                             nameList.Add( dv.Value );
                             if ( nameList.Contains( firstName.ToLower() ) && 
                                 ( nameList.Contains( matchingPerson.FirstName.ToLower() )  ||  nameList.Contains( matchingPerson.NickName.ToLower() ) ) )
