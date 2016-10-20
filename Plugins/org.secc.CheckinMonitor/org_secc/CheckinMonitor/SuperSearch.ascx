@@ -32,6 +32,8 @@
                 }
             });
 
+            var refocus = setInterval(function () { $('.checkin-phone-entry').focus(); }, 1000)
+
         </script>
 
         <Rock:ModalAlert ID="maWarning" runat="server" />
