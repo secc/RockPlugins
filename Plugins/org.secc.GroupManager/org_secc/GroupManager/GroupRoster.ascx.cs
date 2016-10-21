@@ -14,6 +14,7 @@ using Rock.Attribute;
 using Rock.Security;
 using System.Text;
 using DotLiquid;
+using org.secc.GroupManager;
 
 namespace RockWeb.Plugins.org_secc.GroupManager
 {
@@ -25,9 +26,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [CodeEditorField( "Roster Lava", "Lava to appear in member roster pannels", CodeEditorMode.Lava, CodeEditorTheme.Rock, 600, false )]
     [BooleanField( "Allow Email", "Allow email to be sent from this block.", false )]
     [BooleanField( "Allow SMS", "Allow test messages to be sent from this block.", false )]
-    public partial class GroupRoster : RockBlock
+    public partial class GroupRoster : GroupManagerBlock
     {
-        Group group = new Group();
         List<MemberData> memberData = new List<MemberData>();
         string smsScript = @"
             var charCount = function(){
@@ -41,6 +41,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         protected override void OnInit( EventArgs e )
         {
+            
             base.OnInit( e );
             gMembers.ShowActionRow = false;
             gMembers.PersonIdField = "Id";
@@ -65,20 +66,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             nbAlert.Visible = false;
             var personAlias = RockPage.CurrentPersonAlias;
-            groupId = PageParameter( "GroupId" ).AsInteger();
-            if ( groupId == 0 )
-            {
-                return;
-            }
 
             _rockContext = new RockContext();
-            var groupService = new GroupService( _rockContext );
-            group = groupService.Get( groupId );
-
-
 
             //If you are not a leader when one is required hide and quit.
-            if ( !group.IsAuthorized( Authorization.EDIT, CurrentPerson ) )
+            if ( !CurrentGroup.IsAuthorized( Authorization.EDIT, CurrentPerson ) )
             {
                 pnlMain.Visible = false;
                 nbAlert.Visible = true;
@@ -86,8 +78,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 return;
             }
 
-            Page.Title = group.Name;
-            ltTitle.Text = "<h1>" + group.Name + "</h1>";
+            Page.Title = CurrentGroup.Name;
+            ltTitle.Text = "<h1>" + CurrentGroup.Name + "</h1>";
 
             GetGroupMembers();
 
@@ -189,8 +181,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 return;
             }
 
-            group.LoadAttributes();
-            cbSMSSendToParents.Visible = group.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
+            CurrentGroup.LoadAttributes();
+            cbSMSSendToParents.Visible = CurrentGroup.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
             pnlMain.Visible = false;
             pnlSMS.Visible = true;
 
@@ -217,7 +209,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     communication.MediumEntityTypeId = EntityTypeCache.Read( "Rock.Communication.Medium.Sms" ).Id;
                     communication.MediumData.Clear();
                     communication.MediumData.Add( "TextMessage", tbMessage.Text );
-                    communication.MediumData.Add( "From", group.GetAttributeValue( "TextMessageFrom" ) );
+                    communication.MediumData.Add( "From", CurrentGroup.GetAttributeValue( "TextMessageFrom" ) );
 
                     communication.Status = CommunicationStatus.Approved;
                     communication.ReviewedDateTime = RockDateTime.Now;
@@ -249,8 +241,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 return;
             }
 
-            group.LoadAttributes();
-            cbEmailSendToParents.Visible = group.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
+            CurrentGroup.LoadAttributes();
+            cbEmailSendToParents.Visible = CurrentGroup.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
             pnlMain.Visible = false;
             pnlEmail.Visible = true;
 
@@ -427,7 +419,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             //Select multiple group members because someone can be a member of
             //a group more than once as long as their role is different
-            var groupMembers = group.Members.Where( m => m.Person.Id == id );
+            var groupMembers = CurrentGroup.Members.Where( m => m.Person.Id == id );
             if ( groupMembers.Any() )
             {
                 foreach ( var groupMember in groupMembers )
@@ -442,7 +434,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             //Select multiple group members because someone can be a member of
             //a group more than once as long as their role is different
-            var groupMembers = group.Members.Where( m => m.Person.Id == id );
+            var groupMembers = CurrentGroup.Members.Where( m => m.Person.Id == id );
             if ( groupMembers.Any() )
             {
                 foreach ( var groupMember in groupMembers )
@@ -526,7 +518,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         private void GenerateFilters( bool FirstRun )
         {
-            var roles = group.GroupType.Roles.ToList();
+            var roles = CurrentGroup.GroupType.Roles.ToList();
             cblRole.DataSource = roles;
             cblRole.DataBind();
 
@@ -794,8 +786,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         private void showRosterEmail( int? id )
         {
             hfCommunication.Value = id.ToString();
-            group.LoadAttributes();
-            cbEmailSendToParents.Visible = group.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
+            CurrentGroup.LoadAttributes();
+            cbEmailSendToParents.Visible = CurrentGroup.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
             pnlMain.Visible = false;
             pnlEmail.Visible = true;
 

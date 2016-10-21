@@ -22,6 +22,7 @@ using System.IO;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using org.secc.GroupManager;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -43,12 +44,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [MergeTemplateField( "Attendance Roster Template", "", false )]
     [TextField("Count Label", "Label for count field.", true, "Head Count:")]
     [BooleanField("Auto Count", "Auto count membership.", false)]
-    public partial class GroupManagerAttendance : RockBlock
+    public partial class GroupManagerAttendance : GroupManagerBlock
     {
         #region Private Variables
 
         private RockContext _rockContext = null;
-        private Group _group = null;
         private bool _canEdit = false;
         private bool _allowAddDate = false;
         private ScheduleOccurrence _occurrence = null;
@@ -75,14 +75,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             _rockContext = new RockContext();
 
-            int groupId = PageParameter( "GroupId" ).AsInteger();
-            _group = new GroupService( _rockContext )
-                .Queryable( "GroupType,Schedule" ).AsNoTracking()
-                .FirstOrDefault( g => g.Id == groupId );
-
-            if ( _group != null && _group.IsAuthorized( Authorization.EDIT, CurrentPerson ) )
+            if ( CurrentGroup != null && CurrentGroup.IsAuthorized( Authorization.EDIT, CurrentPerson ) )
             {
-                lHeading.Text = _group.Name + " Attendance";
+                lHeading.Text = CurrentGroup.Name + " Attendance";
                 _canEdit = true;
             }
 
@@ -150,7 +145,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             RockContext rockContext = new RockContext();
             AttendanceService attendanceService = new AttendanceService( rockContext );
-            var schedules = attendanceService.Queryable().Where( a => a.GroupId == _group.Id ).DistinctBy( s => s.StartDateTime ).Select( s => s.StartDateTime ).ToList();
+            var schedules = attendanceService.Queryable().Where( a => a.GroupId == CurrentGroup.Id ).DistinctBy( s => s.StartDateTime ).Select( s => s.StartDateTime ).ToList();
             ddlPastOccurrences.Items.Clear();
             if ( _occurrence != null )
             {
@@ -184,7 +179,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void lbSave_Click( object sender, EventArgs e )
         {
-            if ( _group != null && _occurrence != null )
+            if ( CurrentGroup != null && _occurrence != null )
             {
                 var rockContext = new RockContext();
                 var attendanceService = new AttendanceService( rockContext );
@@ -195,7 +190,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 var existingAttendees = attendanceService
                     .Queryable( "PersonAlias" )
                     .Where( a =>
-                        a.GroupId == _group.Id &&
+                        a.GroupId == CurrentGroup.Id &&
                         a.LocationId == _occurrence.LocationId &&
                         a.ScheduleId == _occurrence.ScheduleId &&
                         a.StartDateTime == startDate );
@@ -233,8 +228,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             if ( personAliasId.HasValue )
                             {
                                 attendance = new Attendance();
-                                attendance.GroupId = _group.Id;
-                                attendance.ScheduleId = _group.ScheduleId;
+                                attendance.GroupId = CurrentGroup.Id;
+                                attendance.ScheduleId = CurrentGroup.ScheduleId;
                                 attendance.PersonAliasId = personAliasId;
                                 attendance.StartDateTime = _occurrence.Date;
                                 attendance.ScheduleId = _occurrence.ScheduleId;
@@ -267,7 +262,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 rockContext.SaveChanges();
 
-                Response.Redirect( Request.Url.AbsolutePath + "?GroupId=" + _group.Id.ToString() + "&Date=" + _occurrence.Date );
+                Response.Redirect( Request.Url.AbsolutePath + "?Date=" + _occurrence.Date );
             }
         }
 
@@ -277,7 +272,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             NoteType noteType = noteTypeService.Queryable().FirstOrDefault( nt => nt.Guid == new Guid( "FFFC3644-60CD-4D14-A714-E8DCC202A0E1" ) );
 
             NoteService noteService = new NoteService( rockContext );
-            var notes = noteService.Queryable().Where( n => n.NoteType.Guid == noteType.Guid && n.EntityId == _group.Id ).ToList();
+            var notes = noteService.Queryable().Where( n => n.NoteType.Guid == noteType.Guid && n.EntityId == CurrentGroup.Id ).ToList();
             foreach ( Note note in notes )
             {
                 note.LoadAttributes();
@@ -301,7 +296,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 //Create new note if one does not exist.
                 Note newNote = new Note();
                 newNote.NoteType = noteType;
-                newNote.EntityId = _group.Id;
+                newNote.EntityId = CurrentGroup.Id;
                 noteService.Add( newNote );
                 rockContext.SaveChanges();
                 newNote.LoadAttributes();
@@ -342,14 +337,14 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         /// <param name="e">The <see cref="ListViewCommandEventArgs"/> instance containing the event data.</param>
         protected void lvPendingMembers_ItemCommand( object sender, ListViewCommandEventArgs e )
         {
-            if ( _group != null && e.CommandName == "Add" )
+            if ( CurrentGroup != null && e.CommandName == "Add" )
             {
                 int personId = e.CommandArgument.ToString().AsInteger();
 
                 var rockContext = new RockContext();
 
                 foreach ( var groupMember in new GroupMemberService( rockContext )
-                    .GetByGroupIdAndPersonId( _group.Id, personId ) )
+                    .GetByGroupIdAndPersonId( CurrentGroup.Id, personId ) )
                 {
                     if ( groupMember.GroupMemberStatus == GroupMemberStatus.Pending )
                     {
@@ -391,11 +386,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             if ( occurrenceDate.HasValue )
             {
                 // Try to find the selected occurrence based on group's schedule
-                if ( _group != null )
+                if ( CurrentGroup != null )
                 {
                     // Get all the occurrences for this group, and load the attendance so we can show Attendance Count
                     var occurrence = new ScheduleService( _rockContext )
-                        .GetGroupOccurrences( _group, occurrenceDate.Value.Date, occurrenceDate.Value.AddDays( 1 ),
+                        .GetGroupOccurrences( CurrentGroup, occurrenceDate.Value.Date, occurrenceDate.Value.AddDays( 1 ),
                             locationIds, scheduleIds, true )
                         .OrderBy( o => o.Date )
                         .FirstOrDefault();
@@ -437,9 +432,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             var schedules = new Dictionary<int, string> { { 0, "" } };
 
-            if ( _group != null && locationId.HasValue )
+            if ( CurrentGroup != null && locationId.HasValue )
             {
-                _group.GroupLocations
+                CurrentGroup.GroupLocations
                     .Where( l => l.LocationId == locationId.Value )
                     .SelectMany( l => l.Schedules )
                     .OrderBy( s => s.Name )
@@ -486,9 +481,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                     lOccurrenceTime.Visible = false;
                     tpOccurrenceTime.Visible = true;
-                    if ( _group != null && _group.Schedule != null && _group.Schedule.WeeklyTimeOfDay != null )
+                    if ( CurrentGroup != null && CurrentGroup.Schedule != null && CurrentGroup.Schedule.WeeklyTimeOfDay != null )
                     {
-                        tpOccurrenceTime.SelectedTime = _group.Schedule.WeeklyTimeOfDay;
+                        tpOccurrenceTime.SelectedTime = CurrentGroup.Schedule.WeeklyTimeOfDay;
                     }
                     else
                     {
@@ -497,7 +492,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 }
 
-                lMembers.Text = _group.GroupType.GroupMemberTerm.Pluralize();
+                lMembers.Text = CurrentGroup.GroupType.GroupMemberTerm.Pluralize();
                 lPendingMembers.Text = "Pending " + lMembers.Text;
 
                 List<int> attendedIds = new List<int>();
@@ -508,7 +503,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     cbDidNotMeet.Checked = _occurrence.DidNotOccur;
 
                     // Get the list of people who attended
-                    attendedIds = new ScheduleService( _rockContext ).GetAttendance( _group, _occurrence )
+                    attendedIds = new ScheduleService( _rockContext ).GetAttendance( CurrentGroup, _occurrence )
                         .Where( a => a.DidAttend.HasValue && a.DidAttend.Value )
                         .Select( a => a.PersonAlias.PersonId )
                         .Distinct()
@@ -524,7 +519,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 var unattendedIds = groupMemberService
                     .Queryable().AsNoTracking()
                     .Where( m =>
-                        m.GroupId == _group.Id &&
+                        m.GroupId == CurrentGroup.Id &&
                         m.GroupMemberStatus == GroupMemberStatus.Active &&
                         !attendedIds.Contains( m.PersonId ) )
                     .Select( m => m.PersonId )
@@ -548,7 +543,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 var pendingMembers = groupMemberService
                     .Queryable().AsNoTracking()
                     .Where( m =>
-                        m.GroupId == _group.Id &&
+                        m.GroupId == CurrentGroup.Id &&
                         m.GroupMemberStatus == GroupMemberStatus.Pending )
                     .OrderBy( m => m.Person.LastName )
                     .ThenBy( m => m.Person.NickName )
@@ -679,7 +674,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         protected void ddlPastOccurrences_SelectionChanged( object sender, EventArgs e )
         {
-            Response.Redirect( Request.Url.AbsolutePath + "?GroupId=" + _group.Id.ToString() + "&Date=" + ddlPastOccurrences.SelectedValue );
+            Response.Redirect( Request.Url.AbsolutePath + "?Date=" + ddlPastOccurrences.SelectedValue );
         }
     }
 }
