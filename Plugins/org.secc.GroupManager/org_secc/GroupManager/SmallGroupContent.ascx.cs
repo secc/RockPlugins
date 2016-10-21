@@ -100,8 +100,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
         }
 
-        private Group _group;
-
+        private Group CurrentGroup;
+        private GroupMember CurrentGroupMember;
 
 
         #endregion
@@ -160,20 +160,36 @@ $(document).ready(function() {
 
         private void GetGroup()
         {
-            try
+            RockContext rockContext = new RockContext();
+            LoadSession( rockContext );
+
+            if ( CurrentGroup != null )
             {
-                var groupId = Int32.Parse( PageParameter( "GroupId" ) );
-                RockContext rockContext = new RockContext();
-                GroupService groupService = new GroupService( rockContext );
-                _group = groupService.Get( groupId );
-
-                Group parentGroup = _group.ParentGroup;
-
+                Group parentGroup = CurrentGroup.ParentGroup;
                 parentGroup.LoadAttributes();
-                ChannelGuid = new Guid( parentGroup.GetAttributeValue( "ContentChannel" ) );
+                ChannelGuid = parentGroup.GetAttributeValue( "ContentChannel" ).AsGuid();
             }
-            catch
+        }
+
+        private void LoadSession( RockContext rockContext )
+        {
+            int groupId = PageParameter( "GroupId" ).AsInteger();
+            if ( groupId == 0 && Session["CurrentGroupManagerGroup"] != null )
             {
+                groupId = ( int ) Session["CurrentGroupManagerGroup"];
+            }
+
+            CurrentGroup = new GroupService( rockContext ).Get( groupId );
+            if ( CurrentGroup != null )
+            {
+                Session["CurrentGroupManagerGroup"] = groupId;
+                CurrentGroupMember = CurrentGroup.Members
+                    .Where( gm => gm.PersonId == CurrentUser.PersonId )
+                    .FirstOrDefault();
+            }
+            else
+            {
+                CurrentGroupMember = null;
             }
         }
 
@@ -183,7 +199,7 @@ $(document).ready(function() {
         /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         protected override void OnLoad( EventArgs e )
         {
-            if ( _group != null && _group.IsAuthorized( Authorization.EDIT, CurrentUser.Person ) )
+            if ( CurrentGroup != null && CurrentGroup.IsAuthorized( Authorization.EDIT, CurrentUser.Person ) )
             {
                 base.OnLoad( e );
 
@@ -615,7 +631,7 @@ $('#updateProgress').show();
                 var hgcLi = new HtmlGenericContainer( "li" );
                 hgcUl.Controls.Add( hgcLi );
                 HyperLink hyp = new HyperLink();
-                hyp.NavigateUrl = Request.Url.AbsolutePath + "?GroupId=" + _group.Id.ToString() + "&Item=" + item.Id.ToString();
+                hyp.NavigateUrl = Request.Url.AbsolutePath + "?GroupId=" + CurrentGroup.Id.ToString() + "&Item=" + item.Id.ToString();
                 hyp.Text = item.Title;
                 hgcLi.Controls.Add( hyp );
             }
