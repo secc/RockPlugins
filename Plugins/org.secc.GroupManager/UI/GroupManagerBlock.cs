@@ -13,7 +13,7 @@ using Rock.Web.UI;
 namespace org.secc.GroupManager
 {
     [LinkedPage( "Home Page", "Home page to send users to if they are not allowed to see this page.", false )]
-    [GroupTypeField( "Filter Group Type", "Group Type which contains small group filtering information.", false )]
+    [GroupTypeField("GroupType", "If the current group is not of this group type. The page redirect home.", false )]
     [BooleanField( "Leaders Only", "Should leaders only be able to view this page?" )]
     public class GroupManagerBlock : RockBlock
     {
@@ -69,12 +69,17 @@ namespace org.secc.GroupManager
                 CurrentGroupMember = CurrentGroup.Members
                     .Where( gm => gm.PersonId == CurrentUser.PersonId )
                     .FirstOrDefault();
+                if (GetAttributeValue("LeadersOnly").AsBoolean() && !CurrentGroupMember.GroupRole.IsLeader )
+                {
+                    NavigateToHomePage();
+                    return;
+                }
                 SetThemeCookie();
             }
             else
             {
                 CurrentGroupMember = null;
-                ClearThemeCookie();
+                NavigateToHomePage();
             }
 
             if ( GetAttributeValue( "LeadersOnly" ).AsBoolean()
@@ -120,8 +125,8 @@ namespace org.secc.GroupManager
                 return;
             }
             // Load custom theme
-            CurrentGroup.LoadAttributes();
-            if ( CurrentGroup.Attributes.ContainsKey( "Theme" ) )
+            CurrentGroup.GroupType.LoadAttributes();
+            if ( CurrentGroup.GroupType.Attributes.ContainsKey( "Theme" ) )
             {
                 var httpContext = HttpContext.Current;
                 if ( httpContext != null )
@@ -131,7 +136,7 @@ namespace org.secc.GroupManager
                     {
                         string cookieName = "Rock:Site:" + PageCache.Layout.SiteId.ToString() + ":theme";
                         HttpCookie cookie = request.Cookies[cookieName];
-                        string theme = CurrentGroup.GetAttributeValue( "Theme" );
+                        string theme = CurrentGroup.GroupType.GetAttributeValue( "Theme" );
                         if ( !string.IsNullOrWhiteSpace( theme ) )
                         {
                             // Don't allow switching to an invalid theme
