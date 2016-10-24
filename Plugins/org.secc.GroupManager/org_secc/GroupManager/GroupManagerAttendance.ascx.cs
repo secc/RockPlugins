@@ -39,18 +39,12 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [Category( "Groups" )]
     [Description( "Lists the group members for a specific occurrence datetime and allows selecting if they attended or not." )]
 
-    [BooleanField( "Allow Add Date", "Should block support adding new attendance dates outside of the group's configured schedule and group type's exclusion dates?", true, "", 0 )]
-    [BooleanField( "Allow Add Person", "Should block support adding new attendee ( Requires that person has rights to search for new person )?", false, "", 1 )]
-    [MergeTemplateField( "Attendance Roster Template", "", false )]
-    [TextField("Count Label", "Label for count field.", true, "Head Count:")]
-    [BooleanField("Auto Count", "Auto count membership.", false)]
     public partial class GroupManagerAttendance : GroupManagerBlock
     {
         #region Private Variables
 
         private RockContext _rockContext = null;
         private bool _canEdit = false;
-        private bool _allowAddDate = false;
         private ScheduleOccurrence _occurrence = null;
         private List<GroupAttendanceAttendee> _attendees;
 
@@ -77,11 +71,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             if ( CurrentGroup != null && CurrentGroup.IsAuthorized( Authorization.EDIT, CurrentPerson ) )
             {
-                lHeading.Text = CurrentGroup.Name + " Attendance";
                 _canEdit = true;
             }
-
-            _allowAddDate = GetAttributeValue( "AllowAddDate" ).AsBoolean();
         }
 
         /// <summary>
@@ -100,9 +91,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 if ( _canEdit )
                 {
+
                     BindDropDown();
                     ShowDetails();
-                    tbCount.Label = GetAttributeValue( "CountLabel" );
                 }
                 else
                 {
@@ -144,21 +135,40 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         private void BindDropDown()
         {
             RockContext rockContext = new RockContext();
-            AttendanceService attendanceService = new AttendanceService( rockContext );
-            var schedules = attendanceService.Queryable().Where( a => a.GroupId == CurrentGroup.Id ).DistinctBy( s => s.StartDateTime ).Select( s => s.StartDateTime ).ToList();
-            ddlPastOccurrences.Items.Clear();
-            if ( _occurrence != null )
-            {
-                ddlPastOccurrences.Items.Add( new ListItem( "Create New", "0" ) );
-            }
 
-            foreach ( var schedule in schedules )
+            if ( CurrentGroup.Schedule != null )
             {
-                ddlPastOccurrences.Items.Add( new ListItem( schedule.ToStringSafe(), schedule.ToStringSafe() ) );
-            }
-            if ( _occurrence != null )
-            {
-                ddlPastOccurrences.SelectedValue = _occurrence.Date.ToStringSafe();
+                AttendanceService attendanceService = new AttendanceService( rockContext );
+                var occurances = attendanceService.Queryable().Where( a => a.GroupId == CurrentGroup.Id )
+                    .DistinctBy( s => s.StartDateTime )
+                    .Select( s => s.StartDateTime )
+                    .Take( 50 )
+                    .ToList()
+                    .Select( s => new
+                    {
+                        Id = ( s - new DateTime( 1970, 1, 1, 0, 0, 0, DateTimeKind.Utc ) ).TotalSeconds,
+                        Name = s.ToString( "MMM d, yyyy -  h:mmtt" )
+                    } )
+                    .ToList();
+
+
+                var prevSchedules = CurrentGroup.Schedule
+                    .GetScheduledStartTimes( Rock.RockDateTime.Today.AddYears( -1 ), Rock.RockDateTime.Today.AddDays( 1 ) )
+                    .OrderByDescending( o => o )
+                    .Take( 10 )
+                    .Select( s => new
+                    {
+                        Id = ( s - new DateTime( 1970, 1, 1, 0, 0, 0, DateTimeKind.Utc ) ).TotalSeconds,
+                        Name = s.ToString( "MMM d, yyyy -  h:mmtt" )
+                    } )
+                    .Where( a => !occurances.Select( o => o.Id ).Contains( a.Id ) )
+                    .ToList();
+
+                prevSchedules.AddRange( occurances );
+
+
+                ddlOccurence.DataSource = prevSchedules.OrderByDescending(o => o.Id);
+                ddlOccurence.DataBind();
             }
         }
 
@@ -253,12 +263,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     }
                 }
 
-                Note note = GetNoteForAttendanceDate( rockContext, true );
 
-                note.Text = tbNotes.Text;
-
-                note.SetAttributeValue( "HeadCount", tbCount.Text );
-                note.SaveAttributeValues( rockContext );
 
                 rockContext.SaveChanges();
 
@@ -373,16 +378,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             List<int> scheduleIds = new List<int>();
 
-
-            if ( Page.IsPostBack && _allowAddDate )
-            {
-                if ( dpOccurrenceDate.Visible && dpOccurrenceDate.SelectedDate.HasValue )
-                {
-                    occurrenceDate = dpOccurrenceDate.SelectedDate + tpOccurrenceTime.SelectedTime;
-                }
-
-            }
-
             if ( occurrenceDate.HasValue )
             {
                 // Try to find the selected occurrence based on group's schedule
@@ -402,21 +397,14 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             occurrence.ScheduleId = null;
                             occurrence.ScheduleName = string.Empty;
                             occurrence.Date = occurrenceDate.Value;
-                        } else
+                        }
+                        else
                         {
                             // Just make sure the date matches exactly what we are looking for
                             occurrence.Date = occurrenceDate.Value;
                         }
                         return occurrence;
                     }
-                }
-
-                // If an occurrence date was included, but no occurrence was found with that date, and new 
-                // occurrences can be added, create a new one
-                if ( _allowAddDate )
-                {
-                    DateTime startDateTime = occurrenceDate.Value.Date.Add( tpOccurrenceTime.SelectedTime.Value );
-                    return new ScheduleOccurrence( startDateTime, tpOccurrenceTime.SelectedTime.Value );
                 }
             }
 
@@ -448,49 +436,49 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         /// </summary>
         protected void ShowDetails()
         {
-            bool existingOccurrence = _occurrence != null;
-
-            if ( !existingOccurrence && !_allowAddDate )
+            if ( ddlOccurence.SelectedValue.AsInteger() != 0 )
             {
-                nbNotice.Heading = "No Occurrences";
-                nbNotice.Text = "<p>There are currently not any active occurrences for selected group to take attendance for.</p>";
-                nbNotice.NotificationBoxType = NotificationBoxType.Warning;
-                nbNotice.Visible = true;
+                //The drop down stores the time in unix time
+                var occurenceDate = new DateTime( 1970, 1, 1, 0, 0, 0, DateTimeKind.Local )
+                     .AddSeconds( ddlOccurence.SelectedValue.AsInteger() );
 
-                pnlDetails.Visible = false;
+                var attendanceData = new AttendanceService( _rockContext )
+                    .Queryable()
+                    .Where( a => a.GroupId == CurrentGroup.Id && a.StartDateTime == occurenceDate)
+                    .ToList();
+            }
+
+            bool existingOccurrence = _occurrence != null;
+            if ( existingOccurrence )
+            {
+                //lOccurrenceDate.Visible = true;
+                //lOccurrenceDate.Text = _occurrence.Date.ToShortDateString();
+
+                //lOccurrenceTime.Visible = true;
+                //lOccurrenceTime.Text = _occurrence.Date.ToShortTimeString();
+
+                //dpOccurrenceDate.Visible = false;
+
+                //tpOccurrenceTime.Visible = false;
             }
             else
             {
-                if ( existingOccurrence )
+                //lOccurrenceDate.Visible = false;
+                //dpOccurrenceDate.Visible = true;
+                //dpOccurrenceDate.SelectedDate = RockDateTime.Today;
+
+                //lOccurrenceTime.Visible = false;
+                //tpOccurrenceTime.Visible = true;
+                if ( CurrentGroup != null && CurrentGroup.Schedule != null && CurrentGroup.Schedule.WeeklyTimeOfDay != null )
                 {
-                    lOccurrenceDate.Visible = true;
-                    lOccurrenceDate.Text = _occurrence.Date.ToShortDateString();
-
-                    lOccurrenceTime.Visible = true;
-                    lOccurrenceTime.Text = _occurrence.Date.ToShortTimeString();
-
-                    dpOccurrenceDate.Visible = false;
-
-                    tpOccurrenceTime.Visible = false;
+                    //tpOccurrenceTime.SelectedTime = CurrentGroup.Schedule.WeeklyTimeOfDay;
                 }
                 else
                 {
-                    lOccurrenceDate.Visible = false;
-                    dpOccurrenceDate.Visible = true;
-                    dpOccurrenceDate.SelectedDate = RockDateTime.Today;
-
-                    lOccurrenceTime.Visible = false;
-                    tpOccurrenceTime.Visible = true;
-                    if ( CurrentGroup != null && CurrentGroup.Schedule != null && CurrentGroup.Schedule.WeeklyTimeOfDay != null )
-                    {
-                        tpOccurrenceTime.SelectedTime = CurrentGroup.Schedule.WeeklyTimeOfDay;
-                    }
-                    else
-                    {
-                        tpOccurrenceTime.SelectedTime = RockDateTime.Now.TimeOfDay;
-                    }
-
+                    //tpOccurrenceTime.SelectedTime = RockDateTime.Now.TimeOfDay;
                 }
+
+
 
                 lMembers.Text = CurrentGroup.GroupType.GroupMemberTerm.Pluralize();
                 lPendingMembers.Text = "Pending " + lMembers.Text;
@@ -557,16 +545,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 pnlPendingMembers.Visible = pendingMembers.Any();
                 lvPendingMembers.DataSource = pendingMembers;
                 lvPendingMembers.DataBind();
-
-                RockContext rockContext = new RockContext();
-                Note note = GetNoteForAttendanceDate( rockContext );
-
-                if ( note != null )
-                {
-                    tbNotes.Text = note.Text;
-                    tbCount.Text = note.GetAttributeValue( "HeadCount" );
-                }
-
             }
 
         }
@@ -671,10 +649,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         #endregion
 
-
-        protected void ddlPastOccurrences_SelectionChanged( object sender, EventArgs e )
+        protected void ddlOccurence_SelectedIndexChanged( object sender, EventArgs e )
         {
-            Response.Redirect( Request.Url.AbsolutePath + "?Date=" + ddlPastOccurrences.SelectedValue );
+            ShowDetails();
         }
     }
 }

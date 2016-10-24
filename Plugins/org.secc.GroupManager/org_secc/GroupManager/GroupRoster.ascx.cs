@@ -37,7 +37,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             $('textarea[id$= \'tbMessage\']').keyup(function(){charCount()});
             ";
         private RockContext _rockContext;
-        private int groupId;
+
 
         protected override void OnInit( EventArgs e )
         {
@@ -60,6 +60,12 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
+
+            if (CurrentGroup == null )
+            {
+                NavigateToHomePage();
+                return;
+            }
 
             btnEmail.Visible = GetAttributeValue( "AllowEmail" ).AsBoolean();
             btnSMS.Visible = GetAttributeValue( "AllowSMS" ).AsBoolean();
@@ -100,8 +106,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         private void GetGroupMembers()
         {
             memberData = new List<MemberData>();
-            GroupService groupService = new GroupService( _rockContext );
-            var groupMembers = groupService.Queryable().Where( g => g.Id == groupId ).SelectMany( g => g.Members ).ToList();
+            var groupMembers = CurrentGroup.Members;
             foreach ( var member in groupMembers )
             {
                 memberData.Add( new MemberData( member ) );

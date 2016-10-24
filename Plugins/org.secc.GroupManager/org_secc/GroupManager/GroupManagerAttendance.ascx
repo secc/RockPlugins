@@ -36,13 +36,6 @@
 
         <div class="panel panel-block">
 
-            <div class="panel-heading clearfix">
-                <h1 class="panel-title pull-left">
-                    <i class="fa fa-check-square-o"></i>
-                    <asp:Literal ID="lHeading" runat="server" Text="Group Attendance" />
-                </h1>
-            </div>
-
             <div class="panel-body">
 
                 <Rock:NotificationBox ID="nbNotice" runat="server" />
@@ -50,23 +43,15 @@
                 <asp:Panel ID="pnlDetails" runat="server">
 
                     <div class="row">
-                        <div class="col-sm-3">
-                            <Rock:RockLiteral ID="lOccurrenceDate" runat="server" Label="Attendance Date" />
-                            <Rock:DatePicker ID="dpOccurrenceDate" runat="server" Label="Attendance Date" Required="true" />
-                        </div>
-                        <div class="col-sm-3">
-                            <Rock:RockLiteral ID="lOccurrenceTime" runat="server" Label="Time" />
-                            <Rock:TimePicker ID="tpOccurrenceTime" runat="server" Required="true" Label="Time" />
-                        </div>
-                        <div class="col-sm-3">
-                            <Rock:ButtonDropDownList runat="server" ID="ddlPastOccurrences" Label=" " Title="Previous Attendance" OnSelectionChanged="ddlPastOccurrences_SelectionChanged">
-                            </Rock:ButtonDropDownList>
+                        <div class="col-sm-6">
+                            <Rock:RockDropDownList runat="server" Label="Attendance Date" ID="ddlOccurence" AutoPostBack="true"
+                                OnSelectedIndexChanged="ddlOccurence_SelectedIndexChanged" DataTextField="Name" DataValueField="Id" />
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-sm-12">
-                                <Rock:RockCheckBox ID="cbDidNotMeet" runat="server" Text="We Did Not Meet" />
+                            <Rock:RockCheckBox ID="cbDidNotMeet" runat="server" Text="We Did Not Meet" />
                         </div>
                     </div>
 
@@ -79,10 +64,10 @@
                                 </h4>
                                 <asp:ListView ID="lvMembers" runat="server">
                                     <ItemTemplate>
-                                        <div onclick="updateCount()">
-                                            <asp:HiddenField ID="hfMember" runat="server" Value='<%# Eval("PersonId") %>' />
-                                            <Rock:RockCheckBox ID="cbMember" runat="server" Checked='<%# Eval("Attended") %>' Text='<%# Eval("FullName") %>' />
-                                        </div>
+
+                                        <asp:HiddenField ID="hfMember" runat="server" Value='<%# Eval("PersonId") %>' />
+                                        <Rock:RockCheckBox ID="cbMember" runat="server" Checked='<%# Eval("Attended") %>' Text='<%# Eval("FullName") %>' />
+
                                     </ItemTemplate>
                                 </asp:ListView>
                                 <div class="pull-right margin-b-lg">
@@ -108,10 +93,6 @@
                             </asp:Panel>
 
                         </div>
-                    </div>
-                    <div>
-                        <Rock:RockTextBox ID="tbCount" runat="server" Width="60" Label="Head Count:"></Rock:RockTextBox>
-                        <Rock:RockTextBox ID="tbNotes" runat="server" TextMode="MultiLine" Rows="5" Label="Notes:"></Rock:RockTextBox>
                     </div>
                     <div class="actions">
                         <asp:LinkButton ID="lbSave" runat="server" Text="Save Attendance" CssClass="btn btn-primary" OnClick="lbSave_Click" CausesValidation="false" />

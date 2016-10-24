@@ -26,6 +26,7 @@ using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
 using DotLiquid;
+using org.secc.GroupManager;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -49,24 +50,24 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [LinkedPage( "Detail Page", "The page to navigate to for details.", false, "", "", 0 )]
 
     // Custom Settings
-    [DefinedTypeField( "ItemType", "Content item types to display on page", true, "", "CustomSetting" )]
-    [EnumsField( "Status", "Include items with the following status.", typeof( ContentChannelItemStatus ), false, "2", "CustomSetting" )]
-    [IntegerField( "Count", "The maximum number of items to display.", false, 5, "CustomSetting" )]
-    [IntegerField( "Cache Duration", "Number of seconds to cache the content.", false, 3600, "CustomSetting" )]
-    [BooleanField( "Enable Debug", "Enabling debug will display the fields of the first 5 items to help show you wants available for your liquid.", false, "CustomSetting" )]
-    [BooleanField( "Query Parameter Filtering", "Determines if block should evaluate the query string parameters for additional filter criteria.", false, "CustomSetting" )]
+    [DefinedTypeField( "ItemType", "Content item types to display on page", true, "" )]
+    [EnumsField( "Status", "Include items with the following status.", typeof( ContentChannelItemStatus ), false, "2" )]
+    [IntegerField( "Count", "The maximum number of items to display.", false, 5 )]
+    [IntegerField( "Cache Duration", "Number of seconds to cache the content.", false, 3600)]
+    [BooleanField( "Enable Debug", "Enabling debug will display the fields of the first 5 items to help show you wants available for your liquid.", false)]
+    [BooleanField( "Query Parameter Filtering", "Determines if block should evaluate the query string parameters for additional filter criteria.", false)]
     [BooleanField( "ShowSidebar", "Determines if sidebar index should be displayed.", false, "CustomSetting" )]
     [BooleanField( "ShowCalendar", "Show a calendar to select a new date for the lesson?", false, "CustomSetting" )]
     [BooleanField( "FilterByDate", "Filter to show only those content items which are in date.", false, "CustomSetting" )]
-    [TextField( "Order", "The specifics of how items should be ordered. This value is set through configuration and should not be modified here.", false, "", "CustomSetting" )]
-    [BooleanField( "Merge Content", "Should the content data and attribute values be merged using the liquid template engine.", false, "CustomSetting" )]
-    [BooleanField( "Set Page Title", "Determines if the block should set the page title with the channel name or content item.", false, "CustomSetting" )]
-    [TextField( "Meta Description Attribute", "Attribute to use for storing the description attribute.", false, "", "CustomSetting" )]
-    [TextField( "Meta Image Attribute", "Attribute to use for storing the image attribute.", false, "", "CustomSetting" )]
+    [TextField( "Order", "The specifics of how items should be ordered. This value is set through configuration and should not be modified here.", false, "" )]
+    [BooleanField( "Merge Content", "Should the content data and attribute values be merged using the liquid template engine.", false )]
+    [BooleanField( "Set Page Title", "Determines if the block should set the page title with the channel name or content item.", false )]
+    [TextField( "Meta Description Attribute", "Attribute to use for storing the description attribute.", false, "")]
+    [TextField( "Meta Image Attribute", "Attribute to use for storing the image attribute.", false, "" )]
     [CodeEditorField( "ContentLava", "Lava to display content with.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 300,
-        true, @"<div class='content'> {% for item in Items %} <div class='row'> <h2> {{ item.Title }} </h2> <div class=''> {{item.Content}} </div> </div> {% endfor %} </div>", "CustomSetting" )]
+        true, @"<div class='content'> {% for item in Items %} <div class='row'> <h2> {{ item.Title }} </h2> <div class=''> {{item.Content}} </div> </div> {% endfor %} </div>" )]
 
-    public partial class SmallGroupContent : RockBlockCustomSettings
+    public partial class SmallGroupContent : GroupManagerBlock
     {
         #region Fields
 
@@ -92,7 +93,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         /// <value>
         /// The settings tool tip.
         /// </value>
-        public override string SettingsToolTip
+        public  string SettingsToolTip
         {
             get
             {
@@ -165,9 +166,11 @@ $(document).ready(function() {
 
             if ( CurrentGroup != null )
             {
-                Group parentGroup = CurrentGroup.ParentGroup;
-                parentGroup.LoadAttributes();
-                ChannelGuid = parentGroup.GetAttributeValue( "ContentChannel" ).AsGuid();
+                CurrentGroup.GroupType.LoadAttributes();
+                if ( CurrentGroup.GroupType.Attributes.ContainsKey( "ContentChannel" ) )
+                {
+                    ChannelGuid = CurrentGroup.GroupType.GetAttributeValue( "ContentChannel" ).AsGuid();
+                }
             }
         }
 
@@ -368,7 +371,7 @@ $('#updateProgress').show();
         /// <summary>
         /// Shows the settings.
         /// </summary>
-        protected override void ShowSettings()
+        protected void ShowSettings()
         {
             pnlEditModal.Visible = true;
             upnlContent.Update();

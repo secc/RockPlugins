@@ -1,60 +1,8 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="GroupRoster.ascx.cs" Inherits="RockWeb.Plugins.org_secc.GroupManager.GroupRoster" %>
 
 <style>
-    .columns {
-        -webkit-column-count: 3;
-        -webkit-column-gap: 10px;
-        -webkit-column-fill: auto;
-        -moz-column-count: 3;
-        -moz-column-gap: 10px;
-        column-count: 3;
-        column-gap: 10px;
-        column-fill: auto;
-    }
-
-    .panel {
-        -webkit-column-break-inside: avoid;
-        page-break-inside: avoid;
-        break-inside: avoid;
-    }
-
-    @media (max-width: 990px) {
-        .columns {
-            -webkit-column-count: 2;
-            -moz-column-count: 2;
-            column-count: 2;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .columns {
-            -webkit-column-count: 1;
-            -moz-column-count: 1;
-            column-count: 1;
-        }
-    }
-
-    @media print {
-        @page {
-      margin: 0cm;   
-    }
-
-
-        .columns {
-            width: 90%;
-            -webkit-column-count: 2;
-            -moz-column-count: 2;
-            column-count: 2;
-            -webkit-column-gap: 2px;
-            -moz-column-gap: 2px;
-            column-count: 2;
-            column-gap: 2px;
-            column-fill: auto;
-        }
-
-        tfoot {
-            display: none;
-        }
+    tfoot {
+        display: none;
     }
 </style>
 
@@ -148,31 +96,33 @@
             </asp:Panel>
 
             <asp:Panel runat="server" ID="pnlRoster" Visible="false" CssClass="wrapper">
-                <div class="columns">
+                <div class="row">
                     <asp:Repeater runat="server" ID="rRoster" OnItemDataBound="rRoster_ItemDataBound">
                         <ItemTemplate>
-                            <div class="panel panel-default" style="min-height: 200px;">
-                                <div class="panel-heading">
-                                    <asp:Label runat="server" Style="font-weight: bold"
-                                        Text='<%# Eval("Name") %>' />
-                                    <Rock:HighlightLabel runat="server" Text='<%# Eval("Status") %>'
-                                        CssClass='<%# StyleStatusLabel(Eval("Status"))%>' />
-                                    <Rock:HighlightLabel runat="server" Text='<%# Eval("Role") %>'
-                                        CssClass='<%# StyleLeaderLabel(Eval("IsLeader"))%>' />
-                                </div>
-                                <div class="panel-body">
-                                    <div class="col-sm-4 col-xs-12 thumbnail">
-                                        <img src='<%# Eval("PhotoUrl") %>' alt="Photo">
+                            <div class="col-sm-4">
+                                <div class="panel panel-default" style="min-height: 200px;">
+                                    <div class="panel-heading">
+                                        <asp:Label runat="server" Style="font-weight: bold"
+                                            Text='<%# Eval("Name") %>' />
+                                        <Rock:HighlightLabel runat="server" Text='<%# Eval("Status") %>'
+                                            CssClass='<%# StyleStatusLabel(Eval("Status"))%>' />
+                                        <Rock:HighlightLabel runat="server" Text='<%# Eval("Role") %>'
+                                            CssClass='<%# StyleLeaderLabel(Eval("IsLeader"))%>' />
                                     </div>
-                                    <div class="col-sm-8 col-xs-12">
-                                        <asp:Label runat="server" ID="Label1"
-                                            Text='<%# Eval("FormattedAddress") %>' />
-                                        <br />
-                                        <asp:Label runat="server" ID="Label5"
-                                            Text='<%# Eval("Phone") %>' />
-                                        <br>
-                                        <Rock:BootstrapButton runat="server" ID="btnRosterEmail"></Rock:BootstrapButton>
-                                        <Rock:RockLiteral ID="ltLava" runat="server" Text='<%# RosterLava(Eval("Person"))%>'></Rock:RockLiteral>
+                                    <div class="panel-body">
+                                        <div class="col-sm-4 col-xs-12 thumbnail">
+                                            <img src='<%# Eval("PhotoUrl") %>' alt="Photo">
+                                        </div>
+                                        <div class="col-sm-8 col-xs-12">
+                                            <asp:Label runat="server" ID="Label1"
+                                                Text='<%# Eval("FormattedAddress") %>' />
+                                            <br />
+                                            <asp:Label runat="server" ID="Label5"
+                                                Text='<%# Eval("Phone") %>' />
+                                            <br>
+                                            <Rock:BootstrapButton runat="server" ID="btnRosterEmail"></Rock:BootstrapButton>
+                                            <Rock:RockLiteral ID="ltLava" runat="server" Text='<%# RosterLava(Eval("Person"))%>'></Rock:RockLiteral>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
