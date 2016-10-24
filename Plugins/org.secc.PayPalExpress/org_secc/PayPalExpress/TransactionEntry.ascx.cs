@@ -180,7 +180,9 @@ namespace org.secc.PayPalExpress
                     payPalExpressEnabled = false;
                 }
 
-                if (!dtpStartDate.SelectedDate.HasValue || dtpStartDate.SelectedDate.Value.Date > RockDateTime.Today.AddDays(1))
+                bool allowScheduled = GetAttributeValue( "AllowScheduled" ).AsBoolean();
+
+                if (allowScheduled && ( !dtpStartDate.SelectedDate.HasValue || dtpStartDate.SelectedDate.Value.Date > RockDateTime.Today.AddDays(1)))
                 {
                     payPalExpressEnabled = false;
                 }

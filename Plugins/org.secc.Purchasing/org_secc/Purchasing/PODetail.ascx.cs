@@ -1282,10 +1282,15 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             CurrentPurchaseOrder.Status.LoadAttributes();
             if (!CurrentPurchaseOrder.Status.GetAttributeValue("IsClosed").AsBoolean())
-                SetSummaryError("Reopen PO - Current Purchase Order is open.");
+            {
+                SetSummaryError( "Reopen PO - Current Purchase Order is open." );
+            }
+            else
+            {
+                CurrentPurchaseOrder.Reopen( CurrentUser.UserName );
+                LoadPO();
+            }
 
-            CurrentPurchaseOrder.Reopen(CurrentUser.UserName);
-            LoadPO();
         }
 
         private bool SaveSummary()
@@ -1663,12 +1668,15 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             List<Dictionary<String, Object>> purchaseOrderItems = new List<Dictionary<String, Object>>();
             foreach (PurchaseOrderItem item in CurrentPurchaseOrder.Items) 
             {
-                purchaseOrderItems.Add(new Dictionary<String, Object> {
-                    { "Quantity", item.Quantity},
-                    { "ItemNumber", item.RequisitionItem.ItemNumber},
-                    { "Description", item.RequisitionItem.Description},
-                    { "Price", item.Price}
-                });
+                if (item.Active)
+                { 
+                    purchaseOrderItems.Add(new Dictionary<String, Object> {
+                        { "Quantity", item.Quantity},
+                        { "ItemNumber", item.RequisitionItem.ItemNumber},
+                        { "Description", item.RequisitionItem.Description},
+                        { "Price", item.Price}
+                    });
+                }
             }
             pdfWorkflowObject.MergeObjects.Add("PurchaseOrderItems", purchaseOrderItems);
 
@@ -1682,7 +1690,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             pdfWorkflowObject.MergeObjects.Add("ShippingCharge", CurrentPurchaseOrder.ShippingCharge);
             pdfWorkflowObject.MergeObjects.Add("OtherCharge", CurrentPurchaseOrder.OtherCharge);
 
-            pdfWorkflowObject.MergeObjects.Add("OrderedBy", CurrentPurchaseOrder.OrderedBy.FullName);
+            pdfWorkflowObject.MergeObjects.Add("OrderedBy", CurrentPurchaseOrder.OrderedBy != null?CurrentPurchaseOrder.OrderedBy.FullName:"");
             pdfWorkflowObject.MergeObjects.Add("OrderedDate", CurrentPurchaseOrder.DateOrdered);
 
             Guid workflowTypeGuid = Guid.NewGuid();

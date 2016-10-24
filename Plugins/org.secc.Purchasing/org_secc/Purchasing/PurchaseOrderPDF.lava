@@ -70,8 +70,8 @@ table {
                 {{ShipTo.City}}, {{ShipTo.State}} {{ShipTo.Zip}}
             {% endif %}
         </div>
-        <br clear="both" />&nbsp;
-        <table class="border-1px" cellspacing="0" cellpadding="5" style="width: 100%">
+		<div></div>
+        <table class="border-1px" cellspacing="0" cellpadding="5" style="width: 100%; margin-top: 10px;">
             <thead>
                 <tr>
                     <th width="8%" align="center">Quantity</th>
