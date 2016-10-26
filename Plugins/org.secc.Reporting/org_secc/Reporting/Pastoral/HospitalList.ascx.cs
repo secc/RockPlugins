@@ -126,8 +126,8 @@ namespace RockWeb.Blocks.Reporting
 
                 if ( contextEntity != null )
                 {
-                    String personGuid = ( ( Person ) contextEntity ).PrimaryAlias.Guid.ToString();
-                    tmpqry = tmpqry.Where( w => w.AttributeValues.Where( av => av.Attribute.Key == "PersonToVisit" && av.Value == personGuid ).Any() );
+                    string[] personGuid = ( ( Person ) contextEntity ).Aliases.Select(a => a.Guid.ToString()).ToArray();
+                    tmpqry = tmpqry.Where( w => w.AttributeValues.Where( av => av.Attribute.Key == "PersonToVisit" && personGuid.Contains(av.Value) ).Any() );
                     gReport.Columns[10].Visible = true;
                 }
 
