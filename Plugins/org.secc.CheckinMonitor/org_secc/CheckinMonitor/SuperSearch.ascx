@@ -1,6 +1,12 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="SuperSearch.ascx.cs" Inherits="RockWeb.Plugins.org_secc.CheckinMonitor.SuperSearch" %>
 <asp:UpdatePanel ID="upContent" runat="server">
     <ContentTemplate>
+        <style>
+            #responseDiv{
+                overflow-y:auto;
+                max-height: 75vh;
+            }
+        </style>
 
         <script>
 
