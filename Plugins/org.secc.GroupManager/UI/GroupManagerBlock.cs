@@ -13,7 +13,7 @@ using Rock.Web.UI;
 namespace org.secc.GroupManager
 {
     [LinkedPage( "Home Page", "Home page to send users to if they are not allowed to see this page.", false )]
-    [GroupTypeField("GroupType", "If the current group is not of this group type. The page redirect home.", false )]
+    [GroupTypeField( "GroupType", "If the current group is not of this group type. The page redirect home.", false )]
     [BooleanField( "Leaders Only", "Should leaders only be able to view this page?" )]
     public class GroupManagerBlock : RockBlock
     {
@@ -21,6 +21,25 @@ namespace org.secc.GroupManager
         public GroupMember CurrentGroupMember { get; set; }
         public List<string> CurrentGroupFilters { get; set; }
         public bool AllowLoadTheme = true;
+        public List<string> CurrentGroupFilterValues
+        {
+            get
+            {
+                return GetCurrentGroupFilterValues();
+            }
+        }
+
+        /// <summary>
+        /// The current group members, filtered if applicable
+        /// </summary>
+        public List<GroupMember> CurrentGroupMembers
+        {
+            get
+            {
+                return GetFilteredMembers();
+            }
+        }
+
         protected override void OnInit( EventArgs e )
         {
             RockContext rockContext = new RockContext();
@@ -35,15 +54,15 @@ namespace org.secc.GroupManager
 
             LoadSession( rockContext );
 
-            GroupType FilterGroupType = new GroupTypeService( rockContext ).Get( GetAttributeValue( "FilterGroupType" ).AsGuid() );
-            if ( FilterGroupType != null
-                && CurrentGroup.GroupType.ParentGroupTypes.Select( gt => gt.Id ).Contains( FilterGroupType.Id ) )
+            GroupType FilterGroupType = new GroupTypeService( rockContext )
+                .Get( GlobalAttributesCache.Read().GetValue( "FilterGroupType" ).AsGuid() );
+
+            //If this group type inherits Filter Group
+            if ( CurrentGroup != null && FilterGroupType != null
+                && CurrentGroup.GroupType.InheritedGroupTypeId == FilterGroupType.Id )
             {
-                FilterGroupType.LoadAttributes();
-                CurrentGroup.LoadAttributes();
-                CurrentGroupFilters = CurrentGroup.GetAttributeValue(
-                                FilterGroupType.GetAttributeValue( "FilterAttribute" )
-                    )
+                CurrentGroup.GroupType.LoadAttributes();
+                CurrentGroupFilters = CurrentGroup.GroupType.GetAttributeValue( "FilterAttribute" )
                     .Split( new char[','], StringSplitOptions.RemoveEmptyEntries )
                     .ToList();
             }
@@ -51,7 +70,6 @@ namespace org.secc.GroupManager
             {
                 CurrentGroupFilters = new List<string>();
             }
-
         }
 
         private void LoadSession( RockContext rockContext )
@@ -69,7 +87,7 @@ namespace org.secc.GroupManager
                 CurrentGroupMember = CurrentGroup.Members
                     .Where( gm => gm.PersonId == CurrentUser.PersonId )
                     .FirstOrDefault();
-                if (GetAttributeValue("LeadersOnly").AsBoolean() && !CurrentGroupMember.GroupRole.IsLeader )
+                if ( GetAttributeValue( "LeadersOnly" ).AsBoolean() && !CurrentGroupMember.GroupRole.IsLeader )
                 {
                     NavigateToHomePage();
                     return;
@@ -179,32 +197,56 @@ namespace org.secc.GroupManager
             NavigateToLinkedPage( "HomePage" );
         }
 
-        protected List<GroupMember> GetFilterdMembers( string Filter )
+        protected List<GroupMember> GetFilteredMembers()
         {
-            if ( !CurrentGroupFilters.Contains( Filter ) )
+            if ( CurrentGroupFilters.Any() )
             {
-                throw new NonExistantFilter( "The current group is not filterable by selected filter: " + Filter );
+                CurrentGroupMember.LoadAttributes();
+                var filterAttribute = CurrentGroupFilters.FirstOrDefault();
+                var filter = CurrentGroupMember.GetAttributeValue( filterAttribute );
+                return GetFilteredMembers( filter );
             }
-
-            List<GroupMember> filteredMembers = new List<GroupMember>() { CurrentGroupMember };
-
-            using ( RockContext rockContext = new RockContext() )
+            else
             {
-                CurrentGroupMember.LoadAttributes( rockContext );
-                var filterValue = CurrentGroupMember.GetAttributeValue( Filter );
-                foreach ( var groupMember in CurrentGroup.Members )
+                return CurrentGroup.Members.ToList();
+            }
+        }
+
+        public List<GroupMember> GetFilteredMembers( string filter )
+        {
+            List<GroupMember> members = new List<GroupMember>();
+            if ( CurrentGroupFilters.Any() )
+            {
+                var filterAttribute = CurrentGroupFilters.FirstOrDefault();
+                foreach ( var member in CurrentGroup.Members )
                 {
-                    //This can be slow and may need upgraded
-                    groupMember.LoadAttributes( rockContext );
-                    if ( groupMember.GetAttributeValue( Filter ) == filterValue )
+                    member.LoadAttributes();
+                    if ( member.GetAttributeValue( filterAttribute ) == filter )
                     {
-                        filteredMembers.Add( groupMember );
+                        members.Add( member );
                     }
                 }
             }
-            return filteredMembers;
+            return members;
         }
 
-
+        private List<string> GetCurrentGroupFilterValues()
+        {
+            var filterValues = new List<string>();
+            if ( CurrentGroupFilters.Any() )
+            {
+                var filterAttribute = CurrentGroupFilters.FirstOrDefault();
+                foreach ( var member in CurrentGroup.Members )
+                {
+                    member.LoadAttributes();
+                    var filterValue = member.GetAttributeValue( filterAttribute );
+                    if ( filterAttribute != null && !filterValues.Contains( filterValue ) )
+                    {
+                        filterValues.Add( filterValue );
+                    }
+                }
+            }
+            return filterValues;
+        }
     }
 }
