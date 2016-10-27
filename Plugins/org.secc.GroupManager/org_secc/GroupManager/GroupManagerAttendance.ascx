@@ -47,6 +47,11 @@
                             <Rock:RockDropDownList runat="server" Label="Attendance Date" ID="ddlOccurence" AutoPostBack="true"
                                 OnSelectedIndexChanged="ddlOccurence_SelectedIndexChanged" DataTextField="Name" DataValueField="Id" />
                         </div>
+                        <div class="col-sm-6">
+                            <Rock:RockDropDownList runat="server" Label="Filter By" ID="ddlFilter" AutoPostBack="true"
+                                OnSelectedIndexChanged="ddlFilter_SelectedIndexChanged" DataTextField="Name" DataValueField="Id"
+                                Visible="false" />
+                        </div>
                     </div>
 
                     <div class="row">
@@ -62,17 +67,8 @@
                                 <h4>
                                     <asp:Literal ID="lMembers" runat="server" />
                                 </h4>
-                                <asp:ListView ID="lvMembers" runat="server">
-                                    <ItemTemplate>
-
-                                        <asp:HiddenField ID="hfMember" runat="server" Value='<%# Eval("PersonId") %>' />
-                                        <Rock:RockCheckBox ID="cbMember" runat="server" Checked='<%# Eval("Attended") %>' Text='<%# Eval("FullName") %>' />
-
-                                    </ItemTemplate>
-                                </asp:ListView>
-                                <div class="pull-right margin-b-lg">
-                                    <Rock:PersonPicker ID="ppAddPerson" runat="server" CssClass="picker-menu-right" PersonName="Add New Attendee" OnSelectPerson="ppAddPerson_SelectPerson" />
-                                </div>
+                                <asp:CheckBoxList runat="server" ID="cblAttendees">
+                                </asp:CheckBoxList>
                             </div>
 
                         </div>

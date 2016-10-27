@@ -106,7 +106,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         private void GetGroupMembers()
         {
             memberData = new List<MemberData>();
-            var groupMembers = CurrentGroup.Members;
+            var groupMembers = CurrentGroupMembers;
             foreach ( var member in groupMembers )
             {
                 memberData.Add( new MemberData( member ) );

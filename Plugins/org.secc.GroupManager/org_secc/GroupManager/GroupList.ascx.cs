@@ -21,7 +21,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     //Settings
     [GroupTypeField( "GroupType", "GroupType groups to display.", false )]
     [GroupField( "Group", "Group to display child groups", false )]
-    [BooleanField( "Leader Only", "Show only groups where this person is a leader.", true )]
     [LinkedPage( "Next Page", "The next page in which " )]
 
     public partial class GroupList : GroupManagerBlock
