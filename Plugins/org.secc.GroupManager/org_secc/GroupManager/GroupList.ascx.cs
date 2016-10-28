@@ -22,19 +22,21 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [GroupTypeField( "GroupType", "GroupType groups to display.", false )]
     [GroupField( "Group", "Group to display child groups", false )]
     [LinkedPage( "Next Page", "The next page in which " )]
+    [TextField( "Theme", "Theme to switch to on page load.", false )]
 
     public partial class GroupList : GroupManagerBlock
     {
         protected override void OnInit( EventArgs e )
         {
-            AllowLoadTheme = false;
             base.OnInit( e );
-            ClearThemeCookie();
+            if ( !Page.IsPostBack )
+            {
+                ClearThemeCookie();
+            }
         }
 
         protected override void OnLoad( EventArgs e )
         {
-
             List<Group> groups = new List<Group>();
             Guid? groupTypeGuid = GetAttributeValue( "GroupType" ).AsGuidOrNull();
             Guid? groupGuid = GetAttributeValue( "Group" ).AsGuidOrNull();
@@ -70,21 +72,30 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
             foreach ( var group in groups.OrderBy( g => g.Name ) )
             {
-                LinkButton lbGroup = new LinkButton()
+                var groupMember = group.Members.Where( m => m.PersonId == CurrentPerson.Id ).FirstOrDefault();
+                if ( !GetAttributeValue( "LeadersOnly" ).AsBoolean()
+                    || ( groupMember != null && groupMember.GroupRole.IsLeader ) )
                 {
-                    Text = group.Name,
-                    ID = group.Guid.ToString(),
-                    CssClass = "btn btn-block"
-                };
-                lbGroup.Click += ( s, ee ) => LoadGroup( group );
-                phContent.Controls.Add( lbGroup );
+                    LinkButton lbGroup = new LinkButton()
+                    {
+                        Text = group.Name,
+                        ID = group.Guid.ToString(),
+                        CssClass = "btn btn-block"
+                    };
+                    lbGroup.Click += ( s, ee ) => LoadGroup( group );
+                    phContent.Controls.Add( lbGroup );
+                }
             }
         }
 
         private void LoadGroup( Group group )
         {
             Session["CurrentGroupManagerGroup"] = group.Id;
-
+            var theme = GetAttributeValue( "Theme" );
+            if ( !string.IsNullOrWhiteSpace( theme ) )
+            {
+                SetThemeCookie( theme );
+            }
             NavigateToLinkedPage( "NextPage" );
         }
 

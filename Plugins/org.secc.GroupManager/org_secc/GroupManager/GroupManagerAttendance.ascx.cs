@@ -5,6 +5,7 @@ using System.Data.Entity;
 using System.IO;
 using System.Linq;
 using System.Web.UI;
+using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
 using org.secc.GroupManager;
 using Rock;
@@ -80,7 +81,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                     if ( CurrentGroupFilters.Any() )
                     {
-                        cbDidNotMeet.Visible = false;
+                        pnlDidNotMeet.Visible = false;
                     }
                 }
                 else
@@ -161,6 +162,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             Name = s.ToString( "MMM d, yyyy -  h:mmtt" )
                         }
                          )
+                         .Where(a => !occurances.Select(o => o.Id).Contains(a.Id) )
                          );
                 }
 
@@ -211,14 +213,16 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     var attendanceService = new AttendanceService( _rockContext );
                     var personAliasService = new PersonAliasService( _rockContext );
 
-                    foreach ( var item in cblAttendees.Items.Cast<ListItem>() )
+                    foreach ( var item in lvMembers.Items )
                     {
-                        var personId = item.Value.AsInteger();
+                        var hfMember = item.FindControl( "hfMember" ) as HiddenField;
+                        var cbMember = item.FindControl( "cbMember" ) as HtmlInputCheckBox;
+                        var personId = hfMember.Value.AsInteger();
                         var attendanceItem = attendanceData.Where( a => a.PersonAlias.PersonId == personId )
                             .FirstOrDefault();
                         if ( attendanceItem == null )
                         {
-                            var attendancePerson = new PersonService( _rockContext ).Get( item.Value.AsInteger() );
+                            var attendancePerson = new PersonService( _rockContext ).Get( personId );
                             if ( attendancePerson != null )
                             {
                                 attendanceItem = new Attendance()
@@ -232,6 +236,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                                 attendanceService.Add( attendanceItem );
                             }
                         }
+
                         if ( cbDidNotMeet.Checked )
                         {
                             attendanceItem.DidAttend = false;
@@ -240,7 +245,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                         else
                         {
                             attendanceItem.DidNotOccur = false;
-                            attendanceItem.DidAttend = item.Selected;
+                            attendanceItem.DidAttend = cbMember.Checked;
                         }
                     }
                 }
@@ -355,7 +360,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     .Where( a => a.GroupId == CurrentGroup.Id && a.StartDateTime == occurenceDate )
                     .ToList();
 
-                cblAttendees.Items.Clear();
+                lvMembers.Items.Clear();
 
                 List<GroupMember> groupMembers;
 
@@ -369,24 +374,28 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
 
                 var items = groupMembers
-                    .Select( m => new ListItem
+                    .Select( m => new
                     {
-                        Value = m.PersonId.ToString(),
-                        Text = m.ToString(),
-                        Selected = ( attendanceData.Where( a => a.PersonAlias.PersonId == m.PersonId ).Any()
+                        PersonId = m.PersonId.ToString(),
+                        FullName = m.ToString(),
+                        Active = ( attendanceData.Where( a => a.PersonAlias.PersonId == m.PersonId ).Any()
+                         && ( attendanceData.Where( a => a.PersonAlias.PersonId == m.PersonId ).FirstOrDefault().DidAttend ?? false ) ) ? "active" : "",
+                        Attended = ( attendanceData.Where( a => a.PersonAlias.PersonId == m.PersonId ).Any()
                          && ( attendanceData.Where( a => a.PersonAlias.PersonId == m.PersonId ).FirstOrDefault().DidAttend ?? false ) )
                     }
                     ).ToList();
 
-                foreach ( var item in items )
-                {
-                    cblAttendees.Items.Add( item );
-                }
+                lvMembers.DataSource = items;
+                lvMembers.DataBind();
 
                 cbDidNotMeet.Checked = (
                        attendanceData.Where( a => a.DidAttend == true ).Count() <= 0
                        && attendanceData.Where( a => a.DidNotOccur == true ).Count() > 0
                        );
+                if ( cbDidNotMeet.Checked )
+                {
+                    lbDidNotMeet.AddCssClass( "active" );
+                }
             }
 
 
@@ -421,7 +430,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             $('div.js-roster').hide();
         }}
 
-        $('#{0}').click(function () {{
+        $('#{0}').change(function () {{
             if ($(this).is(':checked')) {{
                 $('div.js-roster').hide('fast');
                 updateCount();

@@ -20,7 +20,6 @@ namespace org.secc.GroupManager
         public Group CurrentGroup { get; set; }
         public GroupMember CurrentGroupMember { get; set; }
         public List<string> CurrentGroupFilters { get; set; }
-        public bool AllowLoadTheme = true;
         public List<string> CurrentGroupFilterValues
         {
             get
@@ -92,7 +91,6 @@ namespace org.secc.GroupManager
                     NavigateToHomePage();
                     return;
                 }
-                SetThemeCookie();
             }
             else
             {
@@ -135,50 +133,42 @@ namespace org.secc.GroupManager
             }
         }
 
-        private void SetThemeCookie()
+        public void SetThemeCookie( string theme )
         {
-            if ( !AllowLoadTheme || ( HttpContext.Current.Request.UrlReferrer != null
-                && HttpContext.Current.Request.UrlReferrer.ToString() == Request.RawUrl ) )
+            if (  HttpContext.Current.Request.UrlReferrer != null
+                && HttpContext.Current.Request.UrlReferrer.ToString() == Request.RawUrl )
             {
                 return;
             }
             // Load custom theme
-            CurrentGroup.GroupType.LoadAttributes();
-            if ( CurrentGroup.GroupType.Attributes.ContainsKey( "Theme" ) )
+            var httpContext = HttpContext.Current;
+            if ( httpContext != null )
             {
-                var httpContext = HttpContext.Current;
-                if ( httpContext != null )
+                var request = httpContext.Request;
+                if ( request != null )
                 {
-                    var request = httpContext.Request;
-                    if ( request != null )
+                    string cookieName = "Rock:Site:" + PageCache.Layout.SiteId.ToString() + ":theme";
+                    HttpCookie cookie = request.Cookies[cookieName];
+                    if ( !string.IsNullOrWhiteSpace( theme ) )
                     {
-                        string cookieName = "Rock:Site:" + PageCache.Layout.SiteId.ToString() + ":theme";
-                        HttpCookie cookie = request.Cookies[cookieName];
-                        string theme = CurrentGroup.GroupType.GetAttributeValue( "Theme" );
-                        if ( !string.IsNullOrWhiteSpace( theme ) )
+                        // Don't allow switching to an invalid theme
+                        if ( System.IO.Directory.Exists( httpContext.Server.MapPath( "~/Themes/" + theme ) ) )
                         {
-                            // Don't allow switching to an invalid theme
-                            if ( System.IO.Directory.Exists( httpContext.Server.MapPath( "~/Themes/" + theme ) ) )
+                            if ( cookie == null )
                             {
-                                if ( cookie == null )
-                                {
-                                    cookie = new HttpCookie( cookieName, theme );
-                                    httpContext.Response.SetCookie( cookie );
-                                    ReloadPage();
-                                }
-                                else if ( theme != cookie.Value )
-                                {
-                                    cookie.Value = theme;
-                                    httpContext.Response.SetCookie( cookie );
-                                    ReloadPage();
-                                }
+                                cookie = new HttpCookie( cookieName, theme );
+                                httpContext.Response.SetCookie( cookie );
+                            }
+                            else if ( theme != cookie.Value )
+                            {
+                                cookie.Value = theme;
+                                httpContext.Response.SetCookie( cookie );
                             }
                         }
-                        else if ( cookie != null )
-                        {
-                            httpContext.Response.Cookies[cookieName].Expires = DateTime.Now.AddDays( -1 );
-                            ReloadPage();
-                        }
+                    }
+                    else if ( cookie != null )
+                    {
+                        httpContext.Response.Cookies[cookieName].Expires = DateTime.Now.AddDays( -1 );
                     }
                 }
             }
