@@ -23,7 +23,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [Category( "Groups" )]
     [Description( "Lists the group members for a specific occurrence datetime and allows selecting if they attended or not." )]
 
-    [BooleanField( "ShowsFilters", "Shows all filters so that the filter can be changed." )]
+    [BooleanField( "Show Filters", "Shows all filters so that the filter can be changed." )]
 
     public partial class GroupManagerAttendance : GroupManagerBlock
     {
@@ -168,7 +168,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 ddlOccurence.DataBind();
 
                 //Drop down for filter values
-                ddlFilter.Visible = ( GetAttributeValue( "ShowsFilters" ).AsBoolean() && CurrentGroupFilters.Any() );
+                ddlFilter.Visible = ( GetAttributeValue( "ShowFilters" ).AsBoolean() && CurrentGroupFilters.Any() );
                 if ( ddlFilter.Visible )
                 {
                     ddlFilter.DataSource = CurrentGroupFilterValues
