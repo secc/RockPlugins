@@ -121,25 +121,51 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     } )
                     .ToList();
 
+                if ( CurrentGroup.Schedule.ScheduleType == ScheduleType.Named
+                    || CurrentGroup.Schedule.ScheduleType == ScheduleType.Custom )
+                {
 
-                var prevSchedules = CurrentGroup.Schedule
-                    .GetScheduledStartTimes( Rock.RockDateTime.Today.AddYears( -1 ), Rock.RockDateTime.Today.AddDays( 1 ) )
-                    .OrderByDescending( o => o )
-                    .Take( 10 )
-                    .Select( s => new
+                    var prevSchedules = CurrentGroup.Schedule
+                        .GetScheduledStartTimes( Rock.RockDateTime.Today.AddYears( -1 ), Rock.RockDateTime.Today.AddDays( 1 ) )
+                        .OrderByDescending( o => o )
+                        .Take( 10 )
+                        .Select( s => new
+                        {
+                            Id = ( s - new DateTime( 1970, 1, 1, 0, 0, 0, DateTimeKind.Utc ) ).TotalSeconds,
+                            Name = s.ToString( "MMM d, yyyy -  h:mmtt" )
+                        } )
+                        .Where( a => !occurances.Select( o => o.Id ).Contains( a.Id ) )
+                        .ToList();
+                    occurances.AddRange( prevSchedules );
+                }
+                else if ( CurrentGroup.Schedule.ScheduleType == ScheduleType.Weekly )
+                {
+                    var schedules = new List<DateTime>();
+
+                    DateTime lastSchedule = Rock.RockDateTime.Today;
+                    //Crawl backward to find the last time this occured
+                    while ( lastSchedule.DayOfWeek != CurrentGroup.Schedule.WeeklyDayOfWeek )
                     {
-                        Id = ( s - new DateTime( 1970, 1, 1, 0, 0, 0, DateTimeKind.Utc ) ).TotalSeconds,
-                        Name = s.ToString( "MMM d, yyyy -  h:mmtt" )
-                    } )
-                    .Where( a => !occurances.Select( o => o.Id ).Contains( a.Id ) )
-                    .ToList();
+                        lastSchedule = lastSchedule.AddDays( -1 );
+                    }
+                    lastSchedule = lastSchedule.AddMinutes( CurrentGroup.Schedule.WeeklyTimeOfDay.Value.TotalMinutes );
+                    schedules.Add( lastSchedule );
+                    for ( int i = 1; i < 10; i++ )
+                    {
+                        schedules.Add( lastSchedule.AddDays( i * -7 ) );
+                    }
+                    occurances.AddRange( schedules
+                        .Select( s => new
+                        {
+                            Id = ( s - new DateTime( 1970, 1, 1, 0, 0, 0, DateTimeKind.Utc ) ).TotalSeconds,
+                            Name = s.ToString( "MMM d, yyyy -  h:mmtt" )
+                        }
+                         )
+                         );
+                }
 
-                prevSchedules.AddRange( occurances );
-
-
-                ddlOccurence.DataSource = prevSchedules.OrderByDescending( o => o.Id );
+                ddlOccurence.DataSource = occurances.OrderByDescending( o => o.Id );
                 ddlOccurence.DataBind();
-
 
                 //Drop down for filter values
                 ddlFilter.Visible = ( GetAttributeValue( "ShowsFilters" ).AsBoolean() && CurrentGroupFilters.Any() );
@@ -184,7 +210,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                     var attendanceService = new AttendanceService( _rockContext );
                     var personAliasService = new PersonAliasService( _rockContext );
-
 
                     foreach ( var item in cblAttendees.Items.Cast<ListItem>() )
                     {
