@@ -231,7 +231,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                                     PersonAliasId = attendancePerson.PrimaryAliasId,
                                     GroupId = CurrentGroup.Id,
                                     ScheduleId = CurrentGroup.ScheduleId,
-                                    StartDateTime = occurenceDate
+                                    StartDateTime = occurenceDate,
+                                    CampusId = CurrentGroup.CampusId
                                 };
                                 attendanceService.Add( attendanceItem );
                             }
