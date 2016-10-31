@@ -20,6 +20,7 @@ using System.ComponentModel;
 using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
+using org.secc.GroupManager;
 using Rock;
 using Rock.Attribute;
 using Rock.Constants;
@@ -37,7 +38,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     /// 
     /// </summary>
     [DisplayName( "Group Registration Modal" )]
-    [Category( "Groups" )]
+    [Category( "SECC > Groups" )]
     [Description( "Allows a person to register for a group." )]
 
     [CustomRadioListField( "Group Member Status", "The group member status to use when adding person to group (default: 'Pending'.)", "2^Pending,1^Active,0^Inactive", true, "2", "", 1 )]
@@ -46,12 +47,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
     [BooleanField( "Large Button", "Show large button with text?" )]
     [TextField( "CSS Class", "Optional css class to style button", false, "btn btn-default" )]
-    public partial class GroupRegistrationModal : RockBlock
+    public partial class GroupRegistrationModal : GroupManagerBlock
     {
         #region Fields
 
         RockContext _rockContext = null;
-        Group _group = null;
         GroupTypeRole _defaultGroupRole = null;
         DefinedValueCache _dvcConnectionStatus = null;
         DefinedValueCache _dvcRecordStatus = null;
@@ -87,7 +87,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             if ( !CheckSettings() )
             {
                 //something isn't right, clear group reference and hide
-                _group = null;
                 upMain.Visible = false;
             }
 
@@ -160,7 +159,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     person.RecordStatusValueId = _dvcRecordStatus.Id;
                     person.Gender = Gender.Unknown;
 
-                    PersonService.SaveNewPerson( person, _rockContext, _group.CampusId, false );
+                    PersonService.SaveNewPerson( person, _rockContext, CurrentGroup.CampusId, false );
                 }
 
                 // Save the registration
@@ -248,7 +247,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             if ( person != null )
             {
-                if ( !_group.Members
+                if ( !CurrentGroup.Members
                     .Any( m =>
                         m.PersonId == person.Id &&
                         m.GroupRoleId == _defaultGroupRole.Id ) )
@@ -258,7 +257,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     groupMember.PersonId = person.Id;
                     groupMember.GroupRoleId = _defaultGroupRole.Id;
                     groupMember.GroupMemberStatus = ( GroupMemberStatus ) GetAttributeValue( "GroupMemberStatus" ).AsInteger();
-                    groupMember.GroupId = _group.Id;
+                    groupMember.GroupId = CurrentGroup.Id;
                     groupMemberService.Add( groupMember );
                     rockContext.SaveChanges();
                 }
@@ -273,23 +272,13 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             _rockContext = _rockContext ?? new RockContext();
 
-            int groupId = PageParameter( "GroupId" ).AsInteger();
-            _group = new GroupService( _rockContext )
-                .Queryable( "GroupType.DefaultGroupRole" ).AsNoTracking()
-                .FirstOrDefault( g => g.Id == groupId );
-
-            if ( _group == null )
-            {
-                return false;
-            }
-
             //Authorization check. Nothing is visible otherwise
-            if (!_group.IsAuthorized(Authorization.EDIT, CurrentPerson ) )
+            if (!CurrentGroup.IsAuthorized(Authorization.EDIT, CurrentPerson ) )
             {
                 return false;
             }
 
-            _defaultGroupRole = _group.GroupType.DefaultGroupRole;
+            _defaultGroupRole = CurrentGroup.GroupType.DefaultGroupRole;
 
             _dvcConnectionStatus = DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() );
             if ( _dvcConnectionStatus == null )
