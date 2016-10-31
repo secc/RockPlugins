@@ -13,7 +13,6 @@ using Rock;
 using Rock.Attribute;
 using Rock.Security;
 using System.Text;
-using DotLiquid;
 using org.secc.GroupManager;
 
 namespace RockWeb.Plugins.org_secc.GroupManager
@@ -41,7 +40,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         protected override void OnInit( EventArgs e )
         {
-            
+
             base.OnInit( e );
             gMembers.ShowActionRow = false;
             gMembers.PersonIdField = "Id";
@@ -61,7 +60,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             base.OnLoad( e );
 
-            if (CurrentGroup == null )
+            if ( CurrentGroup == null )
             {
                 NavigateToHomePage();
                 return;
@@ -179,13 +178,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             tbMessage.Text = "";
 
-            if ( gMembers.SelectedKeys.Count == 0 )
-            {
-                nbAlert.Text = "Please select members to text.";
-                nbAlert.Visible = true;
-                return;
-            }
-
             CurrentGroup.LoadAttributes();
             cbSMSSendToParents.Visible = CurrentGroup.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
             pnlMain.Visible = false;
@@ -238,13 +230,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             tbBody.Text = "";
             tbSubject.Text = "";
-
-            if ( gMembers.SelectedKeys.Count == 0 )
-            {
-                nbAlert.Text = "Please select members to email.";
-                nbAlert.Visible = true;
-                return;
-            }
 
             CurrentGroup.LoadAttributes();
             cbEmailSendToParents.Visible = CurrentGroup.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
@@ -506,7 +491,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         private void BindRoster()
         {
-            rRoster.DataSource = memberData.Where(m => m.Status!=GroupMemberStatus.Inactive);
+            rRoster.DataSource = memberData.Where( m => m.Status != GroupMemberStatus.Inactive );
             rRoster.DataBind();
         }
 
@@ -558,14 +543,25 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             recepients.Append( "<div class=well><h4>Recepients:</h4>" );
 
             var sendParents = cbSMSSendToParents.Checked;
+            var keys = gMembers.SelectedKeys;
 
             //List of ids so we don't display the same person twice
             List<int> addedIds = new List<int>();
 
-            foreach ( int key in gMembers.SelectedKeys )
-            {
-                MemberData member = memberData.Where( md => md.Id == key ).FirstOrDefault();
+            List<MemberData> members = new List<MemberData>();
 
+            foreach ( int key in keys )
+            {
+                members.Add( memberData.Where( md => md.Id == key ).FirstOrDefault() );
+            }
+
+            if ( !members.Any() )
+            {
+                members = memberData;
+            }
+
+            foreach ( var member in members )
+            {
                 //only load parents if we need them
                 if ( sendParents )
                 {
@@ -630,11 +626,20 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             //This list is to keep track of recepients so we don't display them twice
             List<int> addedIds = new List<int>();
 
+            List<MemberData> members = new List<MemberData>();
+
             foreach ( int key in keys )
             {
-                MemberData member = memberData.Where( md => md.Id == key ).FirstOrDefault();
+                members.Add( memberData.Where( md => md.Id == key ).FirstOrDefault() );
+            }
 
+            if ( !members.Any() )
+            {
+                members = memberData;
+            }
 
+            foreach ( var member in members )
+            { 
                 //only load parents if they are needed
                 if ( sendParents )
                 {
