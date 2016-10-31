@@ -18,13 +18,15 @@ using org.secc.GroupManager;
 namespace RockWeb.Plugins.org_secc.GroupManager
 {
     [DisplayName( "Group Roster" )]
-    [Category( "Groups" )]
+    [Category( "SECC > Groups" )]
     [Description( "Presents members of group in roster format." )]
 
     //Settings
     [CodeEditorField( "Roster Lava", "Lava to appear in member roster pannels", CodeEditorMode.Lava, CodeEditorTheme.Rock, 600, false )]
     [BooleanField( "Allow Email", "Allow email to be sent from this block.", false )]
     [BooleanField( "Allow SMS", "Allow test messages to be sent from this block.", false )]
+
+    [TextField( "Safe Sender Email", "If the current users email address is not from a safe sender, the email address to use." )]
     public partial class GroupRoster : GroupManagerBlock
     {
         List<MemberData> memberData = new List<MemberData>();
@@ -258,7 +260,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     communication.MediumData.Clear();
                     communication.Subject = tbSubject.Text;
                     communication.MediumData.Add( "FromName", CurrentPerson.FullName );
-                    communication.MediumData.Add( "FromAddress", CurrentPerson.Email );
+
+                    communication.MediumData.Add( "FromAddress", GetSafeSender( CurrentPerson.Email ) );
                     communication.MediumData.Add( "ReplyToAddress", CurrentPerson.Email );
                     communication.MediumData.Add( "TextMessage", tbBody.Text );
 
@@ -278,6 +281,29 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             pnlSMS.Visible = false;
             pnlMain.Visible = true;
             maSent.Show( "Your message will be sent shortly.", ModalAlertType.Information );
+        }
+
+        private string GetSafeSender( string email )
+        {
+            var safeDomains = DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.COMMUNICATION_SAFE_SENDER_DOMAINS.AsGuid() ).DefinedValues.Select( v => v.Value ).ToList();
+            var emailParts = email.Split( new char[] { '@' }, StringSplitOptions.RemoveEmptyEntries );
+            if ( emailParts.Length != 2 || !safeDomains.Contains( emailParts[1], StringComparer.OrdinalIgnoreCase ) )
+            {
+                var safeEmail = GetAttributeValue( "SafeSenderEmail" );
+                var safeEmailParts = safeEmail.Split( new char[] { '@' }, StringSplitOptions.RemoveEmptyEntries );
+                if ( !string.IsNullOrWhiteSpace( safeEmail ) 
+                    && safeEmailParts.Length == 2 &&
+                    safeDomains.Contains( safeEmailParts[1], StringComparer.OrdinalIgnoreCase ) )
+                {
+
+                    return safeEmail;
+                }
+                else
+                {
+                    return GlobalAttributesCache.Read().GetValue( "OrganizationEmail" );
+                }
+            }
+            return email;
         }
 
         protected void btnCancel_Click( object sender, EventArgs e )
@@ -639,7 +665,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
 
             foreach ( var member in members )
-            { 
+            {
                 //only load parents if they are needed
                 if ( sendParents )
                 {

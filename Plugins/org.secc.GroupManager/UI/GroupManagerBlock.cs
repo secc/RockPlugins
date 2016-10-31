@@ -104,7 +104,6 @@ namespace org.secc.GroupManager
                     || !CurrentGroupMember.GroupRole.IsLeader )
                )
             {
-                this.Visible = false;
                 NavigateToHomePage();
             }
         }

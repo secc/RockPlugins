@@ -20,7 +20,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 {
 
     [DisplayName( "Group Recommit" )]
-    [Category( "Groups" )]
+    [Category( "SECC > Groups" )]
     [Description( "Allows a person to sign up to lead a new group, or copy one they are already a leader of." )]
 
     //Settings
