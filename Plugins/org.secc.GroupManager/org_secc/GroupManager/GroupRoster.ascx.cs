@@ -291,7 +291,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 var safeEmail = GetAttributeValue( "SafeSenderEmail" );
                 var safeEmailParts = safeEmail.Split( new char[] { '@' }, StringSplitOptions.RemoveEmptyEntries );
-                if ( !string.IsNullOrWhiteSpace( safeEmail ) 
+                if ( !string.IsNullOrWhiteSpace( safeEmail )
                     && safeEmailParts.Length == 2 &&
                     safeDomains.Contains( safeEmailParts[1], StringComparer.OrdinalIgnoreCase ) )
                 {
@@ -303,7 +303,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     return GlobalAttributesCache.Read().GetValue( "OrganizationEmail" );
                 }
             }
-            return email;
+            if ( !string.IsNullOrWhiteSpace( email ) )
+            {
+                return email;
+            }
+            return GlobalAttributesCache.Read().GetValue( "OrganizationEmail" );
         }
 
         protected void btnCancel_Click( object sender, EventArgs e )
