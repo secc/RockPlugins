@@ -79,11 +79,12 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     LinkButton lbGroup = new LinkButton()
                     {
                         Text = group.Name,
-                        ID = group.Guid.ToString(),
-                        CssClass = "btn btn-block"
+                        ID = group.Guid.ToString()
                     };
                     lbGroup.Click += ( s, ee ) => LoadGroup( group );
                     phContent.Controls.Add( lbGroup );
+                    HtmlGenericContainer br = new HtmlGenericContainer( "br" );
+                    phContent.Controls.Add( br );
                 }
             }
         }
