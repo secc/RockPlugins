@@ -272,6 +272,12 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             _rockContext = _rockContext ?? new RockContext();
 
+            if ( CurrentGroup == null )
+            {
+                NavigateToHomePage();
+                return false;
+            }
+
             //Authorization check. Nothing is visible otherwise
             if (!CurrentGroup.IsAuthorized(Authorization.EDIT, CurrentPerson ) )
             {
