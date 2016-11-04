@@ -73,7 +73,7 @@ namespace RockWeb.Plugins.org_secc.Microframe
                     .FirstOrDefault();
                 if ( existingDevice != null )
                 {
-                    nbDuplicateSign.Text = string.Format( "A sign already exists with the name '{0}'. Please use a different device name.", existingDevice.Name );
+                    nbDuplicateSign.Text = string.Format( "A sign category already exists with the name '{0}'. Please use a different device name.", existingDevice.Name );
                     nbDuplicateSign.Visible = true;
                 }
                 else
@@ -130,13 +130,13 @@ namespace RockWeb.Plugins.org_secc.Microframe
             if ( !signCategoryId.Equals( 0 ) )
             {
                 signCategory = new SignCategoryService( rockContext ).Get( signCategoryId );
-                lActionTitle.Text = ActionTitle.Edit( Sign.FriendlyTypeName ).FormatAsHtmlTitle();
+                lActionTitle.Text = ActionTitle.Edit( SignCategory.FriendlyTypeName ).FormatAsHtmlTitle();
             }
 
             if ( signCategory == null )
             {
                 signCategory = new SignCategory { Id = 0 };
-                lActionTitle.Text = ActionTitle.Add( Sign.FriendlyTypeName ).FormatAsHtmlTitle();
+                lActionTitle.Text = ActionTitle.Add( SignCategory.FriendlyTypeName ).FormatAsHtmlTitle();
             }
 
             hfSignCategoryId.Value = signCategory.Id.ToString();
