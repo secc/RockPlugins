@@ -50,7 +50,7 @@
                 </div>
             </asp:Panel>
 
-            <asp:Panel runat="server" ID="pnlMembers" class="panel panel-default" Visible="false">
+            <asp:Panel runat="server" ID="pnlMembers" class="panel panel-default groupMembers" Visible="false">
                 <div class="panel-heading">Members <i>(select members who will rejoin)</i></div>
                 <div class="panel-body">
                     <Rock:Grid runat="server" ID="gMembers" DataKeyNames="Id" ShowActionRow="false" DisplayType="Light">
@@ -69,4 +69,12 @@
         </asp:Panel>
     </ContentTemplate>
 </asp:UpdatePanel>
+
+<script>
+    $(document).ready(
+        function ()
+        {
+            $('.groupMembers').find(':checkbox').prop('checked', true);
+        })
+</script>
 
