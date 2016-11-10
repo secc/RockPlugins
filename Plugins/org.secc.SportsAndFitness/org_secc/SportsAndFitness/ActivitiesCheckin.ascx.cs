@@ -27,6 +27,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
         private RockContext _rockContext;
         private int _noteTypeId;
         private string _expirationDateKey;
+        private int _memberConnectionStatusId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_MEMBER.AsGuid()).Id;
 
         private List<GroupTypeCache> parentGroupTypesList;
         private GroupTypeCache currentParentGroupType;
@@ -147,6 +148,10 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                 card.Controls.Add( pnlImage );
                 Image imgPhoto = new Image();
                 imgPhoto.CssClass = "thumbnail";
+                if ( person.Person.ConnectionStatusValueId != _memberConnectionStatusId )
+                {
+                    imgPhoto.Style.Add( "border", "solid blue 3px" );
+                }
                 imgPhoto.ImageUrl = person.Person.PhotoUrl;
                 imgPhoto.Style.Add( "width", "100%" );
                 pnlImage.Controls.Add( imgPhoto );
