@@ -30,16 +30,16 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [BooleanField( "Show Description", "Option to toggle if the group description is to be shown for editing", true, "", 3 )]
     [TextField( "Save Text", "Text to display on save button", true, "Sign Up To Lead Group", "", 4 )]
     [GroupRoleField( "", "Group Role", "Group role that the user will be saved as. You will need to select the group type before selecting the group role.", true, "", "", 5 )]
+    [AttributeField( Rock.SystemGuid.EntityType.GROUP, "MultiSelect Attribute", "Attribute to change on recommitted groups.", order:6 )]
+    [TextField( "Attribute Text", "Attribute value to set on recommitted groups.", order:7 )]
     [CodeEditorField( "Success Text", "Text to display to user upon successfully creating new group.", CodeEditorMode.Text, CodeEditorTheme.Rock,
-        200, true, "You have successfully signed up to lead a group.", "", 5 )]
+        200, true, "You have successfully signed up to lead a group.", "", 8)]
     [CodeEditorField( "Login Text", "Text to display when user account cannot be determined", CodeEditorMode.Text, CodeEditorTheme.Rock,
-        200, true, "We're sorry we could not find your account in our system. Please log-in to continue.", "", 6 )]
+        200, true, "We're sorry we could not find your account in our system. Please log-in to continue.", "", 9)]
     [CodeEditorField( "Multiple Groups Text", "Text to display when too many groups are found to make recomitment a possiblity.", CodeEditorMode.Text, CodeEditorTheme.Rock,
-        200, true, "We found multiple groups matched to you. Please contact your leader to help you create your groups for this cycle.", "", 7 )]
+        200, true, "We found multiple groups matched to you. Please contact your leader to help you create your groups for this cycle.", "",10 )]
     [CodeEditorField( "Destination Group Text", "Text to display when it is suspected that the user has already had a group made.", CodeEditorMode.Text, CodeEditorTheme.Rock,
-        200, true, "A group has already been created for you. If you think this is in error, or you would like to create another group please contact your leader.", "", 8 )]
-    [TextField( "Attribute Text", "Attribute value to set on recommitted groups." )]
-    [AttributeField( Rock.SystemGuid.EntityType.GROUP, "MultiSelect Attribute", "Attribute to change on recommitted groups." )]
+        200, true, "A group has already been created for you. If you think this is in error, or you would like to create another group please contact your leader.", "", 11 )]
 
     public partial class GroupRecommit : RockBlock
     {
@@ -174,8 +174,13 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             if ( members.Any() )
             {
                 gMembers.DataSource = members;
-                gMembers.DataBind();
                 pnlMembers.Visible = true;
+                gMembers.DataBind();
+                foreach ( var member in members )
+                {
+                    gMembers.SelectedKeys.Add( member.Id );
+                }
+
             }
             else
             {
@@ -493,7 +498,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             if ( group.Members != null && group.Members.Any() )
             {
-                foreach (var member in group.Members.Where(gm => gm.PersonId != _person.Id ) )
+                foreach ( var member in group.Members.Where( gm => gm.PersonId != _person.Id ) )
                 {
                     member.GroupMemberStatus = GroupMemberStatus.Inactive;
                 }
@@ -522,10 +527,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             if ( multiselectAttribute != null )
             {
                 var attributeValue = group.GetAttributeValue( multiselectAttribute.Key )
-                    .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries )
+                    .Split( new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries )
                     .ToList();
                 var newAttributeText = GetAttributeValue( "AttributeText" );
-                if (!attributeValue.Contains( newAttributeText ) )
+                if ( !attributeValue.Contains( newAttributeText ) )
                 {
                     attributeValue.Add( newAttributeText );
                 }
@@ -584,24 +589,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                         }
                 }
             }
-        }
-
-        private bool IsDestinationAvailable()
-        {
-            //Check to make sure there is no other group in destination where user is of selected group role
-            var destinationGuid = GetAttributeValue( "DestinationGroup" ).AsGuidOrNull();
-
-
-            if ( destinationGuid != null )
-            {
-                var destinationGroups = LoadGroups( destinationGuid );
-                if ( !destinationGroups.Any() )
-                {
-                    return true;
-                }
-                return destinationGroups.Count() == 0;
-            }
-            return false;
         }
     }
 }
