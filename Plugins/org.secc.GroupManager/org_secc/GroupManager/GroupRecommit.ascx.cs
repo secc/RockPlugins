@@ -450,10 +450,12 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 group.Name = string.Format( "{0} - {1}", tbName.Text, zip );
                 groupService.Add( group );
                 group.CreatedByPersonAliasId = _person.PrimaryAliasId;
+                group.IsActive = true;
             }
             else
             {
                 group = groupService.Get( _group.Id );
+                group.IsActive = true;
             }
 
             group.Description = tbDescription.Text;
