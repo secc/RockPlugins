@@ -16,7 +16,7 @@ using org.secc.Microframe.Model;
 namespace RockWeb.Plugins.org_secc.Search
 {
     [DisplayName( "Bulk Search" )]
-    [Category( "SECC > Missions" )]
+    [Category( "SECC > Search" )]
     [Description( "Takes the ten two csv and puts it in a grid of people." )]
     public partial class BulkSearch : RockBlock
     {
