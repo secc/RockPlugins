@@ -30,14 +30,14 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [BooleanField( "Show Description", "Option to toggle if the group description is to be shown for editing", true, "", 3 )]
     [TextField( "Save Text", "Text to display on save button", true, "Sign Up To Lead Group", "", 4 )]
     [GroupRoleField( "", "Group Role", "Group role that the user will be saved as. You will need to select the group type before selecting the group role.", true, "", "", 5 )]
-    [AttributeField( Rock.SystemGuid.EntityType.GROUP, "MultiSelect Attribute", "Attribute to change on recommitted groups.", order:6 )]
-    [TextField( "Attribute Text", "Attribute value to set on recommitted groups.", order:7 )]
+    [AttributeField( Rock.SystemGuid.EntityType.GROUP, "MultiSelect Attribute", "Attribute to change on recommitted groups.", order: 6 )]
+    [TextField( "Attribute Text", "Attribute value to set on recommitted groups.", order: 7 )]
     [CodeEditorField( "Success Text", "Text to display to user upon successfully creating new group.", CodeEditorMode.Text, CodeEditorTheme.Rock,
-        200, true, "You have successfully signed up to lead a group.", "", 8)]
+        200, true, "You have successfully signed up to lead a group.", "", 8 )]
     [CodeEditorField( "Login Text", "Text to display when user account cannot be determined", CodeEditorMode.Text, CodeEditorTheme.Rock,
-        200, true, "We're sorry we could not find your account in our system. Please log-in to continue.", "", 9)]
+        200, true, "We're sorry we could not find your account in our system. Please log-in to continue.", "", 9 )]
     [CodeEditorField( "Multiple Groups Text", "Text to display when too many groups are found to make recomitment a possiblity.", CodeEditorMode.Text, CodeEditorTheme.Rock,
-        200, true, "We found multiple groups matched to you. Please contact your leader to help you create your groups for this cycle.", "",10 )]
+        200, true, "We found multiple groups matched to you. Please contact your leader to help you create your groups for this cycle.", "", 10 )]
     [CodeEditorField( "Destination Group Text", "Text to display when it is suspected that the user has already had a group made.", CodeEditorMode.Text, CodeEditorTheme.Rock,
         200, true, "A group has already been created for you. If you think this is in error, or you would like to create another group please contact your leader.", "", 11 )]
 
@@ -47,6 +47,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         private Group _group;
         private GroupTypeCache _groupType;
         private RockContext _rockContext;
+        private List<string> CycleOrder = new List<string>() { "January 2017", "September 2016", "April 2016", "January 2016", "October 2015" };
 
         #region Base Control Methods
 
@@ -123,26 +124,39 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             //if we load the groups and there are too many we need to stop because the logic needs a person
             if ( groups.Count() > 1 )
             {
-                ShowMessage( GetAttributeValue( "MultipleGroupsText" ) );
-                return;
+                foreach ( var group in groups )
+                {
+                    group.LoadAttributes();
+                }
+                foreach ( var cycle in CycleOrder )
+                {
+                    if ( _group == null )
+                    {
+                        foreach ( var group in groups )
+                        {
+                            if ( group.GetAttributeValue( "LWYACycle" ).Contains( cycle ) )
+                            {
+                                _group = group;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+            }
+            else
+            {
+                _group = groups.FirstOrDefault();
+
             }
 
-            _group = groups.FirstOrDefault();
 
 
             if ( !Page.IsPostBack )
             {
                 //Create/copy group and fill it full of properties and attributes
                 LoadControls();
-                if ( _person != null && CurrentPerson.Id == _person.Id )
-                {
-                    tbName.Text = _person.LastName + " Home";
-                }
-                else
-                {
-                    tbName.ReadOnly = false;
-                    tbName.Enabled = true;
-                }
+                
             }
             else if ( _group != null )
             {
