@@ -86,7 +86,7 @@ namespace org.secc.GroupManager
                 CurrentGroupMember = CurrentGroup.Members
                     .Where( gm => gm.PersonId == CurrentUser.PersonId )
                     .FirstOrDefault();
-                if ( GetAttributeValue( "LeadersOnly" ).AsBoolean() && !CurrentGroupMember.GroupRole.IsLeader )
+                if ( GetAttributeValue( "LeadersOnly" ).AsBoolean() && CurrentGroupMember!=null && !CurrentGroupMember.GroupRole.IsLeader )
                 {
                     NavigateToHomePage();
                     return;
