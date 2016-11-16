@@ -89,7 +89,6 @@ namespace org.secc.GroupManager
                 if ( GetAttributeValue( "LeadersOnly" ).AsBoolean() && !CurrentGroupMember.GroupRole.IsLeader )
                 {
                     NavigateToHomePage();
-                    Response.End();
                     return;
                 }
             }
@@ -97,7 +96,6 @@ namespace org.secc.GroupManager
             {
                 CurrentGroupMember = null;
                 NavigateToHomePage();
-                Response.End();
             }
 
             if ( GetAttributeValue( "LeadersOnly" ).AsBoolean()
@@ -107,7 +105,6 @@ namespace org.secc.GroupManager
                )
             {
                 NavigateToHomePage();
-                Response.End();
             }
         }
 
