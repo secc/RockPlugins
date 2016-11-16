@@ -162,10 +162,14 @@ $(document).ready(function() {
         {
             try
             {
-                var groupId = Int32.Parse( PageParameter( "GroupId" ) );
                 RockContext rockContext = new RockContext();
-                GroupService groupService = new GroupService( rockContext );
-                _group = groupService.Get( groupId );
+                int groupId = PageParameter( "GroupId" ).AsInteger();
+                if ( groupId == 0 && Session["CurrentGroupManagerGroup"] != null )
+                {
+                    groupId = ( int ) Session["CurrentGroupManagerGroup"];
+                }
+
+                _group = new GroupService( rockContext ).Get( groupId );
 
                 Group parentGroup = _group.ParentGroup;
 
