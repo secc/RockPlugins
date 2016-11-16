@@ -287,9 +287,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             foreach ( var attribute in AttributeList )
             {
 
-                if ( Person != null
-                    && groupMember.Group.IsAuthorized( Authorization.EDIT, CurrentPerson)
-                    && attribute.IsAuthorized( Authorization.EDIT, CurrentPerson ) )
+                if ( Person != null && groupMember.Group.IsAuthorized( Authorization.EDIT, CurrentPerson) )
                 {
                     groupMember.Note = notes.Text;
                     rockContext.SaveChanges();

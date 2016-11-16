@@ -45,7 +45,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     /// Block for people to find a group that matches their search parameters.
     /// </summary>
     [DisplayName( "Group Finder Map" )]
-    [Category( "Groups" )]
+    [Category( "SECC > Groups" )]
     [Description( "Block for people to find a group that matches their search parameters." )]
 
     // Linked Pages

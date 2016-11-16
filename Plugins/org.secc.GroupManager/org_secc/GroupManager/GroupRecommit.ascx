@@ -43,15 +43,15 @@
                     <Rock:LocationPicker runat="server" ID="lopAddress" ValidationGroup="main" Required="true" Label="Address" AllowedPickerModes="Address" />
                 </div>
             </div>
-            <div class="panel panel-default">
+            <asp:Panel runat="server" ID="pnlFilters" class="panel panel-default">
                 <div class="panel-heading">Filters</div>
                 <div class="panel-body">
                     <asp:PlaceHolder runat="server" ID="phAttributes" EnableViewState="false"></asp:PlaceHolder>
                 </div>
-            </div>
+            </asp:Panel>
 
-            <asp:Panel runat="server" ID="pnlMembers" class="panel panel-default" Visible="false">
-                <div class="panel-heading">Members</div>
+            <asp:Panel runat="server" ID="pnlMembers" class="panel panel-default groupMembers" Visible="false">
+                <div class="panel-heading">Members <i>(select members who will rejoin)</i></div>
                 <div class="panel-body">
                     <Rock:Grid runat="server" ID="gMembers" DataKeyNames="Id" ShowActionRow="false" DisplayType="Light">
                         <Columns>
@@ -69,4 +69,12 @@
         </asp:Panel>
     </ContentTemplate>
 </asp:UpdatePanel>
+
+<script>
+    $(document).ready(
+        function ()
+        {
+            $('.groupMembers').find(':checkbox').prop('checked', true);
+        })
+</script>
 
