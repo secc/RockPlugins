@@ -1,4 +1,0 @@
-<div class="masthead-wrapper">
-    <span class="site-logo"><img src="~~/Assets/img/logos/southeast/black-border-on-white.png" /></span>
-    <span class="site-name">{{CurrentPage.Site}}</span>
-</div>
