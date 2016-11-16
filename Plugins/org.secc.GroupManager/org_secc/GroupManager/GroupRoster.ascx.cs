@@ -13,21 +13,22 @@ using Rock;
 using Rock.Attribute;
 using Rock.Security;
 using System.Text;
-using DotLiquid;
+using org.secc.GroupManager;
 
 namespace RockWeb.Plugins.org_secc.GroupManager
 {
     [DisplayName( "Group Roster" )]
-    [Category( "Groups" )]
+    [Category( "SECC > Groups" )]
     [Description( "Presents members of group in roster format." )]
 
     //Settings
     [CodeEditorField( "Roster Lava", "Lava to appear in member roster pannels", CodeEditorMode.Lava, CodeEditorTheme.Rock, 600, false )]
     [BooleanField( "Allow Email", "Allow email to be sent from this block.", false )]
     [BooleanField( "Allow SMS", "Allow test messages to be sent from this block.", false )]
-    public partial class GroupRoster : RockBlock
+
+    [TextField( "Safe Sender Email", "If the current users email address is not from a safe sender, the email address to use." )]
+    public partial class GroupRoster : GroupManagerBlock
     {
-        Group group = new Group();
         List<MemberData> memberData = new List<MemberData>();
         string smsScript = @"
             var charCount = function(){
@@ -37,10 +38,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             $('textarea[id$= \'tbMessage\']').keyup(function(){charCount()});
             ";
         private RockContext _rockContext;
-        private int groupId;
+
 
         protected override void OnInit( EventArgs e )
         {
+
             base.OnInit( e );
             gMembers.ShowActionRow = false;
             gMembers.PersonIdField = "Id";
@@ -60,25 +62,22 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             base.OnLoad( e );
 
+            if ( CurrentGroup == null )
+            {
+                NavigateToHomePage();
+                return;
+            }
+
             btnEmail.Visible = GetAttributeValue( "AllowEmail" ).AsBoolean();
             btnSMS.Visible = GetAttributeValue( "AllowSMS" ).AsBoolean();
 
             nbAlert.Visible = false;
             var personAlias = RockPage.CurrentPersonAlias;
-            groupId = PageParameter( "GroupId" ).AsInteger();
-            if ( groupId == 0 )
-            {
-                return;
-            }
 
             _rockContext = new RockContext();
-            var groupService = new GroupService( _rockContext );
-            group = groupService.Get( groupId );
-
-
 
             //If you are not a leader when one is required hide and quit.
-            if ( !group.IsAuthorized( Authorization.EDIT, CurrentPerson ) )
+            if ( !CurrentGroup.IsAuthorized( Authorization.EDIT, CurrentPerson ) )
             {
                 pnlMain.Visible = false;
                 nbAlert.Visible = true;
@@ -86,8 +85,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 return;
             }
 
-            Page.Title = group.Name;
-            ltTitle.Text = "<h1>" + group.Name + "</h1>";
+            Page.Title = CurrentGroup.Name;
+            ltTitle.Text = "<h1>" + CurrentGroup.Name + "</h1>";
 
             GetGroupMembers();
 
@@ -108,8 +107,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         private void GetGroupMembers()
         {
             memberData = new List<MemberData>();
-            GroupService groupService = new GroupService( _rockContext );
-            var groupMembers = groupService.Queryable().Where( g => g.Id == groupId ).SelectMany( g => g.Members ).ToList();
+            var groupMembers = CurrentGroupMembers;
             foreach ( var member in groupMembers )
             {
                 memberData.Add( new MemberData( member ) );
@@ -182,15 +180,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             tbMessage.Text = "";
 
-            if ( gMembers.SelectedKeys.Count == 0 )
-            {
-                nbAlert.Text = "Please select members to text.";
-                nbAlert.Visible = true;
-                return;
-            }
-
-            group.LoadAttributes();
-            cbSMSSendToParents.Visible = group.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
+            CurrentGroup.LoadAttributes();
+            cbSMSSendToParents.Visible = CurrentGroup.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
             pnlMain.Visible = false;
             pnlSMS.Visible = true;
 
@@ -217,7 +208,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     communication.MediumEntityTypeId = EntityTypeCache.Read( "Rock.Communication.Medium.Sms" ).Id;
                     communication.MediumData.Clear();
                     communication.MediumData.Add( "TextMessage", tbMessage.Text );
-                    communication.MediumData.Add( "From", group.GetAttributeValue( "TextMessageFrom" ) );
+                    communication.MediumData.Add( "From", CurrentGroup.GetAttributeValue( "TextMessageFrom" ) );
 
                     communication.Status = CommunicationStatus.Approved;
                     communication.ReviewedDateTime = RockDateTime.Now;
@@ -242,15 +233,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             tbBody.Text = "";
             tbSubject.Text = "";
 
-            if ( gMembers.SelectedKeys.Count == 0 )
-            {
-                nbAlert.Text = "Please select members to email.";
-                nbAlert.Visible = true;
-                return;
-            }
-
-            group.LoadAttributes();
-            cbEmailSendToParents.Visible = group.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
+            CurrentGroup.LoadAttributes();
+            cbEmailSendToParents.Visible = CurrentGroup.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
             pnlMain.Visible = false;
             pnlEmail.Visible = true;
 
@@ -276,7 +260,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     communication.MediumData.Clear();
                     communication.Subject = tbSubject.Text;
                     communication.MediumData.Add( "FromName", CurrentPerson.FullName );
-                    communication.MediumData.Add( "FromAddress", CurrentPerson.Email );
+
+                    communication.MediumData.Add( "FromAddress", GetSafeSender( CurrentPerson.Email ) );
                     communication.MediumData.Add( "ReplyToAddress", CurrentPerson.Email );
                     communication.MediumData.Add( "TextMessage", tbBody.Text );
 
@@ -296,6 +281,33 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             pnlSMS.Visible = false;
             pnlMain.Visible = true;
             maSent.Show( "Your message will be sent shortly.", ModalAlertType.Information );
+        }
+
+        private string GetSafeSender( string email )
+        {
+            var safeDomains = DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.COMMUNICATION_SAFE_SENDER_DOMAINS.AsGuid() ).DefinedValues.Select( v => v.Value ).ToList();
+            var emailParts = email.Split( new char[] { '@' }, StringSplitOptions.RemoveEmptyEntries );
+            if ( emailParts.Length != 2 || !safeDomains.Contains( emailParts[1], StringComparer.OrdinalIgnoreCase ) )
+            {
+                var safeEmail = GetAttributeValue( "SafeSenderEmail" );
+                var safeEmailParts = safeEmail.Split( new char[] { '@' }, StringSplitOptions.RemoveEmptyEntries );
+                if ( !string.IsNullOrWhiteSpace( safeEmail )
+                    && safeEmailParts.Length == 2 &&
+                    safeDomains.Contains( safeEmailParts[1], StringComparer.OrdinalIgnoreCase ) )
+                {
+
+                    return safeEmail;
+                }
+                else
+                {
+                    return GlobalAttributesCache.Read().GetValue( "OrganizationEmail" );
+                }
+            }
+            if ( !string.IsNullOrWhiteSpace( email ) )
+            {
+                return email;
+            }
+            return GlobalAttributesCache.Read().GetValue( "OrganizationEmail" );
         }
 
         protected void btnCancel_Click( object sender, EventArgs e )
@@ -427,7 +439,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             //Select multiple group members because someone can be a member of
             //a group more than once as long as their role is different
-            var groupMembers = group.Members.Where( m => m.Person.Id == id );
+            var groupMembers = CurrentGroup.Members.Where( m => m.Person.Id == id );
             if ( groupMembers.Any() )
             {
                 foreach ( var groupMember in groupMembers )
@@ -442,7 +454,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             //Select multiple group members because someone can be a member of
             //a group more than once as long as their role is different
-            var groupMembers = group.Members.Where( m => m.Person.Id == id );
+            var groupMembers = CurrentGroup.Members.Where( m => m.Person.Id == id );
             if ( groupMembers.Any() )
             {
                 foreach ( var groupMember in groupMembers )
@@ -509,7 +521,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         private void BindRoster()
         {
-            rRoster.DataSource = memberData.Where(m => m.Status!=GroupMemberStatus.Inactive);
+            rRoster.DataSource = memberData.Where( m => m.Status != GroupMemberStatus.Inactive );
             rRoster.DataBind();
         }
 
@@ -526,7 +538,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         private void GenerateFilters( bool FirstRun )
         {
-            var roles = group.GroupType.Roles.ToList();
+            var roles = CurrentGroup.GroupType.Roles.ToList();
             cblRole.DataSource = roles;
             cblRole.DataBind();
 
@@ -561,14 +573,25 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             recepients.Append( "<div class=well><h4>Recepients:</h4>" );
 
             var sendParents = cbSMSSendToParents.Checked;
+            var keys = gMembers.SelectedKeys;
 
             //List of ids so we don't display the same person twice
             List<int> addedIds = new List<int>();
 
-            foreach ( int key in gMembers.SelectedKeys )
-            {
-                MemberData member = memberData.Where( md => md.Id == key ).FirstOrDefault();
+            List<MemberData> members = new List<MemberData>();
 
+            foreach ( int key in keys )
+            {
+                members.Add( memberData.Where( md => md.Id == key ).FirstOrDefault() );
+            }
+
+            if ( !members.Any() )
+            {
+                members = memberData;
+            }
+
+            foreach ( var member in members )
+            {
                 //only load parents if we need them
                 if ( sendParents )
                 {
@@ -633,11 +656,20 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             //This list is to keep track of recepients so we don't display them twice
             List<int> addedIds = new List<int>();
 
+            List<MemberData> members = new List<MemberData>();
+
             foreach ( int key in keys )
             {
-                MemberData member = memberData.Where( md => md.Id == key ).FirstOrDefault();
+                members.Add( memberData.Where( md => md.Id == key ).FirstOrDefault() );
+            }
 
+            if ( !members.Any() )
+            {
+                members = memberData;
+            }
 
+            foreach ( var member in members )
+            {
                 //only load parents if they are needed
                 if ( sendParents )
                 {
@@ -794,8 +826,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         private void showRosterEmail( int? id )
         {
             hfCommunication.Value = id.ToString();
-            group.LoadAttributes();
-            cbEmailSendToParents.Visible = group.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
+            CurrentGroup.LoadAttributes();
+            cbEmailSendToParents.Visible = CurrentGroup.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
             pnlMain.Visible = false;
             pnlEmail.Visible = true;
 
