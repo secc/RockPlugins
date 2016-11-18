@@ -113,7 +113,8 @@
                 </h3>
                 <div class="row">
                     <div class="col-xs-12">
-                        <Rock:RockDropDownList runat="server" ID="ddlMove" Label="Move To:"></Rock:RockDropDownList>
+                        <Rock:RockDropDownList runat="server" ID="ddlGroup" Label="Group:" AutoPostBack="true" OnSelectedIndexChanged="ddlGroup_SelectedIndexChanged"></Rock:RockDropDownList>
+                        <Rock:RockDropDownList runat="server" ID="ddlLocation" Label="Location:" Visible="false"></Rock:RockDropDownList>
                         <Rock:BootstrapButton ID="btnMove" runat="server" Text="Move" OnClick="btnMove_Click" CssClass="btn btn-success"></Rock:BootstrapButton>
                     </div>
                 </div>
