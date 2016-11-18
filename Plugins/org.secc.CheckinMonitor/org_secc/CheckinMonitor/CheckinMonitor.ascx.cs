@@ -78,6 +78,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 ddlSchedules.DataSource = schedules;
                 ddlSchedules.DataBind();
             }
+
+            ddlClose.BindToEnum<CloseScope>();
         }
 
         private void BindTable()
@@ -874,12 +876,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         {
             if ( ddlSchedules.SelectedValue.AsInteger() > 0 )
             {
-                btnCloseAll.Visible = true;
-                btnCloseAll.Text = string.Format( "Close all at {0}", ddlSchedules.SelectedItem.Text );
+                ddlClose.Visible = true;
+                ddlClose.Title = string.Format( "Close locations for {0}", ddlSchedules.SelectedItem.Text );
             }
             else
             {
-                btnCloseAll.Visible = false;
+                ddlClose.Visible = false;
             }
         }
 
@@ -1123,22 +1125,51 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             Name
         }
 
-        protected void btnCloseAll_Click( object sender, EventArgs e )
-        {
-            var scheduleName = ddlSchedules.SelectedItem.Text;
-            ltConfirmClose.Text = string.Format( "Are you sure you want to close all locations for {0}", scheduleName );
-            mdConfirmClose.Show();
-        }
-
         protected void mdConfirmClose_SaveClick( object sender, EventArgs e )
         {
+            if ( CurrentCheckInState == null )
+            {
+                NavigateToPreviousPage();
+                return;
+            }
+
             var scheduleId = ddlSchedules.SelectedValue.AsInteger();
+
+            var groupIds = new GroupTypeService( new RockContext() ).Queryable()
+                     .Where( gt => CurrentCheckInState.ConfiguredGroupTypes.Contains( gt.Id ) )
+                     .SelectMany( gt => gt.Groups )
+                     .Where( g => g.IsActive )
+                     .Select( g => g.Id )
+                     .ToList();
+
+            List<int> closeGroupIds;
+
+            switch ( ddlClose.SelectedValueAsEnum<CloseScope>() )
+            {
+                case CloseScope.Children:
+                    closeGroupIds = groupIds.Where( i => !kioskCountUtility.VolunteerGroupIds.Contains( i ) ).ToList();
+                    break;
+                case CloseScope.Volunteer:
+                    closeGroupIds = kioskCountUtility.VolunteerGroupIds;
+                    break;
+                case CloseScope.All:
+                    closeGroupIds = groupIds;
+                    break;
+                default:
+                    closeGroupIds = groupIds;
+                    break;
+            }
+
             foreach ( var gls in kioskCountUtility.GroupLocationSchedules.Where( gls => gls.Schedule.Id == scheduleId ) )
             {
-                CloseOccurrence( gls.GroupLocation.Id, scheduleId, false );
+                if ( closeGroupIds.Contains( gls.GroupLocation.GroupId ) )
+                {
+                    CloseOccurrence( gls.GroupLocation.Id, scheduleId, false );
+                }
             }
             mdConfirmClose.Hide();
             BindTable();
+            ddlClose.SelectedValue = null;
         }
 
         protected void ddlGroup_SelectedIndexChanged( object sender, EventArgs e )
@@ -1167,6 +1198,19 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 ddlLocation.Visible = false;
             }
+        }
+
+        protected void ddlClose_SelectionChanged( object sender, EventArgs e )
+        {
+            ltConfirmClose.Text = "Are you sure you want to close these locations?";
+            mdConfirmClose.Show();
+        }
+
+        enum CloseScope
+        {
+            Children,
+            Volunteer,
+            All
         }
     }
 }

@@ -8,11 +8,11 @@
     }
 
     td {
-        padding-bottom:0px !important;
+        padding-bottom: 0px !important;
     }
 
     .btn-sm {
-        margin-top:-5px !important;
+        margin-top: -5px !important;
     }
 
     .close {
@@ -121,14 +121,15 @@
             </Content>
         </Rock:ModalDialog>
 
-        <div class="col-md-6">
+        <div class="col-md-4">
             <Rock:BootstrapButton runat="server" ID="btnBack" Text="Back" OnClick="btnBack_Click" CssClass="btn btn-warning"></Rock:BootstrapButton>
             <Rock:BootstrapButton runat="server" ID="btnRefresh" Text="Refresh" OnClick="btnRefresh_Click" CssClass="btn btn-primary"></Rock:BootstrapButton>
             <Rock:BootstrapButton runat="server" ID="btnSearch" Text="Search" OnClick="btnSearch_Click" CssClass="btn btn-info"></Rock:BootstrapButton>
-            <Rock:BootstrapButton runat="server" ID="btnCloseAll" Visible="false" CssClass="btn btn-danger"
-                OnClick="btnCloseAll_Click" Text="Close All For This Schedule"></Rock:BootstrapButton>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-3">
+            <Rock:ButtonDropDownList SelectionStyle="Checkmark" runat="server" Visible="false" ID="ddlClose" CssClass="btn btn-danger" OnSelectionChanged="ddlClose_SelectionChanged" Title="Close Rooms"></Rock:ButtonDropDownList>
+        </div>
+        <div class="col-md-5">
             <Rock:RockDropDownList runat="server" ID="ddlSchedules" DataValueField="Id" DataTextField="Name"
                 CssClass="btn btn-default" OnSelectedIndexChanged="ddlSchedules_SelectedIndexChanged" AutoPostBack="true">
             </Rock:RockDropDownList>
