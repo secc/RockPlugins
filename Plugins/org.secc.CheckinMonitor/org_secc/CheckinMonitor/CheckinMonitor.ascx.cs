@@ -663,10 +663,19 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     .DistinctBy( l => l.Id )
                     .ToList();
 
-                ddlMove.DataSource = locations;
-                ddlMove.DataValueField = "Id";
-                ddlMove.DataTextField = "Name";
-                ddlMove.DataBind();
+                var groups = new GroupTypeService( _rockContext ).Queryable()
+                     .Where( gt => CurrentCheckInState.ConfiguredGroupTypes.Contains( gt.Id ) )
+                     .SelectMany( gt => gt.Groups )
+                     .Where( g => g.IsActive )
+                     .ToList();
+
+                ddlGroup.DataSource = groups;
+                ddlGroup.DataValueField = "Id";
+                ddlGroup.DataTextField = "Name";
+                ddlGroup.DataBind();
+
+                ddlGroup.SelectedValue = attendanceRecord.GroupId.ToString();
+                BindLocationDropDown();
             }
         }
 
@@ -835,7 +844,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     record.EndDateTime = Rock.RockDateTime.Now;
                     record.DidAttend = false;
                 }
-                var newLocationId = ddlMove.SelectedValue.AsInteger();
+                var newGroupId = ddlGroup.SelectedValue.AsInteger();
+                var newLocationId = ddlLocation.SelectedValue.AsInteger();
 
                 //Create a new attendance record
                 Attendance newRecord = ( Attendance ) attendanceRecord.Clone();
@@ -848,6 +858,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 newRecord.Device = null;
                 newRecord.SearchTypeValue = null;
                 newRecord.LocationId = newLocationId;
+                newRecord.GroupId = newGroupId;
                 attendanceService.Add( newRecord );
                 attendanceRecord.DidAttend = false;
                 _rockContext.SaveChanges();
@@ -1128,6 +1139,34 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
             mdConfirmClose.Hide();
             BindTable();
+        }
+
+        protected void ddlGroup_SelectedIndexChanged( object sender, EventArgs e )
+        {
+            BindLocationDropDown();
+        }
+
+        private void BindLocationDropDown()
+        {
+            var selectedGroupId = ddlGroup.SelectedValue.AsInteger();
+            var locations = new GroupService( new RockContext() )
+                .Get( selectedGroupId )
+                .GroupLocations
+                .Select( gl => gl.Location )
+                .ToList();
+
+            if ( locations.Any() )
+            {
+                ddlLocation.Visible = true;
+                ddlLocation.DataSource = locations;
+                ddlLocation.DataValueField = "Id";
+                ddlLocation.DataTextField = "Name";
+                ddlLocation.DataBind();
+            }
+            else
+            {
+                ddlLocation.Visible = false;
+            }
         }
     }
 }
