@@ -103,7 +103,7 @@
             </Content>
         </Rock:ModalDialog>
 
-        <Rock:ModalDialog runat="server" ID="mdMove" SaveButtonText="Cancel" OnSaveClick="mdMove_CancelClick" CancelLinkVisible="false">
+        <Rock:ModalDialog runat="server" ID="mdMove" CancelLinkVisible="false">
             <Content>
                 <h1>
                     <asp:Literal ID="ltMove" runat="server" />
@@ -112,10 +112,15 @@
                     <asp:Literal ID="ltMoveInfo" runat="server" />
                 </h3>
                 <div class="row">
+                    <div class="col-sm-6">
+                        <Rock:RockDropDownList runat="server" ID="ddlGroup" Label="Change Class:" AutoPostBack="true" OnSelectedIndexChanged="ddlGroup_SelectedIndexChanged"></Rock:RockDropDownList>
+                    </div>
+                    <div class="col-sm-6">
+                        <Rock:RockDropDownList runat="server" ID="ddlLocation" Label="Change Location:"></Rock:RockDropDownList>
+                    </div>
                     <div class="col-xs-12">
-                        <Rock:RockDropDownList runat="server" ID="ddlGroup" Label="Group:" AutoPostBack="true" OnSelectedIndexChanged="ddlGroup_SelectedIndexChanged"></Rock:RockDropDownList>
-                        <Rock:RockDropDownList runat="server" ID="ddlLocation" Label="Location:" Visible="false"></Rock:RockDropDownList>
-                        <Rock:BootstrapButton ID="btnMove" runat="server" Text="Move" OnClick="btnMove_Click" CssClass="btn btn-success"></Rock:BootstrapButton>
+                        <Rock:BootstrapButton runat="server" ID="btnMove" Text="Move" OnClick="btnMove_Click" CssClass="btn btn-primary"></Rock:BootstrapButton>
+                        <Rock:BootstrapButton runat="server" ID="btnMoveCancel" Text="Cancel" OnClick="mdMove_CancelClick" CssClass="btn btn-default"></Rock:BootstrapButton>
                     </div>
                 </div>
             </Content>

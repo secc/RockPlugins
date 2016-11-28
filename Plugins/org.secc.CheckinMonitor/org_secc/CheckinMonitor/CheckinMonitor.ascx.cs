@@ -639,6 +639,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             ViewState["ModalLocation"] = null;
             mdMove.Show();
             ViewState.Add( "ModalMove", attendanceId );
+
             using ( RockContext _rockContext = new RockContext() )
             {
                 AttendanceService attendanceService = new AttendanceService( _rockContext );
@@ -653,30 +654,32 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                 ltMove.Text = string.Format( "{0} @ {1}", attendanceRecord.PersonAlias.Person.FullName, attendanceRecord.Schedule.Name );
                 ltMoveInfo.Text = string.Format(
-                    "{0} is currently in: {1} for the schedule {2}",
+                    "{0} is currently in {1} > {2} at {3} for the schedule {4}",
                     attendanceRecord.PersonAlias.Person.NickName,
+                    attendanceRecord.Group.GroupType.Name,
+                    attendanceRecord.Group.Name,
                     attendanceRecord.Location.Name,
                     attendanceRecord.Schedule.Name );
-
-                var locations = CurrentCheckInState.Kiosk.KioskGroupTypes
-                    .SelectMany( gt => gt.KioskGroups )
-                    .SelectMany( g => g.KioskLocations )
-                    .Select( l => l.Location )
-                    .DistinctBy( l => l.Id )
-                    .ToList();
 
                 var groups = new GroupTypeService( _rockContext ).Queryable()
                      .Where( gt => CurrentCheckInState.ConfiguredGroupTypes.Contains( gt.Id ) )
                      .SelectMany( gt => gt.Groups )
                      .Where( g => g.IsActive )
+                     .OrderBy( g => g.GroupType.Order )
+                     .ThenBy( g => g.Order )
+                     .Select( g => new
+                     {
+                         Id = g.Id,
+                         Name = g.GroupType.Name + " > " + g.Name
+                     } )
                      .ToList();
 
                 ddlGroup.DataSource = groups;
                 ddlGroup.DataValueField = "Id";
                 ddlGroup.DataTextField = "Name";
                 ddlGroup.DataBind();
+                ddlGroup.Items.Insert( 0, new ListItem( "[DO NOT CHANGE CLASS]", "0" ) );
 
-                ddlGroup.SelectedValue = attendanceRecord.GroupId.ToString();
                 BindLocationDropDown();
             }
         }
@@ -833,40 +836,50 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     return;
                 }
 
-                //Close all other attendance records for this person today at this schedule
-                var currentRecords = attendanceService.Queryable()
-                     .Where( a =>
-                     a.StartDateTime >= Rock.RockDateTime.Today
-                    && a.DidAttend == true
-                    && a.PersonAliasId == attendanceRecord.PersonAliasId
-                    && a.ScheduleId == attendanceRecord.ScheduleId
-                    && a.EndDateTime == null ).ToList();
-                foreach ( var record in currentRecords )
-                {
-                    record.EndDateTime = Rock.RockDateTime.Now;
-                    record.DidAttend = false;
-                }
                 var newGroupId = ddlGroup.SelectedValue.AsInteger();
                 var newLocationId = ddlLocation.SelectedValue.AsInteger();
 
-                //Create a new attendance record
-                Attendance newRecord = ( Attendance ) attendanceRecord.Clone();
-                newRecord.Id = 0;
-                newRecord.Guid = new Guid();
-                newRecord.AttendanceCode = null;
-                newRecord.StartDateTime = Rock.RockDateTime.Now;
-                newRecord.EndDateTime = null;
-                newRecord.DidAttend = true;
-                newRecord.Device = null;
-                newRecord.SearchTypeValue = null;
-                newRecord.LocationId = newLocationId;
-                newRecord.GroupId = newGroupId;
-                attendanceService.Add( newRecord );
-                attendanceRecord.DidAttend = false;
-                _rockContext.SaveChanges();
-                KioskLocationAttendance.AddAttendance( newRecord );
-                KioskLocationAttendance.Flush( attendanceRecord.LocationId ?? 0 );
-                KioskLocationAttendance.Flush( newLocationId );
+                if ( newGroupId != 0 || newLocationId != 0 )
+                {
+                    //Close all other attendance records for this person today at this schedule
+                    var currentRecords = attendanceService.Queryable()
+                         .Where( a =>
+                         a.StartDateTime >= Rock.RockDateTime.Today
+                        && a.DidAttend == true
+                        && a.PersonAliasId == attendanceRecord.PersonAliasId
+                        && a.ScheduleId == attendanceRecord.ScheduleId
+                        && a.EndDateTime == null ).ToList();
+                    foreach ( var record in currentRecords )
+                    {
+                        record.EndDateTime = Rock.RockDateTime.Now;
+                        record.DidAttend = false;
+                    }
+
+                    //Create a new attendance record
+                    Attendance newRecord = ( Attendance ) attendanceRecord.Clone();
+                    newRecord.Id = 0;
+                    newRecord.Guid = new Guid();
+                    newRecord.AttendanceCode = null;
+                    newRecord.StartDateTime = Rock.RockDateTime.Now;
+                    newRecord.EndDateTime = null;
+                    newRecord.DidAttend = true;
+                    newRecord.Device = null;
+                    newRecord.SearchTypeValue = null;
+                    if ( newGroupId != 0 )
+                    {
+                        newRecord.GroupId = newGroupId;
+                    }
+                    if ( newLocationId != 0 )
+                    {
+                        newRecord.LocationId = newLocationId;
+                    }
+                    attendanceService.Add( newRecord );
+                    attendanceRecord.DidAttend = false;
+                    _rockContext.SaveChanges();
+                    KioskLocationAttendance.AddAttendance( newRecord );
+                    KioskLocationAttendance.Flush( attendanceRecord.LocationId ?? 0 );
+                    KioskLocationAttendance.Flush( newLocationId );
+                }
             }
             BindTable();
             RebuildModal();
@@ -1180,23 +1193,39 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         private void BindLocationDropDown()
         {
             var selectedGroupId = ddlGroup.SelectedValue.AsInteger();
-            var locations = new GroupService( new RockContext() )
-                .Get( selectedGroupId )
-                .GroupLocations
-                .Select( gl => gl.Location )
-                .ToList();
 
-            if ( locations.Any() )
+            if ( selectedGroupId == 0 )
             {
-                ddlLocation.Visible = true;
+                var locations = new GroupTypeService( new RockContext() ).Queryable()
+                     .Where( gt => CurrentCheckInState.ConfiguredGroupTypes.Contains( gt.Id ) )
+                    .SelectMany( gt => gt.Groups )
+                    .SelectMany( g => g.GroupLocations )
+                    .Select( gl => gl.Location )
+                    .DistinctBy( l => l.Id )
+                    .OrderBy( l => l.Name )
+                    .ToList();
+
                 ddlLocation.DataSource = locations;
                 ddlLocation.DataValueField = "Id";
                 ddlLocation.DataTextField = "Name";
                 ddlLocation.DataBind();
+                ddlLocation.Items.Insert( 0, new ListItem( "[DO NOT CHANGE LOCATION]", "0" ) );
+
             }
             else
             {
-                ddlLocation.Visible = false;
+                var locations = new GroupService( new RockContext() )
+                    .Get( selectedGroupId )
+                    .GroupLocations
+                    .Select( gl => gl.Location )
+                    .OrderBy( l => l.Name )
+                    .ToList();
+
+                ddlLocation.DataSource = locations;
+                ddlLocation.DataValueField = "Id";
+                ddlLocation.DataTextField = "Name";
+                ddlLocation.DataBind();
+                ddlLocation.Items.Insert( 0, new ListItem( "[DO NOT CHANGE LOCATION]", "0" ) );
             }
         }
 
@@ -1212,5 +1241,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             Volunteer,
             All
         }
+
     }
 }
