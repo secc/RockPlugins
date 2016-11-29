@@ -15,18 +15,12 @@
 // </copyright>
 //
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Entity;
-using System.Data.SqlClient;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using System.Xml.Linq;
 
 using Rock;
 using Rock.Attribute;
@@ -132,8 +126,9 @@ namespace RockWeb.Blocks.Reporting
 
                 if ( contextEntity != null )
                 {
-                    String personGuid = ( ( Person ) contextEntity ).PrimaryAlias.Guid.ToString();
-                    tmpqry = tmpqry.Where( w => w.AttributeValues.Where( av => av.Attribute.Key == "PersonToVisit" && av.Value == personGuid ).Any() );
+                    string[] personGuid = ( ( Person ) contextEntity ).Aliases.Select(a => a.Guid.ToString()).ToArray();
+                    tmpqry = tmpqry.Where( w => w.AttributeValues.Where( av => av.Attribute.Key == "PersonToVisit" && personGuid.Contains(av.Value) ).Any() );
+                    gReport.Columns[10].Visible = true;
                 }
 
                 var qry = tmpqry.ToList();
@@ -191,6 +186,7 @@ namespace RockWeb.Blocks.Reporting
                     LastVisitor = ( w.Workflow.Activities.Where( a => a.ActivityType.Name == "Visitation Info" ).Any() ) ? w.Workflow.Activities.Where( a => a.ActivityType.Name == "Visitation Info" ).LastOrDefault().AttributeValues["Visitor"].ValueFormatted : "N/A",
                     LastVisitDate = ( w.Workflow.Activities.Where( a => a.ActivityType.Name == "Visitation Info" ).Any() ) ? w.Workflow.Activities.Where( a => a.ActivityType.Name == "Visitation Info" ).LastOrDefault().AttributeValues["VisitDate"].ValueFormatted : "N/A",
                     LastVisitNotes = ( w.Workflow.Activities.Where( a => a.ActivityType.Name == "Visitation Info" ).Any() ) ? w.Workflow.Activities.Where( a => a.ActivityType.Name == "Visitation Info" ).LastOrDefault().AttributeValues["VisitNote"].ValueFormatted : "N/A",
+                    DischargeDate = w.AttributeValues.Where( av => av.AttributeKey == "DischargeDate" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                     Status = w.Workflow.Status,
                     Communion = w.AttributeValues.Where( av => av.AttributeKey == "Communion" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                     Actions = ""

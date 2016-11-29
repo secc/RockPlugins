@@ -45,7 +45,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     /// Block for people to find a group that matches their search parameters.
     /// </summary>
     [DisplayName( "Group Finder Map" )]
-    [Category( "Groups" )]
+    [Category( "SECC > Groups" )]
     [Description( "Block for people to find a group that matches their search parameters." )]
 
     // Linked Pages
@@ -1240,7 +1240,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                             var mergeFields = new Dictionary<string, object>();
                             mergeFields.Add( "Family", family );
-                            mapItem.InfoWindow = familyInfoTemplate.Render( Hash.FromDictionary( mergeFields ) );
+                            string infoWindow = familyInfoTemplate.Render( Hash.FromDictionary( mergeFields ) );
+                            mapItem.InfoWindow = HttpUtility.HtmlEncode( infoWindow.Replace( Environment.NewLine, string.Empty ).Replace( "\n", string.Empty ).Replace( "\t", string.Empty ) );
                             familyMapItems.Add( mapItem );
 
                             if ( debugStatus == ShowDebugStatus.GroupIncluded )

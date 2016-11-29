@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Rock.CheckIn;
 using Rock.Web.Cache;
 using Rock.Data;
@@ -46,7 +44,7 @@ namespace org.secc.FamilyCheckin.Utilities
             ChildGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "False" ).Select( av => av.EntityId.Value ).ToList();
             
             var groupLocations = GroupTypes
-                .SelectMany( gt => gt.Groups )
+                .SelectMany( gt => gt.Groups.Where(g => g.IsActive) )
                 .SelectMany( g => g.GroupLocations );
 
             GroupLocationSchedules = new List<GroupLocationSchedule>();

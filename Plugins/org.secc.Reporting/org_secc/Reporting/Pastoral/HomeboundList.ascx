@@ -28,6 +28,7 @@
                         <Rock:RockBoundField DataField="LastVisitor" HeaderText="Last Visitor" SortExpression="LastVisitor"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="LastVisitDate" HeaderText="Last Visit Date" SortExpression="LastVisitDate"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="LastVisitNotes" HeaderText="Last Visit Notes" SortExpression="LastVisitNotes"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="EndDate" HeaderText="End Date" SortExpression="EndDate" Visible="false"></Rock:RockBoundField>
                         <Rock:RockTemplateField HeaderText="Status" ColumnPriority="DesktopLarge">
                             <ItemTemplate>
                                 <span class="label <%# Convert.ToString(Eval("Status"))=="Active"?"label-success":"label-default" %>"><%# Eval("Status") %></span>

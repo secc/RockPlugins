@@ -162,10 +162,14 @@ $(document).ready(function() {
         {
             try
             {
-                var groupId = Int32.Parse( PageParameter( "GroupId" ) );
                 RockContext rockContext = new RockContext();
-                GroupService groupService = new GroupService( rockContext );
-                _group = groupService.Get( groupId );
+                int groupId = PageParameter( "GroupId" ).AsInteger();
+                if ( groupId == 0 && Session["CurrentGroupManagerGroup"] != null )
+                {
+                    groupId = ( int ) Session["CurrentGroupManagerGroup"];
+                }
+
+                _group = new GroupService( rockContext ).Get( groupId );
 
                 Group parentGroup = _group.ParentGroup;
 
@@ -469,6 +473,7 @@ $('#updateProgress').show();
             if ( GetAttributeValue( "MergeContent" ).AsBoolean() )
             {
                 var itemMergeFields = new Dictionary<string, object>();
+
                 if ( CurrentPerson != null )
                 {
                     itemMergeFields.Add( "CurrentPerson", CurrentPerson );
@@ -498,6 +503,7 @@ $('#updateProgress').show();
 
 
             var mergeFields = new Dictionary<string, object>();
+            mergeFields.Add( "PageParameter", RockPage.PageParameters() );
             mergeFields.Add( "Pagination", pagination );
             mergeFields.Add( "LinkedPages", linkedPages );
             mergeFields.Add( "Items", currentPageContent );
