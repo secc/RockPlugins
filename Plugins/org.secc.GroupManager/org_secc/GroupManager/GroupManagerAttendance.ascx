@@ -1,12 +1,74 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="GroupManagerAttendance.ascx.cs" Inherits="RockWeb.Plugins.org_secc.GroupManager.GroupManagerAttendance" %>
 
+<style>
+    label.btn span {
+        font-size: 1.5em;
+    }
+
+    label input[type="checkbox"] ~ i.fa.fa-square-o {
+        color: #c8c8c8;
+        display: inline;
+    }
+
+    label input[type="checkbox"] ~ i.fa.fa-check-square-o {
+        display: none;
+    }
+
+    label input[type="checkbox"]:checked ~ i.fa.fa-square-o {
+        display: none;
+    }
+
+    label input[type="checkbox"]:checked ~ i.fa.fa-check-square-o {
+        color: #7AA3CC;
+        display: inline;
+    }
+
+    label:hover input[type="checkbox"] ~ i.fa {
+        color: #7AA3CC;
+    }
+
+    div[data-toggle="buttons"] label.active {
+        color: #7AA3CC;
+    }
+
+    div[data-toggle="buttons"] label {
+        display: inline-block;
+        padding: 6px 12px;
+        margin-bottom: 0;
+        font-size: 14px;
+        font-weight: normal;
+        line-height: 2em;
+        text-align: left;
+        white-space: nowrap;
+        vertical-align: top;
+        cursor: pointer;
+        background-color: none;
+        border: 0px solid #c8c8c8;
+        border-radius: 3px;
+        color: #c8c8c8;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        -o-user-select: none;
+        user-select: none;
+    }
+
+        div[data-toggle="buttons"] label:hover {
+            color: #7AA3CC;
+        }
+
+        div[data-toggle="buttons"] label:active, div[data-toggle="buttons"] label.active {
+            -webkit-box-shadow: none;
+            box-shadow: none;
+        }
+</style>
+
 <script>
 
     var doCount = false;
 
     var updateCount = function ()
     {
-        console.log("Activate!!")
         if (doCount)
         {
             var count = 0;
@@ -36,13 +98,6 @@
 
         <div class="panel panel-block">
 
-            <div class="panel-heading clearfix">
-                <h1 class="panel-title pull-left">
-                    <i class="fa fa-check-square-o"></i>
-                    <asp:Literal ID="lHeading" runat="server" Text="Group Attendance" />
-                </h1>
-            </div>
-
             <div class="panel-body">
 
                 <Rock:NotificationBox ID="nbNotice" runat="server" />
@@ -50,24 +105,26 @@
                 <asp:Panel ID="pnlDetails" runat="server">
 
                     <div class="row">
-                        <div class="col-sm-3">
-                            <Rock:RockLiteral ID="lOccurrenceDate" runat="server" Label="Attendance Date" />
-                            <Rock:DatePicker ID="dpOccurrenceDate" runat="server" Label="Attendance Date" Required="true" />
+                        <div class="col-sm-6">
+                            <Rock:RockDropDownList runat="server" Label="Attendance Date" ID="ddlOccurence" AutoPostBack="true"
+                                OnSelectedIndexChanged="ddlOccurence_SelectedIndexChanged" DataTextField="Name" DataValueField="Id" />
                         </div>
-                        <div class="col-sm-3">
-                            <Rock:RockLiteral ID="lOccurrenceTime" runat="server" Label="Time" />
-                            <Rock:TimePicker ID="tpOccurrenceTime" runat="server" Required="true" Label="Time" />
-                        </div>
-                        <div class="col-sm-3">
-                            <Rock:ButtonDropDownList runat="server" ID="ddlPastOccurrences" Label=" " Title="Previous Attendance" OnSelectionChanged="ddlPastOccurrences_SelectionChanged">
-                            </Rock:ButtonDropDownList>
+                        <div class="col-sm-6">
+                            <Rock:RockDropDownList runat="server" Label="Filter By" ID="ddlFilter" AutoPostBack="true"
+                                OnSelectedIndexChanged="ddlFilter_SelectedIndexChanged" DataTextField="Name" DataValueField="Id"
+                                Visible="false" />
                         </div>
                     </div>
 
                     <div class="row">
-                        <div class="col-sm-12">
-                                <Rock:RockCheckBox ID="cbDidNotMeet" runat="server" Text="We Did Not Meet" />
-                        </div>
+                        <asp:Panel runat="server" ID="pnlDidNotMeet" class="col-sm-12 btn-group btn-group-vertical" data-toggle="buttons">
+                            <label runat="server" id="lbDidNotMeet" class="btn">
+                                <input type="checkbox" id="cbDidNotMeet" runat="server" />
+                                <i class="fa fa-square-o fa-2x"></i>
+                                <i class="fa fa-check-square-o fa-2x"></i>
+                                <span>We Did Not Meet</span>
+                            </label>
+                        </asp:Panel>
                     </div>
 
                     <div class="row">
@@ -77,16 +134,18 @@
                                 <h4>
                                     <asp:Literal ID="lMembers" runat="server" />
                                 </h4>
-                                <asp:ListView ID="lvMembers" runat="server">
-                                    <ItemTemplate>
-                                        <div onclick="updateCount()">
+                                <div class="btn-group btn-group-vertical" data-toggle="buttons">
+                                    <asp:ListView ID="lvMembers" runat="server">
+                                        <ItemTemplate>
                                             <asp:HiddenField ID="hfMember" runat="server" Value='<%# Eval("PersonId") %>' />
-                                            <Rock:RockCheckBox ID="cbMember" runat="server" Checked='<%# Eval("Attended") %>' Text='<%# Eval("FullName") %>' />
-                                        </div>
-                                    </ItemTemplate>
-                                </asp:ListView>
-                                <div class="pull-right margin-b-lg">
-                                    <Rock:PersonPicker ID="ppAddPerson" runat="server" CssClass="picker-menu-right" PersonName="Add New Attendee" OnSelectPerson="ppAddPerson_SelectPerson" />
+                                            <label class='btn <%# Eval("Active") %>'>
+                                                <input type="checkbox" id="cbMember" runat="server" checked='<%# Eval("Attended") %>' />
+                                                <i class="fa fa-square-o fa-2x"></i>
+                                                <i class="fa fa-check-square-o fa-2x"></i>
+                                                <span><%# Eval("FullName") %></span>
+                                            </label>
+                                        </ItemTemplate>
+                                    </asp:ListView>
                                 </div>
                             </div>
 
@@ -109,10 +168,6 @@
 
                         </div>
                     </div>
-                    <div>
-                        <Rock:RockTextBox ID="tbCount" runat="server" Width="60" Label="Head Count:"></Rock:RockTextBox>
-                        <Rock:RockTextBox ID="tbNotes" runat="server" TextMode="MultiLine" Rows="5" Label="Notes:"></Rock:RockTextBox>
-                    </div>
                     <div class="actions">
                         <asp:LinkButton ID="lbSave" runat="server" Text="Save Attendance" CssClass="btn btn-primary" OnClick="lbSave_Click" CausesValidation="false" />
                     </div>
@@ -120,7 +175,6 @@
                 </asp:Panel>
 
             </div>
-
         </div>
 
     </ContentTemplate>

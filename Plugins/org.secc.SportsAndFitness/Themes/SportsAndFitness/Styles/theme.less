@@ -1,0 +1,868 @@
+﻿// Inspired By
+// http://tattek.com/minimal/#
+// http://192.241.236.31/test4.smartadmin/#ajax/dashboard.html
+// http://webapplayers.com/inspinia_admin-v1.2/form_basic.html
+
+
+// Load Master Styles
+// -------------------------
+@import "../../../Styles/Bootstrap/variables.less";
+
+@import "../../../Styles/_rock-core.less";
+@import "../../../Styles/_store.less";
+@import "../../../Styles/_rock-variables.less";
+@import "_variables.less";
+@import "_variable-overrides.less";
+
+
+/*#region
+// Fonts                       */
+// -------------------------
+
+// light (weight 400 = 'normal')
+@font-face {
+  font-family: 'OpenSans';
+  src: url('../../../Assets/Fonts/OpenSans/OpenSans-Light-webfont.eot');
+  src: url('../../../Assets/Fonts/OpenSans/OpenSans-Light-webfont.eot?#iefix') format('embedded-opentype'),
+       url('../../../Assets/Fonts/OpenSans/OpenSans-Light-webfont.woff') format('woff'),
+       url('../../../Assets/Fonts/OpenSans/OpenSans-Light-webfont.ttf') format('truetype'),
+       url('../../../Assets/Fonts/OpenSans/OpenSans-Light-webfont.svg#OpenSansLight') format('svg');
+  font-weight: 300;
+  font-style: normal;
+}
+
+// regular (weight 500)
+@font-face {
+  font-family: 'OpenSans';
+  src: url('../../../Assets/Fonts/OpenSans/OpenSans-Regular-webfont.eot');
+  src: url('../../../Assets/Fonts/OpenSans/OpenSans-Regular-webfont.eot?#iefix') format('embedded-opentype'),
+       url('../../../Assets/Fonts/OpenSans/OpenSans-Regular-webfont.woff') format('woff'),
+       url('../../../Assets/Fonts/OpenSans/OpenSans-Regular-webfont.ttf') format('truetype'),
+       url('../../../Assets/Fonts/OpenSans/OpenSans-Regular-webfont.svg#OpenSansRegular') format('svg');
+  font-weight: 400;
+  font-style: normal;
+}
+
+// semi-bold (weight 700)
+@font-face {
+  font-family: 'OpenSans';
+  src: url('../../../Assets/Fonts/OpenSans/OpenSans-Semibold-webfont.eot');
+  src: url('../../../Assets/Fonts/OpenSans/OpenSans-Semibold-webfont.eot?#iefix') format('embedded-opentype'),
+       url('../../../Assets/Fonts/OpenSans/OpenSans-Semibold-webfont.woff') format('woff'),
+       url('../../../Assets/Fonts/OpenSans/OpenSans-Semibold-webfont.ttf') format('truetype'),
+       url('../../../Assets/Fonts/OpenSans/OpenSans-Semibold-webfont.svg#OpenSansSemibold') format('svg');
+  font-weight: 700;
+  font-style: normal;
+}
+
+// bold (weight 900)
+@font-face {
+  font-family: 'OpenSans';
+  src: url('../../../Assets/Fonts/OpenSans/OpenSans-Bold-webfont.eot');
+  src: url('../../../Assets/Fonts/OpenSans/OpenSans-Bold-webfont.eot?#iefix') format('embedded-opentype'),
+       url('../../../Assets/Fonts/OpenSans/OpenSans-Bold-webfont.woff') format('woff'),
+       url('../../../Assets/Fonts/OpenSans/OpenSans-Bold-webfont.ttf') format('truetype'),
+       url('../../../Assets/Fonts/OpenSans/OpenSans-Bold-webfont.svg#OpenSansBold') format('svg');
+  font-weight: 900;
+  font-style: normal;
+}
+/*#endregion */
+
+/*
+  Rock Theme Styles
+
+  1. HTML Overrides
+  2. Bootstrap Overides
+  3. Rock Overrides
+  4. Theme Styling
+  5. Utilities
+  6. Responsive Overrides
+  7. Side Navbar
+  8. First Word Weight
+
+*/
+
+
+/*#region
+// 1. HTML Overrides         */
+// -------------------------
+
+@-ms-viewport {
+  width: device-width;
+}
+
+html {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -ms-overflow-style: scrollbar; // need for IE 10 issue with scrollbars being on TOP of the content
+}
+
+main {
+  display: block;
+}
+
+body {
+  background-color: @nav-bg;
+}
+
+h1, h2, h3, h4 {
+  font-weight: @font-weight-light;
+  letter-spacing: -.5px;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+input[type=text],
+textarea,
+.form-control {
+  -webkit-transition: all 0.30s ease-in-out;
+  -moz-transition: all 0.30s ease-in-out;
+  -ms-transition: all 0.30s ease-in-out;
+  -o-transition: all 0.30s ease-in-out;
+}
+
+input[type=text]:focus,
+textarea:focus,
+.form-control:focus {
+  box-shadow: 0 0 5px rgba(238, 118, 36, .6);
+  border: 1px solid rgba(238, 118, 36, .6);
+}
+
+pre {
+  background-color: @theme-6;
+  border-color: darken(@theme-6, 15%);
+  color: @theme-6-text;
+}
+
+// text selection color
+::selection {
+  background: @text-selection-bg;
+    color: @text-selection-color;
+}
+::-moz-selection {
+  background: @text-selection-bg;
+    color: @text-selection-color;
+}
+
+/*#endregion */
+
+
+/*#region
+// 2. Bootstrap Overrides    */
+// -------------------------
+
+h1 small,
+h2 small,
+h3 small,
+h4 small,
+h5 small,
+h6 small,
+.h1 small,
+.h2 small,
+.h3 small,
+.h4 small,
+.h5 small,
+.h6 small,
+h1 .small,
+h2 .small,
+h3 .small,
+h4 .small,
+h5 .small,
+h6 .small,
+.h1 .small,
+.h2 .small,
+.h3 .small,
+.h4 .small,
+.h5 .small,
+.h6 .small {
+  font-weight: inherit;
+}
+
+h4, .h4 {
+  font-weight: 500;
+}
+
+.table-hover > tbody > tr:hover {
+    td {
+        background-color: @grid-hover-bg;
+    }
+}
+
+.breadcrumb {
+    background-color: transparent;
+}
+
+// panel tweaks
+.panel {
+  border-radius: 0;
+  border-top-width: 3px;
+
+  .panel-heading {
+
+    .panel-title {
+      font-weight: @font-weight-semibold;
+      letter-spacing: -.5px;
+      font-size: 18px;
+    }
+  }
+
+  &.panel-primary {
+    .panel-heading {
+      background-color: @brand-primary;
+    }
+  }
+
+
+}
+.panel-info {
+  border-top-color: @panel-top-border-color;
+
+  .panel-body {
+    background-color: @body-bg;
+  }
+
+  .list-group-item {
+    background-color: @body-bg;
+  }
+}
+
+.tag-letterlist a {
+  color: @brand-primary;
+}
+
+// change the color of the none selected links
+// by default bootsrap does not allow the color of a link roll-over to be a different color. Modified it to allow this.
+.nav-pills {
+  > li {
+    > a {
+      color: @nav-pills-link-color;
+
+      &:hover,
+      &:focus {
+        color: lighten(@nav-pills-active-link-hover-color, 20%);
+        background-color: lighten(@nav-pills-active-link-hover-bg, 20%);
+      }
+    }
+  }
+}
+
+/*#region
+// 3. Rock Overrides         */
+// -------------------------
+
+// make the no image svgs take on a bit of their background color
+.photo img[src*=no-photo],
+.person-image[style*=no-photo],
+.profile-photo[style*=no-photo] {
+    opacity: .5;
+}
+
+#cms-admin-footer {
+    border: 0;
+}
+
+/* JME 7/26/2015 @photo-border should already do this?
+.groupmembers .member .person-image {
+    border-color: @header-bg;
+}*/
+
+.smartsearch {
+  float: right;
+  margin: 12px 4%;
+  border: 0;
+  background-color: lighten(@theme-6, 5%);
+  width: 92%;
+
+  input.searchinput {
+    color: @theme-6-text;
+  }
+
+  @media @md {
+    margin: 0;
+    height: @navbar-height;
+    border-radius: 0;
+    width: 290px;
+    background-color: darken(@header-bg, 5%);
+
+    input,
+    a.dropdown-toggle {
+      height: @navbar-height - 5px; // for IE11
+      line-height: @navbar-height - 12px;
+    }
+
+    i {
+      margin-top: 0;
+      line-height: @navbar-height - 4px;
+      margin-left: 4px;
+    }
+
+    input.searchinput {
+      color: @header-text-color;
+    }
+  }
+}
+
+.loginstatus {
+  margin-right: 2px;
+
+  .profile-photo {
+    height: 35px;
+    width: 35px;
+    float: left;
+    background-size: 100%;
+    -webkit-border-radius: 17.5px;
+    -moz-border-radius: 17.5px;
+    border-radius: 17.5px;
+    margin: -8px 4px 0 0;
+  }
+}
+
+/*#endregion */
+
+
+/*#region
+// 4. Theme Styling          */
+// -------------------------
+
+// Notifications
+.navbar-top-links {
+  float: left;
+  margin-left: 12px;
+  color: @text-color;
+}
+  .navbar-top-links > li {
+    display: inline-block;
+  }
+    .navbar-top-links > li > a {
+      padding: 15px;
+      color: @navbar-default-link-color;
+      &:hover, &:focus {
+        color: @theme-8-text;
+        background-color: @theme-8;
+        @media @sm {
+          color: @navbar-default-link-hover-color;
+          background-color: darken(@header-bg, 5%);
+        }
+      }
+    }
+    .navbar-top-links > li.open > a {
+      &, &:hover, &:focus {
+        background-color: @theme-8;
+        @media @sm {
+          background-color: darken(@header-bg, 10%);
+        }
+      }
+    }
+    .navbar-top-links ul .divider {
+      background-color: @gray-light!important;
+    }
+  .navbar-top-links .dropdown-menu {
+    width: 310px;
+    padding: 10px 0;
+  }
+  .navbar-top-links .dropdown-messages .media {
+    padding: 3px 15px;
+  }
+
+.count-info .label {
+  line-height: 12px;
+  padding: 2px 4px;
+  position: absolute;
+  right: 3px;
+  top: 6px;
+}
+
+a.link-block,
+.link-block > a {
+  display: block;
+  padding: @grid-gutter-width/4;
+}
+
+
+#page-wrapper {
+  width: 100%;
+}
+
+#content-wrapper {
+  background-color: @body-bg;
+  min-width: 320px;
+  position: relative;
+
+  @media screen {
+      min-height: 1100px;
+  }
+
+  header {
+    .navbar-default {
+      background-color: @nav-bg;
+      border-color: darken(@nav-bg, 5%);
+      color: @nav-color;
+      margin-bottom: 0;
+
+      .navbar-header {
+        padding: 10px 0 0 12px;
+        float: left;
+      }
+
+      .navbar-mobile-logo {
+        float: left;
+        width: 95px;
+        height: 34px;
+        margin: 8px 0 0 6px;
+        opacity: .8;
+
+        svg {
+          height: 100%;
+          width: 100%;
+
+          .rock-logo {
+            fill: darken(@theme-4, 5%);
+          }
+        }
+      }
+
+      .navbar-zone-header {
+        width: 100%;
+      }
+
+      .navbar-nav > .open > a,
+      .navbar-nav > .open > a:hover,
+      .navbar-nav > .open > a:focus {
+        background-color: @theme-2;
+      }
+
+      .navbar-nav > li > a {
+        color: @nav-color;
+      }
+
+      .dropdown-menu {
+        li.divider {
+          background-color: darken(@theme-2-text, 20%);
+        }
+      }
+
+    }
+  }
+
+  #page-title {
+    background-color: @pagetitle-bg;
+    color: @pagetitle-text-color;
+    padding: 15px;
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: @font-weight-light;
+      letter-spacing: -.5px;
+
+      .page-icon {
+        display: inline;
+        opacity: .8;
+      }
+
+    }
+
+    .breadcrumb {
+      padding: 0;
+      margin: 4px 0 0;
+
+      a {
+          color: @breadcrumb-color;
+
+          &:hover {
+              color: lighten(@breadcrumb-color, 10%);
+          }
+      }
+
+      > .active {
+        color: @breadcrumb-color;
+      }
+
+      li + li:before {
+        color: @breadcrumb-color;
+      }
+    }
+
+    .pageoverview-description {
+      opacity: .7;
+      margin-top: 4px;
+    }
+  }
+
+  #page-content {
+    padding: 15px;
+  }
+
+  footer {
+    padding: 0 15px;
+
+    a {
+        color: @text-color;
+
+        &:hover {
+            color: lighten(@text-color, 20%);
+        }
+    }
+  }
+}
+
+#content-wrapper, .navbar-static-side {
+  -webkit-transition-duration: 0.5s;
+  -moz-transition-duration: 0.5s;
+  -o-transition-duration: 0.5s;
+  transition-duration: 0.5s;
+}
+
+.not-found h2 {
+  font-size: 200px;
+  font-weight: @font-weight-bold;
+  letter-spacing: -5px;
+  line-height: 210px;
+
+  i {
+    color: #F03;
+    font-size: 210px;
+    position: relative;
+    top: -12px;
+  }
+}
+
+body#splash {
+  background-color: @theme-4;
+  border-top: 36px solid @theme-2;
+
+  #content {
+    max-width: 400px;
+    margin: 24px auto 0;
+    padding: 15px;
+
+    #logo {
+      width: 100px;
+      height: 100px;
+      display: block;
+      margin: 0 auto;
+
+      svg {
+        width: 100%;
+        height: 100%;
+      }
+
+      .rock-logo {
+        fill: darken(@theme-4, 5%);
+      }
+    }
+  }
+
+
+  &.error #content {
+    margin: 12px auto 0;
+    max-width: 800px;
+
+    #logo {
+      width: 100px;
+      height: 100px;
+      margin: 0 auto;
+    }
+  }
+}
+
+.error-wrap .error-icon {
+  &.warning {
+    color: #dab751;
+  }
+}
+
+/*#endregion */
+
+
+/*#region
+// 5. Utilities              */
+// -------------------------
+
+.navbar-minimize {
+  background-color: @header-hambuger-bg;
+  color: @header-hambuger-color;
+  border: 1px solid @header-hamburger-border;
+  padding: 4px 12px;
+  border-radius: @border-radius-base;
+  cursor: pointer;
+  display: inline-block;
+}
+
+
+/*#endregion */
+
+
+/*#region
+// 6. Responsive Overrides  */
+// -------------------------
+
+// default styling should be for phones 767px or less
+
+// Small devices (tablets, 768px and up)
+@media (min-width: @screen-sm-min) {
+
+  body#splash {
+
+    #content {
+      margin: 36px auto 0;
+
+      #logo {
+        width: 150px;
+        height: 150px;
+        display: block;
+        margin: 0 auto 12px;
+      }
+    }
+  }
+
+}
+
+// Medium devices (desktops, 992px and up)
+@media (min-width: @screen-md-min) {
+
+  #content-wrapper {
+    header {
+      .navbar-default {
+        height: @navbar-height;
+        background-color: @header-bg;
+        border-color: darken(@header-bg, 5%);
+        color: @header-text-color;
+
+        .navbar-mobile-logo {
+          display: none;
+        }
+
+        .navbar-zone-header {
+          width: inherit;
+        }
+
+        & .navbar-nav > .open > a,
+        & .navbar-nav > .open > a:hover,
+        & .navbar-nav > .open > a:focus {
+          background-color: darken(@header-bg, 5%);
+        }
+
+        & .navbar-nav > li > a {
+          color: @header-text-color;
+        }
+
+        .dropdown-menu {
+          li.divider {
+            background-color: @gray-lighter;
+          }
+        }
+      }
+    }
+  }
+
+}
+
+// Large devices (large desktops, 1200px and up)
+@media (min-width: @screen-lg-min) {
+
+}
+/*#endregion */
+
+
+/*#region
+// 7. Side Navbar             */
+// -------------------------
+
+
+// base styles
+.navbar-static-side {
+  background-color: @nav-bg;
+  color: @nav-color;
+  display: none;
+  position: absolute;
+  width: 70px;
+
+  .navbar-header {
+    height: @navbar-height;
+    width: 100%;
+    background-color: @nav-logo-bg;
+
+    .logo {
+        background: url(../../../Assets/Images/rock-logo-sm.svg) no-repeat top left;
+        height: 35px;
+        width: 36px;
+        background-size: contain;
+        margin: 8px auto 0;
+        opacity: .8;
+    }
+  }
+
+  .navbar-side {
+    display: inline-block;
+    width: 100%;
+
+    & > li {
+      text-align: center;
+      margin-top: 0;
+      border-top: 1px solid lighten(@nav-bg, 7%);
+
+      &:last-child {
+          border-bottom: 1px solid lighten(@nav-bg, 7%);
+      }
+
+      > i {
+        padding: 16px 0;
+        font-size: 24px;
+        display: block;
+
+        &:hover {
+          background-color: @nav-sub-bg;
+          color: @nav-sub-color;
+        }
+      }
+
+      &.open {
+        background-color: @nav-sub-bg;
+      }
+
+      .nav-childpages {
+        top: 0;
+        left: 70px;
+        position: absolute;
+        z-index: 9999;
+        background-color: @nav-sub-bg;
+        display: none;
+        font-size: 14px;
+        width: 220px;
+        text-align: left;
+        padding: 9px 12px;
+
+        li a {
+          line-height: 1.1em;
+          padding: 6px;
+          color: @nav-sub-color;
+
+          &:focus {
+            background-color: @nav-sub-text-rollover-bg;
+            color: @nav-sub-text-rollover-color;
+          }
+
+          &:hover {
+            background-color: @nav-sub-text-rollover-bg;
+            color: @nav-sub-text-rollover-color;
+          }
+        }
+
+        li.title {
+          font-size: 18px;
+          font-weight: @font-weight-light;
+          color: @nav-sub-title-color;
+          margin-bottom: -8px;
+        }
+
+        li.header {
+          margin-top: 14px;
+          color: @nav-sub-heading-color;
+          margin-left: 4px;
+          font-weight: @font-weight-semibold;
+          padding-bottom: 2px;
+          border-bottom: 1px solid @nav-sub-heading-border;
+          font-weight: 400;
+        }
+
+        li.header:first-child {
+          margin-top: 0;
+        }
+      }
+    }
+
+    > li.open {
+      .nav-childpages {
+        display: block;
+
+        li.header {
+          padding-left: 0;
+        }
+      }
+    }
+  }
+
+}
+
+
+
+// minimized view
+body.navbar-side-open {
+  .navbar-static-side {
+    width: 70px;
+    display: block;
+  }
+
+  #content-wrapper {
+    margin-left: 70px;
+  }
+}
+
+body.navbar-side-close {
+  .navbar-static-side {
+    display: none;
+  }
+
+  #content-wrapper {
+    margin-left: 0;
+  }
+}
+/*#endregion */
+
+.digit, .back, .clear{
+    height:100px;
+}
+.digit{
+    font-size:2em;
+    padding-top:30px;
+    font-weight:bold;
+}
+
+.back,.clear {
+    font-weight:bold;
+    font-size:1.4em;
+    padding-top:40px;
+}
+
+.checkin-phone-entry {
+    text-align:center;
+    font-size:3em;
+    padding:5px;
+    height:auto;
+}
+
+.checkin-family{
+    font-size:1.5em;
+}
+
+.search {
+    margin-top:5px;
+    font-weight:bold;
+    font-size:2em;
+}
+
+/*#region
+// 8. First Word Weight  */
+// -------------------------
+.title {
+  font-weight: @font-weight-light;
+
+  .first-word {
+    font-weight: @font-weight-bold;
+  }
+}
+/*#endregion */
+
+.noMembers {
+    font-size:2em;
+}
+.searchContainer{
+    width:90%;
+    margin: 100px auto;
+}
+
+@import "_print.less";
+@import "_css-overrides.less";

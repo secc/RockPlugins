@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text.RegularExpressions;
 using System.Linq;
 
 using Rock;
@@ -12,13 +11,7 @@ using Rock.Web.Cache;
 using System.Web.UI.WebControls;
 using System.Web.UI;
 using Rock.Model;
-using System.Reflection;
-using System.Web.UI.HtmlControls;
-using System.Text;
-using System.Net.Sockets;
-using System.Net;
 using Rock.Data;
-using org.secc.FamilyCheckin.Utilities;
 
 namespace RockWeb.Plugins.org_secc.SportsAndFitness
 {
@@ -34,6 +27,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
         private RockContext _rockContext;
         private int _noteTypeId;
         private string _expirationDateKey;
+        private int _memberConnectionStatusId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_MEMBER.AsGuid()).Id;
 
         private List<GroupTypeCache> parentGroupTypesList;
         private GroupTypeCache currentParentGroupType;
@@ -67,10 +61,10 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                 {
                     bool test = ProcessActivity( workflowActivity, out errors );
                 }
-                catch
+                catch ( Exception ex )
                 {
+                    LogException( ex );
                     NavigateToPreviousPage();
-                    Response.End();
                     return;
                 }
 
@@ -114,7 +108,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                 return;
             }
             var family = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault();
-            if ( family == null )
+            if ( family == null || !family.People.Where( p => p.GroupTypes.Where( gt => gt.Groups.Any() ).Any() ).Any() )
             {
                 DisplayNoEligibleMembers();
                 return;
@@ -154,6 +148,10 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                 card.Controls.Add( pnlImage );
                 Image imgPhoto = new Image();
                 imgPhoto.CssClass = "thumbnail";
+                if ( person.Person.ConnectionStatusValueId != _memberConnectionStatusId )
+                {
+                    imgPhoto.Style.Add( "border", "solid blue 3px" );
+                }
                 imgPhoto.ImageUrl = person.Person.PhotoUrl;
                 imgPhoto.Style.Add( "width", "100%" );
                 pnlImage.Controls.Add( imgPhoto );
@@ -274,20 +272,22 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                 notes.Add( note );
             }
 
+            //This line is commented out because sports and fitnes has complained that they
+            //are seeing notes they did not add
 
-            notes.AddRange( new NoteService( _rockContext ).Get( _noteTypeId, groupMember.Id ).ToList() );
+            //notes.AddRange( new NoteService( _rockContext ).Get( _noteTypeId, groupMember.Id ).ToList() );
 
             switch ( GroupMembershipExpired( groupMember ) )
             {
                 case GroupMembershipStatus.Expired:
                     Note eNote = new Note();
-                    eNote.Text = "Membership Expired";
+                    eNote.Text = "Card expired or no longer church member.";
                     eNote.IsAlert = true;
                     notes.Add( eNote );
                     break;
                 case GroupMembershipStatus.NearExpired:
                     Note neNote = new Note();
-                    neNote.Text = "Membership will expire soon.";
+                    neNote.Text = "Card will expire soon.";
                     neNote.IsAlert = false;
                     notes.Add( neNote );
                     break;

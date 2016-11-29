@@ -89,7 +89,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                                                             GetAttributeValue( "VolunteerGroupAttribute" ).AsGuid(),
                                                             GetAttributeValue( "DeactivatedDefinedType" ).AsGuid() );
             }
-            catch (Exception ex)
+            catch ( Exception ex )
             {
                 LogException( ex );
                 maError.Show( "Block Not Configured", ModalAlertType.Alert );
@@ -169,7 +169,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 table.Style.Add( "margin-bottom", "10px" );
                 phContent.Controls.Add( table );
 
-                foreach ( var group in groupType.Groups.OrderBy( g => g.Order ) )
+                foreach ( var group in groupType.Groups.Where( g => g.IsActive ).OrderBy( g => g.Order ) )
                 {
                     var occurance = groupLocationSchedules
                         .Where( gls => gls.GroupLocation.GroupId == group.Id )
@@ -949,11 +949,11 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     return;
                 }
                 var attendanceRecords = attendanceCode.Attendances
-                    .Where( a => 
+                    .Where( a =>
                         a.EndDateTime == null
                         && a.ScheduleId != null
                         && a.AttendanceCodeId != null
-                        && a.LocationId != null 
+                        && a.LocationId != null
                     )
                     .ToList();
                 DisplaySearchRecords( attendanceRecords );

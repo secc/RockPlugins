@@ -190,7 +190,7 @@ namespace org.secc.PayFlowPro
                 customParams.Add( "show_billing_city", "false" );
                 customParams.Add( "show_billing_state", "false" );
                 customParams.Add( "show_billing_zip", "false" );
-                customParams.Add( "show_billing_email", "false" );
+                customParams.Add( "show_billing_email", "true" );
                 customParams.Add( "show_billing_country", "false" );
                 customParams.Add( "show_shipping_first_name", "false" );
                 customParams.Add( "show_shipping_last_name", "false" );
@@ -224,12 +224,14 @@ namespace org.secc.PayFlowPro
                     string transactionId = recurringBillingRow["Transaction ID"].ToString().Trim();
                     decimal amount = decimal.MinValue;
                     string tenderType = string.Empty;
+                    string email = null;
 
                     if ( transactionCodes.ContainsKey( transactionId ) )
                     {
                         int rowNumber = transactionCodes[transactionId];
                         amount = decimal.TryParse( customTable.Rows[rowNumber]["Amount"].ToString(), out amount ) ? ( amount / 100 ) : 0.0M;
                         tenderType = customTable.Rows[rowNumber]["Tender Type"].ToString();
+                        email = customTable.Rows[rowNumber]["PayPal Email ID"].ToString();
                         foundTxn = true;
                     }
                     else
@@ -261,6 +263,11 @@ namespace org.secc.PayFlowPro
                         else
                         {
                             payment.CurrencyTypeValue = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.CURRENCY_TYPE_ACH );
+                        }
+                        if (!string.IsNullOrEmpty(email))
+                        {
+                            payment.Attributes = new Dictionary<string, string>();
+                            payment.Attributes.Add( "CCEmail", email );
                         }
                         txns.Add( payment );
                     }

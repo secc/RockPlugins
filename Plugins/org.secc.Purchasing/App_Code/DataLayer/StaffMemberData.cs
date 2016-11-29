@@ -172,7 +172,7 @@ namespace org.secc.Purchasing.DataLayer
             {
                 person.LoadAttributes();
                 if (person.RecordStatusValue.Value != "Inactive" &&
-                    (!ministryID.HasValue ||
+                    (!ministryID.HasValue && !string.IsNullOrEmpty(person.AttributeValues[ministryAttribute.Key].Value) ||
                         (ministryID.HasValue &&
                     (person.AttributeValues[ministryAttribute.Key] != null &&
                     person.AttributeValues[ministryAttribute.Key].Value == ministryID.Value.ToString()))))

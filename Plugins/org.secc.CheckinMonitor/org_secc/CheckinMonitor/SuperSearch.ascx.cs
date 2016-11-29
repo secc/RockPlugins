@@ -120,7 +120,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             foreach ( var family in CurrentCheckInState.CheckIn.Families )
             {
                 BootstrapButton btnFamily = new BootstrapButton();
-                btnFamily.CssClass = "btn btn-default btn-block";
+                btnFamily.CssClass = "btn btn-default btn-block checkin-family";
                 btnFamily.Text = family.Caption + "<br>" + family.SubCaption;
                 btnFamily.ID = family.Group.Id.ToString();
                 btnFamily.Click += ( s, e ) =>
