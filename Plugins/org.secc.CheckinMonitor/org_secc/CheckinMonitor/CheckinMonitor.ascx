@@ -8,11 +8,11 @@
     }
 
     td {
-        padding-bottom:0px !important;
+        padding-bottom: 0px !important;
     }
 
     .btn-sm {
-        margin-top:-5px !important;
+        margin-top: -5px !important;
     }
 
     .close {
@@ -103,7 +103,7 @@
             </Content>
         </Rock:ModalDialog>
 
-        <Rock:ModalDialog runat="server" ID="mdMove" SaveButtonText="Cancel" OnSaveClick="mdMove_CancelClick" CancelLinkVisible="false">
+        <Rock:ModalDialog runat="server" ID="mdMove" CancelLinkVisible="false">
             <Content>
                 <h1>
                     <asp:Literal ID="ltMove" runat="server" />
@@ -112,22 +112,29 @@
                     <asp:Literal ID="ltMoveInfo" runat="server" />
                 </h3>
                 <div class="row">
+                    <div class="col-sm-6">
+                        <Rock:RockDropDownList runat="server" ID="ddlGroup" Label="Change Class:" AutoPostBack="true" OnSelectedIndexChanged="ddlGroup_SelectedIndexChanged"></Rock:RockDropDownList>
+                    </div>
+                    <div class="col-sm-6">
+                        <Rock:RockDropDownList runat="server" ID="ddlLocation" Label="Change Location:"></Rock:RockDropDownList>
+                    </div>
                     <div class="col-xs-12">
-                        <Rock:RockDropDownList runat="server" ID="ddlMove" Label="Move To:"></Rock:RockDropDownList>
-                        <Rock:BootstrapButton ID="btnMove" runat="server" Text="Move" OnClick="btnMove_Click" CssClass="btn btn-success"></Rock:BootstrapButton>
+                        <Rock:BootstrapButton runat="server" ID="btnMove" Text="Move" OnClick="btnMove_Click" CssClass="btn btn-primary"></Rock:BootstrapButton>
+                        <Rock:BootstrapButton runat="server" ID="btnMoveCancel" Text="Cancel" OnClick="mdMove_CancelClick" CssClass="btn btn-default"></Rock:BootstrapButton>
                     </div>
                 </div>
             </Content>
         </Rock:ModalDialog>
 
-        <div class="col-md-6">
+        <div class="col-md-4">
             <Rock:BootstrapButton runat="server" ID="btnBack" Text="Back" OnClick="btnBack_Click" CssClass="btn btn-warning"></Rock:BootstrapButton>
             <Rock:BootstrapButton runat="server" ID="btnRefresh" Text="Refresh" OnClick="btnRefresh_Click" CssClass="btn btn-primary"></Rock:BootstrapButton>
             <Rock:BootstrapButton runat="server" ID="btnSearch" Text="Search" OnClick="btnSearch_Click" CssClass="btn btn-info"></Rock:BootstrapButton>
-            <Rock:BootstrapButton runat="server" ID="btnCloseAll" Visible="false" CssClass="btn btn-danger"
-                OnClick="btnCloseAll_Click" Text="Close All For This Schedule"></Rock:BootstrapButton>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-3">
+            <Rock:ButtonDropDownList SelectionStyle="Checkmark" runat="server" Visible="false" ID="ddlClose" CssClass="btn btn-danger" OnSelectionChanged="ddlClose_SelectionChanged" Title="Close Rooms"></Rock:ButtonDropDownList>
+        </div>
+        <div class="col-md-5">
             <Rock:RockDropDownList runat="server" ID="ddlSchedules" DataValueField="Id" DataTextField="Name"
                 CssClass="btn btn-default" OnSelectedIndexChanged="ddlSchedules_SelectedIndexChanged" AutoPostBack="true">
             </Rock:RockDropDownList>
