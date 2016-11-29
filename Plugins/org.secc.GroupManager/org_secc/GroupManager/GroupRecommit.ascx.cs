@@ -358,7 +358,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     AddCacheItem( groupGuid.ToString(), availableGroupIds );
                 }
 
-                groupQry = groupQry.Where( g => g.IsActive && g.GroupTypeId == _groupType.Id && availableGroupIds.Contains( g.Id ) );
+                groupQry = groupQry.Where( g => g.GroupTypeId == _groupType.Id && availableGroupIds.Contains( g.Id ) );
             }
             else
             {

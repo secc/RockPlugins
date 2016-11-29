@@ -78,6 +78,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 ddlSchedules.DataSource = schedules;
                 ddlSchedules.DataBind();
             }
+
+            ddlClose.BindToEnum<CloseScope>();
         }
 
         private void BindTable()
@@ -637,6 +639,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             ViewState["ModalLocation"] = null;
             mdMove.Show();
             ViewState.Add( "ModalMove", attendanceId );
+
             using ( RockContext _rockContext = new RockContext() )
             {
                 AttendanceService attendanceService = new AttendanceService( _rockContext );
@@ -651,22 +654,33 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                 ltMove.Text = string.Format( "{0} @ {1}", attendanceRecord.PersonAlias.Person.FullName, attendanceRecord.Schedule.Name );
                 ltMoveInfo.Text = string.Format(
-                    "{0} is currently in: {1} for the schedule {2}",
+                    "{0} is currently in {1} > {2} at {3} for the schedule {4}",
                     attendanceRecord.PersonAlias.Person.NickName,
+                    attendanceRecord.Group.GroupType.Name,
+                    attendanceRecord.Group.Name,
                     attendanceRecord.Location.Name,
                     attendanceRecord.Schedule.Name );
 
-                var locations = CurrentCheckInState.Kiosk.KioskGroupTypes
-                    .SelectMany( gt => gt.KioskGroups )
-                    .SelectMany( g => g.KioskLocations )
-                    .Select( l => l.Location )
-                    .DistinctBy( l => l.Id )
-                    .ToList();
+                var groups = new GroupTypeService( _rockContext ).Queryable()
+                     .Where( gt => CurrentCheckInState.ConfiguredGroupTypes.Contains( gt.Id ) )
+                     .SelectMany( gt => gt.Groups )
+                     .Where( g => g.IsActive )
+                     .OrderBy( g => g.GroupType.Order )
+                     .ThenBy( g => g.Order )
+                     .Select( g => new
+                     {
+                         Id = g.Id,
+                         Name = g.GroupType.Name + " > " + g.Name
+                     } )
+                     .ToList();
 
-                ddlMove.DataSource = locations;
-                ddlMove.DataValueField = "Id";
-                ddlMove.DataTextField = "Name";
-                ddlMove.DataBind();
+                ddlGroup.DataSource = groups;
+                ddlGroup.DataValueField = "Id";
+                ddlGroup.DataTextField = "Name";
+                ddlGroup.DataBind();
+                ddlGroup.Items.Insert( 0, new ListItem( "[DO NOT CHANGE CLASS]", "0" ) );
+
+                BindLocationDropDown();
             }
         }
 
@@ -822,38 +836,50 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     return;
                 }
 
-                //Close all other attendance records for this person today at this schedule
-                var currentRecords = attendanceService.Queryable()
-                     .Where( a =>
-                     a.StartDateTime >= Rock.RockDateTime.Today
-                    && a.DidAttend == true
-                    && a.PersonAliasId == attendanceRecord.PersonAliasId
-                    && a.ScheduleId == attendanceRecord.ScheduleId
-                    && a.EndDateTime == null ).ToList();
-                foreach ( var record in currentRecords )
-                {
-                    record.EndDateTime = Rock.RockDateTime.Now;
-                    record.DidAttend = false;
-                }
-                var newLocationId = ddlMove.SelectedValue.AsInteger();
+                var newGroupId = ddlGroup.SelectedValue.AsInteger();
+                var newLocationId = ddlLocation.SelectedValue.AsInteger();
 
-                //Create a new attendance record
-                Attendance newRecord = ( Attendance ) attendanceRecord.Clone();
-                newRecord.Id = 0;
-                newRecord.Guid = new Guid();
-                newRecord.AttendanceCode = null;
-                newRecord.StartDateTime = Rock.RockDateTime.Now;
-                newRecord.EndDateTime = null;
-                newRecord.DidAttend = true;
-                newRecord.Device = null;
-                newRecord.SearchTypeValue = null;
-                newRecord.LocationId = newLocationId;
-                attendanceService.Add( newRecord );
-                attendanceRecord.DidAttend = false;
-                _rockContext.SaveChanges();
-                KioskLocationAttendance.AddAttendance( newRecord );
-                KioskLocationAttendance.Flush( attendanceRecord.LocationId ?? 0 );
-                KioskLocationAttendance.Flush( newLocationId );
+                if ( newGroupId != 0 || newLocationId != 0 )
+                {
+                    //Close all other attendance records for this person today at this schedule
+                    var currentRecords = attendanceService.Queryable()
+                         .Where( a =>
+                         a.StartDateTime >= Rock.RockDateTime.Today
+                        && a.DidAttend == true
+                        && a.PersonAliasId == attendanceRecord.PersonAliasId
+                        && a.ScheduleId == attendanceRecord.ScheduleId
+                        && a.EndDateTime == null ).ToList();
+                    foreach ( var record in currentRecords )
+                    {
+                        record.EndDateTime = Rock.RockDateTime.Now;
+                        record.DidAttend = false;
+                    }
+
+                    //Create a new attendance record
+                    Attendance newRecord = ( Attendance ) attendanceRecord.Clone();
+                    newRecord.Id = 0;
+                    newRecord.Guid = new Guid();
+                    newRecord.AttendanceCode = null;
+                    newRecord.StartDateTime = Rock.RockDateTime.Now;
+                    newRecord.EndDateTime = null;
+                    newRecord.DidAttend = true;
+                    newRecord.Device = null;
+                    newRecord.SearchTypeValue = null;
+                    if ( newGroupId != 0 )
+                    {
+                        newRecord.GroupId = newGroupId;
+                    }
+                    if ( newLocationId != 0 )
+                    {
+                        newRecord.LocationId = newLocationId;
+                    }
+                    attendanceService.Add( newRecord );
+                    attendanceRecord.DidAttend = false;
+                    _rockContext.SaveChanges();
+                    KioskLocationAttendance.AddAttendance( newRecord );
+                    KioskLocationAttendance.Flush( attendanceRecord.LocationId ?? 0 );
+                    KioskLocationAttendance.Flush( newLocationId );
+                }
             }
             BindTable();
             RebuildModal();
@@ -863,12 +889,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         {
             if ( ddlSchedules.SelectedValue.AsInteger() > 0 )
             {
-                btnCloseAll.Visible = true;
-                btnCloseAll.Text = string.Format( "Close all at {0}", ddlSchedules.SelectedItem.Text );
+                ddlClose.Visible = true;
+                ddlClose.Title = string.Format( "Close locations for {0}", ddlSchedules.SelectedItem.Text );
             }
             else
             {
-                btnCloseAll.Visible = false;
+                ddlClose.Visible = false;
             }
         }
 
@@ -1112,22 +1138,109 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             Name
         }
 
-        protected void btnCloseAll_Click( object sender, EventArgs e )
-        {
-            var scheduleName = ddlSchedules.SelectedItem.Text;
-            ltConfirmClose.Text = string.Format( "Are you sure you want to close all locations for {0}", scheduleName );
-            mdConfirmClose.Show();
-        }
-
         protected void mdConfirmClose_SaveClick( object sender, EventArgs e )
         {
+            if ( CurrentCheckInState == null )
+            {
+                NavigateToPreviousPage();
+                return;
+            }
+
             var scheduleId = ddlSchedules.SelectedValue.AsInteger();
+
+            var groupIds = new GroupTypeService( new RockContext() ).Queryable()
+                     .Where( gt => CurrentCheckInState.ConfiguredGroupTypes.Contains( gt.Id ) )
+                     .SelectMany( gt => gt.Groups )
+                     .Where( g => g.IsActive )
+                     .Select( g => g.Id )
+                     .ToList();
+
+            List<int> closeGroupIds;
+
+            switch ( ddlClose.SelectedValueAsEnum<CloseScope>() )
+            {
+                case CloseScope.Children:
+                    closeGroupIds = groupIds.Where( i => !kioskCountUtility.VolunteerGroupIds.Contains( i ) ).ToList();
+                    break;
+                case CloseScope.Volunteer:
+                    closeGroupIds = kioskCountUtility.VolunteerGroupIds;
+                    break;
+                case CloseScope.All:
+                    closeGroupIds = groupIds;
+                    break;
+                default:
+                    closeGroupIds = groupIds;
+                    break;
+            }
+
             foreach ( var gls in kioskCountUtility.GroupLocationSchedules.Where( gls => gls.Schedule.Id == scheduleId ) )
             {
-                CloseOccurrence( gls.GroupLocation.Id, scheduleId, false );
+                if ( closeGroupIds.Contains( gls.GroupLocation.GroupId ) )
+                {
+                    CloseOccurrence( gls.GroupLocation.Id, scheduleId, false );
+                }
             }
             mdConfirmClose.Hide();
             BindTable();
+            ddlClose.SelectedValue = null;
         }
+
+        protected void ddlGroup_SelectedIndexChanged( object sender, EventArgs e )
+        {
+            BindLocationDropDown();
+        }
+
+        private void BindLocationDropDown()
+        {
+            var selectedGroupId = ddlGroup.SelectedValue.AsInteger();
+
+            if ( selectedGroupId == 0 )
+            {
+                var locations = new GroupTypeService( new RockContext() ).Queryable()
+                     .Where( gt => CurrentCheckInState.ConfiguredGroupTypes.Contains( gt.Id ) )
+                    .SelectMany( gt => gt.Groups )
+                    .SelectMany( g => g.GroupLocations )
+                    .Select( gl => gl.Location )
+                    .DistinctBy( l => l.Id )
+                    .OrderBy( l => l.Name )
+                    .ToList();
+
+                ddlLocation.DataSource = locations;
+                ddlLocation.DataValueField = "Id";
+                ddlLocation.DataTextField = "Name";
+                ddlLocation.DataBind();
+                ddlLocation.Items.Insert( 0, new ListItem( "[DO NOT CHANGE LOCATION]", "0" ) );
+
+            }
+            else
+            {
+                var locations = new GroupService( new RockContext() )
+                    .Get( selectedGroupId )
+                    .GroupLocations
+                    .Select( gl => gl.Location )
+                    .OrderBy( l => l.Name )
+                    .ToList();
+
+                ddlLocation.DataSource = locations;
+                ddlLocation.DataValueField = "Id";
+                ddlLocation.DataTextField = "Name";
+                ddlLocation.DataBind();
+                ddlLocation.Items.Insert( 0, new ListItem( "[DO NOT CHANGE LOCATION]", "0" ) );
+            }
+        }
+
+        protected void ddlClose_SelectionChanged( object sender, EventArgs e )
+        {
+            ltConfirmClose.Text = "Are you sure you want to close these locations?";
+            mdConfirmClose.Show();
+        }
+
+        enum CloseScope
+        {
+            Children,
+            Volunteer,
+            All
+        }
+
     }
 }

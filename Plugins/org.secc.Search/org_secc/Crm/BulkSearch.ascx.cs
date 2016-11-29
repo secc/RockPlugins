@@ -59,7 +59,7 @@ namespace RockWeb.Plugins.org_secc.Search
             var phoneNumberService = new PhoneNumberService( rockContext );
 
             var numbers = tbNumbers.Text.Split( new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries ).ToList();
-            var people = phoneNumberService.Queryable().Where( ph => numbers.Contains( ph.Number ) )
+            var people = phoneNumberService.Queryable().Where( ph => numbers.Contains( ph.Number ) && ph.NumberTypeValueId==12)
                 .Select( pn => pn.Person )
                 .DistinctBy( p => p.Id )
                 .ToList();
