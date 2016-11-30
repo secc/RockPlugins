@@ -156,7 +156,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 //Create/copy group and fill it full of properties and attributes
                 LoadControls();
-                
+
             }
             else if ( _group != null )
             {
@@ -181,7 +181,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         private void BindGrid()
         {
             var members = _group.Members
-                    .Where( gm => gm.PersonId != _person.Id )
+                    .Where( gm => gm.PersonId != _person.Id
+                    && gm.GroupMemberStatus == GroupMemberStatus.Active )
                     .OrderByDescending( gm => gm.GroupRole.IsLeader )
                     .DistinctBy( gm => gm.PersonId )
                     .ToList();
