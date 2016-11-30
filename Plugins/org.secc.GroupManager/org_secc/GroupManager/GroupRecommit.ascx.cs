@@ -166,7 +166,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             else
             {
                 _group = new Group() { Id = 0, GroupTypeId = _groupType.Id };
-                tbName.Text = CurrentPerson.LastName + " Home";
+                tbName.Text = _person.LastName + " Home";
                 ltTitle.Text = "Lead New Group";
                 _group.LoadAttributes();
                 Rock.Attribute.Helper.AddEditControls( _group, phAttributes, false, null, _group.Attributes.Where( a => !a.Value.IsGridColumn ).Select( a => a.Key ).ToList(), false );
@@ -214,7 +214,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             else
             {
                 _group = new Group() { Id = 0, GroupTypeId = _groupType.Id };
-                tbName.Text = CurrentPerson.LastName + " Home";
+                tbName.Text = _person.LastName + " Home";
                 ltTitle.Text = "Lead New Group";
             }
 
