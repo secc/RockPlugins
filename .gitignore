@@ -3,7 +3,7 @@ Plugins/*/packages/
 Plugins/*/bin/
 Plugins/*/obj/
 Tools/org.secc.OAuthTestClient/.vs/
-Tools/*/bin/
-Tools/*/obj/
-Tools/*/packages/
+Tools/**/bin/
+Tools/**/obj/
+Tools/**/packages/
 .vs
