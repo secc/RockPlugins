@@ -204,7 +204,9 @@ namespace org.secc.ServiceReef
                                         {
                                             try
                                             {
-                                                Person personMatch = personService.Get(memberResult.Data.ArenaId);
+
+
+                                                Person personMatch = personAliasService.Queryable().Where( pa => pa.AliasPersonId == memberResult.Data.ArenaId ).Select( pa => pa.Person ).FirstOrDefault();
                                                 if ( personMatch == null)
                                                 {
                                                     throw new Exception("Person not found: " + memberResult.Data.ArenaId);
