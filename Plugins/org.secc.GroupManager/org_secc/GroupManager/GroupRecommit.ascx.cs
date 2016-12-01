@@ -156,7 +156,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 //Create/copy group and fill it full of properties and attributes
                 LoadControls();
-                
+
             }
             else if ( _group != null )
             {
@@ -166,7 +166,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             else
             {
                 _group = new Group() { Id = 0, GroupTypeId = _groupType.Id };
-                tbName.Text = CurrentPerson.LastName + " Home";
+                tbName.Text = _person.LastName + " Home";
                 ltTitle.Text = "Lead New Group";
                 _group.LoadAttributes();
                 Rock.Attribute.Helper.AddEditControls( _group, phAttributes, false, null, _group.Attributes.Where( a => !a.Value.IsGridColumn ).Select( a => a.Key ).ToList(), false );
@@ -181,7 +181,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         private void BindGrid()
         {
             var members = _group.Members
-                    .Where( gm => gm.PersonId != _person.Id )
+                    .Where( gm => gm.PersonId != _person.Id
+                    && gm.GroupMemberStatus == GroupMemberStatus.Active )
                     .OrderByDescending( gm => gm.GroupRole.IsLeader )
                     .DistinctBy( gm => gm.PersonId )
                     .ToList();
@@ -213,7 +214,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             else
             {
                 _group = new Group() { Id = 0, GroupTypeId = _groupType.Id };
-                tbName.Text = CurrentPerson.LastName + " Home";
+                tbName.Text = _person.LastName + " Home";
                 ltTitle.Text = "Lead New Group";
             }
 
