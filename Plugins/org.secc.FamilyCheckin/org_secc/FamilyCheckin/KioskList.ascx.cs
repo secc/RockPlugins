@@ -136,7 +136,10 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         private void BindGrid()
         {
             var kioskService = new KioskService( new RockContext() );
-            var kiosks = kioskService.Queryable().Select( kt => kt ).ToList();
+            var kiosks = kioskService.Queryable()
+                .Select( k => k )
+                .OrderBy( k => k.Name )
+                .ToList();
 
             gKiosks.DataSource = kiosks;
             gKiosks.DataBind();
