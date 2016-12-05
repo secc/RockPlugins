@@ -36,9 +36,9 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     [Category( "SECC > Check-in" )]
     [Description( "Lists all the kiosk types." )]
 
-    [LinkedPage("Detail Page")]
+    [LinkedPage( "Detail Page" )]
     public partial class KioskTypeList : RockBlock
-    { 
+    {
         #region Control Methods
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         {
             base.OnInit( e );
 
-            
+
             gKioskTypes.DataKeyNames = new string[] { "Id" };
             gKioskTypes.Actions.ShowAdd = true;
             gKioskTypes.Actions.AddClick += gKioskType_Add;
@@ -90,7 +90,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             NavigateToLinkedPage( "DetailPage", "KioskTypeId", e.RowKeyId );
         }
 
-       
+
         protected void gKioskType_Delete( object sender, RowEventArgs e )
         {
             var checkinContext = new RockContext();
@@ -136,7 +136,10 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         private void BindGrid()
         {
             var kioskTypeService = new KioskTypeService( new RockContext() );
-            var kioskTypes = kioskTypeService.Queryable().Select( kt => kt ).ToList();
+            var kioskTypes = kioskTypeService.Queryable()
+                .Select( kt => kt )
+                .OrderBy( k => k.Name )
+                .ToList();
 
             gKioskTypes.DataSource = kioskTypes;
             gKioskTypes.DataBind();
