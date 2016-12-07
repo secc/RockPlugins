@@ -48,10 +48,7 @@
                         <asp:HiddenField runat="server" ID="hdnGroupId" />
                     </div>
                     <div class="col-md-6">
-                        <label>Selected Schedule(s):</label>
-                        <ul id="ulSchedules" runat="server">
-                        </ul>
-                        <asp:HiddenField runat="server" ID="hdnSchedules" />
+                        <asp:PlaceHolder runat="server" ID="phAttributes" />
                     </div>
                 </div>
 

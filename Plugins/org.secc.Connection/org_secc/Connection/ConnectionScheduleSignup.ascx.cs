@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Web.UI;
-
+using System.Web.UI.HtmlControls;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -45,7 +45,7 @@ namespace RockWeb.Blocks.Connection
     [BooleanField( "Enable Campus Context", "If the page has a campus context it's value will be used as a filter", true, "", 4 )]
     [DefinedValueField( "2E6540EA-63F0-40FE-BE50-F2A84735E600", "Connection Status", "The connection status to use for new individuals (default: 'Web Prospect'.)", true, false, "368DD475-242C-49C4-A42C-7278BE690CC2", "", 5 )]
     [DefinedValueField( "8522BADD-2871-45A5-81DD-C76DA07E2E7E", "Record Status", "The record status to use for new individuals (default: 'Pending'.)", true, false, "283999EC-7346-42E3-B807-BCE9B2BABB49", "", 6 )]
-    [TextField ( "Schedule Attribute Key", "The key of the group type attribute where to save the list of schedule guids")]
+    [TextField( "Allowed Attribute Keys", "The key of the group type attribute where to save the list of schedule guids", key: "Keys" )]
     public partial class ConnectionOpportunitySignup : RockBlock, IDetailBlock
     {
         #region Fields
@@ -64,12 +64,11 @@ namespace RockWeb.Blocks.Connection
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
-
             // this event gets fired after block settings are updated. it's nice to repaint the screen if these settings would alter it
             this.BlockUpdated += Block_BlockUpdated;
             this.AddConfigurationUpdateTrigger( upnlOpportunityDetail );
         }
- 
+
         /// <summary>
         /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
         /// </summary>
@@ -137,7 +136,7 @@ namespace RockWeb.Blocks.Connection
                     int? campusId = cpCampus.SelectedCampusId;
 
                     // if a person guid was passed in from the query string use that
-                    if (RockPage.PageParameter("PersonGuid") != null && !string.IsNullOrWhiteSpace( RockPage.PageParameter( "PersonGuid" ) ) )
+                    if ( RockPage.PageParameter( "PersonGuid" ) != null && !string.IsNullOrWhiteSpace( RockPage.PageParameter( "PersonGuid" ) ) )
                     {
                         Guid? personGuid = RockPage.PageParameter( "PersonGuid" ).AsGuidOrNull();
 
@@ -145,10 +144,11 @@ namespace RockWeb.Blocks.Connection
                         {
                             person = personService.Get( personGuid.Value );
                         }
-                    } else if ( CurrentPerson != null &&
-                        CurrentPerson.LastName.Equals( lastName, StringComparison.OrdinalIgnoreCase ) &&
-                        (CurrentPerson.NickName.Equals( firstName, StringComparison.OrdinalIgnoreCase ) || CurrentPerson.FirstName.Equals( firstName, StringComparison.OrdinalIgnoreCase )) &&
-                        CurrentPerson.Email.Equals( email, StringComparison.OrdinalIgnoreCase ) )
+                    }
+                    else if ( CurrentPerson != null &&
+                      CurrentPerson.LastName.Equals( lastName, StringComparison.OrdinalIgnoreCase ) &&
+                      ( CurrentPerson.NickName.Equals( firstName, StringComparison.OrdinalIgnoreCase ) || CurrentPerson.FirstName.Equals( firstName, StringComparison.OrdinalIgnoreCase ) ) &&
+                      CurrentPerson.Email.Equals( email, StringComparison.OrdinalIgnoreCase ) )
                     {
                         // If the name and email entered are the same as current person (wasn't changed), use the current person
                         person = personService.Get( CurrentPerson.Id );
@@ -196,7 +196,7 @@ namespace RockWeb.Blocks.Connection
                     if ( person != null && person.PrimaryAliasId.HasValue )
                     {
                         var changes = new List<string>();
-                        
+
                         if ( pnHome.Visible )
                         {
                             SavePhone( pnHome, person, _homePhone.Guid, changes );
@@ -239,7 +239,7 @@ namespace RockWeb.Blocks.Connection
                             }
                         }
 
-                        if (hdnGroupRoleTypeId.Value.AsInteger() > 0)
+                        if ( hdnGroupRoleTypeId.Value.AsInteger() > 0 )
                         {
                             connectionRequest.AssignedGroupMemberRoleId = hdnGroupRoleTypeId.Value.AsInteger();
                             var groupConfig = opportunity.ConnectionOpportunityGroupConfigs.Where( gc => gc.GroupMemberRoleId == hdnGroupRoleTypeId.Value.AsInteger() ).FirstOrDefault();
@@ -247,14 +247,16 @@ namespace RockWeb.Blocks.Connection
 
                         }
 
-                        if (hdnGroupId.Value.AsInteger() > 0)
+                        if ( hdnGroupId.Value.AsInteger() > 0 )
                         {
                             connectionRequest.AssignedGroupId = hdnGroupId.Value.AsInteger();
                         }
 
-                        if ( !string.IsNullOrEmpty( hdnSchedules.Value ) )
+                        var connectionAttributes = ( Dictionary<string, string> ) ViewState["SelectedAttributes"];
+
+                        if ( connectionAttributes != null || connectionAttributes.Keys.Any() )
                         {
-                            connectionRequest.AssignedGroupMemberAttributeValues = new Dictionary<string, string>() { { GetAttributeValue( "ScheduleAttributeKey" ).ToString(), hdnSchedules.Value } }.ToJson();
+                            connectionRequest.AssignedGroupMemberAttributeValues = connectionAttributes.ToJson();
                         }
 
                         if ( !connectionRequest.IsValid )
@@ -320,7 +322,7 @@ namespace RockWeb.Blocks.Connection
                     cpCampus.SetValue( campuses.First().Id );
                 }
 
-                if (!string.IsNullOrEmpty(PageParameter("CampusId")) && opportunity.ConnectionOpportunityCampuses.Any( o => o.CampusId == PageParameter( "CampusId" ).AsInteger() ) )
+                if ( !string.IsNullOrEmpty( PageParameter( "CampusId" ) ) && opportunity.ConnectionOpportunityCampuses.Any( o => o.CampusId == PageParameter( "CampusId" ).AsInteger() ) )
                 {
                     cpCampus.SetValue( PageParameter( "CampusId" ).AsInteger() );
                     cpCampus.CssClass = "hidden";
@@ -349,11 +351,11 @@ namespace RockWeb.Blocks.Connection
 
                     if ( personGuid.HasValue )
                     {
-                        registrant = new PersonService(rockContext).Get( personGuid.Value );
+                        registrant = new PersonService( rockContext ).Get( personGuid.Value );
                     }
                 }
 
-                if (registrant == null && CurrentPerson != null )
+                if ( registrant == null && CurrentPerson != null )
                 {
                     registrant = CurrentPerson;
                 }
@@ -405,31 +407,115 @@ namespace RockWeb.Blocks.Connection
                     }
                 }
 
-                // Schedules
-                if (!string.IsNullOrEmpty(PageParameter("ScheduleIds"))) {
-
-                    ScheduleService scheduleService = new ScheduleService( rockContext );
-                    List<Schedule> schedules = scheduleService.GetByIds( PageParameter( "ScheduleIds" ).Split( ',' ).Select( s => s.AsInteger() ).ToList() ).ToList();
-                    foreach(Schedule schedule in schedules)
-                    {
-                        var control = new System.Web.UI.HtmlControls.HtmlGenericControl();
-                        control.InnerHtml = "<li>" + schedule.Name + "</li>";
-                        ulSchedules.Controls.Add( control );
-                    }
-                    hdnSchedules.Value = string.Join( ",", schedules.Select( s => s.Guid.ToString() ));
-                }
+                ViewState.Add( "SelectedAttributes", new Dictionary<string, string>() );
+                SaveViewState();
 
                 // Group
                 if ( !string.IsNullOrEmpty( PageParameter( "GroupId" ) ) )
                 {
                     hdnGroupId.Value = PageParameter( "GroupId" ).AsInteger().ToString();
+
+                    var group = new GroupService( rockContext ).Get( hdnGroupId.Value.AsInteger() );
+                    if ( group != null )
+                    {
+                        // Group Attributes
+                        var keys = GetAttributeValues( "Keys" );
+
+                        AttributeService attributeService = new AttributeService( rockContext );
+
+                        string groupQualifierValue = group.Id.ToString();
+                        string groupTypeQualifierValue = group.GroupTypeId.ToString();
+
+                        var groupMemberAttributes = attributeService.GetByEntityTypeId( new GroupMember().TypeId ).AsQueryable()
+                    .Where( a =>
+                        ( a.EntityTypeQualifierColumn.Equals( "GroupId", StringComparison.OrdinalIgnoreCase ) &&
+                        a.EntityTypeQualifierValue.Equals( groupQualifierValue ) )
+                        || ( a.EntityTypeQualifierColumn.Equals( "GroupTypeId", StringComparison.OrdinalIgnoreCase ) &&
+                            a.EntityTypeQualifierValue.Equals( groupTypeQualifierValue ) )
+                        )
+                    .ToList();
+
+                        FieldTypeService fieldTypeService = new FieldTypeService( rockContext );
+
+                        foreach ( var key in keys )
+                        {
+                            if ( !string.IsNullOrEmpty( PageParameter( key ) ) )
+                            {
+                                if ( !groupMemberAttributes.Where( a => a.Key == key ).Any() )
+                                {
+                                    continue;
+                                }
+
+                                var attribute = groupMemberAttributes.Where( a => a.Key == key ).FirstOrDefault();
+                                var fieldType = fieldTypeService.Get( attribute.FieldTypeId );
+
+                                if ( fieldType == null )
+                                {
+                                    continue;
+                                }
+
+                                var values = PageParameter( key ).Split( ',' ).Select( s => s.AsInteger() ).ToList();
+
+                                if ( fieldType.Guid == Rock.SystemGuid.FieldType.SCHEDULES.AsGuid() )
+                                {
+                                    ScheduleService scheduleService = new ScheduleService( rockContext );
+                                    List<Schedule> schedules = scheduleService.GetByIds( values ).ToList();
+                                    if ( schedules.Any() )
+                                    {
+                                        List<string> scheduleGuids = new List<string>();
+                                        LiteralControl ltAttribute = new LiteralControl() { Text = "<b>" + attribute.Name + "</b>" };
+                                        phAttributes.Controls.Add( ltAttribute );
+                                        var ul = new HtmlGenericControl( "ul" );
+                                        phAttributes.Controls.Add( ul );
+
+
+                                        foreach ( var schedule in schedules )
+                                        {
+                                            var li = new HtmlGenericControl( "li" );
+                                            li.InnerText = schedule.Name;
+                                            ul.Controls.Add( li );
+                                            scheduleGuids.Add( schedule.Guid.ToString() );
+                                        }
+                                        var selectedAttributes = ( Dictionary<string, string> ) ViewState["SelectedAttributes"];
+                                        selectedAttributes[attribute.Key] = string.Join( ",", scheduleGuids );
+                                        ViewState["SelectedAttributes"] = selectedAttributes;
+                                        SaveViewState();
+
+                                    }
+
+                                }
+                                else if ( fieldType.Guid == Rock.SystemGuid.FieldType.SINGLE_SELECT.AsGuid() || fieldType.Guid == Rock.SystemGuid.FieldType.MULTI_SELECT.AsGuid() )
+                                {
+                                    var items = attribute.AttributeQualifiers.FirstOrDefault( aq => aq.Key == "values" ).Value.GetListItems();
+                                    var selectedItems = items.Where( i => values.Contains( i.Value.AsInteger() ) ).ToList();
+                                    if ( selectedItems.Any() )
+                                    {
+                                        LiteralControl ltAttribute = new LiteralControl() { Text = "<b>" + attribute.Name + "</b>" };
+                                        phAttributes.Controls.Add( ltAttribute );
+                                        var ul = new HtmlGenericControl( "ul" );
+                                        phAttributes.Controls.Add( ul );
+                                        foreach ( var item in selectedItems )
+                                        {
+                                            var li = new HtmlGenericControl( "li" );
+                                            li.InnerText = item.Text;
+                                            ul.Controls.Add( li );
+                                        }
+                                        var selectedAttributes = ( Dictionary<string, string> ) ViewState["SelectedAttributes"];
+                                        selectedAttributes[attribute.Key] = string.Join( ",", selectedItems.Select( i => i.Value ) );
+                                        ViewState["SelectedAttributes"] = selectedAttributes;
+                                        SaveViewState();
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // Role
                 if ( !string.IsNullOrEmpty( PageParameter( "GroupTypeRoleId" ) ) )
                 {
                     hdnGroupRoleTypeId.Value = PageParameter( "GroupTypeRoleId" ).AsInteger().ToString();
-                    if (opportunity.ConnectionOpportunityGroupConfigs.Where(gc => gc.GroupMemberRoleId == PageParameter( "GroupTypeRoleId" ).AsInteger() ).Any() )
+                    if ( opportunity.ConnectionOpportunityGroupConfigs.Where( gc => gc.GroupMemberRoleId == PageParameter( "GroupTypeRoleId" ).AsInteger() ).Any() )
                     {
                         var groupConfig = opportunity.ConnectionOpportunityGroupConfigs.Where( gc => gc.GroupMemberRoleId == PageParameter( "GroupTypeRoleId" ).AsInteger() ).FirstOrDefault();
                         ltRole.Text = groupConfig.GroupType.Name + " - " + groupConfig.GroupMemberRole.Name;
