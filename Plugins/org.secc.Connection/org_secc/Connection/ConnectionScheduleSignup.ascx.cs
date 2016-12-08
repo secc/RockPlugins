@@ -468,7 +468,6 @@ namespace RockWeb.Blocks.Connection
                                         var ul = new HtmlGenericControl( "ul" );
                                         phAttributes.Controls.Add( ul );
 
-
                                         foreach ( var schedule in schedules )
                                         {
                                             var li = new HtmlGenericControl( "li" );
@@ -478,6 +477,34 @@ namespace RockWeb.Blocks.Connection
                                         }
                                         var selectedAttributes = ( Dictionary<string, string> ) ViewState["SelectedAttributes"];
                                         selectedAttributes[attribute.Key] = string.Join( ",", scheduleGuids );
+                                        ViewState["SelectedAttributes"] = selectedAttributes;
+                                        SaveViewState();
+                                    }
+                                }
+                                else if ( fieldType.Guid == Rock.SystemGuid.FieldType.DEFINED_VALUE.AsGuid() )
+                                {
+                                    var definedTypeId = attribute.AttributeQualifiers.FirstOrDefault( aq => aq.Key == "definedtype" ).Value.AsInteger();
+
+                                    DefinedValueService definedValueService = new DefinedValueService( rockContext );
+                                    List<DefinedValue> definedValues = definedValueService.GetByIds( values )
+                                        .Where( dv => dv.DefinedTypeId == definedTypeId ).ToList();
+                                    if ( definedValues.Any() )
+                                    {
+                                        List<string> dvGuids = new List<string>();
+                                        LiteralControl ltAttribute = new LiteralControl() { Text = "<b>" + attribute.Name + "</b>" };
+                                        phAttributes.Controls.Add( ltAttribute );
+                                        var ul = new HtmlGenericControl( "ul" );
+                                        phAttributes.Controls.Add( ul );
+
+                                        foreach ( var definedValue in definedValues )
+                                        {
+                                            var li = new HtmlGenericControl( "li" );
+                                            li.InnerText = definedValue.Value;
+                                            ul.Controls.Add( li );
+                                            dvGuids.Add( definedValue.Guid.ToString() );
+                                        }
+                                        var selectedAttributes = ( Dictionary<string, string> ) ViewState["SelectedAttributes"];
+                                        selectedAttributes[attribute.Key] = string.Join( ",", dvGuids );
                                         ViewState["SelectedAttributes"] = selectedAttributes;
                                         SaveViewState();
 
