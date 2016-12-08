@@ -162,7 +162,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             Name = s.ToString( "MMM d, yyyy -  h:mmtt" )
                         }
                          )
-                         .Where(a => !occurances.Select(o => o.Id).Contains(a.Id) )
+                         .Where( a => !occurances.Select( o => o.Id ).Contains( a.Id ) )
                          );
                 }
 
@@ -375,6 +375,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
 
                 var items = groupMembers
+                    .Where( gm => gm.GroupMemberStatus == GroupMemberStatus.Active )
+                    .OrderBy( gm => gm.Person.LastName )
+                    .ThenBy(gm => gm.Person.NickName)
                     .Select( m => new
                     {
                         PersonId = m.PersonId.ToString(),
@@ -384,7 +387,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                         Attended = ( attendanceData.Where( a => a.PersonAlias.PersonId == m.PersonId ).Any()
                          && ( attendanceData.Where( a => a.PersonAlias.PersonId == m.PersonId ).FirstOrDefault().DidAttend ?? false ) )
                     }
-                    ).ToList();
+                    )
+                    .ToList();
 
                 lvMembers.DataSource = items;
                 lvMembers.DataBind();

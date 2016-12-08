@@ -788,10 +788,22 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
             else
             {
-                //For adding the communication recepients from the membership list 
-                foreach ( int key in gMembers.SelectedKeys )
+                var keys = gMembers.SelectedKeys;
+
+                List<MemberData> members = new List<MemberData>();
+
+                foreach ( int key in keys )
                 {
-                    MemberData member = memberData.Where( md => md.Id == key ).FirstOrDefault();
+                    members.Add( memberData.Where( md => md.Id == key ).FirstOrDefault() );
+                }
+
+                if ( !members.Any() )
+                {
+                    members = memberData;
+                }
+                //For adding the communication recepients from the membership list 
+                foreach ( var member in members )
+                {
                     member.LoadParents();
                     if ( member.IsParent || !sendParents )
                     {
