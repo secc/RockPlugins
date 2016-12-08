@@ -11,7 +11,6 @@ using Rock.Model;
 using Rock.Security;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
-using org.secc.Microframe.Model;
 
 namespace RockWeb.Plugins.org_secc.Search
 {

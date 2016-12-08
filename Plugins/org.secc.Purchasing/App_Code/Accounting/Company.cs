@@ -6,12 +6,13 @@ using Rock;
 using org.secc.Purchasing.DataLayer;
 using org.secc.Purchasing.DataLayer.Accounting;
 using Rock.Model;
+using Rock.Web.Cache;
 
 namespace org.secc.Purchasing.Accounting
 {
     public class Company
     {
-        private const string DefaultCompanyKey = "DefaultCompanyCode";
+        private const string DefaultCompanyKey = "DefaultAccountingCompanyID";
 
         private int mCompanyID;
         private string mCompanyName;
@@ -103,9 +104,7 @@ namespace org.secc.Purchasing.Accounting
 
         public static Company GetDefaultCompany()
         {
-            AttributeService attributeService = new AttributeService(new Rock.Data.RockContext());
-
-            int? DefaultCompanyID = attributeService.GetByCategoryId(5).Where(a=>a.Key == "DefaultAccountingCompanyID").Select(a => a.DefaultValue).FirstOrDefault().AsIntegerOrNull();
+            int? DefaultCompanyID = GlobalAttributesCache.Value( DefaultCompanyKey ).AsIntegerOrNull();
 
             return new Company(DefaultCompanyID.Value);
         }
