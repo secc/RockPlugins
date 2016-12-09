@@ -55,7 +55,11 @@ namespace RockWeb.Plugins.org_secc.Administration
             base.OnInit( e );
 
             // Get Version, database info and executing assembly location
-            lRockVersion.Text = VersionInfo.GetRockProductVersionFullName() +" - "+ File.ReadAllText( Server.MapPath( "~/build.info") );
+            lRockVersion.Text = VersionInfo.GetRockProductVersionFullName();
+            if ( File.Exists( Server.MapPath( "~/build.info" ) ) )
+            {
+                lRockVersion.Text += " - " + File.ReadAllText( Server.MapPath( "~/build.info" ) );
+            }
             lClientCulture.Text = System.Globalization.CultureInfo.CurrentCulture.ToString();
             lDatabase.Text = GetDbInfo();
             lSystemDateTime.Text = DateTime.Now.ToString( "G" ) + " " + DateTime.Now.ToString( "zzz" );
