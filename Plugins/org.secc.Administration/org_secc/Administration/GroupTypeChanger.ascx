@@ -2,6 +2,7 @@
 
 <asp:UpdatePanel ID="upReport" runat="server">
     <ContentTemplate>
+        <Rock:NotificationBox runat="server" ID="nbSuccess" Visible="false" NotificationBoxType="Success" Text="GroupType successfully changed."></Rock:NotificationBox>
         <div class="row">
             <div class="col-sm-6">
                 <Rock:RockLiteral ID="ltName" runat="server" Label="Group Name"></Rock:RockLiteral>

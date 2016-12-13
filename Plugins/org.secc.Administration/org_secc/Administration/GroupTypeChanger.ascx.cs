@@ -33,7 +33,7 @@ namespace RockWeb.Plugins.org_secc.Administration
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
-
+            nbSuccess.Visible = false;
             var groupId = PageParameter( "GroupId" ).AsInteger();
             if ( groupId != 0 )
             {
@@ -67,7 +67,7 @@ namespace RockWeb.Plugins.org_secc.Administration
 
         private void BindGroupTypeDropDown()
         {
-            var groupTypes = new GroupTypeService( rockContext ).Queryable()
+            var groupTypes = new GroupTypeService( new RockContext() ).Queryable()
                 .Select( gt => new
                 {
                     Id = gt.Id,
@@ -256,6 +256,7 @@ namespace RockWeb.Plugins.org_secc.Administration
                 }
             }
             rockContext.SaveChanges();
+            nbSuccess.Visible = true;
         }
     }
 }
