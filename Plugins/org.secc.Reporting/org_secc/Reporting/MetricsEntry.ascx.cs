@@ -35,7 +35,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
     /// <summary>
     /// Block for easily adding/editing metric values for any metric that has partitions of campus and service time.
     /// </summary>
-    [DisplayName( "Service Metrics Entry" )]
+    [DisplayName( "Metrics Entry" )]
     [Category( "SECC > Reporting" )]
     [Description( "Block for easily adding/editing metric values for any metric that has partitions of campus and service time." )]
 
@@ -43,7 +43,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
     [IntegerField( "Weeks Back", "The number of weeks back to display in the 'Week of' selection.", false, 8, "", 1 )]
     [IntegerField( "Weeks Ahead", "The number of weeks ahead to display in the 'Week of' selection.", false, 0, "", 2 )]
     [MetricCategoriesField( "Metric Categories", "Select the metric categories to display (note: only metrics in those categories with a campus and scheudle partition will displayed).", true, "", "", 3 )]
-    public partial class ServiceMetricsEntry : Rock.Web.UI.RockBlock
+    public partial class MetricsEntry : Rock.Web.UI.RockBlock
     {
         #region Fields
 
@@ -93,7 +93,6 @@ namespace RockWeb.Plugins.org_secc.Reporting
             if ( !Page.IsPostBack )
             {
                 _selectedCampusId = GetBlockUserPreference( "CampusId" ).AsIntegerOrNull();
-                _selectedServiceId = GetBlockUserPreference( "ScheduleId" ).AsIntegerOrNull();
 
                 if ( CheckSelection() )
                 {
@@ -142,9 +141,6 @@ namespace RockWeb.Plugins.org_secc.Reporting
                 case "Weekend":
                     _selectedWeekend = e.CommandArgument.ToString().AsDateTime();
                     break;
-                case "Service":
-                    _selectedServiceId = e.CommandArgument.ToString().AsIntegerOrNull();
-                    break;
             }
 
             if ( CheckSelection() )
@@ -161,7 +157,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
         /// <param name="e">The <see cref="RepeaterItemEventArgs"/> instance containing the event data.</param>
         protected void rptrMetric_ItemDataBound( object sender, RepeaterItemEventArgs e )
         {
-            if ( e.Item.ItemType == ListItemType.Item )
+            if ( e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem )
             {
                 var nbMetricValue = e.Item.FindControl( "nbMetricValue" ) as NumberBox;
                 if ( nbMetricValue != null )
@@ -170,6 +166,86 @@ namespace RockWeb.Plugins.org_secc.Reporting
                 }
             }
         }
+
+        /// <summary>
+        /// Handles the ItemDataBound event of the rptrService control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="RepeaterItemEventArgs"/> instance containing the event data.</param>
+        protected void rptrService_ItemDataBound( object sender, RepeaterItemEventArgs e )
+        {
+            if ( e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem )
+            {
+                Schedule schedule = e.Item.DataItem as Schedule;
+
+                int campusEntityTypeId = EntityTypeCache.Read( typeof( Rock.Model.Campus ) ).Id;
+                int scheduleEntityTypeId = EntityTypeCache.Read( typeof( Rock.Model.Schedule ) ).Id;
+
+                int? campusId = bddlCampus.SelectedValueAsInt();
+                int? scheduleId = schedule.Id;
+                DateTime? weekend = bddlWeekend.SelectedValue.AsDateTime();
+
+                var notes = new List<string>();
+
+                var serviceMetricValues = new List<Metric>();
+                var rptrServiceMetric = e.Item.FindControl( "pnlwService" ).FindControl( "rptrServiceMetric" ) as Repeater;
+
+                var metricCategories = MetricCategoriesFieldAttribute.GetValueAsGuidPairs( GetAttributeValue( "MetricCategories" ) );
+                var metricGuids = metricCategories.Select( a => a.MetricGuid ).ToList();
+                using ( var rockContext = new RockContext() )
+                {
+                    var metricValueService = new MetricValueService( rockContext );
+                    foreach ( var metric in new MetricService( rockContext )
+                        .GetByGuids( metricGuids )
+                        .Where( m =>
+                            m.MetricPartitions.Count == 2 &&
+                            m.MetricPartitions.Any( p => p.EntityTypeId.HasValue && p.EntityTypeId.Value == campusEntityTypeId ) &&
+                            m.MetricPartitions.Any( p => p.EntityTypeId.HasValue && p.EntityTypeId.Value == scheduleEntityTypeId ) )
+                        .OrderBy( m => m.Title )
+                        .Select( m => new
+                        {
+                            m.Id,
+                            m.Title,
+                            CampusPartitionId = m.MetricPartitions.Where( p => p.EntityTypeId.HasValue && p.EntityTypeId.Value == campusEntityTypeId ).Select( p => p.Id ).FirstOrDefault(),
+                            SchedulePartitionId = m.MetricPartitions.Where( p => p.EntityTypeId.HasValue && p.EntityTypeId.Value == scheduleEntityTypeId ).Select( p => p.Id ).FirstOrDefault(),
+                        } ) )
+                    {
+                        var serviceMetric = new Metric( metric.Id, metric.Title );
+
+                        if ( campusId.HasValue && weekend.HasValue && scheduleId.HasValue )
+                        {
+                            var metricValue = metricValueService
+                                .Queryable().AsNoTracking()
+                                .Where( v =>
+                                    v.MetricId == metric.Id &&
+                                    v.MetricValueDateTime.HasValue && v.MetricValueDateTime.Value == weekend.Value &&
+                                    v.MetricValuePartitions.Count == 2 &&
+                                    v.MetricValuePartitions.Any( p => p.MetricPartitionId == metric.CampusPartitionId && p.EntityId.HasValue && p.EntityId.Value == campusId.Value ) &&
+                                    v.MetricValuePartitions.Any( p => p.MetricPartitionId == metric.SchedulePartitionId && p.EntityId.HasValue && p.EntityId.Value == scheduleId.Value ) )
+                                .FirstOrDefault();
+
+                            if ( metricValue != null )
+                            {
+                                serviceMetric.Value = metricValue.YValue;
+
+                                if ( !string.IsNullOrWhiteSpace( metricValue.Note ) &&
+                                    !notes.Contains( metricValue.Note ) )
+                                {
+                                    notes.Add( metricValue.Note );
+                                }
+
+                            }
+                        }
+
+                        serviceMetricValues.Add( serviceMetric );
+                    }
+                }
+
+            rptrServiceMetric.DataSource = serviceMetricValues;
+            rptrServiceMetric.DataBind();
+
+        }
+    }
 
         /// <summary>
         /// Handles the Click event of the btnSave control.
@@ -182,10 +258,10 @@ namespace RockWeb.Plugins.org_secc.Reporting
             int scheduleEntityTypeId = EntityTypeCache.Read( typeof( Rock.Model.Schedule ) ).Id;
 
             int? campusId = bddlCampus.SelectedValueAsInt();
-            int? scheduleId = bddlService.SelectedValueAsInt();
+            //int? scheduleId = bddlService.SelectedValueAsInt();
             DateTime? weekend = bddlWeekend.SelectedValue.AsDateTime();
 
-            if ( campusId.HasValue && scheduleId.HasValue && weekend.HasValue )
+            if ( campusId.HasValue && weekend.HasValue )
             {
                 using ( var rockContext = new RockContext() )
                 {
@@ -197,7 +273,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
                         var hfMetricIId = item.FindControl( "hfMetricId" ) as HiddenField;
                         var nbMetricValue = item.FindControl( "nbMetricValue" ) as NumberBox;
 
-                        if ( hfMetricIId != null && nbMetricValue != null  )
+                        if ( hfMetricIId != null && nbMetricValue != null && !string.IsNullOrEmpty( nbMetricValue.Text ) )
                         {
                             int metricId = hfMetricIId.ValueAsInt();
                             var metric = new MetricService( rockContext ).Get( metricId );
@@ -205,16 +281,14 @@ namespace RockWeb.Plugins.org_secc.Reporting
                             if ( metric != null )
                             {
                                 int campusPartitionId = metric.MetricPartitions.Where( p => p.EntityTypeId.HasValue && p.EntityTypeId.Value == campusEntityTypeId ).Select( p => p.Id ).FirstOrDefault();
-                                int schedulePartitionId = metric.MetricPartitions.Where( p => p.EntityTypeId.HasValue && p.EntityTypeId.Value == scheduleEntityTypeId ).Select( p => p.Id ).FirstOrDefault();
 
                                 var metricValue = metricValueService
                                     .Queryable()
                                     .Where( v =>
                                         v.MetricId == metric.Id &&
                                         v.MetricValueDateTime.HasValue && v.MetricValueDateTime.Value == weekend.Value &&
-                                        v.MetricValuePartitions.Count == 2 &&
-                                        v.MetricValuePartitions.Any( p => p.MetricPartitionId == campusPartitionId && p.EntityId.HasValue && p.EntityId.Value == campusId.Value ) &&
-                                        v.MetricValuePartitions.Any( p => p.MetricPartitionId == schedulePartitionId && p.EntityId.HasValue && p.EntityId.Value == scheduleId.Value ) )
+                                        v.MetricValuePartitions.Count == 1 &&
+                                        v.MetricValuePartitions.Any( p => p.MetricPartitionId == campusPartitionId && p.EntityId.HasValue && p.EntityId.Value == campusId.Value ) )
                                     .FirstOrDefault();
 
                                 if ( metricValue == null )
@@ -229,11 +303,6 @@ namespace RockWeb.Plugins.org_secc.Reporting
                                     campusValuePartition.MetricPartitionId = campusPartitionId;
                                     campusValuePartition.EntityId = campusId.Value;
                                     metricValue.MetricValuePartitions.Add( campusValuePartition );
-
-                                    var scheduleValuePartition = new MetricValuePartition();
-                                    scheduleValuePartition.MetricPartitionId = schedulePartitionId;
-                                    scheduleValuePartition.EntityId = scheduleId.Value;
-                                    metricValue.MetricValuePartitions.Add( scheduleValuePartition );
                                 }
 
                                 metricValue.YValue = nbMetricValue.Text.AsDecimalOrNull();
@@ -242,11 +311,68 @@ namespace RockWeb.Plugins.org_secc.Reporting
                         }
                     }
 
+                    foreach( RepeaterItem service in rptrService.Items )
+                    {
+                        var hfScheduleId = service.FindControl( "hfScheduleId" ) as HiddenField;
+                        int scheduleId = hfScheduleId.ValueAsInt();
+                        var rptrServiceMetric = service.FindControl( "pnlwService" ).FindControl( "rptrServiceMetric" ) as Repeater;
+
+                        foreach ( RepeaterItem item in rptrServiceMetric.Items )
+                        {
+                            var hfMetricIId = item.FindControl( "hfMetricId" ) as HiddenField;
+                            var nbMetricValue = item.FindControl( "nbMetricValue" ) as NumberBox;
+
+                            if ( hfMetricIId != null && nbMetricValue != null && !string.IsNullOrEmpty(nbMetricValue.Text) )
+                            {
+                                int metricId = hfMetricIId.ValueAsInt();
+                                var metric = new MetricService( rockContext ).Get( metricId );
+
+                                if ( metric != null )
+                                {
+                                    int campusPartitionId = metric.MetricPartitions.Where( p => p.EntityTypeId.HasValue && p.EntityTypeId.Value == campusEntityTypeId ).Select( p => p.Id ).FirstOrDefault();
+                                    int schedulePartitionId = metric.MetricPartitions.Where( p => p.EntityTypeId.HasValue && p.EntityTypeId.Value == scheduleEntityTypeId ).Select( p => p.Id ).FirstOrDefault();
+
+                                    var metricValue = metricValueService
+                                        .Queryable()
+                                        .Where( v =>
+                                            v.MetricId == metric.Id &&
+                                            v.MetricValueDateTime.HasValue && v.MetricValueDateTime.Value == weekend.Value &&
+                                            v.MetricValuePartitions.Count == 2 &&
+                                            v.MetricValuePartitions.Any( p => p.MetricPartitionId == campusPartitionId && p.EntityId.HasValue && p.EntityId.Value == campusId.Value ) &&
+                                            v.MetricValuePartitions.Any( p => p.MetricPartitionId == schedulePartitionId && p.EntityId.HasValue && p.EntityId.Value == scheduleId ) )
+                                        .FirstOrDefault();
+
+                                    if ( metricValue == null )
+                                    {
+                                        metricValue = new MetricValue();
+                                        metricValue.MetricValueType = MetricValueType.Measure;
+                                        metricValue.MetricId = metric.Id;
+                                        metricValue.MetricValueDateTime = weekend.Value;
+                                        metricValueService.Add( metricValue );
+
+                                        var campusValuePartition = new MetricValuePartition();
+                                        campusValuePartition.MetricPartitionId = campusPartitionId;
+                                        campusValuePartition.EntityId = campusId.Value;
+                                        metricValue.MetricValuePartitions.Add( campusValuePartition );
+
+                                        var scheduleValuePartition = new MetricValuePartition();
+                                        scheduleValuePartition.MetricPartitionId = schedulePartitionId;
+                                        scheduleValuePartition.EntityId = scheduleId;
+                                        metricValue.MetricValuePartitions.Add( scheduleValuePartition );
+                                    }
+
+                                    metricValue.YValue = nbMetricValue.Text.AsDecimalOrNull();
+                                    metricValue.Note = tbNote.Text;
+                                }
+                            }
+                        }
+                    }
+
                     rockContext.SaveChanges();
                 }
 
-                nbMetricsSaved.Text = string.Format( "Your metrics for the {0} service on {1} at the {2} Campus have been saved.",
-                    bddlService.SelectedItem.Text, bddlWeekend.SelectedItem.Text, bddlCampus.SelectedItem.Text );
+                nbMetricsSaved.Text = string.Format( "Your metrics for {0} at the {1} Campus have been saved.",
+                    bddlWeekend.SelectedItem.Text, bddlCampus.SelectedItem.Text );
                 nbMetricsSaved.Visible = true;
 
                 BindMetrics();
@@ -270,20 +396,20 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
         private bool CheckSelection()
         {
-            // If campus and schedule have been selected before, assume current weekend
-            if ( _selectedCampusId.HasValue && _selectedServiceId.HasValue && !_selectedWeekend.HasValue )
+            // If campus has been selected before, assume current weekend
+            if ( _selectedCampusId.HasValue && !_selectedWeekend.HasValue )
             {
                 _selectedWeekend = RockDateTime.Today.SundayDate();
             }
 
-            var options = new List<ServiceMetricSelectItem>();
+            var options = new List<MetricSelectItem>();
 
             if ( !_selectedCampusId.HasValue )
             {
                 lSelection.Text = "Select Location:";
                 foreach ( var campus in GetCampuses() )
                 {
-                    options.Add( new ServiceMetricSelectItem( "Campus", campus.Id.ToString(), campus.Name ) );
+                    options.Add( new MetricSelectItem( "Campus", campus.Id.ToString(), campus.Name ) );
                 }
             }
 
@@ -292,16 +418,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
                 lSelection.Text = "Select Week of:";
                 foreach ( var weekend in GetWeekendDates( 1, 0 ) )
                 {
-                    options.Add( new ServiceMetricSelectItem( "Weekend", weekend.ToString( "o" ), "Sunday " + weekend.ToShortDateString() ) );
-                }
-            }
-
-            if ( !options.Any() && !_selectedServiceId.HasValue )
-            {
-                lSelection.Text = "Select Service Time:";
-                foreach ( var service in GetServices(CampusCache.Read( _selectedCampusId.Value ) ) )
-                {
-                    options.Add( new ServiceMetricSelectItem( "Service", service.Id.ToString(), service.Name ) );
+                    options.Add( new MetricSelectItem( "Weekend", weekend.ToString( "o" ), "Week Ending Sunday " + weekend.ToShortDateString() ) );
                 }
             }
 
@@ -341,7 +458,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
         {
             bddlCampus.Items.Clear();
             bddlWeekend.Items.Clear();
-            bddlService.Items.Clear();
+            //bddlService.Items.Clear();
 
             // Load Campuses
             foreach ( var campus in GetCampuses() )
@@ -356,16 +473,16 @@ namespace RockWeb.Plugins.org_secc.Reporting
             var weeksAhead = GetAttributeValue( "WeeksAhead" ).AsInteger();
             foreach ( var date in GetWeekendDates( weeksBack, weeksAhead ) )
             {
-                bddlWeekend.Items.Add( new ListItem( "Sunday " + date.ToShortDateString(), date.ToString( "o" ) ) );
+                bddlWeekend.Items.Add( new ListItem( "Week Ending Sunday " + date.ToShortDateString(), date.ToString( "o" ) ) );
             }
             bddlWeekend.SetValue( _selectedWeekend.Value.ToString( "o" ) );
 
             // Load service times
             foreach( var service in GetServices( CampusCache.Read( _selectedCampusId.Value ) ) )
             {
-                bddlService.Items.Add( new ListItem( service.Name, service.Id.ToString() ) );
+                //bddlService.Items.Add( new ListItem( service.Name, service.Id.ToString() ) );
             }
-            bddlService.SetValue( _selectedServiceId.Value );
+            //bddlService.SetValue( _selectedServiceId.Value );
         }
 
         private void BddlCampus_SelectedIndexChanged( object sender, EventArgs e )
@@ -435,7 +552,8 @@ namespace RockWeb.Plugins.org_secc.Reporting
                             .Where( s =>
                                 s.CategoryId.HasValue &&
                                 s.CategoryId.Value == campusSchedule.Id )
-                            .OrderBy( s => s.Name ) )
+                            .ToList()
+                            .OrderBy( s => s.NextStartDateTime ) )
                         {
                             services.Add( schedule );
                         }
@@ -466,13 +584,13 @@ namespace RockWeb.Plugins.org_secc.Reporting
         /// </summary>
         private void BindMetrics()
         {
-            var serviceMetricValues = new List<ServiceMetric>();
+            var metricValues = new List<Metric>();
 
             int campusEntityTypeId = EntityTypeCache.Read( typeof( Rock.Model.Campus ) ).Id;
             int scheduleEntityTypeId = EntityTypeCache.Read( typeof( Rock.Model.Schedule ) ).Id;
 
             int? campusId = bddlCampus.SelectedValueAsInt();
-            int? scheduleId = bddlService.SelectedValueAsInt();
+            //int? scheduleId = bddlService.SelectedValueAsInt();
             DateTime? weekend = bddlWeekend.SelectedValue.AsDateTime();
 
             // If we changed the campus, make sure we reload the services
@@ -480,22 +598,21 @@ namespace RockWeb.Plugins.org_secc.Reporting
             {
                 _selectedCampusId = GetBlockUserPreference( "CampusId" ).AsIntegerOrNull();
                 SaveViewState();
-                bddlService.Items.Clear();
+                //bddlService.Items.Clear();
                 // Load service times
                 foreach ( var service in GetServices( CampusCache.Read( campusId.Value ) ) )
                 {
-                    bddlService.Items.Add( new ListItem( service.Name, service.Id.ToString() ) );
+                //    bddlService.Items.Add( new ListItem( service.Name, service.Id.ToString() ) );
                 }
-                bddlService.SetValue( _selectedServiceId.Value );
+                //bddlService.SetValue( _selectedServiceId.Value );
             }
 
             var notes = new List<string>();
 
-            if ( campusId.HasValue && scheduleId.HasValue && weekend.HasValue )
+            if ( campusId.HasValue && weekend.HasValue )
             {
 
                 SetBlockUserPreference( "CampusId", campusId.HasValue ? campusId.Value.ToString() : "" );
-                SetBlockUserPreference( "ScheduleId", scheduleId.HasValue ? scheduleId.Value.ToString() : "" );
 
                 var metricCategories = MetricCategoriesFieldAttribute.GetValueAsGuidPairs( GetAttributeValue( "MetricCategories" ) );
                 var metricGuids = metricCategories.Select( a => a.MetricGuid ).ToList();
@@ -505,9 +622,8 @@ namespace RockWeb.Plugins.org_secc.Reporting
                     foreach ( var metric in new MetricService( rockContext )
                         .GetByGuids( metricGuids )
                         .Where( m =>
-                            m.MetricPartitions.Count == 2 &&
-                            m.MetricPartitions.Any( p => p.EntityTypeId.HasValue && p.EntityTypeId.Value == campusEntityTypeId ) &&
-                            m.MetricPartitions.Any( p => p.EntityTypeId.HasValue && p.EntityTypeId.Value == scheduleEntityTypeId ) )
+                            m.MetricPartitions.Count == 1 &&
+                            m.MetricPartitions.Any( p => p.EntityTypeId.HasValue && p.EntityTypeId.Value == campusEntityTypeId ) )
                         .OrderBy( m => m.Title )
                         .Select( m => new
                         {
@@ -517,25 +633,24 @@ namespace RockWeb.Plugins.org_secc.Reporting
                             SchedulePartitionId = m.MetricPartitions.Where( p => p.EntityTypeId.HasValue && p.EntityTypeId.Value == scheduleEntityTypeId ).Select( p => p.Id ).FirstOrDefault(),
                         } ) )
                     {
-                        var serviceMetric = new ServiceMetric( metric.Id, metric.Title );
+                        var metricObj = new Metric( metric.Id, metric.Title );
 
-                        if ( campusId.HasValue && weekend.HasValue && scheduleId.HasValue )
+                        if ( campusId.HasValue && weekend.HasValue )
                         {
                             var metricValue = metricValueService
                                 .Queryable().AsNoTracking()
                                 .Where( v =>
                                     v.MetricId == metric.Id &&
                                     v.MetricValueDateTime.HasValue && v.MetricValueDateTime.Value == weekend.Value &&
-                                    v.MetricValuePartitions.Count == 2 &&
-                                    v.MetricValuePartitions.Any( p => p.MetricPartitionId == metric.CampusPartitionId && p.EntityId.HasValue && p.EntityId.Value == campusId.Value ) &&
-                                    v.MetricValuePartitions.Any( p => p.MetricPartitionId == metric.SchedulePartitionId && p.EntityId.HasValue && p.EntityId.Value == scheduleId.Value ) )
+                                    v.MetricValuePartitions.Count == 1 &&
+                                    v.MetricValuePartitions.Any( p => p.MetricPartitionId == metric.CampusPartitionId && p.EntityId.HasValue && p.EntityId.Value == campusId.Value ) )
                                 .FirstOrDefault();
 
                             if ( metricValue != null )
                             {
-                                serviceMetric.Value = metricValue.YValue;
+                                metricObj.Value = metricValue.YValue;
 
-                                if ( !string.IsNullOrWhiteSpace ( metricValue.Note) &&
+                                if ( !string.IsNullOrWhiteSpace( metricValue.Note ) &&
                                     !notes.Contains( metricValue.Note ) )
                                 {
                                     notes.Add( metricValue.Note );
@@ -544,13 +659,17 @@ namespace RockWeb.Plugins.org_secc.Reporting
                             }
                         }
 
-                        serviceMetricValues.Add( serviceMetric );
+                        metricValues.Add( metricObj );
                     }
                 }
             }
-
-            rptrMetric.DataSource = serviceMetricValues;
+            rptrMetric.DataSource = metricValues;
             rptrMetric.DataBind();
+            
+            rptrService.DataSource = GetServices( CampusCache.Read( campusId.Value ) );
+            rptrService.DataBind();
+            rptrService.Visible = rptrService.Items.Count > 0;
+
 
             tbNote.Text = notes.AsDelimited( Environment.NewLine + Environment.NewLine );
         }
@@ -559,12 +678,12 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
     }
 
-    public class ServiceMetricSelectItem
+    public class MetricSelectItem
     {
         public string CommandName { get; set; }
         public string CommandArg { get; set; }
         public string OptionText { get; set; }
-        public ServiceMetricSelectItem( string commandName, string commandArg, string optionText )
+        public MetricSelectItem( string commandName, string commandArg, string optionText )
         {
             CommandName = commandName;
             CommandArg = commandArg;
@@ -572,13 +691,13 @@ namespace RockWeb.Plugins.org_secc.Reporting
         }
     }
 
-    public class ServiceMetric
+    public class Metric
     {
         public int Id { get; set; }
         public string Name { get; set; }
         public decimal? Value { get; set; }
 
-        public ServiceMetric( int id, string name )
+        public Metric( int id, string name )
         {
             Id = id;
             Name = name;
