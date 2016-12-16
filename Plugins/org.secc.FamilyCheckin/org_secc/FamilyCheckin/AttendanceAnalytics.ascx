@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="AttendanceAnalytics.ascx.cs" Inherits="ockWeb.Plugins.org_secc.FamilyCheckin.AttendanceAnalytics" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="AttendanceAnalytics.ascx.cs" Inherits="RockWeb.Plugins.org_secc.FamilyCheckin.AttendanceAnalytics" %>
 
 <style>
     .group-checkboxes .rock-check-box-list label,
@@ -66,9 +66,6 @@
                         <Rock:SchedulePicker ID="spSchedules" runat="server" Label="Schedules" AllowMultiSelect="true"
                             Help="The schedules to display attendance for. Leave blank to not filter by schedule." />
 
-                        <Rock:RockCheckBoxList ID="clbCampuses" runat="server" FormGroupCssClass="campuses-picker js-campuses-picker" CssClass="campuses-picker-vertical" Label="Campuses"
-                            Help="The campuses to display attendance for. Leave blank to not filter by campus." />
-
                         <Rock:NotificationBox ID="nbGroupsWarning" runat="server" NotificationBoxType="Warning" Text="Please select at least one group." Visible="false" />
                         <h4 class="js-checkbox-selector cursor-pointer">Groups</h4>
                         <Rock:Toggle ID="cbShowInactive" OnCheckedChanged="cbShowInactive_CheckedChanged" AutoPostBack="true" OnText="Yes"
@@ -129,7 +126,6 @@
                                                     <div class="btn-group">
                                                         <asp:LinkButton ID="btnGraphByTotal" runat="server" CssClass="btn btn-xs btn-default active" Text="Total" data-val="0" OnClick="btnGraphBy_Click" />
                                                         <asp:LinkButton ID="btnGraphByGroup" runat="server" CssClass="btn btn-xs btn-default" Text="Group" data-val="1" OnClick="btnGraphBy_Click" />
-                                                        <asp:LinkButton ID="btnGraphByCampus" runat="server" CssClass="btn btn-xs btn-default" Text="Campus" data-val="2" OnClick="btnGraphBy_Click" />
                                                         <asp:LinkButton ID="btnGraphByLocation" runat="server" CssClass="btn btn-xs btn-default" Text="Location" data-val="4" OnClick="btnGraphBy_Click" />
                                                         <asp:LinkButton ID="btnGraphByTime" runat="server" CssClass="btn btn-xs btn-default" Text="Schedule" data-val="3" OnClick="btnGraphBy_Click" />
                                                     </div>
@@ -151,10 +147,10 @@
                                 <asp:Panel ID="pnlChartAttendanceGrid" runat="server" Visible="false">
 
                                     <div class="grid">
-                                        <Rock:Grid ID="gChartAttendance" runat="server" AllowSorting="true" DataKeyNames="DateTimeStamp,SeriesId" RowItemText="Attendance Summary">
+                                        <Rock:Grid ID="gChartAttendance" runat="server" AllowSorting="true" DataKeyNames="DateTimeStamp,SeriesName" RowItemText="Attendance Summary">
                                             <Columns>
                                                 <Rock:DateField DataField="DateTime" HeaderText="Date" SortExpression="DateTimeStamp" />
-                                                <Rock:RockBoundField DataField="SeriesId" HeaderText="Series" SortExpression="SeriesId" />
+                                                <Rock:RockBoundField DataField="SeriesName" HeaderText="Series" SortExpression="SeriesName" />
                                                 <Rock:RockBoundField DataField="YValue" HeaderText="Count" SortExpression="YValue" />
                                             </Columns>
                                         </Rock:Grid>
