@@ -171,11 +171,11 @@ namespace org.secc.SafetyAndSecurity
                     {"personDetailPage", GlobalAttributesCache.Value("InternalApplicationRoot") + "/Person/" + person.Id },
 
                     {"txtAppSigned", "{{t:s;r:y;o:\"Applicant\";}}" },
-                    {"txtAppDated", "{{t:t;r:y;o:\"Applicant\";l:\"Date\";}}" },
+                    {"txtAppDated", "{{t:d;r:y;o:\"Applicant\";l:\"Date\";dd:\""+DateTime.Now.ToShortDateString()+"\";}}" },
                     {"txtAppPrintedName", person.FullNameFormal },
 
                     {"txtSOFSigned", "{{t:s;r:n;o:\"Applicant\";}}" },
-                    {"txtSOFDated", "{{t:t;r:n;o:\"Applicant\";l:\"Date\";}}" },
+                    {"txtSOFDated", "{{t:d;r:n;o:\"Applicant\";l:\"Date\";dd:\""+DateTime.Now.ToShortDateString()+"\";}}" },
                     {"txtSOFPrintedName", person.FullNameFormal },
 
                     {"radReadSOFYes", action.Activity.Workflow.GetAttributeValue("ReadStatementOfFaith").AsBoolean()?"Yes":"No" },
