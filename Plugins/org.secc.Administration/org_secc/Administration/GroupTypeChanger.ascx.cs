@@ -44,13 +44,11 @@ namespace RockWeb.Plugins.org_secc.Administration
                     ltName.Text = string.Format( "<span style='font-size:1.5em;'>{0}</span>", group.Name );
                     ltGroupTypeName.Text = string.Format( "<span style='font-size:1.5em;'>{0}</span>", group.GroupType.Name );
                 }
-                DisplayAttributes();
             }
 
             if ( !Page.IsPostBack )
             {
                 BindGroupTypeDropDown();
-
             }
             else
             {
@@ -61,6 +59,7 @@ namespace RockWeb.Plugins.org_secc.Administration
                 }
                 var newGroupType = new GroupTypeService( new RockContext() ).Get( groupTypeId );
                 BindRoles( newGroupType, group.GroupType.Roles );
+                DisplayAttributes();
             }
 
         }
@@ -89,7 +88,7 @@ namespace RockWeb.Plugins.org_secc.Administration
                 var newGroupType = new GroupTypeService( rockContext ).Get( groupTypeId );
 
                 BindRoles( newGroupType, group.GroupType.Roles );
-
+                DisplayAttributes();
 
             }
             else
@@ -127,6 +126,8 @@ namespace RockWeb.Plugins.org_secc.Administration
 
         private void DisplayAttributes()
         {
+            phAttributes.Controls.Clear();
+
             var newGroupTypeId = ddlGroupTypes.SelectedValue.AsInteger();
 
             if ( newGroupTypeId == 0 )
@@ -145,7 +146,7 @@ namespace RockWeb.Plugins.org_secc.Administration
                     a.EntityTypeQualifierColumn == "GroupTypeId"
                     && a.EntityTypeQualifierValue == stringGroupTypeId
                     && a.EntityTypeId == groupMemberEntityId
-                    );
+                    ).ToList();
             if ( attributes.Any() )
             {
                 var newGroupTypeIdString = newGroupTypeId.ToString();
@@ -210,6 +211,8 @@ namespace RockWeb.Plugins.org_secc.Administration
 
         protected void btnSave_Click( object sender, EventArgs e )
         {
+            //Get the old groupTypeId before we change it
+            var stringGroupTypeId = group.GroupTypeId.ToString();
 
             //Map group roles
             group.GroupTypeId = ddlGroupTypes.SelectedValue.AsInteger();
@@ -229,28 +232,30 @@ namespace RockWeb.Plugins.org_secc.Administration
             var attributeValueService = new AttributeValueService( rockContext );
 
             var groupMemberEntityId = new EntityTypeService( rockContext ).Get( Rock.SystemGuid.EntityType.GROUP_MEMBER.AsGuid() ).Id;
-            var stringGroupTypeId = group.GroupTypeId.ToString();
 
             var attributes = attributeService.Queryable()
                 .Where( a =>
                     a.EntityTypeQualifierColumn == "GroupTypeId"
                     && a.EntityTypeQualifierValue == stringGroupTypeId
                     && a.EntityTypeId == groupMemberEntityId
-                    );
+                    ).ToList();
             foreach ( var attribute in attributes )
             {
                 var ddlAttribute = ( RockDropDownList ) phAttributes.FindControl( attribute.Id.ToString() + "_ddlAttribute" );
-                var newAttributeId = ddlAttribute.SelectedValue.AsInteger();
-                if ( newAttributeId != 0 )
+                if ( ddlAttribute != null )
                 {
-                    foreach ( var member in groupMembers )
+                    var newAttributeId = ddlAttribute.SelectedValue.AsInteger();
+                    if ( newAttributeId != 0 )
                     {
-                        var attributeEntity = attributeValueService.Queryable()
-                            .Where( av => av.EntityId == member.Id && av.AttributeId == attribute.Id )
-                            .FirstOrDefault();
-                        if (attributeEntity!= null)
+                        foreach ( var member in groupMembers )
                         {
-                            attributeEntity.AttributeId = newAttributeId;
+                            var attributeEntity = attributeValueService.Queryable()
+                                .Where( av => av.EntityId == member.Id && av.AttributeId == attribute.Id )
+                                .FirstOrDefault();
+                            if ( attributeEntity != null )
+                            {
+                                attributeEntity.AttributeId = newAttributeId;
+                            }
                         }
                     }
                 }
