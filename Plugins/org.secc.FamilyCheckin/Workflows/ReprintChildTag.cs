@@ -13,6 +13,7 @@ using Rock.Web.Cache;
 using Rock.Workflow;
 using Rock.Workflow.Action.CheckIn;
 using Rock;
+using System.Runtime.Caching;
 
 namespace org.secc.FamilyCheckin
 {
@@ -24,9 +25,13 @@ namespace org.secc.FamilyCheckin
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Reprint ChildTag" )]
     [BinaryFileField( Rock.SystemGuid.BinaryFiletype.CHECKIN_LABEL, "Child Label", "Label to reprint", true )]
+    [GroupTypeField( "Breakout GroupType", "The grouptype which represents elementary breakout groups." )]
 
     public class ReprintChildTag : CheckInActionComponent
     {
+
+        string cacheKey = "org_secc:familycheckin:breakoutgroups";
+
         /// <summary>
         /// Executes the specified workflow.
         /// </summary>
@@ -94,11 +99,29 @@ namespace org.secc.FamilyCheckin
                                     .ToList()
                                     .OrderBy( a => a.Schedule.StartTimeOfDay );
 
+                            //Load breakout group
+                            var breakoutGroups = GetBreakoutGroups( person.Person, rockContext, action );
+
+                            //Add in an empty object as a placeholder for our breakout group
+                            mergeObjects.Add( "BreakoutGroup", "" );
+
+
                             foreach ( var set in sets )
                             {
                                 mergeGroups.Add( set.Group );
                                 mergeLocations.Add( set.Location );
                                 mergeSchedules.Add( set.Schedule );
+
+                                //Add the breakout group mergefield
+                                if ( breakoutGroups.Any() )
+                                {
+                                    var breakoutGroup = breakoutGroups.Where( g => g.ScheduleId == set.Schedule.Id ).FirstOrDefault();
+                                    if ( breakoutGroup != null )
+                                    {
+                                        breakoutGroup.LoadAttributes();
+                                        mergeObjects["BreakoutGroup"] = breakoutGroup.GetAttributeValue( "Letter" );
+                                    }
+                                }
                             }
                             mergeObjects.Add( "Groups", mergeGroups );
                             mergeObjects.Add( "Locations", mergeLocations );
@@ -150,6 +173,38 @@ namespace org.secc.FamilyCheckin
                 return true;
             }
             return false;
+        }
+        private List<Group> GetBreakoutGroups( Person person, RockContext rockContext, WorkflowAction action )
+        {
+            if ( !string.IsNullOrWhiteSpace( GetAttributeValue( action, "BreakoutGroupType" ) ) )
+            {
+                ObjectCache cache = Rock.Web.Cache.RockMemoryCache.Default;
+                List<Group> allBreakoutGroups = cache[cacheKey] as List<Group>;
+                if ( allBreakoutGroups == null || !allBreakoutGroups.Any() )
+                {
+                    //If the cache is empty, fill it up!
+                    Guid breakoutGroupTypeGuid = GetAttributeValue( action, "BreakoutGroupType" ).AsGuid();
+                    var breakoutGroupType = new GroupTypeService( rockContext ).Queryable()
+                        .Where( gt => gt.Guid == breakoutGroupTypeGuid )
+                        .FirstOrDefault();
+                    if ( breakoutGroupType != null )
+                    {
+                        allBreakoutGroups = breakoutGroupType.Groups.ToList();
+                        var cachePolicy = new CacheItemPolicy();
+                        cachePolicy.AbsoluteExpiration = DateTimeOffset.Now.AddMinutes( 10 );
+                        cache.Set( cacheKey, allBreakoutGroups, cachePolicy );
+                    }
+                    else
+                    {
+                        return new List<Group>();
+                    }
+                }
+                return allBreakoutGroups.Where( g => g.Members.Where( gm => gm.PersonId == person.Id ).Any() ).ToList();
+            }
+            else
+            {
+                return new List<Group>();
+            }
         }
     }
 }
