@@ -262,7 +262,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     communication.MediumData.Add( "FromName", CurrentPerson.FullName );
 
                     communication.MediumData.Add( "FromAddress", GetSafeSender( CurrentPerson.Email ) );
-                    communication.MediumData.Add( "ReplyToAddress", CurrentPerson.Email );
+                    communication.MediumData.Add( "ReplyTo", CurrentPerson.Email );
                     communication.MediumData.Add( "TextMessage", tbBody.Text );
 
                     communication.Status = CommunicationStatus.Approved;
