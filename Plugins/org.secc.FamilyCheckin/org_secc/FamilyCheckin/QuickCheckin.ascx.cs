@@ -88,7 +88,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 {
                     pnlMain.Visible = false;
                     pnlNoCheckin.Visible = true;
-                    var script = "setTimeout( function(){ __doPostBack( '" + btnCancel.UniqueID + "', 'OnClick' ); },15000)";
+                    var script = "setTimeout( function(){ __doPostBack( '" + btnCancel.UniqueID + "', 'OnClick' ); },15000);";
                     ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "goBack", script, true );
                     return;
                 }
