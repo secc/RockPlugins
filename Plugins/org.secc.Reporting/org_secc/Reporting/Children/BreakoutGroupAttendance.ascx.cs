@@ -44,6 +44,15 @@ namespace RockWeb.Blocks.Reporting.Children
 
         List<Schedule> schedules;
         RockContext rockContext;
+        List<Dictionary<int, int>> scheduleValueDicts;
+        Dictionary<int, DateTime> firstAttendanceDate;
+        Dictionary<int, DateTime> lastAttendanceDate;
+
+        protected override void OnInit( EventArgs e )
+        {
+            base.OnInit( e );
+            gBreakoutGroups.Actions.ShowCommunicate = true;
+        }
         /// <summary>
         /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
         /// </summary>
@@ -52,6 +61,7 @@ namespace RockWeb.Blocks.Reporting.Children
         {
             base.OnLoad( e );
 
+            var scheduleIds = GetAttributeValue( "ScheduleIDs" );
             rockContext = new RockContext();
             schedules = new ScheduleService( rockContext )
                 .GetByIds( GetAttributeValue( "ScheduleIDs" )
@@ -84,35 +94,99 @@ namespace RockWeb.Blocks.Reporting.Children
 
             BindFilter( groupType.Groups, schedules );
 
-            var selectedGroups = new List<string>();
+            var selectedGroups = new List<int>();
             foreach ( ListItem item in cblGroups.Items )
             {
                 if ( item.Selected )
                 {
-                    selectedGroups.Add( item.Value );
+                    selectedGroups.Add( item.Value.AsInteger() );
                 }
             }
 
-            foreach ( var group in groupType.Groups )
-            {
-                if ( selectedGroups.Contains( group.Id.ToString() ) )
+            var breakoutGroupMembers = new GroupService( rockContext )
+                .GetByIds( selectedGroups )
+                .SelectMany( g => g.Members )
+                .Select( gm => new BreakoutGroupMember
                 {
-                    foreach ( var member in group.Members )
-                    {
-                        data.Add( new BreakoutGroupMember { group = group, person = member.Person } );
-                    }
+                    group = gm.Group,
+                    Name = gm.Person.LastName + ", " + gm.Person.NickName,
+                    person = gm.Person,
+                    Gender = gm.Person.Gender,
+                    Birthdate = gm.Person.BirthDate,
+                    Breakout = gm.Group.Name
                 }
-            }
+                )
+                .OrderBy( a => a.Breakout )
+                .ThenBy( a => a.Name )
+                .ToList();
 
             var selectedSchedules = new List<string>();
+            scheduleValueDicts = new List<Dictionary<int, int>>();
+
+            var personIds = breakoutGroupMembers.Select( bgm => bgm.person.Id ).ToList();
+            var attendanceService = new AttendanceService( rockContext );
+
+            var lower = drRange.LowerValue;
+            var upper = drRange.UpperValue;
+            if ( upper != null )
+            {
+                upper = upper.Value.AddDays( 1 );
+            }
+
+            //Build dictionaries containing the values for the attendance count to be added on row bind
             foreach ( ListItem item in cblSchedules.Items )
             {
                 if ( item.Selected )
                 {
                     selectedSchedules.Add( item.Value );
+                    var scheduleId = item.Value.AsInteger();
+
+                    var attendanceQry = attendanceService.Queryable()
+                        .Where( a => personIds.Contains( a.PersonAlias.PersonId ) && a.ScheduleId == scheduleId );
+
+                    if ( upper != null )
+                    {
+                        attendanceQry = attendanceQry.Where( a => a.StartDateTime <= upper );
+                    }
+                    if ( lower != null )
+                    {
+                        attendanceQry = attendanceQry.Where( a => a.StartDateTime >= lower );
+                    }
+                    var groupby = attendanceQry.GroupBy( a => a.PersonAlias.PersonId )
+                        .Select( g => new { Key = g.Key, Value = g.Count() } ).ToDictionary( kvp => kvp.Key, kvp => kvp.Value );
+                    scheduleValueDicts.Add( groupby );
                 }
             }
 
+            //Get first and last attendance dates
+            List<int> selectedSchedulesInt = selectedSchedules.Select( ss => ss.AsInteger() ).ToList();
+
+            var attendanceDateQry = attendanceService.Queryable()
+                .Where( a => personIds.Contains(a.PersonAlias.PersonId) && a.ScheduleId != null && selectedSchedulesInt.Contains( a.ScheduleId ?? 0 ) );
+
+            if ( upper != null )
+            {
+                attendanceDateQry = attendanceDateQry.Where( a => a.StartDateTime <= upper );
+            }
+            if ( lower != null )
+            {
+                attendanceDateQry = attendanceDateQry.Where( a => a.StartDateTime >= lower );
+            }
+
+            var attendanceDateSelect = attendanceDateQry
+                .Select( a => new { Key = a.PersonAlias.PersonId, Value = a.StartDateTime } );
+
+            firstAttendanceDate = attendanceDateSelect
+                .OrderBy( a => a.Value )
+                .DistinctBy( a => a.Key )
+                .ToDictionary( a => a.Key, a => a.Value );
+
+            lastAttendanceDate = attendanceDateSelect
+                .OrderByDescending( a => a.Value )
+                .DistinctBy( a => a.Key )
+                .ToDictionary( a => a.Key, a => a.Value );
+
+            //remove dynamically added columns if any exist
             while ( gBreakoutGroups.Columns.Count > 8 )
             {
                 gBreakoutGroups.Columns.RemoveAt( 8 );
@@ -128,23 +202,7 @@ namespace RockWeb.Blocks.Reporting.Children
                 }
             }
 
-            var source = data
-                 .Select( d =>
-                  new BreakoutGroupMember()
-                  {
-                      group = d.group,
-                      person = d.person,
-                      Breakout = d.group.Name,
-                      Name = string.Format( "{0}, {1}", d.person.LastName, d.person.NickName ),
-                      Birthdate = d.person.BirthDate.ToString(),
-                      Gender = d.person.Gender.ToString(),
-                      Grade = d.person.GradeFormatted
-                  }
-                 )
-                 .OrderBy( a => a.Breakout )
-                 .ThenBy( a => a.Name );
-
-            gBreakoutGroups.DataSource = source;
+            gBreakoutGroups.DataSource = breakoutGroupMembers;
             gBreakoutGroups.DataBind();
         }
 
@@ -239,49 +297,44 @@ namespace RockWeb.Blocks.Reporting.Children
                 var total = 0;
                 var attendanceService = new AttendanceService( rockContext ).Queryable();
                 BreakoutGroupMember bgm = ( BreakoutGroupMember ) e.Row.DataItem;
-                var cell = 8;
+                e.Row.Cells[4].Text = bgm.person.GradeFormatted;
 
                 var schedulePreference = GetUserPreference( BlockCache.Guid.ToString() + "Schedule" )
                 .Split( new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries )
                 .ToList();
 
-                var lower = drRange.LowerValue;
-                var upper = drRange.UpperValue;
-                if ( upper != null )
+                var i = 0;
+
+                if ( firstAttendanceDate.ContainsKey( bgm.person.Id ) )
                 {
-                    upper = upper.Value.AddDays( 1 );
+                    e.Row.Cells[5].Text = firstAttendanceDate[bgm.person.Id].ToString( "MM/dd/yyyy " );
                 }
 
-                foreach ( var schedule in schedules )
+                if ( lastAttendanceDate.ContainsKey( bgm.person.Id ) )
                 {
-                    if ( !schedulePreference.Any() || schedulePreference.Contains( schedule.Id.ToString() ) )
+                    e.Row.Cells[6].Text = lastAttendanceDate[bgm.person.Id].ToString( "MM/dd/yyyy " );
+                }
+
+                if ( schedulePreference.Any() )
+                {
+                    foreach ( var schedule in schedules )
                     {
-                        var attendance = attendanceService
-                            .Where( a =>
-                                a.ScheduleId == schedule.Id
-                                && a.PersonAlias.PersonId == bgm.person.Id
-                                && a.DidAttend == true );
-
-                        if ( upper != null && lower != null )
+                        if ( !schedulePreference.Contains( schedule.Id.ToString() ) )
                         {
-                            attendance = attendance.Where( a => a.StartDateTime >= lower && a.StartDateTime <= upper );
-                        }
-                        attendance = attendance.OrderBy( a => a.StartDateTime );
-                        if ( attendance.Any() )
-                        {
-                            e.Row.Cells[5].Text = attendance
-                                .First()
-                                .StartDateTime
-                                .ToString( "MM/dd/yyyy " );
-                            e.Row.Cells[6].Text = attendance.ToList()
-                                .Last()
-                                .StartDateTime
-                                .ToString( "MM/dd/yyyy " );
+                            continue;
                         }
 
-                        total += attendance.Count();
-                        e.Row.Cells[cell].Text = attendance.Count().ToString();
-                        cell++;
+                        var attendance = 0;
+
+                        if ( scheduleValueDicts[i].ContainsKey(bgm.person.Id) )
+                        {
+                            attendance = scheduleValueDicts[i][bgm.person.Id];
+                        }
+
+
+                        total += attendance;
+                        e.Row.Cells[8 + i].Text = attendance.ToString();
+                        i++;
                     }
                 }
                 e.Row.Cells[7].Text = total.ToString();
@@ -328,8 +381,8 @@ namespace RockWeb.Blocks.Reporting.Children
         public Person person { get; set; }
         public string Breakout { get; set; }
         public string Name { get; set; }
-        public string Birthdate { get; set; }
-        public string Gender { get; set; }
+        public DateTime? Birthdate { get; set; }
+        public Gender Gender { get; set; }
         public string Grade { get; set; }
     }
 }
