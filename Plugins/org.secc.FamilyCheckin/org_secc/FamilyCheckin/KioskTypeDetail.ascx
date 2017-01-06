@@ -9,7 +9,7 @@
 
 <asp:UpdatePanel ID="upnlDevice" runat="server">
     <ContentTemplate>
-        <asp:Panel ID="pnlDetails" CssClass="panel panel-block" runat="server" Visible="false">
+        <asp:Panel ID="pnlDetails" CssClass="panel panel-block" runat="server">
 
             <asp:HiddenField ID="hfKioskTypeId" runat="server" />
 
@@ -62,9 +62,9 @@
                         </Columns>
                     </Rock:Grid>
 
-                    <Rock:HtmlEditor runat="server" Label="HTML Message" ID="tbMessage" SourceTypeName="org.secc.FamilyCheckin.Model.KioskType, org.secc.FamilyCheckin" PropertyName="Message"></Rock:HtmlEditor>
-
+                    <Rock:HtmlEditor runat="server" Label="HTML Message" Height="300" ID="tbMessage" SourceTypeName="org.secc.FamilyCheckin.Model.KioskType, org.secc.FamilyCheckin" PropertyName="Message"></Rock:HtmlEditor>
                 </fieldset>
+
 
 
                 <div class="actions">
@@ -89,6 +89,5 @@
                 <Rock:SchedulePicker runat="server" ID="schedulePicker" Label="Kiosk Schedule" />
             </Content>
         </Rock:ModalDialog>
-
     </ContentTemplate>
 </asp:UpdatePanel>
