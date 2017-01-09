@@ -115,6 +115,7 @@
     <Compile Include="Rest\Handlers\SessionRouteHandler.cs" />
     <Compile Include="Utilities\KioskCountUtility.cs" />
     <Compile Include="Utilities\LabelPrinter.cs" />
+    <Compile Include="Workflows\CreateEventLabels.cs" />
     <Compile Include="Workflows\CustFindFamilies.cs" />
     <Compile Include="Workflows\FilterGroupsByAbility.cs" />
     <Compile Include="Workflows\FilterGroupsByBirthday.cs" />
