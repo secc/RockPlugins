@@ -98,6 +98,7 @@
   <ItemGroup>
     <Compile Include="Data\FamilyCheckinContext.cs" />
     <Compile Include="Data\FamilyCheckinService.cs" />
+    <Compile Include="Exceptions\CheckInStateLost.cs" />
     <Compile Include="Jobs\ResetGroupLocationSchedules.cs" />
     <Compile Include="Migrations\201606272016469_Init.cs" />
     <Compile Include="Migrations\201607151453103_Message.cs" />
