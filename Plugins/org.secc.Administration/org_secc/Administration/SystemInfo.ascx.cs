@@ -38,7 +38,7 @@ namespace RockWeb.Plugins.org_secc.Administration
     /// 
     /// </summary>
     [DisplayName( "System Information" )]
-    [Category( "SECC -> Administration" )]
+    [Category( "SECC > Administration" )]
     [Description( "Displays system information on the installed version of Rock." )]
     public partial class SystemInfo : Rock.Web.UI.RockBlock
     {
