@@ -11,6 +11,7 @@ using Rock.Web.UI.Controls;
 using Rock.Web.Cache;
 using System.Web.UI;
 using org.secc.FamilyCheckin.Model;
+using org.secc.FamilyCheckin.Exceptions;
 using Rock.Data;
 
 namespace RockWeb.Plugins.org_secc.FamilyCheckin
@@ -39,6 +40,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             if ( CurrentCheckInState == null )
             {
+                LogException( new CheckInStateLost( "Lost check-in state on init" ) );
                 NavigateToPreviousPage();
                 return;
             }
@@ -151,6 +153,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             if ( CurrentCheckInState == null )
             {
+                LogException( new CheckInStateLost( "Lost check-in state on refresh view" ) );
                 NavigateToPreviousPage();
                 return;
             }

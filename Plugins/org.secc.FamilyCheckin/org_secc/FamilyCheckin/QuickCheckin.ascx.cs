@@ -15,6 +15,7 @@ using Rock.Data;
 using org.secc.FamilyCheckin.Utilities;
 using Rock.Attribute;
 using System.Data.Entity;
+using org.secc.FamilyCheckin.Exceptions;
 
 namespace RockWeb.Plugins.org_secc.FamilyCheckin
 {
@@ -288,6 +289,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         {
             if ( CurrentCheckInState == null )
             {
+                LogException( new CheckInStateLost( "Lost check-in state on displaying people" ) );
                 NavigateToPreviousPage();
                 return;
             }
