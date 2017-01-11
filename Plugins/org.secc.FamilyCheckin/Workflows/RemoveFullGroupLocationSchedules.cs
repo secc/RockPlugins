@@ -12,6 +12,9 @@ using Rock.Model;
 using Rock.Workflow.Action.CheckIn;
 using Rock.Attribute;
 using Rock.Web.Cache;
+using System.Runtime.Caching;
+using org.secc.FamilyCheckin.Utilities;
+using static org.secc.FamilyCheckin.Utilities.KioskCountUtility;
 
 namespace org.secc.FamilyCheckin
 {
@@ -46,13 +49,21 @@ namespace org.secc.FamilyCheckin
                 var family = checkInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault();
                 if ( family != null )
                 {
+                    var volAttributeGuid = GetAttributeValue( action, "VolunteerGroupAttribute" );
 
-                    var volAttributeGuid = GetAttributeValue( action, "VolunteerGroupAttribute" ).AsGuid();
+                    KioskCountUtility kioskCountUtility = new KioskCountUtility( checkInState.ConfiguredGroupTypes, volAttributeGuid.AsGuid() );
 
-                    var volAttribute = AttributeCache.Read( volAttributeGuid );
-
-                    AttributeValueService attributeValueService = new AttributeValueService( rockContext );
-                    List <int> volunteerGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "True" ).Select( av => av.EntityId.Value ).ToList();
+                    ObjectCache cache = Rock.Web.Cache.RockMemoryCache.Default;
+                    List<int> volunteerGroupIds = cache[volAttributeGuid + "CachedVolunteerGroups"] as List<int>;
+                    if ( volunteerGroupIds == null ) //cache miss load from DB
+                    {
+                        var volAttribute = AttributeCache.Read( volAttributeGuid.AsGuid() );
+                        AttributeValueService attributeValueService = new AttributeValueService( rockContext );
+                        volunteerGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "True" ).Select( av => av.EntityId.Value ).ToList();
+                        var cachePolicy = new CacheItemPolicy();
+                        cachePolicy.AbsoluteExpiration = DateTimeOffset.Now.AddMinutes( 10 );
+                        cache.Set( volAttributeGuid + "CachedVolunteerGroups", volAttributeGuid + "CachedVolunteerGroups", cachePolicy );
+                    }
 
                     var locationService = new LocationService( rockContext );
                     var attendanceService = new AttendanceService( rockContext ).Queryable();
@@ -82,6 +93,7 @@ namespace org.secc.FamilyCheckin
                                              && a.ScheduleId == schedule.Schedule.Id
                                              && a.StartDateTime >= Rock.RockDateTime.Today );
 
+
                                         if ( filterAttendanceSchedules && attendanceQry.Where( a => a.PersonAlias.PersonId == person.Person.Id ).Any() )
                                         {
                                             filteredScheduleIds.Add( schedule.Schedule.Id );
@@ -91,16 +103,18 @@ namespace org.secc.FamilyCheckin
 
                                         var threshold = locationEntity.FirmRoomThreshold ?? 0;
 
-                                        if ( attendanceQry.Where( a => a.LocationId == location.Location.Id ).Count() >= threshold )
+                                        LocationScheduleCount locationScheduleCount = kioskCountUtility.GetLocationScheduleCount( location.Location.Id, schedule.Schedule.Id );
+                                        if ( locationScheduleCount.TotalCount >= threshold )
                                         {
                                             location.Schedules.Remove( schedule );
+                                            continue;
                                         }
 
                                         if ( !volunteerGroupIds.Contains( group.Group.Id ) )
                                         {
                                             threshold = Math.Min( locationEntity.FirmRoomThreshold ?? 0, locationEntity.SoftRoomThreshold ?? 0 );
 
-                                            if ( attendanceQry.Where( a => a.LocationId == location.Location.Id && !volunteerGroupIds.Contains( a.GroupId??0 ) ).Count() >= threshold )
+                                            if ( locationScheduleCount.ChildCount >= threshold )
                                             {
                                                 location.Schedules.Remove( schedule );
                                             }
