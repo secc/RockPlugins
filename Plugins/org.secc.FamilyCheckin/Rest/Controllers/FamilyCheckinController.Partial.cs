@@ -13,6 +13,8 @@ using Rock.Web.Cache;
 using System.Collections.Generic;
 using org.secc.FamilyCheckin.Rest.Handlers;
 using System.Web.SessionState;
+using Rock.Data;
+using org.secc.FamilyCheckin.Model;
 
 namespace org.secc.FamilyCheckin.Rest.Controllers
 {
@@ -34,7 +36,7 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
         {
             routes.MapHttpRoute(
                 name: "FamiliesByPhone",
-                routeTemplate: "api/org.secc/familycheckin/family/{phone}",
+                routeTemplate: "api/org.secc/familycheckin/{action}/{param}",
                 defaults: new
                 {
                     controller = "familycheckin",
@@ -57,7 +59,8 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
             return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, phone );
         }
 
-        public HttpResponseMessage Get( string phone )
+        [HttpGet()]
+        public HttpResponseMessage Family( string param )
         {
             try
             {
@@ -70,7 +73,7 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
                 CurrentCheckInState.CheckIn.UserEnteredSearch = true;
                 CurrentCheckInState.CheckIn.ConfirmSingleFamily = true;
                 CurrentCheckInState.CheckIn.SearchType = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER );
-                CurrentCheckInState.CheckIn.SearchValue = phone;
+                CurrentCheckInState.CheckIn.SearchValue = param;
 
                 var rockContext = new Rock.Data.RockContext();
                 var block = BlockCache.Read( blockGuid, rockContext );
@@ -111,6 +114,32 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
                 ExceptionLogService.LogException( ex, HttpContext.Current );
                 return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden, "Forbidden" );
             }
+        }
+
+        [HttpGet()]
+        public HttpResponseMessage KioskStatus( int param )
+        {
+            var kioskType = new KioskTypeService( new RockContext() ).Get( param );
+            var Session = HttpContext.Current.Session;
+            if ( Session["CheckInState"] != null )
+            {
+                CurrentCheckInState = Session["CheckInState"] as CheckInState;
+            }
+            else
+            {
+                return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, new Dictionary<string, bool> { {"active", false } } );
+            }
+
+            if (kioskType == null
+                || CurrentCheckInState == null
+                || !kioskType.IsOpen()
+                || CurrentCheckInState.Kiosk.FilteredGroupTypes( CurrentCheckInState.ConfiguredGroupTypes ).Count == 0
+                || !CurrentCheckInState.Kiosk.HasLocations( CurrentCheckInState.ConfiguredGroupTypes ) )
+            {
+                return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, new Dictionary<string, bool> { { "active", false } } );
+            }
+
+            return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, new Dictionary<string, bool> { { "active", true } } );
         }
 
         private void SaveState( HttpSessionState Session )

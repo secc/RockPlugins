@@ -13,6 +13,7 @@
 <script>
     var selectionActive=false;
     var showingWelcome=false;
+    var kioskActive = false;
 
     Sys.Application.add_load(function () {
         $('.tenkey a.digit').click(function () {
@@ -41,6 +42,33 @@
             showWelcome();
         });
     });
+
+    var checkStatus = function(kioskTypeId){
+        $.ajax({
+            url: "/api/org.secc/familycheckin/KioskStatus/"+kioskTypeId,
+            dataType: "json",
+            success: function(data){
+                updateKiosk(data,kioskTypeId );},
+            error: function(data){
+                refreshKiosk();
+            }
+        });
+    }
+
+    var updateKiosk = function(data,kioskTypeId){
+        console.log(data);
+        if(data["active"]){
+            console.log('active');
+            window.clearTimeout(timeout);
+            timeout = window.setTimeout(function(){checkStatus( kioskTypeId )}, timeoutSeconds * 1000);
+            if (!kioskActive){
+                refreshKiosk();
+            }
+        } else {
+            console.log('NOT ACTIVE');
+            refreshKiosk();
+        }
+    }
 
     var doSearch = function(){
         if (selectionActive){
