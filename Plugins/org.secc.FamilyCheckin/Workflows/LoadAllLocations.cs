@@ -54,10 +54,10 @@ namespace org.secc.FamilyCheckin
                                 foreach ( var group in groupType.GetGroups( !loadAll ) )
                                 {
                                     foreach ( var kioskGroup in kioskGroupType.KioskGroups
-                                        .Where( g => g.Group.Id == group.Group.Id && g.IsCheckInActive )
+                                        .Where( g => g.Group.Id == group.Group.Id )
                                         .ToList() )
                                     {
-                                        foreach ( var kioskLocation in kioskGroup.KioskLocations.Where( l => l.IsCheckInActive && l.Location.IsActive ) )
+                                        foreach ( var kioskLocation in kioskGroup.KioskLocations.Where( l => l.Location.IsActive ) )
                                         {
                                             if ( !group.Locations.Any( l => l.Location.Id == kioskLocation.Location.Id ) )
                                             {
