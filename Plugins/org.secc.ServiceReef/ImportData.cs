@@ -91,8 +91,14 @@ namespace org.secc.ServiceReef
                 // Get all payments from ServiceReef
                 var request = new RestRequest("v1/payments", Method.GET);
                 request.AddParameter("pageSize", 100);
-                request.AddParameter("startDate", dateRange.Start );
-                request.AddParameter("endDate", dateRange.End );
+                if (dateRange.Start.HasValue)
+                {
+                    request.AddParameter( "startDate", dateRange.Start.Value.ToString( "o" ) );
+                }
+                if ( dateRange.End.HasValue )
+                {
+                    request.AddParameter( "endDate", dateRange.End.Value.ToString( "o" ) );
+                }
                 request.AddParameter("page", 1);
 
                 while (total > processed)
@@ -112,7 +118,7 @@ namespace org.secc.ServiceReef
                             if (result.PaymentProcessorTransactionId != null) {
                                 if (result.FirstName == null || result.LastName == null)
                                 {
-                                    warnings += "Mising Firstname/Lastname for ServiceReef transaction Id: " + result.TransactionId + Environment.NewLine;
+                                    warnings += "Missing Firstname/Lastname for ServiceReef transaction Id: " + result.TransactionId + Environment.NewLine;
                                     processed++;
                                     continue;
                                 }
