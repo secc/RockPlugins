@@ -391,7 +391,7 @@ namespace RockWeb.Plugins.org_secc.Crm
                 .Where( m => m.Group.GroupType.Guid == groupTypefamilyGuid )
                 .SelectMany( g => g.Group.GroupLocations )
                 .Where( gl => (gl.GroupLocationTypeValueId == homeAddressTypeValueId || gl.GroupLocationTypeValueId == previousAddressTypeValueId) &&
-                    gl.Location.Street1.Contains( partialHomePrevAddress ) )
+                    (gl.Location.Street1.Contains( partialHomePrevAddress ) || gl.Location.PostalCode.Contains( partialHomePrevAddress ) ) )
                 .SelectMany( gl => gl.Group.Members )
                 .Select( gm => gm.PersonId )
                 .Distinct();
