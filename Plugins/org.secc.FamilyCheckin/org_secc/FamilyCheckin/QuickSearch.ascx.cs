@@ -173,11 +173,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     pnlNotActiveYet.Visible = true;
                     HideSign();
                 }
+                ScriptManager.RegisterStartupScript( Page, Page.GetType(), "Set Kiosk Active", "kioskActive=false;", true );
             }
             else if ( CurrentCheckInState.Kiosk.FilteredGroupTypes( CurrentCheckInState.ConfiguredGroupTypes ).Count == 0 )
             {
                 pnlNotActive.Visible = true;
                 HideSign();
+                ScriptManager.RegisterStartupScript( Page, Page.GetType(), "Set Kiosk Active", "kioskActive=false;", true );
             }
             else if ( !CurrentCheckInState.Kiosk.HasLocations( CurrentCheckInState.ConfiguredGroupTypes ) )
             {
@@ -185,11 +187,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 lblActiveWhen.Text = activeAt.ToString( "o" );
                 pnlNotActiveYet.Visible = true;
                 HideSign();
+                ScriptManager.RegisterStartupScript( Page, Page.GetType(), "Set Kiosk Active", "kioskActive=false;", true );
             }
             else
             {
                 pnlActive.Visible = true;
                 ShowWelcomeSign();
+                ScriptManager.RegisterStartupScript( Page, Page.GetType(), "Set Kiosk Active", "kioskActive=true;", true );
             }
         }
 
@@ -216,7 +220,7 @@ var timeoutSeconds = $('.js-refresh-timer-seconds').val();
 if (timeout) {{
     window.clearTimeout(timeout);
 }}
-var timeout = window.setTimeout(refreshKiosk, timeoutSeconds * 100);
+var timeout = window.setTimeout(function(){{checkStatus( {1} )}}, timeoutSeconds * 1000);
 
 var $ActiveWhen = $('.active-when');
 var $CountdownTimer = $('.countdown-timer');
@@ -228,7 +232,7 @@ function refreshKiosk() {{
         if (input.value.length<1) {{
             {0};
         }} else {{
-            timeout = window.setTimeout(refreshKiosk, timeoutSeconds * 100)
+            timeout = window.setTimeout(function(){{checkStatus( {1} )}}, timeoutSeconds * 1000)
         }}
     }} else {{
         {0};
@@ -253,7 +257,7 @@ if ($ActiveWhen.text() != '')
     }});
 }}
 
-", this.Page.ClientScript.GetPostBackEventReference( lbRefresh, "" ) );
+", this.Page.ClientScript.GetPostBackEventReference( lbRefresh, "" ), KioskType.Id);
             ScriptManager.RegisterStartupScript( Page, Page.GetType(), "RefreshScript", script, true );
         }
     }
