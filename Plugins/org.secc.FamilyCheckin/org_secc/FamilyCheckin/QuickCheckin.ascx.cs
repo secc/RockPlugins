@@ -10,7 +10,6 @@ using Rock.Web.Cache;
 using System.Web.UI.WebControls;
 using System.Web.UI;
 using Rock.Model;
-using System.Web.UI.HtmlControls;
 using Rock.Data;
 using org.secc.FamilyCheckin.Utilities;
 using Rock.Attribute;
@@ -967,6 +966,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             AttributeValueService attributeValueService = new AttributeValueService( rockContext );
             List<int> volunteerGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "True" ).Select( av => av.EntityId.Value ).ToList();
 
+            KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes, volAttributeGuid );
 
             //Test for overloaded rooms
             var overload = false;
@@ -993,10 +993,17 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                                      a.DidAttend == true
                                      && a.EndDateTime == null
                                      && a.ScheduleId == schedule.Schedule.Id
-                                     && a.LocationId == location.Location.Id
                                      && a.StartDateTime >= Rock.RockDateTime.Today );
 
-                                if ( attendanceQry.Count() >= threshold )
+                                //Filter out if person is already checked in
+                                if ( attendanceQry.Where( a => a.PersonAlias.PersonId == person.Person.Id ).Any() )
+                                {
+                                    location.Schedules.Remove( schedule );
+                                    overload = true;
+                                }
+
+                                LocationScheduleCount locationScheduleCount = kioskCountUtility.GetLocationScheduleCount( location.Location.Id, schedule.Schedule.Id );
+                                if ( locationScheduleCount.TotalCount >= threshold )
                                 {
                                     person.Selected = false;
                                     location.Schedules.Remove( schedule );
@@ -1007,7 +1014,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                                 {
                                     threshold = Math.Min( locationEntity.FirmRoomThreshold ?? 0, locationEntity.SoftRoomThreshold ?? 0 );
 
-                                    if ( attendanceQry.Where( a => !volunteerGroupIds.Contains( a.GroupId ?? 0 ) ).Count() >= threshold )
+                                    if ( locationScheduleCount.ChildCount >= threshold )
                                     {
                                         person.Selected = false;
                                         location.Schedules.Remove( schedule );
