@@ -10,7 +10,6 @@ using Rock.Web.Cache;
 using System.Web.UI.WebControls;
 using System.Web.UI;
 using Rock.Model;
-using System.Web.UI.HtmlControls;
 using Rock.Data;
 using org.secc.FamilyCheckin.Utilities;
 using Rock.Attribute;
@@ -240,7 +239,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         {
             foreach ( var family in CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ) )
             {
-                foreach ( var person in family.People.Where( p => p.Selected ) )
+                foreach ( var person in family.People )
                 {
                     foreach ( var groupType in person.GroupTypes )
                     {
@@ -297,7 +296,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             var people = CurrentCheckInState.CheckIn.Families.SelectMany( f => f.People ).OrderBy( p => p.Person.BirthDate );
 
             int i = 0;
-            HtmlGenericControl hgcRow = new HtmlGenericControl( "div" );
+            Panel hgcRow = new Panel();
 
             foreach ( var person in people )
             {
@@ -308,26 +307,40 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     SaveState();
                 }
                 //Display person checkin information
-                if ( GetCheckinSchedules( person.Person ).Count() > 0 )
+
+                i++;
+
+                if ( i % 2 > 0 )
                 {
-                    i++;
+                    hgcRow = new Panel();
+                    hgcRow.ID = person.Person.Id.ToString() + "_hgcRow";
+                    phPeople.Controls.Add( hgcRow );
+                    hgcRow.AddCssClass( "row" );
+                }
 
-                    if ( i % 2 > 0 )
-                    {
-                        hgcRow = new HtmlGenericControl( "div" );
-                        phPeople.Controls.Add( hgcRow );
-                        hgcRow.AddCssClass( "row" );
-                    }
+                Panel hgcPadding = new Panel();
+                hgcPadding.ID = person.Person.Id.ToString() + "_hgcPadding";
+                hgcPadding.AddCssClass( "col-xs-12 col-lg-6" );
+                hgcRow.Controls.Add( hgcPadding );
 
-                    HtmlGenericControl hgcPadding = new HtmlGenericControl( "div" );
-                    hgcPadding.AddCssClass( "col-xs-12 col-lg-6" );
-                    hgcRow.Controls.Add( hgcPadding );
 
-                    HtmlGenericControl hgcCell = new HtmlGenericControl( "div" );
+                if ( GetCheckinSchedules( person.Person ).Count() > 0 )
+                { //Display check-in information
+                    Panel hgcCell = new Panel();
+                    hgcCell.ID = person.Person.Id.ToString() + "hgcCell";
                     hgcCell.AddCssClass( "personContainer col-xs-12" );
                     hgcPadding.Controls.Add( hgcCell );
+
                     DisplayPersonButton( person, hgcCell );
                     DisplayPersonCheckinAreas( person.Person, hgcCell );
+                }
+                else
+                {   //Display can't check in information
+                    Panel hgcCell = new Panel();
+                    hgcCell.ID = person.Person.Id.ToString() + "hgcCell_noOption";
+                    hgcCell.AddCssClass( "personContainer col-xs-12" );
+                    hgcPadding.Controls.Add( hgcCell );
+                    DisplayPersonNoOptions( person, hgcCell );
                 }
             }
             if ( people.Where( p => p.Selected ).Any() )
@@ -340,15 +353,63 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
         }
 
-        private void DisplayPersonCheckinAreas( Person person, HtmlGenericControl hgcRow )
+        private void DisplayPersonNoOptions( CheckInPerson person, Panel hgcCell )
+        {
+            //Padding div to make it look nice.
+            Panel hgcPadding = new Panel();
+            hgcPadding.AddCssClass( "col-sm-4 col-xs-12" );
+            hgcCell.Controls.Add( hgcPadding );
+
+            //Checkin Button
+            var btnPerson = new BootstrapButton();
+            btnPerson.ID = person.Person.Guid.ToString();
+            btnPerson.Enabled = false;
+            hgcPadding.Controls.Add( btnPerson );
+
+            var icon = "<i class='fa fa-user fa-5x'></i>";
+
+            if ( person.Person.DaysToBirthday < 8 )
+            {
+                icon = "<i class='fa fa-birthday-cake fa-5x'></i>";
+            }
+            btnPerson.DataLoadingText = icon + "<br /><span>Please Wait...</span>";
+            btnPerson.Text = icon + "<br/><span>" + person.Person.NickName + "</span>";
+            btnPerson.CssClass = "btn btn-default btn-lg col-xs-12 disabled checkinPerson";
+
+            Panel hgcAreaRow = new Panel();
+            hgcAreaRow.ID = person.Person.Id.ToString() + "_noOptionHGCAreaRow";
+            hgcCell.AddCssClass( "row col-xs-12" );
+            hgcCell.Controls.Add( hgcAreaRow );
+            var btnMessage = new LinkButton();
+            btnMessage.ID = person.Person.Id.ToString() + "_noOptionButton";
+            btnMessage.AddCssClass( "btn btn-default col-xs-8 disabled" );
+            hgcCell.Controls.Add( btnMessage );
+
+            btnMessage.Text = "There are no classes available for " + person.Person.NickName + "<br> to check-in, or all rooms are currently full.";
+            foreach ( var locationId in person.GroupTypes.SelectMany( gt => gt.Groups ).SelectMany( g => g.Locations ).Select( l => l.Location.Id ).ToList() )
+            {
+                var kla = KioskLocationAttendance.Read( locationId );
+                if ( kla.DistinctPersonIds.Contains( person.Person.Id ) )
+                {
+                    btnMessage.Text = person.Person.NickName + " has already been checked-in.";
+                    btnPerson.Text = "<i class='fa fa-check-square-o fa-5x'></i><br/><span>" + person.Person.NickName + "</span>";
+                    btnPerson.CssClass = "btn btn-default btn-lg col-xs-12 disabled checkinPerson";
+                    break;
+                }
+            }
+        }
+
+        private void DisplayPersonCheckinAreas( Person person, Panel hgcRow )
         {
             List<CheckInSchedule> personSchedules = GetCheckinSchedules( person );
 
             foreach ( var schedule in personSchedules )
             {
-                HtmlGenericControl hgcAreaRow = new HtmlGenericControl( "div" );
-                hgcRow.AddCssClass( "row col-xs-12" );
+                Panel hgcAreaRow = new Panel();
                 hgcRow.Controls.Add( hgcAreaRow );
+                hgcAreaRow.ID = person.Id.ToString() + schedule.Schedule.Id.ToString() + ( _cullStatus == CullStatus.Inactive ? "cullingoff" : "" );
+
+                hgcRow.AddCssClass( "row col-xs-12" );
                 DisplayPersonSchedule( person, schedule, hgcAreaRow );
             }
         }
@@ -396,13 +457,17 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
         }
 
-        private void DisplayPersonSchedule( Person person, CheckInSchedule schedule, HtmlGenericControl hgcAreaRow )
+        private void DisplayPersonSchedule( Person person, CheckInSchedule schedule, Panel hgcAreaRow )
         {
             BootstrapButton btnSchedule = new BootstrapButton();
-            hgcAreaRow.Controls.Add( btnSchedule );
+
             btnSchedule.Text = schedule.Schedule.Name + "<br>(Select Room To Checkin)";
             btnSchedule.CssClass = "btn btn-default col-sm-8 col-xs-12 scheduleNotSelected";
             btnSchedule.ID = person.Guid.ToString() + schedule.Schedule.Guid.ToString();
+            if ( _cullStatus == CullStatus.Inactive )
+            {
+                btnSchedule.ID = person.Guid.ToString() + schedule.Schedule.Guid.ToString() + "worshipPlus";
+            }
             btnSchedule.Click += ( s, e ) => { ShowRoomChangeModal( person, schedule ); };
             btnSchedule.DataLoadingText = "<i class='fa fa-refresh fa-spin'></i><br>Loading Rooms...";
 
@@ -450,6 +515,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     }
                 }
             }
+            hgcAreaRow.Controls.Add( btnSchedule );
         }
 
         private void LinkLocations( Person person, CheckInGroup group, CheckInLocation room )
@@ -512,6 +578,9 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private void ShowRoomChangeModal( Person person, CheckInSchedule schedule )
         {
+            var volAttributeGuid = GetAttributeValue( "VolunteerGroupAttribute" ).AsGuid();
+            KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes, volAttributeGuid );
+
             List<CheckInGroupType> groupTypes = GetGroupTypes( person, schedule );
 
             foreach ( var groupType in groupTypes )
@@ -520,35 +589,40 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
                 foreach ( var group in groups )
                 {
-                    List<CheckInLocation> rooms = GetLocations( person, schedule, groupType, group );
-                    foreach ( var room in rooms )
+                    List<CheckInLocation> locations = GetLocations( person, schedule, groupType, group );
+                    foreach ( var location in locations )
                     {
-                        HtmlGenericContainer hgcPadding = new HtmlGenericContainer( "div" );
+                        Panel hgcPadding = new Panel();
                         hgcPadding.CssClass = "col-md-8 col-md-offset-2 col-xs-12";
                         hgcPadding.Style.Add( "padding", "5px" );
                         phModal.Controls.Add( hgcPadding );
 
-
                         //Change room button
                         BootstrapButton btnRoom = new BootstrapButton();
-                        btnRoom.ID = "c" + person.Guid.ToString() + schedule.Schedule.Guid.ToString() + room.Location.Guid.ToString();
-                        btnRoom.Text = groupType.GroupType.Name + ": " + group.Group.Name + "<br>" +
-                            room.Location.Name;
+                        btnRoom.ID = "c" + person.Guid.ToString() + schedule.Schedule.Guid.ToString() + location.Location.Guid.ToString();
+                        btnRoom.Text = groupType.GroupType.Name + ": " + group.Group.Name + "<br>" + location.Location.Name;
+
+                        //Add location count
+                        if ( CurrentCheckInType.DisplayLocationCount )
+                        {
+                            btnRoom.Text += " (Count:" + kioskCountUtility.GetLocationScheduleCount(location.Location.Id, schedule.Schedule.Id).ChildCount.ToString() + ")";
+                        }
+
                         btnRoom.CssClass = "btn btn-success btn-block btn-lg";
                         btnRoom.Click += ( s, e ) =>
                         {
-                            ChangeRoomSelection( person, schedule, groupType, group, room );
+                            ChangeRoomSelection( person, schedule, groupType, group, location );
                             Session["modalActive"] = false;
                             mdChoose.Hide();
                             phPeople.Controls.Clear();
                             DisplayPeople();
                         };
-                        btnRoom.DataLoadingText = "<i class='fa fa-refresh fa-spin'></i><br>Changing room to: " + room.Location.Name;
+                        btnRoom.DataLoadingText = "<i class='fa fa-refresh fa-spin'></i><br>Changing room to: " + location.Location.Name;
                         hgcPadding.Controls.Add( btnRoom );
                     }
                 }
             }
-            HtmlGenericContainer hgcCancelPadding = new HtmlGenericContainer( "div" );
+            Panel hgcCancelPadding = new Panel();
             hgcCancelPadding.CssClass = "col-md-8 col-md-offset-2 col-xs-12";
             hgcCancelPadding.Style.Add( "padding", "5px" );
             phModal.Controls.Add( hgcCancelPadding );
@@ -720,10 +794,10 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                           s => s.Schedule.Guid == schedule.Schedule.Guid ).Count() != 0 ).Count() != 0 ).Count() != 0 ).ToList();
         }
 
-        private void DisplayPersonButton( CheckInPerson person, HtmlGenericControl hgcRow )
+        private void DisplayPersonButton( CheckInPerson person, Panel hgcRow )
         {
             //Padding div to make it look nice.
-            HtmlGenericControl hgcPadding = new HtmlGenericControl( "div" );
+            Panel hgcPadding = new Panel();
             hgcPadding.AddCssClass( "col-sm-4 col-xs-12" );
             hgcRow.Controls.Add( hgcPadding );
 
@@ -756,7 +830,10 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private bool PersonHasSelectedGroup( CheckInPerson checkinPerson )
         {
-            return checkinPerson.GroupTypes.SelectMany( gt => gt.Groups ).Where( g => g.Selected ).Any();
+            return checkinPerson.GroupTypes
+                .SelectMany( gt => gt.Groups )
+                .Where( g => g.Selected )
+                .Any();
         }
 
         private void TogglePerson( CheckInPerson person )
@@ -786,6 +863,9 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 return;
             }
+            var volAttributeGuid = GetAttributeValue( "VolunteerGroupAttribute" ).AsGuid();
+            KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes, volAttributeGuid );
+
             var checkinSchedules = GetCheckinSchedules( checkinPerson.Person );
             foreach ( var checkinSchedule in checkinSchedules )
             {
@@ -797,7 +877,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 }
                 if ( checkinGroupType != null )
                 {
-
                     var checkinGroups = GetGroups( checkinPerson.Person, checkinSchedule, checkinGroupType );
                     var checkinGroup = checkinGroups.FirstOrDefault();
                     if ( checkinGroups.Where( g => g.PreSelected ).Any() )
@@ -806,9 +885,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     }
                     if ( checkinGroup != null )
                     {
-
                         var checkinLocations = GetLocations( checkinPerson.Person, checkinSchedule, checkinGroupType, checkinGroup );
-                        var checkinLocation = checkinLocations.OrderBy( l => KioskLocationAttendance.Read( l.Location.Id ).CurrentCount ).FirstOrDefault();
+                        var checkinLocation = checkinLocations.OrderBy( l => kioskCountUtility.GetLocationScheduleCount( l.Location.Id, checkinSchedule.Schedule.Id ).ChildCount ).FirstOrDefault();
                         if ( checkinLocation != null )
                         {
                             var locationSchedule = checkinLocation.Schedules.Where( s => s.Schedule.Id == checkinSchedule.Schedule.Id ).FirstOrDefault();
@@ -897,6 +975,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             AttributeValueService attributeValueService = new AttributeValueService( rockContext );
             List<int> volunteerGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "True" ).Select( av => av.EntityId.Value ).ToList();
 
+            KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes, volAttributeGuid );
 
             //Test for overloaded rooms
             var overload = false;
@@ -923,10 +1002,17 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                                      a.DidAttend == true
                                      && a.EndDateTime == null
                                      && a.ScheduleId == schedule.Schedule.Id
-                                     && a.LocationId == location.Location.Id
                                      && a.StartDateTime >= Rock.RockDateTime.Today );
 
-                                if ( attendanceQry.Count() >= threshold )
+                                //Filter out if person is already checked in
+                                if ( attendanceQry.Where( a => a.PersonAlias.PersonId == person.Person.Id ).Any() )
+                                {
+                                    location.Schedules.Remove( schedule );
+                                    overload = true;
+                                }
+
+                                LocationScheduleCount locationScheduleCount = kioskCountUtility.GetLocationScheduleCount( location.Location.Id, schedule.Schedule.Id );
+                                if ( locationScheduleCount.TotalCount >= threshold )
                                 {
                                     person.Selected = false;
                                     location.Schedules.Remove( schedule );
@@ -937,7 +1023,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                                 {
                                     threshold = Math.Min( locationEntity.FirmRoomThreshold ?? 0, locationEntity.SoftRoomThreshold ?? 0 );
 
-                                    if ( attendanceQry.Where( a => !volunteerGroupIds.Contains( a.GroupId ?? 0 ) ).Count() >= threshold )
+                                    if ( locationScheduleCount.ChildCount >= threshold )
                                     {
                                         person.Selected = false;
                                         location.Schedules.Remove( schedule );

@@ -125,6 +125,7 @@
     <Compile Include="Workflows\LoadAllLocations.cs" />
     <Compile Include="Workflows\LoadAllCacheless.cs" />
     <Compile Include="Workflows\LoadAllGroupTypes.cs" />
+    <Compile Include="Workflows\LoadAllGroups.cs" />
     <Compile Include="Workflows\SideloadGroups.cs" />
     <Compile Include="Workflows\ReprintChildTag.cs" />
     <Compile Include="Workflows\ReprintAggregate.cs" />

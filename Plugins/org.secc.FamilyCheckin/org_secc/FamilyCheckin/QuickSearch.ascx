@@ -13,8 +13,46 @@
 <script>
     var selectionActive=false;
     var showingWelcome=false;
+    var kioskActive = false;
+
+
 
     Sys.Application.add_load(function () {
+
+        var captureSpecialKey = function(e){
+            $phoneNumber = $("input[id$='tbPhone']");
+            e = e || event;
+            if (e.keyCode == 13){
+                doSearch();
+                e.preventDefault();
+            
+            } else if(e.keyCode == 8){
+                if (!$phoneNumber.is(":focus")){
+                    $phoneNumber.val($phoneNumber.val().slice(0, -1));
+                    if ($phoneNumber.val().length==0){
+                        showWelcome();
+                    }
+                    pushHistory();
+                    e.preventDefault();
+                }
+            }
+        }
+
+        var captureKey = function(e){
+            $phoneNumber = $("input[id$='tbPhone']");
+            e = e || event;
+            if (!$phoneNumber.is(":focus")){
+                var char = String.fromCharCode(e.keyCode || e.charCode);
+                if (["0","1","2","3","4","5","6","7","8","9"].indexOf(char)>-1){
+                    $phoneNumber = $("input[id$='tbPhone']");
+                    $phoneNumber.val($phoneNumber.val() + char);
+                }
+            }
+        }
+
+        document.body.onkeydown = captureSpecialKey;
+        document.body.onkeypress = captureKey;
+
         $('.tenkey a.digit').click(function () {
             if (selectionActive){
                 return;
@@ -41,6 +79,30 @@
             showWelcome();
         });
     });
+
+    var checkStatus = function(kioskTypeId){
+        $.ajax({
+            url: "/api/org.secc/familycheckin/KioskStatus/"+kioskTypeId,
+            dataType: "json",
+            success: function(data){
+                updateKiosk(data,kioskTypeId );},
+            error: function(data){
+                refreshKiosk();
+            }
+        });
+    }
+
+    var updateKiosk = function(data,kioskTypeId){
+        if(data["active"]){
+            window.clearTimeout(timeout);
+            timeout = window.setTimeout(function(){checkStatus( kioskTypeId )}, timeoutSeconds * 1000);
+            if (!kioskActive){
+                refreshKiosk();
+            }
+        } else {
+            refreshKiosk();
+        }
+    }
 
     var doSearch = function(){
         if (selectionActive){
@@ -170,40 +232,6 @@
         setTimeout(function(){showingWelcome=true},150);
         document.body.focus();
     }
-
-    var captureSpecialKey = function(e){
-        $phoneNumber = $("input[id$='tbPhone']");
-        e = e || event;
-        if (e.keyCode == 13){
-            doSearch();
-            e.preventDefault();
-            
-        } else if(e.keyCode == 8){
-            if (!$phoneNumber.is(":focus")){
-                $phoneNumber.val($phoneNumber.val().slice(0, -1));
-                if ($phoneNumber.val().length==0){
-                    showWelcome();
-                }
-                pushHistory();
-                e.preventDefault();
-            }
-        }
-    }
-
-    var captureKey = function(e){
-        $phoneNumber = $("input[id$='tbPhone']");
-        e = e || event;
-        if (!$phoneNumber.is(":focus")){
-            var char = String.fromCharCode(e.keyCode || e.charCode);
-            if (["0","1","2","3","4","5","6","7","8","9"].indexOf(char)>-1){
-                $phoneNumber = $("input[id$='tbPhone']");
-                $phoneNumber.val($phoneNumber.val() + char);
-            }
-        }
-    }
-
-    document.body.onkeydown = captureSpecialKey;
-    document.body.onkeypress = captureKey;
 
     var pushHistory = function(){
         history.pushState("CHECK-IN", document.title, window.location.pathname);

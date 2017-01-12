@@ -42,9 +42,9 @@ namespace org.secc.FamilyCheckin.Utilities
             AttributeValueService attributeValueService = new AttributeValueService( rockContext );
             VolunteerGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "True" ).Select( av => av.EntityId.Value ).ToList();
             ChildGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "False" ).Select( av => av.EntityId.Value ).ToList();
-            
+
             var groupLocations = GroupTypes
-                .SelectMany( gt => gt.Groups.Where(g => g.IsActive) )
+                .SelectMany( gt => gt.Groups.Where( g => g.IsActive ) )
                 .SelectMany( g => g.GroupLocations );
 
             GroupLocationSchedules = new List<GroupLocationSchedule>();
@@ -95,28 +95,29 @@ namespace org.secc.FamilyCheckin.Utilities
 
             return locationScheduleCount;
         }
+    }
 
-        public class GroupLocationSchedule
+    public class GroupLocationSchedule
+    {
+        public GroupLocation GroupLocation { get; private set; }
+        public Schedule Schedule { get; private set; }
+        public bool Active { get; private set; }
+
+        internal GroupLocationSchedule( GroupLocation GroupLocation, Schedule Schedule, bool Active )
         {
-            public GroupLocation GroupLocation { get; private set; }
-            public Schedule Schedule { get; private set; }
-            public bool Active { get; private set; }
-
-            internal GroupLocationSchedule( GroupLocation GroupLocation, Schedule Schedule, bool Active )
-            {
-                this.GroupLocation = GroupLocation;
-                this.Schedule = Schedule;
-                this.Active = Active;
-            }
+            this.GroupLocation = GroupLocation;
+            this.Schedule = Schedule;
+            this.Active = Active;
         }
+    }
 
-        public class LocationScheduleCount
-        {
-            public int ChildCount { get; internal set; }
-            public int VolunteerCount { get; internal set; }
-            public int ReservedCount { get; internal set; }
-            public int TotalCount { get; internal set; }
+    public class LocationScheduleCount
+    {
+        public int ChildCount { get; internal set; }
+        public int VolunteerCount { get; internal set; }
+        public int ReservedCount { get; internal set; }
+        public int TotalCount { get; internal set; }
 
-        }
+
     }
 }
