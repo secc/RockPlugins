@@ -240,7 +240,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         {
             foreach ( var family in CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ) )
             {
-                foreach ( var person in family.People.Where( p => p.Selected ) )
+                foreach ( var person in family.People )
                 {
                     foreach ( var groupType in person.GroupTypes )
                     {
@@ -297,7 +297,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             var people = CurrentCheckInState.CheckIn.Families.SelectMany( f => f.People ).OrderBy( p => p.Person.BirthDate );
 
             int i = 0;
-            HtmlGenericControl hgcRow = new HtmlGenericControl( "div" );
+            Panel hgcRow = new Panel();
 
             foreach ( var person in people )
             {
@@ -313,13 +313,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
                 if ( i % 2 > 0 )
                 {
-                    hgcRow = new HtmlGenericControl( "div" );
+                    hgcRow = new Panel();
                     hgcRow.ID = person.Person.Id.ToString() + "_hgcRow";
                     phPeople.Controls.Add( hgcRow );
                     hgcRow.AddCssClass( "row" );
                 }
 
-                HtmlGenericControl hgcPadding = new HtmlGenericControl( "div" );
+                Panel hgcPadding = new Panel();
                 hgcPadding.ID = person.Person.Id.ToString() + "_hgcPadding";
                 hgcPadding.AddCssClass( "col-xs-12 col-lg-6" );
                 hgcRow.Controls.Add( hgcPadding );
@@ -327,7 +327,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
                 if ( GetCheckinSchedules( person.Person ).Count() > 0 )
                 { //Display check-in information
-                    HtmlGenericControl hgcCell = new HtmlGenericControl( "div" );
+                    Panel hgcCell = new Panel();
                     hgcCell.ID = person.Person.Id.ToString() + "hgcCell";
                     hgcCell.AddCssClass( "personContainer col-xs-12" );
                     hgcPadding.Controls.Add( hgcCell );
@@ -337,7 +337,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 }
                 else
                 {   //Display can't check in information
-                    HtmlGenericControl hgcCell = new HtmlGenericControl( "div" );
+                    Panel hgcCell = new Panel();
                     hgcCell.ID = person.Person.Id.ToString() + "hgcCell_noOption";
                     hgcCell.AddCssClass( "personContainer col-xs-12" );
                     hgcPadding.Controls.Add( hgcCell );
@@ -354,10 +354,10 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
         }
 
-        private void DisplayPersonNoOptions( CheckInPerson person, HtmlGenericControl hgcCell )
+        private void DisplayPersonNoOptions( CheckInPerson person, Panel hgcCell )
         {
             //Padding div to make it look nice.
-            HtmlGenericControl hgcPadding = new HtmlGenericControl( "div" );
+            Panel hgcPadding = new Panel();
             hgcPadding.AddCssClass( "col-sm-4 col-xs-12" );
             hgcCell.Controls.Add( hgcPadding );
 
@@ -377,22 +377,22 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             btnPerson.Text = icon + "<br/><span>" + person.Person.NickName + "</span>";
             btnPerson.CssClass = "btn btn-default btn-lg col-xs-12 disabled checkinPerson";
 
-            HtmlGenericControl hgcAreaRow = new HtmlGenericControl( "div" );
+            Panel hgcAreaRow = new Panel();
             hgcAreaRow.ID = person.Person.Id.ToString() + "_noOptionHGCAreaRow";
             hgcCell.AddCssClass( "row col-xs-12" );
             hgcCell.Controls.Add( hgcAreaRow );
-            var btnMessage = new HtmlGenericControl( "div" );
+            var btnMessage = new LinkButton();
             btnMessage.ID = person.Person.Id.ToString() + "_noOptionButton";
             btnMessage.AddCssClass( "btn btn-default col-xs-8 disabled" );
             hgcCell.Controls.Add( btnMessage );
 
-            btnMessage.InnerHtml = "There are no classes available for " + person.Person.NickName + "<br> to check-in, or all rooms are currently full.";
+            btnMessage.Text = "There are no classes available for " + person.Person.NickName + "<br> to check-in, or all rooms are currently full.";
             foreach ( var locationId in person.GroupTypes.SelectMany( gt => gt.Groups ).SelectMany( g => g.Locations ).Select( l => l.Location.Id ).ToList() )
             {
                 var kla = KioskLocationAttendance.Read( locationId );
                 if ( kla.DistinctPersonIds.Contains( person.Person.Id ) )
                 {
-                    btnMessage.InnerHtml = person.Person.NickName + " has already been checked-in.";
+                    btnMessage.Text = person.Person.NickName + " has already been checked-in.";
                     btnPerson.Text = "<i class='fa fa-check-square-o fa-5x'></i><br/><span>" + person.Person.NickName + "</span>";
                     btnPerson.CssClass = "btn btn-default btn-lg col-xs-12 disabled checkinPerson";
                     break;
@@ -400,15 +400,14 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
         }
 
-        private void DisplayPersonCheckinAreas( Person person, HtmlGenericControl hgcRow )
+        private void DisplayPersonCheckinAreas( Person person, Panel hgcRow )
         {
             List<CheckInSchedule> personSchedules = GetCheckinSchedules( person );
 
             foreach ( var schedule in personSchedules )
             {
-                HtmlGenericControl hgcAreaRow = new HtmlGenericControl( "div" );
+                Panel hgcAreaRow = new Panel();
                 hgcRow.Controls.Add( hgcAreaRow );
-                hgcAreaRow.InnerHtml = null;
                 hgcAreaRow.ID = person.Id.ToString() + schedule.Schedule.Id.ToString() + ( _cullStatus == CullStatus.Inactive ? "cullingoff" : "" );
 
                 hgcRow.AddCssClass( "row col-xs-12" );
@@ -459,7 +458,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
         }
 
-        private void DisplayPersonSchedule( Person person, CheckInSchedule schedule, HtmlGenericControl hgcAreaRow )
+        private void DisplayPersonSchedule( Person person, CheckInSchedule schedule, Panel hgcAreaRow )
         {
             BootstrapButton btnSchedule = new BootstrapButton();
 
@@ -788,10 +787,10 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                           s => s.Schedule.Guid == schedule.Schedule.Guid ).Count() != 0 ).Count() != 0 ).Count() != 0 ).ToList();
         }
 
-        private void DisplayPersonButton( CheckInPerson person, HtmlGenericControl hgcRow )
+        private void DisplayPersonButton( CheckInPerson person, Panel hgcRow )
         {
             //Padding div to make it look nice.
-            HtmlGenericControl hgcPadding = new HtmlGenericControl( "div" );
+            Panel hgcPadding = new Panel();
             hgcPadding.AddCssClass( "col-sm-4 col-xs-12" );
             hgcRow.Controls.Add( hgcPadding );
 
@@ -824,7 +823,10 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private bool PersonHasSelectedGroup( CheckInPerson checkinPerson )
         {
-            return checkinPerson.GroupTypes.SelectMany( gt => gt.Groups ).Where( g => g.Selected ).Any();
+            return checkinPerson.GroupTypes
+                .SelectMany( gt => gt.Groups )
+                .Where( g => g.Selected )
+                .Any();
         }
 
         private void TogglePerson( CheckInPerson person )
