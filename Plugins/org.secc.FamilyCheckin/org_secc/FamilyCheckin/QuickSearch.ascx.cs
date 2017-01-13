@@ -250,6 +250,7 @@ function clearCountdown() {{
 if ($ActiveWhen.text() != '')
 {{
     var timeActive = new Date($ActiveWhen.text());
+    timeActive.setSeconds(timeActive.getSeconds() + 15);
     $CountdownTimer.countdown({{
         until: timeActive, 
         compact:true, 
