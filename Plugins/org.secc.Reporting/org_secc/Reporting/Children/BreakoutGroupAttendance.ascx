@@ -9,9 +9,8 @@
                 <Rock:DateRangePicker runat="server" ID="drRange" Label="Attendance Range" />
             </Rock:GridFilter>
         </div>
-        <Rock:Grid runat="server" ID="gBreakoutGroups" AllowPaging="false" OnRowDataBound="gBreakoutGroups_RowDataBound">
+        <Rock:Grid runat="server" ID="gBreakoutGroups" AllowPaging="false" DataKeyNames="Id" OnRowDataBound="gBreakoutGroups_RowDataBound" OnRowSelected="gBreakoutGroups_RowSelected">
             <Columns>
-
                 <Rock:RockBoundField DataField="Breakout" HeaderText="Breakout" />
                 <Rock:RockBoundField DataField="Name" HeaderText="Name" />
                 <Rock:RockBoundField DataField="Gender" HeaderText="Gender" />
