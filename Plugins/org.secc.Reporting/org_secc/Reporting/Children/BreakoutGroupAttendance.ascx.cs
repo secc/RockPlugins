@@ -1,20 +1,4 @@
-﻿// <copyright>
-// Copyright by the Spark Development Network
-//
-// Licensed under the Rock Community License (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.rockrms.com/license
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
-//
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -117,8 +101,6 @@ namespace RockWeb.Blocks.Reporting.Children
 
             List<BreakoutGroupMember> breakoutGroupMembers = GetBreakoutGroupMembers();
 
-
-
             //remove dynamically added columns if any exist
             while ( gBreakoutGroups.Columns.Count > 8 )
             {
@@ -152,9 +134,10 @@ namespace RockWeb.Blocks.Reporting.Children
 
             var breakoutGroupMembers = new GroupService( rockContext )
                 .GetByIds( selectedGroups )
-                .SelectMany( g => g.Members )
+                .SelectMany( g => g.Members.Where( m => !m.GroupRole.IsLeader ) )
                 .Select( gm => new BreakoutGroupMember
                 {
+                    Id = gm.PersonId,
                     group = gm.Group,
                     Name = gm.Person.LastName + ", " + gm.Person.NickName,
                     person = gm.Person,
@@ -674,9 +657,19 @@ namespace RockWeb.Blocks.Reporting.Children
                 }
             }
         }
+
+        protected void gBreakoutGroups_RowSelected( object sender, RowEventArgs e )
+        {
+            var personId = ( int ) e.RowKeyValue;
+            if ( personId != 0 )
+            {
+                Response.Redirect( string.Format( "/Person/{0}", personId ) );
+            }
+        }
     }
     class BreakoutGroupMember
     {
+        public int Id { get; set; }
         public Rock.Model.Group group { get; set; }
         public Person person { get; set; }
         public string Breakout { get; set; }

@@ -1,20 +1,4 @@
-﻿// <copyright>
-// Copyright by the Spark Development Network
-//
-// Licensed under the Rock Community License (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.rockrms.com/license
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
-//
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -51,7 +35,6 @@ namespace RockWeb.Blocks.Reporting.Children
         /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         protected override void OnLoad( EventArgs e )
         {
-
 
         }
 
@@ -114,7 +97,7 @@ namespace RockWeb.Blocks.Reporting.Children
             string filename = "RockExport.xls";
 
             ExcelPackage excel = new ExcelPackage();
-            excel.Workbook.Properties.Title = "Service Averages";
+            excel.Workbook.Properties.Title = "Breakout Group Attendance Summary";
 
             // add author info
             Rock.Model.UserLogin userLogin = Rock.Model.UserLoginService.GetCurrentUser();
@@ -149,12 +132,13 @@ namespace RockWeb.Blocks.Reporting.Children
             int columnCounter0 = 0;
             int columnCounter1 = 0;
 
-            List<string> columns0 = new List<string>() { "Grade", "Service", "No Breakout Group" };
-            List<string> columns1 = new List<string>() { "Grade", "Week", "Service", "No Breakout Group" };
+            List<string> columns0 = new List<string>() { "Service", "No Breakout Group" };
+            List<string> columns1 = new List<string>() { "Week", "Service", "No Breakout Group" };
             foreach ( var group in breakoutGroups )
             {
-                columns0.Add( group.Name );
-                columns1.Add( group.Name );
+                var name = string.Format( "{0} {1}", group.Schedule.GetCalenderEvent().DTStart.Value.TimeOfDay.ToTimeString(), group.Name[group.Name.Length - 1] );
+                columns0.Add( name );
+                columns1.Add( name );
             }
             foreach ( String column in columns0 )
             {
@@ -173,7 +157,6 @@ namespace RockWeb.Blocks.Reporting.Children
                             .OrderBy( a => a )
                             .ToList();
 
-
             var attendance = attendanceQry
                 .Join(
                     personQry,
@@ -187,19 +170,19 @@ namespace RockWeb.Blocks.Reporting.Children
                     }
                     ).ToList();
 
-
             var allMemberIds = membersQry.Select( m => m.PersonId ).ToList();
 
+            //Worksheet 0 / Service Averages
             foreach ( var schedule in schedules )
             {
-                SetExcelValue( worksheets[0].Cells[rowCounter0, 2], schedule.Name );
+                SetExcelValue( worksheets[0].Cells[rowCounter0, 1], schedule.Name );
 
                 var nonMembers = attendance.Where( a =>
                       a.ScheduleId == schedule.Id
                      && !allMemberIds.Contains( a.PersonId )
                     ).Count() / sundays.Count();
 
-                SetExcelValue( worksheets[0].Cells[rowCounter0, 3], nonMembers );
+                SetExcelValue( worksheets[0].Cells[rowCounter0, 2], nonMembers );
                 var i = 0;
                 foreach ( var group in breakoutGroups )
                 {
@@ -208,7 +191,7 @@ namespace RockWeb.Blocks.Reporting.Children
                       a.ScheduleId == schedule.Id
                      && breakoutGroupMemberPersonIds.Contains( a.PersonId )
                     ).Count() / sundays.Count();
-                    SetExcelValue( worksheets[0].Cells[rowCounter0, 4 + i], groupCount );
+                    SetExcelValue( worksheets[0].Cells[rowCounter0, 3 + i], groupCount );
                     i++;
                 }
                 rowCounter0++;
@@ -217,19 +200,25 @@ namespace RockWeb.Blocks.Reporting.Children
             //Worsheet 1 / Attendance Summary
             foreach ( var sunday in sundays )
             {
-                SetExcelValue( worksheets[1].Cells[rowCounter1, 2], sunday.ToString( "MM/dd/yyyy" ) );
+                SetExcelValue( worksheets[1].Cells[rowCounter1, 1], sunday.ToString( "MM/dd/yyyy" ) );
+                var nonMemberTotal = 0;
+                var totals = new List<int>();
+                foreach ( var group in breakoutGroups )
+                {
+                    totals.Add( 0 );
+                }
 
                 foreach ( var schedule in schedules )
                 {
-                    SetExcelValue( worksheets[1].Cells[rowCounter1, 3], schedule.Name );
+                    SetExcelValue( worksheets[1].Cells[rowCounter1, 2], schedule.Name );
 
                     var nonMembers = attendance.Where( a =>
                          a.SundayDate == sunday
                          && a.ScheduleId == schedule.Id
                          && !allMemberIds.Contains( a.PersonId )
                         ).Count();
-
-                    SetExcelValue( worksheets[1].Cells[rowCounter1, 4], nonMembers );
+                    nonMemberTotal += nonMembers;
+                    SetExcelValue( worksheets[1].Cells[rowCounter1, 3], nonMembers );
 
                     var i = 0;
 
@@ -241,13 +230,30 @@ namespace RockWeb.Blocks.Reporting.Children
                             && a.ScheduleId == schedule.Id
                             && breakoutGroupMemberPersonIds.Contains( a.PersonId )
                         ).Count();
-                        SetExcelValue( worksheets[1].Cells[rowCounter1, 5 + i], groupCount );
+                        SetExcelValue( worksheets[1].Cells[rowCounter1, 4 + i], groupCount );
+                        totals[i] += groupCount;
                         i++;
                     }
-
                     rowCounter1++;
                 }
+                SetExcelValue( worksheets[1].Cells[rowCounter1, 2], "Total" );
+                worksheets[1].Cells[rowCounter1, 3].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                worksheets[1].Cells[rowCounter1, 3].Style.Fill.BackgroundColor.SetColor( Color.FromArgb( 223, 223, 223 ) );
+                worksheets[1].Cells[rowCounter1, 3].Style.Font.Color.SetColor( Color.Black );
 
+                SetExcelValue( worksheets[1].Cells[rowCounter1, 3], nonMemberTotal );
+                worksheets[1].Cells[rowCounter1, 4].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                worksheets[1].Cells[rowCounter1, 4].Style.Fill.BackgroundColor.SetColor( Color.FromArgb( 223, 223, 223 ) );
+                worksheets[1].Cells[rowCounter1, 4].Style.Font.Color.SetColor( Color.Black );
+
+                for ( var index = 0; index < totals.Count(); index++ )
+                {
+                    SetExcelValue( worksheets[1].Cells[rowCounter1, 4 + index], totals[index] );
+                    worksheets[1].Cells[rowCounter1, 5 + index].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                    worksheets[1].Cells[rowCounter1, 5 + index].Style.Fill.BackgroundColor.SetColor( Color.FromArgb( 223, 223, 223 ) );
+                    worksheets[1].Cells[rowCounter1, 5 + index].Style.Font.Color.SetColor( Color.Black );
+                }
+                rowCounter1++;
             }
 
 
@@ -332,9 +338,6 @@ namespace RockWeb.Blocks.Reporting.Children
             this.Page.Response.BinaryWrite( byteArray );
             this.Page.Response.Flush();
             this.Page.Response.End();
-
-
-
         }
 
 
