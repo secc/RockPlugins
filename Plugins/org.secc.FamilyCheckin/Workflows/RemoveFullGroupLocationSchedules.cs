@@ -14,7 +14,7 @@ using Rock.Attribute;
 using Rock.Web.Cache;
 using System.Runtime.Caching;
 using org.secc.FamilyCheckin.Utilities;
-using static org.secc.FamilyCheckin.Utilities.KioskCountUtility;
+
 
 namespace org.secc.FamilyCheckin
 {
