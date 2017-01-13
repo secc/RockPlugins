@@ -45,7 +45,8 @@ namespace RockWeb.Blocks.Connection
     [BooleanField( "Enable Campus Context", "If the page has a campus context it's value will be used as a filter", true, "", 4 )]
     [DefinedValueField( "2E6540EA-63F0-40FE-BE50-F2A84735E600", "Connection Status", "The connection status to use for new individuals (default: 'Web Prospect'.)", true, false, "368DD475-242C-49C4-A42C-7278BE690CC2", "", 5 )]
     [DefinedValueField( "8522BADD-2871-45A5-81DD-C76DA07E2E7E", "Record Status", "The record status to use for new individuals (default: 'Pending'.)", true, false, "283999EC-7346-42E3-B807-BCE9B2BABB49", "", 6 )]
-    [TextField( "Allowed Attribute Keys", "The key of the group type attribute where to save the list of schedule guids", key: "Keys" )]
+    [TextField( "Group Member Attribute Keys - URL", "The key of any group member attributes that you would like to be set via the URL.  Enter as comma separated values.", false, key: "UrlKeys", order: 7)]
+    [TextField( "Group Member Attribute Keys - Form", "The key of the group member attributes to show an edit control for on the opportunity signup.  Enter as comma separated values.", false, key: "FormKeys", order: 8 )]
     public partial class ConnectionOpportunitySignup : RockBlock, IDetailBlock
     {
         #region Fields
@@ -252,11 +253,17 @@ namespace RockWeb.Blocks.Connection
                             connectionRequest.AssignedGroupId = hdnGroupId.Value.AsInteger();
                         }
 
-                        var connectionAttributes = ( Dictionary<string, string> ) ViewState["SelectedAttributes"];
+                        var connectionAttributes = GetGroupMemberAttributes( rockContext );
 
                         if ( connectionAttributes != null || connectionAttributes.Keys.Any() )
                         {
-                            connectionRequest.AssignedGroupMemberAttributeValues = connectionAttributes.ToJson();
+                            var connectionDictionary = new Dictionary<string, string>();
+                            foreach(var kvp in connectionAttributes )
+                            {
+                                connectionDictionary.Add( kvp.Key, kvp.Value.Value );
+                            }
+
+                            connectionRequest.AssignedGroupMemberAttributeValues = connectionDictionary.ToJson();
                         }
 
                         if ( !connectionRequest.IsValid )
@@ -407,136 +414,6 @@ namespace RockWeb.Blocks.Connection
                     }
                 }
 
-                ViewState.Add( "SelectedAttributes", new Dictionary<string, string>() );
-                SaveViewState();
-
-                // Group
-                if ( !string.IsNullOrEmpty( PageParameter( "GroupId" ) ) )
-                {
-                    hdnGroupId.Value = PageParameter( "GroupId" ).AsInteger().ToString();
-
-                    var group = new GroupService( rockContext ).Get( hdnGroupId.Value.AsInteger() );
-                    if ( group != null )
-                    {
-                        // Group Attributes
-                        var keys = GetAttributeValues( "Keys" );
-
-                        AttributeService attributeService = new AttributeService( rockContext );
-
-                        string groupQualifierValue = group.Id.ToString();
-                        string groupTypeQualifierValue = group.GroupTypeId.ToString();
-
-                        var groupMemberAttributes = attributeService.GetByEntityTypeId( new GroupMember().TypeId ).AsQueryable()
-                    .Where( a =>
-                        ( a.EntityTypeQualifierColumn.Equals( "GroupId", StringComparison.OrdinalIgnoreCase ) &&
-                        a.EntityTypeQualifierValue.Equals( groupQualifierValue ) )
-                        || ( a.EntityTypeQualifierColumn.Equals( "GroupTypeId", StringComparison.OrdinalIgnoreCase ) &&
-                            a.EntityTypeQualifierValue.Equals( groupTypeQualifierValue ) )
-                        )
-                    .ToList();
-
-                        FieldTypeService fieldTypeService = new FieldTypeService( rockContext );
-
-                        foreach ( var key in keys )
-                        {
-                            if ( !string.IsNullOrEmpty( PageParameter( key ) ) )
-                            {
-                                if ( !groupMemberAttributes.Where( a => a.Key == key ).Any() )
-                                {
-                                    continue;
-                                }
-
-                                var attribute = groupMemberAttributes.Where( a => a.Key == key ).FirstOrDefault();
-                                var fieldType = fieldTypeService.Get( attribute.FieldTypeId );
-
-                                if ( fieldType == null )
-                                {
-                                    continue;
-                                }
-
-                                var values = PageParameter( key ).Split( ',' ).Select( s => s.AsInteger() ).ToList();
-
-                                if ( fieldType.Guid == Rock.SystemGuid.FieldType.SCHEDULES.AsGuid() )
-                                {
-                                    ScheduleService scheduleService = new ScheduleService( rockContext );
-                                    List<Schedule> schedules = scheduleService.GetByIds( values ).ToList();
-                                    if ( schedules.Any() )
-                                    {
-                                        List<string> scheduleGuids = new List<string>();
-                                        LiteralControl ltAttribute = new LiteralControl() { Text = "<b>" + attribute.Name + "</b>" };
-                                        phAttributes.Controls.Add( ltAttribute );
-                                        var ul = new HtmlGenericControl( "ul" );
-                                        phAttributes.Controls.Add( ul );
-
-                                        foreach ( var schedule in schedules )
-                                        {
-                                            var li = new HtmlGenericControl( "li" );
-                                            li.InnerText = schedule.Name;
-                                            ul.Controls.Add( li );
-                                            scheduleGuids.Add( schedule.Guid.ToString() );
-                                        }
-                                        var selectedAttributes = ( Dictionary<string, string> ) ViewState["SelectedAttributes"];
-                                        selectedAttributes[attribute.Key] = string.Join( ",", scheduleGuids );
-                                        ViewState["SelectedAttributes"] = selectedAttributes;
-                                        SaveViewState();
-                                    }
-                                }
-                                else if ( fieldType.Guid == Rock.SystemGuid.FieldType.DEFINED_VALUE.AsGuid() )
-                                {
-                                    var definedTypeId = attribute.AttributeQualifiers.FirstOrDefault( aq => aq.Key == "definedtype" ).Value.AsInteger();
-
-                                    DefinedValueService definedValueService = new DefinedValueService( rockContext );
-                                    List<DefinedValue> definedValues = definedValueService.GetByIds( values )
-                                        .Where( dv => dv.DefinedTypeId == definedTypeId ).ToList();
-                                    if ( definedValues.Any() )
-                                    {
-                                        List<string> dvGuids = new List<string>();
-                                        LiteralControl ltAttribute = new LiteralControl() { Text = "<b>" + attribute.Name + "</b>" };
-                                        phAttributes.Controls.Add( ltAttribute );
-                                        var ul = new HtmlGenericControl( "ul" );
-                                        phAttributes.Controls.Add( ul );
-
-                                        foreach ( var definedValue in definedValues )
-                                        {
-                                            var li = new HtmlGenericControl( "li" );
-                                            li.InnerText = definedValue.Value;
-                                            ul.Controls.Add( li );
-                                            dvGuids.Add( definedValue.Guid.ToString() );
-                                        }
-                                        var selectedAttributes = ( Dictionary<string, string> ) ViewState["SelectedAttributes"];
-                                        selectedAttributes[attribute.Key] = string.Join( ",", dvGuids );
-                                        ViewState["SelectedAttributes"] = selectedAttributes;
-                                        SaveViewState();
-
-                                    }
-
-                                }
-                                else if ( fieldType.Guid == Rock.SystemGuid.FieldType.SINGLE_SELECT.AsGuid() || fieldType.Guid == Rock.SystemGuid.FieldType.MULTI_SELECT.AsGuid() )
-                                {
-                                    var items = attribute.AttributeQualifiers.FirstOrDefault( aq => aq.Key == "values" ).Value.GetListItems();
-                                    var selectedItems = items.Where( i => values.Contains( i.Value.AsInteger() ) ).ToList();
-                                    if ( selectedItems.Any() )
-                                    {
-                                        LiteralControl ltAttribute = new LiteralControl() { Text = "<b>" + attribute.Name + "</b>" };
-                                        phAttributes.Controls.Add( ltAttribute );
-                                        var ul = new HtmlGenericControl( "ul" );
-                                        phAttributes.Controls.Add( ul );
-                                        foreach ( var item in selectedItems )
-                                        {
-                                            var li = new HtmlGenericControl( "li" );
-                                            li.InnerText = item.Text;
-                                            ul.Controls.Add( li );
-                                        }
-                                        var selectedAttributes = ( Dictionary<string, string> ) ViewState["SelectedAttributes"];
-                                        selectedAttributes[attribute.Key] = string.Join( ",", selectedItems.Select( i => i.Value ) );
-                                        ViewState["SelectedAttributes"] = selectedAttributes;
-                                        SaveViewState();
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
 
                 // Role
                 if ( !string.IsNullOrEmpty( PageParameter( "GroupTypeRoleId" ) ) )
@@ -605,7 +482,99 @@ namespace RockWeb.Blocks.Connection
             nbErrorMessage.Visible = true;
         }
 
-        #endregion
+        protected override void CreateChildControls()
+        {
+            AddGroupMemberAttributes();
+        }
 
+        private void AddGroupMemberAttributes( RockContext rockContext = null )
+        {
+            // Group
+            if ( !string.IsNullOrEmpty( PageParameter( "GroupId" ) ) )
+            {
+                if ( rockContext == null )
+                {
+                    rockContext = new RockContext();
+                }
+                hdnGroupId.Value = PageParameter( "GroupId" ).AsInteger().ToString();
+
+                var group = new GroupService( rockContext ).Get( hdnGroupId.Value.AsInteger() );
+                if ( group != null )
+                {
+                    // Group Attributes
+                    var formKeys = GetAttributeValues( "FormKeys" );
+                    var urlKeys = GetAttributeValues( "UrlKeys" );
+
+                    AttributeService attributeService = new AttributeService( rockContext );
+
+                    string groupQualifierValue = group.Id.ToString();
+                    string groupTypeQualifierValue = group.GroupTypeId.ToString();
+
+                    // Make a fake group member so we can load some attributes.
+                    GroupMember groupMember = new GroupMember();
+                    groupMember.Group = group;
+                    groupMember.GroupId = group.Id;
+                    groupMember.LoadAttributes();
+
+                    // Store URL Keys into the ViewState
+                    var viewStateAttributes = new Dictionary<string, string>();
+                    foreach ( string urlKey in urlKeys )
+                    {
+                        if ( !string.IsNullOrEmpty( PageParameter( urlKey ) ) && groupMember.Attributes.ContainsKey( urlKey ) )
+                        {
+                            groupMember.SetAttributeValue( urlKey, PageParameter( urlKey ) );
+                            viewStateAttributes.Add( urlKey, PageParameter( urlKey ) );
+                        }
+                    }
+                    ViewState.Add( "SelectedAttributes", viewStateAttributes );
+                    SaveViewState();
+
+                    Helper.AddDisplayControls( groupMember, phAttributes, groupMember.Attributes.Where( a => !urlKeys.Contains( a.Key )).Select(a => a.Key).ToList(), true, false );
+                    Helper.AddEditControls( "", formKeys, groupMember, phAttributes,  tbLastName.ValidationGroup,  false, new List<String>() );
+
+                }
+            }
+        }
+
+
+        private Dictionary<string, AttributeValueCache> GetGroupMemberAttributes( RockContext rockContext = null )
+        {
+            // Group
+            if ( !string.IsNullOrEmpty( PageParameter( "GroupId" ) ) )
+            {
+                if ( rockContext == null )
+                {
+                    rockContext = new RockContext();
+                }
+                hdnGroupId.Value = PageParameter( "GroupId" ).AsInteger().ToString();
+
+                var group = new GroupService( rockContext ).Get( hdnGroupId.Value.AsInteger() );
+                if ( group != null )
+                {
+                    // Make a fake group member so we can load some attributes.
+                    GroupMember groupMember = new GroupMember();
+                    groupMember.Group = group;
+                    groupMember.GroupId = group.Id;
+                    groupMember.LoadAttributes();
+
+                    Helper.GetEditValues( phAttributes, groupMember );
+
+                    var readonlyAttributes = (Dictionary<string, string> ) ViewState[ "SelectedAttributes" ];
+                    if ( readonlyAttributes != null && readonlyAttributes.Keys.Count > 0)
+                    {
+                        foreach(var kvp in readonlyAttributes)
+                        {
+                            if ( groupMember.AttributeValues.ContainsKey(kvp.Key) )
+                            {
+                                groupMember.AttributeValues[kvp.Key].Value = kvp.Value;
+                            }
+                        }
+                    }
+                    return groupMember.AttributeValues;
+                }
+            }
+            return null;
+        }
+        #endregion
     }
 }
