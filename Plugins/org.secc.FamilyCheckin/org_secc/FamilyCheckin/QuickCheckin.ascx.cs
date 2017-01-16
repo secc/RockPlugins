@@ -388,7 +388,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             foreach ( var locationId in person.GroupTypes.SelectMany( gt => gt.Groups ).SelectMany( g => g.Locations ).Select( l => l.Location.Id ).ToList() )
             {
                 var kla = KioskLocationAttendance.Read( locationId );
-                if ( kla.Groups.SelectMany(g => g.Schedules).SelectMany(s=> s.DistinctPersonIds).Contains( person.Person.Id ) )
+                if ( kla.Groups.SelectMany( g => g.Schedules ).SelectMany( s => s.DistinctPersonIds ).Contains( person.Person.Id ) )
                 {
                     btnMessage.Text = person.Person.NickName + " has already been checked-in.";
                     btnPerson.Text = "<i class='fa fa-check-square-o fa-5x'></i><br/><span>" + person.Person.NickName + "</span>";
@@ -577,6 +577,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private void ShowRoomChangeModal( Person person, CheckInSchedule schedule )
         {
+            phModal.Controls.Clear();
+
             var volAttributeGuid = GetAttributeValue( "VolunteerGroupAttribute" ).AsGuid();
             KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes, volAttributeGuid );
 
@@ -598,13 +600,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
                         //Change room button
                         BootstrapButton btnRoom = new BootstrapButton();
-                        btnRoom.ID = "c" + person.Guid.ToString() + schedule.Schedule.Guid.ToString() + location.Location.Guid.ToString();
+                        btnRoom.ID = "c" + person.Guid.ToString() + group.Group.Guid.ToString() + schedule.Schedule.Guid.ToString() + location.Location.Guid.ToString();
                         btnRoom.Text = groupType.GroupType.Name + ": " + group.Group.Name + "<br>" + location.Location.Name;
 
                         //Add location count
                         if ( CurrentCheckInType.DisplayLocationCount )
                         {
-                            btnRoom.Text += " (Count:" + kioskCountUtility.GetLocationScheduleCount(location.Location.Id, schedule.Schedule.Id).ChildCount.ToString() + ")";
+                            btnRoom.Text += " (Count:" + kioskCountUtility.GetLocationScheduleCount( location.Location.Id, schedule.Schedule.Id ).ChildCount.ToString() + ")";
                         }
 
                         btnRoom.CssClass = "btn btn-success btn-block btn-lg";
