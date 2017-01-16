@@ -361,7 +361,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             hgcCell.Controls.Add( hgcPadding );
 
             //Checkin Button
-            var btnPerson = new BootstrapButton();
+            var btnPerson = new Label();
             btnPerson.ID = person.Person.Guid.ToString();
             btnPerson.Enabled = false;
             hgcPadding.Controls.Add( btnPerson );
@@ -372,7 +372,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 icon = "<i class='fa fa-birthday-cake fa-5x'></i>";
             }
-            btnPerson.DataLoadingText = icon + "<br /><span>Please Wait...</span>";
             btnPerson.Text = icon + "<br/><span>" + person.Person.NickName + "</span>";
             btnPerson.CssClass = "btn btn-default btn-lg col-xs-12 disabled checkinPerson";
 
@@ -380,7 +379,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             hgcAreaRow.ID = person.Person.Id.ToString() + "_noOptionHGCAreaRow";
             hgcCell.AddCssClass( "row col-xs-12" );
             hgcCell.Controls.Add( hgcAreaRow );
-            var btnMessage = new LinkButton();
+            var btnMessage = new Label();
             btnMessage.ID = person.Person.Id.ToString() + "_noOptionButton";
             btnMessage.AddCssClass( "btn btn-default col-xs-8 disabled" );
             hgcCell.Controls.Add( btnMessage );
@@ -389,7 +388,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             foreach ( var locationId in person.GroupTypes.SelectMany( gt => gt.Groups ).SelectMany( g => g.Locations ).Select( l => l.Location.Id ).ToList() )
             {
                 var kla = KioskLocationAttendance.Read( locationId );
-                if ( kla.DistinctPersonIds.Contains( person.Person.Id ) )
+                if ( kla.Groups.SelectMany(g => g.Schedules).SelectMany(s=> s.DistinctPersonIds).Contains( person.Person.Id ) )
                 {
                     btnMessage.Text = person.Person.NickName + " has already been checked-in.";
                     btnPerson.Text = "<i class='fa fa-check-square-o fa-5x'></i><br/><span>" + person.Person.NickName + "</span>";
