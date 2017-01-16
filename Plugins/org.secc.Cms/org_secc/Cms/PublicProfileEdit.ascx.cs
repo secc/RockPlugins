@@ -45,6 +45,7 @@ namespace RockWeb.Plugins.org_secc.Cms
     [AttributeField( Rock.SystemGuid.EntityType.GROUP, "GroupTypeId", Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY, "Family Attributes", "The family attributes that should be displayed / edited.", false, true, order: 6 )]
     [AttributeField( Rock.SystemGuid.EntityType.PERSON, "Person Attributes (adults)", "The person attributes that should be displayed / edited for adults.", false, true, order: 7 )]
     [AttributeField( Rock.SystemGuid.EntityType.PERSON, "Person Attributes (children)", "The person attributes that should be displayed / edited for children.", false, true, order: 8 )]
+    [DefinedValueField(Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Connection Status", "Connection status which new people will be assigned.")]
 
     public partial class PublicProfileEdit : RockBlock
     {
@@ -378,9 +379,16 @@ namespace RockWeb.Plugins.org_secc.Cms
                             groupMember.Person.EmailPreference = EmailPreference.EmailAllowed;
                             groupMember.Person.RecordTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
 
+                            var connectionStatus = GetAttributeValue( "ConnectionStatus" );
+                            if ( !string.IsNullOrWhiteSpace( connectionStatus ) )
+                            {
+                             groupMember.Person.ConnectionStatusValueId =  DefinedValueCache.Read( connectionStatus.AsGuid() ).Id;
+                            }
+
                             groupMemberService.Add( groupMember );
                             rockContext.SaveChanges();
                             personId = groupMember.PersonId;
+
                         }
 
                         var person = personService.Get( personId );
