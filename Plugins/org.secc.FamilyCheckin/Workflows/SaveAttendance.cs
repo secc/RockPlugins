@@ -112,7 +112,7 @@ namespace org.secc.FamilyCheckin
                                                     a.LocationId == location.Location.Id &&
                                                     a.ScheduleId == schedule.Schedule.Id &&
                                                     a.GroupId == group.Group.Id &&
-                                                    a.PersonAlias == primaryAlias ) //we will assume they won't get merged today
+                                                    a.PersonAliasId == primaryAlias.Id ) //we will assume they won't get merged today
                                                 .FirstOrDefault();
 
                                             if ( oldAttendance != null )
