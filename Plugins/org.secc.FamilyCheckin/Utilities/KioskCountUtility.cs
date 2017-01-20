@@ -11,67 +11,119 @@ namespace org.secc.FamilyCheckin.Utilities
 {
     public class KioskCountUtility
     {
-        public List<GroupType> GroupTypes { get; private set; }
-        public List<int> VolunteerGroupIds { get; private set; }
-        public List<int> ChildGroupIds { get; private set; }
-        public List<GroupLocationSchedule> GroupLocationSchedules { get; private set; }
-
-        public KioskCountUtility( List<int> ConfiguredGroupTypes, Guid VolunteerAttributeGuid )
+        public Guid VolunteerAttributeGuid { get; private set; }
+        public List<int> ConfiguredGroupTypes { get; private set; }
+        private List<GroupType> _groupTypes;
+        public List<GroupType> GroupTypes
         {
-            _KioskCountUtility( ConfiguredGroupTypes, VolunteerAttributeGuid, null );
-        }
-
-        public KioskCountUtility( List<int> ConfiguredGroupTypes, Guid VolunteerAttributeGuid, Guid DeactivatedDefinedTypeGuid )
-        {
-            _KioskCountUtility( ConfiguredGroupTypes, VolunteerAttributeGuid, DeactivatedDefinedTypeGuid );
-        }
-
-        private void _KioskCountUtility( List<int> ConfiguredGroupTypes, Guid VolunteerAttributeGuid, Guid? DeactivatedDefinedTypeGuid )
-        {
-            RockContext rockContext = new RockContext();
-
-            IQueryable<GroupType> groupTypeService = new GroupTypeService( rockContext ).Queryable( "Groups,Groups.GroupLocations,Groups.GroupLocations.Schedules" );
-
-            GroupTypes = groupTypeService
-                .Where( gt => ConfiguredGroupTypes.Contains( gt.Id ) ).ToList();
-
-
-
-            var volAttribute = AttributeCache.Read( VolunteerAttributeGuid );
-
-            AttributeValueService attributeValueService = new AttributeValueService( rockContext );
-            VolunteerGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "True" ).Select( av => av.EntityId.Value ).ToList();
-            ChildGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "False" ).Select( av => av.EntityId.Value ).ToList();
-
-            var groupLocations = GroupTypes
-                .SelectMany( gt => gt.Groups.Where( g => g.IsActive ) )
-                .SelectMany( g => g.GroupLocations );
-
-            GroupLocationSchedules = new List<GroupLocationSchedule>();
-
-            foreach ( var gl in groupLocations )
+            get
             {
-                foreach ( var s in gl.Schedules )
+                if ( _groupTypes == null )
                 {
-                    GroupLocationSchedules.Add( new GroupLocationSchedule( gl, s, true ) );
+                    RockContext rockContext = new RockContext();
+
+                    IQueryable<GroupType> groupTypeService = new GroupTypeService( rockContext ).Queryable( "Groups,Groups.GroupLocations,Groups.GroupLocations.Schedules" );
+
+                    _groupTypes = groupTypeService
+                        .Where( gt => ConfiguredGroupTypes.Contains( gt.Id ) ).ToList();
                 }
+                return _groupTypes;
             }
-
-            if ( DeactivatedDefinedTypeGuid != null )
+        }
+        private List<int> _volunteerGroupIds;
+        public List<int> VolunteerGroupIds
+        {
+            get
             {
-                GroupLocationService groupLocationService = new GroupLocationService( rockContext );
-                ScheduleService scheduleService = new ScheduleService( rockContext );
+                if ( _volunteerGroupIds == null )
+                {
+                    var volAttribute = AttributeCache.Read( VolunteerAttributeGuid );
 
-                var dtDeactivated = DefinedTypeCache.Read( DeactivatedDefinedTypeGuid ?? new Guid() );
-                var dvDeactivated = dtDeactivated.DefinedValues;
-                GroupLocationSchedules.AddRange( dvDeactivated.Select( dv => dv.Value.Split( '|' ) )
-                    .Select( s => new GroupLocationSchedule(
-                        groupLocationService.Get( s[0].AsInteger() ),
-                        scheduleService.Get( s[1].AsInteger() ),
-                        false )
-                    ).ToList()
-                );
+                    AttributeValueService attributeValueService = new AttributeValueService( new RockContext() );
+                    _volunteerGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "True" ).Select( av => av.EntityId.Value ).ToList();
+                }
+                return _volunteerGroupIds;
             }
+        }
+
+        private List<int> _childGroupIds;
+        public List<int> ChildGroupIds
+        {
+            get
+            {
+                if ( _childGroupIds == null )
+                {
+                    var volAttribute = AttributeCache.Read( VolunteerAttributeGuid );
+
+                    AttributeValueService attributeValueService = new AttributeValueService( new RockContext() );
+                    _childGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "False" ).Select( av => av.EntityId.Value ).ToList();
+                }
+                return _childGroupIds;
+            }
+        }
+
+        private Guid? _deactivatedDefinedTypeGuid;
+
+        private List<GroupLocationSchedule> _groupLocationSchedules;
+        public List<GroupLocationSchedule> GroupLocationSchedules
+        {
+            get
+            {
+                if ( _groupLocationSchedules == null )
+                {
+                    var groupLocations = GroupTypes
+                        .SelectMany( gt => gt.Groups.Where( g => g.IsActive ) )
+                        .SelectMany( g => g.GroupLocations );
+
+                    _groupLocationSchedules = new List<GroupLocationSchedule>();
+
+                    foreach ( var gl in groupLocations )
+                    {
+                        foreach ( var s in gl.Schedules )
+                        {
+                            _groupLocationSchedules.Add( new GroupLocationSchedule( gl, s, true ) );
+                        }
+                    }
+
+                    if ( _deactivatedDefinedTypeGuid != null )
+                    {
+                        RockContext rockContext = new RockContext();
+                        GroupLocationService groupLocationService = new GroupLocationService( rockContext );
+                        ScheduleService scheduleService = new ScheduleService( rockContext );
+
+                        var dtDeactivated = DefinedTypeCache.Read( _deactivatedDefinedTypeGuid ?? new Guid() );
+                        var dvDeactivated = dtDeactivated.DefinedValues;
+                        _groupLocationSchedules.AddRange( dvDeactivated.Select( dv => dv.Value.Split( '|' ) )
+                            .Select( s => new GroupLocationSchedule(
+                                groupLocationService.Get( s[0].AsInteger() ),
+                                scheduleService.Get( s[1].AsInteger() ),
+                                false )
+                            ).ToList()
+                        );
+                    }
+
+                }
+                return _groupLocationSchedules;
+            }
+        }
+
+        public KioskCountUtility( List<int> _configuredGroupTypes, Guid _volunteerAttributeGuid )
+        {
+            _KioskCountUtility( _configuredGroupTypes, _volunteerAttributeGuid, null );
+        }
+
+        public KioskCountUtility( List<int> _configuredGroupTypes, Guid _volunteerAttributeGuid, Guid DeactivatedDefinedTypeGuid )
+        {
+            _KioskCountUtility( _configuredGroupTypes, _volunteerAttributeGuid, DeactivatedDefinedTypeGuid );
+        }
+
+        private void _KioskCountUtility( List<int> _configuredGroupTypes, Guid _volunteerAttributeGuid, Guid? DeactivatedDefinedTypeGuid )
+        {
+
+            ConfiguredGroupTypes = _configuredGroupTypes;
+            VolunteerAttributeGuid = _volunteerAttributeGuid;
+            _deactivatedDefinedTypeGuid = DeactivatedDefinedTypeGuid; //+1 for orriginality
+
         }
 
         public LocationScheduleCount GetLocationScheduleCount( int LocationId, int ScheduleId )
