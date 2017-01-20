@@ -43,8 +43,6 @@ namespace org.secc.FamilyCheckin
             var checkInState = GetCheckInState( entity, out errorMessages );
             if ( checkInState != null )
             {
-                CheckInGroupType lastCheckinGroupType = null;
-
                 List<string> labelCodes = new List<string>();
 
                 var volAttributeGuid = GetAttributeValue( action, "VolunteerGroupAttribute" ).AsGuid();
@@ -134,11 +132,6 @@ namespace org.secc.FamilyCheckin
                             checkInLabel.PrintFrom = checkInState.Kiosk.Device.PrintFrom;
                             checkInLabel.PrintTo = checkInState.Kiosk.Device.PrintToOverride;
 
-                            if ( checkInLabel.PrintTo == PrintTo.Default )
-                            {
-                                checkInLabel.PrintTo = lastCheckinGroupType.GroupType.AttendancePrintTo;
-                            }
-
                             if ( checkInLabel.PrintTo == PrintTo.Kiosk )
                             {
                                 var device = checkInState.Kiosk.Device;
@@ -147,23 +140,7 @@ namespace org.secc.FamilyCheckin
                                     checkInLabel.PrinterDeviceId = device.PrinterDeviceId;
                                 }
                             }
-                            else if ( checkInLabel.PrintTo == PrintTo.Location )
-                            {
-                                // Should only be one
-                                var group = lastCheckinGroupType.Groups.Where( g => g.Selected ).FirstOrDefault();
-                                if ( group != null )
-                                {
-                                    var location = group.Locations.Where( l => l.Selected ).FirstOrDefault();
-                                    if ( location != null )
-                                    {
-                                        var device = location.Location.PrinterDevice;
-                                        if ( device != null )
-                                        {
-                                            checkInLabel.PrinterDeviceId = device.PrinterDeviceId;
-                                        }
-                                    }
-                                }
-                            }
+                            
                             if ( checkInLabel.PrinterDeviceId.HasValue )
                             {
                                 var printerDevice = new DeviceService( rockContext ).Get( checkInLabel.PrinterDeviceId.Value );
