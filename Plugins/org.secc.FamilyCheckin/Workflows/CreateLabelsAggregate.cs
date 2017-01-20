@@ -137,8 +137,12 @@ namespace org.secc.FamilyCheckin
                                     var breakoutGroup = breakoutGroups.Where( g => g.ScheduleId == set.Schedule.Id ).FirstOrDefault();
                                     if ( breakoutGroup != null )
                                     {
-                                        breakoutGroup.LoadAttributes();
-                                        mergeObjects["BreakoutGroup"] = breakoutGroup.GetAttributeValue( "Letter" );
+                                        var breakoutGroupEntity = new GroupService( rockContext ).Get( breakoutGroup.Id );
+                                        if ( breakoutGroupEntity != null )
+                                        {
+                                            breakoutGroupEntity.LoadAttributes();
+                                            mergeObjects["BreakoutGroup"] = breakoutGroupEntity.GetAttributeValue( "Letter" );
+                                        }
                                     }
                                 }
 
