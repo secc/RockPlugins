@@ -138,7 +138,7 @@ namespace org.secc.FamilyCheckin
                                     if ( breakoutGroup != null )
                                     {
                                         breakoutGroup.LoadAttributes();
-                                        mergeObjects["BreakoutGroup"] = breakoutGroup.GetAttributeValue("Letter");
+                                        mergeObjects["BreakoutGroup"] = breakoutGroup.GetAttributeValue( "Letter" );
                                     }
                                 }
 
@@ -360,7 +360,7 @@ namespace org.secc.FamilyCheckin
 
         private List<Group> GetBreakoutGroups( Person person, RockContext rockContext, WorkflowAction action )
         {
-            if ( !string.IsNullOrWhiteSpace( GetAttributeValue(action, "BreakoutGroupType" ) ) )
+            if ( !string.IsNullOrWhiteSpace( GetAttributeValue( action, "BreakoutGroupType" ) ) )
             {
                 ObjectCache cache = Rock.Web.Cache.RockMemoryCache.Default;
                 List<Group> allBreakoutGroups = cache[cacheKey] as List<Group>;
@@ -368,21 +368,13 @@ namespace org.secc.FamilyCheckin
                 {
                     //If the cache is empty, fill it up!
                     Guid breakoutGroupTypeGuid = GetAttributeValue( action, "BreakoutGroupType" ).AsGuid();
-                    var breakoutGroupType = new GroupTypeService( rockContext ).Queryable()
-                        .Where( gt => gt.Guid == breakoutGroupTypeGuid )
-                        .FirstOrDefault();
-                    if ( breakoutGroupType != null )
-                    {
-                        allBreakoutGroups = breakoutGroupType.Groups.ToList();
-                        var cachePolicy = new CacheItemPolicy();
-                        cachePolicy.AbsoluteExpiration = DateTimeOffset.Now.AddMinutes( 10 );
-                        cache.Set( cacheKey, allBreakoutGroups, cachePolicy );
-                    }
-                    else
-                    {
-                        return new List<Group>();
-                    }
+                    allBreakoutGroups = new GroupService( rockContext ).Queryable( "Members" ).AsNoTracking()
+                       .Where( g => g.GroupType.Guid == breakoutGroupTypeGuid ).ToList();
+                    var cachePolicy = new CacheItemPolicy();
+                    cachePolicy.AbsoluteExpiration = DateTimeOffset.Now.AddMinutes( 10 );
+                    cache.Set( cacheKey, allBreakoutGroups, cachePolicy );
                 }
+
                 return allBreakoutGroups.Where( g => g.Members.Where( gm => gm.PersonId == person.Id ).Any() ).ToList();
             }
             else
