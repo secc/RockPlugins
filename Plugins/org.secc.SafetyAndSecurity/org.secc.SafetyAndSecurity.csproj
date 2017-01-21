@@ -86,6 +86,10 @@
       <Project>{1F5956F2-2B0F-49B8-AAF1-2CC28F01426A}</Project>
       <Name>Rock.SignNow</Name>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)\SignNowSDK\SignNowSDK.csproj">
+      <Project>{69ac175c-3997-4514-8c9e-5d24811928c2}</Project>
+      <Name>SignNowSDK</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

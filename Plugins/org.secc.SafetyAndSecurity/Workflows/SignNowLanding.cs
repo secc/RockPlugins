@@ -57,7 +57,7 @@ namespace org.secc.SafetyAndSecurity
                 return false;
             }
             // Delete the original document now that we have a signed one (The invite actually copies the files)
-            JObject result = CudaSign.Document.Delete( token, signNowDocumentId );
+            JObject result = SignNowSDK.Document.Delete( token, signNowDocumentId );
 
             // Just clear out the Invite and DocumentId links
             SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "SignNowInviteLink" ).AsGuid(), "" );
@@ -72,7 +72,7 @@ namespace org.secc.SafetyAndSecurity
                 // Download the file
                 string tempPath = Path.GetTempPath();
                 string tempFileName = "VolunteerApplication_" + person.FirstName + person.LastName;
-                result = CudaSign.Document.Download( token, signedDocumentId, tempPath, tempFileName );
+                result = SignNowSDK.Document.Download( token, signedDocumentId, tempPath, tempFileName );
                 
                 // Put it into the workflow attribute
                 BinaryFile signedPDF = binaryfileService.Get( documentGuid );
