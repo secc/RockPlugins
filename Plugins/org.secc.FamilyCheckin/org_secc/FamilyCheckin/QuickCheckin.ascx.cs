@@ -577,8 +577,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private void ShowRoomChangeModal( Person person, CheckInSchedule schedule )
         {
-            phModal.Controls.Clear();
-
             var volAttributeGuid = GetAttributeValue( "VolunteerGroupAttribute" ).AsGuid();
             KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes, volAttributeGuid );
 
@@ -600,7 +598,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
                         //Change room button
                         BootstrapButton btnRoom = new BootstrapButton();
-                        btnRoom.ID = "c" + person.Guid.ToString() + group.Group.Guid.ToString() + schedule.Schedule.Guid.ToString() + location.Location.Guid.ToString();
+                        btnRoom.ID = "btn" + person.Guid.ToString() + group.Group.Guid.ToString() + schedule.Schedule.Guid.ToString() + location.Location.Guid.ToString();
                         btnRoom.Text = groupType.GroupType.Name + ": " + group.Group.Name + "<br>" + location.Location.Name;
 
                         //Add location count
