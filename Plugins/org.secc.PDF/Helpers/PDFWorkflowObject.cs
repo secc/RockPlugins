@@ -13,6 +13,7 @@ namespace org.secc.PDF
 {
     public class PDFWorkflowObject
     {
+        public BinaryFile PDF { get; set; }
         public string LavaInput { get; set; }
         public Dictionary<string, object> MergeObjects { get; set; }
         public string RenderedXHTML
