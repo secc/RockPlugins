@@ -68,11 +68,7 @@
     <Compile Include="Helpers\PDFWorkflowObject.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\Utility.cs" />
-    <Compile Include="Workflows\EmailRegistration.cs" />
     <Compile Include="Workflows\InsertXHTMLLava.cs" />
-    <Compile Include="Workflows\InsertPDFFormFile.cs" />
-    <Compile Include="Workflows\InitializeWithGroupMember.cs" />
-    <Compile Include="Workflows\InitializeWithRegistration.cs" />
     <Compile Include="Workflows\LavaPDF.cs" />
     <Compile Include="Workflows\PDFFormMerge.cs" />
   </ItemGroup>
