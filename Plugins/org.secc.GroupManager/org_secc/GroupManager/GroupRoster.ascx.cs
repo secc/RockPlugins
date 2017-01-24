@@ -444,7 +444,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 foreach ( var groupMember in groupMembers )
                 {
-                    groupMember.GroupMemberStatus = GroupMemberStatus.Inactive;
+                    var gm = new GroupMemberService( _rockContext ).Get( groupMember.Id );
+                    if ( gm != null )
+                    {
+                        gm.GroupMemberStatus = GroupMemberStatus.Inactive;
+                    }
                 }
                 _rockContext.SaveChanges();
             }
@@ -459,7 +463,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 foreach ( var groupMember in groupMembers )
                 {
-                    groupMember.GroupMemberStatus = GroupMemberStatus.Active;
+                    var gm = new GroupMemberService( _rockContext ).Get( groupMember.Id );
+                    if ( gm != null )
+                    {
+                        gm.GroupMemberStatus = GroupMemberStatus.Active;
+                    }
                 }
                 _rockContext.SaveChanges();
             }
