@@ -1746,26 +1746,26 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             CurrentRequisition.DeliverTo = txtDeliverTo.Text;
 
             UpdatePreferredVendor();
-
+            
 
             if ( CurrentRequisition.MinistryLUID == 0 )
             {
                    CurrentRequisition.Requester.LoadAttributes();
-                   var MinistryAttribute = CurrentRequisition.Requester.Attributes.Where( x => x.Key == MinistryAreaAttribute.Key ).FirstOrDefault();
+                   var MinistryAttribute = CurrentRequisition.Requester.AttributeValues.Where( x => x.Key == MinistryAreaAttribute.Key ).FirstOrDefault();
 
                 if (MinistryAttribute.Value != null )
                 {
-                    CurrentRequisition.MinistryLUID = MinistryAttribute.Value.Id;
+                    CurrentRequisition.MinistryLUID = DefinedValueCache.Read( MinistryAttribute.Value.Value.AsGuid() ).Id;
                 }
             }
 
             if ( CurrentRequisition.LocationLUID == 0 )
             {
-                var LocationAttribute = CurrentRequisition.Requester.Attributes.Where( x => x.Key == MinistryLocationAttribute.Key ).FirstOrDefault();
+                var LocationAttribute = CurrentRequisition.Requester.AttributeValues.Where( x => x.Key == MinistryLocationAttribute.Key ).FirstOrDefault();
 
                 if (LocationAttribute.Value != null )
                 {
-                    CurrentRequisition.LocationLUID = LocationAttribute.Value.Id;
+                    CurrentRequisition.LocationLUID = DefinedValueCache.Read( LocationAttribute.Value.Value.AsGuid() ).Id;
                 }
             }
 
