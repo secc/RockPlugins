@@ -37,7 +37,11 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if (!String.IsNullOrEmpty(GetAttributeValue("PurchaseOrderDetailPage")))
             {
                 PageService pageService = new PageService(new Rock.Data.RockContext());
-                return "~/page/" + pageService.Get(GetAttributeValue("PurchaseOrderDetailPage").AsGuid()).Id;
+                if ( GetAttributeValue( "PurchaseOrderDetailPage" ).AsGuidOrNull() != null && pageService.Get( GetAttributeValue( "PurchaseOrderDetailPage" ).AsGuid() ) != null)
+                {
+                    return "~/page/" + pageService.Get( GetAttributeValue( "PurchaseOrderDetailPage" ).AsGuid() ).Id;
+
+                }
             }
             return null; 
         } }

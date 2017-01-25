@@ -841,7 +841,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             HyperLinkField hlc = (HyperLinkField)dgItems.Columns[8];
             PageService pageService = new PageService( new Rock.Data.RockContext() );
-            hlc.DataNavigateUrlFormatString = "/page/" + (pageService.Get( RequisitionDetailPageSetting.AsGuid()).Id) + "?RequisitionID={0}";
+            if ( RequisitionDetailPageSetting.AsGuidOrNull() != null)
+            {
+                hlc.DataNavigateUrlFormatString = "/page/" + ( pageService.Get( RequisitionDetailPageSetting.AsGuid() ).Id ) + "?RequisitionID={0}";
+            }
         }
 
         private DataTable GetReceivingHistory()
@@ -1711,12 +1714,12 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                         WorkflowActivity.Activate(activityType, workflow, rockContext);
                         if (workflowService.Process(workflow, pdfWorkflowObject, out workflowErrors))
                         {
-                            var b = pdfWorkflowObject.RenderedPDF.DatabaseData.Content;
+                            var b = pdfWorkflowObject.PDF.DatabaseData.Content;
                             Response.Clear();
                             Response.Buffer = true;
                             //Response.Write(pdfWorkflowObject.RenderedXHTML);
                             //Response.End();
-                            Response.ContentType = pdfWorkflowObject.RenderedPDF.MimeType;
+                            Response.ContentType = pdfWorkflowObject.PDF.MimeType;
                             Response.AddHeader("content-disposition", "attachment;filename=\"PurchaseOrder-" + CurrentPurchaseOrder.PurchaseOrderID +".pdf\"");
                             Response.OutputStream.Write(b, 0, b.Length);
                             Response.End();
