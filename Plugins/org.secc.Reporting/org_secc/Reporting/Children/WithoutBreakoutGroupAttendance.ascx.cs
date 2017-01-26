@@ -113,7 +113,7 @@ namespace RockWeb.Blocks.Reporting.Children
                 .ToList();
 
             // create default settings
-            string filename = "WithoutBreakoutGroupAttendance";
+            string filename = "WithoutBreakoutGroupAttendance.xlsx";
             string workSheetName = "List";
             string title = "Without Breakout Group Attendance";
 
@@ -183,12 +183,12 @@ namespace RockWeb.Blocks.Reporting.Children
                 SetExcelValue( worksheet.Cells[rowCounter, 5], firstAttendance );
                 var lastAttendance = currentAttendances.LastOrDefault().Attendance.StartDateTime.ToString( "MM/dd/yyyy" );
                 SetExcelValue( worksheet.Cells[rowCounter, 6], lastAttendance );
-                SetExcelValue( worksheet.Cells[rowCounter, 7], currentAttendances.Count.ToString() );
+                SetExcelValue( worksheet.Cells[rowCounter, 7], currentAttendances.Count );
 
                 var i = 0;
                     foreach ( var schedule in schedules )
                     {
-                    var count = currentAttendances.Where( a => a.Attendance.ScheduleId == schedule.Id ).Count().ToString();
+                    var count = currentAttendances.Where( a => a.Attendance.ScheduleId == schedule.Id ).Count();
 
                         SetExcelValue( worksheet.Cells[rowCounter, 8 + i], count );
                         i++;
