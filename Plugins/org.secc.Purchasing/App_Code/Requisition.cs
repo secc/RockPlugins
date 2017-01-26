@@ -640,7 +640,7 @@ namespace org.secc.Purchasing
                     {
                         if (PersonID > 0 && filter.ContainsKey("UserName"))
                         {
-                            var range = Query.Where(q => q.CreatedBy == filter["UserName"].ToString())
+                            var range = Query.Where(q => filter["UserName"].IndexOf(q.CreatedBy) >= 0)
                                                         .Select(q => new RequisitionListItem
                                                         {
                                                             RequisitionID = q.RequisitionId,
@@ -686,10 +686,8 @@ namespace org.secc.Purchasing
                         if ( filter.ContainsKey( "MyMinistryID" ) && int.TryParse( filter["MyMinistryID"], out MyMinistryID ) )
                         {
                             query2 = query2.Where( q => q.MinistryLUID == MyMinistryID );
-
-                            DefinedValue Ministry = definedValueService.Get( MyMinistryID );
-                            Ministry.LoadAttributes();
-                            if (Ministry != null && !Ministry.GetAttributeValue("Active").AsBoolean() && filter.ContainsKey("MyLocationID") && int.TryParse(filter["MyLocationID"], out MyLocationID))
+                            
+                            if (filter.ContainsKey("MyLocationID") && int.TryParse(filter["MyLocationID"], out MyLocationID))
                             {
                                 query2 = query2.Where( q => q.LocationLUID == MyLocationID );
                             }
@@ -871,7 +869,8 @@ namespace org.secc.Purchasing
 
                 foreach (var item in Reqs.Select(r => r.RequesterID).Distinct())
             	{
-                    var Ministry = Helpers.Person.GetMyMinistryLookup(item, "MinistryArea");
+                    var attribute = Rock.Web.Cache.AttributeCache.Read( ministryAttributeID );
+                    var Ministry = Helpers.Person.GetMyMinistryLookup(item, attribute.Key);
                     foreach (var reqItem in Reqs.Where(r => r.RequesterID == item))
                     {
                         if (Ministry.Id > 0)
