@@ -31,7 +31,7 @@
                     <Rock:RockTextBox ID="txtPONumber" runat="server" Label="PO Number"/>
                 
                     <Rock:DateRangePicker ID="txtFilterSubmitted" runat="server" Visible="true" Label="Submitted On" />
-                    <asp:Panel runat="server" CssClass="form-group">
+                    <asp:Panel runat="server" CssClass="form-group" ID="pnlRequester">
                         <label>Requester:</label>
                         <secc:StaffPicker ID="hfFilterSubmittedBy" runat="server" AllowMultipleSelections="false" 
                                                 ShowPersonDetailLink="true" ShowPhoto="true" UserCanEdit="true"/>

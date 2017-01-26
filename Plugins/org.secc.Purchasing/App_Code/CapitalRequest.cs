@@ -550,7 +550,10 @@ namespace org.secc.Purchasing
                     bool showMe = false;
                     if ( bool.TryParse( filter["Show_Me"], out showMe ) && showMe )
                     {
-                        listItems.AddRange( query.Where( q => q.RequesterId == currentPersonId ).ToList() );
+                        PersonAliasService aliasService = new PersonAliasService( new Rock.Data.RockContext() );
+                        var aliasIds = aliasService.Queryable().Where( a => a.PersonId == currentPersonId ).Select( a => a.Id ).ToList();
+
+                        listItems.AddRange( query.Where( q => aliasIds.Contains(q.RequesterId)).ToList() );
 
                         listItems.AddRange( query.Where( q => q.CreatedByUserId == currentUserId )
                                                 .Where( q => !listItems.Select( l => l.CapitalRequestId ).Contains( q.CapitalRequestId ) )
