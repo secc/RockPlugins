@@ -424,6 +424,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             chkShowInactive.Visible = isEditor;
             ddlMinistry.Visible = isEditor;
             ddlLocation.Visible = isEditor;
+            pnlRequester.Visible = isEditor;
         }
 
         private void LoadUserFilterSettings()
