@@ -314,22 +314,22 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
 
             Filter.Add("PersonID", CurrentPerson.Id.ToString());
-            Filter.Add("UserName", CurrentUser.UserName);
-            AttributeService attributeService = new AttributeService(new RockContext());
-            Rock.Model.Attribute ministryAttribute = attributeService.Get(MinistryAreaAttributeIDSetting);
-            if (ministryAttribute != null)
+            UserLoginService loginService = new UserLoginService( new RockContext() );
+            Filter.Add("UserName", string.Join(",",loginService.GetByPersonId(CurrentPerson.Id).Select(l => l.UserName)));
+            CurrentPerson.LoadAttributes();
+            if ( MinistryAreaAttributeIDSetting != null)
             {
-                DefinedValue ministryValue = org.secc.Purchasing.Helpers.Person.GetMyMinistryLookup(CurrentPerson.Id, ministryAttribute.Key);
+                var ministryValue = DefinedValueCache.Read( CurrentPerson.AttributeValues[AttributeCache.Read( MinistryAreaAttributeIDSetting ).Key].Value );
                 if (ministryValue != null) {
                     Filter.Add("MyMinistryID", ministryValue.Id.ToString());
                 }
             }
 
-            Rock.Model.Attribute locationAttribute = attributeService.Get(MinistryAreaAttributeIDSetting);
-            if (locationAttribute != null)
+            if ( MinistryLocationAttributeIDSetting != null)
             {
-                DefinedValue locationValue = org.secc.Purchasing.Helpers.Person.GetMyMinistryLookup(CurrentPerson.Id, locationAttribute.Key);
-                if (locationValue != null)
+                var locationValue = DefinedValueCache.Read( CurrentPerson.AttributeValues[AttributeCache.Read( MinistryLocationAttributeIDSetting ).Key].Value );
+
+                if ( locationValue != null)
                 {
                     Filter.Add( "MyLocationID", locationValue.Id.ToString());
                 }

@@ -861,8 +861,12 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         private int GetCurrentUsersMinistryArea()
         {
             CurrentPerson.LoadAttributes();
-            Guid dv = CurrentPerson.GetAttributeValue(AttributeCache.Read(MinistryAreaPersonAttributeSetting).Key).AsGuid();
-            return DefinedValueCache.Read(dv).Id;
+            if ( MinistryAreaPersonAttributeSetting != null && AttributeCache.Read( MinistryAreaPersonAttributeSetting ) != null && CurrentPerson.GetAttributeValue( AttributeCache.Read( MinistryAreaPersonAttributeSetting ).Key ) != null)
+            {
+                Guid dv = CurrentPerson.GetAttributeValue( AttributeCache.Read( MinistryAreaPersonAttributeSetting ).Key ).AsGuid();
+                return DefinedValueCache.Read( dv ).Id;
+            }
+            return 0;
         }
 
         private void LoadApprovalRequests()
