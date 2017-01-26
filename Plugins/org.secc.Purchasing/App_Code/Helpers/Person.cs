@@ -13,16 +13,14 @@ namespace org.secc.Purchasing.Helpers
     public class Person
     {
         #region Public
-
-        public static DefinedValue GetMyMinistryLookup(int personID, String ministryAttribute)
-        {
+        public static DefinedValue GetMyMinistryLookup( int personID, String ministryAttribute )
+        { 
             DefinedValue MinistryLookup = null;
-            PersonAliasService personAliasService = new PersonAliasService(new Rock.Data.RockContext());
-            var person = personAliasService.Get(personID).Person;
+            PersonAliasService personAliasService = new PersonAliasService( new Rock.Data.RockContext() );
+            var person = personAliasService.Get( personID ).Person;
             person.LoadAttributes();
-            Guid? pa = person.GetAttributeValue(ministryAttribute).AsGuidOrNull();
-
-            DefinedValueService definedValueService = new DefinedValueService(new Rock.Data.RockContext());
+            Guid? pa = person.GetAttributeValue( ministryAttribute ).AsGuidOrNull();
+                DefinedValueService definedValueService = new DefinedValueService( new Rock.Data.RockContext() );
 
             if (pa.HasValue)
                 MinistryLookup = definedValueService.Get(pa.Value);
@@ -31,25 +29,7 @@ namespace org.secc.Purchasing.Helpers
 
             return MinistryLookup;
         }
-
-        public static DefinedValue GetMyLocationLookup( int personID, String locationAttribute )
-        {
-            DefinedValue MinistryLookup = null;
-            PersonAliasService personAliasService = new PersonAliasService(new Rock.Data.RockContext());
-            var person = personAliasService.Get(personID).Person;
-            person.LoadAttributes();
-            Int32? pa = Int32.Parse(person.GetAttributeValue(locationAttribute));
-
-            DefinedValueService definedValueService = new DefinedValueService(new Rock.Data.RockContext());
-
-            if (pa != null && pa.Value > 0)
-                MinistryLookup = definedValueService.Get(pa.Value);
-            else
-                MinistryLookup = new DefinedValue();
-
-            return MinistryLookup;
-        }
-
+        
         public static List<int> GetPersonIDByAttributeValue(int attributeID, int intValue)
         {
             return GetPersonIDByAttributeValue(attributeID, intValue, null, null, null);
