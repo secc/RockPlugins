@@ -148,37 +148,27 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
         }
 
-        public int RequisitionApprovedNotificationTemplateSetting
+        public Guid RequisitionApprovedNotificationTemplateSetting
         {
             get
             {
-                int templateID = 0;
-                int.TryParse(GetAttributeValue("RequisitionApprovedNotificationTemplate"), out templateID);
-
-                return templateID;
+                return GetAttributeValue( "RequisitionApprovedNotificationTemplate" ).AsGuid();
             }
         }
-        public int ApprovalRequestNotificationTemplateSetting
+        public Guid ApprovalRequestNotificationTemplateSetting
         {
             get
             {
-                int templateID = 0;
-                int.TryParse(GetAttributeValue("ApprovalRequestNotificationTemplate"), out templateID);
-
-                return templateID;
+                return GetAttributeValue( "ApprovalRequestNotificationTemplate" ).AsGuid();
 
             }
         }
 
-        public int ApprovalDeclinedNotificationTemplateSetting
+        public Guid ApprovalDeclinedNotificationTemplateSetting
         {
             get
             {
-                int templateID = 0;
-                int.TryParse(GetAttributeValue("ApprovalDeclinedNotificationTemplate"), out templateID);
-
-                return templateID;
-
+                return GetAttributeValue("ApprovalDeclinedNotificationTemplate").AsGuid();
             }
         }
         public bool SendEmailsToTemplateRecepientsOnlySetting
@@ -1918,7 +1908,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             SystemEmail ct = systemEmailService.Get(RequisitionSubmittedToPurchasingSetting.Value);
             Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
 
-            Fields.Add("Requester", CurrentRequisition.Requester.FirstName);
+            Fields.Add("Requester", CurrentRequisition.Requester.NickName);
             Fields.Add("RequisitionTitle", CurrentRequisition.Title);
             Fields.Add("DateSubmitted", string.Format("{0:g}", CurrentRequisition.DateSubmitted));
 
@@ -1946,7 +1936,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     SetSummaryError("Purchasing Team Notification: Email Address " + email + " does not belong to a person in Rock");
                     break;
                 }
-                Fields.Add("RecipientName", recepient.FirstName);
+                Fields.Add("RecipientName", recepient.NickName);
                 Fields.Add("RequisitionTitle", CurrentRequisition.Title);
                 Fields.Add("Requester", CurrentRequisition.Requester.FullName);
                 Fields.Add("DateSubmitted", string.Format("{0:g}", CurrentRequisition.DateSubmitted));
@@ -2501,58 +2491,55 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         }
 
-
-        protected void dgApprovals_ItemCommand(object sender, DataGridCommandEventArgs e)
+        protected void dgApprovals_RowCommand( object sender, GridViewCommandEventArgs e )
         {
-            if (e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem)
-            {
-                int ApprovalID = 0;
-                if (e.CommandArgument == null || !int.TryParse(e.CommandArgument.ToString(), out ApprovalID))
-                    return;
+            int ApprovalID = 0;
+            if (e.CommandArgument == null || !int.TryParse(e.CommandArgument.ToString(), out ApprovalID))
+                return;
 
-                switch (e.CommandName.ToLower())
-                {
-                    case "approve":
-                        RequisitionApprove(ApprovalID);
-                        break;
-                    case "approveforward":
-                        RequisitionApproveForward(ApprovalID);
-                        break;
-                    case "decline":
-                        RequisitionDecline(ApprovalID);
-                        break;
-                    case "remove":
-                        RemoveApproval(ApprovalID);
-                        break;
-                    case "resubmit":
-                        ResubmitApproval(ApprovalID);
-                        break;
-                    default:
-                        break;
-                }
+            switch (e.CommandName.ToLower())
+            {
+                case "approve":
+                    RequisitionApprove(ApprovalID);
+                    break;
+                case "approveforward":
+                    RequisitionApproveForward(ApprovalID);
+                    break;
+                case "decline":
+                    RequisitionDecline(ApprovalID);
+                    break;
+                case "remove":
+                    RemoveApproval(ApprovalID);
+                    break;
+                case "resubmit":
+                    ResubmitApproval(ApprovalID);
+                    break;
+                default:
+                    break;
             }
         }
-
-        protected void dgApprovals_ItemDataBound(object sender, DataGridItemEventArgs e)
+        
+        protected void dgApprovals_RowDataBound( object sender, GridViewRowEventArgs e )
         {
-            if (e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem)
+            
+            if ( e.Row.RowType == DataControlRowType.DataRow )
             {
                 if ( CurrentRequisition == null || !CurrentRequisition.Active )
                 {
                     return;
                 }
 
-                DataRowView drv = (DataRowView)e.Item.DataItem;
+                DataRowView drv = (DataRowView)e.Row.DataItem;
 
-                LinkButton lbApprove = (LinkButton)e.Item.FindControl("lbApprove");
+                LinkButton lbApprove = (LinkButton)e.Row.FindControl("lbApprove");
                 lbApprove.CommandArgument = drv["ApprovalID"].ToString();
-                LinkButton lbDeny = (LinkButton)e.Item.FindControl("lbDeny");
+                LinkButton lbDeny = (LinkButton)e.Row.FindControl("lbDeny");
                 lbDeny.CommandArgument = drv["ApprovalID"].ToString();
-                LinkButton lbRemove = (LinkButton)e.Item.FindControl("lbRemove");
+                LinkButton lbRemove = (LinkButton)e.Row.FindControl("lbRemove");
                 lbRemove.CommandArgument = drv["ApprovalID"].ToString();
-                LinkButton lbResubmit = (LinkButton)e.Item.FindControl("lbResubmit");
+                LinkButton lbResubmit = (LinkButton)e.Row.FindControl("lbResubmit");
                 lbResubmit.CommandArgument = drv["ApprovalID"].ToString();
-                LinkButton lbApproveForward = (LinkButton)e.Item.FindControl("lbApproveForward");
+                LinkButton lbApproveForward = (LinkButton)e.Row.FindControl("lbApproveForward");
                 lbApproveForward.CommandArgument = drv["ApprovalID"].ToString();
 
 
@@ -2635,6 +2622,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             Approval approvalRequest = CurrentRequisition.Approvals.FirstOrDefault(a => a.ApprovalID == approvalID);
             approvalRequest.Approve(CurrentUser.UserName, Approval.ApprovedAndForwardLUID());
+
+            ucStaffPickerApprover.Show();
 
         }
 
@@ -2745,7 +2734,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
             Fields.Add("ApproverName", a.Approver.NickName);
             Fields.Add("RequisitionTitle", CurrentRequisition.Title);
-            Fields.Add("ApprovalRequester", CurrentPerson.FirstName);
+            Fields.Add("ApprovalRequester", CurrentPerson.NickName);
             Fields.Add("Requester", CurrentRequisition.Requester.FullName);
             Fields.Add("RequisitionLink", string.Format("<a href=\"{0}\">{0}</a>", GetRequisitionLink()));
             Fields.Add("ItemList", GetItemListForCommunication(true));
@@ -3541,6 +3530,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             return;
 
         }
-
+        
     }
 }
