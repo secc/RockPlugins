@@ -301,26 +301,20 @@
                     <div id="approvals"> 
                         <h3>Approval Requests</h3>
                         <Rock:Grid ID="dgApprovals" runat="server" AllowPaging="false" AllowSorting="false" OnReBind="dgApprovals_ReBind" NoResultText="No Approval Requests found"
-                             DataKeyField="ApprovalID" CssClass="list" OnItemDataBound="dgApprovals_ItemDataBound" OnItemCommand="dgApprovals_ItemCommand"  ShowActionRow="false">
+                             DataKeyField="ApprovalID" CssClass="list" OnRowDataBound="dgApprovals_RowDataBound" OnRowCommand="dgApprovals_RowCommand"  ShowActionRow="false">
                             <Columns>
                                 <Rock:RockBoundField HeaderText="Approval ID" DataField="ApprovalID" Visible = "false" />
                                 <Rock:RockBoundField HeaderText="Approver" DataField="ApproverName" />
                                 <Rock:RockBoundField HeaderText="Status" DataField="ApprovalStatus" />
                                 <Rock:RockBoundField HeaderText="Date Approved" DataField="DateApproved" DataFormatString="{0:d}" />
-                                <Rock:RockTemplateField ItemStyle-HorizontalAlign="Right">
+                                <Rock:RockTemplateField ItemStyle-HorizontalAlign="Right" HeaderText="Options" HeaderStyle-Width="350px">
                                     <ItemTemplate>
-                                        <asp:LinkButton ID="lbResubmit" runat="server" Visible="false" Text="Resubmit" CommandName="resubmit" />
-                                        <asp:LinkButton ID="lbApprove" runat="server" Visible="false" Text="Approve" CommandName="approve" />
-                                        <asp:LinkButton ID="lbApproveForward" runat="server" Visible="false" Text="Approve & Forward" CommandName="approveForward" />
-                                        <asp:LinkButton ID="lbDeny" runat="server" Visible="false" Text="Decline" CommandName="decline" />
-                                    </ItemTemplate>
-                                </Rock:RockTemplateField>
-
-                                <Rock:RockTemplateField>
-                                    <ItemStyle HorizontalAlign="Center" />
-                                    <ItemTemplate>
-                                        <asp:LinkButton ID="lbRemove" runat="server" CommandName="Remove" Visible="false">
-                                            <img src="/images/delete.png" alt="Remove" />
+                                        <asp:LinkButton ID="lbResubmit" runat="server" Visible="false" Text="Resubmit" CommandName="resubmit" CssClass="btn btn-default" />
+                                        <asp:LinkButton ID="lbApprove" runat="server" Visible="false" Text="Approve" CommandName="approve" CssClass="btn btn-default" />
+                                        <asp:LinkButton ID="lbApproveForward" runat="server" Visible="false" Text="Approve & Forward" CommandName="approveForward" CssClass="btn btn-default" />
+                                        <asp:LinkButton ID="lbDeny" runat="server" Visible="false" Text="Decline" CommandName="decline" CssClass="btn btn-default" />
+                                        <asp:LinkButton ID="lbRemove" runat="server" CommandName="Remove" Visible="false" class="btn btn-default">
+                                            <i class="fa fa-remove"></i>
                                         </asp:LinkButton>
                                     </ItemTemplate>
                                 </Rock:RockTemplateField>
@@ -361,7 +355,7 @@
         <secc:StaffPicker ID="ucStaffPickerApprover" runat="server" OnSelect="SelectApprover_Click" />
         <Rock:ModalIFrameDialog ID="mpiAttachmentPicker" runat="server"/>
         <Rock:ModalDialog ID="mpChooseVendor" runat="server" Title="Choose Vendor" CancelControlID="btnVendorModalCancel"
-            EnableViewState="true" OnSaveClick="btnVendorModalUpdate_click">
+            EnableViewState="true" OnSaveClick="btnVendorModalUpdate_click" ValidationGroup="VendorSelect">
             <Content>
                 <asp:UpdatePanel ID="upChooseVendor" runat="server" UpdateMode="Conditional">
                     <ContentTemplate>
