@@ -1834,7 +1834,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void SetSummaryError(string errorMessage)
         {
-            lSummaryError.Text = errorMessage;
+            lSummaryError.InnerHtml = errorMessage;
             lSummaryError.Visible = !String.IsNullOrWhiteSpace( errorMessage );
         }
 
@@ -1917,6 +1917,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
 
             // CER is closed
+            CurrentCapitalRequest.Status.LoadAttributes();
             if (CurrentCapitalRequest.Status.AttributeValues["IsClosed"].Value.AsBoolean())
             {
                 return false;
