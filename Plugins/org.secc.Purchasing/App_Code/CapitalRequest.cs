@@ -596,9 +596,9 @@ namespace org.secc.Purchasing
             return listItems;
         }
 
-        public static DefinedType GetDefaultStatus()
+        public static DefinedValueCache GetDefaultStatus()
         {
-            return definedTypeService.Get(Guid.Parse(STATUS_LOOKUP_TYPE_GUID));
+            return DefinedValueCache.Read( LOOKUP_STATUS_NEW_GUID );
         }
 
         public void RefreshApprovalRequests()
@@ -1264,7 +1264,7 @@ namespace org.secc.Purchasing
                 }
                 else
                 {
-                    RequesterId = requester.Id;
+                    RequesterId = requester.PrimaryAliasId.Value;
                 }
             }
 
