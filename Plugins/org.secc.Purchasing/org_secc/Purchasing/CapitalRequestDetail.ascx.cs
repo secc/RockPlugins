@@ -179,7 +179,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-                return GetAttributeValue("RequestApprovedNotificationTemplate").AsGuidOrNull();
+                return GetAttributeValue("ApprovedNotificationTemplate").AsGuidOrNull();
 
             }
         }
@@ -188,7 +188,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-                return GetAttributeValue("RequestReturnedNotificationTemplate").AsGuidOrNull();
+                return GetAttributeValue("ReturnedNotificationTemplate").AsGuidOrNull();
             }
         }
 
