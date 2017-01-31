@@ -890,7 +890,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                                                 ApproverFullName = a.Approver != null ? a.Approver.FullName : null,
                                                 ApprovalStatusLUID = a.ApprovalStatusLUID,
                                                 ApprovalStatusName = a.ApprovalStatus != null ? a.ApprovalStatus.Value : null,
-                                                DateApprovedString = a.DateApproved > DateTime.MinValue ? a.DateApproved.ToShortDateString() : "(not approved)",
+                                                DateApprovedString = a.DateApproved > DateTime.MinValue ? a.DateApproved.ToShortDateString()+ " " + a.DateApproved.ToShortTimeString() : "(not approved)",
                                                 LastComment = a.ApprovalStatusLUID == Approval.ApprovedStatusLUID() ? String.Empty : 
                                                     a.GetLastNote(),
                                                 CreatedByPersonId = a.CreatedBy.PrimaryAliasId.Value
