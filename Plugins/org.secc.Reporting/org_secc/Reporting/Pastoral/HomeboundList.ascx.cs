@@ -111,28 +111,32 @@ namespace RockWeb.Blocks.Reporting
                 int entityTypeId = entityTypeService.Queryable().Where( et => et.Name == typeof( Workflow ).FullName ).FirstOrDefault().Id;
                 string status = ( contextEntity != null ? "Completed" : "Active" );
 
-                // A little linq to load workflows with attributes and values
-                var tmpqry = workflowService.Queryable().AsNoTracking()
-                    .Join( attributeService.Queryable(),
-                    w => new { EntityTypeId = entityTypeId, WorkflowTypeId = w.WorkflowTypeId.ToString() },
-                    a => new { EntityTypeId = a.EntityTypeId.Value, WorkflowTypeId = a.EntityTypeQualifierValue },
-                    ( w, a ) => new { Workflow = w, Attribute = a } )
-                    .Join( attributeValueService.Queryable(),
-                    obj => new { AttributeId = obj.Attribute.Id, EntityId = obj.Workflow.Id },
-                    av => new { AttributeId = av.AttributeId, EntityId = av.EntityId.Value },
-                    ( obj, av ) => new { Workflow = obj.Workflow, Attribute = obj.Attribute, AttributeValue = av } )
-                    .GroupBy( obj => obj.Workflow )
-                    .Select( obj => new { Workflow = obj.Key, Attributes = obj.Select( a => a.Attribute ), AttributeValues = obj.Select( a => a.AttributeValue ) } )
-                    .Where( w => ( w.Workflow.WorkflowType.Guid == homeBoundPersonWorkflow ) && ( w.Workflow.Status == "Active" || w.Workflow.Status == status ) );
+                var workflowTypeIdAsString = new WorkflowTypeService( rockContext ).Get( homeBoundPersonWorkflow ).Id.ToString();
+
+                var attributeIds = attributeService.Queryable()
+                    .Where( a => a.EntityTypeQualifierColumn == "WorkflowTypeId" && a.EntityTypeQualifierValue == workflowTypeIdAsString )
+                    .Select( a => a.Id ).ToList();
+
+                var wfTmpqry = workflowService.Queryable().AsNoTracking()
+                     .Where( w => ( w.WorkflowType.Guid == homeBoundPersonWorkflow ) && ( w.Status == "Active" || w.Status == status ) );
 
                 if ( contextEntity != null )
                 {
-                    string[] personGuid = ( ( Person ) contextEntity ).Aliases.Select( a => a.Guid.ToString() ).ToArray();
-                    tmpqry = tmpqry.Where( w => w.AttributeValues.Where( av => av.Attribute.Key == "HomeboundPerson" && personGuid.Contains( av.Value ) ).Any() );
-                    gReport.Columns[8].Visible = true;
+                    var personGuid = ( ( Person ) contextEntity ).Aliases.Select( a => a.Guid.ToString() ).ToList();
+                    var validWorkflowIds = new AttributeValueService( rockContext ).Queryable()
+                        .Where( av => av.Attribute.Key == "HomeboundPerson" && personGuid.Contains( av.Value ) ).Select( av => av.EntityId );
+                    wfTmpqry = wfTmpqry.Where( w => validWorkflowIds.Contains( w.Id ) );
+                    gReport.Columns[10].Visible = true;
                 }
 
-                var qry = tmpqry.ToList(); 
+                var qry = wfTmpqry.Join( attributeValueService.Queryable(),
+                    obj => obj.Id,
+                    av => av.EntityId.Value,
+                    ( obj, av ) => new { Workflow = obj, AttributeValue = av } )
+                    .Where( a => attributeIds.Contains( a.AttributeValue.AttributeId ) )
+                    .GroupBy( obj => obj.Workflow )
+                    .Select( obj => new { Workflow = obj.Key, AttributeValues = obj.Select( a => a.AttributeValue ) } )
+                    .ToList();
 
                 if (contextEntity == null)
                 {
