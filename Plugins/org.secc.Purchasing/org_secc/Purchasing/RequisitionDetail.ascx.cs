@@ -210,27 +210,19 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
         }
 
-        public int ReturnedToRequesterNotificationSetting
+        public Guid? ReturnedToRequesterNotificationSetting
         {
             get
             {
-                int templateID = 0;
-                int.TryParse(GetAttributeValue("ReturnedToRequesterNotification"), out templateID);
-
-                return templateID;
-
+                return GetAttributeValue( "RequisitionReturnedToRequesterNotification" ).AsGuidOrNull();
             }
         }
 
-        public int AcceptedByPurchasingNotificationSetting
+        public Guid? AcceptedByPurchasingNotificationSetting
         {
             get
             {
-                int templateID = 0;
-                int.TryParse(GetAttributeValue( "RequisitionAcceptedByPurchasingNotification" ), out templateID);
-
-                return templateID;
-
+                return GetAttributeValue( "RequisitionAcceptedByPurchasingNotification" ).AsGuidOrNull();
             }
         }
 
@@ -1976,7 +1968,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void SendRequisitionAcceptedNotification()
         {
-            SystemEmail ct = systemEmailService.Get(AcceptedByPurchasingNotificationSetting);
+            SystemEmail ct = systemEmailService.Get(AcceptedByPurchasingNotificationSetting.Value);
 
             Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
 
@@ -1997,11 +1989,11 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void SendReturnToRequesterNotification( string noteText )
         {
-            if (ReturnedToRequesterNotificationSetting == 0)
+            if (ReturnedToRequesterNotificationSetting == null)
             {
                 return;
             }
-            SystemEmail ct = systemEmailService.Get(ReturnedToRequesterNotificationSetting);
+            SystemEmail ct = systemEmailService.Get(ReturnedToRequesterNotificationSetting.Value);
 
             Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
 
