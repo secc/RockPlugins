@@ -291,7 +291,7 @@ namespace RockWeb.Plugins.org_secc.TotalMD
                 }
             }
 
-            return resolvedValues.AsDelimited( " | " );
+            return resolvedValues.AsDelimited( ", " );
         }
 
         #endregion
