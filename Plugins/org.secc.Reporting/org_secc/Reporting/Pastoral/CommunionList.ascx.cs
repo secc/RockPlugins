@@ -44,17 +44,17 @@ namespace RockWeb.Blocks.Reporting
     [DisplayName( "Communion List" )]
     [Category( "SECC > Reporting > Pastoral" )]
     [Description( "A list of all the pastoral care patients/residents that have been requested communion." )]
-    [WorkflowTypeField("Hospital Admission Workflow", "", false, true, "", "Workflows")]
+    [WorkflowTypeField( "Hospital Admission Workflow", "", false, true, "", "Workflows" )]
     [WorkflowTypeField( "Nursing Home Resident Workflow", "", false, true, "", "Workflows" )]
     [WorkflowTypeField( "Homebound Person Workflow", "", false, true, "", "Workflows" )]
-    [DefinedTypeField( "Hospital List") ]
-    [DefinedTypeField( "Nursing Home List") ]
+    [DefinedTypeField( "Hospital List" )]
+    [DefinedTypeField( "Nursing Home List" )]
     public partial class CommunionList : RockBlock
     {
         #region Control Methods
 
-        public enum COMMUNION_STATES { KY = 1, IN = 2, Other = 3}
-        
+        public enum COMMUNION_STATES { KY = 1, IN = 2, Other = 3 }
+
         /// <summary>
         /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
         /// </summary>
@@ -104,7 +104,8 @@ namespace RockWeb.Blocks.Reporting
 
         }
 
-        private IQueryable<CommunionData> getQuery<T>( ) {
+        private IQueryable<CommunionData> getQuery<T>()
+        {
             using ( var rockContext = new RockContext() )
             {
                 var workflowService = new WorkflowService( rockContext );
@@ -120,27 +121,43 @@ namespace RockWeb.Blocks.Reporting
                 Guid hospitalList = GetAttributeValue( "HospitalList" ).AsGuid();
                 Guid nursingHomeList = GetAttributeValue( "NursingHomeList" ).AsGuid();
 
-                var qry = workflowService.Queryable().AsNoTracking()
-                    .Join( attributeService.Queryable(),
-                    w => new { EntityTypeId = 113, WorkflowTypeId = w.WorkflowTypeId.ToString() },
-                    a => new { EntityTypeId = a.EntityTypeId.Value, WorkflowTypeId = a.EntityTypeQualifierValue },
-                    ( w, a ) => new { Workflow = w, Attribute = a } )
-                    .Join( attributeValueService.Queryable(),
-                    obj => new { AttributeId = obj.Attribute.Id, EntityId = obj.Workflow.Id },
-                    av => new { AttributeId = av.AttributeId, EntityId = av.EntityId.Value },
-                    ( obj, av ) => new { Workflow = obj.Workflow, Attribute = obj.Attribute, AttributeValue = av } )
+                var workflowTypesIdAsStrings = new WorkflowTypeService( rockContext ).Queryable()
+                    .Where( wt =>
+                         wt.Guid == hospitalWorkflow
+                         || wt.Guid == nursingHomeAdmissionWorkflow
+                         || wt.Guid == homeBoundPersonWorkflow
+                        )
+                    .ToList()
+                    .Select( wf => wf.Id.ToString() )
+                    .ToList();
+
+                var attributeIds = attributeService.Queryable()
+                    .Where( a => a.EntityTypeQualifierColumn == "WorkflowTypeId" && workflowTypesIdAsStrings.Contains( a.EntityTypeQualifierValue ) )
+                    .Select( a => a.Id ).ToList();
+
+                var wfTmpqry = workflowService.Queryable().AsNoTracking()
+                     .Where( w => (
+                        w.WorkflowType.Guid == hospitalWorkflow
+                        || w.WorkflowType.Guid == nursingHomeAdmissionWorkflow
+                        || w.WorkflowType.Guid == homeBoundPersonWorkflow
+                     ) && ( w.Status == "Active" ) );
+
+                var tqry = wfTmpqry.Join( attributeValueService.Queryable(),
+                    obj => obj.Id,
+                    av => av.EntityId.Value,
+                    ( obj, av ) => new { Workflow = obj, AttributeValue = av } )
+                    .Where( a => attributeIds.Contains( a.AttributeValue.AttributeId ) )
                     .GroupBy( obj => obj.Workflow )
-                    .Select( obj => new { Workflow = obj.Key, Attributes = obj.Select( a => a.Attribute ).ToList(), AttributeValues = obj.Select( a => a.AttributeValue ) } )
-                    .Where( w => ( w.Workflow.WorkflowType.Guid == hospitalWorkflow
-                                || w.Workflow.WorkflowType.Guid == nursingHomeAdmissionWorkflow
-                                || w.Workflow.WorkflowType.Guid == homeBoundPersonWorkflow
-                                ) && w.Workflow.Status == "Active" ).ToList();
+                    .Select( obj => new { Workflow = obj.Key, AttributeValues = obj.Select( a => a.AttributeValue ) } );
+                var qry = tqry.ToList();
+
 
                 List<DefinedValue> facilities = definedValueService.Queryable().Where( dv => dv.DefinedType.Guid == hospitalList || dv.DefinedType.Guid == nursingHomeList ).ToList();
-                facilities.ForEach( h => {
+                facilities.ForEach( h =>
+                {
                     h.LoadAttributes();
                 } );
-                
+
                 var newQry = qry.Select( w => new CommunionData
                 {
                     Campus = new Func<Campus>( () =>
@@ -150,7 +167,8 @@ namespace RockWeb.Blocks.Reporting
                         if ( personAliasAV != null )
                         {
                             PersonAlias pa = personAliasService.Get( personAliasAV.Value.AsGuid() );
-                            if ( pa != null ) {
+                            if ( pa != null )
+                            {
                                 campus = pa.Person.GetCampus();
                             }
                         }
@@ -165,28 +183,34 @@ namespace RockWeb.Blocks.Reporting
                     Description = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "VisitationRequestDescription" || av.AttributeKey == "HomeboundResidentDescription" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                     Location = new Func<string>( () =>
                     {
-                        return w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "NursingHome" || av.AttributeKey == "Hospital" ).Select( av => av.ValueFormatted ).DefaultIfEmpty("Home").FirstOrDefault();
-                    } ) (),
+                        return w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "NursingHome" || av.AttributeKey == "Hospital" ).Select( av => av.ValueFormatted ).DefaultIfEmpty( "Home" ).FirstOrDefault();
+                    } )(),
                     Address = GetLocation( personService, w.AttributeValues, facilities ).Street1 + " " + GetLocation( personService, w.AttributeValues, facilities ).Street2,
                     City = GetLocation( personService, w.AttributeValues, facilities ).City,
                     State = GetLocation( personService, w.AttributeValues, facilities ).State,
                     PostalCode = GetLocation( personService, w.AttributeValues, facilities ).PostalCode,
-                    Room = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "Room" ).Select(av => av.ValueFormatted).FirstOrDefault(),
+                    FacilityNumber = GetFacilityNumber( personService, w.AttributeValues, facilities ),
+                    Room = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "Room" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                     AdmitDate = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "AdmitDate" || av.AttributeKey == "StartDate" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                     Status = w.Workflow.Status,
                     Communion = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "Communion" ).FirstOrDefault().ValueFormatted
-                } ).Where( o => o.Communion.AsBoolean() && !o.Person.IsDeceased ).OrderBy( w => w.Campus.Name ).ThenBy( w => w.Address == null?"":w.PostalCode ).ThenBy( p => p.Person.LastName ).ToList().AsQueryable();
+                } ).Where( o => o.Communion.AsBoolean() && !o.Person.IsDeceased ).OrderBy( w => w.Campus.Name ).ThenBy( w => w.Address == null ? "" : w.PostalCode ).ThenBy( p => p.Person.LastName )
+                .OrderBy( a => a.Campus.Name )
+                .ThenBy( a => a.PostalCode )
+                .ThenBy( a => a.Address )
+                .ToList()
+                .AsQueryable();
 
 
-                List<COMMUNION_STATES> states = cblState.Items.Cast<ListItem>().Where( i => i.Selected ).Select( i => (COMMUNION_STATES)int.Parse(i.Value)).ToList();
+                List<COMMUNION_STATES> states = cblState.Items.Cast<ListItem>().Where( i => i.Selected ).Select( i => ( COMMUNION_STATES ) int.Parse( i.Value ) ).ToList();
 
                 if ( states.Count > 0 )
                 {
-                        newQry = newQry.Where( o => ( states.Contains( COMMUNION_STATES.KY ) && o.State == "KY" ) 
-                        || ( states.Contains( COMMUNION_STATES.IN ) && o.State == "IN" ) 
-                        || (( states.Contains( COMMUNION_STATES.Other ) && o.State != "IN" && o.State != "KY" )));
+                    newQry = newQry.Where( o => ( states.Contains( COMMUNION_STATES.KY ) && o.State == "KY" )
+                    || ( states.Contains( COMMUNION_STATES.IN ) && o.State == "IN" )
+                    || ( ( states.Contains( COMMUNION_STATES.Other ) && o.State != "IN" && o.State != "KY" ) ) );
                 }
-                List<int> campuses = cpCampus.Items.Cast<ListItem>().Where( i => i.Selected ).Select( i => int.Parse(i.Value) ).ToList();
+                List<int> campuses = cpCampus.Items.Cast<ListItem>().Where( i => i.Selected ).Select( i => int.Parse( i.Value ) ).ToList();
 
                 if ( campuses.Count > 0 )
                 {
@@ -201,13 +225,13 @@ namespace RockWeb.Blocks.Reporting
                 {
                     newQry = newQry.Sort( sortProperty );
                 }
-                
+
                 return newQry;
 
             }
         }
 
-        private Person GetPerson( PersonAliasService personAliasService, IEnumerable<AttributeValue> AttributeValues  )
+        private Person GetPerson( PersonAliasService personAliasService, IEnumerable<AttributeValue> AttributeValues )
         {
 
             AttributeValue personAliasAV = AttributeValues.AsQueryable().Where( av => av.AttributeKey == "PersonToVisit" || av.AttributeKey == "HomeboundPerson" ).FirstOrDefault();
@@ -242,12 +266,25 @@ namespace RockWeb.Blocks.Reporting
             if ( personId.HasValue )
             {
                 Person p = personService.Get( personId.Value );
-                if ( p != null && p.GetHomeLocation() != null)
+                if ( p != null && p.GetHomeLocation() != null )
                 {
                     return p.GetHomeLocation();
                 }
             }
             return new Location();
+        }
+
+        private string GetFacilityNumber( PersonService personService, IEnumerable<AttributeValue> AttributeValues, List<DefinedValue> facilities )
+        {
+
+            string facility = AttributeValues.AsQueryable().Where( av => av.AttributeKey == "NursingHome" || av.AttributeKey == "Hospital" ).Select( av => av.Value ).FirstOrDefault();
+
+            if ( facility != null )
+            {
+                DefinedValue dv = facilities.Where( h => h.Guid == facility.AsGuid() ).FirstOrDefault();
+                return dv.AttributeValues["Qualifier5"].ValueFormatted;
+            }
+            return "";
         }
 
         /// <summary>
@@ -282,7 +319,7 @@ namespace RockWeb.Blocks.Reporting
                 gReport.Columns.Add( bf );
             }
         }
-        
+
         private void ShowMessage( string message, string header = "Information", string cssClass = "panel panel-warning" )
         {
             pnlMain.Visible = false;
@@ -310,7 +347,7 @@ namespace RockWeb.Blocks.Reporting
             // create default settings
             string filename = gReport.ExportFilename;
             string workSheetName = "List";
-            string title = "Communion List";
+            string title = "Communion List - " + Rock.RockDateTime.Today.ToString( "MMMM d, yyyy" );
 
             ExcelPackage excel = new ExcelPackage();
             excel.Workbook.Properties.Title = title;
@@ -340,9 +377,9 @@ namespace RockWeb.Blocks.Reporting
 
             int rowCounter = 4;
             int columnCounter = 0;
-            
+
             // print headings
-            foreach ( String column in new List<String>() { "Zip", "Name", "Campus", "Address", "Phone", "Notes"} )
+            foreach ( String column in new List<String>() { "Zip", "Name", "Campus", "Address", "Phone", "Notes" } )
             {
                 columnCounter++;
                 worksheet.Cells[3, columnCounter].Value = column.SplitCase();
@@ -352,11 +389,13 @@ namespace RockWeb.Blocks.Reporting
             // print data
             foreach ( CommunionData row in getQuery<CommunionData>() )
             {
-                SetExcelValue( worksheet.Cells[rowCounter, 1], row.PostalCode.Length>5?row.PostalCode.Substring(0, 5):row.PostalCode);
+                SetExcelValue( worksheet.Cells[rowCounter, 1], row.PostalCode.Length > 5 ? row.PostalCode.Substring( 0, 5 ) : row.PostalCode );
                 SetExcelValue( worksheet.Cells[rowCounter, 2], row.Person.FullName );
                 SetExcelValue( worksheet.Cells[rowCounter, 3], row.Campus );
-                SetExcelValue( worksheet.Cells[rowCounter, 4], (row.Location!="Home"?row.Location + "\r\n":"")+row.Address+ ( !string.IsNullOrEmpty( row.Room ) ?"\r\nRoom: " +row.Room:"" ) );
-                SetExcelValue( worksheet.Cells[rowCounter, 5], phoneNumberService.GetByPersonId(row.Person.Id).Where(p=>p.NumberTypeValue.Guid == homePhone ).Select(p => p.NumberFormatted).FirstOrDefault() );
+                SetExcelValue( worksheet.Cells[rowCounter, 4], ( row.Location != "Home" ? row.Location + "\r\n" : "" ) 
+                    + row.Address + ( !string.IsNullOrEmpty( row.Room ) ? "\r\nRoom: " + row.Room : "" ) 
+                    + ( !string.IsNullOrWhiteSpace( row.FacilityNumber ) ? "\r\n" + row.FacilityNumber : "" ) );
+                SetExcelValue( worksheet.Cells[rowCounter, 5], phoneNumberService.GetByPersonId( row.Person.Id ).Where( p => p.NumberTypeValue.Guid == homePhone ).Select( p => p.NumberFormatted ).FirstOrDefault() );
                 SetExcelValue( worksheet.Cells[rowCounter, 6], row.Description );
                 worksheet.Cells[rowCounter, 6].Style.WrapText = true;
 
@@ -417,6 +456,11 @@ namespace RockWeb.Blocks.Reporting
                 r.Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
                 r.Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
                 r.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                r.Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+            }
+
+            using ( ExcelRange r = worksheet.Cells[3, 1, rowCounter, columnCounter] )
+            {
                 r.Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
             }
 
@@ -494,6 +538,7 @@ namespace RockWeb.Blocks.Reporting
             public string City { get; set; }
             public string State { get; set; }
             public string PostalCode { get; set; }
+            public string FacilityNumber { get; set; }
             public string Room { get; set; }
             public string AdmitDate { get; set; }
             public string Status { get; set; }
