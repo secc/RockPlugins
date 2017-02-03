@@ -189,14 +189,15 @@ namespace RockWeb.Blocks.Reporting
                     City = GetLocation( personService, w.AttributeValues, facilities ).City,
                     State = GetLocation( personService, w.AttributeValues, facilities ).State,
                     PostalCode = GetLocation( personService, w.AttributeValues, facilities ).PostalCode,
+                    FacilityNumber = GetFacilityNumber( personService, w.AttributeValues, facilities ),
                     Room = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "Room" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                     AdmitDate = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "AdmitDate" || av.AttributeKey == "StartDate" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                     Status = w.Workflow.Status,
                     Communion = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "Communion" ).FirstOrDefault().ValueFormatted
                 } ).Where( o => o.Communion.AsBoolean() && !o.Person.IsDeceased ).OrderBy( w => w.Campus.Name ).ThenBy( w => w.Address == null ? "" : w.PostalCode ).ThenBy( p => p.Person.LastName )
-                .OrderBy(a => a.Campus.Name)
+                .OrderBy( a => a.Campus.Name )
                 .ThenBy( a => a.PostalCode )
-                .ThenBy(a => a.Address)
+                .ThenBy( a => a.Address )
                 .ToList()
                 .AsQueryable();
 
@@ -271,6 +272,19 @@ namespace RockWeb.Blocks.Reporting
                 }
             }
             return new Location();
+        }
+
+        private string GetFacilityNumber( PersonService personService, IEnumerable<AttributeValue> AttributeValues, List<DefinedValue> facilities )
+        {
+
+            string facility = AttributeValues.AsQueryable().Where( av => av.AttributeKey == "NursingHome" || av.AttributeKey == "Hospital" ).Select( av => av.Value ).FirstOrDefault();
+
+            if ( facility != null )
+            {
+                DefinedValue dv = facilities.Where( h => h.Guid == facility.AsGuid() ).FirstOrDefault();
+                return dv.AttributeValues["Qualifier5"].ValueFormatted;
+            }
+            return "";
         }
 
         /// <summary>
@@ -378,7 +392,9 @@ namespace RockWeb.Blocks.Reporting
                 SetExcelValue( worksheet.Cells[rowCounter, 1], row.PostalCode.Length > 5 ? row.PostalCode.Substring( 0, 5 ) : row.PostalCode );
                 SetExcelValue( worksheet.Cells[rowCounter, 2], row.Person.FullName );
                 SetExcelValue( worksheet.Cells[rowCounter, 3], row.Campus );
-                SetExcelValue( worksheet.Cells[rowCounter, 4], ( row.Location != "Home" ? row.Location + "\r\n" : "" ) + row.Address + ( !string.IsNullOrEmpty( row.Room ) ? "\r\nRoom: " + row.Room : "" ) );
+                SetExcelValue( worksheet.Cells[rowCounter, 4], ( row.Location != "Home" ? row.Location + "\r\n" : "" ) 
+                    + row.Address + ( !string.IsNullOrEmpty( row.Room ) ? "\r\nRoom: " + row.Room : "" ) 
+                    + ( !string.IsNullOrWhiteSpace( row.FacilityNumber ) ? "\r\n" + row.FacilityNumber : "" ) );
                 SetExcelValue( worksheet.Cells[rowCounter, 5], phoneNumberService.GetByPersonId( row.Person.Id ).Where( p => p.NumberTypeValue.Guid == homePhone ).Select( p => p.NumberFormatted ).FirstOrDefault() );
                 SetExcelValue( worksheet.Cells[rowCounter, 6], row.Description );
                 worksheet.Cells[rowCounter, 6].Style.WrapText = true;
@@ -522,6 +538,7 @@ namespace RockWeb.Blocks.Reporting
             public string City { get; set; }
             public string State { get; set; }
             public string PostalCode { get; set; }
+            public string FacilityNumber { get; set; }
             public string Room { get; set; }
             public string AdmitDate { get; set; }
             public string Status { get; set; }
