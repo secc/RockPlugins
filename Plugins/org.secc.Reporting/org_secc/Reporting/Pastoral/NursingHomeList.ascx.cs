@@ -348,6 +348,15 @@ namespace RockWeb.Blocks.Reporting
                         }
                         return "";
                     } )(),
+                    PastoralMinister = new Func<string>( () =>
+                    {
+                        DefinedValue dv = facilities.Where( h => h.Guid == w.AttributeValues.Where( av => av.AttributeKey == "NursingHome" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).FirstOrDefault();
+                        if ( dv != null )
+                        {
+                            return dv.AttributeValues["Qualifier6"].ValueFormatted;
+                        }
+                        return "";
+                    } )(),
                     Room = w.AttributeValues.Where( av => av.AttributeKey == "Room" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                     NotifiedBy = w.AttributeValues.Where( av => av.AttributeKey == "NotifiedBy" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                     AdmitDate = w.AttributeValues.Where( av => av.AttributeKey == "AdmitDate" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
@@ -428,12 +437,12 @@ namespace RockWeb.Blocks.Reporting
                 {
 
                     //Hospital header
-                    var hospitalInfo = newQry
+                    var nursingHomeInfo = newQry
                         .Where( q => q.NursingHome == nursigngHome )
                         .FirstOrDefault();
                     worksheet.Cells[rowCounter, 1].Value = nursigngHome;
-                    worksheet.Cells[rowCounter, 6].Value = hospitalInfo.PhoneNumber;
-                    worksheet.Cells[rowCounter, 11].Value = hospitalInfo.Address;
+                    worksheet.Cells[rowCounter, 6].Value = nursingHomeInfo.PhoneNumber;
+                    worksheet.Cells[rowCounter, 11].Value = nursingHomeInfo.Address;
 
                     using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 5] )
                     {
@@ -457,6 +466,18 @@ namespace RockWeb.Blocks.Reporting
                     {
                         r.Merge = true;
                         r.Style.Font.SetFromFont( new Font( "Calibri", 20, FontStyle.Regular ) );
+                        r.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+                        r.Style.Font.Color.SetColor( Color.White );
+                        r.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                        r.Style.Fill.BackgroundColor.SetColor( Color.FromArgb( 34, 41, 55 ) );
+                    }
+                    rowCounter++;
+
+                    worksheet.Cells[rowCounter, 1].Value = "Pastoral Minister: " + nursingHomeInfo.PastoralMinister;
+                    using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 15] )
+                    {
+                        r.Merge = true;
+                        r.Style.Font.SetFromFont( new Font( "Calibri", 15, FontStyle.Regular ) );
                         r.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
                         r.Style.Font.Color.SetColor( Color.White );
                         r.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
