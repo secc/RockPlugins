@@ -279,6 +279,11 @@ namespace RockWeb.Blocks.Reporting
                     .Select( obj => new { Workflow = obj.Key, AttributeValues = obj.Select( a => a.AttributeValue ) } );
                 var qry = tqry.ToList();
 
+                qry = qry.AsQueryable().Where( w => !
+                        ( personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ) != null ?
+                        personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).Person.IsDeceased :
+                        false ) ).ToList();
+
                 qry.ForEach(
                      w =>
                      {
