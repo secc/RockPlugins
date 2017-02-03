@@ -522,6 +522,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             {
                 mpBidDetail.Hide();
                 LoadRequest();
+                upMain.Update();
             }
         }
         #endregion
@@ -1096,7 +1097,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             
 
             ddlRequestingMinistry.Visible = AllowMinistrySelectionSetting;
-            lRequestingMinistryEdit.Visible = !AllowMinistrySelectionSetting;
+            divRequestingMinistry.Visible = AllowMinistrySelectionSetting;
 
             prsnRequester.Visible = AllowRequesterSelectionSetting;
         }

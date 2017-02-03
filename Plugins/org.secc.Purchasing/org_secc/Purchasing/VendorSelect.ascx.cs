@@ -315,7 +315,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             txtVendorPhoneExt.ReadOnly = !enabled;
             txtWebAddress.ReadOnly = !enabled;
 
-            ScriptManager.RegisterStartupScript(this, typeof(UserControl), "SetReadOnly", "setReadOnly(" + (!enabled).ToString().ToLower() + ");", true);
+            //ScriptManager.RegisterStartupScript(this, typeof(UserControl), "SetReadOnly", "setReadOnly(" + (!enabled).ToString().ToLower() + ");", true);
         }
 
         private void LoadVendor(int vID)
