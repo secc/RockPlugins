@@ -24,7 +24,7 @@ using System.Web.UI;
 using Rock;
 using Rock.Model;
 using Rock.Web.UI;
-using EMS.SECC;
+using org.secc.EMS;
 using Rock.Attribute;
 
 namespace RockWeb.Plugins.org_secc.EMS
