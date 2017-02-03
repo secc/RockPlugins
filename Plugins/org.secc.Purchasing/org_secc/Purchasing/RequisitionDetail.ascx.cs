@@ -748,9 +748,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 lbRemove.CommandArgument = Item.ItemID.ToString();
                 lbEdit.CommandArgument = Item.ItemID.ToString();
                 lbRemove.Visible = UserCanDeleteItem(Item.ItemID);
-                e.Row.Cells[11].Visible = UserCanDeleteItem(Item.ItemID);
+                e.Row.Cells[12].Visible = UserCanDeleteItem(Item.ItemID);
                 lbEdit.Visible = CanUserEditItemDetail();
-                e.Row.Cells[12].Visible = CanUserEditItemDetail();
+                e.Row.Cells[11].Visible = CanUserEditItemDetail();
             }
         }
 
@@ -993,13 +993,13 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                         if (CurrentRequisition.StatusLUID == Requisition.DraftLUID() || CurrentRequisition.StatusLUID == Requisition.ReturnedToRequesterLUID())
                             isEditable = true;
                     }
+                }
                     //If person is editor
                     if (!isEditable && UserCanEdit)
                     {
                         if (CurrentRequisition.IsOpen)
                             isEditable = true;
                     }
-                }
             }
             else
             {
@@ -1412,11 +1412,11 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if (itemCount > 0)
             {
                 dgItems.FooterStyle.CssClass = dgItems.FooterStyle.CssClass + " itemTotals";
-                dgItems.Columns[1].FooterStyle.HorizontalAlign = HorizontalAlign.Right;
+                dgItems.Columns[1].FooterStyle.HorizontalAlign = HorizontalAlign.Center;
                 dgItems.Columns[1].FooterText = itemCount.ToString();
 
 
-                dgItems.Columns[2].FooterStyle.HorizontalAlign = HorizontalAlign.Right;
+                dgItems.Columns[2].FooterStyle.HorizontalAlign = HorizontalAlign.Center;
                 dgItems.Columns[2].FooterText = itemReceivedCount.ToString();
             }
             else
@@ -2738,8 +2738,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private string GetRequisitionLink()
         {
-            return GlobalAttributesCache.Value("InternalApplicationRoot").ReplaceLastOccurrence("/", "") + 
-                CurrentPageReference.BuildUrl();
+            return GlobalAttributesCache.Value( "InternalApplicationRoot" ).ReplaceLastOccurrence( "/", "" ) +
+                "/page/" + CurrentPageReference.PageId + "?RequisitionId=" + CurrentRequisition.RequisitionID;
         }
 
         private void SendCommunication(SystemEmail notificationTemplate, Person sender, Person recepient)
@@ -2902,13 +2902,12 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         protected void btnSelectPOItemsAdd_Click(object sender, EventArgs e)
         {
             SetSelectPurchaseOrderItemError(string.Empty);
-            BindSelectPOItemsGrid();
+            
             if (UpdatePurchaseOrderItems())
             {
                 ScriptManager.RegisterStartupScript(upSelectPurchaseOrderItems, upSelectPurchaseOrderItems.GetType(), "Show PO Number" + DateTime.Now.Ticks, string.Format("alert(\"Items added to PO Number: {0}\");", hfSelectPOItemsPONumber.Value), true);
                 HideSelectPOItems();
                 LoadItems();
-                
             }
         }
 

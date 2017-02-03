@@ -27,8 +27,9 @@
         </script>
         <asp:HiddenField ID="hdnPersonAliasId" runat="server" />
         <asp:Label ID="lblRequesterName" runat="server" />
-        <asp:Button ID="btnChangeRequester" runat="server" CssClass="btn btn-default" Text="..."
+        <asp:Button ID="btnChangeRequester" runat="server" CssClass="btn btn-default hidden-print" Text="..."
             Visible="false" OnClick="btnChangeRequester_Click" CausesValidation="false" />
+        <asp:LinkButton ID="btnRemoveRequester" runat="server" CssClass="btn btn-default hidden-print" Visible="false" CausesValidation="false" OnClick="btnRemoveRequester_Click"><i class="fa fa-remove"></i></asp:LinkButton>
         <Rock:ModalDialog ID="mpStaffSearch" runat="server" Title="Staff Picker" Content-DefaultButton="btnSubmit">
             <Content>
                 <asp:UpdatePanel ID="upStaffSearchMain" runat="server" >
