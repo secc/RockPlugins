@@ -16,7 +16,7 @@
                 <Rock:RockBoundField DataField="FileType" HeaderText="File Type" ItemStyle-Width="15%" />
                 <Rock:RockBoundField DataField="CreatedBy" HeaderText="Created By" ItemStyle-Width="10%" />
                 <Rock:RockBoundField DataField="DateModified" HeaderText="Last Updated" ItemStyle-Width="20%" />
-                <Rock:RockTemplateField ItemStyle-HorizontalAlign="Right" ItemStyle-Width="10%">
+                <Rock:RockTemplateField ItemStyle-HorizontalAlign="Right" ItemStyle-Width="10%" HeaderStyle-CssClass="hidden-print" FooterStyle-CssClass="hidden-print" ItemStyle-CssClass="hidden-print">
                     <ItemTemplate>
                         <asp:LinkButton ID="lbEdit" runat="server" CssClass="btn btn-default" OnCommand="dgAttachment_ItemCommand" CommandName="EditAttachment" CommandArgument='<%# DataBinder.Eval(Container.DataItem, "AttachmentID") %>'><i class="fa fa-pencil" title="Edit"></i></asp:LinkButton>
                         <asp:LinkButton ID="lbHide" runat="server" CssClass="btn btn-default" OnClientClick="return Rock.dialogs.confirmDelete(event, 'Attachment');" OnCommand="dgAttachment_ItemCommand" CommandName="Hide" CommandArgument='<%# DataBinder.Eval(Container.DataItem, "AttachmentID") %>'><i class="fa fa-remove" title="Hide"></i></asp:LinkButton>
@@ -26,7 +26,7 @@
         </Rock:Grid>
 
         <Rock:ModalDialog ID="mdAttachment" Title="Add Attachment" runat="server" OnCancelScript="Cancel"
-             SaveButtonText="Save" OnSaveClick="mdAttachment_SaveClick" ValidationGroup="Attachment">
+             SaveButtonText="Save" OnSaveClick="mdAttachment_SaveClick" ValidationGroup="Attachment" Content-Height="140px">
             <Content>
                 <asp:HiddenField id="hdnAttachmentId" runat="server" />
                 <div class="container">
