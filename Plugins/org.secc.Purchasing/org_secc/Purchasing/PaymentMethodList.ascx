@@ -125,7 +125,8 @@
             </Content>
         </Rock:ModalDialog>
         <script type="text/javascript">
-            $(document).ready(function ()
+            // Expand the filters area
+            var expandFilters = function ()
             {
                 el = $('.grid-filter header').get();
                 $('i.toggle-filter', el).toggleClass('fa-chevron-down fa-chevron-up');
@@ -137,8 +138,10 @@
                 {
                     $hf.val('false');
                 }
-                $(el).siblings('div').slideToggle();
-            });
+                $(el).siblings('div').slideToggle(0);
+            }
+            $(document).ready(expandFilters);
+            Sys.WebForms.PageRequestManager.getInstance().add_endRequest(expandFilters);
         </script>
     </ContentTemplate>
 </asp:UpdatePanel>

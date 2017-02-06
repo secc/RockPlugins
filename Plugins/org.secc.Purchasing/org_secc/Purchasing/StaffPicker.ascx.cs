@@ -208,8 +208,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if (StaffPerson != null)
             {
                 lblRequesterName.Text = StaffPerson.Person.FullName;
+                btnRemoveRequester.Visible = true;
             } else {
                 lblRequesterName.Text = DefaultLabel;
+                btnRemoveRequester.Visible = false;
             }
         }
 
@@ -227,6 +229,12 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     SelectStaff();
                     break;
             }*/
+        }
+
+        protected void btnRemoveRequester_Click( object sender, EventArgs e )
+        {
+            StaffPerson = null;
+            btnRemoveRequester.Visible = false;
         }
 
         protected void btnCancel_click(object sender, EventArgs e)
@@ -539,6 +547,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             StaffPerson = personAliasService.Get(e.RowKeyValue.ToString().AsInteger());
             lblRequesterName.Text = StaffPerson.Person.FullName;
             mpStaffSearch.Hide();
+            btnRemoveRequester.Visible = true;
             EventHandler handler = this.Select;
             if (handler != null)
             {
@@ -552,7 +561,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         }
         #endregion
-}
+
+    }
 
     internal enum StaffPickerMode
     {

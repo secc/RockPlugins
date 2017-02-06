@@ -1353,16 +1353,19 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             if (CanUserEditItem() && CurrentPurchaseOrder.Items.Count > 0)
             {
-                var c = dgItems.FooterRow.Cells[dgItems.FooterRow.Cells.Count - 2];
+                if ( dgItems.FooterRow  != null )
+                { 
+                    var c = dgItems.FooterRow.Cells[dgItems.FooterRow.Cells.Count - 2];
 
-                TextBox txtItemShipping = (TextBox)c.FindControl("txtShipping");
-                TextBox txtItemTax = (TextBox)c.FindControl("txtTax");
+                    TextBox txtItemShipping = (TextBox)c.FindControl("txtShipping");
+                    TextBox txtItemTax = (TextBox)c.FindControl("txtTax");
 
-                if (txtItemShipping.Visible && decimal.TryParse(txtItemShipping.Text, out ShippingCharge))
-                    CurrentPurchaseOrder.ShippingCharge = ShippingCharge;
+                    if (txtItemShipping.Visible && decimal.TryParse(txtItemShipping.Text, out ShippingCharge))
+                        CurrentPurchaseOrder.ShippingCharge = ShippingCharge;
 
-                if (txtItemTax.Visible && decimal.TryParse(txtItemTax.Text, out OtherCharge))
-                    CurrentPurchaseOrder.OtherCharge = OtherCharge;
+                    if (txtItemTax.Visible && decimal.TryParse(txtItemTax.Text, out OtherCharge))
+                        CurrentPurchaseOrder.OtherCharge = OtherCharge;
+                }
             }
 
             if (CurrentPurchaseOrder.HasChanged())
@@ -2597,7 +2600,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             //Arena.Core.ProfileMemberCollection pmc = new Arena.Core.ProfileMemberCollection(ReceivingUserTagSetting);
 
             Dictionary<int, string> ConnectedMembers = new Dictionary<int, string>();
-            foreach (GroupMember pm in pmc.Members)
+            foreach (GroupMember pm in pmc.Members.OrderBy(m => m.Person.LastName))
             {
                 if (pm.GroupMemberStatus == GroupMemberStatus.Active)
                     ConnectedMembers.Add(pm.Person.PrimaryAliasId.Value, pm.Person.FullName);
