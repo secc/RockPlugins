@@ -55,6 +55,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         private void gMembers_GridRebind( object sender, EventArgs e )
         {
+            FilterData();
             BindData();
         }
 
@@ -152,8 +153,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         private void FilterData()
         {
-            rFilter.Show();
-
             var genders = cblGender.Items.Cast<ListItem>().Where( i => i.Selected ).Select( i => int.Parse( i.Value ) ).ToList();
             var roles = cblRole.Items.Cast<ListItem>().Where( i => i.Selected ).Select( i => i.Value ).ToList();
             var status = cblStatus.Items.Cast<ListItem>().Where( i => i.Selected ).Select( i => int.Parse( i.Value ) ).ToList();
@@ -595,6 +594,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             if ( !members.Any() )
             {
+                FilterData();
                 members = memberData;
             }
 
@@ -673,6 +673,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             if ( !members.Any() )
             {
+                FilterData();
                 members = memberData;
             }
 
@@ -756,7 +757,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             //List to keep from sending multiple messages
             List<int> addedIds = new List<int>();
-
             if ( !string.IsNullOrWhiteSpace( hfCommunication.Value ) )
             {
                 //For adding a single person from the roster
@@ -807,6 +807,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 if ( !members.Any() )
                 {
+                    FilterData();
                     members = memberData;
                 }
                 //For adding the communication recepients from the membership list 
