@@ -194,9 +194,9 @@ namespace RockWeb.Blocks.Reporting
                     AdmitDate = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "AdmitDate" || av.AttributeKey == "StartDate" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                     Status = w.Workflow.Status,
                     Communion = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "Communion" ).FirstOrDefault().ValueFormatted
-                } ).Where( o => o.Communion.AsBoolean() && !o.Person.IsDeceased ).OrderBy( w => w.Campus.Name ).ThenBy( w => w.Address == null ? "" : w.PostalCode ).ThenBy( p => p.Person.LastName )
-                .OrderBy( a => a.Campus.Name )
-                .ThenBy( a => a.PostalCode )
+                } )
+                .Where( o => o.Communion.AsBoolean() && !o.Person.IsDeceased )
+                .OrderBy( a => a.PostalCode )
                 .ThenBy( a => a.Address )
                 .ToList()
                 .AsQueryable();
@@ -398,7 +398,7 @@ namespace RockWeb.Blocks.Reporting
                 SetExcelValue( worksheet.Cells[rowCounter, 5], phoneNumberService.GetByPersonId( row.Person.Id ).Where( p => p.NumberTypeValue.Guid == homePhone ).Select( p => p.NumberFormatted ).FirstOrDefault() );
                 SetExcelValue( worksheet.Cells[rowCounter, 6], row.Description );
                 worksheet.Cells[rowCounter, 6].Style.WrapText = true;
-
+                
                 rowCounter++;
             }
             var range = worksheet.Cells[3, 1, rowCounter, columnCounter];
