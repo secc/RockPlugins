@@ -192,6 +192,17 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             List<RequisitionListItem> Requisitions = GetRequisitions();
 
             SortProperty sortProperty = dgRequisitions.SortProperty;
+            // Check User Preferences to see if we have a pre-existing sort property
+            if (sortProperty == null)
+            {
+                sortProperty = new SortProperty();
+                sortProperty.Direction = GetUserPreference( string.Format( "{0}_Sort_Direction", PersonSettingsKeyPrefix ) )=="ASC"? SortDirection.Ascending: SortDirection.Descending;
+                sortProperty.Property = GetUserPreference( string.Format( "{0}_Sort_Column", PersonSettingsKeyPrefix ) );
+                if (string.IsNullOrEmpty(sortProperty.Property))
+                {
+                    sortProperty.Property = "DateSubmitted";
+                }
+            }
             if ( sortProperty != null )
             {
                 if ( sortProperty.Direction == SortDirection.Ascending )
@@ -201,6 +212,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 {
                     Requisitions = Requisitions.OrderByDescending( r => r.GetType().GetProperty( sortProperty.Property ).GetValue( r ) ).ToList();
                 }
+                SetUserPreference( string.Format( "{0}_Sort_Direction", PersonSettingsKeyPrefix ), sortProperty.DirectionString );
+                SetUserPreference( string.Format( "{0}_Sort_Column", PersonSettingsKeyPrefix ), sortProperty.Property );
             }
             else
             {
@@ -249,6 +262,22 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             dgRequisitions.DataSource = dt;
             dgRequisitions.DataBind();
+            if (sortProperty != null)
+            {
+                foreach ( var column in dgRequisitions.Columns )
+                {
+                    var dcf = column as DataControlField;
+                    if ( dcf != null && dcf.SortExpression == sortProperty.Property )
+                    {
+                        dgRequisitions.HeaderRow.Cells[dgRequisitions.Columns.IndexOf( dcf )].AddCssClass( sortProperty.Direction.ToString().ToLower() );
+                        break;
+                    }
+                }
+                if ( dgRequisitions.SortProperty == null)
+                {
+                    dgRequisitions.Sort( sortProperty.Property, sortProperty.Direction );
+                }
+            }
 
         }
 

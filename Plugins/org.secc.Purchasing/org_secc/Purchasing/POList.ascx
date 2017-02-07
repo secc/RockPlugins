@@ -58,11 +58,11 @@
                 if ($hf.val() != 'true')
                 {
                     $hf.val('true');
+                $(el).siblings('div').slideToggle(0);
                 } else
                 {
                     $hf.val('false');
                 }
-                $(el).siblings('div').slideToggle(0);
             }
             $(document).ready(expandFilters);
             Sys.WebForms.PageRequestManager.getInstance().add_endRequest(expandFilters);

@@ -25,17 +25,23 @@
             </Columns>
         </Rock:Grid>
 
-        <Rock:ModalDialog ID="mdAttachment" Title="Add Attachment" runat="server" OnCancelScript="Cancel"
-             SaveButtonText="Save" OnSaveClick="mdAttachment_SaveClick" ValidationGroup="Attachment" Content-Height="140px">
+        <Rock:ModalDialog ID="mdAttachment" Title="Add Attachment" runat="server"
+             SaveButtonText="Save" OnSaveClick="mdAttachment_SaveClick" ValidationGroup="Attachment">
             <Content>
+                 <Rock:NotificationBox ID="nbInvalid" runat="server" NotificationBoxType="Danger" Visible="false" />
+
                 <asp:HiddenField id="hdnAttachmentId" runat="server" />
                 <div class="container">
                     <div class="row">
-                        <div class="col-sm-3">
-                            <Rock:FileUploader  runat="server" ValidationGroup="Attachment" Label="Drag File or Click Upload"
-                                 Required="true" id="fuprAttachment"></Rock:FileUploader>
+                        <div class="col-sm-2 text-center">
+                            <div class="required form-group" style="width: 110px;">
+                                <label class="control-label">Drag File or<br /> Click Upload</label>
+                                <Rock:FileUploader  runat="server" ValidationGroup="Attachment"
+                                     Required="true" id="fuprAttachment" OnFileUploaded="fuprAttachment_FileUploaded"></Rock:FileUploader>
+                            </div>
                         </div>
-                            <div class="col-sm-8">
+                            <div class="col-sm-9">
+                                <Rock:RockTextBox runat="server" ValidationGroup="Attachment" Label="Title"  ID="tbTitle" Required="true"></Rock:RockTextBox>
                                 <Rock:RockTextBox runat="server" ValidationGroup="Attachment" Rows="5" Label="Description"
                                      TextMode="MultiLine" ID="tbAttachmentDesc"></Rock:RockTextBox>
                         </div>

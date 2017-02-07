@@ -142,13 +142,24 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 new DataColumn("AttachmentCount", typeof(int))
             } );
 
+            SortProperty sortProperty = dgPurchaseOrders.SortProperty;
 
             if ( GetUserPreferences( PersonSettingKeyPrefix ).Count() > 0 )
             {
                 var POListItems = PurchaseOrder.GetPurchaseOrderList( BuildFilter() );
 
 
-                SortProperty sortProperty = dgPurchaseOrders.SortProperty;
+                // Check User Preferences to see if we have a pre-existing sort property
+                if ( sortProperty == null )
+                {
+                    sortProperty = new SortProperty();
+                    sortProperty.Direction = GetUserPreference( string.Format( "{0}_Sort_Direction", PersonSettingKeyPrefix ) ) == "ASC" ? SortDirection.Ascending : SortDirection.Descending;
+                    sortProperty.Property = GetUserPreference( string.Format( "{0}_Sort_Column", PersonSettingKeyPrefix ) );
+                    if ( string.IsNullOrEmpty( sortProperty.Property ) )
+                    {
+                        sortProperty.Property = "PurchaseOrderID";
+                    }
+                }
                 if ( sortProperty != null )
                 {
                     if ( sortProperty.Direction == SortDirection.Ascending )
@@ -159,6 +170,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     {
                         POListItems = POListItems.OrderByDescending( r => r.GetType().GetProperty( sortProperty.Property ).GetValue( r ) ).ToList();
                     }
+                    SetUserPreference( string.Format( "{0}_Sort_Direction", PersonSettingKeyPrefix ), sortProperty.DirectionString );
+                    SetUserPreference( string.Format( "{0}_Sort_Column", PersonSettingKeyPrefix ), sortProperty.Property );
                 }
                 else
                 {
@@ -184,6 +197,23 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             dgPurchaseOrders.DataSource = dt;
             dgPurchaseOrders.DataBind();
+
+            if ( sortProperty != null )
+            {
+                foreach ( var column in dgPurchaseOrders.Columns )
+                {
+                    var dcf = column as DataControlField;
+                    if ( dcf != null && dcf.SortExpression == sortProperty.Property )
+                    {
+                        dgPurchaseOrders.HeaderRow.Cells[dgPurchaseOrders.Columns.IndexOf( dcf )].AddCssClass( sortProperty.Direction.ToString().ToLower() );
+                        break;
+                    }
+                }
+                if ( dgPurchaseOrders.SortProperty == null )
+                {
+                    dgPurchaseOrders.Sort( sortProperty.Property, sortProperty.Direction );
+                }
+            }
         }
 
         private void BindPOTypeCheckboxList()

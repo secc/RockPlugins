@@ -55,11 +55,11 @@
                 if ($hf.val() != 'true')
                 {
                     $hf.val('true');
+                    $(el).siblings('div').slideToggle();
                 } else
                 {
                     $hf.val('false');
                 }
-                $(el).siblings('div').slideToggle();
             });
         </script>
     </ContentTemplate>

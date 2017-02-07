@@ -577,7 +577,10 @@ namespace org.secc.Purchasing
                     bool showApprover = false;
                     if ( bool.TryParse( filter["Show_Approver"], out showApprover ) && showApprover )
                     {
-                        listItems.AddRange( query.Where( q => q.ApprovalItems.Where(a => a.ApprovalStatusLUID != Approval.NotSubmittedStatusLUID()).Select( a => a.ApproverId ).Contains( currentPersonId ) )
+
+                        PersonAliasService aliasService = new PersonAliasService( new Rock.Data.RockContext() );
+                        var aliasIds = aliasService.Queryable().Where( a => a.PersonId == currentPersonId ).Select( a => a.Id ).ToList();
+                        listItems.AddRange( query.Where( q => q.ApprovalItems.Where(a => a.ApprovalStatusLUID != Approval.NotSubmittedStatusLUID() && a.ApproverId != null && aliasIds.Contains( a.ApproverId.Value ) ).Any() )
                                                 .Where( q => !listItems.Select( l => l.CapitalRequestId ).Contains( q.CapitalRequestId ) )
                                                 .ToList() );
 

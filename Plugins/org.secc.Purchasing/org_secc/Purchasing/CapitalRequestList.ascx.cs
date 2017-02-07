@@ -193,6 +193,17 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             List<CapitalRequestListItem> requests = CapitalRequest.GetCapitalRequestList( filterValues );
 
             SortProperty sortProperty = gRequestList.SortProperty;
+            // Check User Preferences to see if we have a pre-existing sort property
+            if ( sortProperty == null )
+            {
+                sortProperty = new SortProperty();
+                sortProperty.Direction = GetUserPreference( string.Format( "{0}_Sort_Direction", PersonSettingKey ) ) == "ASC" ? SortDirection.Ascending : SortDirection.Descending;
+                sortProperty.Property = GetUserPreference( string.Format( "{0}_Sort_Column", PersonSettingKey ) );
+                if ( string.IsNullOrEmpty( sortProperty.Property ) )
+                {
+                    sortProperty.Property = "CapitalRequestId";
+                }
+            }
             if ( sortProperty != null )
             {
                 if ( sortProperty.Direction == SortDirection.Ascending )
@@ -203,6 +214,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 {
                     requests = requests.OrderByDescending( r => r.GetType().GetProperty( sortProperty.Property ).GetValue( r ) ).ToList();
                 }
+                SetUserPreference( string.Format( "{0}_Sort_Direction", PersonSettingKey ), sortProperty.DirectionString );
+                SetUserPreference( string.Format( "{0}_Sort_Column", PersonSettingKey ), sortProperty.Property );
             }
             else
             {
@@ -247,6 +260,22 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             gRequestList.Actions.ShowExcelExport = false;
             gRequestList.Actions.ShowMergeTemplate = false;
 
+            if ( sortProperty != null )
+            {
+                foreach ( var column in gRequestList.Columns )
+                {
+                    var dcf = column as DataControlField;
+                    if ( dcf != null && dcf.SortExpression == sortProperty.Property )
+                    {
+                        gRequestList.HeaderRow.Cells[gRequestList.Columns.IndexOf( dcf )].AddCssClass( sortProperty.Direction.ToString().ToLower() );
+                        break;
+                    }
+                }
+                if ( gRequestList.SortProperty == null )
+                {
+                    gRequestList.Sort( sortProperty.Property, sortProperty.Direction );
+                }
+            }
 
             //grdCapitalRequests.DataSource = capRequestDT;
             //grdCapitalRequests.DataBind();
