@@ -32,6 +32,9 @@
                 <div class="grid grid-panel">
                 <Rock:ModalAlert ID="maWarningDialog" runat="server" />
                 <Rock:GridFilter ID="gfRequestListFilter" runat="server" OnApplyFilterClick="btnFilterApply_Click" OnClearFilterClick="btnFilterReset_Click">
+                    
+                    <a onclick="$('input[id*=\'cblStatus\'][type=checkbox]').prop('checked', true); return false;" href="#">Check All</a>&nbsp;
+                    <a onclick="$('input[id*=\'cblStatus\'][type=checkbox]').prop('checked', false); return false;" href="#">Uncheck All</a>
                     <Rock:RockCheckBoxList ID="cblStatus" runat="server" Label="Status" RepeatDirection="Horizontal" />
                     <Rock:RockDropDownList ID="ddlMinistry" runat="server" Label="Requesting Ministry" />
                     <Rock:RockDropDownList ID="ddlSCCLocation" runat="server" Label="Southeast Location"/>
@@ -73,11 +76,11 @@
                 if ($hf.val() != 'true')
                 {
                     $hf.val('true');
+                    $(el).siblings('div').slideToggle(0);
                 } else
                 {
                     $hf.val('false');
                 }
-                $(el).siblings('div').slideToggle(0);
             }
             $(document).ready(expandFilters);
             Sys.WebForms.PageRequestManager.getInstance().add_endRequest(expandFilters);

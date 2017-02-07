@@ -640,7 +640,8 @@ namespace org.secc.Purchasing
                     {
                         if (PersonID > 0 && filter.ContainsKey("UserName"))
                         {
-                            var range = Query.Where(q => filter["UserName"].IndexOf(q.CreatedBy) >= 0)
+                            string[] usernames = filter["UserName"].Split( ',' );
+                            var range = Query.Where(q => usernames.Contains(q.CreatedBy))
                                                         .Select(q => new RequisitionListItem
                                                         {
                                                             RequisitionID = q.RequisitionId,
@@ -715,7 +716,10 @@ namespace org.secc.Purchasing
                     {
                         if (PersonID > 0)
                         {
-                            ListItems.AddRange(Query.Where(q => q.ApproverPersonIds.Where(ra => ra.ApproverId == PersonID).Count() > 0)
+
+                            PersonAliasService aliasService = new PersonAliasService( new Rock.Data.RockContext() );
+                            var aliasIds = aliasService.Queryable().Where( a => a.PersonId == PersonID ).Select( a => a.Id ).ToList();
+                            ListItems.AddRange(Query.Where(q => q.ApproverPersonIds.Where(ra => ra.ApproverId != null && aliasIds.Contains( ra.ApproverId.Value )).Count() > 0)
                                                 .Select(q => new RequisitionListItem
                                                          {
                                                              RequisitionID = q.RequisitionId,
