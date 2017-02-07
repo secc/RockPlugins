@@ -36,6 +36,7 @@
             $("#pnlError").css("visibility", "hidden");
         }
     }
+    Sys.WebForms.PageRequestManager.getInstance().add_endRequest(function () { $('body').removeClass('modal-open'); });
 </script>
 <asp:UpdatePanel ID="upMain" runat="server" UpdateMode="Conditional">
     <ContentTemplate>
