@@ -42,7 +42,7 @@
                     AllowSorting="true" DataKeyField="RequisitionID" AutoGenerateColumns="false">
                     <Columns>
                         <Rock:RockBoundField HeaderText="RequisitionID" DataField="RequisitionID" Visible="false" />
-                        <Rock:RockTemplateField HeaderText="Req. Title">                     
+                        <Rock:RockTemplateField HeaderText="Req. Title" SortExpression="Title">                     
                             <ItemTemplate>
                                 <asp:HyperLink runat="server" text='<%# Eval("Title") %>' NavigateUrl='<%# String.Format("{0}?RequisitionID={1}", RequisitionDetailPageSetting, Eval("RequisitionID")) %>'></asp:HyperLink> 
                             </ItemTemplate>
@@ -80,11 +80,11 @@
                 if ($hf.val() != 'true')
                 {
                     $hf.val('true');
+                    $(el).siblings('div').slideToggle(0);
                 } else
                 {
                     $hf.val('false');
                 }
-                $(el).siblings('div').slideToggle(0);
             }
             $(document).ready(expandFilters);
             Sys.WebForms.PageRequestManager.getInstance().add_endRequest(expandFilters);
