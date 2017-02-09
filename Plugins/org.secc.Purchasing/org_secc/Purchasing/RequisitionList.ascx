@@ -58,6 +58,9 @@
                             SortExpression="AttachmentCount" ItemStyle-HorizontalAlign="Center" />
                         <Rock:RockBoundField HeaderText="Submitted On" DataField="DateSubmitted" DataFormatString="{0:d}"
                             SortExpression="DateSubmitted" HeaderStyle-HorizontalAlign="Center" ItemStyle-HorizontalAlign="Center" />
+                        <Rock:BoolField HeaderText="Express Shipping" HeaderStyle-HorizontalAlign="Center"
+                            ItemStyle-HorizontalAlign="Center" ItemStyle-VerticalAlign="Middle" DataField="IsExpedited"
+                            SortExpression="IsExpedited" />
                         <Rock:BoolField HeaderText="Approved" HeaderStyle-HorizontalAlign="Center"
                             ItemStyle-HorizontalAlign="Center" ItemStyle-VerticalAlign="Middle" DataField="IsApproved"
                             SortExpression="IsApproved" />
@@ -76,15 +79,7 @@
             {
                 el = $('.grid-filter header').get();
                 $('i.toggle-filter', el).toggleClass('fa-chevron-down fa-chevron-up');
-                var $hf = $('input', el).first();
-                if ($hf.val() != 'true')
-                {
-                    $hf.val('true');
-                    $(el).siblings('div').slideToggle(0);
-                } else
-                {
-                    $hf.val('false');
-                }
+                $(el).siblings('div').slideDown(0);
             }
             $(document).ready(expandFilters);
             Sys.WebForms.PageRequestManager.getInstance().add_endRequest(expandFilters);

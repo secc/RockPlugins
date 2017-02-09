@@ -9,8 +9,8 @@
         </div>
         <div class="panel-body">
             <div class="grid grid-panel">
+                <Rock:ModalAlert runat="server" ID="nbAlert" />
                 <Rock:GridFilter runat="server" ID="gfPurchaseOrders" OnApplyFilterClick="btnFilterApply_Click" OnClearFilterClick="btnFilterClear_Click">
-                
                     <asp:Panel runat="server">
                         <label>Status</label><br />
                         <a onclick="$('input[id*=\'cbListStatus\'][type=checkbox]').prop('checked', true); return false;" href="#">Check All</a>&nbsp;
@@ -22,11 +22,12 @@
                     <Rock:RockDropDownList Label="Vendor:" ID="ddlVendor" runat="server" CssClass="smallText" />
                     <Rock:RockTextBox Label="PO Number:" id="txtPONumber" runat="server" />
                     <Rock:DateRangePicker Label="Order Date" ID="txtOrderDate" runat="server" />
-                    <div class="form-group">
+                    <asp:Panel runat="server" class="form-group">
                         <label class="form-label">Ordered By:</label>
                         <secc:StaffPicker ID="ucStaffPicker" runat="server" AllowMultipleSelections="false" ShowPersonDetailLink="false" UserCanEdit="true" DefaultLabel="Show All" />
-                    </div>
+                    </asp:Panel>
                     <Rock:RockCheckBox Label="Active/Inactive:" ID="chkShowInactive" runat="server" Text="Show Inactive" />
+                    <Rock:RockTextBox ID="tbGLAccount" runat="server" Label="General Ledger Account"></Rock:RockTextBox>
                 </Rock:GridFilter>
                 <Rock:Grid ID="dgPurchaseOrders" runat="server" CssClass="list" 
                     OnReBind="dgPurchaseOrders_Rebind" OnItemCommand="dgPurchaseOrders_ItemCommand" >
@@ -42,6 +43,7 @@
                        <Rock:RockBoundField HeaderText="Status" DataField="Status" SortExpression="Status" />
                        <Rock:RockBoundField HeaderText="Items Details" DataField="ItemDetails" SortExpression="ItemDetailCount" />
                        <Rock:RockBoundField HeaderText="Total Payments" DataField="TotalPayments" SortExpression="TotalPayments" />
+                       <Rock:RockBoundField HeaderText="Payment Method" DataField="PaymentMethod" SortExpression="PaymentMethod" />
                        <Rock:RockBoundField HeaderText="Notes" DataField="NoteCount" SortExpression="NoteCount" />
                        <Rock:RockBoundField HeaderText="Attachments" DataField="AttachmentCount" SortExpression="AttachmentCount" />
                     </Columns>
@@ -54,15 +56,7 @@
             {
                 el = $('.grid-filter header').get();
                 $('i.toggle-filter', el).toggleClass('fa-chevron-down fa-chevron-up');
-                var $hf = $('input', el).first();
-                if ($hf.val() != 'true')
-                {
-                    $hf.val('true');
-                $(el).siblings('div').slideToggle(0);
-                } else
-                {
-                    $hf.val('false');
-                }
+                $(el).siblings('div').slideDown(0);
             }
             $(document).ready(expandFilters);
             Sys.WebForms.PageRequestManager.getInstance().add_endRequest(expandFilters);

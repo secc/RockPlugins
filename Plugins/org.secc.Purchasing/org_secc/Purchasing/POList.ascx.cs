@@ -15,6 +15,7 @@ using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 using org.secc.Purchasing;
+using System.Text.RegularExpressions;
 
 namespace RockWeb.Plugins.org_secc.Purchasing
 {
@@ -81,6 +82,16 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         protected void btnFilterApply_Click(object sender, EventArgs e)
         {
+            if ( !string.IsNullOrEmpty( tbGLAccount.Text ) )
+            {
+                Regex r = new Regex( @"\d{3}-\d{3}-\d{5}", RegexOptions.IgnoreCase );
+                if ( !r.IsMatch( tbGLAccount.Text ) )
+                {
+                    nbAlert.Show( "The GL Account you entered has an invalid format.  Please make sure to use a 100-100-10000 format.", ModalAlertType.Alert );
+                    return;
+                }
+
+            }
             SaveUserFilterSettings();
             BindPOGrid();
         }
@@ -138,6 +149,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 new DataColumn("Status", typeof(string)),
                 new DataColumn("ItemDetails", typeof(int)),
                 new DataColumn("TotalPayments", typeof(string)),
+                new DataColumn("PaymentMethod", typeof(string)),
                 new DataColumn("NoteCount", typeof(int)),
                 new DataColumn("AttachmentCount", typeof(int))
             } );
@@ -187,6 +199,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     dr["Status"] = po.Status;
                     dr["ItemDetails"] = po.ItemDetailCount;
                     dr["TotalPayments"] = string.Format( "{0:c}", po.TotalPayments );
+                    dr["PaymentMethod"] = po.PaymentMethod;
                     dr["NoteCount"] = po.NoteCount;
                     dr["AttachmentCount"] = po.AttachmentCount;
 
@@ -277,6 +290,11 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             Filter.Add("ShowInactive", chkShowInactive.Checked.ToString());
 
+            if ( !string.IsNullOrEmpty( tbGLAccount.Text))
+            {
+                Filter.Add( "GLAccount", tbGLAccount.Text );
+
+            }
             return Filter;
 
         }
@@ -375,6 +393,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             bool.TryParse(GetUserPreference(string.Format("{0}_ShowInactive", PersonSettingKeyPrefix)), out ShowInactive);
             chkShowInactive.Checked = ShowInactive;
 
+            tbGLAccount.Text = GetUserPreference( string.Format( "{0}_GLAccount", PersonSettingKeyPrefix ) );
+
         }
 
         private void RedirectToAddPO()
@@ -429,6 +449,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             SetUserPreference(string.Format("{0}_ShowInactive", PersonSettingKeyPrefix), chkShowInactive.Checked.ToString());
 
+            SetUserPreference( string.Format( "{0}_GLAccount", PersonSettingKeyPrefix ), tbGLAccount.Text );
+
+
         }
 
         private void ShowStaffSearch()
@@ -444,4 +467,5 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         }
         #endregion
     }
+
 }

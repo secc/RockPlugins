@@ -6,6 +6,7 @@ using System.Xml.Serialization;
 using org.secc.Purchasing.DataLayer;
 using Rock.Model;
 using Rock;
+using System.Data.SqlClient;
 
 namespace org.secc.Purchasing
 {
@@ -316,33 +317,34 @@ namespace org.secc.Purchasing
 
             using (PurchasingContext Context = ContextHelper.GetDBContext())
             {
+
                 var Query = Context.PurchaseOrderDatas
-                    .GroupJoin(Context.PersonAliasDatas,
+                    .GroupJoin( Context.PersonAliasDatas,
                         po => po.ordered_by,
-                        pm1 => (Int32?)(pm1.Id),
-                        (po, pm2) => new
+                        pm1 => ( Int32? ) ( pm1.Id ),
+                        ( po, pm2 ) => new
                         {
                             po = po,
                             pm2 = pm2
-                        })
-                    .SelectMany(temp0 => temp0.pm2.DefaultIfEmpty(),
-                        (temp0, LOJpm) => new
+                        } )
+                    .SelectMany( temp0 => temp0.pm2.DefaultIfEmpty(),
+                        ( temp0, LOJpm ) => new
                         {
                             temp0 = temp0,
                             LOJpm = LOJpm
-                        })
-                    .Join(Context.LookupDatas,
+                        } )
+                    .Join( Context.LookupDatas,
                         temp1 => temp1.temp0.po.status_luid,
                         s => s.Id,
-                        (temp1, s) => new
+                        ( temp1, s ) => new
                         {
                             temp1 = temp1,
                             s = s
-                        })
-                    .Join(Context.LookupDatas,
+                        } )
+                    .Join( Context.LookupDatas,
                         temp2 => temp2.temp1.temp0.po.purchase_order_type_luid,
                         t => t.Id,
-                        (temp2, t) => new
+                        ( temp2, t ) => new
                         {
                             PurchaseOrderID = temp2.temp1.temp0.po.purchase_order_id,
                             VendorID = temp2.temp1.temp0.po.vendor_id,
@@ -353,24 +355,27 @@ namespace org.secc.Purchasing
                             StatusName = temp2.s.Value,
                             OrderDate = temp2.temp1.temp0.po.date_ordered,
                             Active = temp2.temp1.temp0.po.active,
-                            OrderedByID = ((Int32?)(temp2.temp1.LOJpm.PersonId) == null)
+                            OrderedByID = ( ( Int32? ) ( temp2.temp1.LOJpm.PersonId ) == null )
                                 ? temp2.temp1.temp0.po.ordered_by
-                                : (Int32?)(temp2.temp1.LOJpm.PersonId),
+                                : ( Int32? ) ( temp2.temp1.LOJpm.PersonId ),
                             ItemDetailsCount = temp2.temp1.temp0.po.PurchaseOrderItemDatas
-                                .Where(poi => (poi.active == true))
+                                .Where( poi => ( poi.active == true ) )
                                 .Count(),
-                            PaymentTotal = (Decimal?)(temp2.temp1.temp0.po.PaymentDatas.Where(pay => (pay.active == true))
-                                .Select(pay => pay.payment_amount)
-                                .Sum()) ?? 0,
+                            PaymentTotal = ( Decimal? ) ( temp2.temp1.temp0.po.PaymentDatas.Where( pay => ( pay.active == true ) )
+                                .Select( pay => pay.payment_amount )
+                                .Sum() ) ?? 0,
+                            PaymentMethod = temp2.temp1.temp0.po.PaymentDatas.Where( pay => ( pay.active == true ) )
+                                .Select( pay => pay.PaymentMethodData.name ).Distinct().ToList(),
                             NoteCount = Context.NoteDatas
-                                .Where(n => (((n.active == true) && (n.object_type_name == typeof(PurchaseOrder).ToString())) &&
-                                    (n.identifier == temp2.temp1.temp0.po.purchase_order_id)))
+                                .Where( n => ( ( ( n.active == true ) && ( n.object_type_name == typeof( PurchaseOrder ).ToString() ) ) &&
+                                     ( n.identifier == temp2.temp1.temp0.po.purchase_order_id ) ) )
                                     .Count(),
                             AttachmentCount = Context.AttachmentDatas
-                                .Where(a => (((a.active == true) && (a.parent_object_type_name == typeof(PurchaseOrder).ToString())) &&
-                                    (a.parent_identifier == temp2.temp1.temp0.po.purchase_order_id)))
-                                .Count()
-                        });
+                                .Where( a => ( ( ( a.active == true ) && ( a.parent_object_type_name == typeof( PurchaseOrder ).ToString() ) ) &&
+                                     ( a.parent_identifier == temp2.temp1.temp0.po.purchase_order_id ) ) )
+                                .Count(),
+                            Items = temp2.temp1.temp0.po.PurchaseOrderItemDatas.ToList()
+                        } );
 
 
 
@@ -412,20 +417,44 @@ namespace org.secc.Purchasing
                 if (!filter.ContainsKey("ShowInactive") || !bool.TryParse(filter["ShowInactive"], out showInactive) || !showInactive)
                     Query = Query.Where(p => p.Active);
 
-                ListItems.AddRange(Query.Select(p => new PurchaseOrderListItem
-                    {
-                        PurchaseOrderID = p.PurchaseOrderID,
-                        VendorID = p.VendorID,
-                        VendorName = p.VendorName,
-                        POTypeLUID = p.TypeLUID,
-                        POType = p.TypeName,
-                        StatusLUID = p.StatusLUID,
-                        Status = p.StatusName,
-                        ItemDetailCount = p.ItemDetailsCount,
-                        TotalPayments = p.PaymentTotal,
-                        NoteCount = p.NoteCount,
-                        AttachmentCount = p.AttachmentCount
-                    }));
+
+                if ( filter.ContainsKey( "GLAccount" ) && !String.IsNullOrWhiteSpace( filter["GLAccount"] ) )
+                {
+                    string[] projAccount = filter["GLAccount"].Split( "-".ToCharArray() );
+                    int fundId = 0;
+                    int deptId = 0;
+                    int acctId = 0;
+
+                    int.TryParse( projAccount[0], out fundId );
+                    int.TryParse( projAccount[1], out deptId );
+                    int.TryParse( projAccount[2], out acctId );
+
+                    Query = Query.Where( q => q.Items.Where(i => i.RequisitionItemData.fund_id == fundId ).Any() )
+                                .Where( q => q.Items.Where( i => i.RequisitionItemData.department_id == deptId ).Any() )
+                                .Where( q => q.Items.Where( i => i.RequisitionItemData.account_id == acctId ).Any() );
+                }
+
+                var command = Context.GetCommand(Query.Select( p => new PurchaseOrderListItem
+                {
+                    PurchaseOrderID = p.PurchaseOrderID,
+                    VendorID = p.VendorID,
+                    VendorName = p.VendorName,
+                    POTypeLUID = p.TypeLUID,
+                    POType = p.TypeName,
+                    StatusLUID = p.StatusLUID,
+                    Status = p.StatusName,
+                    ItemDetailCount = p.ItemDetailsCount,
+                    TotalPayments = p.PaymentTotal,
+                    PaymentMethod = string.Join( ", ", p.PaymentMethod ),
+                    NoteCount = p.NoteCount,
+                    AttachmentCount = p.AttachmentCount
+                } ).AsQueryable());
+                
+                SqlParameter[] parameters = new SqlParameter[] { };
+                Array.Resize( ref parameters, command.Parameters.Count );
+                command.Parameters.CopyTo( parameters, 0 );
+
+                ListItems.AddRange( Context.ExecuteQuery<PurchaseOrderListItem>( command.CommandText + " OPTION (RECOMPILE)", parameters.Select( p => p.Value ).ToArray() ) );
             }
 
             return ListItems;
@@ -1224,6 +1253,7 @@ namespace org.secc.Purchasing
         public string Status { get; set; }
         public int ItemDetailCount { get; set; }
         public decimal TotalPayments { get; set; }
+        public string PaymentMethod { get; set; }
         public int NoteCount { get; set; }
         public int AttachmentCount { get; set; }
     }
