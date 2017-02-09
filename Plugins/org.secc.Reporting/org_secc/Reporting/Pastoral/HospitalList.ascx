@@ -25,13 +25,13 @@
                         <Rock:RockBoundField DataField="Age" HeaderText="Age" SortExpression="Age"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="Room" HeaderText="Room" SortExpression="Room"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="AdmitDate" HeaderText="Admit Date" SortExpression="AdmitDate"></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="Description" ColumnPriority="DesktopLarge" HeaderText="Description" SortExpression="Description"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="Description" HeaderText="Description" SortExpression="Description"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="Visits" HeaderText="Visits" SortExpression="Visits"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="LastVisitor" HeaderText="Last Visitor" SortExpression="LastVisitor"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="LastVisitDate" HeaderText="Last Visit Date" SortExpression="LastVisitDate"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="LastVisitNotes" HeaderText="Last Visit Notes" SortExpression="LastVisitNotes"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="DischargeDate" HeaderText="Discharge Date" SortExpression="DischargeDate" Visible="false"></Rock:RockBoundField>
-                        <Rock:RockTemplateField HeaderText="Status" SortExpression="Status" ColumnPriority="DesktopLarge">
+                        <Rock:RockTemplateField HeaderText="Status" SortExpression="Status">
                             <ItemTemplate>
                                 <span class="label <%# Convert.ToString(Eval("Status"))=="Active"?"label-success":"label-default" %>"><%# Eval("Status") %></span>
                             </ItemTemplate>
