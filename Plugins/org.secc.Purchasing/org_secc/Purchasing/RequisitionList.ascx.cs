@@ -234,6 +234,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                         new DataColumn("NoteCount", typeof(int)),
                         new DataColumn("AttachmentCount", typeof(int)),
                         new DataColumn("DateSubmitted", typeof(DateTime)),
+                        new DataColumn("IsExpedited", typeof(bool)),
                         new DataColumn("IsApproved", typeof(bool)),
                         new DataColumn("IsAccepted", typeof(bool))
                     } );
@@ -253,6 +254,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 dr["AttachmentCount"] = item.AttachmentCount;
                 if ( item.DateSubmitted != null )
                     dr["DateSubmitted"] = item.DateSubmitted;
+                dr["IsExpedited"] = item.IsExpedited;
                 dr["IsApproved"] = item.IsApproved;
                 dr["IsAccepted"] = item.IsAccepted;
 

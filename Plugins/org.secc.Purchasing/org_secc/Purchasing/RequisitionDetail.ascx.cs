@@ -1356,7 +1356,14 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             {
                 lblTitle.Text = CurrentRequisition.Title;
                 lblStatus.Text = CurrentRequisition.Status.Value;
-                lblStatus.Text = CurrentRequisition.Status.Value;
+                if ( CurrentRequisition.Status.Order < Requisition.GetStatuses( true ).Where( s => s.Value == "Submitted to Purchasing" ).Select( s => s.Order ).FirstOrDefault() )
+                {
+                    lblTitle.Text += " <small>(Created: " + CurrentRequisition.DateCreated + ")</small>";
+                }
+                else
+                {
+                    lblTitle.Text += " <small>(Submitted: " + CurrentRequisition.DateSubmitted + ")</small>";
+                }
 
                 if (CurrentRequisition.IsApproved)
                     lblApproval.Text = "Yes";

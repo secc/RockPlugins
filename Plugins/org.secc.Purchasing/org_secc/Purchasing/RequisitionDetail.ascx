@@ -109,6 +109,7 @@
         $("[id*=hfReturnToSenderNoteID]").val(noteID);
         $("[id*=btnReturnToRequesterPart2]").click();
     }
+    Sys.WebForms.PageRequestManager.getInstance().add_endRequest(function () { $('body').removeClass('modal-open'); });
 </script>
 
 <style>

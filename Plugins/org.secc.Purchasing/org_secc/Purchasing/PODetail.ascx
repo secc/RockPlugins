@@ -37,6 +37,32 @@
         }
     }
     Sys.WebForms.PageRequestManager.getInstance().add_endRequest(function () { $('body').removeClass('modal-open'); });
+    var confirmClose = function (e) {
+            // make sure the element that triggered this event isn't disabled
+            if (e.currentTarget && e.currentTarget.disabled) {
+                return false;
+            }
+
+            e.preventDefault();
+
+            bootbox.dialog({
+                message: 'Are you sure you want to close this purchase order?',
+                buttons: {
+                    ok: {
+                        label: 'OK',
+                        className: 'btn-primary',
+                        callback: function () {
+                            var postbackJs = e.target.href ? e.target.href : e.target.parentElement.href;
+                            window.location = postbackJs;
+                        }
+                    },
+                    cancel: {
+                        label: 'Cancel',
+                        className: 'btn-secondary'
+                    }
+                }
+            });
+        }
 </script>
 <asp:UpdatePanel ID="upMain" runat="server" UpdateMode="Conditional">
     <ContentTemplate>
@@ -65,7 +91,7 @@
             <asp:LinkButton ID="lbToolbarMarkAsBilled" runat="server" CommandName="markasbilled" OnClick="ToolbarItem_Click" 
                 Visible="true" CssClass="btn btn-default">Mark as Billed</asp:LinkButton>
             <asp:LinkButton ID="lbToolbarClose" runat="server" CommandName="close" OnClick="ToolbarItem_Click" 
-                Visible="true" CssClass="btn btn-default">Close</asp:LinkButton>
+                Visible="true" CssClass="btn btn-default" OnClientClick="return confirmClose(event);">Close</asp:LinkButton>
             <asp:LinkButton ID="lbToolbarPrintPO" runat="server" CommandName="print" OnClick="ToolbarItem_Click" 
                 Visible="true" CssClass="btn btn-default">Print</asp:LinkButton>
             <asp:LinkButton ID="lbToolbarReopen" runat="server" CommandName="reopen" OnClick="ToolbarItem_Click" 
