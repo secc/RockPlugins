@@ -8,6 +8,7 @@ using System.Data.SqlClient;
 
 using Rock;
 using Rock.Model;
+using Rock.Web.Cache;
 
 namespace org.secc.Purchasing.DataLayer
 {
@@ -53,8 +54,7 @@ namespace org.secc.Purchasing.DataLayer
 
                 Person person = personService.Get(attributeValue.EntityId.Value);
                 person.LoadAttributes();
-                if (person.RecordStatusValue.Value != "Inactive" &&
-                    person.AttributeValues["StaffMember"].Value.AsBoolean())
+                if (person.RecordStatusValue.Value != "Inactive" )
                 {
                     DataRow dr = results.NewRow();
                     dr["PersonAliasId"] = person.PrimaryAliasId;
@@ -159,39 +159,55 @@ namespace org.secc.Purchasing.DataLayer
             AttributeService attributeService = new AttributeService(new Rock.Data.RockContext());
             Rock.Model.Attribute ministryAttribute = attributeService.Get(ministryAID);
             Rock.Model.Attribute positionAttribute = attributeService.Get(positionAID);
+            Rock.Data.RockContext context = new Rock.Data.RockContext();
+            int personEntityId = EntityTypeCache.Read( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
+            var people = new PersonService( context ).Queryable()
+                .Where( p => p.RecordStatusValueId == 3 && (name2 == "" && (p.NickName.Contains( name1 ) || p.LastName.Contains( name1)) || ( p.NickName.Contains( name1 ) &&  p.LastName.Contains( name2 ))) )
+                    .Join( new AttributeService( context ).Queryable(),
+                    p => new { EntityTypeId = personEntityId },
+                    a => new { EntityTypeId = a.EntityTypeId.Value },
+                    ( p, a ) => new { Person = p, Attribute = a } )
+                    .Join( new AttributeValueService( context ).Queryable(),
+                    obj => new { AttributeId = obj.Attribute.Id, EntityId = obj.Person.Id },
+                    av => new { AttributeId = av.AttributeId, EntityId = av.EntityId.Value },
+                    ( obj, av ) => new { Person = obj.Person, Attribute = obj.Attribute, AttributeValue = av } )
+                    .Where( obj => (obj.Attribute.Key == ministryAttribute.Key || obj.Attribute.Key == positionAttribute.Key) && obj.AttributeValue.Value != null)
+                     .OrderBy( obj => obj.Person.LastName )
+                     .ThenBy( obj => obj.Person.LastName )
+                     .GroupBy( obj => obj.Person )
+                    .Select( obj => new { Person = obj.Key, Attributes = obj.Select( a => a.Attribute ), AttributeValues = obj.Select( a => a.AttributeValue ) } );
+                    
 
-            PersonService personService = new PersonService(new Rock.Data.RockContext());
-            var people = personService.GetByFullName(name1 + ' ' + name2, true);
+            //var people = personService.GetByFullName(name1 + ' ' + name2, true);
 
             DataTable results = new DataTable();
             results.Columns.Add("PersonAliasId");
             results.Columns.Add("Name");
             results.Columns.Add("Ministry Area");
             results.Columns.Add("Position");
-            foreach (Person person in people)
+            foreach (var obj in people)
             {
-                person.LoadAttributes();
-                if (person.RecordStatusValue.Value != "Inactive" &&
-                    (!ministryID.HasValue && !string.IsNullOrEmpty(person.AttributeValues[ministryAttribute.Key].Value) ||
+                Person person = obj.Person;
+                if (!ministryID.HasValue && obj.AttributeValues.Where( av => av.AttributeKey == ministryAttribute.Key && av.Value.Length > 0 ).Any() ||
                         (ministryID.HasValue &&
-                    (person.AttributeValues[ministryAttribute.Key] != null &&
-                    person.AttributeValues[ministryAttribute.Key].Value == ministryID.Value.ToString()))))
+                    ( obj.AttributeValues.Where( av => av.AttributeKey == ministryAttribute.Key ).Any() &&
+                    obj.AttributeValues.Where( av => av.AttributeKey == ministryAttribute.Key).FirstOrDefault().Value == ministryID.Value.ToString())))
                     {
 
                     DataRow dr = results.NewRow();
                     dr["PersonAliasId"] = person.PrimaryAliasId;
                     dr["Name"] = person.FullName;
-                    if (person.AttributeValues[ministryAttribute.Key] != null)
+                    if ( obj.AttributeValues.Where( av => av.AttributeKey == ministryAttribute.Key).Any())
                     {
-                        dr["Ministry Area"] = person.AttributeValues[ministryAttribute.Key].Value;
+                        dr["Ministry Area"] = obj.AttributeValues.Where( av => av.AttributeKey == ministryAttribute.Key ).FirstOrDefault().Value;
                     }
                     else
                     {
                         dr["Ministry Area"] = "N/A";
                     }
-                    if (person.AttributeValues[positionAttribute.Key] != null)
+                    if ( obj.AttributeValues.Where( av => av.AttributeKey == positionAttribute.Key).Any())
                     {
-                        dr["Position"] = person.AttributeValues[positionAttribute.Key].Value;
+                        dr["Position"] = obj.AttributeValues.Where( av => av.AttributeKey == positionAttribute.Key ).FirstOrDefault().Value;
                     }
                     else
                     {

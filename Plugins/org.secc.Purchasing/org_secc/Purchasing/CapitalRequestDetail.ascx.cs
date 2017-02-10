@@ -179,7 +179,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-                return GetAttributeValue("RequestApprovedNotificationTemplate").AsGuidOrNull();
+                return GetAttributeValue("ApprovedNotificationTemplate").AsGuidOrNull();
 
             }
         }
@@ -188,7 +188,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-                return GetAttributeValue("RequestReturnedNotificationTemplate").AsGuidOrNull();
+                return GetAttributeValue("ReturnedNotificationTemplate").AsGuidOrNull();
             }
         }
 
@@ -522,6 +522,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             {
                 mpBidDetail.Hide();
                 LoadRequest();
+                upMain.Update();
             }
         }
         #endregion
@@ -861,8 +862,12 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         private int GetCurrentUsersMinistryArea()
         {
             CurrentPerson.LoadAttributes();
-            Guid dv = CurrentPerson.GetAttributeValue(AttributeCache.Read(MinistryAreaPersonAttributeSetting).Key).AsGuid();
-            return DefinedValueCache.Read(dv).Id;
+            if ( MinistryAreaPersonAttributeSetting != null && AttributeCache.Read( MinistryAreaPersonAttributeSetting ) != null && CurrentPerson.GetAttributeValue( AttributeCache.Read( MinistryAreaPersonAttributeSetting ).Key ) != null)
+            {
+                Guid dv = CurrentPerson.GetAttributeValue( AttributeCache.Read( MinistryAreaPersonAttributeSetting ).Key ).AsGuid();
+                return DefinedValueCache.Read( dv ).Id;
+            }
+            return 0;
         }
 
         private void LoadApprovalRequests()
@@ -886,7 +891,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                                                 ApproverFullName = a.Approver != null ? a.Approver.FullName : null,
                                                 ApprovalStatusLUID = a.ApprovalStatusLUID,
                                                 ApprovalStatusName = a.ApprovalStatus != null ? a.ApprovalStatus.Value : null,
-                                                DateApprovedString = a.DateApproved > DateTime.MinValue ? a.DateApproved.ToShortDateString() : "(not approved)",
+                                                DateApprovedString = a.DateApproved > DateTime.MinValue ? a.DateApproved.ToShortDateString()+ " " + a.DateApproved.ToShortTimeString() : "(not approved)",
                                                 LastComment = a.ApprovalStatusLUID == Approval.ApprovedStatusLUID() ? String.Empty : 
                                                     a.GetLastNote(),
                                                 CreatedByPersonId = a.CreatedBy.PrimaryAliasId.Value
@@ -1092,7 +1097,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             
 
             ddlRequestingMinistry.Visible = AllowMinistrySelectionSetting;
-            lRequestingMinistryEdit.Visible = !AllowMinistrySelectionSetting;
+            divRequestingMinistry.Visible = AllowMinistrySelectionSetting;
 
             prsnRequester.Visible = AllowRequesterSelectionSetting;
         }
@@ -1830,7 +1835,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void SetSummaryError(string errorMessage)
         {
-            lSummaryError.Text = errorMessage;
+            lSummaryError.InnerHtml = errorMessage;
             lSummaryError.Visible = !String.IsNullOrWhiteSpace( errorMessage );
         }
 
@@ -1913,6 +1918,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
 
             // CER is closed
+            CurrentCapitalRequest.Status.LoadAttributes();
             if (CurrentCapitalRequest.Status.AttributeValues["IsClosed"].Value.AsBoolean())
             {
                 return false;

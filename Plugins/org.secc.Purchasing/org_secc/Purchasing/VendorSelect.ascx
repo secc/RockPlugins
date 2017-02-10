@@ -31,31 +31,31 @@
 <div id="vendorChooser" runat="server" >
     <div ID="lblStatus" CssClass="alert alert-danger" runat="server" />
 
-    <Rock:RockDropDownList CssClass="form-control" Label="Choose Vendor:" ID="ddlVendor" runat="server" AutoPostBack="true" OnSelectedIndexChanged="ddlVendor_SelectedIndexChanged" style="max-width:95%;" />
+    <Rock:RockDropDownList CssClass="form-control" Label="Choose Vendor:" ID="ddlVendor" runat="server" AutoPostBack="true" OnSelectedIndexChanged="ddlVendor_SelectedIndexChanged" style="max-width:95%;" ValidationGroup="VendorSelect" />
     <table border="0" style="width:100%; border: 1px solid grey;">
         <tr>
             <td class="formLabel">Name:</td>
-            <td class="formItem"><asp:TextBox ID="txtName"  runat="server" style="width:250px;" /> </td>
+            <td class="formItem"><asp:TextBox ID="txtName"  runat="server" style="width:250px;" ValidationGroup="VendorSelect" /> </td>
         </tr>
         <tr>
             <td class="formLabel" style="vertical-align:top;">Address:</td>
             <td class="formItem">
-                <asp:TextBox ID="txtAddress" runat="server" style="width:250px" /><br />
-                City: <asp:TextBox ID="txtCity" runat="server" style="width:125px;" />
-                State: <asp:TextBox ID="txtState" runat="server" MaxLength="2" style="width:25px;" />
-                Zip: <asp:TextBox ID="txtZip" runat="server" MaxLength="10" style="width:50px;" />
+                <asp:TextBox ID="txtAddress" runat="server" style="width:250px" ValidationGroup="VendorSelect" /><br />
+                City: <asp:TextBox ID="txtCity" runat="server" style="width:125px;" ValidationGroup="VendorSelect" />
+                State: <asp:TextBox ID="txtState" runat="server" MaxLength="2" style="width:25px;" ValidationGroup="VendorSelect" />
+                Zip: <asp:TextBox ID="txtZip" runat="server" MaxLength="10" style="width:50px;" ValidationGroup="VendorSelect" />
             </td>
         </tr>
         <tr>
             <td class="formLabel">Phone:</td>
             <td class="formItem">
-                <asp:TextBox ID="txtVendorPhone" runat="server" style="width:150px;" /> ext <asp:TextBox ID="txtVendorPhoneExt" runat="server" style="width:50px;" />
+                <asp:TextBox ID="txtVendorPhone" runat="server" style="width:150px;" ValidationGroup="VendorSelect" /> ext <asp:TextBox ID="txtVendorPhoneExt" runat="server" style="width:50px;" ValidationGroup="VendorSelect" />
             </td>
         </tr>
         <tr>
             <td class="formLabel">Web Address:</td>
             <td class="formItem">
-                <asp:TextBox ID="txtWebAddress" runat="server" style="width:300px;" />
+                <asp:TextBox ID="txtWebAddress" runat="server" style="width:300px;" ValidationGroup="VendorSelect" />
             </td>
         </tr>
     </table>

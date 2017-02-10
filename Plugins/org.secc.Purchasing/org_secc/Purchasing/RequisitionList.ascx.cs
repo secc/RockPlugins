@@ -192,6 +192,17 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             List<RequisitionListItem> Requisitions = GetRequisitions();
 
             SortProperty sortProperty = dgRequisitions.SortProperty;
+            // Check User Preferences to see if we have a pre-existing sort property
+            if (sortProperty == null)
+            {
+                sortProperty = new SortProperty();
+                sortProperty.Direction = GetUserPreference( string.Format( "{0}_Sort_Direction", PersonSettingsKeyPrefix ) )=="ASC"? SortDirection.Ascending: SortDirection.Descending;
+                sortProperty.Property = GetUserPreference( string.Format( "{0}_Sort_Column", PersonSettingsKeyPrefix ) );
+                if (string.IsNullOrEmpty(sortProperty.Property))
+                {
+                    sortProperty.Property = "DateSubmitted";
+                }
+            }
             if ( sortProperty != null )
             {
                 if ( sortProperty.Direction == SortDirection.Ascending )
@@ -201,6 +212,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 {
                     Requisitions = Requisitions.OrderByDescending( r => r.GetType().GetProperty( sortProperty.Property ).GetValue( r ) ).ToList();
                 }
+                SetUserPreference( string.Format( "{0}_Sort_Direction", PersonSettingsKeyPrefix ), sortProperty.DirectionString );
+                SetUserPreference( string.Format( "{0}_Sort_Column", PersonSettingsKeyPrefix ), sortProperty.Property );
             }
             else
             {
@@ -221,6 +234,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                         new DataColumn("NoteCount", typeof(int)),
                         new DataColumn("AttachmentCount", typeof(int)),
                         new DataColumn("DateSubmitted", typeof(DateTime)),
+                        new DataColumn("IsExpedited", typeof(bool)),
                         new DataColumn("IsApproved", typeof(bool)),
                         new DataColumn("IsAccepted", typeof(bool))
                     } );
@@ -240,6 +254,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 dr["AttachmentCount"] = item.AttachmentCount;
                 if ( item.DateSubmitted != null )
                     dr["DateSubmitted"] = item.DateSubmitted;
+                dr["IsExpedited"] = item.IsExpedited;
                 dr["IsApproved"] = item.IsApproved;
                 dr["IsAccepted"] = item.IsAccepted;
 
@@ -249,6 +264,22 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             dgRequisitions.DataSource = dt;
             dgRequisitions.DataBind();
+            if (sortProperty != null)
+            {
+                foreach ( var column in dgRequisitions.Columns )
+                {
+                    var dcf = column as DataControlField;
+                    if ( dcf != null && dcf.SortExpression == sortProperty.Property )
+                    {
+                        dgRequisitions.HeaderRow.Cells[dgRequisitions.Columns.IndexOf( dcf )].AddCssClass( sortProperty.Direction.ToString().ToLower() );
+                        break;
+                    }
+                }
+                if ( dgRequisitions.SortProperty == null)
+                {
+                    dgRequisitions.Sort( sortProperty.Property, sortProperty.Direction );
+                }
+            }
 
         }
 
@@ -314,22 +345,22 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
 
             Filter.Add("PersonID", CurrentPerson.Id.ToString());
-            Filter.Add("UserName", CurrentUser.UserName);
-            AttributeService attributeService = new AttributeService(new RockContext());
-            Rock.Model.Attribute ministryAttribute = attributeService.Get(MinistryAreaAttributeIDSetting);
-            if (ministryAttribute != null)
+            UserLoginService loginService = new UserLoginService( new RockContext() );
+            Filter.Add("UserName", string.Join(",",loginService.GetByPersonId(CurrentPerson.Id).Select(l => l.UserName)));
+            CurrentPerson.LoadAttributes();
+            if ( MinistryAreaAttributeIDSetting != null)
             {
-                DefinedValue ministryValue = org.secc.Purchasing.Helpers.Person.GetMyMinistryLookup(CurrentPerson.Id, ministryAttribute.Key);
+                var ministryValue = DefinedValueCache.Read( CurrentPerson.AttributeValues[AttributeCache.Read( MinistryAreaAttributeIDSetting ).Key].Value );
                 if (ministryValue != null) {
                     Filter.Add("MyMinistryID", ministryValue.Id.ToString());
                 }
             }
 
-            Rock.Model.Attribute locationAttribute = attributeService.Get(MinistryAreaAttributeIDSetting);
-            if (locationAttribute != null)
+            if ( MinistryLocationAttributeIDSetting != null)
             {
-                DefinedValue locationValue = org.secc.Purchasing.Helpers.Person.GetMyMinistryLookup(CurrentPerson.Id, locationAttribute.Key);
-                if (locationValue != null)
+                var locationValue = DefinedValueCache.Read( CurrentPerson.AttributeValues[AttributeCache.Read( MinistryLocationAttributeIDSetting ).Key].Value );
+
+                if ( locationValue != null)
                 {
                     Filter.Add( "MyLocationID", locationValue.Id.ToString());
                 }
@@ -424,6 +455,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             chkShowInactive.Visible = isEditor;
             ddlMinistry.Visible = isEditor;
             ddlLocation.Visible = isEditor;
+            pnlRequester.Visible = isEditor;
         }
 
         private void LoadUserFilterSettings()

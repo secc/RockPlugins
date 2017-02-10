@@ -15,6 +15,7 @@ using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 using org.secc.Purchasing;
+using System.Text.RegularExpressions;
 
 namespace RockWeb.Plugins.org_secc.Purchasing
 {
@@ -37,7 +38,11 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if (!String.IsNullOrEmpty(GetAttributeValue("PurchaseOrderDetailPage")))
             {
                 PageService pageService = new PageService(new Rock.Data.RockContext());
-                return "~/page/" + pageService.Get(GetAttributeValue("PurchaseOrderDetailPage").AsGuid()).Id;
+                if ( GetAttributeValue( "PurchaseOrderDetailPage" ).AsGuidOrNull() != null && pageService.Get( GetAttributeValue( "PurchaseOrderDetailPage" ).AsGuid() ) != null)
+                {
+                    return "~/page/" + pageService.Get( GetAttributeValue( "PurchaseOrderDetailPage" ).AsGuid() ).Id;
+
+                }
             }
             return null; 
         } }
@@ -77,6 +82,16 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         protected void btnFilterApply_Click(object sender, EventArgs e)
         {
+            if ( !string.IsNullOrEmpty( tbGLAccount.Text ) )
+            {
+                Regex r = new Regex( @"\d{3}-\d{3}-\d{5}", RegexOptions.IgnoreCase );
+                if ( !r.IsMatch( tbGLAccount.Text ) )
+                {
+                    nbAlert.Show( "The GL Account you entered has an invalid format.  Please make sure to use a 100-100-10000 format.", ModalAlertType.Alert );
+                    return;
+                }
+
+            }
             SaveUserFilterSettings();
             BindPOGrid();
         }
@@ -134,17 +149,29 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 new DataColumn("Status", typeof(string)),
                 new DataColumn("ItemDetails", typeof(int)),
                 new DataColumn("TotalPayments", typeof(string)),
+                new DataColumn("PaymentMethod", typeof(string)),
                 new DataColumn("NoteCount", typeof(int)),
                 new DataColumn("AttachmentCount", typeof(int))
             } );
 
+            SortProperty sortProperty = dgPurchaseOrders.SortProperty;
 
             if ( GetUserPreferences( PersonSettingKeyPrefix ).Count() > 0 )
             {
                 var POListItems = PurchaseOrder.GetPurchaseOrderList( BuildFilter() );
 
 
-                SortProperty sortProperty = dgPurchaseOrders.SortProperty;
+                // Check User Preferences to see if we have a pre-existing sort property
+                if ( sortProperty == null )
+                {
+                    sortProperty = new SortProperty();
+                    sortProperty.Direction = GetUserPreference( string.Format( "{0}_Sort_Direction", PersonSettingKeyPrefix ) ) == "ASC" ? SortDirection.Ascending : SortDirection.Descending;
+                    sortProperty.Property = GetUserPreference( string.Format( "{0}_Sort_Column", PersonSettingKeyPrefix ) );
+                    if ( string.IsNullOrEmpty( sortProperty.Property ) )
+                    {
+                        sortProperty.Property = "PurchaseOrderID";
+                    }
+                }
                 if ( sortProperty != null )
                 {
                     if ( sortProperty.Direction == SortDirection.Ascending )
@@ -155,6 +182,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     {
                         POListItems = POListItems.OrderByDescending( r => r.GetType().GetProperty( sortProperty.Property ).GetValue( r ) ).ToList();
                     }
+                    SetUserPreference( string.Format( "{0}_Sort_Direction", PersonSettingKeyPrefix ), sortProperty.DirectionString );
+                    SetUserPreference( string.Format( "{0}_Sort_Column", PersonSettingKeyPrefix ), sortProperty.Property );
                 }
                 else
                 {
@@ -170,6 +199,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     dr["Status"] = po.Status;
                     dr["ItemDetails"] = po.ItemDetailCount;
                     dr["TotalPayments"] = string.Format( "{0:c}", po.TotalPayments );
+                    dr["PaymentMethod"] = po.PaymentMethod;
                     dr["NoteCount"] = po.NoteCount;
                     dr["AttachmentCount"] = po.AttachmentCount;
 
@@ -180,6 +210,23 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             dgPurchaseOrders.DataSource = dt;
             dgPurchaseOrders.DataBind();
+
+            if ( sortProperty != null )
+            {
+                foreach ( var column in dgPurchaseOrders.Columns )
+                {
+                    var dcf = column as DataControlField;
+                    if ( dcf != null && dcf.SortExpression == sortProperty.Property )
+                    {
+                        dgPurchaseOrders.HeaderRow.Cells[dgPurchaseOrders.Columns.IndexOf( dcf )].AddCssClass( sortProperty.Direction.ToString().ToLower() );
+                        break;
+                    }
+                }
+                if ( dgPurchaseOrders.SortProperty == null )
+                {
+                    dgPurchaseOrders.Sort( sortProperty.Property, sortProperty.Direction );
+                }
+            }
         }
 
         private void BindPOTypeCheckboxList()
@@ -243,6 +290,11 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             Filter.Add("ShowInactive", chkShowInactive.Checked.ToString());
 
+            if ( !string.IsNullOrEmpty( tbGLAccount.Text))
+            {
+                Filter.Add( "GLAccount", tbGLAccount.Text );
+
+            }
             return Filter;
 
         }
@@ -341,6 +393,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             bool.TryParse(GetUserPreference(string.Format("{0}_ShowInactive", PersonSettingKeyPrefix)), out ShowInactive);
             chkShowInactive.Checked = ShowInactive;
 
+            tbGLAccount.Text = GetUserPreference( string.Format( "{0}_GLAccount", PersonSettingKeyPrefix ) );
+
         }
 
         private void RedirectToAddPO()
@@ -395,6 +449,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             SetUserPreference(string.Format("{0}_ShowInactive", PersonSettingKeyPrefix), chkShowInactive.Checked.ToString());
 
+            SetUserPreference( string.Format( "{0}_GLAccount", PersonSettingKeyPrefix ), tbGLAccount.Text );
+
+
         }
 
         private void ShowStaffSearch()
@@ -410,4 +467,5 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         }
         #endregion
     }
+
 }

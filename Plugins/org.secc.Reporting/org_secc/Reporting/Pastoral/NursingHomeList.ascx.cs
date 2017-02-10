@@ -19,19 +19,18 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Entity;
-using System.Data.SqlClient;
+using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using System.Xml.Linq;
-
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
+using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
@@ -75,6 +74,21 @@ namespace RockWeb.Blocks.Reporting
             gReport.Actions.AddButton.Enabled = true;
             gReport.Actions.AddClick += addHospitalization_Click;
             gReport.Actions.ShowMergeTemplate = false;
+
+            gReport.Actions.ShowExcelExport = false;
+
+            if ( this.ContextEntity() == null )
+            {
+                LinkButton excel = new LinkButton()
+                {
+                    ID = "btnExcel",
+                    Text = "<i class='fa fa-table'></i>",
+                    CssClass = "btn btn-default btn-sm"
+                };
+                gReport.Actions.Controls.Add( excel );
+                excel.Click += GenerateExcel;
+                ScriptManager.GetCurrent( this.Page ).RegisterPostBackControl( excel );
+            }
         }
 
         /// <summary>
@@ -111,44 +125,48 @@ namespace RockWeb.Blocks.Reporting
                 Guid nursingHomeList = GetAttributeValue( "NursingHomeList" ).AsGuid();
 
                 List<DefinedValue> facilities = definedValueService.Queryable().Where( dv => dv.DefinedType.Guid == nursingHomeList ).ToList();
-                facilities.ForEach( h => {
+                facilities.ForEach( h =>
+                {
                     h.LoadAttributes();
                 } );
 
-                int entityTypeId = entityTypeService.Queryable().Where(et => et.Name == typeof(Workflow).FullName).FirstOrDefault().Id;
+                int entityTypeId = entityTypeService.Queryable().Where( et => et.Name == typeof( Workflow ).FullName ).FirstOrDefault().Id;
                 string status = ( contextEntity != null ? "Completed" : "Active" );
-                
-                
-                // A little linq to load workflows with attributes and values
-                var tmpqry = workflowService.Queryable().AsNoTracking()
-                    .Join( attributeService.Queryable(),
-                    w => new { EntityTypeId = entityTypeId, WorkflowTypeId = w.WorkflowTypeId.ToString() },
-                    a => new { EntityTypeId = a.EntityTypeId.Value, WorkflowTypeId = a.EntityTypeQualifierValue },
-                    ( w, a ) => new { Workflow = w, Attribute = a } )
-                    .Join( attributeValueService.Queryable(),
-                    obj => new { AttributeId = obj.Attribute.Id, EntityId = obj.Workflow.Id },
-                    av => new { AttributeId = av.AttributeId, EntityId = av.EntityId.Value },
-                    ( obj, av ) => new { Workflow = obj.Workflow, Attribute = obj.Attribute, AttributeValue = av } )
-                    .GroupBy( obj => obj.Workflow )
-                    .Select( obj => new { Workflow = obj.Key, Attributes = obj.Select( a => a.Attribute ), AttributeValues = obj.Select( a => a.AttributeValue ) } )
-                    .Where( w => ( w.Workflow.WorkflowType.Guid == nursingHomeAdmissionWorkflow ) && (w.Workflow.Status == "Active" || w.Workflow.Status == status) );
+
+                var workflowTypeIdAsString = new WorkflowTypeService( rockContext ).Get( nursingHomeAdmissionWorkflow ).Id.ToString();
+
+                var attributeIds = attributeService.Queryable()
+                   .Where( a => a.EntityTypeQualifierColumn == "WorkflowTypeId" && a.EntityTypeQualifierValue == workflowTypeIdAsString )
+                   .Select( a => a.Id ).ToList();
+
+                var wfTmpqry = workflowService.Queryable().AsNoTracking()
+                     .Where( w => ( w.WorkflowType.Guid == nursingHomeAdmissionWorkflow ) && ( w.Status == "Active" || w.Status == status ) );
 
                 if ( contextEntity != null )
                 {
-                    string[] personGuid = ( ( Person ) contextEntity ).Aliases.Select( a => a.Guid.ToString() ).ToArray();
-                    tmpqry = tmpqry.Where( w => w.AttributeValues.Where( av => av.Attribute.Key == "PersonToVisit" && personGuid.Contains( av.Value ) ).Any() );
+                    var personGuid = ( ( Person ) contextEntity ).Aliases.Select( a => a.Guid.ToString() ).ToList();
+                    var validWorkflowIds = new AttributeValueService( rockContext ).Queryable()
+                        .Where( av => av.Attribute.Key == "PersonToVisit" && personGuid.Contains( av.Value ) ).Select( av => av.EntityId );
+                    wfTmpqry = wfTmpqry.Where( w => validWorkflowIds.Contains( w.Id ) );
                     gReport.Columns[10].Visible = true;
                 }
 
-                var qry = tmpqry.ToList();
+                var qry = wfTmpqry.Join( attributeValueService.Queryable(),
+                    obj => obj.Id,
+                    av => av.EntityId.Value,
+                    ( obj, av ) => new { Workflow = obj, AttributeValue = av } )
+                    .Where( a => attributeIds.Contains( a.AttributeValue.AttributeId ) )
+                    .GroupBy( obj => obj.Workflow )
+                    .Select( obj => new { Workflow = obj.Key, AttributeValues = obj.Select( a => a.AttributeValue ) } )
+                    .ToList();
 
                 if ( contextEntity == null )
                 {
                     // Make sure they aren't deceased
                     qry = qry.AsQueryable().Where( w => !
-                        (personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ) != null?
-                        personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).Person.IsDeceased:
-                        false)).ToList();
+                        ( personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ) != null ?
+                        personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).Person.IsDeceased :
+                        false ) ).ToList();
                 }
 
                 qry.ForEach(
@@ -166,7 +184,7 @@ namespace RockWeb.Blocks.Reporting
                     {
                         if ( w.AttributeValues.Where( av => av.AttributeKey == "NursingHome" ).Select( av => av.Value ).Any() )
                         {
-                            return facilities.Where( h => h.Guid == w.AttributeValues.Where( av => av.AttributeKey == "NursingHome" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).Select(dv => dv.Value).FirstOrDefault();
+                            return facilities.Where( h => h.Guid == w.AttributeValues.Where( av => av.AttributeKey == "NursingHome" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).Select( dv => dv.Value ).FirstOrDefault();
                         }
                         return "N/A";
                     } )(),
@@ -175,21 +193,23 @@ namespace RockWeb.Blocks.Reporting
                         AttributeValue personAliasAV = w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).FirstOrDefault();
                         if ( personAliasAV != null )
                         {
-							PersonAlias pa = personAliasService.Get( personAliasAV.Value.AsGuid() );
-							
-                            return pa!=null?pa.Person:new Person();
+                            PersonAlias pa = personAliasService.Get( personAliasAV.Value.AsGuid() );
+
+                            return pa != null ? pa.Person : new Person();
                         }
                         return new Person();
                     } )(),
-                    Address = new Func<string>( () => {
+                    Address = new Func<string>( () =>
+                    {
                         DefinedValue dv = facilities.Where( h => h.Guid == w.AttributeValues.Where( av => av.AttributeKey == "NursingHome" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).FirstOrDefault();
-						if (dv != null) {
-                        return dv.AttributeValues["Qualifier1"].ValueFormatted + " " +
-                            dv.AttributeValues["Qualifier2"].ValueFormatted + " " +
-                            dv.AttributeValues["Qualifier3"].ValueFormatted + ", " +
-                            dv.AttributeValues["Qualifier4"].ValueFormatted;
-							}
-							return "";
+                        if ( dv != null )
+                        {
+                            return dv.AttributeValues["Qualifier1"].ValueFormatted + " " +
+                                dv.AttributeValues["Qualifier2"].ValueFormatted + " " +
+                                dv.AttributeValues["Qualifier3"].ValueFormatted + ", " +
+                                dv.AttributeValues["Qualifier4"].ValueFormatted;
+                        }
+                        return "";
                     } )(),
                     Room = w.AttributeValues.Where( av => av.AttributeKey == "Room" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                     AdmitDate = w.AttributeValues.Where( av => av.AttributeKey == "AdmitDate" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
@@ -202,13 +222,13 @@ namespace RockWeb.Blocks.Reporting
                     Status = w.Workflow.Status,
                     Communion = w.AttributeValues.Where( av => av.AttributeKey == "Communion" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                     Actions = ""
-                } ).OrderBy(w=>w.NursingHome).ToList().AsQueryable();
+                } ).OrderBy( w => w.NursingHome ).ToList().AsQueryable();
 
                 //AddGridColumns( newQry.FirstOrDefault() );
 
                 SortProperty sortProperty = gReport.SortProperty;
                 if ( sortProperty != null )
-                { 
+                {
                     gReport.SetLinqDataSource( newQry.Sort( sortProperty ) );
                 }
                 else
@@ -216,9 +236,6 @@ namespace RockWeb.Blocks.Reporting
                     gReport.SetLinqDataSource( newQry.OrderBy( p => p.NursingHome ).ThenBy( p => p.Person.FullName ) );
                 }
                 gReport.DataBind();
-
-
-
             }
         }
         protected void addHospitalization_Click( object sender, EventArgs e )
@@ -231,6 +248,387 @@ namespace RockWeb.Blocks.Reporting
                 url += "?PersonId=" + contextEntity.Id;
             }
             Response.Redirect( url );
+        }
+
+        private void GenerateExcel( object sender, EventArgs e )
+        {
+            using ( var rockContext = new RockContext() )
+            {
+
+                var workflowService = new WorkflowService( rockContext );
+                var attributeService = new AttributeService( rockContext );
+                var attributeValueService = new AttributeValueService( rockContext );
+                var personAliasService = new PersonAliasService( rockContext );
+                var definedValueService = new DefinedValueService( rockContext );
+                var entityTypeService = new EntityTypeService( rockContext );
+
+                Guid nursingHomeAdmissionWorkflow = GetAttributeValue( "NursingHomeResidentWorkflow" ).AsGuid();
+                Guid nursingHomeList = GetAttributeValue( "NursingHomeList" ).AsGuid();
+
+                List<DefinedValue> facilities = definedValueService.Queryable().Where( dv => dv.DefinedType.Guid == nursingHomeList ).ToList();
+                facilities.ForEach( h =>
+                {
+                    h.LoadAttributes();
+                } );
+
+                int entityTypeId = entityTypeService.Queryable().Where( et => et.Name == typeof( Workflow ).FullName ).FirstOrDefault().Id;
+
+                var workflowTypeIdAsString = new WorkflowTypeService( rockContext ).Get( nursingHomeAdmissionWorkflow ).Id.ToString();
+
+                var attributeIds = attributeService.Queryable()
+                   .Where( a => a.EntityTypeQualifierColumn == "WorkflowTypeId" && a.EntityTypeQualifierValue == workflowTypeIdAsString )
+                   .Select( a => a.Id ).ToList();
+
+                var wfTmpqry = workflowService.Queryable().AsNoTracking()
+                     .Where( w => ( w.WorkflowType.Guid == nursingHomeAdmissionWorkflow ) && ( w.Status == "Active" ) );
+
+                var qry = wfTmpqry.Join( attributeValueService.Queryable(),
+     obj => obj.Id,
+     av => av.EntityId.Value,
+     ( obj, av ) => new { Workflow = obj, AttributeValue = av } )
+     .Where( a => attributeIds.Contains( a.AttributeValue.AttributeId ) )
+     .GroupBy( obj => obj.Workflow )
+     .Select( obj => new { Workflow = obj.Key, AttributeValues = obj.Select( a => a.AttributeValue ) } )
+     .ToList();
+
+                // Make sure they aren't deceased
+                qry = qry.AsQueryable().Where( w => !
+                    ( personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ) != null ?
+                    personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).Person.IsDeceased :
+                    false ) ).ToList();
+
+                qry.ForEach(
+                     w =>
+                     {
+                         w.Workflow.Activities.Where( a => a.ActivityType.Name == "Visitation Info" ).LastOrDefault().LoadAttributes();
+                     } );
+
+
+                var newQry = qry.Select( w => new
+                {
+                    Id = w.Workflow.Id,
+                    Workflow = w.Workflow,
+                    NursingHome = new Func<string>( () =>
+                    {
+                        if ( w.AttributeValues.Where( av => av.AttributeKey == "NursingHome" ).Select( av => av.Value ).Any() )
+                        {
+                            return facilities.Where( h => h.Guid == w.AttributeValues.Where( av => av.AttributeKey == "NursingHome" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).Select( dv => dv.Value ).FirstOrDefault();
+                        }
+                        return "N/A";
+                    } )(),
+                    Person = new Func<Person>( () =>
+                    {
+                        AttributeValue personAliasAV = w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).FirstOrDefault();
+                        if ( personAliasAV != null )
+                        {
+                            PersonAlias pa = personAliasService.Get( personAliasAV.Value.AsGuid() );
+
+                            return pa != null ? pa.Person : new Person();
+                        }
+                        return new Person();
+                    } )(),
+                    Address = new Func<string>( () =>
+                    {
+                        DefinedValue dv = facilities.Where( h => h.Guid == w.AttributeValues.Where( av => av.AttributeKey == "NursingHome" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).FirstOrDefault();
+                        if ( dv != null )
+                        {
+                            return dv.AttributeValues["Qualifier1"].ValueFormatted + " " +
+                                dv.AttributeValues["Qualifier2"].ValueFormatted + " " +
+                                dv.AttributeValues["Qualifier3"].ValueFormatted + ", " +
+                                dv.AttributeValues["Qualifier4"].ValueFormatted;
+                        }
+                        return "";
+                    } )(),
+                    PhoneNumber = new Func<string>( () =>
+                    {
+                        DefinedValue dv = facilities.Where( h => h.Guid == w.AttributeValues.Where( av => av.AttributeKey == "NursingHome" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).FirstOrDefault();
+                        if ( dv != null )
+                        {
+                            return dv.AttributeValues["Qualifier5"].ValueFormatted;
+                        }
+                        return "";
+                    } )(),
+                    PastoralMinister = new Func<string>( () =>
+                    {
+                        DefinedValue dv = facilities.Where( h => h.Guid == w.AttributeValues.Where( av => av.AttributeKey == "NursingHome" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).FirstOrDefault();
+                        if ( dv != null )
+                        {
+                            return dv.AttributeValues["Qualifier6"].ValueFormatted;
+                        }
+                        return "";
+                    } )(),
+                    Room = w.AttributeValues.Where( av => av.AttributeKey == "Room" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
+                    NotifiedBy = w.AttributeValues.Where( av => av.AttributeKey == "NotifiedBy" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
+                    AdmitDate = w.AttributeValues.Where( av => av.AttributeKey == "AdmitDate" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
+                    Description = w.AttributeValues.Where( av => av.AttributeKey == "VisitationRequestDescription" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
+                    Visits = w.Workflow.Activities.Where( a => a.ActivityType.Name == "Visitation Info" ).Count(),
+                    LastVisitor = ( w.Workflow.Activities.Where( a => a.ActivityType.Name == "Visitation Info" ).Any() ) ? w.Workflow.Activities.Where( a => a.ActivityType.Name == "Visitation Info" ).LastOrDefault().AttributeValues["Visitor"].ValueFormatted : "N/A",
+                    LastVisitDate = ( w.Workflow.Activities.Where( a => a.ActivityType.Name == "Visitation Info" ).Any() ) ? w.Workflow.Activities.Where( a => a.ActivityType.Name == "Visitation Info" ).LastOrDefault().AttributeValues["VisitDate"].ValueFormatted : "N/A",
+                    LastVisitNotes = ( w.Workflow.Activities.Where( a => a.ActivityType.Name == "Visitation Info" ).Any() ) ? w.Workflow.Activities.Where( a => a.ActivityType.Name == "Visitation Info" ).LastOrDefault().AttributeValues["VisitNote"].ValueFormatted : "N/A",
+                    DischargeDate = w.AttributeValues.Where( av => av.AttributeKey == "DischargeDate" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
+                    Status = w.Workflow.Status,
+                    Communion = w.AttributeValues.Where( av => av.AttributeKey == "Communion" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
+                    Actions = ""
+                } ).OrderBy( w => w.NursingHome ).ToList().AsQueryable();
+
+                var nursingHomes = newQry.Select( q => q.NursingHome ).DistinctBy( n => n ).ToList();
+
+                // create default settings
+                string filename = gReport.ExportFilename;
+                string workSheetName = "List";
+                string title = "Nursing Home Residents List";
+
+                ExcelPackage excel = new ExcelPackage();
+                excel.Workbook.Properties.Title = title;
+
+                // add author info
+                Rock.Model.UserLogin userLogin = Rock.Model.UserLoginService.GetCurrentUser();
+                if ( userLogin != null )
+                {
+                    excel.Workbook.Properties.Author = userLogin.Person.FullName;
+                }
+                else
+                {
+                    excel.Workbook.Properties.Author = "Rock";
+                }
+
+                // add the page that created this
+                excel.Workbook.Properties.SetCustomPropertyValue( "Source", this.Page.Request.Url.OriginalString );
+
+                ExcelWorksheet worksheet = excel.Workbook.Worksheets.Add( workSheetName );
+                worksheet.PrinterSettings.LeftMargin = .5m;
+                worksheet.PrinterSettings.RightMargin = .5m;
+                worksheet.PrinterSettings.TopMargin = .5m;
+                worksheet.PrinterSettings.BottomMargin = .5m;
+
+                //Print Title
+                // format and set title
+                worksheet.Cells[1, 1].Value = title;
+                using ( ExcelRange r = worksheet.Cells[1, 1, 1, 15] )
+                {
+                    r.Merge = true;
+                    r.Style.Font.SetFromFont( new Font( "Calibri", 28, FontStyle.Regular ) );
+                    r.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+
+                    // set border
+                    r.Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    r.Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    r.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    r.Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                }
+
+                worksheet.Cells[2, 1].Value = Rock.RockDateTime.Today.ToString( "MMMM d, yyyy" );
+                using ( ExcelRange r = worksheet.Cells[2, 1, 2, 15] )
+                {
+                    r.Merge = true;
+                    r.Style.Font.SetFromFont( new Font( "Calibri", 20, FontStyle.Regular ) );
+                    r.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+
+                    // set border
+                    r.Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    r.Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    r.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    r.Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                }
+
+                int rowCounter = 3;
+
+                foreach ( var nursigngHome in nursingHomes )
+                {
+
+                    //Hospital header
+                    var nursingHomeInfo = newQry
+                        .Where( q => q.NursingHome == nursigngHome )
+                        .FirstOrDefault();
+                    worksheet.Cells[rowCounter, 1].Value = nursigngHome;
+                    worksheet.Cells[rowCounter, 6].Value = nursingHomeInfo.PhoneNumber;
+                    worksheet.Cells[rowCounter, 11].Value = nursingHomeInfo.Address;
+
+                    using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 5] )
+                    {
+                        r.Merge = true;
+                        r.Style.Font.SetFromFont( new Font( "Calibri", 20, FontStyle.Regular ) );
+                        r.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+                        r.Style.Font.Color.SetColor( Color.White );
+                        r.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                        r.Style.Fill.BackgroundColor.SetColor( Color.FromArgb( 34, 41, 55 ) );
+                    }
+                    using ( ExcelRange r = worksheet.Cells[rowCounter, 6, rowCounter, 10] )
+                    {
+                        r.Merge = true;
+                        r.Style.Font.SetFromFont( new Font( "Calibri", 20, FontStyle.Regular ) );
+                        r.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+                        r.Style.Font.Color.SetColor( Color.White );
+                        r.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                        r.Style.Fill.BackgroundColor.SetColor( Color.FromArgb( 34, 41, 55 ) );
+                    }
+                    using ( ExcelRange r = worksheet.Cells[rowCounter, 11, rowCounter, 15] )
+                    {
+                        r.Merge = true;
+                        r.Style.Font.SetFromFont( new Font( "Calibri", 20, FontStyle.Regular ) );
+                        r.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+                        r.Style.Font.Color.SetColor( Color.White );
+                        r.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                        r.Style.Fill.BackgroundColor.SetColor( Color.FromArgb( 34, 41, 55 ) );
+                    }
+                    rowCounter++;
+
+                    worksheet.Cells[rowCounter, 1].Value = "Pastoral Minister: " + nursingHomeInfo.PastoralMinister;
+                    using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 15] )
+                    {
+                        r.Merge = true;
+                        r.Style.Font.SetFromFont( new Font( "Calibri", 15, FontStyle.Regular ) );
+                        r.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+                        r.Style.Font.Color.SetColor( Color.White );
+                        r.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                        r.Style.Fill.BackgroundColor.SetColor( Color.FromArgb( 34, 41, 55 ) );
+                    }
+                    rowCounter++;
+
+                    //Person header
+                    worksheet.Cells[rowCounter, 1].Value = "Name";
+
+                    worksheet.Cells[rowCounter, 3].Value = "Age";
+
+                    worksheet.Cells[rowCounter, 4].Value = "M/F";
+
+                    worksheet.Cells[rowCounter, 5].Value = "Membership";
+
+                    worksheet.Cells[rowCounter, 6].Value = "Admit Date";
+
+                    worksheet.Cells[rowCounter, 7].Value = "Room";
+
+                    worksheet.Cells[rowCounter, 8].Value = "Notified By";
+                    using ( ExcelRange r = worksheet.Cells[rowCounter, 8, rowCounter, 9] )
+                    {
+                        r.Merge = true;
+                    }
+
+                    worksheet.Cells[rowCounter, 10].Value = "Description";
+                    using ( ExcelRange r = worksheet.Cells[rowCounter, 10, rowCounter, 14] )
+                    {
+                        r.Merge = true;
+                    }
+
+                    worksheet.Cells[rowCounter, 15].Value = "Visits";
+                    using ( ExcelRange r = worksheet.Cells[rowCounter, 15, rowCounter, 15] )
+                    {
+                        r.Merge = true;
+                    }
+
+                    using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 15] )
+                    {
+                        r.Style.Font.Bold = true;
+                        r.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                        r.Style.Fill.BackgroundColor.SetColor( Color.FromArgb( 200, 200, 200 ) );
+                    }
+
+                    rowCounter++;
+
+                    //Resident info
+                    var residents = newQry.Where( q => q.NursingHome == nursigngHome );
+                    foreach ( var resident in  residents)
+                    {
+                        SetExcelValue( worksheet.Cells[rowCounter, 1], resident.Person.FullName );
+                        using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 2] )
+                        {
+                            r.Merge = true;
+                        }
+
+                        SetExcelValue( worksheet.Cells[rowCounter, 3], resident.Person.FormatAge() );
+
+                        SetExcelValue( worksheet.Cells[rowCounter, 4], resident.Person.Gender );
+
+                        SetExcelValue( worksheet.Cells[rowCounter, 5], resident.Person.ConnectionStatusValue );
+
+                        SetExcelValue( worksheet.Cells[rowCounter, 6], resident.AdmitDate );
+
+                        SetExcelValue( worksheet.Cells[rowCounter, 7], resident.Room );
+
+                        SetExcelValue( worksheet.Cells[rowCounter, 8], resident.NotifiedBy );
+                        using ( ExcelRange r = worksheet.Cells[rowCounter, 8, rowCounter, 9] )
+                        {
+                            r.Merge = true;
+                        }
+
+                        SetExcelValue( worksheet.Cells[rowCounter, 10], resident.Description );
+                        using ( ExcelRange r = worksheet.Cells[rowCounter, 10, rowCounter, 14] )
+                        {
+                            r.Merge = true;
+                        }
+
+                        SetExcelValue( worksheet.Cells[rowCounter, 15], resident.Visits.ToString() );//ToString to make formatting better
+
+                        rowCounter++;
+
+                        //Second line
+                        SetExcelValue( worksheet.Cells[rowCounter, 1], "Relationships:" );
+                        using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 1] )
+                        {
+                            r.Style.Font.Bold = true;
+                        }
+
+                        SetExcelValue( worksheet.Cells[rowCounter, 2], GetPersonRelationships( resident.Person ) );
+                        using ( ExcelRange r = worksheet.Cells[rowCounter, 2, rowCounter, 7] )
+                        {
+                            r.Merge = true;
+                        }
+
+                        SetExcelValue( worksheet.Cells[rowCounter, 8], "Last Visit:" );
+                        using ( ExcelRange r = worksheet.Cells[rowCounter, 8, rowCounter, 8] )
+                        {
+                            r.Merge = true;
+                            r.Style.Font.Bold = true;
+                        }
+
+                        SetExcelValue( worksheet.Cells[rowCounter, 9], resident.LastVisitNotes );
+                        using ( ExcelRange r = worksheet.Cells[rowCounter, 9, rowCounter, 15] )
+                        {
+                            r.Merge = true;
+                        }
+
+                        using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 15] )
+                        {
+                            r.Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                        }
+
+                        rowCounter++;
+                    }
+                }
+                // autofit columns for all cells
+                worksheet.Cells.AutoFitColumns( 0 );
+
+                for ( var i = 1; i < 16; i++ )
+                {
+                    worksheet.Column( i ).Width = 16;
+
+                }
+
+                byte[] byteArray;
+                using ( MemoryStream ms = new MemoryStream() )
+                {
+                    excel.SaveAs( ms );
+                    byteArray = ms.ToArray();
+                }
+
+                // send the spreadsheet to the browser
+                this.Page.EnableViewState = false;
+                this.Page.Response.Clear();
+                this.Page.Response.ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                this.Page.Response.AppendHeader( "Content-Disposition", "attachment; filename=" + filename );
+
+                this.Page.Response.Charset = string.Empty;
+                this.Page.Response.BinaryWrite( byteArray );
+                this.Page.Response.Flush();
+                this.Page.Response.End();
+            }
+        }
+
+        private string GetPersonRelationships( Person personToVisit )
+        {
+            var familyMembers = personToVisit.GetFamilyMembers();
+            var familyStrings = familyMembers.Select( gm => gm.Person ).ToList().Select( p => p.FullName + " (" + p.Age + ")" );
+            return string.Join( ", ", familyStrings );
         }
 
         /// <summary>
@@ -299,6 +697,31 @@ namespace RockWeb.Blocks.Reporting
                 rockContext.SaveChanges();
             }
             BindGrid();
+        }
+        /// <summary>
+        /// Formats the export value.
+        /// </summary>
+        /// <param name="range">The range.</param>
+        /// <param name="exportValue">The export value.</param>
+        private void SetExcelValue( ExcelRange range, object exportValue )
+        {
+            if ( exportValue != null &&
+                ( exportValue is decimal || exportValue is decimal? ||
+                exportValue is int || exportValue is int? ||
+                exportValue is double || exportValue is double? ||
+                exportValue is DateTime || exportValue is DateTime? ) )
+            {
+                range.Value = exportValue;
+            }
+            else
+            {
+                string value = exportValue != null ? exportValue.ToString().ConvertBrToCrLf().Replace( "&nbsp;", " " ) : string.Empty;
+                range.Value = value;
+                if ( value.Contains( Environment.NewLine ) )
+                {
+                    range.Style.WrapText = true;
+                }
+            }
         }
         #endregion
     }

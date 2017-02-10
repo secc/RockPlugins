@@ -491,7 +491,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             btnReset.Visible = isEditiable;
 
             bool ro = !isEditiable;
-            ScriptManager.RegisterClientScriptBlock(this.upNoteDetails, this.upNoteDetails.GetType(), "NoteEditablity" + DateTime.Now.Ticks.ToString(), "setReadOnlyClass(" + ro.ToString().ToLower() + ");", true);
+            //ScriptManager.RegisterClientScriptBlock(this.upNoteDetails, this.upNoteDetails.GetType(), "NoteEditablity" + DateTime.Now.Ticks.ToString(), "setReadOnlyClass(" + ro.ToString().ToLower() + ");", true);
 
         }
 

@@ -64,6 +64,7 @@ namespace org.secc.Purchasing
         public int RequesterID { get; set; }
         public int StatusLUID { get; set; }
         public string DeliverTo { get; set; }
+        public bool IsExpedited { get; set; }
         public bool IsApproved { get; set; }
         public bool IsOpen { get; set; }
         public PreferredVendor PreferredVendor { get; set; }
@@ -521,6 +522,7 @@ namespace org.secc.Purchasing
                         RequesterLastFirst = string.Format( "{0}, {1}", joinedReq.requester.PersonData.LastName, joinedReq.requester.PersonData.NickName ),
                         Title = joinedReq.requisition.title,
                         DateSubmitted = joinedReq.requisition.date_submitted,
+                        IsExpedited = joinedReq.requisition.RequisitionItemDatas.Where(i => i.is_expedited_shipping_allowed).Any(),
                         IsApproved = joinedReq.requisition.is_approved,
                         IsAccepted = joinedReq.requisition.date_accepted != null,
                         StatusLUID = joinedReq.requisition.status_luid,
@@ -630,6 +632,7 @@ namespace org.secc.Purchasing
                             NoteCount = q.NoteCount,
                             AttachmentCount = q.AttachmentCount,
                             DateSubmitted = q.DateSubmitted,
+                            IsExpedited = q.IsExpedited,
                             IsApproved = q.IsApproved,
                             IsAccepted = q.IsAccepted
                         }));
@@ -640,7 +643,8 @@ namespace org.secc.Purchasing
                     {
                         if (PersonID > 0 && filter.ContainsKey("UserName"))
                         {
-                            var range = Query.Where(q => q.CreatedBy == filter["UserName"].ToString())
+                            string[] usernames = filter["UserName"].Split( ',' );
+                            var range = Query.Where(q => usernames.Contains(q.CreatedBy))
                                                         .Select(q => new RequisitionListItem
                                                         {
                                                             RequisitionID = q.RequisitionId,
@@ -653,6 +657,7 @@ namespace org.secc.Purchasing
                                                             NoteCount = q.NoteCount,
                                                             AttachmentCount = q.AttachmentCount,
                                                             DateSubmitted = q.DateSubmitted,
+                                                            IsExpedited = q.IsExpedited,
                                                             IsApproved = q.IsApproved,
                                                             IsAccepted = q.IsAccepted
                                                         });
@@ -671,6 +676,7 @@ namespace org.secc.Purchasing
                                 NoteCount = q.NoteCount,
                                 AttachmentCount = q.AttachmentCount,
                                 DateSubmitted = q.DateSubmitted,
+                                IsExpedited = q.IsExpedited,
                                 IsApproved = q.IsApproved,
                                 IsAccepted = q.IsAccepted
                             } ) );
@@ -686,10 +692,8 @@ namespace org.secc.Purchasing
                         if ( filter.ContainsKey( "MyMinistryID" ) && int.TryParse( filter["MyMinistryID"], out MyMinistryID ) )
                         {
                             query2 = query2.Where( q => q.MinistryLUID == MyMinistryID );
-
-                            DefinedValue Ministry = definedValueService.Get( MyMinistryID );
-                            Ministry.LoadAttributes();
-                            if (Ministry != null && !Ministry.GetAttributeValue("Active").AsBoolean() && filter.ContainsKey("MyLocationID") && int.TryParse(filter["MyLocationID"], out MyLocationID))
+                            
+                            if (filter.ContainsKey("MyLocationID") && int.TryParse(filter["MyLocationID"], out MyLocationID))
                             {
                                 query2 = query2.Where( q => q.LocationLUID == MyLocationID );
                             }
@@ -707,6 +711,7 @@ namespace org.secc.Purchasing
                                                              NoteCount = q.NoteCount,
                                                              AttachmentCount = q.AttachmentCount,
                                                              DateSubmitted = q.DateSubmitted,
+                                                             IsExpedited = q.IsExpedited,
                                                              IsApproved = q.IsApproved,
                                                              IsAccepted = q.IsAccepted
                                                          } ) );
@@ -717,7 +722,10 @@ namespace org.secc.Purchasing
                     {
                         if (PersonID > 0)
                         {
-                            ListItems.AddRange(Query.Where(q => q.ApproverPersonIds.Where(ra => ra.ApproverId == PersonID).Count() > 0)
+
+                            PersonAliasService aliasService = new PersonAliasService( new Rock.Data.RockContext() );
+                            var aliasIds = aliasService.Queryable().Where( a => a.PersonId == PersonID ).Select( a => a.Id ).ToList();
+                            ListItems.AddRange(Query.Where(q => q.ApproverPersonIds.Where(ra => ra.ApproverId != null && aliasIds.Contains( ra.ApproverId.Value )).Count() > 0)
                                                 .Select(q => new RequisitionListItem
                                                          {
                                                              RequisitionID = q.RequisitionId,
@@ -730,6 +738,7 @@ namespace org.secc.Purchasing
                                                              NoteCount = q.NoteCount,
                                                              AttachmentCount = q.AttachmentCount,
                                                              DateSubmitted = q.DateSubmitted,
+                                                             IsExpedited = q.IsExpedited,
                                                              IsApproved = q.IsApproved,
                                                              IsAccepted = q.IsAccepted
                                                          }));
@@ -864,6 +873,7 @@ namespace org.secc.Purchasing
                                     Title = temp1.temp0.r.title,
                                     RequesterID = temp1.temp0.r.requester_id,
                                     DateSubmitted = temp1.temp0.r.date_submitted,
+                                    IsExpedited = temp1.temp0.r.RequisitionItemDatas.Where(i => i.is_expedited_shipping_allowed).Any(),
                                     IsApproved =  temp1.temp0.r.is_approved,
                                     RequesterName = ((temp1.LOJp.PersonData.NickName + " ") + temp1.LOJp.PersonData.LastName),
                                     RequesterLastFirst = ((temp1.LOJp.PersonData.LastName + ",") + temp1.LOJp.PersonData.NickName)
@@ -871,7 +881,8 @@ namespace org.secc.Purchasing
 
                 foreach (var item in Reqs.Select(r => r.RequesterID).Distinct())
             	{
-                    var Ministry = Helpers.Person.GetMyMinistryLookup(item, "MinistryArea");
+                    var attribute = Rock.Web.Cache.AttributeCache.Read( ministryAttributeID );
+                    var Ministry = Helpers.Person.GetMyMinistryLookup(item, attribute.Key);
                     foreach (var reqItem in Reqs.Where(r => r.RequesterID == item))
                     {
                         if (Ministry.Id > 0)
@@ -1764,6 +1775,7 @@ namespace org.secc.Purchasing
         public int NoteCount { get; set; }
         public int AttachmentCount { get; set; }
         public DateTime? DateSubmitted { get; set; }
+        public bool IsExpedited { get; set; }
         public bool IsApproved { get; set; }
         public bool IsAccepted { get; set; }
         public decimal CurrentChargeTotal { get; set; }
@@ -1775,6 +1787,7 @@ namespace org.secc.Purchasing
         public string Title { get; set; }
         public int RequesterID { get; set; }
         public DateTime? DateSubmitted { get; set; }
+        public bool IsExpedited { get; set; }
         public bool IsApproved { get; set; }
         public string RequesterName { get; set; }
         public string RequesterLastFirst { get; set; }

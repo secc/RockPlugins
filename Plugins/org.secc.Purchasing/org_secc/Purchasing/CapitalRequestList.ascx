@@ -32,17 +32,23 @@
                 <div class="grid grid-panel">
                 <Rock:ModalAlert ID="maWarningDialog" runat="server" />
                 <Rock:GridFilter ID="gfRequestListFilter" runat="server" OnApplyFilterClick="btnFilterApply_Click" OnClearFilterClick="btnFilterReset_Click">
-                    <Rock:RockCheckBoxList ID="cblStatus" runat="server" Label="Status" RepeatDirection="Horizontal" />
-                    <Rock:RockDropDownList ID="ddlMinistry" runat="server" Label="Requesting Ministry" />
-                    <Rock:RockDropDownList ID="ddlSCCLocation" runat="server" Label="Southeast Location"/>
-                    <Rock:PersonPicker ID="requester" runat="server" Label="Requester"></Rock:PersonPicker>
-                    <Rock:RockTextBox ID="txtGLAccount" runat="server" Label="General Leger Account"></Rock:RockTextBox>
-                    <Rock:RockDropDownList ID="ddlFiscalYear" runat="server" Label="Fiscal Year"/>
+                    
+                    <asp:Panel runat="server">
+                        <label>Status</label><br />
+                        <a onclick="$('input[id*=\'cblStatus\'][type=checkbox]').prop('checked', true); return false;" href="#">Check All</a>&nbsp;
+                        <a onclick="$('input[id*=\'cblStatus\'][type=checkbox]').prop('checked', false); return false;" href="#">Uncheck All</a>
+                        <Rock:RockCheckBoxList ID="cblStatus" runat="server" RepeatDirection="Horizontal" />
+                    </asp:Panel>
                     <Rock:RockCheckBoxList ID="cblShow" runat="server" Label="Show" RepeatDirection="Horizontal">
                         <asp:ListItem Value="Me" Text="Requested By Me" />
                         <asp:ListItem Value="Ministry" Text="Requested By My Ministry" />
                         <asp:ListItem Value="Approver" Text="I am an Approver" />
                     </Rock:RockCheckBoxList>
+                    <Rock:RockDropDownList ID="ddlMinistry" runat="server" Label="Requesting Ministry" />
+                    <Rock:RockDropDownList ID="ddlSCCLocation" runat="server" Label="Southeast Location"/>
+                    <Rock:PersonPicker ID="requester" runat="server" Label="Requester"></Rock:PersonPicker>
+                    <Rock:RockTextBox ID="txtGLAccount" runat="server" Label="General Ledger Account"></Rock:RockTextBox>
+                    <Rock:RockDropDownList ID="ddlFiscalYear" runat="server" Label="Fiscal Year"/>
                 </Rock:GridFilter>
                 <Rock:Grid ID="gRequestList" runat="server" RowItemText="Capital Request" AllowSorting="true" CssClass="js-grid-batch-list">
                     <Columns>
@@ -64,20 +70,15 @@
             </div>
         </div>
         <script type="text/javascript">
-            $(document).ready(function ()
+            // Expand the filters area
+            var expandFilters = function ()
             {
                 el = $('.grid-filter header').get();
                 $('i.toggle-filter', el).toggleClass('fa-chevron-down fa-chevron-up');
-                var $hf = $('input', el).first();
-                if ($hf.val() != 'true')
-                {
-                    $hf.val('true');
-                } else
-                {
-                    $hf.val('false');
-                }
-                $(el).siblings('div').slideToggle();
-            });
+                $(el).siblings('div').slideDown(0);
+            }
+            $(document).ready(expandFilters);
+            Sys.WebForms.PageRequestManager.getInstance().add_endRequest(expandFilters);
         </script>
     </ContentTemplate>
 </asp:UpdatePanel>

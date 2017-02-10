@@ -136,6 +136,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     Attachment attachment = new Attachment(AttachmentID);
                     fuprAttachment.BinaryFileId = attachment.BlobID;
                     tbAttachmentDesc.Text = attachment.DataBlob.Description;
+                    tbTitle.Text = attachment.DataBlob.FileName;
                     hdnAttachmentId.Value = AttachmentID.ToString();
                     mdAttachment.Title = "Edit Attachment";
                     mdAttachment.Show();
@@ -262,9 +263,11 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         public void Show()
         {
+            mdAttachment.Content.Height = Unit.Parse("240px");
             hdnAttachmentId.Value = String.Empty;
             fuprAttachment.BinaryFileId = null;
             tbAttachmentDesc.Text = String.Empty;
+            tbTitle.Text = String.Empty;
             mdAttachment.Title = "Add Attachment";
             mdAttachment.Show();
         }
@@ -272,9 +275,23 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         #endregion
         protected void mdAttachment_SaveClick(object sender, EventArgs e)
         {
-            SaveAttachment(fuprAttachment.BinaryFileId.Value, Identifier, ObjectTypeName);
-            LoadAttachmentList();
-            mdAttachment.Hide();
+
+
+            char[] illegalCharacters = new char[] { '<', '>', ':', '"', '/', '\\', '|', '?', '*' };
+
+            if ( tbTitle.Text.Length > 0 && tbTitle.Text.IndexOfAny( illegalCharacters ) >= 0 )
+            {
+                nbInvalid.Text =  "Invalid Filename.  Please make sure to enter a filename and remove any special characters (" + string.Join( " ", illegalCharacters ) + ").";
+                nbInvalid.Visible = true;
+                mdAttachment.Content.Height = Unit.Parse("300px");
+            } else
+            {
+                nbInvalid.Visible = false;
+                mdAttachment.Content.Height = Unit.Parse( "240px" );
+                SaveAttachment( fuprAttachment.BinaryFileId.Value, Identifier, ObjectTypeName );
+                LoadAttachmentList();
+                mdAttachment.Hide();
+            }
         }
 
         public void SaveAttachment(int binaryFileId, int parentIdentifier, String parentTypeName)
@@ -291,9 +308,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             binaryFile.BinaryFileType = new BinaryFileTypeService(rockContext)
                 .Get(attachmentParent.Guid);
 
-            //change settigns and save
+            //change settings and save
             binaryFile.IsTemporary = false;
             binaryFile.Description = tbAttachmentDesc.Text;
+            binaryFile.FileName = tbTitle.Text;
             rockContext.SaveChanges();
 
             var attachment = new Attachment(hdnAttachmentId.Value.AsInteger());
@@ -302,5 +320,21 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             attachment.BlobID = binaryFile.Id;
             attachment.Save(CurrentUser.UserName);
         }
-}
+
+        protected void fuprAttachment_FileUploaded( object sender, EventArgs e )
+        {
+            if ( fuprAttachment.BinaryFileId.HasValue)
+            {
+                var attachmentParent = Attachment.GetPurchasingDocumentType();
+
+                RockContext rockContext = new RockContext();
+                var binaryFileService = new BinaryFileService( rockContext );
+
+                //get the binary file
+                var binaryFile = binaryFileService.Get( fuprAttachment.BinaryFileId.Value );
+                tbTitle.Text = binaryFile.FileName;
+
+            }
+        }
+    }
 }

@@ -179,7 +179,7 @@ namespace org.secc.Purchasing
         {
             if (String.IsNullOrEmpty(uid))
                 throw new ArgumentNullException("uid", "User ID is required.");
-            if (userLoginService.GetByUserName(uid).PersonId == ApproverID)
+            if (userLoginService.GetByUserName(uid).Person.PrimaryAliasId == ApproverID)
             {
                 ApprovalStatusLUID = approvalStatusLUID;
                    
@@ -193,7 +193,7 @@ namespace org.secc.Purchasing
             if (String.IsNullOrEmpty(uid))
                 throw new ArgumentNullException("uid", "User ID is required.");
 
-            if (userLoginService.GetByUserName(uid).PersonId == ApproverID)
+            if (userLoginService.GetByUserName(uid).Person.PrimaryAliasId == ApproverID)
             {
                 ApprovalStatusLUID = NotApprovedStatusLUID();
                 DateApproved = DateTime.MinValue;

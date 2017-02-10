@@ -31,7 +31,7 @@
                     <Rock:RockTextBox ID="txtPONumber" runat="server" Label="PO Number"/>
                 
                     <Rock:DateRangePicker ID="txtFilterSubmitted" runat="server" Visible="true" Label="Submitted On" />
-                    <asp:Panel runat="server" CssClass="form-group">
+                    <asp:Panel runat="server" CssClass="form-group" ID="pnlRequester">
                         <label>Requester:</label>
                         <secc:StaffPicker ID="hfFilterSubmittedBy" runat="server" AllowMultipleSelections="false" 
                                                 ShowPersonDetailLink="true" ShowPhoto="true" UserCanEdit="true"/>
@@ -42,7 +42,7 @@
                     AllowSorting="true" DataKeyField="RequisitionID" AutoGenerateColumns="false">
                     <Columns>
                         <Rock:RockBoundField HeaderText="RequisitionID" DataField="RequisitionID" Visible="false" />
-                        <Rock:RockTemplateField HeaderText="Req. Title">                     
+                        <Rock:RockTemplateField HeaderText="Req. Title" SortExpression="Title">                     
                             <ItemTemplate>
                                 <asp:HyperLink runat="server" text='<%# Eval("Title") %>' NavigateUrl='<%# String.Format("{0}?RequisitionID={1}", RequisitionDetailPageSetting, Eval("RequisitionID")) %>'></asp:HyperLink> 
                             </ItemTemplate>
@@ -58,6 +58,9 @@
                             SortExpression="AttachmentCount" ItemStyle-HorizontalAlign="Center" />
                         <Rock:RockBoundField HeaderText="Submitted On" DataField="DateSubmitted" DataFormatString="{0:d}"
                             SortExpression="DateSubmitted" HeaderStyle-HorizontalAlign="Center" ItemStyle-HorizontalAlign="Center" />
+                        <Rock:BoolField HeaderText="Express Shipping" HeaderStyle-HorizontalAlign="Center"
+                            ItemStyle-HorizontalAlign="Center" ItemStyle-VerticalAlign="Middle" DataField="IsExpedited"
+                            SortExpression="IsExpedited" />
                         <Rock:BoolField HeaderText="Approved" HeaderStyle-HorizontalAlign="Center"
                             ItemStyle-HorizontalAlign="Center" ItemStyle-VerticalAlign="Middle" DataField="IsApproved"
                             SortExpression="IsApproved" />
@@ -71,20 +74,15 @@
         <secc:StaffSearch ID="ucStaffSearch" runat="server" AllowMultipleSelections="false"
             ShowPersonDetailLink="false" />
         <script type="text/javascript">
-            $(document).ready(function ()
+            // Expand the filters area
+            var expandFilters = function ()
             {
                 el = $('.grid-filter header').get();
                 $('i.toggle-filter', el).toggleClass('fa-chevron-down fa-chevron-up');
-                var $hf = $('input', el).first();
-                if ($hf.val() != 'true')
-                {
-                    $hf.val('true');
-                } else
-                {
-                    $hf.val('false');
-                }
-                $(el).siblings('div').slideToggle();
-            });
+                $(el).siblings('div').slideDown(0);
+            }
+            $(document).ready(expandFilters);
+            Sys.WebForms.PageRequestManager.getInstance().add_endRequest(expandFilters);
         </script>
     </ContentTemplate>
 </asp:UpdatePanel>
