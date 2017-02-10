@@ -9,6 +9,7 @@ using Rock.Model;
 using Rock.Workflow;
 using System.IO;
 using iTextSharp.text.pdf;
+using Rock.Web.Cache;
 
 namespace org.secc.PDF
 {
@@ -18,7 +19,8 @@ namespace org.secc.PDF
     [ExportMetadata( "ComponentName", "PDF Form Merge" )]
 
     //Settings
-    [WorkflowTextOrAttribute( "Registration Registrant Id", "RegistrationRegistrantId" )]
+    [BinaryFileField( "D587ECCB-F548-452A-A442-FE383CBED283", "PDF Template", "PDF to merge information into" )]
+    [WorkflowAttribute( "PDF Output", "Workflow attribute to output pdf into." )]
     [BooleanField( "Flatten", "Should the action flatten the PDF locking the form fields" )]
 
     class PDFFormMerge : ActionComponent
@@ -42,17 +44,21 @@ namespace org.secc.PDF
             //Otherwise we will need to get our information from the workflow attributes
             if ( entity is PDFWorkflowObject )
             {
-                 pdfWorkflowObject = Utility.GetPDFFormMergeFromEntity( entity, out errorMessages );
+                pdfWorkflowObject = Utility.GetPDFFormMergeFromEntity( entity, out errorMessages );
             }
             else
             {
                 pdfWorkflowObject = new PDFWorkflowObject( action, rockContext );
             }
-
+            BinaryFile renderedPDF = new BinaryFile();
             //Merge PDF
             using ( MemoryStream ms = new MemoryStream() )
             {
-                var pdfBytes = pdfWorkflowObject.PDF.ContentStream.ReadBytesToEnd();
+                var pdfGuid = GetAttributeValue( action, "PDFTemplate" );
+
+                var pdf = new BinaryFileService( rockContext ).Get( pdfGuid.AsGuid() );
+
+                var pdfBytes = pdf.ContentStream.ReadBytesToEnd();
                 var pdfReader = new PdfReader( pdfBytes );
 
                 var stamper = new PdfStamper( pdfReader, ms );
@@ -90,9 +96,9 @@ namespace org.secc.PDF
                 pdfReader.Close();
 
                 //Generate New Object
+
                 
-                BinaryFile renderedPDF = new BinaryFile();
-                renderedPDF.CopyPropertiesFrom( pdfWorkflowObject.PDF );
+                renderedPDF.CopyPropertiesFrom( pdf );
                 renderedPDF.Guid = Guid.NewGuid();
                 renderedPDF.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( new Guid( Rock.SystemGuid.BinaryFiletype.DEFAULT ) ).Id;
 
@@ -101,23 +107,29 @@ namespace org.secc.PDF
 
                 renderedPDF.DatabaseData = pdfData;
 
-                pdfWorkflowObject.PDF = renderedPDF;
-
                 pdfReader.Close();
             }
 
-            if (entity is PDFWorkflowObject )
+            if ( entity is PDFWorkflowObject )
             {
                 entity = pdfWorkflowObject;
             }
             else
             {
                 BinaryFileService binaryFileService = new BinaryFileService( rockContext );
-                binaryFileService.Add( pdfWorkflowObject.PDF );
+                binaryFileService.Add( renderedPDF );
                 rockContext.SaveChanges();
-                action.Activity.Workflow.SetAttributeValue( "PDFGuid", pdfWorkflowObject.PDF.Guid );
-            }
 
+                Guid guid = GetAttributeValue( action, "PDFOutput" ).AsGuid();
+                if ( !guid.IsEmpty() )
+                {
+                    var attribute = AttributeCache.Read( guid, rockContext );
+                    if ( attribute != null )
+                    {
+                        SetWorkflowAttributeValue( action, guid, renderedPDF.Guid.ToString() );
+                    }
+                }
+            }
             return true;
         }
 

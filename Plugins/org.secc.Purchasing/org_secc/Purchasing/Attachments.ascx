@@ -16,7 +16,7 @@
                 <Rock:RockBoundField DataField="FileType" HeaderText="File Type" ItemStyle-Width="15%" />
                 <Rock:RockBoundField DataField="CreatedBy" HeaderText="Created By" ItemStyle-Width="10%" />
                 <Rock:RockBoundField DataField="DateModified" HeaderText="Last Updated" ItemStyle-Width="20%" />
-                <Rock:RockTemplateField ItemStyle-HorizontalAlign="Right" ItemStyle-Width="10%">
+                <Rock:RockTemplateField ItemStyle-HorizontalAlign="Right" ItemStyle-Width="10%" HeaderStyle-CssClass="hidden-print" FooterStyle-CssClass="hidden-print" ItemStyle-CssClass="hidden-print">
                     <ItemTemplate>
                         <asp:LinkButton ID="lbEdit" runat="server" CssClass="btn btn-default" OnCommand="dgAttachment_ItemCommand" CommandName="EditAttachment" CommandArgument='<%# DataBinder.Eval(Container.DataItem, "AttachmentID") %>'><i class="fa fa-pencil" title="Edit"></i></asp:LinkButton>
                         <asp:LinkButton ID="lbHide" runat="server" CssClass="btn btn-default" OnClientClick="return Rock.dialogs.confirmDelete(event, 'Attachment');" OnCommand="dgAttachment_ItemCommand" CommandName="Hide" CommandArgument='<%# DataBinder.Eval(Container.DataItem, "AttachmentID") %>'><i class="fa fa-remove" title="Hide"></i></asp:LinkButton>
@@ -25,17 +25,23 @@
             </Columns>
         </Rock:Grid>
 
-        <Rock:ModalDialog ID="mdAttachment" Title="Add Attachment" runat="server" OnCancelScript="Cancel"
+        <Rock:ModalDialog ID="mdAttachment" Title="Add Attachment" runat="server"
              SaveButtonText="Save" OnSaveClick="mdAttachment_SaveClick" ValidationGroup="Attachment">
             <Content>
+                 <Rock:NotificationBox ID="nbInvalid" runat="server" NotificationBoxType="Danger" Visible="false" />
+
                 <asp:HiddenField id="hdnAttachmentId" runat="server" />
                 <div class="container">
                     <div class="row">
-                        <div class="col-sm-3">
-                            <Rock:FileUploader  runat="server" ValidationGroup="Attachment" Label="Drag File or Click Upload"
-                                 Required="true" id="fuprAttachment"></Rock:FileUploader>
+                        <div class="col-sm-2 text-center">
+                            <div class="required form-group" style="width: 110px;">
+                                <label class="control-label">Drag File or<br /> Click Upload</label>
+                                <Rock:FileUploader  runat="server" ValidationGroup="Attachment"
+                                     Required="true" id="fuprAttachment" OnFileUploaded="fuprAttachment_FileUploaded"></Rock:FileUploader>
+                            </div>
                         </div>
-                            <div class="col-sm-8">
+                            <div class="col-sm-9">
+                                <Rock:RockTextBox runat="server" ValidationGroup="Attachment" Label="Title"  ID="tbTitle" Required="true"></Rock:RockTextBox>
                                 <Rock:RockTextBox runat="server" ValidationGroup="Attachment" Rows="5" Label="Description"
                                      TextMode="MultiLine" ID="tbAttachmentDesc"></Rock:RockTextBox>
                         </div>

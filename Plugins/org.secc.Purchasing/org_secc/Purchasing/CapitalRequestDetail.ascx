@@ -55,8 +55,7 @@
             </div>
             <div class="panel-body">
                         
-            <div id="summaryError" class="smallText">
-                <asp:Literal ID="lSummaryError" runat="server" Visible="false" />
+            <div class="alert alert-danger" runat="server" id="lSummaryError" visible="false">
             </div>    
             <asp:Panel ID="pnlCERError" runat="server" CssClass="alert alert-danger" Visible="false">
                 <asp:Literal ID="lRequestError" runat="server" />
@@ -182,29 +181,25 @@
                 <asp:Panel ID="pnlSummaryEdit" runat="server" Visible="false">
                     <div class="row">
                         <div class="col-sm-6">
-                            <div class="form-group">
-                                <label>
+                            <div class="form-group required">
+                                <label class="control-label">
                                     Project Name
-                                    <span class="required">*
-                                    </span>
                                 </label>
                                 <div class="formItem">
                                     <asp:TextBox ID="txtProjectName" runat="server"  class="form-control"/>
                                 </div>
                             </div>
-                            <div class="form-group">
-                                <label>
+                            <div class="form-group required">
+                                <label class="control-label">
                                     Description
-                                    <span class="required">*</span>
                                 </label>
                                 <div class="formItem">
                                     <asp:TextBox ID="txtDescription" runat="server" TextMode="MultiLine" class="form-control" />
                                 </div>
                             </div>
-                            <div class="form-group">
-                                <label>
+                            <div class="form-group required">
+                                <label class="control-label">
                                     Project Cost
-                                    <span class="required">*</span>
                                 </label>
                                 <div class="formItem">
                                     <asp:TextBox ID="txtProjectCost" runat="server" class="form-control" />
@@ -226,10 +221,9 @@
                                     <asp:TextBox ID="txtOngoingCost" runat="server" class="form-control" />
                                 </div>
                             </div>
-                            <div class="form-group">
-                                <label>
+                            <div class="form-group required">
+                                <label class="control-label">
                                     Requester
-                                    <span class="required">*</span>
                                 </label>
                                 <div class="formItem">
                                     <secc:StaffPicker ID="prsnRequester" runat="server" AllowMultipleSelections="false" UserCanEdit="true"/>
@@ -237,10 +231,9 @@
                             </div>
                         </div>
                         <div class="col-sm-6">
-                            <div class="form-group">
-                                <label>
+                            <div class="form-group required" id="divRequestingMinistry" runat="server">
+                                <label class="control-label">
                                     Requesting Ministry
-                                    <span class="required">*</span>
                                 </label>
                                 <div class="formItem">
                                     <asp:HiddenField ID="hfRequestingMinistry" runat="server" />
@@ -291,8 +284,8 @@
                                     <asp:TextBox ID="txtInServiceDate" runat="server" class="form-control" />
                                 </div>
                             </div>
-                            <div class="form-group">
-                                <label>
+                            <div class="form-group required">
+                                <label class="control-label">
                                     General Ledger Account
                                 </label>
                                 <div class="formItem">
@@ -408,19 +401,17 @@
                             </div>
                             <div class="row">
                                 <div class="col-sm-6">
-                                    <div class="form-group">
-                                        <label>
+                                    <div class="form-group required">
+                                        <label class="control-label">
                                             Vendor
-                                            <span class="required">*</span>
                                         </label>
                                         <div class="formItem">
                                             <asp:DropDownList CssClass="form-control" ID="ddlVendorList" runat="server" AutoPostBack="true" OnSelectedIndexChanged="ddlVendorList_SelectedIndexChanged" />
                                         </div>
                                     </div>
-                                    <asp:Panel ID="pnlVendorName" runat="server" CssClass="form-group" Visible="false">
-                                        <label>
+                                    <asp:Panel ID="pnlVendorName" runat="server" CssClass="form-group required" Visible="false">
+                                        <label class="control-label">
                                             Vendor Name
-                                            <span class="required">*</span>
                                         </label>
                                         <div class="formItem">
                                             <asp:TextBox CssClass="form-control" ID="txtVendorName" runat="server" />
@@ -456,19 +447,17 @@
                                     </div>
                                 </div>
                                 <div class="col-sm-6">
-                                    <div class="form-group">
-                                        <label>
+                                    <div class="form-group required">
+                                        <label class="control-label">
                                             Quoted Price
-                                            <span class="required">*</span>
                                         </label>
                                         <div class="formItem">
                                             <asp:TextBox CssClass="form-control" ID="txtQuotedPrice" runat="server" />
                                         </div>
                                     </div>
-                                    <div class="form-group">
-                                        <label>
+                                    <div class="form-group required">
+                                        <label class="control-label">
                                             Quote
-                                            <span class="required">*</span>
                                         </label>
                                         <div class="formItem">
                                             <Rock:FileUploader ID="docQuote" runat="server" />

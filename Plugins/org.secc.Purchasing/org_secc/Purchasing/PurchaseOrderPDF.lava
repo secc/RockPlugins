@@ -25,8 +25,8 @@ table {
 <body>
     <div style="height: 92%">
         <div>
-            <div style="float:left; width: 300px; text-align: center;">
-                <img src="https://www.southeastchristian.org/_/img/logos/southeast/black-border-on-white.png" />
+            <div style="float:left; width: 300px; text-align: left;">
+                <img src="https://www.southeastchristian.org/_/img/logos/southeast/black-border-on-white.png" height="100" />
             </div>
             <div style="float: left; width: 250px">
                 <h2 style="margin-top: 0px">Purchase Order</h2>

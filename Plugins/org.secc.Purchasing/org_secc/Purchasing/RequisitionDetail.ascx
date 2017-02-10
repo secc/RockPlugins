@@ -109,6 +109,7 @@
         $("[id*=hfReturnToSenderNoteID]").val(noteID);
         $("[id*=btnReturnToRequesterPart2]").click();
     }
+    Sys.WebForms.PageRequestManager.getInstance().add_endRequest(function () { $('body').removeClass('modal-open'); });
 </script>
 
 <style>
@@ -126,6 +127,81 @@
     font-weight: 600;
     border-color: #d8d1c8;
 }
+.form-group
+{
+    height: 65px;
+}
+@media print {
+  .form-group {
+      height: auto;
+      font-size: 10px;
+      height: 30px;
+  }
+  .form-control
+  {
+    border: 0;
+    padding:0;
+    overflow:visible;
+    height: 20px;
+    font-size: 10px;
+  }
+  h3 {
+      font-weight: bolder;
+      margin-top: 5px;
+      font-size: 14px;
+  }
+  body {
+      margin-left: 0mm; 
+      margin-right: 0mm;
+      width: 100%;
+  }
+  #page-wrapper {
+      width: auto;
+      left: 0px;
+      margin: 0px;
+      padding: 0px;
+  }
+  #content-wrapper {
+      margin: -15px;
+      width: 100%;
+  }
+  body,html {
+      margin: 0px;
+      padding: 0px;
+  }
+  #page-title {
+      padding: 5px !important;
+      margin-top: 15px !important;
+  }
+  #page-content {
+      padding: 5px !important;
+  }
+}
+@media print and (-moz-images-in-menus:0) {
+  #content-wrapper {
+      margin: 0px !important;
+      border: 5px solid #FFF;
+  }
+}
+@media print and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+  #content-wrapper {
+      left: -70px;
+  }
+  .table>thead>tr>th
+  {
+      border: 2px solid #000 !important;
+      border-collapse: collapse;
+  }
+  .table-bordered {
+      border: 2px solid #000 !important;
+      border-collapse: collapse;
+
+  }
+  .table-bordered>thead>tr>th, .table-bordered>tbody>tr>th, .table-bordered>tfoot>tr>th, .table-bordered>thead>tr>td, .table-bordered>tbody>tr>td, .table-bordered>tfoot>tr>td {
+    border: 2px solid #000 !important;
+    border-collapse: collapse;
+  }
+}
 </style>
 
 <asp:UpdatePanel ID="upMain" runat="server" UpdateMode="Conditional">
@@ -137,7 +213,7 @@
         <input type="hidden" id="ihPersonList" runat="server" name="ihPersonList" />
         <asp:Button ID="btnRefresh" runat="server" OnClick="btnRefresh_Click" Style="visibility: hidden;
             display: none" Text="Refresh" />
-        <div class="btn-group" role="group" style="margin-bottom: 10px;">
+        <div class="btn-group hidden-print" role="group" style="margin-bottom: 10px;">
             <asp:LinkButton ID="lbSave" CssClass="btn btn-default" runat="server" CommandName="Save" OnClick="ToolbarItem_click" Visible="false">Save</asp:LinkButton>
             <asp:LinkButton ID="lbAddItem" CssClass="btn btn-default" runat="server" CommandName="AddItem" OnClick="ToolbarItem_click" Visible="false">Add Item</asp:LinkButton>
             <asp:LinkButton ID="lbAddItemToPO" CssClass="btn btn-default" runat="server" CommandName="AddItemToPO" OnClick="ToolbarItem_click" Visible="false">Add Items to PO</asp:LinkButton>
@@ -180,13 +256,13 @@
                                 <asp:Label ID="lblSummaryError" runat="server" />
                             </div>
                             <div class="row">
-                                <div class="col-md-4">
+                                <div class="col-md-4 col-xs-12">
                                     <Rock:RockTextBox Label="Req. Title:" ID="txtTitle" runat="server" Visible="true" ReadOnly="false" MaxLength="200" CssClass="form-control" Required="true"/>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-xs-4">
                                     <Rock:RockDropDownList Label="Type:" ID="ddlType" runat="server" CssClass="form-control" AutoPostBack="true" OnSelectedIndexChanged="ddlType_SelectedIndexChanged" Required="true" />
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-xs-4">
                                     <div class="form-group required">
                                         <label>Status:</label>
                                         <div>
@@ -194,9 +270,8 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-4">
+
+                                <div class="col-xs-4">
                                     <div class="form-group required">
                                         <label class="control-label">Requester:</label>
                                         <div>
@@ -205,10 +280,10 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-xs-4">
                                     <Rock:RockTextBox Label="Deliver To:" Required="true" ID="txtDeliverTo" runat="server" Text="Deliver To" />
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-xs-4">
                                     <div class="form-group required">
                                         <label>Approved:</label>
                                         <div>
@@ -216,24 +291,22 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="row">
                             
-                                <div class="col-md-4">
+                                <div class="col-xs-4">
                                     <div class="form-group">
                                         <label class="control-label">Pref. Vendor:</label>
                                         <div>
                                             <asp:Label ID="lblVendor" runat="server" />
                                             <asp:LinkButton ID="lbVendorRemove" runat="server" Visible="false" OnClick="lbVendorRemove_click"
-                                                 CausesValidation="false">
+                                                 CausesValidation="false" CssClass="hidden-print">
                                                 <i class="fa fa-times"></i>
                                             </asp:LinkButton>
-                                            <asp:Button ID="btnVendorModalShow" runat="server" Text="..." CssClass="btn btn-default"
+                                            <asp:Button ID="btnVendorModalShow" runat="server" Text="..." CssClass="btn btn-default hidden-print"
                                                 OnClick="btnVendorModalShow_click" CausesValidation="false"/>
                                         </div>
                                     </div>
                                 </div>
-                                <div id="divCapitalRequest" runat="server" visible="false" class="col-md-4">
+                                <div id="divCapitalRequest" runat="server" visible="false" class="col-xs-4">
                                 
                                     <div class="form-group">
                                         <label class="control-label">CER:</label>
@@ -249,7 +322,7 @@
                                 </div>
                             </div>
                     </div>
-                    <pre><%= ScriptureTextSetting %></pre>
+                    <pre class="hidden-print" style="margin-top: 10px;"><%= ScriptureTextSetting %></pre>
                     </div>
                     <div id="items">
                         <h3>Items</h3>
@@ -258,8 +331,8 @@
                             OnPreRender="dgItems_PreRender" OnRowUpdating="dgItems_RowUpdating">
                             <Columns>
                                 <Rock:RockBoundField DataField="ItemID" Visible="false" />
-                                <Rock:RockBoundField HeaderText="Qty" DataField="Quantity" ItemStyle-Width="4%" ItemStyle-HorizontalAlign="Right"/>
-                                <Rock:RockBoundField HeaderText="Qty Recv'd" DataField="QuantityReceived" ItemStyle-Width="4%" ItemStyle-HorizontalAlign="Right" />
+                                <Rock:RockBoundField HeaderText="Qty" DataField="Quantity" ItemStyle-Width="4%" ItemStyle-HorizontalAlign="Center"/>
+                                <Rock:RockBoundField HeaderText="Qty Recv'd" DataField="QuantityReceived" ItemStyle-Width="4%" ItemStyle-HorizontalAlign="Center" />
                                 <Rock:RockBoundField HeaderText="Item #" DataField="ItemNumber" ItemStyle-Width="10%" />
                                 <Rock:RockBoundField HeaderText="Description" DataField="Description" ItemStyle-Width="30%" ItemStyle-CssClass="wrap" />
                                 <Rock:RockBoundField HeaderText="Needed By" DataField="DateNeeded" ItemStyle-Width="5%" DataFormatString="{0:d}"  />
@@ -278,7 +351,7 @@
                                         <asp:Literal ID="litPOs" runat="server"></asp:Literal>
                                     </ItemTemplate>
                                 </Rock:RockTemplateField>
-                                <Rock:RockTemplateField>
+                                <Rock:RockTemplateField HeaderStyle-CssClass="hidden-print" FooterStyle-CssClass="hidden-print" ItemStyle-CssClass="hidden-print">
                                     <ItemStyle HorizontalAlign="Right" Width="1%" />
                                     <ItemTemplate>
                                         <asp:LinkButton ID="lbEdit" runat="server" class="btn btn-default" CommandName="Update">
@@ -287,7 +360,7 @@
                                     </ItemTemplate>
                                 </Rock:RockTemplateField>
 
-                                <Rock:RockTemplateField>
+                                <Rock:RockTemplateField HeaderStyle-CssClass="hidden-print" FooterStyle-CssClass="hidden-print" ItemStyle-CssClass="hidden-print">
                                     <ItemStyle HorizontalAlign="Right" Width="1%" />
                                     <ItemTemplate>
                                         <asp:LinkButton ID="lbRemove" runat="server" class="btn btn-default" CommandName="Remove" >
@@ -301,26 +374,20 @@
                     <div id="approvals"> 
                         <h3>Approval Requests</h3>
                         <Rock:Grid ID="dgApprovals" runat="server" AllowPaging="false" AllowSorting="false" OnReBind="dgApprovals_ReBind" NoResultText="No Approval Requests found"
-                             DataKeyField="ApprovalID" CssClass="list" OnItemDataBound="dgApprovals_ItemDataBound" OnItemCommand="dgApprovals_ItemCommand"  ShowActionRow="false">
+                             DataKeyField="ApprovalID" CssClass="list" OnRowDataBound="dgApprovals_RowDataBound" OnRowCommand="dgApprovals_RowCommand"  ShowActionRow="false">
                             <Columns>
                                 <Rock:RockBoundField HeaderText="Approval ID" DataField="ApprovalID" Visible = "false" />
                                 <Rock:RockBoundField HeaderText="Approver" DataField="ApproverName" />
                                 <Rock:RockBoundField HeaderText="Status" DataField="ApprovalStatus" />
                                 <Rock:RockBoundField HeaderText="Date Approved" DataField="DateApproved" DataFormatString="{0:d}" />
-                                <Rock:RockTemplateField ItemStyle-HorizontalAlign="Right">
+                                <Rock:RockTemplateField ItemStyle-HorizontalAlign="Right" HeaderText="Options" HeaderStyle-Width="350px" HeaderStyle-CssClass="hidden-print" FooterStyle-CssClass="hidden-print" ItemStyle-CssClass="hidden-print">
                                     <ItemTemplate>
-                                        <asp:LinkButton ID="lbResubmit" runat="server" Visible="false" Text="Resubmit" CommandName="resubmit" />
-                                        <asp:LinkButton ID="lbApprove" runat="server" Visible="false" Text="Approve" CommandName="approve" />
-                                        <asp:LinkButton ID="lbApproveForward" runat="server" Visible="false" Text="Approve & Forward" CommandName="approveForward" />
-                                        <asp:LinkButton ID="lbDeny" runat="server" Visible="false" Text="Decline" CommandName="decline" />
-                                    </ItemTemplate>
-                                </Rock:RockTemplateField>
-
-                                <Rock:RockTemplateField>
-                                    <ItemStyle HorizontalAlign="Center" />
-                                    <ItemTemplate>
-                                        <asp:LinkButton ID="lbRemove" runat="server" CommandName="Remove" Visible="false">
-                                            <img src="/images/delete.png" alt="Remove" />
+                                        <asp:LinkButton ID="lbResubmit" runat="server" Visible="false" Text="Resubmit" CommandName="resubmit" CssClass="btn btn-default" />
+                                        <asp:LinkButton ID="lbApprove" runat="server" Visible="false" Text="Approve" CommandName="approve" CssClass="btn btn-default" />
+                                        <asp:LinkButton ID="lbApproveForward" runat="server" Visible="false" Text="Approve & Forward" CommandName="approveForward" CssClass="btn btn-default" />
+                                        <asp:LinkButton ID="lbDeny" runat="server" Visible="false" Text="Decline" CommandName="decline" CssClass="btn btn-default" />
+                                        <asp:LinkButton ID="lbRemove" runat="server" CommandName="Remove" Visible="false" class="btn btn-default">
+                                            <i class="fa fa-remove"></i>
                                         </asp:LinkButton>
                                     </ItemTemplate>
                                 </Rock:RockTemplateField>
@@ -361,7 +428,7 @@
         <secc:StaffPicker ID="ucStaffPickerApprover" runat="server" OnSelect="SelectApprover_Click" />
         <Rock:ModalIFrameDialog ID="mpiAttachmentPicker" runat="server"/>
         <Rock:ModalDialog ID="mpChooseVendor" runat="server" Title="Choose Vendor" CancelControlID="btnVendorModalCancel"
-            EnableViewState="true" OnSaveClick="btnVendorModalUpdate_click">
+            EnableViewState="true" OnSaveClick="btnVendorModalUpdate_click" ValidationGroup="VendorSelect">
             <Content>
                 <asp:UpdatePanel ID="upChooseVendor" runat="server" UpdateMode="Conditional">
                     <ContentTemplate>
@@ -464,18 +531,18 @@
                                 <asp:Label ID="lblSelectPurchaseOrderError" runat="server" CssClass="smallText" Visible="false" style="color:Red;" />
                             </div>
                             <div class="form-inline">
-                                <div class="form-group col-sm-4">
+                                <div class="form-group col-sm-3">
                                     <label>PO Number:</label>
                                     <asp:Label ID="lblSelectPOItemsPONumber" runat="server"></asp:Label>
                                 </div>
-                                <div class="form-group col-sm-4">
-                                    <label>PO Number:</label>
-                                    <asp:DropDownList ID="ddlSelectPOItemsVendor" label="Vendor:" runat="server" />
+                                <div class="form-group col-sm-6">
+                                    <label>Vendor:</label>
+                                    <asp:DropDownList class="form-control" ID="ddlSelectPOItemsVendor" label="Vendor:" runat="server" />
                                     <asp:Label label="Vendor:" ID="lblSelectPOItemsVendor" runat="server"></asp:Label>
                                 </div>
-                                <div class="form-group col-sm-4">
+                                <div class="form-group col-sm-3">
                                     <label>Type:</label>
-                                    <asp:DropDownList ID="ddlSelectPOItemsType" runat="server" />
+                                    <asp:DropDownList class="form-control" ID="ddlSelectPOItemsType" runat="server" />
                                     <asp:Label ID="lblSelectPOItemsType" runat="server"></asp:Label>
                                 </div>
                             </div>

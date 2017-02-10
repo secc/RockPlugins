@@ -25,7 +25,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
     [LinkedPage( "Capital Request Detail Page", "Page that shows the details of a selected capital request.", true )]
     [DefinedTypeField( "Ministry Area Lookup Type", "The Lookup Type that contains the ministry lookup values.", true )]
     [DefinedTypeField( "Location Lookup Type", "The lookup Type that contains the Location lookup values. If no value is selected, the Location filter will not be available.", true )]
-    [IntegerField( "Position Attribute", "Position Attribute ID. Default is 29.", false )]
+
+    [AttributeField( Rock.SystemGuid.EntityType.PERSON, "Ministry Area Person Attribute", "The person attribute that stores the user's Ministry Area.", key:"MinistryAttribute" )]
     public partial class CapitalRequestList : RockBlock
     {
         private string PersonSettingKey = "CapitalRequestList";
@@ -107,12 +108,21 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private Dictionary<string, string> BuildFilters()
         {
+            CurrentPerson.LoadAttributes();
             Dictionary<string, string> filter = new Dictionary<string, string>();
 
             filter.Add( "PersonId", CurrentPerson.Id.ToString() );
             filter.Add( "UserId", CurrentUser.UserName );
             CurrentPerson.LoadAttributes();
-            filter.Add( "MinistryId", CurrentPerson.Attributes.Where( a => a.Key == "MinistryAreaAttribute" ).Select( a => a.Value.ToString() ).FirstOrDefault() );
+            if ( GetAttributeValue( "MinistryAttribute" ).AsGuidOrNull() != null )
+            {
+                var attributeValue = CurrentPerson.AttributeValues[AttributeCache.Read( GetAttributeValue( "MinistryAttribute" ).AsGuid() ).Key];
+                if ( attributeValue != null && !string.IsNullOrEmpty( attributeValue.Value ) )
+                {
+                    filter.Add( "MinistryId", DefinedValueCache.Read( attributeValue.Value ).Id.ToString() );
+
+                }
+            }
             //filter.Add( "FinanceApprover", UserIsFinanceApprover().ToString() );
 
             if ( LocationLookupTypeIdSetting != null && UserCanEdit )
@@ -183,6 +193,17 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             List<CapitalRequestListItem> requests = CapitalRequest.GetCapitalRequestList( filterValues );
 
             SortProperty sortProperty = gRequestList.SortProperty;
+            // Check User Preferences to see if we have a pre-existing sort property
+            if ( sortProperty == null )
+            {
+                sortProperty = new SortProperty();
+                sortProperty.Direction = GetUserPreference( string.Format( "{0}_Sort_Direction", PersonSettingKey ) ) == "ASC" ? SortDirection.Ascending : SortDirection.Descending;
+                sortProperty.Property = GetUserPreference( string.Format( "{0}_Sort_Column", PersonSettingKey ) );
+                if ( string.IsNullOrEmpty( sortProperty.Property ) )
+                {
+                    sortProperty.Property = "CapitalRequestId";
+                }
+            }
             if ( sortProperty != null )
             {
                 if ( sortProperty.Direction == SortDirection.Ascending )
@@ -193,6 +214,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 {
                     requests = requests.OrderByDescending( r => r.GetType().GetProperty( sortProperty.Property ).GetValue( r ) ).ToList();
                 }
+                SetUserPreference( string.Format( "{0}_Sort_Direction", PersonSettingKey ), sortProperty.DirectionString );
+                SetUserPreference( string.Format( "{0}_Sort_Column", PersonSettingKey ), sortProperty.Property );
             }
             else
             {
@@ -237,6 +260,22 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             gRequestList.Actions.ShowExcelExport = false;
             gRequestList.Actions.ShowMergeTemplate = false;
 
+            if ( sortProperty != null )
+            {
+                foreach ( var column in gRequestList.Columns )
+                {
+                    var dcf = column as DataControlField;
+                    if ( dcf != null && dcf.SortExpression == sortProperty.Property )
+                    {
+                        gRequestList.HeaderRow.Cells[gRequestList.Columns.IndexOf( dcf )].AddCssClass( sortProperty.Direction.ToString().ToLower() );
+                        break;
+                    }
+                }
+                if ( gRequestList.SortProperty == null )
+                {
+                    gRequestList.Sort( sortProperty.Property, sortProperty.Direction );
+                }
+            }
 
             //grdCapitalRequests.DataSource = capRequestDT;
             //grdCapitalRequests.DataBind();
@@ -260,11 +299,13 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             LoadLocationList();
             LoadMinistryList();
             LoadFiscalYearList();
-            /*SetRequesterFilter( 0 );
-            pnlAdminFilters.Visible = userIsEditor;
+            //SetRequesterFilter( 0 );
+            ddlMinistry.Visible = UserCanEdit;
+            ddlSCCLocation.Visible = UserCanEdit;
+            requester.Visible = UserCanEdit;
+            txtGLAccount.Visible = UserCanEdit;
+            ddlFiscalYear.Visible = UserCanEdit;
 
-            pnlSCCLocation.Visible = userIsEditor && LocationLookupTypeIdSetting > 0;
-*/
             SetRequestedByAllOption( UserCanEdit );
 
         }

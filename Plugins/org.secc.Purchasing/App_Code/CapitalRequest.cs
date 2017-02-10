@@ -550,7 +550,10 @@ namespace org.secc.Purchasing
                     bool showMe = false;
                     if ( bool.TryParse( filter["Show_Me"], out showMe ) && showMe )
                     {
-                        listItems.AddRange( query.Where( q => q.RequesterId == currentPersonId ).ToList() );
+                        PersonAliasService aliasService = new PersonAliasService( new Rock.Data.RockContext() );
+                        var aliasIds = aliasService.Queryable().Where( a => a.PersonId == currentPersonId ).Select( a => a.Id ).ToList();
+
+                        listItems.AddRange( query.Where( q => aliasIds.Contains(q.RequesterId)).ToList() );
 
                         listItems.AddRange( query.Where( q => q.CreatedByUserId == currentUserId )
                                                 .Where( q => !listItems.Select( l => l.CapitalRequestId ).Contains( q.CapitalRequestId ) )
@@ -574,7 +577,10 @@ namespace org.secc.Purchasing
                     bool showApprover = false;
                     if ( bool.TryParse( filter["Show_Approver"], out showApprover ) && showApprover )
                     {
-                        listItems.AddRange( query.Where( q => q.ApprovalItems.Where(a => a.ApprovalStatusLUID != Approval.NotSubmittedStatusLUID()).Select( a => a.ApproverId ).Contains( currentPersonId ) )
+
+                        PersonAliasService aliasService = new PersonAliasService( new Rock.Data.RockContext() );
+                        var aliasIds = aliasService.Queryable().Where( a => a.PersonId == currentPersonId ).Select( a => a.Id ).ToList();
+                        listItems.AddRange( query.Where( q => q.ApprovalItems.Where(a => a.ApprovalStatusLUID != Approval.NotSubmittedStatusLUID() && a.ApproverId != null && aliasIds.Contains( a.ApproverId.Value ) ).Any() )
                                                 .Where( q => !listItems.Select( l => l.CapitalRequestId ).Contains( q.CapitalRequestId ) )
                                                 .ToList() );
 
@@ -593,9 +599,9 @@ namespace org.secc.Purchasing
             return listItems;
         }
 
-        public static DefinedType GetDefaultStatus()
+        public static DefinedValueCache GetDefaultStatus()
         {
-            return definedTypeService.Get(Guid.Parse(STATUS_LOOKUP_TYPE_GUID));
+            return DefinedValueCache.Read( LOOKUP_STATUS_NEW_GUID );
         }
 
         public void RefreshApprovalRequests()
@@ -1261,7 +1267,7 @@ namespace org.secc.Purchasing
                 }
                 else
                 {
-                    RequesterId = requester.Id;
+                    RequesterId = requester.PrimaryAliasId.Value;
                 }
             }
 

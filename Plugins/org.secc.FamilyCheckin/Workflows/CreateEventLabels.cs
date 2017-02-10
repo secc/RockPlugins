@@ -118,6 +118,11 @@ namespace org.secc.FamilyCheckin
                                             if ( registrationGroup != null )
                                             {
                                                 mergeObjects.Add( "RegistrationGroup", registrationGroup );
+                                                var registrationGroupMember = registrationGroup.Members.Where( gm => gm.PersonId == person.Person.Id ).FirstOrDefault();
+                                                if ( registrationGroupMember != null )
+                                                {
+                                                    mergeObjects.Add( "RegistrationGroupMember", registrationGroupMember );
+                                                }
                                             }
                                         }
 
