@@ -135,5 +135,13 @@
             $(document).ready(expandFilters);
             Sys.WebForms.PageRequestManager.getInstance().add_endRequest(expandFilters);
         </script>
+        <style>
+            .grid-filter h4 {
+                display: none;
+            }
+            .grid-filter header {
+                display: none;
+            }
+        </style>
     </ContentTemplate>
 </asp:UpdatePanel>

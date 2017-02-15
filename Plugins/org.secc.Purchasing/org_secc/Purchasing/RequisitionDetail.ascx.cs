@@ -81,7 +81,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         public bool AllowNewVendorSelectionSetting { get { return bool.Parse(GetAttributeValue("AllowNewVendorSelection")); } }
 
-        public string ExpeditedShippingWindowDaysSetting { get { return GetAttributeValue("ExpeditedShippingWindowDays"); } }
+        public string ExpeditedShippingWindowDaysSetting { get { return GetAttributeValue( "ExpeditedShippingWindow" ); } }
 
         public bool ShowInactiveItemsSetting { get { return GetAttributeValue("ShowInactiveItemsSetting").AsBoolean(); } }
 

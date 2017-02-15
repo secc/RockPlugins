@@ -54,5 +54,13 @@
                 $(el).siblings('div').slideDown(0);
             });
         </script>
+        <style>
+            .grid-filter h4 {
+                display: none;
+            }
+            .grid-filter header {
+                display: none;
+            }
+        </style>
     </ContentTemplate>
 </asp:UpdatePanel>
