@@ -73,6 +73,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 BindStatusCheckboxList();
                 BindPOTypeCheckboxList();
                 BindVendors();
+                BindPaymentMethods();
                 LoadUserFilterSettings();
                 BindPOGrid();
                 lbAddPO.Visible = CanUserCreatePurchaseOrder();                
@@ -149,7 +150,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 new DataColumn("Status", typeof(string)),
                 new DataColumn("ItemDetails", typeof(int)),
                 new DataColumn("TotalPayments", typeof(string)),
-                new DataColumn("PaymentMethod", typeof(string)),
                 new DataColumn("NoteCount", typeof(int)),
                 new DataColumn("AttachmentCount", typeof(int))
             } );
@@ -199,7 +199,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     dr["Status"] = po.Status;
                     dr["ItemDetails"] = po.ItemDetailCount;
                     dr["TotalPayments"] = string.Format( "{0:c}", po.TotalPayments );
-                    dr["PaymentMethod"] = po.PaymentMethod;
                     dr["NoteCount"] = po.NoteCount;
                     dr["AttachmentCount"] = po.AttachmentCount;
 
@@ -246,6 +245,15 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             ddlVendor.Items.Insert(0, new ListItem("--All--", "0"));
         }
+        private void BindPaymentMethods()
+        {
+            ddlPaymentMethod.DataSource = PaymentMethod.LoadPaymentMethods().OrderBy( x => x.Name );
+            ddlPaymentMethod.DataValueField = "PaymentMethodID";
+            ddlPaymentMethod.DataTextField = "Name";
+            ddlPaymentMethod.DataBind();
+
+            ddlPaymentMethod.Items.Insert( 0, new ListItem( "--All--", "0" ) );
+        }
 
         private Dictionary<string, string> BuildFilter()
         {
@@ -288,6 +296,16 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 Filter.Add("OrderedByID", ucStaffPicker.StaffPersonAliasId.Value.ToString());
             }
 
+            if ( drpPaymentDate.LowerValue.HasValue )
+                Filter.Add( "PaymentStart", drpPaymentDate.LowerValue.Value.ToShortDateString() );
+
+            if ( drpPaymentDate.UpperValue.HasValue )
+                Filter.Add( "PaymentEnd", drpPaymentDate.UpperValue.Value.ToShortDateString() );
+
+            int PaymentMethodID = 0;
+            if ( int.TryParse( ddlPaymentMethod.SelectedValue, out PaymentMethodID ) && PaymentMethodID > 0 )
+                Filter.Add( "PaymentMethodID", PaymentMethodID.ToString() );
+
             Filter.Add("ShowInactive", chkShowInactive.Checked.ToString());
 
             if ( !string.IsNullOrEmpty( tbGLAccount.Text))
@@ -320,6 +338,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             txtOrderDate.UpperValue = null;
             txtPONumber.Text = String.Empty;
             ddlVendor.SelectedIndex = 0;
+            drpPaymentDate.LowerValue = null;
+            drpPaymentDate.UpperValue = null;
+            ddlPaymentMethod.SelectedIndex = 0;
             ClearOrderedByFilter();
             chkShowInactive.Checked = false;
 
@@ -377,7 +398,21 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             int.TryParse(GetUserPreference(string.Format("{0}_VendorID", PersonSettingKeyPrefix)), out VendorID);
             if (VendorID > 0 && ddlVendor.Items.FindByValue(VendorID.ToString()) != null)
                 ddlVendor.SelectedValue = VendorID.ToString();
+            
+            DateTime PaymentStart;
+            DateTime.TryParse( GetUserPreference( string.Format( "{0}_PaymentStart", PersonSettingKeyPrefix ) ), out PaymentStart );
+            if ( PaymentStart > DateTime.MinValue )
+                drpPaymentDate.LowerValue = PaymentStart;
 
+            DateTime PaymentEnd;
+            DateTime.TryParse( GetUserPreference( string.Format( "{0}_PaymentEnd", PersonSettingKeyPrefix ) ), out PaymentEnd );
+            if ( PaymentEnd > DateTime.MinValue )
+                drpPaymentDate.UpperValue = PaymentEnd;
+
+            int PaymentMethodID = 0;
+            int.TryParse( GetUserPreference( string.Format( "{0}_PaymentMethodID", PersonSettingKeyPrefix ) ), out PaymentMethodID );
+            if ( PaymentMethodID > 0 && ddlPaymentMethod.Items.FindByValue( PaymentMethodID.ToString() ) != null )
+                ddlPaymentMethod.SelectedValue = PaymentMethodID.ToString();
 
             if (OrderedByPersonID > 0)
             {
@@ -447,7 +482,23 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             int.TryParse(ddlVendor.SelectedValue, out VendorID);
             SetUserPreference(string.Format("{0}_VendorID", PersonSettingKeyPrefix), VendorID.ToString());
 
-            SetUserPreference(string.Format("{0}_ShowInactive", PersonSettingKeyPrefix), chkShowInactive.Checked.ToString());
+
+            if ( drpPaymentDate.LowerValue.HasValue )
+                SetUserPreference( string.Format( "{0}_PaymentStart", PersonSettingKeyPrefix ), drpPaymentDate.LowerValue.Value.ToShortDateString() );
+            else
+                SetUserPreference( string.Format( "{0}_PaymentStart", PersonSettingKeyPrefix ), String.Empty );
+
+            if ( drpPaymentDate.UpperValue.HasValue )
+                SetUserPreference( string.Format( "{0}_PaymentEnd", PersonSettingKeyPrefix ), drpPaymentDate.UpperValue.Value.ToShortDateString() );
+            else
+                SetUserPreference( string.Format( "{0}_PaymentEnd", PersonSettingKeyPrefix ), String.Empty );
+
+            int PaymentMethodID = 0;
+            int.TryParse( ddlPaymentMethod.SelectedValue, out PaymentMethodID );
+            SetUserPreference( string.Format( "{0}_PaymentMethodID", PersonSettingKeyPrefix ), PaymentMethodID.ToString() );
+
+
+            SetUserPreference( string.Format("{0}_ShowInactive", PersonSettingKeyPrefix), chkShowInactive.Checked.ToString());
 
             SetUserPreference( string.Format( "{0}_GLAccount", PersonSettingKeyPrefix ), tbGLAccount.Text );
 

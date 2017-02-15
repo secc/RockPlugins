@@ -20,8 +20,7 @@
             return;
         }
 
-        var expeditedShippingWindowDays = parseInt( $( "[id*=hfExpeditedShippingDays]" ).val() );
-
+        var expeditedShippingWindowDays = parseInt($("[id*=hfExpeditedShippingDays]").val());
         if (getMaxExpeditedShippingDate(expeditedShippingWindowDays) >= selectedDate) {
             showAllowExpedited(true);
         }
@@ -226,7 +225,7 @@
             <asp:LinkButton ID="lbCancel" CssClass="btn btn-default" runat="server" CommandName="cancelrequisition" OnClick="ToolbarItem_click" Visible="false">Cancel Requisition</asp:LinkButton>
             <asp:LinkButton ID="lbReopen" CssClass="btn btn-default" runat="server" CommandName="reopenrequisition" OnClick="ToolbarItem_click" Visible="false">Reopen Requisition</asp:LinkButton>
 
-            <asp:LinkButton ID="lbReturn" CssClass="btn btn-default" runat="server" CommandName="return" OnClick="ToolbarItem_click" Visible="true">Return To List</asp:LinkButton>
+            <asp:LinkButton ID="lbReturn" CssClass="btn btn-default" runat="server" CommandName="return" OnClick="ToolbarItem_click" Visible="true" CausesValidation="false">Return To List</asp:LinkButton>
         </div>
         <div id="pnlMain" class="panel panel-block">
             
@@ -644,7 +643,7 @@
                                 <asp:Label ID="lblItemDetailError" runat="server" Visible="false" />
                             </div>
                             <Rock:RockTextBox Label="Quantity" Id="txtItemQuantity" runat="server" Required="true" ValidationGroup="ItemDetail" />
-                            <Rock:RockTextBox Label="Item Number" Id="txtItemNumber" runat="server" ValidationGroup="ItemDetail" />
+                            <Rock:RockTextBox Label="Item Number <small>(Max 50 Characters)</small>" Id="txtItemNumber" runat="server" ValidationGroup="ItemDetail" MaxLength="50" />
                             <Rock:RockTextBox Label="Description" Id="txtItemDescription" TextMode="MultiLine" runat="server" Required="true" ValidationGroup="ItemDetail" />
 
                             <asp:Panel id="pnlItemDetailCompany" runat="server" class="hidden">
@@ -675,8 +674,9 @@
                                     <Rock:DatePicker ID="txtDateNeeded" runat="server" Label="Needed By" onChange="dateNeededChanged()" style="width:auto"/>
                                 </div>
                                 <div class="col-sm-3">
-                                    <div id="ItemAllowExpedited" style="display: none;">
-                                        <asp:CheckBox ID="chkItemAllowExpedited" runat="server" CssClass="smallText" Text="Allow Expedited Shipping." />
+                                    <div id="ItemAllowExpedited" class="form-group" style="display: none">
+                                        <label class="control-label">Express Shipping</label>
+                                        <asp:CheckBox ID="chkItemAllowExpedited" runat="server" Text="Allow Expedited Shipping." />
                                     </div>
                                 </div>
                             </div>
