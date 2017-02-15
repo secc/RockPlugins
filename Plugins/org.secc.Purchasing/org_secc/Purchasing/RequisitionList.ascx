@@ -30,7 +30,11 @@
                     <Rock:RockDropDownList ID="ddlMinistry" runat="server" CssClass="smallText" Label="Ministry" />
                     <Rock:RockTextBox ID="txtPONumber" runat="server" Label="PO Number"/>
                 
-                    <Rock:DateRangePicker ID="txtFilterSubmitted" runat="server" Visible="true" Label="Submitted On" />
+                    <asp:Panel runat="server" CssClass="form-group" ID="pnlDateRange">
+                        <label>Submitted On</label><br />
+                        <Rock:DateRangePicker ID="txtFilterSubmitted" runat="server" Visible="true" style="float: left" />
+                        <button class="btn btn-default" onclick="$(this).siblings().find('input').val('')"><i class="fa fa-remove"></i></button>
+                    </asp:Panel>
                     <asp:Panel runat="server" CssClass="form-group" ID="pnlRequester">
                         <label>Requester:</label>
                         <secc:StaffPicker ID="hfFilterSubmittedBy" runat="server" AllowMultipleSelections="false" 
@@ -84,5 +88,13 @@
             $(document).ready(expandFilters);
             Sys.WebForms.PageRequestManager.getInstance().add_endRequest(expandFilters);
         </script>
+        <style>
+            .grid-filter h4 {
+                display: none;
+            }
+            .grid-filter header {
+                display: none;
+            }
+        </style>
     </ContentTemplate>
 </asp:UpdatePanel>

@@ -355,17 +355,14 @@ namespace org.secc.Purchasing
                             StatusName = temp2.s.Value,
                             OrderDate = temp2.temp1.temp0.po.date_ordered,
                             Active = temp2.temp1.temp0.po.active,
-                            OrderedByID = ( ( Int32? ) ( temp2.temp1.LOJpm.PersonId ) == null )
-                                ? temp2.temp1.temp0.po.ordered_by
-                                : ( Int32? ) ( temp2.temp1.LOJpm.PersonId ),
+                            OrderedByID = temp2.temp1.temp0.po.ordered_by,
                             ItemDetailsCount = temp2.temp1.temp0.po.PurchaseOrderItemDatas
                                 .Where( poi => ( poi.active == true ) )
                                 .Count(),
                             PaymentTotal = ( Decimal? ) ( temp2.temp1.temp0.po.PaymentDatas.Where( pay => ( pay.active == true ) )
                                 .Select( pay => pay.payment_amount )
                                 .Sum() ) ?? 0,
-                            PaymentMethod = temp2.temp1.temp0.po.PaymentDatas.Where( pay => ( pay.active == true ) )
-                                .Select( pay => pay.PaymentMethodData.name ).Distinct().ToList(),
+                            PaymentMethods = temp2.temp1.temp0.po.PaymentDatas.Where( pay => ( pay.active == true ) ).ToList(),
                             NoteCount = Context.NoteDatas
                                 .Where( n => ( ( ( n.active == true ) && ( n.object_type_name == typeof( PurchaseOrder ).ToString() ) ) &&
                                      ( n.identifier == temp2.temp1.temp0.po.purchase_order_id ) ) )
@@ -409,6 +406,18 @@ namespace org.secc.Purchasing
                 if (filter.ContainsKey("OrderedOnEnd") && DateTime.TryParse(filter["OrderedOnEnd"], out OrderedOnEnd))
                     Query = Query.Where(p => p.OrderDate <= OrderedOnEnd);
 
+                DateTime PaymentStart;
+                if ( filter.ContainsKey( "PaymentStart" ) && DateTime.TryParse( filter["PaymentStart"], out PaymentStart ) )
+                    Query = Query.Where( p => p.PaymentMethods.Where(pm => pm.payment_date >= PaymentStart).Any() );
+
+                DateTime PaymentEnd;
+                if ( filter.ContainsKey( "PaymentEnd" ) && DateTime.TryParse( filter["PaymentEnd"], out PaymentEnd ) )
+                    Query = Query.Where( p => p.PaymentMethods.Where( pm => pm.payment_date <= PaymentEnd ).Any() );
+                
+                int pmid = 0;
+                if ( filter.ContainsKey( "PaymentMethodID" ) && int.TryParse( filter["PaymentMethodID"], out pmid ) )
+                    Query = Query.Where( p => p.PaymentMethods.Where(pm => pm.payment_method_id == pmid ).Any() );
+
                 int obID = 0;
                 if (filter.ContainsKey("OrderedByID") && int.TryParse(filter["OrderedByID"], out obID))
                     Query = Query.Where(p => p.OrderedByID == obID);
@@ -445,7 +454,6 @@ namespace org.secc.Purchasing
                     Status = p.StatusName,
                     ItemDetailCount = p.ItemDetailsCount,
                     TotalPayments = p.PaymentTotal,
-                    PaymentMethod = string.Join( ", ", p.PaymentMethod ),
                     NoteCount = p.NoteCount,
                     AttachmentCount = p.AttachmentCount
                 } ).AsQueryable());
@@ -1253,7 +1261,6 @@ namespace org.secc.Purchasing
         public string Status { get; set; }
         public int ItemDetailCount { get; set; }
         public decimal TotalPayments { get; set; }
-        public string PaymentMethod { get; set; }
         public int NoteCount { get; set; }
         public int AttachmentCount { get; set; }
     }
