@@ -19,15 +19,38 @@
                             CssClass="smallText" TextAlign="Right" />
                     </asp:Panel>
                     <Rock:RockCheckBoxList Label="Type:" ID="cbListType" runat="server" RepeatDirection="Horizontal" TextAlign="Right" />
+                    
+                    <asp:Panel runat="server">
+                        <div class="row">
+                            <div class="col-xs-4">
+                                <Rock:RockCheckBox Label="Active/Inactive:" ID="chkShowInactive" runat="server" Text="Show Inactive" />
+                            </div>
+                            <div class="col-xs-8">
+                                <div class="form-group">
+                                    <label class="form-label">Ordered By:</label>
+                                    <secc:StaffPicker ID="ucStaffPicker" runat="server" AllowMultipleSelections="false" ShowPersonDetailLink="false" UserCanEdit="true" DefaultLabel="Show All" />
+                                </div>
+                            </div>
+                        </div>
+                    </asp:Panel>
                     <Rock:RockDropDownList Label="Vendor:" ID="ddlVendor" runat="server" CssClass="smallText" />
                     <Rock:RockTextBox Label="PO Number:" id="txtPONumber" runat="server" />
-                    <Rock:DateRangePicker Label="Order Date" ID="txtOrderDate" runat="server" />
-                    <asp:Panel runat="server" class="form-group">
-                        <label class="form-label">Ordered By:</label>
-                        <secc:StaffPicker ID="ucStaffPicker" runat="server" AllowMultipleSelections="false" ShowPersonDetailLink="false" UserCanEdit="true" DefaultLabel="Show All" />
+                    
+                    <asp:Panel runat="server" CssClass="form-group" ID="pnlDateRange">
+                        <label>Order Date</label><br />
+                        <Rock:DateRangePicker ID="txtOrderDate" runat="server" style="float: left" />
+                        <button class="btn btn-default" onclick="$(this).siblings().find('input').val('')"><i class="fa fa-remove"></i></button>
                     </asp:Panel>
-                    <Rock:RockCheckBox Label="Active/Inactive:" ID="chkShowInactive" runat="server" Text="Show Inactive" />
+
                     <Rock:RockTextBox ID="tbGLAccount" runat="server" Label="General Ledger Account"></Rock:RockTextBox>
+                    
+                    <Rock:RockDropDownList Label="Payment Method:" ID="ddlPaymentMethod" runat="server" />
+                    <asp:Panel runat="server" CssClass="form-group" ID="pnlPaymentDate">
+                        <label>Payment Date</label><br />
+                        <Rock:DateRangePicker ID="drpPaymentDate" runat="server" style="float: left" />
+                        <button class="btn btn-default" onclick="$(this).siblings().find('input').val('')"><i class="fa fa-remove"></i></button>
+                    </asp:Panel>
+                    
                 </Rock:GridFilter>
                 <Rock:Grid ID="dgPurchaseOrders" runat="server" CssClass="list" 
                     OnReBind="dgPurchaseOrders_Rebind" OnItemCommand="dgPurchaseOrders_ItemCommand" >
@@ -43,7 +66,6 @@
                        <Rock:RockBoundField HeaderText="Status" DataField="Status" SortExpression="Status" />
                        <Rock:RockBoundField HeaderText="Items Details" DataField="ItemDetails" SortExpression="ItemDetailCount" />
                        <Rock:RockBoundField HeaderText="Total Payments" DataField="TotalPayments" SortExpression="TotalPayments" />
-                       <Rock:RockBoundField HeaderText="Payment Method" DataField="PaymentMethod" SortExpression="PaymentMethod" />
                        <Rock:RockBoundField HeaderText="Notes" DataField="NoteCount" SortExpression="NoteCount" />
                        <Rock:RockBoundField HeaderText="Attachments" DataField="AttachmentCount" SortExpression="AttachmentCount" />
                     </Columns>
@@ -61,5 +83,13 @@
             $(document).ready(expandFilters);
             Sys.WebForms.PageRequestManager.getInstance().add_endRequest(expandFilters);
         </script>
+        <style>
+            .grid-filter h4 {
+                display: none;
+            }
+            .grid-filter header {
+                display: none;
+            }
+        </style>
     </ContentTemplate>
 </asp:UpdatePanel>
