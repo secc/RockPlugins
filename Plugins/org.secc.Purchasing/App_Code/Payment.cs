@@ -30,6 +30,7 @@ namespace org.secc.Purchasing
         public DateTime DateCreated { get; set; }
         public DateTime DateModified { get; set; }
         public bool Active { get; set; }
+        public string Note { get; set; }
 
         [XmlIgnore]
         public PaymentMethod PaymentMethod
@@ -165,6 +166,7 @@ namespace org.secc.Purchasing
                     data.modified_by = uid;
                     data.date_modified = DateTime.Now;
                     data.active = Active;
+                    data.note = Note;
 
                     if (PaymentID <= 0)
                         Context.PaymentDatas.InsertOnSubmit(data);
@@ -223,6 +225,7 @@ namespace org.secc.Purchasing
             CreatedByUserID = String.Empty;
             ModifiedByUserID = String.Empty;
             Active = true;
+            Note = string.Empty;
         }
 
         private void Load(PaymentData data)
@@ -240,6 +243,7 @@ namespace org.secc.Purchasing
                 CreatedByUserID = data.created_by;
                 ModifiedByUserID = data.modified_by;
                 Active = data.active;
+                Note = data.note;
             }
         }
 
