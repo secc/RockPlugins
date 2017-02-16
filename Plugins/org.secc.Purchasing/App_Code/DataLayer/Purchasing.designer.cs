@@ -3174,6 +3174,8 @@ namespace org.secc.Purchasing.DataLayer
 		
 		private bool _active;
 		
+		private string _note;
+		
 		private EntitySet<PaymentChargeData> _PaymentChargeDatas;
 		
 		private EntityRef<PaymentMethodData> _PaymentMethodData;
@@ -3204,6 +3206,8 @@ namespace org.secc.Purchasing.DataLayer
     partial void Ondate_modifiedChanged();
     partial void OnactiveChanging(bool value);
     partial void OnactiveChanged();
+    partial void OnnoteChanging(string value);
+    partial void OnnoteChanged();
     #endregion
 		
 		public PaymentData()
@@ -3418,6 +3422,26 @@ namespace org.secc.Purchasing.DataLayer
 					this._active = value;
 					this.SendPropertyChanged("active");
 					this.OnactiveChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_note", DbType="VarChar(MAX)")]
+		public string note
+		{
+			get
+			{
+				return this._note;
+			}
+			set
+			{
+				if ((this._note != value))
+				{
+					this.OnnoteChanging(value);
+					this.SendPropertyChanging();
+					this._note = value;
+					this.SendPropertyChanged("note");
+					this.OnnoteChanged();
 				}
 			}
 		}
