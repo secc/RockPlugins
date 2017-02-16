@@ -144,6 +144,7 @@
       <Column Name="date_created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
       <Column Name="date_modified" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
       <Column Name="active" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="note" Type="System.String" DbType="VarChar(MAX)" CanBeNull="true" />
       <Association Name="PaymentData_PaymentChargeData" Member="PaymentChargeDatas" ThisKey="payment_id" OtherKey="payment_id" Type="PaymentChargeData" />
       <Association Name="PaymentMethodData_PaymentData" Member="PaymentMethodData" ThisKey="payment_method_id" OtherKey="payment_method_id" Type="PaymentMethodData" IsForeignKey="true" />
       <Association Name="PurchaseOrderData_PaymentData" Member="PurchaseOrderData" ThisKey="purchase_order_id" OtherKey="purchase_order_id" Type="PurchaseOrderData" IsForeignKey="true" />

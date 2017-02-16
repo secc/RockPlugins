@@ -270,7 +270,7 @@
                             <Rock:BoolField HeaderText="Fully Applied" DataField="FullyApplied" ItemStyle-HorizontalAlign="Center" HeaderStyle-HorizontalAlign="Center"  />
                             <Rock:RockBoundField HeaderText="Created By" DataField="CreatedByName" />
                             <Rock:RockBoundField HeaderText="Payment Amount" DataField="PaymentAmount" DataFormatString="{0:c}" HeaderStyle-HorizontalAlign="Right" ItemStyle-HorizontalAlign="Right" />
-                            
+                            <Rock:RockBoundField HeaderText="Notes" DataField="PaymentNote"  />
                             <Rock:RockTemplateField ItemStyle-Width="90" HeaderStyle-HorizontalAlign="Right" HeaderText="Actions">
                                 <ItemTemplate>
                                     <div style="width:90px">
@@ -587,6 +587,7 @@
                             <Rock:RockLiteral Label="Invoice Date:" ID="lblPaymentMethodPaymentDate" runat="server" Visible="false" />
                             <Rock:RockTextBox Label="Payment Amount:" ID="txtPaymentMethodPaymentAmount" runat="server" />
                             <Rock:RockLiteral Label="Payment Amount:" ID="lblPaymentMethodPaymentAmount" runat="server" Visible="false" />
+                            <Rock:RockTextBox Label="Notes:" ID="tbPaymentNote" runat="server" />
                             <div id="divPaymentMethodCharges" runat="server">
                                 <h4>Charges</h4>
                                 <Rock:Grid ID="dgPaymentDetailCharges" DataKeyNames="RequisitionID,CompanyID,AccountNumber,FiscalYearStart" runat="server" CssClass="list" AllowPaging="false" AllowSorting="false" OnRowDataBound="dgPaymentDetailCharges_RowDataBound" ShowActionRow="false">
