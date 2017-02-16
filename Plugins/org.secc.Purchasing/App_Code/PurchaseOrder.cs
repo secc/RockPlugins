@@ -468,13 +468,14 @@ namespace org.secc.Purchasing
             return ListItems;
         }
 
-        public int AddPayment(int paymentMethod, DateTime paymentDate, decimal paymentAmount, string uid)
+        public int AddPayment(int paymentMethod, DateTime paymentDate, decimal paymentAmount, string uid, string note = "")
         {
             Payment p = new Payment();
             p.PaymentMethodID = paymentMethod;
             p.PurchaseOrderID = PurchaseOrderID;
             p.PaymentDate = paymentDate;
             p.PaymentAmount = paymentAmount;
+            p.Note = note;
 
             p.Save(uid);
             RefreshPayments();

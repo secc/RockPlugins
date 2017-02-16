@@ -885,6 +885,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 new DataColumn("PaymentDate", typeof(string)),
                 new DataColumn("PaymentMethod", typeof(string)),
                 new DataColumn("PaymentAmount", typeof(decimal)),
+                new DataColumn("PaymentNote", typeof(string)),
                 new DataColumn("FullyApplied", typeof(bool)),
                 new DataColumn("CreatedByUserID", typeof(string)),
                 new DataColumn("CreatedByName", typeof(string))
@@ -901,6 +902,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 dr["PaymentDate"] = p.PaymentDate.ToShortDateString();
                 dr["PaymentMethod"] = p.PaymentMethod.Name;
                 dr["PaymentAmount"] = p.PaymentAmount;
+                dr["PaymentNote"] = p.Note;
                 dr["FullyApplied"] = Math.Abs(p.PaymentAmount) <= ChargesAbs;
                 dr["CreatedByUserID"] = p.CreatedByUserID;
 
@@ -2880,7 +2882,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 int.TryParse(ddlPaymentMethodPaymentType.SelectedValue, out paymentTypeID);
                 DateTime.TryParse(txtPaymentMethodPaymentDate.Text, out paymentDate);
                 decimal.TryParse(txtPaymentMethodPaymentAmount.Text, out paymentAmount);
-                int paymentID =  CurrentPurchaseOrder.AddPayment(paymentTypeID, paymentDate, paymentAmount, CurrentUser.UserName);
+                int paymentID =  CurrentPurchaseOrder.AddPayment(paymentTypeID, paymentDate, paymentAmount, CurrentUser.UserName, tbPaymentNote.Text);
                 
                 if (paymentID > 0)
                 {
@@ -3059,6 +3061,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 txtPaymentMethodPaymentAmount.Text = pymt.PaymentAmount.ToString();
                 lblPaymentMethodPaymentAmount.Text = string.Format("{0:c}", pymt.PaymentAmount);
 
+                tbPaymentNote.Text = pymt.Note;
+
                 BindPaymentChargesGrid(pymt);
             }
 
@@ -3094,6 +3098,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             txtPaymentMethodPaymentAmount.Text = String.Empty;
             lblPaymentMethodPaymentAmount.Text = "&nbsp;";
+
+            tbPaymentNote.Text = string.Empty;
         }
 
         private void ShowPaymentDetailModal(int paymentID)
@@ -3112,8 +3118,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             txtPaymentMethodPaymentDate.Visible = isNew;
             lblPaymentMethodPaymentDate.Visible = !isNew;
 
-            txtPaymentMethodPaymentAmount.Visible = isNew;
-            lblPaymentMethodPaymentAmount.Visible = !isNew;
+            txtPaymentMethodPaymentAmount.Visible = isNew || CanUserEditPayments();
+            lblPaymentMethodPaymentAmount.Visible = !isNew && !CanUserEditPayments();
+
+            tbPaymentNote.ReadOnly = !isNew && !CanUserEditPayments();
 
             mpPayments.Footer.FindControl("btnPaymentMethodPaymentAdd").Visible = isNew;
             mpPayments.Footer.FindControl("btnPaymentMethodPaymentAddCharges").Visible = !isNew;
@@ -3123,16 +3131,25 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void SetPaymentMethodError(string msg)
         {
-            lblPaymentMethodError.InnerText = msg;
+            lblPaymentMethodError.InnerHtml = msg;
             lblPaymentMethodError.Visible = !String.IsNullOrEmpty(msg);
         }
 
-        private bool UpdatePaymentCharges(int paymentID)
+        private bool UpdatePaymentCharges( int paymentID )
         {
             bool UpdatedSuccessfully = false;
             try
             {
-                Payment Pay = CurrentPurchaseOrder.Payments.FirstOrDefault(x => x.PaymentID == paymentID);
+                Payment Pay = CurrentPurchaseOrder.Payments.FirstOrDefault( x => x.PaymentID == paymentID );
+                if ( ( txtPaymentMethodPaymentAmount.Text.AsDecimalOrNull() != null
+                    && Pay.PaymentAmount != txtPaymentMethodPaymentAmount.Text.AsDecimalOrNull() )
+                    || Pay.Note != tbPaymentNote.Text )
+                {
+                    Pay.PaymentAmount = txtPaymentMethodPaymentAmount.Text.AsDecimal();
+                    Pay.Note = tbPaymentNote.Text;
+                    Pay.Save( CurrentUser.UserName );
+                }
+                
 
                 foreach (GridViewRow dgi in dgPaymentDetailCharges.Rows)
                 {
@@ -3159,7 +3176,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                         if (txtCharge != null && txtCharge.Visible)
                             decimal.TryParse(txtCharge.Text, out ChargeAmount);
 
-                        if (RequisitionID > 0 && CompanyID > 0 && FundID > 0 && DeptID > 0 && AcctID > 0 && FYStartDate.HasValue)
+                        if ( CanUserEditPayments() && RequisitionID > 0 && CompanyID > 0 && FundID > 0 && DeptID > 0 && AcctID > 0 && FYStartDate.HasValue)
                         {
                             PaymentCharge Charge = Pay.Charges.Where(c => c.RequisitionID == RequisitionID
                                                                         && c.CompanyID == CompanyID
