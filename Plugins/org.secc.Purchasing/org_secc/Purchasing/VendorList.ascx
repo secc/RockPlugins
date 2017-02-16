@@ -41,7 +41,7 @@
                             <a onclick="javascript: Rock.controls.modal.show($('this'), '/page/<%=VendorDetailPageSetting.Id %>?t=Edit Vendor&VendorID=<%# Eval("VendorID") %>&pb=&sb=&EditMode=true');" class="btn btn-default btn-sm"><i class="fa fa-pencil"></i></a>
                         </ItemTemplate>
                     </Rock:RockTemplateField>
-                    <Rock:DeleteField OnClick="Delete_Click" HeaderText="Delete"/>
+                    <Rock:DeleteField OnClick="Delete_Click" HeaderText="Delete" />
                 </Columns>
             </Rock:Grid>
             <Rock:ModalAlert ID="maAlert" runat="server" />
@@ -55,11 +55,15 @@
             });
         </script>
         <style>
-            .grid-filter h4 {
+            /*.grid-filter h4 {
                 display: none;
             }
             .grid-filter header {
                 display: none;
+            }*/
+            td.disabled a {
+                background-color: #e3baba !important;
+                border-color: #d7a2a2 !important;
             }
         </style>
     </ContentTemplate>
