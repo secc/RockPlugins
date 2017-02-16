@@ -214,6 +214,15 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if (e.Row.RowType == DataControlRowType.DataRow || e.Row.RowType == DataControlRowType.Header) {
                 e.Row.Controls[7].Visible = UserCanEdit;
                 e.Row.Controls[8].Visible = UserCanEdit;
+                var key = e.Row.Controls[0];
+
+            }
+            if ( e.Row.RowType == DataControlRowType.DataRow)
+            {
+                if (((Vendor)e.Row.DataItem).HasRequisitions) {
+                    DataControlFieldCell cell = ( DataControlFieldCell ) e.Row.Controls[8]; // as DeleteField ).ButtonCssClass = "btn-disabled";
+                    cell.CssClass = "disabled";
+                }
             }
         }
 }
