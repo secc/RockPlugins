@@ -205,19 +205,34 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
             if ( sortProperty != null )
             {
-                if ( sortProperty.Direction == SortDirection.Ascending )
+                if ( sortProperty.Property == "DateSubmitted" )
                 {
-                    Requisitions = Requisitions.OrderBy( r => r.GetType().GetProperty(sortProperty.Property).GetValue(r)  ).ToList();
-                } else
+                    if ( sortProperty.Direction == SortDirection.Ascending )
+                    {
+                        Requisitions = Requisitions.OrderBy( r => r.DateSubmitted ).ThenBy( r => r.DateCreated ).ToList();
+                    }
+                    else
+                    {
+                        Requisitions = Requisitions.OrderByDescending( r => r.DateSubmitted ).ThenByDescending( r => r.DateCreated ).ToList();
+                    }
+                }
+                else
                 {
-                    Requisitions = Requisitions.OrderByDescending( r => r.GetType().GetProperty( sortProperty.Property ).GetValue( r ) ).ToList();
+                    if ( sortProperty.Direction == SortDirection.Ascending )
+                    {
+                        Requisitions = Requisitions.OrderBy( r => r.GetType().GetProperty( sortProperty.Property ).GetValue( r ) ).ToList();
+                    }
+                    else
+                    {
+                        Requisitions = Requisitions.OrderByDescending( r => r.GetType().GetProperty( sortProperty.Property ).GetValue( r ) ).ToList();
+                    }
                 }
                 SetUserPreference( string.Format( "{0}_Sort_Direction", PersonSettingsKeyPrefix ), sortProperty.DirectionString );
                 SetUserPreference( string.Format( "{0}_Sort_Column", PersonSettingsKeyPrefix ), sortProperty.Property );
             }
             else
             {
-                Requisitions = Requisitions.OrderByDescending( r => r.DateSubmitted ).ToList();
+                Requisitions = Requisitions.OrderByDescending( r => r.DateSubmitted ).ThenByDescending( r => r.DateCreated ).ToList();
             }
 
             DataTable dt = new DataTable( "Requisitions" );
@@ -239,6 +254,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                         new DataColumn("IsAccepted", typeof(bool))
                     } );
 
+            var statuses = Requisition.GetStatuses( true );
+            int submittedOrder  = statuses.Where( s => s.Value == "Submitted to Purchasing" ).Select( s => s.Order ).FirstOrDefault();
+            
             foreach ( RequisitionListItem item in Requisitions )
             {
                 DataRow dr = dt.NewRow();
@@ -252,8 +270,14 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 dr["ItemCount"] = item.ItemCount;
                 dr["NoteCount"] = item.NoteCount;
                 dr["AttachmentCount"] = item.AttachmentCount;
-                if ( item.DateSubmitted != null )
+                if ( item.DateSubmitted != null && statuses.Where( s => s.Value == item.Status ).Select( s => s.Order ).FirstOrDefault() >= submittedOrder )
+                {
                     dr["DateSubmitted"] = item.DateSubmitted;
+                }
+                else
+                {
+                    dr["DateSubmitted"] = item.DateCreated;
+                }
                 dr["IsExpedited"] = item.IsExpedited;
                 dr["IsApproved"] = item.IsApproved;
                 dr["IsAccepted"] = item.IsAccepted;

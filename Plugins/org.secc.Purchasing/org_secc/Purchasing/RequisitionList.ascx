@@ -60,7 +60,7 @@
                             SortExpression="NoteCount" ItemStyle-HorizontalAlign="Center" />
                         <Rock:RockBoundField HeaderText="Attachments" DataField="AttachmentCount" HeaderStyle-HorizontalAlign="Center"
                             SortExpression="AttachmentCount" ItemStyle-HorizontalAlign="Center" />
-                        <Rock:RockBoundField HeaderText="Submitted On" DataField="DateSubmitted" DataFormatString="{0:d}"
+                        <Rock:RockBoundField HeaderText="Submitted/Created On" DataField="DateSubmitted" DataFormatString="{0:d}"
                             SortExpression="DateSubmitted" HeaderStyle-HorizontalAlign="Center" ItemStyle-HorizontalAlign="Center" />
                         <Rock:BoolField HeaderText="Express Shipping" HeaderStyle-HorizontalAlign="Center"
                             ItemStyle-HorizontalAlign="Center" ItemStyle-VerticalAlign="Middle" DataField="IsExpedited"
