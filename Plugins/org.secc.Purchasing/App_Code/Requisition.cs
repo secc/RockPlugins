@@ -521,6 +521,7 @@ namespace org.secc.Purchasing
                         RequesterId = joinedReq.requester.Id,
                         RequesterLastFirst = string.Format( "{0}, {1}", joinedReq.requester.PersonData.LastName, joinedReq.requester.PersonData.NickName ),
                         Title = joinedReq.requisition.title,
+                        DateCreated = joinedReq.requisition.date_created,
                         DateSubmitted = joinedReq.requisition.date_submitted,
                         IsExpedited = joinedReq.requisition.RequisitionItemDatas.Where(i => i.is_expedited_shipping_allowed).Any(),
                         IsApproved = joinedReq.requisition.is_approved,
@@ -631,6 +632,7 @@ namespace org.secc.Purchasing
                             ItemCount = q.ItemCount,
                             NoteCount = q.NoteCount,
                             AttachmentCount = q.AttachmentCount,
+                            DateCreated = q.DateCreated,
                             DateSubmitted = q.DateSubmitted,
                             IsExpedited = q.IsExpedited,
                             IsApproved = q.IsApproved,
@@ -656,6 +658,7 @@ namespace org.secc.Purchasing
                                                             ItemCount = q.ItemCount,
                                                             NoteCount = q.NoteCount,
                                                             AttachmentCount = q.AttachmentCount,
+                                                            DateCreated = q.DateCreated,
                                                             DateSubmitted = q.DateSubmitted,
                                                             IsExpedited = q.IsExpedited,
                                                             IsApproved = q.IsApproved,
@@ -675,6 +678,7 @@ namespace org.secc.Purchasing
                                 ItemCount = q.ItemCount,
                                 NoteCount = q.NoteCount,
                                 AttachmentCount = q.AttachmentCount,
+                                DateCreated = q.DateCreated,
                                 DateSubmitted = q.DateSubmitted,
                                 IsExpedited = q.IsExpedited,
                                 IsApproved = q.IsApproved,
@@ -710,6 +714,7 @@ namespace org.secc.Purchasing
                                                              ItemCount = q.ItemCount,
                                                              NoteCount = q.NoteCount,
                                                              AttachmentCount = q.AttachmentCount,
+                                                             DateCreated = q.DateCreated,
                                                              DateSubmitted = q.DateSubmitted,
                                                              IsExpedited = q.IsExpedited,
                                                              IsApproved = q.IsApproved,
@@ -737,6 +742,7 @@ namespace org.secc.Purchasing
                                                              ItemCount = q.ItemCount,
                                                              NoteCount = q.NoteCount,
                                                              AttachmentCount = q.AttachmentCount,
+                                                             DateCreated = q.DateCreated,
                                                              DateSubmitted = q.DateSubmitted,
                                                              IsExpedited = q.IsExpedited,
                                                              IsApproved = q.IsApproved,
@@ -1774,6 +1780,7 @@ namespace org.secc.Purchasing
         public int ItemCount { get; set; }
         public int NoteCount { get; set; }
         public int AttachmentCount { get; set; }
+        public DateTime DateCreated { get; set; }
         public DateTime? DateSubmitted { get; set; }
         public bool IsExpedited { get; set; }
         public bool IsApproved { get; set; }
