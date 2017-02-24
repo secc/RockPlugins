@@ -30,11 +30,21 @@ namespace org.secc.PersonMatch
                 phone = phone ?? string.Empty;
                 List<Person> matchingPersons = new List<Person>();
 
+
                 List<Person> persons = personService.Queryable(false, false)
                     .Where(p =>
                        p.LastName == lastName &&
                        (p.BirthDate == null || p.BirthDate.Value == p.BirthDate))
                     .ToList();
+
+                // Check the address if it was passed
+                Location location = new Location();
+                if ( persons.Count() > 0 && !string.IsNullOrEmpty( street1 ) && !string.IsNullOrEmpty( postalCode ) )
+                {
+                    location.Street1 = street1;
+                    location.PostalCode = postalCode;
+                    locationService.Verify( location, true );
+                }
 
                 foreach (Person person in persons)
                 {
@@ -55,10 +65,6 @@ namespace org.secc.PersonMatch
                             }
                             // If it doesn't match, we need to geocode it and check it again
                             if (!addressMatches) {
-                                Location location = new Location();
-                                location.Street1 = street1;
-                                location.PostalCode = postalCode;
-                                locationService.Verify(location, true);
 
                                 if (person.GetHomeLocation().Street1 == location.Street1)
                                 {
