@@ -47,7 +47,7 @@ namespace RockWeb.Blocks.Reporting.Children
             {
                 return;
             }
-            var groups = parentGroup.Groups;
+            var groups = parentGroup.Groups.OrderBy(g => g.Name);
 
             //Group checkbox
             cblGroups.Items.Clear();
