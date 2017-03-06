@@ -148,21 +148,7 @@ namespace RockWeb.Blocks.Reporting.Children
                 //Print Title
                 // format and set title
                 worksheet.Cells[1, 1].Value = group.Name;
-                using ( ExcelRange r = worksheet.Cells[1, 1, 1, 8] )
-                {
-                    r.Merge = true;
-                    r.Style.Font.SetFromFont( new Font( "Calibri", 28, FontStyle.Regular ) );
-                    r.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
-
-                    // set border
-                    r.Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
-                    r.Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
-                    r.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
-                    r.Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
-                }
-
-                worksheet.Cells[2, 1].Value = Rock.RockDateTime.Today.ToString( "MMMM d, yyyy" );
-                using ( ExcelRange r = worksheet.Cells[2, 1, 2, 8] )
+                using ( ExcelRange r = worksheet.Cells[1, 1, 1, 2] )
                 {
                     r.Merge = true;
                     r.Style.Font.SetFromFont( new Font( "Calibri", 20, FontStyle.Regular ) );
@@ -174,73 +160,124 @@ namespace RockWeb.Blocks.Reporting.Children
                     r.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
                     r.Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
                 }
-                using ( ExcelRange r = worksheet.Cells[3, 1, 3, 8] )
-                {
-                    r.Style.Font.Bold = true;
-                }
-                SetExcelValue( worksheet.Cells[3, 1], "Name" );
-                SetExcelValue( worksheet.Cells[3, 2], "Age" );
-                SetExcelValue( worksheet.Cells[3, 3], "Parents" );
-                SetExcelValue( worksheet.Cells[3, 4], "Parent's Numbers" );
-                SetExcelValue( worksheet.Cells[3, 5], "Parent's Email" );
-                SetExcelValue( worksheet.Cells[3, 6], "Address" );
-                SetExcelValue( worksheet.Cells[3, 7], "Baptism Date" );
-                SetExcelValue( worksheet.Cells[3, 8], "Church Membership" );
 
-                var rowCounter = 4;
+                worksheet.Cells[2, 1].Value = Rock.RockDateTime.Today.ToString( "MMMM d, yyyy" );
+                using ( ExcelRange r = worksheet.Cells[2, 1, 2, 2] )
+                {
+                    r.Merge = true;
+                    r.Style.Font.SetFromFont( new Font( "Calibri", 18, FontStyle.Regular ) );
+                    r.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+
+                    // set border
+                    r.Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    r.Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    r.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    r.Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                }
+
+                var rowCounter = 3;
 
                 var groupMembers = group.Members;
                 foreach ( var member in groupMembers.OrderBy( gm => gm.Person.NickName ).ToList() )
                 {
                     var person = member.Person;
                     person.LoadAttributes();
-                    SetExcelValue( worksheet.Cells[rowCounter, 1], person );
-                    SetExcelValue( worksheet.Cells[rowCounter, 2], person.Age );
-                    var familyMembers = person
-                        .GetFamilyMembers()
-                        .Where( m => m.GroupRoleId == 3 )
-                        .Select( m => m.Person )
-                        .ToList();
 
-                    SetExcelValue( worksheet.Cells[rowCounter, 3], string.Join( ",", familyMembers.Select( p => p.FullName ) ) );
-
-                    var phonenumbers = string.Join( ",", familyMembers.SelectMany( p => p.PhoneNumbers.Select( pn => pn.NumberFormatted ) ).ToList() );
-                    SetExcelValue( worksheet.Cells[rowCounter, 4], string.Join( ",", phonenumbers ) );
-                    SetExcelValue( worksheet.Cells[rowCounter, 5], string.Join( ",", familyMembers.Select( p => p.Email ) ) );
-                    var homelocation = person.GetHomeLocation();
-                    var address = "";
-                    if ( homelocation == null )
+                    //Name
+                    using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 2] )
                     {
-                        address = "[No location on record]";
+                        r.Merge = true;
+                        r.Style.Font.SetFromFont( new Font( "Calibri", 16, FontStyle.Regular ) );
+                        // set border
+                        r.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    }
+                    SetExcelValue( worksheet.Cells[rowCounter, 1], person.FullName );
+
+                    rowCounter++;
+
+                    //Age + Birthday
+                    SetExcelValue(
+                        worksheet.Cells[rowCounter, 1],
+                        string.Format(
+                            "Age: {0} ({1})",
+                            person.Age,
+                            ( person.BirthDate ?? new DateTime() ).ToString( "MMMM d, yyyy" ) ) );
+
+                    //Street
+                    var homelocation = person.GetHomeLocation();
+                    if ( homelocation != null )
+                    {
+                        SetExcelValue( worksheet.Cells[rowCounter, 2], homelocation.Street1 + " " + homelocation.Street2 );
                     }
                     else
                     {
-                        address = homelocation.ToString();
+                        SetExcelValue( worksheet.Cells[rowCounter, 2], "[No location on record]" );
                     }
-                    SetExcelValue( worksheet.Cells[rowCounter, 6], address );
 
+                    rowCounter++;
+
+                    //Membership Information
+                    var membershipInfo = person.ConnectionStatusValue.Value;
                     var baptismDateString = person.GetAttributeValue( "Arena-34-404" );
                     if ( !string.IsNullOrEmpty( baptismDateString ) )
                     {
                         var baptismDateNullable = baptismDateString.AsDateTime();
                         if ( baptismDateNullable != null )
                         {
-                            var baptismDate = baptismDateNullable ?? new DateTime(); //I have to turn a nullable datetime to non nullable date time to use .tostring
-                            SetExcelValue( worksheet.Cells[rowCounter, 7], baptismDate.ToString( "MMMM d, yyyy" ) );
+                            var baptismDate = baptismDateNullable ?? new DateTime();
+                            membershipInfo += " Baptism Date: " + baptismDate.ToString( "MMMM d, yyyy" );
                         }
                     }
+                    SetExcelValue( worksheet.Cells[rowCounter, 1], membershipInfo );
 
-                    SetExcelValue( worksheet.Cells[rowCounter, 8], person.ConnectionStatusValue.Value );
+                    //City State
+                    if ( homelocation != null )
+                    {
+                        SetExcelValue( worksheet.Cells[rowCounter, 2],
+                            string.Format( "{0}, {1} {2}", homelocation.City, homelocation.State, new string( homelocation.PostalCode.Take( 5 ).ToArray() ) ) );
+                    }
+
                     rowCounter++;
+
+                    var parents = person
+                        .GetFamilyMembers()
+                        .Where( m => m.GroupRoleId == 3 )
+                        .Select( m => m.Person )
+                        .ToList();
+
+
+                    foreach ( var parent in parents )
+                    {
+                        using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 1] )
+                        {
+                            r.Style.Font.SetFromFont( new Font( "Calibri", 11, FontStyle.Bold ) );
+                        }
+                            SetExcelValue( worksheet.Cells[rowCounter, 1], parent.FullName );
+                        SetExcelValue( worksheet.Cells[rowCounter, 2], parent.Email );
+                        rowCounter++;
+                        using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 2] )
+                        {
+                            r.Merge = true;
+                            r.Style.Font.SetFromFont( new Font( "Calibri", 10, FontStyle.Regular ) );
+                        }
+                        var phoneNumbers = new List<string>();
+                        foreach ( var number in parent.PhoneNumbers )
+                        {
+                            phoneNumbers.Add( string.Format( "{0}: {1}", number.NumberTypeValue.Value, number.NumberFormatted ) );
+                        }
+
+                        SetExcelValue( worksheet.Cells[rowCounter, 1], string.Join( ", ", phoneNumbers ) );
+
+                        rowCounter++;
+                    }
                 }
                 // autofit columns for all cells
                 worksheet.Cells.AutoFitColumns( 0 );
 
                 for ( var i = 1; i < 9; i++ )
                 {
-                    worksheet.Column( i ).Width = 24;
+                    worksheet.Column( i ).Width = 47;
                 }
-                worksheet.Column( 2 ).Width = 4;
 
             }
             byte[] byteArray;
@@ -254,7 +291,7 @@ namespace RockWeb.Blocks.Reporting.Children
             this.Page.EnableViewState = false;
             this.Page.Response.Clear();
             this.Page.Response.ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-            this.Page.Response.AppendHeader( "Content-Disposition", "attachment; filename=" + filename );
+            this.Page.Response.AppendHeader( "Content-Disposition", "attachment; filename=" + filename + ".xlsx" );
 
             this.Page.Response.Charset = string.Empty;
             this.Page.Response.BinaryWrite( byteArray );
