@@ -666,7 +666,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             {
                 if (CurrentPurchaseOrder != null && CurrentPurchaseOrder.PurchaseOrderID > 0)
                 {
-                    if ( CurrentPurchaseOrder.StatusLUID > 0 && CurrentPurchaseOrder.StatusLUID == PurchaseOrder.PurchaseOrderStatusClosedLUID() )
+                    if ( CurrentPurchaseOrder.StatusLUID > 0 && 
+                        ( CurrentPurchaseOrder.StatusLUID == PurchaseOrder.PurchaseOrderStatusClosedLUID()
+                        || CurrentPurchaseOrder.StatusLUID == PurchaseOrder.PurchaseOrderStatusCancelledLUID() ) )
                     {
                         CanReopen = true;
                     }

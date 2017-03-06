@@ -174,16 +174,22 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 }
                 if ( sortProperty != null )
                 {
-                    if ( sortProperty.Direction == SortDirection.Ascending )
+                    try
                     {
-                        POListItems = POListItems.OrderBy( r => r.GetType().GetProperty( sortProperty.Property ).GetValue( r ) ).ToList();
-                    }
-                    else
+                        if ( sortProperty.Direction == SortDirection.Ascending )
+                        {
+                            POListItems = POListItems.OrderBy( r => r.GetType().GetProperty( sortProperty.Property ).GetValue( r ) ).ToList();
+                        }
+                        else
+                        {
+                            POListItems = POListItems.OrderByDescending( r => r.GetType().GetProperty( sortProperty.Property ).GetValue( r ) ).ToList();
+                        }
+                        SetUserPreference( string.Format( "{0}_Sort_Direction", PersonSettingKeyPrefix ), sortProperty.DirectionString );
+                        SetUserPreference( string.Format( "{0}_Sort_Column", PersonSettingKeyPrefix ), sortProperty.Property );
+                    } catch(NullReferenceException)
                     {
-                        POListItems = POListItems.OrderByDescending( r => r.GetType().GetProperty( sortProperty.Property ).GetValue( r ) ).ToList();
+                        // Just eat this exception
                     }
-                    SetUserPreference( string.Format( "{0}_Sort_Direction", PersonSettingKeyPrefix ), sortProperty.DirectionString );
-                    SetUserPreference( string.Format( "{0}_Sort_Column", PersonSettingKeyPrefix ), sortProperty.Property );
                 }
                 else
                 {
