@@ -845,8 +845,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private string GetCERLink()
         {
-            return GlobalAttributesCache.Value("InternalApplicationRoot").ReplaceLastOccurrence("/", "") + 
-                CurrentPageReference.BuildUrl();
+            return GlobalAttributesCache.Value("InternalApplicationRoot").ReplaceLastOccurrence("/", "") +
+                "/page/" + CurrentPageReference.PageId + "?CER=" + CurrentCapitalRequest.CapitalRequestId;
         }
 
         private int GetCurrentUsersLocation()
