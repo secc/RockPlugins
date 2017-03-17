@@ -1,7 +1,21 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="SuperCheckin.ascx.cs" Inherits="RockWeb.Plugins.org_secc.CheckinMonitor.SuperCheckin" %>
+<script>
+    var updateIframe = function (url) {
+        var iframe = document.getElementById("ifDataError");
+        iframe.src = url;
+        console.log(url);
+    }
+</script>
+
 <asp:UpdatePanel ID="upContent" runat="server">
     <ContentTemplate>
         <Rock:ModalAlert ID="maWarning" runat="server" />
+
+        <Rock:ModalDialog runat="server" ID="mdDataError">
+            <Content>
+                <iframe id="ifDataError" style="width: 100%; height: 800px"></iframe>
+            </Content>
+        </Rock:ModalDialog>
 
         <Rock:ModalDialog ID="mdCheckin" runat="server" Title="Check-In" OnSaveClick="mdCheckin_SaveClick" CancelLinkVisible="false" SaveButtonText="Save Check-In State">
             <Content>
@@ -202,6 +216,7 @@
                                 <asp:Panel runat="server" ID="pnlEditNameLiteral">
                                     <h1>
                                         <asp:Literal Text="" ID="ltEditName" runat="server" />
+                                        <asp:LinkButton Text="Report Data Error" ID="btnDataError" runat="server" OnClick="btnDataError_Click" CssClass=" pull-right btn btn-danger" />
                                     </h1>
                                 </asp:Panel>
                                 <asp:Panel runat="server" ID="pnlEditNameTextBox" Visible="false">
