@@ -4,7 +4,11 @@
     <ContentTemplate>
         <div class="hidden-print">
             <Rock:GridFilter runat="server" ID="fBreakoutGroups" OnApplyFilterClick="fBreakoutGroups_ApplyFilterClick">
+            <asp:Panel ID="pnlGroupsContainer" runat="server"> 
+                        <a onclick="$('input[id*=\'cblGroups\'][type=checkbox]').prop('checked', false); return false;" href="#">Uncheck All</a>
+        <a onclick="$('input[id*=\'cblGroups\'][type=checkbox]').prop('checked', true); return false;" href="#">Check All</a>
                 <Rock:RockCheckBoxList runat="server" ID="cblGroups" Label="Groups To Display" />
+                </asp:Panel>
                 <Rock:RockCheckBoxList runat="server" ID="cblSchedules" Label="Schedules To Display" />
                 <Rock:DateRangePicker runat="server" ID="drRange" Label="Attendance Range" />
             </Rock:GridFilter>
