@@ -11,6 +11,29 @@
     <ContentTemplate>
         <Rock:ModalAlert ID="maWarning" runat="server" />
 
+        <Rock:ModalDialog ID="mdAddPhone" runat="server" Title="No Number On Record" SaveButtonText="Save" CancelLinkVisible="true" OnSaveClick="mdAddPhone_SaveClick">
+            <Content>
+                <div class="row">
+                    <div class="col-sm-2"></div>
+                    <div class="col-sm-8">
+                        This person does not have a phone number, you can add one if you wish.
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-2"></div>
+                    <div class="col-sm-4">
+                        <Rock:PhoneNumberBox runat="server" ID="pnbNewPhoneNumber" />
+                    </div>
+                    <div class="col-sm-4">
+                        <Rock:RockDropDownList runat="server" ID="ddlPhoneNumberType">
+                            <asp:ListItem Text="Mobile Phone" Value="12" />
+                            <asp:ListItem Text="Home Phone" Value="13" />
+                        </Rock:RockDropDownList>
+                    </div>
+                </div>
+            </Content>
+        </Rock:ModalDialog>
+
         <Rock:ModalDialog runat="server" ID="mdDataError">
             <Content>
                 <iframe id="ifDataError" style="width: 100%; height: 800px"></iframe>

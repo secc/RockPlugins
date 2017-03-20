@@ -1301,7 +1301,8 @@ try{{
                     }
                     else
                     {
-                        maWarning.Show( "No phone number found.", ModalAlertType.Alert );
+                        pnbAdult1Phone.Text = "";
+                        mdAddPhone.Show();
                     }
                 }
             }
@@ -1380,6 +1381,25 @@ try{{
             var url = GetAttributeValue( "DataErrorURL" );
             url = string.Format( url, personId );
             ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "runUrl", "updateIframe('" + url + "')", true );
+        }
+
+        protected void mdAddPhone_SaveClick( object sender, EventArgs e )
+        {
+            var personId = ( int ) ViewState["SelectedPersonId"];
+            PersonService personService = new PersonService( _rockContext );
+            Person person = personService.Get( personId );
+            var globalAttributesCache = GlobalAttributesCache.Read( _rockContext );
+            var numberTypeValueId = ddlPhoneNumberType.SelectedValue.AsInteger();
+            if ( numberTypeValueId == 0 )
+            {
+                numberTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME ).Id;
+            }
+            if ( person != null )
+            {
+                person.UpdatePhoneNumber( numberTypeValueId, PhoneNumber.DefaultCountryCode(), pnbNewPhoneNumber.Text, false, false, _rockContext );
+                _rockContext.SaveChanges();
+            }
+            mdAddPhone.Hide();
         }
     }
     public class FamilyLabel
