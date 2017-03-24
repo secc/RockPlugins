@@ -8,6 +8,9 @@ using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
 using Rock;
 using Rock.Web.UI.Controls;
+using Rock.Model;
+using Rock.Data;
+using org.secc.PersonMatch;
 
 public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.UI.RockBlock
 {
@@ -65,6 +68,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
 
     protected void btnReviewFinish_Click(object sender, EventArgs e)
     {
+        processRegistration();
         pnlReview.Visible = false;
         pnlConfirmation.Visible = true;
     }
@@ -118,8 +122,6 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         int i = 0;
         foreach (Child child in children)
         {
-
-
             Panel childContainer = new Panel();
             childContainer.CssClass = "col-sm-6 col-md-4";
             phChildSummary.Controls.Add(childContainer);
@@ -165,14 +167,54 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         }
     }
 
+    private void processRegistration()
+    {
+        List<Child> children = ((List<Child>)ViewState["Children"]);
+        PersonService personService = new PersonService(new RockContext());
+        var matchingPeople = personService.GetByMatch(tbFirstname.Text, tbLastName.Text, dpBirthday.SelectedDate, ebEmail.Text, pnbPhone.Text, adAddress.Street1, adAddress.PostalCode);
+        // If we get exactly one match given the specificity of the search criteria this is probably a safe bet
+        if (matchingPeople.Count() == 1)
+        {
+            // See if the family member already exists
+            foreach (Child child in children)
+            {
+                foreach (GroupMember gm in matchingPeople.FirstOrDefault().GetFamilyMembers())
+                {
+                    if (gm.Person.BirthDate == child.DateOfBirth && gm.Person.FirstName == child.FirstName)
+                    {
+                        // These attributes should probably be block settings.
+                        gm.Person.LoadAttributes();
+                        gm.Person.AttributeValues["Allergy"].Value = child.Allergies;
+                        if (!string.IsNullOrWhiteSpace(child.SpecialNeeds))
+                        {
+                            gm.Person.AttributeValues["HasSpecialNeeds"].Value = "Y";
+                            gm.Person.AttributeValues["SpecialNote"].Value = child.SpecialNeeds;
+                        }
+                        gm.Person.SaveAttributeValues();
+                        break;
+                    }
+
+                    // If we get here, it's time to create a new family member
+                }
+            }
+        }
+    }
+
     private void showReview()
     {
         pnlReview.Visible = true;
-        lName.Text = tbFirstname.Text + " " + tbLastName.Text;
-        lPhone.Text = pnbPhone.Text;
-        lDOB.Text = dpBirthday.SelectedDate.HasValue ? dpBirthday.SelectedDate.Value.ToShortDateString() : "";
-        lCampus.Text = cpCampus.Text;
-        lEmail.Text = ebEmail.Text;
+        rlName.Text = tbFirstname.Text + " " + tbLastName.Text;
+        rlPhone.Text = pnbPhone.Text;
+        rlDOB.Text = dpBirthday.SelectedDate.HasValue ? dpBirthday.SelectedDate.Value.ToShortDateString() : "";
+        rlCampus.Text = CampusCache.Read(cpCampus.Text.AsInteger()).Name;
+        rlEmail.Text = ebEmail.Text;
+        rlAddress.Text = adAddress.Street1 + "<br />" + adAddress.City + " " + adAddress.State + " " + adAddress.PostalCode;
+
+        List<Child> children = ((List<Child>)ViewState["Children"]);
+        foreach (Child child in children)
+        {
+            pnlChildren.Controls.Add(new HtmlGenericControl() { InnerHtml = child.FirstName + " " + child.LastName + ", age " + child.DateOfBirth.Age() + " yrs<br />" });
+        }
     }
 
     private void storeChild()

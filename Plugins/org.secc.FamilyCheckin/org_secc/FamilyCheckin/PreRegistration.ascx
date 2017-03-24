@@ -12,8 +12,13 @@
         padding-right: 12px;
         text-align: right;
     }
-    .contact-card .form-control-static {
+    .review .control-label {
         float: left;
+        width: auto;
+        padding-right: 12px;
+        text-align: left;
+    }
+    .contact-card .form-control-static, .review .form-control-static {
         width: 60%;
         padding-top: 0;
         overflow: hidden;
@@ -24,7 +29,12 @@
         padding-bottom: 0px;
         white-space: nowrap;
     }
-    .contact-card .form-group {
+    .review .address .form-control-static {
+        overflow: auto;
+        height: auto;
+        white-space: normal;
+    }
+    .contact-card .form-group, .review .form-group {
         margin-bottom: 0px !important;
     }
     .contact-card .info {
@@ -39,7 +49,7 @@
         margin-bottom: 10px;
     }
 </style>
-<asp:Panel runat="server" ID="pnlRegistration" Visible="false">
+<asp:Panel runat="server" ID="pnlRegistration" Visible="true">
     
         <div class="panel panel-block">
             <div class="panel-heading">
@@ -85,7 +95,7 @@
 </asp:Panel>
 
 
-    <asp:Panel runat="server" ID="pnlChild" Visible="true">
+    <asp:Panel runat="server" ID="pnlChild" Visible="false">
 
         <div class="panel panel-block">
             <div class="panel-heading">
@@ -174,7 +184,7 @@
 							</p>
 						</div>
 						<div class="col-sm-6">
-                            <Rock:AddressControl runat="server" ID="adAddress" Label="Address" />
+                            <Rock:AddressControl runat="server" ID="adAddress" Label="Address" ShowAddressLine2="false" />
 						</div>
 					</div>
 				</div>
@@ -192,36 +202,23 @@
             </div>
             <div class="panel-body">
                 <p class="step-description">You're just about done. Let's just review your information and you will be all set!</p>
-				<div class="form-container">
+				<div class="review">
 					<div class="row">
 						<div class="col-sm-4">
 							<h2>Parent/Guardian Information</h2>
-                            <div class="form-inline">
-                                <label class="form-label">Name: </label>
-                                <asp:Literal runat="server" ID="lName" /><br />
-
-                                <label class="form-label">Phone: </label>
-                                <asp:Literal runat="server" ID="lPhone" /><br />
-
-                                <label class="form-label">Date of Birth: </label>
-                                <asp:Literal runat="server" ID="lDOB" />
-                            </div>
+                            <Rock:RockLiteral runat="server" Label="Name:" ID="rlName" />
+                            <Rock:RockLiteral runat="server" Label="Birthdate:" ID="rlDOB" />
+                            <Rock:RockLiteral runat="server" Label="Campus:" ID="rlCampus" />
 						</div>
 						<div class="col-sm-4">
 							<h2>Children Registered</h2>
-							<div id="children-names">Braden Ball, age 7<br />Charlie Ball, age 5<br />Matthew Schmidt, age 7<br/>Hannah Schmidt, age 9<br />Brady Byers, age 6</div>
-							<button type="button" class="action" id="ReviewChildren">Review complete details</button>
+							<asp:Panel runat="server" ID="pnlChildren"></asp:Panel>
 						</div>
 						<div class="col-sm-4">
-							<h2>Campus &amp; Contact Information</h2>
-                            
-                            <div class="form-inline">
-                                <label class="form-label">Campus: </label>
-                                <asp:Literal runat="server" ID="lCampus" /><br />
-
-                                <label class="form-label">Email: </label>
-                                <asp:Literal runat="server" ID="lEmail" />
-                            </div>
+							<h2>Contact Information</h2>
+                            <Rock:RockLiteral runat="server" Label="Phone:" ID="rlPhone" />
+                            <Rock:RockLiteral runat="server" Label="Email:" ID="rlEmail" />
+                            <Rock:RockLiteral runat="server" Label="Address:" ID="rlAddress" CssClass="address" />
 						</div>
 					</div>
 				</div>
