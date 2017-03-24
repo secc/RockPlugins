@@ -85,7 +85,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             tbChildLastname.Text = children[i.Value].LastName;
             bpChildBirthday.Text = children[i.Value].DateOfBirth.ToShortDateString();
             rblGender.SelectedValue = children[i.Value].Gender;
-            gpGrade.SelectedValue = children[i.Value].Grade;
+            gpGrade.SelectedValue = children[i.Value].Grade.ToString();
             tbAllergies.Text = children[i.Value].Allergies;
             tbSpecialNeeds.Text = children[i.Value].SpecialNeeds;
         }
@@ -140,7 +140,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             HtmlGenericControl info = new HtmlGenericControl();
             info.Controls.Add(new RockLiteral() { Label = "Gender:", Text = child.Gender });
             info.Controls.Add(new RockLiteral() { Label = "Birthdate:", Text = child.DateOfBirth.ToShortDateString() + " (" + child.DateOfBirth.Age() + " Yrs)" });
-            info.Controls.Add(new RockLiteral() { Label = "Grade:", Text = (String.IsNullOrEmpty(child.Grade) ? "Pre-school" : DefinedValueCache.Read(child.Grade).Description) });
+            info.Controls.Add(new RockLiteral() { Label = "Grade:", Text = (child.Grade == null ? "Pre-school" : DefinedValueCache.Read(child.Grade.Value).Description) });
             info.Controls.Add(new RockLiteral() { Label = "Allergies:", Text = !string.IsNullOrEmpty(child.Allergies)?child.Allergies:"[None]" });
             info.Controls.Add(new RockLiteral() { Label = "Special&nbsp;Needs:", Text = !string.IsNullOrEmpty(child.SpecialNeeds) ? child.SpecialNeeds : "[None]" });
 
@@ -169,12 +169,22 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
 
     private void processRegistration()
     {
+        // Setup a few things
+        var rockContext = new RockContext();
+        var familyGroupType = GroupTypeCache.Read(Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY);
+
+        var adultRoleId = familyGroupType.Roles
+            .Where(r => r.Guid.Equals(Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid()))
+            .Select(r => r.Id)
+            .FirstOrDefault();
+
         List<Child> children = ((List<Child>)ViewState["Children"]);
-        PersonService personService = new PersonService(new RockContext());
+        PersonService personService = new PersonService(rockContext);
         var matchingPeople = personService.GetByMatch(tbFirstname.Text, tbLastName.Text, dpBirthday.SelectedDate, ebEmail.Text, pnbPhone.Text, adAddress.Street1, adAddress.PostalCode);
         // If we get exactly one match given the specificity of the search criteria this is probably a safe bet
         if (matchingPeople.Count() == 1)
         {
+            bool updated = false;
             // See if the family member already exists
             foreach (Child child in children)
             {
@@ -182,23 +192,34 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                 {
                     if (gm.Person.BirthDate == child.DateOfBirth && gm.Person.FirstName == child.FirstName)
                     {
-                        // These attributes should probably be block settings.
-                        gm.Person.LoadAttributes();
-                        gm.Person.AttributeValues["Allergy"].Value = child.Allergies;
-                        if (!string.IsNullOrWhiteSpace(child.SpecialNeeds))
-                        {
-                            gm.Person.AttributeValues["HasSpecialNeeds"].Value = "Y";
-                            gm.Person.AttributeValues["SpecialNote"].Value = child.SpecialNeeds;
-                        }
-                        gm.Person.SaveAttributeValues();
+                        child.SaveAttributes(gm.Person);
+                        updated = true;
                         break;
                     }
 
+                }
+                if (!updated)
+                {
                     // If we get here, it's time to create a new family member
+                    child.SaveAsPerson(matchingPeople.FirstOrDefault().GetFamily().Id, rockContext);
                 }
             }
         }
+        else
+        {
+            // Create the adult
+            Person adult = new Person();
+            // TODO: populate this adult
+            Group family = PersonService.SaveNewPerson(adult, rockContext, cpCampus.SelectedCampusId);
+
+            // Now create all the children
+            foreach (Child child in children)
+            {
+                child.SaveAsPerson(family.Id, rockContext);
+            }
+        }
     }
+
 
     private void showReview()
     {
@@ -241,7 +262,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             child.DateOfBirth = bpChildBirthday.SelectedDate.Value;
         }
         child.Gender = rblGender.Text;
-        child.Grade = gpGrade.Text;
+        child.Grade = gpGrade.SelectedValueAsInt();
         child.Allergies = tbAllergies.Text;
         child.SpecialNeeds = tbSpecialNeeds.Text;
 
@@ -275,7 +296,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         public string LastName { get; set; }
         public DateTime DateOfBirth { get; set; }
         public string Gender { get; set; }
-        public string Grade { get; set; }
+        public int? Grade { get; set; }
         public string Allergies { get; set; }
         public string SpecialNeeds { get; set; }
 
@@ -292,6 +313,51 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             else
                 return this.DateOfBirth.CompareTo(((Child)obj).DateOfBirth);
         }
+        
+        /// <summary>
+        /// Save this child as a person in a family
+        /// </summary>
+        /// <param name="familyId">The family to add this child to</param>
+        /// <param name="rockContext">The RockContext</param>
+        /// <returns></returns>
+        public Person SaveAsPerson(int familyId, RockContext rockContext)
+        {
+
+            var familyGroupType = GroupTypeCache.Read(Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY);
+            var childRoleId = familyGroupType.Roles
+                .Where(r => r.Guid.Equals(Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_CHILD.AsGuid()))
+                .Select(r => r.Id)
+                .FirstOrDefault();
+            var person = new Person();
+            person.FirstName = this.FirstName;
+            person.LastName = this.LastName;
+            person.BirthDay = this.DateOfBirth.Day;
+            person.BirthMonth = this.DateOfBirth.Month;
+            person.BirthYear = this.DateOfBirth.Year;
+            person.RecordTypeValueId = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid()).Id;
+            person.ConnectionStatusValueId = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT.AsGuid()).Id;
+            person.RecordStatusValueId = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid()).Id;
+            person.GraduationYear = Person.GraduationYearFromGradeOffset(this.Grade);
+
+            PersonService.AddPersonToFamily(person, true, familyId, childRoleId, rockContext);
+
+            SaveAttributes(person);
+            return person;
+        }
+
+        public void SaveAttributes(Person person)
+        {
+            // These attributes should probably be block settings.
+            person.LoadAttributes();
+            person.AttributeValues["Allergy"].Value = this.Allergies;
+            if (!string.IsNullOrWhiteSpace(this.SpecialNeeds))
+            {
+                person.AttributeValues["HasSpecialNeeds"].Value = "Y";
+                person.AttributeValues["SpecialNote"].Value = this.SpecialNeeds;
+            }
+            person.SaveAttributeValues();
+        }
+
     }
 
 
