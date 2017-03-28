@@ -169,14 +169,8 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
 
     private void processRegistration()
     {
-        // Setup a few things
+        // Setup the Rock context
         var rockContext = new RockContext();
-        var familyGroupType = GroupTypeCache.Read(Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY);
-
-        var adultRoleId = familyGroupType.Roles
-            .Where(r => r.Guid.Equals(Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid()))
-            .Select(r => r.Id)
-            .FirstOrDefault();
 
         List<Child> children = ((List<Child>)ViewState["Children"]);
         PersonService personService = new PersonService(rockContext);
@@ -204,12 +198,25 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                     child.SaveAsPerson(matchingPeople.FirstOrDefault().GetFamily().Id, rockContext);
                 }
             }
+            rockContext.SaveChanges();
         }
         else
         {
+            DefinedValueCache homePhone = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME);
+
             // Create the adult
             Person adult = new Person();
-            // TODO: populate this adult
+            adult.FirstName = tbFirstname.Text;
+            adult.LastName = tbLastName.Text;
+            adult.BirthDay = dpBirthday.SelectedDate.Value.Day;
+            adult.BirthMonth = dpBirthday.SelectedDate.Value.Month;
+            adult.BirthYear = dpBirthday.SelectedDate.Value.Year;
+            adult.RecordTypeValueId = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid()).Id;
+            adult.ConnectionStatusValueId = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT.AsGuid()).Id;
+            adult.RecordStatusValueId = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid()).Id;
+            adult.UpdatePhoneNumber(homePhone.Id, pnbPhone.CountryCode, pnbPhone.Number, false, false, rockContext);
+            adult.Email = ebEmail.Text;
+            
             Group family = PersonService.SaveNewPerson(adult, rockContext, cpCampus.SelectedCampusId);
 
             // Now create all the children
@@ -217,6 +224,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             {
                 child.SaveAsPerson(family.Id, rockContext);
             }
+            rockContext.SaveChanges();
         }
     }
 
@@ -262,7 +270,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             child.DateOfBirth = bpChildBirthday.SelectedDate.Value;
         }
         child.Gender = rblGender.Text;
-        child.Grade = gpGrade.SelectedValueAsInt();
+        child.Grade = gpGrade.SelectedValue.AsGuidOrNull();
         child.Allergies = tbAllergies.Text;
         child.SpecialNeeds = tbSpecialNeeds.Text;
 
@@ -296,7 +304,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         public string LastName { get; set; }
         public DateTime DateOfBirth { get; set; }
         public string Gender { get; set; }
-        public int? Grade { get; set; }
+        public Guid? Grade { get; set; }
         public string Allergies { get; set; }
         public string SpecialNeeds { get; set; }
 
@@ -337,7 +345,10 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             person.RecordTypeValueId = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid()).Id;
             person.ConnectionStatusValueId = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT.AsGuid()).Id;
             person.RecordStatusValueId = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid()).Id;
-            person.GraduationYear = Person.GraduationYearFromGradeOffset(this.Grade);
+            if (this.Grade.HasValue)
+            {
+                person.GraduationYear = Person.GraduationYearFromGradeOffset(DefinedValueCache.Read(this.Grade.Value).Value.AsInteger());
+            }
 
             PersonService.AddPersonToFamily(person, true, familyId, childRoleId, rockContext);
 
