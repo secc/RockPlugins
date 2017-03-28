@@ -111,13 +111,13 @@
                     </div>
 					<div class="row">
 						<div class="col-sm-4">
-						    <Rock:RockTextBox runat="server" Label="Child's First Name" Required="true" id="tbChildFirstname" Text="Isaiah" />
+						    <Rock:RockTextBox runat="server" Label="Child's First Name" Required="true" id="tbChildFirstname" />
 						</div>
 						<div class="col-sm-4">
-						    <Rock:RockTextBox runat="server" Label="Child's Last Name" Required="true" id="tbChildLastname" Text="Bump" />
+						    <Rock:RockTextBox runat="server" Label="Child's Last Name" Required="true" id="tbChildLastname" />
 						</div>
 						<div class="col-sm-4">
-						    <Rock:DatePicker runat="server" Label="Date of Birth" Required="true" id="bpChildBirthday" Text="07/09/2009" StartView="decade" />
+						    <Rock:DatePicker runat="server" Label="Date of Birth" Required="true" id="bpChildBirthday" StartView="decade" />
 						</div>
 					</div>
 					<div class="row">
@@ -239,7 +239,7 @@
 				<div class="form-container">
 					<div class="row">
 						<div class="col-sm-12">
-							<p>If you have any questions, please don't hesitate to <a href="contact.php">contact us</a>.</p>
+							<p>If you have any questions, please check out the information avialable here: <a href="https://www.southeastchristian.org/connect/children/">https://www.southeastchristian.org/connect/children/</a>.</p>
 
 							<h2>Now What?</h2>
 							<ul>
