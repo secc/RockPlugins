@@ -1006,8 +1006,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                                 //Filter out if person is already checked in
                                 if ( attendanceQry.Where( a => a.PersonAlias.PersonId == person.Person.Id ).Any() )
                                 {
-                                    //location.Schedules.Remove( schedule );
-                                    //overload = true;
+                                    location.Schedules.Remove( schedule );
+                                    overload = true;
                                 }
 
                                 LocationScheduleCount locationScheduleCount = kioskCountUtility.GetLocationScheduleCount( location.Location.Id, schedule.Schedule.Id );
