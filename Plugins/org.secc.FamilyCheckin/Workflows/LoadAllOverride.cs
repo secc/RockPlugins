@@ -79,6 +79,7 @@ namespace org.secc.FamilyCheckin
                                 {
                                     var cl = new CheckInLocation();
                                     cl.Location = groupLocation.Location;
+                                    cl.CampusId = cl.Location.CampusId;
                                     checkinLocations.Add( cl );
                                     var schedules = new List<CheckInSchedule>();
                                     foreach(var schedule in groupLocation.Schedules )
