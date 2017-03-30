@@ -37,6 +37,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [BooleanField( "Allow NonApproved Adults", "Should adults who are not in the approved person list be allowed to checkin?", false, key: "AllowNonApproved" )]
     [DataViewField( "Security Role Dataview", "Data view which people who are in a security role. It will not allow adding PINs for people in this group.", entityTypeName: "Rock.Model.Person", required: false )]
     [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Volunteer Group Attribute" )]
+    [TextField( "Data Error URL", "Example: WorkflowEntry/12?PersonId={0}", false )]
 
     public partial class SuperCheckin : CheckInBlock
     {
@@ -1227,7 +1228,7 @@ try{{
             {
                 ProcessActivity( GetAttributeValue( "ReprintActivity" ), out errorMessages );
             }
-            catch (Exception ex)
+            catch ( Exception ex )
             {
                 LogException( ex );
                 maWarning.Show( "There was an exception while processing your request. The error has been logged.", ModalAlertType.Alert );
@@ -1300,7 +1301,8 @@ try{{
                     }
                     else
                     {
-                        maWarning.Show( "No phone number found.", ModalAlertType.Alert );
+                        pnbAdult1Phone.Text = "";
+                        mdAddPhone.Show();
                     }
                 }
             }
@@ -1370,6 +1372,34 @@ try{{
         protected void cbVolunteer_CheckedChanged( object sender, EventArgs e )
         {
 
+        }
+
+        protected void btnDataError_Click( object sender, EventArgs e )
+        {
+            mdDataError.Show();
+            var personId = ( int ) ViewState["SelectedPersonId"];
+            var url = GetAttributeValue( "DataErrorURL" );
+            url = string.Format( url, personId );
+            ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "runUrl", "updateIframe('" + url + "')", true );
+        }
+
+        protected void mdAddPhone_SaveClick( object sender, EventArgs e )
+        {
+            var personId = ( int ) ViewState["SelectedPersonId"];
+            PersonService personService = new PersonService( _rockContext );
+            Person person = personService.Get( personId );
+            var globalAttributesCache = GlobalAttributesCache.Read( _rockContext );
+            var numberTypeValueId = ddlPhoneNumberType.SelectedValue.AsInteger();
+            if ( numberTypeValueId == 0 )
+            {
+                numberTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME ).Id;
+            }
+            if ( person != null )
+            {
+                person.UpdatePhoneNumber( numberTypeValueId, PhoneNumber.DefaultCountryCode(), pnbNewPhoneNumber.Text, false, false, _rockContext );
+                _rockContext.SaveChanges();
+            }
+            mdAddPhone.Hide();
         }
     }
     public class FamilyLabel
