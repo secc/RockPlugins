@@ -1,0 +1,127 @@
+<%@ Master Language="C#" AutoEventWireup="true" Inherits="Rock.Web.UI.RockMasterPage" %>
+<!DOCTYPE html>
+
+<html class="no-js">
+<head runat="server">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=10" />
+    <meta charset="utf-8">
+    <title></title>
+    
+    <script src="<%# ResolveRockUrl("~/Scripts/jquery-1.10.2.min.js" ) %>"></script>
+
+    <!-- Set the viewport width to device width for mobile -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <asp:ContentPlaceHolder ID="css" runat="server" />
+
+    <script src="https://use.typekit.net/jwz2kgc.js"></script>
+    <script>try{Typekit.load({ async: true });}catch(e){}</script>
+
+	<!-- Included CSS Files -->
+	<link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/easter.css", true) %>"/>
+	<link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/home.css", true) %>"/>
+	<link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/layout.css", true) %>"/>
+	<link rel="stylesheet" href="<%# ResolveRockUrl("~/Styles/developer.css", true) %>"/>
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/bootstrap.css", true) %>"/>
+	<link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/theme.css", true) %>"/>
+
+    <script src="<%# ResolveRockUrl("~/Scripts/modernizr.js" ) %>" ></script>
+
+    <asp:ContentPlaceHolder ID="head" runat="server"></asp:ContentPlaceHolder>
+
+    <!-- Icons -->
+    <link rel="shortcut icon" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/favicon.ico", true) %>">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/touch-icon-ipad-retina.png", true) %>">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/touch-icon-iphone-retina.png", true) %>">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/touch-icon-ipad.png", true) %>">
+    <link rel="apple-touch-icon-precomposed" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/touch-icon-iphone.png", true) %>">
+</head>
+<body>
+
+    <form id="form1" runat="server">
+        <div id="NavScrim"></div>
+
+        <!-- Page Navigation -->
+        <nav class="navbar navbar-default navbar-fixed-top mega navbar-fw navbar-small">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar" aria-expanded="true" aria-controls="navbar">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>            
+            <div class="navbar-header page-scroll">
+                <Rock:Zone Name="Header" runat="server" />
+
+            </div>
+            <div id="navbar" class="navbar-collapse collapse page-scroll navbar-right" style="max-height: 934px;">
+                <Rock:Zone Name="Navigation" runat="server" />
+            </div>
+        </nav>
+
+        <section id="DocumentWrapper" style="margin-top: 50px;">
+		
+            <asp:ContentPlaceHolder ID="feature" runat="server"></asp:ContentPlaceHolder>
+
+            <asp:ContentPlaceHolder ID="main" runat="server"></asp:ContentPlaceHolder>
+
+         <footer id="social" class="footer-contact" style="margin-top: 20px">
+
+          <!-- Social Links -->
+          <div class="dark-bg">
+            <div class="container footer-social-links">
+    		    <Rock:Zone Name="Footer" runat="server" />
+            </div><!-- / .container -->
+          </div><!-- / .dark-bg -->
+
+
+          <!-- Copyright -->
+          <div class="copyright">
+            <div class="container">
+              <div class="row">
+
+                <div class="col-md-12">
+    		        <Rock:Zone Name="Copyright" runat="server" />
+                </div>
+
+                <!-- <div class="col-md-6">
+                  <small><a href="#page-top-easter" class="pull-right to-the-top">To the top<i class="fa fa-angle-up"></i></a></small>
+                </div> -->
+
+              </div><!-- / .row -->
+            </div><!-- / .container -->
+          </div><!-- / .copyright -->
+        </footer>
+        </section>
+        
+        <%-- controls for scriptmanager and update panel --%>
+        <asp:ScriptManager ID="sManager" runat="server"/>
+        <asp:UpdateProgress id="updateProgress" runat="server" DisplayAfter="800">
+		        <ProgressTemplate>
+		            <div class="updateprogress-status">
+                        <div class="spinner">
+                          <div class="rect1"></div>
+                          <div class="rect2"></div>
+                          <div class="rect3"></div>
+                          <div class="rect4"></div>
+                          <div class="rect5"></div>
+                        </div>
+                    </div>
+                    <div class="updateprogress-bg modal-backdrop"></div>
+		        </ProgressTemplate>
+        </asp:UpdateProgress>
+
+        <script>
+        $("#NavToggle").click(function() {
+            var $body = $("body");
+  
+            $body.toggleClass("menu-open");
+  
+        });
+
+        </script>
+    </form>
+
+</body>
+
+</html>

@@ -1,0 +1,106 @@
+body, .testimonials-3col .t-item blockquote, .testimonials-3col .t-item .wrapper-404 .content-wrapper .info-wrapper .info-404, .wrapper-404 .content-wrapper .info-wrapper .testimonials-3col .t-item .info-404, .testimonials-3col .t-item .bg-maintenance .content-wrapper .content-inner p, .bg-maintenance .content-wrapper .content-inner .testimonials-3col .t-item p {
+    font-family: "brandon-grotesque", "Open Sans", "Helvetica Neue", Helvetica, sans-serif;
+    font-size: 14px;
+    font-weight: 300;
+    letter-spacing: 0.2px;
+    line-height: 1.8em;
+    color: #777;
+}
+.navbar-logo {
+    width: 150px !important;
+}
+.navbar .navbar-header .navbar-brand {
+    padding: 15px 0;
+    margin-left: 0;
+}
+.navbar-small .navbar-header .navbar-brand {
+    padding: 9px 0;
+}
+.navbar-default .navbar-brand {
+    color: #777;
+}
+.navbar-fw .navbar-header {
+    margin-left: 50px;
+    width: 15%;
+}
+.navbar-brand {
+    float: left;
+    padding: 15px 15px;
+    font-size: 18px;
+    line-height: 20px;
+    height: 50px;
+}
+.navbar .navbar-nav li a {
+    text-transform: uppercase;
+    font-size: 1.1em;
+    font-weight: bold;
+    letter-spacing: 4px;
+    color: #000;
+    transition: color .5s;
+}
+.navbar-fw .navbar-right {
+    text-align: right;
+}
+.dark-bg {
+    background: #5ec4b6;
+}
+.footer-social-links ul {
+    list-style: none;
+    margin: 0;
+    padding-left: 0px;
+}
+.footer-social-links ul li {
+    display: inline-block;
+    padding-right: 35px;
+    margin-right: 35px;
+    border-right: 1px solid #fff;
+}
+.footer-social-links ul li:last-child {
+    border: none;
+    padding-right: 0;
+    margin-right: 0;
+}
+.footer-social-links a {
+    color: #ECECEB;
+    text-transform: uppercase;
+}
+.footer-social-links {
+    text-align: center;
+    padding-left: 0px;
+}
+@media (max-width: 600px)
+{
+    .footer-social-links ul li {
+        margin-right: 0;
+        margin-bottom: 15px;
+        width: 33%;
+    }
+    .footer-social-links ul li:nth-child(2) {
+        border-right: none;
+        padding-left: 30px;
+    }
+}
+.copyright {
+    background: #c9e9e6;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+.copyright small {
+    font-family: "brandon-grotesque", "Open Sans", "Helvetica Neue", Helvetica, sans-serif;
+    font-size: .8em;
+    text-transform: uppercase;
+    letter-spacing: 1.3px;
+    font-weight: 300;
+    letter-spacing: 0.2px;
+    line-height: 1.8em;
+    color: #777;
+}
+
+@media (min-width: 768px) {
+    .pull-right-md {
+        float: right !important;
+    }
+    .pull-left-md {
+        float: left !important;
+    }
+}

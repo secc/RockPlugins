@@ -54,9 +54,9 @@ namespace org.secc.FamilyCheckin
                             .Select( pa => pa.Id ).ToList();
 
                         var attendance = attendanceService.Queryable().AsNoTracking()
-                            .Where( a => 
+                            .Where( a =>
                                 personAlias.Contains( a.PersonAliasId ?? 0 )
-                                && a.EndDateTime==null //we ask for a null end time to favor where the child was moved last
+                                && a.EndDateTime == null //we ask for a null end time to favor where the child was moved last
                                 && sundayList.Contains( a.SundayDate )
                                 && a.DeviceId != null
                                 && a.Location.IsActive
@@ -64,16 +64,16 @@ namespace org.secc.FamilyCheckin
                                 && acceptableLocations.Contains( a.LocationId ?? 0 )
                                 && acceptableScheduleIds.Contains( a.ScheduleId ?? 0 )
                             )
-                            .GroupBy( a => new
-                            {
-                                ScheduleId = a.ScheduleId,
-                                GroupId = a.GroupId,
-                                LocationId = a.LocationId,
-                                GroupTypeId = a.Group.GroupTypeId
-                            } )
-                            .DistinctBy( an => an.Key.ScheduleId )
-                            .OrderByDescending( an => an.Count() )
-                            .ToList();
+                        .GroupBy( a => new
+                        {
+                            ScheduleId = a.ScheduleId,
+                            GroupId = a.GroupId,
+                            LocationId = a.LocationId,
+                            GroupTypeId = a.Group.GroupTypeId
+                        } )
+                        .OrderByDescending( an => an.Count() )
+                        .DistinctBy( an => an.Key.ScheduleId )
+                        .ToList();
 
                         foreach ( var item in attendance )
                         {

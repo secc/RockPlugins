@@ -8,8 +8,7 @@
 
 <script>
 
-    var showContent = function ()
-    {
+    var showContent = function () {
         var content = document.getElementById("quickCheckinContent")
         content.style.transition = "linear .2s"
         content.style.transform = "translateX(100vw)"
@@ -18,8 +17,7 @@
         pgt.style.transform = "translateX(100vw)"
     }
 
-    var showPgt = function ()
-    {
+    var showPgt = function () {
         var content = document.getElementById("quickCheckinContent")
         content.style.transition = "linear .2s"
         content.style.transform = "translateX(0px)"
@@ -28,11 +26,9 @@
         pgt.style.transform = "translateX(0px)"
     }
 
-    var doCheckin = function ()
-    {
+    var doCheckin = function () {
         setTimeout(
-            function ()
-            {
+            function () {
                 var content = document.getElementById("quickCheckinContainer");
                 document.body.style.overflow = "hidden";
                 content.style.transitionDuration = "0.2s";
@@ -43,7 +39,7 @@
                 success.style.transform = "translateY(-90vh)";
                 __doPostBack("<%= btnCheckin.UniqueID%>", "OnClick");
             }, 0
-                )
+        )
     }
 
 </script>
@@ -58,6 +54,22 @@
                     <h1>Select Room To Check-in To:</h1>
                     <div class="row">
                         <asp:PlaceHolder runat="server" ID="phModal" />
+                    </div>
+                </Content>
+            </Rock:ModalDialog>
+            <Rock:ModalDialog ID="mdMinistrySafe" runat="server" CssClass="modal">
+                <Content>
+                    <div class="text-center">
+                        <p style="font-size: 12em; color: #DB542D">
+                            <i class="fa fa-exclamation-triangle"></i>
+                        </p>
+                        <p style="font-size: 4em;">
+                            Our records show that you have not completed Ministry Safe training.
+                            <br>
+                            Please contact your team leader or a staff member as soon as possible.
+                        </p>
+                        <Rock:BootstrapButton ID="btnContinue" runat="server" CssClass="btn btn-primary" Text="Continue"
+                            Font-Size="2em" OnClick="btnContinue_Click"></Rock:BootstrapButton>
                     </div>
                 </Content>
             </Rock:ModalDialog>
