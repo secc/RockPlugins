@@ -184,7 +184,7 @@
 							</p>
 						</div>
 						<div class="col-sm-6">
-                            <Rock:AddressControl runat="server" ID="adAddress" Label="Address" ShowAddressLine2="false" />
+                            <Rock:AddressControl runat="server" ID="adAddress" Label="Your Home Address:" ShowAddressLine2="false" />
 						</div>
 					</div>
 				</div>
@@ -244,6 +244,7 @@
 							<h2>Now What?</h2>
 							<ul>
 								<li>When you arrive, just head to the SE!Kids Check-in Desk to check-in your children.</li>
+                                <li>If you have any questions when you are trying to check in children, please see a volunteer to help you.</li>
 								<li>You will receive a tag to place on each child, as well as a tag for you to use to pick up your children after the service.</li>
 								<li>Then, just take your children to the room listed on their tag.</li>
 								<li>When the service is over, return to the same room where you dropped off your children and present your other tag to check them out.</li>
