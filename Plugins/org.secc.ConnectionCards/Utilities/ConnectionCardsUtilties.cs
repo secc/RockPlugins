@@ -98,7 +98,7 @@ namespace org.secc.ConnectionCards.Utilities
                             var element = new BinaryFile()
                             {
                                 BinaryFileTypeId = inputFile.BinaryFileTypeId,
-                                FileName = "9 Connection Card",
+                                FileName = "Connection Card",
                                 MimeType = "image/png",
                                 DatabaseData = databaseData
                             };
