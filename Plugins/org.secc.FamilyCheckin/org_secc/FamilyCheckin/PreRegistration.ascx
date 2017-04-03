@@ -235,21 +235,9 @@
                 <h2 class="panel-title">You're All Set!</h2>
             </div>
             <div class="panel-body">
-                <p class="step-description">We're so excited to worship with you!</p>
 				<div class="form-container">
 					<div class="row">
-						<div class="col-sm-12">
-							<p>If you have any questions, please check out the information avialable here: <a href="https://www.southeastchristian.org/connect/children/">https://www.southeastchristian.org/connect/children/</a>.</p>
-
-							<h2>Now What?</h2>
-							<ul>
-								<li>When you arrive, just head to the SE!Kids Check-in Desk to check-in your children.</li>
-                                <li>If you have any questions when you are trying to check in children, please see a volunteer to help you.</li>
-								<li>You will receive a tag to place on each child, as well as a tag for you to use to pick up your children after the service.</li>
-								<li>Then, just take your children to the room listed on their tag.</li>
-								<li>When the service is over, return to the same room where you dropped off your children and present your other tag to check them out.</li>
-							</ul>
-						</div>
+                        <asp:Panel runat="server" ID="pnlConfirmationContent" class="col-sm-12" />
 					</div>
 				</div>
 			</div>
