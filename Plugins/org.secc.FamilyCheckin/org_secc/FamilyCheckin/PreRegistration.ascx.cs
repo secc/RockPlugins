@@ -11,7 +11,23 @@ using Rock.Web.UI.Controls;
 using Rock.Model;
 using Rock.Data;
 using org.secc.PersonMatch;
+using System.ComponentModel;
+using Rock.Attribute;
 
+[DisplayName("Children's Pre-Registration")]
+[Category("SECC > Check-in")]
+[Description("A tool for Pre-Registering families in Rock especially geared toward children's ministry.")]
+
+[WorkflowTypeField("Person Workflow", "The workflow to launch when the new family is added (Entity will be the person created)", false, false)]
+[CodeEditorField("Confirmation", "Confirmation content.", CodeEditorMode.Html, defaultValue: @"<p>We're so excited to worship with you!</p>
+<h2>Now What ?</h2>
+<ul>
+    <li>When you arrive, just head to the Children's Ministry Check-in Desk to check-in your children.</li>
+    <li>If you have any questions when you are trying to check in children, please see a volunteer to help you.</li>
+    <li>You will receive a tag to place on each child, as well as a tag for you to use to pick up your children after the service.</li>
+    <li>Then, just take your children to the room listed on their tag.</li >
+    <li>When the service is over, return to the same room where you dropped off your children and present your other tag to check them out.</li>
+</ul> ")]
 public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.UI.RockBlock
 {
     protected void Page_Load(object sender, EventArgs e)
@@ -70,6 +86,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
     {
         processRegistration();
         pnlReview.Visible = false;
+        pnlConfirmationContent.Controls.Add( new HtmlGenericControl() { InnerHtml = GetAttributeValue("Confirmation") } );
         pnlConfirmation.Visible = true;
     }
 
@@ -199,6 +216,8 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                 }
             }
             rockContext.SaveChanges();
+
+            matchingPeople.FirstOrDefault().PrimaryAlias.LaunchWorkflow(new Guid(GetAttributeValue("PersonWorkflow")), matchingPeople.FirstOrDefault().ToString() + " Pre-Registration");
         }
         else
         {
@@ -225,6 +244,8 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                 child.SaveAsPerson(family.Id, rockContext);
             }
             rockContext.SaveChanges();
+
+            adult.PrimaryAlias.LaunchWorkflow(new Guid(GetAttributeValue("PersonWorkflow")), adult.ToString() + " Pre-Registration");
         }
     }
 
