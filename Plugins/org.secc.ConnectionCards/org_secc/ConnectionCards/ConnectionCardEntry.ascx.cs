@@ -117,52 +117,15 @@ namespace RockWeb.Plugins.org_secc.ConnectionCards
             var binaryFiles = ConnectionCardsUtilties.ChopImage( binaryFile, 3, 2, rockContext );
             binaryFileService.Delete( binaryFile );
             rockContext.SaveChanges();
-            foreach (var connectionCard in binaryFiles )
+            foreach ( var connectionCard in binaryFiles )
             {
-                StartWorkflow( connectionCard );
+                connectionCard.LaunchWorkflow( GetAttributeValue( "WorkflowType" ).AsGuidOrNull(), "New Connection Card Workflow" );
             }
             pnlEdit.Visible = false;
             pnlUpload.Visible = true;
             hfImageGuid.Value = "";
             fMainSheet.BinaryFileId = 0;
             nbSuccess.Visible = true;
-        }
-
-        protected void StartWorkflow( BinaryFile binaryFile)
-        {
-            var errorMessages = new List<string>();
-
-            Guid? guid = GetAttributeValue( "WorkflowType" ).AsGuidOrNull();
-            if ( guid.HasValue )
-            {
-                using ( var rockContext = new RockContext() )
-                {
-                    var workflowTypeService = new WorkflowTypeService( rockContext );
-                    var workflowService = new WorkflowService( rockContext );
-
-                    var workflowType = workflowTypeService.Queryable( "ActivityTypes" )
-                        .Where( w => w.Guid.Equals( guid.Value ) )
-                        .FirstOrDefault();
-
-                    if ( workflowType != null )
-                    {
-                        var workflow = Rock.Model.Workflow.Activate( workflowType, "New Connection Card Workflow", rockContext );
-
-
-                        var activityTypes = workflowType.ActivityTypes.Where( a => a.IsActivatedWithWorkflow == true ).ToList();
-                        foreach ( var activityType in activityTypes )
-                        {
-
-                            WorkflowActivity.Activate( activityType, workflow, rockContext );
-                            if ( workflowService.Process( workflow, binaryFile, out errorMessages ) )
-                            {
-                                // Keep workflow active for continued processing
-                                workflow.CompletedDateTime = null;
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         protected void btnBack_Click( object sender, EventArgs e )
