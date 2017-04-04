@@ -24,9 +24,9 @@ namespace org.secc.FamilyCheckin
     [Description( "Creates Check-in Labels with Aggregate Family Label" )]
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Aggregate Checkin Label" )]
-    [BinaryFileField( Rock.SystemGuid.BinaryFiletype.CHECKIN_LABEL, "Aggregated Label", "Label to aggregate", true )]
+    [BinaryFileField( Rock.SystemGuid.BinaryFiletype.CHECKIN_LABEL, "Aggregated Label", "Label to aggregate", false )]
     //[DefinedValueField("E4D289A9-70FA-4381-913E-2A757AD11147","Label Merge Field","Merge field to replace text with")]
-    [TextField( "Merge Text", "Text to merge label merge field into separated by commas.", true, "AAA,BBB,CCC,DDD" )]
+    [TextField( "Merge Text", "Text to merge label merge field into separated by commas.", false, "AAA,BBB,CCC,DDD,EEE,FFF" )]
     [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Volunteer Group Attribute" )]
     [GroupTypeField( "Breakout GroupType", "The grouptype which represents elementary breakout groups." )]
     public class CreateLabelsAggregate : CheckInActionComponent
