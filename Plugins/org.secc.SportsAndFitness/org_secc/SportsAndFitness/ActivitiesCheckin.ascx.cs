@@ -27,7 +27,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
         private RockContext _rockContext;
         private int _noteTypeId;
         private string _expirationDateKey;
-        private int _memberConnectionStatusId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_MEMBER.AsGuid()).Id;
+        private int _memberConnectionStatusId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_MEMBER.AsGuid() ).Id;
 
         private List<GroupTypeCache> parentGroupTypesList;
         private GroupTypeCache currentParentGroupType;
@@ -131,12 +131,20 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                 {
                     btnCheckbox.CssClass = "btn btn-success btn-lg btn-block";
                     btnCheckbox.Text = "<i class='fa fa-check-square-o fa-5x'></i><br>" + person.Person.NickName;
+                    if ( person.Person.Age < 18 )
+                    {
+                        btnCheckbox.Text += "<br>" + person.Person.FormatAge();
+                    }
                     btnCheckbox.DataLoadingText = "<i class='fa fa-check-square-o fa-5x'></i><br>Loading...";
                 }
                 else
                 {
                     btnCheckbox.CssClass = "btn btn-default btn-lg  btn-block";
                     btnCheckbox.Text = "<i class='fa fa-square-o fa-5x'></i><br>" + person.Person.NickName;
+                    if ( person.Person.Age < 18 )
+                    {
+                        btnCheckbox.Text += "<br>" + person.Person.FormatAge();
+                    }
                     btnCheckbox.DataLoadingText = "<i class='fa fa-square-o fa-5x'></i><br>Loading...";
                 }
                 btnCheckbox.Click += ( s, e ) => { SelectPerson( person ); };
