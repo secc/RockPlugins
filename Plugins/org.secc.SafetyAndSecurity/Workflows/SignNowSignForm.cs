@@ -13,6 +13,9 @@ using Rock.Attribute;
 using Rock.Web.Cache;
 using System.Web;
 using SignNowSDK;
+using System.Web.UI.WebControls;
+using System.Web.UI.HtmlControls;
+using Rock.Web.UI.Controls;
 
 namespace org.secc.SafetyAndSecurity
 {
@@ -25,7 +28,7 @@ namespace org.secc.SafetyAndSecurity
     [WorkflowAttribute( "Source Document", "The attribute to upload to SignNow.", true, "", "", 0, null, new string[] { "Rock.Field.Types.BinaryFileFieldType" } )]
     [WorkflowAttribute( "Signed Document", "The attribute to save the document from SignNow.", true, "", "", 0, null, new string[] { "Rock.Field.Types.BinaryFileFieldType" } )]
     [TextField( "Signed Document Name", "Then name of the document to be merged. <span class='tip tip-lava'></span>", true )]
-    class SignNowSignForm : ActionComponent
+    class SignNowSignForm : ActionComponent, IUIActionComponent
     {
 
         public override bool Execute( RockContext rockContext, WorkflowAction action, object entity, out List<string> errorMessages )
@@ -153,13 +156,12 @@ namespace org.secc.SafetyAndSecurity
 
             //Delete the unsigned copy on the network
             Guid documentIdAttributeActionGuid = GetActionAttributeValue( action, "SignNowDocumentId" ).AsGuid();
-            action.Activity.Workflow.LoadAttributes();
             string signNowDocumentId = action.GetWorklowAttributeValue( documentIdAttributeActionGuid );
             JObject deleteResult = Document.Delete( token, signNowDocumentId );
 
             // Just clear out the Invite and DocumentId links
-            //SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "SignNowInviteLink" ).AsGuid(), "" );
-            //SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "SignNowDocumentId" ).AsGuid(), "" );
+            SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "SignNowInviteLink" ).AsGuid(), "" );
+            SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "SignNowDocumentId" ).AsGuid(), "" );
             return true;
         }
 
@@ -174,8 +176,8 @@ namespace org.secc.SafetyAndSecurity
             workflow.IsPersisted = true;
 
             //this is needed for the user entry form to be able to 
-            action.ActionType.WorkflowForm = new WorkflowActionForm();
-            action.ActionType.WorkflowForm.Actions = "";
+            //action.ActionType.WorkflowForm = new WorkflowActionForm();
+            //action.ActionType.WorkflowForm.Actions = "";
 
             var service = new WorkflowService( rockContext );
             if ( workflow.Id == 0 )
@@ -195,5 +197,13 @@ namespace org.secc.SafetyAndSecurity
             action.AddLogEntry( "Updated workflow to be persisted!" );
 
         }
+
+        public bool Display(WorkflowAction action, RockContext rockContext, PlaceHolder phContent)
+        {
+            // This doesn't need to display anything since it's just a redirect and landing
+            return false;
+        }
+
+
     }
 }
