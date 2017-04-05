@@ -28,6 +28,8 @@ namespace RockWeb.Plugins.org_secc.ConnectionCards
     //Settings
     [WorkflowTypeField( "Workflow Type", "The workflow type to activate to merge pdf" )]
     [BinaryFileTypeField( "Binary File Type", "The binary file type to set images as." )]
+    [IntegerField("Number of Columns","The number of different columns to divide the document into.",key:"cols")]
+    [IntegerField( "Number of Rows", "The number of different columns to divide the document into.", key:"rows")]
     public partial class ConnectionCardEntry : RockBlock
     {
         protected override void OnLoad( EventArgs e )
@@ -114,7 +116,9 @@ namespace RockWeb.Plugins.org_secc.ConnectionCards
             RockContext rockContext = new RockContext();
             BinaryFileService binaryFileService = new BinaryFileService( rockContext );
             var binaryFile = binaryFileService.Get( imageGuid );
-            var binaryFiles = ConnectionCardsUtilties.ChopImage( binaryFile, 3, 2, rockContext );
+            int cols = GetAttributeValue( "cols" ).AsInteger();
+            int rows = GetAttributeValue( "rows" ).AsInteger();
+            var binaryFiles = ConnectionCardsUtilties.ChopImage( binaryFile, cols, rows, rockContext );
             binaryFileService.Delete( binaryFile );
             rockContext.SaveChanges();
             foreach ( var connectionCard in binaryFiles )
