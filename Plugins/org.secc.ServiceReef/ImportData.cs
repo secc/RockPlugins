@@ -262,6 +262,9 @@ namespace org.secc.ServiceReef
                                             person.FirstName = result.FirstName.Trim();
                                             person.LastName = result.LastName.Trim();
                                             person.Email = result.Email.Trim();
+                                            person.RecordTypeValueId = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid()).Id;
+                                            person.ConnectionStatusValueId = connectionStatus.Id;
+                                            person.RecordStatusValueId = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid()).Id;
                                             Group family = PersonService.SaveNewPerson(person, dbContext);
                                             GroupLocation location = new GroupLocation();
                                             location.GroupLocationTypeValueId = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME).Id;
