@@ -1626,7 +1626,17 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 {
                     bid.BidAmount = quotePrice;
                 }
-                if (docQuote.BinaryFileId.HasValue) bid.QuoteBlobID = docQuote.BinaryFileId.Value;
+                if (docQuote.BinaryFileId.HasValue) {
+                    // Set the temporary flag to 0
+                    RockContext context = new RockContext();
+                    BinaryFileService bfs = new BinaryFileService(context);
+                    var file = bfs.Get(docQuote.BinaryFileId.Value);
+                    file.IsTemporary = false;
+                    context.SaveChanges();
+
+                    bid.QuoteBlobID = docQuote.BinaryFileId.Value;
+
+                }
                 bid.Save( CurrentUser.UserName );
 
                 if ( cbPreferredBid.Checked != originalPerferredStatus )
