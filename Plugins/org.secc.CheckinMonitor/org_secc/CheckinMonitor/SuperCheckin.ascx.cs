@@ -1249,11 +1249,33 @@ try{{
             {
                 var personId = ( int ) ViewState["SelectedPersonId"];
 
+                RockContext rockContext = new RockContext();
+                AttendanceService attendanceService = new AttendanceService( rockContext );
+
                 foreach ( var checkinPerson in CurrentCheckInState.CheckIn.CurrentFamily.People )
                 {
                     if ( checkinPerson.Person.Id == personId )
                     {
+                        var groupTypeIds = attendanceService.Queryable()
+                            .AsNoTracking()
+                            .Where( a =>
+                                     a.PersonAlias.Person.Id == personId
+                                     && a.StartDateTime >= Rock.RockDateTime.Today
+                                     && a.EndDateTime == null
+                                     && a.Group != null
+                                     && a.Schedule != null
+                                     && a.Location != null
+                                    )
+                                    .Select( a => a.Group.GroupTypeId )
+                                    .ToList();
                         checkinPerson.Selected = true;
+                        foreach ( var groupType in checkinPerson.GroupTypes )
+                        {
+                            if ( groupTypeIds.Contains( groupType.GroupType.Id ) )
+                            {
+                                groupType.Selected = true;
+                            }
+                        }
                     }
                     else
                     {
