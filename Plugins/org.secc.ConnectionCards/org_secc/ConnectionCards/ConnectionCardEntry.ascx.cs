@@ -123,7 +123,7 @@ namespace RockWeb.Plugins.org_secc.ConnectionCards
             rockContext.SaveChanges();
             foreach ( var connectionCard in binaryFiles )
             {
-                connectionCard.LaunchWorkflow( GetAttributeValue( "WorkflowType" ).AsGuidOrNull(), "New Connection Card Workflow" );
+                connectionCard.LaunchWorkflow( GetAttributeValue( "WorkflowType" ).AsGuidOrNull(), "New Connection Card Workflow", new Dictionary<string, string> { { "Initiator", CurrentPersonAlias.Guid.ToString() } } );
             }
             pnlEdit.Visible = false;
             pnlUpload.Visible = true;
