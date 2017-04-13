@@ -24,8 +24,9 @@ using System.Linq;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
-
 using Rock;
+using Rock.Attribute;
+using Rock.Data;
 using Rock.Model;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
@@ -38,6 +39,7 @@ namespace RockWeb.Plugins.org_secc.TotalMD
     [DisplayName( "Appointment Detail" )]
     [Category( "SECC > TotalMD" )]
     [Description( "Block for displaying counselor appointments." )]
+    [GroupField( "Group", "The Group to use for determining security access", true, order: 1 )]
     public partial class ApptDetail : RockBlock
     {
 
@@ -86,8 +88,11 @@ namespace RockWeb.Plugins.org_secc.TotalMD
 
             if ( !Page.IsPostBack )
             {
-                BindFilter();
-                BindGrid();
+                if (pnlList.Visible == true)
+                {
+                    BindFilter();
+                    BindGrid();
+                }
             }
         }
 
@@ -149,18 +154,18 @@ namespace RockWeb.Plugins.org_secc.TotalMD
             if ( e.Item.ItemType == ListItemType.Item |
                     e.Item.ItemType == ListItemType.AlternatingItem )
             {
-                Repeater rptr = (Repeater)e.Item.FindControl( "rptrApptDetails" );
+                Repeater rptr = ( Repeater ) e.Item.FindControl( "rptrApptDetails" );
                 rptr.DataSource =
                     dt.AsEnumerable().Where( x => x["Date"].Equals( e.Item.DataItem ) );
                 rptr.DataBind();
 
                 for ( int i = 0; i <= rptr.Items.Count - 1; i++ )
                 {
-                    var WorkPhone = (HtmlGenericControl)rptr.Items[i].FindControl( "liWorkPhone" );
+                    var WorkPhone = ( HtmlGenericControl ) rptr.Items[i].FindControl( "liWorkPhone" );
                     if ( WorkPhone.InnerText == "Work: " )
                         WorkPhone.Visible = false;
 
-                    var CellPhone = (HtmlGenericControl)rptr.Items[i].FindControl( "liCellPhone" );
+                    var CellPhone = ( HtmlGenericControl ) rptr.Items[i].FindControl( "liCellPhone" );
                     if ( CellPhone.InnerText == "Cell: " )
                         CellPhone.Visible = false;
                 }
@@ -178,23 +183,99 @@ namespace RockWeb.Plugins.org_secc.TotalMD
         {
             using ( OdbcConnection con = new OdbcConnection( ConnString ) )
             {
+                RockContext rockContext = new RockContext();
+                Group group = null;
+                var groupGuid = this.GetAttributeValue( "Group" ).AsGuidOrNull();
+                var whereClause = String.Empty;
+
+                if ( groupGuid.HasValue )
+                {
+                    group = new GroupService( rockContext ).Get( groupGuid.Value );
+                }
+
+                if ( group != null )
+                {
+                    var groupMemberService = new GroupMemberService( rockContext );
+                    var groupMember = groupMemberService.GetByGroupIdAndPersonId( group.Id, CurrentPerson.Id ).FirstOrDefault();
+
+                    if ( groupMember != null )
+                    {
+                        if ( groupMember.GroupMemberStatus == GroupMemberStatus.Active )
+                        {
+                            // Get any existing group member attribute values
+                            groupMember.LoadAttributes( rockContext );
+
+                            foreach ( var attributeValue in groupMember.AttributeValues )
+                            {
+                                if ( attributeValue.Key == "ProviderId" && groupMember.GroupRole.Name == "Member" )
+                                {
+                                    if ( !String.IsNullOrEmpty( attributeValue.Value.Value ) )
+                                    {
+                                        // It is possible that the Provider Id was typed incorrectly and
+                                        // won't return any results. 
+                                        whereClause = "WHERE [Code] = '" + attributeValue.Value.Value + "'";
+                                        gfSettings.SaveUserPreference( "Counselor", attributeValue.Value.Value );
+                                    }
+                                    else
+                                    {
+                                        // This person was added to the security group as a member and doesn't have
+                                        // a Provider Id.
+                                        gfSettings.SaveUserPreference( "Counselor", "" );
+                                        pnlList.Visible = false;
+                                        nbMessage.Title = "You have been added to the security group, but need a Provider Id to view appointments.";
+                                        nbMessage.Visible = true;
+                                    }
+
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // This person is not active in the security group.
+                            pnlList.Visible = false;
+                            nbMessage.Title = "You are not active in the security group.";
+                            nbMessage.Visible = true;
+                        }
+                    }
+                    else
+                    {
+                        // This person is not in the security group at all.
+                        gfSettings.SaveUserPreference( "Counselor", "" );
+                        pnlList.Visible = false;
+                        nbMessage.Title = "You have not been added to the security group.";
+                        nbMessage.Visible = true;
+                    }
+                }
+
                 string qry = @"SELECT [Code], CONCAT(CONCAT([First Name] WITH ' ') WITH [Last Name]) AS [Counselor Name] 
-                    FROM Provider
-                    ORDER BY [Counselor Name]";
+                    FROM Provider " +
+                    whereClause +
+                    " ORDER BY [Counselor Name]";
 
                 OdbcDataAdapter da = new OdbcDataAdapter( qry, con );
                 DataTable dt1 = new DataTable();
                 da.Fill( dt1 );
-                cblCounselors.DataSource = dt1;
-                cblCounselors.DataTextField = "Counselor Name";
-                cblCounselors.DataValueField = "Code";
-                cblCounselors.DataBind();
-            }
+                if ( dt1.Rows.Count > 0 )
+                {
+                    cblCounselors.DataSource = dt1;
+                    cblCounselors.DataTextField = "Counselor Name";
+                    cblCounselors.DataValueField = "Code";
+                    cblCounselors.DataBind();
 
-            string counselorValue = gfSettings.GetUserPreference( "Counselor" );
-            if ( !string.IsNullOrWhiteSpace( counselorValue ) )
-            {
-                cblCounselors.SetValues( counselorValue.Split( ';' ).ToList() );
+                    string selectedCounselors = gfSettings.GetUserPreference( "Counselor" );
+                    if ( !string.IsNullOrWhiteSpace( selectedCounselors ) )
+                    {
+                        cblCounselors.SetValues( selectedCounselors.Split( ';' ).ToList() );
+                    }
+                }
+                else
+                {
+                    pnlList.Visible = false;
+                    nbMessage.Title = "No results found.  If you were expecting to see something, then please verify that your Provider Id information is correct.";
+                    nbMessage.Visible = true;
+                }
+
             }
 
             drpDates.DelimitedValues = gfSettings.GetUserPreference( "Appt Date Range" );
@@ -217,13 +298,13 @@ namespace RockWeb.Plugins.org_secc.TotalMD
             if ( drp.LowerValue.HasValue )
                 BeginDate = Convert.ToDateTime( drp.LowerValue ).ToString( fmt );
             else
-                EndDate = "1900-01-02"; 
+                EndDate = "1900-01-02";
 
             if ( drp.UpperValue.HasValue )
                 EndDate = Convert.ToDateTime( drp.UpperValue ).AddDays( 1 ).ToString( fmt );
 
             // Filter by Counselors
-            string CounselorValue = "'" + gfSettings.GetUserPreference( "Counselor" ).Replace(";","','") + "'";
+            string selectedCounselors = "'" + gfSettings.GetUserPreference( "Counselor" ).Replace( ";", "','" ) + "'";
 
             using ( OdbcConnection con = new OdbcConnection( ConnString ) )
             {
@@ -231,7 +312,7 @@ namespace RockWeb.Plugins.org_secc.TotalMD
                     [Work Phone], [Mobile Phone], CONCAT(CONCAT(p.[First Name] WITH ' ') WITH p.[Last Name]) AS [Counselor Name] 
                     FROM Appointment a
                     LEFT OUTER JOIN Provider p ON a.Provider = p.Code" +
-                  " WHERE a.[Date] >= " + "'" + BeginDate + "' AND a.[Date] < '" + EndDate + "' AND a.[Provider] IN (" + CounselorValue + ")" +
+                  " WHERE a.[Date] >= " + "'" + BeginDate + "' AND a.[Date] < '" + EndDate + "' AND a.[Provider] IN (" + selectedCounselors + ")" +
                   " ORDER BY [Date],[Time],[Counselor Name]";
 
                 OdbcDataAdapter da = new OdbcDataAdapter( qry, con );
@@ -258,7 +339,7 @@ namespace RockWeb.Plugins.org_secc.TotalMD
             else
             {
                 //Grabs your Timespan
-                TimeSpan ts = (TimeSpan)time;
+                TimeSpan ts = ( TimeSpan ) time;
 
                 //Determines AM/PM and outputs accordingly
                 if ( ts.Hours >= 12 )
