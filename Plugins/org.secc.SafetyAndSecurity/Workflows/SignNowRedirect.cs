@@ -58,7 +58,7 @@ namespace org.secc.SafetyAndSecurity
                     errorMessages.Add( snErrorMessage );
                     return false;
                 }
-                JObject result = CudaSign.Document.Create( token, tempFile, true );
+                JObject result = SignNowSDK.Document.Create( token, tempFile, true );
                 string documentId = result.Value<string>( "id" );
                 SetWorkflowAttributeValue( action, GetActionAttributeValue(action, "SignNowDocumentId").AsGuid(), documentId );
 

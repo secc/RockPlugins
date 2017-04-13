@@ -69,6 +69,7 @@ namespace org.secc.FamilyCheckin
 
             if ( checkInState != null )
             {
+                var attendanceService = new AttendanceService( rockContext );
                 var globalAttributes = Rock.Web.Cache.GlobalAttributesCache.Read( rockContext );
                 var globalMergeValues = Rock.Lava.LavaHelper.GetCommonMergeFields( null );
 
@@ -81,6 +82,18 @@ namespace org.secc.FamilyCheckin
                         if ( person.GroupTypes.Where( gt => gt.Selected ).SelectMany( gt => gt.Groups ).Where( g => g.Selected && childGroupIds.Contains( g.Group.Id ) ).Any() )
                         {
                             labelCodes.Add( ( person.SecurityCode ) + "-" + LabelAge( person.Person ) );
+                        }
+
+                        if ( string.IsNullOrEmpty( person.SecurityCode ) )
+                        {
+                            var lastAttendance = attendanceService.Queryable()
+                                .Where( a => a.PersonAlias.PersonId == person.Person.Id && a.AttendanceCode != null )
+                                .OrderByDescending( a => a.StartDateTime )
+                                .FirstOrDefault();
+                            if ( lastAttendance != null )
+                            {
+                                person.SecurityCode = lastAttendance.AttendanceCode.Code;
+                            }
                         }
 
                         var firstCheckinGroupType = person.GroupTypes.Where( g => g.Selected ).FirstOrDefault();
@@ -99,7 +112,7 @@ namespace org.secc.FamilyCheckin
                             List<Location> mergeLocations = new List<Location>();
                             List<Schedule> mergeSchedules = new List<Schedule>();
 
-                            var sets = new AttendanceService( rockContext )
+                            var sets = attendanceService
                                 .Queryable().AsNoTracking().Where( a =>
                                      a.PersonAlias.Person.Id == person.Person.Id
                                      && a.StartDateTime >= Rock.RockDateTime.Today

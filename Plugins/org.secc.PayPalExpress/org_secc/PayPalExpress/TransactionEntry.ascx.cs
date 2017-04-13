@@ -202,7 +202,7 @@ namespace org.secc.PayPalExpress
                 payPalExpressLink.Attributes.Add("style", "padding: 7px");
                 payPalExpressLink.Attributes.Add("href", "#divPayPalPaymentInfo");
                 payPalExpressLink.Attributes.Add("data-toggle", "pill");
-                payPalExpressLink.Text = "<img src=\"https://www.paypalobjects.com/webstatic/en_US/i/buttons/PP_logo_h_100x26.png\" alt=\"PayPal\" />";
+                payPalExpressLink.Text = "<img src=\"/assets/PayPalExpress/PP_logo_h_100x26.png\" alt=\"PayPal\" />";
                 liPayPal.Controls.Add(payPalExpressLink);
 
                 redirectDiv.ID = "divPayPalPaymentInfo";

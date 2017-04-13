@@ -85,7 +85,7 @@ namespace Arena.Custom.SECC.AuthCodeGrantTest.Web.Controllers
             }
             else if (!string.IsNullOrEmpty(Request.Form.Get("submit.CallApiPerson")))
             {
-                var familyEndpoint = string.Format("{0}api/people/29", AppSettingValue("ResourceServerBaseEndpoint"));
+                var familyEndpoint = string.Format( "{0}api/people/355801", AppSettingValue("ResourceServerBaseEndpoint"));
                 var client = new HttpClient(mWebServerClient.CreateAuthorizingHandler(accessToken));
                 var body = client.GetStringAsync(new Uri(resourceServerUri, familyEndpoint)).Result;
                 ViewBag.ApiResponse = body;

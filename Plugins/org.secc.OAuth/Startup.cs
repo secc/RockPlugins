@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
-using System.Configuration;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
@@ -20,9 +19,22 @@ using Rock.Security;
 
 namespace org.secc.OAuth
 {
-    public partial class Startup : Rock.Plugin.IStartup
+    public partial class Startup : Rock.Utility.IRockOwinStartup
     {
-        public void ConfigureAuth( IAppBuilder app )
+        /// <summary>
+        /// Specify the startup order (This doesn't matter so return zero)
+        /// </summary>
+        public int StartupOrder {
+            get {
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// This actually runs the startup for the OAuth implementation in OWIN
+        /// </summary>
+        /// <param name="app">The OWIN Builder object</param>
+        public void OnStartup( IAppBuilder app )
         {
 
             var settings = GlobalAttributesCache.Value("OAuthSettings").AsDictionary();
@@ -297,11 +309,6 @@ namespace org.secc.OAuth
             }
 
             return allowInsecure;
-        }
-
-        public void Configuration(IAppBuilder app)
-        {
-            ConfigureAuth(app);
         }
     }
 }
