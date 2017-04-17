@@ -13,8 +13,8 @@
         v. Click Install
         vi. Uncheck "View the Release Notes" and click Finish
    C. Configure ODBC
-        i. at run prompt type "odbc" and select "ODBC Data Source Administrator (32-bit)"
-               Note: haven't checked to see if 64-bit version works
+        i. at run prompt type "odbc" and select "ODBC Data Source Administrator (64-bit)"
+               Note: dev server doesn't have 64-bit option
         ii. Click on "System DSN" folder
         iii. Click Add
         iv. Choose DBISAM 4 ODBC Driver (Read-Only) <--- just running SELECT statements
@@ -24,7 +24,7 @@
         viii. accept defaults on next screen
         ix. user=Admin, pwd=DBAdmin, Enable Encryption=true, Encryption Password = don't change
         x. Database=Southeast Christian Counseling
-        xi. accepts defaults on next 2 screens
+        xi. accepts default on next 2 screens
         xii. Private Directory = c:\temp
         xiii. Table Password = leave empty
    D. Add dsn to web.ConnectionStrings.config
