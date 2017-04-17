@@ -19,13 +19,22 @@
         <asp:Panel runat="server" ID="pnlEdit" Visible="false">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <Rock:BootstrapButton runat="server" ID="btnRotLeft" CssClass="btn btn-lg btn-primary" ToolTip="Rotate Left"
-                        OnClick="btnRotLeft_Click" DataLoadingText="<i class='fa fa-undo fa-spin' style='animation-direction: reverse;'></i>"
-                        Text="<i class='fa fa-undo'></i>"></Rock:BootstrapButton>
-                    <Rock:BootstrapButton runat="server" ID="btnRotRight" CssClass="btn btn-lg btn-primary"  ToolTip="Rotate Right"
-                        OnClick="btnRotRight_Click" Text="<i class='fa fa-repeat'></i>"
-                        DataLoadingText="<i class='fa fa-repeat fa-spin'></i>"></Rock:BootstrapButton>
+                    <div style="width: 125px; display:inline-block">
+                        <Rock:BootstrapButton runat="server" ID="btnRotLeft" CssClass="btn btn-lg btn-primary" ToolTip="Rotate Left"
+                            OnClick="btnRotLeft_Click" DataLoadingText="<i class='fa fa-undo fa-spin' style='animation-direction: reverse;'></i>"
+                            Text="<i class='fa fa-undo'></i>"></Rock:BootstrapButton>
+                        <Rock:BootstrapButton runat="server" ID="btnRotRight" CssClass="btn btn-lg btn-primary" ToolTip="Rotate Right"
+                            OnClick="btnRotRight_Click" Text="<i class='fa fa-repeat'></i>"
+                            DataLoadingText="<i class='fa fa-repeat fa-spin'></i>"></Rock:BootstrapButton>
+                    </div>
+                    <div style="width: 125px; display:inline-block">
+                        <Rock:NumberUpDown runat="server" Label="Rows" ID="nbRows" />
+                    </div>
+                    <div style="width: 125px; display:inline-block">
+                        <Rock:NumberUpDown runat="server" Label="Columns" ID="nbCols" />
+                    </div>
                     <div class="pull-right">
+
 
                         <Rock:BootstrapButton runat="server" ID="btnCrop" OnClick="btnCrop_Click" Text="Finished" CssClass="btn btn-lg btn-success">
                         </Rock:BootstrapButton>
