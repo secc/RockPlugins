@@ -877,32 +877,52 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 if ( checkinGroupType != null )
                 {
                     var checkinGroups = GetGroups( checkinPerson.Person, checkinSchedule, checkinGroupType );
-                    var checkinGroup = checkinGroups.FirstOrDefault();
-                    if ( checkinGroups.Where( g => g.PreSelected ).Any() )
+
+                    var checkinGroupIds = checkinGroups.Select( cg => cg.Group.Id ).ToList();
+                    bool isVounteer = false;
+                    foreach ( var checkinGroupId in checkinGroupIds )
                     {
-                        checkinGroup = checkinGroups.Where( g => g.PreSelected ).FirstOrDefault();
-                    }
-                    if ( checkinGroup != null )
-                    {
-                        var checkinLocations = GetLocations( checkinPerson.Person, checkinSchedule, checkinGroupType, checkinGroup );
-                        var checkinLocation = checkinLocations.OrderBy( l => kioskCountUtility.GetLocationScheduleCount( l.Location.Id, checkinSchedule.Schedule.Id ).ChildCount ).FirstOrDefault();
-                        if ( checkinLocation != null )
+                        if ( kioskCountUtility.VolunteerGroupIds.Contains( checkinGroupId ) )
                         {
-                            var locationSchedule = checkinLocation.Schedules.Where( s => s.Schedule.Id == checkinSchedule.Schedule.Id ).FirstOrDefault();
-                            if ( locationSchedule != null )
+                            isVounteer = true;
+                            break;
+                        }
+                    }
+
+                    if ( isVounteer )
+                    { //volunteers need to select their position
+                        ShowRoomChangeModal( checkinPerson.Person, checkinSchedule );
+                        break;
+                    }
+                    else
+                    { //Children get automatically selected with the emptiest class
+                        var checkinGroup = checkinGroups.FirstOrDefault();
+                        if ( checkinGroups.Where( g => g.PreSelected ).Any() )
+                        {
+                            checkinGroup = checkinGroups.Where( g => g.PreSelected ).FirstOrDefault();
+                        }
+                        if ( checkinGroup != null )
+                        {
+                            var checkinLocations = GetLocations( checkinPerson.Person, checkinSchedule, checkinGroupType, checkinGroup );
+                            var checkinLocation = checkinLocations.OrderBy( l => kioskCountUtility.GetLocationScheduleCount( l.Location.Id, checkinSchedule.Schedule.Id ).ChildCount ).FirstOrDefault();
+                            if ( checkinLocation != null )
                             {
-                                checkinGroupType.Selected = true;
-                                checkinGroupType.PreSelected = true;
-                                locationSchedule.Selected = true;
-                                checkinGroup.Selected = true;
-                                checkinGroup.PreSelected = true;
-                                checkinLocation.Selected = true;
-                                checkinLocation.PreSelected = true;
-                                if ( checkinGroup.Group.GetAttributeValue( locationLinkAttributeKey ).AsBoolean() )
+                                var locationSchedule = checkinLocation.Schedules.Where( s => s.Schedule.Id == checkinSchedule.Schedule.Id ).FirstOrDefault();
+                                if ( locationSchedule != null )
                                 {
-                                    LinkLocations( checkinPerson.Person, checkinGroup, checkinLocation );
+                                    checkinGroupType.Selected = true;
+                                    checkinGroupType.PreSelected = true;
+                                    locationSchedule.Selected = true;
+                                    checkinGroup.Selected = true;
+                                    checkinGroup.PreSelected = true;
+                                    checkinLocation.Selected = true;
+                                    checkinLocation.PreSelected = true;
+                                    if ( checkinGroup.Group.GetAttributeValue( locationLinkAttributeKey ).AsBoolean() )
+                                    {
+                                        LinkLocations( checkinPerson.Person, checkinGroup, checkinLocation );
+                                    }
+                                    RemoveOverlappingSchedules( checkinPerson.Person, locationSchedule );
                                 }
-                                RemoveOverlappingSchedules( checkinPerson.Person, locationSchedule );
                             }
                         }
                     }
