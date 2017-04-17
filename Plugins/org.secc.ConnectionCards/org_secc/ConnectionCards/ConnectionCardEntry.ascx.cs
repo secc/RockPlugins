@@ -34,6 +34,12 @@ namespace RockWeb.Plugins.org_secc.ConnectionCards
     {
         protected override void OnLoad( EventArgs e )
         {
+            if ( !Page.IsPostBack )
+            {
+                nbCols.Value = GetAttributeValue( "cols" ).AsInteger();
+                nbRows.Value = GetAttributeValue( "rows" ).AsInteger();
+            }
+
             nbSuccess.Visible = false;
             if ( string.IsNullOrWhiteSpace( hfImageGuid.Value ) )
             {
@@ -116,8 +122,8 @@ namespace RockWeb.Plugins.org_secc.ConnectionCards
             RockContext rockContext = new RockContext();
             BinaryFileService binaryFileService = new BinaryFileService( rockContext );
             var binaryFile = binaryFileService.Get( imageGuid );
-            int cols = GetAttributeValue( "cols" ).AsInteger();
-            int rows = GetAttributeValue( "rows" ).AsInteger();
+            int cols = nbCols.Value;
+            int rows = nbRows.Value;
             var binaryFiles = ConnectionCardsUtilties.ChopImage( binaryFile, cols, rows, rockContext );
             binaryFileService.Delete( binaryFile );
             rockContext.SaveChanges();
