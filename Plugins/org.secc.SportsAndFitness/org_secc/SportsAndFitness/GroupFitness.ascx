@@ -97,6 +97,12 @@
             width: 75px;
             font-size: 2em;
         }
+		
+		body {
+			-ms-touch-action: none !important;
+	-ms-content-zooming: none;
+	touch-action:none;
+	}
 
 </style>
 <asp:UpdatePanel ID="upContent" runat="server">
