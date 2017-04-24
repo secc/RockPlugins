@@ -7,7 +7,7 @@ using System.Web.Http.WebHost;
 using System.Web.Routing;
 using System.Web.SessionState;
 
-namespace org.secc.Security.Rest.Handlers
+namespace org.secc.Rest.Handlers
 {
     public class SessionControllerHandler : HttpControllerHandler, IRequiresSessionState
     {

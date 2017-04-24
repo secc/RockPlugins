@@ -6,10 +6,10 @@ using Rock.Model;
 using Rock.Rest;
 using System.Web;
 using System.Collections.Generic;
-using org.secc.Security.Rest.Handlers;
+using org.secc.Rest.Handlers;
 
 
-namespace org.secc.Security.Rest.Controllers
+namespace org.secc.Rest.Controllers
 {
     /// <summary>
     /// TaggedItems REST API
@@ -24,7 +24,7 @@ namespace org.secc.Security.Rest.Controllers
         {
             routes.MapHttpRoute(
                 name: "security",
-                routeTemplate: "api/org.secc/security/{action}/{param}",
+                routeTemplate: "api/People/{action}/{param}",
                 defaults: new
                 {
                     controller = "security",
@@ -32,7 +32,7 @@ namespace org.secc.Security.Rest.Controllers
                 } ).RouteHandler = new SessionRouteHandler();
             routes.MapHttpRoute(
                 name: "securityNoParam",
-                routeTemplate: "api/org.secc/security/{action}",
+                routeTemplate: "api/People/{action}",
                 defaults: new
                 {
                     controller = "security",
@@ -60,18 +60,8 @@ namespace org.secc.Security.Rest.Controllers
             try
             {
                 var currentUser = UserLoginService.GetCurrentUser();
-                if ( currentUser != null )
-                {
-                    var person = currentUser.Person;
-                    Dictionary<string, object> output = new Dictionary<string, object>() {
-                                { "Active", true },
-                                { "FullName", person.FullName },
-                                {"NickName", person.NickName },
-                                { "LastName",person.NickName}
-                            };
-                    return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, output );
-                }
-                return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, new Dictionary<string, object>() { { "Active", false } } );
+                return PersonReport( currentUser );
+
 
             }
             catch ( Exception ex )
@@ -91,19 +81,8 @@ namespace org.secc.Security.Rest.Controllers
                 if ( encryptedTicket != null && encryptedTicket.Expired == false )
                 {
                     currentUser = new UserLoginService( new Rock.Data.RockContext() ).GetByUserName( encryptedTicket.Name );
+                    return PersonReport( currentUser );
 
-                    if ( currentUser != null )
-                    {
-                        var person = currentUser.Person;
-                        Dictionary<string, object> output = new Dictionary<string, object>() {
-                                { "Active", true },
-                                { "FullName", person.FullName },
-                                {"NickName", person.NickName },
-                                { "LastName",person.NickName}
-                            };
-                        return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, output );
-                    }
-                    return ControllerContext.Request.CreateResponse( HttpStatusCode.NotFound );
                 }
                 return ControllerContext.Request.CreateResponse( HttpStatusCode.NotFound );
             }
@@ -112,6 +91,25 @@ namespace org.secc.Security.Rest.Controllers
                 ExceptionLogService.LogException( ex, HttpContext.Current );
                 return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden, "Forbidden" );
             }
+        }
+
+        private HttpResponseMessage PersonReport( UserLogin currentUser )
+        {
+            if ( currentUser != null )
+            {
+                var person = currentUser.Person;
+                Dictionary<string, object> output = new Dictionary<string, object>() {
+                                { "Active", true },
+                                { "FullName", person.FullName },
+                                { "NickName", person.NickName },
+                                { "LastName",person.LastName },
+                                { "CampusId", person.GetCampus().Id },
+                                { "Campus", person.GetCampus().Name },
+                                { "Gender", person.Gender.ToString() }
+                            };
+                return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, output );
+            }
+            return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, new Dictionary<string, object>() { { "Active", false } } );
         }
     }
 }
