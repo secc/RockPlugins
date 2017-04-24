@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Routing;
 
-namespace org.secc.Security.Rest.Handlers
+namespace org.secc.Rest.Handlers
 {
     public class SessionRouteHandler : IRouteHandler
     {
