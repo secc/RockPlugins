@@ -28,8 +28,15 @@ namespace org.secc.Security.Rest.Controllers
                 defaults: new
                 {
                     controller = "security",
-                    entityqualifier = RouteParameter.Optional,
-                    entityqualifiervalue = RouteParameter.Optional
+                    param = RouteParameter.Optional
+                } ).RouteHandler = new SessionRouteHandler();
+            routes.MapHttpRoute(
+                name: "securityNoParam",
+                routeTemplate: "api/org.secc/security/{action}",
+                defaults: new
+                {
+                    controller = "security",
+                    param = RouteParameter.Optional
                 } ).RouteHandler = new SessionRouteHandler();
         }
 
