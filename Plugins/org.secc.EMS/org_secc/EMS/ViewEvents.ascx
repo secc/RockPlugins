@@ -6,7 +6,11 @@
 
             <div class="panel-heading">
                 <h1 class="panel-title pull-left"><i class="fa fa-list-ul"></i> View Events</h1>
+                <div class="pull-right">
+                    <a href="#" class="btn btn-primary hidden-print" onClick="window.print();"><i class="fa fa-print"></i> Print</a> 
+                </div>
             </div>
+
             <div class="panel-body">
 
                 <div class="grid grid-panel">
@@ -15,7 +19,7 @@
                         <Rock:RockCheckBox ID="cbShowAll" runat="server" Label="Show All Events"/>
                     </Rock:GridFilter>
                                 
-                    <Rock:Grid ID="gScroll" Runat="Server" EmptyDataText="No Events Found" RowItemText="Event" AllowSorting="true" ExportSource="ColumnOutput">
+                    <Rock:Grid ID="gScroll" Runat="Server" EmptyDataText="No Events Found" RowItemText="Event" AllowSorting="true" ShowActionRow="false">
                         <Columns>
                             <Rock:RockBoundField DataField="TimeEventStart" HeaderText="Time" SortExpression="TimeEventStart" DataFormatString ="{0:t}" />    		
                             <Rock:RockBoundField DataField="TimeEventStart" HeaderText="Date" SortExpression="TimeEventStart" DataFormatString ="{0:d}" />
