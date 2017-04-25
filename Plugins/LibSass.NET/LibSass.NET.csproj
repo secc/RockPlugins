@@ -83,6 +83,7 @@
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y /R "$(ProjectDir)bin\Debug\LibSass.NET.dll" "$(SolutionDir)RockWeb\bin"
 xcopy /Y /R "$(ProjectDir)bin\Debug\LibSass.NET.pdb" "$(SolutionDir)RockWeb\bin"
+md "$(SolutionDir)RockWeb\unmanaged"
 xcopy /Y /R "$(ProjectDir)unmanaged\libsass64.dll" "$(SolutionDir)RockWeb\unmanaged"</PostBuildEvent>
   </PropertyGroup>
   <!-- Build LibSass -->
