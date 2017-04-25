@@ -51,7 +51,7 @@
       <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>
       <Name>Rock</Name>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)LibSass.NET\LibSass.NET.csproj">
+    <ProjectReference Include="..\LibSass.NET\LibSass.NET.csproj">
       <Project>{4ad8b048-7a30-4873-8d11-c0a5273e9458}</Project>
       <Name>LibSass.NET</Name>
     </ProjectReference>
