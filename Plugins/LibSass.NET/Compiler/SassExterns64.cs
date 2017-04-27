@@ -11,7 +11,7 @@ namespace LibSass.Compiler
 {
     internal class SassExterns64
     {
-        private const string LibName = @"C:\Users\MarkL\Source\Repos\Rock\RockWeb\unmanaged\libsass64.dll";
+        private const string LibName = @"..\unmanaged\libsass64.dll";
 
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         internal static extern IntPtr sass_make_map(int @length);
