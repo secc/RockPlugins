@@ -36,12 +36,12 @@ namespace org.secc.Sass
                         if ( theme.AllowsCompile )
                         {
                             // don't compile files that start with an underscore
-                            foreach ( var file in files.Where( f => f.Name.EndsWith( ".sass" ) && !f.Name.StartsWith( "_" ) ) )
+                            foreach ( var file in files.Where( f => f.Name.EndsWith( ".scss" ) && !f.Name.StartsWith( "_" ) ) )
                             {
                                 var content = File.ReadAllText( file.FullName );
                                 var sassCompiler = new SassCompiler( new SassOptions() { Data = content } );
                                 var compact = sassCompiler.Compile();
-                                File.WriteAllText( file.DirectoryName + @"\" + file.Name.Replace( ".sass", ".css" ), compact.Output );
+                                File.WriteAllText( file.DirectoryName + @"\" + file.Name.Replace( ".scss", ".css" ), compact.Output );
                             }
                         }
                     }
