@@ -1,0 +1,219 @@
+@import '_lib/init';
+@import '_lib/site-navigation';
+
+/******************************************************
+* LAYOUT.SCSS
+*	Main site layout styles go in this file.
+*	Iclude styles for the site header and footer,
+*	main body and sidebars, etc.
+*	All styles for components/sections that are used
+*	site wide.
+\******************************************************/
+
+#PageCanvas {
+	background: $PrimaryBackground;
+}
+
+
+
+#PageBody > section,
+#AdminPageBody > section {
+	position: relative;
+	padding-top: 5em;
+	padding-bottom: 5em;
+	@include phones {
+		padding-top: 2em;
+		padding-bottom: 2em;
+	}
+
+	&#PageHeader {
+		padding-top: 0;
+	}
+
+	&.with-header {
+		padding-top: 0;
+		header {
+			margin-bottom: 5em;
+			@include phones { margin-bottom: 2em; }
+			background: $HighlightColor;
+			color: #ffffff;
+			padding: 1em 0;
+			text-align: center;
+
+			h1 {
+				text-transform: uppercase;
+				color: rgba(#fff, 0.4);
+			}
+		}
+	}
+}
+
+#Breadcrumbs {
+	padding: .4em 0;
+	font-size: .9em;
+
+	li {
+		padding: 0;
+		& + li::before { content: "> "; }
+
+		a { color: inherit;}
+	}
+}
+
+nav ul {
+	margin		: 0;
+	padding		: 0;
+	list-style	: none;
+	font-family : $Proxima;
+}
+
+
+#SiteFooter {
+	background: $DarkGrayColor;
+	@include FontSmoothing;
+	color: #ffffff;
+	text-transform: uppercase;
+	font-family: $Proxima;
+	font-size: .9em;
+
+	ul {
+		margin-bottom: 0;
+		padding-left: 0;
+		list-style: none;
+
+		ul { margin-left: 1em; }
+
+		& + ul { margin-top: 1.5em; }
+
+		&.list-inline {
+			li { margin-bottom: 10px;}
+		}
+	}
+
+	a { color: $LightGrayColor; }
+
+
+	section.footer-menu {
+		padding-top: 3em;
+		padding-bottom: 3em;
+
+
+		.menu > li > a,
+		:not(li) > a { color: #fff; }
+
+		.menu li,
+		.campus-list {margin-top: .5em; }
+
+		//.se-logo { font-size: 1.2em; }
+	}
+
+	section.partners {
+		background: #201e1d;
+		padding-top: 1em;
+		padding-bottom: 1em;
+		text-align: center;
+
+		@include desktops {
+			li + li { border-left: 1px solid $LightGrayColor; }
+		}
+
+		@include mobile-devices {
+			li { padding: 0 10px;}
+		}
+
+		@include small-phones {
+			li { display: block;}
+		}
+	}
+
+	section.signoff {
+		background: #000000;
+		padding-top: 2em;
+		padding-bottom: 2em;
+
+		@include phones {
+			.pull-left,
+			.pull-right {
+				float: none !important;
+				text-align: center;
+			}
+		}
+	}
+
+
+	h4 {
+		text-transform: uppercase;
+		font-weight: 400;
+		color: $GrayColor;
+		margin: .75em 0;
+		line-height: 1.25;
+	}
+}
+
+.secc-content {
+	width: 100%;
+	//height: 100%;
+	//min-height: 800px;
+	overflow-x: auto;
+	-webkit-overflow-scrolling:touch;
+
+	iframe {
+		width: 100%;
+		border: none;
+	}
+}
+#PageBody > .secc-content {
+	margin-top: 2.5em;
+}
+
+/*********************************************************************
+*  PHONES
+*  ======
+*
+*   Styles in this section apply to phones and other small devices
+**********************************************************************/
+
+@include phones {
+	#DocumentWrapper {
+		position	: absolute;
+		width		: 100%;
+		height		: 100%;
+	}
+
+	#MobileNav {
+		position	: absolute;
+		top			: 0px;
+		left		: 0px;
+		width		: $MobileMenuWidth;
+		height		: 100%;
+		overflow-y	: scroll;
+		z-index		: 1;
+		background	: $SiteNavBackground;
+		color 		: $SiteNavColor;
+
+		&::-webkit-scrollbar {
+			display: none;
+		}
+	}
+
+	#MegaMenus {
+		display: none !important;
+	}
+
+	#PageCanvas {
+		position	: absolute;
+		top			: 0px;
+		left		: 0px;
+		width		: 100%;
+		min-height	: 100%;
+		z-index		: 2;
+
+		@include Transition(left 500ms ease-out);
+		@include BoxShadow(-2px, 0px);
+
+		body.menu-open & {
+			left	: $MobileMenuWidth;
+			position: fixed;
+		}
+	}
+}
