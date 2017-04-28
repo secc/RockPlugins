@@ -156,7 +156,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                 card.Controls.Add( pnlImage );
                 Image imgPhoto = new Image();
                 imgPhoto.CssClass = "thumbnail";
-                if ( person.Person.ConnectionStatusValueId != _memberConnectionStatusId )
+                if ( person.Person.ConnectionStatusValueId != _memberConnectionStatusId && person.Person.GetAttributeValue( "Employer" ) != "Southeast Christian Church" )
                 {
                     imgPhoto.Style.Add( "border", "solid blue 3px" );
                 }
@@ -311,6 +311,13 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                 return GroupMembershipStatus.Member;
             }
 
+            var person = groupMember.Person;
+            person.LoadAttributes();
+            if ( person.GetAttributeValue( "Employer" ) == "Southeast Christian Church" )
+            {
+                return GroupMembershipStatus.Member;
+            }
+            
             groupMember.LoadAttributes();
             var expirationDate = groupMember.GetAttributeValue( _expirationDateKey ).AsDateTime() ?? Rock.RockDateTime.Today.AddDays( -1 );
 
