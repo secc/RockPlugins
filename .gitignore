@@ -7,3 +7,5 @@ Tools/**/bin/
 Tools/**/obj/
 Tools/**/packages/
 .vs
+.DS_Store
+prepros-6.config

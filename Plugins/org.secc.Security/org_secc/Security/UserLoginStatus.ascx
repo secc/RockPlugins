@@ -1,9 +1,10 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="UserLoginStatus.ascx.cs" Inherits="RockWeb.Plugins.org_secc.Security.UserLoginStatus" %>
 
-<div class="login-status">
+<span id="PersonName" class="user-name" runat="server"><i class="fa fa-lock hidden-xs"></i></span>
+
+<!--<div class="login-status">
 
     <div class="user-info">
-        <h3 id="PersonName" class="user-name" runat="server"><i class="fa fa-lock hidden-xs"></i></h3>
         <div class="user-details">
             <div id="PersonEmail" class="user-email" runat="server"></div>
 
@@ -16,6 +17,4 @@
             </nav>
         </div>
     </div>
-</div>
-
-
+</div>-->
