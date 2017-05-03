@@ -2,14 +2,19 @@
 
 <asp:Content ID="ctMain" ContentPlaceHolderID="main" runat="server">
 
+    <Rock:Zone Name="Header Banner" runat="server" />
+
     <main class="container">
-                
         <!-- Start Content Area -->
-        
+
+        <br />
         <!-- Page Title -->
-        <Rock:PageIcon ID="PageIcon" runat="server" /> <h1><Rock:PageTitle ID="PageTitle" runat="server" /></h1>
+        <Rock:PageIcon ID="PageIcon" runat="server" />
+        <h1 class="copy">
+            <Rock:PageTitle ID="PageTitle" runat="server" />
+        </h1>
         <Rock:PageBreadCrumbs ID="PageBreadCrumbs" runat="server" />
-                    
+
         <!-- Ajax Error -->
         <div class="alert alert-danger ajax-error" style="display:none">
             <p><strong>Error</strong></p>
@@ -53,7 +58,7 @@
         </div>
 
         <!-- End Content Area -->
-
+        <br />
     </main>
 
 </asp:Content>

@@ -36,13 +36,53 @@ button, a, input[type="submit"], input[type="reset"], input[type="button"] {
 	padding: 0;
 	color: inherit;
 
-	&.btn-normal {
+    &.btn {
+        border-radius: 0;
+        -webkit-appearance: none;
+    }
+	&.btn:active, 
+	&.btn.active {
+		outline: 0;
+		background-image: none;
+		-webkit-box-shadow: none;
+		box-shadow: none;
+	}
+	&.btn:focus,
+	&.btn:active:focus,
+	&.btn.active:focus {
+	    outline: none;
+	    outline: none;
+	    outline-offset: 2px;
+	}
+
+	&.btn-action {
+		float: right;
+        line-height: 2.6em;
+        color: #069;
+		display: block;
+	}
+	&.btn-action:hover,
+	&.btn-action:focus,
+	&.btn-action.focus {
+	    color: #245682;
+	    background-color: inherit;
+	    border-color: none;
+	}
+    &.btn-link {
+        float: left;
+        line-height: 2.6em;
+        color: #069;
+		display: inline-block;
+    }
+	&.btn-normal,
+    &.btn-primary {
 		border: $DefaultBorder;
 		font-size: 1.2em;
 		line-height: 1.3em;
 		padding: 0.5em 1.3em;
-		display: inline-block;
+		display: block;
 		background: rgba(#fff,.2);
+		color: #000;
 		@include phones { font-size: 1em; }
 
 		&:hover {

@@ -4662,9 +4662,7 @@ button.close {
     -webkit-transition: -webkit-transform 0.3s ease-out;
     -moz-transition: -moz-transform 0.3s ease-out;
     -o-transition: -o-transform 0.3s ease-out;
-    transition: -webkit-transform 0.3s ease-out;
-    transition: transform 0.3s ease-out;
-    transition: transform 0.3s ease-out, -webkit-transform 0.3s ease-out; }
+    transition: transform 0.3s ease-out; }
   .modal.in .modal-dialog {
     -webkit-transform: translate3d(0, 0, 0);
     transform: translate3d(0, 0, 0); }
@@ -6137,7 +6135,6 @@ input.error {
 :root .fa-rotate-270,
 :root .fa-flip-horizontal,
 :root .fa-flip-vertical {
-  -webkit-filter: none;
   filter: none; }
 
 .fa-stack {
@@ -8928,10 +8925,6 @@ div.tagsinput .tags_clear {
     color: black; }
   .smartsearch .nav > li > a {
     padding: 4px 15px; }
-  .smartsearch input::-moz-selection,
-  .smartsearch input::-moz-selection {
-    color: #fff;
-    background: #2e2e2e; }
   .smartsearch input::selection,
   .smartsearch input::-moz-selection {
     color: #fff;
@@ -9743,11 +9736,9 @@ fieldset .actions {
     -webkit-transform: scaleY(1); }
   .updateprogress-statuskeyframes stretchdelay 0%, .updateprogress-statuskeyframes stretchdelay 40%, .updateprogress-statuskeyframes stretchdelay 100% {
     -webkit-transform: scaleY(0.4);
-    -ms-transform: scaleY(0.4);
     transform: scaleY(0.4); }
   .updateprogress-statuskeyframes stretchdelay 20% {
     -webkit-transform: scaleY(1);
-    -ms-transform: scaleY(1);
     transform: scaleY(1); }
 
 @media (min-width: 992px) {
@@ -11237,24 +11228,51 @@ button, a, input[type="submit"], input[type="reset"], input[type="button"] {
   border: none;
   padding: 0;
   color: inherit; }
-  button.btn-normal, a.btn-normal, input[type="submit"].btn-normal, input[type="reset"].btn-normal, input[type="button"].btn-normal {
+  button.btn, a.btn, input[type="submit"].btn, input[type="reset"].btn, input[type="button"].btn {
+    border-radius: 0;
+    -webkit-appearance: none; }
+  button.btn:active, button.btn.active, a.btn:active, a.btn.active, input[type="submit"].btn:active, input[type="submit"].btn.active, input[type="reset"].btn:active, input[type="reset"].btn.active, input[type="button"].btn:active, input[type="button"].btn.active {
+    outline: 0;
+    background-image: none;
+    -webkit-box-shadow: none;
+    box-shadow: none; }
+  button.btn:focus, button.btn:active:focus, button.btn.active:focus, a.btn:focus, a.btn:active:focus, a.btn.active:focus, input[type="submit"].btn:focus, input[type="submit"].btn:active:focus, input[type="submit"].btn.active:focus, input[type="reset"].btn:focus, input[type="reset"].btn:active:focus, input[type="reset"].btn.active:focus, input[type="button"].btn:focus, input[type="button"].btn:active:focus, input[type="button"].btn.active:focus {
+    outline: none;
+    outline: none;
+    outline-offset: 2px; }
+  button.btn-action, a.btn-action, input[type="submit"].btn-action, input[type="reset"].btn-action, input[type="button"].btn-action {
+    float: right;
+    line-height: 2.6em;
+    color: #069;
+    display: block; }
+  button.btn-action:hover, button.btn-action:focus, button.btn-action.focus, a.btn-action:hover, a.btn-action:focus, a.btn-action.focus, input[type="submit"].btn-action:hover, input[type="submit"].btn-action:focus, input[type="submit"].btn-action.focus, input[type="reset"].btn-action:hover, input[type="reset"].btn-action:focus, input[type="reset"].btn-action.focus, input[type="button"].btn-action:hover, input[type="button"].btn-action:focus, input[type="button"].btn-action.focus {
+    color: #245682;
+    background-color: inherit;
+    border-color: none; }
+  button.btn-link, a.btn-link, input[type="submit"].btn-link, input[type="reset"].btn-link, input[type="button"].btn-link {
+    float: left;
+    line-height: 2.6em;
+    color: #069;
+    display: inline-block; }
+  button.btn-normal, button.btn-primary, a.btn-normal, a.btn-primary, input[type="submit"].btn-normal, input[type="submit"].btn-primary, input[type="reset"].btn-normal, input[type="reset"].btn-primary, input[type="button"].btn-normal, input[type="button"].btn-primary {
     border: 1px solid #a09d99;
     font-size: 1.2em;
     line-height: 1.3em;
     padding: 0.5em 1.3em;
-    display: inline-block;
-    background: rgba(255, 255, 255, 0.2); }
+    display: block;
+    background: rgba(255, 255, 255, 0.2);
+    color: #000; }
     @media (max-width: 767px) {
-      button.btn-normal, a.btn-normal, input[type="submit"].btn-normal, input[type="reset"].btn-normal, input[type="button"].btn-normal {
+      button.btn-normal, button.btn-primary, a.btn-normal, a.btn-primary, input[type="submit"].btn-normal, input[type="submit"].btn-primary, input[type="reset"].btn-normal, input[type="reset"].btn-primary, input[type="button"].btn-normal, input[type="button"].btn-primary {
         font-size: 1em; } }
-    button.btn-normal:hover, a.btn-normal:hover, input[type="submit"].btn-normal:hover, input[type="reset"].btn-normal:hover, input[type="button"].btn-normal:hover {
+    button.btn-normal:hover, button.btn-primary:hover, a.btn-normal:hover, a.btn-primary:hover, input[type="submit"].btn-normal:hover, input[type="submit"].btn-primary:hover, input[type="reset"].btn-normal:hover, input[type="reset"].btn-primary:hover, input[type="button"].btn-normal:hover, input[type="button"].btn-primary:hover {
       color: #ffffff;
       background-color: #6D6A66;
       -webkit-box-shadow: 1px 2px 3px 0px rgba(34, 34, 34, 0.5);
       -moz-box-shadow: 1px 2px 3px 0px rgba(34, 34, 34, 0.5);
       box-shadow: 1px 2px 3px 0px rgba(34, 34, 34, 0.5);
       text-decoration: none; }
-    button.btn-normal.small, a.btn-normal.small, input[type="submit"].btn-normal.small, input[type="reset"].btn-normal.small, input[type="button"].btn-normal.small {
+    button.btn-normal.small, button.btn-primary.small, a.btn-normal.small, a.btn-primary.small, input[type="submit"].btn-normal.small, input[type="submit"].btn-primary.small, input[type="reset"].btn-normal.small, input[type="reset"].btn-primary.small, input[type="button"].btn-normal.small, input[type="button"].btn-primary.small {
       font-size: .8em; }
 
 a {
