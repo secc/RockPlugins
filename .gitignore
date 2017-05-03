@@ -2,6 +2,7 @@ Plugins/*/.nuget/
 Plugins/*/packages/
 Plugins/*/bin/
 Plugins/*/obj/
+Plugins/*/Themes/**/*.css
 Tools/org.secc.OAuthTestClient/.vs/
 Tools/**/bin/
 Tools/**/obj/
@@ -9,3 +10,4 @@ Tools/**/packages/
 .vs
 .DS_Store
 prepros-6.config
+.system

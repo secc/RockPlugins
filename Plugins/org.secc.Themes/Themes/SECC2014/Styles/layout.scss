@@ -29,7 +29,11 @@
 	&#PageHeader {
 		padding-top: 0;
 	}
-
+	.outline {
+		padding: 2em;
+	    border: 1px solid #efefef;
+	    margin-bottom: 1em;
+	}
 	&.with-header {
 		padding-top: 0;
 		header {
@@ -48,7 +52,10 @@
 	}
 }
 
-#Breadcrumbs {
+#Breadcrumbs, #PageBreadCrumbs {
+	.breadcrumb {
+		background-color: none;
+	}
 	padding: .4em 0;
 	font-size: .9em;
 
@@ -164,6 +171,135 @@ nav ul {
 }
 #PageBody > .secc-content {
 	margin-top: 2.5em;
+}
+
+#PageHeader  {
+	color: white;
+
+	@include non-phones {
+		min-height: 360px;
+	}
+
+	header {
+		margin: 4em 0 5em 0;
+		text-align: center;
+		@include tablets {
+			margin: 5em 0 6em 0;
+		}
+		@include phones {
+			margin: 0 0 1em 0;
+		}
+		h1 {
+			font-size: 10em;
+			margin-left: -40%;
+			@include tablets {
+				font-size: 6em;
+				margin-left: -50%;
+			}
+			@include phones {
+				margin: 0 auto;
+				font-size: 5em;
+			}
+		}
+	}
+
+	.next-info {
+	    color: black;
+	    font-size: .9em;
+	    font-family: "proxima-nova-n7", "proxima-nova", "Helvetica Neue", Helvetica, Arial, sans-serif;
+	    font-weight: 700;
+	    -webkit-font-smoothing: antialiased;
+	    -moz-osx-font-smoothing: grayscale;
+	    position: absolute;
+	    width: 30%;
+	    height: 100%;
+	    right: 0;
+	    top: 0;
+	    overflow: visible;
+	    background: rgba(255, 255, 255, 0.8);
+		padding: 1.5em;
+		img {
+			margin: 0 auto;
+			width: 100%;
+			max-width: 200px;
+		}
+		.mobile-intro {
+			display: none;
+		}
+
+		@include large-desktops {
+			width: 25%;
+		}
+
+		@include tablets {
+			width: 46%;
+			.description {
+				display: inline;
+			}
+		}
+
+		@include phones {
+			position: relative;
+			width: 100%;
+			float: none;
+			text-align: left;
+
+			img {
+				margin: 0;
+				float: left;
+				width: 80%;
+				max-width: 100px;
+			}
+			.mobile-intro {
+				display: inline;
+				text-align: right;
+			}
+			.description {
+				display: none;
+			}
+		}
+	}
+
+	&.parallax {
+		background:
+			/* top, transparent red, faked with gradient */
+		    linear-gradient(
+		      rgba(0, 0, 0, 0.45),
+		      rgba(0, 0, 0, 0.45)
+		    ),
+			/* The image used */
+			url('/_/img/events/events_cover_lg.jpg') no-repeat 50% top;
+
+	    /* Set a specific height */
+	    //height: 500px;
+
+	    /* Create the parallax scrolling effect */
+		z-index: 0;
+        position: relative;
+	    background-attachment: fixed;
+	    background-position: center;
+	    background-repeat: no-repeat;
+	    background-size: cover;
+		-webkit-background-size: cover; /* safari may need this */
+		-moz-background-size: cover;
+        -o-background-size: cover;
+		box-sizing: content-box;
+
+		/* Preserve aspet ratio */
+		min-width: 100%;
+		min-height: 100%;
+
+		@include phones {
+			background:
+				/* top, transparent red, faked with gradient */
+			    linear-gradient(
+			      rgba(0, 0, 0, 0.45),
+			      rgba(0, 0, 0, 0.45)
+			    ),
+				/* The image used */
+				url('/_/img/events/events_cover_sm.jpg') no-repeat 50% top;
+	    }
+	}
 }
 
 /*********************************************************************
