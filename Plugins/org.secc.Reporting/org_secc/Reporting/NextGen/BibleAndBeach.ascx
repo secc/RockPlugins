@@ -30,45 +30,47 @@
                     <Rock:RockDropDownList Label="POA Received:" ID="ddlPOA" runat="server" />
                     <Rock:NumberRangeEditor Label="Balance Owed" ID="nreBalanceOwed" runat="server" />
                 </Rock:GridFilter>
-                <Rock:Grid ID="gReport" runat="server" AllowSorting="true" EmptyDataText="No Results" DataKeyNames="Id, RegistrationId" OnRowSelected="gReport_RowSelected" ExportSource="ColumnOutput">
+                <Rock:Grid ID="gReport" runat="server" AllowSorting="true" EmptyDataText="No Results" PersonIdField="RegisteredBy.Id" DataKeyNames="Id, RegistrationId" OnRowSelected="gReport_RowSelected" ExportSource="ColumnOutput">
                     <Columns>
-                        <Rock:PersonField DataField="Person" HeaderText="Person" SortExpression="Person.LastName" />
-                        <Rock:RockBoundField DataField="Person.Age" HeaderText="Age" SortExpression="Person.Age"></Rock:RockBoundField>
+                        <Rock:SelectField></Rock:SelectField>
+                        <Rock:PersonField DataField="RegisteredBy.Model" HeaderText="Registered By" SortExpression="RegisteredBy" />
+                        <Rock:PersonField DataField="Registrant.Model" HeaderText="Person" SortExpression="Registrant.Model.LastName" />
+                        <Rock:RockBoundField DataField="Age" HeaderText="Age" SortExpression="Age"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="DOB" HeaderText="DOB (Person)" SortExpression="DOB"></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="Registrant.BirthDate" HeaderText="DOB (Registration)" SortExpression="Registrant.BirthDate"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="RegistrantData.BirthDate" HeaderText="DOB (Registration)" SortExpression="RegistrantData.BirthDate"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="LegalRelease" HeaderText="Legal Release" SortExpression=""></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="GroupMemberData.POA" HeaderText="POA" SortExpression="GroupMemberData.POA"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="RegistrantData.BalanceOwed" HeaderText="Balance Owed" DataFormatString="{0:C}" SortExpression="RegistrantData.BalanceOwed"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="Address" HeaderText="Address" SortExpression="Address"></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="Email" HeaderText="Email" SortExpression=""></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="RegistrantData.ConfirmationEmail" HeaderText="Email" SortExpression="RegistrantData.ConfirmationEmail"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="Gender" HeaderText="Gender" SortExpression=""></Rock:RockBoundField> 
-                        <Rock:RockBoundField DataField="Person.GraduationYear" HeaderText="Graduation Year (Person)" SortExpression="Person.GraduationYear"></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="Registrant.GraduationYear" HeaderText="Graduation Year (Registration)" SortExpression="Registrant.GraduationYear"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="GraduationYear" HeaderText="Graduation Year (Person)" SortExpression="GraduationYear"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="RegistrantData.GraduationYear" HeaderText="Graduation Year (Registration)" SortExpression="RegistrantData.GraduationYear"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="HomePhone" HeaderText="Home Phone" SortExpression="HomePhone"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="CellPhone" HeaderText="Cell Phone" SortExpression="CellPhone"></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="Registrant.ParentName" HeaderText="Parent/Guardian Name" SortExpression="Registrant.ParentName"></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="Registrant.ParentCell" HeaderText="Parent/Guardian Cell" SortExpression="Registrant.ParentCell"></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="Registrant.EmName" HeaderText="Emergency Contact Name" SortExpression="Registrant.EmName"></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="Registrant.EmCell" HeaderText="Emergency Contact Cell" SortExpression="Registrant.EmCell"></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="Registrant.School" HeaderText="School" SortExpression="Registrant.School"></Rock:RockBoundField>
-                        <Rock:BoolField DataField="Registrant.FirstBB" HeaderText="1st B&B" HeaderStyle-HorizontalAlign="Center" SortExpression="Registrant.FirstBB"></Rock:BoolField>
-                        <Rock:RockBoundField DataField="Registrant.Church" HeaderText="Home Church" SortExpression="Registrant.Church"></Rock:RockBoundField>
-                        <Rock:BoolField DataField="Registrant.GroupRoom" HeaderText="Room with Group" SortExpression="Registrant.GroupRoom"></Rock:BoolField>
-                        <Rock:RockBoundField DataField="Registrant.Roommate" HeaderText="Roommate 1" SortExpression="Registrant.Roommate"></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="Registrant.Roommate2" HeaderText="Roommate 2" SortExpression="Registrant.Roommate2"></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="Registrant.TShirtSize" HeaderText="T&#8209;Shirt Size" SortExpression="Registrant.TShirtSize"></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="Registrant.DietaryInfo" HeaderText="Dietary/Medical Info" SortExpression="Registrant.DietaryInfo"></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="LegalRelease" HeaderText="Legal Release" SortExpression=""></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="GroupMember.POA" HeaderText="POA" SortExpression="GroupMember.POA"></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="Registrant.BalanceOwed" HeaderText="Balance Owed" DataFormatString="{0:C}" SortExpression="Registrant.BalanceOwed"></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="GroupMember.RoomCode" HeaderText="Room Code" SortExpression="GroupMember.RoomCode"></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="GroupMember.Bus" HeaderText="Bus" SortExpression="GroupMember.Bus"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="RegistrantData.ParentName" HeaderText="Parent/Guardian Name" SortExpression="RegistrantData.ParentName"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="RegistrantData.ParentCell" HeaderText="Parent/Guardian Cell" SortExpression="RegistrantData.ParentCell"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="RegistrantData.EmName" HeaderText="Emergency Contact Name" SortExpression="RegistrantData.EmName"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="RegistrantData.EmCell" HeaderText="Emergency Contact Cell" SortExpression="RegistrantData.EmCell"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="RegistrantData.School" HeaderText="School" SortExpression="RegistrantData.School"></Rock:RockBoundField>
+                        <Rock:BoolField DataField="RegistrantData.FirstBB" HeaderText="1st B&B" HeaderStyle-HorizontalAlign="Center" SortExpression="RegistrantData.FirstBB"></Rock:BoolField>
+                        <Rock:RockBoundField DataField="RegistrantData.Church" HeaderText="Home Church" SortExpression="RegistrantData.Church"></Rock:RockBoundField>
+                        <Rock:BoolField DataField="RegistrantData.GroupRoom" HeaderText="Room with Group" SortExpression="RegistrantData.GroupRoom"></Rock:BoolField>
+                        <Rock:RockBoundField DataField="RegistrantData.Roommate" HeaderText="Roommate 1" SortExpression="RegistrantData.Roommate"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="RegistrantData.Roommate2" HeaderText="Roommate 2" SortExpression="RegistrantData.Roommate2"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="RegistrantData.TShirtSize" HeaderText="T&#8209;Shirt Size" SortExpression="RegistrantData.TShirtSize"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="RegistrantData.DietaryInfo" HeaderText="Dietary/Medical Info" SortExpression="RegistrantData.DietaryInfo"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="GroupMemberData.RoomCode" HeaderText="Room Code" SortExpression="GroupMemberData.RoomCode"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="GroupMemberData.Bus" HeaderText="Bus" SortExpression="GroupMemberData.Bus"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="Departure" HeaderText="Departure" SortExpression=""></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="GroupMember.FamilyGroup" HeaderText="Family Group" SortExpression="GroupMember.FamilyGroup"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="GroupMemberData.FamilyGroup" HeaderText="Family Group" SortExpression="GroupMemberData.FamilyGroup"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="Campus" HeaderText="Campus" SortExpression=""></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="Role" HeaderText="Role" SortExpression=""></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="GroupMember.GeneralNotes" HeaderText="General Notes" SortExpression="GroupMember.GeneralNotes"></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="GroupMember.RoomingNotes" HeaderText="Rooming Notes" SortExpression="GroupMember.RoomingNotes"></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="GroupMember.MedicalNotes" HeaderText="Medical Notes" SortExpression="GroupMember.MedicalNotes"></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="GroupMember.TravelNotes" HeaderText="Travel Notes" SortExpression="GroupMember.TravelNotes"></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="GroupMember.TravelExceptions" HeaderText="Travel Exceptions" SortExpression="GroupMember.TravelExceptions"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="GroupMemberData.GeneralNotes" HeaderText="General Notes" SortExpression="GroupMemberData.GeneralNotes"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="GroupMemberData.RoomingNotes" HeaderText="Rooming Notes" SortExpression="GroupMemberData.RoomingNotes"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="GroupMemberData.MedicalNotes" HeaderText="Medical Notes" SortExpression="GroupMemberData.MedicalNotes"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="GroupMemberData.TravelNotes" HeaderText="Travel Notes" SortExpression="GroupMemberData.TravelNotes"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="GroupMemberData.TravelExceptions" HeaderText="Travel Exceptions" SortExpression="GroupMemberData.TravelExceptions"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="HSMGroup" HeaderText="HSM Group" SortExpression=""></Rock:RockBoundField>
                         <Rock:LinkButtonField HeaderText="Registration" cssclass="btn btn-default btn-sm fa fa-file-image-o" OnClick="btnRegistration_Click" HeaderStyle-HorizontalAlign="Center" />
                     </Columns>
