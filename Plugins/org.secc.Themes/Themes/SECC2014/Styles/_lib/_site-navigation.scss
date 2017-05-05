@@ -139,13 +139,18 @@ body {
 
 	.account-menu-toggle {
 		.caret { visibility: hidden; }
-		padding-left: 5px;
-		padding-right: 5px;
+		padding: 10px;
 		margin-right: -9px;
+		@include Transition(background .2s ease-out);
 
-		&:hover,
-		&.active {
+		&:hover {
 			.caret { visibility: visible; }
+		}
+		&:hover,&:active,&:focus,&:visited {
+			text-decoration: none;
+		}
+		&.active {
+			background: $CalloutColor;
 		}
 	}
 
@@ -203,13 +208,14 @@ body {
 
 #AccountMenu {
 	height: 0px;
+	left: -20px;
 
- 	& > nav {
+	& > nav {
 		position: absolute;
 		width: 200px;
 		height: 0px;
 		overflow: hidden;
-		background: #fff;
+		background: $CalloutColor;
 		top: 0px;
 		@include phones { display: none;}
 		@include tablets { right: 100px; }
@@ -220,26 +226,25 @@ body {
 		@include Transition(all 0.25s ease-out);
 
 		&.active {
-			height: 133px;
-			@include BoxShadow($right: 0px, $bottom: 2px, $blur: 8px, $color: $GrayColor, $spread: 2px);
+			height: 159px;
+			// @include BoxShadow($right: 0px, $bottom: 2px, $blur: 8px, $color: $GrayColor, $spread: 2px);
 		}
 
-		li {
-			padding: 6px 9px;
-			border-bottom: 1px solid $HighlightColor;
-			font-size: .85em;
-			font-family: $Proxima-SemiBold;
-			font-weight: 600;
-			a {
-				color: $CopyColor;
-				text-decoration: none !important;
-			}
-
-			&:hover {
-				background: rgba($HighlightColor, .8);
-				a {color: #fff; }
+		a {
+			color: $CopyColor;
+			text-decoration: none !important;
+			li {
+				padding: 10px;
+				border-bottom: 1px solid $HighlightColor;
+				font-size: .85em;
+				font-family: $Proxima-SemiBold;
+				font-weight: 600;
+				&:hover {
+					background: rgba($SuperNavColor, .8);
+				}
 			}
 		}
+
 
 	}
 }

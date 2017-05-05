@@ -3,7 +3,8 @@
     <script type="text/javascript">
         $('#siteLogin a').hide();
         $.get("/api/people/CurrentUser", function (data) {
-            $('#siteLogin').html("<a href=\"/MyAccount\">"+data.FullName+"</a>");
+            $('#siteLogin').html("<a href=\"javascript:\" class=\"account-menu-toggle\">"+data.FullName+" <span class=\"caret\"></span></a>");
+			bindAccountMenu($('.account-menu-toggle.'));
         });
     </script>
 </asp:PlaceHolder>
