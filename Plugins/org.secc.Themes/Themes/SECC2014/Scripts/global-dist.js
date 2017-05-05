@@ -635,6 +635,18 @@ DobValidator.prototype.handleNumber = function($field) {
 	}
 };
 
+function bindAccountMenu(el) {
+	el.click(function() {
+		var $AccountMenu = $("#AccountMenu > nav");
+
+		$("#LocationsMenu").removeClass("active");
+		$(".locations-toggle").removeClass("active");
+		$(this).toggleClass("active");
+		$AccountMenu.toggleClass("active");
+
+	});	
+}
+
 $(function () { //<--- here..the codes below is called whn document is ready
 
 //@prepros-prepend functions.js
@@ -662,22 +674,12 @@ $(".locations-toggle").click(function() {
 	$LocationsMenu.toggleClass("active");
 });
 
-$(".account-menu-toggle").click(function() {
-	var $AccountMenu = $("#AccountMenu > nav");
-
-	$("#LocationsMenu").removeClass("active");
-	$(".locations-toggle").removeClass("active");
-	$(this).toggleClass("active");
-	$AccountMenu.toggleClass("active");
-
-});
-$("#AccountMenu > nav").mouseleave(function() {
-	var $AccountMenuButton = $(".account-menu-toggle");
-
-	$(this).removeClass("active");
-	$AccountMenuButton.removeClass("active");
-
-});
+// $("#AccountMenu > nav").mouseleave(function() {
+// 	var $AccountMenuButton = $(".account-menu-toggle");
+//
+// 	$(this).removeClass("active");
+// 	$AccountMenuButton.removeClass("active");
+// });
 
 
 $("#SiteNav .desktop button.btn-menu").click(function() {
