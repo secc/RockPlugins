@@ -36,7 +36,6 @@ function bindAccountMenu(el) {
 
 	});	
 }
-bindAccountMenu($(".account-menu-toggle"));
 
 // $("#AccountMenu > nav").mouseleave(function() {
 // 	var $AccountMenuButton = $(".account-menu-toggle");
