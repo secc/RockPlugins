@@ -133,6 +133,18 @@ function openWindow(url, name) {
 	window.open(url, name);
 }
 
+function bindAccountMenu(el) {
+	el.click(function() {
+		var $AccountMenu = $("#AccountMenu > nav");
+
+		$("#LocationsMenu").removeClass("active");
+		$(".locations-toggle").removeClass("active");
+		$(this).toggleClass("active");
+		$AccountMenu.toggleClass("active");
+
+	});
+}
+
 /* global moment */
 
 function validEmail(email) {
@@ -635,18 +647,6 @@ DobValidator.prototype.handleNumber = function($field) {
 	}
 };
 
-function bindAccountMenu(el) {
-	el.click(function() {
-		var $AccountMenu = $("#AccountMenu > nav");
-
-		$("#LocationsMenu").removeClass("active");
-		$(".locations-toggle").removeClass("active");
-		$(this).toggleClass("active");
-		$AccountMenu.toggleClass("active");
-
-	});	
-}
-
 $(function () { //<--- here..the codes below is called whn document is ready
 
 //@prepros-prepend functions.js
@@ -673,6 +673,18 @@ $(".locations-toggle").click(function() {
 	$(this).toggleClass("active");
 	$LocationsMenu.toggleClass("active");
 });
+
+function bindAccountMenu(el) {
+	el.click(function() {
+		var $AccountMenu = $("#AccountMenu > nav");
+
+		$("#LocationsMenu").removeClass("active");
+		$(".locations-toggle").removeClass("active");
+		$(this).toggleClass("active");
+		$AccountMenu.toggleClass("active");
+
+	});	
+}
 
 // $("#AccountMenu > nav").mouseleave(function() {
 // 	var $AccountMenuButton = $(".account-menu-toggle");
