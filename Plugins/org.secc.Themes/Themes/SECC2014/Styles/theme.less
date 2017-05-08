@@ -153,30 +153,31 @@ footer {
 }
 
 /* hide block panels */
-.panel.panel-block {
-    border: 0;
-    box-shadow: none;
+.panel-block {
+     border-top-color: #b9d4ec;
+     //.panel-variant(@border; @heading-text-color; @heading-bg-color; @heading-border;)
 
-    & > .panel-heading,
-    & > .rock-panel-drawer {
-        display: none;
-    }
+     .panel-variant(#cde1f1; #357ebd; #f5f9fc; #6aa3d5;);
 
-    & > .panel-body {
-        padding: 0;
+     > .panel-heading {
+       .clearfix();
 
-        .grid.grid-panel {
-            margin: 0;
-        }
-    }
-}
+       .panel-title {
+         float: left;
+
+         i {
+           color: #6a6a6a ;
+         }
+       }
+     }
+ }
 
 #cms-admin-footer {
     opacity: 100 !important;
 }
 .signoff {
     margin-bottom: 36px;
-    border-bottom: 2px dashed red;
+    border-bottom: 2px dashed #3cb2f6;
 }
 
 // 4. Responsive Overrides

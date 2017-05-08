@@ -40,7 +40,7 @@ button, a, input[type="submit"], input[type="reset"], input[type="button"] {
         border-radius: 0;
         -webkit-appearance: none;
     }
-	&.btn:active, 
+	&.btn:active,
 	&.btn.active {
 		outline: 0;
 		background-image: none;
@@ -80,7 +80,7 @@ button, a, input[type="submit"], input[type="reset"], input[type="button"] {
 		font-size: 1.2em;
 		line-height: 1.3em;
 		padding: 0.5em 1.3em;
-		display: block;
+		display: table;
 		background: rgba(#fff,.2);
 		color: #000;
 		@include phones { font-size: 1em; }
@@ -129,7 +129,6 @@ article {
 	h1 { font-size: floor(($font-size-base * 1.85));}
 	h2 { font-size: floor(($font-size-base * 1.6));}
 }
-
 
 .subhead {
 	color: $HighlightColor;
@@ -604,6 +603,23 @@ article {
 		}
 	}
 
+}
+
+/* Bootstrap Overwrites to work with Rock Core theme */
+.alert-warning {
+	clear: both;
+}
+
+.well,.panel {
+	border-radius: 0px;
+}
+
+.panel {
+	// border: 1px solid #5697d0;
+	.panel-heading {
+		background-image: none !important;
+		// border-bottom: 1px solid #5697d0;
+	}
 }
 
 @import '_lib/print';

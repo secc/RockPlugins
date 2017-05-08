@@ -132,3 +132,15 @@ function openWindow(url, name) {
 	TrackEvent("New Window", name, url);
 	window.open(url, name);
 }
+
+function bindAccountMenu(el) {
+	el.click(function() {
+		var $AccountMenu = $("#AccountMenu > nav");
+
+		$("#LocationsMenu").removeClass("active");
+		$(".locations-toggle").removeClass("active");
+		$(this).toggleClass("active");
+		$AccountMenu.toggleClass("active");
+
+	});
+}
