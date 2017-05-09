@@ -14001,6 +14001,27 @@ th[align=center] {
   background-color: transparent;
   border: 0; }
 
+@media (min-width: 1600px) {
+  .col-xs-1, .col-sm-1, .col-md-1, .col-lg-1, .col-xs-2, .col-sm-2, .col-md-2, .col-lg-2, .col-xs-3, .col-sm-3, .col-md-3, .col-lg-3, .col-xs-4, .col-sm-4, .col-md-4, .col-lg-4, .col-xs-5, .col-sm-5, .col-md-5, .col-lg-5, .col-xs-6, .col-sm-6, .col-md-6, .col-lg-6, .col-xs-7, .col-sm-7, .col-md-7, .col-lg-7, .col-xs-8, .col-sm-8, .col-md-8, .col-lg-8, .col-xs-9, .col-sm-9, .col-md-9, .col-lg-9, .col-xs-10, .col-sm-10, .col-md-10, .col-lg-10, .col-xs-11, .col-sm-11, .col-md-11, .col-lg-11, .col-xs-12, .col-sm-12, .col-md-12, .col-lg-12 {
+    padding-left: 40px;
+    padding-right: 40px; }
+  .row.normal .col-xs-1, .row.normal .col-sm-1, .row.normal .col-md-1, .row.normal .col-lg-1, .row.normal .col-xs-2, .row.normal .col-sm-2, .row.normal .col-md-2, .row.normal .col-lg-2, .row.normal .col-xs-3, .row.normal .col-sm-3, .row.normal .col-md-3, .row.normal .col-lg-3, .row.normal .col-xs-4, .row.normal .col-sm-4, .row.normal .col-md-4, .row.normal .col-lg-4, .row.normal .col-xs-5, .row.normal .col-sm-5, .row.normal .col-md-5, .row.normal .col-lg-5, .row.normal .col-xs-6, .row.normal .col-sm-6, .row.normal .col-md-6, .row.normal .col-lg-6, .row.normal .col-xs-7, .row.normal .col-sm-7, .row.normal .col-md-7, .row.normal .col-lg-7, .row.normal .col-xs-8, .row.normal .col-sm-8, .row.normal .col-md-8, .row.normal .col-lg-8, .row.normal .col-xs-9, .row.normal .col-sm-9, .row.normal .col-md-9, .row.normal .col-lg-9, .row.normal .col-xs-10, .row.normal .col-sm-10, .row.normal .col-md-10, .row.normal .col-lg-10, .row.normal .col-xs-11, .row.normal .col-sm-11, .row.normal .col-md-11, .row.normal .col-lg-11, .row.normal .col-xs-12, .row.normal .col-sm-12, .row.normal .col-md-12, .row.normal .col-lg-12 {
+    padding-left: 15px;
+    padding-right: 15px; }
+  .row {
+    margin-left: -40px;
+    margin-right: -40px; }
+    .row.normal {
+      margin-left: -15px;
+      margin-right: -15px; }
+  .container {
+    width: 1490px; }
+  .container-fluid {
+    margin-right: auto;
+    margin-left: auto;
+    padding-left: 40px;
+    padding-right: 40px; } }
+
 /*
   Used to manage styles related to reusable components / widgets.
 

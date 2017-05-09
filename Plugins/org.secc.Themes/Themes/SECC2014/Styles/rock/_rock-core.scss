@@ -592,4 +592,31 @@ $drawer-bg: $panel-heading-bg;
   }
 }
 
+@media (min-width: 1600px) {
+	$gutter: 80px;
+
+	@include make-jumbo-columns($gutter-width: $gutter);
+
+	.row {
+		margin-left: ($gutter / -2);
+		margin-right: ($gutter / -2);
+
+		&.normal {
+			margin-left: ($grid-gutter-width / -2);
+			margin-right: ($grid-gutter-width / -2);
+		}
+	}
+
+	.container {
+		width: (1600px - $gutter - 30px);
+	}
+
+	.container-fluid {
+    	margin-right: auto;
+    	margin-left: auto;
+    	padding-left: 40px;
+    	padding-right: 40px;
+	}
+}
+
 // make links in alerts the same co
