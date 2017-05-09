@@ -54,7 +54,7 @@
 				<li><a href="/contact/">Contact</a></li>
 				<li><a href="/about/">About</a></li>
 				<li><a href="/giving/">Give</a></li>
-				<li><a href="https://my.southeastchristian.org/login">My Southeast</a></li>
+				<li id="siteLoginMobile"><a href="/login">Login</a></li>
 			</ul>
 		</li>
 		<li class="nav-section">

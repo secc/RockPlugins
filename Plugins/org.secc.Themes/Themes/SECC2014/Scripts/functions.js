@@ -143,6 +143,11 @@ function bindAccountMenu(el) {
 		$AccountMenu.toggleClass("active");
 
 	});
+	$("#mobileToggleAccount").click(function(e) {
+		e.preventDefault();
+		var $Dropdown = $(this).parent();
+		$Dropdown.toggleClass('open');
+	});
 
 	$(document).click(function(event) {
 		var $AccountMenuButton = $(".account-menu-toggle");
@@ -153,4 +158,5 @@ function bindAccountMenu(el) {
 	        }
 	    }
 	});
+
 }
