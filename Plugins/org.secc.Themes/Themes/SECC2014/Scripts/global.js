@@ -9,7 +9,7 @@ $("#SiteNav .mobile.main .btn-menu").click(function() {
 	$("body").toggleClass("menu-open");
 });
 
-$(".expandable-menu .dropdown > .toggle").click(function(e) {
+$(".expandable-menu .dropdown > .toggle[id!='mobileToggleAccount']").click(function(e) {
 	e.preventDefault();
 	var $Dropdown = $(this).parent();
 	$Dropdown.toggleClass('open');
