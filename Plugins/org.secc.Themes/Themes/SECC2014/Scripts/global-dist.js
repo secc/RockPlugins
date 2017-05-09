@@ -143,6 +143,16 @@ function bindAccountMenu(el) {
 		$AccountMenu.toggleClass("active");
 
 	});
+
+	$(document).click(function(event) {
+		var $AccountMenuButton = $(".account-menu-toggle");
+		if(!$(event.target).closest('.account-menu-toggle').length) {
+	        if($AccountMenuButton.hasClass("active")) {
+			$("#AccountMenu > nav").removeClass("active");
+		  	  $AccountMenuButton.removeClass("active");
+	        }
+	    }
+	});
 }
 
 /* global moment */
@@ -674,25 +684,12 @@ $(".locations-toggle").click(function() {
 	$LocationsMenu.toggleClass("active");
 });
 
-function bindAccountMenu(el) {
-	el.click(function() {
-		var $AccountMenu = $("#AccountMenu > nav");
-
-		$("#LocationsMenu").removeClass("active");
-		$(".locations-toggle").removeClass("active");
-		$(this).toggleClass("active");
-		$AccountMenu.toggleClass("active");
-
-	});	
-}
-
 // $("#AccountMenu > nav").mouseleave(function() {
 // 	var $AccountMenuButton = $(".account-menu-toggle");
 //
 // 	$(this).removeClass("active");
 // 	$AccountMenuButton.removeClass("active");
 // });
-
 
 $("#SiteNav .desktop button.btn-menu").click(function() {
 	var SubMenuName = $(this).data("subMenu");

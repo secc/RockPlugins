@@ -25,25 +25,12 @@ $(".locations-toggle").click(function() {
 	$LocationsMenu.toggleClass("active");
 });
 
-function bindAccountMenu(el) {
-	el.click(function() {
-		var $AccountMenu = $("#AccountMenu > nav");
-
-		$("#LocationsMenu").removeClass("active");
-		$(".locations-toggle").removeClass("active");
-		$(this).toggleClass("active");
-		$AccountMenu.toggleClass("active");
-
-	});	
-}
-
 // $("#AccountMenu > nav").mouseleave(function() {
 // 	var $AccountMenuButton = $(".account-menu-toggle");
 //
 // 	$(this).removeClass("active");
 // 	$AccountMenuButton.removeClass("active");
 // });
-
 
 $("#SiteNav .desktop button.btn-menu").click(function() {
 	var SubMenuName = $(this).data("subMenu");
