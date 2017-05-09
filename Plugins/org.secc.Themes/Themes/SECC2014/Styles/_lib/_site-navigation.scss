@@ -91,6 +91,9 @@ body {
 	}
 }
 
+#siteLogin {
+	margin-right: -9px;
+}
 
 #SuperNav {
 
@@ -140,7 +143,6 @@ body {
 	.account-menu-toggle {
 		.caret { visibility: hidden; }
 		padding: 10px;
-		margin-right: -9px;
 		@include Transition(background .2s ease-out);
 
 		&:hover {
