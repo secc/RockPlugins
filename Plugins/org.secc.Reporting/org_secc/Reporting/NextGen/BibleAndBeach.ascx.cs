@@ -33,6 +33,7 @@ using System.Text.RegularExpressions;
 using System.Collections;
 using System.Reflection;
 using Rock.Web.Cache;
+using System.Diagnostics;
 
 namespace RockWeb.Blocks.Reporting.NextGen
 {
@@ -107,6 +108,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 var groupTypeService = new GroupTypeService(rockContext);
                 var attributeService = new AttributeService(rockContext);
                 var attributeValueService = new AttributeValueService(rockContext);
+                var personService = new PersonService(rockContext);
                 var personAliasService = new PersonAliasService(rockContext);
                 var entityTypeService = new EntityTypeService(rockContext);
                 var registrationRegistrantService = new RegistrationRegistrantService(rockContext);
@@ -114,6 +116,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 var groupLocationService = new GroupLocationService(rockContext);
                 var locationService = new LocationService(rockContext);
                 var signatureDocumentServce = new SignatureDocumentService(rockContext);
+                var phoneNumberService = new PhoneNumberService(rockContext);
 
                 int[] signatureDocumentIds = { };
                 if (!string.IsNullOrWhiteSpace(GetAttributeValue("SignatureDocumentTemplates"))) {
@@ -142,42 +145,48 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     .Join(registrationRegistrantService.Queryable(),
                         obj => obj.Id,
                         rr => rr.GroupMemberId,
-                        (obj, rr) => new { GroupMember = obj, RegistrationRegistrant = rr })
-                    .GroupJoin(
-                        groupMemberService.Queryable()
-                        .Join(groupService.Queryable(),
-                            gm => new { Id = gm.GroupId, GroupTypeId = 10 },
-                            g => new { g.Id, g.GroupTypeId },
-                            (gm, g) => new { GroupMember = gm, Group = g })
-                        .Join(groupLocationService.Queryable(),
-                            obj => new { GroupId = obj.Group.Id, GroupLocationTypeValueId = (int?)19 },
-                            gl => new { gl.GroupId, gl.GroupLocationTypeValueId },
-                            (g, gl) => new { GroupMember = g.GroupMember, GroupLocation = gl })
-                        .Join(locationService.Queryable(),
-                            obj => obj.GroupLocation.LocationId,
-                            l => l.Id,
-                            (obj, l) => new { GroupMember = obj.GroupMember, Location = l }),
-                        gm => gm.GroupMember.PersonId,
-                        glgm => glgm.GroupMember.PersonId,
-                        (obj, l) => new { GroupMember = obj.GroupMember, RegistrationRegistrant = obj.RegistrationRegistrant, Location = l.Select(loc => loc.Location).FirstOrDefault() }
-                    )
+                        (obj, rr) => new { GroupMember = obj, Person = obj.Person, RegistrationRegistrant = rr })
                     .GroupJoin(attributeValueService.Queryable(),
                         obj => obj.GroupMember.Id,
                         av => av.EntityId.Value,
-                        (obj, avs) => new { GroupMember = obj.GroupMember, RegistrationRegistrant = obj.RegistrationRegistrant, GroupMemberAttributeValues = avs.Where(av => attributeIds.Contains(av.AttributeId)), Location = obj.Location })
+                        (obj, avs) => new { GroupMember = obj.GroupMember, Person = obj.Person, RegistrationRegistrant = obj.RegistrationRegistrant, GroupMemberAttributeValues = avs.Where(av => attributeIds.Contains(av.AttributeId))/*, Location = obj.Location */})
                     .GroupJoin(attributeValueService.Queryable(),
                         obj => obj.RegistrationRegistrant.Id,
                         av => av.EntityId.Value,
-                        (obj, avs) => new { GroupMember = obj.GroupMember, RegistrationRegistrant = obj.RegistrationRegistrant, GroupMemberAttributeValues = obj.GroupMemberAttributeValues, RegistrationAttributeValues = avs.Where(av => attributeIds.Contains(av.AttributeId)), Location = obj.Location })
-                    .GroupJoin(signatureDocumentServce.Queryable()
-                                .Join(personAliasService.Queryable(),
-                                    sd => sd.AppliesToPersonAliasId,
-                                    pa => pa.Id,
-                                    (sd, pa) => new { SignatureDocument = sd, Alias = pa }),
-                        obj => obj.GroupMember.PersonId,
-                        sd => sd.Alias.PersonId,
-                        (obj, sds) => new { GroupMember = obj.GroupMember, RegistrationRegistrant = obj.RegistrationRegistrant, GroupMemberAttributeValues = obj.GroupMemberAttributeValues, RegistrationAttributeValues = obj.RegistrationAttributeValues, Location = obj.Location, SignatureDocuments = sds });
-                //var qry = qrytest.ToList();
+                        (obj, avs) => new { GroupMember = obj.GroupMember, Person = obj.Person, RegistrationRegistrant = obj.RegistrationRegistrant, GroupMemberAttributeValues = obj.GroupMemberAttributeValues, RegistrationAttributeValues = avs.Where(av => attributeIds.Contains(av.AttributeId))/*, Location = obj.Location */ });
+
+                var qry2 = gmTmpqry
+                        .GroupJoin(
+                            groupMemberService.Queryable()
+                            .Join(groupService.Queryable(),
+                                gm => new { Id = gm.GroupId, GroupTypeId = 10 },
+                                g => new { g.Id, g.GroupTypeId },
+                                (gm, g) => new { GroupMember = gm, Group = g })
+                            .Join(groupLocationService.Queryable(),
+                                obj => new { GroupId = obj.Group.Id, GroupLocationTypeValueId = (int?)19 },
+                                gl => new { gl.GroupId, gl.GroupLocationTypeValueId },
+                                (g, gl) => new { GroupMember = g.GroupMember, GroupLocation = gl })
+                            .Join(locationService.Queryable(),
+                                obj => obj.GroupLocation.LocationId,
+                                l => l.Id,
+                                (obj, l) => new { GroupMember = obj.GroupMember, Location = l }),
+                            gm => gm.PersonId,
+                            glgm => glgm.GroupMember.PersonId,
+                            (obj, l) => new { GroupMember = obj, Location = l.Select(loc => loc.Location).FirstOrDefault() }
+                        )
+                        .GroupJoin(signatureDocumentServce.Queryable()
+                            .Join(personAliasService.Queryable(),
+                                sd => sd.AppliesToPersonAliasId,
+                                pa => pa.Id,
+                                (sd, pa) => new { SignatureDocument = sd, Alias = pa }),
+                            obj => obj.GroupMember.PersonId,
+                            sd => sd.Alias.PersonId,
+                            (obj, sds) => new { GroupMember = obj.GroupMember, Location = obj.Location, SignatureDocuments = sds })
+                            .GroupJoin(phoneNumberService.Queryable(),
+                    obj => obj.GroupMember.PersonId,
+                    p => p.PersonId,
+                    (obj, pn) => new { GroupMember = obj.GroupMember, Location = obj.Location, SignatureDocuments = obj.SignatureDocuments, PhoneNumbers = pn });
+
 
                 if (!String.IsNullOrWhiteSpace(GetUserPreference(string.Format("{0}PersonName", keyPrefix)))) {
                     string personName = GetUserPreference(string.Format("{0}PersonName", keyPrefix)).ToLower();
@@ -199,27 +208,36 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     qry = qry.ToList().Where(q => q.RegistrationRegistrant.Registration.BalanceDue <= upperVal).AsQueryable();
                 }
 
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
+                var tmp = qry.ToList();
+                var tmp2 = qry2.ToList();
 
-                var newQry = qry.ToList().Select(g => new
+                lStats.Text = "Query Runtime: " + stopwatch.Elapsed;
+                stopwatch.Reset();
+
+                stopwatch.Start();
+
+                var newQry =  tmp.Select(g => new
                 {
                     Id = g.GroupMember.Id,
                     RegisteredBy = new ModelValue<Person>(g.RegistrationRegistrant.Registration.PersonAlias.Person),
-                    person = g.GroupMember.Person,
-                    Registrant = new ModelValue<Person>(g.GroupMember.Person),
-                    Age = g.GroupMember.Person.Age,
-                    GraduationYear = g.GroupMember.Person.GraduationYear,
+                    person = g.Person,
+                    Registrant = new ModelValue<Person>(g.Person),
+                    Age = g.Person.Age,
+                    GraduationYear = g.Person.GraduationYear,
                     RegistrationId = g.RegistrationRegistrant.RegistrationId,
                     Group = new ModelValue<Rock.Model.Group>((Rock.Model.Group)g.GroupMember.Group),
-                    DOB = g.GroupMember.Person.BirthDate.HasValue ? g.GroupMember.Person.BirthDate.Value.ToShortDateString() : "",
-                    Address = new ModelValue<Location>(g.Location),
-                    Email = g.GroupMember.Person.Email,
-                    Gender = g.GroupMember.Person.Gender, // (B & B Registration)
-                    GraduationYearProfile = g.GroupMember.Person.GraduationYear, // (Person Profile)
-                    HomePhone = g.GroupMember.Person.PhoneNumbers.Where(pn => pn.NumberTypeValue.Guid == Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME.AsGuid()).Select(pn => pn.NumberFormatted).FirstOrDefault(),
-                    CellPhone = g.GroupMember.Person.PhoneNumbers.Where(pn => pn.NumberTypeValue.Guid == Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid()).Select(pn => pn.NumberFormatted).FirstOrDefault(),
+                    DOB = g.Person.BirthDate.HasValue ? g.Person.BirthDate.Value.ToShortDateString() : "",
+                    Address = new ModelValue<Location>(tmp2.Where(gm => gm.GroupMember.Id == g.GroupMember.Id).Select(gm => gm.Location).FirstOrDefault()),
+                    Email = g.Person.Email,
+                    Gender = g.Person.Gender, // (B & B Registration)
+                    GraduationYearProfile = g.Person.GraduationYear, // (Person Profile)
+                    HomePhone = tmp2.Where(gm => gm.GroupMember.Id == g.GroupMember.Id).SelectMany(gm => gm.PhoneNumbers).Where(pn => pn.NumberTypeValue.Guid == Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME.AsGuid()).Select(pn => pn.NumberFormatted).FirstOrDefault(),
+                    CellPhone = tmp2.Where(gm => gm.GroupMember.Id == g.GroupMember.Id).SelectMany(gm => gm.PhoneNumbers).Where(pn => pn.NumberTypeValue.Guid == Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid()).Select(pn => pn.NumberFormatted).FirstOrDefault(),
                     GroupMemberData = new Func<GroupMemberAttributes>(() =>
                     {
-                        GroupMemberAttributes gma = new GroupMemberAttributes(g.GroupMember, g.GroupMemberAttributeValues);
+                        GroupMemberAttributes gma = new GroupMemberAttributes(g.GroupMember, g.Person, g.GroupMemberAttributeValues);
                         return gma;
                     })(),
                     RegistrantData = new Func<RegistrantAttributes>(() =>
@@ -227,13 +245,16 @@ namespace RockWeb.Blocks.Reporting.NextGen
                         RegistrantAttributes row = new RegistrantAttributes(g.RegistrationRegistrant, g.RegistrationAttributeValues);
                         return row;
                     })(),
-                    LegalRelease = g.SignatureDocuments.OrderByDescending(sd => sd.SignatureDocument.CreatedDateTime).Where(sd => signatureDocumentIds.Contains(sd.SignatureDocument.SignatureDocumentTemplateId)).Select(sd => sd.SignatureDocument.SignatureDocumentTemplate.Name.Contains("MINOR")?"MINOR":sd.SignatureDocument.SignatureDocumentTemplate.Name.Contains("ADULT")?"ADULT":"").FirstOrDefault(), // (highest level form on record, pulled from forms page in Rock)
+                    LegalRelease = tmp2.Where(gm => gm.GroupMember.Id == g.GroupMember.Id).SelectMany(gm => gm.SignatureDocuments).OrderByDescending(sd => sd.SignatureDocument.CreatedDateTime).Where(sd => signatureDocumentIds.Contains(sd.SignatureDocument.SignatureDocumentTemplateId)).Select(sd => sd.SignatureDocument.SignatureDocumentTemplate.Name.Contains("MINOR")?"MINOR":sd.SignatureDocument.SignatureDocumentTemplate.Name.Contains("ADULT")?"ADULT":"").FirstOrDefault(), // (highest level form on record, pulled from forms page in Rock)
                     Departure = "TBD", // (hopefully based on bus, otherwise a dropdown with 1-4) 
-                    Campus = "920", // 
-                    Role = "Student", // 
-                    HSMGroup = String.Join(", ", groupMemberService.Queryable().Where(gm => gm.PersonId == g.GroupMember.PersonId && gm.Group.GroupTypeId == hsmGroupTypeId && gm.GroupRole.IsLeader == false && gm.GroupMemberStatus == GroupMemberStatus.Active).Select(gm => gm.Group.Name).ToList())
+                    Campus = group.Campus, // 
+                    Role = group.ParentGroup.GroupType.Name.Contains("Serving")?"Leader":"Student", // 
+                    HSMGroup = String.Join(", ", groupMemberService.Queryable().Where(gm => gm.PersonId == g.GroupMember.PersonId && gm.Group.GroupTypeId == hsmGroupTypeId && gm.GroupMemberStatus == GroupMemberStatus.Active).Select(gm => gm.Group.Name).ToList())
                 }).OrderBy(w => w.Registrant.Model.LastName).ToList().AsQueryable();
 
+                lStats.Text += "<br />Object Build Runtime: " + stopwatch.Elapsed;
+
+                stopwatch.Stop();
                 gReport.GetRecipientMergeFields += GReport_GetRecipientMergeFields;
                 var mergeFields = new List<String>();
                 mergeFields.Add("Id");
@@ -495,14 +516,18 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
         class GroupMemberAttributes : IComparable
         {
-            public GroupMemberAttributes(GroupMember groupMember, IEnumerable<AttributeValue> attributeValues)
+            public GroupMemberAttributes(GroupMember groupMember, Person person, IEnumerable<AttributeValue> attributeValues)
             {
                 GroupMember = groupMember;
                 AttributeValues = attributeValues;
+                Person = person;
             }
 
             [Newtonsoft.Json.JsonIgnore]
             public GroupMember GroupMember { get; set; }
+
+            [Newtonsoft.Json.JsonIgnore]
+            public Person Person { get; set; }
             private IEnumerable<AttributeValue> AttributeValues { get; set; }
 
             public int Id { get { return GroupMember.Id; } }
@@ -512,7 +537,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
             public String TravelNotes { get { return GetAttributeValue("TravelNotes"); } }
             public String TravelExceptions { get { return GetAttributeValue("TravelExceptions"); } }
             public String POA { get {
-                    if (GroupMember.Person.Age >= 18)
+                    if (Person.Age >= 18)
                     {
                         return "N/A";
                     }

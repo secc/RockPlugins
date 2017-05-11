@@ -19,7 +19,6 @@
             </div>
         </asp:Panel>
         <asp:Panel runat="server" ID="pnlMain" Visible="true">
-
             <div class="panel panel-block">
                 <div class="panel-heading">
                     <asp:HyperLink runat="server" ID="hlGroup" CssClass="pull-right btn btn-default" ToolTip="View Group"><i class="fa fa-group"></i></asp:HyperLink>
@@ -75,6 +74,11 @@
                         <Rock:LinkButtonField HeaderText="Registration" cssclass="btn btn-default btn-sm fa fa-file-image-o" OnClick="btnRegistration_Click" HeaderStyle-HorizontalAlign="Center" />
                     </Columns>
                 </Rock:Grid>
+            </div>
+            <div class="clearfix">
+                <div class="pull-right"><small>
+                    <asp:Literal ID="lStats" runat="server"></asp:Literal>
+                </small></div>
             </div>
         </asp:Panel>
         <Rock:ModalDialog runat="server" ID="mdEditRow">
