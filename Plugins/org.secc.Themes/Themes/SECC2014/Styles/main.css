@@ -4662,9 +4662,7 @@ button.close {
     -webkit-transition: -webkit-transform 0.3s ease-out;
     -moz-transition: -moz-transform 0.3s ease-out;
     -o-transition: -o-transform 0.3s ease-out;
-    transition: -webkit-transform 0.3s ease-out;
-    transition: transform 0.3s ease-out;
-    transition: transform 0.3s ease-out, -webkit-transform 0.3s ease-out; }
+    transition: transform 0.3s ease-out; }
   .modal.in .modal-dialog {
     -webkit-transform: translate3d(0, 0, 0);
     transform: translate3d(0, 0, 0); }
@@ -6137,7 +6135,6 @@ input.error {
 :root .fa-rotate-270,
 :root .fa-flip-horizontal,
 :root .fa-flip-vertical {
-  -webkit-filter: none;
   filter: none; }
 
 .fa-stack {
@@ -12915,9 +12912,7 @@ button.close {
     -webkit-transition: -webkit-transform 0.3s ease-out;
     -moz-transition: -moz-transform 0.3s ease-out;
     -o-transition: -o-transform 0.3s ease-out;
-    transition: -webkit-transform 0.3s ease-out;
-    transition: transform 0.3s ease-out;
-    transition: transform 0.3s ease-out, -webkit-transform 0.3s ease-out; }
+    transition: transform 0.3s ease-out; }
   .modal.in .modal-dialog {
     -webkit-transform: translate3d(0, 0, 0);
     transform: translate3d(0, 0, 0); }
@@ -14627,10 +14622,6 @@ div.tagsinput .tags_clear {
     color: black; }
   .smartsearch .nav > li > a {
     padding: 4px 15px; }
-  .smartsearch input::-moz-selection,
-  .smartsearch input::-moz-selection {
-    color: #fff;
-    background: #2e2e2e; }
   .smartsearch input::selection,
   .smartsearch input::-moz-selection {
     color: #fff;
@@ -15442,11 +15433,9 @@ fieldset .actions {
     -webkit-transform: scaleY(1); }
   .updateprogress-statuskeyframes stretchdelay 0%, .updateprogress-statuskeyframes stretchdelay 40%, .updateprogress-statuskeyframes stretchdelay 100% {
     -webkit-transform: scaleY(0.4);
-    -ms-transform: scaleY(0.4);
     transform: scaleY(0.4); }
   .updateprogress-statuskeyframes stretchdelay 20% {
     -webkit-transform: scaleY(1);
-    -ms-transform: scaleY(1);
     transform: scaleY(1); }
 
 @media (min-width: 992px) {
