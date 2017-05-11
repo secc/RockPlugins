@@ -9,7 +9,7 @@ $("#SiteNav .mobile.main .btn-menu").click(function() {
 	$("body").toggleClass("menu-open");
 });
 
-$(".expandable-menu .dropdown > .toggle").click(function(e) {
+$(".expandable-menu .dropdown > .toggle[id!='mobileToggleAccount']").click(function(e) {
 	e.preventDefault();
 	var $Dropdown = $(this).parent();
 	$Dropdown.toggleClass('open');
@@ -25,25 +25,12 @@ $(".locations-toggle").click(function() {
 	$LocationsMenu.toggleClass("active");
 });
 
-function bindAccountMenu(el) {
-	el.click(function() {
-		var $AccountMenu = $("#AccountMenu > nav");
-
-		$("#LocationsMenu").removeClass("active");
-		$(".locations-toggle").removeClass("active");
-		$(this).toggleClass("active");
-		$AccountMenu.toggleClass("active");
-
-	});	
-}
-
 // $("#AccountMenu > nav").mouseleave(function() {
 // 	var $AccountMenuButton = $(".account-menu-toggle");
 //
 // 	$(this).removeClass("active");
 // 	$AccountMenuButton.removeClass("active");
 // });
-
 
 $("#SiteNav .desktop button.btn-menu").click(function() {
 	var SubMenuName = $(this).data("subMenu");

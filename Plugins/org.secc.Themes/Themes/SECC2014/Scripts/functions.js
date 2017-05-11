@@ -143,4 +143,20 @@ function bindAccountMenu(el) {
 		$AccountMenu.toggleClass("active");
 
 	});
+	$("#mobileToggleAccount").click(function(e) {
+		e.preventDefault();
+		var $Dropdown = $(this).parent();
+		$Dropdown.toggleClass('open');
+	});
+
+	$(document).click(function(event) {
+		var $AccountMenuButton = $(".account-menu-toggle");
+		if(!$(event.target).closest('.account-menu-toggle').length) {
+	        if($AccountMenuButton.hasClass("active")) {
+			$("#AccountMenu > nav").removeClass("active");
+		  	  $AccountMenuButton.removeClass("active");
+	        }
+	    }
+	});
+
 }
