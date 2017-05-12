@@ -23,11 +23,10 @@ namespace org.secc.Sass
                 DirectoryInfo themeDirectory = new DirectoryInfo( theme.AbsolutePath + @"\Styles" );
                 if ( themeDirectory.Exists )
                 {
-                    FileInfo[] files = themeDirectory.GetFiles();
+                    List<FileInfo> files = GetSCSSFiles( themeDirectory );
 
                     DotlessConfiguration dotLessConfiguration = new DotlessConfiguration();
                     dotLessConfiguration.MinifyOutput = true;
-                    //dotLessConfiguration.RootPath = themeDirectory.FullName;
 
                     Directory.SetCurrentDirectory( themeDirectory.FullName );
 
@@ -39,7 +38,7 @@ namespace org.secc.Sass
                             foreach ( var file in files.Where( f => f.Name.EndsWith( ".scss" ) && !f.Name.StartsWith( "_" ) ) )
                             {
                                 var content = File.ReadAllText( file.FullName );
-                                var sassCompiler = new SassCompiler( new SassOptions() { Data = content } );
+                                var sassCompiler = new SassCompiler( new SassOptions() { Data = content, IncludePath = file.DirectoryName } );
                                 var compact = sassCompiler.Compile();
                                 File.WriteAllText( file.DirectoryName + @"\" + file.Name.Replace( ".scss", ".css" ), compact.Output );
                             }
@@ -53,6 +52,19 @@ namespace org.secc.Sass
                 messages = ex.Message;
             }
             return result;
+        }
+
+        private static List<FileInfo> GetSCSSFiles( DirectoryInfo directory )
+        {
+            List<FileInfo> files = directory.GetFiles().ToList();
+
+            var childDirectories = directory.GetDirectories();
+            foreach ( var childDirectory in childDirectories )
+            {
+                files.AddRange( GetSCSSFiles( childDirectory ) );
+            }
+
+            return files;
         }
     }
 }
