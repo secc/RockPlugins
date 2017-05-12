@@ -465,25 +465,25 @@ article {
     text-transform: uppercase;
     color: $HighlightColor;
 
-    @include non-phones {
-		&::before,
-		&::after {
-		    position: absolute;
-		    top: 51%;
-		    overflow: hidden;
-		    width: 50%;
-		    height: 1px;
-		    content: '\a0';
-		    background-color: rgba($LightGrayColor, .3);
-		}
-		&::before {
-		    margin-left: -53%;
-		    text-align: right;
-		}
-		&::after {
-		    margin-left: 3%;
-		}
-	}
+    // @include non-phones {
+	// 	&::before,
+	// 	&::after {
+	// 	    position: absolute;
+	// 	    top: 51%;
+	// 	    overflow: hidden;
+	// 	    width: 50%;
+	// 	    height: 1px;
+	// 	    // content: '\a0';
+	// 	    // background-color: rgba($LightGrayColor, .3);
+	// 	}
+	// 	&::before {
+	// 	    margin-left: -53%;
+	// 	    text-align: right;
+	// 	}
+	// 	&::after {
+	// 	    margin-left: 3%;
+	// 	}
+	// }
 }
 
 
