@@ -1,0 +1,291 @@
+@import '../../_lib/init';
+
+
+$FormHighlightColor: #dedbd7;
+
+
+.middle {
+	margin: 0 auto;
+	text-align: center;
+}
+
+	.serve-form-outer {
+		border: 1px solid $GrayColor;
+		padding: 20px;
+		background-color: $FormHighlightColor;
+	}
+
+
+
+	.serve-title {
+		text-align: center;
+		line-height:32px;
+
+		div {
+			font-size:28px;
+			font-weight:700;
+			letter-spacing:0.1em;
+			font-family: $Proxima-Bold;
+		}
+
+		div + div {
+			font-size:39px;
+			letter-spacing:0.2em;
+			font-family: $Proxima-Black;
+			font-weight: 900;
+		}
+	}
+
+
+	.categories-title {
+		color: $GrayColor;
+		text-align: center;
+		margin-top:20px;
+	}
+
+	.serve-category {
+		border: 1px solid $GrayColor;
+		padding:10px 20px;
+		margin:15px 0px;
+		background-color: rgba(#fff, 0.4);
+
+		.more {margin-top:10px;}
+
+		label {
+			color: $GrayColor;
+			font-family: $Proxima-Bold;
+			font-weight: 700;
+			font-size:20px;
+			line-height: 1.1;
+			cursor: pointer;
+		}
+
+		button { color: $LinkColor; }
+
+		&.selected {
+			background-color: #c7b5a3;
+		}
+	}
+
+
+
+	.serve-form {
+
+		border: 1px solid $GrayColor;
+		padding:20px;
+		margin:15px 0px;
+		background-color: $FormHighlightColor;
+
+		h2 {
+			text-align:center;
+			color:$GrayColor;
+		}
+
+		label {
+			color: $GrayColor;
+			margin-top: 30px;
+		}
+
+
+		#SelectedAreas {
+			min-height: 2em;
+			margin-bottom: 1em;
+
+			.selected-indicator {
+				display: none;
+			  	background: $LightGrayColor;
+			  	padding: 2px 5px;
+			  	border-radius: 3px;
+			  	color: #FFF;
+			  	margin-bottom: 5px;
+
+			  	.remove {
+					margin-left: 5px;
+					float: right;
+					font-size: 1em;
+					font-weight: bold;
+					line-height: 1;
+					color: #FFF;
+					margin-top: 4px;
+					cursor: pointer;
+				}
+			}
+		}
+
+		.submit-button {text-align: center;}
+	}
+
+
+.error { display: none; }
+
+.event-form-result {
+	display: none;
+	margin-top: 3em;
+}
+
+#SignupComplete {
+	display: none;
+}
+
+.modal {
+	.ministry-areas {
+		background-color: $FormHighlightColor;
+		padding: 10px 20px;
+		margin-bottom: 20px;
+	}
+}
+
+#Events {
+	.date-location {
+		font-style: italic;
+	}
+}
+
+
+.familypalooza-buttons {
+	@include flexbox();
+	@include flexbox-prop(flex-flow, row nowrap);
+	@include flexbox-prop(justify-content, space-between);
+	@include flexbox-prop(align-items, center);
+
+
+	@include non-phones {
+		//se-logo is 2.5em width
+		//we set these logos to use font-size 2em (see below)
+		//there are 4 campuses
+		//and we want to includ 1em between each ofthe 4 campuses.
+		//width: (2.55em * 2 * 4) + (1em * 4);
+		//margin: 0 auto;
+
+		@include flexbox-prop(justify-content, flex-start);
+		.familypalooza-campus-button + .familypalooza-campus-button {
+			margin-left: 1.25em;
+		}
+	}
+
+	.familypalooza-campus-button {
+		@include flexbox-prop('flex', 0 1 auto);
+
+		.se-logo {
+			font-size: 2em;
+		}
+	}
+
+
+}
+
+
+#contact {
+	.serve-contact { text-align: center; }
+	.se-logo {font-size: 30px; margin-bottom: 10px;}
+}
+
+/* ============================================================
+  COMMON
+============================================================ */
+#wrapper {
+  min-width: 600px;
+}
+
+.settings {
+  display: table;
+  width: 100%;
+}
+.settings .row {
+  display: table-row;
+}
+.settings .question,
+.settings .switch {
+  display: table-cell;
+  vertical-align: middle;
+  padding: 10px;
+}
+.settings .question {
+  width: 600px;
+  font-size: 20px;
+}
+
+/* ============================================================
+  COMMON
+============================================================ */
+.cmn-toggle {
+  position: absolute;
+  margin-left: -9999px;
+  visibility: hidden;
+}
+.cmn-toggle + label {
+  display: block;
+  position: relative;
+  cursor: pointer;
+  outline: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* ============================================================
+  SWITCH 3 - YES NO
+============================================================ */
+input.cmn-toggle-yes-no + label {
+  padding: 2px;
+  width: 120px;
+  height: 60px;
+}
+input.cmn-toggle-yes-no + label:before, input.cmn-toggle-yes-no + label:after {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  color: #fff;
+  font-size: 20px;
+  text-align: center;
+  line-height: 60px;
+}
+input.cmn-toggle-yes-no + label:before {
+  background-color: #dddddd;
+  content: attr(data-off);
+  -webkit-transition: -webkit-transform 0.5s;
+  -moz-transition: -moz-transform 0.5s;
+  -o-transition: -o-transform 0.5s;
+  transition: transform 0.5s;
+  -webkit-backface-visibility: hidden;
+  -moz-backface-visibility: hidden;
+  -ms-backface-visibility: hidden;
+  -o-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+input.cmn-toggle-yes-no + label:after {
+  background-color: #8ce196;
+  content: attr(data-on);
+  -webkit-transition: -webkit-transform 0.5s;
+  -moz-transition: -moz-transform 0.5s;
+  -o-transition: -o-transform 0.5s;
+  transition: transform 0.5s;
+  -webkit-transform: rotateY(180deg);
+  -moz-transform: rotateY(180deg);
+  -ms-transform: rotateY(180deg);
+  -o-transform: rotateY(180deg);
+  transform: rotateY(180deg);
+  -webkit-backface-visibility: hidden;
+  -moz-backface-visibility: hidden;
+  -ms-backface-visibility: hidden;
+  -o-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+input.cmn-toggle-yes-no:checked + label:before {
+  -webkit-transform: rotateY(180deg);
+  -moz-transform: rotateY(180deg);
+  -ms-transform: rotateY(180deg);
+  -o-transform: rotateY(180deg);
+  transform: rotateY(180deg);
+}
+input.cmn-toggle-yes-no:checked + label:after {
+  -webkit-transform: rotateY(0);
+  -moz-transform: rotateY(0);
+  -ms-transform: rotateY(0);
+  -o-transform: rotateY(0);
+  transform: rotateY(0);
+}

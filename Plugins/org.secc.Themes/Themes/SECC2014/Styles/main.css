@@ -5718,7 +5718,7 @@ h3, .h3,
 h4, .h4,
 h5, .h5,
 h6, .h6 {
-  margin: 0; }
+  margin: 0px !important; }
 
 h5, h6, .h5, .h6 {
   color: #222222; }
@@ -17321,20 +17321,6 @@ h6.title {
   text-align: center;
   text-transform: uppercase;
   color: #383735; }
-  @media (min-width: 768px) {
-    .section-header::before, .section-header::after {
-      position: absolute;
-      top: 51%;
-      overflow: hidden;
-      width: 50%;
-      height: 1px;
-      content: '\a0';
-      background-color: rgba(160, 157, 153, 0.3); }
-    .section-header::before {
-      margin-left: -53%;
-      text-align: right; }
-    .section-header::after {
-      margin-left: 3%; } }
 
 .plain-section-header {
   text-align: center;
