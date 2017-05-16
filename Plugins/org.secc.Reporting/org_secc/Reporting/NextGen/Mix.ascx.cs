@@ -123,7 +123,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     signatureDocumentIds = Array.ConvertAll(GetAttributeValue("SignatureDocumentTemplates").Split(','), int.Parse);
                 }
                 Guid bbGroup = GetAttributeValue("Group").AsGuid();
-                Guid hsmGroupTypeGuid = GetAttributeValue("HSMGroupType").AsGuid();
+                Guid hsmGroupTypeGuid = GetAttributeValue("MSMGroupType").AsGuid();
                 int? hsmGroupTypeId = groupTypeService.Queryable().Where(gt => gt.Guid == hsmGroupTypeGuid).Select(gt => gt.Id).FirstOrDefault();
 
                 int entityTypeId = entityTypeService.Queryable().Where(et => et.Name == typeof(Rock.Model.Group).FullName).FirstOrDefault().Id;
@@ -146,14 +146,18 @@ namespace RockWeb.Blocks.Reporting.NextGen
                         obj => obj.Id,
                         rr => rr.GroupMemberId,
                         (obj, rr) => new { GroupMember = obj, Person = obj.Person, RegistrationRegistrant = rr })
+                    .Join(attributeValueService.Queryable(),
+                        obj => new { PersonId = (int?)obj.Person.Id, AttributeId = 739 },
+                        av => new { PersonId = av.EntityId, av.AttributeId },
+                        (obj, av) => new { GroupMember = obj.GroupMember, Person = obj.Person, RegistrationRegistrant = obj.RegistrationRegistrant, School = av.Value })
                     .GroupJoin(attributeValueService.Queryable(),
                         obj => obj.GroupMember.Id,
                         av => av.EntityId.Value,
-                        (obj, avs) => new { GroupMember = obj.GroupMember, Person = obj.Person, RegistrationRegistrant = obj.RegistrationRegistrant, GroupMemberAttributeValues = avs.Where(av => attributeIds.Contains(av.AttributeId))/*, Location = obj.Location */})
+                        (obj, avs) => new { GroupMember = obj.GroupMember, Person = obj.Person, RegistrationRegistrant = obj.RegistrationRegistrant, GroupMemberAttributeValues = avs.Where(av => attributeIds.Contains(av.AttributeId)), School=obj.School/*, Location = obj.Location */})
                     .GroupJoin(attributeValueService.Queryable(),
                         obj => obj.RegistrationRegistrant.Id,
                         av => av.EntityId.Value,
-                        (obj, avs) => new { GroupMember = obj.GroupMember, Person = obj.Person, RegistrationRegistrant = obj.RegistrationRegistrant, GroupMemberAttributeValues = obj.GroupMemberAttributeValues, RegistrationAttributeValues = avs.Where(av => attributeIds.Contains(av.AttributeId))/*, Location = obj.Location */ });
+                        (obj, avs) => new { GroupMember = obj.GroupMember, Person = obj.Person, RegistrationRegistrant = obj.RegistrationRegistrant, GroupMemberAttributeValues = obj.GroupMemberAttributeValues, RegistrationAttributeValues = avs.Where(av => attributeIds.Contains(av.AttributeId)), School = obj.School/*, Location = obj.Location */ });
 
                 var qry2 = gmTmpqry
                         .GroupJoin(
@@ -218,7 +222,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
                 stopwatch.Start();
 
-                var newQry =  tmp.Select(g => new
+                var newQry = tmp.Select(g => new
                 {
                     Id = g.GroupMember.Id,
                     RegisteredBy = new ModelValue<Person>(g.RegistrationRegistrant.Registration.PersonAlias.Person),
@@ -245,6 +249,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                         RegistrantAttributes row = new RegistrantAttributes(g.RegistrationRegistrant, g.RegistrationAttributeValues);
                         return row;
                     })(),
+                    School = DefinedValueCache.Read(g.School.AsGuid()).Value,
                     LegalRelease = tmp2.Where(gm => gm.GroupMember.Id == g.GroupMember.Id).SelectMany(gm => gm.SignatureDocuments).OrderByDescending(sd => sd.SignatureDocument.CreatedDateTime).Where(sd => signatureDocumentIds.Contains(sd.SignatureDocument.SignatureDocumentTemplateId)).Select(sd => sd.SignatureDocument.SignatureDocumentTemplate.Name).FirstOrDefault(),
                     Departure = "TBD", // (hopefully based on bus, otherwise a dropdown with 1-4) 
                     Campus = group.Campus, // 
@@ -537,16 +542,10 @@ namespace RockWeb.Blocks.Reporting.NextGen
             public String MedicalNotes { get { return GetAttributeValue("MedicalNotes"); } }
             public String TravelNotes { get { return GetAttributeValue("TravelNotes"); } }
             public String TravelExceptions { get { return GetAttributeValue("TravelExceptions"); } }
-            public String POA { get {
-                    if (Person.Age >= 18)
-                    {
-                        return "N/A";
-                    }
-                    return GetAttributeValue("POA").AsBoolean()?"Yes":"";
-            } }
-            public String FamilyGroup { get { return GetAttributeValue("FamilyGroup"); } }
-            public String RoomCode { get { return GetAttributeValue("HotelRoomCode"); } }
+            public String Group { get { return GetAttributeValue("Group1"); } }
+            public String Dorm { get { return GetAttributeValue("Dorm"); } }
             public String Bus { get { return GetAttributeValue("Bus"); } }
+            public String Departure { get { return GetAttributeValue("Departure"); } }
 
             public int CompareTo(object obj)
             {
@@ -607,25 +606,29 @@ namespace RockWeb.Blocks.Reporting.NextGen
             }
             public String School
             {
-                get { return GetAttributeValue("WheredoyouattendSchool"); }
+                get { return GetAttributeValue("Schoolifnotlistedabove"); }
             }
-            public bool FirstBB
+            public bool FirstMix
             {
-                get { return GetAttributeValue("IsthisyourfirstBB").AsBoolean(); }
+                get { return GetAttributeValue("Isthisyourfirstcamp").AsBoolean(); }
             }
             public String Church
             {
                 get { return GetAttributeValue("HomeChurchyouregularlyattend"); }
             }
-            public bool GroupRoom
+            public bool Campus
             {
-                get { return GetAttributeValue("DoyouprefertoroomwithmembersofyourHSMGroup").AsBoolean(); }
+                get { return GetAttributeValue("Campus").AsBoolean(); }
             }
-            public String Roommate
+            public bool RoomMSMGroup
+            {
+                get { return GetAttributeValue("roomMSMGroup").AsBoolean(); }
+            }
+            public String Bunkmate
             {
                 get { return GetAttributeValue("Roommate1FirstandLastName"); }
             }
-            public String Roommate2
+            public String Bunkmate2
             {
                 get { return GetAttributeValue("Roommate2FirstandLastName"); }
             }
@@ -638,6 +641,26 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 get { return GetAttributeValue("Listofdietaryallergies"); }
             }
 
+            public String MedicalInfo
+            {
+                get { return GetAttributeValue("Anymedicalconcernsaboutyourstudentweneedtobeawareof"); }
+            }
+
+            public Boolean OTCMeds
+            {
+                get { return GetAttributeValue("IgivepermissionforoverthecountermedicationslikeTylenolAdvilTumsetc.tobeadministeredbydesignatedcampmedicalpersonneltomycamperasdeemednecessary.").AsBoolean(); }
+            }
+
+            public String SpecialNotes
+            {
+                get { return GetAttributeValue("SpecialNotes"); }
+            }
+
+            public String Photo
+            {
+                get { return GetAttributeValue("PhotoOptional"); }
+            }
+            
             public int CompareTo(object obj)
             {
                 return Id.CompareTo(obj);
