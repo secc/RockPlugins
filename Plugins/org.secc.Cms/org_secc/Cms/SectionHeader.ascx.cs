@@ -19,6 +19,7 @@ using System.ComponentModel;
 using Rock.Model;
 using Rock.Security;
 using System.Web.UI;
+using Rock;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using System.Web;
@@ -50,10 +51,9 @@ namespace RockWeb.Plugins.org_secc.CMS
                 var headerText = GetAttributeValue( "HeaderText" );
                 lHeaderText.Text = headerText;
             }
-
+            pnlOptionalHeader.Visible = GetAttributeValue( "ShowHeader" ).AsBoolean();
 
         }
-
 
         #endregion
 

@@ -20,11 +20,11 @@
     </div>
 
     <Rock:Zone Name="Main" runat="server" />
+	<SECC:SectionZone Name="Section Intro" runat="server" />
 
 	<SECC:SectionZone Name="Section 1" runat="server" />
     <SECC:SectionZone  Name="Section 2" runat="server" />
-	<Rock:Zone Name="Section 3" runat="server" />
-    <Rock:Zone Name="Section 4" runat="server" />
+	<SECC:SectionZone Name="Section 3" runat="server" />
 	<Rock:Zone Name="Section 5" runat="server" />
 	<Rock:Zone Name="Section 7" runat="server" />
     <Rock:Zone Name="Section 8" runat="server" />
