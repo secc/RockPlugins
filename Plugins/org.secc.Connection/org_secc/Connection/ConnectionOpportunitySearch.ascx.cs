@@ -409,6 +409,5 @@ namespace org.secc.Connection
             }
         }
         #endregion
-
     }
 }

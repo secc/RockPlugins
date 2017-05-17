@@ -7,6 +7,7 @@
     <main class="container">
 
         <!-- Start Content Area -->
+        <br />
 
         <!-- Page Title -->
         <Rock:PageIcon ID="PageIcon" runat="server" /> <h1><Rock:PageTitle ID="PageTitle" runat="server" /></h1>
