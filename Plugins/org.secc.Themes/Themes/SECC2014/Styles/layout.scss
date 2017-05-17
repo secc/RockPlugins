@@ -18,7 +18,7 @@ html {
 	background: $PrimaryBackground;
 }
 
-section,
+section:not(.parallax),
 #PageBody > section,
 #AdminPageBody > section {
 	position: relative;
@@ -264,16 +264,7 @@ nav ul {
 	}
 
 	&.parallax {
-		background:
-			/* top, transparent red, faked with gradient */
-		    linear-gradient(
-		      rgba(0, 0, 0, 0.45),
-		      rgba(0, 0, 0, 0.45)
-		    ),
-			/* The image used */
-			url('/_/img/events/events_cover_lg.jpg') no-repeat 50% top center;
-
-	    /* Set a specific height */
+		/* Set a specific height */
 	    //height: 500px;
 
 	    /* Create the parallax scrolling effect */
@@ -303,6 +294,18 @@ nav ul {
 			// 	/* The image used */
 			// 	url('/_/img/events/events_cover_sm.jpg') no-repeat 50% top;
 	    }
+		h1 {
+			font-size: 6em;
+			text-transform: uppercase;
+			padding: 0.2em 0;
+			@include tablets {
+				font-size: 5em;
+				padding: 0.1em 0;
+			}
+			@include phones {
+				font-size: 4em;
+			}
+		}
 	}
 }
 
