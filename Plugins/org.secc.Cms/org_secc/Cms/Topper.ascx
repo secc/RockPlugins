@@ -12,7 +12,7 @@
             </Content>
         </Rock:ModalDialog>
 
-        <section id="PageHeader" class="parallax" style="background-image: <%=getPageHeaderUrl()%>">
+        <section id="PageHeader" class="parallax parallax_overlay" style="background: <%=getPageHeaderUrl()%> center/cover no-repeat fixed;">
             <div class="container">
                 <div class="row">
                     <div class="col-sm-12">
