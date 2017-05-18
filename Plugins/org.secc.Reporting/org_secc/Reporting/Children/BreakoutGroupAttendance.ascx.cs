@@ -224,7 +224,8 @@ namespace RockWeb.Blocks.Reporting.Children
 
             //Group checkbox
             cblGroups.Items.Clear();
-            foreach ( var group in groups )
+            var scheduleIds = schedules.Select( s => s.Id );
+            foreach ( var group in groups.Where( g => scheduleIds.Contains( g.ScheduleId ?? 0 ) ) )
             {
                 ListItem listItem = new ListItem()
                 {
