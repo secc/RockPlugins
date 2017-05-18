@@ -1,5 +1,7 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="ConnectionOpportunitySearch.ascx.cs" Inherits="org.secc.Connection.OpportunitySearch" %>
 
+
+
 <asp:UpdatePanel ID="upnlContent" runat="server">
     <ContentTemplate>
         <Rock:ModalAlert ID="maWarning" runat="server" />
@@ -19,3 +21,13 @@
 
     </ContentTemplate>
 </asp:UpdatePanel>
+
+<script>
+    var registerCheckboxHandler = function () {
+        console.log('registered');
+        $('[id*="_cblCampus_"]:checkbox').click(function () {
+            __doPostBack("<%= btnSearch.UniqueID%>", "OnClick");
+        });
+    }
+    registerCheckboxHandler();
+</script>
