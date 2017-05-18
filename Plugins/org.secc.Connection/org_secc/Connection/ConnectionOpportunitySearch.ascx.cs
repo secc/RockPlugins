@@ -222,6 +222,7 @@ namespace org.secc.Connection
 
                 var mergeFields = new Dictionary<string, object>();
                 mergeFields.Add( "CurrentPerson", CurrentPerson );
+				mergeFields.Add( "Campuses", CampusCache.All());
                 mergeFields.Add( "CampusContext", RockPage.GetCurrentContext( EntityTypeCache.Read( "Rock.Model.Campus" ) ) as Campus );
                 var pageReference = new PageReference( GetAttributeValue( "DetailPage" ), null );
                 mergeFields.Add( "DetailPage", BuildDetailPageUrl(pageReference.BuildUrl()) );
