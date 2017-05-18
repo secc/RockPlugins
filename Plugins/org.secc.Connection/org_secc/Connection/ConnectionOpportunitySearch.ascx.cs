@@ -104,6 +104,7 @@ namespace org.secc.Connection
                 SetFilters( true );
                 UpdateList();
             }
+            
         }
 
         /// <summary>
@@ -141,6 +142,7 @@ namespace org.secc.Connection
         protected void btnSearch_Click( object sender, EventArgs e )
         {
             UpdateList();
+            ScriptManager.RegisterStartupScript( upnlContent, upnlContent.GetType(), "Connections", "registerCheckboxHandler()", true );
         }
 
 
