@@ -22,7 +22,7 @@ This will get the numbers for each columns in bootsrap to create the clean mason
   <h3 class="section-header">{{ opportunity.Name }}</h3>
   <div class="thumbnail">
     <img src="{{ opportunity.PhotoUrl }}">
-      <div class="text-right" style="margin: -50px 10px 0px 0px ">
+      <div class="text-right" style="margin: -50px 10px 0px 0px; height: 50px;">
         {% for opportunityCampus in opportunity.ConnectionOpportunityCampuses %}
         {% for campus in Campuses %}
         {% if campus.Id == opportunityCampus.CampusId %}
