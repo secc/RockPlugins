@@ -18,12 +18,14 @@
 
 <div class="col-xs-12 col-sm-6 col-md-4">
 {% for opportunity in Opportunities %}
-
-        <h3 class="section-header">{{ opportunity.Name }}</h3>
+	{% assign opportunityString = opportunity.Id | ToString %}
+	{% assign opportunityId = "|" | Append: opportunityString | Append: "|" %}
+	{% if (approvedIds contains opportunityId) %}
+        <h3 class="section-header">{{ opportunity.PublicName }}</h3>
         <div class="thumbnail">
           <img src="/GetImage.ashx?id={{ opportunity.PhotoId }}&w=720">
             {% unless opportunity.ConnectionOpportunityCampuses.size == Campuses.size %}
-			<div class="text-right" style="margin: -50px 10px 0px 0px ">
+			<div class="text-right" style="margin: -50px 10px 0px 0px; height: 50px;">
               {% for opportunityCampus in opportunity.ConnectionOpportunityCampuses %}
 					{% for campus in Campuses %}
 						{% if campus.Id == opportunityCampus.CampusId %}
@@ -72,7 +74,7 @@
             The third column will finish the rest.
             {%endcomment %}
         {% endif %}
-
+	{% endif %}
 {% endfor %}
 </div>
 
