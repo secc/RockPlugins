@@ -18,8 +18,7 @@ namespace RockWeb.Plugins.org_secc.Microframe
     [DisplayName( "Sign Code Manager" )]
     [Category( "SECC > Microframe" )]
     [Description( "Manages all of the codes sent out." )]
-
-    [LinkedPage( "Detail Page" )]
+    [IntegerField("Max Length", "The maximum length a code can be.", false, 4)]
     public partial class SignCodeManager : RockBlock
     {
         #region Control Methods
@@ -67,12 +66,15 @@ namespace RockWeb.Plugins.org_secc.Microframe
 
         private void ShowCategory( int signCategoryId )
         {
+            tbCode.MaxLength = GetAttributeValue( "MaxLength" ).AsIntegerOrNull() ?? 4;
+
             phCodes.Controls.Clear();
             SignCategory signCategory = new SignCategoryService( new RockContext() ).Get( signCategoryId );
             if ( signCategory == null )
             {
                 return;
             }
+            ltCategory.Text = signCategory.Name;
             hfSignCategory.Value = signCategoryId.ToString();
             pnlCategory.Visible = true;
             ltCategory.Text = signCategory.Name;
@@ -170,6 +172,7 @@ namespace RockWeb.Plugins.org_secc.Microframe
 
         protected void btnAdd_Click( object sender, EventArgs e )
         {
+            int maxCodeLength = GetAttributeValue( "MaxLength" ).AsIntegerOrNull() ?? 4;
             var signCategoryId = hfSignCategory.Value.AsInteger();
             RockContext rockContext = new RockContext();
             SignCategory signCategory = new SignCategoryService( rockContext ).Get( signCategoryId );
@@ -179,9 +182,9 @@ namespace RockWeb.Plugins.org_secc.Microframe
             {
                 return;
             }
-            if ( code.Length > 4 )
+            if ( code.Length > maxCodeLength )
             {
-                code = code.Substring( 0, 4 );
+                code = code.Substring( 0, maxCodeLength );
             }
 
             if ( signCategory != null )

@@ -40,6 +40,7 @@
                             </h1>
                         </div>
                         <div class="panel-body">
+                            <h2><asp:Literal runat="server" ID="ltCategoryName"></asp:Literal></h2>
                             <div class="input-group">
                                 <Rock:RockTextBox runat="server" CssClass="form-control" ID="tbCode"></Rock:RockTextBox>
                                 <span class="input-group-btn">
