@@ -28,6 +28,10 @@ namespace org.secc.Microframe.Model
         [DataMember]
         public string IPAddress { get; set; }
 
+        [MaxLength( 8 )]
+        [DataMember]
+        public string Port { get; set; }
+
         [MaxLength( 4 )]
         [DataMember]
         public string PIN { get; set; }

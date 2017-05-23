@@ -122,6 +122,7 @@ namespace RockWeb.Plugins.org_secc.Microframe
                 sign.PIN = tbPIN.Text;
                 sign.Description = tbDescription.Text;
                 sign.IPAddress = tbIPAddress.Text;
+                sign.Port = tbPort.Text;
 
                 if ( !sign.IsValid || !Page.IsValid )
                 {
@@ -130,17 +131,17 @@ namespace RockWeb.Plugins.org_secc.Microframe
                 }
 
                 var keys = SignCategories.Select( sc => sc.Key ).ToList();
-                foreach (var signCategory in sign.SignCategories.ToList() )
+                foreach ( var signCategory in sign.SignCategories.ToList() )
                 {
-                    if (!keys.Contains( signCategory.Id ) )
+                    if ( !keys.Contains( signCategory.Id ) )
                     {
                         sign.SignCategories.Remove( signCategory );
                     }
                 }
                 var newSignCategories = new SignCategoryService( rockContext ).GetByIds( keys ).ToList();
-                foreach (var newSignCategory in newSignCategories )
+                foreach ( var newSignCategory in newSignCategories )
                 {
-                    if (!sign.SignCategories.Select(sc => sc.Id ).Contains(newSignCategory.Id) )
+                    if ( !sign.SignCategories.Select( sc => sc.Id ).Contains( newSignCategory.Id ) )
                     {
                         sign.SignCategories.Add( newSignCategory );
                     }
@@ -188,13 +189,14 @@ namespace RockWeb.Plugins.org_secc.Microframe
                 {
                     SignCategories.Add( signCategory.Id, signCategory.Name );
                 }
-                
+
             }
 
             if ( sign == null )
             {
                 sign = new Sign { Id = 0 };
                 lActionTitle.Text = ActionTitle.Add( Sign.FriendlyTypeName ).FormatAsHtmlTitle();
+                tbPort.Text = "9107";
             }
 
             hfSignId.Value = sign.Id.ToString();
@@ -203,6 +205,10 @@ namespace RockWeb.Plugins.org_secc.Microframe
             tbPIN.Text = sign.PIN;
             tbDescription.Text = sign.Description;
             tbIPAddress.Text = sign.IPAddress;
+            if ( sign.Id != 0 )
+            {
+                tbPort.Text = sign.Port;
+            }
 
             // render UI based on Authorized and IsSystem
             bool readOnly = false;
