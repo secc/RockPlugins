@@ -66,7 +66,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
             base.OnLoad(e);
             gReport.Actions.CommunicateClick += Actions_CommunicateClick;
 
-            if (string.IsNullOrWhiteSpace(GetAttributeValue("Group")))
+                if (string.IsNullOrWhiteSpace(GetAttributeValue("Group")))
             {
                 ShowMessage("Block not configured. Please configure to use.", "Configuration Error", "panel panel-danger");
                 return;
@@ -76,6 +76,10 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
             if (!Page.IsPostBack)
             {
+                cmpCampus.DataSource = CampusCache.All();
+                cmpCampus.DataBind();
+                cmpCampus.Items.Insert(0, new ListItem("All Campuses", ""));
+
                 BindGrid();
                 LoadGridFilters();
             }
@@ -123,11 +127,18 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     signatureDocumentIds = Array.ConvertAll(GetAttributeValue("SignatureDocumentTemplates").Split(','), int.Parse);
                 }
                 Guid bbGroup = GetAttributeValue("Group").AsGuid();
+                var group = new GroupService(rockContext).Get(bbGroup);
+                
+                if (group.Name.Contains("Week 2"))
+                {
+                    cmpCampus.Visible = true;
+                }
+
                 Guid hsmGroupTypeGuid = GetAttributeValue("MSMGroupType").AsGuid();
                 int? hsmGroupTypeId = groupTypeService.Queryable().Where(gt => gt.Guid == hsmGroupTypeGuid).Select(gt => gt.Id).FirstOrDefault();
 
                 int entityTypeId = entityTypeService.Queryable().Where(et => et.Name == typeof(Rock.Model.Group).FullName).FirstOrDefault().Id;
-                var group = new GroupService(rockContext).Get(bbGroup);
+                
                 var registrationTemplateIds = eiogmService.Queryable().Where(r => r.GroupId == group.Id).Select(m => m.RegistrationInstance.RegistrationTemplateId.ToString()).ToList();
 
                 hlGroup.NavigateUrl = "/group/" + group.Id;
@@ -211,6 +222,13 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 {
                     qry = qry.ToList().Where(q => q.RegistrationRegistrant.Registration.BalanceDue <= upperVal).AsQueryable();
                 }
+                else if (!string.IsNullOrEmpty(cmpCampus.SelectedValue))
+                {
+                    if (group.Name.Contains("Week 2"))
+                    {
+                        qry = qry.ToList().Where(q => q.RegistrationAttributeValues.Where(ra => ra.AttributeKey == "Whichcampusdoyouwanttodepartforcampfromandroomwith" && ra.Value == cmpCampus.SelectedValue).Any()).AsQueryable();
+                    }
+                }
 
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
@@ -250,7 +268,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                         return row;
                     })(),
                     School = DefinedValueCache.Read(g.School.AsGuid()).Value,
-                    LegalRelease = tmp2.Where(gm => gm.GroupMember.Id == g.GroupMember.Id).SelectMany(gm => gm.SignatureDocuments).OrderByDescending(sd => sd.SignatureDocument.CreatedDateTime).Where(sd => signatureDocumentIds.Contains(sd.SignatureDocument.SignatureDocumentTemplateId)).Select(sd => sd.SignatureDocument.SignatureDocumentTemplate.Name).FirstOrDefault(),
+                    LegalRelease = tmp2.Where(gm => gm.GroupMember.Id == g.GroupMember.Id).SelectMany(gm => gm.SignatureDocuments).OrderByDescending(sd => sd.SignatureDocument.CreatedDateTime).Where(sd => signatureDocumentIds.Contains(sd.SignatureDocument.SignatureDocumentTemplateId)).Select(sd => sd.SignatureDocument.SignatureDocumentTemplate.Name + " (" + sd.SignatureDocument.Status.ToString() + ")").FirstOrDefault(),
                     Departure = "TBD", // (hopefully based on bus, otherwise a dropdown with 1-4) 
                     Campus = group.Campus, // 
                     Role = group.ParentGroup.GroupType.Name.Contains("Serving")?"Leader":"Student", // 
@@ -584,9 +602,9 @@ namespace RockWeb.Blocks.Reporting.NextGen
             {
                 get { return GetAttributeValue("Birthdate").AsDateTime().HasValue ? GetAttributeValue("Birthdate").AsDateTime().Value.ToShortDateString() : null; }
             }
-            public String GraduationYear
+            public String Grade
             {
-                get { return GetAttributeValue("CurrentGradeProjectedGraduationYear"); }
+                get { return GetAttributeValue("grade2017"); }
             }
             public String ParentName
             {
@@ -616,9 +634,19 @@ namespace RockWeb.Blocks.Reporting.NextGen
             {
                 get { return GetAttributeValue("HomeChurchyouregularlyattend"); }
             }
-            public bool Campus
+            public string Campus
             {
-                get { return GetAttributeValue("Campus").AsBoolean(); }
+                get {
+                    if (!String.IsNullOrEmpty(GetAttributeValue("Whichcampusdoyouwanttodepartforcampfromandroomwith")))
+                    {
+                        return GetAttributeValue("Whichcampusdoyouwanttodepartforcampfromandroomwith");
+                    }
+                    else if(!String.IsNullOrEmpty(GetAttributeValue("Campus")))
+                    {
+                        return CampusCache.Read(GetAttributeValue("Campus").AsGuid()).Name;
+                    }
+                    return "";
+                }
             }
             public bool RoomMSMGroup
             {

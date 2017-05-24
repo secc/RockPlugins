@@ -28,6 +28,7 @@
                     <Rock:RockTextBox Label="Person Name" ID="txtPersonName" runat="server" />
                     <Rock:RockDropDownList Label="POA Received:" ID="ddlPOA" runat="server" Visible="false" />
                     <Rock:NumberRangeEditor Label="Balance Owed" ID="nreBalanceOwed" runat="server" />
+                    <Rock:CampusPicker Label="Campus" ID="cmpCampus" Visible="false" runat="server"></Rock:CampusPicker>
                 </Rock:GridFilter>
                 <Rock:Grid ID="gReport" runat="server" AllowSorting="true" EmptyDataText="No Results" PersonIdField="RegisteredBy.Id" DataKeyNames="Id, RegistrationId" OnRowSelected="gReport_RowSelected" ExportSource="ColumnOutput">
                     <Columns>
@@ -37,12 +38,13 @@
                         <Rock:RockBoundField DataField="Age" HeaderText="Age" SortExpression="Age"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="DOB" HeaderText="DOB (Person)" SortExpression="DOB"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="RegistrantData.BirthDate" HeaderText="DOB (Registration)" SortExpression="RegistrantData.BirthDate"></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="LegalRelease" HeaderText="Legal Release" SortExpression=""></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="LegalRelease" HeaderText="Legal Release" SortExpression="LegalRelease"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="RegistrantData.BalanceOwed" HeaderText="Balance Owed" DataFormatString="{0:C}" SortExpression="RegistrantData.BalanceOwed"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="Address" HeaderText="Address" SortExpression="Address"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="RegistrantData.ConfirmationEmail" HeaderText="Email" SortExpression="RegistrantData.ConfirmationEmail"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="Gender" HeaderText="Gender" SortExpression=""></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="GraduationYear" HeaderText="Graduation Year" SortExpression="GraduationYear"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="GraduationYear" HeaderText="Grad&nbsp;Year (Person)" SortExpression="GraduationYear"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="RegistrantData.Grade" HeaderText="Grade (Registration)" SortExpression="RegistrantData.Grade"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="HomePhone" HeaderText="Home Phone" SortExpression="HomePhone"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="CellPhone" HeaderText="Cell Phone" SortExpression="CellPhone"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="RegistrantData.ParentName" HeaderText="Parent/Guardian Name" SortExpression="RegistrantData.ParentName"></Rock:RockBoundField>
