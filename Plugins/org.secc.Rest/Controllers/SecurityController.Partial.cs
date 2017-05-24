@@ -98,16 +98,20 @@ namespace org.secc.Rest.Controllers
             if ( currentUser != null )
             {
                 var person = currentUser.Person;
-                Dictionary<string, object> output = new Dictionary<string, object>() {
+                if ( person != null )
+                {
+                    var campus = person.GetCampus();
+                    Dictionary<string, object> output = new Dictionary<string, object>() {
                                 { "Active", true },
                                 { "FullName", person.FullName },
                                 { "NickName", person.NickName },
-                                { "LastName",person.LastName },
-                                { "CampusId", person.GetCampus().Id },
-                                { "Campus", person.GetCampus().Name },
+                                { "LastName", person.LastName },
+                                { "CampusId", campus!=null ? campus.Id : 1 },
+                                { "Campus",  campus!=null ? campus.Name : "Blankenbaker" },
                                 { "Gender", person.Gender.ToString() }
                             };
-                return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, output );
+                    return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, output );
+                }
             }
             return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, new Dictionary<string, object>() { { "Active", false } } );
         }
