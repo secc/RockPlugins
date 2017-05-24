@@ -5718,7 +5718,7 @@ h3, .h3,
 h4, .h4,
 h5, .h5,
 h6, .h6 {
-  margin: 0px !important; }
+  margin: 0px; }
 
 h5, h6, .h5, .h6 {
   color: #222222; }
@@ -13586,6 +13586,15 @@ iframe {
 
 .clickable {
   cursor: pointer; }
+
+h1, .h1,
+h2, .h2,
+h3, .h3,
+h4, .h4,
+h5, .h5,
+h6, .h6 {
+  margin-top: 0px;
+  margin-bottom: 0px; }
 
 .tip {
   padding: 0 6px 2px;

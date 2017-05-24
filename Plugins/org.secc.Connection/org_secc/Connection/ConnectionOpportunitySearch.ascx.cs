@@ -104,6 +104,7 @@ namespace org.secc.Connection
                 SetFilters( true );
                 UpdateList();
             }
+            
         }
 
         /// <summary>
@@ -141,6 +142,7 @@ namespace org.secc.Connection
         protected void btnSearch_Click( object sender, EventArgs e )
         {
             UpdateList();
+            ScriptManager.RegisterStartupScript( upnlContent, upnlContent.GetType(), "Connections", "registerCheckboxHandler()", true );
         }
 
 
@@ -222,6 +224,7 @@ namespace org.secc.Connection
 
                 var mergeFields = new Dictionary<string, object>();
                 mergeFields.Add( "CurrentPerson", CurrentPerson );
+				mergeFields.Add( "Campuses", CampusCache.All());
                 mergeFields.Add( "CampusContext", RockPage.GetCurrentContext( EntityTypeCache.Read( "Rock.Model.Campus" ) ) as Campus );
                 var pageReference = new PageReference( GetAttributeValue( "DetailPage" ), null );
                 mergeFields.Add( "DetailPage", BuildDetailPageUrl(pageReference.BuildUrl()) );
