@@ -29,6 +29,7 @@ using Rock;
 using Rock.Data;
 using System.Linq;
 using Google.Apis.Sheets.v4.Data;
+using Rock.Web.Cache;
 
 namespace RockWeb.Blocks.Reporting.NextGen
 {
@@ -46,10 +47,14 @@ namespace RockWeb.Blocks.Reporting.NextGen
     [IntegerField("Last Name Column", "The column of the first name.", true, category: "Columns", order: 4)]
     [IntegerField("Grade Column", "The column of the person's grade.", true, category: "Columns", order: 5)]
     [IntegerField("Role Column", "The column of the person's role.", true, category: "Columns", order: 6)]
-    [KeyValueListField("Column Mapping", "Use this to map columns to Group Member attributes.", true, "", "Column Index", "Attribute Key", category: "Columns", order:7)]
+    [IntegerField("Campus Column", "The column containing the person's campus.", true, category: "Columns", order: 7)]
+    [KeyValueListField("Column Mapping", "Use this to map columns to Group Member attributes.", true, "", "Column Index", "Attribute Key", category: "Columns", order:8)]
 
-    [TextField("Person Id Column", "An optional column which contains the person id.  Data will be set into this field when a person is matched.", false, category:"")]
-    [TextField("Person Phone Column", "An optional column which will contain the person's mobile phone number.  Data will be set into this field when a person is matched.", false, category: "")]
+    [TextField("Person Id Column", "An optional column which contains the person id.  Data will be set into this field when a person is matched.", false, category:"Update Fields")]
+    [TextField("Person Phone Column", "An optional column which will contain the person's mobile phone number.  Data will be set into this field when a person is matched.", false, category: "Update Fields")]
+
+    [CampusField("Campus", "The campus to process for this sync.", true, includeInactive:false)]
+    [CustomDropdownListField("Role", "The role to process for this sync.", "Student, Leader", true)]
 
     [CodeEditorField("Service Account Key", "A JSON string for the service account to access this sheet (https://developers.google.com/identity/protocols/OAuth2ServiceAccount)", CodeEditorMode.JavaScript)]
     [IntegerField("First Data Row", "The first row of data after the header rows where this will start synchronizing", true, 2, category: "Sheet Information")]
@@ -87,10 +92,26 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
         protected void btnRunSync_Click(object sender, EventArgs e)
         {
+
+            var kvList = GetAttributeValue("ColumnMapping").ToKeyValuePairList();
+
             RockContext rockContext = new RockContext();
             GroupService groupService = new GroupService(rockContext);
 
             Group group = groupService.Get(GetAttributeValue("Group").AsGuid());
+
+            foreach(GroupMember gm in group.Members)
+            {
+                gm.LoadAttributes();
+                litSuccess.Text += "Clearing attributes for " + gm.Person + "<br />";
+                foreach (var kvp in kvList)
+                {
+                    gm.SetAttributeValue(kvp.Value.ToString(), "");
+                }
+                
+                gm.SaveAttributeValues();
+
+            }
 
             GoogleCredential credential = GoogleCredential.FromJson(GetAttributeValue("ServiceAccountKey"));
 
@@ -109,17 +130,18 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     service.Spreadsheets.Values.Get(spreadsheetId, "'" + GetAttributeValue("SheetName") + "'!" + GetAttributeValue("StartColumn") + GetAttributeValue("FirstDataRow") + ":" + GetAttributeValue("EndColumn"));
             IList<IList<Object>> data = request.Execute().Values;
 
-            /*
-
-
-            updateRequest = service.Spreadsheets.Values.Update(new ValueRange() { Values = new List<IList<object>>() { new List<object>() { "3076401977" }, new List<object>() { "5021123365" } } }, spreadsheetId, "B&B Test!B2");
-            updateRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
-            result = updateRequest.Execute();*/
+            litErrors.Text = "";
+            litErrorsSummary.Text = "";
+            litOutput.Text = "";
+            litOutputSummary.Text = "";
+            litSuccess.Text = "";
+            litSuccessSummary.Text = "";
+            int errorCount = 0;
+            int successCount = 0;
 
             // Prints the names and majors of students in a sample spreadsheet:
             // https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
-            litOutput.Text = "<h3>Google Sync Results</h3>";
-            if (data != null )
+            if (data != null)
             {
                 var personIds = new ValueRange() { Values = new List<IList<object>>() };
                 var phoneNumbers = new ValueRange() { Values = new List<IList<object>>() };
@@ -130,47 +152,91 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     string lastName = data[i][GetAttributeValue("LastNameColumn").AsInteger()].ToString();
                     string grade = data[i][GetAttributeValue("GradeColumn").AsInteger()].ToString();
                     string role = data[i][GetAttributeValue("RoleColumn").AsInteger()].ToString();
-
-                    var members = group.Members.Where(m => (m.Person.NickName.ToLower() == firstName.ToLower().Trim(' ') || m.Person.FirstName.ToLower() == firstName.ToLower().Trim(' ')) && m.Person.LastName.ToLower() == lastName.ToLower().Trim(' '));
-                    if (members.Count() > 1)
+                    string campus = data[i][GetAttributeValue("CampusColumn").AsInteger()].ToString();
+                    string campusShortCode = CampusCache.Read(GetAttributeValue("Campus").AsGuid()).ShortCode;
+                    if (campusShortCode == "920")
                     {
-                        litOutput.Text += "Matched more than one matching Group Member: " + firstName + " " + lastName + "(" + ")<br />";
-
-                        personIds.Values.Add(new List<object>() { "" });
-                        phoneNumbers.Values.Add(new List<object>() { "" });
-
+                        campusShortCode = "BL";
                     }
-                    else if (members.Count() == 1)
+
+
+                    string personId = "";
+                    string phone = "";
+                    if (GetAttributeValue("PersonIdColumn") != "")
                     {
-                        GroupMember member = members.FirstOrDefault();
-                        personIds.Values.Add(new List<object>() { member.PersonId });
-                        phoneNumbers.Values.Add(new List<object>() { member.Person.PhoneNumbers.Where(pn => pn.NumberTypeValue.Guid.ToString() == Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE).Select(pn => pn.NumberFormatted) });
+                        int columnIndex = ColumnNumber(GetAttributeValue("PersonIdColumn").ToString()) - ColumnNumber(GetAttributeValue("StartColumn").ToString());
 
-                        continue;
-                        member.LoadAttributes();
-                        var kvList = GetAttributeValue("ColumnMapping").ToKeyValuePairList();
-
-                        foreach(var kvp in kvList)
+                        if (data[i].Count >= columnIndex + 1)
                         {
-                            string value = "";
-                            var separator = "";
-                            foreach(var index in kvp.Key.ToString().Split(','))
+                            if (System.Text.RegularExpressions.Regex.IsMatch(data[i][columnIndex].ToString(), "^\\d+$"))
                             {
-                                value += separator + data[i][index.AsInteger()].ToString();
-                                separator = "-";
+                                personId = data[i][columnIndex].ToString();
                             }
-                            member.SetAttributeValue(kvp.Value.ToString(), value);
                         }
-                        member.SaveAttributeValues();
+                        
+                    }
 
-                        litOutput.Text += "Updated " + firstName + " " + lastName + "<br />";
-                    }
-                    else
+                    if (GetAttributeValue("PersonPhoneColumn") != "")
                     {
-                        personIds.Values.Add(new List<object>() { "" });
-                        phoneNumbers.Values.Add(new List<object>() { "" });
-                        litOutput.Text += "Unable to find Group Member for " + firstName + " " + lastName + "<br />";
+                        int columnIndex = ColumnNumber(GetAttributeValue("PersonPhoneColumn").ToString()) - ColumnNumber(GetAttributeValue("StartColumn").ToString());
+
+                        if (data[i].Count >= columnIndex + 1)
+                        {
+                            phone = data[i][columnIndex].ToString();
+                        }
                     }
+                    
+                    // If the role or the campus short code don't match, just skip this
+                    if (role.ToLower() == GetAttributeValue("Role").ToLower() && campus == campusShortCode && firstName != "" && lastName != "")
+                    {
+                        var members = group.Members.Where(m => (m.Person.NickName.ToLower() == firstName.ToLower().Trim(' ') || m.Person.FirstName.ToLower() == firstName.ToLower().Trim(' ')) && (m.Person.LastName.ToLower() == lastName.ToLower().Trim(' ') || m.Person.LastName.ToLower() == lastName.ToLower().Replace("jr.", "").Trim(' ')));
+
+                        if (members.Count() > 1)
+                        {
+                            litErrors.Text += "Matched more than one matching Group Member: " + firstName + " " + lastName + " (Row " + (i + GetAttributeValue("FirstDataRow").AsInteger()) + ")<br />";
+                            errorCount++;
+                        }
+                        else if (members.Count() == 1)
+                        {
+                            GroupMember member = members.FirstOrDefault();
+                            if (personIds.Values.Select(v => v[0]).Contains(member.PersonId))
+                            {
+                                litErrors.Text += "Duplicate person " + firstName + " " + lastName + " (PersonId: "+ member.PersonId + " Row: " + (i + GetAttributeValue("FirstDataRow").AsInteger()) + " Duplicate Row: " + (personIds.Values.Select(v => v[0]).ToList().IndexOf(member.PersonId) + GetAttributeValue("FirstDataRow").AsInteger()) + ")<br />";
+                                errorCount++;
+                            }
+                            else
+                            {
+                                personId = member.PersonId.ToString();
+                                phone = member.Person.PhoneNumbers.Where(pn => pn.NumberTypeValue.Guid == Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid()).Select(pn => pn.NumberFormatted).FirstOrDefault();
+
+                                member.LoadAttributes();
+
+                                foreach (var kvp in kvList)
+                                {
+                                    string value = "";
+                                    var separator = "";
+                                    foreach (var index in kvp.Key.ToString().Split(','))
+                                    {
+                                        value += separator + data[i][index.AsInteger()].ToString();
+                                        separator = "-";
+                                    }
+                                    member.SetAttributeValue(kvp.Value.ToString(), value);
+                                }
+                                member.SaveAttributeValues();
+
+                                litSuccess.Text += "Updated " + firstName + " " + lastName + " (Row " + (i + GetAttributeValue("FirstDataRow").AsInteger()) + ")<br />";
+                                successCount++;
+                            }
+                        }
+                        else
+                        {
+                            litErrors.Text += "Unable to find Group Member for " + firstName + " " + lastName + " (Row " + (i+ GetAttributeValue("FirstDataRow").AsInteger()) + ")<br />";
+                            errorCount++;
+                        }
+                    }
+
+                    personIds.Values.Add(new List<object>() { personId });
+                    phoneNumbers.Values.Add(new List<object>() { phone });
                 }
 
                 if (GetAttributeValue("PersonIdColumn") != "")
@@ -178,11 +244,51 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     var updateRequest = service.Spreadsheets.Values.Update(personIds, spreadsheetId, GetAttributeValue("SheetName") + "!" + GetAttributeValue("PersonIdColumn") + GetAttributeValue("FirstDataRow") + ":" + GetAttributeValue("PersonIdColumn"));
                     updateRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
                     var result = updateRequest.Execute();
-                    
-                    litOutput.Text += result.ToString() + "Updated Person Id's in Column " + GetAttributeValue("PersonIdColumn");
+
+                    litOutput.Text += "Updated " + (personIds.Values.Select(v => v[0]).Where(v => v.ToString() != "").Count()) + " Person Id's in Column " + GetAttributeValue("PersonIdColumn");
                 }
+                if (GetAttributeValue("PersonPhoneColumn") != "")
+                {
+                    var updateRequest = service.Spreadsheets.Values.Update(phoneNumbers, spreadsheetId, GetAttributeValue("SheetName") + "!" + GetAttributeValue("PersonPhoneColumn") + GetAttributeValue("FirstDataRow") + ":" + GetAttributeValue("PersonPhoneColumn"));
+                    updateRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+                    var result = updateRequest.Execute();
+
+                    litOutput.Text += "<br />Updated " + (phoneNumbers.Values.Select(v => v[0]).Where(v => v != null && v.ToString() != "").Count()) + " Phone Numbers in Column " + GetAttributeValue("PersonPhoneColumn");
+                }
+                litErrorsSummary.Text += errorCount + " Record Errors";
+                litSuccessSummary.Text += successCount + " Records Updated";
+                litOutputSummary.Text = "General Information";
             }
             mdShowOutput.Show();
+        }
+
+        public string ColumnAdress(int col)
+        {
+            col++;
+            if (col <= 26)
+            {
+                return Convert.ToChar(col + 64).ToString();
+            }
+            int div = col / 26;
+            int mod = col % 26;
+            if (mod == 0) { mod = 26; div--; }
+            return ColumnAdress(div) + ColumnAdress(mod);
+        }
+
+        public int ColumnNumber(string colAdress)
+        {
+            int[] digits = new int[colAdress.Length];
+            for (int i = 0; i < colAdress.Length; ++i)
+            {
+                digits[i] = Convert.ToInt32(colAdress[i]) - 64;
+            }
+            int mul = 1; int res = 0;
+            for (int pos = digits.Length - 1; pos >= 0; --pos)
+            {
+                res += digits[pos] * mul;
+                mul *= 26;
+            }
+            return res-1;
         }
     }
 }
