@@ -157,10 +157,10 @@ namespace RockWeb.Blocks.Reporting.NextGen
                         obj => obj.Id,
                         rr => rr.GroupMemberId,
                         (obj, rr) => new { GroupMember = obj, Person = obj.Person, RegistrationRegistrant = rr })
-                    .Join(attributeValueService.Queryable(),
+                    .GroupJoin(attributeValueService.Queryable(),
                         obj => new { PersonId = (int?)obj.Person.Id, AttributeId = 739 },
                         av => new { PersonId = av.EntityId, av.AttributeId },
-                        (obj, av) => new { GroupMember = obj.GroupMember, Person = obj.Person, RegistrationRegistrant = obj.RegistrationRegistrant, School = av.Value })
+                        (obj, av) => new { GroupMember = obj.GroupMember, Person = obj.Person, RegistrationRegistrant = obj.RegistrationRegistrant, School = av.Select(s => s.Value).FirstOrDefault() })
                     .GroupJoin(attributeValueService.Queryable(),
                         obj => obj.GroupMember.Id,
                         av => av.EntityId.Value,
