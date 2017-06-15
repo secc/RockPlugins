@@ -245,8 +245,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                         RegistrantAttributes row = new RegistrantAttributes(g.RegistrationRegistrant, g.RegistrationAttributeValues);
                         return row;
                     })(),
-                    LegalRelease = tmp2.Where(gm => gm.GroupMember.Id == g.GroupMember.Id).SelectMany(gm => gm.SignatureDocuments).OrderByDescending(sd => sd.SignatureDocument.CreatedDateTime).Where(sd => signatureDocumentIds.Contains(sd.SignatureDocument.SignatureDocumentTemplateId)).Select(sd => sd.SignatureDocument.SignatureDocumentTemplate.Name.Contains("MINOR")?"MINOR ("+sd.SignatureDocument.Status.ToString()+ ")":sd.SignatureDocument.SignatureDocumentTemplate.Name.Contains("ADULT")? "ADULT (" + sd.SignatureDocument.Status.ToString() + ")": "").FirstOrDefault(), // (highest level form on record, pulled from forms page in Rock)
-                    Departure = "TBD", // (hopefully based on bus, otherwise a dropdown with 1-4) 
+                    LegalRelease = tmp2.Where(gm => gm.GroupMember.Id == g.GroupMember.Id).SelectMany(gm => gm.SignatureDocuments).OrderByDescending(sd => sd.SignatureDocument.CreatedDateTime).Where(sd => signatureDocumentIds.Contains(sd.SignatureDocument.SignatureDocumentTemplateId)).Select(sd => sd.SignatureDocument.SignatureDocumentTemplate.Name.Contains("MINOR")?"MINOR ("+sd.SignatureDocument.Status.ToString()+ ")":sd.SignatureDocument.SignatureDocumentTemplate.Name.Contains("ADULT")? "ADULT (" + sd.SignatureDocument.Status.ToString() + ")": "").FirstOrDefault(), // (highest level form on record, pulled from forms page in Rock) 
                     Campus = group.Campus, // 
                     Role = group.ParentGroup.GroupType.Name.Contains("Serving")?"Leader":"Student", // 
                     HSMGroup = String.Join(", ", groupMemberService.Queryable().Where(gm => gm.PersonId == g.GroupMember.PersonId && gm.Group.GroupTypeId == hsmGroupTypeId && gm.GroupMemberStatus == GroupMemberStatus.Active).Select(gm => gm.Group.Name).ToList())
@@ -546,6 +545,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
             public String FamilyGroup { get { return GetAttributeValue("FamilyGroup"); } }
             public String RoomCode { get { return GetAttributeValue("HotelRoomCode"); } }
             public String Bus { get { return GetAttributeValue("Bus"); } }
+            public String Departure { get { return GetAttributeValue("Departure"); } }
 
             public int CompareTo(object obj)
             {
