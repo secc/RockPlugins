@@ -562,11 +562,16 @@ namespace RockWeb.Blocks.Reporting.NextGen
             public String RoomingNotes { get { return GetAttributeValue("RoomingNotes"); } }
             public String MedicalNotes { get { return GetAttributeValue("MedicalNotes"); } }
             public String TravelNotes { get { return GetAttributeValue("TravelNotes"); } }
+            public String SpecialNotes { get { return GetAttributeValue("SpecialNotes"); } }
             public String TravelExceptions { get { return GetAttributeValue("TravelExceptions"); } }
             public String Group { get { return GetAttributeValue("Group1"); } }
             public String Dorm { get { return GetAttributeValue("Dorm"); } }
+            public String Room { get { return GetAttributeValue("Room"); } }
             public String Bus { get { return GetAttributeValue("Bus"); } }
             public String Departure { get { return GetAttributeValue("Departure"); } }
+            public String CoLeaders { get { return GetAttributeValue("CoLeaders"); } }
+            public String LeadingLocation { get { return GetAttributeValue("LeadingLocation"); } }
+
 
             public int CompareTo(object obj)
             {

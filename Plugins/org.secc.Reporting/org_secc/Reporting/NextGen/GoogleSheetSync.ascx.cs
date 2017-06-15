@@ -47,14 +47,14 @@ namespace RockWeb.Blocks.Reporting.NextGen
     [IntegerField("Last Name Column", "The column of the first name.", true, category: "Columns", order: 4)]
     [IntegerField("Grade Column", "The column of the person's grade.", true, category: "Columns", order: 5)]
     [IntegerField("Role Column", "The column of the person's role.", true, category: "Columns", order: 6)]
-    [IntegerField("Campus Column", "The column containing the person's campus.", true, category: "Columns", order: 7)]
+    [IntegerField("Campus Column", "The column containing the person's campus.", false, category: "Columns", order: 7)]
     [KeyValueListField("Column Mapping", "Use this to map columns to Group Member attributes.", true, "", "Column Index", "Attribute Key", category: "Columns", order:8)]
 
     [TextField("Person Id Column", "An optional column which contains the person id.  Data will be set into this field when a person is matched.", false, category:"Update Fields")]
     [TextField("Person Phone Column", "An optional column which will contain the person's mobile phone number.  Data will be set into this field when a person is matched.", false, category: "Update Fields")]
 
-    [CampusField("Campus", "The campus to process for this sync.", true, includeInactive:false)]
-    [CustomDropdownListField("Role", "The role to process for this sync.", "Student, Leader", true)]
+    [CampusField("Campus", "The campus to process for this sync.", false, includeInactive:false)]
+    [CustomDropdownListField("Role", "The role to process for this sync.", "Student, Leader, Other", true)]
 
     [CodeEditorField("Service Account Key", "A JSON string for the service account to access this sheet (https://developers.google.com/identity/protocols/OAuth2ServiceAccount)", CodeEditorMode.JavaScript)]
     [IntegerField("First Data Row", "The first row of data after the header rows where this will start synchronizing", true, 2, category: "Sheet Information")]
@@ -152,11 +152,19 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     string lastName = data[i][GetAttributeValue("LastNameColumn").AsInteger()].ToString();
                     string grade = data[i][GetAttributeValue("GradeColumn").AsInteger()].ToString();
                     string role = data[i][GetAttributeValue("RoleColumn").AsInteger()].ToString();
-                    string campus = data[i][GetAttributeValue("CampusColumn").AsInteger()].ToString();
-                    string campusShortCode = CampusCache.Read(GetAttributeValue("Campus").AsGuid()).ShortCode;
-                    if (campusShortCode == "920")
+                    string campus = "";
+                    if (!string.IsNullOrEmpty(GetAttributeValue("CampusColumn")))
                     {
-                        campusShortCode = "BL";
+                        campus = data[i][GetAttributeValue("CampusColumn").AsInteger()].ToString();
+                    }
+                    string campusShortCode = "";
+                    if (!string.IsNullOrEmpty(GetAttributeValue("Campus")))
+                    {
+                        campusShortCode = CampusCache.Read(GetAttributeValue("Campus").AsGuid()).ShortCode;
+                        if (campusShortCode == "920")
+                        {
+                            campusShortCode = "BL";
+                        }
                     }
 
 
@@ -187,7 +195,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     }
                     
                     // If the role or the campus short code don't match, just skip this
-                    if (role.ToLower() == GetAttributeValue("Role").ToLower() && campus == campusShortCode && firstName != "" && lastName != "")
+                    if ((GetAttributeValue("Role").ToLower() == "other" && role.ToLower() != "student" && role.ToLower() != "leader" || role.ToLower() == GetAttributeValue("Role").ToLower()) && (string.IsNullOrEmpty(campus) || campus == campusShortCode) && firstName != "" && lastName != "")
                     {
                         var members = group.Members.Where(m => (m.Person.NickName.ToLower() == firstName.ToLower().Trim(' ') || m.Person.FirstName.ToLower() == firstName.ToLower().Trim(' ')) && (m.Person.LastName.ToLower() == lastName.ToLower().Trim(' ') || m.Person.LastName.ToLower() == lastName.ToLower().Replace("jr.", "").Trim(' ')));
 
@@ -217,7 +225,10 @@ namespace RockWeb.Blocks.Reporting.NextGen
                                     var separator = "";
                                     foreach (var index in kvp.Key.ToString().Split(','))
                                     {
-                                        value += separator + data[i][index.AsInteger()].ToString();
+                                        if (data[i].Count >= index.AsInteger() + 1)
+                                        {
+                                            value += separator + data[i][index.AsInteger()].ToString();
+                                        }
                                         separator = "-";
                                     }
                                     member.SetAttributeValue(kvp.Value.ToString(), value);
@@ -255,7 +266,17 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
                     litOutput.Text += "<br />Updated " + (phoneNumbers.Values.Select(v => v[0]).Where(v => v != null && v.ToString() != "").Count()) + " Phone Numbers in Column " + GetAttributeValue("PersonPhoneColumn");
                 }
-                litErrorsSummary.Text += errorCount + " Record Errors";
+
+                var missedPeople = group.Members.Where(gm => !personIds.Values.Select(v => v[0]).Contains(gm.PersonId.ToString()) && gm.GroupMemberStatus == GroupMemberStatus.Active);
+                
+                foreach(var person in missedPeople)
+                {
+
+                    litErrors.Text += "Unable to find entry in Google Sheet for " + person.Person + "<br />";
+                    errorCount++;
+                }
+
+                litErrorsSummary.Text += errorCount + " Record Errors<br />";
                 litSuccessSummary.Text += successCount + " Records Updated";
                 litOutputSummary.Text = "General Information";
             }
