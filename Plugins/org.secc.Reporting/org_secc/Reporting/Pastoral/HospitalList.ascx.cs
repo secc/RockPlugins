@@ -439,7 +439,7 @@ namespace RockWeb.Blocks.Reporting
                     using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 7] )
                     {
                         r.Merge = true;
-                        r.Style.Font.SetFromFont( new Font( "Calibri", 20, FontStyle.Regular ) );
+                        r.Style.Font.SetFromFont( new Font( "Calibri", 18, FontStyle.Regular ) );
                         r.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
                         r.Style.Font.Color.SetColor( Color.White );
                         r.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
@@ -459,6 +459,14 @@ namespace RockWeb.Blocks.Reporting
                     worksheet.Cells[rowCounter, 6].Value = "Admit Date";
 
                     worksheet.Cells[rowCounter, 7].Value = "Room";
+
+                    using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 7] )
+                    {
+                        r.Style.Font.Bold = true;
+                        r.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                        r.Style.Fill.BackgroundColor.SetColor( Color.FromArgb( 200, 200, 200 ) );
+                    }
+
 
                     rowCounter++;
 
@@ -522,7 +530,7 @@ namespace RockWeb.Blocks.Reporting
                             r.Style.Font.Bold = true;
                         }
 
-                        SetExcelValue( worksheet.Cells[rowCounter, 2], patient.LastVisitNotes );
+                        SetExcelValue( worksheet.Cells[rowCounter, 2], ( string.IsNullOrWhiteSpace( patient.LastVisitor ) ? "" : ( patient.LastVisitor + ": " ) ) + patient.LastVisitNotes );
                         using ( ExcelRange r = worksheet.Cells[rowCounter, 2, rowCounter, 7] )
                         {
                             r.Merge = true;
