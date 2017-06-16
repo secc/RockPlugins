@@ -39,13 +39,8 @@ namespace org.secc.OAuth
 
             var settings = GlobalAttributesCache.Value("OAuthSettings").AsDictionary();
 
-            int tokenLifespan = 0;
-
-            if (int.TryParse(settings["OAuthTokenLifespan"], out tokenLifespan))
-            {
-                tokenLifespan = 10;
-            }
-
+            int tokenLifespan = settings["OAuthTokenLifespan"].AsIntegerOrNull() ?? 10;
+            
             //Enable Application Sign In Cookie
             app.UseCookieAuthentication(new CookieAuthenticationOptions
             {
@@ -62,7 +57,7 @@ namespace org.secc.OAuth
             app.UseOAuthAuthorizationServer( new OAuthAuthorizationServerOptions
                 {
                     AuthorizeEndpointPath = new PathString("/" + settings["OAuthAuthorizePath"].Trim('/')),
-                    AuthorizationCodeExpireTimeSpan = new TimeSpan(0,tokenLifespan, 0),
+                    AccessTokenExpireTimeSpan = new TimeSpan(0, tokenLifespan, 0),
                     TokenEndpointPath = new PathString("/" + settings["OAuthTokenPath"].Trim('/')),
                     ApplicationCanDisplayErrors = false,
                     AllowInsecureHttp = AllowInsecureHttp(),
@@ -98,6 +93,11 @@ namespace org.secc.OAuth
         #region Refresh Token Provider
         private void CreateRefreshToken( AuthenticationTokenCreateContext context )
         {
+            var settings = GlobalAttributesCache.Value("OAuthSettings").AsDictionary();
+            if (settings.ContainsKey("OAuthRefreshTokenLifespan") && settings["OAuthTokenLifespan"].AsInteger() > 0)
+            {
+                context.Ticket.Properties.ExpiresUtc = new DateTimeOffset(DateTime.Now.AddHours(settings["OAuthTokenLifespan"].AsInteger()));
+            }
             context.SetToken( context.SerializeTicket() );
         }
 
@@ -310,5 +310,8 @@ namespace org.secc.OAuth
 
             return allowInsecure;
         }
+        
     }
+
+
 }

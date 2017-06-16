@@ -17,7 +17,14 @@
                     <div class="col-md-6">
                         <Rock:RockDropDownList ID="ddlTokenRoute" runat="server" Label="Token Route" Help="Route which points to the page containing the Logout block.  This setting is also used by the OAuth middleware to configure the server and is the endpoint the client will need to renew OAuth tokens." />
                         <Rock:RockCheckBox ID="cbSSLRequired" runat="server" Label="SSL Required" Checked="true" Help="This should default to true and only be set to false when in debug mode!" />
-                        <Rock:RockTextBox ID="tbTokenLifespan" runat="server" Label="Token Lifespan (minutes)" Help="The OAuth token lifespan in minutes." Required="true" DisplayRequiredIndicator="false"/>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <Rock:RockTextBox ID="tbTokenLifespan" runat="server" Label="Token Lifespan (minutes)" Help="The OAuth token lifespan in minutes." Required="true" DisplayRequiredIndicator="false"/>
+                            </div>
+                            <div class="col-md-6">
+                                <Rock:RockTextBox ID="tbRefreshTokenLifespan" runat="server" Label="Refresh Token Lifespan (hours)" Help="The OAuth refresh token lifespan in hours." Required="true" DisplayRequiredIndicator="false"/>
+                            </div>
+                        </div>
                         <asp:RegularExpressionValidator ControlToValidate="tbTokenLifespan" ValidationExpression="^\d+" ErrorMessage="Please enter a numeric token lifespan." runat="server" CssClass="hidden" />
                     </div>
                     <div class="col-md-12">
