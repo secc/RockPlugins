@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Web.Http;
 using System.Collections.Generic;
-using System.IO;
-using System.Web;
-using System.Web.SessionState;
 using Rock.Rest.Filters;
 using Rock.Data;
 using Rock.Model;
@@ -141,15 +136,15 @@ namespace org.secc.RoomScanner.Rest.Controllers
         }
 
         [Authenticate, Secured]
-        [HttpGet]
-        [System.Web.Http.Route( "api/org.secc/roomscanner/exit/{guidString}/{locationId}" )]
-        public Response Exit( string guidString, int locationId )
+        [HttpPost]
+        [System.Web.Http.Route( "api/org.secc/roomscanner/exit" )]
+        public Response Exit( [FromBody] Request req )
         {
-            var attendanceGuid = guidString.AsGuid();
+            var attendanceGuidGuid = req.AttendanceGuid.AsGuid();
             RockContext rockContext = new RockContext();
             AttendanceService attendanceService = new AttendanceService( rockContext );
             HistoryService historyService = new HistoryService( rockContext );
-            Attendance attendeeAttendance = attendanceService.Get( attendanceGuid );
+            Attendance attendeeAttendance = attendanceService.Get( attendanceGuidGuid );
             int personEntityTypeId = EntityTypeCache.Read( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
             int locationEntityTypeId = EntityTypeCache.Read( locationEntityTypeGuid.AsGuid() ).Id;
 
@@ -163,10 +158,10 @@ namespace org.secc.RoomScanner.Rest.Controllers
             }
 
             var person = attendeeAttendance.PersonAlias.Person;
-            var location = new LocationService( rockContext ).Get( locationId );
+            var location = new LocationService( rockContext ).Get( req.LocationId );
 
             var attendances = attendanceService.Queryable()
-                .Where( a => a.PersonAliasId == attendeeAttendance.PersonAliasId && a.LocationId == locationId );
+                .Where( a => a.PersonAliasId == attendeeAttendance.PersonAliasId && a.LocationId == req.LocationId );
 
             foreach ( var attendance in attendances.ToList() )
             {
@@ -180,7 +175,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 EntityTypeId = personEntityTypeId,
                 EntityId = attendeeAttendance.PersonAlias.PersonId,
                 RelatedEntityTypeId = locationEntityTypeId,
-                RelatedEntityId = locationId,
+                RelatedEntityId = req.LocationId,
                 Verb = "Exit",
                 Summary = summary,
                 Caption = "Exited Location",
@@ -197,15 +192,15 @@ namespace org.secc.RoomScanner.Rest.Controllers
 
 
         [Authenticate, Secured]
-        [HttpGet]
-        [System.Web.Http.Route( "api/org.secc/roomscanner/entry/{guidString}/{locationId}" )]
-        public Response Entry( string guidString, int locationId )
+        [HttpPost]
+        [System.Web.Http.Route( "api/org.secc/roomscanner/entry" )]
+        public Response Entry( [FromBody] Request req )
         {
-            var attendanceGuid = guidString.AsGuid();
+            var attendanceGuidGuid = req.AttendanceGuid.AsGuid();
             RockContext rockContext = new RockContext();
             AttendanceService attendanceService = new AttendanceService( rockContext );
             HistoryService historyService = new HistoryService( rockContext );
-            Attendance attendeeAttendance = attendanceService.Get( attendanceGuid );
+            Attendance attendeeAttendance = attendanceService.Get( attendanceGuidGuid );
             int personEntityTypeId = EntityTypeCache.Read( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
             int locationEntityTypeId = EntityTypeCache.Read( locationEntityTypeGuid.AsGuid() ).Id;
 
@@ -219,10 +214,10 @@ namespace org.secc.RoomScanner.Rest.Controllers
             }
 
             var person = attendeeAttendance.PersonAlias.Person;
-            var location = new LocationService( rockContext ).Get( locationId );
+            var location = new LocationService( rockContext ).Get( req.LocationId );
 
             var attendances = attendanceService.Queryable()
-                .Where( a => a.PersonAliasId == attendeeAttendance.PersonAliasId && a.LocationId == locationId );
+                .Where( a => a.PersonAliasId == attendeeAttendance.PersonAliasId && a.LocationId == req.LocationId );
 
             foreach ( var attendance in attendances.ToList() )
             {
@@ -236,7 +231,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 EntityTypeId = personEntityTypeId,
                 EntityId = attendeeAttendance.PersonAlias.PersonId,
                 RelatedEntityTypeId = locationEntityTypeId,
-                RelatedEntityId = locationId,
+                RelatedEntityId = req.LocationId,
                 Verb = "Entry",
                 Summary = summary,
                 Caption = "Entered Location",
@@ -281,4 +276,11 @@ namespace org.secc.RoomScanner.Rest.Controllers
             this.Overridable = overridable;
         }
     }
+
+    public class Request
+    {
+        public string AttendanceGuid { get; set; }
+        public int LocationId { get; set; }
+    }
+
 }
