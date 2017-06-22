@@ -30,11 +30,12 @@
                                     </ul>
                                 </FooterTemplate>
                                 <ItemTemplate>
-                                    <li id="liApptDate" runat="server"><%# Format12Hour(((DataRow)Container.DataItem)[2]) %> - <%# ((DataRow)Container.DataItem)[5] %>
+                                    <li id="liApptDate" runat="server"><%# Format12Hour(((DataRow)Container.DataItem)[2]) %> - <%# ((DataRow)Container.DataItem)[6] %>
                                         <ul>
                                             <li id="liPatient" runat="server"><%# ((DataRow)Container.DataItem)[0] %></li>
-                                            <li id="liWorkPhone" runat="server">Work: <%# ((DataRow)Container.DataItem)[3] %></li>
-                                            <li id="liCellPhone" runat="server">Cell: <%# ((DataRow)Container.DataItem)[4] %></li>
+                                            <li id="liStatus" runat="server">Status: <b><%# ((DataRow)Container.DataItem)[3] %></b></li>
+                                            <li id="liWorkPhone" runat="server">Work: <%# ((DataRow)Container.DataItem)[4] %></li>
+                                            <li id="liCellPhone" runat="server">Cell: <%# ((DataRow)Container.DataItem)[5] %></li>
                                         </ul>
                                     </li>
                                 </ItemTemplate>
