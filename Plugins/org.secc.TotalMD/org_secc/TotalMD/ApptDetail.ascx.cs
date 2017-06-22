@@ -308,11 +308,13 @@ namespace RockWeb.Plugins.org_secc.TotalMD
 
             using ( OdbcConnection con = new OdbcConnection( ConnString ) )
             {
-                string qry = @"SELECT CONCAT(CONCAT([First Name] WITH ' ') WITH [Last Name]) AS [Patient Name], [Date], [Time], 
+                string qry = @"SELECT CONCAT(CONCAT([First Name] WITH ' ') WITH [Last Name]) AS [Patient Name], [Date], [Time], l.[Text] AS [Status],
                     [Work Phone], [Mobile Phone], CONCAT(CONCAT(p.[First Name] WITH ' ') WITH p.[Last Name]) AS [Counselor Name] 
                     FROM Appointment a
-                    LEFT OUTER JOIN Provider p ON a.Provider = p.Code" +
+                    LEFT OUTER JOIN Provider p ON a.[Provider] = p.[Code]
+                    INNER JOIN lookuplist l ON l.[Table] = 'APPOINTMENT' AND l.[Field] = 'STATUS' AND a.[Status] = CAST(l.[ID] AS Integer)" +
                   " WHERE a.[Date] >= " + "'" + BeginDate + "' AND a.[Date] < '" + EndDate + "' AND a.[Provider] IN (" + selectedCounselors + ")" +
+                  " AND l.[Text] IN ('Unconfirmed','Left Message','Confirmed','Ready','Cancelled','Missed')" +
                   " ORDER BY [Date],[Time],[Counselor Name]";
 
                 OdbcDataAdapter da = new OdbcDataAdapter( qry, con );
