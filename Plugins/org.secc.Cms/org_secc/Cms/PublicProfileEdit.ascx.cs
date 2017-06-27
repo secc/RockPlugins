@@ -31,7 +31,7 @@ using Rock.Web.UI.Controls;
 namespace RockWeb.Plugins.org_secc.Cms
 {
     /// <summary>
-    /// The main Person Profile block the main information about a peron 
+    /// The main Person Profile block the main information about a peron
     /// </summary>
     [DisplayName( "Public Profile Edit" )]
     [Category( "SECC > CMS" )]
@@ -56,10 +56,12 @@ namespace RockWeb.Plugins.org_secc.Cms
         /// </summary>
         /// <param name="e">An <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         protected override void OnInit( EventArgs e )
-        {        
+        {
             base.OnInit( e );
             ScriptManager.RegisterStartupScript( ddlGradePicker, ddlGradePicker.GetType(), "grade-selection-" + BlockId.ToString(), ddlGradePicker.GetJavascriptForYearPicker( ypGraduation ), true );
-
+            
+            ddlTitle.BindToDefinedType( DefinedTypeCache.Read( new Guid( Rock.SystemGuid.DefinedType.PERSON_TITLE ) ), true );
+            ddlSuffix.BindToDefinedType( DefinedTypeCache.Read( new Guid( Rock.SystemGuid.DefinedType.PERSON_SUFFIX ) ), true );
             RockPage.AddCSSLink( ResolveRockUrl( "~/Styles/fluidbox.css" ) );
             RockPage.AddScriptLink( ResolveRockUrl( "~/Scripts/imagesloaded.min.js" ) );
             RockPage.AddScriptLink( ResolveRockUrl( "~/Scripts/jquery.fluidbox.min.js" ) );
@@ -1181,6 +1183,6 @@ namespace RockWeb.Plugins.org_secc.Cms
             return PhoneNumber.FormattedNumber( cc, n );
         }
 
-        #endregion                          
+        #endregion
     }
 }
