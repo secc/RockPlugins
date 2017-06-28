@@ -36,7 +36,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 .Where( t =>
                     t.GroupTypePurposeValue != null &&
                     t.GroupTypePurposeValue.Guid == templateTypeGuid )
-                .Select( t => new Template() { Id = t.Id, Name = t.Name } )
+                .Select( t => new Template() { Id = t.Id, Name = t.Name, Description = t.Description ?? "" } )
                     .OrderBy( t => t.Name )
 
                 .ToList()
@@ -48,51 +48,52 @@ namespace org.secc.RoomScanner.Rest.Controllers
 
         [Authenticate, Secured]
         [HttpGet]
-        [System.Web.Http.Route( "api/org.secc/roomscanner/areas/{id}" )]
-        public List<Template> Areas( int id )
+        [System.Web.Http.Route( "api/org.secc/roomscanner/areas/{templateId}" )]
+        public List<Template> Areas( int templateId )
         {
             RockContext rockContext = new RockContext();
             GroupTypeService groupTypeService = new GroupTypeService( rockContext );
             List<Template> templates = groupTypeService
                 .Queryable().AsNoTracking()
                 .Where( t =>
-                 t.ParentGroupTypes.Select( p => p.Id ).Contains( id ) )
-                .Select( t => new Template() { Id = t.Id, Name = t.Name } )
-                .OrderBy( t => t.Name )
+                 t.ParentGroupTypes.Select( p => p.Id ).Contains( templateId ) )
+                .OrderBy( t => t.Order )
+                .Select( t => new Template() { Id = t.Id, Name = t.Name, Description = t.Description ?? "" } )
                 .ToList();
             return templates;
         }
 
         [Authenticate, Secured]
         [HttpGet]
-        [System.Web.Http.Route( "api/org.secc/roomscanner/groups/{id}" )]
-        public List<Template> Groups( int id )
+        [System.Web.Http.Route( "api/org.secc/roomscanner/groups/{groupTypeId}" )]
+        public List<Template> Groups( int groupTypeId )
         {
             RockContext rockContext = new RockContext();
             GroupService groupService = new GroupService( rockContext );
             List<Template> templates = groupService
                 .Queryable().AsNoTracking()
-                .Where( t => t.GroupTypeId == id )
-                .Select( t => new Template() { Id = t.Id, Name = t.Name } )
-                .OrderBy( t => t.Name )
+                .Where( g => g.GroupTypeId == groupTypeId && g.IsActive )
+                .OrderBy( g => g.Order )
+                .Select( g => new Template() { Id = g.Id, Name = g.Name, Description = g.Description ?? "" } )
                 .ToList();
             return templates;
         }
 
         [Authenticate, Secured]
         [HttpGet]
-        [System.Web.Http.Route( "api/org.secc/roomscanner/locations/{id}" )]
-        public List<Template> Locations( int id )
+        [System.Web.Http.Route( "api/org.secc/roomscanner/locations/{groupId}" )]
+        public List<Template> Locations( int groupId )
         {
             RockContext rockContext = new RockContext();
             GroupService groupService = new GroupService( rockContext );
             List<Template> templates = groupService
                 .Queryable().AsNoTracking()
-                .Where( t => t.Id == id )
+                .Where( t => t.Id == groupId )
                 .SelectMany( g => g.GroupLocations )
+                .Where( gl => gl.Schedules.Any() )
+                .OrderBy( gl => gl.Order )
                 .Select( gl => gl.Location )
-                .Select( t => new Template() { Id = t.Id, Name = t.Name } )
-                .OrderBy( t => t.Name )
+                .Select( t => new Template() { Id = t.Id, Name = t.Name, Description = "" } )
                 .ToList();
             return templates;
         }
@@ -105,20 +106,20 @@ namespace org.secc.RoomScanner.Rest.Controllers
             RockContext rockContext = new RockContext();
             LocationService locationService = new LocationService( rockContext );
             var location = locationService.Get( guid.AsGuid() );
-            return new Template() { Name = location.Name, Id = location.Id };
+            return new Template() { Name = location.Name, Id = location.Id, Description = "" };
         }
 
         [Authenticate, Secured]
         [HttpGet]
-        [System.Web.Http.Route( "api/org.secc/roomscanner/attendees/{id}" )]
-        public List<Attendee> Attendees( int id )
+        [System.Web.Http.Route( "api/org.secc/roomscanner/attendees/{locationId}" )]
+        public List<Attendee> Attendees( int locationId )
         {
             RockContext rockContext = new RockContext();
             AttendanceService attendanceService = new AttendanceService( rockContext );
             PersonAliasService personAliasService = new PersonAliasService( rockContext );
             List<Attendee> attendees = attendanceService
                 .Queryable().AsNoTracking()
-                .Where( a => a.LocationId == id && a.StartDateTime >= Rock.RockDateTime.Today )
+                .Where( a => a.LocationId == locationId && a.StartDateTime >= Rock.RockDateTime.Today )
                 .Join( personAliasService.Queryable(),
                     a => a.PersonAliasId,
                     pa => pa.Id,
@@ -134,6 +135,31 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 .ToList();
             return attendees;
         }
+
+        [Authenticate, Secured]
+        [HttpGet]
+        [System.Web.Http.Route( "api/org.secc/roomscanner/getroster/{locationId}" )]
+        public List<AttendanceEntry> GetRoster( int locationId )
+        {
+            var tomorrow = Rock.RockDateTime.Today.AddDays( 1 );
+            RockContext rockContext = new RockContext();
+            AttendanceService attendanceService = new AttendanceService( rockContext );
+            var roster = attendanceService.Queryable()
+                .Where( a => a.LocationId == locationId && a.StartDateTime > Rock.RockDateTime.Today && a.StartDateTime < tomorrow )
+                .DistinctBy( a => a.PersonAlias.PersonId )
+                .Select( a => new AttendanceEntry()
+                {
+                    PersonId = a.PersonAlias.Person.Id,
+                    LastName = a.PersonAlias.Person.LastName,
+                    NickName = a.PersonAlias.Person.NickName,
+                    StartDateTime = a.StartDateTime,
+                    EndDateTime = a.EndDateTime,
+                    AttendanceGuid = a.Guid,
+                    DidAttend = a.DidAttend ?? false
+                } ).ToList();
+            return roster;
+        }
+
 
         [Authenticate, Secured]
         [HttpPost]
@@ -247,11 +273,23 @@ namespace org.secc.RoomScanner.Rest.Controllers
         }
     }
 
+    public class AttendanceEntry
+    {
+        public int PersonId { get; set; }
+        public string NickName { get; set; }
+        public string LastName { get; set; }
+        public DateTime StartDateTime { get; set; }
+        public DateTime? EndDateTime { get; set; }
+        public bool DidAttend { get; set; }
+        public Guid AttendanceGuid { get; set; }
+    }
+
 
     public class Template
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        public string Description { get; set; }
     }
 
     public class Attendee
