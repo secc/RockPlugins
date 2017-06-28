@@ -580,6 +580,20 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             rblNewPersonGender.Items.Clear();
             rblNewPersonGender.BindToEnum<Gender>();
 
+            var gradeLabel = "";
+            var today = RockDateTime.Today;
+            var transitionDate = GlobalAttributesCache.Read().GetValue( "GradeTransitionDate" ).AsDateTime() ?? new DateTime( RockDateTime.Today.Year, 6, 1 );
+
+            if ( transitionDate > today )
+            {
+                gradeLabel = string.Format( "Grade (For School Year {0}-{1})", today.AddYears(-1).Year , today.Year );
+            }
+            else
+            {
+                gradeLabel = string.Format( "Grade (For School Year {0}-{1})", today.Year, today.AddYears( 1 ).Year);
+            }
+            ddlGradePicker.Label = gradeLabel;
+
             ScriptManager.RegisterStartupScript( ddlGradePicker, ddlGradePicker.GetType(), "grade-selection-" + BlockId.ToString(), ddlGradePicker.GetJavascriptForYearPicker( ypNewGraduation ), true );
         }
 
@@ -701,6 +715,20 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     gpEditGrade.SelectedIndex = 0;
                 }
             }
+            var gradeLabel = "";
+            var today = RockDateTime.Today;
+            var transitionDate = GlobalAttributesCache.Read().GetValue( "GradeTransitionDate" ).AsDateTime() ?? new DateTime( RockDateTime.Today.Year, 6, 1 );
+
+            if ( transitionDate > today )
+            {
+                gradeLabel = string.Format( "Grade (For School Year {0}-{1})", today.AddYears( -1 ).Year, today.Year );
+            }
+            else
+            {
+                gradeLabel = string.Format( "Grade (For School Year {0}-{1})", today.Year, today.AddYears( 1 ).Year );
+            }
+            gpEditGrade.Label = gradeLabel;
+
             ScriptManager.RegisterStartupScript( gpEditGrade, gpEditGrade.GetType(), "grade-selection-" + BlockId.ToString(), gpEditGrade.GetJavascriptForYearPicker( ypEditGraduation ), true );
 
             var AttributeList = new List<int>();
