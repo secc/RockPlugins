@@ -169,11 +169,7 @@
       <Project>{add1edd0-a4cb-4e82-b6ad-6ad1d556deae}</Project>
       <Name>Rock.Rest</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\Source\Repos\Rock\Rock\Rock.csproj">
-      <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>
-      <Name>Rock</Name>
-    </ProjectReference>
-    <ProjectReference Include="C:\Users\MarkL\Source\Repos\Rock\Rock\Rock.csproj">
+    <ProjectReference Include="$(SolutionDir)Rock\Rock.csproj">
       <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>
       <Name>Rock</Name>
     </ProjectReference>
