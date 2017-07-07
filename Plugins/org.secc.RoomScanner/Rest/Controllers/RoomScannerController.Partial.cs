@@ -8,6 +8,7 @@ using Rock.Model;
 using System.Data.Entity;
 using Rock;
 using Rock.Web.Cache;
+using System.Runtime.Caching;
 
 namespace org.secc.RoomScanner.Rest.Controllers
 {
@@ -146,6 +147,8 @@ namespace org.secc.RoomScanner.Rest.Controllers
             AttendanceService attendanceService = new AttendanceService( rockContext );
             var roster = attendanceService.Queryable()
                 .Where( a => a.LocationId == locationId && a.StartDateTime > Rock.RockDateTime.Today && a.StartDateTime < tomorrow )
+                .OrderBy( a => a.EndDateTime )
+                .ThenBy( a => a.DidAttend )
                 .DistinctBy( a => a.PersonAlias.PersonId )
                 .Select( a => new AttendanceEntry()
                 {
@@ -156,7 +159,10 @@ namespace org.secc.RoomScanner.Rest.Controllers
                     EndDateTime = a.EndDateTime,
                     AttendanceGuid = a.Guid,
                     DidAttend = a.DidAttend ?? false
-                } ).ToList();
+                } )
+                .OrderBy(a => a.NickName)
+                .ThenBy(a => a.LastName)
+                .ToList();
             return roster;
         }
 
@@ -186,15 +192,34 @@ namespace org.secc.RoomScanner.Rest.Controllers
             var person = attendeeAttendance.PersonAlias.Person;
             var location = new LocationService( rockContext ).Get( req.LocationId );
 
+            var today = Rock.RockDateTime.Today;
+            var tomorrow = today.AddDays( 1 );
             var attendances = attendanceService.Queryable()
-                .Where( a => a.PersonAliasId == attendeeAttendance.PersonAliasId && a.LocationId == req.LocationId );
+                .Where( a => a.PersonAliasId == attendeeAttendance.PersonAliasId && a.StartDateTime >= today && a.StartDateTime < tomorrow );
 
-            foreach ( var attendance in attendances.ToList() )
+            if ( !req.Override )
             {
-                attendance.DidAttend = true;
+                attendances = attendances.Where( a => a.LocationId == req.LocationId );
+            }
+
+            if ( !attendances.Any() ) //There was an attendance record, but not for the selected location
+            {
+                return new Response( false, string.Format( "{0} is not checked-in to {1} would you like to override?", person.FullName, location.Name ), true );
+            }
+
+            foreach ( var attendance in attendances )
+            {
+                attendance.EndDateTime = Rock.RockDateTime.Now;
             }
 
             var summary = string.Format( "Exited <span class=\"field-name\">{0}</span> at <span class=\"field-name\">{1}</span>", location.Name, Rock.RockDateTime.Now );
+
+            var hostInfo = Rock.Web.UI.RockPage.GetClientIpAddress();
+            var host = System.Net.Dns.GetHostEntry( hostInfo );
+            if ( host != null )
+            {
+                hostInfo = host.HostName;
+            }
 
             History history = new History()
             {
@@ -205,12 +230,13 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 Verb = "Exit",
                 Summary = summary,
                 Caption = "Exited Location",
-                RelatedData = System.Net.Dns.GetHostEntry( Rock.Web.UI.RockPage.GetClientIpAddress() ).HostName,
+                RelatedData = hostInfo,
                 CategoryId = 4
             };
 
             historyService.Add( history );
             rockContext.SaveChanges();
+
 
             var message = string.Format( "{0} has been checked-out of {1}.", person.FullName, location.Name );
             return new Response( true, message, false );
@@ -242,12 +268,29 @@ namespace org.secc.RoomScanner.Rest.Controllers
             var person = attendeeAttendance.PersonAlias.Person;
             var location = new LocationService( rockContext ).Get( req.LocationId );
 
+            var today = Rock.RockDateTime.Today;
+            var tomorrow = today.AddDays( 1 );
             var attendances = attendanceService.Queryable()
-                .Where( a => a.PersonAliasId == attendeeAttendance.PersonAliasId && a.LocationId == req.LocationId );
+                .Where( a => a.PersonAliasId == attendeeAttendance.PersonAliasId && a.StartDateTime >= today && a.StartDateTime < tomorrow && a.EndDateTime == null );
+
+            if ( !attendances.Any() )
+            {
+                return new Response( false, string.Format( "{0} has been checked out of all locations.", person.FullName ), false );
+            }
+
+            if ( !req.Override )
+            {
+                attendances = attendances.Where( a => a.LocationId == req.LocationId );
+            }
+
+            if ( !attendances.Any() ) //There was an attendance record, but not for the selected location
+            {
+                return new Response( false, string.Format( "{0} is not checked-in to {1} would you like to override?", person.FullName, location.Name ), true );
+            }
 
             foreach ( var attendance in attendances.ToList() )
             {
-                attendance.EndDateTime = Rock.RockDateTime.Now;
+                attendance.DidAttend = true;
             }
 
             var summary = string.Format( "Entered <span class=\"field-name\">{0}</span> at <span class=\"field-name\">{1}</span>", location.Name, Rock.RockDateTime.Now );
@@ -268,6 +311,15 @@ namespace org.secc.RoomScanner.Rest.Controllers
             historyService.Add( history );
             rockContext.SaveChanges();
 
+
+            int allergyAttributeId = AttributeCache.Read( Rock.SystemGuid.Attribute.PERSON_ALLERGY.AsGuid() ).Id;
+            var allergyAttributeValue = new AttributeValueService( rockContext )
+                .Queryable()
+                .FirstOrDefault( av => av.AttributeId == allergyAttributeId && av.EntityId == person.Id );
+            if ( allergyAttributeValue != null && !string.IsNullOrWhiteSpace( allergyAttributeValue.Value ) )
+            {
+                return new Response( true, string.Format( "{0} has been checked-in to {1}. \n\n Allergy: {2}", person.FullName, location.Name, allergyAttributeValue.Value ), false, true );
+            }
             var message = string.Format( "{0} has been checked-in to {1}.", person.FullName, location.Name );
             return new Response( true, message, false );
         }
@@ -283,7 +335,6 @@ namespace org.secc.RoomScanner.Rest.Controllers
         public bool DidAttend { get; set; }
         public Guid AttendanceGuid { get; set; }
     }
-
 
     public class Template
     {
@@ -306,12 +357,14 @@ namespace org.secc.RoomScanner.Rest.Controllers
         public bool Success { get; set; }
         public string Message { get; set; }
         public bool Overridable { get; set; }
+        public bool RequireConfirmation { get; set; }
 
-        public Response( bool success, string message, bool overridable )
+        public Response( bool success, string message, bool overridable, bool requireConfirmation = false )
         {
             this.Success = success;
             this.Message = message;
             this.Overridable = overridable;
+            this.RequireConfirmation = requireConfirmation;
         }
     }
 
@@ -319,6 +372,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
     {
         public string AttendanceGuid { get; set; }
         public int LocationId { get; set; }
+        public bool Override { get; set; }
     }
 
 }
