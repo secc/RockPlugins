@@ -147,25 +147,56 @@ namespace org.secc.RoomScanner.Rest.Controllers
             AttendanceService attendanceService = new AttendanceService( rockContext );
             var roster = attendanceService.Queryable()
                 .Where( a => a.LocationId == locationId && a.StartDateTime > Rock.RockDateTime.Today && a.StartDateTime < tomorrow )
-                .OrderBy( a => a.EndDateTime )
-                .ThenBy( a => a.DidAttend )
-                .DistinctBy( a => a.PersonAlias.PersonId )
                 .Select( a => new AttendanceEntry()
-                {
+                {   Id = a.Id,
                     PersonId = a.PersonAlias.Person.Id,
                     LastName = a.PersonAlias.Person.LastName,
                     NickName = a.PersonAlias.Person.NickName,
                     StartDateTime = a.StartDateTime,
                     EndDateTime = a.EndDateTime,
-                    AttendanceGuid = a.Guid,
+                    AttendanceGuid = a.Guid.ToString(),
                     DidAttend = a.DidAttend ?? false
                 } )
-                .OrderBy(a => a.NickName)
-                .ThenBy(a => a.LastName)
+                .OrderBy(ae => ae.Id)
                 .ToList();
             return roster;
         }
 
+        [Authenticate, Secured]
+        [HttpGet]
+        [System.Web.Http.Route( "api/org.secc/roomscanner/GetAttendanceCode/{attendanceGuid}" )]
+        public AttendanceCodes GetAttendanceCode( string attendanceGuid )
+        {
+            Guid guid = attendanceGuid.AsGuid();
+            RockContext rockContext = new RockContext();
+            var attendanceService = new AttendanceService( rockContext );
+            var primaryAttendance = attendanceService.Get( guid );
+
+            if ( primaryAttendance == null )
+            {
+                return null;
+            }
+
+            var personAliasService = new PersonAliasService( rockContext );
+            var person = primaryAttendance.PersonAlias.Person;
+            var personAliasIds = personAliasService.Queryable()
+                .Where( pa => pa.PersonId == primaryAttendance.PersonAlias.PersonId )
+                .Select( pa => pa.Id );
+
+            var today = Rock.RockDateTime.Today;
+            var tomorrow = today.AddDays( 1 );
+            var codes = attendanceService.Queryable()
+                .Where( a => personAliasIds.Contains( a.PersonAliasId ?? 0 ) && a.StartDateTime >= today && a.StartDateTime < tomorrow )
+                .Select( a => a.AttendanceCode )
+                .Select( ac => ac.Code ).ToList();
+
+            return new AttendanceCodes()
+            {
+                NickName = person.NickName,
+                LastName = person.LastName,
+                Codes = codes
+            };
+        }
 
         [Authenticate, Secured]
         [HttpPost]
@@ -214,12 +245,18 @@ namespace org.secc.RoomScanner.Rest.Controllers
 
             var summary = string.Format( "Exited <span class=\"field-name\">{0}</span> at <span class=\"field-name\">{1}</span>", location.Name, Rock.RockDateTime.Now );
 
-            var hostInfo = Rock.Web.UI.RockPage.GetClientIpAddress();
-            var host = System.Net.Dns.GetHostEntry( hostInfo );
-            if ( host != null )
+            var hostInfo = "Unknown Host";
+            try
             {
-                hostInfo = host.HostName;
+
+                hostInfo = Rock.Web.UI.RockPage.GetClientIpAddress();
+                var host = System.Net.Dns.GetHostEntry( hostInfo );
+                if ( host != null )
+                {
+                    hostInfo = host.HostName;
+                }
             }
+            catch { }
 
             History history = new History()
             {
@@ -295,6 +332,18 @@ namespace org.secc.RoomScanner.Rest.Controllers
 
             var summary = string.Format( "Entered <span class=\"field-name\">{0}</span> at <span class=\"field-name\">{1}</span>", location.Name, Rock.RockDateTime.Now );
 
+            var hostInfo = "Unknown Host";
+            try
+            {
+
+                hostInfo = Rock.Web.UI.RockPage.GetClientIpAddress();
+                var host = System.Net.Dns.GetHostEntry( hostInfo );
+                if ( host != null )
+                {
+                    hostInfo = host.HostName;
+                }
+            }
+            catch { }
             History history = new History()
             {
                 EntityTypeId = personEntityTypeId,
@@ -304,7 +353,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 Verb = "Entry",
                 Summary = summary,
                 Caption = "Entered Location",
-                RelatedData = System.Net.Dns.GetHostEntry( Rock.Web.UI.RockPage.GetClientIpAddress() ).HostName,
+                RelatedData = hostInfo,
                 CategoryId = 4
             };
 
@@ -325,15 +374,23 @@ namespace org.secc.RoomScanner.Rest.Controllers
         }
     }
 
+    public class AttendanceCodes
+    {
+        public String NickName { get; set; }
+        public String LastName { get; set; }
+        public List<string> Codes { get; set; }
+    }
+
     public class AttendanceEntry
     {
+        public int Id { get; set; }
         public int PersonId { get; set; }
         public string NickName { get; set; }
         public string LastName { get; set; }
         public DateTime StartDateTime { get; set; }
         public DateTime? EndDateTime { get; set; }
         public bool DidAttend { get; set; }
-        public Guid AttendanceGuid { get; set; }
+        public string AttendanceGuid { get; set; }
     }
 
     public class Template
