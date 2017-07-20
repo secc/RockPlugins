@@ -148,7 +148,8 @@ namespace org.secc.RoomScanner.Rest.Controllers
             var roster = attendanceService.Queryable()
                 .Where( a => a.LocationId == locationId && a.StartDateTime > Rock.RockDateTime.Today && a.StartDateTime < tomorrow )
                 .Select( a => new AttendanceEntry()
-                {   Id = a.Id,
+                {
+                    Id = a.Id,
                     PersonId = a.PersonAlias.Person.Id,
                     LastName = a.PersonAlias.Person.LastName,
                     NickName = a.PersonAlias.Person.NickName,
@@ -157,7 +158,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                     AttendanceGuid = a.Guid.ToString(),
                     DidAttend = a.DidAttend ?? false
                 } )
-                .OrderBy(ae => ae.Id)
+                .OrderBy( ae => ae.Id )
                 .ToList();
             return roster;
         }
@@ -372,6 +373,103 @@ namespace org.secc.RoomScanner.Rest.Controllers
             var message = string.Format( "{0} has been checked-in to {1}.", person.FullName, location.Name );
             return new Response( true, message, false );
         }
+
+        [Authenticate, Secured]
+        [HttpPost]
+        [System.Web.Http.Route( "api/org.secc/roomscanner/movetochapel" )]
+        public Response MoveToChapel( [FromBody] MultiRequest req )
+        {
+            var personIds = req.PersonIds
+                .Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries )
+                .Select( s => s.AsInteger() ).ToList();
+            RockContext rockContext = new RockContext();
+            PersonService personService = new PersonService( rockContext );
+            HistoryService historyService = new HistoryService( rockContext );
+            var people = personService.GetByIds( personIds );
+            int personEntityTypeId = EntityTypeCache.Read( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
+
+            var hostInfo = "Unknown Host";
+            try
+            {
+
+                hostInfo = Rock.Web.UI.RockPage.GetClientIpAddress();
+                var host = System.Net.Dns.GetHostEntry( hostInfo );
+                if ( host != null )
+                {
+                    hostInfo = host.HostName;
+                }
+            }
+            catch { }
+
+            foreach ( var person in people )
+            {
+                var summary = string.Format( "Moved to Chapel at <span class=\"field-name\">{0}</span>", Rock.RockDateTime.Now );
+
+
+                History history = new History()
+                {
+                    EntityTypeId = personEntityTypeId,
+                    EntityId = person.Id,
+                    Verb = "Moved",
+                    Summary = summary,
+                    Caption = "Moved To Chapel",
+                    RelatedData = hostInfo,
+                    CategoryId = 4
+                };
+                historyService.Add( history );
+            }
+            rockContext.SaveChanges();
+            return new Response( true, "Success", false );
+        }
+
+
+        [Authenticate, Secured]
+        [HttpPost]
+        [System.Web.Http.Route( "api/org.secc/roomscanner/returnfromchapel" )]
+        public Response ReturnFromChapel( [FromBody] MultiRequest req )
+        {
+            var personIds = req.PersonIds
+                .Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries )
+                .Select( s => s.AsInteger() ).ToList();
+            RockContext rockContext = new RockContext();
+            PersonService personService = new PersonService( rockContext );
+            HistoryService historyService = new HistoryService( rockContext );
+            var people = personService.GetByIds( personIds );
+            int personEntityTypeId = EntityTypeCache.Read( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
+
+            var hostInfo = "Unknown Host";
+            try
+            {
+
+                hostInfo = Rock.Web.UI.RockPage.GetClientIpAddress();
+                var host = System.Net.Dns.GetHostEntry( hostInfo );
+                if ( host != null )
+                {
+                    hostInfo = host.HostName;
+                }
+            }
+            catch { }
+
+            foreach ( var person in people )
+            {
+                var summary = string.Format( "Returned from Chapel at <span class=\"field-name\">{0}</span>", Rock.RockDateTime.Now );
+
+
+                History history = new History()
+                {
+                    EntityTypeId = personEntityTypeId,
+                    EntityId = person.Id,
+                    Verb = "Returned",
+                    Summary = summary,
+                    Caption = "Returned from Chapel",
+                    RelatedData = hostInfo,
+                    CategoryId = 4
+                };
+                historyService.Add( history );
+            }
+            rockContext.SaveChanges();
+            return new Response( true, "Success", false );
+        }
     }
 
     public class AttendanceCodes
@@ -430,6 +528,11 @@ namespace org.secc.RoomScanner.Rest.Controllers
         public string AttendanceGuid { get; set; }
         public int LocationId { get; set; }
         public bool Override { get; set; }
+    }
+
+    public class MultiRequest
+    {
+        public string PersonIds { get; set; }
     }
 
 }
