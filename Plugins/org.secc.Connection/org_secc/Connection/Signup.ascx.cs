@@ -18,7 +18,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Dynamic;
 using System.Linq;
+using System.Reflection;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
@@ -27,6 +29,7 @@ using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
+using Rock.Security;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 
@@ -44,12 +47,15 @@ namespace org.secc.Connection
     [CodeEditorField("Settings", mode:CodeEditorMode.JavaScript, category: "Custom Setting")]
     [KeyValueListField("Counts", category: "Custom Setting" )]
     [CodeEditorField( "Lava", mode: CodeEditorMode.JavaScript, category: "Custom Setting" )]
+    [BooleanField( "Enable Debug", "Display a list of merge fields available for lava.", false)]
 
     [ViewStateModeById]
     public partial class Signup : Rock.Web.UI.RockBlockCustomSettings
     {
 
         private Dictionary<string, string> attributes = new Dictionary<string, string>();
+
+        private ICollection<ConnectionRequest> connectionRequests = null;
 
 
         protected SignupSettings Settings {
@@ -94,7 +100,7 @@ namespace org.secc.Connection
                     // Just swallow this exception
                 }
             }
-            if ( GetAttributeValue( key ).IsNotNullOrWhitespace() )
+            if ( !string.IsNullOrWhiteSpace(GetAttributeValue( key )) )
             {
                 try
                 {
@@ -132,8 +138,15 @@ namespace org.secc.Connection
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
-            
+
         }
+
+        protected override void LoadViewState( object savedState )
+        {
+            base.LoadViewState( savedState );
+            LoadSettings();
+        }
+
 
         /// <summary>
         /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
@@ -146,17 +159,28 @@ namespace org.secc.Connection
             if ( !IsPostBack )
             {
                 ceLava.Text = GetAttributeValue( "Lava" );
-                ShowSettings();
             }
-
-            var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null );
-            mergeFields.Add( "Settings", Rock.Lava.RockFilters.FromJSON(GetAttributeValue( "Settings" ) ) );
-            lBody.Text = GetAttributeValue( "Lava" ).ResolveMergeFields(mergeFields);
-
             
-            
-            LoadSettings();
+            if ( Settings.Partitions.Count > 0)
+            {
+                ConnectionOpportunity connection = ( ConnectionOpportunity ) Settings.Entity();
+                if ( connection != null && connectionRequests == null)
+                {
+                    connectionRequests = connection.ConnectionRequests;
+                }
 
+                var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null );
+                mergeFields.Add( "Settings", Rock.Lava.RockFilters.FromJSON( GetAttributeValue( "Settings" ) ) );
+                mergeFields.Add( "Tree", GetTree( Settings.Partitions.FirstOrDefault(), new GroupTypeRoleService( new RockContext() ), connectionRequests ) );
+                mergeFields.Add( "ConnectionRequests", connectionRequests );
+                lBody.Text = GetAttributeValue( "Lava" ).ResolveMergeFields(mergeFields);
+
+                if ( GetAttributeValue( "EnableDebug" ).AsBoolean() && IsUserAuthorized( Authorization.EDIT ) )
+                {
+                    lDebug.Visible = true;
+                    lDebug.Text = mergeFields.lavaDebugInfo();
+                }
+            }
         }
 
         protected override void OnPreRender( EventArgs e )
@@ -179,6 +203,20 @@ namespace org.secc.Connection
                 pnlCounts.Visible = true;
             }
 
+            var connectionOpportunityService = new ConnectionOpportunityService( new RockContext() );
+            var connections = connectionOpportunityService.Queryable().Where( co => co.IsActive == true ).OrderBy( co => co.ConnectionType.Name ).ThenBy( co => co.Name ).ToList()
+                                                                    .Select( co => new ListItem( co.ConnectionType.Name + ": " + co.Name, co.Guid.ToString() ) ).ToList();
+            connections.Insert( 0, new ListItem( "Select One . . ." ) );
+            rddlConnection.DataSource = connections;
+            rddlConnection.DataTextField = "Text";
+            rddlConnection.DataValueField = "Value";
+            rddlConnection.DataBind();
+
+            if ( Settings.EntityGuid != Guid.Empty )
+            {
+                rddlConnection.SelectedValue = Settings.EntityGuid.ToString();
+            }
+
             mdEdit.Show();
         }
 
@@ -190,8 +228,17 @@ namespace org.secc.Connection
                 string rowId = gCounts.DataKeys[gridRow.RowIndex].Value.ToString();
 
                 RockTextBox textBox = ( RockTextBox ) gridRow.FindControl( "tb" + gridRow.ID );
-
-                values.Add( rowId, textBox.Text );
+                if (textBox != null)
+                {
+                    if ( values.ContainsKey( rowId ) )
+                    {
+                        values[rowId] = textBox.Text;
+                    }
+                    else
+                    {
+                        values.Add( rowId, textBox.Text );
+                    }
+                }
             }
             Counts = values;
             SaveViewState();
@@ -203,13 +250,15 @@ namespace org.secc.Connection
 
             using ( var context = new RockContext() )
             {
-
+                int groupMemberEntityId = EntityTypeCache.Read( Rock.SystemGuid.EntityType.GROUP_MEMBER.AsGuid() ).Id;
                 if ( Settings.EntityTypeGuid == Rock.SystemGuid.EntityType.CONNECTION_OPPORTUNITY.AsGuid() )
                 {
                     AttributeService attributeService = new AttributeService( new RockContext() );
                     ConnectionOpportunity connection = ( ConnectionOpportunity ) Settings.Entity();
                     if ( connection != null )
                     {
+                        connectionRequests = connection.ConnectionRequests;
+
                         var groupTypes = connection.ConnectionOpportunityGroupConfigs.Where( cogc => cogc.GroupType != null && cogc.UseAllGroupsOfType == true ).Select( gt => gt.GroupType ).Distinct().ToList();
                         var groups = connection.ConnectionOpportunityGroups.Select( cog => cog.Group ).Distinct().ToList();
                         foreach ( GroupType groupType in groupTypes )
@@ -227,10 +276,12 @@ namespace org.secc.Connection
                                 }
                             }
                         }
+                    
                         foreach ( Group group in groups )
                         {
-                            group.LoadAttributes();
-                            foreach ( var attribute in group.Attributes )
+                            var gmAttributes = attributeService.Queryable().Where( a => a.EntityTypeId == groupMemberEntityId && a.EntityTypeQualifierColumn == "GroupId" && a.EntityTypeQualifierValue == group.Id.ToString() );
+                            
+                            foreach ( var attribute in gmAttributes )
                             {
                                 if ( attributes.ContainsKey( attribute.Key ) )
                                 {
@@ -238,7 +289,7 @@ namespace org.secc.Connection
                                 }
                                 else
                                 {
-                                    attributes.Add( attribute.Key, attribute.Value + " (" + group.Name + " Group)" );
+                                    attributes.Add( attribute.Key, attribute.Name + " (" + group.Name + " Group)" );
                                 }
                             }
                         }
@@ -317,23 +368,25 @@ namespace org.secc.Connection
                             break;
                     }
                 }
-
-                foreach ( var column in dt.Columns.Cast<DataColumn>().Select( c => c.ColumnName ).Reverse())
+                if ( Settings.Partitions.Count > 0 && dt.Rows.Count > 0 )
                 {
-                    var dv = dt.AsDataView();
-                    dv.Sort = column;
-                    dt = dv.ToTable();
-                    
+                    var dv = dt.AsEnumerable();
+                    var dvOrdered = dv.OrderBy( r => r.Field<String>( dt.Columns.Cast<DataColumn>().Select( c => c.ColumnName ).Skip( 1 ).FirstOrDefault() ) );
+                    foreach ( var column in dt.Columns.Cast<DataColumn>().Select( c => c.ColumnName ).Skip( 2 ) )
+                    {
+                        dvOrdered = dvOrdered.ThenBy( r => r.Field<String>( column ) );
+                        break;
+                    }
+                    dt = dvOrdered.CopyToDataTable();
+
+                    gCounts.DataSource = dt;
+                    gCounts.DataBind();
                 }
-                
-                gCounts.DataSource = dt;
-                gCounts.DataBind();
 
                 if ( Settings.EntityTypeGuid == Rock.SystemGuid.EntityType.CONNECTION_OPPORTUNITY.AsGuid() )
                 {
                     rddlType.SelectedValue = "Connection";
                     rddlConnection.Visible = true;
-
                 }
                 else if ( Settings.EntityTypeGuid == Rock.SystemGuid.EntityType.GROUP.AsGuid() )
                 {
@@ -341,18 +394,6 @@ namespace org.secc.Connection
                     gpGroup.Visible = true;
                 }
 
-                var connectionOpportunityService = new ConnectionOpportunityService( context );
-                var connections = connectionOpportunityService.Queryable().Where( co => co.IsActive == true ).OrderBy( co => co.ConnectionType.Name ).ThenBy( co => co.Name ).ToList()
-                                                                        .Select( co => new ListItem( co.ConnectionType.Name + ": " + co.Name, co.Guid.ToString() ) ).ToList();
-                connections.Insert( 0, new ListItem( "Select One . . ." ) );
-                rddlConnection.DataSource = connections;
-                rddlConnection.DataTextField = "Text";
-                rddlConnection.DataValueField = "Value";
-                rddlConnection.DataBind();
-                if ( Settings.EntityGuid != Guid.Empty )
-                {
-                    rddlConnection.SelectedValue = Settings.EntityGuid.ToString();
-                }
             }
         }
 
@@ -377,6 +418,7 @@ namespace org.secc.Connection
                 target.Rows.Add( newRow );
             }
         }
+
         
         [Serializable]
         public class PartitionSettings
@@ -500,7 +542,7 @@ namespace org.secc.Connection
                         campuses.DataTextField = "Name";
                         campuses.DataValueField = "Guid";
                         campuses.DataBind();
-                        if ( partition.PartitionValue.IsNotNullOrWhitespace() )
+                        if ( !string.IsNullOrWhiteSpace(partition.PartitionValue) )
                         {
                             campuses.SetValues(partition.PartitionValue.Split( ',' ).Select( pv => pv ).ToList());
                         }
@@ -516,7 +558,7 @@ namespace org.secc.Connection
                     case "Schedule":
                         var schedule = new SchedulePicker() { AllowMultiSelect = true, ID = partition.Guid.ToString() };
                         schedule.SelectItem += Schedule_SelectItem;
-                        if ( partition.PartitionValue.IsNotNullOrWhitespace() )
+                        if ( !string.IsNullOrWhiteSpace(partition.PartitionValue) )
                         {
                             schedule.SetValues(partition.PartitionValue.Split(',').Select( pv => pv.AsInteger()));
                         }
@@ -533,7 +575,7 @@ namespace org.secc.Connection
                         definedTypeRddl.DataBind();
                         definedTypeRddl.AutoPostBack = true;
                         definedTypeRddl.SelectedIndexChanged += DefinedTypeRddl_SelectedIndexChanged;
-                        if (partition.PartitionValue.IsNotNullOrWhitespace())
+                        if (!string.IsNullOrWhiteSpace(partition.PartitionValue))
                         {
                             definedTypeRddl.SelectedValue = partition.PartitionValue;
                         }
@@ -550,7 +592,7 @@ namespace org.secc.Connection
                             cblRole.DataTextField = "Name";
                             cblRole.DataValueField = "Guid";
                             cblRole.DataBind();
-                            if ( partition.PartitionValue.IsNotNullOrWhitespace() )
+                            if ( !string.IsNullOrWhiteSpace(partition.PartitionValue) )
                             {
                                 cblRole.SetValues( partition.PartitionValue.Split( ',' ).ToList() );
                             }
@@ -624,6 +666,7 @@ namespace org.secc.Connection
         protected void ConnectionRddl_SelectedIndexChanged( object sender, EventArgs e )
         {
             Settings.EntityGuid = ( ( RockDropDownList ) sender ).SelectedValue.AsGuid();
+            SaveViewState();
             pnlPartitions.Visible = true;
         }
 
@@ -641,11 +684,13 @@ namespace org.secc.Connection
                 rddlConnection.Visible = true;
                 Settings.EntityTypeGuid = Rock.SystemGuid.EntityType.CONNECTION_OPPORTUNITY.AsGuid();
             }
+            SaveViewState();
         }
 
 
         protected void mdEdit_SaveClick( object sender, EventArgs e )
         {
+            UpdateCounts();
             SetAttributeValue( "Settings", Settings.ToJson() );
             SetAttributeValue( "Counts", string.Join( "|", Counts.Select( a => a.Key + "^" + a.Value ).ToList() ) );
             SetAttributeValue( "Lava", ceLava.Text );
@@ -682,14 +727,80 @@ namespace org.secc.Connection
                 textBox.Width = 60;
                 textBox.Text = "";
                 textBox.ID = "tb" + e.Row.ID;
-                if (Counts.ContainsKey(rowId))
+                if ( Counts.ContainsKey( rowId ) )
                 {
                     textBox.Text = Counts[rowId];
                 }
                 e.Row.Cells[gCounts.Columns.Count-1].Controls.Add( textBox );
             }
         }
+
+        protected List<IDictionary<string, object>> GetTree( PartitionSettings partition, GroupTypeRoleService groupTypeRoleService, ICollection<ConnectionRequest> connectionRequests = null, String concatGuid = null )
+        {
+            var partitionList = new List<IDictionary<string, object>>();
+            if ( partition.PartitionValue == null)
+            {
+                return null;
+            }
+            var values =  partition.PartitionValue.Split( ',' );
+
+            if (partition.PartitionType == "DefinedType")
+            {
+                // Use every Defined Value 
+                values = DefinedTypeCache.Read( partition.PartitionValue.AsGuid() ).DefinedValues.Select( dv => dv.Guid.ToString() ).ToArray();
+            }
+
+            foreach ( var value in values )
+            {
+                IDictionary<string, object> inner = new Dictionary<string, object>();
+                inner.Add( "Value", value );
+                var newConcatGuid = concatGuid == null ? value : concatGuid + "," + value;
+                inner.Add( "Limit", Counts.Where( kvp => kvp.Key.Contains( newConcatGuid ) ).Select( kvp => kvp.Value.AsInteger() ).Sum() );
+                ICollection<ConnectionRequest> subRequests = null;
+                switch ( partition.PartitionType )
+                {
+                    case "DefinedType":
+                        inner["Entity"] = DefinedValueCache.Read( value.AsGuid() );
+                        if ( connectionRequests != null)
+                        {
+                            subRequests = connectionRequests.Where( cr => cr.AssignedGroupMemberAttributeValues != null && cr.AssignedGroupMemberAttributeValues.Contains( value ) ).ToList();
+
+                            inner.Add( "TotalFilled", this.connectionRequests.Where( cr => cr.AssignedGroupMemberAttributeValues != null && cr.AssignedGroupMemberAttributeValues.Contains( value ) ).Count() );
+                        }
+                        break;
+                    case "Campus":
+                        var campus = CampusCache.Read( value.AsGuid() );
+                        inner["Entity"] = campus;
+                        if ( connectionRequests != null )
+                        {
+                            subRequests = connectionRequests.Where( cr => cr.CampusId == campus.Id ).ToList();
+                            inner.Add( "TotalFilled", this.connectionRequests.Where( cr => cr.CampusId == campus.Id ).Count() );
+
+                        }
+                        break;
+                    case "Role":
+                        var role = groupTypeRoleService.Get( value.AsGuid() );
+                        inner["Entity"] = role;
+                        if ( connectionRequests != null )
+                        {
+                            subRequests = connectionRequests.Where( cr => cr.AssignedGroupMemberRoleId == role.Id ).ToList();
+                            inner.Add( "TotalFilled", this.connectionRequests.Where( cr => cr.AssignedGroupMemberRoleId == role.Id ).Count() );
+                        }
+                        break;
+                }
+
+                inner.Add( "Filled", subRequests != null?subRequests.Count:0 );
+                        
+                if ( partition.NextPartition != null) {
+                    inner.Add( "Partitions", GetTree( partition.NextPartition, groupTypeRoleService, subRequests, newConcatGuid ) );
+                }
+                partitionList.Add( inner );
+            }
+            return partitionList;
+        }
+
         #endregion
 
+        
     }
 }

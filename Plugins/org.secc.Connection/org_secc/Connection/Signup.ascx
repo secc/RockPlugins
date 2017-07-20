@@ -4,6 +4,7 @@
     <ContentTemplate>
         
         <asp:Literal ID="lBody" runat="server" ></asp:Literal> 
+        <asp:Literal ID="lDebug" runat="server" ></asp:Literal> 
 
         
         <Rock:ModalDialog ID="mdEdit" runat="server" OnSaveClick="mdEdit_SaveClick" Title="Edit Signup Settings">
