@@ -9,12 +9,14 @@ using System.Data.Entity;
 using Rock;
 using Rock.Web.Cache;
 using System.Runtime.Caching;
+using System.Text;
 
 namespace org.secc.RoomScanner.Rest.Controllers
 {
     public partial class RoomScannerController : ApiController
     {
         private const string locationEntityTypeGuid = "0D6410AD-C83C-47AC-AF3D-616D09EDF63B";
+        private const int allowedGroupId = 3;
 
         [Authenticate, Secured]
         [HttpGet]
@@ -22,6 +24,36 @@ namespace org.secc.RoomScanner.Rest.Controllers
         public string TEST()
         {
             return "TEST GOOD!";
+        }
+
+        [Authenticate, Secured]
+        [HttpGet]
+        [System.Web.Http.Route( "api/org.secc/roomscanner/pin/{pinCode}" )]
+        public Response Pin( string pinCode )
+        {
+            if ( TestPin( pinCode ) != null )
+            {
+                return new Response( true, "PIN is authorized", false );
+            }
+            return new Response( false, "PIN is not authorized", false );
+        }
+
+        private Person TestPin( string pin )
+        {
+            RockContext rockContext = new RockContext();
+            UserLoginService userLoginService = new UserLoginService( rockContext );
+            GroupMemberService groupMemberService = new GroupMemberService( rockContext );
+            var user = userLoginService.GetByUserName( pin );
+            if ( user != null )
+            {
+                var personId = user.PersonId ?? 0;
+                var groupMember = groupMemberService.GetByGroupIdAndPersonId( allowedGroupId, personId );
+                if ( groupMember != null )
+                {
+                    return user.Person;
+                }
+            }
+            return null;
         }
 
         [Authenticate, Secured]
@@ -316,23 +348,26 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 return new Response( false, string.Format( "{0} has been checked out of all locations.", person.FullName ), false );
             }
 
-            if ( !req.Override )
+            var attendancesToModify = attendances.Where( a => a.LocationId == req.LocationId ).ToList();
+
+            //There was an attendance record, but not for the selected location
+            if ( !attendancesToModify.Any() && !req.Override )
             {
-                attendances = attendances.Where( a => a.LocationId == req.LocationId );
+                var currentAttendances = new StringBuilder();
+                foreach ( var attendance in attendances )
+                {
+                    currentAttendances.Append( string.Format( "\n{0} @ {1} ", attendance.Location.Name, attendance.Schedule.Name ) );
+                }
+
+                return new Response( false, string.Format( "{0} is not checked-in to {1}. \n\n{2} is currently checked in to: {3} \n\nWould you like to override?",
+                    person.FullName,
+                    location.Name,
+                    person.Gender == Gender.Female ? "She" : "He",
+                    currentAttendances.ToString()
+                    ), true );
             }
 
-            if ( !attendances.Any() ) //There was an attendance record, but not for the selected location
-            {
-                return new Response( false, string.Format( "{0} is not checked-in to {1} would you like to override?", person.FullName, location.Name ), true );
-            }
-
-            foreach ( var attendance in attendances.ToList() )
-            {
-                attendance.DidAttend = true;
-            }
-
-            var summary = string.Format( "Entered <span class=\"field-name\">{0}</span> at <span class=\"field-name\">{1}</span>", location.Name, Rock.RockDateTime.Now );
-
+            //We will need to know the host from here on
             var hostInfo = "Unknown Host";
             try
             {
@@ -345,6 +380,86 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 }
             }
             catch { }
+
+            //Need to move this person to a different location
+            if ( !attendancesToModify.Any() && req.Override )
+            {
+                var authorizedPerson = TestPin( req.PIN );
+                if ( authorizedPerson == null )
+                {
+                    return new Response( false, "PIN not authorized", false );
+                }
+
+                var volAttribute = AttributeCache.Read( new Guid( "F5DAD320-B77D-4282-98C9-35414FB0A6DC" ) );
+                AttributeValueService attributeValueService = new AttributeValueService( new RockContext() );
+                var childGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "False" ).Select( av => av.EntityId.Value ).ToList();
+
+                if ( childGroupIds.Contains( attendeeAttendance.GroupId ?? 0 ) )
+                {
+                    //This section tests for attendances that can be moved to this location.
+                    //It tests for people 
+                    GroupLocationService groupLocationService = new GroupLocationService( rockContext );
+                    var acceptableServiceIds = groupLocationService.Queryable()
+                        .Where( gl => gl.LocationId == req.LocationId && childGroupIds.Contains( gl.GroupId ) )
+                        .SelectMany( gl => gl.Schedules )
+                        .Select( s => s.Id ).ToList();
+                    attendances = attendances.Where( a => acceptableServiceIds.Contains( a.ScheduleId ?? 0 ) );
+                }
+
+                if ( !attendances.Any() )
+                {
+                    return new Response( false, "There are no attendances which can be moved to this location", false );
+                }
+
+                if ( LocationsFull( attendances.ToList(), req.LocationId, rockContext ) )
+                {
+                    return new Response( false, "Could not move location. Location is full.", false );
+                }
+
+                foreach ( var attendance in attendances )
+                {
+                    attendance.LocationId = req.LocationId;
+                    attendance.DidAttend = true;
+                }
+
+                var moveSummary = string.Format( "Moved to and Entered <span class=\"field-name\">{0}</span> at <span class=\"field-name\">{1}</span> under the authority of {2}", location.Name, Rock.RockDateTime.Now, authorizedPerson.FullName );
+
+                History moveHistory = new History()
+                {
+                    EntityTypeId = personEntityTypeId,
+                    EntityId = attendeeAttendance.PersonAlias.PersonId,
+                    RelatedEntityTypeId = locationEntityTypeId,
+                    RelatedEntityId = req.LocationId,
+                    Verb = "Moved",
+                    Summary = moveSummary,
+                    Caption = "Moved To Location",
+                    RelatedData = hostInfo,
+                    CategoryId = 4
+                };
+
+                historyService.Add( moveHistory );
+                rockContext.SaveChanges();
+                int allergyAttributeId2 = AttributeCache.Read( Rock.SystemGuid.Attribute.PERSON_ALLERGY.AsGuid() ).Id;
+                var allergyAttributeValue2 = new AttributeValueService( rockContext )
+                    .Queryable()
+                    .FirstOrDefault( av => av.AttributeId == allergyAttributeId2 && av.EntityId == person.Id );
+                if ( allergyAttributeValue2 != null && !string.IsNullOrWhiteSpace( allergyAttributeValue2.Value ) )
+                {
+                    return new Response( true, string.Format( "{0} has been checked-in to {1}. \n\n Allergy: {2}", person.FullName, location.Name, allergyAttributeValue2.Value ), false, true );
+                }
+                var message2 = string.Format( "{0} has been checked-in to {1}.", person.FullName, location.Name );
+                return new Response( true, message2, false );
+            }
+
+
+            foreach ( var attendance in attendancesToModify.ToList() )
+            {
+                attendance.DidAttend = true;
+            }
+
+            var summary = string.Format( "Entered <span class=\"field-name\">{0}</span> at <span class=\"field-name\">{1}</span>", location.Name, Rock.RockDateTime.Now );
+
+
             History history = new History()
             {
                 EntityTypeId = personEntityTypeId,
@@ -372,6 +487,38 @@ namespace org.secc.RoomScanner.Rest.Controllers
             }
             var message = string.Format( "{0} has been checked-in to {1}.", person.FullName, location.Name );
             return new Response( true, message, false );
+        }
+
+        private bool LocationsFull( List<Attendance> attendancesToMove, int locationId, RockContext rockContext )
+        {
+            LocationService locationService = new LocationService( rockContext );
+            AttendanceService attendanceService = new AttendanceService( rockContext );
+            var location = locationService.Get( locationId );
+
+            if ( location == null )
+            {
+                return true;
+            }
+
+            foreach ( var attendance in attendancesToMove )
+            {
+                var count = attendanceService.Queryable()
+                    .Where( a => a.LocationId == locationId
+                         && a.ScheduleId == attendance.ScheduleId
+                         && a.EndDateTime == null
+                         && a.StartDateTime >= Rock.RockDateTime.Today
+                        ).Count();
+                var threshold = location.FirmRoomThreshold ?? 0;
+                if ( !attendance.Group.GetAttributeValue( "IsVolunteer" ).AsBoolean() )
+                {
+                    threshold = Math.Min( location.SoftRoomThreshold ?? 0, threshold );
+                }
+                if ( count >= threshold )
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         [Authenticate, Secured]
@@ -528,6 +675,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
         public string AttendanceGuid { get; set; }
         public int LocationId { get; set; }
         public bool Override { get; set; }
+        public string PIN { get; set; }
     }
 
     public class MultiRequest
