@@ -309,7 +309,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
 
 
             var message = string.Format( "{0} has been checked-out of {1}.", person.FullName, location.Name );
-            return new Response( true, message, false );
+            return new Response( true, message, false, personId: person.Id );
         }
 
 
@@ -445,10 +445,10 @@ namespace org.secc.RoomScanner.Rest.Controllers
                     .FirstOrDefault( av => av.AttributeId == allergyAttributeId2 && av.EntityId == person.Id );
                 if ( allergyAttributeValue2 != null && !string.IsNullOrWhiteSpace( allergyAttributeValue2.Value ) )
                 {
-                    return new Response( true, string.Format( "{0} has been checked-in to {1}. \n\n Allergy: {2}", person.FullName, location.Name, allergyAttributeValue2.Value ), false, true );
+                    return new Response( true, string.Format( "{0} has been checked-in to {1}. \n\n Allergy: {2}", person.FullName, location.Name, allergyAttributeValue2.Value ), false, true, person.Id );
                 }
                 var message2 = string.Format( "{0} has been checked-in to {1}.", person.FullName, location.Name );
-                return new Response( true, message2, false );
+                return new Response( true, message2, false, personId: person.Id );
             }
 
 
@@ -483,10 +483,10 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 .FirstOrDefault( av => av.AttributeId == allergyAttributeId && av.EntityId == person.Id );
             if ( allergyAttributeValue != null && !string.IsNullOrWhiteSpace( allergyAttributeValue.Value ) )
             {
-                return new Response( true, string.Format( "{0} has been checked-in to {1}. \n\n Allergy: {2}", person.FullName, location.Name, allergyAttributeValue.Value ), false, true );
+                return new Response( true, string.Format( "{0} has been checked-in to {1}. \n\n Allergy: {2}", person.FullName, location.Name, allergyAttributeValue.Value ), false, true, person.Id );
             }
             var message = string.Format( "{0} has been checked-in to {1}.", person.FullName, location.Name );
-            return new Response( true, message, false );
+            return new Response( true, message, false, personId: person.Id );
         }
 
         private bool LocationsFull( List<Attendance> attendancesToMove, int locationId, RockContext rockContext )
@@ -523,8 +523,8 @@ namespace org.secc.RoomScanner.Rest.Controllers
 
         [Authenticate, Secured]
         [HttpPost]
-        [System.Web.Http.Route( "api/org.secc/roomscanner/movetochapel" )]
-        public Response MoveToChapel( [FromBody] MultiRequest req )
+        [System.Web.Http.Route( "api/org.secc/roomscanner/movetoworship" )]
+        public Response MoveToWorship( [FromBody] MultiRequest req )
         {
             var personIds = req.PersonIds
                 .Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries )
@@ -550,7 +550,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
 
             foreach ( var person in people )
             {
-                var summary = string.Format( "Moved to Chapel at <span class=\"field-name\">{0}</span>", Rock.RockDateTime.Now );
+                var summary = string.Format( "Moved to Worship at <span class=\"field-name\">{0}</span>", Rock.RockDateTime.Now );
 
 
                 History history = new History()
@@ -559,7 +559,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                     EntityId = person.Id,
                     Verb = "Moved",
                     Summary = summary,
-                    Caption = "Moved To Chapel",
+                    Caption = "Moved To Worship",
                     RelatedData = hostInfo,
                     CategoryId = 4
                 };
@@ -572,8 +572,8 @@ namespace org.secc.RoomScanner.Rest.Controllers
 
         [Authenticate, Secured]
         [HttpPost]
-        [System.Web.Http.Route( "api/org.secc/roomscanner/returnfromchapel" )]
-        public Response ReturnFromChapel( [FromBody] MultiRequest req )
+        [System.Web.Http.Route( "api/org.secc/roomscanner/returnfromworship" )]
+        public Response ReturnFromWorship( [FromBody] MultiRequest req )
         {
             var personIds = req.PersonIds
                 .Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries )
@@ -599,7 +599,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
 
             foreach ( var person in people )
             {
-                var summary = string.Format( "Returned from Chapel at <span class=\"field-name\">{0}</span>", Rock.RockDateTime.Now );
+                var summary = string.Format( "Returned from Worship at <span class=\"field-name\">{0}</span>", Rock.RockDateTime.Now );
 
 
                 History history = new History()
@@ -608,7 +608,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                     EntityId = person.Id,
                     Verb = "Returned",
                     Summary = summary,
-                    Caption = "Returned from Chapel",
+                    Caption = "Returned from Worship",
                     RelatedData = hostInfo,
                     CategoryId = 4
                 };
@@ -660,13 +660,15 @@ namespace org.secc.RoomScanner.Rest.Controllers
         public string Message { get; set; }
         public bool Overridable { get; set; }
         public bool RequireConfirmation { get; set; }
+        public int PersonId { get; set; }
 
-        public Response( bool success, string message, bool overridable, bool requireConfirmation = false )
+        public Response( bool success, string message, bool overridable, bool requireConfirmation = false, int personId = 0 )
         {
             this.Success = success;
             this.Message = message;
             this.Overridable = overridable;
             this.RequireConfirmation = requireConfirmation;
+            this.PersonId = personId;
         }
     }
 
