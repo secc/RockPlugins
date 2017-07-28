@@ -424,8 +424,18 @@ namespace org.secc.RoomScanner.Rest.Controllers
 
                 foreach ( var attendance in attendances )
                 {
-                    attendance.LocationId = req.LocationId;
-                    attendance.DidAttend = true;
+                    Attendance newAttendance = ( Attendance ) attendance.Clone();
+                    newAttendance.Id = 0;
+                    newAttendance.Guid = new Guid();
+                    newAttendance.StartDateTime = Rock.RockDateTime.Now;
+                    newAttendance.EndDateTime = null;
+                    newAttendance.DidAttend = true;
+                    newAttendance.Device = null;
+                    newAttendance.SearchTypeValue = null;
+                    newAttendance.LocationId = req.LocationId;
+                    attendanceService.Add( newAttendance );
+                    attendance.DidAttend = false;
+                    attendance.EndDateTime = Rock.RockDateTime.Now;
                 }
 
                 var moveSummary = string.Format( "Moved to and Entered <span class=\"field-name\">{0}</span> at <span class=\"field-name\">{1}</span> under the authority of {2}", location.Name, Rock.RockDateTime.Now, authorizedPerson.FullName );
