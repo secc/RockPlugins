@@ -10,6 +10,8 @@ using Rock;
 using Rock.Web.Cache;
 using System.Runtime.Caching;
 using System.Text;
+using org.secc.RoomScanner.Utilities;
+using org.secc.RoomScanner.Models;
 
 namespace org.secc.RoomScanner.Rest.Controllers
 {
@@ -192,6 +194,10 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 } )
                 .OrderBy( ae => ae.Id )
                 .ToList();
+            foreach ( var entry in roster )
+            {
+                entry.InWorship = InMemoryWorshipRecord.IsInWorship( entry.PersonId );
+            }
             return roster;
         }
 
@@ -445,7 +451,11 @@ namespace org.secc.RoomScanner.Rest.Controllers
                     .FirstOrDefault( av => av.AttributeId == allergyAttributeId2 && av.EntityId == person.Id );
                 if ( allergyAttributeValue2 != null && !string.IsNullOrWhiteSpace( allergyAttributeValue2.Value ) )
                 {
-                    return new Response( true, string.Format( "{0} has been checked-in to {1}. \n\n Allergy: {2}", person.FullName, location.Name, allergyAttributeValue2.Value ), false, true, person.Id );
+                    return new Response( true,
+                        string.Format( "{0} has been checked-in to {1}. \n\n Allergy: {2}", person.FullName, location.Name, allergyAttributeValue2.Value ),
+                        false,
+                        true,
+                        person.Id );
                 }
                 var message2 = string.Format( "{0} has been checked-in to {1}.", person.FullName, location.Name );
                 return new Response( true, message2, false, personId: person.Id );
@@ -483,7 +493,11 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 .FirstOrDefault( av => av.AttributeId == allergyAttributeId && av.EntityId == person.Id );
             if ( allergyAttributeValue != null && !string.IsNullOrWhiteSpace( allergyAttributeValue.Value ) )
             {
-                return new Response( true, string.Format( "{0} has been checked-in to {1}. \n\n Allergy: {2}", person.FullName, location.Name, allergyAttributeValue.Value ), false, true, person.Id );
+                return new Response( true,
+                    string.Format( "{0} has been checked-in to {1}. \n\n Allergy: {2}", person.FullName, location.Name, allergyAttributeValue.Value ),
+                    false,
+                    true,
+                    person.Id );
             }
             var message = string.Format( "{0} has been checked-in to {1}.", person.FullName, location.Name );
             return new Response( true, message, false, personId: person.Id );
@@ -550,8 +564,8 @@ namespace org.secc.RoomScanner.Rest.Controllers
 
             foreach ( var person in people )
             {
+                InMemoryWorshipRecord.AddToWorship( person.Id );
                 var summary = string.Format( "Moved to Worship at <span class=\"field-name\">{0}</span>", Rock.RockDateTime.Now );
-
 
                 History history = new History()
                 {
@@ -599,8 +613,8 @@ namespace org.secc.RoomScanner.Rest.Controllers
 
             foreach ( var person in people )
             {
+                InMemoryWorshipRecord.RemoveFromWorship( person.Id );
                 var summary = string.Format( "Returned from Worship at <span class=\"field-name\">{0}</span>", Rock.RockDateTime.Now );
-
 
                 History history = new History()
                 {
@@ -618,71 +632,4 @@ namespace org.secc.RoomScanner.Rest.Controllers
             return new Response( true, "Success", false );
         }
     }
-
-    public class AttendanceCodes
-    {
-        public String NickName { get; set; }
-        public String LastName { get; set; }
-        public List<string> Codes { get; set; }
-    }
-
-    public class AttendanceEntry
-    {
-        public int Id { get; set; }
-        public int PersonId { get; set; }
-        public string NickName { get; set; }
-        public string LastName { get; set; }
-        public DateTime StartDateTime { get; set; }
-        public DateTime? EndDateTime { get; set; }
-        public bool DidAttend { get; set; }
-        public string AttendanceGuid { get; set; }
-    }
-
-    public class Template
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-    }
-
-    public class Attendee
-    {
-        public Guid AttendanceGuid { get; set; }
-        public int PersonId { get; set; }
-        public string PersonName { get; set; }
-        public bool DidAttend { get; set; }
-        public bool CheckedOut { get; set; }
-    }
-
-    public class Response
-    {
-        public bool Success { get; set; }
-        public string Message { get; set; }
-        public bool Overridable { get; set; }
-        public bool RequireConfirmation { get; set; }
-        public int PersonId { get; set; }
-
-        public Response( bool success, string message, bool overridable, bool requireConfirmation = false, int personId = 0 )
-        {
-            this.Success = success;
-            this.Message = message;
-            this.Overridable = overridable;
-            this.RequireConfirmation = requireConfirmation;
-            this.PersonId = personId;
-        }
-    }
-
-    public class Request
-    {
-        public string AttendanceGuid { get; set; }
-        public int LocationId { get; set; }
-        public bool Override { get; set; }
-        public string PIN { get; set; }
-    }
-
-    public class MultiRequest
-    {
-        public string PersonIds { get; set; }
-    }
-
 }
