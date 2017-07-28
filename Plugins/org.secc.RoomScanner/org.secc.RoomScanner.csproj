@@ -98,8 +98,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Models\AttendanceCodes.cs" />
+    <Compile Include="Models\AttendanceEntry.cs" />
+    <Compile Include="Models\Attendee.cs" />
+    <Compile Include="Models\MultiRequest.cs" />
+    <Compile Include="Models\Request.cs" />
+    <Compile Include="Models\Response.cs" />
+    <Compile Include="Models\Template.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rest\Controllers\RoomScannerController.Partial.cs" />
+    <Compile Include="Utilities\InMemoryWorshipRecord.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
