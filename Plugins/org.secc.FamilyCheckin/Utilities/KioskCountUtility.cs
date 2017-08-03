@@ -129,21 +129,17 @@ namespace org.secc.FamilyCheckin.Utilities
         public LocationScheduleCount GetLocationScheduleCount( int LocationId, int ScheduleId )
         {
             var locationScheduleCount = new LocationScheduleCount();
-            var kgas = KioskLocationAttendance.Read( LocationId ).Groups.Where( g => g.Schedules.Where( s => s.ScheduleId == ScheduleId ).Any() ).ToList();
+            var lglsc = CheckInCountCache.GetByLocation( LocationId ).Where( glsc => glsc.ScheduleId == ScheduleId ).ToList();
 
-            locationScheduleCount.ChildCount = kgas.Where( kga => ChildGroupIds.Contains( kga.GroupId ) )
-                .SelectMany( kga => kga.Schedules.Where( s => s.ScheduleId == ScheduleId ) )
-                .Select( kgs => kgs.CurrentCount ).Sum();
+            locationScheduleCount.ChildCount = lglsc.Where( glsc => ChildGroupIds.Contains( glsc.GroupId ) )
+                .Select( glsc => glsc.PersonIds.Count ).Sum();
 
-            locationScheduleCount.VolunteerCount = kgas.Where( kga => VolunteerGroupIds.Contains( kga.GroupId ) )
-                .SelectMany( kga => kga.Schedules.Where( s => s.ScheduleId == ScheduleId ) )
-                .Select( kgs => kgs.CurrentCount ).Sum();
+            locationScheduleCount.VolunteerCount = lglsc.Where( glsc => VolunteerGroupIds.Contains( glsc.GroupId ) )
+                .Select( glsc => glsc.PersonIds.Count ).Sum();
 
             locationScheduleCount.ReservedCount = 0;
 
-            locationScheduleCount.TotalCount = kgas
-                .SelectMany( kga => kga.Schedules.Where( s => s.ScheduleId == ScheduleId ) )
-                .Select( kgs => kgs.CurrentCount ).Sum();
+            locationScheduleCount.TotalCount = lglsc.Select( glsc => glsc.PersonIds.Count ).Sum();
 
             return locationScheduleCount;
         }

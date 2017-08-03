@@ -387,8 +387,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             btnMessage.Text = "There are no classes available for " + person.Person.NickName + "<br> to check-in, or all rooms are currently full.";
             foreach ( var locationId in person.GroupTypes.SelectMany( gt => gt.Groups ).SelectMany( g => g.Locations ).Select( l => l.Location.Id ).ToList() )
             {
-                var kla = KioskLocationAttendance.Read( locationId );
-                if ( kla.Groups.SelectMany( g => g.Schedules ).SelectMany( s => s.DistinctPersonIds ).Contains( person.Person.Id ) )
+                var kla = CheckInCountCache.GetByLocation( locationId );
+                if ( kla.SelectMany(k => k.PersonIds ).Contains( person.Person.Id ) )
                 {
                     btnMessage.Text = person.Person.NickName + " has already been checked-in.";
                     btnPerson.Text = "<i class='fa fa-check-square-o fa-5x'></i><br/><span>" + person.Person.NickName + "</span>";

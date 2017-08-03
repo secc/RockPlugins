@@ -329,22 +329,13 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
         }
 
-        protected void CheckinReserved_Click( object sender, RowEventArgs e )
-        {
-            var attendanceItemId = ( int ) e.RowKeyValue;
-            var attendanceItem = new AttendanceService( _rockContext ).Get( attendanceItemId );
-            attendanceItem.DidAttend = true;
-            attendanceItem.StartDateTime = Rock.RockDateTime.Now;
-            _rockContext.SaveChanges();
-            BuildPersonCheckinDetails();
-        }
-
         protected void CancelReserved_Click( object sender, RowEventArgs e )
         {
             var attendanceItemId = ( int ) e.RowKeyValue;
             var attendanceService = new AttendanceService( _rockContext );
             var attendanceItem = attendanceService.Get( attendanceItemId );
-            attendanceService.Delete( attendanceItem );
+            attendanceItem.EndDateTime = Rock.RockDateTime.Now;
+            CheckInCountCache.RemoveAttendance( attendanceItem );
             _rockContext.SaveChanges();
             BuildPersonCheckinDetails();
         }
@@ -354,9 +345,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             var attendanceItemId = ( int ) e.RowKeyValue;
             var attendanceItem = new AttendanceService( _rockContext ).Get( attendanceItemId );
             attendanceItem.EndDateTime = Rock.RockDateTime.Now;
-            attendanceItem.DidAttend = false;
+            CheckInCountCache.RemoveAttendance( attendanceItem );
             _rockContext.SaveChanges();
-            KioskLocationAttendance.Flush( attendanceItem.LocationId ?? 0 );
             BuildPersonCheckinDetails();
         }
 

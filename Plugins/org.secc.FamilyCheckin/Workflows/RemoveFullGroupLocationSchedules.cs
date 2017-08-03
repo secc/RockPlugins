@@ -88,8 +88,7 @@ namespace org.secc.FamilyCheckin
                                         }
 
                                         var attendanceQry = attendanceService.Where( a =>
-                                             a.DidAttend == true
-                                             && a.EndDateTime == null
+                                             a.EndDateTime == null
                                              && a.ScheduleId == schedule.Schedule.Id
                                              && a.StartDateTime >= Rock.RockDateTime.Today );
 

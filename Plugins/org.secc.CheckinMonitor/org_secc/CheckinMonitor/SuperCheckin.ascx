@@ -169,7 +169,6 @@
                                     <Rock:RockBoundField DataField="Group.Name"></Rock:RockBoundField>
                                     <Rock:RockBoundField DataField="Location.Name"></Rock:RockBoundField>
                                     <Rock:RockBoundField DataField="Schedule.Name"></Rock:RockBoundField>
-                                    <Rock:LinkButtonField OnClick="CheckinReserved_Click" Text="Checkin" CssClass="btn btn-sm btn-success"></Rock:LinkButtonField>
                                     <Rock:LinkButtonField OnClick="CancelReserved_Click" Text="Cancel" CssClass="btn btn-sm btn-danger"></Rock:LinkButtonField>
                                 </Columns>
                             </Rock:Grid>
@@ -181,6 +180,7 @@
                                     <Rock:RockBoundField DataField="Group.Name" HeaderText="Class"></Rock:RockBoundField>
                                     <Rock:RockBoundField DataField="Location.Name" HeaderText="Location"></Rock:RockBoundField>
                                     <Rock:RockBoundField DataField="Schedule.Name" HeaderText="Schedule"></Rock:RockBoundField>
+                                    <Rock:RockBoundField DataField="CreatedDateTime" HeaderText="Time Checked-In"></Rock:RockBoundField>
                                     <Rock:RockBoundField DataField="StartDateTime" HeaderText="Time Arrived"></Rock:RockBoundField>
                                     <Rock:LinkButtonField OnClick="Checkout_Click" Text="Checkout" CssClass="btn btn-sm btn-danger"></Rock:LinkButtonField>
                                 </Columns>
