@@ -12,6 +12,7 @@ using System.Runtime.Caching;
 using System.Text;
 using org.secc.RoomScanner.Utilities;
 using org.secc.RoomScanner.Models;
+using org.secc.FamilyCheckin.Utilities;
 
 namespace org.secc.RoomScanner.Rest.Controllers
 {
@@ -280,6 +281,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
             foreach ( var attendance in attendances )
             {
                 attendance.EndDateTime = Rock.RockDateTime.Now;
+                CheckInCountCache.RemoveAttendance( attendance );
             }
 
             var summary = string.Format( "Exited <span class=\"field-name\">{0}</span> at <span class=\"field-name\">{1}</span>", location.Name, Rock.RockDateTime.Now );
@@ -471,10 +473,10 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 return new Response( true, message2, false, personId: person.Id );
             }
 
-
             foreach ( var attendance in attendancesToModify.ToList() )
             {
                 attendance.DidAttend = true;
+                attendance.StartDateTime = Rock.RockDateTime.Now;
             }
 
             var summary = string.Format( "Entered <span class=\"field-name\">{0}</span> at <span class=\"field-name\">{1}</span>", location.Name, Rock.RockDateTime.Now );

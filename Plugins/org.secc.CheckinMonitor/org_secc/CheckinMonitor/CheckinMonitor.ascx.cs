@@ -175,7 +175,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 {
                     var occurance = groupLocationSchedules
                         .Where( gls => gls.GroupLocation.GroupId == group.Id )
-                        .OrderBy( gls => gls.GroupLocation.Location.Name )
+                        .OrderBy( gls => gls.GroupLocation.Order )
+                        .ThenBy( gls => gls.GroupLocation.Location.Name )
                         .ThenBy( gls => gls.Schedule.StartTimeOfDay )
                         .ToList();
 
@@ -320,19 +321,22 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         TableCell tcLocation = new TableCell();
                         tr.Controls.Add( tcLocation );
 
-                        BootstrapButton btnOccurrence = new BootstrapButton();
+                        LinkButton btnOccurrence = new LinkButton();
                         btnOccurrence.ID = "btn" + gls.GroupLocation.Id.ToString() + gls.Schedule.Id;
                         btnOccurrence.Text = "<i class='fa fa-users'></i>";
                         btnOccurrence.CssClass = "btn btn-sm btn-default";
                         btnOccurrence.Click += ( s, e ) => { OccurrenceModal( gls.GroupLocation, gls.Schedule ); };
+                        btnOccurrence.Attributes.Add( "data-loading-text", "<i class='fa fa-refresh fa-spin working'></i>" );
+                        btnOccurrence.OnClientClick = "Rock.controls.bootstrapButton.showLoading(this);stopTimer();";
                         tcLocation.Controls.Add( btnOccurrence );
 
-                        BootstrapButton btnLocation = new BootstrapButton();
+                        LinkButton btnLocation = new LinkButton();
                         btnLocation.ID = "btnLocation" + gls.GroupLocation.Id.ToString() + gls.Schedule.Id;
                         btnLocation.Text = "<i class='fa fa-map-marker'></i>";
                         btnLocation.CssClass = "btn btn-sm btn-default";
                         btnLocation.Click += ( s, e ) => { ShowLocationModal( gls.GroupLocation.Location ); };
-
+                        btnLocation.Attributes.Add( "data-loading-text", "<i class='fa fa-refresh fa-spin working'></i>" );
+                        btnLocation.OnClientClick = "Rock.controls.bootstrapButton.showLoading(this);stopTimer();";
                         tcLocation.Controls.Add( btnLocation );
                     }
                 }
@@ -557,12 +561,16 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                             trRecord.Controls.Add( tcButtons );
                             tcButtons.Style.Add( "width", "15%" );
 
-                            BootstrapButton btnCheckin = new BootstrapButton();
-                            btnCheckin.ID = "checkin" + record.Id.ToString();
-                            btnCheckin.CssClass = "btn btn-success btn-xs";
-                            btnCheckin.Text = "Check-In";
-                            btnCheckin.Click += ( s, e ) => { Checkin( record.Id ); };
-                            tcButtons.Controls.Add( btnCheckin );
+                            BootstrapButton btnTableMove = new BootstrapButton();
+                            btnTableMove.ID = "move" + record.Id.ToString();
+                            btnTableMove.CssClass = "btn btn-warning btn-xs";
+                            btnTableMove.Text = "Move";
+                            btnTableMove.Click += ( s, e ) =>
+                            {
+                                mdOccurrence.Hide();
+                                MoveModal( record.Id );
+                            };
+                            tcButtons.Controls.Add( btnTableMove );
 
                             BootstrapButton btnCancel = new BootstrapButton();
                             btnCancel.ID = "cancel" + record.Id.ToString();
@@ -586,24 +594,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 var record = attendanceService.Get( id );
                 if ( record != null )
                 {
-                    var locationId = record.LocationId ?? 0;
-                    attendanceService.Delete( record );
-                    _rockContext.SaveChanges();
-                    RebuildModal();
-                }
-            }
-        }
-
-        private void Checkin( int id )
-        {
-            using ( RockContext _rockContext = new RockContext() )
-            {
-                AttendanceService attendanceService = new AttendanceService( _rockContext );
-                var record = attendanceService.Get( id );
-                if ( record != null )
-                {
-                    record.StartDateTime = Rock.RockDateTime.Now;
-                    record.DidAttend = true;
+                    record.EndDateTime = Rock.RockDateTime.Now;
+                    CheckInCountCache.RemoveAttendance( record );
                     _rockContext.SaveChanges();
                     RebuildModal();
                 }
@@ -612,21 +604,15 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         private void Checkout( int id )
         {
-            Checkout( id, false );
-        }
-
-        private void Checkout( int id, bool didAttend )
-        {
             using ( RockContext _rockContext = new RockContext() )
             {
                 AttendanceService attendanceService = new AttendanceService( _rockContext );
                 var record = attendanceService.Get( id );
                 if ( record != null )
                 {
-                    record.DidAttend = didAttend;
                     record.EndDateTime = Rock.RockDateTime.Now;
                     _rockContext.SaveChanges();
-                    KioskLocationAttendance.Flush( record.LocationId ?? 0 );
+                    CheckInCountCache.RemoveAttendance( record );
                     RebuildModal();
                 }
             }
@@ -708,7 +694,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     }
                     _rockContext.SaveChanges();
                     Rock.CheckIn.KioskDevice.FlushAll();
-                    KioskLocationAttendance.Flush( groupLocation.LocationId );
+                    CheckInCountCache.Flush();
                 }
                 BindTable();
             }
@@ -795,7 +781,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                             groupLocation.Schedules.Remove( schedule );
                             _rockContext.SaveChanges();
                             Rock.CheckIn.KioskDevice.FlushAll();
-                            KioskLocationAttendance.Flush( groupLocation.Id );
+                            CheckInCountCache.Flush();
                             if ( bindTable )
                             {
                                 BindTable();
@@ -845,7 +831,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     var currentRecords = attendanceService.Queryable()
                          .Where( a =>
                          a.StartDateTime >= Rock.RockDateTime.Today
-                        && a.DidAttend == true
                         && a.PersonAliasId == attendanceRecord.PersonAliasId
                         && a.ScheduleId == attendanceRecord.ScheduleId
                         && a.EndDateTime == null ).ToList();
@@ -859,10 +844,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     Attendance newRecord = ( Attendance ) attendanceRecord.Clone();
                     newRecord.Id = 0;
                     newRecord.Guid = new Guid();
-                    newRecord.AttendanceCode = null;
                     newRecord.StartDateTime = Rock.RockDateTime.Now;
                     newRecord.EndDateTime = null;
-                    newRecord.DidAttend = true;
                     newRecord.Device = null;
                     newRecord.SearchTypeValue = null;
                     if ( newGroupId != 0 )
@@ -876,9 +859,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     attendanceService.Add( newRecord );
                     attendanceRecord.DidAttend = false;
                     _rockContext.SaveChanges();
-                    KioskLocationAttendance.AddAttendance( newRecord );
-                    KioskLocationAttendance.Flush( attendanceRecord.LocationId ?? 0 );
-                    KioskLocationAttendance.Flush( newLocationId );
+                    CheckInCountCache.AddAttendance( newRecord );
+                    CheckInCountCache.Flush();
                 }
             }
             BindTable();
@@ -907,10 +889,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         {
             ViewState["LocationRatios"] = null;
             KioskDevice.FlushAll();
-            foreach ( var locationId in kioskCountUtility.GroupLocationSchedules.Select( gls => gls.GroupLocation.LocationId ).Distinct() )
-            {
-                KioskLocationAttendance.Flush( locationId );
-            }
+            CheckInCountCache.Flush();
             BindTable();
         }
 
@@ -934,7 +913,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 mdLocation.Hide();
                 ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
                 Rock.CheckIn.KioskDevice.FlushAll();
-                KioskLocationAttendance.Flush( location.Id );
+                CheckInCountCache.Flush();
             }
             ViewState["LocationRatios"] = null;
             BindTable();

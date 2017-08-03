@@ -114,6 +114,8 @@
     <Compile Include="Rest\Controllers\FamilyCheckinController.Partial.cs" />
     <Compile Include="Rest\Handlers\SessionControllerHandler.cs" />
     <Compile Include="Rest\Handlers\SessionRouteHandler.cs" />
+    <Compile Include="Utilities\CheckInCountCache.cs" />
+    <Compile Include="Utilities\GroupLocationScheduleCount.cs" />
     <Compile Include="Utilities\KioskCountUtility.cs" />
     <Compile Include="Utilities\LabelPrinter.cs" />
     <Compile Include="Workflows\CreateEventLabels.cs" />
