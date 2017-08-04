@@ -20,6 +20,40 @@ namespace org.secc.RoomScanner.Rest.Controllers
     {
         private const string locationEntityTypeGuid = "0D6410AD-C83C-47AC-AF3D-616D09EDF63B";
         private const int allowedGroupId = 3;
+        private int personEntityTypeId = EntityTypeCache.Read( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
+        private int locationEntityTypeId = EntityTypeCache.Read( locationEntityTypeGuid.AsGuid() ).Id;
+
+        private List<int> VolunteerGroupIds
+        {
+            get
+            {
+                ObjectCache cache = RockMemoryCache.Default;
+                var ids = ( List<int> ) cache.Get( "org_secc_familycheckin_volunteer_ids" );
+                if ( ids != null )
+                {
+                    return ids;
+                }
+
+                AttributeValueService attributeValueService = new AttributeValueService( new RockContext() );
+                var volAttributeId = AttributeCache.Read( Constants.VOLUNTEER_ATTRIBUTE_GUID.AsGuid() )?.Id;
+                ids = attributeValueService.Queryable().Where( av => av.AttributeId == volAttributeId ).Select( av => av.EntityId ?? 0 ).ToList();
+                cache.Set( "org_secc_familycheckin_volunteer_ids", ids, new CacheItemPolicy() { AbsoluteExpiration = Rock.RockDateTime.Now.AddHours( 12 ) } );
+                return ids;
+            }
+        }
+
+        private int NumberOfVolunteersCheckedIn( int locationId )
+        {
+            var lglsc = CheckInCountCache.GetByLocation( locationId );
+            return lglsc.Where( glsc => VolunteerGroupIds.Contains( glsc.GroupId ) ).Count();
+        }
+
+        private bool AreChildrenCheckedIn( int locationId )
+        {
+            var lglsc = CheckInCountCache.GetByLocation( locationId );
+            return lglsc.Where( glsc => !VolunteerGroupIds.Contains( glsc.GroupId ) ).Any();
+        }
+
 
         [Authenticate, Secured]
         [HttpGet]
@@ -191,7 +225,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                     StartDateTime = a.StartDateTime,
                     EndDateTime = a.EndDateTime,
                     AttendanceGuid = a.Guid.ToString(),
-                    DidAttend = a.DidAttend ?? false
+                    DidAttend = a.DidAttend ?? false,
                 } )
                 .OrderBy( ae => ae.Id )
                 .ToList();
@@ -243,14 +277,27 @@ namespace org.secc.RoomScanner.Rest.Controllers
         [System.Web.Http.Route( "api/org.secc/roomscanner/exit" )]
         public Response Exit( [FromBody] Request req )
         {
-            var attendanceGuidGuid = req.AttendanceGuid.AsGuid();
             RockContext rockContext = new RockContext();
             AttendanceService attendanceService = new AttendanceService( rockContext );
             HistoryService historyService = new HistoryService( rockContext );
-            Attendance attendeeAttendance = attendanceService.Get( attendanceGuidGuid );
-            int personEntityTypeId = EntityTypeCache.Read( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
-            int locationEntityTypeId = EntityTypeCache.Read( locationEntityTypeGuid.AsGuid() ).Id;
 
+            Attendance attendeeAttendance = null;
+            var attendanceGuidGuid = req.AttendanceGuid.AsGuidOrNull();
+            if ( attendanceGuidGuid != null )
+            {
+                attendeeAttendance = attendanceService.Get( attendanceGuidGuid ?? new Guid() );
+            }
+            else
+            {
+                UserLoginService userLoginService = new UserLoginService( rockContext );
+                var user = userLoginService.GetByUserName( req.AttendanceGuid );
+                if ( user != null )
+                {
+                    attendeeAttendance = attendanceService.Queryable().Where( a => a.PersonAlias.PersonId == user.PersonId
+                                                        && Rock.RockDateTime.Today == attendeeAttendance.StartDateTime.Date )
+                        .FirstOrDefault();
+                }
+            }
             if ( attendeeAttendance == null )
             {
                 return new Response( false, "Attendance record not found.", false );
@@ -267,6 +314,15 @@ namespace org.secc.RoomScanner.Rest.Controllers
             var tomorrow = today.AddDays( 1 );
             var attendances = attendanceService.Queryable()
                 .Where( a => a.PersonAliasId == attendeeAttendance.PersonAliasId && a.StartDateTime >= today && a.StartDateTime < tomorrow );
+
+            //If person is a volunteer, children are checked in, and would result in less than 2 volunteers
+            //Then don't allow for check-out
+            if ( attendances.Where( a => VolunteerGroupIds.Contains( a.GroupId ?? 0 ) ).Any()
+                && AreChildrenCheckedIn( req.LocationId )
+                && NumberOfVolunteersCheckedIn( req.LocationId ) <= 2 )
+            {
+                return new Response( false, "Cannot checkout volunteer with children still in class. Two volunteers are required at all times.", false );
+            }
 
             if ( !req.Override )
             {
@@ -326,13 +382,26 @@ namespace org.secc.RoomScanner.Rest.Controllers
         [System.Web.Http.Route( "api/org.secc/roomscanner/entry" )]
         public Response Entry( [FromBody] Request req )
         {
-            var attendanceGuidGuid = req.AttendanceGuid.AsGuid();
             RockContext rockContext = new RockContext();
             AttendanceService attendanceService = new AttendanceService( rockContext );
             HistoryService historyService = new HistoryService( rockContext );
-            Attendance attendeeAttendance = attendanceService.Get( attendanceGuidGuid );
-            int personEntityTypeId = EntityTypeCache.Read( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
-            int locationEntityTypeId = EntityTypeCache.Read( locationEntityTypeGuid.AsGuid() ).Id;
+            Attendance attendeeAttendance = null;
+            var attendanceGuidGuid = req.AttendanceGuid.AsGuidOrNull();
+            if ( attendanceGuidGuid != null )
+            {
+                attendeeAttendance = attendanceService.Get( attendanceGuidGuid ?? new Guid() );
+            }
+            else
+            {
+                UserLoginService userLoginService = new UserLoginService( rockContext );
+                var user = userLoginService.GetByUserName( req.AttendanceGuid );
+                if ( user != null )
+                {
+                    attendeeAttendance = attendanceService.Queryable().Where( a => a.PersonAlias.PersonId == user.PersonId
+                                                        && Rock.RockDateTime.Today == attendeeAttendance.StartDateTime.Date )
+                        .FirstOrDefault();
+                }
+            }
 
             if ( attendeeAttendance == null )
             {
@@ -354,6 +423,16 @@ namespace org.secc.RoomScanner.Rest.Controllers
             if ( !attendances.Any() )
             {
                 return new Response( false, string.Format( "{0} has been checked out of all locations.", person.FullName ), false );
+            }
+
+            //If no volunteers are checked in and not checking-in a volunteer
+            if ( NumberOfVolunteersCheckedIn( req.LocationId ) < 2
+                && !attendances.Where( a => VolunteerGroupIds.Contains( a.GroupId ?? 0 ) ).Any() )
+            {
+                return new Response(
+                    false,
+                    "Cannot check-in child before 2 volunteers are checked-in.",
+                    false );
             }
 
             var attendancesToModify = attendances.Where( a => a.LocationId == req.LocationId ).ToList();
@@ -461,13 +540,15 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 var allergyAttributeValue2 = new AttributeValueService( rockContext )
                     .Queryable()
                     .FirstOrDefault( av => av.AttributeId == allergyAttributeId2 && av.EntityId == person.Id );
-                if ( allergyAttributeValue2 != null && !string.IsNullOrWhiteSpace( allergyAttributeValue2.Value ) )
+                if ( allergyAttributeValue2 != null
+                    && !string.IsNullOrWhiteSpace( allergyAttributeValue2.Value ) )
                 {
                     return new Response( true,
                         string.Format( "{0} has been checked-in to {1}. \n\n Allergy: {2}", person.FullName, location.Name, allergyAttributeValue2.Value ),
                         false,
                         true,
-                        person.Id );
+                        person.Id
+                        );
                 }
                 var message2 = string.Format( "{0} has been checked-in to {1}.", person.FullName, location.Name );
                 return new Response( true, message2, false, personId: person.Id );

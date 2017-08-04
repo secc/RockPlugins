@@ -22,8 +22,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     [Category( "SECC > Check-in" )]
     [Description( "QuickCheckin block for helping parents check in their family quickly." )]
     [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Location Link Attribute", "Group attribute which determines if group is location linking." )]
-    [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Volunteer Group Attribute" )]
-
     public partial class QuickCheckin : CheckInBlock
     {
         private string locationLinkAttributeKey = string.Empty;
@@ -388,7 +386,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             foreach ( var locationId in person.GroupTypes.SelectMany( gt => gt.Groups ).SelectMany( g => g.Locations ).Select( l => l.Location.Id ).ToList() )
             {
                 var kla = CheckInCountCache.GetByLocation( locationId );
-                if ( kla.SelectMany(k => k.PersonIds ).Contains( person.Person.Id ) )
+                if ( kla.SelectMany( k => k.PersonIds ).Contains( person.Person.Id ) )
                 {
                     btnMessage.Text = person.Person.NickName + " has already been checked-in.";
                     btnPerson.Text = "<i class='fa fa-check-square-o fa-5x'></i><br/><span>" + person.Person.NickName + "</span>";
@@ -577,8 +575,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private void ShowRoomChangeModal( Person person, CheckInSchedule schedule )
         {
-            var volAttributeGuid = GetAttributeValue( "VolunteerGroupAttribute" ).AsGuid();
-            KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes, volAttributeGuid );
+            KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes );
 
             List<CheckInGroupType> groupTypes = GetGroupTypes( person, schedule );
 
@@ -862,8 +859,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 return;
             }
-            var volAttributeGuid = GetAttributeValue( "VolunteerGroupAttribute" ).AsGuid();
-            KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes, volAttributeGuid );
+            KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes );
 
             var checkinSchedules = GetCheckinSchedules( checkinPerson.Person );
             foreach ( var checkinSchedule in checkinSchedules )
@@ -989,12 +985,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             var rockContext = new RockContext();
 
-            var volAttributeGuid = GetAttributeValue( "VolunteerGroupAttribute" ).AsGuid();
-            var volAttribute = AttributeCache.Read( volAttributeGuid );
+            var volAttribute = AttributeCache.Read( Constants.VOLUNTEER_ATTRIBUTE_GUID.AsGuid() );
             AttributeValueService attributeValueService = new AttributeValueService( rockContext );
             List<int> volunteerGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "True" ).Select( av => av.EntityId.Value ).ToList();
 
-            KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes, volAttributeGuid );
+            KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes );
 
             //Test for overloaded rooms
             var overload = false;
