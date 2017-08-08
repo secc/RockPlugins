@@ -47,14 +47,24 @@ namespace org.secc.FamilyCheckin.Utilities
                         LocationId = attendance.LocationId ?? 0,
                         ScheduleId = attendance.ScheduleId ?? 0,
                         GroupId = attendance.GroupId ?? 0,
-                        PersonIds = new List<int>()
+                        PersonIds = new List<int>(),
+                        InRoomPersonIds = new List<int>()
+
                     };
+                    lglsc.Add( glsc );
                 }
+
 
                 if ( !glsc.PersonIds.Contains( attendance.PersonAlias?.PersonId ?? 0 ) )
                 {
                     glsc.PersonIds.Add( attendance.PersonAlias.PersonId );
                 }
+
+                if ( attendance.DidAttend == true && !glsc.InRoomPersonIds.Contains( attendance.PersonAlias?.PersonId ?? 0 ) )
+                {
+                    glsc.InRoomPersonIds.Add( attendance.PersonAlias.PersonId );
+                }
+
                 var cachePolicy = new CacheItemPolicy();
                 cachePolicy.AbsoluteExpiration = DateTimeOffset.Now.AddMinutes( 10 );
                 cache.Set( cacheKey, lglsc, cachePolicy );
@@ -71,24 +81,75 @@ namespace org.secc.FamilyCheckin.Utilities
                 {
                     lglsc = UpdateCache();
                 }
-                GroupLocationScheduleCount glsc = lglsc.FirstOrDefault( g =>
-                                                                    g.LocationId == attendance.LocationId
-                                                                    && g.ScheduleId == attendance.ScheduleId
-                                                                    && g.GroupId == attendance.GroupId );
-                if ( glsc == null )
+
+                var personId = attendance.PersonAlias.PersonId;
+
+                var items = lglsc.Where( g =>
+                                g.LocationId == attendance.LocationId
+                                && g.ScheduleId == attendance.ScheduleId
+                                && g.GroupId == attendance.GroupId )
+                    .ToList();
+
+                foreach ( var glsc in items )
                 {
-                    glsc = new GroupLocationScheduleCount()
+                    while ( glsc.PersonIds.Contains( personId ) )
                     {
-                        LocationId = attendance.LocationId ?? 0,
-                        ScheduleId = attendance.ScheduleId ?? 0,
-                        GroupId = attendance.GroupId ?? 0,
-                        PersonIds = new List<int>()
-                    };
+                        glsc.PersonIds.Remove( personId );
+                    }
+                    while ( glsc.InRoomPersonIds.Contains( personId ) )
+                    {
+                        glsc.InRoomPersonIds.Remove( personId );
+                    }
+                    var cachePolicy = new CacheItemPolicy();
+                    cachePolicy.AbsoluteExpiration = DateTimeOffset.Now.AddMinutes( 10 );
+                    cache.Set( cacheKey, lglsc, cachePolicy );
+                }
+            }
+        }
+
+        public static void UpdateAttendance( Attendance attendance )
+        {
+            lock ( LOCK )
+            {
+                ObjectCache cache = Rock.Web.Cache.RockMemoryCache.Default;
+                var lglsc = ( List<GroupLocationScheduleCount> ) cache.Get( cacheKey );
+                if ( lglsc == null )
+                {
+                    lglsc = UpdateCache();
                 }
 
-                if ( glsc.PersonIds.Contains( attendance.PersonAlias?.PersonId ?? 0 ) )
+                var personId = attendance.PersonAlias.PersonId;
+
+                var items = lglsc.Where( g =>
+                                g.LocationId == attendance.LocationId
+                                && g.ScheduleId == attendance.ScheduleId
+                                && g.GroupId == attendance.GroupId )
+                    .ToList();
+
+                foreach ( var glsc in items )
                 {
-                    glsc.PersonIds.Remove( attendance.PersonAlias.PersonId );
+                    if ( attendance.EndDateTime != null )
+                    {
+                        while ( glsc.PersonIds.Contains( personId ) )
+                        {
+                            glsc.PersonIds.Remove( personId );
+                        }
+                        while ( glsc.InRoomPersonIds.Contains( personId ) )
+                        {
+                            glsc.InRoomPersonIds.Remove( personId );
+                        }
+                    }
+                    else
+                    {
+                        if ( !glsc.PersonIds.Contains( personId ) )
+                        {
+                            glsc.PersonIds.Add( personId );
+                        }
+                        if ( !glsc.InRoomPersonIds.Contains( personId ) && attendance.DidAttend == true )
+                        {
+                            glsc.InRoomPersonIds.Add( personId );
+                        }
+                    }
                 }
                 var cachePolicy = new CacheItemPolicy();
                 cachePolicy.AbsoluteExpiration = DateTimeOffset.Now.AddMinutes( 10 );
@@ -129,7 +190,9 @@ namespace org.secc.FamilyCheckin.Utilities
                     GroupId = attendance.Key.GroupId ?? 0,
                     LocationId = attendance.Key.LocationId ?? 0,
                     ScheduleId = attendance.Key.ScheduleId ?? 0,
-                    PersonIds = attendance.Select( a => a.PersonAlias?.PersonId ?? 0 ).ToList()
+                    PersonIds = attendance.Select( a => a.PersonAlias?.PersonId ?? 0 ).ToList(),
+                    InRoomPersonIds = attendance.Where( a => a.DidAttend == true ).Select( a => a.PersonAlias?.PersonId ?? 0 ).ToList()
+
                 };
                 output.Add( glsc );
             }

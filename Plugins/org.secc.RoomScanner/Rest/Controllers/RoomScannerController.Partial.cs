@@ -36,7 +36,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
 
                 AttributeValueService attributeValueService = new AttributeValueService( new RockContext() );
                 var volAttributeId = AttributeCache.Read( Constants.VOLUNTEER_ATTRIBUTE_GUID.AsGuid() )?.Id;
-                ids = attributeValueService.Queryable().Where( av => av.AttributeId == volAttributeId ).Select( av => av.EntityId ?? 0 ).ToList();
+                ids = attributeValueService.Queryable().Where( av => av.AttributeId == volAttributeId && av.Value == "True" ).Select( av => av.EntityId ?? 0 ).ToList();
                 cache.Set( "org_secc_familycheckin_volunteer_ids", ids, new CacheItemPolicy() { AbsoluteExpiration = Rock.RockDateTime.Now.AddHours( 12 ) } );
                 return ids;
             }
@@ -45,13 +45,14 @@ namespace org.secc.RoomScanner.Rest.Controllers
         private int NumberOfVolunteersCheckedIn( int locationId )
         {
             var lglsc = CheckInCountCache.GetByLocation( locationId );
-            return lglsc.Where( glsc => VolunteerGroupIds.Contains( glsc.GroupId ) ).Count();
+            return lglsc.Where( glsc => VolunteerGroupIds.Contains( glsc.GroupId ) ).Select( glsc => glsc.InRoomPersonIds.Count() ).Sum();
         }
 
         private bool AreChildrenCheckedIn( int locationId )
         {
             var lglsc = CheckInCountCache.GetByLocation( locationId );
-            return lglsc.Where( glsc => !VolunteerGroupIds.Contains( glsc.GroupId ) ).Any();
+            var count = lglsc.Where( glsc => !VolunteerGroupIds.Contains( glsc.GroupId ) ).Select( glsc => glsc.InRoomPersonIds.Count() ).Sum();
+            return count>=1;
         }
 
 
@@ -517,6 +518,8 @@ namespace org.secc.RoomScanner.Rest.Controllers
                     attendanceService.Add( newAttendance );
                     attendance.DidAttend = false;
                     attendance.EndDateTime = Rock.RockDateTime.Now;
+                    CheckInCountCache.AddAttendance( newAttendance );
+                    CheckInCountCache.RemoveAttendance( attendance );
                 }
 
                 var moveSummary = string.Format( "Moved to and Entered <span class=\"field-name\">{0}</span> at <span class=\"field-name\">{1}</span> under the authority of {2}", location.Name, Rock.RockDateTime.Now, authorizedPerson.FullName );
@@ -558,6 +561,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
             {
                 attendance.DidAttend = true;
                 attendance.StartDateTime = Rock.RockDateTime.Now;
+                CheckInCountCache.UpdateAttendance( attendance );
             }
 
             var summary = string.Format( "Entered <span class=\"field-name\">{0}</span> at <span class=\"field-name\">{1}</span>", location.Name, Rock.RockDateTime.Now );

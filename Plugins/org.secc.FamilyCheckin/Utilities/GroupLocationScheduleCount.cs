@@ -12,5 +12,6 @@ namespace org.secc.FamilyCheckin.Utilities
         public int LocationId { get; set; }
         public int ScheduleId { get; set; }
         public List<int> PersonIds { get; set; }
+        public List<int> InRoomPersonIds { get; set; }
     }
 }

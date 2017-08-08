@@ -19,7 +19,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [Description( "Helps manage rooms and room ratios." )]
     [DefinedTypeField( "Deactivated Defined Type", "Check-in monitor needs a place to save deactivated checkin configurations." )]
     [TextField( "Room Ratio Attribute Key", "Attribute key for room ratios", true, "RoomRatio" )]
-    [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Volunteer Group Attribute" )]
 
     public partial class CheckinMonitor : CheckInBlock
     {
@@ -88,8 +87,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             try
             {
                 kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes,
-                                                            GetAttributeValue( "VolunteerGroupAttribute" ).AsGuid(),
-                                                            GetAttributeValue( "DeactivatedDefinedType" ).AsGuid() );
+                    GetAttributeValue( "DeactivatedDefinedType" ).AsGuid() );
             }
             catch ( Exception ex )
             {
@@ -847,7 +845,10 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     newRecord.StartDateTime = Rock.RockDateTime.Now;
                     newRecord.EndDateTime = null;
                     newRecord.Device = null;
+                    newRecord.AttendanceCodeId = null;
+                    newRecord.AttendanceCode = null;
                     newRecord.SearchTypeValue = null;
+
                     if ( newGroupId != 0 )
                     {
                         newRecord.GroupId = newGroupId;
@@ -859,7 +860,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     attendanceService.Add( newRecord );
                     attendanceRecord.DidAttend = false;
                     _rockContext.SaveChanges();
-                    CheckInCountCache.AddAttendance( newRecord );
                     CheckInCountCache.Flush();
                 }
             }
