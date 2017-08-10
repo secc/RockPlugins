@@ -52,7 +52,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
         {
             var lglsc = CheckInCountCache.GetByLocation( locationId );
             var count = lglsc.Where( glsc => !VolunteerGroupIds.Contains( glsc.GroupId ) ).Select( glsc => glsc.InRoomPersonIds.Count() ).Sum();
-            return count>=1;
+            return count >= 1;
         }
 
 
@@ -370,6 +370,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
             };
 
             historyService.Add( history );
+            InMemoryWorshipRecord.RemoveFromWorship( attendeeAttendance.PersonAlias.PersonId );
             rockContext.SaveChanges();
 
 
