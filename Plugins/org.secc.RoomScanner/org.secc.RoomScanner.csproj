@@ -126,7 +126,7 @@
       <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>
       <Name>Rock</Name>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)org.secc.FamilyCheckin\org.secc.FamilyCheckin.csproj">
+    <ProjectReference Include="$(SolutionDir)SECC-ROCK\Plugins\org.secc.FamilyCheckin\org.secc.FamilyCheckin.csproj">
       <Project>{3E94706B-C20E-413F-AAFB-38AF995FE033}</Project>
       <Name>org.secc.FamilyCheckin</Name>
     </ProjectReference>
