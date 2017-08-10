@@ -1057,46 +1057,15 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
             else
             {
-                if ( MinistrySafe( volunteerGroupIds ) )
-                {
-                    //trigger the final checkin process!
-                    ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "doCheckin", "doCheckin();", true );
-                }
-                else
-                {
-                    mdMinistrySafe.Show();
-                    mdMinistrySafe.Header.Visible = false;
-                    mdMinistrySafe.Footer.Visible = false;
-                }
+                //trigger the final checkin process!
+                ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "doCheckin", "doCheckin();", true );
             }
-        }
-
-        private bool MinistrySafe( List<int> volunteerGroupIds )
-        {
-            foreach ( var person in CurrentCheckInState.CheckIn.CurrentFamily.People.Where( p => p.Selected && p.Person.Age >= 18 ) )
-            {
-                if ( string.IsNullOrWhiteSpace( person.Person.GetAttributeValue( "SexualAbuseTrainingCompleted" ) ) )
-                {
-                    foreach ( var groupType in person.GroupTypes )
-                    {
-                        foreach ( var group in groupType.Groups )
-                        {
-                            if ( volunteerGroupIds.Contains( group.Group.Id ) )
-                            {
-                                return false;
-                            }
-                        }
-                    }
-                }
-            }
-            return true;
         }
 
         protected void btnContinue_Click( object sender, EventArgs e )
         {
             //trigger the final checkin process!
             ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "doCheckin", "doCheckin();", true );
-            mdMinistrySafe.Hide();
         }
     }
 

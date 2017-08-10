@@ -57,22 +57,6 @@
                     </div>
                 </Content>
             </Rock:ModalDialog>
-            <Rock:ModalDialog ID="mdMinistrySafe" runat="server" CssClass="modal">
-                <Content>
-                    <div class="text-center">
-                        <p style="font-size: 12em; color: #DB542D">
-                            <i class="fa fa-exclamation-triangle"></i>
-                        </p>
-                        <p style="font-size: 4em;">
-                            Our records show that you have not completed Ministry Safe training.
-                            <br>
-                            Please contact your team leader or a staff member as soon as possible.
-                        </p>
-                        <Rock:BootstrapButton ID="btnContinue" runat="server" CssClass="btn btn-primary" Text="Continue"
-                            Font-Size="2em" OnClick="btnContinue_Click"></Rock:BootstrapButton>
-                    </div>
-                </Content>
-            </Rock:ModalDialog>
             <Rock:ModalAlert ID="maNotice" runat="server" />
             <div class="container" id="quickCheckinContainer">
                 <div id="pgtSelect">
