@@ -56,7 +56,7 @@ namespace org.secc.FamilyCheckin
                         var attendance = attendanceService.Queryable().AsNoTracking()
                             .Where( a =>
                                 personAlias.Contains( a.PersonAliasId ?? 0 )
-                                && a.EndDateTime == null //we ask for a null end time to favor where the child was moved last
+                                && a.DidAttend == true
                                 && sundayList.Contains( a.SundayDate )
                                 && a.DeviceId != null
                                 && a.Location.IsActive
