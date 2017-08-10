@@ -1013,8 +1013,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                             {
                                 var threshold = locationEntity.FirmRoomThreshold ?? 0;
                                 var attendanceQry = attendanceService.Where( a =>
-                                     a.DidAttend == true
-                                     && a.EndDateTime == null
+                                     a.EndDateTime == null
                                      && a.ScheduleId == schedule.Schedule.Id
                                      && a.StartDateTime >= Rock.RockDateTime.Today );
 
