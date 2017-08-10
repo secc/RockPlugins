@@ -147,6 +147,7 @@
 </asp:UpdatePanel>
 
 <script type="text/javascript">
+    //this is to keep the animation from showing on autoupdate
     var prm = Sys.WebForms.PageRequestManager.getInstance();
     prm.add_initializeRequest(InitializeRequest);
 

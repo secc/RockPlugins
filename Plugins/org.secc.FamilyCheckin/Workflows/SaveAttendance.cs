@@ -1,25 +1,10 @@
-﻿// <copyright>
-// Copyright by the Spark Development Network
-//
-// Licensed under the Rock Community License (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.rockrms.com/license
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
-//
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
-
+using org.secc.FamilyCheckin.Utilities;
+using Rock;
 using Rock.Attribute;
 using Rock.CheckIn;
 using Rock.Data;
@@ -36,6 +21,7 @@ namespace org.secc.FamilyCheckin
     [Description( "Saves the selected check-in data as attendance" )]
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Save Attendance Custom" )]
+    [BooleanField( "Set Did Attend", "Should the DidAttend field be set to true?", true )]
     public class SaveAttendance : CheckInActionComponent
     {
         /// <summary>
@@ -54,8 +40,8 @@ namespace org.secc.FamilyCheckin
             {
                 AttendanceCode attendanceCode = null;
                 DateTime startDateTime = Rock.RockDateTime.Now;
-                DateTime beginDate = startDateTime.Date;
-                DateTime endDate = startDateTime.AddDays( 1 );
+                DateTime today = startDateTime.Date;
+                DateTime tomorrow = startDateTime.AddDays( 1 );
 
                 bool reuseCodeForFamily = checkInState.CheckInType != null && checkInState.CheckInType.ReuseSameCode;
                 int securityCodeLength = checkInState.CheckInType != null ? checkInState.CheckInType.SecurityCodeLength : 3;
@@ -102,18 +88,17 @@ namespace org.secc.FamilyCheckin
                                         var primaryAlias = personAliasService.GetPrimaryAlias( person.Person.Id );
                                         if ( primaryAlias != null )
                                         {
+
                                             // If a like attendance service exists close it before creating another one.
-
-
                                             var oldAttendance = attendanceService.Queryable()
-                                                .Where( a =>
-                                                    a.StartDateTime >= beginDate &&
-                                                    a.StartDateTime < endDate &&
-                                                    a.LocationId == location.Location.Id &&
-                                                    a.ScheduleId == schedule.Schedule.Id &&
-                                                    a.GroupId == group.Group.Id &&
-                                                    a.PersonAliasId == primaryAlias.Id ) //we will assume they won't get merged today
-                                                .FirstOrDefault();
+                                            .Where( a =>
+                                                a.StartDateTime >= today &&
+                                                a.StartDateTime < tomorrow &&
+                                                a.LocationId == location.Location.Id &&
+                                                a.ScheduleId == schedule.Schedule.Id &&
+                                                a.GroupId == group.Group.Id &&
+                                                a.PersonAlias.PersonId == person.Person.Id )
+                                            .FirstOrDefault();
 
                                             if ( oldAttendance != null )
                                             {
@@ -125,7 +110,6 @@ namespace org.secc.FamilyCheckin
                                             attendance.CampusId = location.CampusId;
                                             attendance.ScheduleId = schedule.Schedule.Id;
                                             attendance.GroupId = group.Group.Id;
-                                            attendance.PersonAlias = primaryAlias;
                                             attendance.PersonAliasId = primaryAlias.Id;
                                             attendance.DeviceId = checkInState.Kiosk.Device.Id;
                                             attendance.SearchTypeValueId = checkInState.CheckIn.SearchType.Id;
@@ -134,9 +118,9 @@ namespace org.secc.FamilyCheckin
                                             attendance.AttendanceCodeId = attendanceCode.Id;
                                             attendance.StartDateTime = startDateTime;
                                             attendance.EndDateTime = null;
-                                            attendance.DidAttend = true;
+                                            attendance.DidAttend = GetActionAttributeValue( action, "SetDidAttend" ).AsBoolean();
                                             attendanceService.Add( attendance );
-                                            KioskLocationAttendance.AddAttendance( attendance );
+                                            CheckInCountCache.AddAttendance( attendance );
                                         }
                                     }
                                 }

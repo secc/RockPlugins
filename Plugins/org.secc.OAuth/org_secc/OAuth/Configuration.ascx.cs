@@ -94,12 +94,14 @@ namespace RockWeb.Plugins.org_secc.OAuth
                 cbSSLRequired.Checked = settings["OAuthRequireSsl"].AsBoolean();
 
                 tbTokenLifespan.Text = settings["OAuthTokenLifespan"];
+                if (settings.ContainsKey("OAuthRefreshTokenLifespan"))
+                {
+                    tbRefreshTokenLifespan.Text = settings["OAuthRefreshTokenLifespan"];
+                }
+
                 gOAuthClients_Bind(null, e);
                 gOAuthScopes_Bind(null, e);
 
-                ScopeService scopeService = new ScopeService(OAuthContext);
-                cblClientScopes.DataSource = scopeService.Queryable().Select(s => new { Id = s.Id, Value = s.Identifier + " - " + s.Description }).ToList();
-                cblClientScopes.DataBind();
             }
         }
 
@@ -123,6 +125,7 @@ namespace RockWeb.Plugins.org_secc.OAuth
             settings["OAuthTokenPath"] = "/" + ddlTokenRoute.SelectedValue;
             settings["OAuthRequireSsl"] = cbSSLRequired.Checked.ToString();
             settings["OAuthTokenLifespan"] = tbTokenLifespan.Text;
+            settings["OAuthRefreshTokenLifespan"] = tbRefreshTokenLifespan.Text;
 
             RockContext context = new RockContext();
             AttributeService attributeService = new AttributeService(context);
@@ -169,10 +172,6 @@ namespace RockWeb.Plugins.org_secc.OAuth
             tbCallbackUrl.Text = "";
             cbActive.Checked = true;
             gOAuthClientEdit.Show();
-            foreach(System.Web.UI.WebControls.ListItem item in cblClientScopes.Items)
-            {
-                item.Selected = false;
-            }
         }
 
         protected void gOAuthClientEdit_SaveClick(object sender, EventArgs e)
@@ -259,8 +258,12 @@ namespace RockWeb.Plugins.org_secc.OAuth
 
             ClientScopeService clientScopeService = new ClientScopeService(OAuthContext);
 
-            clientScopeService.Queryable().Where(cs => cs.ClientId == client.Id && cs.Active == true).ToList().ForEach(cs => 
-                cblClientScopes.Items.FindByValue(cs.ScopeId.ToString()).Selected = true
+            ScopeService scopeService = new ScopeService(OAuthContext);
+            cblClientScopes.DataSource = scopeService.Queryable().Select(s => new { Id = s.Id, Value = s.Identifier + " - " + s.Description }).ToList();
+            cblClientScopes.DataBind();
+
+            clientScopeService.Queryable().Where(cs => cs.ClientId == client.Id).ToList().ForEach(cs =>
+                cblClientScopes.Items.FindByValue(cs.ScopeId.ToString()).Selected = cs.Active
             );
             gOAuthClientEdit.Show();
         }
