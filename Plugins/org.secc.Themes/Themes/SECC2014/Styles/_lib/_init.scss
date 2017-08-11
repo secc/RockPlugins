@@ -59,6 +59,7 @@ $IndianaColor			: #9F1C21;
 $CrestwoodColor			: #37a7cd;
 $SouthwestColor			: #E87C1E;
 $LaGrangeColor			: #5C6D79;
+$ElizabethtownColor     : #000000;
 
 //Other Colors
 $GrayColor 				: #6D6A66;
@@ -92,6 +93,10 @@ $Campuses: (
 	lagrange : (
 		color: $LaGrangeColor,
 		map: url(/_/img/campuses/la/la-map.jpg),
+	),
+    elizabethtown : (
+		color: $ElizabethtownColor,
+		map: url(/_/img/campuses/et/et-map.jpg),
 	),
 	default: (
 		color: $HighlightColor,
