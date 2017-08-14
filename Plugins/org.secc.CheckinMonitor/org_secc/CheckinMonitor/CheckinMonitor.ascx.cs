@@ -825,19 +825,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                 if ( newGroupId != 0 || newLocationId != 0 )
                 {
-                    //Close all other attendance records for this person today at this schedule
-                    var currentRecords = attendanceService.Queryable()
-                         .Where( a =>
-                         a.StartDateTime >= Rock.RockDateTime.Today
-                        && a.PersonAliasId == attendanceRecord.PersonAliasId
-                        && a.ScheduleId == attendanceRecord.ScheduleId
-                        && a.EndDateTime == null ).ToList();
-                    foreach ( var record in currentRecords )
-                    {
-                        record.EndDateTime = Rock.RockDateTime.Now;
-                        record.DidAttend = false;
-                    }
-
                     //Create a new attendance record
                     Attendance newRecord = ( Attendance ) attendanceRecord.Clone();
                     newRecord.Id = 0;
@@ -857,12 +844,27 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     {
                         newRecord.LocationId = newLocationId;
                     }
+
+                    //Close all other attendance records for this person today at this schedule
+                    var currentRecords = attendanceService.Queryable()
+                         .Where( a =>
+                         a.StartDateTime >= Rock.RockDateTime.Today
+                        && a.PersonAliasId == attendanceRecord.PersonAliasId
+                        && a.ScheduleId == attendanceRecord.ScheduleId
+                        && a.EndDateTime == null ).ToList();
+
+                    foreach ( var record in currentRecords )
+                    {
+                        record.EndDateTime = Rock.RockDateTime.Now;
+                        record.DidAttend = false;
+                    }
+
                     attendanceService.Add( newRecord );
                     attendanceRecord.DidAttend = false;
                     _rockContext.SaveChanges();
-                    CheckInCountCache.Flush();
                 }
             }
+            CheckInCountCache.Flush();
             BindTable();
             RebuildModal();
         }
