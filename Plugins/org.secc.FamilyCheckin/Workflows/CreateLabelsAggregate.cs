@@ -398,7 +398,9 @@ namespace org.secc.FamilyCheckin
                     cache.Set( cacheKey, allBreakoutGroups, cachePolicy );
                 }
 
-                return allBreakoutGroups.Where( g => g.Members.Where( gm => gm.PersonId == person.Id ).Any() ).ToList();
+                return allBreakoutGroups.Where( g => g.Members
+                        .Where( gm => gm.PersonId == person.Id && gm.GroupMemberStatus == GroupMemberStatus.Active ).Any() )
+                    .ToList();
             }
             else
             {
