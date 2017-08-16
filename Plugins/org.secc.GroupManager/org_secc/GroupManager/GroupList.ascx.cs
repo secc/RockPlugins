@@ -113,7 +113,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         private void LoadGroup( Group group )
         {
-            Session["CurrentGroupManagerGroup"] = group.Id;
+            SetUserPreference( "CurrentGroupManagerGroup", group.Id.ToString() );
             var theme = GetAttributeValue( "Theme" );
             if ( !string.IsNullOrWhiteSpace( theme ) )
             {
