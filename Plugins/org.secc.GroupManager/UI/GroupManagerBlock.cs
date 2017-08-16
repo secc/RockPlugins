@@ -74,19 +74,19 @@ namespace org.secc.GroupManager
         private void LoadSession( RockContext rockContext )
         {
             int groupId = PageParameter( "GroupId" ).AsInteger();
-            if ( groupId == 0 && Session["CurrentGroupManagerGroup"] != null )
+            if ( groupId == 0 && GetUserPreference( "CurrentGroupManagerGroup" ) != null )
             {
-                groupId = ( int ) Session["CurrentGroupManagerGroup"];
+                groupId = GetUserPreference( "CurrentGroupManagerGroup" ).AsInteger();
             }
 
             CurrentGroup = new GroupService( rockContext ).Get( groupId );
             if ( CurrentGroup != null )
             {
-                Session["CurrentGroupManagerGroup"] = groupId;
+                SetUserPreference( "CurrentGroupManagerGroup", groupId.ToString() );
                 CurrentGroupMember = CurrentGroup.Members
                     .Where( gm => gm.PersonId == CurrentUser.PersonId )
                     .FirstOrDefault();
-                if ( GetAttributeValue( "LeadersOnly" ).AsBoolean() && CurrentGroupMember!=null && !CurrentGroupMember.GroupRole.IsLeader )
+                if ( GetAttributeValue( "LeadersOnly" ).AsBoolean() && CurrentGroupMember != null && !CurrentGroupMember.GroupRole.IsLeader )
                 {
                     NavigateToHomePage();
                     return;
@@ -103,6 +103,13 @@ namespace org.secc.GroupManager
                     CurrentGroupMember == null
                     || !CurrentGroupMember.GroupRole.IsLeader )
                )
+            {
+                NavigateToHomePage();
+            }
+
+            var groupTypeGuid = GetAttributeValue( "GroupType" ).AsGuidOrNull();
+            if ( groupTypeGuid != null &&
+                CurrentGroup.GroupType.Guid != groupTypeGuid )
             {
                 NavigateToHomePage();
             }
@@ -134,7 +141,7 @@ namespace org.secc.GroupManager
 
         public void SetThemeCookie( string theme )
         {
-            if (  HttpContext.Current.Request.UrlReferrer != null
+            if ( HttpContext.Current.Request.UrlReferrer != null
                 && HttpContext.Current.Request.UrlReferrer.ToString() == Request.RawUrl )
             {
                 return;
