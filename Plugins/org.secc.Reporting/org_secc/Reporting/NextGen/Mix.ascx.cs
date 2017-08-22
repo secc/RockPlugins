@@ -34,6 +34,7 @@ using System.Collections;
 using System.Reflection;
 using Rock.Web.Cache;
 using System.Diagnostics;
+using Newtonsoft.Json;
 
 namespace RockWeb.Blocks.Reporting.NextGen
 {
@@ -104,8 +105,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
         /// </summary>
         private void BindGrid()
         {
-            using (var rockContext = new RockContext())
-            {
+            var rockContext = new RockContext();
 
                 var groupMemberService = new GroupMemberService(rockContext);
                 var groupService = new GroupService(rockContext);
@@ -157,10 +157,10 @@ namespace RockWeb.Blocks.Reporting.NextGen
                         obj => obj.Id,
                         rr => rr.GroupMemberId,
                         (obj, rr) => new { GroupMember = obj, Person = obj.Person, RegistrationRegistrant = rr })
-                    .Join(attributeValueService.Queryable(),
+                    .GroupJoin(attributeValueService.Queryable(),
                         obj => new { PersonId = (int?)obj.Person.Id, AttributeId = 739 },
                         av => new { PersonId = av.EntityId, av.AttributeId },
-                        (obj, av) => new { GroupMember = obj.GroupMember, Person = obj.Person, RegistrationRegistrant = obj.RegistrationRegistrant, School = av.Value })
+                        (obj, av) => new { GroupMember = obj.GroupMember, Person = obj.Person, RegistrationRegistrant = obj.RegistrationRegistrant, School = av.Select(s => s.Value).FirstOrDefault() })
                     .GroupJoin(attributeValueService.Queryable(),
                         obj => obj.GroupMember.Id,
                         av => av.EntityId.Value,
@@ -244,14 +244,13 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 {
                     Id = g.GroupMember.Id,
                     RegisteredBy = new ModelValue<Person>(g.RegistrationRegistrant.Registration.PersonAlias.Person),
-                    person = g.Person,
                     Registrant = new ModelValue<Person>(g.Person),
                     Age = g.Person.Age,
                     GraduationYear = g.Person.GraduationYear,
                     RegistrationId = g.RegistrationRegistrant.RegistrationId,
                     Group = new ModelValue<Rock.Model.Group>((Rock.Model.Group)g.GroupMember.Group),
                     DOB = g.Person.BirthDate.HasValue ? g.Person.BirthDate.Value.ToShortDateString() : "",
-                    Address = new ModelValue<Location>(tmp2.Where(gm => gm.GroupMember.Id == g.GroupMember.Id).Select(gm => gm.Location).FirstOrDefault()),
+                    Address = new ModelValue<Rock.Model.Location>((Rock.Model.Location)tmp2.Where(gm => gm.GroupMember.Id == g.GroupMember.Id).Select(gm => gm.Location).FirstOrDefault()),
                     Email = g.Person.Email,
                     Gender = g.Person.Gender, // (B & B Registration)
                     GraduationYearProfile = g.Person.GraduationYear, // (Person Profile)
@@ -267,12 +266,18 @@ namespace RockWeb.Blocks.Reporting.NextGen
                         RegistrantAttributes row = new RegistrantAttributes(g.RegistrationRegistrant, g.RegistrationAttributeValues);
                         return row;
                     })(),
-                    School = DefinedValueCache.Read(g.School.AsGuid()).Value,
+                    School = string.IsNullOrEmpty(g.School)?"":DefinedValueCache.Read(g.School.AsGuid()).Value,
                     LegalRelease = tmp2.Where(gm => gm.GroupMember.Id == g.GroupMember.Id).SelectMany(gm => gm.SignatureDocuments).OrderByDescending(sd => sd.SignatureDocument.CreatedDateTime).Where(sd => signatureDocumentIds.Contains(sd.SignatureDocument.SignatureDocumentTemplateId)).Select(sd => sd.SignatureDocument.SignatureDocumentTemplate.Name + " (" + sd.SignatureDocument.Status.ToString() + ")").FirstOrDefault(),
-                    Departure = "TBD", // (hopefully based on bus, otherwise a dropdown with 1-4) 
+                    Departure = g.GroupMemberAttributeValues.Where(av => av.AttributeKey == "Departure").Select(av => av.Value).FirstOrDefault(),
                     Campus = group.Campus, // 
-                    Role = group.ParentGroup.GroupType.Name.Contains("Serving")?"Leader":"Student", // 
-                    MSMGroup = String.Join(", ", groupMemberService.Queryable().Where(gm => gm.PersonId == g.GroupMember.PersonId && gm.Group.GroupTypeId == hsmGroupTypeId && gm.GroupMemberStatus == GroupMemberStatus.Active).Select(gm => gm.Group.Name).ToList())
+                    Role = group.ParentGroup.GroupType.Name.Contains("Serving")|| group.Name.ToLower().Contains("leader")? "Leader":"Student", // 
+                    MSMGroup = String.Join(", ", groupMemberService.Queryable().Where(gm => gm.PersonId == g.GroupMember.PersonId && gm.Group.GroupTypeId == hsmGroupTypeId && gm.GroupMemberStatus == GroupMemberStatus.Active).Select(gm => gm.Group.Name).ToList()),
+                    Person = g.Person,
+                    AddressStreet = tmp2.Where(gm => gm.GroupMember.Id == g.GroupMember.Id).Select(gm => gm.Location!=null?gm.Location.Street1:"").FirstOrDefault(),
+                    AddressCityStateZip = tmp2.Where(gm => gm.GroupMember.Id == g.GroupMember.Id).Select(gm => gm.Location != null ? gm.Location.City + ", " + gm.Location.State + " " + gm.Location.PostalCode : "").FirstOrDefault(),
+
+                    RegistrantName = g.Person.FullName,
+
                 }).OrderBy(w => w.Registrant.Model.LastName).ToList().AsQueryable();
 
                 lStats.Text += "<br />Object Build Runtime: " + stopwatch.Elapsed;
@@ -324,9 +329,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     gReport.SetLinqDataSource(newQry.OrderBy(p => p.Registrant.Model.LastName));
                 }
                 gReport.DataBind();
-
-
-            }
+            
         }
 
         private void Actions_CommunicateClick(object sender, EventArgs e)
@@ -559,11 +562,16 @@ namespace RockWeb.Blocks.Reporting.NextGen
             public String RoomingNotes { get { return GetAttributeValue("RoomingNotes"); } }
             public String MedicalNotes { get { return GetAttributeValue("MedicalNotes"); } }
             public String TravelNotes { get { return GetAttributeValue("TravelNotes"); } }
+            public String SpecialNotes { get { return GetAttributeValue("SpecialNotes"); } }
             public String TravelExceptions { get { return GetAttributeValue("TravelExceptions"); } }
             public String Group { get { return GetAttributeValue("Group1"); } }
             public String Dorm { get { return GetAttributeValue("Dorm"); } }
+            public String Room { get { return GetAttributeValue("Room"); } }
             public String Bus { get { return GetAttributeValue("Bus"); } }
             public String Departure { get { return GetAttributeValue("Departure"); } }
+            public String CoLeaders { get { return GetAttributeValue("CoLeaders"); } }
+            public String LeadingLocation { get { return GetAttributeValue("LeadingLocation"); } }
+
 
             public int CompareTo(object obj)
             {
@@ -643,7 +651,12 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     }
                     else if(!String.IsNullOrEmpty(GetAttributeValue("Campus")))
                     {
-                        return CampusCache.Read(GetAttributeValue("Campus").AsGuid()).Name;
+                        if (GetAttributeValue("Campus").AsGuidOrNull() == null) {
+                            return GetAttributeValue("Campus");
+                        } else
+                        {
+                            return CampusCache.Read(GetAttributeValue("Campus").AsGuid()).Name;
+                        }
                     }
                     return "";
                 }

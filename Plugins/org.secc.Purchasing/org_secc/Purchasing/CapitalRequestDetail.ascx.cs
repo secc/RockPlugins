@@ -1349,10 +1349,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if ( notCompletedMinistryApprovalCount > 0 )
             {
                 requestSent =  RequestMinistryApproval();
-            }
-
-            if ( notApprovedFinanceApprovalCount > 0 )
-            {
+            } else { 
                 requestSent = RequestFinanceApproval();
             }
 
@@ -2116,7 +2113,11 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     .Where( a => a.Active )
                     .Where( a => a.ApprovalTypeLUID == Approval.MinistryApprovalTypeLUID() )
                     .Where( a => a.ApprovalStatusLUID == Approval.NotSubmittedStatusLUID() || a.ApprovalStatusLUID == Approval.NotApprovedStatusLUID() )
-                    .Count() == 0 )
+                    .Count() == 0 
+                    && 
+                    CurrentCapitalRequest.ApprovalRequests
+                    .Where(a => a.Active)
+                    .Where(a => a.ApprovalTypeLUID == Approval.FinanceApprovalTypeLUID()).Any())
             {
                 return false;
             }

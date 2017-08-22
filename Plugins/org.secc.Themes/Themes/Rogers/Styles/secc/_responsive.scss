@@ -1,0 +1,127 @@
+/**********************************************************
+* _REESPONSIVE.SCSS
+*	This file defines variables, functions, and mixins for
+*	use in targeting breakpoints for mobile devices.
+*
+*	The variables and functions defined here should rarely
+*	be accessesd directly. Instead, the media query mixins
+*	should be used to target specific device(s).
+\**********************************************************/
+
+
+/* $screen -
+ *	 A Sass Map to define the min and max screen sizes
+ *   for each device type supported. Used by the
+ *	 screen-size function to retrieve breakpoints for
+ *	 media query mixins */
+$screen: (
+	phone: (
+		min: $screen-xs,  		//480px
+		max: $screen-xs-max		//767px
+	),
+	tablet: (
+		min: $screen-sm,		//768px
+		max: ($screen-sm-max)	//991px
+	),
+	desktop: (
+		min: $screen-md,		//992px
+		max: ($screen-md-max)	//1199px
+	),
+	large-desktop: (
+		min: $screen-lg,		//1200px
+		max: 1600px
+	)
+);
+
+
+/* FUNCTIONS
+ * =========
+ *
+ * Functions are used to return a specific screen size from
+ * the $screen map */
+
+/* @screen-size
+ *	 A function to retrieve a screen breakpoint value from the
+ *	 $screen map for use in a media query mixin */
+@function screen-size($device, $point: 'min') {
+	@return map_get(map_get($screen, $device), $point);
+}
+
+
+
+/* MEDIA QUERY MIXINS
+ * ==================
+ *
+ * A set of mixins to create media queries that target a specific
+ * device or set of devices. These mixins create the appropriate
+ * media query, and then include the mixin content inside the media query.
+ *
+ * USAGE:
+ *   @include <mixin-name> {
+ * 	     //Styles for the media query here. For example:
+ *       font-size: 0.75em;
+ *       background: url('phone-bg.png');
+ *   }
+ */
+
+@mixin phones {
+	@media (max-width: screen-size(phone, max)) {
+		@content;
+	}
+}
+
+@mixin small-phones {
+	@media (max-width: screen-size(phone, min)) {
+		@content;
+	}
+
+}
+
+@mixin large-phones {
+	@media (min-width: screen-size(phone, min)) and (max-width: screen-size(phone, max)) {
+		@content;
+	}
+}
+
+@mixin tablets {
+	@media (min-width: screen-size(tablet)) and (max-width: screen-size(tablet, max)) {
+		@content;
+	}
+}
+
+@mixin desktops {
+	@media (min-width: screen-size(desktop)) {
+		@content;
+	}
+}
+
+@mixin small-desktops {
+	@media (min-width: screen-size(desktop, min)) and (max-width: screen-size(desktop, max)) {
+		@content;
+	}
+}
+
+@mixin large-desktops {
+	@media(min-width: screen-size(large-desktop)){
+		@content;
+	}
+}
+
+@mixin hd-displays {
+	@media(min-width: screen-size(large-desktop, max)){
+		@content;
+	}
+}
+
+
+@mixin mobile-devices {
+	@media (max-width: screen-size(tablet, max)) {
+		@content;
+	}
+}
+
+@mixin non-phones {
+	@media (min-width: screen-size(tablet)) {
+		@content;
+	}
+}
