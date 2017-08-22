@@ -61,7 +61,7 @@
                         <Rock:RockBoundField DataField="RegistrantData.DietaryInfo" HeaderText="Dietary/Medical Info" SortExpression="RegistrantData.DietaryInfo"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="GroupMemberData.RoomCode" HeaderText="Room Code" SortExpression="GroupMemberData.RoomCode"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="GroupMemberData.Bus" HeaderText="Bus" SortExpression="GroupMemberData.Bus"></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="Departure" HeaderText="Departure" SortExpression=""></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="GroupMemberData.Departure" HeaderText="Departure" SortExpression="GroupMemberData.Departure"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="GroupMemberData.FamilyGroup" HeaderText="Family Group" SortExpression="GroupMemberData.FamilyGroup"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="Campus" HeaderText="Campus" SortExpression=""></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="Role" HeaderText="Role" SortExpression=""></Rock:RockBoundField>

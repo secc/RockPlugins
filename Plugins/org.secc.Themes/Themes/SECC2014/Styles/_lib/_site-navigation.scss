@@ -437,78 +437,105 @@ body {
 
 
 #MobileNav {
-	$itemDivider: $DefaultBorder;
-	$vertical-padding: 1em;
-	@include ExpandableStyles($indentation: 20px, $vertical-padding: $vertical-padding, $divider: $itemDivider, $indent-children-class: "nav-section") {
-		font-size: 1.15em;
-		font-weight: 700;
-		text-transform: uppercase;
-		@include FontSmoothing;
-	}
+    $itemDivider: $DefaultBorder;
+    $vertical-padding: 1em;
 
-	button { text-transform: inherit; }
+    @include ExpandableStyles($indentation: 20px, $vertical-padding: $vertical-padding, $divider: $itemDivider, $indent-children-class: "nav-section") {
+        font-size: 1.15em;
+        font-weight: 700;
+        text-transform: uppercase;
+        @include FontSmoothing;
+    }
 
-	.nav-section {
-		background: $SuperNavBackground;
-		color: $SuperNavColor;
+    button {
+        text-transform: inherit;
+    }
 
-		& > ul > li {
-			border-bottom: $itemDivider;
-		}
-	}
+    .nav-section {
+        background: $SuperNavBackground;
+        color: $SuperNavColor;
 
-	li li {
-		background: $SiteNavBackground;
-		color: lighten($MobileDropDownBackground, 65%);
-	}
+        & > ul > li {
+            border-bottom: $itemDivider;
+        }
+    }
 
-	li li li {
-		color: lighten($MobileDropDownBackground, 45%);
-		background: transparent;
-		& > *:first-child {
-			padding-top: ($vertical-padding / 2);
-			padding-bottom: ($vertical-padding / 2);
-		}
-	}
+    li li {
+        background: $SiteNavBackground;
+        color: lighten($MobileDropDownBackground, 65%);
+    }
 
-	li li li li {
-		//color: $SuperNavColor;
-		text-transform: none;
-	}
+    li li li {
+        color: lighten($MobileDropDownBackground, 45%);
+        background: transparent;
 
+        & > *:first-child {
+            padding-top: ($vertical-padding / 2);
+            padding-bottom: ($vertical-padding / 2);
+        }
+    }
 
-	.dropdown.active {
-		background: $MobileDropDownBackground;
-
-		& > .toggle { color: $HighlightText; }
-	}
-
-	li.active > a, li.active > button { color: #fff !important; }
-
-	li.notice {
-		background: #ffffff;
-		color: $ErrorColor;
-	}
+    li li li li {
+        //color: $SuperNavColor;
+        text-transform: none;
+    }
 
 
-	.locations-grid {
-		background: $SiteNavBackground;
-		width: 100%;
-		padding: 15px 0px;
-		margin-left: 0;
+    .dropdown.active {
+        background: $MobileDropDownBackground;
 
-		@include flexbox();
-		@include flex-flow(row wrap);
-		@include justify-content(space-around);
+        & > .toggle {
+            color: $HighlightText;
+        }
+    }
 
-		li {
-			border: none !important;
-		}
+    li.active > a, li.active > button {
+        color: #fff !important;
+    }
 
-		.se-logo {
-			font-size: 0.9em;
-			text-decoration: none;
-			&:hover, &:active { text-decoration: inherit;}
-		}
-	}
+    li.notice {
+        background: #ffffff;
+        color: $ErrorColor;
+    }
+
+
+
+    .locations-grid {
+        border-top: 1px solid #000;
+        width: 100%;
+        padding: 15px 0px;
+        margin-left: 0;
+
+        @include flexbox();
+        @include flex-flow(row wrap);
+        @include justify-content(space-around);
+
+        li {
+            border: none !important;
+            background: none;
+            padding-bottom: 10px;
+        }
+
+        .se-logo {
+            font-size: 1.1em;
+
+            @media (max-width: 500px) {
+                font-size: 1.8em;
+            }
+
+            @media (max-width: 400px) {
+                font-size: 1.4em;
+            }
+
+            @media (max-width: 350px) {
+                font-size: 1.2em;
+            }
+
+            text-decoration: none;
+
+            &:hover, &:active {
+                text-decoration: inherit;
+            }
+        }
+    }
 }

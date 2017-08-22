@@ -9,7 +9,7 @@
 						<li><a href="/crestwood/"><span class="se-logo stroke crestwood">CW</span></a></li>
 						<li><a href="/southwest/"><span class="se-logo stroke southwest">SW</span></a></li>
 						<li><a href="/lagrange/"><span class="se-logo stroke lagrange">LA</span></a></li>
-						<!-- <li><a href="/lagrange/"><span class="se-logo stroke elizabethtown">ET</span></a></li> -->
+						<li><a href="/elizabethtown/"><span class="se-logo stroke elizabethtown">ET</span></a></li>
 					</ul>
 					<a href="/locations.php">Find a location near you</a>
 				</div>
@@ -21,6 +21,7 @@
 						<button class="se-logo" data-class="crestwood" data-target=".location-rotator">CW</button>
 						<button class="se-logo" data-class="southwest" data-target=".location-rotator">SW</button>
 						<button class="se-logo" data-class="lagrange" data-target=".location-rotator">LA</button>
+            <button class="se-logo" data-class="elizabethtown" data-target=".location-rotator">ET</button>
 					</div>
 
 					{% for campus in Campuses %}
@@ -56,7 +57,7 @@
 											{% for times in serviceDay.times %}
 												{{times.time}}{% if (times.interpreted == true %}*{%assign interpreted = true %}{% endif %}
 												{% if (forloop.rindex0 == 0 %}<br />{% break %}
-												{% elseif (forloop.rindex0 == 1 && timesCount > 2) %} &amp;{% else %},{% endif %}
+												{% elseif (forloop.rindex0 == 1 and timesCount > 2) %} &amp;{% else %},{% endif %}
 											{% endfor %}
 
 										{% endfor %}

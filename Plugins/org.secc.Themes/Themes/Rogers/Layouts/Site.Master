@@ -1,0 +1,511 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" Inherits="Rock.Web.UI.RockMasterPage" %>
+<%@ Import Namespace="System.Web.Optimization" %>
+<!DOCTYPE html>
+
+<script runat="server">
+
+    // keep code below to call base class init method
+
+    /// <summary>
+    /// Raises the <see cref="E:System.Web.UI.Control.Init" /> event.
+    /// </summary>
+    /// <param name="e">An <see cref="T:System.EventArgs" /> object that contains the event data.</param>
+    protected override void OnInit( EventArgs e )
+    {
+        base.OnInit( e );
+    }
+
+</script>
+
+<html class="no-js">
+<head runat="server">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=10" />
+    <meta charset="utf-8">
+    <title></title>
+
+    <script src="<%# ResolveRockUrl("~/Scripts/jquery-1.12.4.min.js" ) %>"></script>
+
+    <!-- Set the viewport width to device width for mobile -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <asp:ContentPlaceHolder ID="css" runat="server" />
+
+	<!-- Included CSS Files -->
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/rock.css", true) %>"/>
+	<link href="<%# ResolveRockUrl("~~/Assets/Css/animate.css", true) %>" rel="stylesheet" type="text/css"/>
+	<link href="<%# ResolveRockUrl("~~/Assets/Vendor/themify/themify.css", true) %>" rel="stylesheet" type="text/css"/>
+	<link href="<%# ResolveRockUrl("~~/Assets/Vendor/scrollbar/scrollbar.min.css", true) %>" rel="stylesheet" type="text/css"/>
+	<link href="<%# ResolveRockUrl("~~/Assets/Vendor/magnific-popup/magnific-popup.css", true) %>" rel="stylesheet" type="text/css"/>
+	<link href="<%# ResolveRockUrl("~~/Assets/Vendor/swiper/swiper.min.css", true) %>" rel="stylesheet" type="text/css"/>
+	<link href="<%# ResolveRockUrl("~~/Assets/Vendor/cubeportfolio/css/cubeportfolio.min.css", true) %>" rel="stylesheet" type="text/css"/>
+
+    <!-- REVOLUTION STYLE SHEETS -->
+    <link href="http://fonts.googleapis.com/css?family=Poppins:600%2C300%2C700" rel="stylesheet" property="stylesheet" type="text/css" media="all">
+	<link rel="stylesheet" type="text/css" href="<%# ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/fonts/pe-icon-7-stroke/css/pe-icon-7-stroke.css", true) %>" />
+	<link rel="stylesheet" type="text/css" href="<%# ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/fonts/font-awesome/css/font-awesome.css", true) %>" />
+    <link rel="stylesheet" type="text/css" href="<%# ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/css/settings.css", true) %>" />
+	<link rel="stylesheet" type="text/css" href="<%# ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/css/layers.css", true) %>" />
+	<link rel="stylesheet" type="text/css" href="<%# ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/css/navigation.css", true) %>" />
+	<!-- END REVOLUTION STYLE SHEETS -->
+
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/style.css", true) %>"/>
+    <link href="<%# ResolveRockUrl("~~/Assets/Css/global/global.css", true) %>" rel="stylesheet" type="text/css"/>
+
+    <script src="<%# ResolveRockUrl("~/Scripts/modernizr.js" ) %>" ></script>
+
+    <asp:ContentPlaceHolder ID="head" runat="server"></asp:ContentPlaceHolder>
+
+    <!-- Icons -->
+    <link rel="shortcut icon" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/favicon.ico", true) %>"/>
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/touch-icon-ipad-retina.png", true) %>"/>
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/touch-icon-iphone-retina.png", true) %>"/>
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/touch-icon-ipad.png", true) %>"/>
+    <link rel="apple-touch-icon-precomposed" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/touch-icon-iphone.png", true) %>"/>
+
+    <link href="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/css/reset.css", true) %>" rel="stylesheet" type="text/css"/>
+	<link href="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/css/style.css", true) %>" rel="stylesheet" type="text/css"/>
+	<script src="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/js/modernizr.js" ) %>" ></script>
+
+</head>
+<body runat="server" class="nav-is-fixed">
+
+        <!-- Vendor -->
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/jquery.migrate.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/jquery.smooth-scroll.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/jquery.back-to-top.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/scrollbar/jquery.scrollbar.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/magnific-popup/jquery.magnific-popup.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/swiper/swiper.jquery.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/waypoint.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/counterup.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/cubeportfolio/js/jquery.cubeportfolio.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/jquery.parallax.min.js", true) %>"></script>
+        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBsXUGTFS09pLVdsYEE9YrO2y4IAncAO2U"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/jquery.wow.min.js", true) %>"></script>
+
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/js/jquery.mobile.custom.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/js/main.js", true) %>"></script>
+
+    <form id="form1" runat="server">
+
+        <!--========== HEADER ==========-->
+        <header class="cd-main-header">
+           <a class="cd-logo" href="#0"><img src="/Themes/Rogers/Assets/Vendor/mega-site-navigation/img/cd-logo.svg" alt="Logo"></a>
+
+           <ul class="cd-header-buttons">
+               <li><a class="cd-search-trigger" href="#cd-search">Search<span></span></a></li>
+               <li><a class="cd-nav-trigger" href="#cd-primary-nav">Menu<span></span></a></li>
+           </ul> <!-- cd-header-buttons -->
+        </header>
+        <!--========== END HEADER ==========-->
+
+        <main class="cd-main-content">
+        <!--========== PAGE CONTENT ==========-->
+
+        <asp:ContentPlaceHolder ID="feature" runat="server"></asp:ContentPlaceHolder>
+
+		<asp:ContentPlaceHolder ID="main" runat="server"></asp:ContentPlaceHolder>
+
+        <!-- End Google Map -->
+        <!--========== END PAGE CONTENT ==========-->
+        </main>
+
+        <!--========== FOOTER ==========-->
+        <footer class="g-bg-color--dark">
+            <!-- Links -->
+            <div class="g-hor-divider__dashed--white-opacity-lightest">
+                <div class="container g-padding-y-80--xs">
+                    <div class="row">
+                        <div class="col-sm-2 g-margin-b-20--xs g-margin-b-0--md">
+                            <ul class="list-unstyled g-ul-li-tb-5--xs g-margin-b-0--xs">
+                                <li><a class="g-font-size-15--xs g-color--white-opacity" href="http://themeforest.net/item/metronic-responsive-admin-dashboard-template/4021469?ref=keenthemes">Home</a></li>
+                                <li><a class="g-font-size-15--xs g-color--white-opacity" href="http://themeforest.net/item/metronic-responsive-admin-dashboard-template/4021469?ref=keenthemes">About</a></li>
+                                <li><a class="g-font-size-15--xs g-color--white-opacity" href="http://themeforest.net/item/metronic-responsive-admin-dashboard-template/4021469?ref=keenthemes">Work</a></li>
+                                <li><a class="g-font-size-15--xs g-color--white-opacity" href="http://themeforest.net/item/metronic-responsive-admin-dashboard-template/4021469?ref=keenthemes">Contact</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-sm-2 g-margin-b-20--xs g-margin-b-0--md">
+                            <ul class="list-unstyled g-ul-li-tb-5--xs g-margin-b-0--xs">
+                                <li><a class="g-font-size-15--xs g-color--white-opacity" href="http://themeforest.net/item/metronic-responsive-admin-dashboard-template/4021469?ref=keenthemes">Twitter</a></li>
+                                <li><a class="g-font-size-15--xs g-color--white-opacity" href="http://themeforest.net/item/metronic-responsive-admin-dashboard-template/4021469?ref=keenthemes">Facebook</a></li>
+                                <li><a class="g-font-size-15--xs g-color--white-opacity" href="http://themeforest.net/item/metronic-responsive-admin-dashboard-template/4021469?ref=keenthemes">Instagram</a></li>
+                                <li><a class="g-font-size-15--xs g-color--white-opacity" href="http://themeforest.net/item/metronic-responsive-admin-dashboard-template/4021469?ref=keenthemes">YouTube</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-sm-2 g-margin-b-40--xs g-margin-b-0--md">
+                            <ul class="list-unstyled g-ul-li-tb-5--xs g-margin-b-0--xs">
+                                <li><a class="g-font-size-15--xs g-color--white-opacity" href="http://themeforest.net/item/metronic-responsive-admin-dashboard-template/4021469?ref=keenthemes">Subscribe to Our Newsletter</a></li>
+                                <li><a class="g-font-size-15--xs g-color--white-opacity" href="http://themeforest.net/item/metronic-responsive-admin-dashboard-template/4021469?ref=keenthemes">Privacy Policy</a></li>
+                                <li><a class="g-font-size-15--xs g-color--white-opacity" href="http://themeforest.net/item/metronic-responsive-admin-dashboard-template/4021469?ref=keenthemes">Terms &amp; Conditions</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4 col-md-offset-2 col-sm-5 col-sm-offset-1 s-footer__logo g-padding-y-50--xs g-padding-y-0--md">
+                            <h3 class="g-font-size-18--xs g-color--white">Megakit</h3>
+                            <p class="g-color--white-opacity">We are a creative studio focusing on culture, luxury, editorial &amp; art. Somewhere between sophistication and simplicity.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End Links -->
+
+            <!-- Copyright -->
+            <div class="container g-padding-y-50--xs">
+                <div class="row">
+                    <div class="col-xs-12">
+						<Rock:Zone Name="Footer" runat="server" />
+                    </div>
+                </div>
+            </div>
+            <!-- End Copyright -->
+        </footer>
+        <!--========== END FOOTER ==========-->
+
+        <!-- Back To Top -->
+        <a href="javascript:void(0);" class="s-back-to-top js__back-to-top"></a>
+
+        <div class="cd-overlay"></div>
+
+        <nav class="cd-nav">
+    		<ul id="cd-primary-nav" class="cd-primary-nav is-fixed">
+
+                <!-- <li class="has-children">
+    				<a href="http://codyhouse.co/?p=409">Clothing</a>
+
+    				<ul class="cd-secondary-nav is-hidden">
+    					<li class="go-back"><a href="#">Menu</a></li>
+    					<li class="see-all"><a href="http://codyhouse.co/?p=409">All Clothing</a></li>
+    					<li class="has-children">
+    						<a href="http://codyhouse.co/?p=409">Accessories</a>
+
+    						<ul class="is-hidden">
+    							<li class="go-back"><a href="#">Clothing</a></li>
+    							<li class="see-all"><a href="http://codyhouse.co/?p=409">All Accessories</a></li>
+    							<li class="has-children">
+    								<a href="#">Beanies</a>
+
+    								<ul class="is-hidden">
+    									<li class="go-back"><a href="#">Accessories</a></li>
+    									<li class="see-all"><a href="http://codyhouse.co/?p=409">All Benies</a></li>
+    									<li><a href="http://codyhouse.co/?p=409">Caps &amp; Hats</a></li>
+    									<li><a href="http://codyhouse.co/?p=409">Gifts</a></li>
+    									<li><a href="http://codyhouse.co/?p=409">Scarves &amp; Snoods</a></li>
+    								</ul>
+    							</li>
+    							<li class="has-children">
+    								<a href="#">Caps &amp; Hats</a>
+
+    								<ul class="is-hidden">
+    									<li class="go-back"><a href="#">Accessories</a></li>
+    									<li class="see-all"><a href="http://codyhouse.co/?p=409">All Caps &amp; Hats</a></li>
+    									<li><a href="http://codyhouse.co/?p=409">Beanies</a></li>
+    									<li><a href="http://codyhouse.co/?p=409">Caps</a></li>
+    									<li><a href="http://codyhouse.co/?p=409">Hats</a></li>
+    								</ul>
+    							</li>
+    							<li><a href="http://codyhouse.co/?p=409">Glasses</a></li>
+    							<li><a href="http://codyhouse.co/?p=409">Gloves</a></li>
+    							<li><a href="http://codyhouse.co/?p=409">Jewellery</a></li>
+    							<li><a href="http://codyhouse.co/?p=409">Scarves</a></li>
+    							<li><a href="http://codyhouse.co/?p=409">Wallets</a></li>
+    							<li><a href="http://codyhouse.co/?p=409">Watches</a></li>
+    						</ul>
+    					</li>
+
+    					<li class="has-children">
+    						<a href="http://codyhouse.co/?p=409">Bottoms</a>
+
+    						<ul class="is-hidden">
+    							<li class="go-back"><a href="#">Clothing</a></li>
+    							<li class="see-all"><a href="http://codyhouse.co/?p=409">All Bottoms</a></li>
+    							<li><a href="http://codyhouse.co/?p=409">Casual Trousers</a></li>
+    							<li class="has-children">
+    								<a href="#">Jeans</a>
+
+    								<ul class="is-hidden">
+    									<li class="go-back"><a href="#">Bottoms</a></li>
+    									<li><a href="http://codyhouse.co/?p=409">Ripped</a></li>
+    									<li><a href="http://codyhouse.co/?p=409">Skinny</a></li>
+    									<li><a href="http://codyhouse.co/?p=409">Slim</a></li>
+    									<li><a href="http://codyhouse.co/?p=409">Straight</a></li>
+                                        <li class="see-all"><a href="http://codyhouse.co/?p=409">All Jeans</a></li>
+    								</ul>
+    							</li>
+    							<li><a href="#">Leggings</a></li>
+    							<li><a href="#">Shorts</a></li>
+    						</ul>
+    					</li>
+
+    					<li class="has-children">
+    						<a href="http://codyhouse.co/?p=409">Jackets</a>
+
+    						<ul class="is-hidden">
+    							<li class="go-back"><a href="#">Clothing</a></li>
+    							<li class="see-all"><a href="http://codyhouse.co/?p=409">All Jackets</a></li>
+    							<li><a href="http://codyhouse.co/?p=409">Blazers</a></li>
+    							<li><a href="http://codyhouse.co/?p=409">Bomber jackets</a></li>
+    							<li><a href="http://codyhouse.co/?p=409">Denim Jackets</a></li>
+    							<li><a href="http://codyhouse.co/?p=409">Duffle Coats</a></li>
+    							<li><a href="http://codyhouse.co/?p=409">Leather Jackets</a></li>
+    							<li><a href="http://codyhouse.co/?p=409">Parkas</a></li>
+    						</ul>
+    					</li>
+
+    					<li class="has-children">
+    						<a href="http://codyhouse.co/?p=409">Tops</a>
+
+    						<ul class="is-hidden">
+    							<li class="go-back"><a href="#">Clothing</a></li>
+    							<li class="see-all"><a href="http://codyhouse.co/?p=409">All Tops</a></li>
+    							<li><a href="http://codyhouse.co/?p=409">Cardigans</a></li>
+    							<li><a href="http://codyhouse.co/?p=409">Coats</a></li>
+    							<li><a href="http://codyhouse.co/?p=409">Hoodies &amp; Sweatshirts</a></li>
+    							<li><a href="http://codyhouse.co/?p=409">Jumpers</a></li>
+    							<li><a href="http://codyhouse.co/?p=409">Polo Shirts</a></li>
+    							<li><a href="http://codyhouse.co/?p=409">Shirts</a></li>
+    							<li class="has-children">
+    								<a href="#">T-Shirts</a>
+
+    								<ul class="is-hidden">
+    									<li class="go-back"><a href="#">Tops</a></li>
+    									<li class="see-all"><a href="http://codyhouse.co/?p=409">All T-shirts</a></li>
+    									<li><a href="http://codyhouse.co/?p=409">Plain</a></li>
+    									<li><a href="http://codyhouse.co/?p=409">Print</a></li>
+    									<li><a href="http://codyhouse.co/?p=409">Striped</a></li>
+    									<li><a href="http://codyhouse.co/?p=409">Long sleeved</a></li>
+    								</ul>
+    							</li>
+    							<li><a href="http://codyhouse.co/?p=409">Vests</a></li>
+    						</ul>
+    					</li>
+    				</ul>
+    			</li> -->
+
+                <li><a href="http://codyhouse.co/?p=409">About</a></li>
+
+    			<li class="has-children">
+    				<a href="http://codyhouse.co/?p=409">Resources</a>
+    				<ul class="cd-nav-icons is-hidden">
+    					<li class="go-back"><a href="#">Menu</a></li>
+    					<li class="see-all"><a href="http://codyhouse.co/?p=409">See All Resources</a></li>
+    					<li>
+    						<a class="cd-nav-item item-1" href="http://codyhouse.co/?p=409">
+    							<h3>Blog</h3>
+    							<p>See our newsfeed</p>
+    						</a>
+    					</li>
+
+    					<li>
+    						<a class="cd-nav-item item-8" href="http://codyhouse.co/?p=409">
+    							<h3>Podcasts</h3>
+    							<p>Our lastest series</p>
+    						</a>
+    					</li>
+
+    					<li>
+    						<a class="cd-nav-item item-7" href="http://codyhouse.co/?p=409">
+    							<h3>Videos</h3>
+    							<p>Through RightNow media</p>
+    						</a>
+    					</li>
+                    </ul>
+    			</li>
+
+                <li class="has-children">
+    				<a href="http://codyhouse.co/?p=409">In Your Neighborhood</a>
+
+    				<ul class="se-nav-icons cd-secondary-nav is-hidden">
+    					<li class="go-back"><a href="#">Menu</a></li>
+    					<li class="see-all"><a href="http://codyhouse.co/?p=409">In Your Neighborhood</a></li>
+    					<li>
+    						<!-- <a href="http://codyhouse.co/?p=409">Accessories</a> -->
+                            <div class="text-center hidden-sm hidden-xs hidden-md" style="padding-right:10%">
+                                <h3 class="hidden-sm hidden-xs">In Your Neighborhood</h3>
+                                <br />
+                                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p><br /><p>Proin vitae lorem non sem suscipit fermentum.</p><br /><p>Maecenas posuere orci vitae ante.</p>
+                            </div>
+                        </li>
+
+    					<li>
+                            <div style="padding-right:10%" class="hidden-md hidden-sm hidden-xs">
+                                <img src="https://files.secc.org/sermons/series/series-142.jpg" alt="Current Series" class="img-respoinsive" style="max-height:220px">
+                            </div>
+    						<a href="http://codyhouse.co/?p=409">Current Series</a>
+                        </li>
+
+    					<li>
+                            <a class="cd-nav-item item-2" href="http://codyhouse.co/?p=409">
+    							<h3>Maps</h3>
+    						</a>
+                            <a class="cd-nav-item item-4" href="http://codyhouse.co/?p=409">
+                                <h3>Stories</h3>
+                            </a>
+    					</li>
+    					<li>
+                            <a class="cd-nav-item item-6" href="http://codyhouse.co/?p=409">
+    							<h3>Group Manager</h3>
+    						</a>
+                            <a class="cd-nav-item item-7" href="http://codyhouse.co/?p=409">
+                                <h3>Community Pastors</h3>
+                            </a>
+    					</li>
+    				</ul>
+    			</li>
+
+            </ul> <!-- primary-nav -->
+    	</nav> <!-- cd-nav -->
+
+    	<div id="cd-search" class="cd-search">
+    		<form>
+    			<input type="search" placeholder="Search...">
+    		</form>
+    	</div>
+
+        <%-- controls for scriptmanager and update panel --%>
+        <asp:ScriptManager ID="sManager" runat="server"/>
+        <asp:UpdateProgress id="updateProgress" runat="server" DisplayAfter="800">
+		        <ProgressTemplate>
+		            <div class="updateprogress-status">
+                        <div class="spinner">
+                          <div class="rect1"></div>
+                          <div class="rect2"></div>
+                          <div class="rect3"></div>
+                          <div class="rect4"></div>
+                          <div class="rect5"></div>
+                        </div>
+                    </div>
+                    <div class="updateprogress-bg modal-backdrop"></div>
+		        </ProgressTemplate>
+        </asp:UpdateProgress>
+
+    </form>
+
+        <!-- Back To Top -->
+        <a href="javascript:void(0);" class="s-back-to-top js__back-to-top"></a>
+
+        <!-- START REVOLUTION JS -->
+		<script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/js/jquery.themepunch.tools.min.js", true) %>"></script>
+		<script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/js/jquery.themepunch.revolution.min.js", true) %>"></script>
+		<!-- SLIDER REVOLUTION 5.0 EXTENSIONS  (Load Extensions only on Local File Systems !  The following part can be removed on Server for On Demand Loading) -->
+		<script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/js/extensions/revolution.extension.actions.min.js", true) %>"></script>
+		<script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/js/extensions/revolution.extension.carousel.min.js", true) %>"></script>
+		<script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/js/extensions/revolution.extension.kenburn.min.js", true) %>"></script>
+		<script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/js/extensions/revolution.extension.layeranimation.min.js", true) %>"></script>
+		<script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/js/extensions/revolution.extension.migration.min.js", true) %>"></script>
+		<script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/js/extensions/revolution.extension.navigation.min.js", true) %>"></script>
+		<script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/js/extensions/revolution.extension.parallax.min.js", true) %>"></script>
+		<script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/js/extensions/revolution.extension.slideanims.min.js", true) %>"></script>
+		<script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/js/extensions/revolution.extension.video.min.js", true) %>"></script>
+
+        <script type="text/javascript">
+			var tpj=jQuery;
+
+			var revapi149;
+			tpj(document).ready(function() {
+				if(tpj("#rev_slider_149_1").revolution == undefined){
+					revslider_showDoubleJqueryError("#rev_slider_149_1");
+				}else{
+					revapi149 = tpj("#rev_slider_149_1").show().revolution({
+						sliderType:"standard",
+						jsFileLocation:"revolution/js/",
+						sliderLayout:"fullscreen",
+						dottedOverlay:"none",
+						delay:9000,
+						navigation: {
+							keyboardNavigation:"off",
+							keyboard_direction: "vertical",
+							mouseScrollNavigation:"off",
+ 							mouseScrollReverse:"default",
+							onHoverStop:"off",
+							touch:{
+								touchenabled:"on",
+								swipe_threshold: 75,
+								swipe_min_touches: 1,
+								swipe_direction: "horizontal",
+								drag_block_vertical: false
+							}
+							,
+							arrows: {
+								style:"uranus",
+								enable:true,
+								hide_onmobile:false,
+								hide_onleave:false,
+								tmp:'',
+								left: {
+									h_align:"left",
+									v_align:"center",
+									h_offset:10,
+									v_offset:0
+								},
+								right: {
+									h_align:"right",
+									v_align:"center",
+									h_offset:10,
+									v_offset:0
+								}
+							}
+						},
+						responsiveLevels:[1240,1024,778,480],
+						visibilityLevels:[1240,1024,778,480],
+						gridwidth:[1240,1024,778,480],
+						gridheight:[868,768,960,720],
+						lazyType:"none",
+						scrolleffect: {
+							blur:"on",
+							maxblur:"20",
+							on_slidebg:"on",
+							direction:"top",
+							multiplicator:"2",
+							multiplicator_layers:"2",
+							tilt:"10",
+							disable_on_mobile:"off",
+						},
+						parallax: {
+							type:"scroll",
+							origo:"slidercenter",
+							speed:400,
+							levels:[5,10,15,20,25,30,35,40,45,46,47,48,49,50,51,55],
+						},
+						shadow:0,
+						spinner:"spinner3",
+						stopLoop:"off",
+						stopAfterLoops:-1,
+						stopAtSlide:-1,
+						shuffle:"off",
+						autoHeight:"off",
+                        fullScreenAutoWidth:"on",
+						fullScreenAlignForce:"on",
+						fullScreenOffsetContainer: "260px",
+						fullScreenOffset: "80px",
+						hideThumbsOnMobile:"off",
+						hideSliderAtLimit:0,
+						hideCaptionAtLimit:0,
+						hideAllCaptionAtLilmit:0,
+						debugMode:false,
+						fallbacks: {
+							simplifyAll:"off",
+							nextSlideOnWindowFocus:"off",
+							disableFocusListener:false,
+						}
+					});
+				}
+			});	/*ready*/
+		</script>
+        <!-- END REVOLUTION JS -->
+
+        <!--========== JAVASCRIPTS (Load javascripts at bottom, this will reduce page load time) ==========-->
+        <!-- General Components and Settings -->
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/global.js", true) %>"></script>
+        <!-- <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/header-sticky.min.js", true) %>"></script> -->
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/scrollbar.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/magnific-popup.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/swiper.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/counter.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/portfolio-3-col.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/parallax.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/google-map.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/wow.min.js") %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~/Scripts/bootstrap-datepicker.js") %>"></script>
+</body>
+
+</html>
