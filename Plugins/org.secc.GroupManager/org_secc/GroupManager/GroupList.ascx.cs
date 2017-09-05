@@ -83,8 +83,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     };
                     lbGroup.Click += ( s, ee ) => LoadGroup( group );
                     phContent.Controls.Add( lbGroup );
-                    HtmlGenericContainer br = new HtmlGenericContainer( "br" );
-                    phContent.Controls.Add( br );
                 }
             }
         }
