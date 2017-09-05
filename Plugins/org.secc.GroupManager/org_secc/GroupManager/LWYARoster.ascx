@@ -56,7 +56,88 @@
             display: none;
         }
     }
+    .image-teardrop
+    {
+        overflow: hidden;
+        margin: 0px 10px 10px 0px;
+    }
+    .image-cropper {
+        width: 100px;
+        height: 125px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .image-cropper > img {
+        display: inline;
+        margin: 0 auto;
+        height: 100%;
+        width: auto;
+    }
+    .thumbnail {
+        padding: 10px;
+        margin: 10px;
+        height: 100%;
+        display: block;
+        background: #fff;
+        box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.2);
+        transition: all .3s;
+        border-radius: 0;
+        border: 3px solid #f4f4f4;
+    }
+    .thumbnail:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 22px 43px rgba(0, 0, 0, 0.15);
+    }
+    .thumbnail .header {
+        background-color: #f4f4f4;
+        padding: 10px;
+        margin: -10px;
+        margin-bottom: 10px;
+    }
+    .label {
+        margin: 0px 3px;
+    }
+    a[id$="_btnRemoveMember"] {
+        margin-top:-5px;
+    }
 </style>
+<script>
+$(window).load(function() {
+    // Initialize Isotope
+    var $grid = $('.isotope_wrap').isotope({
+        // options
+        percentPosition: true,
+        itemSelector: '.isotope_item',
+        layoutMode: 'fitRows'
+    });
+    // reveal all items after init
+    var $items = $grid.find('.isotope_item');
+    $grid.addClass('is-showing-items')
+    .isotope( 'revealItemElements', $items );
+    });
+    var confirmedRemove = false;
+    var confirmRemove = function (el, e) {
+        if (confirmedRemove) {
+            confirmedRemove = false;
+            return true;
+        }
+        // make sure the element that triggered this event isn't disabled
+        if (e.currentTarget && e.currentTarget.disabled) {
+            return false;
+        }
+        
+        Rock.dialogs.confirm('Are you sure you want to deactivate this group member?', function (el, e) {
+            return function (response) {
+                if (response) {
+                    confirmedRemove = true;
+                    el.click();
+                }
+            }
+        }(el, e));
+        return false;
+    }
+</script>
 <asp:UpdatePanel ID="upDevice" runat="server">
     <ContentTemplate>
         <asp:HiddenField ID="hfCommunication" runat="server" Value="" />
@@ -96,10 +177,50 @@
                 </div>
             </Content>
         </Rock:ModalDialog>
+        
+        <Rock:ModalDialog ID="mdAddMember" ValidationGroup="AddMember" CancelLinkVisible="false" runat="server" Title="Add Group Member">
+            <Content>
+                <asp:Panel runat="server" ID="pnlForm">
+                    <Rock:NotificationBox runat="server" ID="nbInvalid" NotificationBoxType="Warning" Dismissable="true" Visible="true">
+                        First and Last name is required and one of Birthday, Phone Number, or Email.
+                    </Rock:NotificationBox>
+                    <Rock:RockTextBox ID="tbFirstName" runat="server" Label="First Name" ValidationGroup="AddMemeber" Required="True"></Rock:RockTextBox>
+                    <Rock:RockTextBox ID="tbLastName" runat="server" Label="Last Name" ValidationGroup="AddMember" Required="True"></Rock:RockTextBox>
+
+                    <Rock:DatePicker runat="server" ID="dpBirthday" Label="Birthday"></Rock:DatePicker>
+
+                    <Rock:PhoneNumberBox ID="pnCell" runat="server" Label="Cell Phone"></Rock:PhoneNumberBox>
+
+                    <Rock:EmailBox ID="tbEmail" runat="server" Label="Email"></Rock:EmailBox>
+
+                    <div style="padding-bottom: 50px;">
+                        <Rock:BootstrapButton ID="btnCancel" runat="server"
+                            CssClass="btn btn-default pull-right btn-lg" OnClick="btnClose_Click">Close</Rock:BootstrapButton>
+                        <div class="pull-right">&nbsp;</div>
+                        <Rock:BootstrapButton ID="btnRegister" OnClick="btnRegister_Click" runat="server" Text="Add"
+                            CssClass="btn btn-primary pull-right btn-lg" ValidationGroup="AddMember" CausesValidation="true" />
+                        
+                    </div>
+                </asp:Panel>
+                <asp:Panel runat="server" ID="pnlResults" Visible="false">
+                    <Rock:RockLiteral runat="server" ID="ltResults"></Rock:RockLiteral>
+
+                    <div>
+                        <Rock:BootstrapButton ID="btnAddAnother" runat="server" CssClass="btn btn-primary"
+                            OnClick="btnAddAnother_Click">Add Another Member</Rock:BootstrapButton>
+                        <Rock:BootstrapButton ID="btnClose" runat="server" CssClass="btn btn-default m-l-1"
+                            OnClick="btnClose_Click">Finished</Rock:BootstrapButton>
+                    </div>
+                </asp:Panel>
+            </Content>
+        </Rock:ModalDialog>
 
         <asp:Panel ID="pnlMain" runat="server">
+            <div class="pull-right text-right" style="width:300px">
+                <Rock:BootstrapButton runat="server" ID="btnAddMember" Text="Add Member" CssClass="btn s-btn--primary-bg" OnClick="btnAddMember_Click" />
+                <Rock:BootstrapButton runat="server" ID="btnEmailGroup" Text="Email Group" CssClass="btn s-btn--dark-brd" OnClick="btnEmail_Click"  />
+            </div>
             <asp:Literal ID="ltTitle" runat="server" /><br />
-
 
             <asp:Panel runat="server" ID="pnlMembership" Visible="false">
                 <div class="hidden-print">
@@ -138,40 +259,39 @@
                 <Rock:BootstrapButton runat="server" ID="btnSMS" CssClass="btn btn-default btn-lg pull-right hidden-print" OnClick="btnSMS_Click"><i class="fa fa-mobile-phone"></i> Text</Rock:BootstrapButton>
             </asp:Panel>
 
-            <asp:Panel runat="server" ID="pnlRoster" CssClass="wrapper">
-                <div class="isotope_wrap is-showing-items">
-                    <asp:Repeater runat="server" ID="rRoster" OnItemDataBound="rRoster_ItemDataBound">
-                        <ItemTemplate>
-                            <div class="isotope_item col-xs-12 col-sm-6 col-md-4">
-                                <div class="thumbnail">
-                                    <div class="header">
-                                        <asp:Label runat="server" Style="font-weight: bold"
-                                            Text='<%# Eval("Name") %>' />
-                                    </div>
-                                    <div class="image-teardrop pull-left">
-                                        <div class="image-cropper">
-                                            <img src='<%# Eval("PhotoUrl") %>&h=125&w=100&mode=crop&scale=both&anchor=topcenter' alt="Photo">
-                                        </div>
-                                    </div>
-                                        <Rock:HighlightLabel runat="server" Text='<%# Eval("Status") %>'
-                                            CssClass='<%# StyleStatusLabel(Eval("Status"))%>' />
-                                        <Rock:HighlightLabel runat="server" Text='<%# Eval("Role") %>'
-                                            CssClass='<%# StyleLeaderLabel(Eval("IsLeader"))%>' />
-                                        <br /><br />
-                                            <asp:Label runat="server" ID="Label1"
-                                                Text='<%# Eval("FormattedAddress") %>' />
-                                            <br />
-                                            <asp:Label runat="server" ID="Label5"
-                                                Text='<%# Eval("Phone") %>' />
-                                            <br>
-                                            <Rock:BootstrapButton runat="server" ID="btnRosterEmail"></Rock:BootstrapButton>
-                                            <Rock:RockLiteral ID="ltLava" runat="server" Text='<%# RosterLava(Eval("Person"))%>'></Rock:RockLiteral>
-                                    
+            <asp:Panel runat="server" ID="pnlRoster" CssClass="wrapper isotope_wrap">
+                <asp:Repeater runat="server" ID="rRoster" OnItemDataBound="rRoster_ItemDataBound">
+                    <ItemTemplate>
+                        <div class="isotope_item nopadding col-xs-12 col-sm-6 col-md-4">
+                            <div class="thumbnail">
+                                <div class="header">
+                                    <asp:Label runat="server" Style="font-weight: bold"
+                                        Text='<%# Eval("Name") %>' />
+                                    <asp:LinkButton runat="server" ID="btnRemoveMember" CommandArgument='<%# Eval("Id") %>' OnClientClick="return confirmRemove(this, event);" CssClass="btn btn-sm btn-danger pull-right" OnClick="btnRemoveMember_Click"><i class="fa fa-times"></i></asp:LinkButton>
                                 </div>
+                                <div class="image-teardrop pull-left">
+                                    <div class="image-cropper">
+                                        <img src='<%# Eval("PhotoUrl") %>&h=125&w=100&mode=crop&scale=both&anchor=topcenter' alt="Photo">
+                                    </div>
+                                </div>
+                                    <Rock:HighlightLabel runat="server" Text='<%# Eval("Status") %>'
+                                        CssClass='<%# StyleStatusLabel(Eval("Status"))%>' />
+                                    <Rock:HighlightLabel runat="server" Text='<%# Eval("Role") %>'
+                                        CssClass='<%# StyleLeaderLabel(Eval("IsLeader"))%>' />
+                                    <br /><br />
+                                        <asp:Label runat="server" ID="Label1"
+                                            Text='<%# Eval("FormattedAddress") %>' />
+                                        <br />
+                                        <asp:Label runat="server" ID="Label5"
+                                            Text='<%# Eval("Phone") %>' />
+                                        <br>
+                                        <Rock:BootstrapButton runat="server" ID="btnRosterEmail"></Rock:BootstrapButton>
+                                        <Rock:RockLiteral ID="ltLava" runat="server" Text='<%# RosterLava(Eval("Person"))%>'></Rock:RockLiteral>
+                                    
                             </div>
-                        </ItemTemplate>
-                    </asp:Repeater>
-                </div>
+                        </div>
+                    </ItemTemplate>
+                </asp:Repeater>
             </asp:Panel>
         </asp:Panel>
 
@@ -199,6 +319,6 @@
             <Rock:BootstrapButton ID="btnEmailSend" runat="server" OnClick="btnEmailSend_Click" CssClass="btn btn-primary">Send</Rock:BootstrapButton>
             <Rock:BootstrapButton ID="btnEmailCancel" runat="server" OnClick="btnCancel_Click" CssClass="btn btn-default">Cancel</Rock:BootstrapButton>
         </asp:Panel>
+    <pre><asp:Literal runat="server" ID="debug"></asp:Literal></pre>
     </ContentTemplate>
-
 </asp:UpdatePanel>

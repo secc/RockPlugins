@@ -20,7 +20,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [DisplayName( "LWYA Roster" )]
     [Category( "SECC > Groups" )]
     [Description( "Presents members of group in roster format." )]
-
+    
+    [CustomRadioListField( "Group Member Status", "The group member status to use when adding person to group (default: 'Pending'.)", "2^Pending,1^Active,0^Inactive", true, "2", "", 1 )]
+    [DefinedValueField( "2E6540EA-63F0-40FE-BE50-F2A84735E600", "Connection Status", "The connection status to use for new individuals (default: 'Web Prospect'.)", true, false, "368DD475-242C-49C4-A42C-7278BE690CC2", "", 2 )]
+    [DefinedValueField( "8522BADD-2871-45A5-81DD-C76DA07E2E7E", "Record Status", "The record status to use for new individuals (default: 'Pending'.)", true, false, "283999EC-7346-42E3-B807-BCE9B2BABB49", "", 3 )]
+    
     //Settings
     [CodeEditorField( "Roster Lava", "Lava to appear in member roster pannels", CodeEditorMode.Lava, CodeEditorTheme.Rock, 600, false )]
     [BooleanField( "Allow Email", "Allow email to be sent from this block.", false )]
@@ -38,6 +42,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             $('textarea[id$= \'tbMessage\']').keyup(function(){charCount()});
             ";
         private RockContext _rockContext;
+        GroupTypeRole _defaultGroupRole = null;
+        DefinedValueCache _dvcConnectionStatus = null;
+        DefinedValueCache _dvcRecordStatus = null;
 
 
         protected override void OnInit( EventArgs e )
@@ -101,6 +108,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 //this line is needed or resizing the page
                 //afterpost back will stop the grid from being responsive
                 gMembers.DataSource = memberData;
+                pnlRoster.AddCssClass( "is-showing-items" );
             }
             BindRoster();
         }
@@ -851,11 +859,230 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 e.Row.Cells[6].CssClass = "hide";
             }
         }
+
+
+        /// <summary>
+        /// Handles the Click event of the btnRegister control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void btnRegister_Click( object sender, EventArgs e )
+        {
+            if ( Page.IsValid && CheckSettings() )
+            {
+                if ( _rockContext == null )
+                {
+                    _rockContext = new RockContext();
+                }
+                var personService = new PersonService( _rockContext );
+
+                Person person = null;
+
+                var changes = new List<string>();
+                var spouseChanges = new List<string>();
+                var familyChanges = new List<string>();
+
+                // Try to find person by name/email 
+                if ( person == null )
+                {
+                    var matches = GetByMatch( tbFirstName.Text.Trim(), tbLastName.Text.Trim(), dpBirthday.SelectedDate, pnCell.Text.Trim(), tbEmail.Text.Trim() );
+
+                    //if matches is null it means that information wasn't entered correctly
+                    if ( matches == null )
+                    {
+                        nbInvalid.Visible = true;
+                        return;
+                    }
+
+                    if ( matches.Count() == 1 )
+                    {
+                        person = matches.First();
+                    }
+                }
+                // Check to see if this is a new person
+                if ( person == null )
+                {
+                    // If so, create the person and family record for the new person
+                    person = new Person();
+                    person.FirstName = tbFirstName.Text.Trim();
+                    person.LastName = tbLastName.Text.Trim();
+                    person.SetBirthDate( dpBirthday.SelectedDate );
+                    person.UpdatePhoneNumber( DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).Id,
+                        PhoneNumber.DefaultCountryCode(), pnCell.Text, true, false, _rockContext );
+                    person.Email = tbEmail.Text.Trim();
+                    person.IsEmailActive = true;
+                    person.EmailPreference = EmailPreference.EmailAllowed;
+                    person.RecordTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+                    person.ConnectionStatusValueId = _dvcConnectionStatus.Id;
+                    person.RecordStatusValueId = _dvcRecordStatus.Id;
+                    person.Gender = Gender.Unknown;
+
+                    PersonService.SaveNewPerson( person, _rockContext, CurrentGroup.CampusId, false );
+                }
+
+                // Save the registration
+                AddPersonToGroup( _rockContext, person );
+                pnlForm.Visible = false;
+                pnlResults.Visible = true;
+                ltResults.Text = person.FullName + " has been added to your group.";
+
+                //Mark That We Created a New Person and Clear Form
+                //hfUpdated.Value = "true";
+                ClearForm();
+            }
+        }
+
+
+        private void ClearForm()
+        {
+            tbFirstName.Text = "";
+            tbLastName.Text = "";
+            dpBirthday.Text = "";
+            pnCell.Text = "";
+            tbEmail.Text = "";
+        }
+
+        private List<Person> GetByMatch( string firstName, string lastName, DateTime? birthday, string cellPhone, string email )
+        {
+
+            cellPhone = PhoneNumber.CleanNumber( cellPhone ) ?? string.Empty;
+            email = email ?? string.Empty;
+
+            //Stop if first name or last name is blank or if all three of email, phone and birthday are blank
+            if ( string.IsNullOrWhiteSpace( firstName ) || string.IsNullOrWhiteSpace( lastName )
+                || !( !string.IsNullOrWhiteSpace( cellPhone ) || !string.IsNullOrWhiteSpace( email ) || birthday != null )
+                )
+            {
+                return null;
+            }
+
+            //Search for person who matches first and last name and one of email, phone number, or birthday
+            return new PersonService( _rockContext ).Queryable()
+                         .Where( p => p.LastName == lastName
+                                 && ( p.FirstName == firstName || p.NickName == firstName )
+                                 && ( ( p.Email == email && p.Email != string.Empty )
+                                 || ( p.PhoneNumbers.Where( pn => pn.Number == cellPhone ).Any() && cellPhone != string.Empty )
+                                 || ( birthday != null && p.BirthDate == birthday ) ) )
+                                 .ToList();
+        }
+
+        /// <summary>
+        /// Adds the person to group.
+        /// </summary>
+        /// <param name="rockContext">The rock context.</param>
+        /// <param name="person">The person.</param>
+        /// <param name="workflowType">Type of the workflow.</param>
+        /// <param name="groupMembers">The group members.</param>
+        private void AddPersonToGroup( RockContext rockContext, Person person )
+        {
+            if ( person != null )
+            {
+                if ( !CurrentGroup.Members
+                    .Any( m =>
+                        m.PersonId == person.Id &&
+                        m.GroupRoleId == _defaultGroupRole.Id ) )
+                {
+                    var groupMemberService = new GroupMemberService( rockContext );
+                    var groupMember = new GroupMember();
+                    groupMember.PersonId = person.Id;
+                    groupMember.GroupRoleId = _defaultGroupRole.Id;
+                    groupMember.GroupMemberStatus = ( GroupMemberStatus ) GetAttributeValue( "GroupMemberStatus" ).AsInteger();
+                    groupMember.GroupId = CurrentGroup.Id;
+                    groupMemberService.Add( groupMember );
+                    rockContext.SaveChanges();
+                }
+                else
+                {
+                    foreach(var groupMember in CurrentGroup.Members
+                        .Where( m => m.PersonId == person.Id &&
+                            m.GroupRoleId == _defaultGroupRole.Id ))
+                    {
+                        var groupMemberService = new GroupMemberService( rockContext );
+                        var efGroupMember = groupMemberService.Get( groupMember.Guid );
+                        efGroupMember.GroupMemberStatus = ( GroupMemberStatus ) GetAttributeValue( "GroupMemberStatus" ).AsInteger();
+                        debug.Text += groupMember.Person.FullName;
+                    }
+                    rockContext.SaveChanges();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Checks the settings.
+        /// </summary>
+        /// <returns></returns>
+        private bool CheckSettings()
+        {
+            _rockContext = _rockContext ?? new RockContext();
+
+            if ( CurrentGroup == null )
+            {
+                NavigateToHomePage();
+                return false;
+            }
+
+            //Authorization check. Nothing is visible otherwise
+            if ( !CurrentGroup.IsAuthorized( Authorization.EDIT, CurrentPerson ) )
+            {
+                return false;
+            }
+
+            _defaultGroupRole = CurrentGroup.GroupType.DefaultGroupRole;
+
+            _dvcConnectionStatus = DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() );
+            if ( _dvcConnectionStatus == null )
+            {
+                return false;
+            }
+
+            _dvcRecordStatus = DefinedValueCache.Read( GetAttributeValue( "RecordStatus" ).AsGuid() );
+            if ( _dvcRecordStatus == null )
+            {
+                return false;
+            }
+
+                        return true;
+
+        }
+        
+        protected void btnAddMember_Click( object sender, EventArgs e )
+        {
+
+            if ( CheckSettings() )
+            {
+                mdAddMember.Show();
+            }
+        }
+
+        protected void btnAddAnother_Click( object sender, EventArgs e )
+        {
+            pnlForm.Visible = true;
+            pnlResults.Visible = false;
+        }
+
+        protected void btnClose_Click( object sender, EventArgs e )
+        {
+            mdAddMember.Hide();
+            Response.Redirect( Request.RawUrl );
+        }
+
+
+        protected void btnRemoveMember_Click( object sender, EventArgs e )
+        {
+
+            int id = int.Parse( ( ( LinkButton ) sender ).CommandArgument );
+            if ( id > 0 )
+            {
+                deactivateMember( id );
+            }
+            Response.Redirect( Request.RawUrl );
+        }
     }
 
     public class MemberData
     {
         public Person Person { get; private set; }
+        
         public int Id
         {
             get
@@ -1032,5 +1259,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
             }
         }
+
+
     }
 }
