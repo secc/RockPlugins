@@ -43,7 +43,7 @@ namespace RockWeb.Blocks.Reporting.Children
             RockContext rockContext = new RockContext();
             var groupTypeGuid = GetAttributeValue( "BreakoutGroupType" ).AsGuid();
             var gQry = new GroupService( rockContext ).Queryable().Where( g => g.GroupType.Guid == groupTypeGuid );
-            var gmQry = gQry.SelectMany( g => g.Members );
+            var gmQry = gQry.SelectMany( g => g.Members.Where( gm => gm.GroupMemberStatus == GroupMemberStatus.Active ) );
 
             var personQry = new PersonService( rockContext ).Queryable().Where( p => p.GraduationYear != null );
 
