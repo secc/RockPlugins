@@ -1,0 +1,98 @@
+{% assign itemCount = Items | Size %}
+{% if itemCount > 0 %}
+<div class="container g-padding-y-20--xs g-padding-x-20--xs">
+    <div class="row">
+        <div class="col-sm-12 g-margin-b-20--xs g-margin-l-40--sm g-margin-l-20--xs">
+            <h5 class="title_divider align_left">
+                <span class="title_divider_before"></span>
+                {% assign authorObjectGuid = PageParameter['Author'] %}
+                {% if authorObjectGuid == undefined %}
+                    From Community Pastor Blog
+                {% else %}
+                    Blog Posts By {{ Items[0] | Attribute:'Author' }}
+                {% endif %}
+                <span class="title_divider_after"></span>
+            </h5>
+        </div>
+    </div>
+    <div class="isotope_wrap g-margin-b-60--xs g-margin-b-70--md">
+        {% for item in Items %}
+        {% assign ImageGuid = item | Attribute:'Image','RawValue' %}
+        {% assign AuthorObject = item | Attribute:'Author','Object' %}
+
+        <div class="isotope_item col-xs-12 col-md-6 col-lg-4 g-margin-b-60--xs g-margin-b-20--md">
+            <article class="post_item">
+
+                <div class="post_featured">
+                    <div class="post_info_item post_info_posted">
+                        <div class="day">{{ item.StartDateTime | Date:'dd' }}</div>
+                        <div class="month_year">{{ item.StartDateTime | Date:'MMM, yy' }}</div>
+                    </div>
+                    <div class="post_thumb" data-image="/GetImage.ashx?Guid={{ ImageGuid }}" data-title="{{ item.Title }}">
+    					<a class="hover_icon hover_icon_link" href="{{ LinkedPages.DetailPage }}?Item={{ item.Id }}">
+                            <img class="img-responsive" alt="{{ item.Title }}" src="/GetImage.ashx?Guid={{ ImageGuid }}&h=500&w=700&mode=crop">
+                        </a>
+                    </div>
+                </div>
+                <div class="massonry_border">
+                    <h5 class="post_title">
+                        <a href="{{ LinkedPages.DetailPage }}?Item={{ item.Id }}">{{ item.Title }}</a>
+                    </h5>
+                    <div class="post_content isotope_item_content">
+                        <div class="post_descr">
+                            {% assign Author = AuthorObject | Attribute:'Person','Object' %}
+                            <p>
+                                {% assign PastorRole = AuthorObject | Attribute:'CommunityRole','RawValue' %}
+                                {% if PastorRole == "Community Pastor"%}
+                                <strong>Author:</strong> <a href="/lwya/author?Author={{ AuthorObject.Guid }}" class="post_info_author">{{Author.FullName}}</a>
+                                {% else %}
+                                <strong>Author:</strong> {{Author.FullName}}
+                                {% endif %}
+                                <br />
+                                <strong>Read Time:</strong> {{item | Attribute:'ReadTime'}}</p>
+
+                               {% assign summary = item | Attribute:'Summary' %}
+                               {% assign blogPostContent = item.Content | TruncateWords:50 %}
+                               {% if summary != '' %}
+                                   <p>{{ summary }}</p>
+                               {% else %}
+                                   <p>{{ blogPostContent}}</p>
+                               {% endif %}
+
+                            <a href="{{ LinkedPages.DetailPage }}?Item={{ item.Id }}" class="button s-btn--primary-bg">
+                                <span class="post_readmore_label">MORE</span>
+                            </a>
+                        </div>
+                    </div>
+    			</div>
+            </article>
+        </div>
+
+            {% comment %}
+            checks to see if a new row is needed
+            {% assign remainder = forloop.index | Modulo:4 %}
+            {% if remainder == 0 %}
+                </div>
+                <div class="row">
+            {% endif %}
+            {% endcomment %}
+
+        {% endfor %}
+    </div>
+</div>
+<script>
+$(window).load(function() {
+    // Initialize Isotope
+    var $grid = $('.isotope_wrap').isotope({
+        // options
+        percentPosition: true,
+        itemSelector: '.isotope_item',
+        layoutMode: 'fitRows'
+    });
+    // reveal all items after init
+    var $items = $grid.find('.isotope_item');
+    $grid.addClass('is-showing-items')
+    .isotope( 'revealItemElements', $items );
+});
+</script>
+{% endif %}

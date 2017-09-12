@@ -1,0 +1,180 @@
+<div class="row">
+    <div class="col-md-12">
+        <a class="anchor" id="FAQ"></a>
+        <h5 class="title_divider align_left">
+            <span class="title_divider_before"></span>
+            Frequently Asked Questions
+            <span class="title_divider_after"></span>
+        </h5>
+        <br />
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6">
+            <div class="panel-group accordions-1" id="faq-accordion-1" role="tablist" aria-multiselectable="true">
+                    <!-- Item 1 -->
+                    <div class="panel panel-default">
+                      <div class="panel-heading collapsed" role="button" id="faq-1-h-1" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-1" aria-expanded="false" aria-controls="faq-1-collapse-1">
+                        <span class="first-letter-accordion"></span>
+                        <h4 class="panel-title">
+                          <span class="collapsed">
+                            What is Love Where You Are?
+                          </span>
+                        </h4>
+                      </div>
+                      <div id="faq-1-collapse-1" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-1" aria-expanded="false">
+                        <div class="panel-body">
+                          The mission of Southeast Christian Church is “connecting people to Jesus and one another.” Love Where You Are is nothing new—it's our effort to obey Jesus' command to "love your neighbor as yourself" by connecting with the people in our communities and introducing them to the love of Jesus.
+                        </div>
+                      </div>
+                    </div><!-- / .panel -->
+
+                    <!-- Item 2 -->
+                    <div class="panel panel-default">
+                      <div class="panel-heading collapsed" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-2" aria-expanded="false" aria-controls="faq-1-collapse-2">
+                        <span class="first-letter-accordion"></span>
+                        <h4 class="panel-title">
+                          <span class="collapsed">
+                              Who is Love Where You Are For?
+                          </span>
+                        </h4>
+                      </div>
+                      <div id="faq-1-collapse-2" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-2" aria-expanded="false" style="height: 0px;">
+                        <div class="panel-body">
+                              Love Where You Are is not limited to a specific church, ministry, or group. It is simply for all followers of Jesus who are trying to live in obedience to His call to love our neighbors and make disciples.
+                        </div>
+                      </div>
+                    </div><!-- / .panel -->
+
+                    <!-- Item 3 -->
+                    <div class="panel panel-default">
+                      <div class="panel-heading collapsed" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-3" aria-expanded="false" aria-controls="faq-1-collapse-3">
+                        <span class="first-letter-accordion"></span>
+                        <h4 class="panel-title">
+                          <span class="collapsed">
+                              What is the goal of Love Where You Are?
+                          </span>
+                        </h4>
+                      </div>
+                      <div id="faq-1-collapse-3" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-3" aria-expanded="false" style="">
+                        <div class="panel-body">
+                              We want every person to have the opportunity to know Jesus. The goal of Love Where You Are is to put the Gospel within walking distance of every person in our communities. We seek to accomplish this by mobilizing Christ followers to be an intentional Gospel presence where they live, work and go.
+                        </div>
+                      </div>
+                    </div><!-- / .panel -->
+
+                    <!-- Item 4 -->
+                    <div class="panel panel-default">
+                      <div class="panel-heading collapsed" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-4" aria-expanded="false" aria-controls="faq-1-collapse-4">
+                        <span class="first-letter-accordion"></span>
+                        <h4 class="panel-title">
+                          <span class="collapsed">
+                            What is a Community Leader?
+                          </span>
+                        </h4>
+                      </div>
+                      <div id="faq-1-collapse-4" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-4" aria-expanded="false" style="height: 0px;">
+                        <div class="panel-body">
+                            A Community Leader is a follower of Jesus who is intentionally living as a Gospel presence where they live, work, or go. Community Leaders are committed to the following:
+                            <ol>
+                                <li>Praying for their neighbors.</li>
+                                <li>Reaching out to lovingly share and show the Gospel of Jesus with their neighbors.</li>
+                                <li>Challenging everyone to take their next step in following Jesus.</li>
+                            </ol>
+                            Every Community Leader is connected to a Community Pastor at Southeast Christian Church who walks with them on their disciple-making journey.
+                        </div>
+                      </div>
+                    </div><!-- / .panel -->
+
+                    <!-- Item 5 -->
+                    <div class="panel panel-default">
+                      <div class="panel-heading collapsed" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-5" aria-expanded="false" aria-controls="faq-1-collapse-5">
+                        <span class="first-letter-accordion"></span>
+                        <h4 class="panel-title">
+                          <span class="collapsed">
+                              What is a Community Pastor?
+                          </span>
+                        </h4>
+                      </div>
+                      <div id="faq-1-collapse-5" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-5" aria-expanded="false" style="height: 0px;">
+                        <div class="panel-body">
+                             A <a href="/lwya/community-pastors">Community Pastor</a> works within specific areas of the community to identify, equip, and mobilize Christ followers to love where they are.
+                        </div>
+                      </div>
+                    </div><!-- / .panel -->
+
+              </div>
+      </div>
+      <div class="col-md-6">
+          <div class="panel-group accordions-1" id="faq-accordion-2" role="tablist" aria-multiselectable="true">
+
+              <!-- Item 6 -->
+              <div class="panel panel-default">
+                  <div class="panel-heading collapsed" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-6" aria-expanded="false" aria-controls="faq-1-collapse-6">
+                      <span class="first-letter-accordion"></span>
+                      <h4 class="panel-title">
+                          <span class="collapsed">
+                              How can I connect with my Community Pastor?
+                          </span>
+                      </h4>
+                  </div>
+                  <div id="faq-1-collapse-6" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-6" aria-expanded="false" style="height: 0px;">
+                      <div class="panel-body">
+                          Every part of the Louisville, Southern Indiana, and Elizabethtown metro areas is represented by a Community Pastor. <a href="/lwya/community-pastors">Click here to find out who your Community Pastor is and connect with him.</a>
+                      </div>
+                  </div>
+              </div><!-- / .panel -->
+            <!-- Item 1 -->
+            <div class="panel panel-default">
+              <div class="panel-heading collapsed" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-2-collapse-1" aria-expanded="false" aria-controls="faq-2-collapse-1">
+                <span class="first-letter-accordion"></span>
+                <h4 class="panel-title">
+                  <span class="collapsed">
+                      Do I need to have a group meet in my home in order to be a part of Love Where You Are?
+                  </span>
+                </h4>
+              </div>
+              <div id="faq-2-collapse-1" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-1" aria-expanded="false">
+                <div class="panel-body">
+                    No. While many who are striving to love where they are do meet regularly in homes, it isn't necessary for you to have a group in your home in order to love where you are. It is far more important that you are seeking to connect people to Jesus and one another where you live, work, or go.
+                </div>
+              </div>
+            </div><!-- / .panel -->
+
+            <!-- Item 2 -->
+            <div class="panel panel-default">
+              <div class="panel-heading collapsed" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-2-collapse-2" aria-expanded="false" aria-controls="faq-2-collapse-2">
+                <span class="first-letter-accordion"></span>
+                <h4 class="panel-title">
+                  <span class="collapsed">
+                      Is Love Where You Are limited to residential neighborhoods?
+                  </span>
+                </h4>
+              </div>
+              <div id="faq-2-collapse-2" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-2" aria-expanded="false">
+                <div class="panel-body">
+                      No. Love Where You Are is for anyone seeking to intentionally share and show the Gospel of Jesus with their "neighbors.” For many, their neighbors may be coworkers, friends from the gym, students in their class, or members of their team.
+                </div>
+              </div>
+            </div><!-- / .panel -->
+
+            <!-- Item 3 -->
+            <div class="panel panel-default">
+              <div class="panel-heading collapsed" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-2-collapse-3" aria-expanded="false" aria-controls="faq-2-collapse-3">
+                <span class="first-letter-accordion"></span>
+                <h4 class="panel-title">
+                  <span class="collapsed">
+                      I want to be a part of Love Where You Are. What should I do next?
+                  </span>
+                </h4>
+              </div>
+              <div id="faq-2-collapse-3" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-3" aria-expanded="false">
+                <div class="panel-body">
+                      <a href="/lwya/community-pastors">Contact your Community Pastor.</a>
+                </div>
+              </div>
+            </div><!-- / .panel -->
+
+          </div>
+      </div>
+  </div>

@@ -1,0 +1,61 @@
+<div class="container-fluid" id="community-pastors">
+    <br />
+    <h4 class="title_divider align_left g-margin-t-20--xs g-margin-l-20--xs">
+        <span class="title_divider_before"></span>
+        Community Pastors
+        <span class="title_divider_after"></span>
+    </h4>
+    <p class="g-margin-l-20--md g-margin-l-20--xs">Our Community Pastors work within specific areas of the community to identify, equip, and mobilize Christ followers to love where they are. Find your Community Pastor below. </p>
+    <hr />
+    <div class="isotope_wrap g-margin-b-60--xs g-margin-b-70--md g-margin-t-10--md">
+    {% definedvalue where:'DefinedTypeId == 223' %}
+        {% for communityPastor in definedvalueItems %}
+
+            {% assign PastorObject = communityPastor | 'Object' %}
+            {% assign ImageGuid = communityPastor | Attribute:'BioImage','RawValue' %}
+            {% assign PastorRole = communityPastor | Attribute:'CommunityRole','RawValue' %}
+            {% assign Pastor = communityPastor | Attribute:'Person','Object' %}
+            {% assign PastorZips = PastorObject | Attribute:'Zips' %}
+
+            {% unless PastorRole != "Community Pastor"%}
+            <div class="isotope_item nopadding col-xs-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="g-padding-x-20--xs g-padding-y-30--xs">
+
+                    <div class="post_featured">
+                        <div class="post_info_item post_info_posted">
+                            <div class="day">{{ item.StartDateTime | Date:'dd' }}</div>
+                            <div class="month_year">{{ item.StartDateTime | Date:'MMM, yy' }}</div>
+                        </div>
+                        <div class="post_thumb" data-image="/GetImage.ashx?Guid={{ ImageGuid }}" data-title="{{ item.Title }}">
+                            <a class="hover_icon hover_icon_link" href="/lwya/author?Author={{ PastorObject.Guid }}">
+                                <img class="img-responsive" alt="{{ item.Title }}" src="/GetImage.ashx?Guid={{ ImageGuid }}&h=800&w=800&mode=crop">
+                            </a>
+                        </div>
+                    </div>
+                    <div class="massonry_border" data-zips="{{ PastorZips }}" data-img-guid="{{ImageGuid}}" data-email="{{Pastor.Email}}" data-name="{{Pastor.FullName}}" data-pastor-guid="{{ PastorObject.Guid }}">
+                        <br />
+                        <h4><a title="{{Pastor.FullName}}" href="/lwya/author?Author={{ PastorObject.Guid }}">{{Pastor.FullName}}</a></h4>
+                    </div>
+
+                </div>
+            </div>
+            {% endunless %}
+        {% endfor %}
+    {% enddefinedvalue %}
+    </div>
+</div>
+<script>
+$(window).load(function() {
+    // Initialize Isotope
+    var $grid = $('.isotope_wrap').isotope({
+        // options
+        percentPosition: true,
+        itemSelector: '.isotope_item',
+        layoutMode: 'fitRows'
+    });
+    // reveal all items after init
+    var $items = $grid.find('.isotope_item');
+    $grid.addClass('is-showing-items')
+    .isotope( 'revealItemElements', $items );
+});
+</script>

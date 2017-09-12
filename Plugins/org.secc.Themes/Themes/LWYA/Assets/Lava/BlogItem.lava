@@ -1,0 +1,196 @@
+{% for item in Items %}
+
+
+    {% assign ImageGuid = item | Attribute:'Image','RawValue' %}
+    {% assign AuthorObject = item | Attribute:'Author','Object' %}
+    {% assign PostLayout = item | Attribute:'PostLayout','RawValue' %}
+
+    {% assign Author = AuthorObject | Attribute:'Person','Object' %}
+    {% assign AuthorImageGuid = AuthorObject | Attribute:'BioImage','RawValue' %}
+
+    <section class="post_item {{ PostLayout }}">
+
+        <section class="post_featured">
+
+            <div class="picture post_thumb" itemscope itemtype="http://schema.org/ImageGallery" data-title="{{ item.Title }}">
+               <figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject">
+                 <a href="/GetImage.ashx?Guid={{ ImageGuid }}" itemprop="contentUrl" data-size="1000x667" data-index="0" class="hover_icon hover_icon_view inited">
+                   <img src="/GetImage.ashx?Guid={{ ImageGuid }}" class="img-responsive" itemprop="thumbnail" alt="Beach">
+                 </a>
+               </figure>
+               <!-- <figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject">
+                  <a href="http://staff.rockstaging.secc.org/GetImage.ashx?Guid=db16e9a8-4396-473f-959c-45bb4a513c9c" itemprop="contentUrl" data-size="1000x667" data-index="1" class="hover_icon hover_icon_view inited">
+                      <img src="http://staff.rockstaging.secc.org/GetImage.ashx?Guid=db16e9a8-4396-473f-959c-45bb4a513c9c" class="img-responsive" itemprop="thumbnail" alt="">
+                  </a>
+               </figure> -->
+             </div>
+
+		</section>
+        <h3 itemprop="itemReviewed" class="post_title entry-title">{{ item.Title }}</h3>
+        <div class="post_info">
+			<span class="post_info_item post_info_posted">
+                <!-- <a href="#" class="post_info_date">{{ item.StartDateTime | Date:'MMMM d, yyyy' }}</a> -->
+                {{ item.StartDateTime | Date:'MMMM d, yyyy' }}
+            </span>
+			<span class="post_info_item post_info_posted_by">
+                {% assign PastorRole = AuthorObject | Attribute:'CommunityRole','RawValue' %}
+                {% if PastorRole == "Community Pastor"%}
+                by  <a href="/lwya/author?Author={{ AuthorObject.Guid }}" class="post_info_author">{{Author.FullName}}</a>
+                {% else %}
+                by  {{Author.FullName}}
+                {% endif %}
+            </span>
+            <br />
+			         <span class="post_info_item post_info_counters">
+                {% assign currentPageId = 'Global' | Page:'Id' %}
+                {% capture regexString %}Item={{item.Id}}(&|$){% endcapture %}
+                {% assign blogViewCount = 0 %}
+
+                {% pageview where:'PageId == "{{currentPageId}}" && Url *= "Item={{item.Id}}"' %}
+                {% for item in pageviewItems %}
+                    {% assign isCurrentBlogView = item.Url | RegExMatch:regexString %}
+                    {% if isCurrentBlogView %}
+                    {% assign blogViewCount = blogViewCount | Plus:1 %}
+                    {% endif %}
+                {% endfor %}
+                {% endpageview %}
+                <span class="post_counters_item post_counters_views" title="Views - {{ blogViewCount }}">
+                    <i class="fa fa-eye post_counters_item"></i>
+                    {{ blogViewCount }}
+                </span>
+                <span class="post_counters_item post_counters_comments" title="Comments - 0">
+                    <i class="fa fa-comment post_counters_item"></i>
+                    <span class="post_counters_number">0</span>
+                </span>
+                <span class="post_counters_item post_counters_like">
+                        <!-- Your like button code -->
+                        <div class="fb-like"
+                        data-href="{{ 'Global' | Page:'Url' }}"
+                        data-layout="button_count"
+                        data-size="small"
+                        data-share="true"
+                        data-action="like"
+                        data-show-faces="false">
+                    </div>
+                </span>
+
+        	</span>
+	   </div>
+
+       <section class="post_content" itemprop="reviewBody">
+           {{ item.Content }}
+            <div class="post_info post_info_bottom post_tags">
+    			<!-- <span class="post_info_item post_info_tags">Tags: <a class="post_tag_link" href="#">church</a></span>
+                <br /> -->
+                <span class="post_info_item post_info_tags">Categories:
+                    {% assign categories = item | Attribute:'Categories' | Split:','%}
+                    {% for category in categories %}
+                        <a class="post_tag_link" href="#">{{ category }}</a>{% unless forloop.last %},{% endunless %}
+                    {% endfor %}
+                </span>
+    		</div>
+		</section>
+
+    </section>
+
+    {% unless PastorRole != "Community Pastor"%}
+    <section class="post_author author vcard" itemprop="author" itemscope="" itemtype="https://schema.org/Person">
+        <div class="post_author_avatar">
+            <a href="/lwya/author?Author={{ AuthorObject.Guid }}" itemprop="image">
+                <img alt="" src="/GetImage.ashx?Guid={{ AuthorImageGuid }}&h=800&w=800&mode=crop" srcset="/GetImage.ashx?Guid={{ AuthorImageGuid }} 2x" class="avatar avatar-150 photo">
+            </a>
+        </div>
+        <h4 class="post_author_title"><span itemprop="name"><a href="/lwya/author?Author={{ AuthorObject.Guid }}" class="fn">{{Author.FullName}}</a></span></h4>
+        <div class="post_author_about"><span>About author</span></div>
+        <div class="post_author_info" itemprop="description">
+            <p>{{AuthorObject.ShortBiography}}</p>
+        </div>
+    </section>
+    {% endunless %}
+
+
+    <div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="pswp__bg"></div>
+        <div class="pswp__scroll-wrap">
+
+            <div class="pswp__container">
+                <div class="pswp__item"></div>
+                <div class="pswp__item"></div>
+                <div class="pswp__item"></div>
+            </div>
+
+            <div class="pswp__ui pswp__ui--hidden">
+                <div class="pswp__top-bar">
+                    <div class="pswp__counter"></div>
+                    <a href="javascript:void(0)" class="pswp__button pswp__button--close" title="Close (Esc)"></a>
+                    <a href="javascript:void(0)" class="pswp__button pswp__button--share" title="Share"></a>
+                    <a href="javascript:void(0)" class="pswp__button pswp__button--fs" title="Toggle fullscreen"></a>
+                    <a href="javascript:void(0)" class="pswp__button pswp__button--zoom" title="Zoom in/out"></a>
+                    <div class="pswp__preloader">
+                        <div class="pswp__preloader__icn">
+                          <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                          </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                    <div class="pswp__share-tooltip"></div>
+                </div>
+                <a class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)" href="javascript:void(0)">
+                </a>
+                <a class="pswp__button pswp__button--arrow--right" title="Next (arrow right)" href="javascript:void(0)">
+                </a>
+                <div class="pswp__caption">
+                    <div class="pswp__caption__center"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    $('.picture').each( function() {
+        var $pic     = $(this),
+            getItems = function() {
+                var items = [];
+                $pic.find('a').each(function() {
+                    var $href   = $(this).attr('href'),
+                        $size   = $(this).data('size').split('x'),
+                        $width  = $size[0],
+                        $height = $size[1];
+
+                    var item = {
+                        src : $href,
+                        w   : $width,
+                        h   : $height
+                    }
+
+                    items.push(item);
+                });
+                return items;
+            }
+
+        var items = getItems();
+        var $pswp = $('.pswp')[0];
+        $pic.on('click', 'figure', function(event) {
+            event.preventDefault();
+
+            var $index = $(this).index();
+            var options = {
+                index: $index,
+                bgOpacity: 0.7,
+                showHideOpacity: true
+            }
+
+            // Initialize PhotoSwipe
+            var lightBox = new PhotoSwipe($pswp, PhotoSwipeUI_Default, items, options);
+            lightBox.init();
+        });
+    });
+    </script>
+    <meta property="og:url"           content="{{ 'Global' | Page:'Url' }}" />
+    <meta property="og:type"          content="website" />
+    <meta property="og:title"         content="{{item.Title}}" />
+    <meta property="og:description"   content="{{item.Summary}}" />
+    <meta property="og:image"         content="//{{ 'Global' | Page:'Host' }}/GetImage.ashx?Guid={{ ImageGuid }}" />
+{% endfor %}
