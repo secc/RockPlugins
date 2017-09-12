@@ -36,7 +36,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [DataViewField( "Approved People", "Data view which contains the members who may check-in.", entityTypeName: "Rock.Model.Person" )]
     [BooleanField( "Allow NonApproved Adults", "Should adults who are not in the approved person list be allowed to checkin?", false, key: "AllowNonApproved" )]
     [DataViewField( "Security Role Dataview", "Data view which people who are in a security role. It will not allow adding PINs for people in this group.", entityTypeName: "Rock.Model.Person", required: false )]
-    [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Volunteer Group Attribute" )]
     [TextField( "Data Error URL", "Example: WorkflowEntry/12?PersonId={0}", false )]
 
     public partial class SuperCheckin : CheckInBlock
@@ -329,22 +328,13 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
         }
 
-        protected void CheckinReserved_Click( object sender, RowEventArgs e )
-        {
-            var attendanceItemId = ( int ) e.RowKeyValue;
-            var attendanceItem = new AttendanceService( _rockContext ).Get( attendanceItemId );
-            attendanceItem.DidAttend = true;
-            attendanceItem.StartDateTime = Rock.RockDateTime.Now;
-            _rockContext.SaveChanges();
-            BuildPersonCheckinDetails();
-        }
-
         protected void CancelReserved_Click( object sender, RowEventArgs e )
         {
             var attendanceItemId = ( int ) e.RowKeyValue;
             var attendanceService = new AttendanceService( _rockContext );
             var attendanceItem = attendanceService.Get( attendanceItemId );
-            attendanceService.Delete( attendanceItem );
+            attendanceItem.EndDateTime = Rock.RockDateTime.Now;
+            CheckInCountCache.RemoveAttendance( attendanceItem );
             _rockContext.SaveChanges();
             BuildPersonCheckinDetails();
         }
@@ -354,9 +344,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             var attendanceItemId = ( int ) e.RowKeyValue;
             var attendanceItem = new AttendanceService( _rockContext ).Get( attendanceItemId );
             attendanceItem.EndDateTime = Rock.RockDateTime.Now;
-            attendanceItem.DidAttend = false;
+            CheckInCountCache.RemoveAttendance( attendanceItem );
             _rockContext.SaveChanges();
-            KioskLocationAttendance.Flush( attendanceItem.LocationId ?? 0 );
             BuildPersonCheckinDetails();
         }
 
@@ -397,15 +386,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 return;
             }
 
-            var volAttributeGuid = GetAttributeValue( "VolunteerGroupAttribute" );
-
-            if ( string.IsNullOrWhiteSpace( volAttributeGuid ) )
-            {
-                maWarning.Show( "Volunteer attribute not set.", ModalAlertType.Alert );
-                return;
-            }
-
-            KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes, volAttributeGuid.AsGuid() );
+            KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes );
 
             if ( cbSuperCheckin.Checked )
             {
@@ -580,6 +561,20 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             rblNewPersonGender.Items.Clear();
             rblNewPersonGender.BindToEnum<Gender>();
 
+            var gradeLabel = "";
+            var today = RockDateTime.Today;
+            var transitionDate = GlobalAttributesCache.Read().GetValue( "GradeTransitionDate" ).AsDateTime() ?? new DateTime( RockDateTime.Today.Year, 6, 1 );
+
+            if ( transitionDate > today )
+            {
+                gradeLabel = string.Format( "Grade (For School Year {0}-{1})", today.AddYears(-1).Year , today.Year );
+            }
+            else
+            {
+                gradeLabel = string.Format( "Grade (For School Year {0}-{1})", today.Year, today.AddYears( 1 ).Year);
+            }
+            ddlGradePicker.Label = gradeLabel;
+
             ScriptManager.RegisterStartupScript( ddlGradePicker, ddlGradePicker.GetType(), "grade-selection-" + BlockId.ToString(), ddlGradePicker.GetJavascriptForYearPicker( ypNewGraduation ), true );
         }
 
@@ -701,6 +696,20 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     gpEditGrade.SelectedIndex = 0;
                 }
             }
+            var gradeLabel = "";
+            var today = RockDateTime.Today;
+            var transitionDate = GlobalAttributesCache.Read().GetValue( "GradeTransitionDate" ).AsDateTime() ?? new DateTime( RockDateTime.Today.Year, 6, 1 );
+
+            if ( transitionDate > today )
+            {
+                gradeLabel = string.Format( "Grade (For School Year {0}-{1})", today.AddYears( -1 ).Year, today.Year );
+            }
+            else
+            {
+                gradeLabel = string.Format( "Grade (For School Year {0}-{1})", today.Year, today.AddYears( 1 ).Year );
+            }
+            gpEditGrade.Label = gradeLabel;
+
             ScriptManager.RegisterStartupScript( gpEditGrade, gpEditGrade.GetType(), "grade-selection-" + BlockId.ToString(), gpEditGrade.GetJavascriptForYearPicker( ypEditGraduation ), true );
 
             var AttributeList = new List<int>();

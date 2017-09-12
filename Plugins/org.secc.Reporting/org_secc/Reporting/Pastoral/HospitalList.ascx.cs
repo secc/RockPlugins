@@ -376,7 +376,7 @@ namespace RockWeb.Blocks.Reporting
                 //Print Title
                 // format and set title
                 worksheet.Cells[1, 1].Value = title;
-                using ( ExcelRange r = worksheet.Cells[1, 1, 1, 15] )
+                using ( ExcelRange r = worksheet.Cells[1, 1, 1, 7] )
                 {
                     r.Merge = true;
                     r.Style.Font.SetFromFont( new Font( "Calibri", 28, FontStyle.Regular ) );
@@ -390,7 +390,7 @@ namespace RockWeb.Blocks.Reporting
                 }
 
                 worksheet.Cells[2, 1].Value = Rock.RockDateTime.Today.ToString( "MMMM d, yyyy" );
-                using ( ExcelRange r = worksheet.Cells[2, 1, 2, 15] )
+                using ( ExcelRange r = worksheet.Cells[2, 1, 2, 7] )
                 {
                     r.Merge = true;
                     r.Style.Font.SetFromFont( new Font( "Calibri", 20, FontStyle.Regular ) );
@@ -414,7 +414,6 @@ namespace RockWeb.Blocks.Reporting
                         .FirstOrDefault();
                     worksheet.Cells[rowCounter, 1].Value = hospital;
                     worksheet.Cells[rowCounter, 6].Value = hospitalInfo.HospitalPhone;
-                    worksheet.Cells[rowCounter, 11].Value = hospitalInfo.HospitalAddress;
 
                     using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 5] )
                     {
@@ -434,10 +433,13 @@ namespace RockWeb.Blocks.Reporting
                         r.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                         r.Style.Fill.BackgroundColor.SetColor( Color.FromArgb( 34, 41, 55 ) );
                     }
-                    using ( ExcelRange r = worksheet.Cells[rowCounter, 11, rowCounter, 15] )
+
+                    rowCounter++; //Put the address on second line
+                    worksheet.Cells[rowCounter, 1].Value = hospitalInfo.HospitalAddress;
+                    using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 7] )
                     {
                         r.Merge = true;
-                        r.Style.Font.SetFromFont( new Font( "Calibri", 20, FontStyle.Regular ) );
+                        r.Style.Font.SetFromFont( new Font( "Calibri", 18, FontStyle.Regular ) );
                         r.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
                         r.Style.Font.Color.SetColor( Color.White );
                         r.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
@@ -458,30 +460,13 @@ namespace RockWeb.Blocks.Reporting
 
                     worksheet.Cells[rowCounter, 7].Value = "Room";
 
-                    worksheet.Cells[rowCounter, 8].Value = "Notified By";
-                    using ( ExcelRange r = worksheet.Cells[rowCounter, 8, rowCounter, 9] )
-                    {
-                        r.Merge = true;
-                    }
-
-                    worksheet.Cells[rowCounter, 10].Value = "Description";
-                    using ( ExcelRange r = worksheet.Cells[rowCounter, 10, rowCounter, 14] )
-                    {
-                        r.Merge = true;
-                    }
-
-                    worksheet.Cells[rowCounter, 15].Value = "Visits";
-                    using ( ExcelRange r = worksheet.Cells[rowCounter, 15, rowCounter, 15] )
-                    {
-                        r.Merge = true;
-                    }
-
-                    using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 15] )
+                    using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 7] )
                     {
                         r.Style.Font.Bold = true;
                         r.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                         r.Style.Fill.BackgroundColor.SetColor( Color.FromArgb( 200, 200, 200 ) );
                     }
+
 
                     rowCounter++;
 
@@ -504,22 +489,8 @@ namespace RockWeb.Blocks.Reporting
                         SetExcelValue( worksheet.Cells[rowCounter, 6], patient.AdmitDate );
 
                         SetExcelValue( worksheet.Cells[rowCounter, 7], patient.Room );
-
-                        SetExcelValue( worksheet.Cells[rowCounter, 8], patient.NotifiedBy );
-                        using ( ExcelRange r = worksheet.Cells[rowCounter, 8, rowCounter, 9] )
-                        {
-                            r.Merge = true;
-                        }
-
-                        SetExcelValue( worksheet.Cells[rowCounter, 10], patient.Description );
-                        using ( ExcelRange r = worksheet.Cells[rowCounter, 10, rowCounter, 14] )
-                        {
-                            r.Merge = true;
-                        }
-
-                        SetExcelValue( worksheet.Cells[rowCounter, 15], patient.Visits.ToString() );//ToString to make formatting better
-
                         rowCounter++;
+
 
                         //Second line
                         SetExcelValue( worksheet.Cells[rowCounter, 1], "Relationships:" );
@@ -533,37 +504,54 @@ namespace RockWeb.Blocks.Reporting
                         {
                             r.Merge = true;
                         }
+                        rowCounter++;
 
-                        SetExcelValue( worksheet.Cells[rowCounter, 8], "Last Visit:" );
-                        using ( ExcelRange r = worksheet.Cells[rowCounter, 8, rowCounter, 8] )
+                        //begin third row
+                        SetExcelValue( worksheet.Cells[rowCounter, 1], "Notifier: " + patient.NotifiedBy );
+                        using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 2] )
+                        {
+                            r.Merge = true;
+                        }
+
+                        SetExcelValue( worksheet.Cells[rowCounter, 3], patient.Description );
+                        using ( ExcelRange r = worksheet.Cells[rowCounter, 3, rowCounter, 6] )
+                        {
+                            r.Merge = true;
+                        }
+
+                        SetExcelValue( worksheet.Cells[rowCounter, 7], "Visits: " + patient.Visits.ToString() );//ToString to make formatting better
+                        rowCounter++;
+
+                        //Fourth row
+                        SetExcelValue( worksheet.Cells[rowCounter, 1], "Last Visit:" );
+                        using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 1] )
                         {
                             r.Merge = true;
                             r.Style.Font.Bold = true;
                         }
 
-                        SetExcelValue( worksheet.Cells[rowCounter, 9], patient.LastVisitNotes );
-                        using ( ExcelRange r = worksheet.Cells[rowCounter, 9, rowCounter, 15] )
+                        SetExcelValue( worksheet.Cells[rowCounter, 2], ( string.IsNullOrWhiteSpace( patient.LastVisitor ) ? "" : ( patient.LastVisitor + ": " ) ) + patient.LastVisitNotes );
+                        using ( ExcelRange r = worksheet.Cells[rowCounter, 2, rowCounter, 7] )
                         {
                             r.Merge = true;
                         }
 
-                        using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 15] )
+                        using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 7] )
                         {
                             r.Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
                         }
-
                         rowCounter++;
                     }
                 }
                 // autofit columns for all cells
                 worksheet.Cells.AutoFitColumns( 0 );
 
-                for ( var i = 1; i < 16; i++ )
+                for ( var i = 1; i < 8; i++ )
                 {
-                    worksheet.Column( i ).Width = 16;
+                    worksheet.Column( i ).Width = 18;
 
                 }
-                
+
                 byte[] byteArray;
                 using ( MemoryStream ms = new MemoryStream() )
                 {
