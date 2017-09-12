@@ -1,0 +1,81 @@
+{%- if authorObjectGuid == undefined -%}
+{% assign authorObjectGuid = PageParameter['Author'] %}
+{%- endif -%}
+
+{% definedvalue where:'Guid == "{{authorObjectGuid}}"'%}
+    {% assign definedvalueCount = definedvalueItems | Size %}
+
+    {% if definedvalueCount != '0' %}
+        {% for definedValue in definedvalueItems %}
+            <!-- {{definedValue.Value}} -->
+            {% assign Author = definedValue | Attribute:'Person','Object' %}
+            {% assign AuthorImageGuid = definedValue | Attribute:'BioImage','RawValue' %}
+
+            <div class="row g-margin-b-20--xs g-margin-b-40--md g-padding-x-20--xs">
+                <div class="col-sm-4">
+                    <img class="img-responsive" src="/GetImage.ashx?Guid={{ AuthorImageGuid }}" />
+                </div>
+                <div class="col-sm-8">
+                    <br />
+                    <h2>{{Author.FullName}}<br />
+                        <small>{{definedValue.CommunityRole}}</small><br />
+                        <!-- <p>Community Areas: {{definedValue.CommunityAreas}}</p> -->
+                    </h2>
+                    <br />
+                    <h5>Biography</h5>
+                    <br />
+                    <p>{{definedValue.Biography}}</p>
+                    <br />
+                    <div class="socials socials_type_icons socials_shape_round">
+                        {% unless Author.Email == '' %}
+                        <div class="socials_item">
+                            <a href="mailto:{{ Author.Email }}" class="social_icons social_gplus">
+                                <i class="fa fa-envelope"></i>
+                            </a>
+                        </div>
+                        {% endunless %}
+                        {% unless definedValue.FacebookLink == '' %}
+                        <div class="socials_item">
+                            <a href="{{ definedValue | Attribute:'FacebookLink','RawValue' }}" target="_blank" class="social_icons social_facebook">
+                                <i class="fa fa-facebook"></i>
+                            </a>
+                        </div>
+                        {% endunless %}
+                        {% unless definedValue.TwitterLink == '' %}
+                        <div class="socials_item">
+                            <a href="{{ definedValue | Attribute:'TwitterLink','RawValue' }}" target="_blank" class="social_icons social_twitter">
+                                <i class="fa fa-twitter"></i>
+                            </a>
+                        </div>
+                        {% endunless %}
+                        {% unless definedValue.InstagramLink == '' %}
+                        <div class="socials_item">
+                            <a href="{{ definedValue | Attribute:'InstagramLink','RawValue' }}" target="_blank" class="social_icons social_instagramm">
+                                <i class="fa fa-instagram"></i>
+                            </a>
+                        </div>
+                        {% endunless %}
+                        {% unless definedValue.GooglePlusLink == '' %}
+                        <div class="socials_item">
+                            <a href="{{ definedValue | Attribute:'GooglePlusLink','RawValue' }}" target="_blank" class="social_icons social_gplus">
+                                <i class="fa fa-google-plus"></i>
+                            </a>
+                        </div>
+                        {% endunless %}
+                    </div>
+                </div>
+            </div>
+
+        {% endfor %}
+    {% else %}
+        <div class="row g-margin-b-60--xs g-margin-b-70--md g-padding-x-40--xs">
+            <div class="col-sm-12">
+                <h1>Community Pastor: Not Found</h1>
+                <br />
+                <p>Sorry, but this community pastor appears to not be in our system. Please try again, or see our <a href="/lwya/community-pastors">community pastors here</a>.</p>
+                <br />
+                <p>You can also <a href="/">click here</a> to return to the <a href="/">home page</a>. Please report any broken links to our team.</p>
+            </div>
+        </div>
+    {% endif %}
+{% enddefinedvalue %}

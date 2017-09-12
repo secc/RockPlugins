@@ -1,0 +1,23 @@
+
+.audioWrap {
+    border: 3px solid $color-primary;
+    padding: 2rem;
+
+    legend {
+        width: auto;
+        padding: 0 2rem;
+    }
+}
+
+.mejs-container .mejs-controls {
+    background: $color-dark;
+}
+.mejs-controls .mejs-time-rail .mejs-time-loaded {
+    background: rgba(255,255,255, 0.2) !important;
+}
+.mejs-controls .mejs-time-rail .mejs-time-current {
+    background: $color-primary !important;
+}
+.mejs-controls .mejs-time-rail .mejs-time-total {
+    background: $color-dark-light !important;
+}
