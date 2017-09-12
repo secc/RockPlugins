@@ -23,6 +23,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [GroupField( "Group", "Group to display child groups", false )]
     [LinkedPage( "Next Page", "The next page in which " )]
     [TextField( "Theme", "Theme to switch to on page load.", false )]
+    [BooleanField( "ForwardOnOne", "Should you forward if there is only one option?", false )]
 
     public partial class GroupList : GroupManagerBlock
     {
@@ -70,10 +71,31 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 DisplayNotConfigured();
             }
+
+            var requireLeader = GetAttributeValue( "LeadersOnly" ).AsBoolean();
+            var doForward = GetAttributeValue( "ForwardOnOne" ).AsBoolean();
+            if ( doForward && !UserCanAdministrate )
+            {
+                var groupList = new List<Group>();
+                if ( requireLeader )
+                {
+                    groupList = groups.Where( g => g.Members.Where( m => m.PersonId == CurrentPerson.Id && m.GroupRole.IsLeader ).Any() ).ToList();
+                }
+                else
+                {
+                    groupList = groups.Where( g => g.Members.Where( m => m.PersonId == CurrentPerson.Id ).Any() ).ToList();
+                }
+                if ( groupList.Count() == 1 )
+                {
+                    LoadGroup( groupList.FirstOrDefault() );
+                    return;
+                }
+            }
+
             foreach ( var group in groups.OrderBy( g => g.Name ) )
             {
                 var groupMember = group.Members.Where( m => m.PersonId == CurrentPerson.Id ).FirstOrDefault();
-                if ( !GetAttributeValue( "LeadersOnly" ).AsBoolean()
+                if ( !requireLeader
                     || ( groupMember != null && groupMember.GroupRole.IsLeader ) )
                 {
                     LinkButton lbGroup = new LinkButton()

@@ -109,7 +109,7 @@ namespace org.secc.GroupManager
 
             var groupTypeGuid = GetAttributeValue( "GroupType" ).AsGuidOrNull();
             if ( groupTypeGuid != null &&
-                CurrentGroup.GroupType.Guid != groupTypeGuid )
+                CurrentGroup?.GroupType?.Guid != groupTypeGuid )
             {
                 NavigateToHomePage();
             }

@@ -27,7 +27,6 @@ namespace org.secc.FamilyCheckin
     [ExportMetadata( "ComponentName", "Remove Full GroupLocationSchedules" )]
 
     [BooleanField( "Filter Attendance Schedules", "Filter out schedules that the person has already checked into" )]
-    [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Volunteer Group Attribute" )]
     public class RemoveFullGroupLocationScheduels : CheckInActionComponent
     {
         /// <summary>
@@ -49,9 +48,9 @@ namespace org.secc.FamilyCheckin
                 var family = checkInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault();
                 if ( family != null )
                 {
-                    var volAttributeGuid = GetAttributeValue( action, "VolunteerGroupAttribute" );
+                    var volAttributeGuid = Constants.VOLUNTEER_ATTRIBUTE_GUID;
 
-                    KioskCountUtility kioskCountUtility = new KioskCountUtility( checkInState.ConfiguredGroupTypes, volAttributeGuid.AsGuid() );
+                    KioskCountUtility kioskCountUtility = new KioskCountUtility( checkInState.ConfiguredGroupTypes );
 
                     ObjectCache cache = Rock.Web.Cache.RockMemoryCache.Default;
                     List<int> volunteerGroupIds = cache[volAttributeGuid + "CachedVolunteerGroups"] as List<int>;
@@ -88,8 +87,7 @@ namespace org.secc.FamilyCheckin
                                         }
 
                                         var attendanceQry = attendanceService.Where( a =>
-                                             a.DidAttend == true
-                                             && a.EndDateTime == null
+                                             a.EndDateTime == null
                                              && a.ScheduleId == schedule.Schedule.Id
                                              && a.StartDateTime >= Rock.RockDateTime.Today );
 
