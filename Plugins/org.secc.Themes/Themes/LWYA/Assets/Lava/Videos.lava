@@ -1,0 +1,92 @@
+<div class="container-fluid nopadding">
+    {% assign currentSeries = Items | First %}
+    {% assign currentSeriesImageGuid = currentSeries | Attribute:'SeriesImage','RawValue' %}
+
+    {% if Pagination.CurrentPage == 1 %}
+    <!-- <a href="{{ LinkedPages.DetailPage }}?Item={{ currentSeries.Id }}">
+      <header class="current-series" style="background-image: url('/GetImage.ashx?Guid={{ currentSeriesImageGuid }}')">
+    	  <h1>Current Series</h1>
+      </header>
+    </a> -->
+    {% endif %}
+
+    <div class="isotope_wrap">
+    	{% for item in Items %}
+        {% assign videoTitle = item | Attribute:'Title' %}
+        {% assign externalLink = item | Attribute:'ExternalLink','RawValue' %}
+    	{% assign videoEmbed = item | Attribute:'VideoEmbed' %}
+
+            <div class="isotope_item col-xs-12 col-sm-12 col-md-6 col-lg-6 nopadding">
+                <article class="post_item media-wrapper">
+                    <style>
+                        /* hiding the black soild line on the left side of the vimeo iframe */
+                        iframe {
+                            margin-left: -1px;
+                            outline: 1px solid #e5e5e5;
+                        }
+                    </style>
+
+                    {% if videoEmbed != '' %}
+                    <div class="embed-responsive embed-responsive-16by9">
+                        {{ videoEmbed }}
+                    </div>
+                    {% endif %}
+
+                    <div class="massonry_border media-content">
+                        <h4>
+                            <a href="{{ externalLink }}">{{item.Title}}</a><br />
+                            <small>{{ item.StartDateTime | Date:'MMM dd, yy' }}</small>
+                        </h4>
+                    </div>
+
+                </article>
+            </div>
+    	{% endfor -%}
+
+    </div>
+</div>
+
+<script>
+$(window).load(function() {
+	// Initialize Isotope
+	var $grid = $('.isotope_wrap').isotope({
+		// options
+		itemSelector: '.isotope_item',
+		percentPosition: true,
+		masonry: {
+		    // use outer width of grid-sizer for columnWidth
+		    columnWidth: 2,
+			// horizontalOrder: true
+			// fitWidth: true
+		}
+	});
+	// reveal all items after init
+	var $items = $grid.find('.isotope_item');
+	$grid.addClass('is-showing-items').isotope( 'revealItemElements', $items );
+});
+</script>
+
+<div class="list-controls clearfix">
+  {% assign nextPageString = Pagination.NextPage | ToString %}
+  {% assign prevPageString = Pagination.PreviousPage | ToString %}
+
+  {% if {{Pagination.PreviousPage == -1 }} %}
+  <div class="button prev inactive pull-left">
+	<i class="fa fa-chevron-left"></i>
+  </div>
+  {% else %}
+  <a class="button prev pull-left" href="{{Pagination.UrlTemplate | Replace:'PageNum', prevPageString}}">
+	<i class="fa fa-chevron-left"></i>
+  </a>
+  {% endif %}
+
+  {% if {{Pagination.NextPage == -1 }} %}
+  <div class="button next inactive pull-right">
+	<i class="fa fa-chevron-right"></i>
+  </div>
+  {% else %}
+  <a class="button next pull-right" href="{{Pagination.UrlTemplate | Replace:'PageNum', nextPageString}}">
+	<i class="fa fa-chevron-right"></i>
+  </a>
+  {% endif %}
+</div>

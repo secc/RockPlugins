@@ -1,0 +1,76 @@
+<div class="container-fluid g-padding-x-10--xs g-padding-x-20--sm g-padding-x-60--md g-padding-x-90--lg g-padding-y-50--lg g-padding-y-30--xs"  style="background-color: #f4f4f4">
+<div class="row">
+    <div class="col-md-12">
+        <a class="anchor" id="FAQ"></a>
+        <h4 class="title_divider align_left" style="margin-bottom: 0">
+            <span class="title_divider_before"></span>
+            <a href="/lwya/all-series/series">Current Series</a>
+            <span class="title_divider_after"></span>
+        </h4>
+        <br />
+    </div>
+</div>
+
+{% assign item = Items | First %}
+{% if item  %}
+    {% assign messagesSize = item.ChildItems | Size %}
+    {% if messagesSize != 0 %}
+	<div class="messages isotope_wrap">
+    {% for message in item.ChildItems limit:3 %}
+        {% assign messageTitle = message.ChildContentChannelItem | Attribute:'Title' %}
+        {% assign videoImageGuid = message.ChildContentChannelItem | Attribute:'VideoCover','RawValue' %}
+
+        <div class="isotope_item col-xs-6 col-sm-6 col-md-4 nopadding">
+            <article class="post_item media-wrapper">
+
+
+                <div class="post_featured" style="margin-bottom: none;">
+                    <div class="post_thumb" data-image="/GetImage.ashx?Guid={{ videoImageGuid }}" data-title="{{ item.Title }}">
+                        <a class="hover_icon hover_icon_link" href="/page/912?Item={{ message.ChildContentChannelItem.Id }}">
+                            <img class="img-responsive" alt="{{ message.ChildContentChannelItem.Title }}" src="/GetImage.ashx?Guid={{ videoImageGuid }}&h=450&w=800&mode=crop">
+                        </a>
+                    </div>
+                </div>
+
+                <div class="massonry_border media-content">
+
+                    <h4>
+                        <small>{{ message.ChildContentChannelItem.StartDateTime | Date:'MMM dd, yy' }}</small><br />
+                        <a href="/page/912?Item={{ message.ChildContentChannelItem.Id }}" class="hidden-xs">{{ message.ChildContentChannelItem.Title }}</a>
+                    </h4>
+                    <div class="post_content">
+                        <div class="post_descr">
+                            <!-- <a href="{{ LinkedPages.DetailPage }}?Item={{ item.Id }}" class="button s-btn--primary-bg">
+                                <span class="post_readmore_label">See</span>
+                            </a> -->
+                        </div>
+                    </div>
+                </div>
+
+            </article>
+        </div>
+    {% endfor %}
+    </div>
+    {% else %}
+    <h5 style="g-margin-b-60--xs">Hang tight! There are no messages in this series, but they're coming soon!</h5>
+    {% endif %}
+{% else %}
+	<h1>Could not find series.</h1>
+{% endif %}
+</div>
+
+<script type="text/javascript">
+	$(window).load(function() {
+        // Initialize Isotope
+        var $grid = $('.isotope_wrap').isotope({
+            // options
+            percentPosition: true,
+            itemSelector: '.isotope_item',
+			layoutMode: 'fitRows'
+        });
+        // reveal all items after init
+        var $items = $grid.find('.isotope_item');
+        $grid.addClass('is-showing-items')
+          .isotope( 'revealItemElements', $items );
+    });
+</script>

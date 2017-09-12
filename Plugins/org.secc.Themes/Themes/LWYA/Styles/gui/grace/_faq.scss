@@ -1,0 +1,98 @@
+/* --------------------------------------------------
+	6.0 FAQ - Accordions
+-------------------------------------------------- */
+
+
+
+.accordions-1 {
+
+	.panel {
+		border-radius: 0;
+		border: none;
+        box-shadow: none;
+
+		.panel-heading {
+			background: none;
+			border-radius: 0;
+            background: none;
+            cursor: pointer;
+            position: relative;
+            color: $color-dark;
+            font-weight: 200;
+            padding: 0;
+            padding: 0 0 0 5.1rem;
+            @media (max-width: 768px) { /*(max-width: 1439 1279 1135 1023 959 767 473 )*/
+                padding: 0;
+            }
+
+            .first-letter-accordion {
+                width: 4.5rem;
+                height: 4.5rem;
+                position: absolute;
+                top: 0;
+                left: 0;
+                &:before {
+                    content: 'Q:';
+                    position: absolute;
+                    width: 100%;
+                    text-align: center;
+                    line-height: 4.5rem;
+                    color: $color-sub-white;
+                    font-weight: 400;
+                    font-size: 1.5em;
+                    background-color: $color-primary;
+                }
+                @media (max-width: 768px) { /*(max-width: 1439 1279 1135 1023 959 767 473 )*/
+                    display: none;
+                }
+            }
+			.panel-title {
+                @extend h5;
+                // display: inline-block;
+                height: 4.6rem;
+                width: 100%;
+                padding: 0px 4% 0px 4%;
+                border: 3px solid $color-sub-white;
+                margin-bottom: 0;
+                display: table;
+
+                span {
+                    display: table-cell;
+                    vertical-align: middle;
+                }
+
+				a {
+
+					&:focus {
+						text-decoration: none;
+					}
+				}
+			}
+		} // .panel-heading
+
+		.panel-collapse {
+            width: 100%;
+
+			.panel-body {
+				border: none;
+				padding: 1rem 1em 1rem 6rem;
+                width: 100%;
+                font-size: 1.0625rem;
+                font-weight: 400;
+                color: #656565;
+                line-height: 1.6;
+                ol {
+                    list-style: decimal;
+                    padding-left: 2em;
+                }
+                @media (max-width: 768px) { /*(max-width: 1439 1279 1135 1023 959 767 473 )*/
+                    padding: 1rem 1em 1rem 1rem;
+                }
+			} // .panel-body
+		} // .panel-collapse
+	} // .panel
+
+	.panel+.panel {
+		margin-top: 20px;
+	}
+} // .accordions-1
