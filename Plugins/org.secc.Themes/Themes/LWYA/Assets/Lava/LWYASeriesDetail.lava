@@ -1,0 +1,296 @@
+﻿<style>
+	.series-banner {
+		height: 220px;
+		background-size: cover;
+		background-position: center center;
+		background-repeat: no-repeat;
+	}
+
+	@media (min-width: 992px) {
+		.series-banner {
+			height: 420px;
+		}
+	}
+
+	.series-title{
+		margin-bottom: 4px;
+	}
+
+	.series-dates {
+		opacity: .6;
+	}
+
+	.messages-title {
+		font-size: 24px;
+	}
+
+	.messages {
+		font-size: 18px;
+	}
+</style>
+
+{% assign item = Items | First %}
+{% if item  %}
+
+	{% assign currentDate = 'Now' | Date:'M/d/yyyy' %}
+	{% assign currentMessage = item.ChildItems | First %}
+
+	{% comment %}
+		The Lava Code below checks for the closest sermon message to this day.
+	{% endcomment %}
+	{% for childItem in item.ChildItems %}
+		{% assign currentMessageDays = currentDate | DateDiff:childItem.ChildContentChannelItem.StartDateTime,'d' %}
+		{% if currentMessageDays <= 0 %}
+			{% assign currentMessage = childItem %}
+		{% endif %}
+	{% endfor %}
+
+	{% assign seriesImageGuid = item | Attribute:'SeriesImage','RawValue' %}
+	{% assign currentMessageVideoEmbed = currentMessage.ChildContentChannelItem | Attribute:'VideoEmbed' %}
+
+	<artcile class="series-detail">
+
+		<div id="seriesHead" class="row">
+
+			{% unless currentMessageVideoEmbed == empty %}
+			<div class="col-sm-12 col-md-7">
+				<h5>
+					<span class="highlight_text">Current Message:</span>
+					<a href="{{ LinkedPages.DetailPage }}?Item={{ currentMessage.ChildContentChannelItem.Id }}">{{ currentMessage.ChildContentChannelItem.Title }}</a>
+					<!-- <small class="pull-right">{{ currentMessage.ChildContentChannelItem.StartDateTime | Date:'MMM dd, yy' }}</small> -->
+				</h5>
+				<br />
+				<div class="embed-responsive embed-responsive-16by9 media-border-only">
+				    {{ currentMessageVideoEmbed }}
+				</div>
+				<br />
+			</div>
+			{% endunless %}
+
+			<div class="col-sm-12 col-md-5">
+
+				<h1 class="series-title">
+					{{ item.Title }}
+				</h1>
+				<p class="series-dates">
+					Series Date:
+					<strong>{{ item.StartDateTime | Date:'M/d/yyyy' }}
+						{% if item.StartDateTime != item.ExpireDateTime %}
+						- {{ item.ExpireDateTime | Date:'M/d/yyyy' }}
+						{% endif %}
+					</strong>
+				</p>
+				<br />
+
+				<div class="margin-t-lg">
+					<span class="clearfix">{{ item.Content }}</span>
+
+					<div class="socials socials_type_icons socials_shape_round" style="margin-top:15px;">
+						<script>function fbs_click() { u = location.href; t = document.title; window.open('http://www.facebook.com/sharer.php?u=' + encodeURIComponent(u) + '&t=' + encodeURIComponent(t), 'sharer', 'toolbar=0,status=0,width=626,height=436'); return false; }</script>
+						<script>function ics_click() { text = `{{ EventItemOccurrence.Schedule.iCalendarContent }}`.replace('END:VEVENT', 'SUMMARY: {{ Event.Name }}\r\nLOCATION: {{ EventItemOccurrence.Location }}\r\nEND:VEVENT'); var element = document.createElement('a'); element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); element.setAttribute('download', '{{ Event.Name }}.ics'); element.style.display = 'none'; document.body.appendChild(element); element.click(); document.body.removeChild(element); }</script>
+						<div class="socials_item">
+							<a href="mailto:?Subject={{ Event.Name | Escape }}&Body={{ 'Global' | Page:'Url' }}" class="social_icons social_gplus" data-original-title="Share via Email">
+								<i class="fa fa-envelope"></i>
+							</a>
+						</div>
+						<div class="socials_item">
+							<a href="http://www.facebook.com/share.php?u=<url>" onclick="return fbs_click()" target="_blank" class="social_icons social_facebook" data-original-title="Share via Facebook">
+								<i class="fa fa-facebook"></i>
+							</a>
+						</div>
+						<div class="socials_item">
+							<a href="http://twitter.com/home?status={{ 'Global' | Page:'Url' | Escape }}" target="_blank" class="social_icons social_twitter" data-original-title="Share via Twitter">
+								<i class="fa fa-twitter"></i>
+							</a>
+						</div>
+					</div>
+				</div>
+
+
+				{% assign participantGuide = item | Attribute:'ParticipantGuide', 'Object' %}
+				{% assign leaderGuide = item | Attribute:'LeaderGuide', 'Object' %}
+				{% assign icebreakers = item | Attribute:'Icebreakers', 'Object' %}
+				{% if participantGuide != '' or leaderGuide != '' or icebreakers != ''  %}
+				<div class="resources" style="margin-top: 10%;">
+					<h5 class="post_title">Downloads &amp; Resources</h4>
+					<br />
+					<div class="list-group">
+
+						{% if participantGuide != '' %}
+							<a href="/GetFile.ashx?guid={{ participantGuide.Guid}}" class="list-group-item" download="{{ item.Title | Downcase | ToPascal }}_booklet.pdf"><i class="fa fa-download"></i> Download the booklet for this series</a>
+						{% endif %}
+
+						{% if leaderGuide != '' %}
+							<a href="/GetFile.ashx?guid={{ leaderGuide.Guid}}" class="list-group-item" download="{{ item.Title | Downcase | ToPascal }}_leader_guide.pdf"><i class="fa fa-download"></i> Leader Guide</a>
+						{% endif %}
+
+						{% if icebreakers != '' %}
+							<a href="/GetFile.ashx?guid={{ icebreakers.Guid}}" class="list-group-item" download="{{ item.Title | Downcase | ToPascal }}_icebreakers.pdf"><i class="fa fa-download"></i> Icebreakers</a>
+						{% endif %}
+
+					</div>
+				</div>
+				{% endif %}
+
+			</div>
+
+		</div>
+		<br />
+		<br />
+		{% unless currentMessageVideoEmbed == empty %}
+		<h4 class="title_divider align_left">
+			<span class="title_divider_before"></span>
+				In This Series
+			<span class="title_divider_after"></span>
+		</h4>
+		{% endunless %}
+
+		<div class="messages isotope_wrap">
+			{% for messages in item.ChildItems %}
+				{% assign messageTitle = messages.ChildContentChannelItem | Attribute:'Title' %}
+				{% assign videoImageGuid = messages.ChildContentChannelItem | Attribute:'VideoCover','RawValue' %}
+
+				<div class="isotope_item col-xs-12 col-sm-6 col-md-4 nopadding g-margin-b-30--xs g-margin-b-0--md">
+		            <article class="post_item media-wrapper">
+
+
+		                <div class="post_featured" style="margin-bottom: none;">
+		                    <div class="post_thumb" data-image="/GetImage.ashx?Guid={{ videoImageGuid }}" data-title="{{ item.Title }}">
+		    					<a class="hover_icon hover_icon_link" href="{{ LinkedPages.DetailPage }}?Item={{ messages.ChildContentChannelItem.Id }}">
+		                            <img class="img-responsive" alt="{{ messages.ChildContentChannelItem.Title }}" src="/GetImage.ashx?Guid={{ videoImageGuid }}&h=450&w=800&mode=crop">
+		                        </a>
+		                    </div>
+		                </div>
+
+						<div class="massonry_border media-content">
+
+							<h4>
+								<small>{{ messages.ChildContentChannelItem.StartDateTime | Date:'MMM dd, yy' }}</small><br />
+		                        <a href="{{ LinkedPages.DetailPage }}?Item={{ messages.ChildContentChannelItem.Id }}">{{ messages.ChildContentChannelItem.Title }}</a>
+		                    </h4>
+		                    <div class="post_content">
+		                        <div class="post_descr">
+		                            <!-- <a href="{{ LinkedPages.DetailPage }}?Item={{ item.Id }}" class="button s-btn--primary-bg">
+		                                <span class="post_readmore_label">See</span>
+		                            </a> -->
+		                        </div>
+		                    </div>
+						</div>
+
+		            </article>
+		        </div>
+
+			{% endfor %}
+		</div>
+
+	</article>
+
+	<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="pswp__bg"></div>
+        <div class="pswp__scroll-wrap">
+
+            <div class="pswp__container">
+                <div class="pswp__item"></div>
+                <div class="pswp__item"></div>
+                <div class="pswp__item"></div>
+            </div>
+
+            <div class="pswp__ui pswp__ui--hidden">
+                <div class="pswp__top-bar">
+                    <div class="pswp__counter"></div>
+                    <a href="javascript:void(0)" class="pswp__button pswp__button--close" title="Close (Esc)"></a>
+                    <a href="javascript:void(0)" class="pswp__button pswp__button--share" title="Share"></a>
+                    <a href="javascript:void(0)" class="pswp__button pswp__button--fs" title="Toggle fullscreen"></a>
+                    <a href="javascript:void(0)" class="pswp__button pswp__button--zoom" title="Zoom in/out"></a>
+                    <div class="pswp__preloader">
+                        <div class="pswp__preloader__icn">
+                          <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                          </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                    <div class="pswp__share-tooltip"></div>
+                </div>
+                <a class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)" href="javascript:void(0)">
+                </a>
+                <a class="pswp__button pswp__button--arrow--right" title="Next (arrow right)" href="javascript:void(0)">
+                </a>
+                <div class="pswp__caption">
+                    <div class="pswp__caption__center"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+	<!-- <div class="responsive-container">
+		{{ currentMessageVideoEmbed }}
+	</div> -->
+	<!-- <div class="picture post_thumb" itemscope itemtype="http://schema.org/ImageGallery" data-title="{{ item.Title }}">
+		<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject">
+			<a href="/GetImage.ashx?Guid={{ seriesImageGuid }}&h=675&w=1200&mode=crop" itemprop="contentUrl" data-size="1200x675" data-index="0" class="hover_icon hover_icon_view inited">
+			  <img src="/GetImage.ashx?Guid={{ seriesImageGuid }}" class="img-responsive" itemprop="thumbnail" alt="Beach">
+			</a>
+		</figure>
+	</div> -->
+	<script>
+	$(window).load(function() {
+        // Initialize Isotope
+        var $grid = $('.isotope_wrap').isotope({
+            // options
+            percentPosition: true,
+            itemSelector: '.isotope_item',
+			layoutMode: 'fitRows'
+        });
+        // reveal all items after init
+        var $items = $grid.find('.isotope_item');
+        $grid.addClass('is-showing-items')
+          .isotope( 'revealItemElements', $items );
+    });
+
+    // $('.picture').each( function() {
+    //     var $pic     = $(this),
+    //         getItems = function() {
+    //             var items = [];
+    //             $pic.find('a').each(function() {
+    //                 var $href   = $(this).attr('href'),
+    //                     $size   = $(this).data('size').split('x'),
+    //                     $width  = $size[0],
+    //                     $height = $size[1];
+	//
+    //                 var item = {
+    //                     src : $href,
+    //                     w   : $width,
+    //                     h   : $height
+    //                 }
+	//
+    //                 items.push(item);
+    //             });
+    //             return items;
+    //         }
+	//
+    //     var items = getItems();
+    //     var $pswp = $('.pswp')[0];
+    //     $pic.on('click', 'figure', function(event) {
+    //         event.preventDefault();
+	//
+    //         var $index = $(this).index();
+    //         var options = {
+    //             index: $index,
+    //             bgOpacity: 0.7,
+    //             showHideOpacity: true
+    //         }
+	//
+    //         // Initialize PhotoSwipe
+    //         var lightBox = new PhotoSwipe($pswp, PhotoSwipeUI_Default, items, options);
+    //         lightBox.init();
+    //     });
+    // });
+    </script>
+
+{% else %}
+	<h1>Could not find series.</h1>
+{% endif %}
+
+<br />

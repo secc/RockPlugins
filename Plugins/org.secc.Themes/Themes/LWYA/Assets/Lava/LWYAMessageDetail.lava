@@ -1,0 +1,104 @@
+﻿<style>
+
+</style>
+
+{% assign item = Items | First %}
+{% if item  %}
+
+	{% assign videoLink = item | Attribute:'VideoLink','RawValue' %}
+	{% assign videoEmbed = item | Attribute:'VideoEmbed' %}
+	{% assign audioLink = item | Attribute:'AudioLink','RawValue' %}
+
+	<article class="message-detail g-margin-b-30--xs g-margin-b-60--md">
+
+		<div class="row g-margin-b-15--xs g-margin-b-30--md">
+			<div class="col-md-12">
+
+				<h5 class="title_divider align_left">
+					<span class="title_divider_before"></span>
+						{{ item.Title }}
+					<span class="title_divider_after"></span>
+				</h5>
+
+				{% if videoEmbed != '' %}
+				<div class="embed-responsive embed-responsive-16by9 media-border-only">
+					{{ videoEmbed }}
+				</div>
+				{% endif %}
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-md-7 g-margin-b-25--xs">
+				<p>
+					<strong>
+						{% assign speaker = item | Attribute:'Speaker'%}
+						{% if speaker != '' %}
+							{{ speaker }} -
+						{% else %}
+						  Date Launched:
+						{% endif %}
+
+						{{ item.StartDateTime | Date:'M/d/yyyy' }}
+					</strong>
+				</p>
+				{{ item.Content }}
+				<br />
+				<div class="socials socials_type_icons socials_shape_round">
+					<script>function fbs_click() { u = location.href; t = document.title; window.open('http://www.facebook.com/sharer.php?u=' + encodeURIComponent(u) + '&t=' + encodeURIComponent(t), 'sharer', 'toolbar=0,status=0,width=626,height=436'); return false; }</script>
+					<script>function ics_click() { text = `{{ EventItemOccurrence.Schedule.iCalendarContent }}`.replace('END:VEVENT', 'SUMMARY: {{ Event.Name }}\r\nLOCATION: {{ EventItemOccurrence.Location }}\r\nEND:VEVENT'); var element = document.createElement('a'); element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); element.setAttribute('download', '{{ Event.Name }}.ics'); element.style.display = 'none'; document.body.appendChild(element); element.click(); document.body.removeChild(element); }</script>
+					<div class="socials_item">
+						<a href="mailto:?Subject={{ Event.Name | Escape }}&Body={{ 'Global' | Page:'Url' }}" target="_blank" class="social_icons social_gplus" data-original-title="Share via Email">
+							<i class="fa fa-envelope"></i>
+						</a>
+					</div>
+					<div class="socials_item">
+						<a href="http://www.facebook.com/share.php?u=<url>" onclick="return fbs_click()" target="_blank" class="social_icons social_facebook" data-original-title="Share via Facebook">
+							<i class="fa fa-facebook"></i>
+						</a>
+					</div>
+					<div class="socials_item">
+						<a href="http://twitter.com/home?status={{ 'Global' | Page:'Url' | Escape }}" target="_blank" class="social_icons social_twitter" data-original-title="Share via Twitter">
+							<i class="fa fa-twitter"></i>
+						</a>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-5">
+
+				{% assign discussionQuestions = item | Attribute:'Discussions', 'Object' %}
+				{% if discussionQuestions != '' %}
+				<div class="resources">
+					<div class="list-group">
+
+						{% if discussionQuestions != '' %}
+							<a href="/GetFile.ashx?guid={{ discussionQuestions.Guid}}" class="list-group-item" download="{{ item.Title | Downcase | ToPascal }}_discussions.pdf"><i class="fa fa-download"></i> Download Discussion Questions</a>
+						{% endif %}
+
+					</div>
+				</div>
+				{% endif %}
+				<hr />
+				{% assign sermonVideoEmbed = item | Attribute:'SermonEmbed' %}
+				{% assign sermonTitle = item | Attribute:'SermonTitle' %}
+				{% assign sermonLink = item | Attribute:'SermonLink', 'RawValue' %}
+
+				<h5 class="title_divider align_left">
+					<span class="title_divider_before"></span>
+						Related Sermon
+					<span class="title_divider_after"></span>
+				</h5>
+				{% if sermonVideoEmbed != '' %}
+				<div class="embed-responsive embed-responsive-16by9 media-border-only">
+					{{ sermonVideoEmbed }}
+				</div>
+				<br />
+				<p><h5><a href="{{ sermonLink }}" target="_blank">{{ sermonTitle }}</a></a></p>
+				{% endif %}
+			</div>
+		</row>
+	</article>
+
+{% else %}
+	<h1>Could not find message.</h1>
+{% endif %}

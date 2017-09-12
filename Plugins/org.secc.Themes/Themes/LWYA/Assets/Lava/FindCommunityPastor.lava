@@ -1,0 +1,93 @@
+<div class="container-fluid">
+    <div class="g-padding-x-10--xs g-margin-b-40--xs g-margin-t-40--md">
+        <div class="row">
+            <div class="col-md-5 g-padding-y-20--xs">
+                <h4 class="title_divider align_left g-margin-t-20--xs">
+                    <span class="title_divider_before"></span>
+                    Find My Community Pastor
+                    <span class="title_divider_after"></span>
+                </h4>
+                <p class="g-margin-l-20--md g-margin-l-20--xs">Enter your zip code to find the Community Pastor for your area.</p><br />
+                <input class="g-margin-l-20--md g-margin-l-20--xs" type="text" id="findPastor" placeholder="enter your zip code" />
+                <br />
+                <p class="g-margin-l-20--md g-margin-l-20--xs g-margin-t-10--xs"><a data-spy="scroll" data-target="#community-pastors" href="#community-pastors">See All Community Pastors</a></p>
+            </div>
+            <div class="col-md-7 g-padding-y-20--xs">
+                <div id="your-pastor"></div>
+            </div>
+            <!--  Zipcodes that aren't used yet -->
+            <div data-zips="40014, 40026, 40059, 40056, 40010" data-name="Crestwood Community Pastor (Coming Soon)"></div>
+            <div data-zips="47106, 47111, 47112, 47114, 47115, 47117, 47119, 47122, 47124, 47126, 47129, 47130, 47136, 47150, 47161, 47162, 47165, 47170, 47172, 47177, 47164, 47166, 47143, 47163, 47141" data-name="Indiana Community Pastor (Coming Soon)"></div>
+            <div data-zips="40052, 40051, 40069, 40008, 40013, 40107, 40020, 42701, 52748, 42776, 42740, 42724, 40162, 40160, 40150, 40155, 40121, 40108, 40175, 40117, 42748, 40012, 40078, 40048" data-name="Elizabethtown Community Pastor (Coming Soon)"></div>
+        </div>
+
+    </div>
+    <hr />
+</div>
+
+<script>
+$(document).ready(function() {
+
+    // Listen for Community Pastor Search Input
+    $('#findPastor').keypress(function(e){
+
+        if(e.which === 13){
+            var zip = document.getElementById('findPastor').value;
+
+            $pastor = $("div[data-zips*='"+zip+"']");
+
+            // alert($pastor.length);
+
+            var pastorName = $pastor.attr("data-name");
+            var pastorEmail = $pastor.attr("data-email");
+            var pastorGuid = $pastor.attr("data-pastor-guid");
+            var pastorImg = $pastor.attr("data-img-guid");
+
+            if ($pastor.length > 0) {
+                if (pastorImg) {
+                    $('#your-pastor')
+                    .html(
+                        '<div class="row g-padding-y-20--xs">' +
+                        '<div class="col-sm-4">' +
+                        '<a class="hover_icon hover_icon_link" href="/lwya/author?Author='+pastorGuid+'">' +
+                        '<img class="img-responsive" alt="' + pastorName +'" src="/GetImage.ashx?Guid='+pastorImg+'&h=800&w=800&mode=crop">' +
+                        '</a>' +
+                        '</div>' +
+                        '<div class="col-sm-8">' +
+                        '<h4 class="g-margin-t-20--xs">Your Community Pastor is:</h4>' +
+                        '<hr />' +
+                        '<h4><a title="' + pastorName +'" href="/lwya/author?Author='+pastorGuid+'">' +pastorName+'</a></h4>' +
+                        '<br /><p>' +
+                        '<a href="mailto:' + pastorEmail + '">' + pastorEmail + '</a>' +
+                        '</p>' +
+                        '</div>' +
+                        '</div>');
+                } else {
+                    $('#your-pastor')
+                    .html(
+                        '<div class="row g-padding-y-20--xs">' +
+                        '<div class="col-sm-12">' +
+                        '<h4 class="g-margin-t-20--xs">Your Community Pastor is:</h4>' +
+                        '<hr />' +
+                        '<h4>' +pastorName+'</h4>' +
+                        '<p>Meanwhile, please see our other <a href="#community-pastors">community pastors below</a>.</p>' +
+                        '</div>' +
+                        '</div>');
+                }
+                // alert( pastorName +'\n'+ pastorEmail + '\nPastor GUID:' + pastorGuid + '\nImage GUID:' + pastorImg);
+            } else {
+                $('#your-pastor')
+                .html(  '<div class="row">' +
+                            '<div class="col-sm-12">' +
+                                '<h1>Community Pastor: Not Found</h1>' +
+                                '<br />' +
+                                '<p>Sorry, but this zip code doesn\'t seem to be in our system. Please try again, or see our <a href="#community-pastors">community pastors below</a>.</p>' +
+                            '</div>' +
+                        '</div>');
+            }
+            return false;
+        }
+    });
+
+});
+</script>
