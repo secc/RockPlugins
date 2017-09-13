@@ -1,0 +1,443 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" Inherits="Rock.Web.UI.RockMasterPage" %>
+<%@ Import Namespace="System.Web.Optimization" %>
+<!DOCTYPE html>
+
+<script runat="server">
+
+    // keep code below to call base class init method
+
+    /// <summary>
+    /// Raises the <see cref="E:System.Web.UI.Control.Init" /> event.
+    /// </summary>
+    /// <param name="e">An <see cref="T:System.EventArgs" /> object that contains the event data.</param>
+    protected override void OnInit( EventArgs e )
+    {
+        base.OnInit( e );
+    }
+
+</script>
+
+<html class="no-js">
+<head runat="server">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=10" />
+    <meta charset="utf-8">
+    <title></title>
+
+    <script src="<%# ResolveRockUrl("~/Scripts/jquery-1.12.4.min.js" ) %>"></script>
+
+    <!-- Set the viewport width to device width for mobile -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <asp:ContentPlaceHolder ID="css" runat="server" />
+
+	<!-- Included CSS Files -->
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/rock.css", true) %>"/>
+	<link href="<%# ResolveRockUrl("~~/Assets/Css/animate.css", true) %>" rel="stylesheet" type="text/css"/>
+	<link href="<%# ResolveRockUrl("~~/Assets/Vendor/themify/themify.css", true) %>" rel="stylesheet" type="text/css"/>
+	<link href="<%# ResolveRockUrl("~~/Assets/Vendor/scrollbar/scrollbar.min.css", true) %>" rel="stylesheet" type="text/css"/>
+	<link href="<%# ResolveRockUrl("~~/Assets/Vendor/magnific-popup/magnific-popup.css", true) %>" rel="stylesheet" type="text/css"/>
+	<!-- <link href="<%# ResolveRockUrl("~~/Assets/Vendor/swiper/swiper.min.css", true) %>" rel="stylesheet" type="text/css"/> -->
+	<link href="<%# ResolveRockUrl("~~/Assets/Vendor/cubeportfolio/css/cubeportfolio.min.css", true) %>" rel="stylesheet" type="text/css"/>
+
+    <!-- REVOLUTION STYLE SHEETS -->
+    <link href="https://fonts.googleapis.com/css?family=Poppins:600%2C300%2C700" rel="stylesheet" property="stylesheet" type="text/css" media="all">
+	<link rel="stylesheet" type="text/css" href="<%# ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/fonts/pe-icon-7-stroke/css/pe-icon-7-stroke.css", true) %>" />
+	<link rel="stylesheet" type="text/css" href="<%# ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/fonts/font-awesome/css/font-awesome.css", true) %>" />
+    <link rel="stylesheet" type="text/css" href="<%# ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/css/settings.css", true) %>" />
+	<link rel="stylesheet" type="text/css" href="<%# ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/css/layers.css", true) %>" />
+	<link rel="stylesheet" type="text/css" href="<%# ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/css/navigation.css", true) %>" />
+	<!-- END REVOLUTION STYLE SHEETS -->
+
+    <!-- PHOTO SWIPE STYLE SHEETS -->
+    <link rel="stylesheet" type="text/css" href="<%# ResolveRockUrl("~~/Assets/Vendor/photo_swipe/photoswipe.css?v=4.1.2-1.0.4") %>" />
+    <link rel="stylesheet" type="text/css" href="<%# ResolveRockUrl("~~/Assets/Vendor/photo_swipe/default-skin/default-skin.css?v=4.1.2-1.0.4") %>" />
+    <script src="<%# ResolveRockUrl("~~/Assets/Vendor/photo_swipe/photoswipe.js") %>" ></script>
+    <script src="<%# ResolveRockUrl("~~/Assets/Vendor/photo_swipe/photoswipe-ui-default.js") %>" ></script>
+    <!-- END PHOTO SWIPE STYLE SHEETS -->
+
+    <!-- ISOTOPE -->
+    <script src="<%# ResolveRockUrl("~~/Scripts/components/isotope.pkgd.min.js" ) %>" ></script>
+    <!-- END ISOTOPE -->
+
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/style.css", true) %>"/>
+    <link href="<%# ResolveRockUrl("~~/Assets/Css/global/global.css", true) %>" rel="stylesheet" type="text/css"/>
+
+    <script src="<%# ResolveRockUrl("~/Scripts/modernizr.js" ) %>" ></script>
+
+    <asp:ContentPlaceHolder ID="head" runat="server"></asp:ContentPlaceHolder>
+
+    <!-- Icons -->
+    <link rel="shortcut icon" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/lwya-favicon.ico", true) %>"/>
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/lwya-touch-icon-ipad-retina.png", true) %>"/>
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/lwya-touch-icon-iphone-retina.png", true) %>"/>
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/lwya-touch-icon-ipad.png", true) %>"/>
+    <link rel="apple-touch-icon-precomposed" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/lwya-touch-icon-iphone.png", true) %>"/>
+
+    <link href="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/css/reset.css", true) %>" rel="stylesheet" type="text/css"/>
+	<link href="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/css/style.css", true) %>" rel="stylesheet" type="text/css"/>
+	<script src="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/js/modernizr.js" ) %>" ></script>
+	<!-- Hotjar Tracking Code for www.lovewhereuare.org -->
+	<script>
+		(function(h,o,t,j,a,r){
+			h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+			h._hjSettings={hjid:605384,hjsv:5};
+			a=o.getElementsByTagName('head')[0];
+			r=o.createElement('script');r.async=1;
+			r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+			a.appendChild(r);
+		})(window,document,'//static.hotjar.com/c/hotjar-','.js?sv=');
+	</script>
+</head>
+<body runat="server" class="nav-is-fixed">
+
+        <!-- Vendor -->
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/jquery.migrate.min.js", true) %>"></script>
+        <!-- <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/jquery.smooth-scroll.min.js", true) %>"></script> -->
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/jquery.back-to-top.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/scrollbar/jquery.scrollbar.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/magnific-popup/jquery.magnific-popup.min.js", true) %>"></script>
+        <!-- <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/swiper/swiper.jquery.min.js", true) %>"></script> -->
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/waypoint.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/counterup.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/cubeportfolio/js/jquery.cubeportfolio.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/jquery.parallax.min.js", true) %>"></script>
+        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBsXUGTFS09pLVdsYEE9YrO2y4IAncAO2U"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/jquery.wow.min.js", true) %>"></script>
+
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/js/jquery.mobile.custom.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/js/main.js", true) %>"></script>
+
+    <form id="form1" runat="server">
+
+
+        <!-- <div class="top_panel">
+            <ul id="menu_user" class="menu_user_nav">
+                <li class="menu_user_register">
+                    <a href="#popup_registration" class="popup_link popup_register_link icon-pencil inited">Register</a>
+                </li>
+                <li class="menu_user_login">
+                    <a href="#popup_login" class="popup_link popup_login_link icon-user inited">Login</a>
+                </li>
+            </ul>
+        </div> -->
+
+        <Rock:Zone Name="header-primary-nav" runat="server" />
+
+        <main class="cd-main-content">
+
+            <!--========== PAGE CONTENT ==========-->
+            <asp:ContentPlaceHolder ID="feature" runat="server"></asp:ContentPlaceHolder>
+            <asp:ContentPlaceHolder ID="main" runat="server"></asp:ContentPlaceHolder>
+            <!--========== END PAGE CONTENT ==========-->
+
+            <!--========== FOOTER ==========-->
+            <footer class="g-bg-color--dark">
+                <!-- Links -->
+                <div class="g-hor-divider__dashed--white-opacity-lightest">
+                    <div class="container g-padding-y-40--xs">
+                        <div class="row">
+                            <div class="col-sm-6 col-md-3 col-lg-2 g-margin-b-20--xs g-margin-b-0--md">
+                                <ul class="list-unstyled g-ul-li-tb-5--xs g-margin-b-0--xs">
+                                    <li><a class="g-font-size-25--xs g-color--white-opacity" href="/lwya">Home</a></li>
+                                    <li><a class="g-font-size-25--xs g-color--white-opacity" href="/lwya/about">About</a>
+                                        <ul class="list-unstyled g-ul-li-tb-3--xs g-margin-b-0--xs">
+                                            <li>
+                                                <a class="g-font-size-15--xs g-color--white-opacity title_divider" href="/lwya/about#FAQ">
+                                                    <span class="title_divider_before list-div"></span>
+                                                    FAQ
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li><span class="g-font-size-25--xs g-color--white-opacity">Resources</span>
+                                        <ul class="list-unstyled g-ul-li-tb-3--xs g-margin-b-0--xs">
+                                            <li><a class="g-font-size-15--xs g-color--white-opacity title_divider" href="/lwya/blog">
+                                                <span class="title_divider_before list-div"></span>
+                                                Blog</a>
+                                            </li>
+                                            <li><a class="g-font-size-15--xs g-color--white-opacity title_divider" href="/lwya/podcasts">
+                                                <span class="title_divider_before list-div"></span>Podcasts</a>
+                                            </li>
+                                            <li><a class="g-font-size-15--xs g-color--white-opacity title_divider" href="/lwya/videos">
+                                                <span class="title_divider_before list-div"></span>Series</a>
+                                            </li>
+                                            <li><a class="g-font-size-15--xs g-color--white-opacity title_divider" href="/lwya/stories">
+                                                <span class="title_divider_before list-div"></span>Stories</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-sm-6 col-md-3 col-lg-2 g-margin-b-20--xs g-margin-b-0--md">
+                                <ul class="list-unstyled g-ul-li-tb-5--xs g-margin-b-0--xs">
+                                    <li><span class="g-font-size-25--xs g-color--white-opacity">In Your Neighborhood</span>
+                                        <ul class="list-unstyled g-ul-li-tb-3--xs g-margin-b-0--xs">
+                                            <li>
+                                                <a class="g-font-size-15--xs g-color--white-opacity title_divider" href="/lwya/group-manager">
+                                                    <span class="title_divider_before list-div"></span>
+                                                    Group Manager
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="g-font-size-15--xs g-color--white-opacity title_divider" href="/lwya/all-series/series">
+                                                    <span class="title_divider_before list-div"></span>
+                                                    Upcoming Series
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="g-font-size-15--xs g-color--white-opacity title_divider" href="/lwya/maps">
+                                                    <span class="title_divider_before list-div"></span>
+                                                    Maps
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="g-font-size-15--xs g-color--white-opacity title_divider" href="/lwya/community-pastors">
+                                                    <span class="title_divider_before list-div"></span>
+                                                    Community Pastors
+                                                </a>
+                                            </li>
+                                            <!-- <li>
+                                                <a class="g-font-size-15--xs g-color--white-opacity title_divider" href="/lwya/">
+                                                    <span class="title_divider_before list-div"></span>
+                                                    Submit a Story
+                                                </a>
+                                            </li> -->
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-sm-12 col-md-3 col-lg-4 g-padding-y-20--sm g-margin-b-20--xs g-margin-b-0--md text-center">
+
+                                <div class="socials socials_type_icons socials_shape_round">
+                					<div class="socials_item">
+                						<a href="https://www.facebook.com/southeastchrist" target="_blank" class="social_icons social_facebook invert" data-original-title="SECC via Facebook">
+                							<i class="fa fa-facebook"></i>
+                						</a>
+                					</div>
+                					<div class="socials_item">
+                						<a href="https://twitter.com/southeastchrist" target="_blank" class="social_icons social_twitter invert" data-original-title="SECC via Twitter">
+                							<i class="fa fa-twitter"></i>
+                						</a>
+                					</div>
+                                    <div class="socials_item">
+                                        <a href="https://www.instagram.com/southeastchrist/" target="_blank" class="social_icons social_gplus invert" data-original-title="SECC via Instagram">
+                                            <i class="fa fa-instagram"></i>
+                                        </a>
+                                    </div>
+                				</div>
+
+                                <!-- <ul class="list-unstyled g-ul-li-tb-5--xs g-margin-b-0--xs">
+                                    <li><a class="g-font-size-25--xs g-color--white-opacity" href="/lwya">Southeast Facebook</a></li>
+                                    <li><a class="g-font-size-25--xs g-color--white-opacity" href="/lwya">Southeast Twitter</a></li>
+                                    <li><a class="g-font-size-25--xs g-color--white-opacity" href="/lwya">Southeast Instagram</a></li>
+                                </ul> -->
+                            </div>
+                            <div class="col-sm-12 col-md-3 col-lg-4 s-footer__logo g-padding-y-20--xs g-padding-y-0--md">
+                                <!-- <h3 class="g-font-size-18--xs g-color--white">Love Where You Are</h3><br /> -->
+                                <a href="/lwya">
+                                    <img class="img-respoinsive" src="/Themes/LWYA/Assets/Img/lwya-logo-light.png" alt="Logo" style="max-width: 300px; width: 100%;">
+                                </a>
+                                <br /><br />
+                                <p class="g-color--white-opacity">Our Mission: The Gospel within walking distance of every person in our city and the surrounding regions</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- End Links -->
+
+                <!-- Copyright -->
+                <div class="container g-padding-y-35--xs">
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <p class="g-color--white-opacity g-font-size-15--xs">
+                                <script>
+                                    window.onload = function() {
+                                        var d = new Date();
+                                        var n = d.getFullYear();
+                                        document.getElementById("date-year").innerHTML = n;
+                                    };
+                                </script>
+
+                                <a href="https://www.southeastchristian.org/" target="_blank">
+                                    <img style="max-width: 3.5em; vertical-align: middle; padding-right:0.5em;" class="img-respoinsive" src="/Themes/LWYA/Assets/Img/se-logo.png" alt="Logo">
+                                </a>
+                                Copyright <span id="date-year"></span> <a href="https://www.southeastchristian.org/" target="_blank">Southeast Christian Church</a>
+                            </p>
+                            <!-- <Rock:Zone Name="Footer" runat="server" /> -->
+                        </div>
+                    </div>
+                </div>
+                <!-- End Copyright -->
+            </footer>
+            <!--========== END FOOTER ==========-->
+        </main>
+
+
+        <!-- Back To Top -->
+        <a href="javascript:void(0);" class="s-back-to-top js__back-to-top"></a>
+
+        <Rock:Zone Name="primary-nav" runat="server" />
+
+    	<div id="cd-search" class="cd-search">
+    		<input type="search" name="q" placeholder="Search...">
+    	</div>
+
+        <div class="cd-overlay"></div>
+
+        <%-- controls for scriptmanager and update panel --%>
+        <asp:ScriptManager ID="sManager" runat="server"/>
+        <asp:UpdateProgress id="updateProgress" runat="server" DisplayAfter="800">
+		        <ProgressTemplate>
+		            <div class="updateprogress-status">
+                        <div class="spinner">
+                          <div class="rect1"></div>
+                          <div class="rect2"></div>
+                          <div class="rect3"></div>
+                          <div class="rect4"></div>
+                          <div class="rect5"></div>
+                        </div>
+                    </div>
+                    <div class="updateprogress-bg modal-backdrop"></div>
+		        </ProgressTemplate>
+        </asp:UpdateProgress>
+
+    </form>
+
+        <!-- Back To Top -->
+        <a href="javascript:void(0);" class="s-back-to-top js__back-to-top"></a>
+
+        <!-- START REVOLUTION JS -->
+		<script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/js/jquery.themepunch.tools.min.js", true) %>"></script>
+		<script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/js/jquery.themepunch.revolution.min.js", true) %>"></script>
+		<!-- SLIDER REVOLUTION 5.0 EXTENSIONS  (Load Extensions only on Local File Systems !  The following part can be removed on Server for On Demand Loading) -->
+		<script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/js/extensions/revolution.extension.actions.min.js", true) %>"></script>
+		<script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/js/extensions/revolution.extension.carousel.min.js", true) %>"></script>
+		<script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/js/extensions/revolution.extension.kenburn.min.js", true) %>"></script>
+		<script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/js/extensions/revolution.extension.layeranimation.min.js", true) %>"></script>
+		<script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/js/extensions/revolution.extension.migration.min.js", true) %>"></script>
+		<script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/js/extensions/revolution.extension.navigation.min.js", true) %>"></script>
+		<script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/js/extensions/revolution.extension.parallax.min.js", true) %>"></script>
+		<script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/js/extensions/revolution.extension.slideanims.min.js", true) %>"></script>
+		<script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/js/extensions/revolution.extension.video.min.js", true) %>"></script>
+
+        <script type="text/javascript">
+			var tpj=jQuery;
+
+			var revapi149;
+			tpj(document).ready(function() {
+				if(tpj("#rev_slider_149_1").revolution == undefined){
+					revslider_showDoubleJqueryError("#rev_slider_149_1");
+				}else{
+					revapi149 = tpj("#rev_slider_149_1").show().revolution({
+						sliderType:"standard",
+						jsFileLocation:"revolution/js/",
+						sliderLayout:"fullscreen",
+						dottedOverlay:"none",
+						delay:9000,
+						navigation: {
+							keyboardNavigation:"off",
+							keyboard_direction: "vertical",
+							mouseScrollNavigation:"off",
+ 							mouseScrollReverse:"default",
+							onHoverStop:"off",
+							touch:{
+								touchenabled:"on",
+								swipe_threshold: 75,
+								swipe_min_touches: 1,
+								swipe_direction: "horizontal",
+								drag_block_vertical: false
+							}
+							,
+							arrows: {
+								style:"uranus",
+								enable:true,
+								hide_onmobile:false,
+								hide_onleave:false,
+								tmp:'',
+								left: {
+									h_align:"left",
+									v_align:"center",
+									h_offset:10,
+									v_offset:0
+								},
+								right: {
+									h_align:"right",
+									v_align:"center",
+									h_offset:10,
+									v_offset:0
+								}
+							}
+						},
+						responsiveLevels:[1240,1024,778,480],
+						visibilityLevels:[1240,1024,778,480],
+						gridwidth:[1240,1024,778,480],
+						gridheight:[868,768,960,720],
+						lazyType:"none",
+						scrolleffect: {
+							blur:"on",
+							maxblur:"20",
+							on_slidebg:"on",
+							direction:"top",
+							multiplicator:"2",
+							multiplicator_layers:"2",
+							tilt:"10",
+							disable_on_mobile:"off",
+						},
+						parallax: {
+							type:"scroll",
+							origo:"slidercenter",
+							speed:400,
+							levels:[5,10,15,20,25,30,35,40,45,46,47,48,49,50,51,55],
+						},
+						shadow:0,
+						spinner:"spinner4",
+						stopLoop:"off",
+						stopAfterLoops:-1,
+						stopAtSlide:-1,
+						shuffle:"off",
+						autoHeight:"off",
+                        fullScreenAutoWidth:"on",
+						fullScreenAlignForce:"on",
+						fullScreenOffsetContainer: "260px",
+						fullScreenOffset: "80px",
+						hideThumbsOnMobile:"off",
+						hideSliderAtLimit:0,
+						hideCaptionAtLimit:0,
+						hideAllCaptionAtLilmit:0,
+						debugMode:false,
+						fallbacks: {
+							simplifyAll:"off",
+							nextSlideOnWindowFocus:"off",
+							disableFocusListener:false,
+						}
+					});
+				}
+			});	/*ready*/
+		</script>
+        <!-- END REVOLUTION JS -->
+
+        <!--========== JAVASCRIPTS (Load javascripts at bottom, this will reduce page load time) ==========-->
+        <!-- General Components and Settings -->
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/global.js", true) %>"></script>
+        <!-- <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/header-sticky.min.js", true) %>"></script> -->
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/scrollbar.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/magnific-popup.min.js", true) %>"></script>
+        <!-- <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/swiper.min.js", true) %>"></script> -->
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/counter.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/portfolio-3-col.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/parallax.min.js", true) %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/wow.min.js") %>"></script>
+        <script type="text/javascript" src="<%= ResolveRockUrl("~/Scripts/bootstrap-datepicker.js") %>"></script>
+        <!-- Load Facebook SDK for JavaScript -->
+        <div id="fb-root"></div>
+        <script>(function(d, s, id) {
+          var js, fjs = d.getElementsByTagName(s)[0];
+          if (d.getElementById(id)) return;
+          js = d.createElement(s); js.id = id;
+          js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.9";
+          fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));</script>
+</body>
+
+</html>

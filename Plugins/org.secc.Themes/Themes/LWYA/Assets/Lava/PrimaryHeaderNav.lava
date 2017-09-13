@@ -1,0 +1,14 @@
+<!--========== HEADER ==========-->
+<header class="cd-main-header">
+   <a class="cd-logo" href="/lwya"><img class="img-respoinsive" src="/Themes/LWYA/Assets/Img/lwya-logo.png" alt="Logo"></a>
+
+   <ul class="cd-header-buttons">
+       {% assign personGuidSize = CurrentPerson.Guid | Size %}
+       {% if personGuidSize == 0 %}
+            <li><a class="cd-nav-login" href="/lwya/group-manager" title="Login">Login<span></span></a></li>
+       {% endif %}
+       <!-- <li><a class="cd-search-trigger" href="#cd-search" title="Search">Search<span></span></a></li> -->
+       <li><a class="cd-nav-trigger" href="#cd-primary-nav">Menu<span></span></a></li>
+   </ul> <!-- cd-header-buttons -->
+</header>
+<!--========== END HEADER ==========-->

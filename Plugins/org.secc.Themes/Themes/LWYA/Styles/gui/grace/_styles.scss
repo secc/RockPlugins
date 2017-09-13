@@ -1,0 +1,535 @@
+a.anchor {
+    display: block;
+    position: relative;
+    top: -100px;
+    visibility: hidden;
+}
+
+/* Boxed style for articles and sidebar */
+.page_content_wrap {
+	padding-top: 2em;
+}
+
+/* Bread Crumb Content Wrap */
+.content_wrap {
+	margin:0 auto;
+    width:1490px;
+}
+/* 7.3 Page info: page title and breadcrumbs
+-------------------------------------------------------------- */
+.page_title,
+.breadcrumbs {
+	max-width:50%;
+}
+.top_panel_style_3 .page_title,
+.top_panel_style_3 .breadcrumbs {
+	float:none !important;
+	max-width:100% !important;
+	text-align:left;
+}
+
+.top_panel_title_inner {
+	overflow:hidden;
+}
+.top_panel_title .page_title {
+	float:right;
+	padding: 1.7em 0 1.7em;
+	font-size:0.875em;
+	line-height:1.5em;
+}
+.top_panel_style_3 .page_title {
+	padding:0.5em 0 0.25em;
+}
+
+.top_panel_title .breadcrumbs {
+	float:left;
+	margin:0;
+	font-weight:400;
+	font-size: 0.933rem;
+	padding: 1.7em 0 1.7em;
+	line-height:1.2em;
+}
+.top_panel_title.title_present .breadcrumbs {
+    padding: 1.7em 0 1.7em;
+}
+.top_panel_style_3.title_present .breadcrumbs {
+	padding: 1.5em 0 1.5em 0;
+}
+.breadcrumbs .breadcrumbs_item {
+	display:inline-block;
+	vertical-align:top;
+	white-space: normal;
+}
+
+.breadcrumbs .breadcrumbs_delimiter {
+	display:inline-block;
+	position:relative;
+	margin: 0 0.4em;
+	vertical-align:top;
+	text-align:left;
+}
+.breadcrumbs .breadcrumbs_delimiter:before {
+	content:'|';
+}
+
+.top_panel_title_inner {
+    background-color: $color-gray-lighter;
+}
+
+/* Divider */
+.title_divider {
+	position:relative;
+	padding-left: 5ex;
+	padding-right: 5ex;
+	text-align:center;
+    margin-bottom: 2%;
+
+    .title_divider_before,
+    .title_divider_after {
+        background-color: $color-primary;
+        display:block;
+    	width:30%;
+    	height:3px;
+    	position:absolute;
+        top: 0;
+        bottom: 0;
+        margin: auto;
+
+		&.list-div {
+			height: 1px;
+			width: 1ex;
+			margin-left: 2.5ex;
+		}
+    }
+    .title_divider_before {
+    	left: 0;
+    }
+    .title_divider_after {
+    	right: 0;
+    }
+
+    &.align_left,
+    &.align_right {
+        .title_divider_before,
+        .title_divider_after {
+            width:4rem;
+        }
+    }
+    &.align_left{
+        padding-left:6.25rem;
+        text-align:left;
+    }
+    &.align_right{
+        padding-right:6.25rem;
+        text-align:right;
+    }
+
+    &.align_left .title_divider_after,
+    &.align_right .title_divider_before{
+        display:none;
+    }
+
+}
+
+/* 7.4 Main content wrapper
+-------------------------------------------------------------- */
+
+/* Post featured block */
+.post_featured {
+	overflow:hidden;
+	margin-bottom:2em;
+	position:relative;
+}
+.post_featured img {
+	width:100%;
+	height:auto;
+}
+
+.post_featured_right > .post_featured {
+	float: right;
+	width: 50%;
+	margin-left: 4.3478%;
+}
+.post_featured_left > .post_featured {
+	float: left;
+	width: 50%;
+	margin-right: 4.3478%;
+}
+
+/* Post info block */
+.post_info {
+    line-height: 1.8em;
+    margin-top: 0.6em;
+    margin-bottom: 1.6em;
+}
+.post_info_bottom {
+	margin-bottom:3em;
+}
+.post_info .post_info_item {
+    margin-right:1em;
+}
+.post_info .post_info_counters {
+    color: $color-gray-light;
+}
+.post_info .post_info_counters .post_counters_item + .post_counters_item {
+	padding: 5px 0 5px 1em;
+    // padding-left:1em;
+    border-left:2px solid $color-sub-white;
+    margin-left:1em;
+}
+.post_info .post_info_counters .post_counters_item:before {
+	margin-right:0.5em;
+}
+.post_info.post_info_share_vertical {
+	margin:0;
+}
+.post_info .post_info_counters .post_counters_like .fb-like {
+	top: -5px;
+}
+.post_info .post_info_counters .post_counters_likes.disabled {
+	color: $color-primary;
+}
+.post_info .post_info_item+.post_info_item:before {
+	content: "";
+}
+
+
+.post_item {
+    /*  Blogger: Classic*/
+    .post_featured {
+        position: relative;
+        .post_thumb {
+            display: inline-block;
+            overflow: hidden;
+        }
+        .post_info_item {
+            &.post_info_posted{
+                color: #fff;
+                position: absolute;
+                z-index: 1;
+                bottom: 2px;
+                left: 0;
+                width: 5rem;
+                height: 5rem;
+                background-color: $color-primary;
+                text-align: center;
+
+                -webkit-transition: all 0.7s ease 0s;
+                -moz-transition: all 0.7s ease 0s;
+                -ms-transition: all 0.7s ease 0s;
+                -o-transition: all 0.7s ease 0s;
+                transition: all 0.7s ease 0s;
+
+                &:hover{
+                    cursor: pointer;
+                }
+                div {
+                    &.day {
+                        font-size: 2rem;
+                        padding-top: 0.9rem;
+                    }
+                    &.month_year{
+                        font-size: 0.6667rem;
+                    }
+                    &.month_year{
+                        font-size: 0.6667rem;
+                    }
+                }
+            }
+        }
+        &:hover{
+            .post_info_item {
+                &.post_info_posted {
+                    opacity:0;
+                }
+            }
+        }
+    }
+    .massonry_border {
+        .post_title{
+            font-size: 1.5em;
+            text-transform: none;
+            margin: 20px 0 6px 0;
+        }
+        p {
+            margin-bottom: 1em;
+        }
+        button, .button {
+            display: inline-block;
+            text-align: center;
+            padding: 0.65em 1.75em;
+            font-weight: 700;
+            font-size: 0.867em;
+            text-transform: uppercase;
+        }
+    }
+}
+
+/* 8.3 Post author
+------------------------------------------------------ */
+
+.post_author {
+	margin-bottom: 2em;
+	padding:2.666rem 2rem;
+	overflow:hidden;
+	background-color: #f4f4f4;
+}
+.post_author .post_author_avatar {
+	float: left;
+    margin: 0 2rem 1em 0;
+    overflow: hidden;
+    max-width: 200px;
+    max-height: 200px;
+}
+.post_author .post_author_title {
+	margin-top:0;
+}
+.post_author .post_author_about{
+    font-size:0.866rem;
+	color: $color-primary;
+	margin-top: 0.7em;
+}
+.post_author .post_author_info {
+    margin-top:2.5rem;
+    margin-bottom:0.67rem;
+}
+.post_author .post_author_title,
+.post_author .post_author_about,
+.post_author .post_author_info{
+    margin-left:12rem;
+}
+
+
+
+/* Hovers for images and videos */
+.hover_icon {
+	position:relative;
+	display:block;
+    &:before {
+        font-family: "fontawesome";
+        font-size: 3em;
+        color: #FFF;
+        cursor: pointer;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translateX(-50%) translateY(-50%);
+        opacity: 0;
+        margin-top: 100px;
+        transition: all 0.3s ease 0s;
+        border: 4px solid #fff;
+        padding: 0.8em;
+		background-color: rgba($color-primary, 0.5);
+    	-webkit-transition: all ease .3s;
+    	   -moz-transition: all ease .3s;
+    	    -ms-transition: all ease .3s;
+    	     -o-transition: all ease .3s;
+    	        transition: all ease .3s;
+    }
+    &:hover:before {
+    	opacity: 1;
+    	filter: alpha(opacity=100);
+    	margin-top: 0;
+    }
+}
+.hover_icon_play:before {
+	content:'\f04b';
+}
+.hover_icon_link:before {
+	content:'\f0c1';
+}
+.hover_icon_zoom:before {
+	content:'\f00e';
+}
+.hover_icon_view:before {
+	content:'\f06e';
+}
+
+/*
+Apple iPhone 5, 5S & 5C
+Apple iPod Touch (5th generation)
+*/
+/* With side menu */
+@media (min-width: 1510px) and (max-width: 1600px) {
+
+/* Without side menu
+@media (min-width: 1280px) and (max-width: 1439px) {
+*/
+	/* Body sizes */
+	.content_wrap {	width:1170px; }
+}
+
+
+/* With side menu */
+@media (min-width: 1366px) and (max-width: 1509px) {
+
+/* Without side menu
+@media (min-width: 1136px) and (max-width: 1279px) {
+*/
+	/* Body sizes */
+	.content_wrap {	width:1170px; }
+}
+
+/* With side menu */
+@media (min-width: 1200px) and (max-width: 1365px) {
+
+/* Without side menu
+@media (min-width: 1024px) and (max-width: 1135px) {
+*/
+	/* Body sizes */
+	.content_wrap {	width:1160px; }
+}
+/* With side menu */
+@media (min-width: 992px) and (max-width: 1199px) {
+
+/* Without side menu
+@media (min-width: 960px) and (max-width: 1023px) {
+*/
+	/* Body sizes */
+	.content_wrap {	width:970px; }
+}
+
+/*
+Sony Xperia
+LG Optimus
+Blackberry Storm 3, Torch 9850 & Torch 9860
+Nokia Lumia 610, 710 & 800
+HTC Desire, Desire Z, Desire S & One V
+Samsung Galaxy
+*/
+@media (min-width: 769px) and (max-width: 991px) {
+
+	/* Body sizes */
+	.content_wrap {	width:750px; }
+}
+
+@media (min-width: 640px) and (max-width: 768px) {
+
+	/* Body sizes */
+	.content_wrap {	width:600px; }
+
+    .top_panel_title .page_title {
+        font-size: 1.3rem;
+        padding: 1em 0 0 0;
+		line-height: 0.2em;
+    }
+    .top_panel_title .breadcrumbs {
+        font-size: 0.7em;
+    }
+
+    .top_panel_title .page_title,
+    .top_panel_title .breadcrumbs {
+    	max-width: 100% !important;
+    	float:none;
+    	text-align:left;
+    }
+    .top_panel_title.title_present .breadcrumbs {
+    	padding: 1.5em 0 1.5em 0 !important;
+    }
+}
+
+
+@media (min-width: 480px) and (max-width: 639px) {
+
+	/* Body sizes */
+	.content_wrap {	width:440px; }
+
+    .top_panel_title .page_title {
+        font-size: 1.3rem;
+		padding: 1em 0 0 0;
+		line-height: 0.2em;
+    }
+    .top_panel_title .breadcrumbs {
+        font-size: 0.7em;
+    }
+
+    .top_panel_title .page_title,
+    .top_panel_title .breadcrumbs {
+    	max-width: 100% !important;
+    	float:none;
+    	text-align:left;
+    }
+    .top_panel_title.title_present .breadcrumbs {
+    	padding: 1.5em 0 1.5em 0 !important;
+    }
+}
+
+/*
+Portrait orientation
+Sony Xperia
+LG Optimus
+Blackberry Storm 3, Torch 9850 & Torch 9860
+Nokia Lumia 610, 710 & 800
+HTC Desire, Desire Z, Desire S & One V
+Samsung Galaxy
+*/
+@media (max-width: 768px) { /*(max-width: 1439 1279 1135 1023 959 767 473 )*/
+	/*Posts layouts*/
+	.post_featured_left,
+	.post_featured_right {
+		padding: 0 1em;
+	}
+    .post_featured_left > .post_featured,
+    .post_featured_right > .post_featured {
+        float: none;
+        margin-left: 0;
+        margin-bottom: 2em;
+        width: 100%;
+	}
+
+	/*Single Post*/
+    .post_author {
+		& .post_author_title,
+		& .post_author_about,
+		& .post_author_info {
+			margin-left: 0;
+		}
+	}
+}
+
+/*
+Very common low res
+*/
+@media (max-width: 479px) {
+    .content_wrap {	width:300px; }
+
+    .top_panel_title .page_title {
+        font-size: 1.3rem;
+		padding: 1em 0 0 0;
+		line-height: 0.2em;
+    }
+    .top_panel_title .breadcrumbs {
+        font-size: 0.7em;
+    }
+
+    .top_panel_title .page_title,
+ 	.top_panel_title .breadcrumbs {
+		max-width: 100% !important;
+		float:none;
+		text-align:left;
+	}
+	.top_panel_title.title_present .breadcrumbs {
+		padding: 1.5em 0 1.5em 0 !important;
+	}
+
+	/* Posts layouts */
+    .post_featured_left > .post_featured,
+    .post_featured_right > .post_featured {
+        float: none;
+        margin-left: 0;
+        margin-bottom: 2em;
+        width: 100%;
+    }
+
+	/*Single Post*/
+    .post_author {
+		& .post_author_avatar {
+			max-width: 100px;
+			max-height: 100px;
+		}
+
+		&.post_author_info {
+			clear: both;
+		}
+	}
+}

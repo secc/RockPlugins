@@ -1,0 +1,35 @@
+{% assign list = "1,2,3,4,5,6,7,8,9,10" | Split: "," %}
+{% assign pageId = 'Global' | Page:'Id' %}
+{% assign breadcrumbs = '' %}
+
+{% for count in list %}
+{% if pageId > 0 %}
+    {% page where:'Id == {{pageId}}' %}
+        {% for page in pageItems %}
+            {% if page.BreadCrumbDisplayName %}
+            {% assign route = page.PageRoutes | First %}
+            {% capture breadcrumbs %}{% if route %}/{{route.Route}}{% else %}/page/{{page.Id}}{% endif %}^^^{%if count != 1 %}{{ page.PageTitle }}|||{%else%}{{ Global | Page:'Title'}}{%endif%}{{ breadcrumbs }}{% endcapture %}
+            {% endif %}
+        {% endfor %}
+    {% endpage %}
+{% endif %}
+{% assign pageId = page.ParentPageId %}
+{% endfor %}
+{% assign breadcrumbs = breadcrumbs | Split:'|||' %}
+
+
+<div class="breadcrumbs">
+
+    {%for breadcrumb in breadcrumbs %}
+        {% assign breadcrumbparts = breadcrumb | Split:'^^^' %}
+
+        {% if forloop.last  %}
+            <span class="breadcrumbs_item current">{{breadcrumbparts[1]}}</span>
+        {% else %}
+            <a class="breadcrumbs_item {% if forloop.first %}home{% endif %}" href="{{breadcrumbparts[0]}}">{{breadcrumbparts[1]}}</a>
+            <span class="breadcrumbs_delimiter"></span>
+        {% endif %}
+
+    {% endfor %}
+
+</div>
