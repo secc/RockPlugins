@@ -107,7 +107,7 @@
     <Compile Include="Models\Template.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rest\Controllers\RoomScannerController.Partial.cs" />
-    <Compile Include="Utilities\InMemoryWorshipRecord.cs" />
+    <Compile Include="Utilities\InMemoryPersonStatus.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -126,7 +126,7 @@
       <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>
       <Name>Rock</Name>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)SECC-ROCK\Plugins\org.secc.FamilyCheckin\org.secc.FamilyCheckin.csproj">
+    <ProjectReference Include="..\org.secc.FamilyCheckin\org.secc.FamilyCheckin.csproj">
       <Project>{3E94706B-C20E-413F-AAFB-38AF995FE033}</Project>
       <Name>org.secc.FamilyCheckin</Name>
     </ProjectReference>
