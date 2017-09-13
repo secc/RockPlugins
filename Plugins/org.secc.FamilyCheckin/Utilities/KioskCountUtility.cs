@@ -11,7 +11,6 @@ namespace org.secc.FamilyCheckin.Utilities
 {
     public class KioskCountUtility
     {
-        public Guid VolunteerAttributeGuid { get; private set; }
         public List<int> ConfiguredGroupTypes { get; private set; }
         private List<GroupType> _groupTypes;
         public List<GroupType> GroupTypes
@@ -37,7 +36,7 @@ namespace org.secc.FamilyCheckin.Utilities
             {
                 if ( _volunteerGroupIds == null )
                 {
-                    var volAttribute = AttributeCache.Read( VolunteerAttributeGuid );
+                    var volAttribute = AttributeCache.Read( Constants.VOLUNTEER_ATTRIBUTE_GUID.AsGuid() );
 
                     AttributeValueService attributeValueService = new AttributeValueService( new RockContext() );
                     _volunteerGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "True" ).Select( av => av.EntityId.Value ).ToList();
@@ -53,7 +52,7 @@ namespace org.secc.FamilyCheckin.Utilities
             {
                 if ( _childGroupIds == null )
                 {
-                    var volAttribute = AttributeCache.Read( VolunteerAttributeGuid );
+                    var volAttribute = AttributeCache.Read( Constants.VOLUNTEER_ATTRIBUTE_GUID.AsGuid() );
 
                     AttributeValueService attributeValueService = new AttributeValueService( new RockContext() );
                     _childGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "False" ).Select( av => av.EntityId.Value ).ToList();
@@ -107,43 +106,38 @@ namespace org.secc.FamilyCheckin.Utilities
             }
         }
 
-        public KioskCountUtility( List<int> _configuredGroupTypes, Guid _volunteerAttributeGuid )
+        public KioskCountUtility( List<int> _configuredGroupTypes )
         {
-            _KioskCountUtility( _configuredGroupTypes, _volunteerAttributeGuid, null );
+            _KioskCountUtility( _configuredGroupTypes, null );
         }
 
-        public KioskCountUtility( List<int> _configuredGroupTypes, Guid _volunteerAttributeGuid, Guid DeactivatedDefinedTypeGuid )
+        public KioskCountUtility( List<int> _configuredGroupTypes, Guid DeactivatedDefinedTypeGuid )
         {
-            _KioskCountUtility( _configuredGroupTypes, _volunteerAttributeGuid, DeactivatedDefinedTypeGuid );
+            _KioskCountUtility( _configuredGroupTypes, DeactivatedDefinedTypeGuid );
         }
 
-        private void _KioskCountUtility( List<int> _configuredGroupTypes, Guid _volunteerAttributeGuid, Guid? DeactivatedDefinedTypeGuid )
+        private void _KioskCountUtility( List<int> _configuredGroupTypes, Guid? DeactivatedDefinedTypeGuid )
         {
 
             ConfiguredGroupTypes = _configuredGroupTypes;
-            VolunteerAttributeGuid = _volunteerAttributeGuid;
-            _deactivatedDefinedTypeGuid = DeactivatedDefinedTypeGuid; //+1 for orriginality
+            _deactivatedDefinedTypeGuid = DeactivatedDefinedTypeGuid;
 
         }
 
         public LocationScheduleCount GetLocationScheduleCount( int LocationId, int ScheduleId )
         {
             var locationScheduleCount = new LocationScheduleCount();
-            var kgas = KioskLocationAttendance.Read( LocationId ).Groups.Where( g => g.Schedules.Where( s => s.ScheduleId == ScheduleId ).Any() ).ToList();
+            var lglsc = CheckInCountCache.GetByLocation( LocationId ).Where( glsc => glsc.ScheduleId == ScheduleId ).ToList();
 
-            locationScheduleCount.ChildCount = kgas.Where( kga => ChildGroupIds.Contains( kga.GroupId ) )
-                .SelectMany( kga => kga.Schedules.Where( s => s.ScheduleId == ScheduleId ) )
-                .Select( kgs => kgs.CurrentCount ).Sum();
+            locationScheduleCount.ChildCount = lglsc.Where( glsc => ChildGroupIds.Contains( glsc.GroupId ) )
+                .Select( glsc => glsc.PersonIds.Count ).Sum();
 
-            locationScheduleCount.VolunteerCount = kgas.Where( kga => VolunteerGroupIds.Contains( kga.GroupId ) )
-                .SelectMany( kga => kga.Schedules.Where( s => s.ScheduleId == ScheduleId ) )
-                .Select( kgs => kgs.CurrentCount ).Sum();
+            locationScheduleCount.VolunteerCount = lglsc.Where( glsc => VolunteerGroupIds.Contains( glsc.GroupId ) )
+                .Select( glsc => glsc.PersonIds.Count ).Sum();
 
             locationScheduleCount.ReservedCount = 0;
 
-            locationScheduleCount.TotalCount = kgas
-                .SelectMany( kga => kga.Schedules.Where( s => s.ScheduleId == ScheduleId ) )
-                .Select( kgs => kgs.CurrentCount ).Sum();
+            locationScheduleCount.TotalCount = lglsc.Select( glsc => glsc.PersonIds.Count ).Sum();
 
             return locationScheduleCount;
         }

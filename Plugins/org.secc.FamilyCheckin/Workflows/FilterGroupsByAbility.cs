@@ -59,15 +59,16 @@ namespace org.secc.FamilyCheckin
                 person.Person.LoadAttributes( rockContext );
             }
 
-            string personAbilityLevel = person.Person.GetAttributeValue( "AbilityLevel" ).ToUpper();
+            string personAbilityLevel = person.Person.GetAttributeValue( "AbilityLevel" );
             if ( !string.IsNullOrWhiteSpace( personAbilityLevel ) )
             {
                 foreach ( var groupType in person.GroupTypes.ToList() )
                 {
                     foreach ( var group in groupType.Groups.ToList() )
                     {
-                        var groupAttributes = group.Group.GetAttributeValues( "AbilityLevel" );
-                        if ( groupAttributes.Any() && !groupAttributes.Contains( personAbilityLevel, StringComparer.OrdinalIgnoreCase ) )
+                        var groupAttribute = group.Group.GetAttributeValue( "AbilityLevel" );
+                        if ( !string.IsNullOrWhiteSpace( groupAttribute ) &&
+                            groupAttribute.AsGuid() != personAbilityLevel.AsGuid() )
                         {
                             if ( remove )
                             {

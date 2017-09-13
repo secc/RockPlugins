@@ -43,59 +43,59 @@ namespace org.secc.FamilyCheckin
                 if ( !string.IsNullOrWhiteSpace( checkinAttributeGuid ) )
                 {
                     var attributeCache = AttributeCache.Read( checkinAttributeGuid.AsGuid() );
-                    if ( attributeCache!=null )
+                    if ( attributeCache != null )
                     {
                         checkinAttributeKey = attributeCache.Key;
                     }
                 }
-                    foreach ( var family in checkInState.CheckIn.GetFamilies( true ) )
+                foreach ( var family in checkInState.CheckIn.GetFamilies( true ) )
+                {
+                    foreach ( var person in family.GetPeople( false ) )
                     {
-                        foreach ( var person in family.GetPeople( false ) )
+                        if ( person.Person.Attributes == null )
                         {
-                            if ( person.Person.Attributes == null )
-                            {
-                                person.Person.LoadAttributes();
-                            }
-                            var groupGuidsString = person.Person.GetAttributeValue( checkinAttributeKey );
-                            if ( !string.IsNullOrWhiteSpace( groupGuidsString ) )
-                            {
-                                var guids = groupGuidsString
-                                    .Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries )
-                                    .Select( g => g.AsGuid() )
-                                    .ToList();
+                            person.Person.LoadAttributes();
+                        }
+                        var groupGuidsString = person.Person.GetAttributeValue( checkinAttributeKey );
+                        if ( !string.IsNullOrWhiteSpace( groupGuidsString ) )
+                        {
+                            var guids = groupGuidsString
+                                .Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries )
+                                .Select( g => g.AsGuid() )
+                                .ToList();
 
-                                foreach ( var groupType in person.GroupTypes )
+                            foreach ( var groupType in person.GroupTypes )
+                            {
+                                var kioskGroup = checkInState.Kiosk.ActiveGroupTypes( checkInState.ConfiguredGroupTypes )
+                                    .Where( g => g.GroupType.Id == groupType.GroupType.Id )
+                                    .FirstOrDefault();
+
+                                if ( kioskGroup != null )
                                 {
-                                    var kioskGroup = checkInState.Kiosk.ActiveGroupTypes( checkInState.ConfiguredGroupTypes )
-                                        .Where( g => g.GroupType.Id == groupType.GroupType.Id )
-                                        .FirstOrDefault();
+                                    var injectGroups = kioskGroup.KioskGroups
+                                        .Where( g =>
+                                         g.IsCheckInActive
+                                         && guids.Contains( g.Group.Guid )
+                                         );
 
-                                    if ( kioskGroup != null )
+                                    if ( !injectGroups.Any() )
                                     {
-                                        var injectGroups = kioskGroup.KioskGroups
-                                            .Where( g =>
-                                             g.IsCheckInActive
-                                             && guids.Contains( g.Group.Guid )
-                                             );
-
-                                        if ( !injectGroups.Any() )
-                                        {
-                                            continue;
-                                        }
-
-                                        foreach ( var injectGroup in injectGroups )
-                                        {
-                                            var checkInGroup = new CheckInGroup();
-                                            checkInGroup.Group = injectGroup.Group.Clone( false );
-                                            checkInGroup.Group.CopyAttributesFrom( injectGroup.Group );
-                                            groupType.Groups.Add( checkInGroup );
-                                        }
-                                        groupType.Groups = groupType.Groups.DistinctBy( g => g.Group.Id ).ToList();
+                                        continue;
                                     }
+
+                                    foreach ( var injectGroup in injectGroups )
+                                    {
+                                        var checkInGroup = new CheckInGroup();
+                                        checkInGroup.Group = injectGroup.Group.Clone( false );
+                                        checkInGroup.Group.CopyAttributesFrom( injectGroup.Group );
+                                        groupType.Groups.Insert( 0, checkInGroup );
+                                    }
+                                    groupType.Groups = groupType.Groups.DistinctBy( g => g.Group.Id ).ToList();
                                 }
                             }
                         }
                     }
+                }
                 return true;
             }
 

@@ -13,7 +13,7 @@
                         <div class="alert alert-info">
                             <h4>PIN Requirements</h4>
                             <ul>
-                                <li>Must contain 6 or more numbers</li>
+                                <li>Must contain <asp:Literal ID="ltMinimum" runat="server" /> or more numbers</li>
                                 <li>Must only contain numbers</li>
                             </ul>
                         </div>

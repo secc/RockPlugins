@@ -81,6 +81,7 @@ namespace RockWeb.Plugins.org_secc.EMS
 
             if ( !Page.IsPostBack )
             {
+		        gScroll.PageSize = 5000;
                 BindFilter();
                 BindGrid();
             }

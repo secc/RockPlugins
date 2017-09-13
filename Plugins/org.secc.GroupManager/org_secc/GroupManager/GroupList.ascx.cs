@@ -23,6 +23,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [GroupField( "Group", "Group to display child groups", false )]
     [LinkedPage( "Next Page", "The next page in which " )]
     [TextField( "Theme", "Theme to switch to on page load.", false )]
+    [BooleanField( "ForwardOnOne", "Should you forward if there is only one option?", false )]
 
     public partial class GroupList : GroupManagerBlock
     {
@@ -48,7 +49,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 groups.AddRange( new GroupTypeService( rockContext ).Queryable()
                     .Where( gt => gt.Guid == groupTypeGuid )
-                    .SelectMany( gt => gt.Groups )
+                    .SelectMany( gt => gt.Groups.Where(g => g.IsActive) )
                     .Where( g => groupIds.Contains( g.Id ) )
                     );
             }
@@ -56,24 +57,45 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 List<int> groupIds = GetChildGroupIds( rockContext );
                 groups.AddRange( new GroupService( rockContext ).Queryable()
-                    .Where( g => groupIds.Contains( g.Id ) )
+                    .Where( g => groupIds.Contains( g.Id ) && g.IsActive )
                     );
             }
             else if ( groupTypeGuid != null )
             {
                 groups.AddRange( new GroupTypeService( rockContext ).Queryable()
                     .Where( gt => gt.Guid == groupTypeGuid )
-                    .SelectMany( gt => gt.Groups )
+                    .SelectMany( gt => gt.Groups.Where( g => g.IsActive ) )
                     );
             }
             else
             {
                 DisplayNotConfigured();
             }
+
+            var requireLeader = GetAttributeValue( "LeadersOnly" ).AsBoolean();
+            var doForward = GetAttributeValue( "ForwardOnOne" ).AsBoolean();
+            if ( doForward && !UserCanAdministrate )
+            {
+                var groupList = new List<Group>();
+                if ( requireLeader )
+                {
+                    groupList = groups.Where( g => g.Members.Where( m => m.PersonId == CurrentPerson.Id && m.GroupRole.IsLeader ).Any() ).ToList();
+                }
+                else
+                {
+                    groupList = groups.Where( g => g.Members.Where( m => m.PersonId == CurrentPerson.Id ).Any() ).ToList();
+                }
+                if ( groupList.Count() == 1 )
+                {
+                    LoadGroup( groupList.FirstOrDefault() );
+                    return;
+                }
+            }
+
             foreach ( var group in groups.OrderBy( g => g.Name ) )
             {
                 var groupMember = group.Members.Where( m => m.PersonId == CurrentPerson.Id ).FirstOrDefault();
-                if ( !GetAttributeValue( "LeadersOnly" ).AsBoolean()
+                if ( !requireLeader
                     || ( groupMember != null && groupMember.GroupRole.IsLeader ) )
                 {
                     LinkButton lbGroup = new LinkButton()
@@ -91,7 +113,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         private void LoadGroup( Group group )
         {
-            Session["CurrentGroupManagerGroup"] = group.Id;
+            SetUserPreference( "CurrentGroupManagerGroup", group.Id.ToString() );
             var theme = GetAttributeValue( "Theme" );
             if ( !string.IsNullOrWhiteSpace( theme ) )
             {

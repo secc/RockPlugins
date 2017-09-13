@@ -22,8 +22,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     [Category( "SECC > Check-in" )]
     [Description( "QuickCheckin block for helping parents check in their family quickly." )]
     [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Location Link Attribute", "Group attribute which determines if group is location linking." )]
-    [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Volunteer Group Attribute" )]
-
     public partial class QuickCheckin : CheckInBlock
     {
         private string locationLinkAttributeKey = string.Empty;
@@ -387,8 +385,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             btnMessage.Text = "There are no classes available for " + person.Person.NickName + "<br> to check-in, or all rooms are currently full.";
             foreach ( var locationId in person.GroupTypes.SelectMany( gt => gt.Groups ).SelectMany( g => g.Locations ).Select( l => l.Location.Id ).ToList() )
             {
-                var kla = KioskLocationAttendance.Read( locationId );
-                if ( kla.Groups.SelectMany( g => g.Schedules ).SelectMany( s => s.DistinctPersonIds ).Contains( person.Person.Id ) )
+                var kla = CheckInCountCache.GetByLocation( locationId );
+                if ( kla.SelectMany( k => k.PersonIds ).Contains( person.Person.Id ) )
                 {
                     btnMessage.Text = person.Person.NickName + " has already been checked-in.";
                     btnPerson.Text = "<i class='fa fa-check-square-o fa-5x'></i><br/><span>" + person.Person.NickName + "</span>";
@@ -577,8 +575,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private void ShowRoomChangeModal( Person person, CheckInSchedule schedule )
         {
-            var volAttributeGuid = GetAttributeValue( "VolunteerGroupAttribute" ).AsGuid();
-            KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes, volAttributeGuid );
+            KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes );
 
             List<CheckInGroupType> groupTypes = GetGroupTypes( person, schedule );
 
@@ -862,8 +859,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 return;
             }
-            var volAttributeGuid = GetAttributeValue( "VolunteerGroupAttribute" ).AsGuid();
-            KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes, volAttributeGuid );
+            KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes );
 
             var checkinSchedules = GetCheckinSchedules( checkinPerson.Person );
             foreach ( var checkinSchedule in checkinSchedules )
@@ -989,12 +985,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             var rockContext = new RockContext();
 
-            var volAttributeGuid = GetAttributeValue( "VolunteerGroupAttribute" ).AsGuid();
-            var volAttribute = AttributeCache.Read( volAttributeGuid );
+            var volAttribute = AttributeCache.Read( Constants.VOLUNTEER_ATTRIBUTE_GUID.AsGuid() );
             AttributeValueService attributeValueService = new AttributeValueService( rockContext );
             List<int> volunteerGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "True" ).Select( av => av.EntityId.Value ).ToList();
 
-            KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes, volAttributeGuid );
+            KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes );
 
             //Test for overloaded rooms
             var overload = false;
@@ -1018,8 +1013,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                             {
                                 var threshold = locationEntity.FirmRoomThreshold ?? 0;
                                 var attendanceQry = attendanceService.Where( a =>
-                                     a.DidAttend == true
-                                     && a.EndDateTime == null
+                                     a.EndDateTime == null
                                      && a.ScheduleId == schedule.Schedule.Id
                                      && a.StartDateTime >= Rock.RockDateTime.Today );
 
@@ -1063,46 +1057,15 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
             else
             {
-                if ( MinistrySafe( volunteerGroupIds ) )
-                {
-                    //trigger the final checkin process!
-                    ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "doCheckin", "doCheckin();", true );
-                }
-                else
-                {
-                    mdMinistrySafe.Show();
-                    mdMinistrySafe.Header.Visible = false;
-                    mdMinistrySafe.Footer.Visible = false;
-                }
+                //trigger the final checkin process!
+                ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "doCheckin", "doCheckin();", true );
             }
-        }
-
-        private bool MinistrySafe( List<int> volunteerGroupIds )
-        {
-            foreach ( var person in CurrentCheckInState.CheckIn.CurrentFamily.People.Where( p => p.Selected && p.Person.Age >= 18 ) )
-            {
-                if ( string.IsNullOrWhiteSpace( person.Person.GetAttributeValue( "SexualAbuseTrainingCompleted" ) ) )
-                {
-                    foreach ( var groupType in person.GroupTypes )
-                    {
-                        foreach ( var group in groupType.Groups )
-                        {
-                            if ( volunteerGroupIds.Contains( group.Group.Id ) )
-                            {
-                                return false;
-                            }
-                        }
-                    }
-                }
-            }
-            return true;
         }
 
         protected void btnContinue_Click( object sender, EventArgs e )
         {
             //trigger the final checkin process!
             ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "doCheckin", "doCheckin();", true );
-            mdMinistrySafe.Hide();
         }
     }
 
