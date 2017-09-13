@@ -22,6 +22,7 @@ namespace RockWeb.Plugins.org_secc.Security
     [Category( "SECC > Security" )]
     [Description( "Tool to manage the PINs of a person" )]
     [DefinedTypeField( "Purpose Defined Type", "The defined type containing the purposes for PIN numbers.", true )]
+    [IntegerField( "Minimum PIN Length", "The minimum number of digits for a PIN.", true, 6 )]
 
     partial class PINManager : PersonBlock
     {
@@ -47,6 +48,8 @@ namespace RockWeb.Plugins.org_secc.Security
 
             if ( !Page.IsPostBack )
             {
+
+                ltMinimum.Text = GetAttributeValue( "MinimumPINLength" );
                 BindCheckBoxList();
             }
 
@@ -240,10 +243,11 @@ namespace RockWeb.Plugins.org_secc.Security
                 return;
             }
 
-            if ( number.ToString().Length < 6 )
+            var minimumPinLength = GetAttributeValue( "MinimumPINLength" ).AsInteger();
+            if ( number.ToString().Length < minimumPinLength )
             {
                 nbError.Visible = true;
-                nbError.Text = "Error: Requested PIN must be 6 digits or greater.";
+                nbError.Text = string.Format( "Error: Requested PIN must be {0} digits or greater.", minimumPinLength );
                 return;
             }
 

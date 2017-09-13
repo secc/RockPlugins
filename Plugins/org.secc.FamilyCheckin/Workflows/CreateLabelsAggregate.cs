@@ -25,7 +25,6 @@ namespace org.secc.FamilyCheckin
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Aggregate Checkin Label" )]
     [BinaryFileField( Rock.SystemGuid.BinaryFiletype.CHECKIN_LABEL, "Aggregated Label", "Label to aggregate", false )]
-    //[DefinedValueField("E4D289A9-70FA-4381-913E-2A757AD11147","Label Merge Field","Merge field to replace text with")]
     [TextField( "Merge Text", "Text to merge label merge field into separated by commas.", false, "AAA,BBB,CCC,DDD,EEE,FFF" )]
     [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Volunteer Group Attribute" )]
     [GroupTypeField( "Breakout GroupType", "The grouptype which represents elementary breakout groups." )]
@@ -126,7 +125,8 @@ namespace org.secc.FamilyCheckin
                                          {
                                              Group = a.Group,
                                              Location = a.Location,
-                                             Schedule = a.Schedule
+                                             Schedule = a.Schedule,
+                                             AttendanceGuid = a.Guid
                                          }
                                     )
                                     .ToList()
@@ -137,6 +137,12 @@ namespace org.secc.FamilyCheckin
 
                             //Add in an empty object as a placeholder for our breakout group
                             mergeObjects.Add( "BreakoutGroup", "" );
+
+                            //Add in GUID for QR code
+                            if ( sets.Any() )
+                            {
+                                mergeObjects.Add( "AttendanceGuid", sets.FirstOrDefault().AttendanceGuid.ToString() );
+                            }
 
                             foreach ( var set in sets )
                             {
@@ -392,7 +398,9 @@ namespace org.secc.FamilyCheckin
                     cache.Set( cacheKey, allBreakoutGroups, cachePolicy );
                 }
 
-                return allBreakoutGroups.Where( g => g.Members.Where( gm => gm.PersonId == person.Id ).Any() ).ToList();
+                return allBreakoutGroups.Where( g => g.Members
+                        .Where( gm => gm.PersonId == person.Id && gm.GroupMemberStatus == GroupMemberStatus.Active ).Any() )
+                    .ToList();
             }
             else
             {
