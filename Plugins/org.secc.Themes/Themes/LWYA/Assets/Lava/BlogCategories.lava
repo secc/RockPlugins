@@ -1,0 +1,46 @@
+{% comment %}
+<div class="aside widget widget_categories">
+    <h6 class="widget_title">Categories</h6>
+    <ul>
+        {% attributequalifier where:'AttributeId == "25566" && Key=="values"' %}
+            {% for attributequalifier in attributequalifierItems %}
+                {% assign categories = attributequalifier.Value | Split:',' %}
+                {% for category in categories %}
+                    <li class="cat-item">
+                        <a href="/lwya/blog?Categories={{ category }}">{{ category }}</a>
+                    </li>
+                {% endfor %}
+            {% endfor %}
+        {% endattributequalifier %}
+        <li class="cat-item">
+            <a href="/lwya/blog">All Categories</a>
+        </li>
+    </ul>
+</div>
+{% endcomment %}
+
+<div class="aside widget widget_categories">
+    <h6 class="widget_title">Categories</h6>
+    <ul>
+        {% assign categoryDisplayed = '' %}
+        {% assign itemCount = Items | Size %}
+            {% if itemCount > 0 %}
+                {% for item in Items %}
+                    {% assign allCategories = item | Attribute:'Categories' %}
+                    {% assign allCategories = allCategories | Split:',' %}
+                    {% for category in allCategories %}
+                        {% assign categoryDelimited = category | Append:'|' | Prepend:'|' %}
+                        {% unless categoryDisplayed contains categoryDelimited %}
+                            <li class="cat-item">
+                                <a href="/lwya/blog?Categories={{ category }}">{{ category }}</a>
+                            </li>
+                        {% endunless %}
+                        {% assign categoryDisplayed = categoryDisplayed | Plus:'|' | Plus:category | Plus:'|' | Plus:',' %}
+                    {% endfor %}
+                {% endfor %}
+            {% endif %}
+        <li class="cat-item">
+            <a href="/lwya/blog">All Categories</a>
+        </li>
+    </ul>
+</div>

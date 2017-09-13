@@ -1,0 +1,124 @@
+{% assign itemCount = Items | Size %}
+{% if itemCount > 0 %}
+    {% for item in Items %}
+    {% assign ImageGuid = item | Attribute:'Image','RawValue' %}
+    {% assign AuthorObject = item | Attribute:'Author','Object' %}
+
+    {% assign Author = AuthorObject | Attribute:'Person','Object' %}
+
+        <div id="blog-list" class="row g-padding-x-20--xs">
+            <div class="col-sm-12 g-margin-b-40--xs">
+
+                <article class="post_item row">
+
+                    <div class="post_featured col-md-12 col-lg-6">
+                        <div class="post_thumb" data-image="/GetImage.ashx?Guid={{ ImageGuid }}" data-title="{{ item.Title }}">
+                            <a class="hover_icon hover_icon_link" href="{{ LinkedPages.DetailPage }}?Item={{ item.Id }}">
+                                <img class="img-responsive" alt="{{ item.Title }}" src="/GetImage.ashx?Guid={{ ImageGuid }}">
+                            </a>
+                        </div>
+                    </div>
+                    <div class="massonry_border col-md-12 col-lg-6">
+                        <h5 class="post_title">
+                            <a href="{{ LinkedPages.DetailPage }}?Item={{ item.Id }}">{{ item.Title }}</a>
+                        </h5>
+                        <div class="post_info">
+                			<span class="post_info_item post_info_posted">
+                                <!-- <a href="#" class="post_info_date">{{ item.StartDateTime | Date:'MMMM d, yyyy' }}</a> -->
+                                {{ item.StartDateTime | Date:'MMMM d, yyyy' }}
+                            </span>
+                			<span class="post_info_item post_info_posted_by">
+                                {% assign PastorRole = AuthorObject | Attribute:'CommunityRole','RawValue' %}
+                                {% if PastorRole == "Community Pastor"%}
+                                by  <a href="/lwya/author?Author={{ AuthorObject.Guid }}" class="post_info_author">{{Author.FullName}}</a>
+                                {% else %}
+                                by  {{Author.FullName}}
+                                {% endif %}
+                            </span>
+                            <br />
+
+                			<span class="post_info_item post_info_counters">
+                                {% assign blogPageId = 867  %}
+                                {% capture regexString %}Item={{item.Id}}(&|$){% endcapture %}
+                                {% assign blogViewCount = 0 %}
+
+                                {% pageview where:'PageId == "{{blogPageId}}" && Url *= "Item={{item.Id}}"' %}
+                                {% for item in pageviewItems %}
+                                {% assign isCurrentBlogView = item.Url | RegExMatch:regexString %}
+                                {% if isCurrentBlogView %}
+                                {% assign blogViewCount = blogViewCount | Plus:1 %}
+                                {% endif %}
+                                {% endfor %}
+                                {% endpageview %}
+                                <span class="post_counters_item post_counters_views" title="Views - {{ blogViewCount }}" href="#">
+                                    <i class="fa fa-eye post_counters_item"></i>
+                                    {{ blogViewCount }}
+                                </span>
+                                <span class="post_counters_item post_counters_comments" title="Comments - 0" href="#">
+                                    <i class="fa fa-comment post_counters_item"></i>
+                                    <span class="post_counters_number">0</span>
+                                </span>
+
+                                <span class="post_counters_item post_counters_like">
+                                    <!-- Your like button code -->
+                                    <div class="fb-like"
+                                      data-href="{{ LinkedPages.DetailPage }}?Item={{ item.Id }}"
+                                      data-layout="button_count"
+                                      data-size="small"
+                                      data-share="false"
+                                      data-action="like"
+                                      data-show-faces="false">
+                                    </div>
+                                </span>
+                        	</span>
+                	   </div>
+
+                        <div class="post_content isotope_item_content">
+                            <div class="post_descr">
+                                {% assign summary = item | Attribute:'Summary' %}
+                                {% assign category = item | Attribute:'Categories' %}
+                                {% assign blogPostContent = item.Content | TruncateWords:50 %}
+                                {% if summary != '' %}
+                                    <p>{{ summary }}</p>
+                                {% else %}
+                                    <p>{{ blogPostContent}}</p>
+                                {% endif %}
+                                <a href="{{ LinkedPages.DetailPage }}?Item={{ item.Id }}" class="button s-btn--primary-bg">
+                                    <span class="post_readmore_label">READ MORE</span>
+                                </a><br /><br />
+                                <!-- <small>Categories: {{ category }}</small> -->
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+    {% endfor %}
+
+    <div class="list-controls clearfix">
+      {% assign nextPageString = Pagination.NextPage | ToString %}
+      {% assign prevPageString = Pagination.PreviousPage | ToString %}
+
+      {% if {{Pagination.PreviousPage == -1 }} %}
+      <div class="button prev inactive pull-left">
+        <i class="fa fa-chevron-left"></i>
+      </div>
+      {% else %}
+      <a class="button prev pull-left" href="{{Pagination.UrlTemplate | Replace:'PageNum', prevPageString}}">
+        <i class="fa fa-chevron-left"></i>
+      </a>
+      {% endif %}
+
+      {% if {{Pagination.NextPage == -1 }} %}
+      <div class="button next inactive pull-right">
+        <i class="fa fa-chevron-right"></i>
+      </div>
+      {% else %}
+      <a class="button next pull-right" href="{{Pagination.UrlTemplate | Replace:'PageNum', nextPageString}}">
+        <i class="fa fa-chevron-right"></i>
+      </a>
+      {% endif %}
+    </div>
+
+{% endif %}

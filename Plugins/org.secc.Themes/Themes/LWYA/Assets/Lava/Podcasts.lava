@@ -1,0 +1,15 @@
+{% assign itemCount = Items | Size %}
+{% if itemCount > 0 %}
+    {% for item in Items %}
+    {% assign ImageGuid = item | Attribute:'Image','RawValue' %}
+    {% assign audio = item | Attribute:'AudioFile' %}
+    {% assign audioRaw = item | Attribute:'AudioFile','RawValue' %}
+    <fieldset class="audioWrap">
+        <legend>{{item.Title}}</legend>
+        <p>{{item.Content}}</p>
+        <br />
+        {{ audio }}
+        <!-- <a href="/GetFile.ashx?guid={{ audioRaw.Guid }}" download="{{ item.Title | Downcase | ToPascal }}.mp3" class="pull-right g-padding-y-10--xs"><i class="fa fa-download"></i> Download Podcast Message</a> -->
+    </fieldset>
+    {% endfor %}
+{% endif %}

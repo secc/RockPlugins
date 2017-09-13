@@ -38,8 +38,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         200, true, "We're sorry we could not find your account in our system. Please log-in to continue.", "", 9 )]
     [CodeEditorField( "Multiple Groups Text", "Text to display when too many groups are found to make recomitment a possiblity.", CodeEditorMode.Text, CodeEditorTheme.Rock,
         200, true, "We found multiple groups matched to you. Please contact your leader to help you create your groups for this cycle.", "", 10 )]
-    [CodeEditorField( "Destination Group Text", "Text to display when it is suspected that the user has already had a group made.", CodeEditorMode.Text, CodeEditorTheme.Rock,
-        200, true, "A group has already been created for you. If you think this is in error, or you would like to create another group please contact your leader.", "", 11 )]
+    [WorkflowTypeField ("Workflow", "Workflow to execute when this group is created/recommitted.  The group will be passed as the Entity to the workflow.", order: 11)]
 
     public partial class GroupRecommit : RockBlock
     {
@@ -47,7 +46,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         private Group _group;
         private GroupTypeCache _groupType;
         private RockContext _rockContext;
-        private List<string> CycleOrder = new List<string>() { "January 2017", "September 2016", "April 2016", "January 2016", "October 2015" };
+        private List<string> CycleOrder = new List<string>() { "September 2017", "January 2017", "September 2016", "April 2016", "January 2016", "October 2015" };
 
         #region Base Control Methods
 
@@ -286,29 +285,19 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 // Set the location picker modes allowed based on the group type's allowed modes
                 LocationPickerMode modes = LocationPickerMode.None;
-                if ( ( groupTypeModes & GroupLocationPickerMode.Named ) == GroupLocationPickerMode.Named )
-                {
-                    modes = modes | LocationPickerMode.Named;
-                }
 
                 if ( ( groupTypeModes & GroupLocationPickerMode.Address ) == GroupLocationPickerMode.Address )
                 {
                     modes = modes | LocationPickerMode.Address;
                 }
-
-                if ( ( groupTypeModes & GroupLocationPickerMode.Point ) == GroupLocationPickerMode.Point )
-                {
-                    modes = modes | LocationPickerMode.Point;
-                }
-
-                if ( ( groupTypeModes & GroupLocationPickerMode.Polygon ) == GroupLocationPickerMode.Polygon )
-                {
-                    modes = modes | LocationPickerMode.Polygon;
-                }
+                
                 lopAddress.AllowedPickerModes = modes;
             }
 
-            var groupLocation = _group.GroupLocations.FirstOrDefault();
+            var meetingLocationDv = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_MEETING_LOCATION );
+            var homeLocationDv = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME );
+
+            var groupLocation = _group.GroupLocations.Where(gl => gl.GroupLocationTypeValueId == meetingLocationDv.Id || gl.GroupLocationTypeValueId == homeLocationDv.Id || gl.GroupLocationTypeValueId == null).FirstOrDefault();
             if ( groupLocation != null )
             {
                 lopAddress.Location = groupLocation.Location;
@@ -481,8 +470,13 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 if ( group.GroupLocations != null && !group.GroupLocations.Select( gl => gl.LocationId ).Contains( lopAddress.Location.Id ) )
                 {
-                    group.GroupLocations.Clear();
-                    group.GroupLocations.Add( new GroupLocation() { LocationId = lopAddress.Location.Id } );
+                    // Disassociate the old address(es)
+                    GroupLocationService groupLocationService = new GroupLocationService(_rockContext);
+                    var meetingLocationDv = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_MEETING_LOCATION );
+                    var homeLocationDv = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME );
+
+                    groupLocationService.DeleteRange( group.GroupLocations.Where( gl => gl.GroupLocationTypeValueId == meetingLocationDv.Id || gl.GroupLocationTypeValueId == homeLocationDv.Id || gl.GroupLocationTypeValueId == null ) );
+                    group.GroupLocations.Add( new GroupLocation() { LocationId = lopAddress.Location.Id, GroupLocationTypeValueId = meetingLocationDv.Id } );
                 }
             }
 

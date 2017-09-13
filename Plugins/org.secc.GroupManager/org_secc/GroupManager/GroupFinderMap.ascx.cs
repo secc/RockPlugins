@@ -889,8 +889,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             //Limit groups by distance from geopoint
             if ( ddlRange.SelectedValue.AsDouble() != 0 )
             {
-                groupQry = groupQry.Where( g => g.GroupLocations.FirstOrDefault() != null
-                    && g.GroupLocations.FirstOrDefault().Location.GeoPoint.Distance( searchLocation.GeoPoint ) <= metersRange );
+
+                var meetingLocationDv = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_MEETING_LOCATION );
+                var homeLocationDv = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME );
+                groupQry = groupQry.Where( g => g.GroupLocations.Where( gl => gl.GroupLocationTypeValueId == meetingLocationDv.Id || gl.GroupLocationTypeValueId == homeLocationDv.Id || gl.GroupLocationTypeValueId == null ).FirstOrDefault() != null
+                    && g.GroupLocations.Where( gl => gl.GroupLocationTypeValueId == meetingLocationDv.Id || gl.GroupLocationTypeValueId == homeLocationDv.Id || gl.GroupLocationTypeValueId == null ).FirstOrDefault().Location.GeoPoint.Distance( searchLocation.GeoPoint ) <= metersRange );
             }
 
             var groupParameterExpression = groupService.ParameterExpression;
@@ -1303,8 +1306,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 {
                     mergeFields.Add( "Fences", new Dictionary<string, object>() );
                 }
-
+                
                 mergeFields.Add( "Groups", groups );
+
+                mergeFields.Add( "Distances", distances.Select(d => new { GroupId = d.Key, Distance = d.Value }) );
 
                 Dictionary<string, object> linkedPages = new Dictionary<string, object>();
                 linkedPages.Add( "GroupDetailPage", LinkedPageUrl( "GroupDetailPage", null ) );
@@ -1537,7 +1542,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             #map_canvas {{
                                 width: 100%;
                                 height: 100%;
-                                border-radius: 8px;
                             }}
                         </style>";
             lMapStyling.Text = string.Format( mapStylingFormat, GetAttributeValue( "MapHeight" ) );
@@ -1661,7 +1665,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             if ( campusData != null ) {{
                 for (var i = 0; i < campusData.length; i++) {{
-                    var items = addMapItem(i, campusData[i], '{13}', false);
+                    var items = addMapItem(i, campusData[i], '{13}', false, 100, 100);
                     for (var j = 0; j < items.length; j++) {{
                         items[j].setMap(map);
                     }}
@@ -1677,7 +1681,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         }}
 
-        function addMapItem( i, mapItem, color, addBounds ) {{
+        function addMapItem( i, mapItem, color, addBounds, iconHeight, iconWidth ) {{
+
+            iconHeight = (typeof iconHeight !== 'undefined') ?  iconHeight : 34;
+            iconWidth = (typeof iconWidth !== 'undefined') ?  iconWidth : 34;
 
             var items = [];
 
@@ -1695,7 +1702,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 
                 if (mapItem.Icon){{
                     var pinImage = new google.maps.MarkerImage(mapItem.Icon,
-                        new google.maps.Size(34, 34),
+                        new google.maps.Size(iconHeight, iconWidth),
                         new google.maps.Point(0,0),
                         new google.maps.Point(10, 34));
                 }}

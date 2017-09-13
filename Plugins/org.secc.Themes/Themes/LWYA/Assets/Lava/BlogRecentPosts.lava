@@ -1,0 +1,53 @@
+
+<div class="aside widget widget_recent_posts">
+    <h6 class="widget_title">Recent Posts</h6>
+
+    {% assign firstArticle = 0 %}
+    {% for item in Items %}
+
+        {% assign currentPageId = 'Global' | Page:'Id' %}
+        {% capture regexString %}Item={{item.Id}}(&|$){% endcapture %}
+        {% assign blogViewCount = 0 %}
+        {% assign ImageGuid = item | Attribute:'Image','RawValue' %}
+
+        {% unless PageParameter['Item'] == item.Id %}
+        {% assign firstArticle = firstArticle | Plus:1 %}
+
+        <article class="post_item {% if firstArticle == 1 %}first{% elseif firstArticle == forloop.length %}last{% endif %}">
+            <div class="post_thumb">
+                <img alt="{{ item.Title }}" src="/GetImage.ashx?Guid={{ ImageGuid }}">
+            </div>
+            <div class="post_content">
+                <h6 class="post_title">
+                    <a href="{{ LinkedPages.DetailPage }}?Item={{ item.Id }}">
+                        {{ item.Title }}
+                    </a>
+                </h6>
+                </div>
+                <div class="post_info">
+                    <span class="post_info_item post_info_posted">
+                        <a href="{{ LinkedPages.DetailPage }}?Item={{ item.Id }}" class="post_info_date">{{ item.StartDateTime | Date:'MMMM d, yyyy' }}</a>
+                    </span>
+                    <span class="post_info_item post_info_counters">
+                        <a href="{{ LinkedPages.DetailPage }}?Item={{ item.Id }}" class="post_counters_item post_counters_views" title="Dislike" data-postid="193" data-likes="999" data-title-like="Like" data-title-dislike="Dislike">
+                            <i class="fa fa-eye"></i>
+                            <span class="post_counters_number">
+                                {% pageview where:'PageId == "{{currentPageId}}" && Url *= "Item={{item.Id}}"' %}
+                                    {% for item in pageviewItems %}
+                                        {% assign isCurrentBlogView = item.Url | RegExMatch:regexString %}
+                                        {% if isCurrentBlogView %}
+                                            {% assign blogViewCount = blogViewCount | Plus:1 %}
+                                       {% endif %}
+                                    {% endfor %}
+                                {% endpageview %}
+
+                                {{ blogViewCount }}
+                            </span>
+                        </a>
+                    </span>
+                </div>
+        </article>
+        {% endunless %}
+    {% endfor %}
+
+</div>
