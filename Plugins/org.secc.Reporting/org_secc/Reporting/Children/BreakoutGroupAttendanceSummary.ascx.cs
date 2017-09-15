@@ -24,7 +24,7 @@ namespace RockWeb.Blocks.Reporting.Children
     [DisplayName( "Breakout Group Attendance Summary" )]
     [Category( "SECC > Reporting > Children" )]
     [Description( "A filterable and sortable list of breakout groups." )]
-    [GroupTypeField( "Breakout Group Type", "GroupType of the Breakout Groups" )]
+    [GroupField( "Breakout Parent Group", "Parent group of group types" )]
     [TextField( "Schedule IDs", "Coma separated list of the Ids of schedules." )]
     public partial class BreakoutGroupAttendanceSummary : RockBlock
     {
@@ -41,8 +41,8 @@ namespace RockWeb.Blocks.Reporting.Children
         protected void btnGenerate_Click( object sender, EventArgs e )
         {
             RockContext rockContext = new RockContext();
-            var groupTypeGuid = GetAttributeValue( "BreakoutGroupType" ).AsGuid();
-            var gQry = new GroupService( rockContext ).Queryable().Where( g => g.GroupType.Guid == groupTypeGuid );
+            var parentGroupGuid = GetAttributeValue( "BreakoutParentGroup" ).AsGuid();
+            var gQry = new GroupService( rockContext ).Queryable().Where( g => g.ParentGroup.Guid == parentGroupGuid );
             var gmQry = gQry.SelectMany( g => g.Members.Where( gm => gm.GroupMemberStatus == GroupMemberStatus.Active ) );
 
             var personQry = new PersonService( rockContext ).Queryable().Where( p => p.GraduationYear != null );
@@ -136,7 +136,8 @@ namespace RockWeb.Blocks.Reporting.Children
             List<string> columns1 = new List<string>() { "Week", "Service", "No Breakout Group" };
             foreach ( var group in breakoutGroups )
             {
-                var name = string.Format( "{0} {1}", group.Schedule.GetCalenderEvent().DTStart.Value.TimeOfDay.ToTimeString(), group.Name[group.Name.Length - 1] );
+                group.LoadAttributes();
+                var name = string.Format( "{0} {1}", group.Schedule.GetCalenderEvent().DTStart.Value.TimeOfDay.ToTimeString(), group.GetAttributeValue( "Letter" ) );
                 columns0.Add( name );
                 columns1.Add( name );
             }
