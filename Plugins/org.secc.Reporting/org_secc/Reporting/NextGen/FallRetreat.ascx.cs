@@ -683,6 +683,11 @@ namespace RockWeb.Blocks.Reporting.NextGen
             {
                 get { return GetAttributeValue( "PhotoOptional" ); }
             }
+			
+			public String SmallGroup
+			{
+                get { return GetAttributeValue( "SelecttheGroup" ); }
+			}
 
             public int CompareTo( object obj )
             {

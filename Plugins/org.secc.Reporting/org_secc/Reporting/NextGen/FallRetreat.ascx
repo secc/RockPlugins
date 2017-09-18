@@ -67,6 +67,7 @@
                         <Rock:RockBoundField DataField="GroupMemberData.Reason" HeaderText="Reason" SortExpression="GroupMemberData.Reason"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="GroupMemberData.Notes" HeaderText="Notes" SortExpression="GroupMemberData.Notes"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="Role" HeaderText="Role" SortExpression=""></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="RegistrantData.SmallGroup" HeaderText="MSM Group (Registration)" SortExpression=""></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="MSMGroup" HeaderText="MSM Group" SortExpression=""></Rock:RockBoundField>
                         <Rock:LinkButtonField HeaderText="Registration" CssClass="btn btn-default btn-sm fa fa-file-image-o" OnClick="btnRegistration_Click" HeaderStyle-HorizontalAlign="Center" />
                     </Columns>
