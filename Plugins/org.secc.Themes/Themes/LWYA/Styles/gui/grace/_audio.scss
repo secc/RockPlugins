@@ -2,6 +2,7 @@
 .audioWrap {
     border: 3px solid $color-primary;
     padding: 2rem;
+    margin-top: 2%;
 
     legend {
         width: auto;
@@ -9,15 +10,27 @@
     }
 }
 
+.mejs-horizontal-volume-current, .mejs-horizontal-volume-total, .mejs-horizontal-volume-handle {
+    //width: 50px !important;
+    display: none !important;
+}
+
+.mejs-horizontal-volume-slider {
+    width: 5px !important;
+}
+
 .mejs-container .mejs-controls {
     background: $color-dark;
 }
+
 .mejs-controls .mejs-time-rail .mejs-time-loaded {
     background: rgba(255,255,255, 0.2) !important;
 }
+
 .mejs-controls .mejs-time-rail .mejs-time-current {
     background: $color-primary !important;
 }
+
 .mejs-controls .mejs-time-rail .mejs-time-total {
     background: $color-dark-light !important;
 }
