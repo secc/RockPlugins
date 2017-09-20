@@ -227,12 +227,14 @@ namespace org.secc.RoomScanner.Rest.Controllers
                     EndDateTime = a.EndDateTime,
                     AttendanceGuid = a.Guid.ToString(),
                     DidAttend = a.DidAttend ?? false,
+                    IsVolunteer = VolunteerGroupIds.Contains( a.GroupId ?? 0 )
                 } )
                 .OrderBy( ae => ae.Id )
                 .ToList();
             foreach ( var entry in roster )
             {
-                entry.InWorship = InMemoryWorshipRecord.IsInWorship( entry.PersonId );
+                entry.InWorship = InMemoryPersonStatus.IsInWorship( entry.PersonId );
+                entry.WithParent = InMemoryPersonStatus.IsWithParent( entry.PersonId );
             }
             return roster;
         }
@@ -263,7 +265,9 @@ namespace org.secc.RoomScanner.Rest.Controllers
             var codes = attendanceService.Queryable()
                 .Where( a => personAliasIds.Contains( a.PersonAliasId ?? 0 ) && a.StartDateTime >= today && a.StartDateTime < tomorrow )
                 .Select( a => a.AttendanceCode )
-                .Select( ac => ac.Code ).ToList();
+                .Select( ac => ac.Code )
+                .DistinctBy( c => c )
+                .ToList();
 
             return new AttendanceCodes()
             {
@@ -370,7 +374,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
             };
 
             historyService.Add( history );
-            InMemoryWorshipRecord.RemoveFromWorship( attendeeAttendance.PersonAlias.PersonId );
+            InMemoryPersonStatus.RemoveFromWorship( attendeeAttendance.PersonAlias.PersonId );
             rockContext.SaveChanges();
 
 
@@ -635,6 +639,53 @@ namespace org.secc.RoomScanner.Rest.Controllers
 
         [Authenticate, Secured]
         [HttpPost]
+        [System.Web.Http.Route( "api/org.secc/roomscanner/movetowithparent" )]
+        public Response MoveToWithParent( [FromBody] MultiRequest req )
+        {
+            var personIds = req.PersonIds
+                .Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries )
+                .Select( s => s.AsInteger() ).ToList();
+            RockContext rockContext = new RockContext();
+            PersonService personService = new PersonService( rockContext );
+            HistoryService historyService = new HistoryService( rockContext );
+            var people = personService.GetByIds( personIds );
+            int personEntityTypeId = EntityTypeCache.Read( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
+
+            var hostInfo = "Unknown Host";
+            try
+            {
+                hostInfo = Rock.Web.UI.RockPage.GetClientIpAddress();
+                var host = System.Net.Dns.GetHostEntry( hostInfo );
+                if ( host != null )
+                {
+                    hostInfo = host.HostName;
+                }
+            }
+            catch { }
+
+            foreach ( var person in people )
+            {
+                InMemoryPersonStatus.AddToWithParent( person.Id );
+                var summary = string.Format( "Moved to be with Parent at <span class=\"field-name\">{0}</span>", Rock.RockDateTime.Now );
+
+                History history = new History()
+                {
+                    EntityTypeId = personEntityTypeId,
+                    EntityId = person.Id,
+                    Verb = "Moved",
+                    Summary = summary,
+                    Caption = "Moved be with Parent",
+                    RelatedData = hostInfo,
+                    CategoryId = 4
+                };
+                historyService.Add( history );
+            }
+            rockContext.SaveChanges();
+            return new Response( true, "Success", false );
+        }
+
+        [Authenticate, Secured]
+        [HttpPost]
         [System.Web.Http.Route( "api/org.secc/roomscanner/movetoworship" )]
         public Response MoveToWorship( [FromBody] MultiRequest req )
         {
@@ -650,7 +701,6 @@ namespace org.secc.RoomScanner.Rest.Controllers
             var hostInfo = "Unknown Host";
             try
             {
-
                 hostInfo = Rock.Web.UI.RockPage.GetClientIpAddress();
                 var host = System.Net.Dns.GetHostEntry( hostInfo );
                 if ( host != null )
@@ -662,7 +712,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
 
             foreach ( var person in people )
             {
-                InMemoryWorshipRecord.AddToWorship( person.Id );
+                InMemoryPersonStatus.AddToWorship( person.Id );
                 var summary = string.Format( "Moved to Worship at <span class=\"field-name\">{0}</span>", Rock.RockDateTime.Now );
 
                 History history = new History()
@@ -684,8 +734,8 @@ namespace org.secc.RoomScanner.Rest.Controllers
 
         [Authenticate, Secured]
         [HttpPost]
-        [System.Web.Http.Route( "api/org.secc/roomscanner/returnfromworship" )]
-        public Response ReturnFromWorship( [FromBody] MultiRequest req )
+        [System.Web.Http.Route( "api/org.secc/roomscanner/returntoroom" )]
+        public Response ReturnToRoom( [FromBody] MultiRequest req )
         {
             var personIds = req.PersonIds
                 .Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries )
@@ -709,22 +759,44 @@ namespace org.secc.RoomScanner.Rest.Controllers
             }
             catch { }
 
+            var summary = "";
+            var caption = "";
+
             foreach ( var person in people )
             {
-                InMemoryWorshipRecord.RemoveFromWorship( person.Id );
-                var summary = string.Format( "Returned from Worship at <span class=\"field-name\">{0}</span>", Rock.RockDateTime.Now );
-
-                History history = new History()
+                if ( InMemoryPersonStatus.IsInWorship( person.Id ) && InMemoryPersonStatus.IsWithParent( person.Id ) )
                 {
-                    EntityTypeId = personEntityTypeId,
-                    EntityId = person.Id,
-                    Verb = "Returned",
-                    Summary = summary,
-                    Caption = "Returned from Worship",
-                    RelatedData = hostInfo,
-                    CategoryId = 4
-                };
-                historyService.Add( history );
+                    InMemoryPersonStatus.RemoveFromWorship( person.Id );
+                    InMemoryPersonStatus.RemoveFromWithParent( person.Id );
+                    summary = string.Format( "Returned from Worship and Parent at <span class=\"field-name\">{0}</span>", Rock.RockDateTime.Now );
+                    caption = "Returned from Worship and Parent";
+                }
+                else if ( InMemoryPersonStatus.IsInWorship( person.Id ) )
+                {
+                    InMemoryPersonStatus.RemoveFromWorship( person.Id );
+                    summary = string.Format( "Returned from Worship at <span class=\"field-name\">{0}</span>", Rock.RockDateTime.Now );
+                    caption = "Returned from Worship";
+                }
+                else if ( InMemoryPersonStatus.IsWithParent( person.Id ) )
+                {
+                    InMemoryPersonStatus.RemoveFromWithParent( person.Id );
+                    summary = string.Format( "Returned from Parent at <span class=\"field-name\">{0}</span>", Rock.RockDateTime.Now );
+                    caption = "Returned from Parent";
+                }
+                if ( !string.IsNullOrWhiteSpace( caption ) )
+                {
+                    History history = new History()
+                    {
+                        EntityTypeId = personEntityTypeId,
+                        EntityId = person.Id,
+                        Verb = "Returned",
+                        Summary = summary,
+                        Caption = "Returned from Worship",
+                        RelatedData = hostInfo,
+                        CategoryId = 4
+                    };
+                    historyService.Add( history );
+                }
             }
             rockContext.SaveChanges();
             return new Response( true, "Success", false );

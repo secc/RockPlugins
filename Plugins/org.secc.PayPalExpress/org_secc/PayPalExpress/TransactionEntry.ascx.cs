@@ -877,8 +877,8 @@ namespace org.secc.PayPalExpress
             tdTransactionCodeReceipt.Description = TransactionCode;
             tdTransactionCodeReceipt.Visible = !string.IsNullOrWhiteSpace(TransactionCode);
 
-            tdScheduleId.Description = ScheduleId;
-            tdScheduleId.Visible = !string.IsNullOrWhiteSpace(ScheduleId);
+            tdScheduleId.Description = ScheduleId.ToString();
+            tdScheduleId.Visible = ScheduleId.HasValue;
 
             tdNameReceipt.Description = paymentInfo.FullName;
             tdPhoneReceipt.Description = paymentInfo.Phone;

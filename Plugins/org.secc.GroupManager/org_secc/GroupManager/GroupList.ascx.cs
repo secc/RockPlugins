@@ -49,7 +49,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 groups.AddRange( new GroupTypeService( rockContext ).Queryable()
                     .Where( gt => gt.Guid == groupTypeGuid )
-                    .SelectMany( gt => gt.Groups )
+                    .SelectMany( gt => gt.Groups.Where(g => g.IsActive) )
                     .Where( g => groupIds.Contains( g.Id ) )
                     );
             }
@@ -57,14 +57,14 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 List<int> groupIds = GetChildGroupIds( rockContext );
                 groups.AddRange( new GroupService( rockContext ).Queryable()
-                    .Where( g => groupIds.Contains( g.Id ) )
+                    .Where( g => groupIds.Contains( g.Id ) && g.IsActive )
                     );
             }
             else if ( groupTypeGuid != null )
             {
                 groups.AddRange( new GroupTypeService( rockContext ).Queryable()
                     .Where( gt => gt.Guid == groupTypeGuid )
-                    .SelectMany( gt => gt.Groups )
+                    .SelectMany( gt => gt.Groups.Where( g => g.IsActive ) )
                     );
             }
             else
