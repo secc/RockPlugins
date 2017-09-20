@@ -47,7 +47,7 @@ namespace RockWeb.Blocks.Reporting.Children
             {
                 return;
             }
-            var groups = parentGroup.Groups.OrderBy(g => g.Name);
+            var groups = parentGroup.Groups.OrderBy( g => g.Name );
 
             //Group checkbox
             cblGroups.Items.Clear();
@@ -177,7 +177,7 @@ namespace RockWeb.Blocks.Reporting.Children
 
                 var rowCounter = 3;
 
-                var groupMembers = group.Members;
+                var groupMembers = group.Members.Where( gm => gm.GroupMemberStatus == GroupMemberStatus.Active );
                 foreach ( var member in groupMembers.OrderBy( gm => gm.Person.NickName ).ToList() )
                 {
                     var person = member.Person;
@@ -252,7 +252,7 @@ namespace RockWeb.Blocks.Reporting.Children
                         {
                             r.Style.Font.SetFromFont( new Font( "Calibri", 11, FontStyle.Bold ) );
                         }
-                            SetExcelValue( worksheet.Cells[rowCounter, 1], parent.FullName );
+                        SetExcelValue( worksheet.Cells[rowCounter, 1], parent.FullName );
                         SetExcelValue( worksheet.Cells[rowCounter, 2], parent.Email );
                         rowCounter++;
                         using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 2] )

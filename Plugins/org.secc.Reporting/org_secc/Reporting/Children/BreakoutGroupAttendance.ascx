@@ -2,6 +2,7 @@
 
 <asp:UpdatePanel ID="upReport" runat="server">
     <ContentTemplate>
+        <Rock:NotificationBox runat="server" ID="nbMissingSchedules" NotificationBoxType="Warning" Visible="false"></Rock:NotificationBox>
         <div class="hidden-print">
             <Rock:GridFilter runat="server" ID="fBreakoutGroups" OnApplyFilterClick="fBreakoutGroups_ApplyFilterClick">
             <asp:Panel ID="pnlGroupsContainer" runat="server"> 

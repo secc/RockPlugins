@@ -134,7 +134,7 @@ namespace RockWeb.Blocks.Reporting.Children
 
             var breakoutGroupMembers = new GroupService( rockContext )
                 .GetByIds( selectedGroups )
-                .SelectMany( g => g.Members.Where( m => !m.GroupRole.IsLeader ) )
+                .SelectMany( g => g.Members.Where( m => !m.GroupRole.IsLeader && m.GroupMemberStatus == GroupMemberStatus.Active ) )
                 .Select( gm => new BreakoutGroupMember
                 {
                     Id = gm.PersonId,
@@ -225,7 +225,7 @@ namespace RockWeb.Blocks.Reporting.Children
             //Group checkbox
             cblGroups.Items.Clear();
             var scheduleIds = schedules.Select( s => s.Id );
-            foreach ( var group in groups.Where( g => scheduleIds.Contains( g.ScheduleId ?? 0 ) ) )
+            foreach ( var group in groups.Where( g => scheduleIds.Contains( g.ScheduleId ?? 0 ) ).OrderBy( g => g.Name ) )
             {
                 ListItem listItem = new ListItem()
                 {
@@ -234,6 +234,22 @@ namespace RockWeb.Blocks.Reporting.Children
                 };
                 cblGroups.Items.Add( listItem );
             }
+
+            var groupsWithoutSchedule = groups.Where( g => g.Schedule == null );
+            if ( groupsWithoutSchedule.Any() )
+            {
+                nbMissingSchedules.Visible = true;
+                nbMissingSchedules.Text = "The following breakout groups do not have a schedule:";
+                foreach ( var group in groupsWithoutSchedule )
+                {
+                    nbMissingSchedules.Text += " " + group.Name;
+                }
+            }
+            else
+            {
+                nbMissingSchedules.Visible = true;
+            }
+
             var groupPreference = GetUserPreference( BlockCache.Guid.ToString() + "Group" )
                 .Split( new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries )
                 .ToList();
