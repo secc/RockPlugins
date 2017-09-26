@@ -50,7 +50,7 @@ namespace Rock.Workflow.Action.CheckIn
                 DateTime startDateTime = RockDateTime.Now;
 
                 bool reuseCodeForFamily = checkInState.CheckInType != null && checkInState.CheckInType.ReuseSameCode;
-                int securityCodeLength = checkInState.CheckInType != null ? checkInState.CheckInType.SecurityCodeLength : 3;
+                int securityCodeLength = checkInState.CheckInType != null ? checkInState.CheckInType.SecurityCodeAlphaNumericLength : 3;
 
                 AttendanceCodeService attendanceCodeService = new AttendanceCodeService( rockContext );
                 AttendanceService attendanceService = new AttendanceService( rockContext );
@@ -85,7 +85,7 @@ namespace Rock.Workflow.Action.CheckIn
                                     continue;
                                 }
                                 GroupMember groupMember = groupMemberService.GetByGroupIdAndPersonId( referenceGroup.Id, person.Person.Id ).FirstOrDefault();
-                                if (groupMember == null )
+                                if ( groupMember == null )
                                 {
                                     group.Selected = false;
                                     continue;
