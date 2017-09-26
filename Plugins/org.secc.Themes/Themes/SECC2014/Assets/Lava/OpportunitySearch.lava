@@ -16,67 +16,64 @@
 {% assign columnLeftover = opportunityCount | Minus:columnOne %}
 {% assign columnTwo = columnLeftover | DividedBy:2 | Ceiling %}
 
-<div class="col-xs-12 col-sm-6 col-md-4">
-{% for opportunity in Opportunities %}
-	{% assign opportunityString = opportunity.Id | ToString %}
-	{% assign opportunityId = "|" | Append: opportunityString | Append: "|" %}
-	{% if (approvedIds contains opportunityId) %}
-        <h3 class="section-header">{{ opportunity.PublicName }}</h3>
-        <div class="thumbnail">
-          <img src="/GetImage.ashx?id={{ opportunity.PhotoId }}&w=720">
-            {% unless opportunity.ConnectionOpportunityCampuses.size == Campuses.size %}
-			<div class="text-right" style="margin: -50px 10px 0px 0px; height: 50px;">
-              {% for opportunityCampus in opportunity.ConnectionOpportunityCampuses %}
-					{% for campus in Campuses %}
-						{% if campus.Id == opportunityCampus.CampusId %}
-							{% assign publicCampus = campus | Attribute:'Public' %}
-							{% assign slug = campus | Attribute:'Slug' %}
-							{% if publicCampus == 'Yes' %}
-								<span class="se-logo stroke {{slug}}" style="background-color: rgba(0,0,0,0.6) !important;">{{ campus.ShortCode }}</span>
-							{% endif %}
-						{% endif %}
-					{% endfor %}
-              {% endfor %}
-			</div>
-            {% endunless %}
-            <div class="caption">
-              <p>{{opportunity.Summary}}</p>
-              {% if DetailPage contains "?" %}
-                  <a class="btn btn-default" href="{{ DetailPage }}&OpportunityId={{ opportunity.Id }}" role="button">More Info</a>
-              {% else %}
-                  <a class="btn btn-default" href="{{ DetailPage }}?OpportunityId={{ opportunity.Id }}" role="button">More Info</a>
-              {% endif %}
-            </div>
-        </div>
+{% assign OpportunitiesSorted = Opportunities | SortByAttribute:'WebsiteOrder' %}
 
-        {% comment %}
-         This figures out when the first column will terminate.
-        {%endcomment %}
-        {% if columnOne == 1 %}
-            {% assign columnOne = columnOne | Minus:1 %}
-            </div>
-            <div class="col-xs-12 col-sm-6 col-md-4">
-        {% elseif columnOne > 0 %}
-            {% assign columnOne = columnOne | Minus:1 %}
-        {% else %}
-            {% comment %}
-             This figures out when the second column will terminate.
-            {%endcomment %}
-            {% if columnTwo == 1 %}
-                {% assign columnTwo = columnTwo | Minus:1 %}
+<div class="isotope_wrap">
+        {% for opportunity in OpportunitiesSorted %}
+        <div class="isotope_item col-xs-12 col-sm-6 col-md-4">
+        	{% assign opportunityString = opportunity.Id | ToString %}
+        	{% assign opportunityId = "|" | Append: opportunityString | Append: "|" %}
+        	{% if (approvedIds contains opportunityId) %}
+                <h3 class="section-header">{{ opportunity.PublicName }}</h3>
+                <div class="thumbnail">
+                  <img src="/GetImage.ashx?id={{ opportunity.PhotoId }}&w=720">
+                    {% unless opportunity.ConnectionOpportunityCampuses.size == Campuses.size %}
+        			<div class="text-right" style="margin: -50px 10px 0px 0px; height: 50px;">
+                      {% for opportunityCampus in opportunity.ConnectionOpportunityCampuses %}
+        					{% for campus in Campuses %}
+        						{% if campus.Id == opportunityCampus.CampusId %}
+        							{% assign publicCampus = campus | Attribute:'Public' %}
+        							{% assign slug = campus | Attribute:'Slug' %}
+        							{% if publicCampus == 'Yes' %}
+        								<span class="se-logo stroke {{slug}}" style="background-color: rgba(0,0,0,0.6) !important;">{{ campus.ShortCode }}</span>
+        							{% endif %}
+        						{% endif %}
+        					{% endfor %}
+                      {% endfor %}
+        			</div>
+                    {% endunless %}
+                    <div class="caption">
+                      <p>{{opportunity.Summary}}</p>
+                      {% if DetailPage contains "?" %}
+                          <a class="btn btn-default" href="{{ DetailPage }}&OpportunityId={{ opportunity.Id }}" role="button">More Info</a>
+                      {% else %}
+                          <a class="btn btn-default" href="{{ DetailPage }}?OpportunityId={{ opportunity.Id }}" role="button">More Info</a>
+                      {% endif %}
+                    </div>
                 </div>
-                <div class="col-xs-12 col-sm-6 col-md-4">
-            {% elseif columnTwo > 0 %}
-                {% assign columnTwo = columnTwo | Minus:1 %}
-            {% else %}
-            {% endif %}
-            {% comment %}
-            The third column will finish the rest.
-            {%endcomment %}
-        {% endif %}
-	{% endif %}
-{% endfor %}
+
+        	{% endif %}
+        </div>
+        {% endfor %}
 </div>
+
+<script>
+    $(window).load(function() {
+        // Initialize Isotope
+        var $grid = $('.isotope_wrap').isotope({
+            // options
+            percentPosition: true,
+            itemSelector: '.isotope_item',
+            masonry: {
+              horizontalOrder: true
+            }
+        });
+        // reveal all items after init
+        var $items = $grid.find('.isotope_item');
+        $grid.addClass('is-showing-items')
+          .isotope( 'revealItemElements', $items );
+    });
+</script>
 
 <script type="text/javascript">
   $( document ).ready(function() {

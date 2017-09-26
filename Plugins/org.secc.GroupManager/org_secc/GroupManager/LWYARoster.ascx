@@ -39,7 +39,46 @@
             margin: 0cm;
         }
 
+        .page_content_wrap {
+            margin: 1rem;
+        }
+        header {
+            top: 1rem !important;
+            position: relative !important;
+        }
 
+        .content_wrap {
+            width: 100%;
+        }
+        .breadcrumbs {
+            position: relative;
+            left: 2rem;
+            margin: 0cm;
+        }
+
+        #cd-primary-nav, footer, .cd-nav-trigger, .btn {
+            display: none;
+        }
+        #cms-admin-footer {
+            display: none;
+        }
+
+        article, div.panel {
+            margin-top: 1rem;
+            page-break-inside: avoid;
+        }
+        .collapse {
+            display: block !important;
+            height: auto !important;
+        }
+        .title_divider_before {
+            -webkit-print-color-adjust: exact;
+            background: #F14A52 !important;
+        }
+        .thumbnail {
+            display: table-cell;
+            width: 22rem;
+        }
         .columns {
             width: 90%;
             -webkit-column-count: 2;
