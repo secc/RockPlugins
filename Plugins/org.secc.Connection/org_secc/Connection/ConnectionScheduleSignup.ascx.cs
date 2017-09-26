@@ -539,7 +539,7 @@ namespace RockWeb.Blocks.Connection
         private void AddGroupMemberAttributes( RockContext rockContext = null )
         {
             // Group
-            if ( RoleRequests.Count > 0 )
+            if ( RoleRequests.Count > 0 && rptGroupRoleAttributes.Items.Count > 0 )
             {
                 if ( rockContext == null )
                 {
