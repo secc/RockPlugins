@@ -59,7 +59,7 @@ namespace org.secc.Panel.Jobs
                         contentChannelItemService.Add( item );
                     }
                     item.Title = series.title;
-                    item.Content = series.description;
+                    item.Content = series.description.Replace( "\n", "" ).Replace( "\r", "" );
                     if ( series.sermons.Any() )
                     {
                         item.StartDateTime = Helpers.FromUnixTime( series.sermons.FirstOrDefault().date );
@@ -127,7 +127,7 @@ namespace org.secc.Panel.Jobs
                             rockContext.SaveChanges();
                         }
                         child.Title = sermon.title;
-                        child.Content = sermon.description;
+                        child.Content = sermon.description.Replace("\n", "").Replace("\r", "");
                         child.StartDateTime = Helpers.FromUnixTime( sermon.date );
                         rockContext.SaveChanges();
                         child.LoadAttributes();
