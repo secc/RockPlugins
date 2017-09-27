@@ -1,0 +1,111 @@
+<section id="christmas" class="ministry squairy-light-mediumTan-overlay" style="padding-top: 2em;">
+
+    <div class="container">
+		<h3>Sign up to serve during Celebrate Christmas Together</h3>
+		<p><i>December 8 & 10-15 • Blankenbaker Campus</i></p>
+
+		<p>These essential roles will take place before and after the Celebrate Christmas Together event. Find the role that works best for you and sign up below.</p>
+
+        <!--  *** BELOW: Ignore or delete *** For DEV only -->
+        <div class="row" style="margin:2rem 0"></div>
+        <h4>Choose your role below:</h4>
+        <br />
+
+		<div class="row advent-border">
+			<div class="col-xs-12">
+
+                    <div class="christmas-box">
+                    <!--  *** END: Ignore or delete *** For DEV only -->
+                    {% for role in Tree %}
+                    	{% assign rolePublic = role.Entity | Attribute:"Public" %}
+                    	{% if rolePublic == 'No' %}
+                    		{% continue %}
+                    	{% endif %}
+                    	{% assign roleLocation = role.Entity | Attribute:"Location" %}
+                    	{% if role.Limit > 0 %}
+                            {% assign spotsLeft = role.Limit | Minus: role.Filled %}
+							{% assign minimumAge = role.Entity | Attribute:"MinimumAge" %}
+							{% assign requiresBackgroundCheck = role.Entity | Attribute:"RequiresBackgroundCheck" %}
+							{% assign membershipRequired = role.Entity | Attribute:"MembershipRequired" %}
+								<div class="christmas-border christmas-role" data-minimum-age="{{minimumAge}}" data-requires-background-check="{{requiresBackgroundCheck}}">
+								  <span id="no-border-tl"></span>
+								  <span id="no-outline-tl"></span>
+								  <span class="corner TL"></span>
+								  <span id="no-border-tr"></span>
+								  <span id="no-outline-tr"></span>
+								  <span class="corner TR"></span>
+								  <span id="no-border-bl"></span>
+								  <span id="no-outline-bl"></span>
+								  <span class="corner BL"></span>
+								  <span id="no-border-br"></span>
+								  <span id="no-outline-br"></span>
+								  <span class="corner BR"></span>
+								  <div class="christmas-box-body">
+
+									<span class="role pull-left">{{ role.Entity.Name }}</span>
+									<span class="label label-info pull-right">{% if role.Limit == -1 %}Unlimited{% else %}{% if spotsLeft <= 0 %}Full{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}{% endif %}</span>
+									<span class="clearfix"></span>
+										{% assign familyFriendly = role.Entity | Attribute:"FamilyFriendly" %}
+										{% if familyFriendly == 'Yes' %}
+											<br /><span class="label label-success" data-toggle="tooltip" data-placement="right" title="We encourage all members of your family to sign up for this role to serve together!">Serve With Your Family</span>
+										{% endif %}
+										<p>{{ role.Entity.Description }}</p>
+
+										{% if minimumAge != "" or requiresBackgroundCheck == 'Yes' or membershipRequired == 'Yes' %}
+										<strong>Requirements</strong>:
+										{% endif %}
+										{% if minimumAge != "" %}
+											<span class="label label-warning" style="margin: 3px" data-toggle="tooltip" title="This role has a minimum age requirement of {{ minimumAge }} years of age.">{{ minimumAge }} Yrs Old</span>
+										{% endif %}
+										{% if requiresBackgroundCheck == 'Yes' %}
+											<span class="label label-danger" style="margin: 3px" data-toggle="tooltip" data-placement="right" title="This role requires the volunteer to have a background check, ministry safe training, and requires the volunteer to have verified attendance for at least 6 months.">Volunteer Screening</span>
+										{% endif %}
+										{% if membershipRequired == 'Yes' %}
+											<span class="label label-default" style="margin: 3px" data-toggle="tooltip" data-placement="right" title="This role requires the volunteer to be a member of Southeast Christian Church.">Membership Required</span>
+										{% endif %}
+									<span class="clearfix"></span>
+									<p>
+										<a href="/serve/christmas-new/signup?OpportunityId=20&GroupId=501223&GroupTypeRoleId={{role.Entity.Id}}" class="btn btn-normal pull-right" style="margin-top:10px;">Sign up for this role</a>
+										<span class="clearfix"></span>
+									</p>
+								</div>
+                            </div>
+                    	{% endif %}
+                    {% endfor %}
+			    </div>
+			</div>
+		</div>
+    </div>
+</section>
+<script type="text/javascript">
+var getUrlParameter = function getUrlParameter(sParam) {
+    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+        sURLVariables = sPageURL.split('&'),
+        sParameterName,
+        i;
+
+    for (i = 0; i < sURLVariables.length; i++) {
+        sParameterName = sURLVariables[i].split('=');
+
+        if (sParameterName[0] === sParam) {
+            return sParameterName[1] === undefined ? true : sParameterName[1];
+        }
+    }
+};
+
+$(document).ready(function() {
+	var age = getUrlParameter("a");
+	var bc = getUrlParameter("bc");
+	$('.christmas-role').each(function() {
+		
+		if (age > 0 && $(this).attr('data-minimum-age') > 0 && age < $(this).attr('data-minimum-age')) {
+			$(this).hide();
+		}
+		if (bc == "false" && $(this).attr('data-requires-background-check') == 'Yes') {
+			$(this).hide();
+		}
+	});
+});
+$('[data-toggle="tooltip"]').tooltip();
+
+</script>
