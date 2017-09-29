@@ -29,6 +29,7 @@ using Rock.Security;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
+using org.secc.PersonMatch;
 
 namespace RockWeb.Blocks.Connection
 {
@@ -164,6 +165,7 @@ namespace RockWeb.Blocks.Connection
 
                     string firstName = tbFirstName.Text.Trim();
                     string lastName = tbLastName.Text.Trim();
+                    DateTime? birthdate = bpBirthdate.SelectedDate;
                     string email = tbEmail.Text.Trim();
                     int? campusId = cpCampus.SelectedCampusId;
 
@@ -189,8 +191,11 @@ namespace RockWeb.Blocks.Connection
                     else
                     {
                         // Try to find matching person
-                        var personMatches = personService.GetByMatch( firstName, lastName, email );
-                        if ( personMatches.Count() == 1 )
+                        var personMatches = personService.GetByMatch( firstName, lastName, birthdate, email).ToList();
+
+                        if ( personMatches.Count() == 1 && 
+                            personMatches.First().Email != null && 
+                            email.ToLower().Trim() == personMatches.First().Email.ToLower().Trim() )
                         {
                             // If one person with same name and email address exists, use that person
                             person = personMatches.First();
@@ -208,6 +213,7 @@ namespace RockWeb.Blocks.Connection
                         person.FirstName = firstName;
                         person.LastName = lastName;
                         person.IsEmailActive = true;
+                        person.SetBirthDate(birthdate);
                         person.Email = email;
                         person.EmailPreference = EmailPreference.EmailAllowed;
                         person.RecordTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
