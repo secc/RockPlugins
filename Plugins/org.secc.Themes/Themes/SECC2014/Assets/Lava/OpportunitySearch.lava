@@ -59,6 +59,12 @@
 
 <script>
     $(window).load(function() {
+        // Initialize SmoothScroll
+        var scroll = new SmoothScroll('a[href*="#"]', {
+            speed: 500, // Integer. How fast to complete the scroll in milliseconds
+            easing: 'easeInOutCubic', // Easing pattern to use
+        });
+
         // Initialize Isotope
         var $grid = $('.isotope_wrap').isotope({
             // options

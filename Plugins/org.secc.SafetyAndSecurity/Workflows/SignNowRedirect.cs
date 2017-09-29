@@ -26,10 +26,16 @@ namespace org.secc.SafetyAndSecurity
 
         public override bool Execute( RockContext rockContext, WorkflowAction action, object entity, out List<string> errorMessages )
         {
-            
+            errorMessages = new List<string>();
+
+            // If this request isn't coming from a browser it can't be completed).
+            if ( System.Web.HttpContext.Current == null )
+            {
+                return false;
+            }
+
             Guid documentGuid = action.GetWorklowAttributeValue( GetActionAttributeValue( action, "Document" ).AsGuid() ).AsGuid();
             string signNowInviteLink = action.GetWorklowAttributeValue( GetActionAttributeValue( action, "signNowInviteLink" ).AsGuid() );
-            errorMessages = new List<string>();
 
             PersonAliasService personAliasService = new PersonAliasService( rockContext );
             BinaryFileService binaryfileService = new BinaryFileService( rockContext );

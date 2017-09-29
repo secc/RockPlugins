@@ -38,7 +38,8 @@
     <script src="<%# ResolveRockUrl("~/Scripts/modernizr.js" ) %>" ></script>
     <script src="<%# ResolveRockUrl("~~/Scripts/global-dist.js" ) %>" ></script>
     <script src="<%# ResolveRockUrl("~~/Scripts/isotope.pkgd.min.js" ) %>" ></script>
-
+    <script src="<%# ResolveRockUrl("~~/Scripts/smooth-scroll.min.js" ) %>" ></script>
+    
     <asp:ContentPlaceHolder ID="head" runat="server"></asp:ContentPlaceHolder>
 
     <!-- Icons -->
