@@ -422,6 +422,7 @@ namespace RockWeb.Blocks.Connection
                     tbFirstName.Text = registrant.FirstName.EncodeHtml();
                     tbLastName.Text = registrant.LastName.EncodeHtml();
                     tbEmail.Text = registrant.Email.EncodeHtml();
+                    bpBirthdate.SelectedDate = registrant.BirthDate;
 
                     if ( pnHome.Visible && _homePhone != null )
                     {
