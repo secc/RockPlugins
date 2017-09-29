@@ -918,8 +918,19 @@ namespace org.secc.Mailgun
                     request.AddParameter( "bcc", message.Bcc.ToString() );
 
                 request.AddParameter( "subject", message.Subject );
-                request.AddParameter( "html", new StreamReader( message.AlternateViews.Where(av => av.ContentType.ToString().ToLower().Contains("html")).FirstOrDefault()?.ContentStream ).ReadToEnd() );
-                request.AddParameter( "text", new StreamReader( message.AlternateViews.Where( av => av.ContentType.ToString().ToLower().Contains( "text" ) ).FirstOrDefault()?.ContentStream ).ReadToEnd() );
+                if (message.AlternateViews.Count > 0 )
+                {
+                    request.AddParameter( "html", new StreamReader( message.AlternateViews.Where( av => av.ContentType.ToString().ToLower().Contains( "html" ) ).FirstOrDefault()?.ContentStream ).ReadToEnd() );
+                    request.AddParameter( "text", new StreamReader( message.AlternateViews.Where( av => av.ContentType.ToString().ToLower().Contains( "text" ) ).FirstOrDefault()?.ContentStream ).ReadToEnd() );
+                }
+                else if (message.IsBodyHtml)
+                {
+                    request.AddParameter( "html", message.Body );
+                }
+                else
+                {
+                    request.AddParameter( "text", message.Body );
+                }
 
                 foreach (var attachment in message.Attachments )
                 { 
