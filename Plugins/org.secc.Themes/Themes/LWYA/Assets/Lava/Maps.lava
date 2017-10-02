@@ -242,22 +242,19 @@
         // create kmlLayer object from URL
 		var layers = {};
         layers['residential'] =  new google.maps.KmlLayer({
-          //url: "https://rock.secc.org/Themes/LWYA/Assets/Maps/Residential-20170818.kmz",
-          url: "http://staging.southeastchristian.org/_/data/Residential-20170818.kmz",
+          url: "https://www.lovewhereuare.org/Content/LWYA/Residential-20171002.kmz",
           suppressInfoWindows: true,
 		  preserveViewport: true,
           map: null
         });
         layers['nonresidential'] = new google.maps.KmlLayer({
-          //url: "https://rock.secc.org/Themes/LWYA/Assets/Maps/Nonresidential-20170818.kmz",
-          url: "http://staging.southeastchristian.org/_/data/Nonresidential-20170818.kmz",
+          url: "https://www.lovewhereuare.org/Content/LWYA/Nonresidential-20171002-1.kmz",
           suppressInfoWindows: true,
 		  preserveViewport: true,
           map: null
         });
         layers['partners'] = new google.maps.KmlLayer({
-          //url: "https://rock.secc.org/Themes/LWYA/Assets/Maps/Partners-20170817.kmz",
-          url: "http://staging.southeastchristian.org/_/data/Partners-20170817.kmz",
+          url: "https://www.lovewhereuare.org/Content/LWYA/Partners-20171002.kmz",
           suppressInfoWindows: true,
 		  preserveViewport: true,
           map: null
