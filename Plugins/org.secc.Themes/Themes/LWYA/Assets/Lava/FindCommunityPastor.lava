@@ -15,10 +15,6 @@
             <div class="col-md-7 g-padding-y-20--xs">
                 <div id="your-pastor"></div>
             </div>
-            <!--  Zipcodes that aren't used yet -->
-            <div data-zips="40014, 40026, 40059, 40056, 40010" data-name="Crestwood Community Pastor (Coming Soon)"></div>
-            <div data-zips="47106, 47111, 47112, 47114, 47115, 47117, 47119, 47122, 47124, 47126, 47129, 47130, 47136, 47150, 47161, 47162, 47165, 47170, 47172, 47177, 47164, 47166, 47143, 47163, 47141" data-name="Indiana Community Pastor (Coming Soon)"></div>
-            <div data-zips="40052, 40051, 40069, 40008, 40013, 40107, 40020, 42701, 52748, 42776, 42740, 42724, 40162, 40160, 40150, 40155, 40121, 40108, 40175, 40117, 42748, 40012, 40078, 40048" data-name="Elizabethtown Community Pastor (Coming Soon)"></div>
         </div>
 
     </div>
