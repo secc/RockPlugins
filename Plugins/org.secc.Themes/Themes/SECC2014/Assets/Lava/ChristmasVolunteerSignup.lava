@@ -104,7 +104,7 @@
 									{% assign requiresBackgroundCheck = role.Entity | Attribute:"RequiresBackgroundCheck" %}
 									{% assign membershipRequired = role.Entity | Attribute:"MembershipRequired" %}
 									<li class="christmas-role" data-minimum-age="{{minimumAge}}" data-requires-background-check="{{requiresBackgroundCheck}}">
-										<a href="#wrapper-role-{{definedValue.Guid}}">
+										<a href="#wrapper-role-{{definedValue.Guid}}" {% if spotsLeft > 0 %}class="not-full"{% endif %}>
 											<span class="role pull-left" data-role-id="{{ role.Entity.Id }}" data-day-guid="{{ day.Entity.Guid }}">{{ role.Entity.Name }}</span>
 											<span class="label label-info pull-right">{% if role.Limit == -1 %}Unlimited{% else %}{% if spotsLeft <= 0 %}Full{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}{% endif %}</span>
 											<span class="clearfix"></span>
@@ -242,7 +242,7 @@
                 else $this.stop(true, true).slideUp(500).removeClass('open');
             });
 
-            $this.on('click', 'a', function (event) {
+            $this.on('click', 'a.not-full', function (event) {
 
                 $(this).parent().parent().find('.active').removeClass('active');
                 $(this).parent().addClass('active');
@@ -291,7 +291,7 @@
 			});
 
             $('body').on('click', function (event) {
-                if ( !$(event.target).closest($field).length && $this.is('.open') ) {
+                if ( $(event.target).hasClass("not-full") && !$(event.target).closest($field).length && $this.is('.open') ) {
                     $this.stop(true, true).slideUp(500).removeClass('open');
                 }
             });
