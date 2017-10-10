@@ -7,6 +7,16 @@ section:not(.row):not(.highlighted-section):not(.with-header):not(.footer-menu):
     padding: 0 !important;
 }
 
+.content-padding-top {
+    padding-top: 0;
+    @include tablets {
+        padding-top: 1.2em;
+    }
+    @include phones {
+        padding-top: 1.2em;
+    }
+}
+
 .isotope_container {
 
     padding: 0 4em;
