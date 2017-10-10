@@ -1,0 +1,188 @@
+// SECONDARY-PAGE.SCSS
+// ====================
+
+/* hide empty sections */
+section:not(.row):not(.highlighted-section):not(.with-header):not(.footer-menu):not(.partners):not(.signoff) {
+    /* Styles */
+    padding: 0 !important;
+}
+
+.isotope_container {
+
+    padding: 0 4em;
+    @include phones {
+        padding: 0 1em;
+    }
+
+    .isotope_wrap {
+
+        .isotope_item {
+
+            .thumbnail {
+                padding: 0px;
+                height: 100%;
+                display: block;
+                border-top: 1px solid #f8f8f8;
+                background: #fff;
+                box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.2);
+                transition: all .3s;
+                border-radius: 5px;
+                overflow: hidden;
+
+                h4 {
+                    background-color: #f1f1f1;
+                    padding: 0.5em;
+                }
+            }
+            .thumbnail:hover {
+                transform: translateY(-10px);
+                box-shadow: 0 22px 43px rgba(0, 0, 0, 0.15);
+            }
+
+            .btn-normal:hover {
+                box-shadow: none !important;
+                opacity: 1;
+                -moz-opacity: 1;
+                filter: alpha(opacity=1);
+                -webkit-transition: all ease .1s;
+                -moz-transition: all ease .1s;
+                -ms-transition: all ease .1s;
+                -o-transition: all ease .1s;
+                transition: all ease .1s;
+            }
+        }
+    }
+}
+
+.page-banner {
+	@include phones {
+        nav.section-nav { display: none;}
+    }
+}
+
+h4 {
+    font-size: 1.5em;
+    margin: 0;
+    font-weight: bolder;
+}
+
+#PageHeader {
+	//No padding at the bottom of the first section
+	padding-bottom: 0 !important;
+    color: #222222;
+
+	.page-banner {
+		//In order for the section-nav to be positioned properly,
+		//we need the banner to be position relative
+		position: relative;
+		width: 100%;
+		height: auto;
+		overflow: hidden;
+		@include hd-displays {
+			max-height: 566px;
+		}
+
+		//We always want the banner image to fill it's container.
+		& > img {
+            width: 100%;
+        }
+
+        nav.section-nav {
+            z-index: 5;
+        }
+        &:after {
+            top: 0;
+            left: 0;
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(0, 0, 0, 0.30), rgba(0, 0, 0, 0.30)) center/cover no-repeat fixed;
+        }
+
+		#Breadcrumbs {
+			position: absolute;
+			top: 0;
+			width: 100%;
+			background: rgba(#ffffff,0.35);
+			text-shadow: 1px 1px 1px rgba($CopyColor, 1);
+			color: #fff;
+		}
+    }
+
+
+	//Set the page title bar, and the page menu
+	.page-title {
+		background: $HighlightColor;
+		padding: 1em 0 !important;
+
+		h1 { color: $HighlightText;}
+
+		a {
+			color: $NavItemColor;
+			text-transform: uppercase;
+			font-family: $Proxima-Bold;
+			font-weight: 700;
+		}
+
+		@include non-phones {
+			h1, .page-nav {display: inline-block;}
+
+			.page-nav li {
+				margin-left: 2em;
+			}
+		}
+	}
+}
+
+.content-headers {
+	padding-top: 0 !important;
+	padding-bottom: 0 !important;
+
+	@include non-phones {
+		&::before {
+			content: "\00a0";
+			display: block;
+			width: 100%;
+			background: $HighlightColor;
+			color: $HighlightColor;
+			position: absolute;
+			padding: .75em 0;
+			font-size: $font-size-h2;
+			line-height: $headings-line-height;
+
+		}
+	}
+
+
+	h2 {
+		background: $HighlightColor;
+		padding: .75em 0;
+		margin-bottom: .75em;
+		color: $HighlightText;
+		text-align: center;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		overflow: hidden;
+
+		@include phones {
+			margin-left: -15px;
+			margin-right: -15px;
+		}
+	}
+
+	.bar-col {
+		padding-bottom: 5em;
+		& + .bar-col {
+			border-left: $DefaultBorder;
+		}
+	}
+
+}
+
+//Styles for the images that serve as a divider between sections
+.image-divider {
+	padding: 0 !important;
+
+	img { width: 100%; }
+}
