@@ -84,7 +84,7 @@
 				<div class="col-xs-12 col-sm-push-4 col-sm-8 col-md-push-4 col-md-8 col-lg-push-3 col-lg-9">
 					<ul class="nav rolelist" style="display:none">
 					<li class="clear-selection" style="display: none">
-						<a href="javascript:void(0)">
+						<a class="not-full" href="javascript:void(0)">
 							<span class="role" style="display: none">Select Role</span>
 							<span class="role">Clear Selection</span>
 						</a>
@@ -104,7 +104,11 @@
 									{% assign requiresBackgroundCheck = role.Entity | Attribute:"RequiresBackgroundCheck" %}
 									{% assign membershipRequired = role.Entity | Attribute:"MembershipRequired" %}
 									<li class="christmas-role" data-minimum-age="{{minimumAge}}" data-requires-background-check="{{requiresBackgroundCheck}}">
-										<a href="#wrapper-role-{{definedValue.Guid}}">
+										{% if spotsLeft > 0 %}
+										<a href="#wrapper-role-{{definedValue.Guid}}" >
+										{%else%}
+										<div class="full">
+										{% endif %}
 											<span class="role pull-left" data-role-id="{{ role.Entity.Id }}" data-day-guid="{{ day.Entity.Guid }}">{{ role.Entity.Name }}</span>
 											<span class="label label-info pull-right">{% if role.Limit == -1 %}Unlimited{% else %}{% if spotsLeft <= 0 %}Full{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}{% endif %}</span>
 											<span class="clearfix"></span>
@@ -133,7 +137,11 @@
 												{% endif %}
 											{% endif %}
 											<span class="clearfix"></span>
+										{% if spotsLeft > 0 %}
 										</a>
+										{%else%}
+										</div>
+										{% endif %}
 									</li>
 								{% endif %}
 						   {% endfor %}
@@ -291,7 +299,7 @@
 			});
 
             $('body').on('click', function (event) {
-                if ( !$(event.target).closest($field).length && $this.is('.open') ) {
+                if ( !$(event.target).parents('.full').length && !$(event.target).closest($field).length && $this.is('.open') ) {
                     $this.stop(true, true).slideUp(500).removeClass('open');
                 }
             });

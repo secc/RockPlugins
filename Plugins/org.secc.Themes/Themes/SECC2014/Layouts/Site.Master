@@ -39,15 +39,15 @@
     <script src="<%# ResolveRockUrl("~~/Scripts/global-dist.js" ) %>" ></script>
     <script src="<%# ResolveRockUrl("~~/Scripts/isotope.pkgd.min.js" ) %>" ></script>
     <script src="<%# ResolveRockUrl("~~/Scripts/smooth-scroll.min.js" ) %>" ></script>
-    
+
     <asp:ContentPlaceHolder ID="head" runat="server"></asp:ContentPlaceHolder>
 
     <!-- Icons -->
-    <link rel="shortcut icon" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/favicon.ico", true) %>"/>
-    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/touch-icon-ipad-retina.png", true) %>"/>
-    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/touch-icon-iphone-retina.png", true) %>"/>
-    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/touch-icon-ipad.png", true) %>"/>
-    <link rel="apple-touch-icon-precomposed" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/touch-icon-iphone.png", true) %>"/>
+    <link rel="shortcut icon" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/secc-favicon.ico", true) %>"/>
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/secc-touch-icon-ipad-retina.png", true) %>"/>
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/secc-touch-icon-iphone-retina.png", true) %>"/>
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/secc-touch-icon-ipad.png", true) %>"/>
+    <link rel="apple-touch-icon-precomposed" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/secc-touch-icon-iphone.png", true) %>"/>
 
     <!-- Include Fonts from Adobe Typekit -->
     <script type="text/javascript" src="//use.typekit.net/ayl1ond.js"></script>

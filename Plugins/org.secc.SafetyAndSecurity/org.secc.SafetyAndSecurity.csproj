@@ -66,6 +66,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Workflows\MinistrySafeRequest.cs" />
+    <Compile Include="Workflows\MinistrySafeUpdate.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Workflows\SignNowLanding.cs" />
     <Compile Include="Workflows\SignNowRedirect.cs" />
