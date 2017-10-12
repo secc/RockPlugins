@@ -336,11 +336,11 @@ article {
 
 
 @mixin alternate-highlight {
-	background: url('/_/img/backgrounds/seamless/gray-noise.png');
+	// background: url('/_/img/backgrounds/seamless/gray-noise.png');
 	@include BoxShadow($right: 0px, $bottom: 0px, $blur:90px, $spread: 5px, $color: $GrayColor, $opacity: 0.2, $type: "inset");
 }
 .highlighted-section {
-	background: radial-gradient(circle farthest-side at center, rgba(#ffffff, 0.4) 68%,rgba($GrayColor, 0.6) 150%), url("/_/img/backgrounds/seamless/gray-noise.png");
+	background: radial-gradient(circle farthest-side at center, rgba(#ffffff, 0.4) 68%,rgba($GrayColor, 0.6) 150%);
 
 	.no-multiplebgs & {
 		@include alternate-highlight;

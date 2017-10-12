@@ -19,7 +19,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
     public partial class RoomScannerController : ApiController
     {
         private const string locationEntityTypeGuid = "0D6410AD-C83C-47AC-AF3D-616D09EDF63B";
-        private const int allowedGroupId = 3;
+        private const int allowedGroupId = 37;
         private int personEntityTypeId = EntityTypeCache.Read( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
         private int locationEntityTypeId = EntityTypeCache.Read( locationEntityTypeGuid.AsGuid() ).Id;
 
@@ -177,7 +177,8 @@ namespace org.secc.RoomScanner.Rest.Controllers
             RockContext rockContext = new RockContext();
             LocationService locationService = new LocationService( rockContext );
             var location = locationService.Get( guid.AsGuid() );
-            return new Template() { Name = location.Name, Id = location.Id, Description = "" };
+            var campus = CampusCache.Read( location.CampusId ?? 0 );
+            return new Template() { Name = location.Name, Id = location.Id, Description = campus?.Name ?? "" };
         }
 
         [Authenticate, Secured]
