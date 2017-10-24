@@ -521,6 +521,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                     newAttendance.Device = null;
                     newAttendance.SearchTypeValue = null;
                     newAttendance.LocationId = req.LocationId;
+                    newAttendance.AttendanceCodeId = attendance.AttendanceCodeId;
                     attendanceService.Add( newAttendance );
                     attendance.DidAttend = false;
                     attendance.EndDateTime = Rock.RockDateTime.Now;
