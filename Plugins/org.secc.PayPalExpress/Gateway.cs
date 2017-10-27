@@ -356,7 +356,9 @@ namespace org.secc.PayPalExpress
         /// <returns></returns>
         public override FinancialScheduledTransaction AddScheduledPayment(FinancialGateway financialGateway, PaymentSchedule schedule, PaymentInfo paymentInfo, out string errorMessage)
         {
-            throw new NotSupportedException("PayPal Express does not support scheduled payments.");
+            // Just do nothing here.  It's not supported!
+            errorMessage = "";
+            return null;
         }
 
         /// <summary>
@@ -367,7 +369,9 @@ namespace org.secc.PayPalExpress
         /// <returns></returns>
         public override bool ReactivateScheduledPayment(FinancialScheduledTransaction transaction, out string errorMessage)
         {
-            throw new NotSupportedException("PayPal Express does not support scheduled payments.");
+            // Just do nothing here.  It's not supported!
+            errorMessage = "";
+            return false;
         }
 
         /// <summary>
@@ -379,7 +383,9 @@ namespace org.secc.PayPalExpress
         /// <returns></returns>
         public override bool UpdateScheduledPayment(FinancialScheduledTransaction transaction, PaymentInfo paymentInfo, out string errorMessage)
         {
-            throw new NotSupportedException("PayPal Express does not support scheduled payments.");
+            // Just do nothing here.  It's not supported!
+            errorMessage = "";
+            return false;
         }
 
         /// <summary>
@@ -390,7 +396,9 @@ namespace org.secc.PayPalExpress
         /// <returns></returns>
         public override bool CancelScheduledPayment(FinancialScheduledTransaction transaction, out string errorMessage)
         {
-            throw new NotSupportedException("PayPal Express does not support scheduled payments.");
+            // Just do nothing here.  It's not supported!
+            errorMessage = "";
+            return false;
         }
 
         /// <summary>
@@ -401,7 +409,9 @@ namespace org.secc.PayPalExpress
         /// <returns></returns>
         public override bool GetScheduledPaymentStatus(FinancialScheduledTransaction transaction, out string errorMessage)
         {
-            throw new NotSupportedException("PayPal Express does not support scheduled payments.");
+            // Just do nothing here.  It's not supported!
+            errorMessage = "";
+            return false;
         }
 
         /// <summary>
@@ -414,7 +424,10 @@ namespace org.secc.PayPalExpress
         /// <returns></returns>
         public override List<Payment> GetPayments(FinancialGateway financialGateway, DateTime startDate, DateTime endDate, out string errorMessage)
         {
-            throw new NotSupportedException("PayPal Express does not support scheduled payments.");
+            // Just do nothing here.  It's not supported!
+            errorMessage = "";
+            return new List<Payment>();
+            ;
         }
 
         /// <summary>
