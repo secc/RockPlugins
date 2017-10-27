@@ -549,6 +549,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                     newAttendance.Device = null;
                     newAttendance.SearchTypeValue = null;
                     newAttendance.LocationId = req.LocationId;
+                    newAttendance.AttendanceCode = null;
                     newAttendance.AttendanceCodeId = attendance.AttendanceCodeId;
                     if ( isSubroom )
                     {
