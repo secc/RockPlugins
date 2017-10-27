@@ -106,14 +106,8 @@ namespace org.secc.PayPalReporting
             dbContext.SaveChanges();
             
             String message = "Payflow Transactions Retrieved: " + totalTransactions + " - "
-                        + "Fees Retrieved Successfully:" + feesSuccessful + " - "
-                        + "Fees Retrieval Failures:" + feesFailed;
-            
-            // If we have any fee retrieval errors, mark it as an error so it sends a notification.
-            if (feesFailed > 0)
-            {
-                throw new Exception(message);
-            }
+                        + "Non-Zero Fee Transactions:" + feesSuccessful + " - "
+                        + "Zero Fee Transactions:" + feesFailed;
 
             context.Result = message;
         }
