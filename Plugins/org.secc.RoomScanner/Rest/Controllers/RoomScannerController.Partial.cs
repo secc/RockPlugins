@@ -18,8 +18,11 @@ namespace org.secc.RoomScanner.Rest.Controllers
 {
     public partial class RoomScannerController : ApiController
     {
+        private static Dictionary<string, string> settings = GlobalAttributesCache.Value( "RoomScannerSettings" ).AsDictionary();
+        private int allowedGroupId = settings["AllowedGroupId"].AsInteger();
+        private int subroomLocationTypeId = settings["SubroomLocationType"].AsInteger();
+
         private const string locationEntityTypeGuid = "0D6410AD-C83C-47AC-AF3D-616D09EDF63B";
-        private const int allowedGroupId = 37;
         private int personEntityTypeId = EntityTypeCache.Read( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
         private int locationEntityTypeId = EntityTypeCache.Read( locationEntityTypeGuid.AsGuid() ).Id;
 
@@ -215,21 +218,35 @@ namespace org.secc.RoomScanner.Rest.Controllers
         {
             var tomorrow = Rock.RockDateTime.Today.AddDays( 1 );
             RockContext rockContext = new RockContext();
+            Location location = new LocationService( rockContext ).Get( locationId );
+            if ( location == null )
+            {
+                return new List<AttendanceEntry>();
+            }
+            bool isSubroom = location.LocationTypeValueId == subroomLocationTypeId;
+            if ( isSubroom )
+            {
+                locationId = location.ParentLocationId ?? 0;
+            }
             AttendanceService attendanceService = new AttendanceService( rockContext );
-            var roster = attendanceService.Queryable()
-                .Where( a => a.LocationId == locationId && a.StartDateTime > Rock.RockDateTime.Today && a.StartDateTime < tomorrow )
-                .Select( a => new AttendanceEntry()
-                {
-                    Id = a.Id,
-                    PersonId = a.PersonAlias.Person.Id,
-                    LastName = a.PersonAlias.Person.LastName,
-                    NickName = a.PersonAlias.Person.NickName,
-                    StartDateTime = a.StartDateTime,
-                    EndDateTime = a.EndDateTime,
-                    AttendanceGuid = a.Guid.ToString(),
-                    DidAttend = a.DidAttend ?? false,
-                    IsVolunteer = VolunteerGroupIds.Contains( a.GroupId ?? 0 )
-                } )
+            var qry = attendanceService.Queryable()
+                .Where( a => a.LocationId == locationId && a.StartDateTime > Rock.RockDateTime.Today && a.StartDateTime < tomorrow );
+            if ( isSubroom )
+            {
+                qry = qry.Where( a => ( a.DidAttend == true && a.ForeignId == location.Id ) || a.DidAttend != true );
+            }
+            var roster = qry.Select( a => new AttendanceEntry()
+            {
+                Id = a.Id,
+                PersonId = a.PersonAlias.Person.Id,
+                LastName = a.PersonAlias.Person.LastName,
+                NickName = a.PersonAlias.Person.NickName,
+                StartDateTime = a.StartDateTime,
+                EndDateTime = a.EndDateTime,
+                AttendanceGuid = a.Guid.ToString(),
+                DidAttend = a.DidAttend ?? false,
+                IsVolunteer = VolunteerGroupIds.Contains( a.GroupId ?? 0 )
+            } )
                 .OrderBy( ae => ae.Id )
                 .ToList();
             foreach ( var entry in roster )
@@ -315,7 +332,11 @@ namespace org.secc.RoomScanner.Rest.Controllers
 
             var person = attendeeAttendance.PersonAlias.Person;
             var location = new LocationService( rockContext ).Get( req.LocationId );
-
+            bool isSubroom = location.LocationTypeValueId == subroomLocationTypeId;
+            if ( isSubroom )
+            {
+                req.LocationId = location.ParentLocationId ?? 0;
+            }
             var today = Rock.RockDateTime.Today;
             var tomorrow = today.AddDays( 1 );
             var attendances = attendanceService.Queryable()
@@ -337,7 +358,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
 
             if ( !attendances.Any() ) //There was an attendance record, but not for the selected location
             {
-                return new Response( false, string.Format( "{0} is not checked-in to {1} would you like to override?", person.FullName, location.Name ), true );
+                return new Response( false, string.Format( "{0} is not checked-in to {1} would you like to override?", person.FullName, location.Name ), false );
             }
 
             foreach ( var attendance in attendances )
@@ -347,6 +368,10 @@ namespace org.secc.RoomScanner.Rest.Controllers
             }
 
             var summary = string.Format( "Exited <span class=\"field-name\">{0}</span> at <span class=\"field-name\">{1}</span>", location.Name, Rock.RockDateTime.Now );
+            if ( isSubroom )
+            {
+                summary += string.Format( " (a subroom of <span class=\"field-name\">{0}</span>)", location.ParentLocation.Name );
+            }
 
             var hostInfo = "Unknown Host";
             try
@@ -366,7 +391,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 EntityTypeId = personEntityTypeId,
                 EntityId = attendeeAttendance.PersonAlias.PersonId,
                 RelatedEntityTypeId = locationEntityTypeId,
-                RelatedEntityId = req.LocationId,
+                RelatedEntityId = location.Id,
                 Verb = "Exit",
                 Summary = summary,
                 Caption = "Exited Location",
@@ -377,7 +402,6 @@ namespace org.secc.RoomScanner.Rest.Controllers
             historyService.Add( history );
             InMemoryPersonStatus.RemoveFromWorship( attendeeAttendance.PersonAlias.PersonId );
             rockContext.SaveChanges();
-
 
             var message = string.Format( "{0} has been checked-out of {1}.", person.FullName, location.Name );
             return new Response( true, message, false, personId: person.Id );
@@ -421,7 +445,11 @@ namespace org.secc.RoomScanner.Rest.Controllers
 
             var person = attendeeAttendance.PersonAlias.Person;
             var location = new LocationService( rockContext ).Get( req.LocationId );
-
+            bool isSubroom = location.LocationTypeValueId == subroomLocationTypeId;
+            if ( isSubroom )
+            {
+                req.LocationId = location.ParentLocationId ?? 0;
+            }
             var today = Rock.RockDateTime.Today;
             var tomorrow = today.AddDays( 1 );
             var attendances = attendanceService.Queryable()
@@ -522,6 +550,10 @@ namespace org.secc.RoomScanner.Rest.Controllers
                     newAttendance.SearchTypeValue = null;
                     newAttendance.LocationId = req.LocationId;
                     newAttendance.AttendanceCodeId = attendance.AttendanceCodeId;
+                    if ( isSubroom )
+                    {
+                        newAttendance.ForeignId = location.Id;
+                    }
                     attendanceService.Add( newAttendance );
                     attendance.DidAttend = false;
                     attendance.EndDateTime = Rock.RockDateTime.Now;
@@ -530,13 +562,17 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 }
 
                 var moveSummary = string.Format( "Moved to and Entered <span class=\"field-name\">{0}</span> at <span class=\"field-name\">{1}</span> under the authority of {2}", location.Name, Rock.RockDateTime.Now, authorizedPerson.FullName );
+                if ( isSubroom )
+                {
+                    moveSummary += string.Format( " (a subroom of <span class=\"field-name\">{0}</span>)", location.ParentLocation.Name );
+                }
 
                 History moveHistory = new History()
                 {
                     EntityTypeId = personEntityTypeId,
                     EntityId = attendeeAttendance.PersonAlias.PersonId,
                     RelatedEntityTypeId = locationEntityTypeId,
-                    RelatedEntityId = req.LocationId,
+                    RelatedEntityId = location.Id,
                     Verb = "Moved",
                     Summary = moveSummary,
                     Caption = "Moved To Location",
@@ -568,18 +604,25 @@ namespace org.secc.RoomScanner.Rest.Controllers
             {
                 attendance.DidAttend = true;
                 attendance.StartDateTime = Rock.RockDateTime.Now;
+                if ( isSubroom )
+                {
+                    attendance.ForeignId = location.Id;
+                }
                 CheckInCountCache.UpdateAttendance( attendance );
             }
 
             var summary = string.Format( "Entered <span class=\"field-name\">{0}</span> at <span class=\"field-name\">{1}</span>", location.Name, Rock.RockDateTime.Now );
-
+            if ( isSubroom )
+            {
+                summary += string.Format( " (a subroom of <span class=\"field-name\">{0}</span>)", location.ParentLocation.Name );
+            }
 
             History history = new History()
             {
                 EntityTypeId = personEntityTypeId,
                 EntityId = attendeeAttendance.PersonAlias.PersonId,
                 RelatedEntityTypeId = locationEntityTypeId,
-                RelatedEntityId = req.LocationId,
+                RelatedEntityId = location.Id,
                 Verb = "Entry",
                 Summary = summary,
                 Caption = "Entered Location",
