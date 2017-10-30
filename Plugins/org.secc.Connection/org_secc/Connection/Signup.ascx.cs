@@ -765,7 +765,7 @@ namespace org.secc.Connection
                         {
                             subRequests = connectionRequests.Where( cr => cr.AssignedGroupMemberAttributeValues != null && cr.AssignedGroupMemberAttributeValues.Contains( value ) ).ToList();
 
-                            inner.Add( "TotalFilled", this.connectionRequests.Where( cr => cr.AssignedGroupMemberAttributeValues != null && cr.AssignedGroupMemberAttributeValues.Contains( value ) ).Count() );
+                            inner.Add( "TotalFilled", this.connectionRequests.Where( cr => cr.AssignedGroupMemberAttributeValues != null && cr.AssignedGroupMemberAttributeValues.Contains( value ) && cr.ConnectionState != ConnectionState.Inactive ).Count() );
                         }
                         break;
                     case "Campus":
@@ -774,7 +774,7 @@ namespace org.secc.Connection
                         if ( connectionRequests != null )
                         {
                             subRequests = connectionRequests.Where( cr => cr.CampusId == campus.Id ).ToList();
-                            inner.Add( "TotalFilled", this.connectionRequests.Where( cr => cr.CampusId == campus.Id ).Count() );
+                            inner.Add( "TotalFilled", this.connectionRequests.Where( cr => cr.CampusId == campus.Id && cr.ConnectionState != ConnectionState.Inactive ).Count() );
 
                         }
                         break;
@@ -784,12 +784,12 @@ namespace org.secc.Connection
                         if ( connectionRequests != null )
                         {
                             subRequests = connectionRequests.Where( cr => cr.AssignedGroupMemberRoleId == role.Id ).ToList();
-                            inner.Add( "TotalFilled", this.connectionRequests.Where( cr => cr.AssignedGroupMemberRoleId == role.Id ).Count() );
+                            inner.Add( "TotalFilled", this.connectionRequests.Where( cr => cr.AssignedGroupMemberRoleId == role.Id && cr.ConnectionState != ConnectionState.Inactive ).Count() );
                         }
                         break;
                 }
 
-                inner.Add( "Filled", subRequests != null?subRequests.Count:0 );
+                inner.Add( "Filled", subRequests != null?subRequests.Where(sr => sr.ConnectionState != ConnectionState.Inactive).Count():0 );
                         
                 if ( partition.NextPartition != null) {
                     inner.Add( "Partitions", GetTree( partition.NextPartition, groupTypeRoleService, subRequests, newConcatGuid ) );
