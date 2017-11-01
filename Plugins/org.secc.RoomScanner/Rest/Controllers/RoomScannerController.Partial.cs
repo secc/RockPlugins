@@ -18,13 +18,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
 {
     public partial class RoomScannerController : ApiController
     {
-        private static Dictionary<string, string> settings = GlobalAttributesCache.Value( "RoomScannerSettings" ).AsDictionary();
-        private int allowedGroupId = settings["AllowedGroupId"].AsInteger();
-        private int subroomLocationTypeId = settings["SubroomLocationType"].AsInteger();
-
-        private const string locationEntityTypeGuid = "0D6410AD-C83C-47AC-AF3D-616D09EDF63B";
-        private int personEntityTypeId = EntityTypeCache.Read( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
-        private int locationEntityTypeId = EntityTypeCache.Read( locationEntityTypeGuid.AsGuid() ).Id;
+        public static AttributeCache volAttribute = AttributeCache.Read( new Guid( "F5DAD320-B77D-4282-98C9-35414FB0A6DC" ) );
 
         private List<int> VolunteerGroupIds
         {
@@ -72,29 +66,11 @@ namespace org.secc.RoomScanner.Rest.Controllers
         [System.Web.Http.Route( "api/org.secc/roomscanner/pin/{pinCode}" )]
         public Response Pin( string pinCode )
         {
-            if ( TestPin( pinCode ) != null )
+            if ( ValidationHelper.TestPin( pinCode ) != null )
             {
                 return new Response( true, "PIN is authorized", false );
             }
             return new Response( false, "PIN is not authorized", false );
-        }
-
-        private Person TestPin( string pin )
-        {
-            RockContext rockContext = new RockContext();
-            UserLoginService userLoginService = new UserLoginService( rockContext );
-            GroupMemberService groupMemberService = new GroupMemberService( rockContext );
-            var user = userLoginService.GetByUserName( pin );
-            if ( user != null )
-            {
-                var personId = user.PersonId ?? 0;
-                var groupMember = groupMemberService.GetByGroupIdAndPersonId( allowedGroupId, personId );
-                if ( groupMember != null )
-                {
-                    return user.Person;
-                }
-            }
-            return null;
         }
 
         [Authenticate, Secured]
@@ -223,7 +199,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
             {
                 return new List<AttendanceEntry>();
             }
-            bool isSubroom = location.LocationTypeValueId == subroomLocationTypeId;
+            var isSubroom = ValidationHelper.IsSubRoom( location );
             if ( isSubroom )
             {
                 locationId = location.ParentLocationId ?? 0;
@@ -301,26 +277,9 @@ namespace org.secc.RoomScanner.Rest.Controllers
         public Response Exit( [FromBody] Request req )
         {
             RockContext rockContext = new RockContext();
-            AttendanceService attendanceService = new AttendanceService( rockContext );
-            HistoryService historyService = new HistoryService( rockContext );
 
-            Attendance attendeeAttendance = null;
-            var attendanceGuidGuid = req.AttendanceGuid.AsGuidOrNull();
-            if ( attendanceGuidGuid != null )
-            {
-                attendeeAttendance = attendanceService.Get( attendanceGuidGuid ?? new Guid() );
-            }
-            else
-            {
-                UserLoginService userLoginService = new UserLoginService( rockContext );
-                var user = userLoginService.GetByUserName( req.AttendanceGuid );
-                if ( user != null )
-                {
-                    attendeeAttendance = attendanceService.Queryable().Where( a => a.PersonAlias.PersonId == user.PersonId
-                                                        && Rock.RockDateTime.Today == attendeeAttendance.StartDateTime.Date )
-                        .FirstOrDefault();
-                }
-            }
+            Attendance attendeeAttendance = ValidationHelper.GetAttendeeAttendance( req, rockContext );
+
             if ( attendeeAttendance == null )
             {
                 return new Response( false, "Attendance record not found.", false );
@@ -332,15 +291,14 @@ namespace org.secc.RoomScanner.Rest.Controllers
 
             var person = attendeeAttendance.PersonAlias.Person;
             var location = new LocationService( rockContext ).Get( req.LocationId );
-            bool isSubroom = location.LocationTypeValueId == subroomLocationTypeId;
+            bool isSubroom = ValidationHelper.IsSubRoom( location );
             if ( isSubroom )
             {
                 req.LocationId = location.ParentLocationId ?? 0;
             }
-            var today = Rock.RockDateTime.Today;
-            var tomorrow = today.AddDays( 1 );
-            var attendances = attendanceService.Queryable()
-                .Where( a => a.PersonAliasId == attendeeAttendance.PersonAliasId && a.StartDateTime >= today && a.StartDateTime < tomorrow );
+
+            var attendances = ValidationHelper.GetAttendancesForAttendee( rockContext, attendeeAttendance );
+
 
             //If person is a volunteer, children are checked in, and would result in less than 2 volunteers
             //Then don't allow for check-out
@@ -367,40 +325,9 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 CheckInCountCache.RemoveAttendance( attendance );
             }
 
-            var summary = string.Format( "Exited <span class=\"field-name\">{0}</span> at <span class=\"field-name\">{1}</span>", location.Name, Rock.RockDateTime.Now );
-            if ( isSubroom )
-            {
-                summary += string.Format( " (a subroom of <span class=\"field-name\">{0}</span>)", location.ParentLocation.Name );
-            }
+            //Add history of exit
+            DataHelper.AddExitHistory( rockContext, location, attendeeAttendance, isSubroom );
 
-            var hostInfo = "Unknown Host";
-            try
-            {
-
-                hostInfo = Rock.Web.UI.RockPage.GetClientIpAddress();
-                var host = System.Net.Dns.GetHostEntry( hostInfo );
-                if ( host != null )
-                {
-                    hostInfo = host.HostName;
-                }
-            }
-            catch { }
-
-            History history = new History()
-            {
-                EntityTypeId = personEntityTypeId,
-                EntityId = attendeeAttendance.PersonAlias.PersonId,
-                RelatedEntityTypeId = locationEntityTypeId,
-                RelatedEntityId = location.Id,
-                Verb = "Exit",
-                Summary = summary,
-                Caption = "Exited Location",
-                RelatedData = hostInfo,
-                CategoryId = 4
-            };
-
-            historyService.Add( history );
-            InMemoryPersonStatus.RemoveFromWorship( attendeeAttendance.PersonAlias.PersonId );
             rockContext.SaveChanges();
 
             var message = string.Format( "{0} has been checked-out of {1}.", person.FullName, location.Name );
@@ -415,24 +342,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
         {
             RockContext rockContext = new RockContext();
             AttendanceService attendanceService = new AttendanceService( rockContext );
-            HistoryService historyService = new HistoryService( rockContext );
-            Attendance attendeeAttendance = null;
-            var attendanceGuidGuid = req.AttendanceGuid.AsGuidOrNull();
-            if ( attendanceGuidGuid != null )
-            {
-                attendeeAttendance = attendanceService.Get( attendanceGuidGuid ?? new Guid() );
-            }
-            else
-            {
-                UserLoginService userLoginService = new UserLoginService( rockContext );
-                var user = userLoginService.GetByUserName( req.AttendanceGuid );
-                if ( user != null )
-                {
-                    attendeeAttendance = attendanceService.Queryable().Where( a => a.PersonAlias.PersonId == user.PersonId
-                                                        && Rock.RockDateTime.Today == attendeeAttendance.StartDateTime.Date )
-                        .FirstOrDefault();
-                }
-            }
+            Attendance attendeeAttendance = ValidationHelper.GetAttendeeAttendance( req, rockContext );
 
             if ( attendeeAttendance == null )
             {
@@ -445,15 +355,13 @@ namespace org.secc.RoomScanner.Rest.Controllers
 
             var person = attendeeAttendance.PersonAlias.Person;
             var location = new LocationService( rockContext ).Get( req.LocationId );
-            bool isSubroom = location.LocationTypeValueId == subroomLocationTypeId;
+            bool isSubroom = ValidationHelper.IsSubRoom( location );
             if ( isSubroom )
             {
                 req.LocationId = location.ParentLocationId ?? 0;
             }
-            var today = Rock.RockDateTime.Today;
-            var tomorrow = today.AddDays( 1 );
-            var attendances = attendanceService.Queryable()
-                .Where( a => a.PersonAliasId == attendeeAttendance.PersonAliasId && a.StartDateTime >= today && a.StartDateTime < tomorrow && a.EndDateTime == null );
+
+            var attendances = ValidationHelper.GetAttendancesForAttendee( rockContext, attendeeAttendance );
 
             if ( !attendances.Any() )
             {
@@ -489,30 +397,15 @@ namespace org.secc.RoomScanner.Rest.Controllers
                     ), true );
             }
 
-            //We will need to know the host from here on
-            var hostInfo = "Unknown Host";
-            try
-            {
-
-                hostInfo = Rock.Web.UI.RockPage.GetClientIpAddress();
-                var host = System.Net.Dns.GetHostEntry( hostInfo );
-                if ( host != null )
-                {
-                    hostInfo = host.HostName;
-                }
-            }
-            catch { }
-
             //Need to move this person to a different location
             if ( !attendancesToModify.Any() && req.Override )
             {
-                var authorizedPerson = TestPin( req.PIN );
+                var authorizedPerson = ValidationHelper.TestPin( req.PIN );
                 if ( authorizedPerson == null )
                 {
                     return new Response( false, "PIN not authorized", false );
                 }
 
-                var volAttribute = AttributeCache.Read( new Guid( "F5DAD320-B77D-4282-98C9-35414FB0A6DC" ) );
                 AttributeValueService attributeValueService = new AttributeValueService( new RockContext() );
                 var childGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "False" ).Select( av => av.EntityId.Value ).ToList();
 
@@ -533,72 +426,22 @@ namespace org.secc.RoomScanner.Rest.Controllers
                     return new Response( false, "There are no attendances which can be moved to this location", false );
                 }
 
-                if ( LocationsFull( attendances.ToList(), req.LocationId, rockContext ) )
+                if ( ValidationHelper.LocationsFull( attendances.ToList(), req.LocationId, rockContext ) )
                 {
                     return new Response( false, "Could not move location. Location is full.", false );
                 }
 
                 foreach ( var attendance in attendances )
                 {
-                    Attendance newAttendance = ( Attendance ) attendance.Clone();
-                    newAttendance.Id = 0;
-                    newAttendance.Guid = new Guid();
-                    newAttendance.StartDateTime = Rock.RockDateTime.Now;
-                    newAttendance.EndDateTime = null;
-                    newAttendance.DidAttend = true;
-                    newAttendance.Device = null;
-                    newAttendance.SearchTypeValue = null;
-                    newAttendance.LocationId = req.LocationId;
-                    newAttendance.AttendanceCode = null;
-                    newAttendance.AttendanceCodeId = attendance.AttendanceCodeId;
-                    if ( isSubroom )
-                    {
-                        newAttendance.ForeignId = location.Id;
-                    }
-                    attendanceService.Add( newAttendance );
-                    attendance.DidAttend = false;
-                    attendance.EndDateTime = Rock.RockDateTime.Now;
-                    CheckInCountCache.AddAttendance( newAttendance );
-                    CheckInCountCache.RemoveAttendance( attendance );
+                    DataHelper.CloneAttendance( attendance, isSubroom, location, attendanceService, req );
                 }
 
-                var moveSummary = string.Format( "Moved to and Entered <span class=\"field-name\">{0}</span> at <span class=\"field-name\">{1}</span> under the authority of {2}", location.Name, Rock.RockDateTime.Now, authorizedPerson.FullName );
-                if ( isSubroom )
-                {
-                    moveSummary += string.Format( " (a subroom of <span class=\"field-name\">{0}</span>)", location.ParentLocation.Name );
-                }
+                DataHelper.CloseActiveAttendances( rockContext, attendeeAttendance, location, isSubroom );
 
-                History moveHistory = new History()
-                {
-                    EntityTypeId = personEntityTypeId,
-                    EntityId = attendeeAttendance.PersonAlias.PersonId,
-                    RelatedEntityTypeId = locationEntityTypeId,
-                    RelatedEntityId = location.Id,
-                    Verb = "Moved",
-                    Summary = moveSummary,
-                    Caption = "Moved To Location",
-                    RelatedData = hostInfo,
-                    CategoryId = 4
-                };
-
-                historyService.Add( moveHistory );
+                //Set person history showing that the person was moved on scan in
+                DataHelper.AddMoveHistory( rockContext, location, attendeeAttendance, authorizedPerson, isSubroom );
                 rockContext.SaveChanges();
-                int allergyAttributeId2 = AttributeCache.Read( Rock.SystemGuid.Attribute.PERSON_ALLERGY.AsGuid() ).Id;
-                var allergyAttributeValue2 = new AttributeValueService( rockContext )
-                    .Queryable()
-                    .FirstOrDefault( av => av.AttributeId == allergyAttributeId2 && av.EntityId == person.Id );
-                if ( allergyAttributeValue2 != null
-                    && !string.IsNullOrWhiteSpace( allergyAttributeValue2.Value ) )
-                {
-                    return new Response( true,
-                        string.Format( "{0} has been checked-in to {1}. \n\n Allergy: {2}", person.FullName, location.Name, allergyAttributeValue2.Value ),
-                        false,
-                        true,
-                        person.Id
-                        );
-                }
-                var message2 = string.Format( "{0} has been checked-in to {1}.", person.FullName, location.Name );
-                return new Response( true, message2, false, personId: person.Id );
+                return DataHelper.GetEntryResponse( rockContext, person, location );
             }
 
             foreach ( var attendance in attendancesToModify.ToList() )
@@ -612,76 +455,13 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 CheckInCountCache.UpdateAttendance( attendance );
             }
 
-            var summary = string.Format( "Entered <span class=\"field-name\">{0}</span> at <span class=\"field-name\">{1}</span>", location.Name, Rock.RockDateTime.Now );
-            if ( isSubroom )
-            {
-                summary += string.Format( " (a subroom of <span class=\"field-name\">{0}</span>)", location.ParentLocation.Name );
-            }
-
-            History history = new History()
-            {
-                EntityTypeId = personEntityTypeId,
-                EntityId = attendeeAttendance.PersonAlias.PersonId,
-                RelatedEntityTypeId = locationEntityTypeId,
-                RelatedEntityId = location.Id,
-                Verb = "Entry",
-                Summary = summary,
-                Caption = "Entered Location",
-                RelatedData = hostInfo,
-                CategoryId = 4
-            };
-
-            historyService.Add( history );
+            DataHelper.CloseActiveAttendances( rockContext, attendeeAttendance, location, isSubroom );
+            DataHelper.AddEntranceHistory( rockContext, location, attendeeAttendance, isSubroom );
             rockContext.SaveChanges();
 
-
-            int allergyAttributeId = AttributeCache.Read( Rock.SystemGuid.Attribute.PERSON_ALLERGY.AsGuid() ).Id;
-            var allergyAttributeValue = new AttributeValueService( rockContext )
-                .Queryable()
-                .FirstOrDefault( av => av.AttributeId == allergyAttributeId && av.EntityId == person.Id );
-            if ( allergyAttributeValue != null && !string.IsNullOrWhiteSpace( allergyAttributeValue.Value ) )
-            {
-                return new Response( true,
-                    string.Format( "{0} has been checked-in to {1}. \n\n Allergy: {2}", person.FullName, location.Name, allergyAttributeValue.Value ),
-                    false,
-                    true,
-                    person.Id );
-            }
-            var message = string.Format( "{0} has been checked-in to {1}.", person.FullName, location.Name );
-            return new Response( true, message, false, personId: person.Id );
+            return DataHelper.GetEntryResponse( rockContext, person, location );
         }
 
-        private bool LocationsFull( List<Attendance> attendancesToMove, int locationId, RockContext rockContext )
-        {
-            LocationService locationService = new LocationService( rockContext );
-            AttendanceService attendanceService = new AttendanceService( rockContext );
-            var location = locationService.Get( locationId );
-
-            if ( location == null )
-            {
-                return true;
-            }
-
-            foreach ( var attendance in attendancesToMove )
-            {
-                var count = attendanceService.Queryable()
-                    .Where( a => a.LocationId == locationId
-                         && a.ScheduleId == attendance.ScheduleId
-                         && a.EndDateTime == null
-                         && a.StartDateTime >= Rock.RockDateTime.Today
-                        ).Count();
-                var threshold = location.FirmRoomThreshold ?? 0;
-                if ( !attendance.Group.GetAttributeValue( "IsVolunteer" ).AsBoolean() )
-                {
-                    threshold = Math.Min( location.SoftRoomThreshold ?? 0, threshold );
-                }
-                if ( count >= threshold )
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
 
         [Authenticate, Secured]
         [HttpPost]
@@ -693,38 +473,11 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 .Select( s => s.AsInteger() ).ToList();
             RockContext rockContext = new RockContext();
             PersonService personService = new PersonService( rockContext );
-            HistoryService historyService = new HistoryService( rockContext );
             var people = personService.GetByIds( personIds );
-            int personEntityTypeId = EntityTypeCache.Read( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
-
-            var hostInfo = "Unknown Host";
-            try
-            {
-                hostInfo = Rock.Web.UI.RockPage.GetClientIpAddress();
-                var host = System.Net.Dns.GetHostEntry( hostInfo );
-                if ( host != null )
-                {
-                    hostInfo = host.HostName;
-                }
-            }
-            catch { }
 
             foreach ( var person in people )
             {
-                InMemoryPersonStatus.AddToWithParent( person.Id );
-                var summary = string.Format( "Moved to be with Parent at <span class=\"field-name\">{0}</span>", Rock.RockDateTime.Now );
-
-                History history = new History()
-                {
-                    EntityTypeId = personEntityTypeId,
-                    EntityId = person.Id,
-                    Verb = "Moved",
-                    Summary = summary,
-                    Caption = "Moved be with Parent",
-                    RelatedData = hostInfo,
-                    CategoryId = 4
-                };
-                historyService.Add( history );
+                DataHelper.AddWithParentHistory( rockContext, person );
             }
             rockContext.SaveChanges();
             return new Response( true, "Success", false );
@@ -740,38 +493,12 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 .Select( s => s.AsInteger() ).ToList();
             RockContext rockContext = new RockContext();
             PersonService personService = new PersonService( rockContext );
-            HistoryService historyService = new HistoryService( rockContext );
             var people = personService.GetByIds( personIds );
-            int personEntityTypeId = EntityTypeCache.Read( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
-
-            var hostInfo = "Unknown Host";
-            try
-            {
-                hostInfo = Rock.Web.UI.RockPage.GetClientIpAddress();
-                var host = System.Net.Dns.GetHostEntry( hostInfo );
-                if ( host != null )
-                {
-                    hostInfo = host.HostName;
-                }
-            }
-            catch { }
 
             foreach ( var person in people )
             {
-                InMemoryPersonStatus.AddToWorship( person.Id );
-                var summary = string.Format( "Moved to Worship at <span class=\"field-name\">{0}</span>", Rock.RockDateTime.Now );
 
-                History history = new History()
-                {
-                    EntityTypeId = personEntityTypeId,
-                    EntityId = person.Id,
-                    Verb = "Moved",
-                    Summary = summary,
-                    Caption = "Moved To Worship",
-                    RelatedData = hostInfo,
-                    CategoryId = 4
-                };
-                historyService.Add( history );
+                DataHelper.AddMoveTwoWorshipHistory( rockContext, person );
             }
             rockContext.SaveChanges();
             return new Response( true, "Success", false );
@@ -788,64 +515,54 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 .Select( s => s.AsInteger() ).ToList();
             RockContext rockContext = new RockContext();
             PersonService personService = new PersonService( rockContext );
-            HistoryService historyService = new HistoryService( rockContext );
             var people = personService.GetByIds( personIds );
-            int personEntityTypeId = EntityTypeCache.Read( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
-
-            var hostInfo = "Unknown Host";
-            try
-            {
-
-                hostInfo = Rock.Web.UI.RockPage.GetClientIpAddress();
-                var host = System.Net.Dns.GetHostEntry( hostInfo );
-                if ( host != null )
-                {
-                    hostInfo = host.HostName;
-                }
-            }
-            catch { }
-
-            var summary = "";
-            var caption = "";
 
             foreach ( var person in people )
             {
-                if ( InMemoryPersonStatus.IsInWorship( person.Id ) && InMemoryPersonStatus.IsWithParent( person.Id ) )
-                {
-                    InMemoryPersonStatus.RemoveFromWorship( person.Id );
-                    InMemoryPersonStatus.RemoveFromWithParent( person.Id );
-                    summary = string.Format( "Returned from Worship and Parent at <span class=\"field-name\">{0}</span>", Rock.RockDateTime.Now );
-                    caption = "Returned from Worship and Parent";
-                }
-                else if ( InMemoryPersonStatus.IsInWorship( person.Id ) )
-                {
-                    InMemoryPersonStatus.RemoveFromWorship( person.Id );
-                    summary = string.Format( "Returned from Worship at <span class=\"field-name\">{0}</span>", Rock.RockDateTime.Now );
-                    caption = "Returned from Worship";
-                }
-                else if ( InMemoryPersonStatus.IsWithParent( person.Id ) )
-                {
-                    InMemoryPersonStatus.RemoveFromWithParent( person.Id );
-                    summary = string.Format( "Returned from Parent at <span class=\"field-name\">{0}</span>", Rock.RockDateTime.Now );
-                    caption = "Returned from Parent";
-                }
-                if ( !string.IsNullOrWhiteSpace( caption ) )
-                {
-                    History history = new History()
-                    {
-                        EntityTypeId = personEntityTypeId,
-                        EntityId = person.Id,
-                        Verb = "Returned",
-                        Summary = summary,
-                        Caption = "Returned from Worship",
-                        RelatedData = hostInfo,
-                        CategoryId = 4
-                    };
-                    historyService.Add( history );
-                }
+                DataHelper.AddReturnToRoomHistory( rockContext, person );
             }
             rockContext.SaveChanges();
             return new Response( true, "Success", false );
         }
+
+        [Authenticate, Secured]
+        [HttpPost]
+        [System.Web.Http.Route( "api/org.secc/roomscanner/insert" )]
+        public Response Insert( [FromBody] Request req )
+        {
+            RockContext rockContext = new RockContext();
+            AttendanceService attendanceService = new AttendanceService( rockContext );
+            LocationService locationService = new LocationService( rockContext );
+
+            var location = locationService.Get( req.LocationId );
+            if ( location == null )
+            {
+                return new Response( false, "Could not find location", false );
+            }
+
+            var isSubroom = ValidationHelper.IsSubRoom( location );
+
+            var person = ValidationHelper.TestPin( req.PIN );
+
+            if ( person == null )
+            {
+                return new Response( false, "Person not authorized", false );
+            }
+            var attendeeAttendance = ValidationHelper.GetAttendeeAttendance( req, rockContext );
+            DataHelper.CloseActiveAttendances( rockContext, attendeeAttendance, location, isSubroom );
+            var newAttendance = new Attendance
+            {
+                PersonAliasId = person.PrimaryAliasId,
+                LocationId = location.Id,
+                StartDateTime = Rock.RockDateTime.Now,
+                DidAttend = true,
+            };
+            attendanceService.Add( newAttendance );
+            DataHelper.AddEntranceHistory( rockContext, location, attendeeAttendance, isSubroom );
+            rockContext.SaveChanges();
+
+            return new Response( true, "Success", false );
+        }
+
     }
 }
