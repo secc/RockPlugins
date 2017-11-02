@@ -69,7 +69,7 @@ namespace RockWeb.Blocks.Reporting.Children
             var parentGroup = groupService.Get( parentGroupGuid );
 
             var breakoutGroupMembers = groupService.Queryable()
-                .SelectMany( g => g.Groups.Where( g2 => g2.IsActive && g.ParentGroupId == parentGroup.Id) )
+                .SelectMany( g => g.Groups.Where( g2 => g2.IsActive && g2.ParentGroupId == parentGroup.Id) )
                 .SelectMany( g => g.Members.Where( gm => gm.GroupMemberStatus == GroupMemberStatus.Active ) )
                 .Select( m => m.Person )
                 .SelectMany( p => p.Aliases )
