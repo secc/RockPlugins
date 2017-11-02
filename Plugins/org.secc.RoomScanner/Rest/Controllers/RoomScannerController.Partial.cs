@@ -66,7 +66,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
         [System.Web.Http.Route( "api/org.secc/roomscanner/pin/{pinCode}" )]
         public Response Pin( string pinCode )
         {
-            if ( ValidationHelper.TestPin( pinCode ) != null )
+            if ( ValidationHelper.TestPin( new RockContext(), pinCode ) != null )
             {
                 return new Response( true, "PIN is authorized", false );
             }
@@ -221,7 +221,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 EndDateTime = a.EndDateTime,
                 AttendanceGuid = a.Guid.ToString(),
                 DidAttend = a.DidAttend ?? false,
-                IsVolunteer = VolunteerGroupIds.Contains( a.GroupId ?? 0 )
+                IsVolunteer = VolunteerGroupIds.Contains( a.GroupId ?? 0 ) || a.GroupId == null
             } )
                 .OrderBy( ae => ae.Id )
                 .ToList();
@@ -400,7 +400,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
             //Need to move this person to a different location
             if ( !attendancesToModify.Any() && req.Override )
             {
-                var authorizedPerson = ValidationHelper.TestPin( req.PIN );
+                var authorizedPerson = ValidationHelper.TestPin( rockContext, req.PIN );
                 if ( authorizedPerson == null )
                 {
                     return new Response( false, "PIN not authorized", false );
@@ -542,26 +542,25 @@ namespace org.secc.RoomScanner.Rest.Controllers
 
             var isSubroom = ValidationHelper.IsSubRoom( location );
 
-            var person = ValidationHelper.TestPin( req.PIN );
+            var person = ValidationHelper.TestPin( rockContext, req.PIN );
 
             if ( person == null )
             {
                 return new Response( false, "Person not authorized", false );
             }
-            var attendeeAttendance = ValidationHelper.GetAttendeeAttendance( req, rockContext );
-            DataHelper.CloseActiveAttendances( rockContext, attendeeAttendance, location, isSubroom );
             var newAttendance = new Attendance
             {
-                PersonAliasId = person.PrimaryAliasId,
+                PersonAlias = person.PrimaryAlias,
                 LocationId = location.Id,
                 StartDateTime = Rock.RockDateTime.Now,
                 DidAttend = true,
             };
             attendanceService.Add( newAttendance );
-            DataHelper.AddEntranceHistory( rockContext, location, attendeeAttendance, isSubroom );
+            DataHelper.CloseActiveAttendances( rockContext, newAttendance, location, isSubroom );
+            DataHelper.AddEntranceHistory( rockContext, location, newAttendance, isSubroom );
             rockContext.SaveChanges();
 
-            return new Response( true, "Success", false );
+            return DataHelper.GetEntryResponse( rockContext, person, location );
         }
 
     }

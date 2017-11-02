@@ -17,17 +17,16 @@ namespace org.secc.RoomScanner.Utilities
         private static int allowedGroupId = settings["AllowedGroupId"].AsInteger();
         private static int subroomLocationTypeId = settings["SubroomLocationType"].AsInteger();
 
-        public static Person TestPin( string pin )
+        public static Person TestPin(RockContext rockContext, string pin )
         {
-            RockContext rockContext = new RockContext();
             UserLoginService userLoginService = new UserLoginService( rockContext );
             GroupMemberService groupMemberService = new GroupMemberService( rockContext );
             var user = userLoginService.GetByUserName( pin );
             if ( user != null )
             {
                 var personId = user.PersonId ?? 0;
-                var groupMember = groupMemberService.GetByGroupIdAndPersonId( allowedGroupId, personId );
-                if ( groupMember != null )
+                var groupMember = groupMemberService.GetByGroupIdAndPersonId( allowedGroupId, personId ).ToList();
+                if ( groupMember.Any() )
                 {
                     return user.Person;
                 }
