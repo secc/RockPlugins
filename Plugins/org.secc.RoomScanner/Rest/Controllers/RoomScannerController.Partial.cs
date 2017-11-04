@@ -555,6 +555,12 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 StartDateTime = Rock.RockDateTime.Now,
                 DidAttend = true,
             };
+            if ( isSubroom )
+            {
+                newAttendance.LocationId = location.ParentLocationId;
+                newAttendance.ForeignId = location.Id;
+            }
+
             attendanceService.Add( newAttendance );
             DataHelper.CloseActiveAttendances( rockContext, newAttendance, location, isSubroom );
             DataHelper.AddEntranceHistory( rockContext, location, newAttendance, isSubroom );
