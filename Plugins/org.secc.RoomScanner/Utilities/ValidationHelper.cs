@@ -17,7 +17,7 @@ namespace org.secc.RoomScanner.Utilities
         private static int allowedGroupId = settings["AllowedGroupId"].AsInteger();
         private static int subroomLocationTypeId = settings["SubroomLocationType"].AsInteger();
 
-        public static Person TestPin(RockContext rockContext, string pin )
+        public static Person TestPin( RockContext rockContext, string pin )
         {
             UserLoginService userLoginService = new UserLoginService( rockContext );
             GroupMemberService groupMemberService = new GroupMemberService( rockContext );
@@ -109,7 +109,7 @@ namespace org.secc.RoomScanner.Utilities
         public static IQueryable<Attendance> GetActiveAttendances( RockContext rockContext, Attendance attendeeAttendance, Location exclusionLocation )
         {
             return GetAttendancesForAttendee( rockContext, attendeeAttendance )
-                .Where( a => a.DidAttend == true && a.LocationId != exclusionLocation.Id );
+                .Where( a => a.DidAttend == true && a.LocationId != exclusionLocation.Id && a.ForeignId != exclusionLocation.Id );
         }
 
     }
