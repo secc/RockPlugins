@@ -109,8 +109,10 @@ namespace org.secc.RoomScanner.Utilities
         public static IQueryable<Attendance> GetActiveAttendances( RockContext rockContext, Attendance attendeeAttendance, Location exclusionLocation )
         {
             return GetAttendancesForAttendee( rockContext, attendeeAttendance )
-                .Where( a => a.DidAttend == true && ( a.LocationId != exclusionLocation.Id || a.LocationId != exclusionLocation.ParentLocationId ) );
+                .Where( a => a.DidAttend == true
+                && a.EndDateTime == null
+                &&  a.LocationId != exclusionLocation.Id
+                && a.LocationId != exclusionLocation.ParentLocationId );
         }
-
     }
 }
