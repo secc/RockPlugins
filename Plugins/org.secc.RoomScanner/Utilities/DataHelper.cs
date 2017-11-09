@@ -240,10 +240,18 @@ namespace org.secc.RoomScanner.Utilities
         public static void CloseActiveAttendances( RockContext rockContext, Attendance attendeeAttendance, Location location, bool isSubroom )
         {
             var activeAttendances = ValidationHelper.GetActiveAttendances( rockContext, attendeeAttendance, location );
+            bool didRemove = false;
             foreach ( var activeAttendance in activeAttendances )
             {
+                didRemove = true;
                 activeAttendance.EndDateTime = Rock.RockDateTime.Now;
                 AddExitHistory( rockContext, attendeeAttendance.Location, attendeeAttendance, isSubroom );
+            }
+            if ( didRemove )
+            {
+                var personId = attendeeAttendance.PersonAlias.PersonId;
+                InMemoryPersonStatus.RemoveFromWorship( personId );
+                InMemoryPersonStatus.RemoveFromWithParent( personId );
             }
         }
     }
