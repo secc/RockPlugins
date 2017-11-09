@@ -42,7 +42,11 @@ namespace org.secc.RoomScanner.Rest.Controllers
         private int NumberOfVolunteersCheckedIn( int locationId )
         {
             var lglsc = CheckInCountCache.GetByLocation( locationId );
-            return lglsc.Where( glsc => VolunteerGroupIds.Contains( glsc.GroupId ) ).Select( glsc => glsc.InRoomPersonIds.Count() ).Sum();
+            return lglsc
+                .Where( glsc => VolunteerGroupIds.Contains( glsc.GroupId ) )
+                .SelectMany( glsc => glsc.InRoomPersonIds )
+                .Distinct()
+                .Count();
         }
 
         private bool AreChildrenCheckedIn( int locationId )
@@ -323,6 +327,9 @@ namespace org.secc.RoomScanner.Rest.Controllers
             {
                 attendance.EndDateTime = Rock.RockDateTime.Now;
                 CheckInCountCache.RemoveAttendance( attendance );
+                var personId = attendeeAttendance.PersonAlias.PersonId;
+                InMemoryPersonStatus.RemoveFromWorship( personId );
+                InMemoryPersonStatus.RemoveFromWithParent( personId );
             }
 
             //Add history of exit
