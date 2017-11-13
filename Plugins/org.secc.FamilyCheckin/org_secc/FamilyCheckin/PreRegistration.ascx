@@ -39,10 +39,6 @@
         white-space: normal;
     }
 
-    .contact-card .form-group, .review .form-group {
-        margin-bottom: 0px !important;
-    }
-
     .contact-card .info {
         background: white;
         border-radius: 2px;
