@@ -43,7 +43,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
         {
             var lglsc = CheckInCountCache.GetByLocation( locationId );
             return lglsc
-                .Where( glsc => VolunteerGroupIds.Contains( glsc.GroupId ) )
+                .Where( glsc => VolunteerGroupIds.Contains( glsc.GroupId ) || glsc.GroupId == 0 )
                 .SelectMany( glsc => glsc.InRoomPersonIds )
                 .Distinct()
                 .Count();
@@ -567,10 +567,10 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 newAttendance.LocationId = location.ParentLocationId;
                 newAttendance.ForeignId = location.Id;
             }
-
             attendanceService.Add( newAttendance );
             DataHelper.CloseActiveAttendances( rockContext, newAttendance, location, isSubroom );
             DataHelper.AddEntranceHistory( rockContext, location, newAttendance, isSubroom );
+            CheckInCountCache.AddAttendance( newAttendance );
             rockContext.SaveChanges();
 
             return DataHelper.GetEntryResponse( rockContext, person, location );
