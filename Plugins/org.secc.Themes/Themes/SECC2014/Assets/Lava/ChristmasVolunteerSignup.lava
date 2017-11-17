@@ -103,6 +103,7 @@
 									{% assign minimumAge = role.Entity | Attribute:"MinimumAge" %}
 									{% assign requiresBackgroundCheck = role.Entity | Attribute:"RequiresBackgroundCheck" %}
 									{% assign membershipRequired = role.Entity | Attribute:"MembershipRequired" %}
+									{% assign menOnly = role.Entity | Attribute:"MenOnly" %}
 									<li class="christmas-role" data-minimum-age="{{minimumAge}}" data-requires-background-check="{{requiresBackgroundCheck}}">
 										{% if spotsLeft > 0 %}
 										<a href="#wrapper-role-{{definedValue.Guid}}" >
@@ -124,7 +125,7 @@
 											{% endif %}
 											<p>{{ role.Entity.Description }}</p>
 
-											{% if minimumAge != "" or requiresBackgroundCheck == 'Yes' or membershipRequired == 'Yes' %}
+											{% if minimumAge != "" or requiresBackgroundCheck == 'Yes' or membershipRequired == 'Yes' or menOnly == 'Yes' %}
 												<strong>Requirements</strong>:
 												{% if minimumAge != "" %}
 													<span class="label label-warning" style="margin: 3px" data-toggle="tooltip" title="This role has a minimum age requirement of {{ minimumAge }} years of age.">{{ minimumAge }} Yrs Old</span>
@@ -134,6 +135,9 @@
 												{% endif %}
 												{% if membershipRequired == 'Yes' %}
 													<span class="label label-default" style="margin: 3px" data-toggle="tooltip" data-placement="right" title="This role requires the volunteer to be a member of Southeast Christian Church.">Membership Required</span>
+												{% endif %}
+												{% if menOnly == 'Yes' %}
+													<span class="label label-default" style="margin: 3px" data-toggle="tooltip" data-placement="right" title="This role requires the volunteer a male.">Men Only</span>
 												{% endif %}
 											{% endif %}
 											<span class="clearfix"></span>
