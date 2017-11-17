@@ -217,9 +217,16 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
 
         List<Child> children = ( ( List<Child> ) ViewState["Children"] );
         PersonService personService = new PersonService( rockContext );
-        var matchingPeople = personService.GetByMatch( tbFirstname.Text, tbLastName.Text, dpBirthday.SelectedDate, ebEmail.Text, pnbPhone.Text, adAddress.Street1, adAddress.PostalCode );
+        var matchingPeople = personService.GetByMatch( tbFirstname.Text, tbLastName.Text, dpBirthday.SelectedDate, ebEmail.Text, pnbPhone.Text, acAddress.Street1, acAddress.PostalCode );
+        bool match = matchingPeople.Count() == 1;
+        if ( match && !string.IsNullOrWhiteSpace( tbFirstName2.Text ) )
+        {
+            var matchingPeople2 = personService.GetByMatch( tbFirstName2.Text, tbLastName2.Text, dpBirthday2.SelectedDate, ebEmail2.Text, pnbPhone2.Text, acAddress.Street1, acAddress.PostalCode );
+            match = matchingPeople.Count() == 1;
+        }
+
         // If we get exactly one match given the specificity of the search criteria this is probably a safe bet
-        if ( matchingPeople.Count() == 1 )
+        if ( match )
         {
             bool updated = false;
             // See if the family member already exists
@@ -238,12 +245,12 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                 if ( !updated )
                 {
                     // If we get here, it's time to create a new family member
-                    child.SaveAsPerson( matchingPeople.FirstOrDefault().GetFamily().Id, rockContext );
+                    var newChild = child.SaveAsPerson( matchingPeople.FirstOrDefault().GetFamily().Id, rockContext );
                 }
             }
             rockContext.SaveChanges();
 
-            matchingPeople.FirstOrDefault().PrimaryAlias.LaunchWorkflow( new Guid( GetAttributeValue( "PersonWorkflow" ) ), matchingPeople.FirstOrDefault().ToString() + " Pre-Registration" );
+            matchingPeople.FirstOrDefault().PrimaryAlias.LaunchWorkflow( new Guid( GetAttributeValue( "PersonWorkflow" ) ), matchingPeople.FirstOrDefault().ToString() + " Pre-Registration", new Dictionary<string, string>() { { "SpecialNote", tbExtraInformation.Text } } );
         }
         else
         {
@@ -264,14 +271,32 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
 
             Group family = PersonService.SaveNewPerson( adult, rockContext, cpCampus.SelectedCampusId );
 
+            if ( !string.IsNullOrWhiteSpace( tbFirstName2.Text ) )
+            {
+                Person adult2 = new Person();
+                adult2.FirstName = tbFirstName2.Text;
+                adult2.LastName = tbLastName2.Text;
+                adult2.BirthDay = dpBirthday2.SelectedDate.Value.Day;
+                adult2.BirthMonth = dpBirthday2.SelectedDate.Value.Month;
+                adult2.BirthYear = dpBirthday2.SelectedDate.Value.Year;
+                adult2.RecordTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+                adult2.ConnectionStatusValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT.AsGuid() ).Id;
+                adult2.RecordStatusValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id;
+                adult2.UpdatePhoneNumber( homePhone.Id, pnbPhone2.CountryCode, pnbPhone2.Number, false, false, rockContext );
+                adult2.Email = ebEmail2.Text;
+
+                PersonService.AddPersonToFamily( adult2, true, family.Id, 3, rockContext );
+            }
+
             // Now create all the children
             foreach ( Child child in children )
             {
                 child.SaveAsPerson( family.Id, rockContext );
             }
+
             rockContext.SaveChanges();
 
-            adult.PrimaryAlias.LaunchWorkflow( new Guid( GetAttributeValue( "PersonWorkflow" ) ), adult.ToString() + " Pre-Registration" );
+            adult.PrimaryAlias.LaunchWorkflow( new Guid( GetAttributeValue( "PersonWorkflow" ) ), adult.ToString() + " Pre-Registration", new Dictionary<string, string>() { { "SpecialNote", tbExtraInformation.Text } } );
         }
     }
 
@@ -284,7 +309,16 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         rlDOB.Text = dpBirthday.SelectedDate.HasValue ? dpBirthday.SelectedDate.Value.ToShortDateString() : "";
         rlCampus.Text = CampusCache.Read( cpCampus.Text.AsInteger() ).Name;
         rlEmail.Text = ebEmail.Text;
-        rlAddress.Text = adAddress.Street1 + "<br />" + adAddress.City + " " + adAddress.State + " " + adAddress.PostalCode;
+        rlAddress.Text = acAddress.Street1 + "<br />" + acAddress.City + " " + acAddress.State + " " + acAddress.PostalCode;
+        rlExtraInformation.Text = tbExtraInformation.Text;
+        if ( !string.IsNullOrWhiteSpace( tbFirstName2.Text ) )
+        {
+            pnlParent2.Visible = true;
+            rlName2.Text = tbFirstName2.Text + " " + tbLastName2.Text;
+            rlPhone2.Text = pnbPhone2.Text;
+            rlDOB2.Text = dpBirthday2.SelectedDate.HasValue ? dpBirthday2.SelectedDate.Value.ToShortDateString() : "";
+            rlEmail2.Text = ebEmail2.Text;
+        }
 
         List<Child> children = ( ( List<Child> ) ViewState["Children"] );
         foreach ( Child child in children )
