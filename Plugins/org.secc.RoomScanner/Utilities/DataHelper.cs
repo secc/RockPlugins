@@ -80,7 +80,7 @@ namespace org.secc.RoomScanner.Utilities
                 EntityId = attendeeAttendance.PersonAlias.PersonId,
                 RelatedEntityTypeId = locationEntityTypeId,
                 RelatedEntityId = location.Id,
-                Verb = "Moved",
+                Verb = "Entry",
                 Summary = moveSummary,
                 Caption = "Moved To Location",
                 RelatedData = GetHostInfo(),
