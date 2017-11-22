@@ -425,7 +425,19 @@ namespace org.secc.RoomScanner.Rest.Controllers
                         .Where( gl => gl.LocationId == req.LocationId && childGroupIds.Contains( gl.GroupId ) )
                         .SelectMany( gl => gl.Schedules )
                         .Select( s => s.Id ).ToList();
-                    attendances = attendances.Where( a => acceptableServiceIds.Contains( a.ScheduleId ?? 0 ) );
+                    var availableAttendances = attendances.Where( a => acceptableServiceIds.Contains( a.ScheduleId ?? 0 ) );
+
+                    if ( availableAttendances.Any() )
+                    {
+                        attendances = availableAttendances;
+                    }
+                    else
+                    {
+                        //If there are no attendances that match this schedule,
+                        //take the earliest available attendance preferably one that hasn't been checked into
+                        attendances = attendances.OrderBy( a => a.DidAttend ).ThenBy( a => a.Schedule.StartTimeOfDay ).Take( 1 );
+                    }
+
                 }
 
                 if ( !attendances.Any() )
