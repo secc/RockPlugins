@@ -210,6 +210,10 @@ namespace org.secc.RoomScanner.Utilities
             {
                 newAttendance.ForeignId = location.Id;
             }
+            else
+            {
+                newAttendance.ForeignId = null;
+            }
             attendanceService.Add( newAttendance );
             attendance.DidAttend = false;
             attendance.EndDateTime = Rock.RockDateTime.Now;
