@@ -99,21 +99,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attribute\CheckinGroupFieldAttribute.cs" />
-    <Compile Include="Data\FamilyCheckinContext.cs" />
-    <Compile Include="Data\FamilyCheckinService.cs" />
     <Compile Include="Exceptions\CheckInStateLost.cs" />
     <Compile Include="FieldTypes\CheckinGroupFieldType.cs" />
     <Compile Include="Jobs\ResetGroupLocationSchedules.cs" />
-    <Compile Include="Migrations\201606272016469_Init.cs" />
-    <Compile Include="Migrations\201607151453103_Message.cs" />
-    <Compile Include="Migrations\201607151453103_Message.Designer.cs">
-      <DependentUpon>201607151453103_Message.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\Configuration.cs" />
-    <Compile Include="Model\Kiosk.cs" />
-    <Compile Include="Model\KioskType.cs" />
-    <Compile Include="Model\KioskService.cs" />
-    <Compile Include="Model\KioskTypeService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rest\Controllers\FamilyCheckinController.Partial.cs" />
     <Compile Include="Rest\Handlers\SessionControllerHandler.cs" />
@@ -158,14 +146,6 @@
     <Folder Include="org_secc\" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201606272016469_Init.resx">
-      <DependentUpon>201606272016469_Init.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201607151453103_Message.resx">
-      <DependentUpon>201607151453103_Message.cs</DependentUpon>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="$(SolutionDir)DotLiquid\DotLiquid.csproj">
       <Project>{00edcb8d-ef33-459c-ad62-02876bd24dff}</Project>
       <Name>DotLiquid</Name>
@@ -178,11 +158,17 @@
       <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>
       <Name>Rock</Name>
     </ProjectReference>
+    <ProjectReference Include="..\org.secc.KioskTypes\org.secc.KioskTypes.csproj">
+      <Project>{1edf128a-28b6-49a9-97b6-e3f699051fa9}</Project>
+      <Name>org.secc.KioskTypes</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.FamilyCheckin.dll" "$(SolutionDir)RockWeb\bin"
 xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.FamilyCheckin.pdb" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.KioskTypes.dll" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.KioskTypes.pdb" "$(SolutionDir)RockWeb\bin"
 xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"
 xcopy /Y /R /E /I "$(ProjectDir)Themes\*" "$(SolutionDir)RockWeb\Themes\"
 </PostBuildEvent>
