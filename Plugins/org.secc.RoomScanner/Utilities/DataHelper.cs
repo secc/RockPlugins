@@ -250,6 +250,7 @@ namespace org.secc.RoomScanner.Utilities
                 didRemove = true;
                 activeAttendance.EndDateTime = Rock.RockDateTime.Now;
                 AddExitHistory( rockContext, attendeeAttendance.Location, attendeeAttendance, isSubroom );
+                CheckInCountCache.RemoveAttendance( activeAttendance );
             }
             if ( didRemove )
             {
