@@ -5886,6 +5886,27 @@ h2 {
       color: #ffffff !important;
       border-width: 0; }
 
+.elizabethtown {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #000000 !important;
+  color: #ffffff !important; }
+  .elizabethtown.text {
+    -webkit-font-smoothing: subpixel-antialiased;
+    -moz-osx-font-smoothing: auto;
+    color: #000000 !important;
+    background: inherit !important; }
+  .elizabethtown + * .arrow-down {
+    border-top-color: #000000; }
+  .elizabethtown.stroke {
+    background: transparent !important;
+    color: #000000 !important;
+    border-color: #000000 !important; }
+    a .elizabethtown.stroke:hover, button .elizabethtown.stroke:hover {
+      background: #000000 !important;
+      color: #ffffff !important;
+      border-width: 0; }
+
 .default {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -8315,6 +8336,280 @@ input.error {
   margin: 0;
   overflow: visible;
   clip: auto; }
+
+/* Masonry and Portfolio */
+.isotope_wrap {
+  /* clear fix */
+  /* Isotope item decoration */
+  /* Isotope layout */ }
+  .isotope_wrap:after {
+    content: '';
+    display: block;
+    clear: both; }
+  .isotope_wrap .isotope_item {
+    opacity: 0;
+    /* hide by default */
+    padding-bottom: 30px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    filter: alpha(opacity=0); }
+    .isotope_wrap .isotope_item .post_item {
+      overflow: hidden; }
+    .isotope_wrap .isotope_item .post_featured {
+      margin-bottom: 0; }
+      .isotope_wrap .isotope_item .post_featured .hover_icon:before {
+        font-size: 3rem; }
+    .isotope_wrap .isotope_item:after {
+      content: '';
+      display: block;
+      clear: both; }
+  .isotope_wrap.is-showing-items .isotope_item {
+    opacity: 1;
+    /* reveal when ready */
+    filter: alpha(opacity=100); }
+  .isotope_wrap .isotope_column_2 {
+    width: 50%; }
+  .isotope_wrap .isotope_column_3 {
+    width: 33%; }
+  .isotope_wrap .isotope_column_4 {
+    width: 25%; }
+  .isotope_wrap .isotope_column_5 {
+    width: 20%; }
+  .isotope_wrap .isotope_column_6 {
+    width: 16.6666%; }
+  .isotope_wrap .isotope_column_7 {
+    width: 14.2857%; }
+  .isotope_wrap .isotope_column_8 {
+    width: 12.5%; }
+
+hr.christmas {
+  border-color: rgba(117, 30, 23, 0.25);
+  margin: 20px; }
+
+.role-day {
+  height: 3.5rem;
+  display: table;
+  text-align: center;
+  width: 100%; }
+  .role-day span {
+    display: table-cell;
+    vertical-align: middle; }
+
+/** this is to overwrite old styles from another developer **/
+.squairy-light-mediumTan-overlay {
+  background: rgba(216, 198, 173, 0.2); }
+  .squairy-light-mediumTan-overlay::after {
+    background: none !important; }
+
+.stickyDate {
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  top: 15px !important; }
+
+.select-wrapper-role {
+  border: 1px solid #751e17;
+  position: relative;
+  background-color: white; }
+  .select-wrapper-role p {
+    margin: 0; }
+  .select-wrapper-role .nav-current {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    margin: 0;
+    display: block;
+    height: auto;
+    width: 100%;
+    padding: 15px 55px 15px 15px;
+    border-radius: 0;
+    z-index: auto;
+    cursor: pointer; }
+    .select-wrapper-role .nav-current::after {
+      position: absolute;
+      top: 50%;
+      right: 20px;
+      margin: -5px 0 0;
+      display: inline-block;
+      width: 24px;
+      height: 11px;
+      content: "";
+      background: transparent url("https://www.southeastchristian.org/eastertogether/assets/images/arrow-select-2-24x11.png") center no-repeat;
+      border: none; }
+
+.rolelist {
+  -webkit-box-shadow: -1px 8px 16px 0 rgba(0, 0, 0, 0.18);
+  -moz-box-shadow: -1px 8px 16px 0 rgba(0, 0, 0, 0.18);
+  box-shadow: -1px 8px 16px 0 rgba(0, 0, 0, 0.18);
+  border: 1px solid #751e17;
+  border-top: none;
+  float: none;
+  position: relative;
+  top: 100%;
+  left: 0;
+  right: 0;
+  display: none;
+  padding: 0;
+  height: auto;
+  width: auto;
+  text-align: left;
+  background-color: #ffffff;
+  z-index: 5;
+  overflow-x: hidden; }
+  .rolelist li {
+    border-bottom: 1px solid #eeeeee; }
+    .rolelist li a {
+      color: #51545b; }
+    .rolelist li p {
+      margin-top: 5px;
+      margin-left: 10px; }
+    .rolelist li span.role {
+      font-weight: 600;
+      font-size: 1.2em; }
+    .rolelist li span.time {
+      clear: left;
+      font-size: 1.2em;
+      margin-left: 10px; }
+    .rolelist li span.time {
+      font-size: 1.2em; }
+    .rolelist li span.label {
+      margin: 3px; }
+    .rolelist li.active {
+      background-color: #eeeeee; }
+      .rolelist li.active a {
+        color: #797548; }
+    .rolelist li div.full {
+      padding: 10px 15px;
+      background: #fff;
+      color: #ccc; }
+      .rolelist li div.full span.label {
+        background: #ccc; }
+
+/*** Christmas Borders ***/
+.advent-border {
+  /* due to custom corners */
+  /*top left corner*/
+  /*top right*/
+  /*bottom left*/
+  /*bottom right */
+  /*top left corner*/
+  /*top right*/
+  /*bottom left*/
+  /*bottom right */ }
+  .advent-border a {
+    color: #404d56; }
+  .advent-border a:hover {
+    color: #797548; }
+  .advent-border p {
+    margin: 0 0 20px; }
+  .advent-border .role {
+    font-size: 1.7em;
+    font-weight: bolder; }
+  .advent-border .christmas-box {
+    min-width: 64px;
+    width: auto;
+    height: auto;
+    position: relative;
+    margin-bottom: 32px; }
+  .advent-border .christmas-box-body {
+    padding: 32px;
+    height: auto; }
+  .advent-border .christmas-border {
+    border: 1px solid #751e17;
+    outline: 1px solid #751e17;
+    outline-offset: 3px;
+    width: 100%;
+    height: 100%; }
+  .advent-border .corner {
+    position: absolute;
+    background-image: url("https://rock.secc.org/Content/ExternalSite/WebImages/CCT_CornerTwo.svg");
+    background-repeat: no-repeat;
+    width: 45px;
+    height: 45px; }
+  .advent-border .TL {
+    top: -6px;
+    left: -7px; }
+  .advent-border .TR {
+    top: -7px;
+    right: -6px;
+    -webkit-transform: rotate(90deg);
+    transform: rotate(90deg); }
+  .advent-border .BL {
+    bottom: -9px;
+    left: -6px;
+    -webkit-transform: rotate(-90deg);
+    transform: rotate(-90deg); }
+  .advent-border .BR {
+    bottom: -8px;
+    right: -7px;
+    -webkit-transform: rotate(180deg);
+    transform: rotate(180deg); }
+  .advent-border #no-border-tl,
+  .advent-border #no-border-tr,
+  .advent-border #no-border-bl,
+  .advent-border #no-border-br {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    background-color: #F7F4EF;
+    /*background-color: red;*/
+    display: block; }
+  .advent-border #no-border-tl {
+    top: -3px;
+    left: -3px; }
+  .advent-border #no-border-tr {
+    top: -2px;
+    right: -3px; }
+  .advent-border #no-border-bl {
+    bottom: -3px;
+    left: -3px;
+    width: 38px; }
+  .advent-border #no-border-br {
+    bottom: -3px;
+    right: -1px;
+    width: 37px;
+    height: 32px; }
+  .advent-border #no-outline-tl,
+  .advent-border #no-outline-tr,
+  .advent-border #no-outline-bl,
+  .advent-border #no-outline-br {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    background-color: #F7F4EF;
+    display: block; }
+  .advent-border #no-outline-tl {
+    top: -13px;
+    left: -13px; }
+  .advent-border #no-outline-tr {
+    top: -13px;
+    right: -13px; }
+  .advent-border #no-outline-bl {
+    bottom: -14px;
+    left: -10px; }
+  .advent-border #no-outline-br {
+    bottom: -13px;
+    right: -10px; }
+
+section#christmas .panel {
+  border-radius: 0; }
+
+section#christmas .panel-block > .panel-heading {
+  border-color: #751e17;
+  color: #F7F4EF;
+  background: #4B1A15;
+  border-radius: 0;
+  border-style: double;
+  border-width: 4px;
+  border-bottom: none; }
+
+section#christmas .panel .panel-body {
+  border-color: #751e17;
+  border-style: double;
+  border-top: none;
+  border-width: 4px;
+  border-radius: 0; }
 
 /*
     The accent colors are deprecated and should not be used in new theme development. They will be
@@ -17162,15 +17457,13 @@ article {
         display: inline; } }
 
 .highlighted-section {
-  background: radial-gradient(circle farthest-side at center, rgba(255, 255, 255, 0.4) 68%, rgba(109, 106, 102, 0.6) 150%), url("/_/img/backgrounds/seamless/gray-noise.png"); }
+  background: radial-gradient(circle farthest-side at center, rgba(255, 255, 255, 0.4) 68%, rgba(109, 106, 102, 0.6) 150%); }
   .no-multiplebgs .highlighted-section {
-    background: url("/_/img/backgrounds/seamless/gray-noise.png");
     -webkit-box-shadow: inset 0px 0px 90px 5px rgba(109, 106, 102, 0.2);
     -moz-box-shadow: inset 0px 0px 90px 5px rgba(109, 106, 102, 0.2);
     box-shadow: inset 0px 0px 90px 5px rgba(109, 106, 102, 0.2); }
   @media (max-width: 767px) {
     .highlighted-section {
-      background: url("/_/img/backgrounds/seamless/gray-noise.png");
       -webkit-box-shadow: inset 0px 0px 90px 5px rgba(109, 106, 102, 0.2);
       -moz-box-shadow: inset 0px 0px 90px 5px rgba(109, 106, 102, 0.2);
       box-shadow: inset 0px 0px 90px 5px rgba(109, 106, 102, 0.2); } }
