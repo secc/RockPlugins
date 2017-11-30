@@ -195,6 +195,7 @@
                                     <Rock:RockBoundField DataField="Schedule.Name" HeaderText="Schedule"></Rock:RockBoundField>
                                     <Rock:RockBoundField DataField="StartDateTime" HeaderText="Time Arrived"></Rock:RockBoundField>
                                     <Rock:RockBoundField DataField="EndDateTime" HeaderText="Time Departed"></Rock:RockBoundField>
+                                    <Rock:RockBoundField DataField="AttendanceCode.Code" HeaderText="Code"></Rock:RockBoundField>
                                 </Columns>
                             </Rock:Grid>
                         </asp:Panel>
