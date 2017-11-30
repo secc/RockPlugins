@@ -1,0 +1,163 @@
+<script src="/Themes/SECC2014/Scripts/modernizr.js"></script>
+<script src="https://www.southeastchristian.org/eastertogether/assets/js/vendor/wow.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
+<script src="https://use.typekit.net/osx6gkw.js"></script>
+<script>try{Typekit.load({ async: true });}catch(e){}</script>
+<script src="/Themes/SECC2014/Scripts/readmore.min.js"></script>
+
+{% assign currentSeries = Items | First %}
+{% assign currentSeriesImageGuid = currentSeries | Attribute:'SeriesImage','RawValue' %}
+
+<header class="cd-header hidden-xs hidden-sm">
+	<div id="cd-logo">
+        <a href="/christmas" class="cd-btn sweep-to-left">
+            Back
+        </a>
+    </div>
+</header>
+
+<section id="Advent" class="green_advent_weeks christmas-font" style="">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12 text-center advent_body">
+			<div class="advent_title wow flipInX">
+				<h2>The Other Side of Christmas</small></h2>
+				<hr/>
+				<h1>ADVENT</h1><br />
+				<h3>2017 DAILY DEVOTIONAL</h3>
+			</div>
+			</div>
+        </div>
+    </div>
+</section>
+
+<section id="CelebrateChristmasTogether" class="cd-section christmas-font">
+    <div class="container-fluid left-aligned" style="display:inline-block; height: 100%;">
+
+        <div class="row">
+			<div class="col-sm-offset-1 col-sm-10 col-md-5 wow fadeInLeft">
+				<br />
+				<h2 style="font-size:1.7em; font-spacing:0;">INTRODUCTION</h2>
+                <hr style="margin: 0.5em auto;"/>
+				<div class="readmore">
+					<p style="margin-top:0px">Advent is the story of moving from one side of Christmas to the other. The term advent comes from a Latin word that means “coming.” When Jesus came, He brought with Him the hope, peace, joy, and love of heaven. His birth and life made it possible for us to have a new birth and a new way of life.</p>
+					<br />
+					<p>But, just because Jesus came all those years ago and changed the course of history, it doesn’t always mean that it changes the course of your day, week, or month. Even though Jesus came and set God’s salvation plan into action, we are still waiting for everything to be made completely right.</p>
+					<p>We still need hope. We still need peace. We still need joy. We still need God’s love. Desperately. Maybe especially at Christmas time.</p>
+					<p>Here’s some good news. Jesus didn’tjust come to earth once a long time ago. He’s coming again.</p>
+					<p>During this Christmas season, we don’t only want to focus on the birth of Jesus at His First Advent; we also look forward to the Second Advent when He will come again.</p>
+					<p>We are longing for the world to be completely made right.</p>
+					<p>We are waiting for God to bring us from one side of Christmas to the other.</p>
+				</div>
+			</div>
+            <div class="col-sm-offset-1 col-sm-10 col-md-5 col-md-offset-0 wow fadeInRight">
+				<br />
+				<h2 style="font-size:1.7em; font-spacing:0;">ABOUT THIS <strong>DEVOTIONAL</strong></h2>
+                <hr style="margin: 0.5em auto;"/>
+				<div class="readmore">
+                	<p style="margin-top:0px">This daily devotional is designed to take you through the entire story of Scripture in just a few weeks. That may sound daunting, but don’t let it scare you! Some days you might read a couple verses from the Bible, and some days you might read a couple paragraphs.</p>
+					<br />
+					<p>Each week, you will fnd one devotion from the Creation story, one from the story of Abraham, one from Exodus, one from the Psalms, one from the prophet Isaiah telling about Jesus’s coming birth and ministry, one out of the Gospels, and one from another book of the New Testament.</p>
+					<p>In the Creation story, we see God’s goodness and original intentions for mankind.</p>
+					<p>In the life of Abraham, we see God calling people to work with Him to bring His blessing to the world.</p>
+					<p>The story of the Exodus foreshadows the time when Jesus would bring us out of slavery.</p>
+					<p>The music and poetry of the Psalms celebrate who God is and what He has done.</p>
+					<p>Isaiah stands in between the Old and New Testaments, pointing to the coming of Jesus as the key that unlocks God’s purposes for the world.</p>
+					<p>The Gospels tell the actual story of Jesus—what Christmas is all about!</p>
+					<p>And the later New Testament writings remind us not only that Christmas changed everything, but that we are still waiting for something even better: the next coming of Jesus into the world.</p>
+					<p>Each day, you’ll also see an Advent Action. These are designed to give you practical, tangible ways to live out the things you read in Scripture and in the devotions. Some of them will be fun and lighthearted, and some may be challenging action steps.</p>
+				</div>
+			</div>
+		</div>
+
+        <div class="row">
+			<div class="col-sm-10 col-sm-offset-1">
+                <hr />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-10 col-sm-offset-1 text-center">
+				<br />
+                <h4>CLICK ON A WEEK BELOW TO VIEW DAILY DEVOTIONAL CONTENT</h4>
+            </div>
+            <div class="col-sm-10 col-sm-offset-1">
+                {% assign fadeSeconds = 0 %}
+			    {% for item in Items %}
+
+				{% assign currentDate = 'Now' | Date:'MM/dd' %}
+				{% assign weekStartDate = item.StartDateTime | Date:'MM/dd' %}
+
+				{% if forloop.index == 1 %}
+					{% assign weekStartDate = '12/03' %}
+				{% endif %}
+
+				{% if forloop.index == 2 %}
+					{% assign weekStartDate = '12/10' %}
+				{% endif %}
+
+				{% if forloop.index == 3 %}
+					{% assign weekStartDate = '12/17' %}
+				{% endif %}
+
+				{% if forloop.index == 4 %}
+					{% assign weekStartDate = '12/24' %}
+				{% endif %}
+
+                    {% assign fadeSeconds = fadeSeconds | Plus:0.2 %}
+                    {% assign seriesImageGuid = item | Attribute:'Image','RawValue' %}
+
+                    <div class="col-sm-6 col-md-6 col-lg-3">
+                        <div class="blog-post {% if weekStartDate > currentDate %}inactive{% endif %} wow fadeIn" data-wow-duration="1s" data-wow-delay="{{fadeSeconds}}s">
+							  {% if weekStartDate > currentDate %}
+						  	  <div class="overlay">
+								  <h2>Available On {{weekStartDate}}
+									  <!-- <small>{{weekStartDate}}</small> -->
+								  </h2>
+							  </div>
+							  {% endif %}
+	                          {% if weekStartDate <= currentDate %}<a href="{{ LinkedPages.DetailPage }}?Item={{ item.Id }}" data-title="{{ item.Title }}" class="post-img">{% endif %}
+	                             <img src="/GetImage.ashx?Guid={{ seriesImageGuid }}" class="img-responsive">
+		                         <div class="bp-content text-center">
+									  {% assign firstDevo = item.ChildItems | First %}
+									  {% assign firstDevoDate = firstDevo.ChildContentChannelItem.StartDateTime | Date:'MM/dd' %}
+									  {% assign lastDevo = item.ChildItems | Last %}
+									  {% assign lastDevoDate = lastDevo.ChildContentChannelItem.StartDateTime | Date:'MM/dd' %}
+		                              <!-- Post Title -->
+		                              <h4><strong>{{firstDevoDate}}</strong> Through <strong>{{lastDevoDate}}</strong></h4>
+		                              <!-- Blurb -->
+		                              <!-- <p>Daily Scripture Reading: Luke 23:46 “Then Jesus, calling out with a loud voice, said, ‘Father, into your hands […]</p> -->
+		                              <!-- Link -->
+		                         </div><!-- / .bp-content -->
+							  {% if weekStartDate <= currentDate %}</a>{% endif %}
+						</div>
+                    </div>
+            	{% endfor -%}
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+$(document).ready(function() {
+	// new WOW().init();
+    wow = new WOW(
+ 	  {
+ 		 boxClass:     'wow',      // default
+ 		 animateClass: 'animated', // default
+ 		 offset:       0,          // default
+ 		 mobile:       false,       // default
+ 		 live:         true        // default
+ 	  }
+    );
+    wow.init();
+
+   $('.readmore').readmore({
+	  embedCSS: false,
+	  collapsedHeight: 230,
+	  speed: 75,
+	  moreLink: '<a href="#" class="cd-btn invert sweep-to-bottom" style="margin-top:15px;">Read more</a>',
+	  lessLink: '<a href="#" class="cd-btn invert sweep-to-top" style="margin-top:15px;">Close</a>'
+	});
+});
+</script>
