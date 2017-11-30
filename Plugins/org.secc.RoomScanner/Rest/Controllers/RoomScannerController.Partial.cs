@@ -455,8 +455,6 @@ namespace org.secc.RoomScanner.Rest.Controllers
                     DataHelper.CloneAttendance( attendance, isSubroom, location, attendanceService, req );
                 }
 
-                DataHelper.CloseActiveAttendances( rockContext, attendeeAttendance, location, isSubroom );
-
                 //Set person history showing that the person was moved on scan in
                 DataHelper.AddMoveHistory( rockContext, location, attendeeAttendance, authorizedPerson, isSubroom );
                 rockContext.SaveChanges();
