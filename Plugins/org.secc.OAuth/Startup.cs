@@ -94,9 +94,9 @@ namespace org.secc.OAuth
         private void CreateRefreshToken( AuthenticationTokenCreateContext context )
         {
             var settings = GlobalAttributesCache.Value("OAuthSettings").AsDictionary();
-            if (settings.ContainsKey("OAuthRefreshTokenLifespan") && settings["OAuthTokenLifespan"].AsInteger() > 0)
+            if (settings.ContainsKey("OAuthRefreshTokenLifespan") && settings["OAuthRefreshTokenLifespan"].AsInteger() > 0)
             {
-                context.Ticket.Properties.ExpiresUtc = new DateTimeOffset(DateTime.Now.AddHours(settings["OAuthTokenLifespan"].AsInteger()));
+                context.Ticket.Properties.ExpiresUtc = new DateTimeOffset(DateTime.Now.AddHours(settings["OAuthRefreshTokenLifespan"].AsInteger()));
             }
             context.SetToken( context.SerializeTicket() );
         }
