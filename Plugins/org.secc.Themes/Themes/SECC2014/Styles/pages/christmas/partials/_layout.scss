@@ -1,0 +1,217 @@
+// breakpoints
+
+$S:     480px;
+$M:     800px;
+$L:     1200px;
+
+// media queries
+
+@mixin MQ($canvas) {
+  @if $canvas == S {
+   @media only screen and (min-width: $S) { @content; }
+  }
+  @else if $canvas == M {
+   @media only screen and (min-width: $M) { @content; }
+  }
+  @else if $canvas == L {
+   @media only screen and (min-width: $L) { @content; }
+  }
+}
+
+// super light grid - it works with the .cd-container class inside style.scss
+
+@mixin column($percentage, $float-direction:left) {
+  width: 100% * $percentage;
+  float: $float-direction;
+}
+
+.blog-post {
+    margin-top: 2em;
+	border-top: 1px solid rgba($color-1, 0.8);
+	background: rgba($color-1, 0.8);
+	box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.2);
+	transition: all .3s;
+
+	&:hover {
+		transform: translateY(-10px);
+		box-shadow: 0 22px 43px rgba(0, 0, 0, 0.15);
+	}
+
+	.post-img {
+		display: block;
+        color: $color-5;
+		img {
+			max-width: 100%;
+			height: auto;
+			transition: opacity .5s;
+		}
+
+		&:hover {
+
+			img {
+				opacity: .8;
+			}
+		}
+	} // .post-img
+
+	.bp-content {
+		padding: 1em 1.5em 1.5em 1.5em;
+
+		.post-meta {
+
+			.post-date,
+			.post-comments {
+
+				i {
+					display: inline-block;
+					padding-right: 9px;
+					font-size: 18px;
+					vertical-align: middle;
+					color: #ccc;
+					transition: color .3s;
+				}
+
+				span {
+					display: inline-block;
+					padding-left: 10px;
+					border-left: 1px solid rgba($color-1, 0.8);
+					font-size: .75em;
+					letter-spacing: 2px;
+					text-transform: uppercase;
+					vertical-align: middle;
+					color: rgba($DarkGrayColor, 0.2);
+					transition: color .3s;
+				}
+
+				&:hover {
+
+					i,
+					span {
+						color: $DarkGrayColor;
+					}
+				}
+			}
+
+			.post-comments {
+				float: right;
+			}
+		} // .post-meta
+
+		.post-title {
+			display: block;
+			padding: 25px 0 20px 0;
+			color: rgba($DarkGrayColor, 0.2);
+
+			h3,
+			h4,
+			h5 {
+				margin: 0;
+			}
+		} // .post-title
+
+		p {
+			margin-bottom: 30px;
+		}
+	} // .bp-content
+
+    &.inactive {
+        position: relative;
+        .overlay {
+            color: white;
+            text-transform: uppercase;
+            text-align: center;
+            font-family: $primary-font;
+            h2 {
+                top: 30%;
+                position: relative;
+                opacity: 1;
+                z-index: 6;
+                font-size: 2.4em;
+                line-height: 1em;
+                padding: 0.5em;
+                font-weight: 700;
+                @include MQ(L) {
+            		font-size: 1.6em;
+            	}
+                small {
+                    font-size: 0.5em;
+                    color: white;
+                    font-weight: 900;
+                }
+            }
+            width: 100%;
+            height: 100%;
+            background-color: rgba(grey, 0.9);
+            top: 0;
+            left: 0;
+            position: absolute;
+            z-index: 5;
+        }
+        &:hover {
+    		transform: none;
+    		box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.2);
+    	}
+        .post-img {
+            img {
+                opacity: 0.8;
+            }
+    		&:hover {
+    			img {
+    				opacity: 0.8;
+    			}
+    		}
+    	} // .post-img
+    }
+} // .blog-post
+
+.partner-lg-offset {
+    @include MQ(L) {
+        margin-left: 12.5%;
+    }
+}
+.card {
+    min-height: 150px;
+    border: 2px solid white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 40px;
+    margin: 10% 5%;
+    @include MQ(L) {
+        margin: 0 0 7% 0;
+    }
+
+    span {
+        width: 100%;
+        display: block;
+        text-align: center;
+    }
+    div.caption{
+        text-align: left;
+        p {
+            font-size: 1.2em;
+        }
+        .marketplace {
+            font-weight: 600;
+            text-align: left;
+            font-style: italic;
+            margin-bottom: 5px;
+        }
+    }
+    h2 {
+        line-height: 0.4 !important;
+        font-size: 2em;
+        margin-bottom: 5px !important;
+        small {
+            font-size: 0.5em;
+            line-height: 0.8 !important;
+        }
+    }
+    a {
+        margin-top: 5px;
+    }
+    img {
+        margin: 0 auto;
+        max-height: 100px;
+        max-width: 225px;
+    }
+}

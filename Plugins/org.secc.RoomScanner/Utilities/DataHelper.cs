@@ -80,7 +80,7 @@ namespace org.secc.RoomScanner.Utilities
                 EntityId = attendeeAttendance.PersonAlias.PersonId,
                 RelatedEntityTypeId = locationEntityTypeId,
                 RelatedEntityId = location.Id,
-                Verb = "Moved",
+                Verb = "Entry",
                 Summary = moveSummary,
                 Caption = "Moved To Location",
                 RelatedData = GetHostInfo(),
@@ -210,6 +210,10 @@ namespace org.secc.RoomScanner.Utilities
             {
                 newAttendance.ForeignId = location.Id;
             }
+            else
+            {
+                newAttendance.ForeignId = null;
+            }
             attendanceService.Add( newAttendance );
             attendance.DidAttend = false;
             attendance.EndDateTime = Rock.RockDateTime.Now;
@@ -246,6 +250,7 @@ namespace org.secc.RoomScanner.Utilities
                 didRemove = true;
                 activeAttendance.EndDateTime = Rock.RockDateTime.Now;
                 AddExitHistory( rockContext, attendeeAttendance.Location, attendeeAttendance, isSubroom );
+                CheckInCountCache.RemoveAttendance( activeAttendance );
             }
             if ( didRemove )
             {
