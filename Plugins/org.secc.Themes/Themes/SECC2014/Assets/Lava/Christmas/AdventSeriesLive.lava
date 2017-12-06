@@ -88,22 +88,6 @@
 				{% assign currentDate = 'Now' | Date:'MM/dd' %}
 				{% assign weekStartDate = item.StartDateTime | Date:'MM/dd' %}
 
-				{% if forloop.index == 1 %}
-					{% assign weekStartDate = '12/03' %}
-				{% endif %}
-
-				{% if forloop.index == 2 %}
-					{% assign weekStartDate = '12/10' %}
-				{% endif %}
-
-				{% if forloop.index == 3 %}
-					{% assign weekStartDate = '12/17' %}
-				{% endif %}
-
-				{% if forloop.index == 4 %}
-					{% assign weekStartDate = '12/24' %}
-				{% endif %}
-
                     {% assign fadeSeconds = fadeSeconds | Plus:0.2 %}
                     {% assign seriesImageGuid = item | Attribute:'Image','RawValue' %}
 

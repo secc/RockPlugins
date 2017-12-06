@@ -531,4 +531,17 @@
           <!-- Schedule end -->
       </div>
   </div>
+
+  <div class="row">
+      <div class="col-sm-10 col-sm-offset-1 text-center">
+          <header>
+              <br />
+              <h1>WANT TO HELP SERVE?</h1>
+              <p style="color: #777777;">As thousands of guests visit our campuses this Christmas, we want to make their experience as smooth and pleasant as possible, because we want them to encounter the hope, peace, joy, and love of Jesus—and we want to see them again! And you can help. No matter what your gifts are, we have a spot for you.</p>
+              <br />
+              <a href="/serve/christmas-services" class="cd-btn sweep-to-top invert" style="font-size: 1.4em;"></span><strong>SIGN UP TO SERVE</strong></a>
+          </header>
+      </div>
+  </div>
+
 </div>
