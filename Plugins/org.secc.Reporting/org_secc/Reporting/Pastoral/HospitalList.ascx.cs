@@ -143,7 +143,7 @@ namespace RockWeb.Blocks.Reporting
                 {
                     var personGuid = ( ( Person ) contextEntity ).Aliases.Select( a => a.Guid.ToString() ).ToList();
                     var validWorkflowIds = new AttributeValueService( rockContext ).Queryable()
-                        .Where( av => av.Attribute.Key == "PersonToVisit" && personGuid.Contains( av.Value ) ).Select( av => av.EntityId );
+                        .Where( av => av.Attribute.Key == "PersonToVisit" && personGuid.Contains( av.Value ) ).Select( av => av.EntityId ).ToList();
                     wfTmpqry = wfTmpqry.Where( w => validWorkflowIds.Contains( w.Id ) );
                     gReport.Columns[10].Visible = true;
                 }
