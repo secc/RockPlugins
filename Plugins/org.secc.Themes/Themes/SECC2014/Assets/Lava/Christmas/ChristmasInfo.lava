@@ -697,21 +697,6 @@
 	                  </div>
 	                </div>
 
-					<div class="panel panel-default">
-	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#howcanIhelp" aria-expanded="false" aria-controls="howcanIhelp">
-	                    <h4 class="panel-title">
-	                      <span class="collapsed">
-							  How can I help?
-	                      </span>
-	                    </h4>
-	                  </div>
-	                  <div id="howcanIhelp" class="panel-collapse collapse" role="tabpanel" aria-labelledby="howcanIhelp">
-	                    <div class="panel-body">
-							Volunteers are still needed! <a href="/serve/christmas" style="text-decoration: underline;">Click here to learn more.</a>
-						</div>
-	                  </div>
-	                </div>
-
 	              </div><!-- / .panel-group .accordion-1 -->
 
 	              <!-- <hr> -->

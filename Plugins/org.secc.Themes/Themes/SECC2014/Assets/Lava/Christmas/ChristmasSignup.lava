@@ -1,5 +1,5 @@
 <style>
-    
+
     #christmas a:hover {
         text-decoration: none !important;
     }
@@ -27,7 +27,7 @@
     }
     .box {
         height: 180px;
-        background: #4c1914;
+        background: #2A2F29;
         box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.2);
         transition: all .3s;
         -webkit-transition: all 0.2s ease-in-out;
@@ -35,7 +35,7 @@
         transition: all 0.2s ease-in-out;
         border-radius: 4px;
     }
-    
+
     .box:hover {
         transform: translateY(-10px);
         box-shadow: 0 22px 43px rgba(0, 0, 0, 0.15);
@@ -134,7 +134,7 @@
         });
     }
     $( window ).resize(function() {resizeChristmas(active)});
-    
+
     $(document).ready(function() {
        $('#christmas-container').css('display', 'block');
        // new WOW().init();
@@ -171,7 +171,7 @@
             {% endfor %}
             </div>
         </div>
-        
+
         {% for campus in Tree %}
         <div class="row slide-box" id="{{campus.Entity.Guid}}">
             <div class="col-sm-10 col-sm-offset-1">
@@ -203,8 +203,8 @@
             </div>
         </div>
         {% endfor %}
-        
-        
+
+
         {% for campus in Tree %}
             {% for role in campus.Partitions %}
             <div class="row slide-box" id="{{campus.Entity.Guid}}{{role.Entity.Guid}}">
@@ -223,7 +223,7 @@
                             <br />
                             <br />
                         </div>-->
-                    
+
 						{% for servingDay in servingDays %}
 							{% assign dayOutput = false %}
 							{% for shift in role.Partitions %}
@@ -259,39 +259,39 @@
 									{% assign groupId = 526949 %}
 								{% else %}
 									{% assign groupId = 526955 %}
-								{% endif %} 
+								{% endif %}
 							{% elseif campus.Entity.Guid == '138b15ee-a167-4809-bff2-613620f42a05'/*Crestwood*/ %}
 								{% if role.Entity.GroupTypeId == 166 %}
 									{% assign groupId = 526956 %}
 								{% else %}
 									{% assign groupId = 526957 %}
-								{% endif %} 
+								{% endif %}
 							{% elseif campus.Entity.Guid == 'ec10f56a-7db7-4905-a602-b6196e5db877'/*E-town*/ %}
 								{% if role.Entity.GroupTypeId == 166 %}
 									{% assign groupId = 526958 %}
 								{% else %}
 									{% assign groupId = 526959 %}
-								{% endif %} 
+								{% endif %}
 							{% elseif campus.Entity.Guid == '73efee1d-e971-4448-98e1-9de690887d1b'/*Indiana*/ %}
 								{% if role.Entity.GroupTypeId == 166 %}
 									{% assign groupId = 526963 %}
 								{% else %}
 									{% assign groupId = 526966 %}
-								{% endif %} 
+								{% endif %}
 							{% elseif campus.Entity.Guid == '7ab1d9dc-0c5e-4e08-b0dc-144b848fc890'/*La Grange*/ %}
 								{% if role.Entity.GroupTypeId == 166 %}
 									{% assign groupId = 526972 %}
 								{% else %}
 									{% assign groupId = 526973 %}
-								{% endif %} 
+								{% endif %}
 							{% elseif campus.Entity.Guid == 'eab00c44-6cc5-41ea-8b21-934dfb7da443'/*Soutwest*/ %}
 								{% if role.Entity.GroupTypeId == 166 %}
 									{% assign groupId = 526974 %}
 								{% else %}
 									{% assign groupId = 526976 %}
-								{% endif %} 
+								{% endif %}
 							{% endif %}
-							
+
                             <a href="#" data-campus-id="{{campus.Entity.Id}}" data-group-id="{{groupId}}" data-role-id="{{role.Entity.Id}}" title="Sign Up" class="cd-btn sweep-to-right invert pull-right signup-button">
                                 Sign Up
                             </a>
