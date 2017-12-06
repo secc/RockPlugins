@@ -54,7 +54,7 @@
     <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
 
     <script src="https://use.typekit.net/eni5wig.js"></script>
-	  <script>try{Typekit.load({ async: true });}catch(e){}</script>
+	<script>try{Typekit.load({ async: true });}catch(e){}</script>
 </head>
 <body runat="server" id="body">
     <div id="DocumentWrapper">
