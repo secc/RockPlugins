@@ -1,0 +1,322 @@
+<style>
+    
+    #christmas a:hover {
+        text-decoration: none !important;
+    }
+    #christmas a .stroke:hover {
+        opacity: 1;
+        -moz-opacity: 1;
+        filter: alpha(opacity=1);
+        -webkit-transition: all ease .5s;
+        -moz-transition: all ease .5s;
+        -ms-transition: all ease .5s;
+        -o-transition: all ease .5s;
+        transition: all ease .5s;
+    }
+    #christmas span {
+        border: 2px solid #fff !important;
+        outline: 1px #FFF !important;
+    }
+    #christmas a:focus {
+        outline: none;
+        text-decoration: none;
+    }
+    .role-box {
+         margin-bottom: 20px;
+         overflow: show;
+    }
+    .box {
+        height: 180px;
+        background: #4c1914;
+        box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.2);
+        transition: all .3s;
+        -webkit-transition: all 0.2s ease-in-out;
+        -o-transition: all 0.2s ease-in-out;
+        transition: all 0.2s ease-in-out;
+        border-radius: 4px;
+    }
+    
+    .box:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 22px 43px rgba(0, 0, 0, 0.15);
+    }
+    .box h4 {
+        line-height: 2;
+        color: inherit;
+        font-size: 20;
+    }
+    .role-box>div>div {
+         margin-bottom: 15px;
+    }
+    #christmas-container {
+        position: absolute;
+        margin: 0px;
+        padding: 0px;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
+    #christmas-container .section-header {
+        margin-bottom:30px;
+    }
+    .slide-box {
+        position: absolute;
+        left: 100%;
+        width: 100%;
+    }
+    .cd-btn.invert:hover {
+        color:#fafbf9 !important;
+    }
+    .check input:checked + .icon-box
+    {
+        background: #4c1914;
+    }
+    .check label {
+        -webkit-box-pack: left;
+        -webkit-justify-content: left;
+        -ms-flex-pack: left;
+        /* justify-content: left; */
+        /* -webkit-box-align: left; */
+        /* -webkit-align-items: left; */
+        -ms-flex-align: left;
+    }
+    .check .icon-box {
+        margin-left:10px;
+    }
+    @media (max-width:480px)
+    {
+        .check label h2 {
+            margin: -10px 10px 0px 10px !important;
+        }
+    }
+    @media (min-width:481px)
+    {
+        .check label h2 {
+            margin: 0px 10px !important;
+        }
+    }
+    @media (max-width:1200px)
+    {
+        .spots-left {
+            letter-spacing:normal;
+        }
+    }
+</style>
+<script type="text/javascript">
+    var active = '#christmas';
+    doSlide = function(slideOut, slideIn) {
+        active = slideIn;
+        //  Make sure we have the max height to accomodate the new area
+        if ($(slideOut).height() < $(slideIn).height())
+        {
+            resizeChristmas(slideIn);
+        }
+        if ($(slideIn).offset() != undefined && $(slideIn).offset().left < 0) {
+            $(slideIn).animate({
+                left: '0%',
+            }, 500, "swing", function() {resizeChristmas(slideIn);} );
+            $(slideOut).animate({
+                left: '100%',
+            }, 500, "swing", function() {resizeChristmas(slideIn);} );
+        } else {
+            $(slideIn).animate({
+                left: '0%',
+            }, 500, "swing", function() {resizeChristmas(slideIn);} );
+            $(slideOut).animate({
+                left: '-100%',
+            }, 500, "swing", function() {resizeChristmas(slideIn);} );
+        }
+    }
+    resizeChristmas = function(selector){
+        ch = $(selector).height();
+        $('#christmas-parent').css({
+            height : ch + 50 + 'px'
+        });
+    }
+    $( window ).resize(function() {resizeChristmas(active)});
+    
+    $(document).ready(function() {
+       $('#christmas-container').css('display', 'block');
+       // new WOW().init();
+       wow = new WOW(
+    	  {
+    		 boxClass:     'wow',      // default
+    		 animateClass: 'animated', // default
+    		 offset:       0,          // default
+    		 mobile:       false,       // default
+    		 live:         true        // default
+    	  }
+      );
+       wow.init();
+       resizeChristmas('#christmas');
+    });
+</script>
+
+{% assign servingDays = "[{'Day':'Saturday', 'Date':'December 23', 'ReplaceString':'Saturday, Dec 23 - '},{'Day':'Sunday', 'Date':'December 24', 'ReplaceString':'Sunday, Dec 24 - '}]" | FromJSON %}
+
+<div id="christmas-parent" style="height: 1362px;">
+    <div id="christmas-container" style="display: none;">
+        <div class="row slide-box" id="christmas" style="left: 0%">
+            <div class="col-sm-10 col-sm-offset-1 animated wow fadeInRight">
+            <h2 class="section-header">Please select your campus:</h2>
+            {% for campus in Tree %}
+                <div class="col-sm-6 col-md-4" style="margin-bottom: 20px">
+                    <a href="#" onclick="doSlide('#christmas', '#{{campus.Entity.Guid}}'); return false;">
+                        <div class="box text-center" style="padding-top: 35px">
+                            <span class="se-logo {{ campus.Entity.Name | Downcase | Replace:" ","" }} invert" style="font-size: 30px;">{{ campus.Entity.ShortCode }}</span>
+                            <h4>{{ campus.Entity.Name }}</h4>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+            </div>
+        </div>
+        
+        {% for campus in Tree %}
+        <div class="row slide-box" id="{{campus.Entity.Guid}}">
+            <div class="col-sm-10 col-sm-offset-1">
+                <h2 class="section-header">Please select a role:</h2>
+                <div style="margin: -40px 0px 10px 0px">
+                    <a href="#" onclick="doSlide('#{{campus.Entity.Guid}}', '#christmas'); return false;" title="Go Back" class="cd-btn sweep-to-left invert">
+                        Back
+                    </a>
+                </div>
+                <div class="row">
+                {% for role in campus.Partitions %}
+                    {% if role.Limit != 0 %}
+                    {% assign spotsLeft = role.Limit | Minus: role.TotalFilled %}
+                    <div class="col-sm-6 col-md-4 role-box" style="margin-bottom: 20px">
+                        <a href="#" onclick="doSlide('#{{campus.Entity.Guid}}', '#{{campus.Entity.Guid}}{{role.Entity.Guid}}'); return false;">
+                            <div class="text-center box" {% if role.Limit > 0 and spotsLeft <= 0 %}style="background-color: #EEE"{% endif %}>
+                                <div class="clearfix">
+                                    <span class="label label-default pull-right" style="margin: 3px"> {% if role.Limit <= -1 %}Unlimited{% else %}{% if spotsLeft <= 0 %}Full{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}{% endif %}</span>
+                                </div>
+                                <br />
+                                <i class="{{ role.Entity | Attribute: "Icon" }} fa-5x"></i>
+                                <h4>{{ role.Entity.Name | Replace:" (101)", "" | Replace:" (201)", "" }}</h4>
+                            </div>
+                        </a>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        
+        
+        {% for campus in Tree %}
+            {% for role in campus.Partitions %}
+            <div class="row slide-box" id="{{campus.Entity.Guid}}{{role.Entity.Guid}}">
+                <div class="col-sm-10 col-sm-offset-1">
+                    <h2 class="section-header">Please select the service(s):</h2>
+                    <div style="margin: -40px 0px 10px 0px">
+                        <a href="#" onclick="doSlide('#{{campus.Entity.Guid}}{{role.Entity.Guid}}', '#{{campus.Entity.Guid}}'); return false;" title="Go Back" class="cd-btn sweep-to-left invert">
+                            Back
+                        </a>
+                    </div>
+                    <div class="row">
+                        <!--<div class="col-md-10 col-md-offset-1">
+                            <h2><i class="{{ role.Entity | Attribute: "Icon" }}"></i> {{role.Entity.Name}}</h2>
+                            <hr style="margin: 0.5em auto;">
+                            {{role.Entity.Description}}
+                            <br />
+                            <br />
+                        </div>-->
+                    
+						{% for servingDay in servingDays %}
+							{% assign dayOutput = false %}
+							{% for shift in role.Partitions %}
+								{% if shift.Limit != 0 and shift.Entity.Name contains servingDay.Day  %}
+									{% assign spotsLeft = shift.Limit | Minus: shift.Filled %}
+									{% if dayOutput == false %}
+										<div class="col-md-10 col-md-offset-1 col-lg-8 col-lg-offset-2">
+										<h2><Strong>{{servingDay.Day}}</strong>, {{servingDay.Date}}</h2>
+										</div>
+										{% assign dayOutput = true %}
+									{% endif %}
+									<div class="col-md-10 col-md-offset-1 col-lg-8 col-lg-offset-2">
+										<div class="clearfix">
+											<div class="check">
+												<label>
+													<input type="checkbox" class="service-times" name="ServiceTimes" value="{{shift.Entity.Guid}}" />
+													<div class="icon-box"><i class="fa fa-check"></i></div>
+													<h2><strong><i>{{shift.Entity.Name | Replace:servingDay.ReplaceString,''}}</i></strong>{% if shift.Limit > 0 %}<span class="hidden-xs hidden-sm spots-left"> - <small>{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining</small></span>{% endif %}</h2>
+												</label>
+												{% if shift.Limit > 0 %}<div class="hidden-md hidden-lg" style="margin: -20px 0px 0px 75px">{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining</div>{% endif %}
+
+											</div>
+
+										</div>
+									</div>
+								{% endif %}
+							{% endfor %}
+							<div class="col-md-12"><br /></div>
+						{% endfor %}
+                        <div class="col-md-10">
+							{% if campus.Entity.Guid == '087ccb05-c911-40d8-8776-748821c04ae8'/*Blankenbaker*/ %}
+								{% if role.Entity.GroupTypeId == 166 %}
+									{% assign groupId = 526949 %}
+								{% else %}
+									{% assign groupId = 526955 %}
+								{% endif %} 
+							{% elseif campus.Entity.Guid == '138b15ee-a167-4809-bff2-613620f42a05'/*Crestwood*/ %}
+								{% if role.Entity.GroupTypeId == 166 %}
+									{% assign groupId = 526956 %}
+								{% else %}
+									{% assign groupId = 526957 %}
+								{% endif %} 
+							{% elseif campus.Entity.Guid == 'ec10f56a-7db7-4905-a602-b6196e5db877'/*E-town*/ %}
+								{% if role.Entity.GroupTypeId == 166 %}
+									{% assign groupId = 526958 %}
+								{% else %}
+									{% assign groupId = 526959 %}
+								{% endif %} 
+							{% elseif campus.Entity.Guid == '73efee1d-e971-4448-98e1-9de690887d1b'/*Indiana*/ %}
+								{% if role.Entity.GroupTypeId == 166 %}
+									{% assign groupId = 526963 %}
+								{% else %}
+									{% assign groupId = 526966 %}
+								{% endif %} 
+							{% elseif campus.Entity.Guid == '7ab1d9dc-0c5e-4e08-b0dc-144b848fc890'/*La Grange*/ %}
+								{% if role.Entity.GroupTypeId == 166 %}
+									{% assign groupId = 526972 %}
+								{% else %}
+									{% assign groupId = 526973 %}
+								{% endif %} 
+							{% elseif campus.Entity.Guid == 'eab00c44-6cc5-41ea-8b21-934dfb7da443'/*Soutwest*/ %}
+								{% if role.Entity.GroupTypeId == 166 %}
+									{% assign groupId = 526974 %}
+								{% else %}
+									{% assign groupId = 526976 %}
+								{% endif %} 
+							{% endif %}
+							
+                            <a href="#" data-campus-id="{{campus.Entity.Id}}" data-group-id="{{groupId}}" data-role-id="{{role.Entity.Id}}" title="Sign Up" class="cd-btn sweep-to-right invert pull-right signup-button">
+                                Sign Up
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+</div>
+<script type="text/javascript">
+	$('.signup-button').click(function() {
+		checked = []
+		$(this).parent().parent().find(".service-times:checked").each(function () {
+			   checked.push($(this).val())
+		});
+
+		roleRequests = [];
+		var request = {};
+		request.GroupId = $(this).attr('data-group-id');
+		request.GroupTypeRoleId = $(this).attr('data-role-id');
+		request.Attributes = { "ServiceTime": checked.join(',')};
+		roleRequests.push(request);
+		window.location.href="/serve/christmas-services/signup?OpportunityId=8&CampusId=" + $(this).attr('data-campus-id') + "&RoleRequests=" + JSON.stringify(roleRequests);
+		return false;
+	});
+</script>

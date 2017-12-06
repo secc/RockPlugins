@@ -29,6 +29,7 @@
 /*Define the path to use for font awesome fonts */
 /* MIXINS
    ====== */
+@import 'https://fonts.googleapis.com/css?family=Poiret+One';
 .reverse {
   background: #000000;
   color: #FFFFFF;
@@ -8611,6 +8612,116 @@ section#christmas .panel .panel-body {
   border-width: 4px;
   border-radius: 0; }
 
+/* Custom Code Here */
+.check input {
+  display: none; }
+  .check input:checked + .icon-box {
+    animation: keyframes(animOn) 0.8s 1 forwards;
+    background: #428bca; }
+    .check input:checked + .icon-box i {
+      transform: translate(-50%, -50%) scale(1);
+      transition-duration: 250ms;
+      opacity: 1;
+      color: #fff; }
+
+.check label {
+  min-width: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  min-height: 60px;
+  cursor: pointer; }
+  .check label .icon-box {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    position: relative;
+    width: 50px;
+    height: 50px;
+    transition: background 300ms ease; }
+    .check label .icon-box:hover {
+      background: rgba(0, 0, 0, 0.5); }
+    .check label .icon-box i {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      font-size: 20px;
+      display: inline-block;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.2s ease-in-out;
+      transition-delay: 200ms;
+      transform: translate(-50%, -50%) scale(6); }
+
+@-webkit-keyframes $animationName {
+  40% {
+    height: 20px;
+    width: 100px; }
+  50% {
+    height: 60px;
+    width: 30px; }
+  60% {
+    height: 40px;
+    width: 70px; }
+  70% {
+    height: 55px;
+    width: 45px; }
+  100% {
+    height: 50px;
+    width: 50px; } }
+
+@-moz-keyframes $animationName {
+  40% {
+    height: 20px;
+    width: 100px; }
+  50% {
+    height: 60px;
+    width: 30px; }
+  60% {
+    height: 40px;
+    width: 70px; }
+  70% {
+    height: 55px;
+    width: 45px; }
+  100% {
+    height: 50px;
+    width: 50px; } }
+
+@-o-keyframes $animationName {
+  40% {
+    height: 20px;
+    width: 100px; }
+  50% {
+    height: 60px;
+    width: 30px; }
+  60% {
+    height: 40px;
+    width: 70px; }
+  70% {
+    height: 55px;
+    width: 45px; }
+  100% {
+    height: 50px;
+    width: 50px; } }
+
+@keyframes $animationName {
+  40% {
+    height: 20px;
+    width: 100px; }
+  50% {
+    height: 60px;
+    width: 30px; }
+  60% {
+    height: 40px;
+    width: 70px; }
+  70% {
+    height: 55px;
+    width: 45px; }
+  100% {
+    height: 50px;
+    width: 50px; } }
+
+/* end of custom code */
 /*
     The accent colors are deprecated and should not be used in new theme development. They will be
     removed in Rock v 6.0.

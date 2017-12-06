@@ -6,7 +6,7 @@
 
 <header class="cd-header">
 	<div id="cd-logo">
-        <a href="/christmas" class="cd-btn sweep-to-left">
+        <a href="/christmas" id="cd-back" class="cd-btn sweep-to-left">
             Back
         </a>
     </div>
@@ -802,7 +802,7 @@ $(document).ready(function() {
 
     $(window).on('scroll', function(){
         //on desktop - assign a position fixed to logo and action button and move them outside the viewport
-    ( $(window).scrollTop() > secondaryNavTopPosition ) ? $('#cd-logo, .cd-btn').addClass('is-hidden') : $('#cd-logo, .cd-btn').removeClass('is-hidden');
+    ( $(window).scrollTop() > secondaryNavTopPosition ) ? $('#cd-logo, #cd-back').addClass('is-hidden') : $('#cd-logo, #cd-back').removeClass('is-hidden');
 
         //on desktop - fix secondary navigation on scrolling
         if($(window).scrollTop() > secondaryNavTopPosition ) {

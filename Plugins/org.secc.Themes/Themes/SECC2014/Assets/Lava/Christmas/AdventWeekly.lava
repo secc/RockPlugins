@@ -3,8 +3,8 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
 <script src="https://use.typekit.net/osx6gkw.js"></script>
 <script>try{Typekit.load({ async: true });}catch(e){}</script>
-
 <script>
+
 	/* --------------------------------------------------
 		Initialization
 	-------------------------------------------------- */
@@ -93,7 +93,7 @@
                 <div class="col-sm-12 text-center">
                     <div class="advent_body">
                         <h2 class="advent_title wow fadeInDown" style="font-size: 2.5em;">
-                            <img class="img-responsive" src="/GetImage.ashx?Guid={{ weeklyImage }}" />
+							<img class="img-responsive" src="/GetImage.ashx?Guid={{ weeklyImage }}" />
                         </h2>
                     </div>
                     <!-- <img alt="Celebrate Christmas Together" src="/Content/ExternalSite/WebImages/Christmas/Advent.jpg" class="img-responsive wow fadeIn" data-wow-duration="1s" data-wow-delay=".7s" style="max-width: 60rem; max-width: 30em;margin: 4em auto;width: 100%; visibility: hidden;"> -->
@@ -112,7 +112,7 @@
 			<div id="seriesHead" class="row">
 
 				{% unless currentMessageVideoEmbed == empty %}
-				<div class="col-sm-12 col-md-7 wow fadeInLeft" data-wow-duration="1.5s" data-wow-delay="0.4s">
+				<div class="col-sm-12 col-md-7 wow fadeInLeft" data-wow-duration="1.5s" data-wow-delay="0.3s">
 					<h2 style="word-wrap: break-word">
 						Message From Southeast
 					</h2>
@@ -124,7 +124,7 @@
 				</div>
 				{% endunless %}
 
-				<div class="col-sm-12 col-md-5 wow fadeInUp" data-wow-duration="1s" data-wow-delay="1s">
+				<div class="col-sm-12 col-md-5 wow fadeInUp" data-wow-duration="1s" data-wow-delay="0.6s">
 					{% assign firstDevo = item.ChildItems | First %}
 					<h3 class="">
 						{{firstDevo.ChildContentChannelItem.Title}}
@@ -133,6 +133,27 @@
 					<div class="embed-responsive embed-responsive-16by9 media-border-only">
 						<iframe src="https://player.vimeo.com/video/{{firstDevo.ChildContentChannelItem.VimeoID}}?title=0&byline=0&portrait=0" frameborder="0" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen=""></iframe>
 					</div>
+
+					<div class="socials socials_type_icons socials_shape_round" style="margin-top:15px;">
+						<script>function fbs_click() { u = 'https://rock.secc.org/christmas/advent/week?Item={{ item.Id }}'; t = document.title; window.open('http://www.facebook.com/sharer.php?u=' + encodeURIComponent(u) + '&t=' + encodeURIComponent(t), 'sharer', 'toolbar=0,status=0,width=626,height=436'); return false; }</script>
+						<script>function ics_click() { text = `{{ EventItemOccurrence.Schedule.iCalendarContent }}`.replace('END:VEVENT', 'SUMMARY: {{ Event.Name }}\r\nLOCATION: {{ EventItemOccurrence.Location }}\r\nEND:VEVENT'); var element = document.createElement('a'); element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); element.setAttribute('download', '{{ Event.Name }}.ics'); element.style.display = 'none'; document.body.appendChild(element); element.click(); document.body.removeChild(element); }</script>
+						<div class="socials_item">
+							<a href="mailto:?Subject={{ item.Title | Escape }}&Body=Advent – {{ item.Title | Escape }} – https://rock.secc.org/christmas/advent/week?Item={{ item.Id }}" class="social_icons social_gplus" data-original-title="Share via Email">
+								<i class="fa fa-envelope"></i>
+							</a>
+						</div>
+						<div class="socials_item">
+							<a href="http://www.facebook.com/share.php?u=<url>" onclick="return fbs_click()" target="_blank" class="social_icons social_facebook" data-original-title="Share via Facebook">
+								<i class="fa fa-facebook"></i>
+							</a>
+						</div>
+						<div class="socials_item">
+							<a href="http://twitter.com/home?status=Advent – {{ item.Title | Escape }} – https://rock.secc.org/christmas/advent/week?Item={{ item.Id }}" target="_blank" class="social_icons social_twitter" data-original-title="Share via Twitter">
+								<i class="fa fa-twitter"></i>
+							</a>
+						</div>
+					</div>
+					<br />
 					<br />
 				</div>
 
