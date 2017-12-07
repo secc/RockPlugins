@@ -148,7 +148,7 @@ namespace org.secc.OAuth.Rest.Controllers
                 Gender = p.Gender.ToString();
                 Birthdate = p.BirthDate;
                 EmailAddress = p.Email;
-                PreviousPersonIDs = p.Aliases.AsQueryable().Where(pa => pa.Id != pa.Person.PrimaryAliasId).Select(pa => pa.AliasPersonId).ToList();
+                PreviousPersonIDs = p.Aliases.AsQueryable().Where(pa => pa.Id != pa.Person.PrimaryAliasId).Select(pa => pa.AliasPersonId.Value).ToList();
             }
         }
 
