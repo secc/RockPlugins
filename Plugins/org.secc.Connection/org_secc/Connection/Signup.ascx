@@ -11,17 +11,28 @@
             <Content>
                 <asp:UpdatePanel ID="upEditControls" runat="server" UpdateMode="Conditional">
                     <ContentTemplate>
+                        <style>
+                            .panel.panel-block {
+                                border: 1px solid #6aa3d5;
+                            }
+                            .panel.panel-block > .panel-heading {
+                                display: block;
+                            }
+                            .panel.panel-block > .panel-body {
+                                padding: 15px;
+                            }
+                        </style>
                         <div class="container-fluid">
                             <div style="margin-bottom: 10px">
                                 <ul class="nav nav-pills">
                                     <li class="active" id="liSettings" runat="server">
                                         <asp:LinkButton ID="lbSettings" runat="server" Text="Settings" OnClick="lbSettings_Click"></asp:LinkButton>
                                     </li>
-                                    <li id="liCounts" runat="server">
-                                        <asp:LinkButton ID="lbCounts" runat="server" Text="Totals" OnClick="lbCounts_Click"></asp:LinkButton>
-                                    </li>
                                     <li id="liLava" runat="server">
                                         <asp:LinkButton ID="lbLava" runat="server" Text="Lava" OnClick="lbLava_Click"></asp:LinkButton>
+                                    </li>
+                                    <li id="liCounts" runat="server">
+                                        <asp:LinkButton ID="lbCounts" runat="server" Text="Totals" OnClick="lbCounts_Click"></asp:LinkButton>
                                     </li>
                                 </ul>
                             </div>
@@ -49,13 +60,13 @@
                                     </div>
                                 </div>
                                 <asp:HiddenField ID="hdnSettings" runat="server" />
-                                <asp:Panel class="panel panel-block" id="pnlPartitions" runat="server" visible="false" EnableViewState="false">
+                                <asp:Panel class="panel panel-block show-heading" id="pnlPartitions" runat="server" visible="false" EnableViewState="false">
                                     <div class="panel-heading">
                                         <h1 class="panel-title">Partitions</h1>
-                                        <div class="pull-right">
+                                        <div class="pull-right" style="margin: -8px -10px">
                                             <asp:LinkButton ID="btnAddPartition" runat="server" CssClass="hidden" OnClick="btnAddPartition_Click" />
                                             <asp:HiddenField ID="hdnPartitionType" runat="server" />
-                                            <Rock:ButtonDropDownList ID="bddlAddPartition" OnSelectionChanged="BddlAddParition_SelectionChanged" runat="server">
+                                            <Rock:ButtonDropDownList ID="bddlAddPartition" OnSelectionChanged="BddlAddPartition_SelectionChanged" runat="server">
                                                 <asp:ListItem Value="">New Partition</asp:ListItem>
                                                 <asp:ListItem Value="Campus">Campus</asp:ListItem>
                                                 <asp:ListItem Value="DefinedType">Defined Type</asp:ListItem>
@@ -68,10 +79,10 @@
                                         <asp:Repeater ID="rptPartions" runat="server" OnItemDataBound="rptPartions_ItemDataBound">
                                             <ItemTemplate>
                                                 <div class="row">
-                                                    <div class="col-md-2"><strong><%# Eval("PartitionType") %></strong></div>
-                                                    <div class="col-md-6"><asp:PlaceHolder ID="phPartitionControl" runat="server"></asp:PlaceHolder></div>
-                                                    <div class="col-md-3"><Rock:RockDropDownList ID="ddlAttribute" runat="server" Placeholder="Attribute Mapping" /></div>
-                                                    <div class="col-md-1"><asp:LinkButton ID="bbPartitionDelete" runat="server" OnClick="bbPartitionDelete_Click" ToolTip="Remove" CssClass="btn btn-danger" OnClientClick="Rock.dialogs.confirmPreventOnCancel(event, 'Making changes to partition settings will clear all existing counts!  Are you sure you want to proceed?');"><i class="fa fa-remove"></i></asp:LinkButton></div>
+                                                    <div class="col-sm-2 col-xs-4"><strong><%# Eval("PartitionType") %></strong></div>
+                                                    <div class="col-sm-6 col-xs-6"><asp:PlaceHolder ID="phPartitionControl" runat="server"></asp:PlaceHolder></div>
+                                                    <div class="col-sm-3 col-xs-10"><Rock:RockTextBox ID="tbAttributeKey" runat="server" Placeholder="Attribute Key"  OnTextChanged="tbAttributeKey_TextChanged" /></div>
+                                                    <div class="col-sm-1 col-xs-2"><asp:LinkButton ID="bbPartitionDelete" runat="server" OnClick="bbPartitionDelete_Click" ToolTip="Remove" CssClass="btn btn-danger" OnClientClick="Rock.dialogs.confirmPreventOnCancel(event, 'Making changes to partition settings will clear all existing counts!  Are you sure you want to proceed?');"><i class="fa fa-remove"></i></asp:LinkButton></div>
                                                 </div>
                                             </ItemTemplate>
                                             <SeparatorTemplate>
@@ -99,7 +110,7 @@
                                     <h1 class="panel-title">Display Lava</h1>
                                 </div>
                                 <div class="panel-body">
-                                    <Rock:CodeEditor ID="ceLava" runat="server" EditorMode="Lava" Rows="100" ></Rock:CodeEditor>
+                                    <Rock:CodeEditor ID="ceLava" runat="server" EditorMode="Lava" Rows="100" EditorHeight="400"></Rock:CodeEditor>
                                 </div>
                             </asp:Panel>
                         </div>
