@@ -28,7 +28,7 @@ namespace org.secc.SafetyAndSecurity
     [WorkflowAttribute( "Source Document", "The attribute to upload to SignNow.", true, "", "", 0, null, new string[] { "Rock.Field.Types.BinaryFileFieldType" } )]
     [WorkflowAttribute( "Signed Document", "The attribute to save the document from SignNow.", true, "", "", 0, null, new string[] { "Rock.Field.Types.BinaryFileFieldType" } )]
     [TextField( "Signed Document Name", "Then name of the document to be merged. <span class='tip tip-lava'></span>", true )]
-    class SignNowSignForm : ActionComponent, IUIActionComponent
+    class SignNowSignForm : ActionComponent
     {
 
         public override bool Execute( RockContext rockContext, WorkflowAction action, object entity, out List<string> errorMessages )
