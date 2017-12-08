@@ -91,6 +91,12 @@
                     {% assign fadeSeconds = fadeSeconds | Plus:0.2 %}
                     {% assign seriesImageGuid = item | Attribute:'Image','RawValue' %}
 
+					{% comment %}
+					{% if forloop.index == 2 %}
+						{% assign weekStartDate = item.StartDateTime | Date:'12/09' %}
+					{% endif %}
+					{% endcomment %}
+
                     <div class="col-sm-6 col-md-6 col-lg-3">
                         <div class="blog-post {% if weekStartDate > currentDate %}inactive{% endif %} wow fadeIn" data-wow-duration="1s" data-wow-delay="{{fadeSeconds}}s">
 							  {% if weekStartDate > currentDate %}
