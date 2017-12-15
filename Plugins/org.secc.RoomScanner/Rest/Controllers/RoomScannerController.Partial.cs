@@ -525,10 +525,9 @@ namespace org.secc.RoomScanner.Rest.Controllers
                         else
                         {
                             //If there are no attendances that match this schedule,
-                            //take the earliest available attendance preferably one that hasn't been checked into
-                            attendances = attendances.OrderBy( a => a.DidAttend ).ThenBy( a => a.Schedule.StartTimeOfDay ).Take( 1 );
+                            //Take one preferably if it isn't attended yet.
+                            attendances = attendances.OrderBy( a => a.DidAttend ).Take( 1 );
                         }
-
                     }
 
                     if ( !attendances.Any() )
