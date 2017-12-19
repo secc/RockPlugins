@@ -184,19 +184,27 @@
                 <div class="row">
                 {% for role in campus.Partitions %}
                     {% if role.Limit != 0 %}
-                    {% assign spotsLeft = role.Limit | Minus: role.Filled %}
-                    <div class="col-sm-6 col-md-4 role-box" style="margin-bottom: 20px">
-                        <a href="#" onclick="doSlide('#{{campus.Entity.Guid}}', '#{{campus.Entity.Guid}}{{role.Entity.Guid}}'); return false;">
-                            <div class="text-center box" {% if role.Limit > 0 and spotsLeft <= 0 %}style="background-color: #EEE"{% endif %}>
-                                <div class="clearfix">
-                                    <span class="label label-default pull-right" style="margin: 3px"> {% if role.Limit <= -1 %}Unlimited{% else %}{% if spotsLeft <= 0 %}Full{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}{% endif %}</span>
-                                </div>
-                                <br />
-                                <i class="{{ role.Entity | Attribute: "Icon" }} fa-5x"></i>
-                                <h4>{{ role.Entity.Name | Replace:" (101)", "" | Replace:" (201)", "" }}</h4>
-                            </div>
-                        </a>
-                    </div>
+						{% assign spotsLeft = 0 %}
+						{% for shift in role.Partitions %}
+							{% if shift.Limit > 0 %}
+								{% assign shiftSpotsLeft = shift.Limit | Minus: shift.Filled %}
+								{% if shiftSpotsLeft > 0 %}
+									{% assign spotsLeft = spotsLeft | Plus: shiftSpotsLeft %}
+								{% endif %}
+							{% endif %}
+						{% endfor %}
+						<div class="col-sm-6 col-md-4 role-box" style="margin-bottom: 20px">
+							<a href="#" onclick="doSlide('#{{campus.Entity.Guid}}', '#{{campus.Entity.Guid}}{{role.Entity.Guid}}'); return false;">
+								<div class="text-center box" {% if role.Limit > 0 and spotsLeft <= 0 %}style="background-color: #EEE"{% endif %}>
+									<div class="clearfix">
+										<span class="label label-default pull-right" style="margin: 3px">{% if role.Limit <= -1 %}Unlimited{% else %}{% if spotsLeft <= 0 %}Full{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}{% endif %}</span>
+									</div>
+									<br />
+									<i class="{{ role.Entity | Attribute: "Icon" }} fa-5x"></i>
+									<h4>{{ role.Entity.Name | Replace:" (101)", "" | Replace:" (201)", "" }}</h4>
+								</div>
+							</a>
+						</div>
                     {% endif %}
                 {% endfor %}
                 </div>
@@ -239,9 +247,9 @@
 										<div class="clearfix">
 											<div class="check">
 												<label>
-													<input type="checkbox" class="service-times" name="ServiceTimes" value="{{shift.Entity.Guid}}" {% if spotsLeft <= 0 %}disabled="true"{% endif %} />
+													<input type="checkbox" class="service-times" name="ServiceTimes" value="{{shift.Entity.Guid}}" {% if shift.Limit >0 and spotsLeft <= 0 %}disabled="true"{% endif %} />
 													<div class="icon-box"><i class="fa fa-check"></i></div>
-													<h2{% if spotsLeft <= 0 %} style="text-decoration: line-through"{% endif %}><strong><i>{{shift.Entity.Name | Replace:servingDay.ReplaceString,''}}</i></strong>{% if shift.Limit > 0 %}<span class="hidden-xs hidden-sm spots-left"> - <small>{% if spotsLeft <= 0 %}Full{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}</small></span>{% endif %}</h2>
+													<h2{% if  shift.Limit > 0 and spotsLeft <= 0 %} style="text-decoration: line-through"{% endif %}><strong><i>{{shift.Entity.Name | Replace:servingDay.ReplaceString,''}}</i></strong>{% if shift.Limit > 0 %}<span class="hidden-xs hidden-sm spots-left"> - <small>{% if spotsLeft <= 0 %}Full{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}</small></span>{% endif %}</h2>
 												</label>
 												{% if shift.Limit > 0 %}<div class="hidden-md hidden-lg" style="margin: -20px 0px 0px 75px">{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining</div>{% endif %}
 
@@ -309,6 +317,9 @@
 		$(this).parent().parent().find(".service-times:checked").each(function () {
 			   checked.push($(this).val())
 		});
+		if (checked.length == 0) {
+			return false;
+		}
 
 		roleRequests = [];
 		var request = {};
