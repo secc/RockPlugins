@@ -39,10 +39,11 @@ namespace RockWeb.Plugins.org_secc.Reporting
     [Category( "SECC > Reporting" )]
     [Description( "Block for easily adding/editing metric values for any metric that has partitions of campus and service time." )]
 
-    [CategoryField( "Schedule Category", "The schedule category to use for list of service times.", false, "Rock.Model.Schedule", "", "", true, "", "", 0 )]
-    [IntegerField( "Weeks Back", "The number of weeks back to display in the 'Week of' selection.", false, 8, "", 1 )]
-    [IntegerField( "Weeks Ahead", "The number of weeks ahead to display in the 'Week of' selection.", false, 0, "", 2 )]
-    [MetricCategoriesField( "Metric Categories", "Select the metric categories to display (note: only metrics in those categories with a campus and scheudle partition will displayed).", true, "", "", 3 )]
+    [CategoryField( "Schedule Categories", "The schedule categories to use for list of service times.  Note that this requires a campus attribute to be selected below.", true, "Rock.Model.Schedule", "", "", true, "", "", 0 )]
+    [AttributeField( Rock.SystemGuid.EntityType.SCHEDULE, "Campus Attribute", "The campus attribute to use for filtering the schedules", false, false, order: 1 )]
+    [IntegerField( "Weeks Back", "The number of weeks back to display in the 'Week of' selection.", false, 8, "", 2 )]
+    [IntegerField( "Weeks Ahead", "The number of weeks ahead to display in the 'Week of' selection.", false, 0, "", 3 )]
+    [MetricCategoriesField( "Metric Categories", "Select the metric categories to display (note: only metrics in those categories with a campus and scheudle partition will displayed).", true, "", "", 4 )]
     public partial class MetricsEntry : Rock.Web.UI.RockBlock
     {
         #region Fields
@@ -542,45 +543,57 @@ namespace RockWeb.Plugins.org_secc.Reporting
         private List<Schedule> GetServices( CampusCache campus = null)
         {
             var services = new List<Schedule>();
-
-            var scheduleCategory = CategoryCache.Read( GetAttributeValue( "ScheduleCategory" ).AsGuid() );
-            if ( scheduleCategory != null && campus != null)
+            if (!string.IsNullOrWhiteSpace(GetAttributeValue( "ScheduleCategories" )))
             {
+                List<Guid> categoryGuids = GetAttributeValue( "ScheduleCategories" ).Split( ',' ).Select( g => g.AsGuid() ).ToList();
+                string campusAttributeGuid = GetAttributeValue( "CampusAttribute" );
+
+                DateTime? weekend = bddlWeekend.SelectedValue.AsDateTime();
                 using ( var rockContext = new RockContext() )
                 {
-                    var campusSchedule = new CategoryService( rockContext ).Queryable().Where( sc => sc.ParentCategoryId == scheduleCategory.Id && sc.Name == campus.Name ).FirstOrDefault();
-                    if ( campusSchedule  != null)
+                    var attributeValueQry = new AttributeValueService( rockContext ).Queryable();
+                    foreach ( Guid categoryGuid in categoryGuids )
                     {
-                        foreach ( var schedule in new ScheduleService( rockContext )
-                            .Queryable().AsNoTracking()
-                            .Where( s =>
-                                s.CategoryId.HasValue &&
-                                s.CategoryId.Value == campusSchedule.Id )
-                            .ToList()
-                            .OrderBy( s => s.NextStartDateTime ) )
+
+                        var scheduleCategory = CategoryCache.Read( categoryGuid );
+                        if ( scheduleCategory != null && campus != null )
                         {
-                            services.Add( schedule );
+                            var schedules = new ScheduleService( rockContext )
+                                .Queryable().AsNoTracking()
+                                .Where( s => s.CategoryId == scheduleCategory.Id )
+                                .Join(
+                                    attributeValueQry.Where( av => av.Attribute.Guid.ToString() == campusAttributeGuid
+                                                                    && av.Value.Contains( campus.Guid.ToString() ) ),
+                                    p => p.Id,
+                                    av => av.EntityId,
+                                    ( p, av ) => new { Schedule = p, Value = av.Value } );
+                            // Check to see if the event was applicable the week for which we are entering data
+                            foreach ( var schedule in schedules )
+                            {
+                                var occurrences = ScheduleICalHelper.GetOccurrences( schedule.Schedule.GetCalenderEvent(), weekend.Value.Date.AddDays( -6 ), weekend.Value.Date.AddDays(1) );
+                                if ( occurrences.Count > 0)
+                                {
+                                    services.Add(schedule.Schedule );
+                                }
+                            }
+
+                        }
+                        else if ( scheduleCategory != null )
+                        {
+                            foreach ( var schedule in new ScheduleService( rockContext )
+                                .Queryable().AsNoTracking()
+                                .Where( s =>
+                                    s.CategoryId.HasValue &&
+                                    s.CategoryId.Value == scheduleCategory.Id )
+                                .OrderBy( s => s.Name ) )
+                            {
+                                services.Add( schedule );
+                            }
                         }
                     }
                 }
             }
-            else if( scheduleCategory != null)
-            {
-                using ( var rockContext = new RockContext() )
-                {
-                    foreach ( var schedule in new ScheduleService( rockContext )
-                        .Queryable().AsNoTracking()
-                        .Where( s =>
-                            s.CategoryId.HasValue &&
-                            s.CategoryId.Value == scheduleCategory.Id )
-                        .OrderBy( s => s.Name ) )
-                    {
-                        services.Add( schedule );
-                    }
-                }
-            }
-
-            return services;
+            return services.OrderBy(s => s.NextStartDateTime.Value.Ticks).ToList();
         }
 
         /// <summary>
