@@ -25,7 +25,7 @@ namespace RockWeb.Blocks.Reporting.Children
     [Category( "SECC > Reporting > Children" )]
     [Description( "List of children without a breakout group with attendance." )]
 
-    [GroupTypeField( "Breakout Group Type", "GroupType of the Breakout Groups" )]
+    [GroupField( "Parent Breakout Group", "Parent Group of the Breakout Groups" )]
     [TextField( "Schedule IDs", "Coma separated list of the Ids of schedules." )]
     public partial class WithoutBreakoutGroupAttendance : RockBlock
     {
@@ -56,18 +56,21 @@ namespace RockWeb.Blocks.Reporting.Children
                     .ToList()
             ).ToList();
 
-            var groupTypeGuidString = GetAttributeValue( "BreakoutGroupType" );
-            if ( string.IsNullOrWhiteSpace( groupTypeGuidString ) )
+            var parentGroupGuidString = GetAttributeValue( "ParentBreakoutGroup" );
+            if ( string.IsNullOrWhiteSpace( parentGroupGuidString ) )
             {
                 return;
             }
 
-            var groupTypeGuid = groupTypeGuidString.AsGuid();
+            var parentGroupGuid = parentGroupGuidString.AsGuid();
 
-            var breakoutGroupMembers = new GroupTypeService( rockContext ).Queryable()
-                .Where( gm => gm.Guid == groupTypeGuid )
-                .SelectMany( gm => gm.Groups )
-                .SelectMany( g => g.Members )
+            var groupService = new GroupService( rockContext );
+
+            var parentGroup = groupService.Get( parentGroupGuid );
+
+            var breakoutGroupMembers = groupService.Queryable()
+                .SelectMany( g => g.Groups.Where( g2 => g2.IsActive && g2.ParentGroupId == parentGroup.Id) )
+                .SelectMany( g => g.Members.Where( gm => gm.GroupMemberStatus == GroupMemberStatus.Active ) )
                 .Select( m => m.Person )
                 .SelectMany( p => p.Aliases )
                 .Select( a => a.Id );
@@ -186,12 +189,12 @@ namespace RockWeb.Blocks.Reporting.Children
                 SetExcelValue( worksheet.Cells[rowCounter, 7], currentAttendances.Count );
 
                 var i = 0;
-                    foreach ( var schedule in schedules )
-                    {
+                foreach ( var schedule in schedules )
+                {
                     var count = currentAttendances.Where( a => a.Attendance.ScheduleId == schedule.Id ).Count();
 
-                        SetExcelValue( worksheet.Cells[rowCounter, 8 + i], count );
-                        i++;
+                    SetExcelValue( worksheet.Cells[rowCounter, 8 + i], count );
+                    i++;
 
                 }
                 worksheet.Cells[rowCounter, 7].Style.Fill.PatternType = ExcelFillStyle.Solid;

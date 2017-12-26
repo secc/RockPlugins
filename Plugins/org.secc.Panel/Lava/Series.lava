@@ -1,0 +1,32 @@
+﻿{"Series":
+    [
+        {%- assign itemComma = '' -%}
+        {%- for item in Items -%}
+            {{itemComma}}
+            {
+                "Id": {{item.Id}},
+                "Name":"{{item.Title | Replace:'"','\"'}}",
+                "Description":"{{item.Content | Replace:'"','\"'}}",
+                "Image": "{{ 'Global' | Attribute:'InternalApplicationRoot' }}{{item | Attribute:'Image', 'RawValue'}}.jpg?guid={{item | Attribute:'Image', 'RawValue'}}",
+                "Sermons": [
+                {%- assign childComma = '' -%}
+                {%- for message in item.ChildItems -%}
+                {{childComma}}
+                {
+			        "Id":{{ message.ChildContentChannelItem.Id }},
+			        "Title":"{{ message.ChildContentChannelItem.Title  | Replace:'"','\"' }}",
+			        "Description":"{{ message.ChildContentChannelItem.Content  | Replace:'"','\"'}}",
+			        "Image": "{{ 'Global' | Attribute:'InternalApplicationRoot' }}{{message.ChildContentChannelItem | Attribute:'Image', 'RawValue'}}.jpg?guid={{message.ChildContentChannelItem | Attribute:'Image', 'RawValue'}}",
+			        "Audio": "{{ 'Global' | Attribute:'InternalApplicationRoot' }}{{message.ChildContentChannelItem | Attribute:'Audio', 'RawValue'}}.mp3?guid={{message.ChildContentChannelItem | Attribute:'Audio', 'RawValue'}}",
+			        "Speaker": "{{message.ChildContentChannelItem | Attribute:'Speaker'}}",
+			        "VimeoStreamingUrl":"{{message.ChildContentChannelItem | Attribute:'VimeoStreamingUrl'}}",
+			        "VimeoDownloadUrl":"{{message.ChildContentChannelItem | Attribute:'VimeoDownloadUrl'}}"
+                }
+                {%- assign childComma = ',' -%}
+			    {%- endfor -%}
+			]
+            }
+            {%- assign itemComma = ',' -%}
+        {%- endfor -%}
+    ]
+}

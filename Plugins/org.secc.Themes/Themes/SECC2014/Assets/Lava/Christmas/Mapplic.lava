@@ -1,0 +1,52 @@
+
+    <div id="wrap">
+
+    	<!-- Site content -->
+    	<div id="content">
+
+    		<section id="map-section" class="inner over">
+    			<div class="map-container">
+    				<div id="mapplic"></div>
+    			</div>
+    		</section>
+
+    	</div>
+
+    </div>
+
+    <!-- <link rel="stylesheet" type="text/css" href="~~/Styles/pages/Christmas/Base.css"> -->
+    <link rel="stylesheet" type="text/css" href="~~/Assets/vendor/mapplic/mapplic.css">
+    <!-- Internet Explorer -->
+    <!--[if lt IE 9]>
+    	<link rel="stylesheet" type="text/css" href="mapplic/mapplic-ie.css">
+    	<script type="text/javascript" src="js/html5shiv.js"></script>
+    <![endif]-->
+
+    <!-- Scripts -->
+    <script type="text/javascript" src="~~/Assets/vendor/mapplic/js/hammer.min.js"></script>
+    <!-- <script type="text/javascript" src="~~/Assets/vendor/mapplic/js/jquery.mousewheel.js"></script> -->
+    <script type="text/javascript" src="~~/Assets/vendor/mapplic/js/script.js"></script>
+    <script type="text/javascript" src="~~/Assets/vendor/mapplic/mapplic.js"></script>
+    <script type="text/javascript">
+    	$(document).ready(function() {
+    		var mapplic = $('#mapplic').mapplic({
+    			source: '~~/Assets/vendor/mapplic/mall.json',	// Using mall.json file as map data
+                sidebar: false, 	    // Enable sidebar
+    			minimap: true, 			// Enable minimap
+    			markers: false, 		// Disable markers
+    			fillcolor: false, 		// Disable default fill color
+    			fullscreen: true, 		// Enable fullscreen
+    			maxscale: 4, 			// Setting maxscale to 3 times bigger than the original file
+                mousewheel: false,
+                zoom: true
+    		});
+
+            mapplic.on('mapready', function(e, self) {
+            	// self grants direct access to the map object
+            	// The map will be focused on any screen size greater than 960
+                if ($(window).width() > 960) {
+                   self.moveTo(0.50, 0.55, 1, 0);
+                }
+            });
+    	});
+    </script>

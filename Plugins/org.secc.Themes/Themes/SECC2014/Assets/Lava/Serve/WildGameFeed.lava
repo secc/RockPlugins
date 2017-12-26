@@ -1,0 +1,273 @@
+<style>
+
+div.vertical-tab-container{
+  padding: 0 !important;
+  margin-top: 20px;
+}
+div.vertical-tab-menu{
+  padding-right: 0;
+  padding-left: 0;
+  padding-bottom: 0;
+}
+div.vertical-tab-menu div.list-group{
+  margin-bottom: 0;
+}
+div.vertical-tab-menu div.list-group>a{
+  margin-bottom: 0;
+}
+div.vertical-tab-menu div.list-group>a .fa {
+  color: #333;
+}
+div.vertical-tab-menu div.list-group>a:first-child{
+  border-top-right-radius: 0;
+  -moz-border-top-right-radius: 0;
+  border-top-left-radius: 0;
+  -moz-border-top-left-radius: 0;
+}
+div.vertical-tab-menu div.list-group>a:last-child{
+  border-bottom-right-radius: 0;
+  -moz-border-bottom-right-radius: 0;
+  border-top-left-radius: 0;
+  -moz-border-top-left-radius: 0;
+}
+div.vertical-tab-menu div.list-group>a.active,
+div.vertical-tab-menu div.list-group>a.active .fa{
+  color: #ffffff;
+}
+div.vertical-tab-menu div.list-group>a.active:after{
+  content: '';
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  margin-top: -13px;
+  border-left: 0;
+  border-bottom: 13px solid transparent;
+  border-top: 13px solid transparent;
+  border-left: 10px solid #5c5c5c;
+}
+
+div.vertical-tab-content{
+  background-color: #ffffff;
+  /* border: 1px solid #eeeeee; */
+  padding-left: 20px;
+  padding-top: 10px;
+}
+
+div.vertical-tab div.vertical-tab-content:not(.active){
+  display: none;
+}
+div.vertical-tab-content-accordion:not(.active){
+  display: none;
+}
+.list-group-item.active {
+    background: #5c5c5c;
+}
+.list-group-item.active, .list-group-item.active:hover, .list-group-item.active:focus {
+    background: #5c5c5c;
+    border-color: #5c5c5c;
+}
+.check label {
+	-webkit-box-pack: left;
+	-webkit-justify-content: left;
+	-ms-flex-pack: left;
+	/* justify-content: left; */
+	/* -webkit-box-align: left; */
+	/* -webkit-align-items: left; */
+	-ms-flex-align: left;
+}
+.check .icon-box {
+	margin-left:10px;
+}
+@media (max-width:480px)
+{
+	.vertical-tab .row, .vertical-tab .row div {
+		padding: 0px;
+		margin: 0px;
+		
+	}
+	.check label h2 {
+		margin: -10px 10px 0px 10px !important;
+	}
+	div.vertical-tab-content {
+		padding-left: 0px;
+	}
+	
+}
+@media (max-width: 768px)
+{
+	div.vertical-tab-menu div.list-group>a.active:after{
+	  display: none;
+	}
+}
+@media (min-width:481px)
+{
+	.check label h2 {
+		margin: 0px 10px !important;
+	}
+}
+</style>
+<script type="text/javascript">
+$(document).ready(function() {
+    $("div.vertical-tab-menu>div.list-group>a").click(function(e) {
+        e.preventDefault();
+        $(this).siblings('a.active').removeClass("active");
+        $(this).addClass("active");
+        var index = $(this).index()/2;
+        $("div.vertical-tab>div.vertical-tab-content").removeClass("active").removeClass("scroller");
+        $("div.vertical-tab>div.vertical-tab-content").eq(index+1).addClass("active").addClass("scroller");
+        $("div.vertical-tab-content-accordion").removeClass("active");
+        $("div.vertical-tab-content-accordion").eq(index).addClass("active");
+		scrollFunc();
+		if (Modernizr.mq('(max-width: 767px)')) {
+			$('html, body').animate({
+				scrollTop: $(this).offset().top
+			}, 500);
+		} else {
+			$('html, body').animate({
+				scrollTop: $("div.vertical-tab>div.vertical-tab-content").eq(index+1).offset().top
+			}, 500);
+		}
+    });
+});
+</script>
+<div class="container">
+	<div class="vertical-tab-content active hidden-sm hidden-md hidden-lg">
+		<center>
+		  <h1>Wild Game Feed</h1>
+		  <h2>Volunteer Registration</h2>
+		  <br />
+		</center>
+		<p>Use the options below to select a role.  Once you have selected a role, then select a room where you would like to serve.</p>
+		<p>The time for all jobs (unless otherwise stated) will be 4:00-6:30 p.m. on Sunday, Jan 28th.  All jobs require comfortable shoes, walking and fast paced-activity.</p>
+	</div>
+	<div class="row">
+        <div class="col-lg-8 col-lg-offset-2 col-md-8 col-md-offset-2 col-sm-12 vertical-tab-container">
+            <div class="col-lg-2 col-md-3 col-sm-3 col-xs-12 vertical-tab-menu">
+              <div class="list-group">
+                {% for role in Tree %}
+                    {% if role.Limit != 0 %}
+                    {% assign spotsLeft = role.Limit | Minus: role.Filled %}
+						<a href="#" class="list-group-item text-center" style="padding: 25px">
+						  <span class="badge badge-secondary" style="position: absolute; top:5px; right:5px;" title="{{spotsLeft}} Spots Left">{{spotsLeft}}</span>
+						  <i class="{{role.Entity | Attribute:'Icon' }} fa-3x"></i><br/>{{role.Entity.Name}}
+						</a>
+						{% if role.Limit != 0 %}
+						{% assign spotsLeft = role.Limit | Minus: role.TotalFilled %}
+							<div class="vertical-tab-content-accordion hidden-lg hidden-md hidden-sm" style="border: 1px solid rgb(221, 221, 221); border-width: 0px 1px; padding:20px" >
+								<center>
+								  <h1>{{role.Entity.Name}}</h1>
+								</center>
+								  <p>{{role.Entity.Description}}</p>
+								  <br />
+								  {% for location in role.Partitions %}
+										{% if location.Limit != 0 %}
+											{% assign spotsLeft = location.Limit | Minus: location.TotalFilled %}
+											<div class="row">
+												<div class="col-sm-9">
+													<h3>{{location.Entity.Value }}</h3>
+													{% if location.Limit > 0 %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}
+												</div>
+												<div class="col-sm-3">
+													<a class="btn btn-default pull-right" href="/serve/wildgamefeed/signup?CampusId=1&OpportunityId=9&GroupId=531024&Location={{location.Entity.Guid}}&GroupTypeRoleId={{role.Entity.Id}}">Sign Up</a>
+												</div>
+												<div class="col-xs-12">
+													<hr />
+												</div>
+											</div>
+										{% endif %}
+								  {% endfor %}
+							</div>
+						{% endif %}
+					{% endif %}
+                {% endfor %}
+              </div>
+            </div>
+            <div class="col-lg-9 col-md-9 col-sm-8 col-xs-12 vertical-tab scroller_anchor hidden-xs">
+				<div class="vertical-tab-content active hidden-xs scroller">
+					<center>
+					  <h1>Wild Game Feed</h1>
+					  <h2>Volunteer Registration</h2>
+					  <br />
+					</center>
+					<p>Use the options along the left to select a role.  Once you have selected a role, then select a room where you would like to serve.</p>
+					<p>The time for all jobs (unless otherwise stated) will be 4:00-6:30 p.m. on Sunday, Jan 28th.  All jobs require comfortable shoes, walking and fast paced-activity.</p>
+				</div>
+                {% for role in Tree %}
+                    {% if role.Limit != 0 %}
+                    {% assign spotsLeft = role.Limit | Minus: role.TotalFilled %}
+						<div class="vertical-tab-content">
+							<center>
+							  <h1>{{role.Entity.Name}}</h1>
+							</center>
+							  <p>{{role.Entity.Description}}</p>
+							  <br />
+							  {% for location in role.Partitions %}
+									{% if location.Limit != 0 %}
+										{% assign spotsLeft = location.Limit | Minus: location.TotalFilled %}
+										<div class="row">
+											<div class="col-sm-9">
+												<h3>{{location.Entity.Value }}</h3>
+												{% if location.Limit > 0 %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}
+											</div>
+											<div class="col-sm-3">
+												<a class="btn btn-default pull-right" href="/serve/wildgamefeed/signup?CampusId=1&OpportunityId=9&GroupId=531024&Location={{location.Entity.Guid}}&GroupTypeRoleId={{role.Entity.Id}}">Sign Up</a>
+											</div>
+											<div class="col-xs-12">
+												<hr />
+											</div>
+										</div>
+									{% endif %}
+							  {% endfor %}
+						</div>
+					{% endif %}
+                {% endfor %}
+            </div>
+        </div>
+  </div>
+</div>
+<script type="text/javascript">
+// This function will be executed when the user scrolls the page.
+scrollFunc = function()
+{
+    // Get the position of the location where the scroller starts.
+    var scroller_anchor = $(".scroller_anchor").offset().top;
+    var scroller_anchor_bottom = $(".vertical-tab-container").offset().top + $(".vertical-tab-container").height();
+    // Check if the user has scrolled and the current position is after the scroller start location and if its not already fixed at the top 
+	
+	//
+    if ($(this).scrollTop() + $('.scroller').height() > scroller_anchor_bottom-10) 
+    {  //alert(($(this).scrollTop() + $('.scroller').height()) + " - " + scroller_anchor_bottom);
+		var marginTop = $(".vertical-tab-container").height() - $('.scroller').height()-10;
+		//alert(marginTop);
+        // Change the CSS and put it back to its original position.
+        $('.scroller').css({
+            'position': 'relative',
+			'margin-top':marginTop
+        });
+    } 
+	else if ($(this).scrollTop() >= scroller_anchor && $('.scroller').css('position') != 'fixed') 
+    {    
+		// Change the CSS of the scroller to hilight it and fix it at the top of the screen.
+		width = $('.scroller').css('width');
+        $('.scroller').css({
+            'position': 'fixed',
+            'top': '0px',
+			'width': width,
+			'margin-top':'0px'
+        });
+    } 
+    else if ($(this).scrollTop() < scroller_anchor && $('.scroller').css('position') != 'relative') 
+    {    // If the user has scrolled back to the location above the scroller anchor place it back into the content.
+         
+         
+        // Change the CSS and put it back to its original position.
+        $('.scroller').css({
+            'position': 'relative',
+			'margin-top':'0px'
+        });
+    }
+}
+$(window).scroll(function(e) {
+	scrollFunc();
+});
+</script>
