@@ -21,7 +21,6 @@ namespace org.secc.FamilyCheckin
     [Description( "Saves the selected check-in data as attendance" )]
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Save Attendance Custom" )]
-    [BooleanField( "Set Did Attend", "Should the DidAttend field be set to true?", true )]
     public class SaveAttendance : CheckInActionComponent
     {
         /// <summary>
@@ -44,7 +43,7 @@ namespace org.secc.FamilyCheckin
                 DateTime tomorrow = startDateTime.AddDays( 1 );
 
                 bool reuseCodeForFamily = checkInState.CheckInType != null && checkInState.CheckInType.ReuseSameCode;
-                int securityCodeLength = checkInState.CheckInType != null ? checkInState.CheckInType.SecurityCodeLength : 3;
+                int securityCodeLength = checkInState.CheckInType != null ? checkInState.CheckInType.SecurityCodeAlphaNumericLength : 3;
 
                 var attendanceCodeService = new AttendanceCodeService( rockContext );
                 var attendanceService = new AttendanceService( rockContext );
@@ -118,7 +117,7 @@ namespace org.secc.FamilyCheckin
                                             attendance.AttendanceCodeId = attendanceCode.Id;
                                             attendance.StartDateTime = startDateTime;
                                             attendance.EndDateTime = null;
-                                            attendance.DidAttend = GetActionAttributeValue( action, "SetDidAttend" ).AsBoolean();
+                                            attendance.DidAttend = groupType.GroupType.GetAttributeValue( "SetDidAttend" ).AsBoolean();
                                             attendanceService.Add( attendance );
                                             CheckInCountCache.AddAttendance( attendance );
                                         }

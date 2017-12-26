@@ -1,0 +1,971 @@
+/* ------------------------------------------------
+    CSS
+------------------------------------------------ */
+
+/* ================================================
+// ************************************************
+//
+// Startuply Custom Styles
+//
+// ************************************************
+================================================ */
+
+.nav.nav-schedule > li > a {
+  color: $color-3;
+  text-transform: uppercase;
+  padding: 20px 15px 20px !important;
+}
+
+.nav.nav-schedule > li:after,
+.schedule .tab-content .nav.nav-schedule > li.active,
+.schedule .schedule-item .lecture-icon-wrapper,
+.download-schedule-btn:hover,
+.download-schedule-btn:focus,
+.schedule.schedule-light .nav.nav-schedule,
+.schedule.schedule-light .tab-content {
+  border-color: $color-3;
+}
+
+.nav.nav-schedule > li.active,
+.download-schedule-btn:hover,
+.download-schedule-btn:focus,
+.schedule.schedule-light .nav.nav-schedule > li,
+.schedule.schedule-light .schedule-item .schedule-item-toggle .lecture-icon-wrapper {
+  background-color: $color-3;
+}
+
+.nav.nav-schedule.advent_days > li {
+  background-color: #fafbf9;
+}
+.nav.nav-schedule.advent_days > li.active {
+  background-color: #8b434c;
+}
+
+.schedule .tab-content .nav.nav-schedule > li.active > a:not(:hover):not(:active),
+.schedule .tab-content .nav.nav-schedule > li.active > a:hover,
+.schedule .tab-content .nav.nav-schedule > li.active > a:focus,
+.schedule .schedule-item .schedule-item-toggle.collapsed .title .icon,
+.schedule .schedule-item .schedule-item-body .speaker-name,
+.schedule.schedule-light .nav.nav-schedule > li.active a,
+.schedule.schedule-light .nav.nav-schedule > li.active a:hover,
+.schedule.schedule-light .nav.nav-schedule > li.active a:focus,
+.schedule.schedule-light .nav.nav-schedule > li.active a *,
+.schedule.schedule-light .nav.nav-schedule > li.active a:hover *,
+.schedule.schedule-light .nav.nav-schedule > li.active a:focus *,
+.schedule.schedule-light .schedule-item .schedule-item-body .speaker-name {
+  color: $color-3;
+}
+::selection {
+  color: $color-4;
+  background-color: rgba($color-4, 0.2);
+}
+::-moz-selection {
+  color: $color-4;
+  background-color: rgba($color-4, 0.2);
+}
+
+/* ----------------------------------------------------------------------------
+    Schedules
+---------------------------------------------------------------------------- */
+
+.schedule {
+  margin-bottom: 10px;
+  text-align: left;
+  background-color: #ffffff;
+  // padding: 1em;
+}
+.schedule .tab-content .nav-current {
+  background-color: #eff1f5;
+  border-color: #e9e9e9;
+}
+.nav.nav-schedule {
+  display: table;
+  width: 100%;
+  border-style: solid;
+  border-width: 0 1px 0 0;
+  border-color: #e9e9e9;
+  z-index: 10;
+}
+.nav.nav-schedule > li {
+  -webkit-transition: background 0.2s ease, border 0.2s ease;
+  -moz-transition: background 0.2s ease, border 0.2s ease;
+  -o-transition: background 0.2s ease, border 0.2s ease;
+  transition: background 0.2s ease, border 0.2s ease;
+  position: relative;
+  display: table-cell;
+  font-size: 15px;
+  border-style: solid;
+  border-width: 1px 0 1px 1px;
+  border-color: #e9e9e9;
+  margin-bottom: 0px;
+}
+.nav.nav-schedule > li:after {
+  -webkit-transition: opacity 0.15s ease;
+  -moz-transition: opacity 0.15s ease;
+  -o-transition: opacity 0.15s ease;
+  transition: opacity 0.15s ease;
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  margin-left: -8px;
+  width: 0;
+  height: 0;
+  content: "";
+  border-style: solid;
+  border-width: 7px 10px 0 10px;
+  border-left-color: transparent;
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  opacity: 0;
+  z-index: 1;
+}
+.nav.nav-schedule.advent_days > li:after {
+    border: none;
+    border-top-color: transparent;
+}
+.nav.nav-schedule > li > a {
+  outline: 0;
+  -webkit-transition: color 0.2s ease;
+  -moz-transition: color 0.2s ease;
+  -o-transition: color 0.2s ease;
+  transition: color 0.2s ease;
+  display: block;
+  text-decoration: none;
+  padding: 20px 15px 12px;
+  text-align: center;
+}
+.nav.nav-schedule > li > a *:first-child {
+  margin-top: 0;
+}
+.nav.nav-schedule > li > a *:last-child {
+  margin-bottom: 0;
+}
+.nav.nav-schedule > li > a:hover,
+.nav.nav-schedule > li > a:focus {
+  background-color: transparent;
+}
+.nav.nav-schedule > li > a h1:first-child,
+.nav.nav-schedule > li > a h2:first-child,
+.nav.nav-schedule > li > a h3:first-child,
+.nav.nav-schedule > li > a h4:first-child,
+.nav.nav-schedule > li > a h5:first-child,
+.nav.nav-schedule > li > a h6:first-child {
+  margin: 0 0 -2px;
+}
+.nav.nav-schedule > li.active:after {
+  opacity: 1;
+}
+.nav.nav-schedule > li.active,
+.nav.nav-schedule > li.active:hover,
+.nav.nav-schedule > li.active:active {
+  cursor: default;
+  pointer-events: none;
+}
+.nav.nav-schedule > li.active a,
+.nav.nav-schedule > li.active a:hover,
+.nav.nav-schedule > li.active a:focus,
+.nav.nav-schedule > li.active a *,
+.nav.nav-schedule > li.active a:hover *,
+.nav.nav-schedule > li.active a:focus * {
+  color: $color-1;
+}
+.schedule .tab-content {
+  padding: 0;
+  border-style: solid;
+  border-width: 0 1px 1px;
+  border-color: transparent #e9e9e9 #e9e9e9;
+}
+.schedule .tab-content .advent_devo {
+    border-width: 3px 1px 1px;
+    border-color: #6c252e #e9e9e9 #e9e9e9;
+    margin-top: -2px;
+    p {
+        font-size: 1.3em;
+    }
+    a {
+        color: $DarkGrayColor;
+    }
+}
+.schedule .tab-content .img-responsive {
+  margin: 0;
+}
+.schedule .tab-content .nav.nav-schedule {
+  display: inline-block;
+  background-color: #eff1f5;
+  border: none;
+}
+.schedule .tab-content .nav.nav-schedule > li {
+  display: inline-block;
+  border-width: 0 0 1px;
+}
+.schedule .tab-content .nav.nav-schedule > li:not(.active) {
+  border-color: transparent;
+}
+.schedule .tab-content .nav.nav-schedule > li:after {
+  display: none;
+}
+.schedule .tab-content .nav.nav-schedule > li > a {
+  margin: 0;
+  padding: 16px 45px 14px;
+  font-family: "brandon-grotesque", sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.schedule .tab-content .nav.nav-schedule > li > a:not(:hover):not(:active) {
+  color: $color-3;
+}
+.schedule .tab-content .nav.nav-schedule > li.active {
+  background-color: transparent;
+}
+.schedule .tab-content-schedule {
+  position: relative;
+  // border: none;
+  padding: 90px 100px 80px 80px;
+}
+.schedule .tab-content-schedule:before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 104px;
+  width: 0;
+  display: block;
+  content: "";
+  border-right: 1px solid #eff1f5;
+}
+
+.schedule .advent_devo:before {
+  border-right: none;
+}
+.schedule .tab-content-schedule .panel-group {
+  margin-bottom: 0;
+}
+.schedule .tab-content-schedule .schedule-item {
+  position: relative;
+  margin-bottom: 30px;
+  min-height: 65px;
+  padding: 0 0 0 100px;
+  background-color: transparent;
+  -webkit-box-shadow: none !important;
+  box-shadow: none !important;
+}
+.schedule .tab-content-schedule .schedule-item:last-child {
+  margin-bottom: 0;
+}
+.schedule .schedule-item + .schedule-item {
+  margin-top: 0;
+}
+.schedule .schedule-item .lecture-icon-wrapper {
+  position: absolute;
+  vertical-align: middle;
+  top: 35px;
+  left: 4px;
+  width: 40px;
+  height: 40px;
+  text-align: center;
+  font-size: 20px;
+  line-height: 36px;
+  background-color: #ffffff;
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.schedule .schedule-item .schedule-item-toggle {
+  margin-bottom: 0;
+  display: block;
+  text-decoration: none;
+  color: $color-2;
+}
+.schedule .time {
+  margin-bottom: 10px;
+  font-size: 20px;
+  color: $color-2;
+}
+.schedule .schedule-item .schedule-item-toggle .time {
+  margin-bottom: 10px;
+  font-size: 20px;
+}
+.schedule .schedule-item .title {
+   font-size: 1.2em;
+   hr {
+       margin: 5px 0;
+   }
+   .more-info {
+       margin-top: 4px;
+   }
+}
+.schedule .schedule-item .schedule-item-toggle .title {
+  position: relative;
+  margin: 0;
+  padding: 0 35px 11px 0;
+  border-bottom: 1px solid #eff1f5;
+}
+.schedule .schedule-item .schedule-item-toggle .title .icon {
+  -webkit-transition: -webkit-transform 0.3s ease;
+  -moz-transition: -moz-transform 0.3s ease;
+  -o-transition: -o-transform 0.3s ease;
+  transition: -webkit-transform 0.3s ease,-moz-transform 0.3s ease,-o-transform 0.3s ease,transform 0.3s ease;
+  position: absolute;
+  right: 10px;
+  bottom: 11px;
+  font-size: 13px;
+  color: #51545b;
+}
+.schedule .schedule-item .schedule-item-body {
+  margin-top: 0;
+  /*font-size: @font-size-small;*/
+}
+.schedule .schedule-item .schedule-item-body .speaker-wrapper {
+  margin-bottom: 0;
+}
+.schedule .schedule-item .schedule-item-body > article,
+.schedule .schedule-item .schedule-item-body > div {
+  margin: 0;
+  padding: 11px 0;
+}
+.schedule .schedule-item .schedule-item-body .speaker-name {
+  display: inline-block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5em;
+}
+.download-schedule-btn {
+  -webkit-transition: color 0.2s ease, background 0.2s ease, border 0.2s ease;
+  -moz-transition: color 0.2s ease, background 0.2s ease, border 0.2s ease;
+  -o-transition: color 0.2s ease, background 0.2s ease, border 0.2s ease;
+  transition: color 0.2s ease, background 0.2s ease, border 0.2s ease;
+  position: relative;
+  margin: 0 auto;
+  display: block;
+  width: 220px;
+  padding: 15px 25px 15px 90px;
+  font-size: 18px;
+  text-align: left;
+  line-height: 25px;
+  border: 1px solid #babfcc;
+}
+.download-schedule-btn:hover,
+.download-schedule-btn:focus {
+  color: #ffffff;
+  text-decoration: none;
+}
+.download-schedule-btn .icon {
+  position: absolute;
+  top: 50%;
+  left: 25px;
+  margin-top: -20px;
+  font-size: 50px;
+  color: inherit;
+}
+.schedule.schedule-light {
+  margin-bottom: 30px;
+}
+.schedule.schedule-light .nav-current {
+  font-family: "brandon-grotesque", sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #262627;
+}
+.schedule.schedule-light .nav.nav-schedule {
+  border-style: solid;
+  border-width: 1px;
+  border-collapse: separate;
+}
+.schedule.schedule-light .nav.nav-schedule > li {
+  border-width: 0 1px;
+  border-color: transparent #ffffff;
+}
+.schedule.schedule-light .nav.nav-schedule > li:first-child {
+  border-left-color: transparent;
+}
+.schedule.schedule-light .nav.nav-schedule > li:last-child {
+  border-right-color: transparent;
+}
+.schedule.schedule-light .nav.nav-schedule > li:after {
+  display: none;
+}
+.schedule.schedule-light .nav.nav-schedule > li > a {
+  padding: 24px 15px 19px;
+  font-family: "brandon-grotesque", sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+.schedule.schedule-light .nav.nav-schedule > li.active {
+  background-color: #ffffff;
+}
+.schedule.schedule-light .tab-content {
+  padding: 60px;
+}
+.schedule.schedule-light .schedule-item {
+  margin-bottom: 40px;
+  overflow: visible;
+}
+.schedule.schedule-light .schedule-item .schedule-item-toggle {
+  position: relative;
+  margin-bottom: 0;
+  display: block;
+  font-size: 0;
+  text-decoration: none;
+  color: $color-2;
+}
+.schedule.schedule-light .schedule-item .schedule-item-toggle .time {
+  vertical-align: top;
+  margin: 0 20.5% 0 0;
+  width: 26.5%;
+  text-align: right;
+}
+.schedule.schedule-light .schedule-item .schedule-item-toggle .lecture-icon-wrapper {
+  margin: 0 40px;
+  position: absolute;
+  top: -8px;
+  left: 26.5%;
+  display: inline-block;
+  line-height: 38px;
+  border: none;
+}
+.schedule.schedule-light .schedule-item .schedule-item-toggle .lecture-icon-wrapper * {
+  color: #ffffff;
+}
+.schedule.schedule-light .schedule-item .schedule-item-toggle .title {
+  display: inline-block;
+  width: 53%;
+  padding: 0;
+  border: none;
+}
+.schedule.schedule-light .schedule-item .schedule-item-body {
+  margin: 0 0 0 47%;
+}
+.schedule.schedule-light .schedule-item .schedule-item-body .speaker-name {
+  display: inline-block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5em;
+}
+@media (max-width: 991px) {
+  .schedule {
+      background: transparent;
+  }
+
+  .schedule .tab-content .advent_devo {
+      border-width: 2px 1px 1px;
+      border-color: #e9e9e9 #e9e9e9 #e9e9e9;
+      margin-top: 0px;
+      a {
+          color: $DarkGrayColor;
+      }
+  }
+
+  .nav.nav-schedule.advent_days > li.active {
+    background-color: #e9e9e9;
+  }
+
+  .schedule .schedule-item .title {
+      padding: 0px !important;
+      margin-top: 0px;
+  }
+  .nav-wrapper-schedual {
+    border: 1px solid $color-3;
+  }
+  .schedule .tab-content {
+    // border: none;
+  }
+  .schedule .tab-content-schedule {
+    background-color: $color-1;
+    border-width: 2px 1px 1px;
+    border-color: #e9e9e9 #e9e9e9 #e9e9e9;
+    margin-top: 0px;
+    padding: 35px 20px;
+  }
+  .schedule .tab-content-schedule:before {
+    display: none;
+  }
+  .schedule .tab-content-schedule .schedule-item {
+    margin-bottom: 30px;
+    padding-left: 0;
+	-webkit-box-shadow: none !important;
+	box-shadow: none !important;
+  }
+  .schedule.schedule-light .nav.nav-schedule {
+    border-color: #e9e9e9;
+  }
+  .schedule.schedule-light .nav.nav-schedule > li {
+    background-color: transparent;
+  }
+  .schedule.schedule-light .nav.nav-schedule > li > a {
+    color: #51545b;
+  }
+  .schedule.schedule-light .tab-content {
+    padding: 10px 20px 30px;
+  }
+  .schedule.schedule-light .schedule-item {
+    margin-bottom: 40px;
+    overflow: visible;
+  }
+  .schedule.schedule-light .schedule-item .schedule-item-toggle .time {
+    margin: 0 0 15px;
+    width: 100%;
+    text-align: left;
+  }
+  .schedule.schedule-light .schedule-item .schedule-item-toggle .lecture-icon-wrapper {
+    position: absolute;
+    top: 30px;
+    left: 0;
+    margin: 0;
+  }
+  .schedule.schedule-light .schedule-item .schedule-item-toggle .title {
+    margin: 0 0 20px;
+    vertical-align: top;
+    width: auto;
+    padding-left: 50px;
+  }
+  .schedule.schedule-light .schedule-item .schedule-item-body {
+    margin: 0;
+  }
+}
+@media (max-width: 480px) {
+  .schedule {
+      background: transparent;
+  }
+  .nav-wrapper-schedual {
+      border: 1px solid $color-3;
+  }
+  .schedule .tab-content-schedule {
+    padding: 15px;
+  }
+  .schedule .tab-content-schedule .schedule-item {
+    margin-bottom: 30px;
+    padding-left: 0;
+	-webkit-box-shadow: none !important;
+	box-shadow: none !important;
+  }
+  .schedule .tab-content-schedule .schedule-item .lecture-icon-wrapper {
+    top: 27px;
+    left: 0;
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+    line-height: 28px;
+  }
+  .schedule .schedule-item .title {
+     padding: 0 35px 11px 40px;
+     margin-top: 0px;
+  }
+  .schedule .tab-content-schedule .schedule-item .schedule-item-toggle .title {
+    padding-left: 40px;
+  }
+  .schedule .tab-content-schedule .speaker-name {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .speaker-photo-wrapper {
+    display: none;
+  }
+  .schedule.schedule-light .tab-content {
+    padding: 10px 5px 20px;
+  }
+  .schedule.schedule-light .schedule-item .schedule-item-toggle .lecture-icon-wrapper {
+    top: 32px;
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+    line-height: 28px;
+  }
+  .schedule.schedule-light .schedule-item .schedule-item-toggle .title {
+    padding-left: 35px;
+  }
+}
+/* ----------------------------------------------------------------------------
+    Navs
+---------------------------------------------------------------------------- */
+.nav-wrapper-schedual {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  position: relative;
+}
+.nav-wrapper-schedual .nav-current {
+  position: relative;
+  margin: 0;
+  display: none;
+  width: auto;
+  height: auto;
+  padding: 15px 55px 10px 15px;
+  border-radius: 0;
+  z-index: auto;
+  cursor: pointer;
+}
+.nav-wrapper-schedual .nav-current * {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nav-wrapper-schedual .nav-current *:last-child {
+  margin-bottom: 0;
+}
+.nav-wrapper-schedual .nav-current:after {
+  position: absolute;
+  top: 50%;
+  right: 20px;
+  margin: -5px 0 0;
+  display: inline-block;
+  width: 24px;
+  height: 11px;
+  content: "";
+  background: transparent url("/Content/ExternalSite/arrow_select.png") center no-repeat;
+  border: none;
+}
+.nav.nav-tabs {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  margin-bottom: 50px;
+  padding: 0 40px 13px;
+  font-size: 0;
+  text-align: justify;
+  border-style: solid;
+  border-width: 0 0 1px;
+  border-color: transparent transparent #e9e9e9;
+}
+.nav.nav-tabs:after {
+  display: inline-block;
+  width: 100%;
+  content: "";
+}
+.nav.nav-tabs > li {
+  float: none;
+  position: relative;
+  margin: 0;
+  vertical-align: top;
+  text-align: left;
+  display: inline-block;
+  font-size: 15px;
+}
+.nav.nav-tabs > li:first-child {
+  margin-left: 0;
+}
+.nav.nav-tabs > li:before,
+.nav.nav-tabs > li:after {
+  position: absolute;
+  bottom: -23px;
+  left: 50%;
+  content: "";
+  width: 0;
+  height: 0;
+  border-style: solid;
+  opacity: 0;
+}
+.nav.nav-tabs > li:before {
+  margin: 0 0 -2px -1px;
+  border-width: 11px 15px 0 15px;
+  border-color: #e9e9e9 transparent transparent transparent;
+}
+.nav.nav-tabs > li:after {
+  border-width: 10px 14px 0 14px;
+  border-color: #ffffff transparent transparent transparent;
+}
+.nav.nav-tabs > li:not(.active) > a:not(:hover):not(:focus) {
+  color: $color-2;
+}
+.nav.nav-tabs > li .fa {
+  margin-right: 5px;
+  vertical-align: text-bottom;
+  font-size: 20px;
+}
+.nav.nav-tabs > li > a {
+  -webkit-transition: color 0.2s ease;
+  -moz-transition: color 0.2s ease;
+  -o-transition: color 0.2s ease;
+  transition: color 0.2s ease;
+  position: relative;
+  border: none;
+}
+.nav.nav-tabs > li > a:hover,
+.nav.nav-tabs > li > a:focus {
+  background-color: transparent;
+}
+.nav.nav-tabs > li > a .fa {
+  color: inherit;
+}
+.nav.nav-tabs > li > a h1,
+.nav.nav-tabs > li > a h2,
+.nav.nav-tabs > li > a h3,
+.nav.nav-tabs > li > a h4,
+.nav.nav-tabs > li > a h5,
+.nav.nav-tabs > li > a h6,
+.nav.nav-tabs > li > a .h7,
+.nav.nav-tabs > li > a .h8 {
+  color: inherit;
+}
+.nav.nav-tabs > li.active:before,
+.nav.nav-tabs > li.active:after {
+  opacity: 1;
+}
+.nav.nav-tabs > li.active > a,
+.nav.nav-tabs > li.active > a:hover,
+.nav.nav-tabs > li.active > a:focus {
+  background-color: transparent;
+  border: none;
+  pointer-events: none;
+}
+.tab-content,
+.tab-pane {
+  zoom: 1;
+}
+.tab-content:before,
+.tab-pane:before,
+.tab-content:after,
+.tab-pane:after {
+  content: "";
+  display: table;
+}
+.tab-content:after,
+.tab-pane:after {
+  clear: both;
+}
+.tab-content {
+  padding-bottom: 50px;
+  p {
+      margin: 0px !important;
+  }
+}
+.tab-content .img-responsive {
+  margin: 0 auto;
+}
+.tabs-vertical {
+  zoom: 1;
+  overflow: hidden;
+  border: 1px solid #e9e9e9;
+}
+.tabs-vertical:before,
+.tabs-vertical:after {
+  content: "";
+  display: table;
+}
+.tabs-vertical:after {
+  clear: both;
+}
+.tabs-vertical .nav.nav-tabs {
+  float: left;
+  position: relative;
+  margin: 0;
+  width: 26.7%;
+  padding: 0;
+  text-align: left;
+  z-index: 1;
+}
+.tabs-vertical .nav.nav-tabs:before {
+  margin-top: -1px;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  display: block;
+  height: 100%;
+  content: "";
+  border-style: solid;
+  border-width: 1px 1px 0 0;
+  border-color: #e9e9e9;
+  z-index: -1;
+}
+.tabs-vertical .nav.nav-tabs > li {
+  margin: 0;
+  width: 100%;
+}
+.tabs-vertical .nav.nav-tabs > li:before,
+.tabs-vertical .nav.nav-tabs > li:after {
+  display: none;
+}
+.tabs-vertical .nav.nav-tabs > li:not(.active) a {
+  -webkit-transition: color 0.25s ease, background 0.25s ease;
+  -moz-transition: color 0.25s ease, background 0.25s ease;
+  -o-transition: color 0.25s ease, background 0.25s ease;
+  transition: color 0.25s ease, background 0.25s ease;
+  color: #ffffff;
+}
+.tabs-vertical .nav.nav-tabs > li:not(.active) a * {
+  color: #ffffff;
+}
+.tabs-vertical .nav.nav-tabs > li a {
+  border-radius: 0;
+}
+.tabs-vertical .nav.nav-tabs > li.active a {
+  border-top: 1px solid #e9e9e9;
+  border-right-color: transparent;
+}
+.tabs-vertical .nav.nav-tabs > li.active + li a {
+  border-top-color: #e9e9e9;
+}
+.tabs-vertical .nav.nav-tabs > li:first-child a {
+  border-top-color: transparent;
+}
+.tabs-vertical .nav.nav-tabs > li a {
+  -webkit-transition: color 0.2s ease, background 0.2s ease;
+  -moz-transition: color 0.2s ease, background 0.2s ease;
+  -o-transition: color 0.2s ease, background 0.2s ease;
+  transition: color 0.2s ease, background 0.2s ease;
+  width: 100%;
+  padding: 48px 35px 32px;
+  border-top: 1px solid #ffffff;
+  border-right: 1px solid #e9e9e9;
+}
+.tabs-vertical .nav.nav-tabs > li p {
+  margin-top: 5px;
+  line-height: 1.6;
+}
+.tabs-vertical .tab-content {
+  float: right;
+  width: 73.3%;
+  padding: 70px 50px 60px 60px;
+}
+@media (max-width: 991px) {
+
+  .nav.nav-schedule,
+  .schedule .tab-content .nav.nav-schedule {
+    -webkit-box-shadow: -1px 8px 16px 0 rgba(0, 0, 0, 0.18);
+    -moz-box-shadow: -1px 8px 16px 0 rgba(0, 0, 0, 0.18);
+    box-shadow: -1px 8px 16px 0 rgba(0, 0, 0, 0.18);
+    float: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    display: block;
+    display: none;
+    padding: 0;
+    height: auto;
+    width: auto;
+    // max-height: 250px;
+    text-align: left;
+    background-color: #ffffff;
+    border-style: solid;
+    border-width: 0 1px 1px;
+    border-color: #e9e9e9;
+    z-index: 5;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .nav.nav-schedule:before,
+  .schedule .tab-content .nav.nav-schedule:before,
+  .nav.nav-schedule:after,
+  .schedule .tab-content .nav.nav-schedule:after {
+    display: none;
+  }
+  .nav.nav-schedule > li,
+  .schedule .tab-content .nav.nav-schedule > li {
+    display: inline-block;
+    width: 100%;
+    border: none;
+    background-color: transparent;
+  }
+  .nav.nav-schedule > li:before,
+  .schedule .tab-content .nav.nav-schedule > li:before,
+  .nav.nav-schedule > li:after,
+  .schedule .tab-content .nav.nav-schedule > li:after {
+    display: none;
+  }
+  .nav.nav-schedule > li.active,
+  .schedule .tab-content .nav.nav-schedule > li.active {
+    border: none;
+    background-color: transparent;
+  }
+  .nav.nav-schedule > li.active > a,
+  .schedule .tab-content .nav.nav-schedule > li.active > a,
+  .nav.nav-schedule > li.active > a:hover,
+  .schedule .tab-content .nav.nav-schedule > li.active > a:hover,
+  .nav.nav-schedule > li.active > a:focus,
+  .schedule .tab-content .nav.nav-schedule > li.active > a:focus,
+  .tabs-vertical .nav.nav-tabs > li.active > a:focus {
+    background-color: inherit;
+    color: $color-3;
+    border: none;
+    opacity: 1;
+  }
+  .nav.nav-schedule > li.active > a *,
+  .schedule .tab-content .nav.nav-schedule > li.active > a *,
+  .nav.nav-schedule > li.active > a:hover *,
+  .schedule .tab-content .nav.nav-schedule > li.active > a:hover *,
+  .nav.nav-schedule > li.active > a:focus *,
+  .schedule .tab-content .nav.nav-schedule > li.active > a:focus * {
+    color: inherit;
+  }
+  .nav.nav-schedule > li > a,
+  .schedule .tab-content .nav.nav-schedule > li > a,
+  .nav.nav-schedule > li:not(.active) > a,
+  .schedule .tab-content .nav.nav-schedule > li:not(.active) > a {
+    display: inline-block;
+    padding: 10px 15px;
+    width: 100%;
+    text-align: left;
+    background-color: inherit;
+    border: inherit;
+    color: inherit;
+  }
+  .nav.nav-schedule > li > a:before,
+  .schedule .tab-content .nav.nav-schedule > li > a:before,
+  .nav.nav-schedule > li:not(.active) > a:before,
+  .schedule .tab-content .nav.nav-schedule > li:not(.active) > a:before,
+  .nav.nav-schedule > li > a:after,
+  .schedule .tab-content .nav.nav-schedule > li > a:after,
+  .nav.nav-schedule > li:not(.active) > a:after,
+  .schedule .tab-content .nav.nav-schedule > li:not(.active) > a:after {
+    display: none;
+  }
+  .nav.nav-schedule > li > a:hover,
+  .schedule .tab-content .nav.nav-schedule > li > a:hover,
+  .nav.nav-schedule > li:not(.active) > a:hover,
+  .schedule .tab-content .nav.nav-schedule > li:not(.active) > a:hover,
+  .nav.nav-schedule > li > a:focus,
+  .schedule .tab-content .nav.nav-schedule > li > a:focus,
+  .nav.nav-schedule > li:not(.active) > a:focus,
+  .schedule .tab-content .nav.nav-schedule > li:not(.active) > a:focus,
+  .nav.nav-schedule > li > a:active,
+  .schedule .tab-content .nav.nav-schedule > li > a:active,
+  .nav.nav-schedule > li:not(.active) > a:active,
+  .schedule .tab-content .nav.nav-schedule > li:not(.active) > a:active {
+    color: inherit;
+    background-color: rgba(239, 241, 245, 0.4);
+  }
+  .nav.nav-schedule > li > a *,
+  .schedule .tab-content .nav.nav-schedule > li > a *,
+  .nav.nav-schedule > li:not(.active) > a *,
+  .schedule .tab-content .nav.nav-schedule > li:not(.active) > a * {
+    color: inherit;
+  }
+  .nav.nav-schedule > li > a *:last-child,
+  .schedule .tab-content .nav.nav-schedule > li > a *:last-child,
+  .nav.nav-schedule > li:not(.active) > a *:last-child,
+  .schedule .tab-content .nav.nav-schedule > li:not(.active) > a *:last-child {
+    margin-bottom: 0;
+  }
+  .nav-wrapper-schedual {
+    margin-top: 10px;
+  }
+  .schedule .nav-current {
+      color: $color-1;
+  }
+  .schedule .tab-content .nav-current {
+      color: $color-3;
+      font-weight: 500;
+  }
+  .nav-wrapper-schedual .nav-current {
+    background-color: $color-3;
+    text-transform: uppercase;
+    display: block;
+  }
+  #AdventWeeklyDevo .nav-wrapper-schedual .nav-current {
+      background-color: #8b434c;
+  }
+  .tabs-vertical {
+    overflow: visible;
+    border: none;
+  }
+  .tabs-vertical .tab-content {
+    float: none;
+    width: auto;
+    padding: 20px 0 30px;
+  }
+}

@@ -98,9 +98,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Attribute\CheckinGroupFieldAttribute.cs" />
     <Compile Include="Data\FamilyCheckinContext.cs" />
     <Compile Include="Data\FamilyCheckinService.cs" />
     <Compile Include="Exceptions\CheckInStateLost.cs" />
+    <Compile Include="FieldTypes\CheckinGroupFieldType.cs" />
     <Compile Include="Jobs\ResetGroupLocationSchedules.cs" />
     <Compile Include="Migrations\201606272016469_Init.cs" />
     <Compile Include="Migrations\201607151453103_Message.cs" />
@@ -116,6 +118,7 @@
     <Compile Include="Rest\Controllers\FamilyCheckinController.Partial.cs" />
     <Compile Include="Rest\Handlers\SessionControllerHandler.cs" />
     <Compile Include="Rest\Handlers\SessionRouteHandler.cs" />
+    <Compile Include="UI\CheckinGroupPicker.cs" />
     <Compile Include="Utilities\CheckInCountCache.cs" />
     <Compile Include="Utilities\Constants.cs" />
     <Compile Include="Utilities\GroupLocationScheduleCount.cs" />
@@ -152,7 +155,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Attributes\" />
     <Folder Include="org_secc\" />
   </ItemGroup>
   <ItemGroup>

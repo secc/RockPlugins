@@ -20,6 +20,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
+using System.Web.UI.WebControls;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -28,6 +29,7 @@ using Rock.Security;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
+using org.secc.PersonMatch;
 
 namespace RockWeb.Blocks.Connection
 {
@@ -53,7 +55,37 @@ namespace RockWeb.Blocks.Connection
 
         DefinedValueCache _homePhone = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME );
         DefinedValueCache _cellPhone = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE );
+        
+        private List<ConnectionRoleRequest> _roleRequests = null;
+        List<ConnectionRoleRequest> RoleRequests
+        {
+            get
+            {
+                if ( _roleRequests == null)
+                {
+                    _roleRequests = PageParameter( "RoleRequests" ).FromJsonOrNull<List<ConnectionRoleRequest>>();
+                    if ( _roleRequests == null)
+                    {
+                        _roleRequests = new List<ConnectionRoleRequest>();
+                        var roleRequest = new ConnectionRoleRequest();
+                        roleRequest.GroupId = PageParameter( "GroupId" ).AsInteger();
+                        roleRequest.GroupTypeRoleId = PageParameter( "GroupTypeRoleId" ).AsInteger();
 
+                        roleRequest.Attributes = new Dictionary<string, string>();
+                        var urlKeys = GetAttributeValues( "UrlKeys" );
+                        foreach ( string urlKey in urlKeys )
+                        {
+                            if ( !string.IsNullOrEmpty( PageParameter( urlKey ) ) )
+                            {
+                                roleRequest.Attributes.Add( urlKey, PageParameter( urlKey ) );
+                            }
+                        }
+                        _roleRequests.Add( roleRequest );
+                    }
+                }
+                return _roleRequests;
+            }
+        }
         #endregion
 
         #region Control Methods
@@ -133,6 +165,7 @@ namespace RockWeb.Blocks.Connection
 
                     string firstName = tbFirstName.Text.Trim();
                     string lastName = tbLastName.Text.Trim();
+                    DateTime? birthdate = bpBirthdate.SelectedDate;
                     string email = tbEmail.Text.Trim();
                     int? campusId = cpCampus.SelectedCampusId;
 
@@ -158,8 +191,11 @@ namespace RockWeb.Blocks.Connection
                     else
                     {
                         // Try to find matching person
-                        var personMatches = personService.GetByMatch( firstName, lastName, email );
-                        if ( personMatches.Count() == 1 )
+                        var personMatches = personService.GetByMatch( firstName, lastName, birthdate, email).ToList();
+
+                        if ( personMatches.Count() == 1 && 
+                            personMatches.First().Email != null && 
+                            email.ToLower().Trim() == personMatches.First().Email.ToLower().Trim() )
                         {
                             // If one person with same name and email address exists, use that person
                             person = personMatches.First();
@@ -177,6 +213,7 @@ namespace RockWeb.Blocks.Connection
                         person.FirstName = firstName;
                         person.LastName = lastName;
                         person.IsEmailActive = true;
+                        person.SetBirthDate(birthdate);
                         person.Email = email;
                         person.EmailPreference = EmailPreference.EmailAllowed;
                         person.RecordTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
@@ -218,61 +255,74 @@ namespace RockWeb.Blocks.Connection
                                 changes );
                         }
 
-                        // Now that we have a person, we can create the connection request
-                        var connectionRequest = new ConnectionRequest();
-                        connectionRequest.PersonAliasId = person.PrimaryAliasId.Value;
-                        connectionRequest.Comments = tbComments.Text.Trim();
-                        connectionRequest.ConnectionOpportunityId = opportunity.Id;
-                        connectionRequest.ConnectionState = ConnectionState.Active;
-                        connectionRequest.ConnectionStatusId = defaultStatusId;
-                        connectionRequest.CampusId = campusId;
-                        connectionRequest.ConnectorPersonAliasId = opportunity.GetDefaultConnectorPersonAliasId( campusId );
-                        if ( campusId.HasValue &&
-                            opportunity != null &&
-                            opportunity.ConnectionOpportunityCampuses != null )
+                        // Now that we have a person, we can create the connection requests
+                        int RepeaterIndex = 0;
+                        foreach ( ConnectionRoleRequest roleRequest in RoleRequests )
                         {
-                            var campus = opportunity.ConnectionOpportunityCampuses
-                                .Where( c => c.CampusId == campusId.Value )
-                                .FirstOrDefault();
-                            if ( campus != null )
+                            var connectionRequest = new ConnectionRequest();
+                            connectionRequest.PersonAliasId = person.PrimaryAliasId.Value;
+                            connectionRequest.Comments = tbComments.Text.Trim();
+                            connectionRequest.ConnectionOpportunityId = opportunity.Id;
+                            connectionRequest.ConnectionState = ConnectionState.Active;
+                            connectionRequest.ConnectionStatusId = defaultStatusId;
+                            connectionRequest.CampusId = campusId;
+                            connectionRequest.ConnectorPersonAliasId = opportunity.GetDefaultConnectorPersonAliasId( campusId );
+                            if ( campusId.HasValue &&
+                                opportunity != null &&
+                                opportunity.ConnectionOpportunityCampuses != null )
                             {
-                                connectionRequest.ConnectorPersonAliasId = campus.DefaultConnectorPersonAliasId;
-                            }
-                        }
-
-                        if ( hdnGroupRoleTypeId.Value.AsInteger() > 0 )
-                        {
-                            connectionRequest.AssignedGroupMemberRoleId = hdnGroupRoleTypeId.Value.AsInteger();
-                            var groupConfig = opportunity.ConnectionOpportunityGroupConfigs.Where( gc => gc.GroupMemberRoleId == hdnGroupRoleTypeId.Value.AsInteger() ).FirstOrDefault();
-                            connectionRequest.AssignedGroupMemberStatus = groupConfig.GroupMemberStatus;
-
-                        }
-
-                        if ( hdnGroupId.Value.AsInteger() > 0 )
-                        {
-                            connectionRequest.AssignedGroupId = hdnGroupId.Value.AsInteger();
-                        }
-
-                        var connectionAttributes = GetGroupMemberAttributes( rockContext );
-
-                        if ( connectionAttributes != null || connectionAttributes.Keys.Any() )
-                        {
-                            var connectionDictionary = new Dictionary<string, string>();
-                            foreach(var kvp in connectionAttributes )
-                            {
-                                connectionDictionary.Add( kvp.Key, kvp.Value.Value );
+                                var campus = opportunity.ConnectionOpportunityCampuses
+                                    .Where( c => c.CampusId == campusId.Value )
+                                    .FirstOrDefault();
+                                if ( campus != null )
+                                {
+                                    connectionRequest.ConnectorPersonAliasId = campus.DefaultConnectorPersonAliasId;
+                                }
                             }
 
-                            connectionRequest.AssignedGroupMemberAttributeValues = connectionDictionary.ToJson();
+                            var hdnGroupRoleTypeId = ( ( HiddenField ) ( rptGroupRoleAttributes.Items[RepeaterIndex].FindControl( "hdnGroupRoleTypeId" ) ) );
+
+
+                            if ( hdnGroupRoleTypeId.Value.AsInteger() > 0 )
+                            {
+                                connectionRequest.AssignedGroupMemberRoleId = hdnGroupRoleTypeId.Value.AsInteger();
+                                var groupConfig = opportunity.ConnectionOpportunityGroupConfigs.Where( gc => gc.GroupMemberRoleId == hdnGroupRoleTypeId.Value.AsInteger() ).FirstOrDefault();
+                                connectionRequest.AssignedGroupMemberStatus = groupConfig.GroupMemberStatus;
+
+                            }
+
+                            var hdnGroupId = ( ( HiddenField ) ( rptGroupRoleAttributes.Items[RepeaterIndex].FindControl( "hdnGroupId" ) ) );
+
+
+                            if ( hdnGroupId.Value.AsInteger() > 0 )
+                            {
+                                connectionRequest.AssignedGroupId = hdnGroupId.Value.AsInteger();
+                            }
+
+                            var connectionAttributes = GetGroupMemberAttributes( rockContext, RepeaterIndex);
+
+                            if ( connectionAttributes != null && connectionAttributes.Keys.Any() )
+                            {
+                                var connectionDictionary = new Dictionary<string, string>();
+                                foreach(var kvp in connectionAttributes )
+                                {
+                                    connectionDictionary.Add( kvp.Key, kvp.Value.Value );
+                                }
+
+                                connectionRequest.AssignedGroupMemberAttributeValues = connectionDictionary.ToJson();
+                            }
+
+                            if ( !connectionRequest.IsValid )
+                            {
+                                // Controls will show warnings
+                                return;
+                            }
+
+                            connectionRequestService.Add( connectionRequest );
+
+                            RepeaterIndex++;
                         }
 
-                        if ( !connectionRequest.IsValid )
-                        {
-                            // Controls will show warnings
-                            return;
-                        }
-
-                        connectionRequestService.Add( connectionRequest );
                         rockContext.SaveChanges();
 
                         var mergeFields = new Dictionary<string, object>();
@@ -372,6 +422,7 @@ namespace RockWeb.Blocks.Connection
                     tbFirstName.Text = registrant.FirstName.EncodeHtml();
                     tbLastName.Text = registrant.LastName.EncodeHtml();
                     tbEmail.Text = registrant.Email.EncodeHtml();
+                    bpBirthdate.SelectedDate = registrant.BirthDate;
 
                     if ( pnHome.Visible && _homePhone != null )
                     {
@@ -416,15 +467,20 @@ namespace RockWeb.Blocks.Connection
 
 
                 // Role
-                if ( !string.IsNullOrEmpty( PageParameter( "GroupTypeRoleId" ) ) )
+
+                rptGroupRoleAttributes.DataSource = RoleRequests;
+                rptGroupRoleAttributes.DataBind();
+                int repeaterIndex = 0;
+                foreach (ConnectionRoleRequest roleRequest in RoleRequests)
                 {
-                    hdnGroupRoleTypeId.Value = PageParameter( "GroupTypeRoleId" ).AsInteger().ToString();
-                    if ( opportunity.ConnectionOpportunityGroupConfigs.Where( gc => gc.GroupMemberRoleId == PageParameter( "GroupTypeRoleId" ).AsInteger() ).Any() )
+                    ( ( HiddenField ) ( rptGroupRoleAttributes.Items[repeaterIndex].FindControl( "hdnGroupRoleTypeId" ) ) ).Value = roleRequest.GroupTypeRoleId.ToString();
+                    if ( opportunity.ConnectionOpportunityGroupConfigs.Where( gc => gc.GroupMemberRoleId == roleRequest.GroupTypeRoleId ).Any() )
                     {
-                        var groupConfig = opportunity.ConnectionOpportunityGroupConfigs.Where( gc => gc.GroupMemberRoleId == PageParameter( "GroupTypeRoleId" ).AsInteger() ).FirstOrDefault();
-                        ltRole.Text = groupConfig.GroupType.Name + " - " + groupConfig.GroupMemberRole.Name;
-                        ltRole.Visible = true;
+                        var groupConfig = opportunity.ConnectionOpportunityGroupConfigs.Where( gc => gc.GroupMemberRoleId == roleRequest.GroupTypeRoleId ).FirstOrDefault();
+                        ( ( Literal ) ( rptGroupRoleAttributes.Items[repeaterIndex].FindControl( "ltRole" ) ) ).Text = groupConfig.GroupType.Name + " - " + groupConfig.GroupMemberRole.Name;
+                        ( ( Literal ) ( rptGroupRoleAttributes.Items[repeaterIndex].FindControl( "ltRole" ) ) ).Visible = true;
                     }
+                    repeaterIndex++;
                 }
 
 
@@ -490,63 +546,75 @@ namespace RockWeb.Blocks.Connection
         private void AddGroupMemberAttributes( RockContext rockContext = null )
         {
             // Group
-            if ( !string.IsNullOrEmpty( PageParameter( "GroupId" ) ) )
+            if ( RoleRequests.Count > 0 && rptGroupRoleAttributes.Items.Count > 0 )
             {
                 if ( rockContext == null )
                 {
                     rockContext = new RockContext();
                 }
-                hdnGroupId.Value = PageParameter( "GroupId" ).AsInteger().ToString();
-
-                var group = new GroupService( rockContext ).Get( hdnGroupId.Value.AsInteger() );
-                if ( group != null )
+                var viewStateAttributes = new List<Dictionary<string, string>>();
+                var RepeaterIndex = 0;
+                foreach(var roleRequest in RoleRequests)
                 {
-                    // Group Attributes
-                    var formKeys = GetAttributeValues( "FormKeys" );
-                    var urlKeys = GetAttributeValues( "UrlKeys" );
+                    var hdnGroupId = ( ( HiddenField ) ( rptGroupRoleAttributes.Items[RepeaterIndex].FindControl( "hdnGroupId" ) ) );
+                    var phAttributes = ( ( PlaceHolder ) ( rptGroupRoleAttributes.Items[RepeaterIndex].FindControl( "phAttributes" ) ) );
+                    hdnGroupId.Value = roleRequest.GroupId.ToString();
 
-                    AttributeService attributeService = new AttributeService( rockContext );
-
-                    string groupQualifierValue = group.Id.ToString();
-                    string groupTypeQualifierValue = group.GroupTypeId.ToString();
-
-                    // Make a fake group member so we can load some attributes.
-                    GroupMember groupMember = new GroupMember();
-                    groupMember.Group = group;
-                    groupMember.GroupId = group.Id;
-                    groupMember.LoadAttributes();
-
-                    // Store URL Keys into the ViewState
-                    var viewStateAttributes = new Dictionary<string, string>();
-                    foreach ( string urlKey in urlKeys )
+                    var group = new GroupService( rockContext ).Get( hdnGroupId.Value.AsInteger() );
+                    if ( group != null )
                     {
-                        if ( !string.IsNullOrEmpty( PageParameter( urlKey ) ) && groupMember.Attributes.ContainsKey( urlKey ) )
+                        // Group Attributes
+                        var formKeys = GetAttributeValues( "FormKeys" );
+                        var urlKeys = GetAttributeValues( "UrlKeys" );
+
+                        AttributeService attributeService = new AttributeService( rockContext );
+
+                        string groupQualifierValue = group.Id.ToString();
+                        string groupTypeQualifierValue = group.GroupTypeId.ToString();
+
+                        // Make a fake group member so we can load some attributes.
+                        GroupMember groupMember = new GroupMember();
+                        groupMember.Group = group;
+                        groupMember.GroupId = group.Id;
+                        groupMember.LoadAttributes();
+
+                        // Store URL Keys into the ViewState
+                        var viewStateAttribute = new Dictionary<string, string>();
+                        foreach ( string urlKey in urlKeys )
                         {
-                            groupMember.SetAttributeValue( urlKey, PageParameter( urlKey ) );
-                            viewStateAttributes.Add( urlKey, PageParameter( urlKey ) );
+                            if ( roleRequest.Attributes != null && roleRequest.Attributes.ContainsKey(urlKey) && !string.IsNullOrEmpty( roleRequest.Attributes[ urlKey ] ) && groupMember.Attributes.ContainsKey( urlKey ) )
+                            {
+                                groupMember.SetAttributeValue( urlKey, roleRequest.Attributes[urlKey] );
+                                viewStateAttribute.Add( urlKey, roleRequest.Attributes[urlKey] );
+                            }
                         }
+                        viewStateAttributes.Add( viewStateAttribute );
+
+                        Helper.AddDisplayControls( groupMember, phAttributes, groupMember.Attributes.Where( a => !urlKeys.Contains( a.Key )).Select(a => a.Key).ToList(), true, false );
+                        Helper.AddEditControls( "", formKeys, groupMember, phAttributes,  tbLastName.ValidationGroup,  false, new List<String>() );
+
                     }
-                    ViewState.Add( "SelectedAttributes", viewStateAttributes );
-                    SaveViewState();
-
-                    Helper.AddDisplayControls( groupMember, phAttributes, groupMember.Attributes.Where( a => !urlKeys.Contains( a.Key )).Select(a => a.Key).ToList(), true, false );
-                    Helper.AddEditControls( "", formKeys, groupMember, phAttributes,  tbLastName.ValidationGroup,  false, new List<String>() );
-
+                    RepeaterIndex++;
                 }
+                ViewState.Add( "SelectedAttributes", viewStateAttributes );
+                SaveViewState();
             }
         }
 
 
-        private Dictionary<string, AttributeValueCache> GetGroupMemberAttributes( RockContext rockContext = null )
+        private Dictionary<string, AttributeValueCache> GetGroupMemberAttributes( RockContext rockContext = null, int RepeaterIndex = 0)
         {
             // Group
-            if ( !string.IsNullOrEmpty( PageParameter( "GroupId" ) ) )
+            if ( RoleRequests.Count > 0 )
             {
                 if ( rockContext == null )
                 {
                     rockContext = new RockContext();
                 }
-                hdnGroupId.Value = PageParameter( "GroupId" ).AsInteger().ToString();
+
+                var hdnGroupId = ( ( HiddenField ) ( rptGroupRoleAttributes.Items[RepeaterIndex].FindControl( "hdnGroupId" ) ) );
+                var phAttributes = ( ( PlaceHolder ) ( rptGroupRoleAttributes.Items[RepeaterIndex].FindControl( "phAttributes" ) ) );
+                hdnGroupId.Value = RoleRequests[RepeaterIndex].GroupId.ToString();
 
                 var group = new GroupService( rockContext ).Get( hdnGroupId.Value.AsInteger() );
                 if ( group != null )
@@ -559,12 +627,12 @@ namespace RockWeb.Blocks.Connection
 
                     Helper.GetEditValues( phAttributes, groupMember );
 
-                    var readonlyAttributes = (Dictionary<string, string> ) ViewState[ "SelectedAttributes" ];
-                    if ( readonlyAttributes != null && readonlyAttributes.Keys.Count > 0)
+                    var readonlyAttributes = ( List<Dictionary<string, string>> ) ViewState["SelectedAttributes"];
+                    if ( readonlyAttributes != null && readonlyAttributes.Count > RepeaterIndex && readonlyAttributes[RepeaterIndex].Keys.Count > 0 )
                     {
-                        foreach(var kvp in readonlyAttributes)
+                        foreach ( var kvp in readonlyAttributes[RepeaterIndex] )
                         {
-                            if ( groupMember.AttributeValues.ContainsKey(kvp.Key) )
+                            if ( groupMember.AttributeValues.ContainsKey( kvp.Key ) )
                             {
                                 groupMember.AttributeValues[kvp.Key].Value = kvp.Value;
                             }
@@ -575,6 +643,17 @@ namespace RockWeb.Blocks.Connection
             }
             return null;
         }
+
         #endregion
+
+
+        public class ConnectionRoleRequest
+        {
+            public int GroupId { get; set; }
+
+            public int GroupTypeRoleId { get; set; }
+
+            public Dictionary<string, string> Attributes { get; set; }
+        }
     }
 }

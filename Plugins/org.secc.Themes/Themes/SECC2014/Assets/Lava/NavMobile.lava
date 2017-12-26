@@ -36,6 +36,7 @@
 							</ul>
 						</li>
 						<li><a href="/connect/generous-living/">Generous Living</a></li>
+						<li><a href="/connect/deaf-and-disabilities-ministry/">Deaf &amp; Disabilities</a></li>
 						<li class="dropdown">
 							<button class="toggle">Care Ministry</button>
 							<ul>
@@ -54,6 +55,7 @@
 				<li><a href="/contact/">Contact</a></li>
 				<li><a href="/about/">About</a></li>
 				<li><a href="/giving/">Give</a></li>
+				<li><a href="/next-mag">NEXT Magazine</a></li>
 				<li id="siteLoginMobile"><a href="/login">Login</a></li>
 			</ul>
 		</li>

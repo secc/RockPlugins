@@ -1,0 +1,18 @@
+﻿{"Stories":
+    [
+        {%- assign itemComma = '' -%}
+        {%- for item in Items -%}
+            {{itemComma}}
+            {
+                "Id": {{item.Id}},
+                "Name":"{{item.Title | Replace:'"','\"'}}",
+                "Description":"{{item.Content | Replace:'"','\"'}}",
+                "Image": "{{ 'Global' | Attribute:'InternalApplicationRoot' }}{{item | Attribute:'Image', 'RawValue'}}.jpg?guid={{item | Attribute:'Image', 'RawValue'}}",
+                "VimeoDownloadUrl": "{{item | Attribute:'VimeoDownloadUrl'}}",
+                "VimeoStreamingUrl": "{{item | Attribute:'VimeoStreamingUrl'}}",
+                "Tags": "{{item | Attribute:'Tags'}}"
+            }
+            {%- assign itemComma = ',' -%}
+        {%- endfor -%}
+    ]
+}

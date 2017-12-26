@@ -39,10 +39,6 @@
         white-space: normal;
     }
 
-    .contact-card .form-group, .review .form-group {
-        margin-bottom: 0px !important;
-    }
-
     .contact-card .info {
         background: white;
         border-radius: 2px;
@@ -63,37 +59,77 @@
 
             <div class="panel panel-block">
                 <div class="panel-heading">
-                    <h2 class="panel-title">Tell Us About the Parent/Guardian</h2>
+                    <h2 class="panel-title">Tell Us About Your Family</h2>
 
                     <div class="panel-labels">
                         <Rock:HighlightLabel ID="hlType" runat="server" LabelType="Type" />
                     </div>
                 </div>
                 <div class="panel-body">
-                    <p class="step-description">We'll need some basic information about the parent or guardian who will be checking children in and out.</p>
+                    <p class="step-description">We'll need some basic information about the parent(s) or guardian(s) who will be checking children in and out.</p>
                     <div class="form-container">
+
                         <div class="row">
-                            <div class="col-sm-6">
-                                <Rock:RockTextBox runat="server" Label="Parent/Guardian First Name" Required="true" ID="tbFirstname" />
+                            <div class="col-md-6">
+                                <h1>First Parent/Guardian</h1>
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <Rock:RockTextBox runat="server" Label="First Name" Required="true" ID="tbFirstname" />
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <Rock:RockTextBox runat="server" Label="Last Name" Required="true" ID="tbLastName" />
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-6 col-md-8">
+                                        <Rock:PhoneNumberBox runat="server" Label="Phone" Required="true" ID="pnbPhone" />
+                                    </div>
+                                    <div class="col-sm-6 col-md-4">
+                                        <Rock:DatePicker runat="server" Label="Date of Birth" Required="true" ID="dpBirthday" StartView="decade" />
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-12">
+                                        <Rock:EmailBox runat="server" ID="ebEmail" Label="Email" Required="true" />
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-sm-6">
-                                <Rock:RockTextBox runat="server" Label="Parent/Guardian Last Name" Required="true" ID="tbLastName" />
+                            <div class="col-md-6">
+                                <h1>Second Parent/Guardian</h1>
+                                <!-- Second Parent -->
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <Rock:RockTextBox runat="server" Label="First Name" Required="false" ID="tbFirstName2" />
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <Rock:RockTextBox runat="server" Label="Last Name" Required="false" ID="tbLastName2" />
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-6 col-md-8">
+                                        <Rock:PhoneNumberBox runat="server" Label="Phone" Required="false" ID="pnbPhone2" />
+                                    </div>
+                                    <div class="col-sm-6 col-md-4">
+                                        <Rock:DatePicker runat="server" Label="Date of Birth" Required="false" ID="dpBirthday2" StartView="decade" />
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-12">
+                                        <Rock:EmailBox runat="server" ID="ebEmail2" Label="Email" Required="false" />
+                                    </div>
+                                </div>
                             </div>
                         </div>
+
                         <div class="row">
-                            <div class="col-sm-4 col-md-2">
-                                <Rock:DatePicker runat="server" Label="Date of Birth" Required="true" ID="dpBirthday" StartView="decade" />
-                            </div>
-                            <div class="col-sm-4 col-md-5">
-                                <Rock:PhoneNumberBox runat="server" Label="Phone" Required="true" ID="pnbPhone" />
-                            </div>
-                            <div class="col-sm-4 col-md-5">
-                                <Rock:EmailBox runat="server" ID="ebEmail" Label="Email" Required="true" />
+                            <div class="col-md-6">
+                                <Rock:AddressControl runat="server" ID="acAddress" Required="true" Label="Address" />
                             </div>
                         </div>
+
                         <div class="row">
                             <div class="col-sm-12">
-                                <span class="help-block">Note: The information above is required because it is necessary for matching records in our system.</span>
+                                <span class="help-block">Note: The information above is required to ensure your children's safety.</span>
                             </div>
                         </div>
                     </div>
@@ -144,15 +180,15 @@
                             </div>
 
                             <div class="col-sm-3">
-                                <Rock:RockTextBox runat="server" ID="tbSpecialNeeds" Label="Special Needs" />
+                                <Rock:RockTextBox runat="server" ID="tbSpecialNeeds" Label="Medical/Special/Other Needs" />
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="panel-footer clearfix text-right">
                     <Rock:BootstrapButton runat="server" ID="btnChildAddAnother" Text="Add Another Child" CssClass="btn btn-info" OnClick="btnChildAddAnother_Click" />
-                    <Rock:BootstrapButton runat="server" ID="btnChildNext" Text="Next" CssClass="btn btn-info" OnClick="btnChildNext_Click"/>
-                    <asp:LinkButton runat="server" ID="btnChildCancel" Text="Cancel" CssClass="btn btn-info" OnClick="btnChildCancel_Click" Visible="false" CausesValidation="false"/>
+                    <Rock:BootstrapButton runat="server" ID="btnChildNext" Text="Next" CssClass="btn btn-info" OnClick="btnChildNext_Click" />
+                    <asp:LinkButton runat="server" ID="btnChildCancel" Text="Cancel" CssClass="btn btn-info" OnClick="btnChildCancel_Click" Visible="false" CausesValidation="false" />
                 </div>
             </div>
         </asp:Panel>
@@ -184,17 +220,16 @@
                     <h2 class="panel-title">Just a Few More Things</h2>
                 </div>
                 <div class="panel-body">
-                    <p class="step-description">Please let us know which service you'll be attending and how we can reach you.</p>
+                    <p class="step-description">A couple more questions...</p>
                     <div class="form-container">
                         <div class="row">
-                            <div class="col-sm-6">
-                                <Rock:CampusPicker runat="server" ID="cpCampus" Label="Which Campus Are You Attending?" Required="true" />
-                                <p class="input-instruction">
-                                    If you aren't sure which campus you will be attending, or if you decide to attend a campus other than the one you select here, that's OK. You will be able to check in your children at any of our campuses.
-                                </p>
+                            <div class="col-xs-12">
+                                <Rock:CampusPicker runat="server" ID="cpCampus" Label="If you know, what campus will you be attending?" Required="true" />
                             </div>
-                            <div class="col-sm-6">
-                                <Rock:AddressControl runat="server" ID="adAddress" Label="Your Home Address:" ShowAddressLine2="false" />
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <Rock:RockTextBox runat="server" ID="tbExtraInformation" TextMode="MultiLine" Rows="5" Label="Other Information. (Bringing grandchildren or guests, security concerns, etc.)"></Rock:RockTextBox>
                             </div>
                         </div>
                     </div>
@@ -215,20 +250,28 @@
                     <div class="review">
                         <div class="row">
                             <div class="col-sm-4">
-                                <h2>Parent/Guardian Information</h2>
+                                <h2>Parent/Guardian</h2>
                                 <Rock:RockLiteral runat="server" Label="Name:" ID="rlName" />
                                 <Rock:RockLiteral runat="server" Label="Birthdate:" ID="rlDOB" />
-                                <Rock:RockLiteral runat="server" Label="Campus:" ID="rlCampus" />
+                                <Rock:RockLiteral runat="server" Label="Phone:" ID="rlPhone" />
+                                <Rock:RockLiteral runat="server" Label="Email:" ID="rlEmail" />
+                                <asp:Panel runat="server" ID="pnlParent2" Visible="false">
+                                    <hr />
+                                    <Rock:RockLiteral runat="server" Label="Name:" ID="rlName2" />
+                                    <Rock:RockLiteral runat="server" Label="Birthdate:" ID="rlDOB2" />
+                                    <Rock:RockLiteral runat="server" Label="Phone:" ID="rlPhone2" />
+                                    <Rock:RockLiteral runat="server" Label="Email:" ID="rlEmail2" />
+                                </asp:Panel>
                             </div>
                             <div class="col-sm-4">
                                 <h2>Children Registered</h2>
                                 <asp:Panel runat="server" ID="pnlChildren"></asp:Panel>
                             </div>
                             <div class="col-sm-4">
-                                <h2>Contact Information</h2>
-                                <Rock:RockLiteral runat="server" Label="Phone:" ID="rlPhone" />
-                                <Rock:RockLiteral runat="server" Label="Email:" ID="rlEmail" />
+                                <h2>Other Information</h2>
+                                <Rock:RockLiteral runat="server" Label="Campus:" ID="rlCampus" />
                                 <Rock:RockLiteral runat="server" Label="Address:" ID="rlAddress" CssClass="address" />
+                                <Rock:RockLiteral runat="server" Label="Extra Information:" ID="rlExtraInformation" />
                             </div>
                         </div>
                     </div>

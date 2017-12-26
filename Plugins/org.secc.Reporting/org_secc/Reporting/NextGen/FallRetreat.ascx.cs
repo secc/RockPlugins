@@ -304,7 +304,6 @@ namespace RockWeb.Blocks.Reporting.NextGen
             mergeFields.Add( "RegistrantData" );
             mergeFields.Add( "LegalRelease" );
             mergeFields.Add( "Departure" );
-            mergeFields.Add( "Campus" );
             mergeFields.Add( "Role" );
             mergeFields.Add( "MSMGroup" );
             gReport.CommunicateMergeFields = mergeFields;

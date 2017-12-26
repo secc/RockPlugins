@@ -31,6 +31,12 @@ namespace org.secc.SafetyAndSecurity
         {
             errorMessages = new List<string>();
 
+            // If this request isn't coming from a browser it can't be completed).
+            if ( System.Web.HttpContext.Current == null)
+            {
+                return false;
+            }
+
             // Check to see if the action's activity does not yet have the the 'InviteLink' attribute.
             string signNowInviteLink = action.GetWorklowAttributeValue( GetActionAttributeValue( action, "SignNowInviteLink" ).AsGuid() );
             string signNowDocumentId = action.GetWorklowAttributeValue( GetActionAttributeValue( action, "SignNowDocumentId" ).AsGuid() );
