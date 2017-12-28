@@ -19,7 +19,18 @@ namespace org.secc.Sass
             messages = string.Empty;
             bool result = true;
 
-            SetDllDirectory( System.Web.HttpContext.Current.Server.MapPath( "~/runtimes/win-x64/native" ) );
+
+            if ( IntPtr.Size == 8 )
+            {
+                // 64 bit machine
+                SetDllDirectory( System.Web.HttpContext.Current.Server.MapPath( "~/LibSass/win-x64/native" ) );
+
+            }
+            else if ( IntPtr.Size == 4 )
+            {
+                // 32 bit machine
+                SetDllDirectory( System.Web.HttpContext.Current.Server.MapPath( "~/LibSass/win-x86/native" ) );
+            }
 
             try
             {
