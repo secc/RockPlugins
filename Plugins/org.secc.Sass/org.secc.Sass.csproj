@@ -68,7 +68,8 @@
 xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.Sass.dll" "$(SolutionDir)RockWeb\bin"
 xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.Sass.pdb" "$(SolutionDir)RockWeb\bin"
 xcopy /Y /R "$(ProjectDir)bin\Debug\SharpScss.*" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(SolutionDir)packages\SharpScss.1.3.8\runtimes" "$(SolutionDir)RockWeb"</PostBuildEvent>
+if not exist "$(SolutionDir)RockWeb\LibSass" mkdir "$(SolutionDir)RockWeb\LibSass"
+xcopy /Y /R /E "$(SolutionDir)packages\SharpScss.1.3.8\runtimes" "$(SolutionDir)RockWeb\LibSass"</PostBuildEvent>
   </PropertyGroup>
   <Import Project="$(SolutionDir)packages\SharpScss.1.3.8\build\net40\SharpScss.targets" Condition="Exists('$(SolutionDir)packages\SharpScss.1.3.8\build\net40\SharpScss.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
