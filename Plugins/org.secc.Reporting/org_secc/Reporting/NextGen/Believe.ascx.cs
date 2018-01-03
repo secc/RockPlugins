@@ -41,7 +41,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
     /// <summary>
     /// Block to execute a sql command and display the result (if any).
     /// </summary>
-    [DisplayName("Mix")]
+    [DisplayName("Believe")]
     [Category("SECC > Reporting > NextGen")]
     [Description("A report for managing the trip attendeeds for NextGen's Bible & Beach Trip.")]
     [GroupField("Group", "The group for managing the members of this trip.", true)]
@@ -49,7 +49,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
     [LinkedPage("Group Member Detail Page", "The page for editing the group member.", true)]
     [GroupTypeField("MSM Group Type", "The HSM Group Type to use for the HSM Group Field.", true)]
     [CustomCheckboxListField("Signature Document Templates", "The signature document templates to include.", "select id as value, name as text from SignatureDocumentTemplate")]
-    public partial class Mix : RockBlock
+    public partial class Believe : RockBlock
     {
 
 
@@ -567,7 +567,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
             public String Group { get { return GetAttributeValue("Group1"); } }
             public String Dorm { get { return GetAttributeValue("Dorm"); } }
             public String Room { get { return GetAttributeValue("Room"); } }
-            public String Bus { get { return GetAttributeValue("Bus"); } }
+            public String Bus { get { return GetAttributeValue("BusAssignment"); } }
             public String Departure { get { return GetAttributeValue("Departure"); } }
             public String CoLeaders { get { return GetAttributeValue("CoLeaders"); } }
             public String LeadingLocation { get { return GetAttributeValue("LeadingLocation"); } }
@@ -612,7 +612,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
             }
             public String Grade
             {
-                get { return GetAttributeValue("grade2017"); }
+                get { return GetAttributeValue("grade"); }
             }
             public String ParentName
             {
@@ -620,7 +620,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
             }
             public String ParentCell
             {
-                get { return GetAttributeValue("BestParentCellPhoneNumber"); }
+                get { return GetAttributeValue("parentcell"); }
             }
             public String EmName
             {
@@ -628,20 +628,24 @@ namespace RockWeb.Blocks.Reporting.NextGen
             }
             public String EmCell
             {
-                get { return GetAttributeValue("EmergencyContactCellPhoneNumber"); }
+                get { return GetAttributeValue("EmergCellPhone"); }
             }
             public String School
             {
                 get { return GetAttributeValue("Schoolifnotlistedabove"); }
             }
-            public bool FirstMix
+            public String OthersInGroup
             {
-                get { return GetAttributeValue("Isthisyourfirstcamp").AsBoolean(); }
+                get { return GetAttributeValue("inyourgroup"); }
             }
             public String Church
             {
                 get { return GetAttributeValue("HomeChurchyouregularlyattend"); }
             }
+			public String Blankenbakerhour
+			{
+				get { return GetAttributeValue("Blankenbakerhour"); }
+			}
             public string Campus
             {
                 get {
@@ -665,38 +669,43 @@ namespace RockWeb.Blocks.Reporting.NextGen
             {
                 get { return GetAttributeValue("roomMSMGroup").AsBoolean(); }
             }
-            public String Bunkmate
+            public String Allergies
             {
-                get { return GetAttributeValue("Roommate1FirstandLastName"); }
+                get { return GetAttributeValue("foodallergies"); }
             }
-            public String Bunkmate2
+            public String AllergySeverity
             {
-                get { return GetAttributeValue("Roommate2FirstandLastName"); }
+                get { return GetAttributeValue("howsevere"); }
             }
-            public String TShirtSize
+            public String HowManaged
             {
-                get { return GetAttributeValue("T-ShirtSize"); }
+                get { return GetAttributeValue("howmanage"); }
             }
-            public String DietaryInfo
+            public String OtherAllergies
             {
-                get { return GetAttributeValue("Listofdietaryallergies"); }
+                get { return GetAttributeValue("Listother"); }
             }
 
             public String MedicalInfo
             {
-                get { return GetAttributeValue("Anymedicalconcernsaboutyourstudentweneedtobeawareof"); }
+                get { return GetAttributeValue("medallergies"); }
             }
 
-            public Boolean OTCMeds
+            public String OTCMeds
             {
-                get { return GetAttributeValue("IgivepermissionforoverthecountermedicationslikeTylenolAdvilTumsetc.tobeadministeredbydesignatedcampmedicalpersonneltomycamperasdeemednecessary.").AsBoolean(); }
+                get { return GetAttributeValue("Dispensepain"); }
             }
 
-            public String SpecialNotes
+            public String Insurance
             {
-                get { return GetAttributeValue("SpecialNotes"); }
+                get { return GetAttributeValue("MedInsCo")+": "+GetAttributeValue("PolicyNumber"); }
             }
 
+			public String Physiciansname
+            {
+                get { return GetAttributeValue("Physiciansname"); }
+            }
+			
             public String Photo
             {
                 get { return GetAttributeValue("PhotoOptional"); }

@@ -1,5 +1,5 @@
 <style>
-
+    
     #christmas a:hover {
         text-decoration: none !important;
     }
@@ -35,7 +35,7 @@
         transition: all 0.2s ease-in-out;
         border-radius: 4px;
     }
-
+    
     .box:hover {
         transform: translateY(-10px);
         box-shadow: 0 22px 43px rgba(0, 0, 0, 0.15);
@@ -134,7 +134,7 @@
         });
     }
     $( window ).resize(function() {resizeChristmas(active)});
-
+    
     $(document).ready(function() {
        $('#christmas-container').css('display', 'block');
        // new WOW().init();
@@ -171,7 +171,7 @@
             {% endfor %}
             </div>
         </div>
-
+        
         {% for campus in Tree %}
         <div class="row slide-box" id="{{campus.Entity.Guid}}">
             <div class="col-sm-10 col-sm-offset-1">
@@ -184,27 +184,35 @@
                 <div class="row">
                 {% for role in campus.Partitions %}
                     {% if role.Limit != 0 %}
-                    {% assign spotsLeft = role.Limit | Minus: role.TotalFilled %}
-                    <div class="col-sm-6 col-md-4 role-box" style="margin-bottom: 20px">
-                        <a href="#" onclick="doSlide('#{{campus.Entity.Guid}}', '#{{campus.Entity.Guid}}{{role.Entity.Guid}}'); return false;">
-                            <div class="text-center box" {% if role.Limit > 0 and spotsLeft <= 0 %}style="background-color: #EEE"{% endif %}>
-                                <div class="clearfix">
-                                    <span class="label label-default pull-right" style="margin: 3px"> {% if role.Limit <= -1 %}Unlimited{% else %}{% if spotsLeft <= 0 %}Full{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}{% endif %}</span>
-                                </div>
-                                <br />
-                                <i class="{{ role.Entity | Attribute: "Icon" }} fa-5x"></i>
-                                <h4>{{ role.Entity.Name | Replace:" (101)", "" | Replace:" (201)", "" }}</h4>
-                            </div>
-                        </a>
-                    </div>
+						{% assign spotsLeft = 0 %}
+						{% for shift in role.Partitions %}
+							{% if shift.Limit > 0 %}
+								{% assign shiftSpotsLeft = shift.Limit | Minus: shift.Filled %}
+								{% if shiftSpotsLeft > 0 %}
+									{% assign spotsLeft = spotsLeft | Plus: shiftSpotsLeft %}
+								{% endif %}
+							{% endif %}
+						{% endfor %}
+						<div class="col-sm-6 col-md-4 role-box" style="margin-bottom: 20px">
+							<a href="#" onclick="doSlide('#{{campus.Entity.Guid}}', '#{{campus.Entity.Guid}}{{role.Entity.Guid}}'); return false;">
+								<div class="text-center box" {% if role.Limit > 0 and spotsLeft <= 0 %}style="background-color: #EEE"{% endif %}>
+									<div class="clearfix">
+										<span class="label label-default pull-right" style="margin: 3px">{% if role.Limit <= -1 %}Unlimited{% else %}{% if spotsLeft <= 0 %}Full{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}{% endif %}</span>
+									</div>
+									<br />
+									<i class="{{ role.Entity | Attribute: "Icon" }} fa-5x"></i>
+									<h4>{{ role.Entity.Name | Replace:" (101)", "" | Replace:" (201)", "" }}</h4>
+								</div>
+							</a>
+						</div>
                     {% endif %}
                 {% endfor %}
                 </div>
             </div>
         </div>
         {% endfor %}
-
-
+        
+        
         {% for campus in Tree %}
             {% for role in campus.Partitions %}
             <div class="row slide-box" id="{{campus.Entity.Guid}}{{role.Entity.Guid}}">
@@ -223,7 +231,7 @@
                             <br />
                             <br />
                         </div>-->
-
+                    
 						{% for servingDay in servingDays %}
 							{% assign dayOutput = false %}
 							{% for shift in role.Partitions %}
@@ -239,9 +247,9 @@
 										<div class="clearfix">
 											<div class="check">
 												<label>
-													<input type="checkbox" class="service-times" name="ServiceTimes" value="{{shift.Entity.Guid}}" />
+													<input type="checkbox" class="service-times" name="ServiceTimes" value="{{shift.Entity.Guid}}" {% if shift.Limit >0 and spotsLeft <= 0 %}disabled="true"{% endif %} />
 													<div class="icon-box"><i class="fa fa-check"></i></div>
-													<h2><strong><i>{{shift.Entity.Name | Replace:servingDay.ReplaceString,''}}</i></strong>{% if shift.Limit > 0 %}<span class="hidden-xs hidden-sm spots-left"> - <small>{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining</small></span>{% endif %}</h2>
+													<h2{% if  shift.Limit > 0 and spotsLeft <= 0 %} style="text-decoration: line-through"{% endif %}><strong><i>{{shift.Entity.Name | Replace:servingDay.ReplaceString,''}}</i></strong>{% if shift.Limit > 0 %}<span class="hidden-xs hidden-sm spots-left"> - <small>{% if spotsLeft <= 0 %}Full{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}</small></span>{% endif %}</h2>
 												</label>
 												{% if shift.Limit > 0 %}<div class="hidden-md hidden-lg" style="margin: -20px 0px 0px 75px">{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining</div>{% endif %}
 
@@ -259,39 +267,39 @@
 									{% assign groupId = 526949 %}
 								{% else %}
 									{% assign groupId = 526955 %}
-								{% endif %}
+								{% endif %} 
 							{% elseif campus.Entity.Guid == '138b15ee-a167-4809-bff2-613620f42a05'/*Crestwood*/ %}
 								{% if role.Entity.GroupTypeId == 166 %}
 									{% assign groupId = 526956 %}
 								{% else %}
 									{% assign groupId = 526957 %}
-								{% endif %}
+								{% endif %} 
 							{% elseif campus.Entity.Guid == 'ec10f56a-7db7-4905-a602-b6196e5db877'/*E-town*/ %}
 								{% if role.Entity.GroupTypeId == 166 %}
 									{% assign groupId = 526958 %}
 								{% else %}
 									{% assign groupId = 526959 %}
-								{% endif %}
+								{% endif %} 
 							{% elseif campus.Entity.Guid == '73efee1d-e971-4448-98e1-9de690887d1b'/*Indiana*/ %}
 								{% if role.Entity.GroupTypeId == 166 %}
 									{% assign groupId = 526963 %}
 								{% else %}
 									{% assign groupId = 526966 %}
-								{% endif %}
+								{% endif %} 
 							{% elseif campus.Entity.Guid == '7ab1d9dc-0c5e-4e08-b0dc-144b848fc890'/*La Grange*/ %}
 								{% if role.Entity.GroupTypeId == 166 %}
 									{% assign groupId = 526972 %}
 								{% else %}
 									{% assign groupId = 526973 %}
-								{% endif %}
+								{% endif %} 
 							{% elseif campus.Entity.Guid == 'eab00c44-6cc5-41ea-8b21-934dfb7da443'/*Soutwest*/ %}
 								{% if role.Entity.GroupTypeId == 166 %}
 									{% assign groupId = 526974 %}
 								{% else %}
 									{% assign groupId = 526976 %}
-								{% endif %}
+								{% endif %} 
 							{% endif %}
-
+							
                             <a href="#" data-campus-id="{{campus.Entity.Id}}" data-group-id="{{groupId}}" data-role-id="{{role.Entity.Id}}" title="Sign Up" class="cd-btn sweep-to-right invert pull-right signup-button">
                                 Sign Up
                             </a>
@@ -309,6 +317,9 @@
 		$(this).parent().parent().find(".service-times:checked").each(function () {
 			   checked.push($(this).val())
 		});
+		if (checked.length == 0) {
+			return false;
+		}
 
 		roleRequests = [];
 		var request = {};
