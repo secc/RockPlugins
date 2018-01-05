@@ -1,0 +1,123 @@
+@import '../bootstrap/mixins/vendor-prefixes';
+
+.wellbox {
+	position: absolute;
+	bottom: 0;
+	padding: 15px;
+	min-height: auto;
+	background-color: rgba(239,239,239, 1);
+	margin: 2em 1.5em 2em 0px;
+	border-radius: 10px;
+}
+
+.event-list-background {
+    background-color: #efefef;
+    padding: 3em 0;
+}
+.event-calendar {
+    .img-hover {
+        position:relative;
+        overflow: hidden;
+        border-radius: 8px;
+        z-index: 3;
+        img {
+            z-index: -1;
+            background-color: white;
+            position:relative;
+            @include transition(all .3s ease);
+            @include scale(1.06);
+        }
+        img:hover {
+            // -webkit-backface-visibility: hidden;
+            // backface-visibility: hidden;
+            @include scale(1.01);
+        }
+    }
+
+    .date {
+        box-sizing: border-box;
+        position: relative;
+        width: 114px;
+        height: 114px;
+        background: url('/Themes/SECC2014/Assets/img/events/EventCalendarWhite.svg');
+        background-repeat: no-repeat;
+        text-align: center;
+        color: #656565;
+
+        .day {
+            top: 35px;
+            font-weight: bold;
+            font-size: 45px;
+            line-height: 1;
+            position: absolute;
+            right: 0;
+            left: 0;
+        }
+
+        .month {
+            bottom: 20px;
+            font-size: 16px;
+            line-height: 1;
+            position: absolute;
+            right: 0;
+            left: 0;
+        }
+    }
+
+    .multi-date {
+        box-sizing: border-box;
+      position: relative;
+      width: 114px;
+      height: 114px;
+      background: url('/Themes/SECC2014/Assets/img/events/MultipleEventsCalendarWhite.svg');
+      background-repeat: no-repeat;
+      text-align: center;
+    }
+
+    .reoccur-date {
+        box-sizing: border-box;
+      position: relative;
+      width: 114px;
+      height: 114px;
+      background: url('/Themes/SECC2014/Assets/img/events/ReoccuringEventsCalendarWhite.svg');
+      background-repeat: no-repeat;
+      text-align: center;
+    }
+}
+
+#event-detail-header {
+    background-color: #333;
+    padding-top: 2em;
+    padding-bottom: 1em;
+
+    h1 {
+        font-size: 3em;
+        color: white;
+    }
+}
+
+
+.event-details {
+    padding: 25px;
+    border-radius: 5px;
+    background: #ffffff;
+    box-sizing: border-box;
+    border-radius: 10px;
+    background-color: rgba(239,239,239, 1);
+
+    h2 {
+        font-weight: 300;
+        letter-spacing: 2px;
+    }
+    h4 {
+        font-weight: 400;
+        text-transform: uppercase;
+    }
+    hr {
+        margin: 10px 0px 20px 0px;
+        border-color: rgba(101,101,101, 0.4);
+    }
+    @media (min-width: 992px) {
+        margin-top: -88px;
+    }
+}

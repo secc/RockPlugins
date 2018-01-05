@@ -1,0 +1,80 @@
+/* Socials icons
+-------------------------------------------------------------- */
+.socials {
+	overflow:visible;
+	display:inline-block;
+	margin-right:-1.25em;
+
+	.socials_item {
+		display:inline-block;
+		// margin: 0 1.25em 0.5em 0;
+		margin: 0.26em 0.7em 0.26em 0;
+		outline:none;
+
+		a {
+			-webkit-border-radius: 50%;
+		    -moz-border-radius: 50%;
+		    border-radius: 50%;
+			display:block;
+			text-align:center;
+			border: 2px solid $LightGrayColor;
+		}
+	}
+
+	a {
+		color: $LightGrayColor;
+		display:inline-block;
+		outline:none;
+		overflow:visible;
+		width:3em;
+		height:3em;
+		line-height:2.7em;
+		position:relative;
+		-webkit-border-radius: 6px;		/* Hack for Chrome - show sharp corners while animation */
+		background-repeat: no-repeat;
+		background-position: 0 -4em;
+		-webkit-background-size: 4em 8em;
+		   -moz-background-size: 4em 8em;
+		     -o-background-size: 4em 8em;
+		        background-size: 4em 8em;
+
+		&.invert {
+			color:white;
+			border-color:white;
+		}
+		&:hover {
+			border: 2px solid $GrayColor;
+			color: $GrayColor;
+				opacity: 1;
+				overflow:visible;
+		   -moz-opacity: 1;
+			filter: alpha(opacity=1);
+			-webkit-transition: all ease .5s;
+			   -moz-transition: all ease .5s;
+			    -ms-transition: all ease .5s;
+			     -o-transition: all ease .5s;
+			        transition: all ease .5s;
+		  	 -webkit-transform: scale(1.2);
+			    -moz-transform: scale(1.2);
+			     -ms-transform: scale(1.2);  /* IE 9 */
+				  -o-transform: scale(1.2);
+		             transform: scale(1.2);
+		     -webkit-transition-timing-function: cubic-bezier(0.47, 2.02, 0.31, -0.36);
+		             transition-timing-function: cubic-bezier(0.47, 2.02, 0.31, -0.36);
+
+		    &.social-twitter {
+				border: 2px solid rgb(29, 161, 242);
+				color: rgb(29, 161, 242);
+			}
+			&.social-facebook {
+				border: 2px solid rgb(59, 89, 152);
+				color: rgb(59, 89, 152);
+			}
+		}
+	}
+
+	.social_icons i {
+		font-size:1.2em;
+		line-height:inherit;
+	}
+}
