@@ -7,7 +7,6 @@ Tools/org.secc.OAuthTestClient/.vs/
 Tools/**/bin/
 Tools/**/obj/
 Tools/**/packages/
-Plugins/org.secc.Themes/Themes/SECC2014/Assets/img/
 .vs
 .DS_Store
 prepros-6.config
