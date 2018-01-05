@@ -39,6 +39,7 @@
     <script src="<%# ResolveRockUrl("~~/Scripts/global-dist.js" ) %>" ></script>
     <script src="<%# ResolveRockUrl("~~/Scripts/isotope.pkgd.min.js" ) %>" ></script>
     <script src="<%# ResolveRockUrl("~~/Scripts/smooth-scroll.min.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~~/Scripts/select2/select2.full.min.js" ) %>" ></script>
 
     <asp:ContentPlaceHolder ID="head" runat="server"></asp:ContentPlaceHolder>
 
