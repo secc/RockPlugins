@@ -946,6 +946,7 @@ namespace RockWeb.Plugins.org_secc.Cms
                     var person = new Person();
                     if ( personId == 0 )
                     {
+                        tbFirstName.ReadOnly = false;
                         rblRole.DataSource = group.GroupType.Roles.OrderBy( r => r.Order ).ToList();
                         rblRole.DataBind();
                         rblRole.Visible = true;
@@ -953,6 +954,7 @@ namespace RockWeb.Plugins.org_secc.Cms
                     }
                     else
                     {
+                        tbFirstName.ReadOnly = true;
                         person = new PersonService( rockContext ).Get( personId );
                     }
 
