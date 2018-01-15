@@ -150,7 +150,7 @@
                             <div class="tp-static-layers" style="display: inline-block; position: relative; z-index: 101; top: 0;left: 0;width: fit-content; max-width: 200px;margin: 2% 0 0 0;">
                                     <!-- LAYER NR. 16 -->
                                     <a class="tp-caption rev-btn  tp-static-layer"
-                             href="/lwya/signup" target="_blank"			 id="slide-407-layer-49"
+                             href="/lwya/signup" id="slide-407-layer-49"
                                          data-x="['center','center','center','center']" data-hoffset="['0','0','0','0']"
                                          data-y="['bottom','bottom','bottom','bottom']" data-voffset="['30','30','30','30']"
                                         data-width="none"
