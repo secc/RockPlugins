@@ -10,11 +10,53 @@
 	border-radius: 10px;
 }
 
+#nextStep {
+	padding-top: 1em;
+	padding-bottom: 1em;
+}
 .event-list-background {
     background-color: #efefef;
-    padding: 3em 0;
 }
+
+div[id$='pnlList'] {
+	transition: all 0.3s;
+}
+
+div[id$='pnlFilters'] {
+	&::after {
+		padding-right: 15px;
+		border-right: 1px solid #e1e1e1;
+	}
+	margin: 40px 0px;
+	padding-right: 0px;
+	transition: all 0.3s;
+
+	margin-left: -443px;
+	&.active {
+		margin-left: 0px;
+	}
+	.rock-control-wrapper {
+		padding: 15px;
+		min-height: auto;
+		background-color: rgba(355,355,355, 1);
+		border-radius: 10px;
+	}
+
+	.control-wrapper {
+		padding: 15px;
+		min-height: auto;
+		background-color: rgba(355,355,355, 1);
+		border-radius: 10px;
+	}
+}
+
 .event-calendar {
+
+	#datedetails hr {
+		border-color: #e1e1e1;
+		margin: 10px 0;
+	}
+
     .img-hover {
         position:relative;
         overflow: hidden;

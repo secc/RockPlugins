@@ -7,7 +7,19 @@
 </div>
 {% endif %}
 
-<div class="container">
+<div class="container-fluid">
+
+<div class="row" style="margin: 0px;">
+    <div id="nextStep" class="col-xs-12">
+		 <h3>What’s your next step?</h3>
+         <p>Find a group or event that interests you by selecting a campus and/or ministry below. Click on the image to see more details or to register.</p>
+         <button type="button" id="sidebarCollapse" class="btn btn-normal">
+            <i class="fa fa-gear"></i>
+            Toggle Filters
+        </button>
+	</div>
+</div>
+
 <div class="isotope_wrap">
     {% for eventItemList in EventItems %}
         {% assign campusId = 0 %}
@@ -39,7 +51,7 @@
                 {% assign closeEventDetailsLink = "</a>" %}
             {% endif %}
 
-            <div class="isotope_item col-xs-12 col-sm-6 col-md-4 event-calendar">
+            <div class="isotope_item col-xs-12 col-sm-6 col-md-4 event-calendar" style="padding: 15px;">
 
                 {{openEventDetailsLink}}
                 <div class="img-hover">
@@ -90,14 +102,41 @@
                     {% endcomment %}
                     <br />
                     {% if eventItemOccurrence.Name != '' %}
-                        <b>{{ eventItemOccurrence.Name }}</b>
-                        <br />
+                        <h2 class="copy item-title" style="font-weight: 300; margin: 0px;">
+                            {{ eventItemOccurrence.Name }}
+                        </h2>
                     {% endif %}
 
                     {% if eventItemOccurrence.Summary != '' %}
                         {{eventItemOccurrence.Summary}}
                         <br />
                     {% endif %}
+
+                    <div id="datedetails" class="clearfix">
+                        <hr />
+                        {% if numOccurrences > 1 and multiCampus == true %}
+                            <p>
+                                <!-- <b>Multiple Dates</b> -->
+                                <b>Starting on {{ eventItemOccurrence.Date | Date: 'MMM, dd'}}</b>
+                            </p>
+                        {% elseif numOccurrences > 1 %}
+                            <p>
+                                <!-- <b>Recurring Event</b> -->
+                                <!-- <br/> -->
+                                <b>Next date: {{ eventItemOccurrence.Date | Date: 'MMM. dd'}}</b>
+                                <br /><b><i class="fa fa-map-marker"></i></b>
+                                {{ eventItemOccurrence.EventItemOccurrence.Location}}
+                            </p>
+                        {% else %}
+                            <p>
+                                <!-- <b>Sinlge Event</b> -->
+                                <!-- <br/> -->
+                                <b>{{ eventItemOccurrence.Date | Date: 'MMMM, dd'}} at {{ eventItemOccurrence.Time}}</b>
+                                <br /><b><i class="fa fa-map-marker"></i></b>
+                                {{ eventItemOccurrence.EventItemOccurrence.Location}}
+                            </p>
+                        {% endif %}
+                  </div>
 
                     {% if eventItemOccurrence.EventItemOccurrence.Campus != null %}
                         <h4 style="margin-top:10px;"><span class="se-logo">{{eventItemOccurrence.EventItemOccurrence.Campus.ShortCode}}</span></h4>
@@ -117,6 +156,16 @@
 <script type="text/javascript">
     // function pageLoad(sender, args) {}
     $(window).load(function() {
+        $("div[id*='pnlList']").toggleClass('col-md-9'); // removes default onload
+        $("div[id*='pnlList']" ).toggleClass('col-md-12'); // adds it
+
+        $('#sidebarCollapse').on('click', function () {
+            console.log('clicked');
+            $("div[id*='pnlFilters']").toggleClass('active');
+            $("div[id*='pnlList']").toggleClass('col-md-9'); // removes it
+            $("div[id*='pnlList']" ).toggleClass('col-md-12'); // adds it
+        });
+
         // Initialize Isotope
         var $grid = $('.isotope_wrap').isotope({
             // options
