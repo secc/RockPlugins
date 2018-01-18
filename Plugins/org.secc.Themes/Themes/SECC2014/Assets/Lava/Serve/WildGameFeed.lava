@@ -203,14 +203,14 @@ $(document).ready(function() {
 							  <br />
 							  {% for location in role.Partitions %}
 									{% if location.Limit != 0 %}
-										{% assign spotsLeft = location.Limit | Minus: location.TotalFilled %}
+										{% assign spotsLeft = location.Limit | Minus: location.Filled %}
 										<div class="row">
 											<div class="col-sm-9">
 												<h3>{{location.Entity.Value }}</h3>
-												{% if location.Limit > 0 %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}
+												{% if spotsLeft > 0 %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% else %}0 Spots Remaining{% endif %}
 											</div>
 											<div class="col-sm-3">
-												<a class="btn btn-default pull-right" href="/serve/wildgamefeed/signup?CampusId=1&OpportunityId=9&GroupId=531024&Location={{location.Entity.Guid}}&GroupTypeRoleId={{role.Entity.Id}}">Sign Up</a>
+												<a class="btn btn-default pull-right" {% if spotsLeft <= 0 %}disabled="true"{% endif %} href="/serve/wildgamefeed/signup?CampusId=1&OpportunityId=9&GroupId=531024&Location={{location.Entity.Guid}}&GroupTypeRoleId={{role.Entity.Id}}">Sign Up</a>
 											</div>
 											<div class="col-xs-12">
 												<hr />
