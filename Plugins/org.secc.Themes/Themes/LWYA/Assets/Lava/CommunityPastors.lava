@@ -27,9 +27,15 @@
                             <div class="month_year">{{ item.StartDateTime | Date:'MMM, yy' }}</div>
                         </div>
                         <div class="post_thumb" data-image="/GetImage.ashx?Guid={{ ImageGuid }}" data-title="{{ item.Title }}">
+                            {% if ImageGuid != "" %}
                             <a class="hover_icon hover_icon_link" href="/lwya/author?Author={{ PastorObject.Guid }}">
                                 <img class="img-responsive" alt="{{ item.Title }}" src="/GetImage.ashx?Guid={{ ImageGuid }}&h=800&w=800&mode=crop">
                             </a>
+                            {% else %}
+                            <a class="hover_icon hover_icon_link" href="/lwya/author?Author={{ PastorObject.Guid }}">
+                                <img class="img-responsive" alt="{{ item.Title }}" src="https://lovewhereuare.org/Content/LWYA/LWYA_Logo.png">
+                            </a>
+                            {% endif %}
                         </div>
                     </div>
                     <div class="massonry_border" data-zips="{{ PastorZips }}" data-img-guid="{{ImageGuid}}" data-email="{{Pastor.Email}}" data-name="{{Pastor.FullName}}" data-pastor-guid="{{ PastorObject.Guid }}">
