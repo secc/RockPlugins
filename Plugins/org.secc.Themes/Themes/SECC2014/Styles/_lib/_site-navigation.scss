@@ -228,7 +228,7 @@ body {
 		@include Transition(all 0.25s ease-out);
 
 		&.active {
-			height: 159px;
+			height: 199px;
 			// @include BoxShadow($right: 0px, $bottom: 2px, $blur: 8px, $color: $GrayColor, $spread: 2px);
 		}
 
