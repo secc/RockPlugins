@@ -1,8 +1,7 @@
 @import 'bourbon'; // http://bourbon.io/
 
-@import '../partials/variables'; // colors, fonts etc...
-
-@import '../partials/layout'; // responsive grid and media queries
+@import 'partials/variables'; // colors, fonts etc...
+@import 'partials/layout'; // responsive grid and media queries
 
 /* --------------------------------
 
@@ -25,13 +24,18 @@ body {
 		family: $primary-font; // variables inside partials > _variables.scss
 	}
 	color: $color-1;
-	background-color: $color-4;
+	background-color: $color-3;
 
 	@include MQ(maxL) { // layout mixins inside partials > _layout.scss
 		&.nav-on-left.overflow-hidden {
 			overflow: hidden;
 		}
 	}
+	// this makes room for the fixed mega-menu
+	// margin-top: $header-height-S;
+	// @include MQ(L) {
+	//    margin-top: $header-height-L;
+	// }
 }
 
 a {
@@ -96,7 +100,7 @@ Main components
 
 .cd-main-header {
 	height: $header-height-S;
-	background: $color-4;
+	background: $color-1;
 	z-index: $above-content;
 
 	.nav-is-fixed & {
@@ -112,12 +116,12 @@ Main components
 		@include clearfix;
 	}
 }
-#revSlider {
- margin-top: $header-height-S;
-	 @include MQ(L) {
-	 	margin-top: $header-height-L;
-	 }
-}
+// #revSlider {
+//  margin-top: $header-height-S;
+// 	 @include MQ(L) {
+// 	 	margin-top: $header-height-L;
+// 	 }
+// }
 
 .cd-logo {
 	position: absolute;
@@ -126,6 +130,7 @@ Main components
 
 	img {
 		display: block;
+		max-width: 160px;
 	}
 
 	@include MQ(maxL) {
@@ -200,7 +205,7 @@ Main components
 		width: 18px;
 		height: 18px;
 		border-radius: 50%;
-		border: 3px solid $color-1;
+		border: 3px solid $color-4;
 	}
 
 	&::after {
@@ -233,7 +238,7 @@ Main components
 		margin-top: -2px;
 		left: 50%;
 		margin-left: -11px;
-		background: $color-1;
+		background: $color-4;
 		opacity: 0;
 		/* Force Hardware Acceleration in WebKit */
 		@include transform(translateZ(0));
@@ -279,7 +284,7 @@ Main components
 		display: inline-block;
 		height: 3px;
 		width: 24px;
-		background: $color-1;
+		background: $color-4;
 	}
 
 	span {
@@ -316,12 +321,12 @@ Main components
 	&.nav-is-visible {
 		span {
 			/* hide line in the center */
-			background: rgba($color-1, 0);
+			background: rgba($color-4, 0);
 		}
 
 		span::before, span::after {
 			/* keep visible other 2 lines */
-			background: rgba($color-1, 1);
+			background: rgba($color-4, 1);
 		}
 
 		span::before {
@@ -339,12 +344,12 @@ Main components
 }
 
 .cd-primary-nav, .cd-primary-nav ul {
-	position: fixed;
+	// position: fixed;
 	top: 0;
 	right: 0;
 	height: 100%;
 	width: $nav-width-S;
-	background: $color-1;
+	background: lighten($color-1, 5%);
 	overflow: auto;
 	-webkit-overflow-scrolling: touch;
 	z-index: $below-content;
@@ -630,7 +635,7 @@ Main components
 			height: $header-height-L;
 			line-height: $header-height-L;
 			padding: 0 10px;
-			color: $color-1;
+			color: $color-4;
 			overflow: visible;
 			border-bottom: none;
 			@include transition(color .3s, box-shadow .3s);
@@ -1111,6 +1116,6 @@ support for no js
 	}
 
 	.no-js .nav-is-fixed .cd-primary-nav {
-		position: fixed;
+		// position: fixed;
 	}
 }
