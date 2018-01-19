@@ -11,10 +11,11 @@
                                         <ul> \
                                             <li><a href=\"/MyAccount\">My Account</a></li> \
                                             <li><a href=\"/MyEvents\">My Events</a></li> \
+                                            <li><a href=\"/my-classes\">My Classes</a></li> \
                                             <li><a href=\"/Give\">Give</a></li> \
                                             <li><a href=\"?logout=true\">Log Out</a></li> \
                                         </ul>");
-			
+
             bindAccountMenu($('.account-menu-toggle'));
         });
     </script>
