@@ -3,7 +3,9 @@
 <!DOCTYPE html>
 
 <script runat="server">
+
     // keep code below to call base class init method
+
     /// <summary>
     /// Raises the <see cref="E:System.Web.UI.Control.Init" /> event.
     /// </summary>
@@ -12,6 +14,7 @@
     {
         base.OnInit( e );
     }
+
 </script>
 
 <html class="no-js">
@@ -29,21 +32,16 @@
     <asp:ContentPlaceHolder ID="css" runat="server" />
 
 	<!-- Included CSS Files -->
-    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/rock.css", true) %>"/>
-	<link href="<%# ResolveRockUrl("~~/Assets/Css/animate.css", true) %>" rel="stylesheet" type="text/css"/>
+    <link href="<%# ResolveRockUrl("~~/Styles/rock.css", true) %>" rel="stylesheet" type="text/css"/>
+	<!-- <link href="<%# ResolveRockUrl("~~/Assets/Css/animate.css", true) %>" rel="stylesheet" type="text/css"/> -->
 	<link href="<%# ResolveRockUrl("~~/Assets/Vendor/themify/themify.css", true) %>" rel="stylesheet" type="text/css"/>
-	<link href="<%# ResolveRockUrl("~~/Assets/Vendor/scrollbar/scrollbar.min.css", true) %>" rel="stylesheet" type="text/css"/>
-	<link href="<%# ResolveRockUrl("~~/Assets/Vendor/magnific-popup/magnific-popup.css", true) %>" rel="stylesheet" type="text/css"/>
-	<link href="<%# ResolveRockUrl("~~/Assets/Vendor/swiper/swiper.min.css", true) %>" rel="stylesheet" type="text/css"/>
-	<link href="<%# ResolveRockUrl("~~/Assets/Vendor/cubeportfolio/css/cubeportfolio.min.css", true) %>" rel="stylesheet" type="text/css"/>
+	<!-- <link href="<%# ResolveRockUrl("~~/Assets/Vendor/scrollbar/scrollbar.min.css", true) %>" rel="stylesheet" type="text/css"/> -->
+	<!-- <link href="<%# ResolveRockUrl("~~/Assets/Vendor/magnific-popup/magnific-popup.css", true) %>" rel="stylesheet" type="text/css"/> -->
+	<!-- <link href="<%# ResolveRockUrl("~~/Assets/Vendor/swiper/swiper.min.css", true) %>" rel="stylesheet" type="text/css"/> -->
+	<!-- <link href="<%# ResolveRockUrl("~~/Assets/Vendor/cubeportfolio/css/cubeportfolio.min.css", true) %>" rel="stylesheet" type="text/css"/> -->
 
     <!-- REVOLUTION STYLE SHEETS -->
-    <link href="http://fonts.googleapis.com/css?family=Poppins:600%2C300%2C700" rel="stylesheet" property="stylesheet" type="text/css" media="all">
-	<link rel="stylesheet" type="text/css" href="<%# ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/fonts/pe-icon-7-stroke/css/pe-icon-7-stroke.css", true) %>" />
-	<link rel="stylesheet" type="text/css" href="<%# ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/fonts/font-awesome/css/font-awesome.css", true) %>" />
-    <link rel="stylesheet" type="text/css" href="<%# ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/css/settings.css", true) %>" />
-	<link rel="stylesheet" type="text/css" href="<%# ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/css/layers.css", true) %>" />
-	<link rel="stylesheet" type="text/css" href="<%# ResolveRockUrl("~~/Assets/Vendor/revolution_slider/revolution/css/navigation.css", true) %>" />
+    <link href="https://fonts.googleapis.com/css?family=Poppins:600%2C300%2C700" rel="stylesheet" property="stylesheet" type="text/css" media="all">
 	<!-- END REVOLUTION STYLE SHEETS -->
 
     <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/style.css", true) %>"/>
@@ -54,11 +52,11 @@
     <asp:ContentPlaceHolder ID="head" runat="server"></asp:ContentPlaceHolder>
 
     <!-- Icons -->
-    <link rel="shortcut icon" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/favicon.ico", true) %>"/>
-    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/touch-icon-ipad-retina.png", true) %>"/>
-    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/touch-icon-iphone-retina.png", true) %>"/>
-    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/touch-icon-ipad.png", true) %>"/>
-    <link rel="apple-touch-icon-precomposed" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/touch-icon-iphone.png", true) %>"/>
+    <!-- <link rel="shortcut icon" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/lwya-favicon.ico", true) %>"/> -->
+    <!-- <link rel="apple-touch-icon-precomposed" sizes="144x144" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/lwya-touch-icon-ipad-retina.png", true) %>"/>
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/lwya-touch-icon-iphone-retina.png", true) %>"/>
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/lwya-touch-icon-ipad.png", true) %>"/>
+    <link rel="apple-touch-icon-precomposed" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/lwya-touch-icon-iphone.png", true) %>"/> -->
 
     <link href="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/css/reset.css", true) %>" rel="stylesheet" type="text/css"/>
 	<link href="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/css/style.css", true) %>" rel="stylesheet" type="text/css"/>
@@ -68,73 +66,13 @@
 <body runat="server">
 
     <!-- Vendor -->
-    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/jquery.migrate.min.js", true) %>"></script>
-    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/jquery.smooth-scroll.min.js", true) %>"></script>
     <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/jquery.back-to-top.min.js", true) %>"></script>
-    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/scrollbar/jquery.scrollbar.min.js", true) %>"></script>
-    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/magnific-popup/jquery.magnific-popup.min.js", true) %>"></script>
-    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/swiper/swiper.jquery.min.js", true) %>"></script>
     <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/waypoint.min.js", true) %>"></script>
-    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/counterup.min.js", true) %>"></script>
-    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/cubeportfolio/js/jquery.cubeportfolio.min.js", true) %>"></script>
-    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/jquery.parallax.min.js", true) %>"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBsXUGTFS09pLVdsYEE9YrO2y4IAncAO2U"></script>
     <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/jquery.wow.min.js", true) %>"></script>
     <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/js/jquery.mobile.custom.min.js", true) %>"></script>
     <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/js/main.js", true) %>"></script>
 
     <form id="form1" runat="server">
-
-        <Rock:Zone Name="Hero" runat="server" />
-
-        <!--========== HEADER ==========-->
-        <header class="cd-main-header">
-           <a class="cd-logo" href="#0">
-               <img src="/Themes/Rogers/Assets/Vendor/mega-site-navigation/img/sekids_logo.png" alt="Logo" class="img-responsive">
-           </a>
-
-           <ul class="cd-header-buttons">
-               <li><a class="cd-nav-trigger" href="#cd-primary-nav">Menu<span></span></a></li>
-           </ul>
-        </header>
-        <!--========== END HEADER ==========-->
-
-        <main class="cd-main-content">
-            <!--========== PAGE CONTENT ==========-->
-            <asp:ContentPlaceHolder ID="feature" runat="server"></asp:ContentPlaceHolder>
-
-    		<asp:ContentPlaceHolder ID="main" runat="server"></asp:ContentPlaceHolder>
-            <!--========== END PAGE CONTENT ==========-->
-        </main>
-
-        <!--========== FOOTER ==========-->
-        <footer class="g-bg-color--dark">
-            <!-- Copyright -->
-            <div class="container g-padding-y-50--xs">
-                <div class="row">
-                    <div class="col-xs-12">
-						<Rock:Zone Name="Footer" runat="server" />
-                    </div>
-                </div>
-            </div>
-            <!-- End Copyright -->
-        </footer>
-        <!--========== END FOOTER ==========-->
-
-        <!-- Back To Top -->
-        <a href="javascript:void(0);" class="s-back-to-top js__back-to-top"></a>
-
-        <!-- Menu Overlay -->
-        <div class="cd-overlay"></div>
-
-        <nav class="cd-nav">
-    		<ul id="cd-primary-nav" class="cd-primary-nav">
-                <li><a href="#about">About</a></li>
-    			<li><a href="#info">Info</a></li>
-                <li><a href="#register">Register</a></li>
-                <li><a href="#faq">FAQ</a></li>
-            </ul>
-    	</nav>
 
         <asp:ScriptManager ID="sManager" runat="server"/>
         <asp:UpdateProgress id="updateProgress" runat="server" DisplayAfter="800">
@@ -152,24 +90,55 @@
 		        </ProgressTemplate>
         </asp:UpdateProgress>
 
+        <div class="cd-hero">
+            <Rock:Zone Name="Hero" runat="server" />
+        </div>
+    	<!--========== HEADER ==========-->
+    	<header class="cd-main-header">
+    	   <a class="cd-logo" href="#0">
+    		   <img src="/Themes/Rogers/Assets/Vendor/mega-site-navigation/img/sekids_logo.png" alt="Logo" class="img-responsive">
+    	   </a>
+
+    	   <ul class="cd-header-buttons">
+    		   <li><a class="cd-nav-trigger" href="#cd-primary-nav">Menu<span></span></a></li>
+    	   </ul>
+    	</header>
+    	<!--========== END HEADER ==========-->
+
+        <main class="cd-main-content">
+            <!--========== PAGE CONTENT ==========-->
+            <asp:ContentPlaceHolder ID="feature" runat="server"></asp:ContentPlaceHolder>
+    		<asp:ContentPlaceHolder ID="main" runat="server"></asp:ContentPlaceHolder>
+            <!--========== END PAGE CONTENT ==========-->
+
+            <!--========== FOOTER ==========-->
+            <footer class="g-bg-color--dark">
+
+                <!-- End Copyright -->
+            </footer>
+            <!--========== END FOOTER ==========-->
+        </main>
+
+        <!-- Back To Top -->
+        <a href="javascript:void(0);" class="s-back-to-top js__back-to-top"></a>
+
+        <Rock:Zone Name="primary-nav" runat="server" />
+
+        <nav class="cd-nav">
+            <ul id="cd-primary-nav" class="cd-primary-nav is-fixed">
+                <li><a href="#about">About</a></li>
+                <li><a href="#info">Info</a></li>
+                <li><a href="#register">Register</a></li>
+                <li><a href="#faq">FAQ</a></li>
+            </ul>
+        </nav>
+
+        <!-- Menu Overlay -->
+        <div class="cd-overlay"></div>
+
     </form>
 
-    <!-- Back To Top -->
-    <a href="javascript:void(0);" class="s-back-to-top js__back-to-top"></a>
-
-    <!--========== JAVASCRIPTS (Load javascripts at bottom, this will reduce page load time) ==========-->
-    <!-- General Components and Settings -->
-    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/global.js", true) %>"></script>
-    <!-- <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/header-sticky.min.js", true) %>"></script> -->
-    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/scrollbar.min.js", true) %>"></script>
-    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/magnific-popup.min.js", true) %>"></script>
-    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/swiper.min.js", true) %>"></script>
-    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/counter.min.js", true) %>"></script>
-    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/portfolio-3-col.min.js", true) %>"></script>
-    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/parallax.min.js", true) %>"></script>
-    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/google-map.min.js", true) %>"></script>
     <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/wow.min.js") %>"></script>
-    <script type="text/javascript" src="<%= ResolveRockUrl("~/Scripts/bootstrap-datepicker.js") %>"></script>
 
 </body>
 
