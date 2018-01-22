@@ -688,7 +688,7 @@ namespace org.secc.PayPalExpress
 
             var transactionEntity = this.GetTransactionEntity();
 
-            foreach ( var account in SelectedAccounts.Where( a => a.Amount > 0 ) )
+            foreach ( var account in GetSelectedAccounts().Where( a => a.Amount > 0 ) )
             {
                 var transactionDetail = new FinancialTransactionDetail();
                 transactionDetail.Amount = account.Amount;
