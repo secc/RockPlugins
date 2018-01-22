@@ -24,7 +24,7 @@
                     <asp:HyperLink runat="server" ID="hlGroup" CssClass="pull-right btn btn-default" ToolTip="View Group"><i class="fa fa-group"></i></asp:HyperLink>
                     <asp:HyperLink runat="server" ID="hlStudentLeaderGroup" Visible="false" CssClass="pull-right btn btn-default" ToolTip="View Student Leader Group"><i class="fa fa-graduation-cap"></i></asp:HyperLink>
 
-                    <h1 class="panel-title"><i class="se se-msm"></i>Mix Manager</h1>
+                    <h1 class="panel-title"><i class="se se-msm"></i>Believe Manager</h1>
                 </div>
                 <Rock:GridFilter runat="server" ID="gfReport" OnApplyFilterClick="gfReport_ApplyFilterClick" OnClearFilterClick="gfReport_ClearFilterClick">
                     <Rock:RockTextBox Label="Person Name" ID="txtPersonName" runat="server" />
