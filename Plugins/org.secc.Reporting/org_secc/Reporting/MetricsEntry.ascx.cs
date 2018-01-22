@@ -593,7 +593,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
                     }
                 }
             }
-            return services.OrderBy(s => s.NextStartDateTime.Value.Ticks).ToList();
+            return services.OrderBy(s => s.NextStartDateTime.HasValue?s.NextStartDateTime.Value.Ticks : s.EffectiveEndDate.HasValue?s.EffectiveEndDate.Value.Ticks:0).ToList();
         }
 
         /// <summary>
