@@ -52,7 +52,9 @@ namespace org.secc.RoomScanner.Rest.Controllers
         private bool AreChildrenCheckedIn( int locationId )
         {
             var lglsc = CheckInCountCache.GetByLocation( locationId );
-            var count = lglsc.Where( glsc => !VolunteerGroupIds.Contains( glsc.GroupId ) ).Select( glsc => glsc.InRoomPersonIds.Count() ).Sum();
+            var count = lglsc.Where( glsc => !VolunteerGroupIds.Contains( glsc.GroupId ) && glsc.GroupId != 0 )
+                .Select( glsc => glsc.InRoomPersonIds.Count() )
+                .Sum();
             return count >= 1;
         }
 
@@ -389,7 +391,8 @@ namespace org.secc.RoomScanner.Rest.Controllers
 
                 //If person is a volunteer, children are checked in, and would result in less than 2 volunteers
                 //Then don't allow for check-out
-                if ( attendances.Where( a => VolunteerGroupIds.Contains( a.GroupId ?? 0 ) ).Any()
+                if ( ( attendances.Where( a => VolunteerGroupIds.Contains( a.GroupId ?? 0 ) ).Any()
+                    || attendances.Where( a => a.GroupId == 0 || a.GroupId == null ).Any() )
                     && AreChildrenCheckedIn( req.LocationId )
                     && NumberOfVolunteersCheckedIn( req.LocationId ) <= 2 )
                 {
