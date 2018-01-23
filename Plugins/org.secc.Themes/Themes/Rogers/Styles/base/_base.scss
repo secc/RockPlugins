@@ -91,7 +91,7 @@ i {
 
 /* Paragraph */
 p {
-  @include font($size: $font-size-15, $weight: 300);
+  @include font($size: $font-size-28, $weight: 400);
 	color: $color-text;
 	line-height: $line-height;
 	margin-top: 0;
@@ -111,4 +111,12 @@ a {
 	@include focus {
 		outline: none;
 	}
+}
+
+.selogo {
+	max-width: 107px;
+	position: absolute;
+	top: 5%;
+	left: 5%;
+	z-index: 5;
 }

@@ -110,12 +110,16 @@ Main components
 	background: $color-3;
 	min-height: 100vh;
 	z-index: $content;
+	&.nav-fixed-margin {
+		margin-top: $header-height-S;
+	}
 }
 .cd-main-header {
 	height: $header-height-S;
 	background: $color-1;
 	z-index: $above-content;
-	.nav-is-fixed & {
+
+	&.nav-is-fixed {
 		/* add .nav-is-fixed class to body if you want a fixed navigation on > 1170px */
 		position: fixed;
 		top: 0;
@@ -139,7 +143,7 @@ Main components
 	position: absolute;
 	top: 18px;
 	left: 5%;
-
+	
 	img {
 		display: block;
 		max-width: 160px;
@@ -1141,6 +1145,6 @@ support for no js
 	}
 
 	.no-js .nav-is-fixed .cd-primary-nav {
-		// position: fixed;
+		position: fixed;
 	}
 }

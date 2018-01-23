@@ -4,17 +4,17 @@
 
 $color-primary:              #f26841 !default;
 $color-blueviolet:           #9877ea !default;
-$color-red:             		 #c54041 !default;
-$color-gold:             		 #b99769 !default;
+$color-red:             	 #c54041 !default;
+$color-gold:             	 #b99769 !default;
 $color-dark:                 #222324 !default;
 $color-dark-light:           #242526 !default;
 $color-heading:              #242424 !default;
 $color-white:                #fff !default;
-$color-white-opacity:        rgba($color-white,.8) !default;
-$color-white-opacity-light:  rgba($color-white,.5) !default;
-$color-white-opacity-lighter:rgba($color-white,.3) !default;
-$color-white-opacity-lightest:rgba($color-white,.1) !default;
-$color-text:            		 #656565 !default;
+$color-white-opacity:          rgba($color-white,.8) !default;
+$color-white-opacity-light:    rgba($color-white,.5) !default;
+$color-white-opacity-lighter:  rgba($color-white,.3) !default;
+$color-white-opacity-lightest: rgba($color-white,.1) !default;
+$color-text:            	 #656565 !default;
 $color-gray-light:           #cecece !default;
 $color-gray-lighter:         #aeaeae !default;
 $color-sky-light:            #f5f8f9 !default;
@@ -23,22 +23,18 @@ $color-sky-light:            #f5f8f9 !default;
 // Body
 //
 // Settings for the `<body>` element.
-
 $bg-color-body:             $color-white !default;
 $color-body:                $color-dark !default;
-
 
 // Links
 //
 // Style anchor elements.
-
 $link-hover-decoration:     none !default;
 
 
 // // Typography
 // //
 // // Font, line-height, and color for body text, headings, and more.
-
 $font-family-primary:				Lato, sans-serif !default; // Default Font Lato font family
 $font-family-secondary:			Montserrat, sans-serif !default; // Secondary Font Montserrat font family
 $font-family-playfair:			Playfair Display, serif !default; // Default Font Playfair Display font family
@@ -57,14 +53,12 @@ $headings-line-height:       1.2 !default;
 // of components dependent on the z-axis and are designed to all work together.
 //
 // Note: These variables are not generated into the Customizer.
-
 $zindex-navbar:            	1000 !default;
 $zindex-dropdown:          	1000 !default;
 $zindex-cart:             	9999 !default;
 
 
 // Navbar
-
 $navbar-height:							88px !default;
 $navbar-height-shrink:			3.4375rem !default;
 
@@ -72,7 +66,6 @@ $navbar-height-shrink:			3.4375rem !default;
 // Options
 //
 // Quickly modify global styling by enabling or disabling optional features.
-
 $enable-hover-media-query:   				false !default;
 $enable-child-media-query:   				false !default;
 $enable-before-after-media-query:   false !default;
@@ -82,7 +75,6 @@ $enable-before-after-media-query:   false !default;
 //
 // Control the default styling of most Dublin elements by modifying these
 // variables. Mostly focused on spacing.
-
 $spacer:                    1rem !default;
 $spacer-x:                  $spacer !default;
 $spacer-y:                  $spacer !default;
@@ -91,7 +83,6 @@ $border-width:              .0625rem !default;
 
 // Container
 //
-
 $container-sm:              750px !default;
 $container-md:              970px !default;
 
@@ -100,7 +91,6 @@ $container-md:              970px !default;
 //
 // Define the minimum and maximum dimensions at which your layout will change,
 // adapting to different screen sizes, for use in media queries.
-
 $grid-breakpoints: (
 	// Extra small screen / phone
 	xs: 0,
@@ -118,7 +108,6 @@ $grid-breakpoints: (
 // Grid containers
 //
 // Define the maximum width of `.container` for different screen sizes.
-
 $container-max-widths: (
 	sm: 34rem,    // 480
 	md: 45rem,    // 720
@@ -130,14 +119,12 @@ $container-max-widths: (
 // Typography
 //
 // Font, line-height, and color for body text, headings, and more.
-
 $font-family-ionicons:			 Ionicons !default; // Ionicons Icon font family
-$font-family-icomoon:			 	 icomoon !default; // icomoon Icon font family
+$font-family-icomoon:			 icomoon !default; // icomoon Icon font family
 
 // Pixel value used to responsively scale all typography. Applied to the `<html>` element.
 
 $font-size-root:             16px !default;
-
 $font-size-10:               .625rem !default;
 $font-size-11:               .6875rem !default;
 $font-size-12:               .75rem !default;
@@ -185,5 +172,4 @@ $font-size-145:  						 9.0625rem !default;
 $font-size-150:  						 9.375rem !default;
 
 // Forms
-
 $cursor-disabled:           not-allowed !default;

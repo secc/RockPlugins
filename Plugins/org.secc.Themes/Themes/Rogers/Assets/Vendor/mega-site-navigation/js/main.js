@@ -27,6 +27,13 @@ jQuery(document).ready(function($){
 		}
 	});
 
+	$('.cd-primary-nav a').on('click', function(event){
+		if($('.cd-primary-nav').hasClass('nav-is-visible')) {
+			closeNav();
+			$('.cd-overlay').removeClass('is-visible');
+		}
+	});
+
 	//open search form
 	$('.cd-search-trigger').on('click', function(event){
 		event.preventDefault();
