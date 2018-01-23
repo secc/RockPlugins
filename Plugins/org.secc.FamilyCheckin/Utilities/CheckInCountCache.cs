@@ -37,9 +37,9 @@ namespace org.secc.FamilyCheckin.Utilities
                     lglsc = UpdateCache();
                 }
                 GroupLocationScheduleCount glsc = lglsc.FirstOrDefault( g =>
-                                                                    g.LocationId == attendance.LocationId
-                                                                    && g.ScheduleId == attendance.ScheduleId
-                                                                    && g.GroupId == attendance.GroupId );
+                                                                    g.LocationId == ( attendance.LocationId ?? 0 )
+                                                                    && g.ScheduleId == ( attendance.ScheduleId ?? 0 )
+                                                                    && g.GroupId == ( attendance.GroupId ?? 0 ) );
                 if ( glsc == null )
                 {
                     glsc = new GroupLocationScheduleCount()
@@ -175,10 +175,7 @@ namespace org.secc.FamilyCheckin.Utilities
             AttendanceService attendanceService = new AttendanceService( rockContext );
             var attendances = attendanceService.Queryable()
                 .Where( a =>
-                            a.GroupId != null
-                            && a.LocationId != null
-                            && a.ScheduleId != null
-                            && a.StartDateTime >= today
+                            a.StartDateTime >= today
                             && a.StartDateTime < tomorrow
                             && a.EndDateTime == null )
                 .GroupBy( a => new { a.GroupId, a.LocationId, a.ScheduleId } )
@@ -192,7 +189,6 @@ namespace org.secc.FamilyCheckin.Utilities
                     ScheduleId = attendance.Key.ScheduleId ?? 0,
                     PersonIds = attendance.Select( a => a.PersonAlias?.PersonId ?? 0 ).ToList(),
                     InRoomPersonIds = attendance.Where( a => a.DidAttend == true ).Select( a => a.PersonAlias?.PersonId ?? 0 ).ToList()
-
                 };
                 output.Add( glsc );
             }
