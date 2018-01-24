@@ -35,21 +35,39 @@
     <link href="<%# ResolveRockUrl("~~/Styles/rock.css", true) %>" rel="stylesheet" type="text/css"/>
 	<link href="<%# ResolveRockUrl("~~/Assets/Vendor/animate/animate.min.css", true) %>" rel="stylesheet" type="text/css"/>
 	<link href="<%# ResolveRockUrl("~~/Assets/Vendor/themify/themify.css", true) %>" rel="stylesheet" type="text/css"/>
-	<!-- <link href="<%# ResolveRockUrl("~~/Assets/Vendor/scrollbar/scrollbar.min.css", true) %>" rel="stylesheet" type="text/css"/> -->
-	<!-- <link href="<%# ResolveRockUrl("~~/Assets/Vendor/magnific-popup/magnific-popup.css", true) %>" rel="stylesheet" type="text/css"/> -->
 	<link href="<%# ResolveRockUrl("~~/Assets/Vendor/swiper/css/swiper.min.css", true) %>" rel="stylesheet" type="text/css"/>
-	<!-- <link href="<%# ResolveRockUrl("~~/Assets/Vendor/cubeportfolio/css/cubeportfolio.min.css", true) %>" rel="stylesheet" type="text/css"/> -->
 
-    <!-- REVOLUTION STYLE SHEETS -->
-    <link href="https://fonts.googleapis.com/css?family=Poppins:600%2C300%2C700" rel="stylesheet" property="stylesheet" type="text/css" media="all">
-	<!-- END REVOLUTION STYLE SHEETS -->
-
-    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/style.css", true) %>"/>
+    <link href="<%# ResolveRockUrl("~~/Styles/style.css", true) %>" rel="stylesheet" />
     <link href="<%# ResolveRockUrl("~~/Assets/Css/global/global.css", true) %>" rel="stylesheet" type="text/css"/>
 
     <script src="<%# ResolveRockUrl("~/Scripts/modernizr.js" ) %>" ></script>
     <script src="<%# ResolveRockUrl("~~/Scripts/smooth-scroll.min.js" ) %>" ></script>
 
+    <%-- D O C U M E N T E D
+    <!-- / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / -->
+    <!-- / / / / / / / (Include this script in any Rock Pages Under Advance Settings) / / / / / / /-->
+    <!-- / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / -->
+        <script>
+        $(document).ready(function() {
+         $.fn.extend({
+             animateCss: function (animationName, callback) {
+                  var animationEnd = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
+                  this.addClass('animated ' + animationName).one(animationEnd, function() {
+                      $(this).removeClass('animated ' + animationName);
+                      if (callback) {
+                        callback();
+                      }
+                  });
+                  return this;
+              }
+          });
+          $('.cd-logo').animateCss('rubberBand');
+        });
+        </script>
+    <!-- / / / / / / / / / / / / / / / / / / / / / / / / / / / / / -->
+    <!-- / / / / / / / END ADVANCE PAGE SETTING SCRIPT / / / / / / / / -->
+    <!-- / / / / / / / / / / / / / / / / / / / / / / / / / / / / / -->
+    --%>
     <asp:ContentPlaceHolder ID="head" runat="server"></asp:ContentPlaceHolder>
 
     <!-- Icons -->
@@ -62,7 +80,6 @@
     <link href="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/css/reset.css", true) %>" rel="stylesheet" type="text/css"/>
 	<link href="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/css/style.css", true) %>" rel="stylesheet" type="text/css"/>
 	<script src="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/js/modernizr.js" ) %>" ></script>
-
 </head>
 <body runat="server" class="nav-on-left">
 
@@ -91,108 +108,73 @@
 		        </ProgressTemplate>
         </asp:UpdateProgress>
 
-        <div class="cd-hero nav-on-left">
-            <Rock:Zone Name="Hero" runat="server" />
-        </div>
-    	<!--========== HEADER ==========-->
-    	<header class="cd-main-header nav-on-left">
-    	   <a class="cd-logo" href="#About">
-               <img src="/Themes/Rogers/Assets/Vendor/mega-site-navigation/img/sekids_logo.png" alt="Logo" class="img-responsive">
-    	   </a>
+        <%-- D O C U M E N T E D
+        <!-- / / / / / / / / / / / / / / / / / / / / / / / / / / -->
+        <!-- / / / / / / / HEADER ZONE BLOCK CODE / / / / / / / -->
+        <!-- / / / / / / / / / / / / / / / / / / / / / / / / / / -->
+            <!--========== HERO ==========-->
+            <div class="cd-hero">
+               <a class="selogo" href="#About">
+                   <img src="/Themes/Rogers/Assets/Img/logos/secc-logo-reversed.png" alt="Logo" class="img-responsive">
+               </a>
+               {[ parallax videourl:'https://youtu.be/9pDEXUj6Fms' height:'400px' noios:'true' position:'top top' speed:'-25' ]}
+               {[ endparallax ]}
+            </div>
+            <!--========== END HERO ==========-->
+            <!--========== HEADER ==========-->
+            <header class="cd-main-header nav-on-left">
+               <a class="cd-logo" href="#About">
+                   <img src="/Themes/Rogers/Assets/Vendor/mega-site-navigation/img/sekids_logo.png" alt="Logo" class="img-responsive">
+               </a>
 
-    	   <ul class="cd-header-buttons">
-    		   <li><a class="cd-nav-trigger" href="#cd-primary-nav">Menu<span></span></a></li>
-    	   </ul>
-    	</header>
-    	<!--========== END HEADER ==========-->
+               <ul class="cd-header-buttons">
+            	   <li><a class="cd-nav-trigger" href="#cd-primary-nav">Menu<span></span></a></li>
+               </ul>
+            </header>
+            <!--========== END HEADER ==========-->
+        <!-- / / / / / / / / / / / / / / / / / / / / / / / / / / / / / -->
+        <!-- / / / / / / / END HEADER ZONE BLOCK CODE / / / / / / / / -->
+        <!-- / / / / / / / / / / / / / / / / / / / / / / / / / / / / / -->
+        --%>
+        <Rock:Zone Name="Header" runat="server" />
 
         <main class="cd-main-content">
             <!--========== PAGE CONTENT ==========-->
             <asp:ContentPlaceHolder ID="feature" runat="server"></asp:ContentPlaceHolder>
     		<asp:ContentPlaceHolder ID="main" runat="server"></asp:ContentPlaceHolder>
+            <asp:ContentPlaceHolder ID="footer" runat="server"></asp:ContentPlaceHolder>
             <!--========== END PAGE CONTENT ==========-->
-
-            <!--========== FOOTER ==========-->
-            <footer class="g-bg-color--dark">
-
-                <!-- End Copyright -->
-            </footer>
-            <!--========== END FOOTER ==========-->
         </main>
 
-        <!-- Back To Top -->
-        <a href="javascript:void(0);" class="s-back-to-top js__back-to-top"></a>
+        <%-- D O C U M E N T E D
+        <!-- / / / / / / / / / / / / / / / / / / / / / / / / / / / / / -->
+        <!-- / / / / / / / PRIMARY-NAV ZONE BLOCK CDOE / / / / / / / /-->
+        <!-- / / / / / / / / / / / / / / / / / / / / / / / / / / / / / -->
+            <!-- Back To Top -->
+            <a href="javascript:void(0);" class="s-back-to-top js__back-to-top"></a>
 
+            <nav class="cd-nav nav-on-left">
+                <ul id="cd-primary-nav" class="cd-primary-nav nav-on-left is-fixed">
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#info">Info</a></li>
+                    <li><a href="#register">Register</a></li>
+                    <li><a href="#faq">FAQ</a></li>
+                </ul>
+            </nav>
+
+            <!-- Menu Overlay -->
+            <div class="nav-on-left cd-overlay"></div>
+        <!-- / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /-->
+        <!-- / / / / / / / END PRIMARY-NAV ZONE BLOCK CODE / / / / / / / / -->
+        <!-- / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /-->
+        --%>
         <Rock:Zone Name="primary-nav" runat="server" />
-
-        <nav class="cd-nav nav-on-left">
-            <ul id="cd-primary-nav" class="cd-primary-nav nav-on-left is-fixed">
-                <li><a href="#about">About</a></li>
-                <li><a href="#info">Info</a></li>
-                <li><a href="#register">Register</a></li>
-                <li><a href="#faq">FAQ</a></li>
-            </ul>
-        </nav>
-
-        <!-- Menu Overlay -->
-        <div class="nav-on-left cd-overlay"></div>
 
     </form>
 
     <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/components/wow.min.js") %>"></script>
     <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/swiper/js/swiper.jquery.min.js", true) %>"></script>
-    <script>
-        function init() {
-
-            $.fn.extend({
-                animateCss: function (animationName, callback) {
-                    var animationEnd = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
-                    this.addClass('animated ' + animationName).one(animationEnd, function() {
-                        $(this).removeClass('animated ' + animationName);
-                        if (callback) {
-                          callback();
-                        }
-                    });
-                    return this;
-                }
-            });
-
-            $('.cd-logo').animateCss('rubberBand');
-
-            // scroll on any hash links
-            var scroll = new SmoothScroll('a[href*="#"]', {
-                // Selectors
-                //header: '[data-scroll-header]',
-
-                // Speed & Easing
-                offset: ($('.cd-main-header').height() + 15), // Integer or Function returning an integer. How far to offset the scrolling anchor location in pixels
-                easing: 'easeInOutCubic', // Easing pattern to use
-            });
-
-            // make it sticky
-            var cmh = $(".cd-main-header");
-                cmc = $(".cd-main-content");
-                ch = $('.cd-hero').height();
-
-                $(window).scroll(function() {
-                    if( $(this).scrollTop() > ch ) {
-                        cmh.addClass("nav-is-fixed");
-                        cmc.addClass("nav-fixed-margin");
-                    } else {
-                        cmh.removeClass("nav-is-fixed");
-                        cmc.removeClass("nav-fixed-margin");
-                    }
-                });
-        };
-
-
-        $(window).load(function()
-        {
-           // executes when complete page is fully loaded, including all frames, objects and images
-           init();
-        });
-    </script>
+    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Scripts/global.js", true) %>"></script>
 
 </body>
-
 </html>

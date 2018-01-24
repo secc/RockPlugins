@@ -1,5 +1,5 @@
 // Global Javascript Initialization
-var Global = function() {
+/*var Global = function() {
   'use strict';
 
   // Bootstra Components
@@ -117,16 +117,41 @@ var Global = function() {
 
   return {
     init: function() {
-      handleBootstrapComponents(); // initial setup for Bootstrap Components
-      handleScrollToSection(); // initial setup for Scroll To Section
-      handlePromoSection(); // initial setup for Promo Section
-      handleOverlay(); // initial setup for Overlay
-      handleVerticalCenterAligned(); // initial setup for Vertical Center Aligned
-      handleEqualHeight(); // initial setup for Equal Height
+      //handleBootstrapComponents(); // initial setup for Bootstrap Components
+      //handleScrollToSection(); // initial setup for Scroll To Section
+      //handlePromoSection(); // initial setup for Promo Section
+      //handleOverlay(); // initial setup for Overlay
+      //handleVerticalCenterAligned(); // initial setup for Vertical Center Aligned
+      //handleEqualHeight(); // initial setup for Equal Height
     }
   }
-}();
+}();*/
 
 $(document).ready(function() {
-  Global.init();
+  //Global.init();
+  
+  // scroll on any hash links
+  var scroll = new SmoothScroll('a[href*="#"]', {
+      // Selectors
+      //header: '[data-scroll-header]',
+
+      // Speed & Easing
+      offset: ($('.cd-main-header').height() + 15), // Integer or Function returning an integer. How far to offset the scrolling anchor location in pixels
+      easing: 'easeInOutCubic', // Easing pattern to use
+  });
+
+  // make it sticky
+  var cmh = $(".cd-main-header");
+      cmc = $(".cd-main-content");
+      ch = $('.cd-hero').height();
+
+      $(window).scroll(function() {
+          if( $(this).scrollTop() > ch ) {
+              cmh.addClass("nav-is-fixed");
+              cmc.addClass("nav-fixed-padding");
+          } else {
+              cmh.removeClass("nav-is-fixed");
+              cmc.removeClass("nav-fixed-padding");
+          }
+      });
 });

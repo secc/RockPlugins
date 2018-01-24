@@ -5,6 +5,15 @@
 
 /* --------------------------------
 
+Rock CMS Helper
+
+-------------------------------- */
+body.zone-highlight, body.block-highlight {
+    margin-bottom: 80px;
+}
+
+/* --------------------------------
+
 Primary style
 
 -------------------------------- */
@@ -110,8 +119,12 @@ Main components
 	background: $color-3;
 	min-height: 100vh;
 	z-index: $content;
-	&.nav-fixed-margin {
-		margin-top: $header-height-S;
+	&.nav-fixed-padding {
+		padding-top: $header-height-S;
+		@include MQ(L) {
+			padding-top: $header-height-L;
+			@include clearfix;
+		}
 	}
 }
 .cd-main-header {
@@ -143,7 +156,7 @@ Main components
 	position: absolute;
 	top: 18px;
 	left: 5%;
-	
+
 	img {
 		display: block;
 		max-width: 160px;
