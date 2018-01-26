@@ -192,7 +192,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 if ( communication != null )
                 {
-                    AddRecepients( communication, cbSMSSendToParents.Checked );
+                    AddRecepients( communication, cbSMSSendToParents.Checked, EntityTypeCache.Read( new Guid( Rock.SystemGuid.EntityType.COMMUNICATION_MEDIUM_SMS ) ).Id );
 
                     communication.CommunicationType = CommunicationType.SMS;
                     communication.SMSMessage = tbMessage.Text;
@@ -200,6 +200,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                     communication.Status = CommunicationStatus.Approved;
                     communication.ReviewedDateTime = RockDateTime.Now;
+                    communication.FutureSendDateTime = RockDateTime.Now;
                     communication.ReviewerPersonAliasId = CurrentPersonAliasId;
 
                     _rockContext.SaveChanges();
@@ -242,7 +243,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 if ( communication != null )
                 {
-                    AddRecepients( communication, cbEmailSendToParents.Checked );
+                    AddRecepients( communication, cbEmailSendToParents.Checked, EntityTypeCache.Read( new Guid(Rock.SystemGuid.EntityType.COMMUNICATION_MEDIUM_EMAIL) ).Id );
 
                     communication.CommunicationType = CommunicationType.Email;
 
@@ -254,6 +255,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                     communication.Status = CommunicationStatus.Approved;
                     communication.ReviewedDateTime = RockDateTime.Now;
+                    communication.FutureSendDateTime = RockDateTime.Now;
                     communication.ReviewerPersonAliasId = CurrentPersonAliasId;
 
                     _rockContext.SaveChanges();
@@ -741,7 +743,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             return communication;
         }
 
-        private void AddRecepients( Communication communication, bool sendParents )
+        private void AddRecepients( Communication communication, bool sendParents, int mediumEntityTypeId )
         {
             //List to keep from sending multiple messages
             List<int> addedIds = new List<int>();
@@ -758,6 +760,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             //Add person to Communication
                             var communicationRecipient = new CommunicationRecipient();
                             communicationRecipient.PersonAliasId = member.PersonAliasId;
+                            communicationRecipient.MediumEntityTypeId = mediumEntityTypeId;
                             communication.Recipients.Add( communicationRecipient );
                             addedIds.Add( member.Id );
                         }
@@ -772,6 +775,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             {
                                 var communicationRecipient = new CommunicationRecipient();
                                 communicationRecipient.PersonAliasId = parent.PrimaryAliasId ?? parent.Id;
+                                communicationRecipient.MediumEntityTypeId = mediumEntityTypeId;
                                 communication.Recipients.Add( communicationRecipient );
                                 addedIds.Add( parent.Id );
                             }
@@ -809,6 +813,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             //Add person to Communication
                             var communicationRecipient = new CommunicationRecipient();
                             communicationRecipient.PersonAliasId = member.PersonAliasId;
+                            communicationRecipient.MediumEntityTypeId = mediumEntityTypeId;
                             communication.Recipients.Add( communicationRecipient );
                             addedIds.Add( member.Id );
                         }
@@ -823,6 +828,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             {
                                 var communicationRecipient = new CommunicationRecipient();
                                 communicationRecipient.PersonAliasId = parent.PrimaryAliasId ?? parent.Id;
+                                communicationRecipient.MediumEntityTypeId = mediumEntityTypeId;
                                 communication.Recipients.Add( communicationRecipient );
                                 addedIds.Add( parent.Id );
                             }
