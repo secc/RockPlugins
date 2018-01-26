@@ -129,7 +129,7 @@
 
 $(document).ready(function() {
   //Global.init();
-  
+
   // scroll on any hash links
   var scroll = new SmoothScroll('a[href*="#"]', {
       // Selectors
@@ -143,15 +143,27 @@ $(document).ready(function() {
   // make it sticky
   var cmh = $(".cd-main-header");
       cmc = $(".cd-main-content");
-      ch = $('.cd-hero').height();
 
-      $(window).scroll(function() {
-          if( $(this).scrollTop() > ch ) {
-              cmh.addClass("nav-is-fixed");
-              cmc.addClass("nav-fixed-padding");
-          } else {
-              cmh.removeClass("nav-is-fixed");
-              cmc.removeClass("nav-fixed-padding");
-          }
-      });
+      if (typeof ch !== 'undefined') {
+          $(window).scroll(function() {
+              if( $(this).scrollTop() > ch ) {
+                  cmh.addClass("nav-is-fixed");
+                  cmc.addClass("nav-fixed-padding");
+              } else {
+                  cmh.removeClass("nav-is-fixed");
+                  cmc.removeClass("nav-fixed-padding");
+              }
+          });
+      } else {
+          ch = $('.cd-hero').height();
+          $(window).scroll(function() {
+              if( $(this).scrollTop() > ch ) {
+                  cmh.addClass("nav-is-fixed");
+                  cmc.addClass("nav-fixed-padding");
+              } else {
+                  cmh.removeClass("nav-is-fixed");
+                  cmc.removeClass("nav-fixed-padding");
+              }
+          });
+      }
 });

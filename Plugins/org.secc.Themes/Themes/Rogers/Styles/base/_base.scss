@@ -91,7 +91,7 @@ i {
 
 /* Paragraph */
 p {
-  @include font($size: $font-size-28, $weight: 400);
+  @include font($size: $font-size-22, $weight: 400);
 	color: $color-text;
 	line-height: $line-height;
 	margin-top: 0;
