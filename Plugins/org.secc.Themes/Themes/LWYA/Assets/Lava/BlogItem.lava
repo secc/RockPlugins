@@ -45,15 +45,18 @@
                 {% assign currentPageId = 'Global' | Page:'Id' %}
                 {% capture regexString %}Item={{item.Id}}(&|$){% endcapture %}
                 {% assign blogViewCount = 0 %}
-
-                {% pageview where:'PageId == "{{currentPageId}}" && Url *= "Item={{item.Id}}"' %}
-                {% for item in pageviewItems %}
-                    {% assign isCurrentBlogView = item.Url | RegExMatch:regexString %}
+				
+				{% interactioncomponent where:'EntityId == "{{currentPageId}}"' %}
+					{% assign component = interactioncomponentItems | First  %}
+				{% endinteractioncomponent %}
+                {% interaction where:'InteractionComponentId == "{{component.Id}}" && InteractionData *= "Item={{item.Id}}"' %}
+                {% for item in interactionItems %}
+                    {% assign isCurrentBlogView = item.InteractionData | RegExMatch:regexString %}
                     {% if isCurrentBlogView %}
                     {% assign blogViewCount = blogViewCount | Plus:1 %}
                     {% endif %}
                 {% endfor %}
-                {% endpageview %}
+                {% endinteraction %}
                 <span class="post_counters_item post_counters_views" title="Views - {{ blogViewCount }}">
                     <i class="fa fa-eye post_counters_item"></i>
                     {{ blogViewCount }}
