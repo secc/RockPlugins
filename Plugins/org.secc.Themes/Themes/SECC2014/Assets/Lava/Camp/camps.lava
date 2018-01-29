@@ -1,0 +1,156 @@
+<style>
+	#PageBody {
+		background-color: #383735;
+	}
+	.isotope_item {
+		padding: 0px !important;
+	}
+	.isotope_item a {
+		z-index: 3;
+	}
+	.isotope_item img {
+		width: 100%;
+	}
+	.isotope_item a:after {
+		 content: '';
+		 z-index: 0;
+	     position: absolute;
+	     width: 100%; height:100%;
+	     top:0; left:0;
+	     background:rgba(0,0,0,0.6);
+	     opacity: 0;
+	     transition: all 0.3s;
+	     -webkit-transition: all 0.3s;
+	}
+	.isotope_item a:hover:after {
+		 opacity: 1;
+	}
+	main.container {
+		display: none;
+	}
+	.mix {
+		background-color: #f58557;
+	}
+	.biblenbeach {
+		background-color: #36cae8;
+	}
+	.sekids {
+		background-color: #e5376b;
+	}
+	.freedom {
+		background-color: #78ead3;
+	}
+	.event-info-top {
+		padding: 3% 5%;
+		z-index: 2;
+		position: absolute;
+	    top: 10%;
+	    left: 0;
+	    width: 100%;
+		color: white;
+	}
+	.event-info-bottom {
+		padding: 3% 5%;
+		position: absolute;
+		z-index: 2;
+	    bottom: 10%;
+	    left: 0;
+	    width: 100%;
+		color: white;
+	}
+</style>
+<!-- OK -->
+
+<div class="container-fluid" style="padding: 0px; background-color: #383735">
+	<div class="isotope_wrap">
+
+		<div class="isotope_item col-sm-12 col-md-6">
+			<a href="http://southeastmsm.org">
+				<img src="/Themes/SECC2014/Assets/img/Camps/MIX-color.jpg" alt="palooza.png" class="img-responsive">
+				<div class="event-info-top mix">
+					<div class="pull-right">
+						Blankenbaker • June 7-11<br />
+						Crestwood, La Grange, <br />
+						Blankenbaker • June 11-15 <br />
+						Indiana, Southwest, <br />
+						Elizabethtown • June 15-19 <br />
+					</div>
+					<h4>MIX</h4>
+					<p>Middle School<br />
+					   Country Lake Christian Retreat</p>
+				</div>
+			</a>
+		</div>
+
+		<div class="isotope_item col-sm-12 col-md-6">
+			<a href="http://bibleandbeach.com">
+				<img src="/Themes/SECC2014/Assets/img/Camps/BibleBeach-color.jpg" class="img-responsive">
+				<div class="event-info-top biblenbeach">
+					<h4>BIBLE &amp; BEACH</h4>
+					<p>High School<br />
+					   June 23-29<br />
+				   	   Daytona Beach, Florida</p>
+				</div>
+			</a>
+		</div>
+
+		<div class="isotope_item col-sm-12 col-md-6">
+			<a href="/camp/sekids-summer-camp">
+				<img src="/Themes/SECC2014/Assets/img/Camps/SEKids-color.jpg" alt="Celebrate Christmas Together" class="img-responsive">
+				<div class="event-info-bottom sekids">
+					<div class="pull-right">
+						1st-2nd Grade Camp • July 13-14<br />
+						3rd-5th Grade Camp 1 • July 15-18<br />
+						3rd-5th Grade Camp 2 • July 19-22<br />
+					</div>
+					<h4>SE!KIDS SUMMER CAMP</h4>
+					<p>Elemntary School<br />
+					   Country Lake Christian Retreat</p>
+				</div>
+			</a>
+		</div>
+
+		<div class="isotope_item col-sm-12 col-md-6">
+			<a href="/camp/camp-freedom">
+				<img src="/Themes/SECC2014/Assets/img/Camps/CampFreedom-color.jpg" alt="Celebrate Christmas Together" class="img-responsive">
+				<div class="event-info-bottom freedom">
+					<h4>CAMP FREEDOM</h4>
+					<p>Campers with Developmental Disabilities<br />
+					   July 27-29 • Country Lake Christian Retreat</p>
+				</div>
+			</a>
+		</div>
+
+	</div>
+</div>
+
+<script>
+    $(window).load(function() {
+        // Initialize SmoothScroll
+        var scroll = new SmoothScroll('a[href*="#"]', {
+            speed: 500, // Integer. How fast to complete the scroll in milliseconds
+            easing: 'easeInOutCubic', // Easing pattern to use
+        });
+
+        // Initialize Isotope
+        var $grid = $('.isotope_wrap').isotope({
+            // options
+            percentPosition: true,
+			stagger: '0.3s',
+            itemSelector: '.isotope_item',
+            masonry: {
+              horizontalOrder: true
+            }
+        });
+        // reveal all items after init
+        var $items = $grid.find('.isotope_item');
+        $grid.addClass('is-showing-items')
+          .isotope( 'revealItemElements', $items );
+    });
+</script>
+
+<script type="text/javascript">
+  $( document ).ready(function() {
+    $('.js-group-item').tooltip();
+  });
+</script>
