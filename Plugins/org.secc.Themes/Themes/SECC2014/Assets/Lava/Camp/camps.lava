@@ -1,6 +1,7 @@
 <style>
-	#PageBody {
-		background-color: #383735;
+	#bse_logo {
+		max-width: 600px;
+		margin: 4rem auto;
 	}
 	.isotope_item {
 		padding: 0px !important;
@@ -42,6 +43,7 @@
 	}
 	.event-info-top {
 		padding: 3% 5%;
+		min-height: 160px;
 		z-index: 2;
 		position: absolute;
 	    top: 10%;
@@ -51,6 +53,7 @@
 	}
 	.event-info-bottom {
 		padding: 3% 5%;
+		min-height: 130px;
 		position: absolute;
 		z-index: 2;
 	    bottom: 10%;
@@ -58,15 +61,19 @@
 	    width: 100%;
 		color: white;
 	}
+	.camp-text {
+		font-size: 18px;
+		margin: 4rem 0;
+	}
 </style>
 <!-- OK -->
 
-<div class="container-fluid" style="padding: 0px; background-color: #383735">
+<div class="container-fluid" style="padding: 0px;">
 	<div class="isotope_wrap">
 
 		<div class="isotope_item col-sm-12 col-md-6">
-			<a href="http://southeastmsm.org">
-				<img src="/Themes/SECC2014/Assets/img/Camps/MIX-color.jpg" alt="palooza.png" class="img-responsive">
+			<a href="/camp/mix">
+				<img src="/Themes/SECC2014/Assets/img/Camps/MIX.jpg" alt="palooza.png" class="img-responsive">
 				<div class="event-info-top mix">
 					<div class="pull-right">
 						Blankenbaker • June 7-11<br />
@@ -83,20 +90,20 @@
 		</div>
 
 		<div class="isotope_item col-sm-12 col-md-6">
-			<a href="http://bibleandbeach.com">
-				<img src="/Themes/SECC2014/Assets/img/Camps/BibleBeach-color.jpg" class="img-responsive">
+			<a href="/camp/bibleandbeach">
+				<img src="/Themes/SECC2014/Assets/img/Camps/BibleBeach.jpg" class="img-responsive">
 				<div class="event-info-top biblenbeach">
 					<h4>BIBLE &amp; BEACH</h4>
 					<p>High School<br />
 					   June 23-29<br />
-				   	   Daytona Beach, Florida</p>
+				   	   Daytona Beach, Florida<br /></p>
 				</div>
 			</a>
 		</div>
 
 		<div class="isotope_item col-sm-12 col-md-6">
 			<a href="/camp/sekids-summer-camp">
-				<img src="/Themes/SECC2014/Assets/img/Camps/SEKids-color.jpg" alt="Celebrate Christmas Together" class="img-responsive">
+				<img src="/Themes/SECC2014/Assets/img/Camps/SEKids.jpg" alt="Celebrate Christmas Together" class="img-responsive">
 				<div class="event-info-bottom sekids">
 					<div class="pull-right">
 						1st-2nd Grade Camp • July 13-14<br />
@@ -112,7 +119,7 @@
 
 		<div class="isotope_item col-sm-12 col-md-6">
 			<a href="/camp/camp-freedom">
-				<img src="/Themes/SECC2014/Assets/img/Camps/CampFreedom-color.jpg" alt="Celebrate Christmas Together" class="img-responsive">
+				<img src="/Themes/SECC2014/Assets/img/Camps/CampFreedom.jpg" alt="Celebrate Christmas Together" class="img-responsive">
 				<div class="event-info-bottom freedom">
 					<h4>CAMP FREEDOM</h4>
 					<p>Campers with Developmental Disabilities<br />
@@ -136,8 +143,7 @@
         var $grid = $('.isotope_wrap').isotope({
             // options
             percentPosition: true,
-			stagger: '0.3s',
-            itemSelector: '.isotope_item',
+			itemSelector: '.isotope_item',
             masonry: {
               horizontalOrder: true
             }
