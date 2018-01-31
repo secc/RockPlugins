@@ -589,7 +589,7 @@
 
                 <li data-index="rs-409" data-transition="fade" data-slotamount="default" data-hideafterloop="0" data-hideslideonmobile="off"  data-easein="default" data-easeout="default" data-masterspeed="2000"  data-thumb="/Themes/LWYA/Assets/Vendor/revolution_slider/assets/images/blur1-100x50.jpg"  data-rotate="0"  data-saveperformance="off"  data-title="Three" data-param1="" data-param2="" data-param3="" data-param4="" data-param5="" data-param6="" data-param7="" data-param8="" data-param9="" data-param10="" data-description="">
                     <!-- MAIN IMAGE -->
-                    <img src="/Themes/LWYA/Assets/Img/homeslider/PRCH_Overcome_Imag.jpg"  alt=""  data-bgposition="center center" data-kenburns="on" data-duration="20000" data-ease="Linear.easeNone" data-scalestart="130" data-scaleend="100" data-rotatestart="0" data-rotateend="0" data-offsetstart="0 0" data-offsetend="0 0" data-bgparallax="6" class="rev-slidebg" data-no-retina>
+                    <img src="/Themes/LWYA/Assets/Img/homeslider/FIXEDBG.jpg"  alt=""  data-bgposition="center center" data-kenburns="on" data-duration="20000" data-ease="Linear.easeNone" data-scalestart="130" data-scaleend="100" data-rotatestart="0" data-rotateend="0" data-offsetstart="0 0" data-offsetend="0 0" data-bgparallax="6" class="rev-slidebg" data-no-retina>
                     <!-- LAYERS -->
                     <div id="rrzm_409" class="rev_row_zone rev_row_zone_middle" style="z-index: 6;">
 
@@ -620,7 +620,7 @@
 
                         style="z-index: 6; white-space: nowrap; font-size: 20px; line-height: 22px; font-weight: 400; color: rgba(255, 255, 255, 1.00);">
                     <!-- LAYER NR. 12 -->
-                    <div class="tp-caption  "
+                    <div class="tp-caption"
                          id="slide-409-layer-15"
                          data-x="['left','left','left','left']" data-hoffset="['100','100','100','100']"
                          data-y="['top','top','top','top']" data-voffset="['100','100','100','100']"
@@ -645,209 +645,127 @@
 
                         style="z-index: 7; width: 100%;">
                     <!-- LAYER NR. 13 -->
-                    <!-- <div class="tp-caption   tp-resizeme"
-                         id="slide-409-layer-1"
-                         data-x="['center','center','center','center']" data-hoffset="['0','0','0','0']"
-                         data-y="['top','top','top','top']" data-voffset="['0','0','100','50']"
-                                    data-fontsize="['110','90','100','70']"
-                        data-lineheight="['100','90','100','70']"
-                        data-width="['none','none','none','none']"
-                        data-height="none"
-                        data-whitespace="['normal','normal','normal','normal']"
 
-                        data-type="image"
-                        data-basealign="slide"
-                        data-responsive_offset="on"
+                                <div class="tp-caption   tp-resizeme"
+                        			 id="slide-2759-layer-4"
+                        			 data-x="['center','center','center','center']" data-hoffset="['-150','-150','-130','-229']"
+                        			 data-y="['top','top','top','top']" data-voffset="['175','145','35','124']"
+                        						data-width="none"
+                        			data-height="none"
+                        			data-whitespace="nowrap"
 
-                        data-frames='[{"delay":"+290","split":"chars","splitdelay":0.05,"speed":750,"frame":"0","from":"y:40px;sX:1.5;sY:1.5;opacity:0;fb:20px;","to":"o:1;fb:0;","ease":"Power4.easeOut"},{"delay":"wait","speed":1000,"frame":"999","to":"sX:1;sY:1;opacity:0;fb:10px;","ease":"Power4.easeOut"}]'
-                        data-margintop="[0,0,0,30]"
-                        data-marginright="[0,0,0,0]"
-                        data-marginbottom="[20,10,20,20]"
-                        data-marginleft="[0,0,0,0]"
-                        data-textAlign="['inherit','inherit','center','center']"
-                        data-paddingtop="[0,0,0,0]"
-                        data-paddingright="[0,0,40,40]"
-                        data-paddingbottom="[0,0,0,0]"
-                        data-paddingleft="[0,0,40,40]"
+                        			data-type="image"
+                        			data-responsive_offset="on"
 
-                        style="z-index: 8; display: block !important; white-space: nowrap; font-size: 110px; line-height: 100px; font-weight: 600; color: rgba(255, 255, 255, 1.00); display: inline-block;font-family:Poppins;letter-spacing:-5px;">
-                        <img src="/Themes/LWYA/Assets/Img/homeslider/CurrentSeriesLogo.png" style="margin: 0 auto;" />
-                    </div> -->
+                        			data-frames='[{"from":"x:0;y:0;z:0;rX:0;rY:0;rZ:0;sX:0.75;sY:0.75;skX:0;skY:0;opacity:0;","speed":1500,"to":"o:1;","delay":290,"ease":"Power3.easeOut"},{"delay":"wait","speed":300,"to":"opacity:0;","ease":"nothing"}]'
+                        			data-textAlign="['center','center','center','center']"
+                                    data-margintop="[0,0,0,30]"
+                                    data-marginright="[0,0,0,0]"
+                                    data-marginbottom="[20,10,20,20]"
+                                    data-marginleft="[0,0,0,0]"
+                        			data-paddingtop="[0,0,0,0]"
+                        			data-paddingright="[0,0,0,0]"
+                        			data-paddingbottom="[0,0,0,0]"
+                        			data-paddingleft="[0,0,0,0]"
+                        			style="z-index: 8;text-transform:left;border-width:0px;">
+                                    <img src="/Themes/LWYA/Assets/Img/homeslider/FIXEDLogo.png" alt="" data-ww="['600px','600px','600px','300px']" data-hh="['550px','550px','550px','275px']" width="600" height="550" data-no-retina>
+                                </div>
 
-                    <div class="tp-caption   tp-resizeme"
-            			 id="slide-2759-layer-4"
-            			 data-x="['center','center','center','center']" data-hoffset="['-150','-150','-130','-229']"
-            			 data-y="['top','top','top','top']" data-voffset="['175','145','35','124']"
-            						data-width="none"
-            			data-height="none"
-            			data-whitespace="nowrap"
+                                <div class="tp-caption   tp-resizeme"
+                                     id="slide-409-layer-2"
+                                     data-x="['left','left','center','center']" data-hoffset="['0','50','0','0']"
+                                     data-y="['top','top','top','top']" data-voffset="['0','430','460','290']"
+                                                data-fontsize="['30','30','40','25']"
+                                    data-lineheight="['40','40','50','30']"
+                                    data-width="['none','100%','100%','100%']"
+                                    data-height="none"
+                                    data-whitespace="normal"
 
-            			data-type="image"
-            			data-responsive_offset="on"
+                                    data-type="text"
+                                    data-basealign="slide"
+                                    data-responsive_offset="on"
 
-            			data-frames='[{"from":"x:0;y:0;z:0;rX:0;rY:0;rZ:0;sX:0.75;sY:0.75;skX:0;skY:0;opacity:0;","speed":1500,"to":"o:1;","delay":290,"ease":"Power3.easeOut"},{"delay":"wait","speed":300,"to":"opacity:0;","ease":"nothing"}]'
-            			data-textAlign="['center','center','center','center']"
-                        data-margintop="[0,0,0,30]"
-                        data-marginright="[0,0,0,0]"
-                        data-marginbottom="[20,10,20,20]"
-                        data-marginleft="[0,0,0,0]"
-            			data-paddingtop="[0,0,0,0]"
-            			data-paddingright="[0,0,0,0]"
-            			data-paddingbottom="[0,0,0,0]"
-            			data-paddingleft="[0,0,0,0]"
-            			style="z-index: 8;text-transform:left;border-width:0px;">
-                        <img src="/Themes/LWYA/Assets/Img/homeslider/CurrentSeriesLogo.png" alt="" data-ww="['264px','264px','264px','150px']" data-hh="['263px','263px','263px','149px']" width="264" height="263" data-no-retina>
-                    </div>
+                                    data-frames='[{"delay":"+1490","split":"chars","splitdelay":0.03,"speed":300,"frame":"0","from":"sX:2;sY:2;opacity:0;fb:5px;","to":"o:1;fb:0;","ease":"Power4.easeOut"},{"delay":"wait","speed":1000,"frame":"999","to":"opacity:0;fb:10px;","ease":"Power4.easeOut"}]'
+                                    data-margintop="[0,0,0,0]"
+                                    data-marginright="[0,0,0,0]"
+                                    data-marginbottom="[0,0,0,0]"
+                                    data-marginleft="[0,0,0,0]"
+                                    data-textAlign="['inherit','inherit','center','center']"
+                                    data-paddingtop="[0,0,0,0]"
+                                    data-paddingright="[0,0,0,0]"
+                                    data-paddingbottom="[0,0,0,0]"
+                                    data-paddingleft="[0,0,0,0]"
 
-                    <div class="tp-caption   tp-resizeme"
-                         id="slide-409-layer-1"
-                         data-x="['left','left','center','center']" data-hoffset="['0','0','0','0']"
-                         data-y="['top','top','top','top']" data-voffset="['0','0','230','110']"
-                        data-fontsize="['110','90','100','50']"
-                        data-lineheight="['100','90','100','70']"
-                        data-width="['none','none','697','399']"
-                        data-height="none"
-                        data-whitespace="['nowrap','nowrap','normal','normal']"
+                                    style="z-index: 9; white-space: normal; font-size: 30px; line-height: 40px; font-weight: 300; color: rgba(0, 0, 0, 1.00); display: block;font-family:Poppins;">New Video Series for Neighborhood Groups
+                                </div>
+                                <div class="tp-static-layers" style="position: relative; z-index: 101; top: 0;left: 0; display:inline-block;">
+                                        <!-- LAYER NR. 16 -->
+                                        {% contentchannelitem where:'Status == 1 && ContentChannelId == 16' sort:'StartDateTime desc' %}
+                                            {% assign currentSeries = contentchannelitemItems | First %}
+                                        <a class="tp-caption rev-btn  tp-static-layer"
+                                        href="/lwya/all-series/series?Item={{ currentSeries.Id }}" id="slider-149-layer-18"
+                                            data-x="['center','center','center','center']" data-hoffset="['0','0','0','0']"
+                                            data-y="['bottom','bottom','bottom','bottom']" data-voffset="['30','30','30','30']"
+                                            data-width="none"
+                                            data-height="none"
+                                            data-whitespace="normal"
 
-                        data-type="text"
-                        data-basealign="slide"
-                        data-responsive_offset="on"
+                                            data-type="button"
+                                            data-actions=''
+                                            data-basealign="slide"
+                                            data-responsive_offset="on"
+                                            data-responsive="off"
+                                            data-startslide="0"
+                                            data-frames='[{"delay":1600,"speed":1000,"frame":"0","from":"y:20px;sX:1.5;sY:1.5;opacity:0;fb:10px;","to":"o:1;fb:0;","ease":"Power4.easeOut"},{"delay":"wait","speed":1000,"frame":"999","to":"opacity:0;fb:10px;","ease":"Power4.easeOut"},{"frame":"hover","speed":"0","ease":"Linear.easeNone","to":"o:1;rX:0;rY:0;rZ:0;z:0;fb:0;","style":"c:rgba(0, 0, 0, 1.00);bg:rgba(255, 255, 255, 1.00);"}]'
+                                            data-textAlign="['inherit','inherit','inherit','inherit']"
+                                            data-margintop="[20,20,20,20]"
+                                            data-marginright="[0,0,0,0]"
+                                            data-marginbottom="[0,0,0,0]"
+                                            data-marginleft="[0,0,0,0]"
+                                            data-paddingtop="[0,0,0,0]"
+                                            data-paddingright="[35,25,20,15]"
+                                            data-paddingbottom="[0,0,0,0]"
+                                            data-paddingleft="[35,25,20,15]"
+                                            data-fontsize="['20','20','20','15']"
 
-                        data-frames='[{"delay":"+490","split":"chars","splitdelay":0.05,"speed":750,"frame":"0","from":"y:40px;sX:1.5;sY:1.5;opacity:0;fb:20px;","to":"o:1;fb:0;","ease":"Power4.easeOut"},{"delay":"wait","speed":1000,"frame":"999","to":"sX:1;sY:1;opacity:0;fb:10px;","ease":"Power4.easeOut"}]'
-                        data-margintop="[0,0,0,0]"
-                        data-marginright="[0,0,0,0]"
-                        data-marginbottom="[20,10,10,10]"
-                        data-marginleft="[0,0,0,0]"
-                        data-textAlign="['inherit','inherit','center','center']"
-                        data-paddingtop="[0,0,0,0]"
-                        data-paddingright="[0,0,40,40]"
-                        data-paddingbottom="[0,0,0,0]"
-                        data-paddingleft="[0,0,40,40]"
+                                            style="display: inline-block; z-index: 8; white-space: nowrap; font-size: 15px; line-height: 50px; font-weight: 700; color: rgba(0, 0, 0, 1.00);font-family:Poppins;background-color:rgba(0, 0, 0, 0);border-color:rgba(0, 0, 0, 1.00);border-style:solid;border-width:2px 2px 2px 2px;border-radius:30px 30px 30px 30px;outline:none;box-shadow:none;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;cursor:pointer;text-decoration: none;">View Series</a>
+                                        {% endcontentchannelitem %}
+                                </div>
+                                <div class="tp-static-layers" style="position: relative; z-index: 101; top: 0;left: 0;display:inline-block;">
+                                        <!-- LAYER NR. 16 -->
+                                        <a class="tp-caption rev-btn  tp-static-layer"
+                                        href="/lwya/stories" id="slider-149-layer-18"
+                                            data-x="['center','center','center','center']" data-hoffset="['0','0','0','0']"
+                                            data-y="['bottom','bottom','bottom','bottom']" data-voffset="['30','30','30','30']"
+                                            data-width="none"
+                                            data-height="none"
+                                            data-whitespace="normal"
 
-                        style="z-index: 8; white-space: nowrap; font-size: 110px; line-height: 100px; font-weight: 600; color: rgba(255, 255, 255, 1.00); display: inline-block;font-family:Poppins;letter-spacing:0px;">OVERCOME</div>
+                                            data-type="button"
+                                            data-actions=''
+                                            data-basealign="slide"
+                                            data-responsive_offset="on"
+                                            data-responsive="off"
+                                            data-startslide="0"
+                                            data-frames='[{"delay":1600,"speed":1000,"frame":"0","from":"y:20px;sX:1.5;sY:1.5;opacity:0;fb:10px;","to":"o:1;fb:0;","ease":"Power4.easeOut"},{"delay":"wait","speed":1000,"frame":"999","to":"opacity:0;fb:10px;","ease":"Power4.easeOut"},{"frame":"hover","speed":"0","ease":"Linear.easeNone","to":"o:1;rX:0;rY:0;rZ:0;z:0;fb:0;","style":"c:rgba(0, 0, 0, 1.00);bg:rgba(255, 255, 255, 1.00);"}]'
+                                            data-textAlign="['inherit','inherit','inherit','inherit']"
+                                            data-margintop="[20,20,20,20]"
+                                            data-marginright="[0,0,0,0]"
+                                            data-marginbottom="[0,0,0,30]"
+                                            data-marginleft="[10,10,10,10]"
+                                            data-paddingtop="[0,0,0,0]"
+                                            data-paddingright="[35,25,20,15]"
+                                            data-paddingbottom="[0,0,0,0]"
+                                            data-paddingleft="[35,25,20,15]"
+                                            data-fontsize="['20','20','20','15']"
 
-                    <!-- LAYER NR. 14 -->
-                    <div class="tp-caption   tp-resizeme"
-                         id="slide-409-layer-2"
-                         data-x="['left','left','center','center']" data-hoffset="['0','50','0','0']"
-                         data-y="['top','top','top','top']" data-voffset="['0','430','460','290']"
-                                    data-fontsize="['30','30','40','25']"
-                        data-lineheight="['40','40','50','30']"
-                        data-width="['none','100%','100%','100%']"
-                        data-height="none"
-                        data-whitespace="normal"
-
-                        data-type="text"
-                        data-basealign="slide"
-                        data-responsive_offset="on"
-
-                        data-frames='[{"delay":"+890","split":"chars","splitdelay":0.03,"speed":300,"frame":"0","from":"sX:2;sY:2;opacity:0;fb:5px;","to":"o:1;fb:0;","ease":"Power4.easeOut"},{"delay":"wait","speed":1000,"frame":"999","to":"opacity:0;fb:10px;","ease":"Power4.easeOut"}]'
-                        data-margintop="[0,0,0,0]"
-                        data-marginright="[0,0,0,0]"
-                        data-marginbottom="[60,50,60,60]"
-                        data-marginleft="[0,0,0,0]"
-                        data-textAlign="['inherit','inherit','center','center']"
-                        data-paddingtop="[0,0,0,0]"
-                        data-paddingright="[0,0,0,0]"
-                        data-paddingbottom="[0,0,0,0]"
-                        data-paddingleft="[0,0,0,0]"
-
-                        style="z-index: 9; white-space: normal; font-size: 30px; line-height: 40px; font-weight: 300; color: rgba(255, 255, 255, 1.00); display: block;font-family:Poppins; text-transform: uppercase;">What's Holding You Back?</div>
-                        <div class="tp-caption   tp-resizeme"
-                             id="slide-409-layer-2"
-                             data-x="['left','left','center','center']" data-hoffset="['0','50','0','0']"
-                             data-y="['top','top','top','top']" data-voffset="['0','430','460','290']"
-                                        data-fontsize="['30','30','40','25']"
-                            data-lineheight="['40','40','50','30']"
-                            data-width="['none','100%','100%','100%']"
-                            data-height="none"
-                            data-whitespace="normal"
-
-                            data-type="text"
-                            data-basealign="slide"
-                            data-responsive_offset="on"
-
-                            data-frames='[{"delay":"+1490","split":"chars","splitdelay":0.03,"speed":300,"frame":"0","from":"sX:2;sY:2;opacity:0;fb:5px;","to":"o:1;fb:0;","ease":"Power4.easeOut"},{"delay":"wait","speed":1000,"frame":"999","to":"opacity:0;fb:10px;","ease":"Power4.easeOut"}]'
-                            data-margintop="[0,0,0,0]"
-                            data-marginright="[0,0,0,0]"
-                            data-marginbottom="[0,0,0,0]"
-                            data-marginleft="[0,0,0,0]"
-                            data-textAlign="['inherit','inherit','center','center']"
-                            data-paddingtop="[0,0,0,0]"
-                            data-paddingright="[0,0,0,0]"
-                            data-paddingbottom="[0,0,0,0]"
-                            data-paddingleft="[0,0,0,0]"
-
-                            style="z-index: 9; white-space: normal; font-size: 30px; line-height: 40px; font-weight: 300; color: rgba(255, 255, 255, 1.00); display: block;font-family:Poppins;">New Video Series for Neighborhood Groups</div>
-                            <div class="tp-static-layers" style="position: relative; z-index: 101; top: 0;left: 0; display:inline-block;">
-                                    <!-- LAYER NR. 16 -->
-                                    {% contentchannelitem where:'Status == 1 && ContentChannelId == 16' sort:'StartDateTime desc' %}
-                                        {% assign currentSeries = contentchannelitemItems | First %}
-                                    <a class="tp-caption rev-btn  tp-static-layer"
-                                    href="/lwya/all-series/series?Item={{ currentSeries.Id }}" id="slider-149-layer-18"
-                                        data-x="['center','center','center','center']" data-hoffset="['0','0','0','0']"
-                                        data-y="['bottom','bottom','bottom','bottom']" data-voffset="['30','30','30','30']"
-                                        data-width="none"
-                                        data-height="none"
-                                        data-whitespace="normal"
-
-                                        data-type="button"
-                                        data-actions=''
-                                        data-basealign="slide"
-                                        data-responsive_offset="on"
-                                        data-responsive="off"
-                                        data-startslide="0"
-                                        data-frames='[{"delay":1600,"speed":1000,"frame":"0","from":"y:20px;sX:1.5;sY:1.5;opacity:0;fb:10px;","to":"o:1;fb:0;","ease":"Power4.easeOut"},{"delay":"wait","speed":1000,"frame":"999","to":"opacity:0;fb:10px;","ease":"Power4.easeOut"},{"frame":"hover","speed":"0","ease":"Linear.easeNone","to":"o:1;rX:0;rY:0;rZ:0;z:0;fb:0;","style":"c:rgba(0, 0, 0, 1.00);bg:rgba(255, 255, 255, 1.00);"}]'
-                                        data-textAlign="['inherit','inherit','inherit','inherit']"
-                                        data-margintop="[20,20,20,20]"
-                                        data-marginright="[0,0,0,0]"
-                                        data-marginbottom="[0,0,0,0]"
-                                        data-marginleft="[0,0,0,0]"
-                                        data-paddingtop="[0,0,0,0]"
-                                        data-paddingright="[35,25,20,15]"
-                                        data-paddingbottom="[0,0,0,0]"
-                                        data-paddingleft="[35,25,20,15]"
-                                        data-fontsize="['20','20','20','15']"
-
-                                        style="display: inline-block; z-index: 8; white-space: nowrap; font-size: 15px; line-height: 50px; font-weight: 700; color: rgba(255, 255, 255, 1.00);font-family:Poppins;background-color:rgba(255, 255, 255, 0);border-color:rgba(255, 255, 255, 1.00);border-style:solid;border-width:2px 2px 2px 2px;border-radius:30px 30px 30px 30px;outline:none;box-shadow:none;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;cursor:pointer;text-decoration: none;">View Series</a>
-                                    {% endcontentchannelitem %}
-                            </div>
-                            <div class="tp-static-layers" style="position: relative; z-index: 101; top: 0;left: 0;display:inline-block;">
-                                    <!-- LAYER NR. 16 -->
-                                    <a class="tp-caption rev-btn  tp-static-layer"
-                                    href="/lwya/stories" id="slider-149-layer-18"
-                                        data-x="['center','center','center','center']" data-hoffset="['0','0','0','0']"
-                                        data-y="['bottom','bottom','bottom','bottom']" data-voffset="['30','30','30','30']"
-                                        data-width="none"
-                                        data-height="none"
-                                        data-whitespace="normal"
-
-                                        data-type="button"
-                                        data-actions=''
-                                        data-basealign="slide"
-                                        data-responsive_offset="on"
-                                        data-responsive="off"
-                                        data-startslide="0"
-                                        data-frames='[{"delay":1600,"speed":1000,"frame":"0","from":"y:20px;sX:1.5;sY:1.5;opacity:0;fb:10px;","to":"o:1;fb:0;","ease":"Power4.easeOut"},{"delay":"wait","speed":1000,"frame":"999","to":"opacity:0;fb:10px;","ease":"Power4.easeOut"},{"frame":"hover","speed":"0","ease":"Linear.easeNone","to":"o:1;rX:0;rY:0;rZ:0;z:0;fb:0;","style":"c:rgba(0, 0, 0, 1.00);bg:rgba(255, 255, 255, 1.00);"}]'
-                                        data-textAlign="['inherit','inherit','inherit','inherit']"
-                                        data-margintop="[20,20,20,20]"
-                                        data-marginright="[0,0,0,0]"
-                                        data-marginbottom="[0,0,0,30]"
-                                        data-marginleft="[10,10,10,10]"
-                                        data-paddingtop="[0,0,0,0]"
-                                        data-paddingright="[35,25,20,15]"
-                                        data-paddingbottom="[0,0,0,0]"
-                                        data-paddingleft="[35,25,20,15]"
-                                        data-fontsize="['20','20','20','15']"
-
-                                        style="display: inline-block; z-index: 8; white-space: nowrap; font-size: 15px; line-height: 50px; font-weight: 700; color: rgba(255, 255, 255, 1.00);font-family:Poppins;background-color:rgba(255, 255, 255, 0);border-color:rgba(161, 165, 170, 1.00);border-style:solid;border-width:2px 2px 2px 2px;border-radius:30px 30px 30px 30px;outline:none;box-shadow:none;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;cursor:pointer;text-decoration: none;">Watch Stories</a>
-                            </div>
+                                            style="display: inline-block; z-index: 8; white-space: nowrap; font-size: 15px; line-height: 50px; font-weight: 700; color: rgba(0, 0, 0, 1.00);font-family:Poppins;background-color:rgba(0, 0, 0, 0);border-color:rgba(161, 165, 170, 1.00);border-style:solid;border-width:2px 2px 2px 2px;border-radius:30px 30px 30px 30px;outline:none;box-shadow:none;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;cursor:pointer;text-decoration: none;">Watch Stories</a>
+                                </div>
                             </div>
                         </div>
                     </div>
-
                     <!-- LAYER NR. 15 -->
-                    <div class="tp-caption tp-shape tp-shapewrapper "
+                    <!-- <div class="tp-caption tp-shape tp-shapewrapper "
                          id="slide-409-layer-16"
                          data-x="['center','center','center','center']" data-hoffset="['0','0','0','0']"
                          data-y="['middle','middle','middle','middle']" data-voffset="['0','0','0','0']"
@@ -866,7 +784,8 @@
                         data-paddingbottom="[0,0,0,0]"
                         data-paddingleft="[0,0,0,0]"
 
-                        style="z-index: 5;background-color:rgba(0, 0, 0, 0.35);"> </div>
+                        style="z-index: 5;background-color:rgba(0, 0, 0, 0.35);"> -->
+                    </div>
                 </li>
 
                 <!-- SLIDE  -->
