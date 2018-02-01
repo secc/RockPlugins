@@ -8,10 +8,28 @@
 	}
 	.isotope_item a {
 		z-index: 3;
+		text-decoration: none;
 	}
 	.isotope_item img {
 		width: 100%;
 	}
+	/* .camp-overlay::before {
+	    content: '';
+	    z-index: 0;
+	    position: absolute;
+	    width: 80%;
+	    height: 100%;
+	    top: 0;
+	    left: 20%;
+	    background:rgba(245, 133, 87, 0.50);
+	    transition: all 0.3s;
+	    -webkit-transition: all 0.3s;
+	} */
+	/* .camp-overlay img {
+		position: absolute;
+		top: 0;
+		left: 0;
+	} */
 	.isotope_item a:after {
 		 content: '';
 		 z-index: 0;
@@ -21,10 +39,12 @@
 	     background:rgba(0,0,0,0.6);
 	     opacity: 0;
 	     transition: all 0.3s;
+		 text-decoration: none;
 	     -webkit-transition: all 0.3s;
 	}
 	.isotope_item a:hover:after {
 		 opacity: 1;
+		 text-decoration: none;
 	}
 	main.container {
 		display: none;
@@ -32,18 +52,34 @@
 	.mix {
 		background-color: #f58557;
 	}
+	.mix:before {
+		border-bottom: 10px solid #f58557;
+	}
+
 	.biblenbeach {
 		background-color: #36cae8;
 	}
+	.biblenbeach:before {
+		border-bottom: 10px solid #36cae8;
+	}
+
+
 	.sekids {
 		background-color: #e5376b;
 	}
+	.sekids:before {
+		border-bottom: 10px solid #e5376b;
+	}
+
 	.freedom {
 		background-color: #78ead3;
 	}
+	.freedom:before {
+		border-bottom: 10px solid #78ead3;
+	}
+
 	.event-info-top {
 		padding: 3% 5%;
-		min-height: 160px;
 		z-index: 2;
 		position: absolute;
 	    top: 10%;
@@ -53,7 +89,6 @@
 	}
 	.event-info-bottom {
 		padding: 3% 5%;
-		min-height: 130px;
 		position: absolute;
 		z-index: 2;
 	    bottom: 10%;
@@ -65,6 +100,33 @@
 		font-size: 18px;
 		margin: 4rem 0;
 	}
+	@media (min-width: 992px) {
+	  .event-info-top, .event-info-bottom {
+		  min-height: 160px;
+	  }
+	}
+	@media (max-width: 1200px) {
+	  .event-info-top, .event-info-bottom {
+		  position: relative;
+	  }
+	}
+	@media (max-width: 992px) {
+		.mix:before, .biblenbeach:before, .sekids:before, .freedom:before {
+			content: "\a0";
+		    display: block;
+			position: absolute;
+			width: 100%;
+			height: 100%;
+			bottom: -10px;
+	    	left: 0;
+		}
+	  .event-info-top, .event-info-bottom {
+		  min-height: 100%;
+	      display: inline-block;
+	      width: 100%;
+		  word-spacing: -1;
+  	  }
+	}
 </style>
 <!-- OK -->
 
@@ -74,17 +136,22 @@
 		<div class="isotope_item col-sm-12 col-md-6">
 			<a href="/camp/mix">
 				<img src="/Themes/SECC2014/Assets/img/Camps/MIX-color.jpg" alt="palooza.png" class="img-responsive">
+				<!-- <div class="camp-overlay">
+					<img src="/Themes/SECC2014/Assets/img/Camps/MIX_effect.png" class="img-responsive"/>
+				</div> -->
 				<div class="event-info-top mix">
-					<div class="pull-right">
+					<div class="col-sm-7 col-md-5 col-lg-6">
+						<h4>MIX</h4>
+						<p>Middle School<br />
+						   Country Lake Christian Retreat</p>
+					</div>
+					<div class="col-sm-5 col-md-7 col-lg-6">
 						Blankenbaker • June 7-11<br />
 						Crestwood, La Grange, <br />
 						Blankenbaker • June 11-15 <br />
 						Indiana, Southwest, <br />
 						Elizabethtown • June 15-19 <br />
 					</div>
-					<h4>MIX</h4>
-					<p>Middle School<br />
-					   Country Lake Christian Retreat</p>
 				</div>
 			</a>
 		</div>
@@ -93,10 +160,12 @@
 			<a href="/camp/bibleandbeach">
 				<img src="/Themes/SECC2014/Assets/img/Camps/BibleBeach-color.jpg" class="img-responsive">
 				<div class="event-info-top biblenbeach">
-					<h4>BIBLE &amp; BEACH</h4>
-					<p>High School<br />
-					   June 23-29<br />
-				   	   Daytona Beach, Florida<br /></p>
+					<div class="col-sm-12">
+						<h4>BIBLE &amp; BEACH</h4>
+						<p>High School<br />
+						   June 23-29<br />
+					   	   Daytona Beach, Florida<br /></p>
+					</div>
 				</div>
 			</a>
 		</div>
@@ -105,14 +174,16 @@
 			<a href="/camp/sekids-summer-camp">
 				<img src="/Themes/SECC2014/Assets/img/Camps/SEKids-color.jpg" alt="Celebrate Christmas Together" class="img-responsive">
 				<div class="event-info-bottom sekids">
-					<div class="pull-right">
-						1st-2nd Grade Camp • July 13-14<br />
-						3rd-5th Grade Camp 1 • July 15-18<br />
-						3rd-5th Grade Camp 2 • July 19-22<br />
+					<div class="col-sm-6 col-md-5 col-lg-5">
+						<h4>SE!KIDS SUMMER CAMP</h4>
+						<p>Elemntary School<br />
+						   Country Lake Christian Retreat</p>
 					</div>
-					<h4>SE!KIDS SUMMER CAMP</h4>
-					<p>Elemntary School<br />
-					   Country Lake Christian Retreat</p>
+					<div class="col-sm-6 col-md-7 col-lg-7">
+						1<sup>st</sup> - 2<sup>nd</sup> Grade Camp • July 13-14<br />
+						3<sup>rd</sup> - 5<sup>th</sup> Grade Camp 1 • July 15-18<br />
+						3<sup>rd</sup> - 5<sup>th</sup> Grade Camp 2 • July 19-22<br />
+					</div>
 				</div>
 			</a>
 		</div>
@@ -121,9 +192,11 @@
 			<a href="/camp/camp-freedom">
 				<img src="/Themes/SECC2014/Assets/img/Camps/CampFreedom-color.jpg" alt="Celebrate Christmas Together" class="img-responsive">
 				<div class="event-info-bottom freedom">
-					<h4>CAMP FREEDOM</h4>
-					<p>Campers with Developmental Disabilities<br />
-					   July 27-29 • Country Lake Christian Retreat</p>
+					<div class="col-sm-12">
+						<h4>CAMP FREEDOM</h4>
+						<p>Campers with Developmental Disabilities<br />
+						   July 27-29 • Country Lake Christian Retreat</p>
+					</div>
 				</div>
 			</a>
 		</div>
