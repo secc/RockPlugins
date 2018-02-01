@@ -179,3 +179,18 @@ $font-size-150:  						 9.375rem !default;
 
 // Forms
 $cursor-disabled:           not-allowed !default;
+
+/* SECC TYPOGRAPHY
+   ========== */
+$PrimaryCopyFont: "Helvetica Neue", Helvetica, Arial, sans-serif;
+$SerifFont: "minion-pro", Georgia, "Times New Roman", serif;
+
+$Proxima: join(("proxima-nova-n4", "proxima-nova"), $PrimaryCopyFont, comma);
+$Proxima-Thin: join(("proxima-nova-n1", "proxima-nova"), $PrimaryCopyFont, comma);
+$Proxima-Light: join(("proxima-nova-n3", "proxima-nova"), $PrimaryCopyFont, comma);
+$Proxima-SemiBold: join(("proxima-nova-n6", "proxima-nova"), $PrimaryCopyFont, comma);
+$Proxima-Bold: join(("proxima-nova-n7", "proxima-nova"), $PrimaryCopyFont, comma);
+$Proxima-ExtraBold: join(("proxima-nova-n8", "proxima-nova"), $PrimaryCopyFont, comma);
+$Proxima-Black: join(("proxima-nova-n9", "proxima-nova"), $PrimaryCopyFont, comma);
+
+$TitleFont: $Proxima-SemiBold;
