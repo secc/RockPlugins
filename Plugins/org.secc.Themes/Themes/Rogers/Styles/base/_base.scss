@@ -129,3 +129,46 @@ a {
 		position: relative;
 	}
 }
+
+.se-logo {
+	border-top-right-radius: .36em !important;
+	border-bottom-left-radius: .36em !important;
+	border: none !important;
+	display: inline-block;
+	text-transform: uppercase !important;
+	font-weight: 900 !important;
+	font-family: $TitleFont !important;
+	background: $color-dark;
+	color: white;
+	width: 2.55em !important;
+	line-height: 2.4em !important;
+	text-align: center !important;
+	font-size: 15px;
+	padding: 0 !important;
+	outline: none !important;
+
+	&.stroke {
+		border-width: 2px !important;
+		border-style: solid !important;
+		border-color: $color-dark;
+		background: transparent;
+		color: $color-dark;
+	}
+
+	&.big {
+		border-width: 5px !important;
+		font-size: 2.5em !important;
+	}
+}
+
+#ContactLinks {
+	text-align: center;
+
+	p {
+		strong {
+			letter-spacing: 1px;
+		}
+		margin-top: 10px;
+		font-size: $font-size-16;
+	}
+}
