@@ -113,8 +113,8 @@ a {
 	}
 }
 
-.selogo {
-	max-width: 107px;
+.toplogo {
+	max-width: 175px;
 	position: absolute;
 	top: 5%;
 	left: 5%;
@@ -170,5 +170,22 @@ a {
 		}
 		margin-top: 10px;
 		font-size: $font-size-16;
+	}
+}
+
+#SEHeaderLogo {
+	display: inline-block;
+	float: left;
+	width: 60px;
+	height: auto;
+	margin-top: -10px;
+	margin-right: 20px;
+
+	@media (max-width:1169px) {
+		float: right;
+	    margin-right: 0px;
+	    margin-left: 5px;
+	    padding: 5px;
+	    margin-top: -13px;
 	}
 }
