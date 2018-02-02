@@ -30,7 +30,7 @@ li {
 }
 
 /* Links */
-a {
+a:not(.cd-logo) {
 	color: $color-ocean-teal;
 
 	@include hover-focus {
@@ -41,7 +41,7 @@ a {
 /*----------------------------------
   SECC Logo
 ------------------------------------*/
-.selogo {
+.toplogo {
 	svg {
 		path, polygon, rect {
 			fill: white;
@@ -74,7 +74,7 @@ a {
 	top: -120px;
 }
 
-.animate_css {	
+.animate_css {
 	-webkit-transition: all 0.3s ease;
 	-moz-transition: all 0.3s ease;
 	-o-transition: all 0.3s ease;
@@ -186,4 +186,15 @@ a {
 
 .g-bg-color--primary {
 	background: $color-ocean-teal !important;
+}
+
+.cd-logo {
+	h2 {
+		font-size: $font-size-30;
+
+		@media (max-width: 500px) {
+			font-size: $font-size-18;
+			margin-top: 3%;
+		}
+	}
 }

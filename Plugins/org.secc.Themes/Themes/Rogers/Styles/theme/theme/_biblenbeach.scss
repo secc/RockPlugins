@@ -34,14 +34,14 @@ a {
 	color: $color-sky-blue;
 
 	@include hover-focus {
-		color: darken($color-sky-blue, 7%);
+		color: darken($color-sky-blue, 5%);
 	}
 }
 
 /*----------------------------------
   SECC Logo
 ------------------------------------*/
-.selogo {
+.toplogo {
 	svg {
 		path, polygon, rect {
 			fill: white;
@@ -174,4 +174,15 @@ a {
 
 .g-bg-color--primary {
 	background: $color-sky-blue !important;
+}
+
+.cd-logo {
+	h2 {
+		font-size: $font-size-30;
+
+		@media (max-width: 500px) {
+			font-size: $font-size-18;
+			margin-top: 3%;
+		}
+	}
 }

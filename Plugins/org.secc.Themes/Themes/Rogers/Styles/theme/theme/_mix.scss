@@ -30,7 +30,7 @@ li {
 }
 
 /* Links */
-a {
+a:not(.cd-logo) {
 	color: $color-orange;
 
 	@include hover-focus {
@@ -41,7 +41,7 @@ a {
 /*----------------------------------
   SECC Logo
 ------------------------------------*/
-.selogo {
+.toplogo {
 	svg {
 		path, polygon, rect {
 			fill: white;
