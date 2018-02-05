@@ -180,12 +180,19 @@ a {
 	height: auto;
 	margin-top: -10px;
 	margin-right: 20px;
-
+	@media screen and (-ms-high-contrast: active), screen and (-ms-high-contrast: none) {
+		/* IE10+ specific styles go here */
+		margin-top: -55px !important;
+	}
 	@media (max-width:1169px) {
 		float: right;
 	    margin-right: 0px;
 	    margin-left: 5px;
 	    padding: 5px;
 	    margin-top: -13px;
+		@media screen and (-ms-high-contrast: active), screen and (-ms-high-contrast: none) {
+			/* IE10+ specific styles go here */
+			margin-top: -63px !important;
+		}
 	}
 }
