@@ -30,11 +30,11 @@ li {
 }
 
 /* Links */
-a:not(.cd-logo) {
+a {
 	color: $color-pinkish;
 
 	@include hover-focus {
-		color: darken($color-pinkish, 7%);
+		color: darken($color-pinkish, 30%);
 	}
 }
 
