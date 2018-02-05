@@ -30,11 +30,11 @@ li {
 }
 
 /* Links */
-a:not(.cd-logo) {
+a {
 	color: $color-ocean-teal;
 
 	@include hover-focus {
-		color: darken($color-ocean-teal, 7%);
+		color: darken($color-ocean-teal, 30%);
 	}
 }
 
