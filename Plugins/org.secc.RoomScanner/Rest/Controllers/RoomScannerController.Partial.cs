@@ -387,6 +387,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 }
 
                 var attendances = ValidationHelper.GetAttendancesForAttendee( rockContext, attendeeAttendance );
+                attendances = attendances.Where( a => a.LocationId == req.LocationId );
 
 
                 //If person is a volunteer, children are checked in, and would result in less than 2 volunteers
@@ -399,18 +400,10 @@ namespace org.secc.RoomScanner.Rest.Controllers
                     return new Response( false, "Cannot checkout volunteer with children still in class. Two volunteers are required at all times.", false );
                 }
 
-                if ( !req.Override )
-                {
-                    attendances = attendances.Where( a => a.LocationId == req.LocationId );
-                }
-
-                if ( !attendances.Any() ) //There was an attendance record, but not for the selected location
-                {
-                    return new Response( false, string.Format( "{0} is not checked-in to {1} would you like to override?", person.FullName, location.Name ), false );
-                }
-
                 foreach ( var attendance in attendances )
                 {
+                    var stayedFifteenMinutes = ( Rock.RockDateTime.Now - attendance.StartDateTime ) > new TimeSpan( 0, 15, 0 );
+                    attendance.DidAttend = stayedFifteenMinutes;
                     attendance.EndDateTime = Rock.RockDateTime.Now;
                     CheckInCountCache.RemoveAttendance( attendance );
                     var personId = attendeeAttendance.PersonAlias.PersonId;
