@@ -32,14 +32,17 @@
                         <a href="{{ LinkedPages.DetailPage }}?Item={{ item.Id }}" class="post_counters_item post_counters_views" title="Dislike" data-postid="193" data-likes="999" data-title-like="Like" data-title-dislike="Dislike">
                             <i class="fa fa-eye"></i>
                             <span class="post_counters_number">
-                                {% pageview where:'PageId == "{{currentPageId}}" && Url *= "Item={{item.Id}}"' %}
-                                    {% for item in pageviewItems %}
-                                        {% assign isCurrentBlogView = item.Url | RegExMatch:regexString %}
+								{% interactioncomponent where:'EntityId == "{{currentPageId}}"' %}
+									{% assign component = interactioncomponentItems | First  %}
+								{% endinteractioncomponent %}
+								{% interaction where:'InteractionComponentId == "{{component.Id}}" && InteractionData *= "Item={{item.Id}}"' %}
+                                    {% for item in interactionItems %}
+                                        {% assign isCurrentBlogView = item.InteractionData | RegExMatch:regexString %}
                                         {% if isCurrentBlogView %}
                                             {% assign blogViewCount = blogViewCount | Plus:1 %}
                                        {% endif %}
                                     {% endfor %}
-                                {% endpageview %}
+                                {% endinteraction %}
 
                                 {{ blogViewCount }}
                             </span>

@@ -1,6 +1,4 @@
-{%- if authorObjectGuid == undefined -%}
 {% assign authorObjectGuid = PageParameter['Author'] %}
-{%- endif -%}
 
 {% definedvalue where:'Guid == "{{authorObjectGuid}}"'%}
     {% assign definedvalueCount = definedvalueItems | Size %}

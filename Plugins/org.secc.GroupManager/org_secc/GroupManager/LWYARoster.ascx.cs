@@ -33,7 +33,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [TextField( "Safe Sender Email", "If the current users email address is not from a safe sender, the email address to use." )]
     public partial class LWYARoster : GroupManagerBlock
     {
-        List<MemberData> memberData = new List<MemberData>();
+        List<GroupMemberData> memberData = new List<GroupMemberData>();
         string smsScript = @"
             var charCount = function(){
                 document.getElementById('charCount').innerHTML = $('textarea[id$= \'tbMessage\']').val().length + ' of 160';
@@ -115,11 +115,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         private void GetGroupMembers()
         {
-            memberData = new List<MemberData>();
+            memberData = new List<GroupMemberData>();
             var groupMembers = CurrentGroupMembers;
             foreach ( var member in groupMembers )
             {
-                memberData.Add( new MemberData( member ) );
+                memberData.Add( new GroupMemberData( member ) );
             }
 
             if ( !Page.IsPostBack )
@@ -192,15 +192,15 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 if ( communication != null )
                 {
-                    AddRecepients( communication, cbSMSSendToParents.Checked );
+                    AddRecepients( communication, cbSMSSendToParents.Checked, EntityTypeCache.Read( new Guid( Rock.SystemGuid.EntityType.COMMUNICATION_MEDIUM_SMS ) ).Id );
 
-                    communication.MediumEntityTypeId = EntityTypeCache.Read( "Rock.Communication.Medium.Sms" ).Id;
-                    communication.MediumData.Clear();
-                    communication.MediumData.Add( "TextMessage", tbMessage.Text );
-                    communication.MediumData.Add( "From", CurrentGroup.GetAttributeValue( "TextMessageFrom" ) );
+                    communication.CommunicationType = CommunicationType.SMS;
+                    communication.SMSMessage = tbMessage.Text;
+                    communication.SMSFromDefinedValueId = DefinedValueCache.Read( CurrentGroup.GetAttributeValue( "TextMessageFrom" ).AsGuid() ).Id;
 
                     communication.Status = CommunicationStatus.Approved;
                     communication.ReviewedDateTime = RockDateTime.Now;
+                    communication.FutureSendDateTime = RockDateTime.Now;
                     communication.ReviewerPersonAliasId = CurrentPersonAliasId;
 
                     _rockContext.SaveChanges();
@@ -243,19 +243,19 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 if ( communication != null )
                 {
-                    AddRecepients( communication, cbEmailSendToParents.Checked );
+                    AddRecepients( communication, cbEmailSendToParents.Checked, EntityTypeCache.Read( new Guid(Rock.SystemGuid.EntityType.COMMUNICATION_MEDIUM_EMAIL) ).Id );
 
-                    communication.MediumEntityTypeId = EntityTypeCache.Read( "Rock.Communication.Medium.Email" ).Id;
-                    communication.MediumData.Clear();
+                    communication.CommunicationType = CommunicationType.Email;
+
                     communication.Subject = tbSubject.Text;
-                    communication.MediumData.Add( "FromName", CurrentPerson.FullName );
-
-                    communication.MediumData.Add( "FromAddress", GetSafeSender( CurrentPerson.Email ) );
-                    communication.MediumData.Add( "ReplyTo", CurrentPerson.Email );
-                    communication.MediumData.Add( "TextMessage", tbBody.Text );
+                    communication.FromName = CurrentPerson.FullName;
+                    communication.FromEmail = GetSafeSender( CurrentPerson.Email );
+                    communication.ReplyToEmail = CurrentPerson.Email;
+                    communication.Message = tbBody.Text;
 
                     communication.Status = CommunicationStatus.Approved;
                     communication.ReviewedDateTime = RockDateTime.Now;
+                    communication.FutureSendDateTime = RockDateTime.Now;
                     communication.ReviewerPersonAliasId = CurrentPersonAliasId;
 
                     _rockContext.SaveChanges();
@@ -524,7 +524,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         protected void rRoster_ItemDataBound( object sender, RepeaterItemEventArgs e )
         {
-            var itemData = ( MemberData ) e.Item.DataItem;
+            var itemData = ( GroupMemberData ) e.Item.DataItem;
             if ( itemData != null )
             {
                 BootstrapButton btnRosterEmail = e.Item.FindControl( "btnRosterEmail" ) as BootstrapButton;
@@ -575,7 +575,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             //List of ids so we don't display the same person twice
             List<int> addedIds = new List<int>();
 
-            List<MemberData> members = new List<MemberData>();
+            List<GroupMemberData> members = new List<GroupMemberData>();
 
             foreach ( int key in keys )
             {
@@ -654,7 +654,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             //This list is to keep track of recepients so we don't display them twice
             List<int> addedIds = new List<int>();
 
-            List<MemberData> members = new List<MemberData>();
+            List<GroupMemberData> members = new List<GroupMemberData>();
 
             foreach ( int key in keys )
             {
@@ -743,7 +743,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             return communication;
         }
 
-        private void AddRecepients( Communication communication, bool sendParents )
+        private void AddRecepients( Communication communication, bool sendParents, int mediumEntityTypeId )
         {
             //List to keep from sending multiple messages
             List<int> addedIds = new List<int>();
@@ -760,6 +760,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             //Add person to Communication
                             var communicationRecipient = new CommunicationRecipient();
                             communicationRecipient.PersonAliasId = member.PersonAliasId;
+                            communicationRecipient.MediumEntityTypeId = mediumEntityTypeId;
                             communication.Recipients.Add( communicationRecipient );
                             addedIds.Add( member.Id );
                         }
@@ -774,6 +775,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             {
                                 var communicationRecipient = new CommunicationRecipient();
                                 communicationRecipient.PersonAliasId = parent.PrimaryAliasId ?? parent.Id;
+                                communicationRecipient.MediumEntityTypeId = mediumEntityTypeId;
                                 communication.Recipients.Add( communicationRecipient );
                                 addedIds.Add( parent.Id );
                             }
@@ -788,7 +790,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 var keys = gMembers.SelectedKeys;
 
-                List<MemberData> members = new List<MemberData>();
+                List<GroupMemberData> members = new List<GroupMemberData>();
 
                 foreach ( int key in keys )
                 {
@@ -811,6 +813,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             //Add person to Communication
                             var communicationRecipient = new CommunicationRecipient();
                             communicationRecipient.PersonAliasId = member.PersonAliasId;
+                            communicationRecipient.MediumEntityTypeId = mediumEntityTypeId;
                             communication.Recipients.Add( communicationRecipient );
                             addedIds.Add( member.Id );
                         }
@@ -825,6 +828,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             {
                                 var communicationRecipient = new CommunicationRecipient();
                                 communicationRecipient.PersonAliasId = parent.PrimaryAliasId ?? parent.Id;
+                                communicationRecipient.MediumEntityTypeId = mediumEntityTypeId;
                                 communication.Recipients.Add( communicationRecipient );
                                 addedIds.Add( parent.Id );
                             }
@@ -1079,7 +1083,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         }
     }
 
-    public class MemberData
+    public class GroupMemberData
     {
         public Person Person { get; private set; }
         
@@ -1208,7 +1212,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
         }
 
-        public MemberData( GroupMember member )
+        public GroupMemberData( GroupMember member )
         {
             this.Person = member.Person;
             if ( member.DateTimeAdded != null )

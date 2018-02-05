@@ -419,6 +419,36 @@ namespace org.secc.PayPalExpress
 
         }
 
+        /// <summary>
+        /// Gets the transaction entity.
+        /// </summary>
+        /// <returns></returns>
+        private IEntity GetTransactionEntity()
+        {
+            IEntity transactionEntity = null;
+            Guid? transactionEntityTypeGuid = GetAttributeValue( "TransactionEntityType" ).AsGuidOrNull();
+            if ( transactionEntityTypeGuid.HasValue )
+            {
+                var transactionEntityType = EntityTypeCache.Read( transactionEntityTypeGuid.Value );
+                if ( transactionEntityType != null )
+                {
+                    var entityId = this.PageParameter( this.GetAttributeValue( "EntityIdParam" ) ).AsIntegerOrNull();
+                    if ( entityId.HasValue )
+                    {
+                        var dbContext = Reflection.GetDbContextForEntityType( transactionEntityType.GetEntityType() );
+                        IService serviceInstance = Reflection.GetServiceForEntityType( transactionEntityType.GetEntityType(), dbContext );
+                        if ( serviceInstance != null )
+                        {
+                            System.Reflection.MethodInfo getMethod = serviceInstance.GetType().GetMethod( "Get", new Type[] { typeof( int ) } );
+                            transactionEntity = getMethod.Invoke( serviceInstance, new object[] { entityId.Value } ) as Rock.Data.IEntity;
+                        }
+                    }
+                }
+            }
+
+            return transactionEntity;
+        }
+
         private void SetTargetPerson(RockContext rockContext)
         {
             // If impersonation is allowed, and a valid person key was used, set the target to that person
@@ -621,115 +651,109 @@ namespace org.secc.PayPalExpress
         }
 
 
-        private void SaveTransaction(FinancialGateway financialGateway, GatewayComponent gateway, Person person, PaymentInfo paymentInfo, FinancialTransaction transaction, RockContext rockContext)
+        private void SaveTransaction( FinancialGateway financialGateway, GatewayComponent gateway, Person person, PaymentInfo paymentInfo, FinancialTransaction transaction, RockContext rockContext )
         {
-            var txnChanges = new List<string>();
-            txnChanges.Add("Created Transaction");
-
-            History.EvaluateChange(txnChanges, "Transaction Code", string.Empty, transaction.TransactionCode);
-
             transaction.AuthorizedPersonAliasId = person.PrimaryAliasId;
-            History.EvaluateChange(txnChanges, "Person", string.Empty, person.FullName);
-
+            if ( RockTransactionEntry != null )
+            { 
+                RockCheckBox cbGiveAnonymouslyControl = ( ( RockCheckBox ) ( RockTransactionEntry.FindControl( "cbGiveAnonymously" ) ) );
+                if ( cbGiveAnonymouslyControl != null)
+                {
+                    transaction.ShowAsAnonymous = cbGiveAnonymouslyControl.Checked;
+                }
+            }
             transaction.TransactionDateTime = RockDateTime.Now;
-            History.EvaluateChange(txnChanges, "Date/Time", null, transaction.TransactionDateTime);
-
             transaction.FinancialGatewayId = financialGateway.Id;
-            History.EvaluateChange(txnChanges, "Gateway", string.Empty, financialGateway.Name);
 
-            var txnType = DefinedValueCache.Read(new Guid(Rock.SystemGuid.DefinedValue.TRANSACTION_TYPE_CONTRIBUTION));
+            var txnType = DefinedValueCache.Read( this.GetAttributeValue( "TransactionType" ).AsGuidOrNull() ?? Rock.SystemGuid.DefinedValue.TRANSACTION_TYPE_CONTRIBUTION.AsGuid() );
             transaction.TransactionTypeValueId = txnType.Id;
-            History.EvaluateChange(txnChanges, "Type", string.Empty, txnType.Value);
 
             transaction.Summary = paymentInfo.Comment1;
-            History.EvaluateChange(txnChanges, "Summary", string.Empty, transaction.Summary);
 
-            if (transaction.FinancialPaymentDetail == null)
+            if ( transaction.FinancialPaymentDetail == null )
             {
                 transaction.FinancialPaymentDetail = new FinancialPaymentDetail();
             }
-            transaction.FinancialPaymentDetail.SetFromPaymentInfo(paymentInfo, gateway, rockContext, txnChanges);
+            transaction.FinancialPaymentDetail.SetFromPaymentInfo( paymentInfo, gateway, rockContext );
 
             Guid sourceGuid = Guid.Empty;
-            if (Guid.TryParse(GetAttributeValue("Source"), out sourceGuid))
+            if ( Guid.TryParse( GetAttributeValue( "Source" ), out sourceGuid ) )
             {
-                var source = DefinedValueCache.Read(sourceGuid);
-                if (source != null)
+                var source = DefinedValueCache.Read( sourceGuid );
+                if ( source != null )
                 {
                     transaction.SourceTypeValueId = source.Id;
-                    History.EvaluateChange(txnChanges, "Source", string.Empty, source.Value);
                 }
             }
 
-            foreach (var account in GetSelectedAccounts().Where(a => a.Amount > 0))
+            var transactionEntity = this.GetTransactionEntity();
+
+            foreach ( var account in GetSelectedAccounts().Where( a => a.Amount > 0 ) )
             {
                 var transactionDetail = new FinancialTransactionDetail();
                 transactionDetail.Amount = account.Amount;
                 transactionDetail.AccountId = account.Id;
-                transaction.TransactionDetails.Add(transactionDetail);
-                // Put a breakdown of the details into the transaction summary column.
-                if (transaction.Summary == null)
+                if ( transactionEntity != null )
                 {
-                    transaction.Summary = "";
+                    transactionDetail.EntityTypeId = transactionEntity.TypeId;
+                    transactionDetail.EntityId = transactionEntity.Id;
                 }
-                if (transaction.Summary.Length > 0)
-                {
-                    transaction.Summary += " ";
-                }
-                transaction.Summary += "F" + account.Id + ":" + account.Amount.FormatAsCurrency();
-                History.EvaluateChange(txnChanges, account.Name, 0.0M.FormatAsCurrency(), transactionDetail.Amount.FormatAsCurrency());
+
+                transaction.TransactionDetails.Add( transactionDetail );
             }
 
-            var batchService = new FinancialBatchService(rockContext);
+            var batchService = new FinancialBatchService( rockContext );
 
             // Get the batch
             var batch = batchService.Get(
-                GetAttributeValue("BatchNamePrefix"),
+                GetAttributeValue( "BatchNamePrefix" ),
                 paymentInfo.CurrencyTypeValue,
                 paymentInfo.CreditCardTypeValue,
                 transaction.TransactionDateTime.Value,
-                financialGateway.GetBatchTimeOffset());
+                financialGateway.GetBatchTimeOffset() );
 
             var batchChanges = new List<string>();
 
-            if (batch.Id == 0)
+            if ( batch.Id == 0 )
             {
-                batchChanges.Add("Generated the batch");
-                History.EvaluateChange(batchChanges, "Batch Name", string.Empty, batch.Name);
-                History.EvaluateChange(batchChanges, "Status", null, batch.Status);
-                History.EvaluateChange(batchChanges, "Start Date/Time", null, batch.BatchStartDateTime);
-                History.EvaluateChange(batchChanges, "End Date/Time", null, batch.BatchEndDateTime);
+                batchChanges.Add( "Generated the batch" );
+                History.EvaluateChange( batchChanges, "Batch Name", string.Empty, batch.Name );
+                History.EvaluateChange( batchChanges, "Status", null, batch.Status );
+                History.EvaluateChange( batchChanges, "Start Date/Time", null, batch.BatchStartDateTime );
+                History.EvaluateChange( batchChanges, "End Date/Time", null, batch.BatchEndDateTime );
             }
 
             decimal newControlAmount = batch.ControlAmount + transaction.TotalAmount;
-            History.EvaluateChange(batchChanges, "Control Amount", batch.ControlAmount.FormatAsCurrency(), newControlAmount.FormatAsCurrency());
+            History.EvaluateChange( batchChanges, "Control Amount", batch.ControlAmount.FormatAsCurrency(), newControlAmount.FormatAsCurrency() );
             batch.ControlAmount = newControlAmount;
 
             transaction.BatchId = batch.Id;
-            batch.Transactions.Add(transaction);
+            transaction.LoadAttributes( rockContext );
+
+            var allowedTransactionAttributes = GetAttributeValue( "AllowedTransactionAttributesFromURL" ).Split( ',' ).AsGuidList().Select( x => AttributeCache.Read( x ).Key );
+
+            foreach ( KeyValuePair<string, AttributeValueCache> attr in transaction.AttributeValues )
+            {
+                if ( PageParameters().ContainsKey( "Attribute_" + attr.Key ) && allowedTransactionAttributes.Contains( attr.Key ) )
+                {
+                    attr.Value.Value = Server.UrlDecode( PageParameter( "Attribute_" + attr.Key ) );
+                }
+            }
+
+            batch.Transactions.Add( transaction );
 
             rockContext.SaveChanges();
+            transaction.SaveAttributeValues();
 
             HistoryService.SaveChanges(
                 rockContext,
-                typeof(FinancialBatch),
+                typeof( FinancialBatch ),
                 Rock.SystemGuid.Category.HISTORY_FINANCIAL_BATCH.AsGuid(),
                 batch.Id,
                 batchChanges
             );
 
-            HistoryService.SaveChanges(
-                rockContext,
-                typeof(FinancialBatch),
-                Rock.SystemGuid.Category.HISTORY_FINANCIAL_TRANSACTION.AsGuid(),
-                batch.Id,
-                txnChanges,
-                person.FullName,
-                typeof(FinancialTransaction),
-                transaction.Id
-            );
-
-            SendReceipt(transaction.Id);
+            SendReceipt( transaction.Id );
 
             TransactionCode = transaction.TransactionCode;
         }
