@@ -215,8 +215,11 @@ namespace org.secc.RoomScanner.Utilities
                 newAttendance.ForeignId = null;
             }
             attendanceService.Add( newAttendance );
-            attendance.DidAttend = false;
+            var stayedFifteenMinutes = (Rock.RockDateTime.Now - attendance.StartDateTime) > new TimeSpan(0,15,0);
+            attendance.DidAttend = stayedFifteenMinutes;
             attendance.EndDateTime = Rock.RockDateTime.Now;
+            InMemoryPersonStatus.RemoveFromWorship( attendance.PersonAlias.PersonId );
+            InMemoryPersonStatus.RemoveFromWithParent( attendance.PersonAlias.PersonId );
             CheckInCountCache.AddAttendance( newAttendance );
             CheckInCountCache.RemoveAttendance( attendance );
         }
@@ -248,6 +251,8 @@ namespace org.secc.RoomScanner.Utilities
             foreach ( var activeAttendance in activeAttendances )
             {
                 didRemove = true;
+                var stayedFifteenMinutes = ( Rock.RockDateTime.Now - activeAttendance.StartDateTime ) > new TimeSpan( 0, 15, 0 );
+                activeAttendance.DidAttend = stayedFifteenMinutes;
                 activeAttendance.EndDateTime = Rock.RockDateTime.Now;
                 AddExitHistory( rockContext, attendeeAttendance.Location, attendeeAttendance, isSubroom );
                 CheckInCountCache.RemoveAttendance( activeAttendance );

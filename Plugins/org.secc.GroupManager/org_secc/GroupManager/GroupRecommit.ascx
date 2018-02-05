@@ -13,7 +13,7 @@
             </div>
         </asp:Panel>
 
-        <asp:Panel runat="server" ID="pnlMain">
+        <asp:Panel runat="server" ID="pnlMain" CssClass="clearfix">
             <h2>
                 <asp:Literal Text="" runat="server" ID="ltTitle" />
             </h2>
@@ -88,7 +88,7 @@
             </asp:Panel>
 
             <Rock:BootstrapButton runat="server" ID="btnSave" Text="Sign Up For Group" CausesValidation="true"
-                ValidationGroup="main" CssClass="btn btn-primary" OnClick="btnSave_Click"></Rock:BootstrapButton>
+                ValidationGroup="main" CssClass="btn btn-primary pull-right" OnClick="btnSave_Click"></Rock:BootstrapButton>
 
         </asp:Panel>
     </ContentTemplate>

@@ -32,7 +32,7 @@ namespace org.secc.SafetyAndSecurity
             errorMessages = new List<string>();
 
             // If this request isn't coming from a browser it can't be completed).
-            if ( System.Web.HttpContext.Current == null)
+            if ( System.Web.HttpContext.Current == null || !System.Web.HttpContext.Current.Request.QueryString.AllKeys.Contains("document_id"))
             {
                 return false;
             }

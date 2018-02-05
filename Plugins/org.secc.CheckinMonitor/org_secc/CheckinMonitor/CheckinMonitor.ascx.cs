@@ -1092,6 +1092,16 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     tcButtons.Controls.Add( btnSearchMove );
                 }
 
+                if (attendance.DidAttend == false && attendance.EndDateTime == null)
+                {
+                    BootstrapButton btnCancel = new BootstrapButton();
+                    btnCancel.ID = string.Format("btnSearchCancel{0}", attendance.Id);
+                    btnCancel.Text = "Cancel";
+                    btnCancel.CssClass = "btn btn-xs btn-danger";
+                    btnCancel.Click += (s, e) => { CancelReservation(attendance.Id); };
+                    tcButtons.Controls.Add(btnCancel);
+                }
+
                 if ( attendance.DidAttend == true && attendance.EndDateTime == null )
                 {
                     BootstrapButton btnCheckout = new BootstrapButton();

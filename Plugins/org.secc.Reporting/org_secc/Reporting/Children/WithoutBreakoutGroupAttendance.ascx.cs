@@ -81,7 +81,6 @@ namespace RockWeb.Blocks.Reporting.Children
             var attendanceQry = attendanceService.Queryable()
                 .Where( a => !breakoutGroupMembers.Contains( a.PersonAliasId ?? 0 )
                     && a.DidAttend == true
-                    && a.EndDateTime == null
                     && a.ScheduleId != null
                     && selectedScheduleIds.Contains( a.ScheduleId ?? 0 ) );
 
