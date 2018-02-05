@@ -34,7 +34,7 @@ a {
 	color: $color-sky-blue;
 
 	@include hover-focus {
-		color: darken($color-sky-blue, 5%);
+		color: darken($color-sky-blue, 30%);
 	}
 }
 
