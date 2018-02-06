@@ -1,0 +1,258 @@
+.menu-item {
+  background: #EEEEEE;
+  border-radius: 100%;
+  width: 80px;
+  height: 80px;
+  margin-left: -40px;
+  position: absolute;
+  color: #FFFFFF;
+  text-align: center;
+  line-height: 75px;
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+  -webkit-transition: -webkit-transform ease-out 200ms;
+  transition: -webkit-transform ease-out 200ms;
+  transition: transform ease-out 200ms;
+  transition: transform ease-out 200ms, -webkit-transform ease-out 200ms;
+  opacity: 0;
+  left: -20000px; // hide the menu items to prevent anchor clicks
+
+  &:hover {
+    background: #EEEEEE;
+    color: #3290B1;
+  }
+
+  &:nth-child(3),&:nth-child(4),&:nth-child(5),&:nth-child(6),&:nth-child(7),&:nth-child(8),&:nth-child(9) {
+    -webkit-transition-duration: 180ms;
+    transition-duration: 180ms;
+  }
+}
+
+.menu {
+  margin: auto;
+  position: relative;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 160px;
+  height: 80px;
+  text-align: center;
+  box-sizing: border-box;
+  font-size: 26px;
+  z-index: 10;
+}
+
+.item-1,.item-2,.item-3,.item-4,.item-5,.item-6 {
+  // background-color: $color-gray-lighter;
+  box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.14);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.12);
+  &:hover {
+    background-color: $color-orange;
+    text-shadow: none;
+  }
+}
+
+.menu-open-button {
+    background: #EEEEEE;
+    border-radius: 10px 10px 10px 10px;
+    width: 160px;
+    height: 40px;
+    margin-left: -80px;
+    position: absolute;
+    color: $color-dark;
+    text-align: center;
+    line-height: 40px;
+    top: 20px;
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    -webkit-transition: -webkit-transform ease-out 200ms;
+    transition: -webkit-transform ease-out 200ms;
+    transition: transform ease-out 200ms;
+    transition: transform ease-out 200ms, -webkit-transform ease-out 200ms;
+}
+
+.menu-open {
+    display: none;
+    &:checked {
+        + .menu-open-button {
+
+            /* Hide the text. */
+            text-indent: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+
+            background: #EEEEEE;
+            border-radius: 100%;
+            width: 80px;
+            height: 80px;
+            margin-left: -40px;
+            position: absolute;
+            color: #FFFFFF;
+            text-align: center;
+            line-height: 80px;
+            top: 0px;
+            -webkit-transform: translate3d(0, 0, 0);
+            transform: translate3d(0, 0, 0);
+            -webkit-transition: -webkit-transform ease-out 200ms;
+            transition: -webkit-transform ease-out 200ms;
+            transition: transform ease-out 200ms;
+            transition: transform ease-out 200ms, -webkit-transform ease-out 200ms;
+            z-index: 10;
+
+            span.lines {
+                opacity: 1;
+
+                &.line-1 {
+                  // @include Transform($value)
+                  -webkit-transform: translate3d(0, 0, 0) rotate(45deg);
+                  transform: translate3d(0, 0, 0) rotate(45deg);
+                }
+                &.line-2 {
+                  -webkit-transform: translate3d(0, 0, 0) scale(0.1, 1);
+                  transform: translate3d(0, 0, 0) scale(0.1, 1);
+                }
+                &.line-3 {
+                  -webkit-transform: translate3d(0, 0, 0) rotate(-45deg);
+                  transform: translate3d(0, 0, 0) rotate(-45deg);
+                }
+            }
+        }
+        ~ div[class*='round-select-overlay-'] {
+            position: fixed;
+            height: 100%;
+            width: 100%;
+            top: 0;
+            left: 0;
+            background-color: rgba(36, 37, 38, 0.5);
+            opacity: 1;
+            visibility: visible;
+            -webkit-transition: opacity 0.3s 0s, visibility 0s 0s, -webkit-transform 0.3s 0s;
+            -moz-transition: opacity 0.3s 0s, visibility 0s 0s, -moz-transform 0.3s 0s;
+            transition: opacity 0.3s 0s, visibility 0s 0s, -webkit-transform 0.3s 0s;
+            transition: opacity 0.3s 0s, visibility 0s 0s, transform 0.3s 0s;
+            transition: opacity 0.3s 0s, visibility 0s 0s, transform 0.3s 0s, -webkit-transform 0.3s 0s;
+        }
+        ~ .menu-item {
+          opacity: 1;
+          left: auto;
+          z-index: 9;
+
+          -webkit-transition-timing-function: cubic-bezier(0.935, 0, 0.34, 1.33);
+          transition-timing-function: cubic-bezier(0.935, 0, 0.34, 1.33);
+              &:nth-child(3) {
+                transition-duration: 180ms;
+                -webkit-transition-duration: 180ms;
+                -webkit-transform: translate3d(0.08361px, -104.99997px, 0);
+                transform: translate3d(0.08361px, -104.99997px, 0);
+              }
+              &:nth-child(4) {
+                transition-duration: 280ms;
+                -webkit-transition-duration: 280ms;
+                -webkit-transform: translate3d(90.9466px, -52.47586px, 0);
+                transform: translate3d(90.9466px, -52.47586px, 0);
+              }
+              &:nth-child(5) {
+                transition-duration: 380ms;
+                -webkit-transition-duration: 380ms;
+                -webkit-transform: translate3d(90.9466px, 52.47586px, 0);
+                transform: translate3d(90.9466px, 52.47586px, 0);
+              }
+              &:nth-child(6) {
+                transition-duration: 480ms;
+                -webkit-transition-duration: 480ms;
+                -webkit-transform: translate3d(0.08361px, 104.99997px, 0);
+                transform: translate3d(0.08361px, 104.99997px, 0);
+              }
+              &:nth-child(7) {
+                transition-duration: 580ms;
+                -webkit-transition-duration: 580ms;
+                -webkit-transform: translate3d(-90.86291px, 52.62064px, 0);
+                transform: translate3d(-90.86291px, 52.62064px, 0);
+              }
+              &:nth-child(8) {
+                transition-duration: 680ms;
+                -webkit-transition-duration: 680ms;
+                -webkit-transform: translate3d(-91.03006px, -52.33095px, 0);
+                transform: translate3d(-91.03006px, -52.33095px, 0);
+              }
+              &:nth-child(9) {
+                transition-duration: 780ms;
+                -webkit-transition-duration: 780ms;
+                -webkit-transform: translate3d(-0.25084px, -104.9997px, 0);
+                transform: translate3d(-0.25084px, -104.9997px, 0);
+              }
+        }
+    }
+}
+
+div[class*='round-select-overlay-'] {
+    z-index: 0;
+    opacity: 0;
+    visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transition: opacity 0.3s 0s, visibility 0s 0.3s, -webkit-transform 0.3s 0s;
+    -moz-transition: opacity 0.3s 0s, visibility 0s 0.3s, -moz-transform 0.3s 0s;
+    transition: opacity 0.3s 0s, visibility 0s 0.3s, -webkit-transform 0.3s 0s;
+    transition: opacity 0.3s 0s, visibility 0s 0.3s, transform 0.3s 0s;
+    transition: opacity 0.3s 0s, visibility 0s 0.3s, transform 0.3s 0s, -webkit-transform 0.3s 0s;
+}
+
+.lines {
+  width: 25px;
+  height: 3px;
+  background: #596778;
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-left: -12.5px;
+  margin-top: -1.5px;
+  -webkit-transition: -webkit-transform 200ms;
+  transition: -webkit-transform 200ms;
+  transition: transform 200ms;
+  transition: transform 200ms, -webkit-transform 200ms;
+  opacity: 0;
+}
+
+.line-1 {
+  -webkit-transform: translate3d(0, -8px, 0);
+  transform: translate3d(0, -8px, 0);
+}
+
+.line-2 {
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+}
+
+.line-3 {
+  -webkit-transform: translate3d(0, 8px, 0);
+  transform: translate3d(0, 8px, 0);
+}
+
+.menu-open-button {
+  z-index: 2;
+  -webkit-transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  -webkit-transition-duration: 400ms;
+  transition-duration: 400ms;
+  -webkit-transform: scale(1.1, 1.1) translate3d(0, 0, 0);
+  transform: scale(1.1, 1.1) translate3d(0, 0, 0);
+  cursor: pointer;
+  box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.14);
+  &:hover {
+    -webkit-transform: scale(1.2, 1.2) translate3d(0, 0, 0);
+    transform: scale(1.2, 1.2) translate3d(0, 0, 0);
+  }
+  &:checked {
+      + .menu-open-button {
+        -webkit-transition-timing-function: linear;
+        transition-timing-function: linear;
+        -webkit-transition-duration: 200ms;
+        transition-duration: 200ms;
+        -webkit-transform: scale(0.8, 0.8) translate3d(0, 0, 0);
+        transform: scale(0.8, 0.8) translate3d(0, 0, 0);
+      }
+  }
+}
