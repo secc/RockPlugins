@@ -24,13 +24,14 @@ namespace RockWeb.Plugins.org_secc.RoomScanner
         private static int personEntityTypeId = EntityTypeCache.Read( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
         protected override void OnLoad( EventArgs e )
         {
-
+            if ( !Page.IsPostBack )
+            {
+                dpDate.Text = GetUserPreference( "RoomScannerExport" + BlockCache.Id.ToString() );
+            }
         }
 
         protected void btnGo_Click( object sender, EventArgs e )
         {
-            SetUserPreference( BlockId.ToString(), dpDate.Text );
-            SaveUserPreferences( "roomscanner-" );
             var date = dpDate.Text.AsDateTime();
             if ( date == null )
             {
@@ -42,6 +43,7 @@ namespace RockWeb.Plugins.org_secc.RoomScanner
             var tomorrow = date.Value.AddDays( 1 );
 
             var rockContext = new RockContext();
+            rockContext.Database.CommandTimeout = 300; //5 minutes
             var historyService = new HistoryService( rockContext );
             var qry = historyService.Queryable()
                 .Where( h => h.EntityTypeId == personEntityTypeId
@@ -61,9 +63,11 @@ namespace RockWeb.Plugins.org_secc.RoomScanner
             var failedRoomEvents = new List<RoomEvent>();
 
             var newDate = new DateTime();
+            var personLinks = new List<int>();
 
             foreach ( var person in qry )
             {
+                personLinks.Add( person.Key.Id );
                 var roomEvent = new RoomEvent( person.Key );
 
                 foreach ( var item in person )
@@ -96,6 +100,7 @@ namespace RockWeb.Plugins.org_secc.RoomScanner
 
 
             var combined = String.Join( ",", roomEvents.Select( r => r.ToString() ) );
+            var peopleString = string.Join( ",", personLinks );
 
             var script = string.Format( @"
         google.charts.load(""current"", {{ packages: [""timeline""] }});
@@ -115,14 +120,22 @@ namespace RockWeb.Plugins.org_secc.RoomScanner
             var options = {{
                 tooltip: {{ isHtml: true }}
             }};
-            chart.select = alertAction;
             chart.draw(dataTable, options);
+
+            google.visualization.events.addListener(chart, 'select', alertAction);
 }}
-drawChart();", combined );
+            var personLinks = [{1}];
+drawChart();", combined, peopleString );
 
 
             ScriptManager.RegisterStartupScript( pnlReport, pnlReport.GetType(), "report", script, true );
 
+        }
+
+        protected void dpDate_TextChanged( object sender, EventArgs e )
+        {
+            var date = dpDate.Text;
+            SetUserPreference( "RoomScannerExport" + BlockCache.Id.ToString(), date );
         }
     }
 }
