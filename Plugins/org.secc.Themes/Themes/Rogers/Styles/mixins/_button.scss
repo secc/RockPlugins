@@ -6,11 +6,18 @@
   touch-action: manipulation;
   cursor: pointer;
   user-select: none;
-  @include cubic-transition($delay: 0, $duration: 300ms, $property: (all));
+  // @include cubic-transition($delay: 0, $duration: 300ms, $property: (all));
+
+  @include transition-timing-function(cubic-bezier(0.175, 0.885, 0.32, 1.275));
+  @include transition-duration(400ms);
+  @include transform-scale(1.1, 1.1);
+  @include translate3d(0, 0, 0);
 
   @include hover-focus {
     text-decoration: none;
-    @include cubic-transition($delay: 0, $duration: 300ms, $property: (all));
+    @include translate3d(0, 0, 0);
+    @include transform-scale(1.2, 1.2);
+    // @include cubic-transition($delay: 0, $duration: 300ms, $property: (all));
   }
   &.focus {
     text-decoration: none;
@@ -37,13 +44,23 @@
 }
 
 // Style
-@mixin btn-style($color: null, $hvr-color: null, $bg: null, $hvr-bg: null, $brd-width: null, $brd-style: null, $brd-color: null, $hvr-brd-color: null, $hvr-opacity: null, $line-height: null) {
+@mixin btn-style($color: null, $hvr-color: null, $bg: null, $hvr-bg: null, $brd-width: null, $brd-style: null, $brd-color: null, $brd-radius: null, $hvr-brd-color: null, $hvr-opacity: null, $line-height: null, $box-shadow: null, $text-shadow: null, $text-transform: null) {
   color: $color;
   background: $bg;
   border-width: $brd-width;
   border-style: $brd-style;
   border-color: $brd-color;
+
+  -webkit-border-radius: $brd-radius;
+  -moz-border-radius: $brd-radius;
+  border-radius: $brd-radius;
+
   line-height: $line-height;
+
+  box-shadow: $box-shadow;
+  text-shadow: $text-shadow;
+
+  text-transform: $text-transform;
 
   @include hover-focus {
     color: $hvr-color;

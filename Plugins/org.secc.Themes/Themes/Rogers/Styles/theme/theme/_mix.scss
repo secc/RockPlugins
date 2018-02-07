@@ -175,3 +175,12 @@ a {
 .g-bg-color--primary {
 	background: $color-orange !important;
 }
+
+.menu {
+  .item-1,.item-2,.item-3,.item-4,.item-5,.item-6 {
+      // background-color: $color-gray-lighter;
+      &:hover {
+          background-color: $color-orange !important;
+      }
+  }
+}
