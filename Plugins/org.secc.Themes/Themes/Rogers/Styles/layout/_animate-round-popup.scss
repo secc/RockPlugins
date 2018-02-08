@@ -5,9 +5,9 @@
   height: 80px;
   margin-left: -40px;
   position: absolute;
-  color: #FFFFFF;
+  color: $color-dark;
   text-align: center;
-  line-height: 75px;
+  line-height: 80px;
   -webkit-transform: translate3d(0, 0, 0);
   transform: translate3d(0, 0, 0);
   -webkit-transition: -webkit-transform ease-out 200ms;
@@ -19,7 +19,7 @@
 
   &:hover {
     background: $color-gray-lightest;
-    color: #3290B1;
+    color: #FFFFFF;
   }
 
   &:nth-child(3),&:nth-child(4),&:nth-child(5),&:nth-child(6),&:nth-child(7),&:nth-child(8),&:nth-child(9) {
@@ -91,7 +91,7 @@
             height: 80px;
             margin-left: -40px;
             position: absolute;
-            color: #FFFFFF;
+            color: $color-dark;
             text-align: center;
             line-height: 80px;
             -webkit-transform: translate3d(0, 0, 0);
