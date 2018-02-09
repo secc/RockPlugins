@@ -17,7 +17,7 @@
 
 /* Sizes
 ------------------------------ */
-.btn-default { @include btn-size($fsize: $font-size-15, $fweight: 600, $padding: .75rem 1.25rem); }
+.btn-default { @include btn-size($fsize: $font-size-13, $fweight: 600, $padding: .75rem 1.25rem); }
 .btn--xs { @include btn-size($fsize: $font-size-12, $fweight: 400, $padding: .5rem 1.25rem); }
 .btn--sm { @include btn-size($fsize: $font-size-14, $fweight: 400, $padding: .75rem 1.25rem); }
 .btn--md { @include btn-size($fsize: $font-size-13, $fweight: 400, $padding: 1rem 2.5rem); }

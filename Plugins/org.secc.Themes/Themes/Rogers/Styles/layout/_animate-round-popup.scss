@@ -1,36 +1,36 @@
 .menu-item {
+  opacity: 0;
   background: $color-gray-lightest;
   border-radius: 100%;
   width: 80px;
   height: 80px;
   margin-left: -40px;
   position: absolute;
-  color: $color-dark;
+  color: $color-text;
   text-align: center;
   line-height: 80px;
-  -webkit-transform: translate3d(0, 0, 0);
-  transform: translate3d(0, 0, 0);
-  -webkit-transition: -webkit-transform ease-out 200ms;
-  transition: -webkit-transform ease-out 200ms;
-  transition: transform ease-out 200ms;
-  transition: transform ease-out 200ms, -webkit-transform ease-out 200ms;
-  opacity: 0;
   left: -20000px; // hide the menu items to prevent anchor clicks
+  @include translate3d(0, 0, -50px);
+  @include transition(-webkit-transform ease-out 200ms);
+  @include transform-scale(0.5, 0.5);
 
   &:hover {
     background: $color-gray-lightest;
-    color: #FFFFFF;
+    color: $color-white;
   }
 
   &:nth-child(3),&:nth-child(4),&:nth-child(5),&:nth-child(6),&:nth-child(7),&:nth-child(8),&:nth-child(9) {
-    -webkit-transition-duration: 180ms;
-    transition-duration: 180ms;
+    @include transition-duration(180ms);
+  }
+  span.se-logo {
+    position: relative;
+    top: -3px;
   }
 }
 
 .menu {
-  margin: auto;
   // position: relative;
+  margin: auto;
   top: 0;
   bottom: 0;
   left: 0;
@@ -42,9 +42,9 @@
   font-size: 26px;
   z-index: 10;
   .item-1,.item-2,.item-3,.item-4,.item-5,.item-6 {
-      // background-color: $color-gray-lighter;
+
       box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.14);
-      text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.12);
+
       &:hover {
           background-color: $color-gray-light;
           text-shadow: none;
@@ -54,67 +54,105 @@
 
 
 .menu-open-button {
-    background: $color-gray-lightest;
-    border-radius: 10px 10px 10px 10px;
-    width: 160px;
-    height: 40px;
     // margin-left: -80px;
     // position: absolute;
+    // top: 20px;
+    // margin-top: 20px;
+    background: $color-gray-lightest;
+    border-radius: 10px 10px 10px 10px;
+    padding: 0.75rem 1.25rem;
+    white-space: nowrap;
     color: $color-dark;
     text-align: center;
-    line-height: 40px;
-    margin-top: 20px;
-    // top: 20px;
-    -webkit-transform: translate3d(0, 0, 0);
-    transform: translate3d(0, 0, 0);
-    -webkit-transition: -webkit-transform ease-out 200ms;
-    transition: -webkit-transform ease-out 200ms;
-    transition: transform ease-out 200ms;
-    transition: transform ease-out 200ms, -webkit-transform ease-out 200ms;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.42857;
+    font-size: $font-size-13;
+    cursor: pointer;
+    box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.14);
+
+    @include transition-timing-function(cubic-bezier(0.175, 0.885, 0.32, 1.275));
+    @include transition(-webkit-transform ease-out 200ms);
+    // @include transition-duration(400ms);
+    @include transform-scale(1.1, 1.1);
+    @include translate3d(0, 0, 0);
+
+    &:hover {
+      @include transform-scale(1.2, 1.2);
+      // @include translate3d(0, 0, 0);
+    }
+    &:checked {
+        + .menu-open-button {
+          z-index: 10;
+          @include transition-timing-function(linear);
+          @include transition-duration(200ms);
+          @include translate3d(0, 0, 0);
+          @include transform-scale(0.8, 0.8);
+        }
+    }
 }
 
+.info-request {
+    z-index: 0;
+    opacity: 0;
+    padding: 10px;
+    left: -20000px; // hide the menu items to prevent weird clicks
+    position: absolute;
+    margin-left: -155px;
+    color: $color-dark;
+    white-space: nowrap;
+    box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.14);
+    background: $color-gray-lightest;
+    border-radius: 10px;
+    @include transform-scale(0.1, 0.1);
+    @include transition(-webkit-transform ease-out 200ms);
+    // @include transition-timing-function(cubic-bezier(0.935, 0, 0.34, 1.33));
+}
 .menu-open {
     display: none;
     &:checked {
+        ~ .info-request {
+            // display: block;
+            opacity: 1;
+            z-index: 9;
+            left: auto;
+            @include transition-delay(180ms);
+            @include transform-scale(1, 1);
+            @include transition-duration(280ms);
+            @include translate3d(0, -245%, 0);
+        }
         + .menu-open-button {
             margin-top: 0px;
-
-            /* Hide the text. */
-            text-indent: 100%;
             white-space: nowrap;
             overflow: hidden;
 
             z-index: 12;
             background: $color-gray-lightest;
+            color: $color-gray-lightest; /* hides the text */
+            text-indent: -9999px;       /* sends the text off-screen */
             border-radius: 100%;
-            width: 80px;
-            height: 80px;
-            margin-left: -40px;
+            width: 60px;
+            height: 60px;
+            margin-left: -30px;
             position: absolute;
-            color: $color-dark;
             text-align: center;
             line-height: 80px;
-            -webkit-transform: translate3d(0, 0, 0);
-            transform: translate3d(0, 0, 0);
-            -webkit-transition: -webkit-transform ease-out 200ms;
-            transition: -webkit-transform ease-out 200ms;
-            transition: transform ease-out 200ms;
-            transition: transform ease-out 200ms, -webkit-transform ease-out 200ms;
+            @include translate3d(0, 0, 0);
+            @include transition(-webkit-transform ease-out 200ms);
 
             span.lines {
                 opacity: 1;
 
                 &.line-1 {
-                  -webkit-transform: translate3d(0, 0, 0) rotate(45deg);
-                  transform: translate3d(0, 0, 0) rotate(45deg);
+                  @include translate3d(0, 0, 0);
+                  @include rotate(45deg);
                 }
                 &.line-2 {
-                  -webkit-transform: translate3d(0, 0, 0) scale(0.1, 1);
-                  transform: translate3d(0, 0, 0) scale(0.1, 1);
+                  @include translate3d(0, 0, 0);
+                  @include transform-scale(0.1, 1);
                 }
                 &.line-3 {
-                  -webkit-transform: translate3d(0, 0, 0) rotate(-45deg);
-                  transform: translate3d(0, 0, 0) rotate(-45deg);
+                  @include translate3d(0, 0, 0);
+                  @include rotate(-45deg);
                 }
             }
         }
@@ -123,51 +161,42 @@
           opacity: 1;
           left: auto;
           z-index: 11;
-
-          -webkit-transition-timing-function: cubic-bezier(0.935, 0, 0.34, 1.33);
-          transition-timing-function: cubic-bezier(0.935, 0, 0.34, 1.33);
+          @include transform-scale(1, 1);
+          @include transition-timing-function(cubic-bezier(0.935, 0, 0.34, 1.33));
               &:nth-child(3) {
-                transition-duration: 180ms;
-                -webkit-transition-duration: 180ms;
-                -webkit-transform: translate3d(0.08361px, -104.99997px, 0);
-                transform: translate3d(0.08361px, -104.99997px, 0);
+                  @include transition-duration(180ms);
+                  // @include translate3d(0.08361px, -104.99997px, 0);
+                  @include translate3d(-91.03006px, -62.33095px, 0);
               }
               &:nth-child(4) {
-                transition-duration: 280ms;
-                -webkit-transition-duration: 280ms;
-                -webkit-transform: translate3d(90.9466px, -52.47586px, 0);
-                transform: translate3d(90.9466px, -52.47586px, 0);
+                  @include transition-duration(280ms);
+                  // @include translate3d(90.9466px, -52.47586px, 0);
+                  @include translate3d(0.08361px, -114.99997px, 0);
               }
               &:nth-child(5) {
-                transition-duration: 380ms;
-                -webkit-transition-duration: 380ms;
-                -webkit-transform: translate3d(90.9466px, 52.47586px, 0);
-                transform: translate3d(90.9466px, 52.47586px, 0);
+                  @include transition-duration(380ms);
+                  // @include translate3d(90.9466px, 52.47586px, 0);
+                  @include translate3d(90.9466px, -62.47586px, 0);
               }
               &:nth-child(6) {
-                transition-duration: 480ms;
-                -webkit-transition-duration: 480ms;
-                -webkit-transform: translate3d(0.08361px, 104.99997px, 0);
-                transform: translate3d(0.08361px, 104.99997px, 0);
+                  @include transition-duration(480ms);
+                  // @include translate3d(0.08361px, 104.99997px, 0);
+                  @include translate3d(90.9466px, 42.47586px, 0);
               }
               &:nth-child(7) {
-                transition-duration: 580ms;
-                -webkit-transition-duration: 580ms;
-                -webkit-transform: translate3d(-90.86291px, 52.62064px, 0);
-                transform: translate3d(-90.86291px, 52.62064px, 0);
+                  @include transition-duration(580ms);
+                  // @include translate3d(-90.86291px, 52.62064px, 0);
+                  @include translate3d(0.08361px, 94.99997px, 0);
               }
               &:nth-child(8) {
-                transition-duration: 680ms;
-                -webkit-transition-duration: 680ms;
-                -webkit-transform: translate3d(-91.03006px, -52.33095px, 0);
-                transform: translate3d(-91.03006px, -52.33095px, 0);
+                  @include transition-duration(680ms);
+                  // @include translate3d(-91.03006px, -52.33095px, 0);
+                  @include translate3d(-90.86291px, 42.62064px, 0);
               }
-              &:nth-child(9) {
-                transition-duration: 780ms;
-                -webkit-transition-duration: 780ms;
-                -webkit-transform: translate3d(-0.25084px, -104.9997px, 0);
-                transform: translate3d(-0.25084px, -104.9997px, 0);
-              }
+              // &:nth-child(9) {
+              //     @include transition-duration(780ms);
+              //     @include translate3d(-0.25084px, -104.9997px, 0);
+              // }
         }
     }
 }
@@ -178,11 +207,7 @@
     visibility: hidden;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-    -webkit-transition: opacity 0.3s 0s, visibility 0s 0.3s, -webkit-transform 0.3s 0s;
-    -moz-transition: opacity 0.3s 0s, visibility 0s 0.3s, -moz-transform 0.3s 0s;
-    transition: opacity 0.3s 0s, visibility 0s 0.3s, -webkit-transform 0.3s 0s;
-    transition: opacity 0.3s 0s, visibility 0s 0.3s, transform 0.3s 0s;
-    transition: opacity 0.3s 0s, visibility 0s 0.3s, transform 0.3s 0s, -webkit-transform 0.3s 0s;
+    @include transition(opacity 0.3s 0s, visibility 0s 0.3s, -webkit-transform 0.3s 0s);
 
     &.is-visible {
         position: fixed;
@@ -193,69 +218,32 @@
         background-color: rgba(36, 37, 38, 0.5);
         opacity: 1;
         visibility: visible;
-        -webkit-transition: opacity 0.3s 0s, visibility 0s 0s, -webkit-transform 0.3s 0s;
-        -moz-transition: opacity 0.3s 0s, visibility 0s 0s, -moz-transform 0.3s 0s;
-        transition: opacity 0.3s 0s, visibility 0s 0s, -webkit-transform 0.3s 0s;
-        transition: opacity 0.3s 0s, visibility 0s 0s, transform 0.3s 0s;
-        transition: opacity 0.3s 0s, visibility 0s 0s, transform 0.3s 0s, -webkit-transform 0.3s 0s;
+        @include transition(opacity 0.3s 0s, visibility 0s 0s, -moz-transform 0.3s 0s);
     }
 }
 
 .lines {
+  opacity: 0;
   width: 25px;
   height: 3px;
-  background: #596778;
+  background: $color-text;
   display: block;
   position: absolute;
   top: 50%;
   left: 50%;
   margin-left: -12.5px;
   margin-top: -1.5px;
-  -webkit-transition: -webkit-transform 200ms;
-  transition: -webkit-transform 200ms;
-  transition: transform 200ms;
-  transition: transform 200ms, -webkit-transform 200ms;
-  opacity: 0;
+  @include transition(-webkit-transform 200ms);
 }
 
 .line-1 {
-  -webkit-transform: translate3d(0, -8px, 0);
-  transform: translate3d(0, -8px, 0);
+  @include translate3d(0, -8px, 0);
 }
 
 .line-2 {
-  -webkit-transform: translate3d(0, 0, 0);
-  transform: translate3d(0, 0, 0);
+  @include translate3d(0, 0, 0);
 }
 
 .line-3 {
-  -webkit-transform: translate3d(0, 8px, 0);
-  transform: translate3d(0, 8px, 0);
-}
-
-.menu-open-button {
-  // z-index: 2;
-  -webkit-transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  -webkit-transition-duration: 400ms;
-  transition-duration: 400ms;
-  -webkit-transform: scale(1.1, 1.1) translate3d(0, 0, 0);
-  transform: scale(1.1, 1.1) translate3d(0, 0, 0);
-  cursor: pointer;
-  box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.14);
-  &:hover {
-    -webkit-transform: scale(1.2, 1.2) translate3d(0, 0, 0);
-    transform: scale(1.2, 1.2) translate3d(0, 0, 0);
-  }
-  &:checked {
-      + .menu-open-button {
-        z-index: 10;
-        -webkit-transition-timing-function: linear;
-        transition-timing-function: linear;
-        -webkit-transition-duration: 200ms;
-        transition-duration: 200ms;
-        -webkit-transform: scale(0.8, 0.8) translate3d(0, 0, 0);
-        transform: scale(0.8, 0.8) translate3d(0, 0, 0);
-      }
-  }
+  @include translate3d(0, 8px, 0);
 }
