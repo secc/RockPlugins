@@ -1,0 +1,92 @@
+<h1>REGISTER</h1>
+<p>Registration opens Feb 11. Registration closes on May 14.</p><p> </p>
+<!--<p><br></p><p><b>Register Student</b></p><p><br></p>-->
+
+<!-- Round Select Overlay -->
+<div class="round-select-overlay-js"></div>
+
+<div class="row">
+    <div class="col-sm-6 col-md-4 text-center">
+        <p><b><br></b></p><p><b>Register Student</b></p>
+        <br />
+        <nav class="menu">
+          <input type="checkbox" href="#" class="menu-open" name="menu-open-student" id="menu-open-student">
+          <label class="menu-open-button" for="menu-open-student">
+            SELECT A CAMPUS
+            <span class="lines line-1"></span>
+            <span class="lines line-2"></span>
+            <span class="lines line-3"></span>
+          </label>
+
+          <a href="#" class="menu-item item-1"><span class="se-logo">920</span></a>
+          <a href="#" class="menu-item item-2"><span class="se-logo">IN</span></a>
+          <a href="#" class="menu-item item-3"><span class="se-logo">CW</span></a>
+          <a href="#" class="menu-item item-4"><span class="se-logo">SW</span></a>
+          <a href="#" class="menu-item item-5"><span class="se-logo">LA</span></a>
+          <a href="#" class="menu-item item-6"><span class="se-logo">ET</span></a>
+          <!-- Round Select Overlay -->
+          <!--<div class="round-select-overlay-student"></div>-->
+        </nav>
+
+    </div>
+
+    <div class="col-sm-6 col-md-4 text-center">
+        <p><b><br></b></p><p><b>Register Leader</b></p>
+        <br />
+        <nav class="menu">
+          <input type="checkbox" href="#" class="menu-open" name="menu-open-leader" id="menu-open-leader">
+          <label class="menu-open-button" for="menu-open-leader">
+            SELECT A CAMPUS
+            <span class="lines line-1"></span>
+            <span class="lines line-2"></span>
+            <span class="lines line-3"></span>
+          </label>
+
+          <a href="#" class="menu-item item-1"><span class="se-logo">920</span></a>
+          <a href="#" class="menu-item item-2"><span class="se-logo">IN</span></a>
+          <a href="#" class="menu-item item-3"><span class="se-logo">CW</span></a>
+          <a href="#" class="menu-item item-4"><span class="se-logo">SW</span></a>
+          <a href="#" class="menu-item item-5"><span class="se-logo">LA</span></a>
+          <a href="#" class="menu-item item-6"><span class="se-logo">ET</span></a>
+
+          <!-- Round Select Overlay -->
+          <!--<div class="round-select-overlay-leader"></div>-->
+        </nav>
+    </div>
+
+    <div class="col-sm-6 col-md-4 text-center">
+        <p><b><br></b></p><p><b>Donate</b></p>
+        <br />
+        <p>
+            <a class="btn btn-default" href="#" role="button">Donate</a>
+            <b><br></b>
+        </p>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+
+     //mobile - open lateral menu clicking on the menu icon
+	$('.menu-open').on('click', function(event){
+		if( $('.round-select-overlay-js').hasClass('is-visible') ) {
+			$('.round-select-overlay-js').removeClass('is-visible');
+		} else {
+			$('.round-select-overlay-js').addClass('is-visible');
+		}
+	});
+
+
+	$('.round-select-overlay-js').on('click', function(){
+        if($('input[name=menu-open-student]').is(':checked')) {
+            $('input[name=menu-open-student]').trigger('click');
+        } else {
+            if($('input[name=menu-open-leader]').is(':checked')) {
+                $('input[name=menu-open-leader]').trigger('click');
+            }
+        }
+	});
+});
+</script>
+
+<br><br>
