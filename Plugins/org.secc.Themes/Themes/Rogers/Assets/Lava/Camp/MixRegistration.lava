@@ -1,0 +1,114 @@
+
+<h1>REGISTER</h1>
+<p>To register, select the campus your student regularly attends. If you do not currently attend Southeast, choose a location of Southeast which your student would like to attend.</p><p><br></p>
+
+<!-- Round Select Overlay -->
+<div class="round-select-overlay-js"></div>
+
+<div class="row">
+
+    <div class="col-md-4 text-center">
+        <p><b>Week 1</b></p><p><small>(Blankenbaker)</small></p>
+        <br>
+        <p>
+            <a class="btn btn-default" href="#" role="button">Register Student</a>
+        </p>
+        <br>
+        <nav class="menu">
+          <input type="checkbox" href="#" class="menu-open" name="menu-open-leader--week-one" id="menu-open-leader--week-one">
+          <label class="menu-open-button" for="menu-open-leader--week-one">
+            REGISTER LEADER
+            <span class="lines line-1"></span>
+            <span class="lines line-2"></span>
+            <span class="lines line-3"></span>
+          </label>
+          <a href="#" class="menu-item item-1">Yes</a>
+          <span class="info-request">
+              <p>Are you under the age of 18?</p>
+          </span>
+          <a href="#" class="menu-item item-2">No</a>
+        </nav>
+    </div>
+
+    <div class="col-md-4 text-center">
+        <p><b>Week 2&nbsp;</b></p><p><small>(Crestwood, La Grange, Blankenbaker)</small></p>
+        <br>
+        <p>
+            <a class="btn btn-default" href="#" role="button">Register Student</a>
+        </p>
+        <br>
+        <nav class="menu">
+          <input type="checkbox" href="#" class="menu-open" name="menu-open-leader--week-two" id="menu-open-leader--week-two">
+          <label class="menu-open-button" for="menu-open-leader--week-two">
+            REGISTER LEADER
+            <span class="lines line-1"></span>
+            <span class="lines line-2"></span>
+            <span class="lines line-3"></span>
+          </label>
+          <a href="#" class="menu-item item-1">Yes</a>
+          <span class="info-request">
+              <p>Are you under the age of 18?</p>
+          </span>
+          <a href="#" class="menu-item item-2">No</a>
+        </nav>
+    </div>
+
+    <div class="col-md-4 text-center">
+        <p><b>Week 3</b></p><p><small>(Indiana, Southwest, Elizabethtown)</small></p>
+        <br>
+        <p>
+            <a class="btn btn-default" href="#" role="button">Register Student</a>
+        </p>
+        <br>
+
+        <nav class="menu">
+          <input type="checkbox" href="#" class="menu-open" name="menu-open-leader--week-three" id="menu-open-leader--week-three">
+          <label class="menu-open-button" for="menu-open-leader--week-three">
+            REGISTER LEADER
+            <span class="lines line-1"></span>
+            <span class="lines line-2"></span>
+            <span class="lines line-3"></span>
+          </label>
+          <a href="#" class="menu-item item-1">Yes</a>
+          <span class="info-request">
+              <p>Are you under the age of 18?</p>
+          </span>
+          <a href="#" class="menu-item item-2">No</a>
+        </nav>
+
+    </div>
+
+</div>
+
+<br>
+
+<script>
+$(document).ready(function() {
+     // set variable for navigation scroll detection
+
+     //mobile - open lateral menu clicking on the menu icon
+	$('.menu-open').on('click', function(event){
+		if( $('.round-select-overlay-js').hasClass('is-visible') ) {
+			$('.round-select-overlay-js').removeClass('is-visible');
+		} else {
+			$('.round-select-overlay-js').addClass('is-visible');
+		}
+	});
+
+	$('.round-select-overlay-js').on('click', function(){
+        if($('input[name=menu-open-leader--week-one]').is(':checked')) {
+            $('input[name=menu-open-leader--week-one]').trigger('click');
+        } else {
+            if($('input[name=menu-open-leader--week-two]').is(':checked')) {
+                $('input[name=menu-open-leader--week-two]').trigger('click');
+            } else {
+                if($('input[name=menu-open-leader--week-three]').is(':checked')) {
+                    $('input[name=menu-open-leader--week-three]').trigger('click');
+                }
+            }
+        }
+	});
+});
+</script>
+
+<br><br>
