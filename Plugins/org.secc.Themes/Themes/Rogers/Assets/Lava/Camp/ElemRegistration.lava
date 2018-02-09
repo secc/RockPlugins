@@ -1,0 +1,60 @@
+<h1>REGISTER</h1>
+<p>To register, select the campus your student regularly attends. If you do not currently attend Southeast, choose a location of Southeast which your student would like to attend.</p>
+<br />
+<p>Campers registering must choose three of the following electives.  Archery, Axe Throwing, Bottle Rockets, Canoeing, Hip Hop Dance, Legos,MegaZipline, Nature Hike, Owl Pellets, Paintball, Painting, Pop Tab Art, Ropes Course, Solve a Mystery Party, Sports Fun, or WaterWars.</p>
+<br />
+<p>Note that there will be an additional charge for Megazip ($10), Paintball, ($25), Archery ($5), Axe throwing ($5), and Painting ($5)</p>
+<br />
+<div class="row">
+
+    <div class="col-md-4 text-center">
+        <p><b>Week 1</b></p><p><small>(Blankenbaker)</small></p>
+        <br>
+        <p>
+            <a class="btn btn-default" href="#" role="button">Register Student</a>
+        </p>
+        <br>
+        <p>
+            <a class="btn btn-default" href="#" role="button">Register Adult Leader</a>
+        </p>
+        <br>
+        <p>
+            <a class="btn btn-default" href="#" role="button">Register Minor Leader</a></p><p><br></p><p><br>
+        </p>
+    </div>
+
+    <div class="col-md-4 text-center">
+        <p><b>Week 2&nbsp;</b></p><p><small>(Crestwood, La Grange, Blankenbaker)</small></p>
+        <br>
+        <p>
+            <a class="btn btn-default" href="#" role="button">Register Student</a>
+        </p>
+        <br>
+        <p>
+            <a class="btn btn-default" href="#" role="button">Register Adult Leader</a>
+        </p>
+        <br>
+        <p>
+            <a class="btn btn-default" href="#" role="button">Register Minor Leader</a></p><p><br></p><p><br>
+        </p>
+    </div>
+
+    <div class="col-md-4 text-center">
+        <p><b>Week 3</b></p><p><small>(Indiana, Southwest, Elizabethtown)</small></p>
+        <br>
+        <p>
+            <a class="btn btn-default" href="#" role="button">Register Student</a>
+        </p>
+        <br>
+        <p>
+            <a class="btn btn-default" href="#" role="button">Register Adult Leader</a>
+        </p>
+        <br>
+        <p>
+            <a class="btn btn-default" href="#" role="button">Register Minor Leader</a></p><p><br></p><p><br>
+        </p>
+    </div>
+
+</div>
+
+<br>
