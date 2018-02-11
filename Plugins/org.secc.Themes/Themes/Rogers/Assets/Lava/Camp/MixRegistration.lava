@@ -25,6 +25,8 @@
                 <p><b>(Available Soon)</b></p>
             </div>
         {% endif %}
+        <br />
+        <br />
     </div>
 
     <div class="col-md-4 text-center">
@@ -44,6 +46,8 @@
                 <p><b>(Available Soon)</b></p>
             </div>
         {% endif %}
+        <br />
+        <br />
     </div>
 
     <div class="col-md-4 text-center">
@@ -63,6 +67,8 @@
                 <p><b>(Available Soon)</b></p>
             </div>
         {% endif %}
+        <br />
+        <br />
     </div>
 
 </div>

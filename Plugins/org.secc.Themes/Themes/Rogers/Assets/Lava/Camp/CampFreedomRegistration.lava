@@ -4,7 +4,7 @@
     {% comment %}
         {% assign releaseRegistration = '20180210' | AsInteger %}
     {% endcomment %}
-    
+
     <div class="col-md-6 text-center">
         {% if releaseRegistration <= currentDate %}
         <p><b>Register for Camp Freedom</b></p>
@@ -19,6 +19,7 @@
                 <p><b>(Registration Available Soon)</b></p>
             </div>
         {% endif %}
+        <br />
     </div>
 
     <div class="col-md-6 text-center">
@@ -35,6 +36,7 @@
                 <p><b>(Leader Application Available Soon)</b></p>
             </div>
         {% endif %}
+        <br />
     </div>
 
     <!-- <div class="col-md-4 text-center">
