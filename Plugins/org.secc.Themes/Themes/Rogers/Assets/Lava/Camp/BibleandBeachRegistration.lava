@@ -1,13 +1,16 @@
-<h1>REGISTER</h1>
-<p>Registration opens Feb 11. Registration closes on May 14.</p><p> </p>
-<!--<p><br></p><p><b>Register Student</b></p><p><br></p>-->
+{% assign currentDate = 'Now' | Date:'yyyyMMdd' | AsInteger %}
+{% comment %}
+    {% assign releaseRegistration = '20180210' | AsInteger %}
+{% endcomment %}
 
 <!-- Round Select Overlay -->
 <div class="round-select-overlay-js"></div>
 
 <div class="row">
-    <div class="col-sm-6 col-md-4 text-center">
-        <p><b><br></b></p><p><b>Register Student</b></p>
+    <div class="col-sm-6 col-md-3 text-center">
+        {% if releaseRegistration <= currentDate %}
+        <p><b>Register Student</b></p>
+        <p>(Under 18)</p>
         <br />
         <nav class="menu">
           <input type="checkbox" href="#" class="menu-open" name="menu-open-student" id="menu-open-student">
@@ -17,21 +20,43 @@
             <span class="lines line-2"></span>
             <span class="lines line-3"></span>
           </label>
-
-          <a href="#" class="menu-item item-1"><span class="se-logo">920</span></a>
-          <a href="#" class="menu-item item-2"><span class="se-logo">IN</span></a>
-          <a href="#" class="menu-item item-3"><span class="se-logo">CW</span></a>
-          <a href="#" class="menu-item item-4"><span class="se-logo">SW</span></a>
-          <a href="#" class="menu-item item-5"><span class="se-logo">LA</span></a>
-          <a href="#" class="menu-item item-6"><span class="se-logo">ET</span></a>
-          <!-- Round Select Overlay -->
-          <!--<div class="round-select-overlay-student"></div>-->
+          <a href="https://www.southeastchristian.org/Registration/920BB18STUn18" class="menu-item item-1"><span class="se-logo">920</span></a>
+          <a href="https://www.southeastchristian.org/Registration/INBB18STUn18" class="menu-item item-2"><span class="se-logo">IN</span></a>
+          <a href="https://www.southeastchristian.org/Registration/CWBB18STUn18" class="menu-item item-3"><span class="se-logo">CW</span></a>
+          <a href="https://www.southeastchristian.org/Registration/SWBB18STUn18" class="menu-item item-4"><span class="se-logo">SW</span></a>
+          <a href="https://www.southeastchristian.org/Registration/LABB18STUn18" class="menu-item item-5"><span class="se-logo">LA</span></a>
+          <a href="https://www.southeastchristian.org/Registration/ETBB18STUn18" class="menu-item item-6"><span class="se-logo">ET</span></a>
         </nav>
-
+        {% endif %}
     </div>
 
-    <div class="col-sm-6 col-md-4 text-center">
-        <p><b><br></b></p><p><b>Register Leader</b></p>
+    <div class="col-sm-6 col-md-3 text-center">
+        {% if releaseRegistration <= currentDate %}
+        <p><b>Register Student</b></p>
+        <p>(18 &amp; Over)</p>
+        <br />
+        <nav class="menu">
+          <input type="checkbox" href="#" class="menu-open" name="menu-open-student-over" id="menu-open-student-over">
+          <label class="menu-open-button" for="menu-open-student-over">
+            SELECT A CAMPUS
+            <span class="lines line-1"></span>
+            <span class="lines line-2"></span>
+            <span class="lines line-3"></span>
+          </label>
+          <a href="https://www.southeastchristian.org/registration/920BB18STU18Ovr" class="menu-item item-1"><span class="se-logo">920</span></a>
+          <a href="https://www.southeastchristian.org/registration/INBB18STU18Ovr" class="menu-item item-2"><span class="se-logo">IN</span></a>
+          <a href="https://www.southeastchristian.org/registration/CWBB18STU18Ovr" class="menu-item item-3"><span class="se-logo">CW</span></a>
+          <a href="https://www.southeastchristian.org/registration/SWBB18STU18Ovr" class="menu-item item-4"><span class="se-logo">SW</span></a>
+          <a href="https://www.southeastchristian.org/registration/LABB18STU18Ovr" class="menu-item item-5"><span class="se-logo">LA</span></a>
+          <a href="https://www.southeastchristian.org/registration/ETBB18STU18Ovr" class="menu-item item-6"><span class="se-logo">ET</span></a>
+        </nav>
+        {% endif %}
+    </div>
+
+
+    <div class="col-sm-6 col-md-3 text-center">
+        {% if releaseRegistration <= currentDate %}
+        <p><b>Register Leader</b></p>
         <br />
         <nav class="menu">
           <input type="checkbox" href="#" class="menu-open" name="menu-open-leader" id="menu-open-leader">
@@ -41,26 +66,29 @@
             <span class="lines line-2"></span>
             <span class="lines line-3"></span>
           </label>
-
-          <a href="#" class="menu-item item-1"><span class="se-logo">920</span></a>
-          <a href="#" class="menu-item item-2"><span class="se-logo">IN</span></a>
-          <a href="#" class="menu-item item-3"><span class="se-logo">CW</span></a>
-          <a href="#" class="menu-item item-4"><span class="se-logo">SW</span></a>
-          <a href="#" class="menu-item item-5"><span class="se-logo">LA</span></a>
-          <a href="#" class="menu-item item-6"><span class="se-logo">ET</span></a>
-
-          <!-- Round Select Overlay -->
-          <!--<div class="round-select-overlay-leader"></div>-->
+          <a href="https://www.southeastchristian.org/registration/920BB18LDR" class="menu-item item-1"><span class="se-logo">920</span></a>
+          <a href="https://www.southeastchristian.org/registration/INBB18LDR" class="menu-item item-2"><span class="se-logo">IN</span></a>
+          <a href="https://www.southeastchristian.org/registration/CWBB18LDR" class="menu-item item-3"><span class="se-logo">CW</span></a>
+          <a href="https://www.southeastchristian.org/registration/SWBB18LDR" class="menu-item item-4"><span class="se-logo">SW</span></a>
+          <a href="https://www.southeastchristian.org/registration/LABB18LDR" class="menu-item item-5"><span class="se-logo">LA</span></a>
+          <a href="https://www.southeastchristian.org/registration/ETBB18LDR" class="menu-item item-6"><span class="se-logo">ET</span></a>
         </nav>
-    </div>
-
-    <div class="col-sm-6 col-md-4 text-center">
-        <p><b><br></b></p><p><b>Donate</b></p>
-        <br />
         <p>
-            <a class="btn btn-default" href="#" role="button">Donate</a>
+            <a class="btn btn-default" href="https://www.southeastchristian.org/registration/BB18SpTm" role="button">Register Special Teams</a>
             <b><br></b>
         </p>
+        {% endif %}
+    </div>
+
+    <div class="col-sm-6 col-md-3 text-center">
+        {% if releaseRegistration <= currentDate %}
+        <p><b>Donate</b></p>
+        <br />
+        <p>
+            <a class="btn btn-default" href="https://www.southeastchristian.org/give/bibleandbeach" role="button">Donate</a>
+            <b><br></b>
+        </p>
+        {% endif %}
     </div>
 </div>
 
@@ -76,17 +104,34 @@ $(document).ready(function() {
 		}
 	});
 
+    /* see if it's checked onload (for when people go back in browser) */
+    if($('input[name=menu-open-student]').is(':checked')) {
+        $('.round-select-overlay-js').addClass('is-visible');
+    } else {
+        if($('input[name=menu-open-student-over]').is(':checked')) {
+            $('.round-select-overlay-js').addClass('is-visible');
+        } else {
+            if($('input[name=menu-open-leader]').is(':checked')) {
+                $('.round-select-overlay-js').addClass('is-visible');
+            } else {
+                $('.round-select-overlay-js').removeClass('is-visible');
+            }
+        }
+    }
 
+    /* Listen for clicks */
 	$('.round-select-overlay-js').on('click', function(){
         if($('input[name=menu-open-student]').is(':checked')) {
             $('input[name=menu-open-student]').trigger('click');
         } else {
-            if($('input[name=menu-open-leader]').is(':checked')) {
-                $('input[name=menu-open-leader]').trigger('click');
+            if($('input[name=menu-open-student-over]').is(':checked')) {
+                $('input[name=menu-open-student-over]').trigger('click');
+            } else {
+                if($('input[name=menu-open-leader]').is(':checked')) {
+                    $('input[name=menu-open-leader]').trigger('click');
+                }
             }
         }
 	});
 });
 </script>
-
-<br><br>
