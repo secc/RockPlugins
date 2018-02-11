@@ -28,6 +28,7 @@
           <a href="https://www.southeastchristian.org/Registration/ETBB18STUn18" class="menu-item item-6"><span class="se-logo">ET</span></a>
         </nav>
         {% endif %}
+        <br />
     </div>
 
     <div class="col-sm-6 col-md-3 text-center">
@@ -51,6 +52,7 @@
           <a href="https://www.southeastchristian.org/registration/ETBB18STU18Ovr" class="menu-item item-6"><span class="se-logo">ET</span></a>
         </nav>
         {% endif %}
+        <br />
     </div>
 
 
@@ -78,6 +80,7 @@
             <b><br></b>
         </p>
         {% endif %}
+        <br />
     </div>
 
     <div class="col-sm-6 col-md-3 text-center">
@@ -89,6 +92,7 @@
             <b><br></b>
         </p>
         {% endif %}
+        <br />
     </div>
 </div>
 

@@ -20,6 +20,8 @@
                 <p><b>(Available Soon)</b></p>
             </div>
         {% endif %}
+        <br />
+        <br />
     </div>
 
     <div class="col-md-3 text-center">
@@ -34,6 +36,8 @@
                 <p><b>(Available Soon)</b></p>
             </div>
         {% endif %}
+        <br />
+        <br />
     </div>
 
     <div class="col-md-3 text-center">
@@ -48,6 +52,8 @@
                 <p><b>(Available Soon)</b></p>
             </div>
         {% endif %}
+        <br />
+        <br />
     </div>
 
     <div class="col-md-3 text-center">
@@ -73,6 +79,8 @@
                 <p><b>(Available Soon)</b></p>
             </div>
         {% endif %}
+        <br />
+        <br />
     </div>
 
 </div>
@@ -90,6 +98,9 @@ $(document).ready(function() {
 		}
 	});
 
+    if($('input[name=menu-open-leader]').is(':checked')) {
+        $('.round-select-overlay-js').addClass('is-visible');
+    }
 	$('.round-select-overlay-js').on('click', function(){
         if($('input[name=menu-open-leader]').is(':checked')) {
             $('input[name=menu-open-leader]').trigger('click');
