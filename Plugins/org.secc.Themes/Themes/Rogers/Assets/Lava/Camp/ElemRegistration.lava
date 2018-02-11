@@ -1,60 +1,102 @@
-<h1>REGISTER</h1>
-<p>To register, select the campus your student regularly attends. If you do not currently attend Southeast, choose a location of Southeast which your student would like to attend.</p>
-<br />
-<p>Campers registering must choose three of the following electives.  Archery, Axe Throwing, Bottle Rockets, Canoeing, Hip Hop Dance, Legos,MegaZipline, Nature Hike, Owl Pellets, Paintball, Painting, Pop Tab Art, Ropes Course, Solve a Mystery Party, Sports Fun, or WaterWars.</p>
-<br />
-<p>Note that there will be an additional charge for Megazip ($10), Paintball, ($25), Archery ($5), Axe throwing ($5), and Painting ($5)</p>
-<br />
+{% assign currentDate = 'Now' | Date:'yyyyMMdd' | AsInteger %}
+{% comment %}
+    {% assign releaseRegistration = '20180210' | AsInteger %}
+{% endcomment %}
+
+<!-- Round Select Overlay -->
+<div class="round-select-overlay-js"></div>
+
 <div class="row">
 
-    <div class="col-md-4 text-center">
-        <p><b>Week 1</b></p><p><small>(Blankenbaker)</small></p>
+    <div class="col-md-3 text-center">
+        <p><b>Elementary Camp</b></p><p><small>(1st & 2nd Grade | July 13-14)</small></p>
         <br>
+        {% if releaseRegistration <= currentDate %}
         <p>
-            <a class="btn btn-default" href="#" role="button">Register Student</a>
+            <a class="btn btn-default" href="https://www.southeastchristian.org/registration/ElemCAMP1st2nd" role="button">Register Student</a>
         </p>
-        <br>
-        <p>
-            <a class="btn btn-default" href="#" role="button">Register Adult Leader</a>
-        </p>
-        <br>
-        <p>
-            <a class="btn btn-default" href="#" role="button">Register Minor Leader</a></p><p><br></p><p><br>
-        </p>
+        {% else %}
+            <div class="overlay">
+                <p><b>(Available Soon)</b></p>
+            </div>
+        {% endif %}
     </div>
 
-    <div class="col-md-4 text-center">
-        <p><b>Week 2&nbsp;</b></p><p><small>(Crestwood, La Grange, Blankenbaker)</small></p>
+    <div class="col-md-3 text-center">
+        <p><b>Elementary Camp 1</b></p><p><small>(3rd-5th Grade | July 15-18)</small></p>
         <br>
+        {% if releaseRegistration <= currentDate %}
         <p>
-            <a class="btn btn-default" href="#" role="button">Register Student</a>
+            <a class="btn btn-default" href="https://www.southeastchristian.org/registration/Elem1CAMP3rd5th" role="button">Register Student</a>
         </p>
-        <br>
-        <p>
-            <a class="btn btn-default" href="#" role="button">Register Adult Leader</a>
-        </p>
-        <br>
-        <p>
-            <a class="btn btn-default" href="#" role="button">Register Minor Leader</a></p><p><br></p><p><br>
-        </p>
+        {% else %}
+            <div class="overlay">
+                <p><b>(Available Soon)</b></p>
+            </div>
+        {% endif %}
     </div>
 
-    <div class="col-md-4 text-center">
-        <p><b>Week 3</b></p><p><small>(Indiana, Southwest, Elizabethtown)</small></p>
+    <div class="col-md-3 text-center">
+        <p><b>Elementary Camp 2</b></p><p><small>(3rd-5th Grade | July 19-22)</small></p>
         <br>
+        {% if releaseRegistration <= currentDate %}
         <p>
-            <a class="btn btn-default" href="#" role="button">Register Student</a>
+            <a class="btn btn-default" href="https://www.southeastchristian.org/registration/Elem2CAMP3rd5th" role="button">Register Student</a>
         </p>
+        {% else %}
+            <div class="overlay">
+                <p><b>(Available Soon)</b></p>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-3 text-center">
+        <p><b>Leader Registration</b></p><p><small>&nbsp;</small></p>
         <br>
-        <p>
-            <a class="btn btn-default" href="#" role="button">Register Adult Leader</a>
-        </p>
-        <br>
-        <p>
-            <a class="btn btn-default" href="#" role="button">Register Minor Leader</a></p><p><br></p><p><br>
-        </p>
+        {% if releaseRegistration <= currentDate %}
+        <nav class="menu">
+          <input type="checkbox" href="#" class="menu-open" name="menu-open-leader" id="menu-open-leader">
+          <label class="menu-open-button" for="menu-open-leader">
+            REGISTER LEADER
+            <span class="lines line-1"></span>
+            <span class="lines line-2"></span>
+            <span class="lines line-3"></span>
+          </label>
+          <a href="https://www.southeastchristian.org/registration/JrCAMPleaderApp" class="menu-item item-1">Yes</a>
+          <span class="info-request">
+              <p>Are you under the age of 18?</p>
+          </span>
+          <a href="https://www.southeastchristian.org/registration/CampLeadApp" class="menu-item item-2">No</a>
+        </nav>
+        {% else %}
+            <div class="overlay">
+                <p><b>(Available Soon)</b></p>
+            </div>
+        {% endif %}
     </div>
 
 </div>
+
+<script>
+$(document).ready(function() {
+     // set variable for navigation scroll detection
+
+     //mobile - open lateral menu clicking on the menu icon
+	$('.menu-open').on('click', function(event){
+		if( $('.round-select-overlay-js').hasClass('is-visible') ) {
+			$('.round-select-overlay-js').removeClass('is-visible');
+		} else {
+			$('.round-select-overlay-js').addClass('is-visible');
+		}
+	});
+
+	$('.round-select-overlay-js').on('click', function(){
+        if($('input[name=menu-open-leader]').is(':checked')) {
+            $('input[name=menu-open-leader]').trigger('click');
+        }
+	});
+});
+</script>
+
 
 <br>
