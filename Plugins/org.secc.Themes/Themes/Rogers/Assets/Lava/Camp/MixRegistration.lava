@@ -17,9 +17,9 @@
                 <a class="btn btn-default" href="/camp/mix/weekone" role="button">Register Student</a>
             </p>
             <br>
-            <p>
+            <!-- <p>
                 <a class="btn btn-default" href="/camp/mix/weekoneleader" role="button">Register Leader</a>
-            </p>
+            </p> -->
         {% else %}
             <div class="overlay">
                 <p><b>(Available Soon)</b></p>
@@ -38,9 +38,9 @@
             <a class="btn btn-default" href="/camp/mix/weektwo" role="button">Register Student</a>
         </p>
         <br>
-        <p>
+        <!-- <p>
             <a class="btn btn-default" href="/camp/mix/weektwoleader" role="button">Register Leader</a>
-        </p>
+        </p> -->
         {% else %}
             <div class="overlay">
                 <p><b>(Available Soon)</b></p>
@@ -59,9 +59,9 @@
             <a class="btn btn-default" href="/camp/mix/weekthree" role="button">Register Student</a>
         </p>
         <br>
-        <p>
+        <!-- <p>
             <a class="btn btn-default" href="/camp/mix/weekthreeleader" role="button">Register Leader</a>
-        </p>
+        </p> -->
         {% else %}
             <div class="overlay">
                 <p><b>(Available Soon)</b></p>
