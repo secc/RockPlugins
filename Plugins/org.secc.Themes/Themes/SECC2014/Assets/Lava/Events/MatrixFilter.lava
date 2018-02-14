@@ -1,0 +1,71 @@
+{% comment %}
+    ******* Filtering System for Calendar *******
+{% endcomment %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-10 col-md-offset-1" >
+            <div class="filterbox">
+
+
+                <div class="row">
+                    <div class="col-xs-12 col-md-6 col-lg-4" >
+                        <h4>Events From</h4>
+                        <select class="js-example-basic-single" name="campus">
+                        <option value="allMinistries">All Campuses</option>
+                        <option value="920">Blankenbaker</option>
+                        <option value="IN">Indiana</option>
+                        <option value="CW">Crestwood</option>
+                        <option value="SW">Southwest</option>
+                        <option value="LA">La Grange</option>
+                        <option value="ET">Elizabethtown</option>
+                        </select>
+                    </div>
+
+                    <div class="col-xs-12 col-md-6 col-lg-4" >
+                        <h4>Select a Ministry</h4>
+                        <select class="js-example-basic-single" name="minitry">
+                        <option value="allMinistries">All Ministries</option>
+                        <option value="connection">Connection</option>
+                        <option value="men">Men</option>
+                        <option value="women">Women</option>
+                        <option value="seniors">Seniors</option>
+                        <option value="family">Family</option>
+                        <option value="children">Children</option>
+                        <option value="students">Students</option>
+                        <option value="missions">Missions</option>
+                        <option value="generousLiving">Generous Living</option>
+                        <option value="care">Care</option>
+                        <option value="deafNdisabilities">Deaf &amp; Disabilities</option>
+                        <option value="sportsNfitness">Sports & Fitness</option>
+                        </select>
+                    </div>
+                    <!-- <div class='col-xs-12 col-md-6 col-sm-6'>
+                        <h4>Select a Date From</h4>
+                       <div class="form-group">
+                           <div class='input-group date' id='datetimepicker1'>
+                               <input type='text' class="form-control" />
+                               <span class="input-group-addon">
+                                   <span class="glyphicon glyphicon-calendar"></span>
+                               </span>
+                           </div>
+                       </div>
+                   </div>
+                   </script> -->
+                </div>
+
+            </div>
+
+            <h1 class="text-center">Upcoming Events</h1>
+            <br />
+        </div>
+    </div>
+</div>
+
+<script>
+// In your Javascript (external .js resource or <script> tag)
+$(document).ready(function() {
+    $('.js-example-basic-single').select2();
+    $('#datetimepicker1').datetimepicker();
+});
+</script>
