@@ -11,7 +11,7 @@
                 <div class="row">
                     <div class="col-xs-12 col-md-6 col-lg-4" >
                         <h4>Events From</h4>
-                        <select class="js-example-basic-single" name="campus">
+                        <select class="select2-campuses" name="campus">
                         <option value="allMinistries">All Campuses</option>
                         <option value="920">Blankenbaker</option>
                         <option value="IN">Indiana</option>
@@ -24,7 +24,7 @@
 
                     <div class="col-xs-12 col-md-6 col-lg-4" >
                         <h4>Select a Ministry</h4>
-                        <select class="js-example-basic-single" name="minitry">
+                        <select class="select2-ministries" name="minitry">
                         <option value="allMinistries">All Ministries</option>
                         <option value="connection">Connection</option>
                         <option value="men">Men</option>
@@ -40,24 +40,9 @@
                         <option value="sportsNfitness">Sports & Fitness</option>
                         </select>
                     </div>
-                    <!-- <div class='col-xs-12 col-md-6 col-sm-6'>
-                        <h4>Select a Date From</h4>
-                       <div class="form-group">
-                           <div class='input-group date' id='datetimepicker1'>
-                               <input type='text' class="form-control" />
-                               <span class="input-group-addon">
-                                   <span class="glyphicon glyphicon-calendar"></span>
-                               </span>
-                           </div>
-                       </div>
-                   </div>
-                   </script> -->
                 </div>
 
             </div>
-
-            <h1 class="text-center">Upcoming Events</h1>
-            <br />
         </div>
     </div>
 </div>
@@ -65,7 +50,7 @@
 <script>
 // In your Javascript (external .js resource or <script> tag)
 $(document).ready(function() {
-    $('.js-example-basic-single').select2();
-    $('#datetimepicker1').datetimepicker();
+    $('.select2-campuses').select2();
+    $('.select2-ministries').select2();
 });
 </script>

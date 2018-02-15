@@ -59,7 +59,7 @@
 		{% assign photoParallaxSrc = '/Themes/SECC2014/Assets/img/events/Default.jpg' %}
 	{% endif %}
 
-	{[ parallax image:'{{ photoParallaxSrc }}' position:'top' height:'400px' speed:'-25' contentcolor:'inherit' contentalign:'left']}
+	{[ parallax image:'/Themes/SECC2014/Assets/img/events/Default.jpg' position:'top' height:'400px' speed:'-25' contentcolor:'inherit' contentalign:'left']}
 		<div class="container">
 			<div class="wellbox">
 				<div class="event-calendar">
@@ -73,7 +73,6 @@
 					The Ice House • 226 E Washington Street
 				</div>
 			</div>
-
 		</div>
 	{[ endparallax ]}
 
@@ -131,3 +130,11 @@ if (typeof Modernizr == 'object') {
 	  alert("Modernizr isn't an object");
   }
 </script>
+
+<!-- {[ parallax image:'/Themes/SECC2014/Assets/img/events/Default.jpg' position:'top' height:'400px' speed:'-25' contentcolor:'inherit' contentalign:'left']}
+	<div class="container-fluid">
+	    <div class="row">
+	        <div class="col-md-12">EVENTS</div>
+	    </div>
+	</div>
+{[ endparallax ]} -->
