@@ -1,0 +1,113 @@
+{% assign currentDate = 'Now' | Date:'yyyyMMdd' | AsInteger %}
+{% comment %}
+    {% assign releaseRegistration = '20180210' | AsInteger %}
+{% endcomment %}
+
+<!-- Round Select Overlay -->
+<div class="round-select-overlay-js"></div>
+
+<div class="row">
+
+    <div class="col-md-3 text-center">
+        <p><b>Elementary Camp</b></p><p><small>(1st & 2nd Grade | July 13-14)</small></p>
+        <br>
+        {% if releaseRegistration <= currentDate %}
+        <p>
+            <a class="btn btn-default" href="https://www.southeastchristian.org/registration/ElemCAMP1st2nd" role="button">Register Student</a>
+        </p>
+        {% else %}
+            <div class="overlay">
+                <p><b>(Available Soon)</b></p>
+            </div>
+        {% endif %}
+        <br />
+        <br />
+    </div>
+
+    <div class="col-md-3 text-center">
+        <p><b>Elementary Camp 1</b></p><p><small>(3rd-5th Grade | July 15-18)</small></p>
+        <br>
+        {% if releaseRegistration <= currentDate %}
+        <p>
+            <a class="btn btn-default" href="https://www.southeastchristian.org/registration/Elem1CAMP3rd5th" role="button">Register Student</a>
+        </p>
+        {% else %}
+            <div class="overlay">
+                <p><b>(Available Soon)</b></p>
+            </div>
+        {% endif %}
+        <br />
+        <br />
+    </div>
+
+    <div class="col-md-3 text-center">
+        <p><b>Elementary Camp 2</b></p><p><small>(3rd-5th Grade | July 19-22)</small></p>
+        <br>
+        {% if releaseRegistration <= currentDate %}
+        <p>
+            <a class="btn btn-default" href="https://www.southeastchristian.org/registration/Elem2CAMP3rd5th" role="button">Register Student</a>
+        </p>
+        {% else %}
+            <div class="overlay">
+                <p><b>(Available Soon)</b></p>
+            </div>
+        {% endif %}
+        <br />
+        <br />
+    </div>
+
+    <div class="col-md-3 text-center">
+        <p><b>Leader Registration</b></p><p><small>&nbsp;</small></p>
+        <br>
+        {% if releaseRegistration <= currentDate %}
+        <nav class="menu">
+          <input type="checkbox" href="#" class="menu-open" name="menu-open-leader" id="menu-open-leader">
+          <label class="menu-open-button" for="menu-open-leader">
+            REGISTER LEADER
+            <span class="lines line-1"></span>
+            <span class="lines line-2"></span>
+            <span class="lines line-3"></span>
+          </label>
+          <a href="https://www.southeastchristian.org/registration/JrCAMPleaderApp" class="menu-item item-1">Yes</a>
+          <span class="info-request">
+              <p>Are you under the age of 18?</p>
+          </span>
+          <a href="https://www.southeastchristian.org/registration/CampLeadApp" class="menu-item item-2">No</a>
+        </nav>
+        {% else %}
+            <div class="overlay">
+                <p><b>(Available Soon)</b></p>
+            </div>
+        {% endif %}
+        <br />
+        <br />
+    </div>
+
+</div>
+
+<script>
+$(document).ready(function() {
+     // set variable for navigation scroll detection
+
+     //mobile - open lateral menu clicking on the menu icon
+	$('.menu-open').on('click', function(event){
+		if( $('.round-select-overlay-js').hasClass('is-visible') ) {
+			$('.round-select-overlay-js').removeClass('is-visible');
+		} else {
+			$('.round-select-overlay-js').addClass('is-visible');
+		}
+	});
+
+    if($('input[name=menu-open-leader]').is(':checked')) {
+        $('.round-select-overlay-js').addClass('is-visible');
+    }
+	$('.round-select-overlay-js').on('click', function(){
+        if($('input[name=menu-open-leader]').is(':checked')) {
+            $('input[name=menu-open-leader]').trigger('click');
+        }
+	});
+});
+</script>
+
+
+<br>
