@@ -8741,6 +8741,98 @@ section#christmas .panel .panel-body {
     width: 50px; } }
 
 /* end of custom code */
+/* Socials icons
+-------------------------------------------------------------- */
+.socials {
+  overflow: visible;
+  display: inline-block;
+  margin-right: -1.25em; }
+  .socials .socials_item {
+    display: inline-block;
+    margin: 0.26em 0.7em 0.26em 0;
+    outline: none; }
+    .socials .socials_item a {
+      -webkit-border-radius: 50%;
+      -moz-border-radius: 50%;
+      border-radius: 50%;
+      display: block;
+      text-align: center;
+      border: 2px solid #a09d99; }
+  .socials a {
+    color: #a09d99;
+    display: inline-block;
+    outline: none;
+    overflow: visible;
+    width: 3em;
+    height: 3em;
+    line-height: 2.7em;
+    position: relative;
+    -webkit-border-radius: 6px;
+    /* Hack for Chrome - show sharp corners while animation */
+    background-repeat: no-repeat;
+    background-position: 0 -4em;
+    -webkit-background-size: 4em 8em;
+    -moz-background-size: 4em 8em;
+    -o-background-size: 4em 8em;
+    background-size: 4em 8em; }
+    .socials a.invert {
+      color: white;
+      border-color: white; }
+    .socials a:hover {
+      border: 2px solid #6D6A66;
+      color: #6D6A66;
+      opacity: 1;
+      overflow: visible;
+      -moz-opacity: 1;
+      filter: alpha(opacity=1);
+      -webkit-transition: all ease .5s;
+      -moz-transition: all ease .5s;
+      -ms-transition: all ease .5s;
+      -o-transition: all ease .5s;
+      transition: all ease .5s;
+      -webkit-transform: scale(1.2);
+      -moz-transform: scale(1.2);
+      -ms-transform: scale(1.2);
+      /* IE 9 */
+      -o-transform: scale(1.2);
+      transform: scale(1.2);
+      -webkit-transition-timing-function: cubic-bezier(0.47, 2.02, 0.31, -0.36);
+      transition-timing-function: cubic-bezier(0.47, 2.02, 0.31, -0.36); }
+      .socials a:hover.social-twitter {
+        border: 2px solid #1da1f2;
+        color: #1da1f2; }
+      .socials a:hover.social-facebook {
+        border: 2px solid #3b5998;
+        color: #3b5998; }
+  .socials .social_icons i {
+    font-size: 1.2em;
+    line-height: inherit; }
+
+.page_events_parallax header {
+  z-index: 5;
+  position: relative;
+  vertical-align: middle;
+  margin: 5%;
+  color: white; }
+  .page_events_parallax header h1 {
+    font-size: 10em; }
+    @media (min-width: 769px) and (max-width: 992px) {
+      .page_events_parallax header h1 {
+        font-size: 7.5em; } }
+    @media (max-width: 768px) {
+      .page_events_parallax header h1 {
+        font-size: 5em; } }
+
+.page_events_parallax:after {
+  content: "";
+  background: rgba(0, 0, 0, 0.45);
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  position: absolute;
+  display: block !important; }
+
 .wellbox {
   position: absolute;
   bottom: 0;
@@ -8750,74 +8842,126 @@ section#christmas .panel .panel-body {
   margin: 2em 1.5em 2em 0px;
   border-radius: 10px; }
 
-.event-list-background {
+.wellbox {
+  position: absolute;
+  bottom: 0;
+  padding: 15px;
+  min-height: auto;
   background-color: #efefef;
-  padding: 3em 0; }
+  margin: 2em 1.5em 2em 0px;
+  border-radius: 10px; }
 
-.event-calendar .img-hover {
-  position: relative;
-  overflow: hidden;
-  border-radius: 8px;
-  z-index: 3; }
-  .event-calendar .img-hover img {
-    z-index: -1;
+#nextStep {
+  padding-top: 1em;
+  padding-bottom: 1em; }
+
+.event-list-background {
+  background-color: #efefef; }
+
+div[id$='pnlList'] {
+  transition: all 0.3s; }
+
+div[id$='pnlFilters'] {
+  margin: 40px 0px;
+  padding-right: 0px;
+  transition: all 0.3s;
+  margin-left: -443px; }
+  div[id$='pnlFilters']::after {
+    padding-right: 15px;
+    border-right: 1px solid #e1e1e1; }
+  div[id$='pnlFilters'].active {
+    margin-left: 0px; }
+  div[id$='pnlFilters'] .rock-control-wrapper {
+    padding: 15px;
+    min-height: auto;
     background-color: white;
-    position: relative;
+    border-radius: 10px; }
+  div[id$='pnlFilters'] .control-wrapper {
+    padding: 15px;
+    min-height: auto;
+    background-color: white;
+    border-radius: 10px; }
+
+.event-calendar {
+  padding: 30px !important;
+  margin-bottom: 30px;
+  border-radius: 8px; }
+  @media (max-width: 768px) {
+    .event-calendar.card {
+      background-color: rgba(255, 255, 255, 0.6);
+      -webkit-box-shadow: 0 3px 12px 2px rgba(199, 199, 199, 0.5);
+      box-shadow: 0 3px 12px 2px rgba(199, 199, 199, 0.5); } }
+  .event-calendar.card:hover {
+    background-color: rgba(255, 255, 255, 0.6);
+    -webkit-box-shadow: 0 3px 12px 2px rgba(199, 199, 199, 0.5);
+    box-shadow: 0 3px 12px 2px rgba(199, 199, 199, 0.5);
     -webkit-transition: all 0.3s ease;
     -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
-    -webkit-transform: scale(1.06);
-    -ms-transform: scale(1.06);
-    -o-transform: scale(1.06);
-    transform: scale(1.06); }
-  .event-calendar .img-hover img:hover {
-    -webkit-transform: scale(1.01);
-    -ms-transform: scale(1.01);
-    -o-transform: scale(1.01);
-    transform: scale(1.01); }
-
-.event-calendar .date {
-  box-sizing: border-box;
-  position: relative;
-  width: 114px;
-  height: 114px;
-  background: url("/Themes/SECC2014/Assets/img/events/EventCalendarWhite.svg");
-  background-repeat: no-repeat;
-  text-align: center;
-  color: #656565; }
-  .event-calendar .date .day {
-    top: 35px;
-    font-weight: bold;
-    font-size: 45px;
-    line-height: 1;
-    position: absolute;
-    right: 0;
-    left: 0; }
-  .event-calendar .date .month {
-    bottom: 20px;
-    font-size: 16px;
-    line-height: 1;
-    position: absolute;
-    right: 0;
-    left: 0; }
-
-.event-calendar .multi-date {
-  box-sizing: border-box;
-  position: relative;
-  width: 114px;
-  height: 114px;
-  background: url("/Themes/SECC2014/Assets/img/events/MultipleEventsCalendarWhite.svg");
-  background-repeat: no-repeat;
-  text-align: center; }
-
-.event-calendar .reoccur-date {
-  box-sizing: border-box;
-  position: relative;
-  width: 114px;
-  height: 114px;
-  background: url("/Themes/SECC2014/Assets/img/events/ReoccuringEventsCalendarWhite.svg");
-  background-repeat: no-repeat;
-  text-align: center; }
+    transition: all 0.3s ease; }
+  .event-calendar #datedetails hr {
+    border-color: #e1e1e1;
+    margin: 10px 0; }
+  .event-calendar .img-hover {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    z-index: 3; }
+    .event-calendar .img-hover img {
+      z-index: -1;
+      background-color: white;
+      position: relative;
+      -webkit-transition: all 0.3s ease;
+      -o-transition: all 0.3s ease;
+      transition: all 0.3s ease;
+      -webkit-transform: scale(1.06);
+      -ms-transform: scale(1.06);
+      -o-transform: scale(1.06);
+      transform: scale(1.06); }
+    .event-calendar .img-hover img:hover {
+      -webkit-transform: scale(1.01);
+      -ms-transform: scale(1.01);
+      -o-transform: scale(1.01);
+      transform: scale(1.01); }
+  .event-calendar .date {
+    box-sizing: border-box;
+    position: relative;
+    width: 114px;
+    height: 114px;
+    background: url("/Themes/SECC2014/Assets/img/events/EventCalendarWhite.svg");
+    background-repeat: no-repeat;
+    text-align: center;
+    color: #656565; }
+    .event-calendar .date .day {
+      top: 35px;
+      font-weight: bold;
+      font-size: 45px;
+      line-height: 1;
+      position: absolute;
+      right: 0;
+      left: 0; }
+    .event-calendar .date .month {
+      bottom: 20px;
+      font-size: 16px;
+      line-height: 1;
+      position: absolute;
+      right: 0;
+      left: 0; }
+  .event-calendar .multi-date {
+    box-sizing: border-box;
+    position: relative;
+    width: 114px;
+    height: 114px;
+    background: url("/Themes/SECC2014/Assets/img/events/MultipleEventsCalendarWhite.svg");
+    background-repeat: no-repeat;
+    text-align: center; }
+  .event-calendar .reoccur-date {
+    box-sizing: border-box;
+    position: relative;
+    width: 114px;
+    height: 114px;
+    background: url("/Themes/SECC2014/Assets/img/events/ReoccuringEventsCalendarWhite.svg");
+    background-repeat: no-repeat;
+    text-align: center; }
 
 #event-detail-header {
   background-color: #333;

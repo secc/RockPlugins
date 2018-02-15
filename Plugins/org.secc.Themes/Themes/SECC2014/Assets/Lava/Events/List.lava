@@ -39,7 +39,7 @@
                 {% assign closeEventDetailsLink = "</a>" %}
             {% endif %}
 
-            <div class="isotope_item col-xs-12 col-sm-6 col-md-4 event-calendar">
+            <div class="isotope_item col-xs-12 col-sm-6 col-md-4 event-calendar card">
 
                 {{openEventDetailsLink}}
                 <div class="img-hover">
