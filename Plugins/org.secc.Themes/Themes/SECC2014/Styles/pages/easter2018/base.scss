@@ -1,0 +1,780 @@
+@import '../../bourbon/bourbon'; // http://bourbon.io/
+@import 'partials/variables'; // colors, fonts etc...
+@import 'partials/mixins'; // custom mixins
+@import 'partials/layout'; // responsive grid and media queries
+@import 'partials/animations';
+@import 'partials/schedule';
+// @import 'partials/verticalnav';
+@import 'partials/secondarynav';
+@import 'partials/mapplic_extras';
+@import 'partials/intro_section';
+@import 'partials/accordions';
+@import 'partials/social';
+
+.easter-font {
+    color: $DarkGrayColor;
+    // normal font style for Easter
+    h3,h4,h5,h6,p {
+        font-size: 2.2rem;
+        font-family: $primary-font;
+        font-style: normal;
+        font-weight: normal;
+    }
+    // Christmas Font
+    h1 {
+        font-family: $christmas-font;
+        font-style: italic;
+        font-size: 2em;
+        font-weight: bold;
+        letter-spacing: 3px;
+        small {
+            font-family: $primary-font;
+            font-style: normal;
+        }
+        @include MQ(L) {
+            font-size: 3em;
+        }
+    }
+    h2 {
+        font-weight: 100;
+        letter-spacing: 5px;
+    }
+}
+
+/* hide empty sections */
+section:not(.row):not(.highlighted-section):not(.with-header):not(.footer-menu):not(.partners):not(.signoff) {
+    /* Styles */
+    padding: 0 !important;
+}
+
+.container-fluid {
+    padding: 3em 0;
+    @include MQ(L) {
+        padding: 90px 0;
+    }
+}
+
+#JoinUsChristmas {
+    position: relative;
+    vertical-align: middle;
+    display: table-cell;
+    top: 0;
+
+    @include MQ(L) {
+        top: 25vh;
+        position: absolute;
+        margin: 0 auto;
+        width: 100%;
+    }
+}
+#Christmas {
+    .content-wrapper {
+        display: table;
+        height: 100%;
+        width: 100%;
+        position: absolute;
+    }
+    @include MQ(L) {
+        .content-wrapper {
+            display: table-cell;
+            position: relative;
+        }
+    }
+    h2 {
+        font-size: 1.5em;
+        @include MQ(L) {
+            font-size: 2.5em;
+        }
+    }
+    h1 {
+        color: $DarkGrayColor;
+        font-family: $christmas-font;
+        font-size: 3.5em;
+        font-style: italic;
+        font-weight: 400;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        @include MQ(L) {
+            font-size: 5em;
+        }
+    }
+}
+#Advent {
+    h1 {
+        font-size: 3em;
+        font-style: italic;
+        @include MQ(L) {
+            font-size: 6em;
+        }
+    }
+    h2 {
+        font-family: $christmas-font;
+        font-size: 1em;
+        font-style: italic;
+        @include MQ(L) {
+            font-size: 1.5em;
+        }
+    }
+    h3 {
+        margin-top: -5px;
+    }
+    .advent_copy {
+        text-align: left;
+        @include MQ(L) {
+            text-align: center;
+        }
+    }
+}
+#ChristmasTimes {
+    h1 {
+        color: $DarkGrayColor;
+    }
+    .schedule-item {
+        h1 {
+            text-transform: inherit;
+        }
+    }
+}
+#Activities {
+    .activity {
+        margin-top: 0px;
+        padding-left:0px;
+        width: 100%;
+        .fa {
+            margin-right: 1em;
+        }
+    }
+}
+#Giving {
+    ul li {
+        font-size: 1.2em;
+    }
+}
+a {
+    color: #fafbf9;
+    text-decoration: none;
+
+    &:hover {
+        color: #797548;
+        text-decoration: none;
+    }
+}
+
+.cd-image-replace {
+	/* replace text with image */
+	display: inline-block;
+	overflow: hidden;
+	text-indent: 100%;
+	white-space: nowrap;
+	color: transparent;
+}
+
+.cd-scroll-down {
+	position: absolute;
+	@include center(x);
+	bottom: 20px;
+	width: 44px;
+	height: 44px;
+	background: url('/Content/ExternalSite/WebImages/Christmas/cd-arrow-bottom.svg') no-repeat center center;
+}
+
+.cd-btn {
+	display: inline-block;
+	padding: 0.5em 1.8em;
+	// margin-top: 1em;
+	border-radius: 20em;
+	@include backface-visibility(hidden);
+	@include font-smoothing;
+	color: $color-1;
+    border: 2px solid $color-1;
+    font-weight: 400;
+
+    &:before {
+        background: $color-1;
+    }
+
+	.no-touch &:hover {
+		// background-color: rgba($color-3, 0.8);
+		color: $color-1;
+	}
+
+    &.invert {
+        color: $color-4;
+        border: 2px solid $color-4;
+        &:before {
+            background: $color-3;
+        }
+    }
+
+    /* the styles below are for the secondary navigation if included */
+	@include MQ(L) {
+
+		&.is-hidden {
+
+            &:before {
+                background: $color-3;
+            }
+			/* assign a position fixed and move outside the viewport (on the right) */
+			opacity: 0;
+			position: fixed;
+			left: -20%;
+			top: 0;
+			padding: 0.5em 1.8em;
+			margin: 14px 0 0;
+			border: 2px solid rgba($color-3, 1);
+			color: $color-3;
+            &:hover,
+            &:focus,
+            &:active {
+                color: $color-1 !important;
+            }
+
+			@include transition(left 0.3s, opacity 0.3s);
+
+			&.slide-in {
+				/* slide in when the secondary nav gets fixed */
+				left: 3%;
+				opacity: 1;
+			}
+		}
+	}
+}
+
+.wow {
+    visibility: hidden; // initially hide them, so it doesn't flinch when the page loads
+}
+.red_advent_weeks {
+      content: "";
+      background: #78242f url('/Content/ExternalSite/WebImages/Christmas/advent-background-pattern.png');
+
+      .advent_body {
+          text-align: center;
+          padding: 2em;
+          text-transform: uppercase ;
+          .advent_title {
+              display: inline-block;
+              img {
+                  max-height: 300px;
+              }
+          }
+      }
+}
+
+.green_advent_weeks {
+      content: "";
+      background: #292f28 url('/Content/ExternalSite/WebImages/Christmas/background-pattern-green.png');
+
+      .advent_body {
+          text-align: center;
+          padding: 2em;
+          top: 1em;
+          @include MQ(M) {
+              // top: 2em;
+          }
+
+          .advent_title {
+              h1,h2,h3 {
+                  color: white;
+              }
+              small {
+                  color: white;
+              }
+              hr {
+                  width: 35%;
+                  border-top: 2px solid rgb(96, 105, 99);
+                  margin: 1em auto 0;color:white;
+              }
+              padding: 1em;
+              background-color: #3b423a;
+              display: inline-block;
+              outline: 1px solid white;
+              margin: 1em 1em 3em;
+              outline-offset: 15px;
+              @include MQ(L) {
+                  padding: 1em 3em;
+              }
+          }
+      }
+}
+
+/* --------------------------------
+
+Content Sections - basic style
+
+-------------------------------- */
+.cd-section:not(.schedule-section) {
+    a {
+        outline: 0;
+    }
+    .row {
+        margin-left: 0px;
+        margin-right: 0px;
+    }
+    /* vertically align its content*/
+    display: table;
+    width: 100%;
+    &:nth-of-type(1) {
+        height: calc(100vh - 134px);
+    }
+    height: 100vh;
+    background-color: rgba($color-1, 1);
+    /******** WHITE ********/
+    color: $color-3;
+
+    &.cct-red {
+        /******* RED ********/
+        background-color: rgba($color-3, 1);
+        color: $color-1;
+        a {
+            color: $color-1;
+        }
+        p {
+            color: $color-1;
+        }
+        h1,h2,h3 {
+            color: $color-5;
+            small {
+                color: $color-1;
+            }
+        }
+        h4,h5,h6 {
+            color: $color-1;
+            &.header-subtle {
+                text-transform: none;
+                font-size: 1.5em;
+                color: $color-2;
+            }
+        }
+
+        .cd-btn {
+            border: 2px solid $color-1;
+            &:before {
+                background: $color-1;
+            }
+            &:hover,
+            &:focus,
+            &:active {
+                color: $color-3 !important;
+            }
+        }
+    }
+    &.cct-green {
+        /******** GREEN ********/
+        h1 {
+            color: $color-1;
+            small {
+                color: $color-5;
+            }
+        }
+        background-color: rgba($color-6, 1);
+        color: $color-1;
+        p {
+            color: $color-1;
+        }
+        .cd-btn {
+            &:before {
+                background: $color-1;
+            }
+            &:hover,
+            &:focus,
+            &:active {
+                color: $color-3 !important;
+            }
+        }
+    }
+
+    // &:nth-of-type(3n-1) {
+    //     /******* RED ********/
+    //     @extend .cct-red;
+    // }
+    // &:nth-of-type(3n) {
+    //     /******** GREEN ********/
+    //     @extend .cct-green;
+    // }
+
+    > div {
+        /* vertically align <div> inside <section> */
+        display: table-cell;
+        vertical-align: middle;
+        text-align: center;
+        &.left-aligned {
+            /* vertically align <div> inside <section> */
+            display: table-cell;
+            vertical-align: middle;
+            text-align: left;
+        }
+    }
+    h1 {
+        color: $color-5;
+        font-size: 1.7em;
+        font-weight: 600;
+        text-transform: uppercase;
+        @include MQ(M) {
+            font-size: 2.5em;
+        }
+        @include MQ(L) {
+            font-size: 3em;
+        }
+        small {
+            color: $color-1;
+            .fa {
+                color: $DarkGrayColor;
+            }
+        }
+    }
+    h2 {
+        margin: 0 auto;
+        text-transform: uppercase;
+        font-size: 2.5em;
+        line-height: 1.4;
+
+        b {
+            color: white;
+            // color: tint($color-1, 15%);
+        }
+    }
+    h4:not(.mapplic-tooltip-title) {
+        // font-size: 2em;
+        font-weight: 200;
+        text-transform: uppercase;
+    }
+
+    p {
+        font-size: 1.5em;
+        margin: 1em auto 0;
+        line-height: 1.6;
+        width: 100%;
+        // max-width: 1000px;
+        color: $DarkGrayColor;
+    }
+
+    // @include MQ(M) {
+    //     h1 {
+    //         font-size: 3em;
+    //     }
+    //     h2 {
+    //         font-size: 2.5em;
+    //     }
+    //     p {
+    //         font-size: 1.5em;
+    //     }
+    // }
+}
+
+/* --------------------------------
+
+no-js
+
+-------------------------------- */
+
+.no-js .cd-nav-trigger {
+    display: none;
+}
+
+.no-js .cd-vertical-nav {
+    position: static;
+    height: auto;
+    width: 100%;
+    max-width: none;
+    background-color: rgba($color-3, .8);
+    border-radius: 0;
+    @include transform(scale(1));
+
+    &::before {
+        display: none;
+    }
+
+    ul {
+        @include clearfix;
+    }
+
+    li {
+        display: inline-block;
+        float: left;
+    }
+
+    a {
+        padding: 0 1em;
+        margin: 1.5em 1em;
+        color: $color-2;
+
+        &.active {
+            color: $color-4;
+        }
+    }
+
+    a::after, a::before {
+        display: none;
+    }
+
+    .label {
+        @include transform(translateX(0));
+    }
+}
+
+/* --------------------------------
+
+full screen hero video
+
+-------------------------------- */
+/* ---- 20.1 Main Onepage ---- */
+.main-demo-hero {
+    position: relative;
+	width: 100%;
+	height: 80vh;
+	background: url('/Content/ExternalSite/WebImages/Christmas/ChristmasVideoBG.jpg');
+	background-size: cover;
+	background-attachment: fixed;
+
+	.bg-overlay {
+		position: absolute;
+		width: 100%;
+		height: 100vh;
+		top: 0;
+		left: 0;
+		background: rgba(168, 182, 171, 0.43);
+	}
+
+    .player {
+        /* disable cursor video pausing feature */
+        pointer-events: none;
+        position: absolute;
+    }
+    .vimeo_player_wrapper {
+        @include MQ(L) {
+            top: -100px !important; // only for the christmas landing page
+        }
+    }
+	.hero-content-wrapper {
+		display: table;
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100vh;
+		padding-left: 10%;
+
+		.hero-content {
+			display: table-cell;
+			width: 100%;
+			height: 100%;
+			vertical-align: bottom;
+			padding-bottom: 10%;
+
+			.hero-lead {
+				font-size: 6em;
+				font-weight: 700;
+				letter-spacing: 2px;
+			}
+		}
+	}
+}
+
+/* ---- 20.4 Full Screen Video ---- */
+.fs-video-hero {
+
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+
+	@extend .main-demo-hero;
+    background: url('/Content/ExternalSite/WebImages/Christmas/ChristmasVideoBG.jpg');
+	background-size: cover;
+	background-position: center;
+    // @include MQ(L) {
+    //     background-position: top center -100px !important; // only for the christmas landing page
+    // }
+	// min-height: 750px;
+	.bg-overlay {
+        /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#ffffff+0,ffffff+100&1+0,0+100;White+to+Transparent */
+         background: -moz-linear-gradient(top, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%) center/cover no-repeat fixed; /* FF3.6-15 */
+         background: -webkit-linear-gradient(top, rgba(255,255,255,1) 0%,rgba(255,255,255,0) 100%) center/cover no-repeat fixed; /* Chrome10-25,Safari5.1-6 */
+         background: linear-gradient(to bottom, rgba(255,255,255,1) 0%,rgba(255,255,255,0) 100%) center/cover no-repeat fixed; /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+         filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#00ffffff',GradientType=0 ); /* IE6-9 */
+	}
+	.hero-content-wrapper {
+		padding-left: 0;
+
+		.hero-content {
+			text-align: center;
+		}
+	}
+}
+
+#wrapper_fs-video-one-bg {
+    margin-top: -1px !important;
+    vertical-align: 40%;
+}
+
+.mbYTP_wrapper {
+    min-height: 101% !important;
+    #iframe_fs-video-one-bg {
+        margin-top: -15% !important;
+        @media (min-width: 1199px) {
+            margin-top: -10% !important;
+        }
+    }
+}
+span.br_line{
+    display:block;
+    border:none;
+    color:white;
+    height:2px;
+    background:black;
+    background: -webkit-gradient(radial, 50% 50%, 0, 50% 50%, 350, from($color-3), to($color-1));
+    margin: 3em 0;
+}
+
+
+.isotope-item {
+padding: 0 0px 0px 0;
+width: 33.3334%;
+}
+@media only screen and (max-width : 568px) {
+.isotope-item {
+  width: 100%;
+}
+}
+
+/*Portfolio*/
+#ajax .container {position: relative;}
+
+a .close.top {
+    position: absolute;
+    right: 34px;
+    bottom: 0px;
+    margin:0px auto;
+    background: url('../../images/epic/close-project.png') no-repeat;
+    display: block;
+    text-indent: -99999px;
+    width: 38px;
+    height: 38px;
+    z-index: 9999;
+}
+
+.no-spacing {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.project-single {margin-bottom: 100px;}
+
+.folio-item {
+    // width: 33.3334%;
+    min-height: 250px;
+    @include transition(all 0.2s ease-in);
+
+    .folio-project {
+        display: table;
+        min-height: 250px;
+    }
+
+    &:nth-child(5n+1) {
+      background-color: $color-2;
+      &:hover {
+          background-color: rgba($color-2, 0.5);
+      }
+    }
+    &:nth-child(5n+2) {
+      background-color: $color-3;
+    }
+    &:nth-child(5n+3) {
+      background-color: $color-4;
+    }
+    &:nth-child(5n+4) {
+      background-color: $color-5;
+    }
+    &:nth-child(5n+5) {
+      background-color: $color-6;
+    }
+
+    .portfolio-grid {
+        margin-top: 0px;
+    }
+    .portfolio-thumb {
+        position: relative;
+        overflow: hidden;
+
+        &:hover .portfolio-inner,
+        &:hover .portfolio-dark-overlay,{
+            opacity: 1;
+            visibility: visible;
+        }
+    }
+    .portfolio-dark-overlay {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        right: 0;
+        opacity: 0;
+        visibility: hidden;
+        background-color: rgba($color-2, 0.5);
+        @include transition(all 0.2s ease-in);
+    }
+    .portfolio-inner {
+        h4 {
+            font-size: 30px;
+            text-align: center;
+            color: #fff;
+            margin: 0;
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+        }
+        .se-logo {
+            // background-color: $DarkGrayColor;
+            margin-bottom: 10px;
+            font-size: 2em;
+            border-color: $color-1;
+            background: transparent;
+            color: $color-1;
+        }
+        .portfolio-inner-ctr {
+            display: table-cell;
+            margin: auto;
+            vertical-align: middle;
+            text-align: center;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 120px;
+        }
+    }
+}
+
+@media (max-width: 800px)  {
+    .cd-header {
+        display: none;
+    }
+}
+
+@media (max-width: 600px) {
+
+    .fs-video-hero {
+		// background-position: 60% 50%;
+        .bg-overlay {
+            /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#ffffff+0,ffffff+100&1+0,0+100;White+to+Transparent */
+             background: -moz-linear-gradient(top, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%); /* FF3.6-15 */
+             background: -webkit-linear-gradient(top, rgba(255,255,255,1) 0%,rgba(255,255,255,0) 100%); /* Chrome10-25,Safari5.1-6 */
+             background: linear-gradient(to bottom, rgba(255,255,255,1) 0%,rgba(255,255,255,0) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+             filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#00ffffff',GradientType=0 ); /* IE6-9 */
+    	}
+	}
+	.hero-wrapper {
+		padding-left: 0% !important;
+		padding-right: 0% !important;
+	}
+	.hero-content {
+		padding-bottom: 45% !important;
+		img {
+			margin-bottom: 0px;
+		}
+	}
+
+    span.br_line{
+        background: -webkit-gradient(radial, 50% 50%, 0, 50% 50%, 150, from($color-3), to($color-1));
+    }
+}

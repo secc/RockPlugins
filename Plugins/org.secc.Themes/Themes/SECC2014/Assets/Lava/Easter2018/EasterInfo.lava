@@ -1,0 +1,1031 @@
+<script src="~~/Scripts/modernizr.js"></script>
+<script src="https://www.southeastchristian.org/eastertogether/assets/js/vendor/wow.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
+<script src="https://use.typekit.net/osx6gkw.js"></script>
+<script>try{Typekit.load({ async: true });}catch(e){}</script>
+
+<header class="cd-header">
+	<!-- <div id="cd-logo">
+        <a href="/christmas" id="cd-back" class="cd-btn sweep-to-left">
+            Back
+        </a>
+    </div> -->
+</header>
+
+<section id="PageHeader">
+        {[ parallax image:'/Themes/SECC2014/Assets/img/Easter2018/easterBackground.jpg' height:'auto' noios:'true' position:'top top' speed:'-25' ]}
+        <div class="container-fluid">
+            <div class="row" style="padding: 0px; margin: 0;">
+                <div class="col-sm-12 text-center" style="padding: 0px;">
+                    <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/easter2018.svg" class="img-responsive wow fadeInUp" data-wow-duration="1s" data-wow-delay=".7s" style="max-width: 50rem; max-width: 60em;margin: 4em auto;width: 100%; visibility: hidden;">
+                </div>
+            </div>
+        </div>
+        {[ endparallax ]}
+</section>
+
+<div class="cd-secondary-nav">
+    <a href="#0" class="cd-secondary-nav-trigger">Menu<span></span></a> <!-- button visible on small devices -->
+    <nav>
+        <ul>
+            <li>
+                <a href="#about">
+                    <b>About</b>
+                    <span><i class="fa fa-users"></i></span>
+                </a>
+            </li>
+            <li>
+                <a href="#locations">
+                    <b>Locations</b>
+                    <span><i class="fa fa-map"></i></span>
+                </a>
+            </li>
+            <li>
+                <a href="#Program">
+                    <b>Map</b>
+                    <span><i class="fa fa-map-marker"></i></span>
+                </a>
+            </li>
+            <li>
+                <a href="#Activities">
+                    <b>Times</b>
+                    <span><i class="fa fa-clock-o"></i></span>
+                </a>
+            </li>
+            <li>
+                <a href="#MissionPartners">
+                    <b>Share</b>
+                    <span><i class="fa fa-bullhorn"></i></span>
+                </a>
+            </li>
+			<li>
+				<a href="#ChristmasTimes">
+					<b>Serve</b>
+					<span><i class="fa fa-user"></i></span>
+				</a>
+			</li>
+            <li>
+                <a href="#FAQs">
+                    <b>FAQ</b>
+                    <span><i class="fa fa-question-circle"></i></span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div> <!-- .cd-secondary-nav -->
+
+<main class="cd-main-content">
+
+    <section id="about" class="easter-font">
+        <div class="container">
+
+			<div class="row section" style="padding:40px 0;">
+              <header class="sec-heading text-center">
+                  <h1>Hope is Alive</h1>
+              </header>
+              <br />
+              <div class="col-md-offset-1 col-md-5 biggerText">
+                  <h2>Easter</h2>
+                  <p>There’s not another day like it on the calendar—a day of living hope that leaves a lasting impression.</p>
+                  <p>This day is for all of us. So let’s share it. Let’s celebrate <i>Easter Together</i> at Southeast Christian Church.</p>
+                  <p>Our doors are open wide—and no matter where you are, wherever you’re coming from, you’re welcome here.</p>
+              </div>
+              <div class="col-md-5 biggerText" style="text-align: left;">
+                  <h2>What to Expect</h2>
+                  <ul>
+                      <li><p>Biblical, relevant teaching</p></li>
+                      <li><p>Engaging music</p></li>
+                      <li><p>Multiple locations and service times<br> to fit your schedule</p></li>
+                      <li><p>Friendly people and helpful volunteers</p></li>
+                      <li><p>Great options for kids</p></li>
+                      <li><p>No dress code—come as you are</p></li>
+                  </ul>
+              </div>
+          </div>
+        </div>
+    </section>
+
+    <!-- ========== Locations ========== -->
+      <section id="locations" class="section" style="padding-bottom:0px;">
+
+          <header class="sec-heading text-center"  style="padding-bottom: 0px;">
+            <h1>Locations</h1>
+            <span class="subheading">Select a campus below for service times and more!</span>
+          </header>
+
+          <div class="container-fluid" style="padding-top:30px;">
+              <div class="row no-spacing">
+                  <div class="col-md-12 no-spacing">
+
+                      <div id="ajax"></div>
+
+                      <div class="portfolio-grid">
+                          <div id="folio" class="isotope">
+
+
+                                  <div class="folio-item col-xs-12 col-sm-6 col-md-4 no-spacing">
+                                      <div class="portfolio-thumb">
+                                          <a id="blankenbaker" class="folio-project" href="blankenbaker #campus-easter-info">
+                                              <!-- <img src="https://www.southeastchristian.org/eastertogether/assets/images/locations/blankenbaker.jpg" class="img-responsive" alt=""/> -->
+                                              <div class="portfolio-dark-overlay"></div>
+                                              <div class="portfolio-inner">
+                                                  <div class="portfolio-inner-ctr">
+                                                      <span class="se-logo stroke">920</span>
+                                                      <h4>Blankenbaker</h4>
+                                                  </div>
+                                              </div>
+                                          </a>
+                                      </div>
+                                  </div>
+
+                                  <div class="folio-item col-xs-12 col-sm-6 col-md-4 no-spacing" >
+                                      <div class="portfolio-thumb">
+                                          <a id="indiana" class="folio-project" href="campuses/indiana.html">
+                                              <!-- <img src="https://www.southeastchristian.org/eastertogether/assets/images/locations/indiana.jpg" class="img-responsive" alt=""/> -->
+                                              <div class="portfolio-dark-overlay"></div>
+                                              <div class="portfolio-inner">
+                                                  <div class="portfolio-inner-ctr">
+                                                      <span class="se-logo stroke">IN</span>
+                                                      <h4>Indiana</h4>
+                                                  </div>
+                                              </div>
+                                          </a>
+                                      </div>
+                                  </div>
+
+
+
+
+                                  <div class="folio-item col-xs-12 col-sm-6 col-md-4 no-spacing" >
+                                      <div class="portfolio-thumb">
+                                          <a id="crestwood" class="folio-project" href="campuses/crestwood.html">
+                                              <!-- <img src="https://www.southeastchristian.org/eastertogether/assets/images/locations/crestwood.jpg" class="img-responsive" alt=""/> -->
+                                              <div class="portfolio-dark-overlay"></div>
+                                              <div class="portfolio-inner">
+                                                  <div class="portfolio-inner-ctr">
+                                                      <span class="se-logo stroke">CW</span>
+                                                      <h4>Crestwood</h4>
+                                                  </div>
+                                              </div>
+                                          </a>
+                                      </div>
+                                  </div>
+
+
+                                  <div class="folio-item col-xs-12 col-sm-6 col-md-4 no-spacing">
+                                      <div class="portfolio-thumb">
+                                          <a id="southwest" class="folio-project" href="campuses/southwest.html">
+                                              <!-- <img src="https://www.southeastchristian.org/eastertogether/assets/images/locations/southwest.jpg" class="img-responsive" alt=""/> -->
+                                              <div class="portfolio-dark-overlay"></div>
+                                              <div class="portfolio-inner">
+                                                  <div class="portfolio-inner-ctr">
+                                                      <span class="se-logo stroke">SW</span>
+                                                      <h4>Southwest</h4>
+                                                  </div>
+                                              </div>
+                                          </a>
+                                      </div>
+                                  </div>
+
+
+                                  <div class="folio-item col-xs-12 col-sm-6 col-md-4 no-spacing" >
+                                      <div class="portfolio-thumb">
+                                          <a id="lagrange" class="folio-project" href="campuses/lagrange.html">
+                                              <!-- <img src="https://www.southeastchristian.org/eastertogether/assets/images/locations/lagrange.jpg" class="img-responsive" alt=""/> -->
+                                              <div class="portfolio-dark-overlay"></div>
+                                              <div class="portfolio-inner">
+                                                  <div class="portfolio-inner-ctr">
+                                                     <span class="se-logo stroke">LA</span>
+                                                      <h4>La Grange</h4>
+                                                  </div>
+                                              </div>
+                                          </a>
+                                      </div>
+                                  </div>
+
+                                  <div class="folio-item col-xs-12 col-sm-6 col-md-4 no-spacing" >
+                                      <div class="portfolio-thumb">
+                                          <a id="lagrange" class="folio-project" href="campuses/lagrange.html">
+                                              <!-- <img src="https://www.southeastchristian.org/eastertogether/assets/images/locations/lagrange.jpg" class="img-responsive" alt=""/> -->
+                                              <div class="portfolio-dark-overlay"></div>
+                                              <div class="portfolio-inner">
+                                                  <div class="portfolio-inner-ctr">
+                                                      <span class="se-logo stroke">ET</span>
+                                                      <h4>Elizabethtown</h4>
+                                                  </div>
+                                              </div>
+                                          </a>
+                                      </div>
+                                  </div>
+
+                          </div> <!-- End #folio -->
+                      </div> <!-- End .portfolio-grid -->
+                  </div> <!-- End .jt_col -->
+              </div> <!-- End .jt_row -->
+          </div> <!-- End .container -->
+      </section>
+
+{% comment %}
+    <section id="Hours" class="cd-section cct-red christmas-font">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-sm-10 col-sm-offset-1 text-center" style="margin-bottom:1em">
+                    <h1 style="color:white;">Hours:</h1><br />
+                    <p class="wow fadeInLeft" style="font-weight: 100;color: #797549; text-transform: uppercase; font-size: 2em;">Friday, December 8 • 5:00-10:00 p.m.</p>
+                    <p style="margin:0px;">Christmas program in the Sanctuary at 6:00, 8:00, &amp; 10:00 p.m.</p>
+                    <br /><br />
+                    <p class="wow fadeInLeft" style="font-weight: 100;color: #797549; text-transform: uppercase; font-size: 2em;" data-wow-delay=".3s">December 10-14 • 5:00-9:00 p.m.</p>
+                    <p style="margin:0px;">Christmas program in the Sanctuary at 6:00 &amp; 8:00 p.m.</p>
+                    <br />
+					<p class="wow fadeInLeft" style="font-weight: 100;color: #797549; text-transform: uppercase; font-size: 2em;">Friday, December 15 • 5:00-10:00 p.m.</p>
+                    <p style="margin:0px;">Christmas program in the Sanctuary at 6:00, 8:00, &amp; 10:00 p.m.</p>
+                    <br /><br />
+                    <h4 class="header-subtle"><i>No Celebrate Christmas Together programs or activities on Saturday, December 9.</i></h4>
+                    <br />
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="Program" class="cd-section cct-green christmas-font">
+        <div class="container-fluid left-aligned">
+            <div class="row">
+				<div class="col-sm-11 col-sm-offset-1 animated wow fadeIn">
+					<h1>Program</h1>
+					<br />
+					<br />
+				</div>
+				<div class="col-sm-5 col-sm-offset-1 animated wow fadeInLeft" data-wow-duration="1s">
+                    <p style="text-transform: uppercase;"><strong>Nightly Christmas Program</strong></p>
+                    <p>Get into the Christmas spirit as you watch a heartwarming, musical Christmas story come to life. Performances will take place in the Sanctuary every night of Celebrate Christmas Together and will last about 45 minutes. All other activities will be open during performances.</p>
+                    <br />
+                    <p style="text-transform: uppercase;"><strong>Christmas Program Times</strong></p>
+                    <p>Friday, December 8 &amp; 15: 6:00, 8:00, &amp; 10:00 p.m.<br />
+                       December 10-14: 6:00 &amp; 8:00 p.m.</p>
+					<br />
+                </div>
+            	<div class="col-sm-5 animated wow fadeInRight" data-wow-duration="1s">
+                    <p style="text-transform: uppercase;"><strong>Live Nativity</strong></p>
+                    <p>A live nativity will also be part of <i>Celebrate Christmas Together</i>. Let your imagination wander back 2,000 years as you witness a depiction of the manger scene on the night Jesus was born, featuring live characters and animals. </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="Activities" class="cd-section christmas-font">
+        <div class="container-fluid left-aligned">
+            <div class="row">
+                <div class="col-sm-6 col-sm-offset-1">
+                    <h1 class="animated wow lightSpeedIn" style="font-weight: 700; letter-spacing: 5px;">Activities</h1>
+                    <p>This is a FREE, family-friendly event for all ages that is open everyone in the community. Activities will include:</p>
+					<br />
+					<div class="col-lg-6">
+						<p class="wow fadeInRight activity">
+		   					<i class="fa fa-star" aria-hidden="true"></i>
+							Live Outdoor Nativity
+						</p>
+						<p class="wow fadeInLeft activity" data-wow-delay=".2s">
+						   <i class="fa fa-music" aria-hidden="true"></i>
+						   Musical Performances
+					    </p>
+						<p class="wow fadeInRight activity" data-wow-delay=".4s">
+	                       <i class="fa fa-train" aria-hidden="true"></i>Trackless Train
+					    </p>
+						<p class="wow fadeInLeft activity" data-wow-delay=".6s">
+	                       <i class="fa fa-snowflake-o" aria-hidden="true"></i>Indoor Ice Skating Rinks
+					    </p>
+						<p class="wow fadeInRight activity" data-wow-delay=".8s">
+	                       <i class="fa fa-paint-brush" aria-hidden="true"></i>Crafts
+					    </p>
+						<p class="wow fadeInLeft activity" data-wow-delay="1s">
+	                       <i class="fa fa-trophy" aria-hidden="true"></i>Games
+					    </p>
+						<p class="wow fadeInRight activity" data-wow-delay="1.2s">
+	                       <i class="fa fa-camera-retro" aria-hidden="true"></i>Photo Booths
+					    </p>
+						<p class="wow fadeInLeft activity" data-wow-delay="1.4s">
+	                       <i class="fa fa-users" aria-hidden="true"></i>Carolers
+					    </p>
+					</div>
+					<div class="col-lg-6">
+						<p class="wow fadeInRight activity">
+	                       <i class="fa fa-birthday-cake" aria-hidden="true"></i>Cakewalk
+					    </p>
+						<p class="wow fadeInLeft activity" data-wow-delay=".2s">
+	                       <i class="fa fa-snowflake-o" aria-hidden="true"></i>Indoor Snowball Frenzy
+					    </p>
+						<p class="wow fadeInRight activity" data-wow-delay=".4s">
+	                       <i class="fa fa-gamepad" aria-hidden="true"></i>Arcade Games
+					    </p>
+						<p class="wow fadeInLeft activity" data-wow-delay=".6s">
+	                       <i class="fa fa-th" aria-hidden="true"></i>Bingo
+					    </p>
+						<p class="wow fadeInRight activity" data-wow-delay=".8s">
+	                       <i class="fa fa-tree" aria-hidden="true"></i>Candy Cane Tree
+					    </p>
+						<p class="wow fadeInLeft activity" data-wow-delay="1s">
+	                       <i class="fa fa-pencil-square" aria-hidden="true"></i>Giant Color by Numbers
+					    </p>
+						<p class="wow fadeInRight activity" data-wow-delay="1.2s">
+	                       <i class="fa fa-snowflake-o" aria-hidden="true"></i>And More!
+					    </p>
+						<br />
+					</div>
+                </div>
+                <div class="col-sm-4">
+                    <h1 class="animated wow fadeIn">Food</h1>
+                    <p>Don’t stress about dinner! For your convenience, boxed meals will be available for purchase each night from 5:00-8:00 p.m.</p>
+					<p>Meals will cost $4 each and include a turkey or ham sandwich (your choice), chips, a cookie, and a bottled water.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="MissionPartners" class="cd-section cct-red christmas-font">
+        <div class="container-fluid" >
+            <div class="row topper">
+                <div class="col-sm-10 col-sm-offset-1 text-center">
+                    <h2>Mission Partners</h2>
+					<p>We are honored to have several mission partners joining us at Celebrate Christmas Together! Visit our Christmas Village marketplace to learn more about these wonderful ministries and find out how you can support their efforts this holiday season.</p>
+					<br />
+					<br />
+			    </div>
+            </div>
+            <div class="row text-left">
+				<div class="col-md-5 col-md-offset-1 col-lg-3 partner-lg-offset">
+					<div class="card wow fadeInUp" data-wow-duration="1s" data-wow-delay=".1s">
+						<span>
+							<img src="/Content/ExternalSite/WebImages/Christmas/partners/cropped-scarlet_hope_logo.png" alt="Scarlet Hope" class="img-responsive">
+							<hr />
+							<h2><small>Louisville, KY</small></h2>
+							<a href="https://scarlethope.org/" target="_blank">www.scarlethope.org</a>
+						</span>
+						<div class="caption clearfix">
+							<p>Scarlet Hope exists to share the hope and love of Jesus Christ with women in the adult entertainment industry.</p>
+							<p><span class="marketplace">In the Marketplace</span></span>Purchase some delicious baked goods from Scarlet’s Bakery at the Scarlet Hope storefront.</p>
+						</div>
+					</div>
+
+					<div class="card wow fadeInUp" data-wow-duration="1s" data-wow-delay=".2s">
+						<span>
+							<img src="/Content/ExternalSite/WebImages/Christmas/partners/maya_logo.svg" alt="MAYA Collection" class="img-responsive">
+							<hr />
+							<h2><small>Louisville, KY</small></h2>
+							<a href="http://www.mayacollection.org/" target="_blank">www.mayacollection.org</a>
+						</span>
+						<div class="caption clearfix">
+							<p>The MAYA Collection meets at Refuge Louisville and serves refugees by sharing the love of Christ through mentoring, teaching, and relationships. Refugees utilize their native skills to create unique jewelry, handmade crafts and soaps, and various textile products. The purpose that drives these artisans is to help themselves become financially independent.</p>
+							<p><span class="marketplace">In the Marketplace</span>A variety of the MAYA Collection’s handmade products will be available at their storefront.</p>
+						</div>
+					</div>
+				</div>
+
+				<div class="col-md-5 col-lg-3">
+					<div class="card wow fadeInUp" data-wow-duration="1s" data-wow-delay=".3s">
+						<span>
+							<img src="/Content/ExternalSite/WebImages/Christmas/partners/pioneer_bible.svg" alt="Pioneer Bible Translators" class="img-responsive">
+							<hr />
+							<h2><small>International</small></h2>
+							<a href="https://pioneerbible.org/" target="_blank">pioneerbible.org</a>
+						</span>
+						<div class="caption clearfix">
+							<p>Pioneer Bible Translators reaches out globally by planting churches and translating the Bible for the remaining unreached and unengaged people groups in the world. Their vision is to see transformed lives through God’s Word in every language.</p>
+							<p><span class="marketplace">In the Marketplace</span>Visit Pioneer Bible Translators in the Christmas Village to donate the cost of translating one Bible verse.</p>
+						</div>
+					</div>
+
+					<div class="card wow fadeInUp" data-wow-duration="1s" data-wow-delay=".4s">
+						<span>
+							<h2 style="color: white; font-weight: 600;">S & C</h2>
+							<hr />
+							<h2><small>International</small></h2>
+						</span>
+						<div class="caption clearfix">
+							<p>S & C’s vision is to empower nationals for a church planting movement in their region of the world through prayer, discipleship, training, and other Holy Spirit initiatives for the glory of God.</p>
+							<p><span class="marketplace">In the Marketplace</span>Visit S & C’s storefront at Celebrate Christmas Together to learn more about their ministry and to purchase a candle to help support them.</p>
+						</div>
+					</div>
+				</div>
+
+
+				<div class="col-md-5 col-lg-3">
+					<div class="card wow fadeInUp" data-wow-duration="1s" data-wow-delay=".5s">
+						<span>
+							<img src="/Content/ExternalSite/WebImages/Christmas/partners/LIA.png" alt="Life in Abundance" class="img-responsive">
+							<hr />
+							<h2><small>Africa and the Caribbean</small></h2>
+							<a href="https://lifeinabundance.org/" target="_blank">lifeinabundance.org</a>
+						</span>
+						<div class="caption clearfix">
+							<p>The aim of Life in Abundance (LIA) is to empower the local church to break the cycle of poverty in the poorest and most marginalized communities in the world. LIA seeks to serve the most vulnerable families in Africa and the Caribbean, mostly targeting the areas of health, education, social engagement, and economic empowerment.</p>
+							<p><span class="marketplace">In the Marketplace</span>Items made in Kenya will be for sale at the LIA storefront. You can also “Give the Gift of Empowerment” by choosing from options such as providing a micro-loan to a family starting a business, purchasing a pair of sheep for a family, or supporting an orphan for one year.</p>
+						</div>
+					</div>
+				</div>
+            </div>
+
+        </div>
+    </section>
+
+	<section id="Giving" class="cd-section cct-green christmas-font">
+        <div class="container-fluid left-aligned">
+            <div class="row">
+				<div class="col-sm-10 col-sm-offset-1 animated wow fadeIn">
+					<h2 style="font-size: 2em;"><i class="fa fa-shopping-bag"></i> Giving Opportunity: Help Fill a Nursing Home Bag</h2 >
+					<br />
+				</div>
+				<div class="col-sm-10 col-sm-offset-1 animated wow fadeInLeft" data-wow-duration="1s">
+                    <p>Join our LifeBridge Ministry as they share the love of Jesus with those in need in our community. We’re partnering with area nursing homes by donating several items that their residents need most. Share some Christmas spirit with nursing home residents in our community by bringing items to contribute to nursing home bags. You can drop off your item(s) during Celebrate Christmas Together—boxes will be available in the Atrium. See the list of needed items below.</p>
+					<br />
+					<div class="col-sm-6">
+						<ul>
+							<li>Small throw or lap blanket</li>
+							<li>Shampoo/conditioner</li>
+							<li>Soap/body wash & bath sponges</li>
+							<li>Lip balm, emery boards</li>
+							<li>Lotions and body sprays</li>
+							<li>Non-slip footies or socks</li>
+						</ul>
+					</div>
+					<div class="col-sm-6">
+						<ul>
+							<li>New assorted note cards with pre-stamped envelopes</li>
+							<li>Notepads and pencil/pen</li>
+							<li>Soap/body wash & bath sponges</li>
+							<li>Small wall calendars</li>
+							<li>Large print crossword & puzzle books</li>
+							<li>Large print devotionals</li>
+						</ul>
+				</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="FAQs" class="cd-section cct-red christmas-font">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-sm-12">
+                    <h1>Frequently Asked Questions</h1><br />
+				</div>
+			</div>
+			<div class="row">
+					<!-- FAQ Group 1 -->
+	            <div class="col-md-6">
+
+	              <!-- FAQ Accordion -->
+	              <div class="panel-group accordions-1" id="faq-accordion-1" role="tablist" aria-multiselectable="true">
+
+	                <!-- Item 1 -->
+	                <div class="panel panel-default">
+	                  <div class="panel-heading" role="button" id="faq-1-h-1" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-1" aria-expanded="false" aria-controls="faq-1-collapse-1">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+	                        What is Celebrate Christmas Together?
+	                      </span>
+	                    </h4>
+	                  </div>
+	                  <div id="faq-1-collapse-1" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-1">
+	                    <div class="panel-body">
+							<i>Celebrate Christmas Together</i> is a free Christmas event for everyone in our community. Join us at this winter wonderland of light displays, train rides, and indoor ice-skating rinks. Walk through an old-timey Christmas village to meet our Mission Partners. And see the reason for the season with a nightly Christmas program and live nativity scene.
+						</div>
+	                  </div>
+	                </div><!-- / .panel -->
+
+	                <!-- Item 2 -->
+	                <div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-2" aria-expanded="false" aria-controls="faq-1-collapse-2">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+							  What can I expect when I arrive?
+						  </span>
+	                    </h4>
+	                  </div>
+	                  <div id="faq-1-collapse-2" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-2">
+	                    <div class="panel-body">
+							These are just some of the things you’ll experience at <i>Celebrate Christmas Together</i>:<br /><br />
+							Live Outdoor Nativity • Musical Performances • Activities for All Ages • Trackless Train • Indoor Ice Skating Rinks • Crafts • Games • Photo Booths • Carolers • Cakewalk • Indoor Snowball Frenzy • Arcade Games • Bingo • Candy Cane Tree • Giant Color by Numbers • And More!
+						</div>
+	                  </div>
+	                </div><!-- / .panel -->
+
+	                <!-- Item 3 -->
+	                <div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-3" aria-expanded="false" aria-controls="faq-1-collapse-3">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+	                          Where is the event held?
+	                      </span>
+	                    </h4>
+	                  </div>
+	                  <div id="faq-1-collapse-3" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-3">
+	                    <div class="panel-body">
+							Celebrate Christmas Together will be hosted at Southeast Christian Church’s Blankenbaker Campus, located at 920 Blankenbaker Pkwy, Louisville, KY 40243.
+						</div>
+	                  </div>
+	                </div><!-- / .panel -->
+
+	                <!-- Item 4 -->
+	                <div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-4" aria-expanded="false" aria-controls="faq-1-collapse-4">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+							  When is the event?
+						  </span>
+	                    </h4>
+	                  </div>
+	                  <div id="faq-1-collapse-4" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-4">
+	                    <div class="panel-body">
+							Friday, December 8 &amp; 15 • 5:00-10:00 p.m.<br />
+							Christmas program in the Sanctuary at 6:00, 8:00, &amp; 10:00 p.m.<br />
+							<br />
+							December 10-14 • 5:00-9:00 p.m.<br />
+							Christmas program in the Sanctuary at 6:00 &amp; 8:00 p.m.<br />
+							<br />
+							Activities are available all night, including during program performances.
+						</div>
+	                  </div>
+	                </div><!-- / .panel -->
+
+	                <!-- Item 5 -->
+	                <div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-5" aria-expanded="false" aria-controls="faq-1-collapse-5">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+							  Are reservations/tickets required?
+	                      </span>
+	                    </h4>
+	                  </div>
+	                  <div id="faq-1-collapse-5" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-5">
+	                    <div class="panel-body">
+							This event is free. No tickets or reservations are required to enter the event or attend the Christmas program. Free tickets for ice skating and train rides will be available onsite each evening and will not be distributed in advance.
+						</div>
+	                  </div>
+	                </div><!-- / .panel -->
+
+	                <!-- Item 6 -->
+	                <div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-6" aria-expanded="false" aria-controls="faq-1-collapse-6">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+							  Are there additional charges?
+	                      </span>
+	                    </h4>
+	                  </div>
+	                  <div id="faq-1-collapse-6" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-6">
+	                    <div class="panel-body">
+							The event is free, but food and other items will be available for purchase.
+						</div>
+	                  </div>
+	                </div><!-- / .panel -->
+
+					<!-- Item 1 -->
+	                <div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-2-collapse-1" aria-expanded="false" aria-controls="faq-2-collapse-1">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+							  Is there childcare for the program? What ages should attend the program?
+	                      </span>
+	                    </h4>
+	                  </div>
+	                  <div id="faq-2-collapse-1" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-1">
+	                    <div class="panel-body">
+							The event and program are geared toward all ages. No childcare will be offered.
+						</div>
+	                  </div>
+	                </div><!-- / .panel -->
+
+					<!-- Item 1 -->
+	                <div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-carols" aria-expanded="false" aria-controls="faq-carols">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+							  Will there be Christmas carols?
+	                      </span>
+	                    </h4>
+	                  </div>
+	                  <div id="faq-carols" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-carols">
+	                    <div class="panel-body">
+							There will be roaming carolers around the building and Christmas music will be part of the nightly Christmas program.
+						</div>
+	                  </div>
+	                </div><!-- / .panel -->
+
+	                <!-- Item 2 -->
+	                <div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-2-collapse-2" aria-expanded="false" aria-controls="faq-2-collapse-2">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+							  Do you provide wheelchair seating?
+						  </span>
+	                    </h4>
+	                  </div>
+	                  <div id="faq-2-collapse-2" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-2">
+	                    <div class="panel-body">
+							Yes, we do. Our ushers will be happy to assist you in finding seating.
+						</div>
+	                  </div>
+	                </div><!-- / .panel -->
+
+	                <!-- Item 3 -->
+	                <div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-2-collapse-3" aria-expanded="false" aria-controls="faq-2-collapse-3">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+							  Is your Deaf &amp; Disabilities Ministry providing care?
+	                      </span>
+	                    </h4>
+	                  </div>
+	                  <div id="faq-2-collapse-3" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-3">
+	                    <div class="panel-body">
+							ASL interpretation will be available for the musical program.
+						</div>
+	                  </div>
+	                </div><!-- / .panel -->
+
+	                <!-- Item 4 -->
+	                <div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-2-collapse-4" aria-expanded="false" aria-controls="faq-2-collapse-4">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+	                        Can I bring a large group?
+	                      </span>
+	                    </h4>
+	                  </div>
+	                  <div id="faq-2-collapse-4" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-4">
+	                    <div class="panel-body">
+							Yes! All of our parking lots will be open for tour buses and our parking attendants can assist you when you arrive.
+						</div>
+	                  </div>
+	                </div><!-- / .panel -->
+
+	              </div><!-- / .panel-group .accordion-1 -->
+
+	              <!-- <hr class="mb-sm-50"> -->
+	            </div><!-- / .col-md-6 -->
+
+				<!-- FAQ Group 2 -->
+	            <div class="col-md-6">
+	              <!-- <div class="faq-group-header ws-s">
+	                <h4 class="mb-30">Questions Group 2</h4>
+	                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sint, blanditiis corrupti ea optio veniam, reiciendis, quidem iste quae.</p>
+	              </div> -->
+
+	              <!-- FAQ Accordion -->
+	              <div class="panel-group accordions-1" id="faq-accordion-2" role="tablist" aria-multiselectable="true">
+
+
+	                <!-- Item 5 -->
+	                <div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-2-collapse-5" aria-expanded="false" aria-controls="faq-2-collapse-5">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+							  May I take pictures?
+	                      </span>
+	                    </h4>
+	                  </div>
+	                  <div id="faq-2-collapse-5" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-5">
+	                    <div class="panel-body">
+							Yes! We would love for you to take photos throughout the event, but we ask that you not take photos during the musical program.
+						</div>
+	                  </div>
+	                </div><!-- / .panel -->
+
+	                <!-- Item 6 -->
+	                <div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-2-collapse-6" aria-expanded="false" aria-controls="faq-2-collapse-6">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+	                         Are strollers allowed?
+	                      </span>
+	                    </h4>
+	                  </div>
+	                  <div id="faq-2-collapse-6" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-6">
+	                    <div class="panel-body">
+							Yes.
+						</div>
+	                  </div>
+	                </div><!-- / .panel -->
+
+					<div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#myownskates" aria-expanded="false" aria-controls="myownskates">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+	                         Can I bring my own ice skates?
+	                      </span>
+	                    </h4>
+	                  </div>
+	                  <div id="myownskates" class="panel-collapse collapse" role="tabpanel" aria-labelledby="myownskates">
+	                    <div class="panel-body">
+							No. Ice skates will be provided.
+						</div>
+	                  </div>
+	                </div>
+
+					<div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#whatifneedhelp" aria-expanded="false" aria-controls="whatifneedhelp">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+	                         What if I need help or information while I’m there?
+	                      </span>
+	                    </h4>
+	                  </div>
+	                  <div id="whatifneedhelp" class="panel-collapse collapse" role="tabpanel" aria-labelledby="whatifneedhelp">
+	                    <div class="panel-body">
+							Our volunteers throughout the event will be happy to assist you. Visit our Connection Center or security desk for information.
+						</div>
+	                  </div>
+	                </div>
+
+					<div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#howmuchtimetraffic" aria-expanded="false" aria-controls="howmuchtimetraffic">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+	                         How much time should I allow for traffic and parking when planning my visit?
+	                      </span>
+	                    </h4>
+	                  </div>
+	                  <div id="howmuchtimetraffic" class="panel-collapse collapse" role="tabpanel" aria-labelledby="howmuchtimetraffic">
+	                    <div class="panel-body">
+							Allow at least 30 minutes to get into our campus and our building.
+						</div>
+	                  </div>
+	                </div>
+
+					<div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#shuttle" aria-expanded="false" aria-controls="shuttle">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+	                         Will there be a shuttle?
+	                      </span>
+	                    </h4>
+	                  </div>
+	                  <div id="shuttle" class="panel-collapse collapse" role="tabpanel" aria-labelledby="shuttle">
+	                    <div class="panel-body">
+							Yes, we’ll have limited shuttle service from one of our parking lots.
+						</div>
+	                  </div>
+	                </div>
+
+					<div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#whatshouldIwear" aria-expanded="false" aria-controls="whatshouldIwear">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+	                         What should I wear?
+	                      </span>
+	                    </h4>
+	                  </div>
+	                  <div id="whatshouldIwear" class="panel-collapse collapse" role="tabpanel" aria-labelledby="whatshouldIwear">
+	                    <div class="panel-body">
+							Dress is casual—come as you are! There will be many opportunities for photos, so you are welcome to come dressed up if you wish!
+						</div>
+	                  </div>
+	                </div>
+
+					<div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#havetobeamember" aria-expanded="false" aria-controls="havetobeamember">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+							  Do I have to be a member to attend?
+	                      </span>
+	                    </h4>
+	                  </div>
+	                  <div id="havetobeamember" class="panel-collapse collapse" role="tabpanel" aria-labelledby="havetobeamember">
+	                    <div class="panel-body">
+							No, we want everyone to come!
+						</div>
+	                  </div>
+	                </div>
+
+					<div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#IattendelswherewhenshouldI" aria-expanded="false" aria-controls="IattendelswherewhenshouldI">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+							  I attend Southeast at a different campus—when should I come?
+						  </span>
+	                    </h4>
+	                  </div>
+	                  <div id="IattendelswherewhenshouldI" class="panel-collapse collapse" role="tabpanel" aria-labelledby="IattendelswherewhenshouldI">
+	                    <div class="panel-body">
+							You are welcome to come on any date, but each campus has a date specifically for their congregation to attend and serve.
+							<br /><br />
+							Elizabethtown Campus: Friday, December 8<br />
+							Crestwood Campus: Monday, December 11<br />
+							La Grange Campus: Tuesday, December 12<br />
+							Southwest Campus: Wednesday, December 13<br />
+							Indiana Campus: Thursday, December 14<br />
+						</div>
+	                  </div>
+	                </div>
+
+	              </div><!-- / .panel-group .accordion-1 -->
+
+	              <!-- <hr> -->
+	            </div><!-- / .col-md-6 -->
+
+            </div>
+        </div>
+    </section>
+
+	<section id="ChristmasTimes" class="cd-section christmas-font" style="background-color:#fff;">
+	      {% include '~~/Assets/Lava/Easter2018/EasterTimes.lava' %}
+	</section>
+{% endcomment %}
+</main>
+
+<script>
+/* --------------------------------------------------
+	Initialization
+-------------------------------------------------- */
+$(document).ready(function() {
+
+    $.ajaxSetup ({
+	    // Disable caching of AJAX responses
+	    cache: false
+	});
+
+    // Initialize all functions when the document is ready.
+    initLocations(); // Animate Elements
+    initWow(); // Animate Elements
+	initScheduleTable(); // Table for Easter Times
+	initSecondaryNav(); // Secondary nav while scrolling
+
+    /* --------------------------------------------------
+ 	   Load and organize ajax locations for each campuses
+    -------------------------------------------------- */
+    function initLocations(){
+        var $container = $('#folio');
+        $container.isotope({
+            itemSelector: '.folio-item'
+        });
+
+        $('.folio-project').on('click', function(event) {
+            event.preventDefault();
+            var href = $(this).attr('href');
+            if ($('#ajax').is(':visible')) {
+                $('#ajax').css({ display:'block' }).animate({ height:'0' }).slideUp(300);
+				$("html, body").animate({ scrollTop: $('#ajax').offset().top - 100}, 300);
+            }
+            $('#ajax').html('');
+
+            $('#ajax').show(0).animate({ height:'1200px' }, 500 ,function() {
+                $('#ajax').load(href, function() {
+                    $('#ajax').css('height','auto');
+                    $("html, body").animate({ scrollTop: $('#ajax').offset().top - 100}, 300);
+                });
+            });
+        });
+    }
+
+    /* --------------------------------------------------
+ 	   Animate Elements on Load
+    -------------------------------------------------- */
+    function initWow(){
+
+       wow = new WOW(
+    	  {
+    		 boxClass:     'wow',      // default
+    		 animateClass: 'animated', // default
+    		 offset:       0,          // default
+    		 mobile:       false,       // changed default for mobile
+    		 live:         true        // default
+    	  }
+       );
+       wow.init();
+
+    } // initNavbar
+
+    /* --------------------------------------------------
+	   Schedule Table
+    -------------------------------------------------- */
+    function initScheduleTable() {
+
+	   $('.nav-schedule').each(function () {
+
+		   var $this = $(this),
+			   $active = $this.find('li.active > a'),
+			   $field = $('<span class="nav-current arrow">' + $active.html() + '</span>');
+
+		   $this.wrapAll('<div class="nav-wrapper-schedual"></div>')
+
+		   $this.before($field);
+
+		   $field.on('click', function () {
+			   if ( !$this.is('.open') ) $this.stop(true, true).slideDown(250).addClass('open');
+			   else $this.stop(true, true).slideUp(150).removeClass('open');
+		   });
+
+		   $this.on('click', 'a', function () {
+			   $field.html($(this).html());
+		   });
+
+		   $('.nav-schedule > li > a').click( function() {
+			   var idDay = $(this).parent().parent().parent().parent().attr("id");
+			   if(typeof idDay != 'undefined') {
+				   var varDayNumber = idDay.slice(-1); //Outputs: day number
+				   $('.nav-wrapper-schedual > ul.nav-schedule > li.active').removeClass('active');
+				   $('.tab-content-schedule > div.active').removeClass('active');
+
+				   var campus = $(this).parent().attr("class");
+				   $('.tab-pane > .nav-wrapper-schedual > .nav-current').html($(this).html());
+				   $('.tab-content-schedule > div.'+campus).addClass('active');
+				   $( '#easterdays li:nth-child('+varDayNumber+')' ).addClass('active');
+				   $('.nav-wrapper-schedual > ul.nav-schedule > li.'+campus).addClass('active');
+			   }
+		   });
+
+		   $('body').on('click', function (event) {
+			   if ( !$(event.target).closest($field).length && $this.is('.open') ) {
+				   $this.stop(true, true).slideUp(150).removeClass('open');
+			   }
+		   });
+	   });
+
+    } // initScheduleTable
+
+    /* --------------------------------------------------
+    	Initializing Secondary Navigation (Section Hotlinks)
+    -------------------------------------------------- */
+    function initSecondaryNav() {
+
+        var secondaryNav = $('.cd-secondary-nav'),
+            secondaryNavTopPosition = secondaryNav.offset().top,
+            // taglineOffesetTop = $('#cd-intro-tagline').offset().top + $('#cd-intro-tagline').height() + parseInt($('#cd-intro-tagline').css('paddingTop').replace('px', '')),
+            contentSections = $('.cd-section');
+
+        $(window).on('scroll', function(){
+            //on desktop - assign a position fixed to logo and action button and move them outside the viewport
+        ( $(window).scrollTop() > secondaryNavTopPosition ) ? $('#cd-logo, #cd-back').addClass('is-hidden') : $('#cd-logo, #cd-back').removeClass('is-hidden');
+
+            //on desktop - fix secondary navigation on scrolling
+            if($(window).scrollTop() > secondaryNavTopPosition ) {
+                //fix secondary navigation
+                secondaryNav.addClass('is-fixed');
+                //push the .cd-main-content giving it a top-margin
+                $('.cd-main-content').addClass('has-top-margin');
+                //on Firefox CSS transition/animation fails when parent element changes position attribute
+                //so we to change secondary navigation childrens attributes after having changed its position value
+                setTimeout(function() {
+                    secondaryNav.addClass('animate-children');
+                    $('#cd-logo').addClass('slide-in');
+                    $('.cd-btn').addClass('slide-in');
+                }, 50);
+            } else {
+                secondaryNav.removeClass('is-fixed');
+                $('.cd-main-content').removeClass('has-top-margin');
+                setTimeout(function() {
+                    secondaryNav.removeClass('animate-children');
+                    $('#cd-logo').removeClass('slide-in');
+                    $('.cd-btn').removeClass('slide-in');
+                }, 50);
+            }
+
+            //on desktop - update the active link in the secondary fixed navigation
+            updateSecondaryNavigation();
+        });
+
+        function updateSecondaryNavigation() {
+            contentSections.each(function(){
+                var actual = $(this),
+                    actualHeight = actual.height() + parseInt(actual.css('paddingTop').replace('px', '')) + parseInt(actual.css('paddingBottom').replace('px', '')),
+                    actualAnchor = secondaryNav.find('a[href="#'+actual.attr('id')+'"]');
+                if ( ( actual.offset().top - secondaryNav.height() <= $(window).scrollTop() ) && ( actual.offset().top +  actualHeight - secondaryNav.height() > $(window).scrollTop() ) ) {
+                    actualAnchor.addClass('active');
+                }else {
+                    actualAnchor.removeClass('active');
+                }
+            });
+        }
+
+        //on mobile - open/close secondary navigation clicking/tapping the .cd-secondary-nav-trigger
+        $('.cd-secondary-nav-trigger').on('click', function(event){
+            event.preventDefault();
+            $(this).toggleClass('menu-is-open');
+            secondaryNav.find('ul').toggleClass('is-visible');
+        });
+
+        //smooth scrolling when clicking on the secondary navigation items
+        secondaryNav.find('ul a').on('click', function(event){
+            event.preventDefault();
+            var target= $(this.hash);
+            $('body,html').animate({
+                'scrollTop': target.offset().top - secondaryNav.height() + secondaryNav.height() + 1
+                }, 400
+            );
+            //on mobile - close secondary navigation
+            $('.cd-secondary-nav-trigger').removeClass('menu-is-open');
+            secondaryNav.find('ul').removeClass('is-visible');
+        });
+
+    } // initSecondaryNav
+}); // $(document).ready();
+
+$(document).ajaxComplete(function() {
+    "use strict";
+    $(".close").click(function(e) {
+        $('#ajax').slideUp('slow');
+		$("html, body").animate({ scrollTop: $('#ajax').offset().top - 100}, 300);
+        e.preventDefault();
+    });
+}); // End ajax complete
+
+</script>
