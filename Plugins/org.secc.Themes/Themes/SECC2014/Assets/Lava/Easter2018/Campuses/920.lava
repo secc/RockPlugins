@@ -1,0 +1,90 @@
+<div id="campus-easter-info" class="project-single">
+	<div class="project-info container">
+		<h6>920 Blankenbaker Pkwy</h6>
+		<h4>Blankenbaker</h4>
+		<div class="container-fluid">
+			<div class="row">
+				<div class="col-md-6">
+
+					<address>
+					  <div class="row">
+
+						<!-- Address -->
+						<div class="col-md-12 col-lg-6 address-group">
+							<span>Address:</span><br />
+							<p>920 Blankenbaker Pkwy<br /> Louisville, KY 40243</p>
+							<p><span>Phone:</span> <a href="tel:502.253.8000">502.253.8000</a></p>
+						</div>
+
+						<!-- Phone -->
+						<div class="col-md-12 col-lg-6">
+							<p><a style="width:100%" href="https://www.google.com/maps/dir/Current+Location/920+Blankenbaker+Pkwy+Louisville+KY+40243" class="btn btn-easter" target="_blank"><strong><i class="fa fa-map-marker"></i> Get Directions</strong></a></p>
+							<p><a style="width:100%" href="mailto:?subject=Check this out—Easter Together at Southeast Christian (Blankenbaker)&body=Hi! I'm going to Easter Together at Southeast Christian Church (Blankenbaker Campus). I hope you'll join me! Find out more here: http://southeastchristian.org/eastertogether/#blankenbaker" class="btn btn-easter"><strong><i class="fa fa-envelope"></i> Invite a Friend</strong></a></p>
+							<p><button id="shareBtn" style="width:100%" class="btn btn-easter"><strong><i class="fa fa-facebook-official"></i> Share</strong></button></p>
+						</div>
+
+						<script>
+						document.getElementById('shareBtn').onclick = function() {
+						  FB.ui({
+						    method: 'share',
+						    display: 'popup',
+							hashtag: '#EasterTogether',
+							quote: "Let’s celebrate Easter Together at Southeast Christian Church. Our doors are open wide—and no matter where you are, wherever you’re coming from, you’re welcome here.",
+						    href: 'http://southeastchristian.org/eastertogether/#blankenbaker',
+						  }, function(response){});
+						}
+						</script>
+
+					  </div><!-- / .row -->
+					</address>
+
+					<div id="project-campus-times">
+						<h5>Times</h5>
+						<p>Thursday • April 13 • 6:30 p.m. (Encounter)<br />
+						Friday • April 14 • 6:30 p.m. <i class="fa fa-american-sign-language-interpreting" aria-hidden="true"></i><br />
+						Saturday • April 15 • 3:00, 5:00 <i class="fa fa-american-sign-language-interpreting" aria-hidden="true"></i>, 7:00 p.m.<br />
+						Sunday • April 16 • 7:30 a.m. (Traditional Service), 9:30 a.m., 11:15 a.m. <i class="fa fa-american-sign-language-interpreting" aria-hidden="true"></i>, 2:00 p.m.<br />
+						<p><a href="#schedule">Click here to see times for all locations</a>.</p>
+						<p><i class="fa fa-american-sign-language-interpreting" aria-hidden="true"></i> interpreted for the deaf</p>
+						<hr />
+					</div>
+
+				</div>
+
+				<div class="col-md-6">
+					<div class="welcome-video embed-responsive embed-responsive-16by9" style="margin-top:-13px;">
+						<iframe src="//player.vimeo.com/video/205958196" class="embed-responsive-item"  webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-12">
+					<h5>Special Services</h5>
+
+					<p><strong><i>Traditional Service with Ken Idleman</i></strong><br />
+					We’ve set aside this time to celebrate the resurrection of Jesus in a time-honored way. We’ll sing beloved hymns and hear teaching from Ken Idleman—Vice President of Leadership Development at The Solomon Foundation, former president of Ozark Christian College, and retired Senior Pastor of Crossroads Christian Church, Evansville, IN. (<a href="http://thesolomonfoundation.org/team-members/ken-idleman" target="_blank">read Ken’s full bio here).</a></p>
+
+					<p><strong><i>Encounter with Dave Stone and Kyle Idleman</i></strong><br />
+					Each Thursday, support groups meet at our Blankenbaker Campus to help people experience growth, find hope, and receive help for a range of life situations—from everyday challenges to more severe crises. These groups come together every week for worship. On Thursday, April 13, the Encounter worship service will be centered around Easter, with Senior Pastor Dave Stone and Teaching Pastor Kyle Idleman speaking. <a href="https://www.southeastchristian.org/connect/care/encounter-groups.php" target="_blank">Learn more about our Encounter groups here.</a></p>
+
+					<strong><i>Easter Worship Alternative for Teens and Adults with Special Needs</i></strong><br />
+					<strong><i>Saturday • April 15 • 5:00 p.m.</i></strong><br />
+					<strong><i>Sunday • April 16 • 9:30 a.m.</i></strong>
+					<p>Teens and adults with special needs who prefer a smaller setting are invited to a worship alternative in WC 246. Learn about the Easter story through teaching, worship, and hands-on activities.</p>
+					<hr />
+					<h5>Easter Experience</h5>
+					<strong><i>Thursday • April 13 • 7:45 p.m.</i></strong><br />
+					<strong><i>Friday • April 14 • 5:00, 7:45 p.m. <i class="fa fa-american-sign-language-interpreting" aria-hidden="true"></i></i></strong><br />
+					<strong><i>Saturday • April 15 • 4:30, 6:00 <i class="fa fa-american-sign-language-interpreting" aria-hidden="true"></i>, 8:15 p.m.</i></strong><br />
+					<p>Discover the truth, mystery, wonder, and hope surrounding the death and resurrection of Jesus like never before. You’ll walk through an interactive, sensory-driven experience that will take you back to Jesus’ last days on earth and awaken you to the deep beauty of what His sacrifice means for us. Experience the tastes of the Last Supper, drive a nail into the cross, feel the weight of the wooden beam on your shoulder, and reflect on the history-altering moments at the cross and the tomb. <i>Not recommended for children ages 10 and younger.</i></p>
+					<p><i><i class="fa fa-american-sign-language-interpreting" aria-hidden="true"></i> interpreted for the deaf</i></p>
+
+
+					<a href="https://www.southeastchristian.org/blankenbaker/" target="_blank">Click here to learn more about the Blankenbaker Campus.</a>
+				</div>
+			</div>
+		</div>
+		<br /><br />
+		<a href="javascript:void(0)" class="close">Close Campus</a>
+	</div>
+</div>

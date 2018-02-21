@@ -17,7 +17,7 @@
         <div class="container-fluid">
             <div class="row" style="padding: 0px; margin: 0;">
                 <div class="col-sm-12 text-center" style="padding: 0px;">
-                    <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/easter2018.svg" class="img-responsive wow fadeInUp" data-wow-duration="1s" data-wow-delay=".7s" style="max-width: 50rem; max-width: 60em;margin: 4em auto;width: 100%; visibility: hidden;">
+                    <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/easter2018.svg" class="img-responsive wow fadeInUp" data-wow-duration="1s" data-wow-delay=".7s" style="max-width: 60rem; max-height: 15em; margin: 0 auto; width: 100%; visibility: hidden;">
                 </div>
             </div>
         </div>
