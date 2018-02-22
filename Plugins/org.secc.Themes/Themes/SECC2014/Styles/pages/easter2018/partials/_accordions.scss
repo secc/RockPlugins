@@ -9,7 +9,7 @@
 	.panel {
 		border-radius: 0;
 		border: none;
-		box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.2);
+		box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
 
 		.panel-heading {
 			position: relative;
@@ -28,17 +28,18 @@
 			}
 
             cursor: pointer;
-			background: rgba($color-4, 1);
+			background: white;
 			padding: 25px 14% 25px 25px;
 			border: none;
 			border-radius: 0;
 			text-align: left;
 
 			.panel-title {
-				@extend h6;
-
+				@extend h4;
+				font-size: 1.1em;
+				text-transform: none !important;
+				color: $DarkGrayColor;
 				a {
-
 					&:focus {
 						text-decoration: none;
 					}
@@ -51,10 +52,18 @@
 			.panel-body {
 				border: none;
                 border-radius: 0;
-				border-top: 1px solid rgba($color-1, 0.7);
-				background: rgba($color-4, 0.9);
+				border-top: 1px solid rgba($color-1, 1);
+				background: linear-gradient(to bottom right, rgba($color-5, 0.7), rgba($color-6, 0.7));;
 				padding: 30px 50px;
 				text-align: left;
+
+				p {
+					margin: 0px;
+					color: white;
+					a {
+						color: $DarkGrayColor;
+					}
+				}
 			} // .panel-body
 		} // .panel-collapse
 	} // .panel
