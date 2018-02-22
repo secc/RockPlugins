@@ -10,23 +10,23 @@
 @import 'partials/intro_section';
 @import 'partials/accordions';
 @import 'partials/social';
+@import 'partials/animate-round-popup';
 
 .easter-font {
     color: $DarkGrayColor;
     // normal font style for Easter
     h3,h4,h5,h6,p {
-        font-size: 2.2rem;
+        font-size: 1.4em;
         font-family: $primary-font;
         font-style: normal;
         font-weight: normal;
     }
-    // Christmas Font
     h1 {
-        font-family: $christmas-font;
-        font-style: italic;
+        font-family: $easter-font;
         font-size: 2em;
         font-weight: bold;
         letter-spacing: 3px;
+        text-transform: uppercase;
         small {
             font-family: $primary-font;
             font-style: normal;
@@ -37,7 +37,7 @@
     }
     h2 {
         font-weight: 100;
-        letter-spacing: 5px;
+        letter-spacing: 3px;
     }
 }
 
@@ -54,108 +54,12 @@ section:not(.row):not(.highlighted-section):not(.with-header):not(.footer-menu):
     }
 }
 
-#JoinUsChristmas {
-    position: relative;
-    vertical-align: middle;
-    display: table-cell;
-    top: 0;
-
-    @include MQ(L) {
-        top: 25vh;
-        position: absolute;
-        margin: 0 auto;
-        width: 100%;
-    }
-}
-#Christmas {
-    .content-wrapper {
-        display: table;
-        height: 100%;
-        width: 100%;
-        position: absolute;
-    }
-    @include MQ(L) {
-        .content-wrapper {
-            display: table-cell;
-            position: relative;
-        }
-    }
-    h2 {
-        font-size: 1.5em;
-        @include MQ(L) {
-            font-size: 2.5em;
-        }
-    }
-    h1 {
-        color: $DarkGrayColor;
-        font-family: $christmas-font;
-        font-size: 3.5em;
-        font-style: italic;
-        font-weight: 400;
-        letter-spacing: 3px;
-        text-transform: uppercase;
-        @include MQ(L) {
-            font-size: 5em;
-        }
-    }
-}
-#Advent {
-    h1 {
-        font-size: 3em;
-        font-style: italic;
-        @include MQ(L) {
-            font-size: 6em;
-        }
-    }
-    h2 {
-        font-family: $christmas-font;
-        font-size: 1em;
-        font-style: italic;
-        @include MQ(L) {
-            font-size: 1.5em;
-        }
-    }
-    h3 {
-        margin-top: -5px;
-    }
-    .advent_copy {
-        text-align: left;
-        @include MQ(L) {
-            text-align: center;
-        }
-    }
-}
-#ChristmasTimes {
-    h1 {
-        color: $DarkGrayColor;
-    }
-    .schedule-item {
-        h1 {
-            text-transform: inherit;
-        }
-    }
-}
-#Activities {
-    .activity {
-        margin-top: 0px;
-        padding-left:0px;
-        width: 100%;
-        .fa {
-            margin-right: 1em;
-        }
-    }
-}
-#Giving {
-    ul li {
-        font-size: 1.2em;
-    }
-}
 a {
-    color: #fafbf9;
+    color: $color-5;
     text-decoration: none;
 
     &:hover {
-        color: #797548;
+        color: rgba($color-5, 0.5%);
         text-decoration: none;
     }
 }
@@ -636,27 +540,19 @@ width: 33.3334%;
 }
 
 /*Portfolio*/
-#ajax .container {position: relative;}
-
-.project-info {
-    // border: 1px solid rgba($DarkGrayColor, 0.14);;
-    // box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    padding: 20px;
-    background-color: rgba(250, 251, 249, 0.96);
-    border-radius: 5px;
+#ajax {
+    // height: 50px;
+}
+#ajax .container {
+    position: relative;
 }
 
-a .close.top {
-    position: absolute;
-    right: 34px;
-    bottom: 0px;
-    margin:0px auto;
-    background: url('../../images/epic/close-project.png') no-repeat;
-    display: block;
-    text-indent: -99999px;
-    width: 38px;
-    height: 38px;
-    z-index: 9999;
+.project-info {
+    border: 1px solid rgba($DarkGrayColor, 0.14);;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    border-radius: 5px;
+    background: white;
 }
 
 .no-spacing {
@@ -664,16 +560,29 @@ a .close.top {
     margin: 0 !important;
 }
 
-.project-single {margin-bottom: 60px; padding: 10px;}
+.project-single {
+    margin-bottom: 60px;
+    padding: 10px;
+    a.close-project {
+        position: relative;
+        opacity: 0.5;
+        width: auto !important;
+
+        &.icon-only {
+            padding: 10px 15px !important;
+        }
+    }
+}
 
 .folio-item {
     // width: 33.3334%;
-    min-height: 250px;
+    // min-height: 250px;
     @include transition(all 0.2s ease-in);
 
     .folio-project {
-        display: table;
-        min-height: 250px;
+        // display: table;
+        // min-height: 250px;
+        width: 100%;
     }
 
     &:nth-child(5n+1) {
@@ -702,25 +611,20 @@ a .close.top {
         position: relative;
         overflow: hidden;
 
-        &:hover .portfolio-inner,
-        &:hover .portfolio-dark-overlay,{
-            opacity: 1;
-            visibility: visible;
+        &:hover .portfolio-inner {
+            background-color: rgba($color-2, 0.5);
         }
     }
-    .portfolio-dark-overlay {
-        position: absolute;
+    .portfolio-inner {
+        position: relative;
         width: 100%;
         height: 100%;
         top: 0;
         left: 0;
         right: 0;
-        opacity: 0;
-        visibility: hidden;
-        background-color: rgba($color-2, 0.5);
+        // visibility: hidden;
         @include transition(all 0.2s ease-in);
-    }
-    .portfolio-inner {
+
         h4 {
             font-size: 30px;
             text-align: center;
@@ -739,16 +643,16 @@ a .close.top {
             color: $color-1;
         }
         .portfolio-inner-ctr {
-            display: table-cell;
-            margin: auto;
+            padding: 60px 10px;
+            margin: 0 auto;
             vertical-align: middle;
             text-align: center;
-            position: absolute;
+            position: relative;
             top: 0;
             bottom: 0;
             left: 0;
             right: 0;
-            height: 120px;
+            width: 100%;
         }
     }
 }
@@ -786,7 +690,8 @@ a .close.top {
     border-radius: 100px !important;
 	overflow: hidden;
 	z-index: 0;
-	width: 90%;
+	width: auto;
+    padding: 10px 30px;
     -webkit-transition: color 0.3s cubic-bezier(0.02, 0.01, 0.47, 1), border-color 0.3s cubic-bezier(0.02, 0.01, 0.47, 1);
     transition: color 0.3s cubic-bezier(0.02, 0.01, 0.47, 1), border-color 0.3s cubic-bezier(0.02, 0.01, 0.47, 1);
 
