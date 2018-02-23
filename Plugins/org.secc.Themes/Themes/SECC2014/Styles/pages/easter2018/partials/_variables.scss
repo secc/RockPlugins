@@ -6,6 +6,7 @@ $color-3: #41c2d1; // teal
 $color-4: #acdadd; // light teal
 $color-5: #a55694; // purple
 $color-6: #d80f80; // bright pink
+$color-7: #ec7d8a; // orangy pink
 $font-size-13:               .8125rem !default;
 $DarkGrayColor: #404041;
 
@@ -15,8 +16,8 @@ $easter-font: 'brandon-grotesque', sans-serif;
 $christmas-font: 'freight-big-pro', sans-serif;
 
 // z-index
-$secondary-bar-zindex: 1;
-$intro-zindex: 2;
+$secondary-bar-zindex: 2;
+$intro-zindex: 3;
 $header-zindex: 101;
 
 // header height

@@ -8,40 +8,11 @@
 </header>
 
 <section id="PageHeader" style="overflow: hidden; background-color: #e6fdf7;">
-        {[ parallax videourl:'https://youtu.be/WfFmi4sgFu8' height:'auto' noios:'true' position:'top top' speed:'-25' ]}
+        {[ parallax image:'/Themes/SECC2014/Assets/img/Easter2018/easterBackground.jpg' height:'auto' noios:'true' position:'top top' speed:'-25' ]}
         <div class="container-fluid">
             <div class="row" style="padding: 0px; margin: 0;">
                 <div class="col-sm-12 text-center" style="padding: 20px 0px;">
-                    <span class="wow fadeIn" data-wow-duration="1s" data-wow-delay="1s" style="z-index: 4; max-height: 410px; margin: 0 auto; width: 100%; visibility: hidden; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="350" height="350" viewBox="0 0 1009 1010" preserveAspectRatio="xMinYMin meet">
-                          <defs>
-                            <style>
-                              .cls-1 {
-                                opacity: 0.5;
-                              }
-
-                              .cls-2 {
-                                fill: none;
-                                stroke: aqua;
-                                stroke-width: 64.72px;
-                                opacity: 0.3;
-                                filter: url(#filter);
-                              }
-                            </style>
-                            <filter id="filter" x="91" y="71" width="849" height="849" filterUnits="userSpaceOnUse">
-                              <feFlood result="flood" flood-color="#c0f7f6"/>
-                              <feComposite result="composite" operator="in" in2="SourceGraphic"/>
-                              <feBlend result="blend" in2="SourceGraphic"/>
-                            </filter>
-                          </defs>
-                          <rect class="cls-1" x="119" y="103" width="792" height="783"/>
-                          <g style="fill: none; filter: url(#filter)">
-                            <rect id="rect" class="cls-2" x="91" y="71" width="849" height="849" style="stroke: inherit; filter: none; fill: inherit"/>
-                          </g>
-                          <use xlink:href="#rect" style="stroke: aqua; filter: none; fill: none"/>
-                        </svg>
-                    </span>
-                    <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/easter2018.svg" class="img-responsive wow zoomIn" data-wow-duration="1.4s" data-wow-delay="1.7s" style="z-index: 5; position: relative; max-width: 50rem; max-height: 15em; margin: 0 auto; width: 100%; visibility: hidden;">
+                    <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/EasterLogoUpdate.svg" class="img-responsive wow zoomIn" data-wow-duration="1.4s" data-wow-delay="1.7s" style="z-index: 5; position: relative; max-height: 20em; margin: 0 auto; width: 100%; visibility: hidden;">
                 </div>
             </div>
         </div>
@@ -100,7 +71,7 @@
 
 <main class="cd-main-content">
 
-    <section id="about" class="easter-font">
+    <section id="about" class="easter-section easter-font">
         <div class="container">
 
 			<div class="row section" style="padding:40px 0;">
@@ -135,7 +106,7 @@
     </section>
 
     <!-- ========== Locations ========== -->
-      <section id="locations" class="section easter-font" style="padding-bottom:0px;">
+      <section id="locations" class="easter-section section easter-font" style="padding-bottom:0px;">
 
           <header class="text-center"  style="padding-bottom: 0px;">
             <br />
@@ -243,7 +214,7 @@
           </div> <!-- End .container -->
       </section>
 
-    <section id="PreregisterKids" class="easter-font">
+    <section id="PreregisterKids" class="easter-section easter-font">
         <div class="container-fluid">
             <div class="row no-spacing">
                 <div class="col-sm-10 col-sm-offset-1" style="margin-bottom:1em">
@@ -260,7 +231,7 @@
         </div>
     </section>
 
-    <section id="map" class="easter-font">
+    <section id="map" class="easter-section easter-font">
 
         <header class="text-center"  style="padding-bottom: 0px;">
           <br />
@@ -270,7 +241,7 @@
         <br />
         <br />
         <div class="container-fluid no-spacing">
-            {[ googlemap ]}
+            {[ googlemap showfullscreen:'false' markerannimation:'drop' ]}
                 {% for campus in Campuses %}
                     {% assign publicCampus = campus | Attribute:'Public' %}
                     {% assign slug = campus | Attribute:'Slug' %}
@@ -290,12 +261,12 @@
         </div>
     </section>
 
-    <section id="times" class="easter-font">
+    <section id="times" class="easter-section easter-font">
 	      {% include '~~/Assets/Lava/Easter2018/EasterTimes.lava' %}
 	</section>
 
 
-    <section id="serve" class="easter-font">
+    <section id="serve" class="easter-section easter-font">
             {[ parallax image:'/Themes/SECC2014/Assets/img/Easter2018/Serve_Easter.jpg' height:'auto' noios:'true' position:'top top' speed:'-25' zindex:'1' ]}
             <!-- Round Select Overlay -->
             <div class="round-select-overlay-js"></div>
@@ -303,7 +274,7 @@
                 <div class="row" style="padding: 0px; margin: 0;">
                     <div class="col-sm-12 text-center" style="padding: 50px 0px;">
                         <!-- <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/easterLogoBG.svg" class="img-responsive wow fadeIn" data-wow-duration="1s" data-wow-delay="1s" style="z-index: 4; max-width: 60rem; max-height: 25em; margin: 0 auto; width: 100%; visibility: hidden; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"> -->
-                        <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/serveAtEaster.svg" class="img-responsive wow fadeIn" data-wow-duration="1s" data-wow-delay=".3s" style="z-index: 5; position: relative; max-width: 60rem; max-height: 15em; margin: 0 auto; width: 100%; visibility: hidden;">
+                        <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/serve.svg" class="img-responsive wow fadeIn" data-wow-duration="1s" data-wow-delay=".3s" style="z-index: 5; position: relative; max-width: 60rem; max-height: 15em; margin: 0 auto; width: 100%; visibility: hidden;">
                         <br />
                         <br />
                         <h2>WANT TO HELP WITH EASTER AT SOUTHEAST?</h2>
@@ -336,10 +307,10 @@
             {[ endparallax ]}
     </section>
 
-    <section id="faq" class="cd-section easter-font">
+    <section id="faq" class="easter-section easter-font">
         <div class="container-fluid">
             <div class="row">
-                <div class="col-sm-12">
+                <div class="col-sm-12 text-center">
                     <h1>Frequently Asked Questions</h1><br />
 				</div>
 			</div>
@@ -597,10 +568,18 @@ $(document).ready(function() {
 	    cache: false
 	});
 
+    $('.panel-collapse').on('show.bs.collapse', function () {
+       $(this).siblings('.panel-heading').addClass('active');
+     });
+
+     $('.panel-collapse').on('hide.bs.collapse', function () {
+       $(this).siblings('.panel-heading').removeClass('active');
+     });
+
     // Initialize all functions when the document is ready.
     initLocations(); // Animate Elements
     initWow(); // Animate Elements
-	// initScheduleTable(); // Table for Easter Times
+	initScheduleTable(); // Table for Easter Times
 	initSecondaryNav(); // Secondary nav while scrolling
     initServeCampusSelection();
 
@@ -706,11 +685,11 @@ $(document).ready(function() {
         var secondaryNav = $('.cd-secondary-nav'),
             secondaryNavTopPosition = secondaryNav.offset().top,
             // taglineOffesetTop = $('#cd-intro-tagline').offset().top + $('#cd-intro-tagline').height() + parseInt($('#cd-intro-tagline').css('paddingTop').replace('px', '')),
-            contentSections = $('.cd-section');
+            contentSections = $('.easter-section');
 
         $(window).on('scroll', function(){
             //on desktop - assign a position fixed to logo and action button and move them outside the viewport
-        ( $(window).scrollTop() > secondaryNavTopPosition ) ? $('#cd-logo, #cd-back').addClass('is-hidden') : $('#cd-logo, #cd-back').removeClass('is-hidden');
+            // ( $(window).scrollTop() > secondaryNavTopPosition ) ? $('#cd-logo').addClass('is-hidden') : $('#cd-logo').removeClass('is-hidden');
 
             //on desktop - fix secondary navigation on scrolling
             if($(window).scrollTop() > secondaryNavTopPosition ) {
