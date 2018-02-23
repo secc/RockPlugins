@@ -7,8 +7,8 @@
 <header class="cd-header">
 </header>
 
-<section id="PageHeader" style="overflow: hidden;">
-        {[ parallax image:'/Themes/SECC2014/Assets/img/Easter2018/easterBackground.jpg' height:'auto' noios:'true' position:'top top' speed:'-25' ]}
+<section id="PageHeader" style="overflow: hidden; background-color: #e6fdf7;">
+        {[ parallax videourl:'https://youtu.be/WfFmi4sgFu8' height:'auto' noios:'true' position:'top top' speed:'-25' ]}
         <div class="container-fluid">
             <div class="row" style="padding: 0px; margin: 0;">
                 <div class="col-sm-12 text-center" style="padding: 20px 0px;">
@@ -252,7 +252,8 @@
                     <p>Our Children's Ministry (SE!Kids) provides a safe, fun environment where kids ages birth-fifth grade can make new friends and learn about Jesus while parents attend the worship service in the Sanctuary.</p>
                     <p>For your convenience, first-time guests can fill out a short online form that will allow for a quicker check-in when you arrive for services on Easter weekend.</p>
                     <p class="text-center">
-                        <a href="https://my.southeastchristian.org/easter/preregistration" class="btn btn-easter btn-large wow fadeIn" data-wow-delay=".3s" data-wow-duration="1s">Click here to get started</a>
+                        COMING SOON
+                        <!-- <a href="https://my.southeastchristian.org/easter/preregistration" class="btn btn-easter btn-large wow fadeIn" data-wow-delay=".3s" data-wow-duration="1s">Click here to get started</a> -->
                     </p>
                 </div>
             </div>
@@ -276,7 +277,7 @@
                     {% if publicCampus == 'Yes' %}
                         [[ marker location:'{{ campus.Location.Latitude }},{{ campus.Location.Longitude }}' title:'{{ campus.Name }} Campus' icon:'http://rockdev.secc.org/Themes/SECC2014/Assets/img/Easter2018/map/marker-{{ campus | Attribute:'Slug' }}.png' ]]
                             <h2 class="text-center" style="margin: 10px 0px;">{{ campus.Name }}</h2>
-                            <p class="text-center"><a style="width: 100%;" class="folio-project btn btn-easter" onclick="googleCallbackLocations(this)" href="easter{{ campus | Attribute:'Slug' | Capitalize }} #campus-easter-info">Campus Info</a></p>
+                            <p class="text-center"><a style="width: 100%;" class="folio-project btn btn-easter" onclick="googleCallbackLocations('easter{{ campus | Attribute:'Slug' | Capitalize }} #campus-easter-info', this)" href="javascript:void(0)">Campus Info</a></p>
                             <p class="text-center"><a style="width: 100%;" class="btn btn-easter" target="_blank" href="https://www.google.com/maps/dir/Current+Location/{{ campus.Location.Street1 | Replace:' ','+' }}+{{ campus.Location.City | Replace:' ','+' }}+{{ campus.Location.State | Replace:' ','+' }}+{{ campus.Location.PostalCode | Replace:' ','+' }}">Directions</a></p>
                         [[ endmarker ]]
                     {% endif %}
@@ -294,7 +295,7 @@
 	</section>
 
 
-    <section id="serve">
+    <section id="serve" class="easter-font">
             {[ parallax image:'/Themes/SECC2014/Assets/img/Easter2018/Serve_Easter.jpg' height:'auto' noios:'true' position:'top top' speed:'-25' zindex:'1' ]}
             <!-- Round Select Overlay -->
             <div class="round-select-overlay-js"></div>
@@ -307,7 +308,7 @@
                         <br />
                         <h2>WANT TO HELP WITH EASTER AT SOUTHEAST?</h2>
                         <br />
-                        <h3>As thousands of guests visit our campuses this Easter, we want to make their experience as smooth and pleasant as possible, because we want them to encounter the hope of Easter-and we want to see them again! You can help. No matter your gifts or experience, we have a spot for you.</h3>
+                        <h3>As thousands of guests visit our campuses this Easter, we want to make their experience as smooth and pleasant as possible, because we want them to encounter the hope of Easter and we want to see them again! You can help. No matter your gifts or experience, we have a spot for you.</h3>
                         <br />
                         <!-- <p class="text-center"><a class="btn btn-easter" style="background-color:white;" href="/easter/serve/">Sign Up to Serve</a></p> -->
                         <br />
@@ -360,7 +361,7 @@
 	                  </div>
 	                  <div id="faq-1-collapse-1" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-1">
 	                    <div class="panel-body">
-                            <p>Senior Pastor Dave Stone and Teaching Pastor Kyle Idleman will be teaching at all services (except for the traditional services on Sunday). Dave and Kyle teach from the Bible in a way that is easy to understand, relevant to our daily lives, and dedicated to the truth. If you want to listen to previous messages, visit our Sermons page. Greg Allen, Campus Pastor at Southeast's Crestwood Campus, will be speaking during our traditional services on Sunday.</p>
+                            <p>Senior Pastor Dave Stone and Teaching Pastor Kyle Idleman will be teaching at all services (except for the traditional services on Sunday). Dave and Kyle teach from the Bible in a way that is easy to understand, relevant to our daily lives, and dedicated to the truth. If you want to listen to previous messages, visit our <a href="https://www.southeastchristian.org/sermons/">Sermons page</a>. Greg Allen, Campus Pastor at Southeast's Crestwood Campus, will be speaking during our traditional services on Sunday.</p>
                         </div>
 	                  </div>
 	                </div><!-- / .panel -->
@@ -435,13 +436,13 @@
 	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-6" aria-expanded="false" aria-controls="faq-1-collapse-6">
 	                    <h4 class="panel-title">
 	                      <span class="collapsed">
-							  What is the encounter servnce?
+							  What is the Encounter Service and other services?
 	                      </span>
 	                    </h4>
 	                  </div>
 	                  <div id="faq-1-collapse-6" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-6">
 	                    <div class="panel-body">
-							<p>Each Thursday, support groups meet at our Blankenbaker Campus to help people experience growth, find hope, and receive help for a range of life situations-from everyday challenges to more severe crises. These groups come together every week for worship. On Thursday, March 29, the Encounter worship service will be centered around Easter, with Senior Pastor Dave Stone and Teaching Pastor Kyle Idleman speaking. Learn more about our Encounter groups here.</p>
+							<p>Each Thursday, support groups meet at our Blankenbaker Campus to help people experience growth, find hope, and receive help for a range of life situations-from everyday challenges to more severe crises. These groups come together every week for worship. On Thursday, March 29, the Encounter worship service will be centered around Easter, with Senior Pastor Dave Stone and Teaching Pastor Kyle Idleman speaking. Learn more about our <a href="https://www.southeastchristian.org/connect/care/encounter-groups">Encounter groups here</a>.</p>
 						</div>
 	                  </div>
 	                </div><!-- / .panel -->
@@ -482,13 +483,13 @@
   	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-carols" aria-expanded="false" aria-controls="faq-carols">
   	                    <h4 class="panel-title">
   	                      <span class="collapsed">
-  							  What are the differences between the traditional services and other services?
+  							  What is the differences between the Traditional Services and other Services?
   	                      </span>
   	                    </h4>
   	                  </div>
   	                  <div id="faq-carols" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-carols">
   	                    <div class="panel-body">
-                              <p>At the two traditional services on Easter Sunday-7:15 a.m. at our Blankenbaker Campus and 8:00 a.m. at our Indiana Campus-we'll sing hymns and hear teaching from Greg Allen, Campus Pastor at Southeast's Crestwood Campus. The other services on Easter weekend will feature more contemporary-style worship songs and teaching from Senior Pastor Dave Stone and Teaching Pastor Kyle Idleman.</p>
+                              <p>At the three traditional services on Easter Sunday-7:15 a.m. at our Blankenbaker Campus, 8:00 a.m. at our Indiana Campus and 7:30 a.m. at the Crestwood Campus - we'll sing hymns and hear teaching from Greg Allen, Campus Pastor at Southeast's Crestwood Campus. The other services on Easter weekend will feature more contemporary-style worship songs and teaching from Senior Pastor Dave Stone and Teaching Pastor Kyle Idleman.</p>
                           </div>
   	                  </div>
   	                </div><!-- / .panel -->
@@ -536,7 +537,7 @@
   	                  </div>
   	                  <div id="faq-2-collapse-4" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-4">
   	                    <div class="panel-body">
-                              <p>The worship team will lead us in contemporary praise songs that tell what God has done, express our praise and devotion to Him, and allow us to encourage one another in following Christ. You can expect uplifting music that makes it easy for anyone to sing along. If you prefer time-honored hymns, you might enjoy the traditional services at our Blankenbaker or Indiana Campuses.</p>
+                              <p>The worship team will lead us in contemporary praise songs that tell what God has done, express our praise and devotion to Him, and allow us to encourage one another in following Christ. You can expect uplifting music that makes it easy for anyone to sing along. If you prefer time-honored hymns, you might enjoy the traditional services at our Blankenbaker, Indiana or our Crestwood Campuses.</p>
                           </div>
   	                  </div>
   	                </div><!-- / .panel -->
@@ -599,7 +600,7 @@ $(document).ready(function() {
     // Initialize all functions when the document is ready.
     initLocations(); // Animate Elements
     initWow(); // Animate Elements
-	initScheduleTable(); // Table for Easter Times
+	// initScheduleTable(); // Table for Easter Times
 	initSecondaryNav(); // Secondary nav while scrolling
     initServeCampusSelection();
 
@@ -803,15 +804,14 @@ $(document).ajaxComplete(function() {
     });
 }); // End ajax complete
 
-function googleCallbackLocations(el){
-    event.preventDefault();
-    var href = $(el).attr('href');
+function googleCallbackLocations(target, el){
+    var href = target;
     if ($('#ajax').is(':visible')) {
         $('#ajax').css({ display:'block' }).animate({ height:'0' }).slideUp(300);
         $("html, body").animate({ scrollTop: $('#ajax').offset().top - 100}, 300);
     }
     $('#ajax').html('');
-
+    console.log(href);
     $('#ajax').show(0).animate({ height:'1200px' }, 500 ,function() {
         $('#ajax').load(href, function() {
             $('#ajax').css('height','auto');

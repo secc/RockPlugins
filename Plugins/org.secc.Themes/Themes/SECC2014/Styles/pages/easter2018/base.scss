@@ -15,6 +15,9 @@
 .easter-font {
     color: $DarkGrayColor;
     // normal font style for Easter
+    h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6, p {
+        font-family: $easter-font !important;
+    }
     h3,h4,h5,h6,p {
         font-size: 1.4em;
         font-family: $primary-font;

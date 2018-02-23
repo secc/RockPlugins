@@ -46,7 +46,7 @@
                           </li>
                           <li class="easter_sunday">
                               <a href="#campus1_01" data-toggle="tab">
-                                  <h6>SUNDAY<br /><small>03/01/2018</small></h6>
+                                  <h6>SUNDAY<br /><small>4/01/2018</small></h6>
                               </a>
                           </li>
                       </ul>
@@ -165,7 +165,7 @@
                           </li>
                           <li class="easter_sunday">
                               <a href="#campus2_01" data-toggle="tab">
-                                  <h6>SUNDAY<br /><small>03/01/2018</small></h6>
+                                  <h6>SUNDAY<br /><small>4/01/2018</small></h6>
                               </a>
                           </li>
                       </ul>
@@ -260,7 +260,7 @@
                           </li>
                           <li class="easter_sunday">
                               <a href="#campus3_01" data-toggle="tab">
-                                  <h6>SUNDAY<br /><small>03/01/2018</small></h6>
+                                  <h6>SUNDAY<br /><small>4/01/2018</small></h6>
                               </a>
                           </li>
                       </ul>
@@ -311,6 +311,11 @@
                               <div class="panel-group">
                                   <div class="panel schedule-item">
                                       <div class="lecture-icon-wrapper hidden-xs hidden-sm"></div>
+                                      <h1>7:30 a.m.</h1>
+                                      <p>Traditional Service – Greg Allen</p>
+                                  </div>
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm"></div>
                                       <h1>9:00 a.m.</h1>
                                       <p>Easter Together Worship Service</p>
                                   </div>
@@ -322,11 +327,6 @@
                                   <div class="panel schedule-item">
                                       <div class="lecture-icon-wrapper hidden-xs hidden-sm"></div>
                                       <h1>12:00 p.m.</h1>
-                                      <p>Easter Together Worship Service</p>
-                                  </div>
-                                  <div class="panel schedule-item">
-                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm"></div>
-                                      <h1>1:30 p.m.</h1>
                                       <p>Easter Together Worship Service</p>
                                   </div>
                               </div>
@@ -360,7 +360,7 @@
                           </li>
                           <li class="easter_sunday">
                               <a href="#campus4_01" data-toggle="tab">
-                                  <h6>SUNDAY<br /><small>03/01/2018</small></h6>
+                                  <h6>SUNDAY<br /><small>4/01/2018</small></h6>
                               </a>
                           </li>
                       </ul>
@@ -450,7 +450,7 @@
                           </li>
                           <li class="easter_sunday">
                               <a href="#campus5_01" data-toggle="tab">
-                                  <h6>SUNDAY<br /><small>03/01/2018</small></h6>
+                                  <h6>SUNDAY<br /><small>4/01/2018</small></h6>
                               </a>
                           </li>
                       </ul>
@@ -540,7 +540,7 @@
                           </li>
                           <li class="easter_sunday">
                               <a href="#campus6_01" data-toggle="tab">
-                                  <h6>SUNDAY<br /><small>03/01/2018</small></h6>
+                                  <h6>SUNDAY<br /><small>4/01/2018</small></h6>
                               </a>
                           </li>
                       </ul>

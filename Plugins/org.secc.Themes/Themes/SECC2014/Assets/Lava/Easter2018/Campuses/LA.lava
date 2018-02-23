@@ -1,7 +1,7 @@
 <div id="campus-easter-info" class="project-single">
 	<div class="project-info container">
 	    <a href="javascript:void(0)" class="btn btn-easter close-project pull-right hidden-xs icon-only"><strong><i class="fa fa-times"></i></strong></a>
-		<h6 style="text-align: center;">410 SOUTH 1ST STREET</h6>
+		<h6 style="text-align: center;"><i>410 SOUTH 1ST STREET</i></h6>
 		<h1 style="text-align: center;">LA GRANGE</h1><p style="text-align: center;"><br></p>
 
 		<div class="container-fluid no-spacing">
