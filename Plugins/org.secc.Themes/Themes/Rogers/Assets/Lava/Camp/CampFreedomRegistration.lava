@@ -1,0 +1,48 @@
+<div class="row">
+
+    {% assign currentDate = 'Now' | Date:'yyyyMMdd' | AsInteger %}
+    {% comment %}
+        {% assign releaseRegistration = '20180210' | AsInteger %}
+    {% endcomment %}
+
+    <div class="col-md-6 text-center">
+        {% if releaseRegistration <= currentDate %}
+        <p><b>Register for Camp Freedom</b></p>
+        <br />
+        <p>
+            <a class="btn btn-default" href="https://www.southeastchristian.org/registration/CampFreedom18" role="button">Register Participant</a>
+        </p>
+        <br />
+        <br />
+        {% else %}
+            <div class="overlay">
+                <p><b>(Registration Available Soon)</b></p>
+            </div>
+        {% endif %}
+        <br />
+    </div>
+
+    <div class="col-md-6 text-center">
+        {% if releaseRegistration <= currentDate %}
+        <p><b>Leader Application</b></p>
+        <br />
+        <p>
+            <a class="btn btn-default" href="https://www.southeastchristian.org/registration/CampFreedomLEAD" role="button">Register Leader</a>
+        </p>
+        <br />
+        <br />
+        {% else %}
+            <div class="overlay">
+                <p><b>(Leader Application Available Soon)</b></p>
+            </div>
+        {% endif %}
+        <br />
+    </div>
+
+    <!-- <div class="col-md-4 text-center">
+        <p><b>Donate</b></p>
+        <p>(Coming Soon)<b><br></b></p>
+        <br />
+        <br />
+    </div> -->
+</div>

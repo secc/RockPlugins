@@ -256,8 +256,8 @@ $(window).load(function() {
 
         <asp:Panel ID="pnlMain" runat="server">
             <div class="pull-right text-right" style="width:300px">
-                <Rock:BootstrapButton runat="server" ID="btnAddMember" Text="Add Member" CssClass="btn s-btn--primary-bg" OnClick="btnAddMember_Click" />
-                <Rock:BootstrapButton runat="server" ID="btnEmailGroup" Text="Email Group" CssClass="btn s-btn--dark-brd" OnClick="btnEmail_Click"  />
+                <Rock:BootstrapButton runat="server" ID="btnAddMember" Text="Add Member" CssClass="btn s-btn--primary-bg btn-primary" OnClick="btnAddMember_Click" />
+                <Rock:BootstrapButton runat="server" ID="btnEmailGroup" Text="Email Group" CssClass="btn s-btn--dark-brd btn-default" OnClick="btnEmail_Click"  />
             </div>
             <asp:Literal ID="ltTitle" runat="server" /><br />
 

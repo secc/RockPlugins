@@ -1,5 +1,5 @@
 // Global Javascript Initialization
-var Global = function() {
+/*var Global = function() {
   'use strict';
 
   // Bootstra Components
@@ -117,16 +117,111 @@ var Global = function() {
 
   return {
     init: function() {
-      handleBootstrapComponents(); // initial setup for Bootstrap Components
-      handleScrollToSection(); // initial setup for Scroll To Section
-      handlePromoSection(); // initial setup for Promo Section
-      handleOverlay(); // initial setup for Overlay
-      handleVerticalCenterAligned(); // initial setup for Vertical Center Aligned
-      handleEqualHeight(); // initial setup for Equal Height
+      //handleBootstrapComponents(); // initial setup for Bootstrap Components
+      //handleScrollToSection(); // initial setup for Scroll To Section
+      //handlePromoSection(); // initial setup for Promo Section
+      //handleOverlay(); // initial setup for Overlay
+      //handleVerticalCenterAligned(); // initial setup for Vertical Center Aligned
+      //handleEqualHeight(); // initial setup for Equal Height
     }
   }
-}();
+}();*/
 
 $(document).ready(function() {
-  Global.init();
+  //Global.init();
+
+  // scroll on any hash links
+  var scroll = new SmoothScroll('a[href*="#"]', {
+      // Selectors
+      //header: '[data-scroll-header]',
+
+      // Speed & Easing
+      offset: ($('.cd-main-header').height() + 15), // Integer or Function returning an integer. How far to offset the scrolling anchor location in pixels
+      easing: 'easeInOutCubic', // Easing pattern to use
+  });
+
+  // make it sticky
+  var cmh = $(".cd-main-header");
+      cmc = $(".cd-main-content");
+
+      if (typeof ch !== 'undefined') {
+          $(window).scroll(function() {
+              /*
+              Animation Scroll Project - WIP
+
+              ch = $('.cd-hero').height() - (40);
+
+              
+              if ($(window).width() < 960) {
+                  if( $(this).scrollTop() > ch ) {
+                      cmh.addClass("nav-is-fixed");
+                      cmc.addClass("nav-fixed-padding");
+                      cmh.addClass("animated slideInDown");
+                  } else if($(this).scrollTop() < ch - $('.cd-main-header').height()) {
+                      cmh.removeClass("nav-is-fixed");
+                      cmc.removeClass("nav-fixed-padding");
+                      cmh.removeClass("animated slideInDown");
+                  }
+              } else {
+                  if( $(this).scrollTop() > ch - $('.cd-main-header').height()) {
+                      cmh.addClass("nav-is-fixed");
+                      cmc.addClass("nav-fixed-padding");
+                  } else {
+                      cmh.removeClass("nav-is-fixed");
+                      cmc.removeClass("nav-fixed-padding");
+                  }
+              }
+              */
+              if( $(this).scrollTop() > ch ) {
+                  cmh.addClass("nav-is-fixed");
+                  cmc.addClass("nav-fixed-padding");
+              } else {
+                  cmh.removeClass("nav-is-fixed");
+                  cmc.removeClass("nav-fixed-padding");
+              }
+          });
+      } else {
+          ch = $('.cd-hero').height();
+          $(window).scroll(function() {
+              if( $(this).scrollTop() > ch ) {
+                  cmh.addClass("nav-is-fixed");
+                  cmc.addClass("nav-fixed-padding");
+              } else {
+                  cmh.removeClass("nav-is-fixed");
+                  cmc.removeClass("nav-fixed-padding");
+              }
+          });
+      }
+
+      /*
+     * Replace all SVG images with inline SVG
+     */
+        jQuery('img.svg').each(function(){
+            var $img = jQuery(this);
+            var imgID = $img.attr('id');
+            var imgClass = $img.attr('class');
+            var imgURL = $img.attr('src');
+
+            jQuery.get(imgURL, function(data) {
+                // Get the SVG tag, ignore the rest
+                var $svg = jQuery(data).find('svg');
+
+                // Add replaced image's ID to the new SVG
+                if(typeof imgID !== 'undefined') {
+                    $svg = $svg.attr('id', imgID);
+                }
+                // Add replaced image's classes to the new SVG
+                if(typeof imgClass !== 'undefined') {
+                    $svg = $svg.attr('class', imgClass+' replaced-svg');
+                }
+
+                // Remove any invalid XML tags as per http://validator.w3.org
+                $svg = $svg.removeAttr('xmlns:a');
+
+                // Replace image with new SVG
+                $img.replaceWith($svg);
+
+            }, 'xml');
+
+        });
 });

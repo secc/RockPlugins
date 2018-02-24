@@ -5,6 +5,10 @@
         padding: 10px;
         font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
     }
+
+    .dateUp {
+        margin-top: -6px;
+    }
 </style>
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
@@ -16,30 +20,21 @@
 
         for (var i = 0; i < selection.length; i++) {
             var item = selection[i];
-            if (item.row != null && item.column != null) {
-                message += '{row:' + item.row + ',column:' + item.column + '}';
-            } else if (item.row != null) {
-                message += '{row:' + item.row + '}';
-            } else if (item.column != null) {
-                message += '{column:' + item.column + '}';
+            if (item.row != null) {
+                document.location.href = "/Person/" + personLinks[item.row];
             }
         }
-        if (message == '') {
-            message = 'nothing';
-        }
-        alert('You selected ' + message);
     }
 </script>
 
 <asp:UpdatePanel ID="pnlReport" runat="server" Class="panel panel-block">
     <ContentTemplate>
         <div class="panel-heading">
-            <div class="pull-right">
-                <Rock:BootstrapButton runat="server" ID="btnGo" OnClick="btnGo_Click" Text="Go" CssClass="pull-right btn btn-primary" />
-                <Rock:DatePicker runat="server" ID="dpDate" CssClass="pull-right" />
-
-            </div>
             <h4 class="pull-left">Room Scanner Report</h4>
+            <div class="pull-right btn-toolbar">
+                <Rock:DatePicker runat="server" ID="dpDate" OnTextChanged="dpDate_TextChanged" AutoPostBack="true" />
+                <Rock:BootstrapButton runat="server" ID="btnGo" OnClick="btnGo_Click" Text="Go" CssClass="btn btn-primary dateUp" />
+            </div>
         </div>
         <div class="panel-body" style="height: 700px">
             <div id="report" style="height: 700px"></div>

@@ -1,4 +1,18 @@
-﻿using System;
+// <copyright>
+// Copyright Southeast Christian Church
+//
+// Licensed under the  Southeast Christian Church License (the "License");
+// you may not use this file except in compliance with the License.
+// A copy of the License shoud be included with this file.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+//
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -14,6 +28,7 @@ using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 using Newtonsoft.Json;
 using Rock.Web.UI;
+using Rock.Web.Cache;
 using System.Data.Entity;
 
 namespace RockWeb.Plugins.org_secc.GroupManager
@@ -46,7 +61,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         private Group _group;
         private GroupTypeCache _groupType;
         private RockContext _rockContext;
-        private List<string> CycleOrder = new List<string>() { "September 2017", "January 2017", "September 2016", "April 2016", "January 2016", "October 2015" };
+        private List<string> CycleOrder = new List<string>() { "February 2018", "September 2017", "January 2017", "September 2016", "April 2016", "January 2016", "October 2015" };
 
         #region Base Control Methods
 
@@ -555,6 +570,44 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 availableGroupIds.Add( group.Id );
                 AddCacheItem( GetAttributeValue( "DestinationGroup" ), availableGroupIds );
+            }
+            
+            var workflowTypeService = new WorkflowTypeService( _rockContext );
+            WorkflowType workflowType = null;
+            Guid? workflowTypeGuid = GetAttributeValue( "Workflow" ).AsGuidOrNull();
+            if ( workflowTypeGuid.HasValue )
+            {
+                workflowType = workflowTypeService.Get( workflowTypeGuid.Value );
+            }
+            GroupMember currentGroupMember = group.Members.Where( gm => gm.PersonId == _person.Id ).FirstOrDefault();
+            if ( currentGroupMember != null && workflowType != null && ( workflowType.IsActive ?? true ) )
+            {
+                try
+                {
+                    List<string> workflowErrors;
+                    var workflow = Workflow.Activate( workflowType, _person.FullName );
+
+                    if ( workflow.AttributeValues.ContainsKey( "Group" ) )
+                    {
+                        if ( group != null )
+                        {
+                            workflow.AttributeValues["Group"].Value = group.Guid.ToString();
+                        }
+                    }
+
+                    if ( workflow.AttributeValues.ContainsKey( "Person" ) )
+                    {
+                        if ( _person != null )
+                        {
+                            workflow.AttributeValues["Person"].Value = _person.PrimaryAlias.Guid.ToString();
+                        }
+                    }
+                    new WorkflowService( _rockContext ).Process( workflow, currentGroupMember, out workflowErrors );
+                }
+                catch ( Exception ex )
+                {
+                    ExceptionLogService.LogException( ex, this.Context );
+                }
             }
             ShowMessage( GetAttributeValue( "SuccessText" ), "Thank you!", "panel panel-success" );
         }

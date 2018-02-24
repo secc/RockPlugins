@@ -1,4 +1,18 @@
-﻿using System;
+// <copyright>
+// Copyright Southeast Christian Church
+//
+// Licensed under the  Southeast Christian Church License (the "License");
+// you may not use this file except in compliance with the License.
+// A copy of the License shoud be included with this file.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+//
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -215,8 +229,11 @@ namespace org.secc.RoomScanner.Utilities
                 newAttendance.ForeignId = null;
             }
             attendanceService.Add( newAttendance );
-            attendance.DidAttend = false;
+            var stayedFifteenMinutes = (Rock.RockDateTime.Now - attendance.StartDateTime) > new TimeSpan(0,15,0);
+            attendance.DidAttend = stayedFifteenMinutes;
             attendance.EndDateTime = Rock.RockDateTime.Now;
+            InMemoryPersonStatus.RemoveFromWorship( attendance.PersonAlias.PersonId );
+            InMemoryPersonStatus.RemoveFromWithParent( attendance.PersonAlias.PersonId );
             CheckInCountCache.AddAttendance( newAttendance );
             CheckInCountCache.RemoveAttendance( attendance );
         }
@@ -248,6 +265,8 @@ namespace org.secc.RoomScanner.Utilities
             foreach ( var activeAttendance in activeAttendances )
             {
                 didRemove = true;
+                var stayedFifteenMinutes = ( Rock.RockDateTime.Now - activeAttendance.StartDateTime ) > new TimeSpan( 0, 15, 0 );
+                activeAttendance.DidAttend = stayedFifteenMinutes;
                 activeAttendance.EndDateTime = Rock.RockDateTime.Now;
                 AddExitHistory( rockContext, attendeeAttendance.Location, attendeeAttendance, isSubroom );
                 CheckInCountCache.RemoveAttendance( activeAttendance );

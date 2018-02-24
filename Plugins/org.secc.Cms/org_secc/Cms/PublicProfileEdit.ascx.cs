@@ -1,4 +1,18 @@
-﻿// <copyright>
+// <copyright>
+// Copyright Southeast Christian Church
+//
+// Licensed under the  Southeast Christian Church License (the "License");
+// you may not use this file except in compliance with the License.
+// A copy of the License shoud be included with this file.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+//
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -946,6 +960,7 @@ namespace RockWeb.Plugins.org_secc.Cms
                     var person = new Person();
                     if ( personId == 0 )
                     {
+                        tbFirstName.ReadOnly = false;
                         rblRole.DataSource = group.GroupType.Roles.OrderBy( r => r.Order ).ToList();
                         rblRole.DataBind();
                         rblRole.Visible = true;
@@ -953,6 +968,7 @@ namespace RockWeb.Plugins.org_secc.Cms
                     }
                     else
                     {
+                        tbFirstName.ReadOnly = true;
                         person = new PersonService( rockContext ).Get( personId );
                     }
 

@@ -35,10 +35,11 @@
     <link rel="stylesheet" href="<%# ResolveRockUrl("~/Styles/developer.css", true) %>"/>
     <asp:ContentPlaceHolder ID="css" runat="server" />
 
-    <script src="<%# ResolveRockUrl("~/Scripts/modernizr.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~~/Scripts/modernizr-custom.js" ) %>" ></script>
     <script src="<%# ResolveRockUrl("~~/Scripts/global-dist.js" ) %>" ></script>
     <script src="<%# ResolveRockUrl("~~/Scripts/isotope.pkgd.min.js" ) %>" ></script>
     <script src="<%# ResolveRockUrl("~~/Scripts/smooth-scroll.min.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~~/Scripts/select2/select2.full.min.js" ) %>" ></script>
 
     <asp:ContentPlaceHolder ID="head" runat="server"></asp:ContentPlaceHolder>
 
