@@ -126,7 +126,7 @@
 
                                   <div class="folio-item col-xs-12 col-sm-6 col-md-4 no-spacing">
                                       <div class="portfolio-thumb">
-                                          <a id="blankenbaker" class="folio-project" href="easterBlankenbaker #campus-easter-info">
+                                          <a id="blankenbaker" class="folio-project" href="/easterBlankenbaker #campus-easter-info">
                                               <div class="portfolio-inner">
                                                   <div class="portfolio-inner-ctr">
                                                       <span class="se-logo stroke">920</span>
@@ -139,7 +139,7 @@
 
                                   <div class="folio-item col-xs-12 col-sm-6 col-md-4 no-spacing" >
                                       <div class="portfolio-thumb">
-                                          <a id="indiana" class="folio-project" href="easterIndiana #campus-easter-info">
+                                          <a id="indiana" class="folio-project" href="/easterIndiana #campus-easter-info">
                                               <div class="portfolio-inner">
                                                   <div class="portfolio-inner-ctr">
                                                       <span class="se-logo stroke">IN</span>
@@ -155,7 +155,7 @@
 
                                   <div class="folio-item col-xs-12 col-sm-6 col-md-4 no-spacing" >
                                       <div class="portfolio-thumb">
-                                          <a id="crestwood" class="folio-project" href="easterCrestwood #campus-easter-info">
+                                          <a id="crestwood" class="folio-project" href="/easterCrestwood #campus-easter-info">
                                               <div class="portfolio-inner">
                                                   <div class="portfolio-inner-ctr">
                                                       <span class="se-logo stroke">CW</span>
@@ -169,7 +169,7 @@
 
                                   <div class="folio-item col-xs-12 col-sm-6 col-md-4 no-spacing">
                                       <div class="portfolio-thumb">
-                                          <a id="southwest" class="folio-project" href="easterSouthwest #campus-easter-info">
+                                          <a id="southwest" class="folio-project" href="/easterSouthwest #campus-easter-info">
                                               <div class="portfolio-inner">
                                                   <div class="portfolio-inner-ctr">
                                                       <span class="se-logo stroke">SW</span>
@@ -183,7 +183,7 @@
 
                                   <div class="folio-item col-xs-12 col-sm-6 col-md-4 no-spacing" >
                                       <div class="portfolio-thumb">
-                                          <a id="lagrange" class="folio-project" href="easterLaGrange #campus-easter-info">
+                                          <a id="lagrange" class="folio-project" href="/easterLaGrange #campus-easter-info">
                                               <div class="portfolio-inner">
                                                   <div class="portfolio-inner-ctr">
                                                      <span class="se-logo stroke">LA</span>
@@ -196,7 +196,7 @@
 
                                   <div class="folio-item col-xs-12 col-sm-6 col-md-4 no-spacing" >
                                       <div class="portfolio-thumb">
-                                          <a id="lagrange" class="folio-project" href="easterElizabethtown #campus-easter-info">
+                                          <a id="lagrange" class="folio-project" href="/easterElizabethtown #campus-easter-info">
                                               <div class="portfolio-inner">
                                                   <div class="portfolio-inner-ctr">
                                                       <span class="se-logo stroke">ET</span>
@@ -246,9 +246,9 @@
                     {% assign publicCampus = campus | Attribute:'Public' %}
                     {% assign slug = campus | Attribute:'Slug' %}
                     {% if publicCampus == 'Yes' %}
-                        [[ marker location:'{{ campus.Location.Latitude }},{{ campus.Location.Longitude }}' title:'{{ campus.Name }} Campus' icon:'http://southeastchristian.org/Themes/SECC2014/Assets/img/Easter2018/map/marker-{{ campus | Attribute:'Slug' }}.png' ]]
+                        [[ marker location:'{{ campus.Location.Latitude }},{{ campus.Location.Longitude }}' title:'{{ campus.Name }} Campus' icon:'/Themes/SECC2014/Assets/img/Easter2018/map/marker-{{ campus | Attribute:'Slug' }}.png' ]]
                             <h2 class="text-center" style="margin: 10px 0px;">{{ campus.Name }}</h2>
-                            <p class="text-center"><a style="width: 100%;" class="folio-project btn btn-easter" onclick="googleCallbackLocations('easter{{ campus | Attribute:'Slug' | Capitalize }} #campus-easter-info', this)" href="javascript:void(0)">Campus Info</a></p>
+                            <p class="text-center"><a style="width: 100%;" class="folio-project btn btn-easter" onclick="googleCallbackLocations('/easter{{ campus | Attribute:'Slug' | Capitalize }} #campus-easter-info', this)" href="javascript:void(0)">Campus Info</a></p>
                             <p class="text-center"><a style="width: 100%;" class="btn btn-easter" target="_blank" href="https://www.google.com/maps/dir/Current+Location/{{ campus.Location.Street1 | Replace:' ','+' }}+{{ campus.Location.City | Replace:' ','+' }}+{{ campus.Location.State | Replace:' ','+' }}+{{ campus.Location.PostalCode | Replace:' ','+' }}">Directions</a></p>
                         [[ endmarker ]]
                     {% endif %}
