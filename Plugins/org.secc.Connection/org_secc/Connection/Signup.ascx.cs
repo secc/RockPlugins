@@ -336,6 +336,7 @@ namespace org.secc.Connection
                             break;
                         case "Schedule":
                             var selectedSchedules = partition.PartitionValue.Split( ',' );
+
                             foreach ( string scheduleGuid in selectedSchedules )
                             {
                                 var schedule = scheduleService.Get( scheduleGuid.AsGuid() );
@@ -347,14 +348,20 @@ namespace org.secc.Connection
                             break;
                         case "Role":
                             var selectedRoles = partition.PartitionValue.Split( ',' );
+                            List<GroupTypeRole> roles = new List<GroupTypeRole>();
                             foreach ( string roleGuid in selectedRoles )
                             {
                                 GroupTypeRole role = groupTypeRoleService.Get( roleGuid.AsGuid() );
-
-                                if (role != null)
+                                if ( role != null )
                                 {
-                                    AddRowColumnPartition( dtTmp, dt, column + partition.Guid, role.Guid, role.Name );
+                                    roles.Add(role);
                                 }
+                            }
+                            roles.OrderBy( r => r.GroupTypeId ).ThenBy( r => r.Order );
+
+                            foreach ( GroupTypeRole role in roles )
+                            {
+                                AddRowColumnPartition( dtTmp, dt, column + partition.Guid, role.Guid, role.Name );
                             }
                             break;
 
@@ -543,7 +550,7 @@ namespace org.secc.Connection
                             ScheduleService scheduleService = new ScheduleService( new RockContext() );
                             List<Guid> scheduleGuids = partition.PartitionValue.Split( ',' ).Select( pv => pv.AsGuid() ).ToList();
                             
-                            schedule.SetValues( scheduleService.GetByGuids( scheduleGuids ).Select( s => s.Id ).ToList() );
+                            schedule.SetValues( scheduleService.GetByGuids( scheduleGuids ).ToList().Select( s => s.Id ).ToList() );
                         }
                         phPartitionControl.Controls.Add( schedule );
                         break;
@@ -570,7 +577,7 @@ namespace org.secc.Connection
                         if ( Settings.EntityTypeGuid == Rock.SystemGuid.EntityType.CONNECTION_OPPORTUNITY.AsGuid() )
                         {
                             ConnectionOpportunity connection = ( ConnectionOpportunity ) Settings.Entity();
-                            var roles = connection.ConnectionOpportunityGroupConfigs.Where( cogc => cogc.GroupMemberRole != null).Select( r => new {Name = r.GroupType.Name + ": " + r.GroupMemberRole.Name, Guid = r.GroupMemberRole.Guid } ).ToList();
+                            var roles = connection.ConnectionOpportunityGroupConfigs.Where( cogc => cogc.GroupMemberRole != null).OrderBy(r => r.GroupTypeId).ThenBy(r => r.GroupMemberRole.Order).Select( r => new {Name = r.GroupType.Name + ": " + r.GroupMemberRole.Name, Guid = r.GroupMemberRole.Guid } ).ToList();
                             cblRole.DataSource = roles;
                             cblRole.DataTextField = "Name";
                             cblRole.DataValueField = "Guid";
@@ -699,7 +706,7 @@ namespace org.secc.Connection
             {
                 List<int> scheduleIds = ( ( SchedulePicker ) ( ( Control ) sender ).Parent ).SelectedValues.Select( i => i.AsInteger() ).ToList();
                 ScheduleService scheduleService = new ScheduleService( new RockContext() );
-                partition.PartitionValue = String.Join(",", scheduleService.GetByIds( scheduleIds ).Select( s => s.Guid.ToString() ) );
+                partition.PartitionValue = String.Join(",", scheduleService.GetByIds( scheduleIds ).ToList().OrderBy(s => s.EffectiveStartDate.Value.ToString( "yyyyMMdd")).ThenBy(s => s.StartTimeOfDay).Select( s => s.Guid.ToString() ) );
             }
             SaveViewState();
         }
