@@ -1,4 +1,18 @@
-﻿// <copyright>
+// <copyright>
+// Copyright Southeast Christian Church
+//
+// Licensed under the  Southeast Christian Church License (the "License");
+// you may not use this file except in compliance with the License.
+// A copy of the License shoud be included with this file.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+//
+// <copyright>
 // Copyright 2013 by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -18,6 +32,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.Data.Entity;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -106,236 +121,164 @@ namespace org.secc.Mailgun
             }
         }
 
-        public override void Send( Communication communication )
+        /// <summary>
+        /// Sends the specified rock message.
+        /// </summary>
+        /// <param name="rockMessage">The rock message.</param>
+        /// <param name="mediumEntityTypeId">The medium entity type identifier.</param>
+        /// <param name="mediumAttributes">The medium attributes.</param>
+        /// <param name="errorMessages">The error messages.</param>
+        /// <returns></returns>
+        public override bool Send( RockMessage rockMessage, int mediumEntityTypeId, Dictionary<string, string> mediumAttributes, out List<string> errorMessages )
         {
+            errorMessages = new List<string>();
 
-            using ( var communicationRockContext = new RockContext() )
+            var emailMessage = rockMessage as RockEmailMessage;
+            if ( emailMessage != null )
             {
-                // Requery the Communication object in case we need to load any properties from the database
-                communication = new CommunicationService( communicationRockContext )
-                    .Queryable( "CreatedByPersonAlias.Person" )
-                    .FirstOrDefault( c => c.Id == communication.Id );
 
-                bool hasPendingRecipients;
-                if ( communication != null
-                    && communication.Status == CommunicationStatus.Approved
-                    && ( !communication.FutureSendDateTime.HasValue || communication.FutureSendDateTime.Value.CompareTo( RockDateTime.Now ) <= 0 ) )
+                // From - if none is set, use the one in the Organization's GlobalAttributes.
+                var globalAttributes = GlobalAttributesCache.Read();
+                string fromAddress = emailMessage.FromEmail;
+                if ( string.IsNullOrWhiteSpace( fromAddress ) )
                 {
-                    var qryRecipients = new CommunicationRecipientService( communicationRockContext ).Queryable();
-                    hasPendingRecipients = qryRecipients.Where( a => a.CommunicationId == communication.Id ).Where( r => r.Status == CommunicationRecipientStatus.Pending ).Any();
+                    fromAddress = globalAttributes.GetValue( "OrganizationEmail" );
                 }
-                else
+                string fromName = emailMessage.FromName;
+                if ( string.IsNullOrWhiteSpace( fromName ) )
                 {
-                    hasPendingRecipients = false;
+                    fromName = globalAttributes.GetValue( "OrganizationName" );
+                }
+                if ( fromAddress.IsNullOrWhiteSpace() )
+                {
+                    errorMessages.Add( "A From address was not provided." );
+                    return false;
                 }
 
-                if ( hasPendingRecipients )
+                // Common Merge Field
+                var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, rockMessage.CurrentPerson );
+                foreach ( var mergeField in rockMessage.AdditionalMergeFields )
                 {
-                    var currentPerson = communication.CreatedByPersonAlias.Person;
-                    var globalAttributes = Rock.Web.Cache.GlobalAttributesCache.Read();
-                    var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, currentPerson );
+                    mergeFields.AddOrReplace( mergeField.Key, mergeField.Value );
+                }
 
-                    // From - if none is set, use the one in the Organization's GlobalAttributes.
-                    string fromAddress = communication.GetMediumDataValue( "FromAddress" );
-                    if ( string.IsNullOrWhiteSpace( fromAddress ) )
+                // Resolve any possible merge fields in the from address
+                fromAddress = fromAddress.ResolveMergeFields( mergeFields, emailMessage.CurrentPerson, emailMessage.EnabledLavaCommands );
+                fromName = fromName.ResolveMergeFields( mergeFields, emailMessage.CurrentPerson, emailMessage.EnabledLavaCommands );
+
+                MailMessage message = new MailMessage();
+
+                // Reply To
+                try
+                {
+                    if ( emailMessage.ReplyToEmail.IsNotNullOrWhitespace() )
                     {
-                        fromAddress = globalAttributes.GetValue( "OrganizationEmail" );
+                        // Resolve any possible merge fields in the replyTo address
+                        message.ReplyToList.Add( new MailAddress( emailMessage.ReplyToEmail.ResolveMergeFields( mergeFields, emailMessage.CurrentPerson, emailMessage.EnabledLavaCommands ) ) );
                     }
+                }
+                catch { }
 
-                    string fromName = communication.GetMediumDataValue( "FromName" );
-                    if ( string.IsNullOrWhiteSpace( fromName ) )
+                message.IsBodyHtml = true;
+                message.Priority = MailPriority.Normal;
+
+                using ( var restClient = GetRestClient() )
+                {
+                    foreach ( var recipientData in rockMessage.GetRecipientData() )
                     {
-                        fromName = globalAttributes.GetValue( "OrganizationName" );
-                    }
-
-                    // Resolve any possible merge fields in the from address
-                    fromAddress = fromAddress.ResolveMergeFields( mergeFields, currentPerson, communication.EnabledLavaCommands );
-                    fromName = fromName.ResolveMergeFields( mergeFields, currentPerson, communication.EnabledLavaCommands );
-
-                    MailMessage message = new MailMessage();
-                    message.From = new MailAddress( fromAddress, fromName );
-
-                    // Reply To
-                    try
-                    {
-                        string replyTo = communication.GetMediumDataValue( "ReplyTo" );
-                        if ( !string.IsNullOrWhiteSpace( replyTo ) )
+                        try
                         {
-                            // Resolve any possible merge fields in the replyTo address
-                            message.ReplyToList.Add( new MailAddress( replyTo.ResolveMergeFields( mergeFields, currentPerson ) ) );
-                        }
-                    }
-                    catch { }
-
-                    CheckSafeSender( message, globalAttributes );
-
-                    message.IsBodyHtml = true;
-                    message.Priority = MailPriority.Normal;
-
-                    using ( var restClient = GetRestClient() )
-                    {
-                        // Add Attachments
-                        var attachments = new List<BinaryFile>();
-                        string attachmentIds = communication.GetMediumDataValue( "Attachments" );
-                        if ( !string.IsNullOrWhiteSpace( attachmentIds ) )
-                        {
-                            var binaryFileService = new BinaryFileService( communicationRockContext );
-
-                            foreach ( int binaryFileId in attachmentIds.SplitDelimitedValues().AsIntegerList() )
+                            foreach ( var mergeField in mergeFields )
                             {
-                                var binaryFile = binaryFileService.Get( binaryFileId );
-                                if ( binaryFile != null )
-                                {
-                                    attachments.Add( binaryFile );
-                                }
+                                recipientData.MergeFields.AddOrIgnore( mergeField.Key, mergeField.Value );
                             }
-                        }
 
-                        var personEntityTypeId = EntityTypeCache.Read( "Rock.Model.Person" ).Id;
-                        var communicationEntityTypeId = EntityTypeCache.Read( "Rock.Model.Communication" ).Id;
-                        var communicationCategoryId = CategoryCache.Read( Rock.SystemGuid.Category.HISTORY_PERSON_COMMUNICATIONS.AsGuid(), communicationRockContext ).Id;
+                            message.To.Clear();
+                            message.CC.Clear();
+                            message.Bcc.Clear();
+                            message.Headers.Clear();
 
-                        bool recipientFound = true;
-                        while ( recipientFound )
-                        {
-                            // make a new rockContext per recipient so that DbChangeTracker doesn't get gummed up on large communications
-                            var recipientRockContext = new RockContext();
-                            var recipient = Rock.Model.Communication.GetNextPending( communication.Id, recipientRockContext );
-                            if ( recipient != null )
+                            // Set From/To and check safe sender
+                            message.From = new MailAddress( fromAddress, fromName );
+                            message.To.Add( new MailAddress(
+                                recipientData.To.ResolveMergeFields( recipientData.MergeFields, emailMessage.CurrentPerson, emailMessage.EnabledLavaCommands ),
+                                recipientData.Name.ResolveMergeFields( recipientData.MergeFields, emailMessage.CurrentPerson, emailMessage.EnabledLavaCommands ) ) );
+                            CheckSafeSender( message, globalAttributes );
+
+                            // cc
+                            string mergedCCEmails = emailMessage.CCEmailsDelimited.ResolveMergeFields( recipientData.MergeFields, emailMessage.CurrentPerson, emailMessage.EnabledLavaCommands );
+                            foreach ( string cc in mergedCCEmails.SplitDelimitedValues().ToList().Where( e => e != "" ) )
                             {
-                                if ( string.IsNullOrWhiteSpace( recipient.PersonAlias.Person.Email ) )
+                                message.CC.Add( new MailAddress( cc ) );
+                            }
+
+                            // bcc
+                            string mergedBCCEmails = emailMessage.BCCEmailsDelimited.ResolveMergeFields( recipientData.MergeFields, emailMessage.CurrentPerson, emailMessage.EnabledLavaCommands );
+                            foreach ( string bcc in mergedBCCEmails.SplitDelimitedValues().ToList().Where( e => e != "" ) )
+                            {
+                                message.Bcc.Add( new MailAddress( bcc ) );
+                            }
+
+                            // Subject
+                            string subject = ResolveText( emailMessage.Subject, emailMessage.CurrentPerson, emailMessage.EnabledLavaCommands, recipientData.MergeFields, emailMessage.AppRoot, emailMessage.ThemeRoot );
+
+                            // Body
+                            string body = ResolveText( emailMessage.Message, emailMessage.CurrentPerson, emailMessage.EnabledLavaCommands, recipientData.MergeFields, emailMessage.AppRoot, emailMessage.ThemeRoot );
+                            body = Regex.Replace( body, @"\[\[\s*UnsubscribeOption\s*\]\]", string.Empty );
+
+                            message.Subject = subject;
+                            message.Body = body;
+
+                            var metaData = new Dictionary<string, string>( emailMessage.MessageMetaData );
+
+                            // If a communicatoin is going to get created, create a guid for tracking the opens/clicks
+                            Guid? recipientGuid = null;
+                            if ( emailMessage.CreateCommunicationRecord )
+                            {
+                                recipientGuid = Guid.NewGuid();
+                                metaData.Add( "communication_recipient_guid", recipientGuid.Value.ToString() );
+                            }
+
+                            using ( var rockContext = new RockContext() )
+                            {
+                                // Recreate the attachments
+                                message.Attachments.Clear();
+                                if ( emailMessage.Attachments.Any() )
                                 {
-                                    recipient.Status = CommunicationRecipientStatus.Failed;
-                                    recipient.StatusNote = "No Email Address";
-                                }
-                                else
-                                {
-                                    try
+                                    var binaryFileService = new BinaryFileService( rockContext );
+                                    foreach ( var binaryFileId in emailMessage.Attachments.Where( a => a != null ).Select( a => a.Id ) )
                                     {
-                                        message.To.Clear();
-                                        message.CC.Clear();
-                                        message.Bcc.Clear();
-                                        message.Headers.Clear();
-                                        message.AlternateViews.Clear();
-
-                                        message.To.Add( new MailAddress( recipient.PersonAlias.Person.Email, recipient.PersonAlias.Person.FullName ) );
-
-                                        // Create merge field dictionary
-                                        var mergeObjects = recipient.CommunicationMergeValues( mergeFields );
-
-                                        // CC
-                                        string cc = communication.GetMediumDataValue( "CC" );
-                                        if ( !string.IsNullOrWhiteSpace( cc ) )
+                                        var attachment = binaryFileService.Get( binaryFileId );
+                                        if ( attachment != null )
                                         {
-                                            // Resolve any possible merge fields in the cc address
-                                            cc = cc.ResolveMergeFields( mergeObjects, currentPerson );
-                                            foreach ( string ccRecipient in cc.SplitDelimitedValues() )
-                                            {
-                                                message.CC.Add( new MailAddress( ccRecipient ) );
-                                            }
+                                            message.Attachments.Add( new Attachment( attachment.ContentStream, attachment.FileName ) );
                                         }
-
-                                        // BCC
-                                        string bcc = communication.GetMediumDataValue( "BCC" );
-                                        if ( !string.IsNullOrWhiteSpace( bcc ) )
-                                        {
-                                            bcc = bcc.ResolveMergeFields( mergeObjects, currentPerson );
-                                            foreach ( string bccRecipient in bcc.SplitDelimitedValues() )
-                                            {
-                                                // Resolve any possible merge fields in the bcc address
-                                                message.Bcc.Add( new MailAddress( bccRecipient ) );
-                                            }
-                                        }
-
-                                        // Subject
-                                        message.Subject = communication.Subject.ResolveMergeFields( mergeObjects, currentPerson, communication.EnabledLavaCommands );
-
-                                        // convert any special microsoft word characters to normal chars so they don't look funny (for example "Hey â€œdouble-quotesâ€ from â€˜single quoteâ€™")
-                                        message.Subject = message.Subject.ReplaceWordChars();
-
-                                        // Add text view first as last view is usually treated as the preferred view by email readers (gmail)
-                                        string plainTextBody = Rock.Communication.Medium.Email.ProcessTextBody( communication, globalAttributes, mergeObjects, currentPerson );
-
-                                        // convert any special microsoft word characters to normal chars so they don't look funny
-                                        plainTextBody = plainTextBody.ReplaceWordChars();
-
-                                        if ( !string.IsNullOrWhiteSpace( plainTextBody ) )
-                                        {
-                                            AlternateView plainTextView = AlternateView.CreateAlternateViewFromString( plainTextBody, new System.Net.Mime.ContentType( MediaTypeNames.Text.Plain ) );
-                                            message.AlternateViews.Add( plainTextView );
-                                        }
-
-                                        // Add Html view
-                                        string htmlBody = Rock.Communication.Medium.Email.ProcessHtmlBody( communication, globalAttributes, mergeObjects, currentPerson );
-
-                                        // convert any special microsoft word characters to normal chars so they don't look funny
-                                        htmlBody = htmlBody.ReplaceWordChars();
-
-                                        if ( !string.IsNullOrWhiteSpace( htmlBody ) )
-                                        {
-                                            AlternateView htmlView = AlternateView.CreateAlternateViewFromString( htmlBody, new System.Net.Mime.ContentType( MediaTypeNames.Text.Html ) );
-                                            message.AlternateViews.Add( htmlView );
-                                        }
-
-                                        // Add any additional headers that specific SMTP provider needs
-                                        var metaData = new Dictionary<string, string>();
-                                        metaData.Add( "communication_recipient_guid", recipient.Guid.ToString() );
-                                        AddAdditionalHeaders( message, metaData );
-
-                                        // Recreate the attachments
-                                        message.Attachments.Clear();
-                                        if ( attachments.Any() )
-                                        {
-                                            foreach ( var attachment in attachments )
-                                            {
-                                                message.Attachments.Add( new Attachment( attachment.ContentStream, attachment.FileName ) );
-                                            }
-                                        }
-
-                                        restClient.Send( message );
-                                        recipient.Status = CommunicationRecipientStatus.Delivered;
-
-                                        string statusNote = StatusNote;
-                                        if ( !string.IsNullOrWhiteSpace( statusNote ) )
-                                        {
-                                            recipient.StatusNote = statusNote;
-                                        }
-
-                                        recipient.TransportEntityTypeName = this.GetType().FullName;
-
-                                        var historyService = new HistoryService( recipientRockContext );
-                                        historyService.Add( new History
-                                        {
-                                            CreatedByPersonAliasId = communication.SenderPersonAliasId,
-                                            EntityTypeId = personEntityTypeId,
-                                            CategoryId = communicationCategoryId,
-                                            EntityId = recipient.PersonAlias.PersonId,
-                                            Summary = string.Format( "Sent communication from <span class='field-value'>{0}</span>.", message.From.DisplayName ),
-                                            Caption = message.Subject,
-                                            RelatedEntityTypeId = communicationEntityTypeId,
-                                            RelatedEntityId = communication.Id
-                                        } );
-                                    }
-
-                                    catch ( Exception ex )
-                                    {
-                                        recipient.Status = CommunicationRecipientStatus.Failed;
-                                        recipient.StatusNote = "Exception: " + ex.Message;
                                     }
                                 }
 
-                                recipientRockContext.SaveChanges();
+                                AddAdditionalHeaders( message, metaData );
+
+                                restClient.Send( message );
                             }
-                            else
+
+                            if ( emailMessage.CreateCommunicationRecord )
                             {
-                                recipientFound = false;
+                                var transaction = new SaveCommunicationTransaction( recipientData.To, emailMessage.FromName, emailMessage.FromName, subject, body );
+                                transaction.RecipientGuid = recipientGuid;
+                                RockQueue.TransactionQueue.Enqueue( transaction );
                             }
+                        }
+                        catch ( Exception ex )
+                        {
+                            errorMessages.Add( ex.Message );
+                            ExceptionLogService.LogException( ex );
                         }
                     }
                 }
             }
-        }
 
+            return !errorMessages.Any();
+        }
 
         /// <summary>
         /// Sends the specified template.
@@ -856,6 +799,268 @@ namespace org.secc.Mailgun
             }*/
 
             return restClient;
+        }
+
+        /// <summary>
+        /// Sends the specified communication.
+        /// </summary>Medi
+        /// <param name="communication">The communication.</param>
+        /// <param name="mediumEntityTypeId">The medium entity type identifier.</param>
+        /// <param name="mediumAttributes">The medium attributes.</param>
+        public override void Send( Rock.Model.Communication communication, int mediumEntityTypeId, Dictionary<string, string> mediumAttributes )
+        {
+            using ( var communicationRockContext = new RockContext() )
+            {
+                // Requery the Communication
+                communication = new CommunicationService( communicationRockContext )
+                    .Queryable().Include( a => a.CreatedByPersonAlias.Person ).Include( a => a.CommunicationTemplate )
+                    .FirstOrDefault( c => c.Id == communication.Id );
+
+                bool hasPendingRecipients;
+                if ( communication != null &&
+                    communication.Status == Rock.Model.CommunicationStatus.Approved &&
+                    ( !communication.FutureSendDateTime.HasValue || communication.FutureSendDateTime.Value.CompareTo( RockDateTime.Now ) <= 0 ) )
+                {
+                    var qryRecipients = new CommunicationRecipientService( communicationRockContext ).Queryable();
+                    hasPendingRecipients = qryRecipients
+                        .Where( r =>
+                            r.CommunicationId == communication.Id &&
+                            r.Status == Rock.Model.CommunicationRecipientStatus.Pending &&
+                            r.MediumEntityTypeId.HasValue &&
+                            r.MediumEntityTypeId.Value == mediumEntityTypeId )
+                        .Any();
+                }
+                else
+                {
+                    hasPendingRecipients = false;
+                }
+
+                if ( hasPendingRecipients )
+                {
+                    var currentPerson = communication.CreatedByPersonAlias.Person;
+                    var globalAttributes = Rock.Web.Cache.GlobalAttributesCache.Read();
+                    string publicAppRoot = globalAttributes.GetValue( "PublicApplicationRoot" ).EnsureTrailingForwardslash();
+                    var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, currentPerson );
+                    var cssInliningEnabled = communication.CommunicationTemplate?.CssInliningEnabled ?? false;
+
+                    // From - if none is set, use the one in the Organization's GlobalAttributes.
+                    string fromAddress = communication.FromEmail;
+                    if ( string.IsNullOrWhiteSpace( fromAddress ) )
+                    {
+                        fromAddress = globalAttributes.GetValue( "OrganizationEmail" );
+                    }
+
+                    string fromName = communication.FromName;
+                    if ( string.IsNullOrWhiteSpace( fromName ) )
+                    {
+                        fromName = globalAttributes.GetValue( "OrganizationName" );
+                    }
+
+                    // Resolve any possible merge fields in the from address
+                    fromAddress = fromAddress.ResolveMergeFields( mergeFields, currentPerson, communication.EnabledLavaCommands );
+                    fromName = fromName.ResolveMergeFields( mergeFields, currentPerson, communication.EnabledLavaCommands );
+
+                    MailMessage message = new MailMessage();
+
+                    // Reply To
+                    try
+                    {
+                        string replyTo = communication.ReplyToEmail;
+                        if ( !string.IsNullOrWhiteSpace( replyTo ) )
+                        {
+                            // Resolve any possible merge fields in the replyTo address
+                            message.ReplyToList.Add( new MailAddress( replyTo.ResolveMergeFields( mergeFields, currentPerson ) ) );
+                        }
+                    }
+                    catch { }
+
+                    message.IsBodyHtml = true;
+                    message.Priority = MailPriority.Normal;
+
+                    using ( var restClient = GetRestClient() )
+                    {
+                        var personEntityTypeId = EntityTypeCache.Read( "Rock.Model.Person" ).Id;
+                        var communicationEntityTypeId = EntityTypeCache.Read( "Rock.Model.Communication" ).Id;
+                        var communicationCategoryId = CategoryCache.Read( Rock.SystemGuid.Category.HISTORY_PERSON_COMMUNICATIONS.AsGuid(), communicationRockContext ).Id;
+
+                        bool recipientFound = true;
+                        while ( recipientFound )
+                        {
+                            // make a new rockContext per recipient
+                            var recipientRockContext = new RockContext();
+                            var recipient = Rock.Model.Communication.GetNextPending( communication.Id, mediumEntityTypeId, recipientRockContext );
+                            if ( recipient != null )
+                            {
+                                if ( ValidRecipient( recipient, communication.IsBulkCommunication ) )
+                                {
+                                    try
+                                    {
+                                        message.To.Clear();
+                                        message.CC.Clear();
+                                        message.Bcc.Clear();
+                                        message.Headers.Clear();
+                                        message.AlternateViews.Clear();
+
+                                        // Set From/To and check safe sender
+                                        message.From = new MailAddress( fromAddress, fromName );
+                                        message.To.Add( new MailAddress( recipient.PersonAlias.Person.Email, recipient.PersonAlias.Person.FullName ) );
+                                        CheckSafeSender( message, globalAttributes );
+
+                                        // Create merge field dictionary
+                                        var mergeObjects = recipient.CommunicationMergeValues( mergeFields );
+
+                                        // CC
+                                        string cc = communication.CCEmails;
+                                        if ( !string.IsNullOrWhiteSpace( cc ) )
+                                        {
+                                            // Resolve any possible merge fields in the cc address
+                                            cc = cc.ResolveMergeFields( mergeObjects, currentPerson );
+                                            foreach ( string ccRecipient in cc.SplitDelimitedValues() )
+                                            {
+                                                message.CC.Add( new MailAddress( ccRecipient ) );
+                                            }
+                                        }
+
+                                        // BCC
+                                        string bcc = communication.BCCEmails;
+                                        if ( !string.IsNullOrWhiteSpace( bcc ) )
+                                        {
+                                            bcc = bcc.ResolveMergeFields( mergeObjects, currentPerson );
+                                            foreach ( string bccRecipient in bcc.SplitDelimitedValues() )
+                                            {
+                                                // Resolve any possible merge fields in the bcc address
+                                                message.Bcc.Add( new MailAddress( bccRecipient ) );
+                                            }
+                                        }
+
+                                        // Subject
+                                        message.Subject = ResolveText( communication.Subject, currentPerson, communication.EnabledLavaCommands, mergeObjects, publicAppRoot );
+
+                                        // Plain text
+                                        if ( mediumAttributes.ContainsKey( "DefaultPlainText" ) )
+                                        {
+                                            string plainText = ResolveText( mediumAttributes["DefaultPlainText"], currentPerson, communication.EnabledLavaCommands, mergeObjects, publicAppRoot );
+                                            if ( !string.IsNullOrWhiteSpace( plainText ) )
+                                            {
+                                                AlternateView plainTextView = AlternateView.CreateAlternateViewFromString( plainText, new System.Net.Mime.ContentType( MediaTypeNames.Text.Plain ) );
+                                                message.AlternateViews.Add( plainTextView );
+                                            }
+                                        }
+
+                                        // Add Html view
+                                        // Get the unsubscribe content and add a merge field for it
+                                        string htmlBody = communication.Message;
+                                        if ( communication.IsBulkCommunication && mediumAttributes.ContainsKey( "UnsubscribeHTML" ) )
+                                        {
+                                            string unsubscribeHtml = ResolveText( mediumAttributes["UnsubscribeHTML"], currentPerson, communication.EnabledLavaCommands, mergeObjects, publicAppRoot );
+                                            mergeObjects.AddOrReplace( "UnsubscribeOption", unsubscribeHtml );
+                                            htmlBody = ResolveText( htmlBody, currentPerson, communication.EnabledLavaCommands, mergeObjects, publicAppRoot );
+
+                                            // Resolve special syntax needed if option was included in global attribute
+                                            if ( Regex.IsMatch( htmlBody, @"\[\[\s*UnsubscribeOption\s*\]\]" ) )
+                                            {
+                                                htmlBody = Regex.Replace( htmlBody, @"\[\[\s*UnsubscribeOption\s*\]\]", unsubscribeHtml );
+                                            }
+
+                                            // Add the unsubscribe option at end if it wasn't included in content
+                                            if ( !htmlBody.Contains( unsubscribeHtml ) )
+                                            {
+                                                htmlBody += unsubscribeHtml;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            htmlBody = ResolveText( htmlBody, currentPerson, communication.EnabledLavaCommands, mergeObjects, publicAppRoot );
+                                            htmlBody = Regex.Replace( htmlBody, @"\[\[\s*UnsubscribeOption\s*\]\]", string.Empty );
+                                        }
+
+                                        if ( !string.IsNullOrWhiteSpace( htmlBody ) )
+                                        {
+                                            if ( cssInliningEnabled )
+                                            {
+                                                // move styles inline to help it be compatible with more email clients
+                                                htmlBody = htmlBody.ConvertHtmlStylesToInlineAttributes();
+                                            }
+
+                                            // add the main Html content to the email
+                                            AlternateView htmlView = AlternateView.CreateAlternateViewFromString( htmlBody, new System.Net.Mime.ContentType( MediaTypeNames.Text.Html ) );
+                                            message.AlternateViews.Add( htmlView );
+                                        }
+
+                                        // Add any additional headers that specific SMTP provider needs
+                                        var metaData = new Dictionary<string, string>();
+                                        metaData.Add( "communication_recipient_guid", recipient.Guid.ToString() );
+                                        AddAdditionalHeaders( message, metaData );
+
+                                        // Recreate the attachments
+                                        message.Attachments.Clear();
+                                        foreach ( var binaryFile in communication.GetAttachments( CommunicationType.Email ).Select( a => a.BinaryFile ) )
+                                        {
+                                            message.Attachments.Add( new Attachment( binaryFile.ContentStream, binaryFile.FileName ) );
+                                        }
+
+                                        restClient.Send( message );
+                                        recipient.Status = CommunicationRecipientStatus.Delivered;
+
+                                        string statusNote = StatusNote;
+                                        if ( !string.IsNullOrWhiteSpace( statusNote ) )
+                                        {
+                                            recipient.StatusNote = statusNote;
+                                        }
+
+                                        recipient.TransportEntityTypeName = this.GetType().FullName;
+
+                                        try
+                                        {
+                                            var historyService = new HistoryService( recipientRockContext );
+                                            historyService.Add( new History
+                                            {
+                                                CreatedByPersonAliasId = communication.SenderPersonAliasId,
+                                                EntityTypeId = personEntityTypeId,
+                                                CategoryId = communicationCategoryId,
+                                                EntityId = recipient.PersonAlias.PersonId,
+                                                Summary = string.Format( "Sent communication from <span class='field-value'>{0}</span>.", message.From.DisplayName ),
+                                                Caption = message.Subject,
+                                                RelatedEntityTypeId = communicationEntityTypeId,
+                                                RelatedEntityId = communication.Id
+                                            } );
+                                        }
+                                        catch ( Exception ex )
+                                        {
+                                            ExceptionLogService.LogException( ex, null );
+                                        }
+                                    }
+
+                                    catch ( Exception ex )
+                                    {
+                                        ExceptionLogService.LogException( ex );
+                                        recipient.Status = CommunicationRecipientStatus.Failed;
+                                        recipient.StatusNote = "Exception: " + ex.Message;
+                                    }
+                                }
+
+                                recipientRockContext.SaveChanges();
+                            }
+                            else
+                            {
+                                recipientFound = false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Sends the specified communication.
+        /// </summary>
+        /// <param name="communication">The communication.</param>
+        /// <exception cref="System.NotImplementedException"></exception>
+        [Obsolete( "Use Send( Communication communication, Dictionary<string, string> mediumAttributes ) instead" )]
+        public override void Send( Rock.Model.Communication communication )
+        {
+            int mediumEntityId = EntityTypeCache.Read( Rock.SystemGuid.EntityType.COMMUNICATION_MEDIUM_EMAIL.AsGuid() )?.Id ?? 0;
+            Send( communication, mediumEntityId, null );
         }
 
         private class MailgunClient : IDisposable

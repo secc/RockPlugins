@@ -1,4 +1,18 @@
-﻿using System;
+// <copyright>
+// Copyright Southeast Christian Church
+//
+// Licensed under the  Southeast Christian Church License (the "License");
+// you may not use this file except in compliance with the License.
+// A copy of the License shoud be included with this file.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+//
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Caching;
@@ -37,9 +51,9 @@ namespace org.secc.FamilyCheckin.Utilities
                     lglsc = UpdateCache();
                 }
                 GroupLocationScheduleCount glsc = lglsc.FirstOrDefault( g =>
-                                                                    g.LocationId == attendance.LocationId
-                                                                    && g.ScheduleId == attendance.ScheduleId
-                                                                    && g.GroupId == attendance.GroupId );
+                                                                    g.LocationId == ( attendance.LocationId ?? 0 )
+                                                                    && g.ScheduleId == ( attendance.ScheduleId ?? 0 )
+                                                                    && g.GroupId == ( attendance.GroupId ?? 0 ) );
                 if ( glsc == null )
                 {
                     glsc = new GroupLocationScheduleCount()
@@ -175,10 +189,7 @@ namespace org.secc.FamilyCheckin.Utilities
             AttendanceService attendanceService = new AttendanceService( rockContext );
             var attendances = attendanceService.Queryable()
                 .Where( a =>
-                            a.GroupId != null
-                            && a.LocationId != null
-                            && a.ScheduleId != null
-                            && a.StartDateTime >= today
+                            a.StartDateTime >= today
                             && a.StartDateTime < tomorrow
                             && a.EndDateTime == null )
                 .GroupBy( a => new { a.GroupId, a.LocationId, a.ScheduleId } )
@@ -192,7 +203,6 @@ namespace org.secc.FamilyCheckin.Utilities
                     ScheduleId = attendance.Key.ScheduleId ?? 0,
                     PersonIds = attendance.Select( a => a.PersonAlias?.PersonId ?? 0 ).ToList(),
                     InRoomPersonIds = attendance.Where( a => a.DidAttend == true ).Select( a => a.PersonAlias?.PersonId ?? 0 ).ToList()
-
                 };
                 output.Add( glsc );
             }

@@ -1,0 +1,185 @@
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css" rel="stylesheet" type="text/css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js" ></script>
+
+<h1>REGISTER</h1>
+<p>To register, select the campus your student regularly attends. If you do not currently attend Southeast, choose a location of Southeast which your student would like to attend.</p><p><br></p>
+
+<div class="row">
+
+    <div class="col-md-4 text-center">
+        <p><b>Week 1</b></p><p><small>(Blankenbaker)</small></p>
+        <br>
+        <p>
+            <a class="btn btn-default" href="#" role="button">Register Student</a>
+        </p>
+        <br>
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#weekOneModal">
+          Register leader
+        </button>
+
+        <!-- Modal -->
+        <div class="modal fade" id="weekOneModal" tabindex="-1" role="dialog" aria-labelledby="weekOneModalTitle" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle"><i class="fa fa-person"></i> Leader Registration for Week One</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+        <p>Please enter the leader's birthdate:</p>
+        	<div class="row">
+        	<div class="col-md-8">
+        	    <div class="form-group">
+                        <div class='input-group date' id='datetimepicker1'>
+                            <input type='text' class="form-control" id="birthdate" placeholder="MM/DD/YYYY" />
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-calendar"></span>
+                            </span>
+                        </div>
+                    </div>
+        	</div>
+        	</div>
+              </div>
+              <div class="modal-footer">
+        	<button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+                <a href="javascript:;" id="nextButton" class="btn btn-default">Next</a>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 text-center">
+        <p><b>Week 2&nbsp;</b></p><p><small>(Crestwood, La Grange, Blankenbaker)</small></p>
+        <br>
+        <p>
+            <a class="btn btn-default" href="#" role="button">Register Student</a>
+        </p>
+        <br>
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#weekTwoModal">
+          Register leader
+        </button>
+
+        <!-- Modal -->
+        <div class="modal fade" id="weekTwoModal" tabindex="-1" role="dialog" aria-labelledby="weekTwoModalTitle" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle"><i class="fa fa-person"></i> Leader Registration for Week Two</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+        <p>Please enter the leader's birthdate:</p>
+        	<div class="row">
+        	<div class="col-md-8">
+        	    <div class="form-group">
+                        <div class='input-group date' id='datetimepicker1'>
+                            <input type='text' class="form-control" id="birthdate" placeholder="MM/DD/YYYY" />
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-calendar"></span>
+                            </span>
+                        </div>
+                    </div>
+        	</div>
+        	</div>
+              </div>
+              <div class="modal-footer">
+        	<button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+                <a href="javascript:;" id="nextButton" class="btn btn-default">Next</a>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 text-center">
+        <p><b>Week 3</b></p><p><small>(Indiana, Southwest, Elizabethtown)</small></p>
+        <br>
+        <p>
+            <a class="btn btn-default" href="#" role="button">Register Student</a>
+        </p>
+        <br>
+
+            <!-- Button trigger modal -->
+            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#weekThreeModal">
+              Register leader
+            </button>
+
+            <!-- Modal -->
+            <div class="modal fade" id="weekThreeModal" tabindex="-1" role="dialog" aria-labelledby="weekThreeModalTitle" aria-hidden="true">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle"><i class="fa fa-person"></i> Leader Registration for Week Three</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+            <p>Please enter the leader's birthdate:</p>
+            	<div class="row">
+            	<div class="col-md-8">
+            	    <div class="form-group">
+                            <div class='input-group date' id='datetimepicker1'>
+                                <input type='text' class="form-control" id="birthdate" placeholder="MM/DD/YYYY" />
+                                <span class="input-group-addon">
+                                    <span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                            </div>
+                        </div>
+            	</div>
+            	</div>
+                  </div>
+                  <div class="modal-footer">
+            	<button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+                    <a href="javascript:;" id="nextButton" class="btn btn-default">Next</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+    </div>
+
+</div>
+
+<script>
+$(document).ready(function() {
+     // set variable for navigation scroll detection
+    $('#datetimepicker').datetimepicker({
+        format: 'DD/MM/YYYY',
+        viewMode: 'years'
+    });
+
+    $("#nextButton").click(function() {
+        if (getAge($("#birthdate").val()) >= 18) {
+            alert('Excellent! You\'ll be redirected to Adult Leader Registration when it\'s available.');
+            // window.location.href = "https://www.southeastchristian.org/registration/MIXLeader18AndUp; ?>";
+        } else {
+            alert('Excellent! You\'ll be redirected to Minor Leader Registration when it\'s available.');
+            // window.location.href = "https://www.southeastchristian.org/registration/<?= $Campus->registration_slug->LeaderUnder18; ?>";
+        }
+    });
+
+    getAge = function(birthDateString) {
+        var today = new Date();
+        var birthDate = new Date(birthDateString);
+        var age = today.getFullYear() - birthDate.getFullYear();
+        var m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        return age;
+    }
+});
+</script>
+
+<br>
+<br>
+<br>

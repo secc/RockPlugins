@@ -91,7 +91,7 @@ i {
 
 /* Paragraph */
 p {
-  @include font($size: $font-size-15, $weight: 300);
+  @include font($size: $font-size-22, $weight: 400);
 	color: $color-text;
 	line-height: $line-height;
 	margin-top: 0;
@@ -110,5 +110,115 @@ a {
 
 	@include focus {
 		outline: none;
+	}
+}
+
+.toplogo {
+	max-width: 175px;
+	position: absolute;
+	top: 5%;
+	left: 5%;
+	z-index: 5;
+
+	img {
+		width: 100%;
+		position: relative;
+	}
+	svg {
+		width: 100%;
+		position: relative;
+	}
+}
+
+.se-logo {
+	border-top-right-radius: .36em !important;
+	border-bottom-left-radius: .36em !important;
+	border: none !important;
+	display: inline-block;
+	text-transform: uppercase !important;
+	font-weight: 900 !important;
+	font-family: $TitleFont !important;
+	background: $color-dark;
+	color: white;
+	width: 2.55em !important;
+	line-height: 2.4em !important;
+	text-align: center !important;
+	font-size: 15px;
+	padding: 0 !important;
+	outline: none !important;
+
+	&.stroke {
+		border-width: 2px !important;
+		border-style: solid !important;
+		border-color: $color-dark;
+		background: transparent;
+		color: $color-dark;
+	}
+
+	&.big {
+		border-width: 5px !important;
+		font-size: 2.5em !important;
+	}
+}
+
+#ContactLinks {
+	text-align: center;
+
+	p {
+		strong {
+			letter-spacing: 1px;
+		}
+		margin-top: 10px;
+		font-size: $font-size-16;
+	}
+}
+
+#SEHeaderLogo {
+	display: inline-block;
+	float: left;
+	width: 60px;
+	height: auto;
+	margin-top: -10px;
+	margin-right: 20px;
+	@media screen and (-ms-high-contrast: active), screen and (-ms-high-contrast: none) {
+		/* IE10+ specific styles go here */
+		margin-top: -55px !important;
+	}
+	@media (max-width:1169px) {
+		float: right;
+	    margin-right: 0px;
+	    margin-left: 5px;
+	    padding: 5px;
+	    margin-top: -13px;
+		@media screen and (-ms-high-contrast: active), screen and (-ms-high-contrast: none) {
+			/* IE10+ specific styles go here */
+			margin-top: -63px !important;
+		}
+	}
+}
+
+// .modal {
+// 	overflow: visible !important;
+//     border-radius: 5px 5px 0px 0px;
+// }
+// .modal-header {
+// 	& .close {
+// 	    margin-top: -25px;
+// 	    margin-right: 10px;
+// 	}
+// }
+// .bootstrap-datetimepicker-widget {
+// 	z-index:3000 !important;
+// }
+
+.cd-main-content{
+	ol, ul {
+		list-style: disc !important;
+		li {
+			margin-left: 55px;
+			font-size: $font-size-22;
+			color: $color-text;
+			margin-bottom: 5px;
+		}
 	}
 }

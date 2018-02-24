@@ -1,6 +1,4 @@
-{%- if authorObjectGuid == undefined -%}
 {% assign authorObjectGuid = PageParameter['Author'] %}
-{%- endif -%}
 
 {% definedvalue where:'Guid == "{{authorObjectGuid}}"'%}
     {% assign definedvalueCount = definedvalueItems | Size %}
@@ -13,7 +11,13 @@
 
             <div class="row g-margin-b-20--xs g-margin-b-40--md g-padding-x-20--xs">
                 <div class="col-sm-4">
-                    <img class="img-responsive" src="/GetImage.ashx?Guid={{ AuthorImageGuid }}" />
+
+                    {% if AuthorImageGuid != "" %}
+                        <img class="img-responsive" src="/GetImage.ashx?Guid={{ AuthorImageGuid }}" />
+                    {% else %}
+                        <img class="img-responsive" alt="{{ item.Title }}" src="https://lovewhereuare.org/Content/LWYA/LWYA_Logo.png">
+                    {% endif %}
+                    
                 </div>
                 <div class="col-sm-8">
                     <br />

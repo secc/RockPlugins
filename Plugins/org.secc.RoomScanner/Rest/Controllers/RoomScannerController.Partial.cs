@@ -1,4 +1,18 @@
-﻿using System;
+// <copyright>
+// Copyright Southeast Christian Church
+//
+// Licensed under the  Southeast Christian Church License (the "License");
+// you may not use this file except in compliance with the License.
+// A copy of the License shoud be included with this file.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+//
+using System;
 using System.Linq;
 using System.Web.Http;
 using System.Collections.Generic;
@@ -52,7 +66,9 @@ namespace org.secc.RoomScanner.Rest.Controllers
         private bool AreChildrenCheckedIn( int locationId )
         {
             var lglsc = CheckInCountCache.GetByLocation( locationId );
-            var count = lglsc.Where( glsc => !VolunteerGroupIds.Contains( glsc.GroupId ) ).Select( glsc => glsc.InRoomPersonIds.Count() ).Sum();
+            var count = lglsc.Where( glsc => !VolunteerGroupIds.Contains( glsc.GroupId ) && glsc.GroupId != 0 )
+                .Select( glsc => glsc.InRoomPersonIds.Count() )
+                .Sum();
             return count >= 1;
         }
 
@@ -385,29 +401,23 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 }
 
                 var attendances = ValidationHelper.GetAttendancesForAttendee( rockContext, attendeeAttendance );
+                attendances = attendances.Where( a => a.LocationId == req.LocationId );
 
 
                 //If person is a volunteer, children are checked in, and would result in less than 2 volunteers
                 //Then don't allow for check-out
-                if ( attendances.Where( a => VolunteerGroupIds.Contains( a.GroupId ?? 0 ) ).Any()
+                if ( ( attendances.Where( a => VolunteerGroupIds.Contains( a.GroupId ?? 0 ) ).Any()
+                    || attendances.Where( a => a.GroupId == 0 || a.GroupId == null ).Any() )
                     && AreChildrenCheckedIn( req.LocationId )
                     && NumberOfVolunteersCheckedIn( req.LocationId ) <= 2 )
                 {
                     return new Response( false, "Cannot checkout volunteer with children still in class. Two volunteers are required at all times.", false );
                 }
 
-                if ( !req.Override )
-                {
-                    attendances = attendances.Where( a => a.LocationId == req.LocationId );
-                }
-
-                if ( !attendances.Any() ) //There was an attendance record, but not for the selected location
-                {
-                    return new Response( false, string.Format( "{0} is not checked-in to {1} would you like to override?", person.FullName, location.Name ), false );
-                }
-
                 foreach ( var attendance in attendances )
                 {
+                    var stayedFifteenMinutes = ( Rock.RockDateTime.Now - attendance.StartDateTime ) > new TimeSpan( 0, 15, 0 );
+                    attendance.DidAttend = stayedFifteenMinutes;
                     attendance.EndDateTime = Rock.RockDateTime.Now;
                     CheckInCountCache.RemoveAttendance( attendance );
                     var personId = attendeeAttendance.PersonAlias.PersonId;

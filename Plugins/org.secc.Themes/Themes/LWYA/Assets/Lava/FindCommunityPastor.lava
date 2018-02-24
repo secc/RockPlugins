@@ -62,11 +62,18 @@ $(document).ready(function() {
                     $('#your-pastor')
                     .html(
                         '<div class="row g-padding-y-20--xs">' +
-                        '<div class="col-sm-12">' +
+                        '<div class="col-sm-4">' +
+                        '<a class="hover_icon hover_icon_link" href="/lwya/author?Author='+pastorGuid+'">' +
+                        '<img class="img-responsive" alt="' + pastorName +'" src="https://lovewhereuare.org/Content/LWYA/LWYA_Logo.png">' +
+                        '</a>' +
+                        '</div>' +
+                        '<div class="col-sm-8">' +
                         '<h4 class="g-margin-t-20--xs">Your Community Pastor is:</h4>' +
                         '<hr />' +
-                        '<h4>' +pastorName+'</h4>' +
-                        '<p>Meanwhile, please see our other <a href="#community-pastors">community pastors below</a>.</p>' +
+                        '<h4><a title="' + pastorName +'" href="/lwya/author?Author='+pastorGuid+'">' +pastorName+'</a></h4>' +
+                        '<br /><p>' +
+                        '<a href="mailto:' + pastorEmail + '">' + pastorEmail + '</a>' +
+                        '</p>' +
                         '</div>' +
                         '</div>');
                 }

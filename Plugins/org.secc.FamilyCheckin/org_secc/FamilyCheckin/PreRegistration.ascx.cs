@@ -1,4 +1,18 @@
-﻿using Rock.Web.Cache;
+// <copyright>
+// Copyright Southeast Christian Church
+//
+// Licensed under the  Southeast Christian Church License (the "License");
+// you may not use this file except in compliance with the License.
+// A copy of the License shoud be included with this file.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+//
+using Rock.Web.Cache;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,9 +30,9 @@ using Rock.Attribute;
 
 [DisplayName( "Children's Pre-Registration" )]
 [Category( "SECC > Check-in" )]
-[Description( "A tool for Pre-Registering families in Rock especially geared toward children's ministry." )]
+[Description( "A tool for pre-registering families in Rock especially geared toward children's ministry." )]
 
-[WorkflowTypeField( "Person Workflow", "The workflow to launch when the new family is added (Entity will be the person created)", false, false )]
+[WorkflowTypeField( "Person Workflow", "The workflow to launch when the new family is added. Entity will be the first adult person created. Extra information provided by the visitor will be added into the workflow attribute 'ExtraInformation'. ", false, false )]
 [CodeEditorField( "Confirmation", "Confirmation content.", CodeEditorMode.Html, defaultValue: @"<p>We're so excited to worship with you!</p>
 <h2>Now What ?</h2>
 <ul>
@@ -28,6 +42,8 @@ using Rock.Attribute;
     <li>Then, just take your children to the room listed on their tag.</li >
     <li>When the service is over, return to the same room where you dropped off your children and present your other tag to check them out.</li>
 </ul> " )]
+[TextField( "Allergies Key", "The key name of the person attribute to save allergy information in.", defaultValue: "Allergy" )]
+[TextField( "Special Note Key", "The key name of the person attribute to save special information in.", defaultValue: "LegalNotes" )]
 public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.UI.RockBlock
 {
     protected void Page_Load( object sender, EventArgs e )
@@ -83,6 +99,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
     {
         pnlChildSummary.Visible = false;
         pnlCampus.Visible = true;
+        pnlAskCampus.Visible = CampusCache.All().Count() > 1;
     }
 
     protected void btnChildAddAnother_Click( object sender, EventArgs e )
@@ -95,10 +112,23 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         pnlChildSummary.Visible = false;
         pnlChild.Visible = true;
     }
+
+    protected void btnCampusBack_Click( object sender, EventArgs e )
+    {
+        pnlCampus.Visible = false;
+        pnlChildSummary.Visible = true;
+    }
+
     protected void btnCampusNext_Click( object sender, EventArgs e )
     {
         pnlCampus.Visible = false;
         showReview();
+    }
+
+    protected void btnReviewBack_Click( object sender, EventArgs e )
+    {
+        pnlReview.Visible = false;
+        pnlCampus.Visible = true;
     }
 
     protected void btnReviewFinish_Click( object sender, EventArgs e )
@@ -123,7 +153,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             rblGender.SelectedValue = children[i.Value].Gender;
             gpGrade.SelectedValue = children[i.Value].Grade.ToString();
             tbAllergies.Text = children[i.Value].Allergies;
-            tbSpecialNeeds.Text = children[i.Value].SpecialNeeds;
+            tbSpecialNote.Text = children[i.Value].SpecialNote;
         }
         pnlChildSummary.Visible = false;
         pnlChild.Visible = true;
@@ -185,7 +215,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             info.Controls.Add( new RockLiteral() { Label = "Birthdate:", Text = child.DateOfBirth.ToShortDateString() + " (" + child.DateOfBirth.Age() + " Yrs)" } );
             info.Controls.Add( new RockLiteral() { Label = "Grade:", Text = ( child.Grade == null ? "Pre-school" : DefinedValueCache.Read( child.Grade.Value ).Description ) } );
             info.Controls.Add( new RockLiteral() { Label = "Allergies:", Text = !string.IsNullOrEmpty( child.Allergies ) ? child.Allergies : "[None]" } );
-            info.Controls.Add( new RockLiteral() { Label = "Special&nbsp;Needs:", Text = !string.IsNullOrEmpty( child.SpecialNeeds ) ? child.SpecialNeeds : "[None]" } );
+            info.Controls.Add( new RockLiteral() { Label = "Special&nbsp;Needs:", Text = !string.IsNullOrEmpty( child.SpecialNote ) ? child.SpecialNote : "[None]" } );
 
             infoContainer.Controls.Add( info );
             //cardContainer.Controls.Add(new HtmlGenericControl() { InnerHtml = "<hr>" });
@@ -250,7 +280,11 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             }
             rockContext.SaveChanges();
 
-            matchingPeople.FirstOrDefault().PrimaryAlias.LaunchWorkflow( new Guid( GetAttributeValue( "PersonWorkflow" ) ), matchingPeople.FirstOrDefault().ToString() + " Pre-Registration", new Dictionary<string, string>() { { "SpecialNote", tbExtraInformation.Text } } );
+            var personWorkflowGuid = GetAttributeValue( "PersonWorkflow" );
+            if ( !string.IsNullOrWhiteSpace( personWorkflowGuid ) )
+            {
+                matchingPeople.FirstOrDefault().PrimaryAlias.LaunchWorkflow( new Guid( personWorkflowGuid ), matchingPeople.FirstOrDefault().ToString() + " Pre-Registration", new Dictionary<string, string>() { { "ExtraInformation", tbExtraInformation.Text } } );
+            }
         }
         else
         {
@@ -295,8 +329,11 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             }
 
             rockContext.SaveChanges();
-
-            adult.PrimaryAlias.LaunchWorkflow( new Guid( GetAttributeValue( "PersonWorkflow" ) ), adult.ToString() + " Pre-Registration", new Dictionary<string, string>() { { "SpecialNote", tbExtraInformation.Text } } );
+            var personWorkflowGuid = GetAttributeValue( "PersonWorkflow" );
+            if ( !string.IsNullOrWhiteSpace( personWorkflowGuid ) )
+            {
+                adult.PrimaryAlias.LaunchWorkflow( new Guid( GetAttributeValue( "PersonWorkflow" ) ), adult.ToString() + " Pre-Registration", new Dictionary<string, string>() { { "ExtraInformation", tbExtraInformation.Text } } );
+            }
         }
     }
 
@@ -307,7 +344,14 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         rlName.Text = tbFirstname.Text + " " + tbLastName.Text;
         rlPhone.Text = pnbPhone.Text;
         rlDOB.Text = dpBirthday.SelectedDate.HasValue ? dpBirthday.SelectedDate.Value.ToShortDateString() : "";
-        rlCampus.Text = CampusCache.Read( cpCampus.Text.AsInteger() ).Name;
+        if ( CampusCache.All().Count() > 1 )
+        {
+            rlCampus.Text = CampusCache.Read( cpCampus.Text.AsInteger() ).Name;
+        }
+        else
+        {
+            rlCampus.Visible = false;
+        }
         rlEmail.Text = ebEmail.Text;
         rlAddress.Text = acAddress.Street1 + "<br />" + acAddress.City + " " + acAddress.State + " " + acAddress.PostalCode;
         rlExtraInformation.Text = tbExtraInformation.Text;
@@ -326,6 +370,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             pnlChildren.Controls.Add( new HtmlGenericControl() { InnerHtml = child.FirstName + " " + child.LastName + ", age " + child.DateOfBirth.Age() + " yrs<br />" } );
         }
     }
+
 
     private void storeChild()
     {
@@ -354,7 +399,9 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         child.Gender = rblGender.Text;
         child.Grade = gpGrade.SelectedValue.AsGuidOrNull();
         child.Allergies = tbAllergies.Text;
-        child.SpecialNeeds = tbSpecialNeeds.Text;
+        child.AllergiesKey = GetAttributeValue( "AllergiesKey" );
+        child.SpecialNote = tbSpecialNote.Text;
+        child.SpecialNoteKey = GetAttributeValue( "SpecialNoteKey" );
 
         // Now clear the form
         tbChildFirstname.Text = "";
@@ -363,7 +410,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         rblGender.ClearSelection();
         gpGrade.SelectedIndex = 0;
         tbAllergies.Text = "";
-        tbSpecialNeeds.Text = "";
+        tbSpecialNote.Text = "";
 
         ( ( List<Child> ) ViewState["Children"] ).Sort();
         SaveViewState();
@@ -388,8 +435,9 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         public string Gender { get; set; }
         public Guid? Grade { get; set; }
         public string Allergies { get; set; }
-        public string SpecialNeeds { get; set; }
-
+        public string AllergiesKey { get; set; }
+        public string SpecialNote { get; set; }
+        public string SpecialNoteKey { get; set; }
 
         // Default comparer for Child type.
         public int CompareTo( object obj )
@@ -442,17 +490,16 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         {
             // These attributes should probably be block settings.
             person.LoadAttributes();
-            person.AttributeValues["Allergy"].Value = this.Allergies;
-            if ( !string.IsNullOrWhiteSpace( this.SpecialNeeds ) )
+            if ( !string.IsNullOrWhiteSpace( AllergiesKey ) )
             {
-                person.AttributeValues["HasSpecialNeeds"].Value = "Y";
-                person.AttributeValues["SpecialNote"].Value = this.SpecialNeeds;
+                person.SetAttributeValue( AllergiesKey, Allergies );
+            }
+            if ( !string.IsNullOrWhiteSpace( SpecialNoteKey ) )
+            {
+                person.SetAttributeValue( SpecialNoteKey, SpecialNote );
             }
             person.SaveAttributeValues();
         }
 
     }
-
-
-
 }

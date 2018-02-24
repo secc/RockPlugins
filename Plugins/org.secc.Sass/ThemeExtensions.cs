@@ -1,22 +1,50 @@
-﻿using System;
+// <copyright>
+// Copyright Southeast Christian Church
+//
+// Licensed under the  Southeast Christian Church License (the "License");
+// you may not use this file except in compliance with the License.
+// A copy of the License shoud be included with this file.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+//
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using dotless.Core.configuration;
-using LibSass.Compiler;
-using LibSass.Compiler.Options;
+using System.Runtime.InteropServices;
 using Rock.Web.UI;
+using SharpScss;
 
 namespace org.secc.Sass
 {
     public static class ThemeExtensions
     {
+        [DllImport( "kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true )]
+        [return: MarshalAs( UnmanagedType.Bool )]
+        static extern bool SetDllDirectory( string lpPathName );
+
         public static bool CompileSass( this RockTheme theme, out string messages )
         {
             messages = string.Empty;
             bool result = true;
+
+
+            if ( IntPtr.Size == 8 )
+            {
+                // 64 bit machine
+                SetDllDirectory( System.Web.HttpContext.Current.Server.MapPath( "~/LibSass/win-x64/native" ) );
+
+            }
+            else if ( IntPtr.Size == 4 )
+            {
+                // 32 bit machine
+                SetDllDirectory( System.Web.HttpContext.Current.Server.MapPath( "~/LibSass/win-x86/native" ) );
+            }
 
             try
             {
@@ -24,12 +52,7 @@ namespace org.secc.Sass
                 if ( themeDirectory.Exists )
                 {
                     List<FileInfo> files = GetSCSSFiles( themeDirectory );
-
-                    DotlessConfiguration dotLessConfiguration = new DotlessConfiguration();
-                    dotLessConfiguration.MinifyOutput = true;
-
-                    Directory.SetCurrentDirectory( themeDirectory.FullName );
-
+                    
                     if ( files != null )
                     {
                         if ( theme.AllowsCompile )
@@ -38,9 +61,17 @@ namespace org.secc.Sass
                             foreach ( var file in files.Where( f => f.Name.EndsWith( ".scss" ) && !f.Name.StartsWith( "_" ) ) )
                             {
                                 var content = File.ReadAllText( file.FullName );
-                                var sassCompiler = new SassCompiler( new SassOptions() { Data = content, IncludePath = file.DirectoryName } );
-                                var compact = sassCompiler.Compile();
-                                File.WriteAllText( file.DirectoryName + @"\" + file.Name.Replace( ".scss", ".css" ), compact.Output );
+                                var compact = Scss.ConvertToCss( content, new ScssOptions()
+                                {
+                                    InputFile = file.FullName,
+                                    OutputFile = file.Name.Replace( ".scss", ".css" ), // Note: It will not generate the file, 
+                                                             // only used for exception reporting
+                                                             // includes and source maps
+                                    GenerateSourceMap = false,
+                                    
+                                } );
+
+                                File.WriteAllText( file.DirectoryName + @"\" + file.Name.Replace( ".scss", ".css" ), compact.Css );
                             }
                         }
                     }

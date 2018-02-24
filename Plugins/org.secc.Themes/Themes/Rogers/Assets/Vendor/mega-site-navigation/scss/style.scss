@@ -1,8 +1,16 @@
 @import 'bourbon'; // http://bourbon.io/
 
-@import '../partials/variables'; // colors, fonts etc...
+@import 'partials/variables'; // colors, fonts etc...
+@import 'partials/layout'; // responsive grid and media queries
 
-@import '../partials/layout'; // responsive grid and media queries
+/* --------------------------------
+
+Rock CMS Helper
+
+-------------------------------- */
+body.zone-highlight, body.block-highlight {
+    margin-bottom: 80px;
+}
 
 /* --------------------------------
 
@@ -25,13 +33,18 @@ body {
 		family: $primary-font; // variables inside partials > _variables.scss
 	}
 	color: $color-1;
-	background-color: $color-4;
+	background-color: $color-3;
 
 	@include MQ(maxL) { // layout mixins inside partials > _layout.scss
 		&.nav-on-left.overflow-hidden {
 			overflow: hidden;
 		}
 	}
+	// this makes room for the fixed mega-menu
+	// margin-top: $header-height-S;
+	// @include MQ(L) {
+	//    margin-top: $header-height-L;
+	// }
 }
 
 a {
@@ -67,13 +80,13 @@ Main components
 
 -------------------------------- */
 
-.cd-main-content, .cd-main-header {
+.cd-main-content, .cd-main-header, .cd-hero {
 	/* Force Hardware Acceleration in WebKit */
 	@include transform(translateZ(0));
 	will-change: transform;
 }
 
-.cd-main-content, .cd-main-header {
+.cd-main-content, .cd-main-header, .cd-hero {
 	position: relative;
 	@include transition(transform .3s);
 
@@ -81,25 +94,45 @@ Main components
 		&.nav-is-visible {
 			@include transform(translateX(-$nav-width-S));
 		}
-
 		.nav-on-left &.nav-is-visible {
 			@include transform(translateX($nav-width-S));
 		}
 	}
 }
 
+.cd-hero {
+	z-index: $content;
+	height: auto;
+	display: block !important;
+
+	&:after, &:before {
+		content: "";
+	    background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)) center/cover no-repeat fixed;
+	    width: 100%;
+	    height: 100%;
+	    top: 0;
+	    left: 0;
+	    position: absolute;
+	}
+}
 .cd-main-content {
-	background: $color-3;
+	// background: $color-3;
 	min-height: 100vh;
 	z-index: $content;
+	&.nav-fixed-padding {
+		padding-top: $header-height-S;
+		@include MQ(L) {
+			padding-top: $header-height-L;
+			@include clearfix;
+		}
+	}
 }
-
 .cd-main-header {
 	height: $header-height-S;
-	background: $color-4;
+	background: $color-1;
 	z-index: $above-content;
 
-	.nav-is-fixed & {
+	&.nav-is-fixed {
 		/* add .nav-is-fixed class to body if you want a fixed navigation on > 1170px */
 		position: fixed;
 		top: 0;
@@ -112,20 +145,22 @@ Main components
 		@include clearfix;
 	}
 }
-#revSlider {
- margin-top: $header-height-S;
-	 @include MQ(L) {
-	 	margin-top: $header-height-L;
-	 }
-}
+// #revSlider {
+//  margin-top: $header-height-S;
+// 	 @include MQ(L) {
+// 	 	margin-top: $header-height-L;
+// 	 }
+// }
 
 .cd-logo {
+    color: white;
 	position: absolute;
-	top: 12px;
+	top: 18px;
 	left: 5%;
 
 	img {
 		display: block;
+		max-width: 160px;
 	}
 
 	@include MQ(maxL) {
@@ -136,7 +171,7 @@ Main components
 	}
 
 	@include MQ(L) {
-		top: 26px;
+		top: 21px;
 		left: 4em;
 	}
 }
@@ -144,8 +179,9 @@ Main components
 .cd-header-buttons {
 	position: absolute;
 	display: inline-block;
-	top: 3px;
+	top: 18%;
 	right: 5%;
+	margin-bottom: 0px;
 
 	li {
 		display: inline-block;
@@ -200,7 +236,7 @@ Main components
 		width: 18px;
 		height: 18px;
 		border-radius: 50%;
-		border: 3px solid $color-1;
+		border: 3px solid $color-4;
 	}
 
 	&::after {
@@ -233,7 +269,7 @@ Main components
 		margin-top: -2px;
 		left: 50%;
 		margin-left: -11px;
-		background: $color-1;
+		background: $color-4;
 		opacity: 0;
 		/* Force Hardware Acceleration in WebKit */
 		@include transform(translateZ(0));
@@ -279,7 +315,7 @@ Main components
 		display: inline-block;
 		height: 3px;
 		width: 24px;
-		background: $color-1;
+		background: $color-4;
 	}
 
 	span {
@@ -316,12 +352,12 @@ Main components
 	&.nav-is-visible {
 		span {
 			/* hide line in the center */
-			background: rgba($color-1, 0);
+			background: rgba($color-4, 0);
 		}
 
 		span::before, span::after {
 			/* keep visible other 2 lines */
-			background: rgba($color-1, 1);
+			background: rgba($color-4, 1);
 		}
 
 		span::before {
@@ -344,13 +380,25 @@ Main components
 	right: 0;
 	height: 100%;
 	width: $nav-width-S;
-	background: $color-1;
+	background: lighten($color-1, 5%);
 	overflow: auto;
 	-webkit-overflow-scrolling: touch;
 	z-index: $below-content;
+
+	display: block;
+	list-style-type: none;
+	-webkit-margin-before: 0px;
+	-webkit-margin-after: 0px;
+	-webkit-margin-start: 0px;
+	-webkit-margin-end: 0px;
+	-webkit-padding-start: 0px;
+
+	li {
+		list-style-type: none;
+	}
+
 	/* Force Hardware Acceleration in WebKit */
 	@include transform(translateZ(0));
-
 	@include transform(translateX(0));
 	@include transition(transform .3s);
 
@@ -365,7 +413,7 @@ Main components
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
-		border-bottom: 1px solid lighten($color-1, 5%);
+		border-bottom: 1px solid lighten($color-1, 10%);;
 		@include transform(translateZ(0));
 		will-change: transform, opacity;
 		@include transition(transform .3s, opacity .3s);
@@ -630,7 +678,7 @@ Main components
 			height: $header-height-L;
 			line-height: $header-height-L;
 			padding: 0 10px;
-			color: $color-1;
+			color: $color-4;
 			overflow: visible;
 			border-bottom: none;
 			@include transition(color .3s, box-shadow .3s);
