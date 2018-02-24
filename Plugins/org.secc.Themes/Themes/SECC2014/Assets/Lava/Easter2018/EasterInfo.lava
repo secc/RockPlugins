@@ -8,19 +8,19 @@
 </header>
 
 <section id="PageHeader" style="overflow: hidden; background-color: #e6fdf7;">
-        {[ parallax image:'/Themes/SECC2014/Assets/img/Easter2018/easterBackground.jpg' height:'auto' noios:'true' position:'top top' speed:'-25' ]}
-        <div class="container-fluid">
-            <div class="row" style="padding: 0px; margin: 0;">
-                <div class="col-sm-12 text-center" style="padding: 20px 0px;">
-                    <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/EasterLogoUpdate.svg" class="img-responsive wow zoomIn" data-wow-duration="1.4s" data-wow-delay="1.7s" style="z-index: 5; position: relative; max-height: 20em; margin: 0 auto; width: 100%; visibility: hidden;">
-                </div>
+    {[ parallax image:'/Themes/SECC2014/Assets/img/Easter2018/easterBackground.jpg' height:'auto' noios:'true' position:'top top' speed:'-25' ]}
+    <div class="container-fluid" style="padding: 3em 0;">
+        <div class="row" style="padding: 0px; margin: 0;">
+            <div class="col-sm-12 text-center" style="padding: 20px 0px;">
+                <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/EasterLogoUpdate.svg" class="img-responsive wow zoomIn" data-wow-duration="1.4s" data-wow-delay="1.7s" style="z-index: 5; position: relative; max-height: 15em; margin: 0 auto; width: 100%; visibility: hidden;">
             </div>
         </div>
-        {[ endparallax ]}
+    </div>
+    {[ endparallax ]}
 </section>
 
 <div class="cd-secondary-nav">
-    <a href="#0" class="cd-secondary-nav-trigger">Menu<span></span></a> <!-- button visible on small devices -->
+    <a href="#0" class="cd-secondary-nav-trigger">Menu<span></span></a> <!-- button visible on small devices //-->
     <nav>
         <ul>
             <li>
@@ -108,7 +108,7 @@
     <!-- ========== Locations ========== -->
       <section id="locations" class="easter-section section easter-font" style="padding-bottom:0px;">
 
-          <header class="text-center"  style="padding-bottom: 0px;">
+          <header class="text-center"  style="padding: 10px;">
             <br />
             <h1>Locations</h1>
             <p>Select a campus below for service times and more!</p>
@@ -218,13 +218,13 @@
         <div class="container-fluid">
             <div class="row no-spacing">
                 <div class="col-sm-10 col-sm-offset-1" style="margin-bottom:1em">
-                    <h2 class="wow fadeIn text-center" data-wow-delay=".1s" data-wow-duration="1s">Pre-register Your Kids for Easter</h2>
+                    <h2 style="letter-spacing:2px;">Pre-register Your Kids for Easter</h2 >
                     <br />
                     <p>Our Children's Ministry (SE!Kids) provides a safe, fun environment where kids ages birth-fifth grade can make new friends and learn about Jesus while parents attend the worship service in the Sanctuary.</p>
                     <p>For your convenience, first-time guests can fill out a short online form that will allow for a quicker check-in when you arrive for services on Easter weekend.</p>
                     <p class="text-center">
-                        COMING SOON
-                        <!-- <a href="https://my.southeastchristian.org/easter/preregistration" class="btn btn-easter btn-large wow fadeIn" data-wow-delay=".3s" data-wow-duration="1s">Click here to get started</a> -->
+                        <br />
+                        <a href="https://www.southeastchristian.org/visit/children/register" class="btn btn-easter btn-large wow fadeIn" data-wow-delay=".3s" data-wow-duration="1s">Click here to get started</a>
                     </p>
                 </div>
             </div>
@@ -233,7 +233,7 @@
 
     <section id="map" class="easter-section easter-font">
 
-        <header class="text-center"  style="padding-bottom: 0px;">
+        <header class="text-center"  style="padding: 10px;">
           <br />
           <h1>Find a Service Near You</h1>
           <p>Click on each location to see more information and get directions.</p>
@@ -246,7 +246,7 @@
                     {% assign publicCampus = campus | Attribute:'Public' %}
                     {% assign slug = campus | Attribute:'Slug' %}
                     {% if publicCampus == 'Yes' %}
-                        [[ marker location:'{{ campus.Location.Latitude }},{{ campus.Location.Longitude }}' title:'{{ campus.Name }} Campus' icon:'http://rockdev.secc.org/Themes/SECC2014/Assets/img/Easter2018/map/marker-{{ campus | Attribute:'Slug' }}.png' ]]
+                        [[ marker location:'{{ campus.Location.Latitude }},{{ campus.Location.Longitude }}' title:'{{ campus.Name }} Campus' icon:'http://southeastchristian.org/Themes/SECC2014/Assets/img/Easter2018/map/marker-{{ campus | Attribute:'Slug' }}.png' ]]
                             <h2 class="text-center" style="margin: 10px 0px;">{{ campus.Name }}</h2>
                             <p class="text-center"><a style="width: 100%;" class="folio-project btn btn-easter" onclick="googleCallbackLocations('easter{{ campus | Attribute:'Slug' | Capitalize }} #campus-easter-info', this)" href="javascript:void(0)">Campus Info</a></p>
                             <p class="text-center"><a style="width: 100%;" class="btn btn-easter" target="_blank" href="https://www.google.com/maps/dir/Current+Location/{{ campus.Location.Street1 | Replace:' ','+' }}+{{ campus.Location.City | Replace:' ','+' }}+{{ campus.Location.State | Replace:' ','+' }}+{{ campus.Location.PostalCode | Replace:' ','+' }}">Directions</a></p>
@@ -266,7 +266,7 @@
 	</section>
 
 
-    <section id="serve" class="easter-section easter-font">
+    <section id="serve" class="easter-section easter-font" style="z-index: 1;">
             {[ parallax image:'/Themes/SECC2014/Assets/img/Easter2018/Serve_Easter.jpg' height:'auto' noios:'true' position:'top top' speed:'-25' zindex:'1' ]}
             <!-- Round Select Overlay -->
             <div class="round-select-overlay-js"></div>
@@ -293,12 +293,12 @@
                             <span class="lines line-2"></span>
                             <span class="lines line-3"></span>
                           </label>
-                          <a href="https://www.southeastchristian.org/Registration/920BB18STUn18" class="swoosh-menu-item item-1"><span class="se-logo">920</span></a>
-                          <a href="https://www.southeastchristian.org/Registration/INBB18STUn18" class="swoosh-menu-item item-2"><span class="se-logo">IN</span></a>
-                          <a href="https://www.southeastchristian.org/Registration/CWBB18STUn18" class="swoosh-menu-item item-3"><span class="se-logo">CW</span></a>
-                          <a href="https://www.southeastchristian.org/Registration/SWBB18STUn18" class="swoosh-menu-item item-4"><span class="se-logo">SW</span></a>
-                          <a href="https://www.southeastchristian.org/Registration/LABB18STUn18" class="swoosh-menu-item item-5"><span class="se-logo">LA</span></a>
-                          <a href="https://www.southeastchristian.org/Registration/ETBB18STUn18" class="swoosh-menu-item item-6"><span class="se-logo">ET</span></a>
+                          <a href="/serve/easter?CampusId=1" class="swoosh-menu-item item-1"><span class="se-logo">920</span></a>
+                          <a href="/serve/easter?CampusId=3" class="swoosh-menu-item item-2"><span class="se-logo">IN</span></a>
+                          <a href="/serve/easter?CampusId=4" class="swoosh-menu-item item-3"><span class="se-logo">CW</span></a>
+                          <a href="/serve/easter?CampusId=5" class="swoosh-menu-item item-4"><span class="se-logo">SW</span></a>
+                          <a href="/serve/easter?CampusId=6" class="swoosh-menu-item item-5"><span class="se-logo">LA</span></a>
+                          <a href="/serve/easter?CampusId=7" class="swoosh-menu-item item-6"><span class="se-logo">ET</span></a>
                         </nav>
 
                     </div>
@@ -308,15 +308,19 @@
     </section>
 
     <section id="faq" class="easter-section easter-font">
-        <div class="container-fluid">
+        <div class="container">
             <div class="row">
                 <div class="col-sm-12 text-center">
-                    <h1>Frequently Asked Questions</h1><br />
+                    <br />
+                    <br />
+                    <br />
+                    <h1>Frequently Asked Questions</h1>
+                    <br />
 				</div>
 			</div>
 			<div class="row">
 					<!-- FAQ Group 1 -->
-	            <div class="col-md-5 col-md-offset-1">
+	            <div class="col-md-6">
 
 	              <!-- FAQ Accordion -->
 	              <div class="panel-group accordions-1" id="faq-accordion-1" role="tablist" aria-multiselectable="true">
@@ -440,7 +444,7 @@
 	            </div><!-- / .col-md-6 -->
 
 				<!-- FAQ Group 2 -->
-	            <div class="col-md-5">
+	            <div class="col-md-6">
 	              <!-- <div class="faq-group-header ws-s">
 	                <h4 class="mb-30">Questions Group 2</h4>
 	                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sint, blanditiis corrupti ea optio veniam, reiciendis, quidem iste quae.</p>
@@ -552,6 +556,8 @@
 	            </div><!-- / .col-md-6 -->
 
             </div>
+            <br />
+            <br />
         </div>
     </section>
 
