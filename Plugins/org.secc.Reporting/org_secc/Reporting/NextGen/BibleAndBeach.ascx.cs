@@ -549,6 +549,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
             }
             public String FamilyGroup { get { return GetAttributeValue( "FamilyGroup" ); } }
             public String RoomCode { get { return GetAttributeValue( "HotelRoomCode" ); } }
+			public String Departure { get { return GetAttributeValue( "Departure" ); } }
             public String Bus { get { return GetAttributeValue( "Bus" ); } }
 
             public int CompareTo( object obj )
