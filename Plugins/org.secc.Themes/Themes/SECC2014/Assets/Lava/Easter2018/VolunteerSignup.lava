@@ -87,6 +87,12 @@
             margin: 0px 10px !important;
         }
     }
+	@media (min-width:768px )
+    {
+		.pull-right-md {
+			float: right;
+		}
+	}
     @media (max-width:1200px)
     {
         .spots-left {
@@ -217,7 +223,10 @@
         
         
         {% for campus in Tree %}
-            {% for role in campus.Partitions %}
+            {% for role in campus.Partitions %}			
+			{% assign minimumAge = role.Entity | Attribute:"MinimumAge" %}
+			{% assign requiresBackgroundCheck = role.Entity | Attribute:"RequiresBackgroundCheck" %}
+			{% assign menOnly = role.Entity | Attribute:"MenOnly" %}
             <div class="row slide-box" id="{{campus.Entity.Guid}}{{role.Entity.Guid}}">
 			
 				<div class="col-md-10 col-md-offset-1">
@@ -228,11 +237,28 @@
                     </div>
 					<h2 class="text-center" style="padding-top:10px"><i class="{{ role.Entity | Attribute: "Icon" }}"></i> {{role.Entity.Name}}</h2>
 					<hr style="clear:both; margin-top:10px;">
+					
 					{{role.Entity.Description}}
 					<br />
 					<br />
 				</div>
                 <div class="col-sm-10 col-sm-offset-1">
+					{% if minimumAge != "" or requiresBackgroundCheck == 'Yes' or menOnly == 'Yes' %}
+						<div class="pull-right-md">
+							<strong>Requirements</strong>:
+							{% if minimumAge != "" %}
+								<span class="label label-warning" style="margin: 3px" data-toggle="tooltip" title="This role has a minimum age requirement of {{ minimumAge }} years of age.">{{ minimumAge }} Yrs Old</span>
+							{% endif %}
+							{% if requiresBackgroundCheck == 'Yes' %}
+								<span class="label label-danger" style="margin: 3px" data-toggle="tooltip" title="This role requires the volunteer to have a background check, ministry safe training, and requires the volunteer to have verified attendance for at least 6 months.">Volunteer Screening</span>
+							{% endif %}
+							{% if menOnly == 'Yes' %}
+								<span class="label label-default" style="margin: 3px" data-toggle="tooltip" title="This role requires the volunteer a male.">Men Only</span>
+							{% endif %}
+							<br />
+							<br />
+						</div>
+					{% endif %}
                     <h4>Please select the service(s):</h4><br />
                     <div class="row">
                     
@@ -316,6 +342,8 @@
     </div>
 </div>
 <script type="text/javascript">
+
+	$('[data-toggle="tooltip"]').tooltip();
 	$('.signup-button').click(function() {
 		checked = []
 		$(this).parent().parent().find(".service-times:checked").each(function () {
