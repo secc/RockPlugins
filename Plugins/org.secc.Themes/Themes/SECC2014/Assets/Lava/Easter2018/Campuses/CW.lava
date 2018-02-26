@@ -21,21 +21,9 @@
 						<!-- Phone -->
 						<div class="col-md-12 col-lg-6">
 						  <p><a style="width:100%" href="https://www.google.com/maps/dir/Current+Location/6201+Crestwood+Station+Crestwood+KY+40014" class="btn btn-easter" target="_blank"><strong><i class="fa fa-map-marker"></i> Get Directions</strong></a></p>
-						  <p><a style="width:100%" href="mailto:?subject=Check this out—Easter Together at Southeast Christian (Crestwood)&amp;body=Hi! I'm going to Easter Together at Southeast Christian Church (Crestwood Campus). I hope you'll join me! Find out more here: http://southeastchristian.org/eastertogether/#crestwood" class="btn btn-easter"><strong><i class="fa fa-envelope"></i> Invite a Friend</strong></a></p>
-						  <p><button id="shareBtn" style="width:100%" class="btn btn-easter"><strong><i class="fa fa-facebook-official"></i> Share</strong></button></p>
+						  <p><a style="width:100%" href="mailto:?subject=Check this out—Easter at Southeast Christian (Crestwood)&amp;body=Hi! I'm going to Easter at Southeast Christian Church (Crestwood Campus). I hope you'll join me! Find out more here: http://southeastchristian.org/easteratsoutheast/#crestwood" class="btn btn-easter"><strong><i class="fa fa-envelope"></i> Invite a Friend</strong></a></p>
+						  <!--<p><button id="shareBtn" style="width:100%" class="btn btn-easter"><strong><i class="fa fa-facebook-official"></i> Share</strong></button></p>-->
 						</div>
-
-						<script>
-						document.getElementById('shareBtn').onclick = function() {
-						  FB.ui({
-							method: 'share',
-							display: 'popup',
-							hashtag: '#EasterTogether',
-							quote: "Let’s celebrate Easter Together at Southeast Christian Church. Our doors are open wide—and no matter where you are, wherever you’re coming from, you’re welcome here.",
-							href: 'http://southeastchristian.org/eastertogether/#crestwood',
-						  }, function(response){});
-						}
-						</script>
 
 					  </div><!-- / .row -->
 					</address>
@@ -44,7 +32,9 @@
 						<h5>Times</h5>
 						<p>Friday, March 30 • 7:00 p.m.<br>
 						   Saturday, March 31 • 3:00, 4:30, 6:00 p.m.<br>
-						   Sunday, April 1 • 7:30 a.m.&nbsp;<i>(traditional service–Greg Allen),</i> 9:00 a.m., 10:30 a.m., 12:00 p.m.</p>
+						   Sunday, April 1 • 7:30 <i>(traditional service–Greg Allen),</i> 9:00, 10:30 a.m., 12:00 p.m.</p>
+						<h5>Children’s programming available from birth – 5<sup>th</sup> grade – for all services except for the 7:30 a.m. traditional service.</h5>
+						<br>
 						<p><a href="#times">Click here to see times for all locations</a>.</p>
 						<hr>
 					</div>
@@ -59,7 +49,6 @@
 			</div>
 			<div class="row">
 				<div class="col-md-12">
-					<br>
 					<a href="https://www.southeastchristian.org/crestwood/" target="_blank">Click here to learn more about the Crestwood Campus.</a>
 				</div>
 			</div>
