@@ -12,7 +12,7 @@
     <div class="container-fluid" style="padding: 3em 0;">
         <div class="row" style="padding: 0px; margin: 0;">
             <div class="col-sm-12 text-center" style="padding: 20px 0px;">
-                <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/EasterLogoUpdate.svg" class="img-responsive wow zoomIn" data-wow-duration="1.4s" data-wow-delay="1.7s" style="z-index: 5; position: relative; max-height: 15em; margin: 0 auto; width: 100%; visibility: hidden;">
+                <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/EasterLogoUpdate.svg" class="img-responsive wow zoomIn" data-wow-duration="1.4s" data-wow-delay="1.7s" style="z-index: 5; position: relative; max-width: 450px; margin: 0 auto; width: 100%; visibility: hidden; display:block;">
             </div>
         </div>
     </div>
