@@ -21,21 +21,9 @@
 						<!-- Phone -->
 						<div class="col-md-12 col-lg-6">
  							<p><a style="width:100%" href="https://www.google.com/maps/dir/Current+Location/410+South+1st+Street+La+Grange+KY+40031" class="btn btn-easter" target="_blank"><strong><i class="fa fa-map-marker"></i> Get Directions</strong></a></p>
-							<p><a style="width:100%" href="mailto:?subject=Check this out—Easter Together at Southeast Christian (La Grange)&amp;body=Hi! I'm going to Easter Together at Southeast Christian Church (La Grange Campus). I hope you'll join me! Find out more here: http://southeastchristian.org/eastertogether/#lagrange" class="btn btn-easter"><strong><i class="fa fa-envelope"></i> Invite a Friend</strong></a></p>
-							<p><button id="shareBtn" style="width:100%" class="btn btn-easter"><strong><i class="fa fa-facebook-official"></i> Share</strong></button></p>
+							<p><a style="width:100%" href="mailto:?subject=Check this out—Easter at Southeast Christian (La Grange)&amp;body=Hi! I'm going to Easter at Southeast Christian Church (La Grange Campus). I hope you'll join me! Find out more here: http://southeastchristian.org/easteratsoutheast/#lagrange" class="btn btn-easter"><strong><i class="fa fa-envelope"></i> Invite a Friend</strong></a></p>
+							<!--<p><button id="shareBtn" style="width:100%" class="btn btn-easter"><strong><i class="fa fa-facebook-official"></i> Share</strong></button></p>-->
 						</div>
-
-						<script>
-						document.getElementById('shareBtn').onclick = function() {
-						  FB.ui({
-							method: 'share',
-							display: 'popup',
-							hashtag: '#EasterTogether',
-							quote: "Let’s celebrate Easter Together at Southeast Christian Church. Our doors are open wide—and no matter where you are, wherever you’re coming from, you’re welcome here.",
-							href: 'http://southeastchristian.org/eastertogether/#lagrange',
-						  }, function(response){});
-						}
-						</script>
 
 					  </div><!-- / .row -->
 					</address>
@@ -45,6 +33,8 @@
 						<p>Friday, March 30 • 7:00 p.m.<br>
 						   Saturday, March 31 • 4:00, 5:30 p.m.<br>
 						   Sunday, April 1 • 9:30 a.m., 11:15 a.m., 1:00 p.m.</p>
+						<h5>Children’s programming available from birth – 5th grade – for all services.</h5>
+						<br>
 						<p><a href="#times">Click here to see times for all locations</a>.</p>
 						<hr>
 					</div>
@@ -53,7 +43,7 @@
 
 				<div class="col-md-6">
 					<div class="welcome-video embed-responsive embed-responsive-16by9" style="margin-top:-13px;">
-						<iframe src="//player.vimeo.com/video/205950586" class="embed-responsive-item" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen=""></iframe>
+						<iframe src="//player.vimeo.com/video/203458234" class="embed-responsive-item" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen=""></iframe>
 					</div>
 				</div>
 			</div>

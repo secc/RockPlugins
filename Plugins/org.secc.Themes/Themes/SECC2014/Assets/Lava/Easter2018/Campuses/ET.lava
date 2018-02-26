@@ -22,7 +22,7 @@
 						<div class="col-md-12 col-lg-6">
 							<p><a style="width:100%" href="https://www.google.com/maps/dir/Current+Location/600+N+Dixie+Ave+Elizabethtown+KY+42701-2409" class="btn btn-easter" target="_blank"><strong><i class="fa fa-map-marker"></i> Get Directions</strong></a></p>
 							<p><a style="width:100%" href="mailto:?subject=Check this out—Easter Together at Southeast Christian (Southwest)&amp;body=Hi! I'm going to Easter Together at Southeast Christian Church (Southwest Campus). I hope you'll join me! Find out more here: http://southeastchristian.org/eastertogether/#southwest" class="btn btn-easter"><strong><i class="fa fa-envelope"></i> Invite a Friend</strong></a></p>
-							<p><button id="shareBtn" style="width:100%" class="btn btn-easter"><strong><i class="fa fa-facebook-official"></i> Share</strong></button></p>
+							<!--<p><button id="shareBtn" style="width:100%" class="btn btn-easter"><strong><i class="fa fa-facebook-official"></i> Share</strong></button></p>-->
 						</div>
 
 						<script>
@@ -40,39 +40,31 @@
 					  </div><!-- / .row -->
 					</address>
 
-					<!--<div id="project-campus-times">-->
-					<!--	<h5>Times</h5>-->
-					<!--	<p>Friday, March 30 • 7:00 p.m.<br>-->
-					<!--	   Saturday, March 31 • 4:00, 5:30 p.m.<br>-->
-					<!--	   Sunday, April 1 • 9:30, 11:15 a.m.<br></p>-->
-					<!--	<p><a href="#times">Click here to see times for all locations</a>.</p>-->
-					<!--	<hr>-->
-					<!--</div>-->
-
-				</div>
-
-				<div class="col-md-6">
-					<!--<div class="welcome-video embed-responsive embed-responsive-16by9" style="margin-top:-13px;">-->
-						<!--<iframe src="//player.vimeo.com/video/205956225" class="embed-responsive-item" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen=""></iframe>-->
-					<!--</div>-->
-					<div id="project-campus-times">
+                    <div id="project-campus-times">
 						<h5>Times</h5>
 						<p>Friday, March 30 • 7:00 p.m.<br>
 						   Saturday, March 31 • 4:00, 5:30 p.m.<br>
 						   Sunday, April 1 • 9:30, 11:15 a.m.<br></p>
+					    <h5>Children’s programming available from birth – 5th grade – for all services.</h5>
+						<br>
 						<p><a href="#times">Click here to see times for all locations</a>.</p>
 						<hr>
 					</div>
-					<a href="https://www.southeastchristian.org/elizabethtown" target="_blank">Click here to learn more about the Elizabethtown Campus.</a>
-					<br>
-					<br>
+
+				</div>
+
+				<div class="col-md-6">
+					<div class="welcome-video embed-responsive embed-responsive-16by9" style="margin-top:-13px;">
+						<iframe src="//player.vimeo.com/video/233547557" class="embed-responsive-item" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen=""></iframe>
+					</div>
+
 				</div>
 			</div>
 			<div class="row">
 				<div class="col-md-12">
-					<!--<br>-->
-					<!--<a href="https://www.southeastchristian.org/elizabethtown" target="_blank">Click here to learn more about the Elizabethtown Campus.</a>-->
-					<!--<br>-->
+				    <br>
+				    <a href="https://www.southeastchristian.org/elizabethtown" target="_blank">Click here to learn more about the Elizabethtown Campus.</a>
+					<br>
 				</div>
 			</div>
 		</div>
