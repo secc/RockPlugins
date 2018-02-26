@@ -1,0 +1,808 @@
+<script src="~~/Scripts/modernizr.js"></script>
+<script src="https://www.southeastchristian.org/eastertogether/assets/js/vendor/wow.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
+<script src="https://use.typekit.net/osx6gkw.js"></script>
+<script>try{Typekit.load({ async: true });}catch(e){}</script>
+
+<header class="cd-header">
+</header>
+
+<section id="PageHeader" style="overflow: hidden; background-color: #e6fdf7;">
+    {[ parallax image:'/Themes/SECC2014/Assets/img/Easter2018/easterBackground.jpg' height:'auto' noios:'true' position:'top top' speed:'-25' ]}
+    <div class="container-fluid" style="padding: 3em 0;">
+        <div class="row" style="padding: 0px; margin: 0;">
+            <div class="col-sm-12 text-center" style="padding: 20px 0px;">
+                <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/EasterLogoUpdate.svg" class="img-responsive wow zoomIn" data-wow-duration="1.4s" data-wow-delay="1.7s" style="z-index: 5; position: relative; max-height: 15em; margin: 0 auto; width: 100%; visibility: hidden;">
+            </div>
+        </div>
+    </div>
+    {[ endparallax ]}
+</section>
+
+<div class="cd-secondary-nav">
+    <a href="#0" class="cd-secondary-nav-trigger">Menu<span></span></a> <!-- button visible on small devices //-->
+    <nav>
+        <ul>
+            <li>
+                <a href="#about">
+                    <b>About</b>
+                    <span><i class="fa fa-users"></i></span>
+                </a>
+            </li>
+            <li>
+                <a href="#locations">
+                    <b>Locations</b>
+                    <span><i class="fa fa-map"></i></span>
+                </a>
+            </li>
+            <li>
+                <a href="#map">
+                    <b>Map</b>
+                    <span><i class="fa fa-map-marker"></i></span>
+                </a>
+            </li>
+            <li>
+                <a href="#times">
+                    <b>Times</b>
+                    <span><i class="fa fa-clock-o"></i></span>
+                </a>
+            </li>
+            <!-- <li>
+                <a href="#share">
+                    <b>Share</b>
+                    <span><i class="fa fa-bullhorn"></i></span>
+                </a>
+            </li> -->
+			<li>
+				<a href="#serve">
+					<b>Serve</b>
+					<span><i class="fa fa-user"></i></span>
+				</a>
+			</li>
+            <li>
+                <a href="#faq">
+                    <b>FAQ</b>
+                    <span><i class="fa fa-question-circle"></i></span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div> <!-- .cd-secondary-nav -->
+
+<main class="cd-main-content">
+
+    <section id="about" class="easter-section easter-font">
+        <div class="container">
+
+			<div class="row section" style="padding:40px 0;">
+              <header class="sec-heading text-center">
+                  <!-- <h1>CONNECTED BY LOVE</h1> -->
+              <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/connectedbylove02.svg" class="img-responsive wow fadeIn zoomIn" data-wow-duration="1s" data-wow-delay="2.5s" style="max-width: 40em; max-height: 15em; margin: 0 auto; width: 100%; visibility: hidden; padding: 0 20px;">
+              </header>
+              <br />
+              <div class="col-md-offset-1 col-md-5 biggerText">
+                  <h2>Easter at Southeast</h2>
+                  <br />
+                  <p>There's not another day like it on the calendar-a day of hope, joy, and love that brings people together.</p>
+                  <p>This day is for all of us. So, let's share it. Let's celebrate <i>Easter at Southeast</i>!</p>
+                  <p>Our doors are open wide-and no matter where you are, wherever you're coming from, you're welcome here.</p>
+                  <br />
+                  <br />
+              </div>
+              <div class="col-md-5 biggerText" style="text-align: left;">
+                  <h2>What to Expect</h2>
+                  <br />
+                  <ul>
+                      <li><p class="no-spacing">Biblical, relevant teaching from Dave Stone and Kyle Idleman (all services except for the traditional services on Sunday morning)</p></li>
+                      <li><p class="no-spacing">Worship</p></li>
+                      <li><p class="no-spacing">Multiple locations and service times<br> to fit your schedule</p></li>
+                      <li><p class="no-spacing">Friendly people and helpful volunteers</p></li>
+                      <li><p class="no-spacing">Great options for kids</p></li>
+                      <li><p class="no-spacing">No dress code—come as you are!</p></li>
+                  </ul>
+              </div>
+          </div>
+        </div>
+    </section>
+
+    <!-- ========== Locations ========== -->
+      <section id="locations" class="easter-section section easter-font" style="padding-bottom:0px;">
+
+          <header class="text-center"  style="padding: 10px;">
+            <br />
+            <h1>Locations</h1>
+            <p>Select a campus below for service times and more!</p>
+          </header>
+
+          <div class="container-fluid" style="padding-top:30px;">
+              <div class="row no-spacing">
+                  <div class="col-md-12 no-spacing">
+
+                      <div id="ajax"></div>
+
+                      <div class="portfolio-grid">
+                          <div id="folio" class="isotope">
+
+
+                                  <div class="folio-item col-xs-12 col-sm-6 col-md-4 no-spacing">
+                                      <div class="portfolio-thumb">
+                                          <a id="blankenbaker" class="folio-project" href="/easterBlankenbaker #campus-easter-info">
+                                              <div class="portfolio-inner">
+                                                  <div class="portfolio-inner-ctr">
+                                                      <span class="se-logo stroke">920</span>
+                                                      <h4>Blankenbaker</h4>
+                                                  </div>
+                                              </div>
+                                          </a>
+                                      </div>
+                                  </div>
+
+                                  <div class="folio-item col-xs-12 col-sm-6 col-md-4 no-spacing" >
+                                      <div class="portfolio-thumb">
+                                          <a id="indiana" class="folio-project" href="/easterIndiana #campus-easter-info">
+                                              <div class="portfolio-inner">
+                                                  <div class="portfolio-inner-ctr">
+                                                      <span class="se-logo stroke">IN</span>
+                                                      <h4>Indiana</h4>
+                                                  </div>
+                                              </div>
+                                          </a>
+                                      </div>
+                                  </div>
+
+
+
+
+                                  <div class="folio-item col-xs-12 col-sm-6 col-md-4 no-spacing" >
+                                      <div class="portfolio-thumb">
+                                          <a id="crestwood" class="folio-project" href="/easterCrestwood #campus-easter-info">
+                                              <div class="portfolio-inner">
+                                                  <div class="portfolio-inner-ctr">
+                                                      <span class="se-logo stroke">CW</span>
+                                                      <h4>Crestwood</h4>
+                                                  </div>
+                                              </div>
+                                          </a>
+                                      </div>
+                                  </div>
+
+
+                                  <div class="folio-item col-xs-12 col-sm-6 col-md-4 no-spacing">
+                                      <div class="portfolio-thumb">
+                                          <a id="southwest" class="folio-project" href="/easterSouthwest #campus-easter-info">
+                                              <div class="portfolio-inner">
+                                                  <div class="portfolio-inner-ctr">
+                                                      <span class="se-logo stroke">SW</span>
+                                                      <h4>Southwest</h4>
+                                                  </div>
+                                              </div>
+                                          </a>
+                                      </div>
+                                  </div>
+
+
+                                  <div class="folio-item col-xs-12 col-sm-6 col-md-4 no-spacing" >
+                                      <div class="portfolio-thumb">
+                                          <a id="lagrange" class="folio-project" href="/easterLaGrange #campus-easter-info">
+                                              <div class="portfolio-inner">
+                                                  <div class="portfolio-inner-ctr">
+                                                     <span class="se-logo stroke">LA</span>
+                                                      <h4>La Grange</h4>
+                                                  </div>
+                                              </div>
+                                          </a>
+                                      </div>
+                                  </div>
+
+                                  <div class="folio-item col-xs-12 col-sm-6 col-md-4 no-spacing" >
+                                      <div class="portfolio-thumb">
+                                          <a id="lagrange" class="folio-project" href="/easterElizabethtown #campus-easter-info">
+                                              <div class="portfolio-inner">
+                                                  <div class="portfolio-inner-ctr">
+                                                      <span class="se-logo stroke">ET</span>
+                                                      <h4>Elizabethtown</h4>
+                                                  </div>
+                                              </div>
+                                          </a>
+                                      </div>
+                                  </div>
+
+                          </div> <!-- End #folio -->
+                      </div> <!-- End .portfolio-grid -->
+                  </div> <!-- End .jt_col -->
+              </div> <!-- End .jt_row -->
+          </div> <!-- End .container -->
+      </section>
+
+    <section id="PreregisterKids" class="easter-section easter-font">
+        <div class="container-fluid">
+            <div class="row no-spacing">
+                <div class="col-sm-10 col-sm-offset-1" style="margin-bottom:1em">
+                    <h2 style="letter-spacing:2px;">Pre-register Your Kids for Easter</h2 >
+                    <br />
+                    <p>Our Children's Ministry (SE!Kids) provides a safe, fun environment where kids ages birth-fifth grade can make new friends and learn about Jesus while parents attend the worship service in the Sanctuary.</p>
+                    <p>For your convenience, first-time guests can fill out a short online form that will allow for a quicker check-in when you arrive for services on Easter weekend.</p>
+                    <p class="text-center">
+                        <br />
+                        <a href="https://www.southeastchristian.org/visit/children/register" class="btn btn-easter btn-large wow fadeIn" data-wow-delay=".3s" data-wow-duration="1s">Click here to get started</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="map" class="easter-section easter-font">
+
+        <header class="text-center"  style="padding: 10px;">
+          <br />
+          <h1>Find a Service Near You</h1>
+          <p>Click on each location to see more information and get directions.</p>
+        </header>
+        <br />
+        <br />
+        <div class="container-fluid no-spacing">
+            {[ googlemap showfullscreen:'false' markerannimation:'drop' ]}
+                {% for campus in Campuses %}
+                    {% assign publicCampus = campus | Attribute:'Public' %}
+                    {% assign slug = campus | Attribute:'Slug' %}
+                    {% if publicCampus == 'Yes' %}
+                        [[ marker location:'{{ campus.Location.Latitude }},{{ campus.Location.Longitude }}' title:'{{ campus.Name }} Campus' icon:'/Themes/SECC2014/Assets/img/Easter2018/map/marker-{{ campus | Attribute:'Slug' }}.png' ]]
+                            <h2 class="text-center" style="margin: 10px 0px;">{{ campus.Name }}</h2>
+                            <p class="text-center"><a style="width: 100%;" class="folio-project btn btn-easter" onclick="googleCallbackLocations('/easter{{ campus | Attribute:'Slug' | Capitalize }} #campus-easter-info', this)" href="javascript:void(0)">Campus Info</a></p>
+                            <p class="text-center"><a style="width: 100%;" class="btn btn-easter" target="_blank" href="https://www.google.com/maps/dir/Current+Location/{{ campus.Location.Street1 | Replace:' ','+' }}+{{ campus.Location.City | Replace:' ','+' }}+{{ campus.Location.State | Replace:' ','+' }}+{{ campus.Location.PostalCode | Replace:' ','+' }}">Directions</a></p>
+                        [[ endmarker ]]
+                    {% endif %}
+                {% endfor %}
+
+                 [[ style ]]
+                    [{"featureType":"water","elementType":"geometry","stylers":[{"color":"#a0d6d1"},{"lightness":17}]},{"featureType":"landscape","elementType":"geometry","stylers":[{"color":"#ffffff"},{"lightness":20}]},{"featureType":"road.highway","elementType":"geometry.fill","stylers":[{"color":"#dedede"},{"lightness":17}]},{"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"color":"#dedede"},{"lightness":29},{"weight":0.2}]},{"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#dedede"},{"lightness":18}]},{"featureType":"road.local","elementType":"geometry","stylers":[{"color":"#ffffff"},{"lightness":16}]},{"featureType":"poi","elementType":"geometry","stylers":[{"color":"#f1f1f1"},{"lightness":21}]},{"elementType":"labels.text.stroke","stylers":[{"visibility":"on"},{"color":"#ffffff"},{"lightness":16}]},{"elementType":"labels.text.fill","stylers":[{"saturation":36},{"color":"#333333"},{"lightness":40}]},{"elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"transit","elementType":"geometry","stylers":[{"color":"#f2f2f2"},{"lightness":19}]},{"featureType":"administrative","elementType":"geometry.fill","stylers":[{"color":"#fefefe"},{"lightness":20}]},{"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"color":"#fefefe"},{"lightness":17},{"weight":1.2}]}]
+                 [[ endstyle]]
+            {[ endgooglemap ]}
+        </div>
+    </section>
+
+    <section id="times" class="easter-section easter-font">
+	      {% include '~~/Assets/Lava/Easter2018/EasterTimes.lava' %}
+	</section>
+
+
+    <section id="serve" class="easter-section easter-font" style="z-index: 1;">
+            {[ parallax image:'/Themes/SECC2014/Assets/img/Easter2018/Serve_Easter.jpg' height:'auto' noios:'true' position:'top top' speed:'-25' zindex:'1' ]}
+            <!-- Round Select Overlay -->
+            <div class="round-select-overlay-js"></div>
+            <div class="container">
+                <div class="row" style="padding: 0px; margin: 0;">
+                    <div class="col-sm-12 text-center" style="padding: 50px 0px;">
+                        <!-- <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/easterLogoBG.svg" class="img-responsive wow fadeIn" data-wow-duration="1s" data-wow-delay="1s" style="z-index: 4; max-width: 60rem; max-height: 25em; margin: 0 auto; width: 100%; visibility: hidden; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"> -->
+                        <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/serve.svg" class="img-responsive wow fadeIn" data-wow-duration="1s" data-wow-delay=".3s" style="z-index: 5; position: relative; max-width: 60rem; max-height: 15em; margin: 0 auto; width: 100%; visibility: hidden;">
+                        <br />
+                        <br />
+                        <h2>WANT TO HELP WITH EASTER AT SOUTHEAST?</h2>
+                        <br />
+                        <h3>As thousands of guests visit our campuses this Easter, we want to make their experience as smooth and pleasant as possible, because we want them to encounter the hope of Easter and we want to see them again! You can help. No matter your gifts or experience, we have a spot for you.</h3>
+                        <br />
+                        <!-- <p class="text-center"><a class="btn btn-easter" style="background-color:white;" href="/easter/serve/">Sign Up to Serve</a></p> -->
+                        <br />
+                        <h2>Sign Up to Serve</h2>
+                        <br />
+                        <nav class="swoosh-menu">
+                          <input type="checkbox" href="#" class="swoosh-menu-open" name="swoosh-menu-open-serve" id="swoosh-menu-open-serve">
+                          <label class="swoosh-menu-open-button" for="swoosh-menu-open-serve">
+                            SELECT A CAMPUS
+                            <span class="lines line-1"></span>
+                            <span class="lines line-2"></span>
+                            <span class="lines line-3"></span>
+                          </label>
+                          <a href="/serve/easter?CampusId=1" class="swoosh-menu-item item-1"><span class="se-logo">920</span></a>
+                          <a href="/serve/easter?CampusId=3" class="swoosh-menu-item item-2"><span class="se-logo">IN</span></a>
+                          <a href="/serve/easter?CampusId=4" class="swoosh-menu-item item-3"><span class="se-logo">CW</span></a>
+                          <a href="/serve/easter?CampusId=5" class="swoosh-menu-item item-4"><span class="se-logo">SW</span></a>
+                          <a href="/serve/easter?CampusId=6" class="swoosh-menu-item item-5"><span class="se-logo">LA</span></a>
+                          <a href="/serve/easter?CampusId=7" class="swoosh-menu-item item-6"><span class="se-logo">ET</span></a>
+                        </nav>
+
+                    </div>
+                </div>
+            </div>
+            {[ endparallax ]}
+    </section>
+
+    <section id="faq" class="easter-section easter-font">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-12 text-center">
+                    <br />
+                    <br />
+                    <br />
+                    <h1>Frequently Asked Questions</h1>
+                    <br />
+				</div>
+			</div>
+			<div class="row">
+					<!-- FAQ Group 1 -->
+	            <div class="col-md-6">
+
+	              <!-- FAQ Accordion -->
+	              <div class="panel-group accordions-1" id="faq-accordion-1" role="tablist" aria-multiselectable="true">
+
+	                <!-- Item 1 -->
+	                <div class="panel panel-default">
+	                  <div class="panel-heading" role="button" id="faq-1-h-1" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-1" aria-expanded="false" aria-controls="faq-1-collapse-1">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+                              Who is speaking? What will the message be like?
+                          </span>
+	                    </h4>
+	                  </div>
+	                  <div id="faq-1-collapse-1" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-1">
+	                    <div class="panel-body">
+                            <p>Senior Pastor Dave Stone and Teaching Pastor Kyle Idleman will be teaching at all services (except for the traditional services on Sunday). Dave and Kyle teach from the Bible in a way that is easy to understand, relevant to our daily lives, and dedicated to the truth. If you want to listen to previous messages, visit our <a href="https://www.southeastchristian.org/sermons/">Sermons page</a>. Greg Allen, Campus Pastor at Southeast's Crestwood Campus, will be speaking during our traditional services on Sunday.</p>
+                        </div>
+	                  </div>
+	                </div><!-- / .panel -->
+
+	                <!-- Item 2 -->
+	                <div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-2" aria-expanded="false" aria-controls="faq-1-collapse-2">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+                              Why are there different locations?
+                          </span>
+	                    </h4>
+	                  </div>
+	                  <div id="faq-1-collapse-2" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-2">
+	                    <div class="panel-body">
+                            <p>We believe bringing the church to the communities where our people live is a great way to reach more people in Kentuckiana with Jesus' love. No matter which campus you visit this Easter weekend, you will hear the same message (live at the Blankenbaker Campus and via high definition video at our other sites) and experience live worship at all locations. Every campus has its own unique atmosphere; but wherever you go, you will be warmly welcomed. Choose what time or location is convenient for you and join us!</p>
+                        </div>
+	                  </div>
+	                </div><!-- / .panel -->
+
+	                <!-- Item 3 -->
+	                <div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-3" aria-expanded="false" aria-controls="faq-1-collapse-3">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+	                          What options are there for kids during the service?
+	                      </span>
+	                    </h4>
+	                  </div>
+	                  <div id="faq-1-collapse-3" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-3">
+	                    <div class="panel-body">
+                            <p>Our Children's Ministry (SE!Kids) provides a safe, fun environment where kids ages birth-fifth grade can make new friends and learn about Jesus while parents attend the worship service in the Sanctuary. <a href="https://www.southeastchristian.org/connect/children/">Learn more here</a>. Pre-registration for Children's Check-In will be available closer to Easter.</p>
+                        </div>
+	                  </div>
+	                </div><!-- / .panel -->
+
+	                <!-- Item 4 -->
+	                <div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-4" aria-expanded="false" aria-controls="faq-1-collapse-4">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+							  What about middle and high school students?
+						  </span>
+	                    </h4>
+	                  </div>
+	                  <div id="faq-1-collapse-4" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-4">
+	                    <div class="panel-body">
+							<p>Students can join their families or friends in the worship services during Easter weekend. There will be no separate student services or activities. Students who attend Southeast regularly will be invited to help serve during certain Easter services.</p>
+						</div>
+	                  </div>
+	                </div><!-- / .panel -->
+
+	                <!-- Item 5 -->
+	                <div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-5" aria-expanded="false" aria-controls="faq-1-collapse-5">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+							  What options are there for people with developmental disabilities?
+	                      </span>
+	                    </h4>
+	                  </div>
+	                  <div id="faq-1-collapse-5" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-5">
+	                    <div class="panel-body">
+                            <p>We have programming in our Children's Ministry that is designed to meet the needs of children with special needs from preschool to elementary age. We also offer an Easter Worship Alternative for Teens and Adults with Special Needs. This classroom setting is geared towards teens and adults who prefer a smaller setting. They will learn about the Easter story through teaching, worship, and hands-on activities. All classes are led by our trained volunteers and staff.</p>
+                            <p>Special needs classes for all ages are offered at our Blankenbaker Campus. These classes are specifically designed to encourage each individual to connect to an appropriate small group depending on their age and developmental needs. We offer a wide variety of opportunities in both inclusive and self-contained settings. All classes are led by our trained team of volunteers and staff. <a href="/connect/deaf-and-disabilities-ministry/">Learn more here</a>.</p>
+                        </div>
+	                  </div>
+	                </div><!-- / .panel -->
+
+	                <!-- Item 6 -->
+	                <div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-6" aria-expanded="false" aria-controls="faq-1-collapse-6">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+							  What is the Encounter Service and other services?
+	                      </span>
+	                    </h4>
+	                  </div>
+	                  <div id="faq-1-collapse-6" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-6">
+	                    <div class="panel-body">
+							<p>Each Thursday, support groups meet at our Blankenbaker Campus to help people experience growth, find hope, and receive help for a range of life situations-from everyday challenges to more severe crises. These groups come together every week for worship. On Thursday, March 29, the Encounter worship service will be centered around Easter, with Senior Pastor Dave Stone and Teaching Pastor Kyle Idleman speaking. Learn more about our <a href="https://www.southeastchristian.org/connect/care/encounter-groups">Encounter groups here</a>.</p>
+						</div>
+	                  </div>
+	                </div><!-- / .panel -->
+
+					<!-- Item 1 -->
+	                <div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-2-collapse-1" aria-expanded="false" aria-controls="faq-2-collapse-1">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+							  Are there good Friday services this year?
+	                      </span>
+	                    </h4>
+	                  </div>
+	                  <div id="faq-2-collapse-1" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-1">
+	                    <div class="panel-body">
+							<p>Services on Friday, March 30, will be Easter services rather than Good Friday services. We will celebrate Good Friday on the weekend of March 24/25.</p>
+						</div>
+	                  </div>
+	                </div><!-- / .panel -->
+
+	              </div><!-- / .panel-group .accordion-1 -->
+
+	              <!-- <hr class="mb-sm-50"> -->
+	            </div><!-- / .col-md-6 -->
+
+				<!-- FAQ Group 2 -->
+	            <div class="col-md-6">
+	              <!-- <div class="faq-group-header ws-s">
+	                <h4 class="mb-30">Questions Group 2</h4>
+	                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sint, blanditiis corrupti ea optio veniam, reiciendis, quidem iste quae.</p>
+	              </div> -->
+
+	              <!-- FAQ Accordion -->
+	              <div class="panel-group accordions-1" id="faq-accordion-2" role="tablist" aria-multiselectable="true">
+
+                      <!-- Item 1 -->
+  	                <div class="panel panel-default">
+  	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-carols" aria-expanded="false" aria-controls="faq-carols">
+  	                    <h4 class="panel-title">
+  	                      <span class="collapsed">
+  							  What is the differences between the Traditional Services and other Services?
+  	                      </span>
+  	                    </h4>
+  	                  </div>
+  	                  <div id="faq-carols" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-carols">
+  	                    <div class="panel-body">
+                              <p>At the three traditional services on Easter Sunday-7:15 a.m. at our Blankenbaker Campus, 8:00 a.m. at our Indiana Campus and 7:30 a.m. at the Crestwood Campus - we'll sing hymns and hear teaching from Greg Allen, Campus Pastor at Southeast's Crestwood Campus. The other services on Easter weekend will feature more contemporary-style worship songs and teaching from Senior Pastor Dave Stone and Teaching Pastor Kyle Idleman.</p>
+                          </div>
+  	                  </div>
+  	                </div><!-- / .panel -->
+
+  	                <!-- Item 2 -->
+  	                <div class="panel panel-default">
+  	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-2-collapse-2" aria-expanded="false" aria-controls="faq-2-collapse-2">
+  	                    <h4 class="panel-title">
+  	                      <span class="collapsed">
+  							  Can anyone come to Southeast?
+  						  </span>
+  	                    </h4>
+  	                  </div>
+  	                  <div id="faq-2-collapse-2" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-2">
+  	                    <div class="panel-body">
+  							<p>Yes! We welcome anyone to join us this Easter-and every weekend!</p>
+  						</div>
+  	                  </div>
+  	                </div><!-- / .panel -->
+
+  	                <!-- Item 3 -->
+  	                <div class="panel panel-default">
+  	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-2-collapse-3" aria-expanded="false" aria-controls="faq-2-collapse-3">
+  	                    <h4 class="panel-title">
+  	                      <span class="collapsed">
+  							  How much time should I allow for traffic and parking when planning my visit?
+  	                      </span>
+  	                    </h4>
+  	                  </div>
+  	                  <div id="faq-2-collapse-3" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-3">
+  	                    <div class="panel-body">
+  							<p>We'll have people helping direct traffic and parking. Shuttles will be available at some campuses to take you to the building. While you might plan on adding some extra minutes to your travel time, our many services over Easter weekend allow for more parking and less traffic. If you are bringing children, don't forget to also plan for time to check them into their classes.</p>
+                          </div>
+  	                  </div>
+  	                </div><!-- / .panel -->
+
+  	                <!-- Item 4 -->
+  	                <div class="panel panel-default">
+  	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-2-collapse-4" aria-expanded="false" aria-controls="faq-2-collapse-4">
+  	                    <h4 class="panel-title">
+  	                      <span class="collapsed">
+  	                        What will the music be like?
+  	                      </span>
+  	                    </h4>
+  	                  </div>
+  	                  <div id="faq-2-collapse-4" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-4">
+  	                    <div class="panel-body">
+                              <p>The worship team will lead us in contemporary praise songs that tell what God has done, express our praise and devotion to Him, and allow us to encourage one another in following Christ. You can expect uplifting music that makes it easy for anyone to sing along. If you prefer time-honored hymns, you might enjoy the traditional services at our Blankenbaker, Indiana or our Crestwood Campuses.</p>
+                          </div>
+  	                  </div>
+  	                </div><!-- / .panel -->
+
+	                <!-- Item 5 -->
+	                <div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-2-collapse-5" aria-expanded="false" aria-controls="faq-2-collapse-5">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+							  What should I wear?
+	                      </span>
+	                    </h4>
+	                  </div>
+	                  <div id="faq-2-collapse-5" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-5">
+	                    <div class="panel-body">
+                            <p>Come as you are! Whether you'd rather dress in a three-piece suit or jeans and a t-shirt, there is no dress code for our worship services-we just want to see you here!</p>
+                        </div>
+	                  </div>
+	                </div><!-- / .panel -->
+
+	                <!-- Item 6 -->
+	                <div class="panel panel-default">
+	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-2-collapse-6" aria-expanded="false" aria-controls="faq-2-collapse-6">
+	                    <h4 class="panel-title">
+	                      <span class="collapsed">
+                              What if I need help or information while I'm there?
+                          </span>
+	                    </h4>
+	                  </div>
+	                  <div id="faq-2-collapse-6" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-6">
+	                    <div class="panel-body">
+						      <p>Volunteers and staff will be available to help you. Just ask! Look for anyone wearing a yellow badge.</p>
+						</div>
+	                  </div>
+	                </div><!-- / .panel -->
+
+
+	              </div><!-- / .panel-group .accordion-1 -->
+
+	              <!-- <hr> -->
+	            </div><!-- / .col-md-6 -->
+
+            </div>
+            <br />
+            <br />
+        </div>
+    </section>
+
+</main>
+
+<script>
+/* --------------------------------------------------
+	Initialization
+-------------------------------------------------- */
+$(document).ready(function() {
+
+    $.ajaxSetup ({
+	    // Disable caching of AJAX responses
+	    cache: false
+	});
+
+    $('.panel-collapse').on('show.bs.collapse', function () {
+       $(this).siblings('.panel-heading').addClass('active');
+     });
+
+     $('.panel-collapse').on('hide.bs.collapse', function () {
+       $(this).siblings('.panel-heading').removeClass('active');
+     });
+
+    // Initialize all functions when the document is ready.
+    initLocations(); // Animate Elements
+    initWow(); // Animate Elements
+	initScheduleTable(); // Table for Easter Times
+	initSecondaryNav(); // Secondary nav while scrolling
+    initServeCampusSelection();
+
+    /* --------------------------------------------------
+ 	   Load and organize ajax locations for each campuses
+    -------------------------------------------------- */
+    function initLocations(){
+        var $container = $('#folio');
+        $container.isotope({
+            itemSelector: '.folio-item'
+        });
+
+
+        $('.folio-project').on('click', function(event) {
+            event.preventDefault();
+            var href = $(this).attr('href');
+            if ($('#ajax').is(':visible')) {
+                $('#ajax').css({ display:'block' }).animate({ height:'0' }).slideUp(300);
+				$("html, body").animate({ scrollTop: $('#ajax').offset().top - 100}, 300);
+            }
+            $('#ajax').html('');
+
+            $('#ajax').show(0).animate({ height:'1200px' }, 500 ,function() {
+                $('#ajax').load(href, function() {
+                    $('#ajax').css('height','auto');
+                    $("html, body").animate({ scrollTop: $('#ajax').offset().top - 100}, 300);
+                });
+            });
+        });
+    }
+
+    /* --------------------------------------------------
+ 	   Animate Elements on Load
+    -------------------------------------------------- */
+    function initWow(){
+
+       wow = new WOW(
+    	  {
+    		 boxClass:     'wow',      // default
+    		 animateClass: 'animated', // default
+    		 offset:       0,          // default
+    		 mobile:       false,       // changed default for mobile
+    		 live:         true        // default
+    	  }
+       );
+       wow.init();
+
+    } // initNavbar
+
+    /* --------------------------------------------------
+	   Schedule Table
+    -------------------------------------------------- */
+    function initScheduleTable() {
+
+	   $('.nav-schedule').each(function () {
+
+		   var $this = $(this),
+			   $active = $this.find('li.active > a'),
+			   $field = $('<span class="nav-current arrow">' + $active.html() + '</span>');
+
+		   $this.wrapAll('<div class="nav-wrapper-schedual"></div>')
+
+		   $this.before($field);
+
+		   $field.on('click', function () {
+			   if ( !$this.is('.open') ) $this.stop(true, true).slideDown(250).addClass('open');
+			   else $this.stop(true, true).slideUp(150).removeClass('open');
+		   });
+
+		   $this.on('click', 'a', function () {
+			   $field.html($(this).html());
+		   });
+
+		   $('.nav-schedule > li > a').click( function() {
+			   var idDay = $(this).parent().parent().parent().parent().attr("id");
+			   if(typeof idDay != 'undefined') {
+				   var varDayNumber = idDay.slice(-1); //Outputs: day number
+				   $('.nav-wrapper-schedual > ul.nav-schedule > li.active').removeClass('active');
+				   $('.tab-content-schedule > div.active').removeClass('active');
+
+				   var campus = $(this).parent().attr("class");
+				   $('.tab-pane > .nav-wrapper-schedual > .nav-current').html($(this).html());
+				   $('.tab-content-schedule > div.'+campus).addClass('active');
+				   $( '#easterdays li:nth-child('+varDayNumber+')' ).addClass('active');
+				   $('.nav-wrapper-schedual > ul.nav-schedule > li.'+campus).addClass('active');
+			   }
+		   });
+
+		   $('body').on('click', function (event) {
+			   if ( !$(event.target).closest($field).length && $this.is('.open') ) {
+				   $this.stop(true, true).slideUp(150).removeClass('open');
+			   }
+		   });
+	   });
+
+    } // initScheduleTable
+
+    /* --------------------------------------------------
+    	Initializing Secondary Navigation (Section Hotlinks)
+    -------------------------------------------------- */
+    function initSecondaryNav() {
+
+        var secondaryNav = $('.cd-secondary-nav'),
+            secondaryNavTopPosition = secondaryNav.offset().top,
+            // taglineOffesetTop = $('#cd-intro-tagline').offset().top + $('#cd-intro-tagline').height() + parseInt($('#cd-intro-tagline').css('paddingTop').replace('px', '')),
+            contentSections = $('.easter-section');
+
+        $(window).on('scroll', function(){
+            //on desktop - assign a position fixed to logo and action button and move them outside the viewport
+            // ( $(window).scrollTop() > secondaryNavTopPosition ) ? $('#cd-logo').addClass('is-hidden') : $('#cd-logo').removeClass('is-hidden');
+
+            //on desktop - fix secondary navigation on scrolling
+            if($(window).scrollTop() > secondaryNavTopPosition ) {
+                //fix secondary navigation
+                secondaryNav.addClass('is-fixed');
+                //push the .cd-main-content giving it a top-margin
+                $('.cd-main-content').addClass('has-top-margin');
+                //on Firefox CSS transition/animation fails when parent element changes position attribute
+                //so we to change secondary navigation childrens attributes after having changed its position value
+                setTimeout(function() {
+                    secondaryNav.addClass('animate-children');
+                    $('#cd-logo').addClass('slide-in');
+                    $('.cd-btn').addClass('slide-in');
+                }, 50);
+            } else {
+                secondaryNav.removeClass('is-fixed');
+                $('.cd-main-content').removeClass('has-top-margin');
+                setTimeout(function() {
+                    secondaryNav.removeClass('animate-children');
+                    $('#cd-logo').removeClass('slide-in');
+                    $('.cd-btn').removeClass('slide-in');
+                }, 50);
+            }
+
+            //on desktop - update the active link in the secondary fixed navigation
+            updateSecondaryNavigation();
+        });
+
+        function updateSecondaryNavigation() {
+            contentSections.each(function(){
+                var actual = $(this),
+                    actualHeight = actual.height() + parseInt(actual.css('paddingTop').replace('px', '')) + parseInt(actual.css('paddingBottom').replace('px', '')),
+                    actualAnchor = secondaryNav.find('a[href="#'+actual.attr('id')+'"]');
+                if ( ( actual.offset().top - secondaryNav.height() <= $(window).scrollTop() ) && ( actual.offset().top +  actualHeight - secondaryNav.height() > $(window).scrollTop() ) ) {
+                    actualAnchor.addClass('active');
+                }else {
+                    actualAnchor.removeClass('active');
+                }
+            });
+        }
+
+        //on mobile - open/close secondary navigation clicking/tapping the .cd-secondary-nav-trigger
+        $('.cd-secondary-nav-trigger').on('click', function(event){
+            event.preventDefault();
+            $(this).toggleClass('menu-is-open');
+            secondaryNav.find('ul').toggleClass('is-visible');
+        });
+
+        //smooth scrolling when clicking on the secondary navigation items
+        secondaryNav.find('ul a').on('click', function(event){
+            event.preventDefault();
+            var target= $(this.hash);
+            $('body,html').animate({
+                'scrollTop': target.offset().top - secondaryNav.height() + 1
+                }, 400
+            );
+            //on mobile - close secondary navigation
+            $('.cd-secondary-nav-trigger').removeClass('menu-is-open');
+            secondaryNav.find('ul').removeClass('is-visible');
+        });
+
+    } // initSecondaryNav
+
+    function initServeCampusSelection() {
+        //mobile - open lateral menu clicking on the menu icon
+       	$('.swoosh-menu-open').on('click', function(event){
+       		if( $('.round-select-overlay-js').hasClass('is-visible') ) {
+       			$('.round-select-overlay-js').removeClass('is-visible');
+       		} else {
+       			$('.round-select-overlay-js').addClass('is-visible');
+       		}
+       	});
+
+       if($('input[name=swoosh-menu-open-serve]').is(':checked')) {
+           $('.round-select-overlay-js').addClass('is-visible');
+       }
+       	$('.round-select-overlay-js').on('click', function(){
+               if($('input[name=swoosh-menu-open-serve]').is(':checked')) {
+                   $('input[name=swoosh-menu-open-serve]').trigger('click');
+               }
+       	});
+    }
+}); // $(document).ready();
+
+$(document).ajaxComplete(function() {
+    "use strict";
+    $(".close-project").click(function(e) {
+        $('#ajax').slideUp('slow');
+		$("html, body").animate({ scrollTop: $('#ajax').offset().top - 100}, 300);
+        e.preventDefault();
+    });
+}); // End ajax complete
+
+function googleCallbackLocations(target, el){
+    var href = target;
+    if ($('#ajax').is(':visible')) {
+        $('#ajax').css({ display:'block' }).animate({ height:'0' }).slideUp(300);
+        $("html, body").animate({ scrollTop: $('#ajax').offset().top - 100}, 300);
+    }
+    $('#ajax').html('');
+    console.log(href);
+    $('#ajax').show(0).animate({ height:'1200px' }, 500 ,function() {
+        $('#ajax').load(href, function() {
+            $('#ajax').css('height','auto');
+            $("html, body").animate({ scrollTop: $('#ajax').offset().top - 100}, 300);
+        });
+    });
+}
+
+</script>
