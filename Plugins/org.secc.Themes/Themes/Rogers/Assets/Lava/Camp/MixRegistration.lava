@@ -35,7 +35,8 @@
 
         {% if releaseRegistration <= currentDate %}
         <p>
-            <a class="btn btn-default" href="/camp/mix/weektwo" role="button">Register Student</a>
+            <!-- <a class="btn btn-default" href="/camp/mix/weektwo" role="button">Register Student</a> -->
+            (Closed)
         </p>
         <br>
         <!-- <p>
