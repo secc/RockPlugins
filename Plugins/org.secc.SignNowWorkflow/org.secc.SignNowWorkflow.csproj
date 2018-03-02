@@ -31,13 +31,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.dll</HintPath>
+      <HintPath>$(SolutionDir)Rock\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+      <HintPath>$(SolutionDir)Rock\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.11.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>$(SolutionDir)Rock\packages\Newtonsoft.Json.11.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
@@ -57,19 +57,19 @@
     <Compile Include="Workflows\SignNowDownload.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Rock\DotLiquid\DotLiquid.csproj">
+    <ProjectReference Include="$(SolutionDir)\DotLiquid\DotLiquid.csproj">
       <Project>{00edcb8d-ef33-459c-ad62-02876bd24dff}</Project>
       <Name>DotLiquid</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Rock\Rock.SignNow\Rock.SignNow.csproj">
+    <ProjectReference Include="$(SolutionDir)\Rock.SignNow\Rock.SignNow.csproj">
       <Project>{1f5956f2-2b0f-49b8-aaf1-2cc28f01426a}</Project>
       <Name>Rock.SignNow</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Rock\Rock\Rock.csproj">
+    <ProjectReference Include="$(SolutionDir)\Rock\Rock.csproj">
       <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>
       <Name>Rock</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Rock\SignNowSDK\SignNowSDK.csproj">
+    <ProjectReference Include="$(SolutionDir)\SignNowSDK\SignNowSDK.csproj">
       <Project>{69ac175c-3997-4514-8c9e-5d24811928c2}</Project>
       <Name>SignNowSDK</Name>
     </ProjectReference>
