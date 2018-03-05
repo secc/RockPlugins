@@ -196,3 +196,29 @@ a {
 		}
 	}
 }
+
+// .modal {
+// 	overflow: visible !important;
+//     border-radius: 5px 5px 0px 0px;
+// }
+// .modal-header {
+// 	& .close {
+// 	    margin-top: -25px;
+// 	    margin-right: 10px;
+// 	}
+// }
+// .bootstrap-datetimepicker-widget {
+// 	z-index:3000 !important;
+// }
+
+.cd-main-content{
+	ol, ul {
+		list-style: disc !important;
+		li {
+			margin-left: 55px;
+			font-size: $font-size-22;
+			color: $color-text;
+			margin-bottom: 5px;
+		}
+	}
+}
