@@ -233,8 +233,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         protected void btnEmailSend_Click( object sender, EventArgs e )
         {
             bool sendToParents = cbEmailSendToParents.Checked;
-            string subject = tbSubject.Text;
-            string body = tbBody.Text;
 
             if ( Page.IsValid )
             {
@@ -251,7 +249,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     communication.FromName = CurrentPerson.FullName;
                     communication.FromEmail = GetSafeSender( CurrentPerson.Email );
                     communication.ReplyToEmail = CurrentPerson.Email;
-                    communication.Message = tbBody.Text;
+                    communication.Message = tbBody.Text.Replace( "\n", "<br />" );
 
                     communication.Status = CommunicationStatus.Approved;
                     communication.ReviewedDateTime = RockDateTime.Now;
