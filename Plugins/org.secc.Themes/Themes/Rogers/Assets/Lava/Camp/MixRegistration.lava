@@ -1,0 +1,76 @@
+<!-- Round Select Overlay -->
+<div class="round-select-overlay-js"></div>
+
+<div class="row">
+
+    {% assign currentDate = 'Now' | Date:'yyyyMMdd' | AsInteger %}
+    {% comment %}
+        {% assign releaseRegistration = '20180210' | AsInteger %}
+    {% endcomment %}
+
+    <div class="col-md-4 text-center">
+        <p><b>Week 1</b></p><p><small>(Blankenbaker)</small></p>
+        <br>
+
+        {% if releaseRegistration <= currentDate %}
+            <p>
+                <a class="btn btn-default" href="/camp/mix/weekone" role="button">Register Student</a>
+            </p>
+            <br>
+            <!-- <p>
+                <a class="btn btn-default" href="/camp/mix/weekoneleader" role="button">Register Leader</a>
+            </p> -->
+        {% else %}
+            <div class="overlay">
+                <p><b>(Available Soon)</b></p>
+            </div>
+        {% endif %}
+        <br />
+        <br />
+    </div>
+
+    <div class="col-md-4 text-center">
+        <p><b>Week 2&nbsp;</b></p><p><small>(Crestwood, La Grange)</small></p>
+        <br>
+
+        {% if releaseRegistration <= currentDate %}
+        <p>
+            <a class="btn btn-default" href="/camp/mix/weektwo" role="button">Register Student</a>
+        </p>
+        <br>
+        <!-- <p>
+            <a class="btn btn-default" href="/camp/mix/weektwoleader" role="button">Register Leader</a>
+        </p> -->
+        {% else %}
+            <div class="overlay">
+                <p><b>(Available Soon)</b></p>
+            </div>
+        {% endif %}
+        <br />
+        <br />
+    </div>
+
+    <div class="col-md-4 text-center">
+        <p><b>Week 3</b></p><p><small>(Indiana, Southwest, Elizabethtown)</small></p>
+        <br>
+
+        {% if releaseRegistration <= currentDate %}
+        <p>
+            <a class="btn btn-default" href="/camp/mix/weekthree" role="button">Register Student</a>
+        </p>
+        <br>
+        <!-- <p>
+            <a class="btn btn-default" href="/camp/mix/weekthreeleader" role="button">Register Leader</a>
+        </p> -->
+        {% else %}
+            <div class="overlay">
+                <p><b>(Available Soon)</b></p>
+            </div>
+        {% endif %}
+        <br />
+        <br />
+    </div>
+
+</div>
+
+<br>
