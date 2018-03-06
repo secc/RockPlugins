@@ -11,10 +11,6 @@
                 <h4>THIRD DAY FAREWELL TOUR <br />
                     <small style="color: orange;">
 
-                    {% comment %}
-                    {{releaseRegistration}} <= {{currentDate}}
-                    {% endcomment %}
-
                     {% if releaseRegistration <= currentDate %}
                          TICKETS AVAILABLE FOR SALE!
                     {% else %}
