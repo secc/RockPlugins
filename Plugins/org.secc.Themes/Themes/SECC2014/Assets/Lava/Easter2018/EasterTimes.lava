@@ -62,23 +62,23 @@
                                           <!-- <span class="se-logo">920</span> -->
                                       </div>
                                       <h1>6:30 p.m. <small title="interpreted for the deaf"><i class="fa fa-american-sign-language-interpreting" aria-hidden="true"></i></small></h1>
-                                      <p><i>Encounter with Dave and Kyle</i></p>
+                                      <p><i>Encounter</i></p>
                                   </div>
-                                  <div class="panel schedule-item">
+                                  <!-- <div class="panel schedule-item">
                                       <div class="lecture-icon-wrapper hidden-xs hidden-sm"></div>
                                       <h1>7:30 p.m.</h1>
                                       <p><i>Easter Experience</i></p>
-                                  </div>
+                                  </div> -->
                               </div>
                           </div>
 
                           <div id="campus1_30" class="tab-pane fade in easter_friday">
                               <div class="panel-group">
-                                  <div class="panel schedule-item">
+                                  <!-- <div class="panel schedule-item">
                                       <div class="lecture-icon-wrapper hidden-xs hidden-sm"></div>
                                       <h1>5:30 p.m.</h1>
                                       <p><i>Easter Experience</i></p>
-                                  </div>
+                                  </div> -->
                                   <div class="panel schedule-item">
                                       <div class="lecture-icon-wrapper hidden-xs hidden-sm"></div>
                                       <h1>6:30 p.m.</h1>
@@ -89,11 +89,11 @@
 
                           <div id="campus1_31" class="tab-pane fade in easter_saturday">
                               <div class="panel-group">
-                                  <div class="panel schedule-item">
+                                  <!-- <div class="panel schedule-item">
                                       <div class="lecture-icon-wrapper hidden-xs hidden-sm"></div>
                                       <h1>2:00 p.m.</h1>
                                       <p><i>Easter Experience</i></p>
-                                  </div>
+                                  </div> -->
                                   <div class="panel schedule-item">
                                       <div class="lecture-icon-wrapper hidden-xs hidden-sm"></div>
                                       <h1>3:00 p.m. <small title="interpreted for the deaf"><i class="fa fa-american-sign-language-interpreting" aria-hidden="true"></i></small></h1>
