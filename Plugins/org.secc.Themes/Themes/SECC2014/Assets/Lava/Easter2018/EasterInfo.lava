@@ -130,11 +130,11 @@
 
               <br />
               <div class="col-md-offset-1 col-md-5 col-md-push-5 text-center">
-                  <a href="https://www.southeastchristian.org/admin/events/i-can-only-imagine/">
+                  <a href="/events/i-can-only-imagine/">
                       <img alt="I Can Only Imagine" src="/Themes/SECC2014/Assets/img/Easter2018/eventMoviePasses.jpg" class="img-responsive wow slideInRight" data-wow-duration="1s" style="border-radius:30px;">
                   </a>
                   <br />
-                  <a style="box-shadow: rgb(165, 86, 148) 5px 5px 0px;" href="https://www.southeastchristian.org/admin/events/i-can-only-imagine/" class="btn btn-easter btn-large wow fadeIn" data-wow-delay=".8s" data-wow-duration="1s">Click here to get tickets!</a>
+                  <a style="box-shadow: rgb(165, 86, 148) 5px 5px 0px;" href="/events/i-can-only-imagine/" class="btn btn-easter btn-large wow fadeIn" data-wow-delay=".8s" data-wow-duration="1s">Click here to get tickets!</a>
                   <br /><br />
               </div>
               <div class="col-md-5 col-md-pull-5 biggerText">
