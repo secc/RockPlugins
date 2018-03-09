@@ -12,7 +12,7 @@
     <div class="container-fluid" style="padding: 3em 0;">
         <div class="row" style="padding: 0px; margin: 0;">
             <div class="col-sm-12 text-center" style="padding: 20px 0px;">
-                <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/EasterLogoUpdate.svg" class="img-responsive wow zoomIn" data-wow-duration="1.4s" data-wow-delay="1.7s" style="z-index: 5; position: relative; max-width: 450px; margin: 0 auto; width: 100%; visibility: hidden; display:block;">
+                <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/EasterLogoUpdate.svg" class="img-responsive wow zoomIn" data-wow-duration="1s" style="z-index: 5; position: relative; max-width: 450px; margin: 0 auto; width: 100%; visibility: hidden; display:block;">
             </div>
         </div>
     </div>
@@ -27,6 +27,14 @@
                 <a href="#about">
                     <b>About</b>
                     <span><i class="fa fa-users"></i></span>
+                </a>
+            </li>
+            <li style="background-color: #a55694;">
+                <a href="#icanonlyimagine">
+                    <i><b style="color: white;">"I Can Only Imagine"</b></i>
+                    <span style="color: white;">
+                        <i class="fa fa-film"></i>
+                    </span>
                 </a>
             </li>
             <li>
@@ -83,7 +91,7 @@
 			<div class="row section" style="padding:40px 0;">
               <header class="sec-heading text-center">
                   <!-- <h1>CONNECTED BY LOVE</h1> -->
-              <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/connectedbylove02.svg" class="img-responsive wow fadeIn zoomIn" data-wow-duration="1s" data-wow-delay="2.5s" style="max-width: 40em; max-height: 15em; margin: 0 auto; width: 100%; visibility: hidden; padding: 0 20px;">
+              <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/connectedbylove02.svg" class="img-responsive wow fadeIn zoomIn" data-wow-duration="1s" data-wow-delay=".4s" style="max-width: 40em; max-height: 15em; margin: 0 auto; width: 100%; visibility: hidden; padding: 0 20px;">
               </header>
               <br />
               <div class="col-md-offset-1 col-md-5 biggerText">
@@ -106,6 +114,33 @@
                       <li><p class="no-spacing">Great options for kids</p></li>
                       <li><p class="no-spacing">No dress code—come as you are!</p></li>
                   </ul>
+              </div>
+          </div>
+        </div>
+    </section>
+
+    <section id="icanonlyimagine" class="easter-section easter-font">
+        <div class="container">
+
+			<div class="row section" style="padding:40px 0;">
+              <header class="text-center"  style="padding: 10px;">
+                  <br />
+                  <h1><i>I CAN ONLY IMAGINE</i></h1>
+              </header>
+
+              <br />
+              <div class="col-md-offset-1 col-md-5 col-md-push-5 text-center">
+                  <a href="https://www.southeastchristian.org/admin/events/i-can-only-imagine/">
+                      <img alt="I Can Only Imagine" src="/Themes/SECC2014/Assets/img/Easter2018/eventMoviePasses.jpg" class="img-responsive wow slideInRight" data-wow-duration="1s" style="border-radius:30px;">
+                  </a>
+                  <br />
+                  <a style="box-shadow: rgb(165, 86, 148) 5px 5px 0px;" href="https://www.southeastchristian.org/admin/events/i-can-only-imagine/" class="btn btn-easter btn-large wow fadeIn" data-wow-delay=".8s" data-wow-duration="1s">Click here to get tickets!</a>
+                  <br /><br />
+              </div>
+              <div class="col-md-5 col-md-pull-5 biggerText">
+                  <p>We’re excited to share an opportunity with you! The film <i>I Can Only Imagine</i>, the inspiring true story behind the hit MercyMe song, releases in theaters this week! Our ministry partner City on a Hill is collaborating with the movie and have made a limited number of free tickets available to multiple showings March 14-18 located near each of our campuses. Prayerfully consider inviting a friend, a neighbor, or a coworker who isn’t connected to a church. We hope this is an opportunity for you to share some powerful discussions about Jesus and to open a door for you to invite someone to church.</p>
+                  <br />
+                  <br />
               </div>
           </div>
         </div>
