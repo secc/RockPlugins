@@ -207,9 +207,15 @@ namespace org.secc.SafetyAndSecurity
                 };
 
             BinaryFileService binaryFileService = new BinaryFileService( rockContext );
-            BinaryFile adultPDF = binaryFileService.Get( GetActionAttributeValue( action, "AdultVolunteerApplicationPDF" ).AsGuid() );
+            BinaryFile PDF = null;
+            var isMinorApplicant = GetAttributeValue( action, "IsMinorApplication", true ).AsBoolean();
+            if ( isMinorApplicant )
+            {
+                PDF = binaryFileService.Get( GetActionAttributeValue( action, "MinorVolunteerApplicationPDF" ).AsGuid() );
+            }
+            PDF = binaryFileService.Get( GetActionAttributeValue( action, "AdultVolunteerApplicationPDF" ).AsGuid() );
 
-            var pdfBytes = adultPDF.ContentStream.ReadBytesToEnd();
+            var pdfBytes = PDF.ContentStream.ReadBytesToEnd();
 
             using ( MemoryStream ms = new MemoryStream() )
             {
@@ -234,7 +240,7 @@ namespace org.secc.SafetyAndSecurity
                 pdfStamper = null;
 
                 BinaryFile renderedPDF = new BinaryFile();
-                renderedPDF.CopyPropertiesFrom( adultPDF );
+                renderedPDF.CopyPropertiesFrom( PDF );
                 renderedPDF.Guid = Guid.NewGuid();
                 renderedPDF.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( new Guid( BACKGROUND_CHECK_BINARY_FILE_TYPE ) ).Id;
 
