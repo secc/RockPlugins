@@ -1,3 +1,6 @@
+{% assign currentDate = 'Now' | Date:'yyyyMMddHHmm' | AsDouble %}
+{% assign showMovieNotice = '201803111400' | AsDouble %}
+
 <script src="~~/Scripts/modernizr.js"></script>
 <script src="https://www.southeastchristian.org/eastertogether/assets/js/vendor/wow.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
@@ -29,6 +32,9 @@
                     <span><i class="fa fa-users"></i></span>
                 </a>
             </li>
+
+
+            {% if showMovieNotice <= currentDate %}
             <li style="background-color: #a55694;">
                 <a href="#icanonlyimagine">
                     <i><b style="color: white;">"I Can Only Imagine"</b></i>
@@ -37,6 +43,8 @@
                     </span>
                 </a>
             </li>
+            {% endif %}
+
             <li>
                 <a href="#locations">
                     <b>Locations</b>
@@ -119,6 +127,7 @@
         </div>
     </section>
 
+    {% if showMovieNotice <= currentDate %}
     <section id="icanonlyimagine" class="easter-section easter-font">
         <div class="container">
 
@@ -145,6 +154,7 @@
           </div>
         </div>
     </section>
+    {% endif %}
 
     <!-- ========== Locations ========== -->
       <section id="locations" class="easter-section section easter-font" style="padding-bottom:0px;">
