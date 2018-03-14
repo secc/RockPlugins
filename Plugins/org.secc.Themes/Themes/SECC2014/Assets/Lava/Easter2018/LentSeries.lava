@@ -1,0 +1,67 @@
+<script src="/Themes/SECC2014/Scripts/readmore.min.js"></script>
+
+{% assign currentSeries = Items | First %}
+{% assign currentSeriesImageGuid = currentSeries | Attribute:'SeriesImage','RawValue' %}
+
+<section id="EasterDevo" class="easter-font">
+    <div class="container">
+
+        <div class="row">
+            <div class="col-sm-10 col-sm-offset-1">
+                <div id="EasterDevo" class="isotope">
+                    {% assign fadeSeconds = 0 %}
+    			    {% for item in Items %}
+
+    				{% assign currentDate = 'Now' | Date:'MM/dd' %}
+    				{% assign weekStartDate = item.StartDateTime | Date:'MM/dd' %}
+
+                        {% assign fadeSeconds = fadeSeconds | Plus:0.2 %}
+
+                        {% for childItem in item.ChildItems %}
+                        {% assign childItemAssigned = childItem.ChildContentChannelItem %}
+                        {% assign childImageGuid = childItem.ChildContentChannelItem | Attribute:'Image','RawValue' %}
+                            <div class="EasterDevo-Item col-sm-6 col-md-6 col-lg-6">
+                                <div class="blog-post wow fadeIn" data-wow-duration="1s" data-wow-delay="{{fadeSeconds}}s">
+                                    <img src="/GetImage.ashx?Guid={{ childImageGuid }}" class="img-responsive">
+                                    <div class="bp-content text-center">
+                                        <!-- Post Title -->
+                                        <h4><strong>{{childItemAssigned.Title}}</strong></h4>
+                                        <!-- Devo -->
+                                        <div class="readmore" style="border-bottom: 2px solid rgb(204, 204, 204);"> {{childItemAssigned.Content}} </div>
+                                        <!-- Link -->
+                                    </div><!-- / .bp-content -->
+                                </div>
+                            </div>
+                        {% endfor %}
+
+                	{% endfor -%}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+$(document).ready(function() {
+    var $container = $('#EasterDevo');
+    $container.isotope({
+        itemSelector: '.EasterDevo-Item'
+    });
+
+   $('.readmore').readmore({
+	  embedCSS: false,
+	  collapsedHeight: 230,
+	  speed: 200,
+	  moreLink: '<a href="#" class="btn btn-easter pull-right" style="margin-top:15px;">Read more</a><div style="clear: both;"></div>',
+	  lessLink: '<a href="javascript:void(0)" class="btn btn-easter pull-right" style="margin-top:15px; padding: 10px 16px; opacity: 0.7;"><strong><i class="fa fa-times"></i></strong></a><div style="clear: both;"></div>'
+	});
+});
+</script>
+
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
