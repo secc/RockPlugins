@@ -1,12 +1,20 @@
 <script src="/Themes/SECC2014/Scripts/readmore.min.js"></script>
+<script src="/Themes/SECC2014/Scripts/jquery-modal-video.min.js"></script>
 
 {% assign currentSeries = Items | First %}
 {% assign currentSeriesImageGuid = currentSeries | Attribute:'SeriesImage','RawValue' %}
 
 <section id="EasterDevo" class="easter-font">
-    <div class="container">
+    <div class="container-fluid">
 
-        <div class="row">
+        <div class="row" style="margin: 0;">
+            <div class="col-sm-12 text-center">
+                <h1>HOLY WEEK AT SOUTHEAST</h1>
+                <br />
+            </div>
+        </div>
+
+        <div class="row" style="margin: 0;">
             <div class="col-sm-10 col-sm-offset-1">
                 <div id="EasterDevo" class="isotope">
                     {% assign fadeSeconds = 0 %}
@@ -20,12 +28,19 @@
                         {% for childItem in item.ChildItems %}
                         {% assign childItemAssigned = childItem.ChildContentChannelItem %}
                         {% assign childImageGuid = childItem.ChildContentChannelItem | Attribute:'Image','RawValue' %}
-                            <div class="EasterDevo-Item col-sm-6 col-md-6 col-lg-6">
+                            <div class="EasterDevo-Item col-sm-6 col-md-6 col-lg-4" style="margin-bottom: 15px;">
                                 <div class="blog-post wow fadeIn" data-wow-duration="1s" data-wow-delay="{{fadeSeconds}}s">
                                     <img src="/GetImage.ashx?Guid={{ childImageGuid }}" class="img-responsive">
-                                    <div class="bp-content text-center">
+                                    <div class="bp-content">
                                         <!-- Post Title -->
+                                        <div class="text-center" style="margin:5px auto 15px;">
+                                            <a href="javascript:void(0)" class="btn btn-easter js-modal-video" data-video-id="258908996" style="padding: 10px 16px; opacity: 0.7; width: 100%;">
+                                                <strong>Play Video</strong>
+                                            </a>
+                                        </div>
                                         <h4><strong>{{childItemAssigned.Title}}</strong></h4>
+
+                                        <div style="clear: both;"></div>
                                         <!-- Devo -->
                                         <div class="readmore" style="border-bottom: 2px solid rgb(204, 204, 204);"> {{childItemAssigned.Content}} </div>
                                         <!-- Link -->
@@ -43,18 +58,28 @@
 
 <script>
 $(document).ready(function() {
-    var $container = $('#EasterDevo');
-    $container.isotope({
-        itemSelector: '.EasterDevo-Item'
+
+    $(".js-modal-video").modalVideo({
+        channel: 'vimeo'
     });
 
-   $('.readmore').readmore({
-	  embedCSS: false,
-	  collapsedHeight: 230,
-	  speed: 200,
-	  moreLink: '<a href="#" class="btn btn-easter pull-right" style="margin-top:15px;">Read more</a><div style="clear: both;"></div>',
-	  lessLink: '<a href="javascript:void(0)" class="btn btn-easter pull-right" style="margin-top:15px; padding: 10px 16px; opacity: 0.7;"><strong><i class="fa fa-times"></i></strong></a><div style="clear: both;"></div>'
-	});
+    $('.readmore').readmore({
+        embedCSS: false,
+        collapsedHeight: 230,
+        speed: 200,
+        moreLink: '<a href="#" class="btn btn-easter pull-right" style="margin-top:15px;">Read more</a><div style="clear: both;"></div>',
+        lessLink: '<a href="javascript:void(0)" class="btn btn-easter pull-right" style="margin-top:15px; padding: 10px 16px; opacity: 0.7;"><strong><i class="fa fa-times"></i></strong></a><div style="clear: both;"></div>',
+        afterToggle: function(trigger, element, expanded) {
+            $container.isotope(isoOptions); // re-initialize
+        }
+    });
+
+    var $container = $('#EasterDevo');
+    var isoOptions = {
+      itemSelector: '.EasterDevo-Item'
+    };
+    $container.isotope(isoOptions);
+
 });
 </script>
 
