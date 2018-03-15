@@ -87,6 +87,12 @@
                     <span><i class="fa fa-question-circle"></i></span>
                 </a>
             </li>
+            <li>
+                <a href="#EasterDevo">
+                    <b>Holy Week</b>
+                    <span><i class="fa fa-book"></i></span>
+                </a>
+            </li>
         </ul>
     </nav>
 </div> <!-- .cd-secondary-nav -->
