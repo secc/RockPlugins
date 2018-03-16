@@ -91,6 +91,6 @@
     <PostBuildEvent>xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.Trak1.dll" "$(SolutionDir)RockWeb\bin"
 
 xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.Trak1.pdb" "$(SolutionDir)RockWeb\bin"
-</PostBuildEvent>
+xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"</PostBuildEvent>
   </PropertyGroup>
 </Project>
