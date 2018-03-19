@@ -39,6 +39,7 @@ namespace org.secc.SignNowWorkflow
     [WorkflowAttribute( "SignNow Invite Link", "The attribute to save the SignNow invite link.", true, "", "", 0, null, new string[] { "Rock.Field.Types.TextFieldType" } )]
     [WorkflowAttribute( "SignNow Document Id", "The attribute to save the SignNow document id.", true, "", "", 0, null, new string[] { "Rock.Field.Types.TextFieldType" } )]
     [WorkflowAttribute( "Document", "The attribute to upload to SignNow.", true, "", "", 0, null, new string[] { "Rock.Field.Types.BinaryFileFieldType" } )]
+    [TextField( "Redirect Uri", "Webpage to redirect to after the document has been signed", false )]
     class SignNowCreate : ActionComponent
     {
 
@@ -88,6 +89,13 @@ namespace org.secc.SignNowWorkflow
 
                 // Get the invite link
                 signNowInviteLink = signNow.GetInviteLink( documentId, out errorMessages );
+
+                var redirectUri = GetAttributeValue( action, "RedirectUri" );
+                if ( !string.IsNullOrWhiteSpace( redirectUri ) )
+                {
+                    signNowInviteLink += "redirect_uri=" + redirectUri;
+                }
+
                 string newDocumentId = "";
                 using ( var client = new HttpClient( new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate } ) )
                 {
