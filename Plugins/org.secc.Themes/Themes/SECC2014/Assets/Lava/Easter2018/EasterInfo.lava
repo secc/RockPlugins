@@ -1,3 +1,6 @@
+{% assign currentDate = 'Now' | Date:'yyyyMMddHHmm' | AsDouble %}
+{% assign showMovieNotice = '201803111400' | AsDouble %}
+
 <script src="~~/Scripts/modernizr.js"></script>
 <script src="https://www.southeastchristian.org/eastertogether/assets/js/vendor/wow.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
@@ -12,7 +15,7 @@
     <div class="container-fluid" style="padding: 3em 0;">
         <div class="row" style="padding: 0px; margin: 0;">
             <div class="col-sm-12 text-center" style="padding: 20px 0px;">
-                <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/EasterLogoUpdate.svg" class="img-responsive wow zoomIn" data-wow-duration="1.4s" data-wow-delay="1.7s" style="z-index: 5; position: relative; max-width: 450px; margin: 0 auto; width: 100%; visibility: hidden; display:block;">
+                <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/EasterLogoUpdate.svg" class="img-responsive wow zoomIn" data-wow-duration="1s" style="z-index: 5; position: relative; max-width: 450px; margin: 0 auto; width: 100%; visibility: hidden; display:block;">
             </div>
         </div>
     </div>
@@ -29,6 +32,19 @@
                     <span><i class="fa fa-users"></i></span>
                 </a>
             </li>
+
+
+            {% if showMovieNotice <= currentDate %}
+            <li style="background-color: #a55694;">
+                <a href="#icanonlyimagine">
+                    <i><b style="color: white;">"I Can Only Imagine"</b></i>
+                    <span style="color: white;">
+                        <i class="fa fa-film"></i>
+                    </span>
+                </a>
+            </li>
+            {% endif %}
+
             <li>
                 <a href="#locations">
                     <b>Locations</b>
@@ -83,7 +99,7 @@
 			<div class="row section" style="padding:40px 0;">
               <header class="sec-heading text-center">
                   <!-- <h1>CONNECTED BY LOVE</h1> -->
-              <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/connectedbylove02.svg" class="img-responsive wow fadeIn zoomIn" data-wow-duration="1s" data-wow-delay="2.5s" style="max-width: 40em; max-height: 15em; margin: 0 auto; width: 100%; visibility: hidden; padding: 0 20px;">
+              <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/connectedbylove02.svg" class="img-responsive wow fadeIn zoomIn" data-wow-duration="1s" data-wow-delay=".4s" style="max-width: 40em; max-height: 15em; margin: 0 auto; width: 100%; visibility: hidden; padding: 0 20px;">
               </header>
               <br />
               <div class="col-md-offset-1 col-md-5 biggerText">
@@ -99,7 +115,7 @@
                   <h2>What to Expect</h2>
                   <br />
                   <ul>
-                      <li><p class="no-spacing">Biblical, relevant teaching from Dave Stone and Kyle Idleman (all services except for the traditional services on Sunday morning)</p></li>
+                      <li><p class="no-spacing">Biblical, relevant teaching from Dave Stone (all services except for the traditional services on Sunday morning)</p></li>
                       <li><p class="no-spacing">Worship</p></li>
                       <li><p class="no-spacing">Multiple locations and service times<br> to fit your schedule</p></li>
                       <li><p class="no-spacing">Friendly people and helpful volunteers</p></li>
@@ -110,6 +126,35 @@
           </div>
         </div>
     </section>
+
+    {% if showMovieNotice <= currentDate %}
+    <section id="icanonlyimagine" class="easter-section easter-font">
+        <div class="container">
+
+			<div class="row section" style="padding:40px 0;">
+              <header class="text-center"  style="padding: 10px;">
+                  <br />
+                  <h1><i>I CAN ONLY IMAGINE</i></h1>
+              </header>
+
+              <br />
+              <div class="col-md-offset-1 col-md-5 col-md-push-5 text-center">
+                  <a href="/events/i-can-only-imagine/">
+                      <img alt="I Can Only Imagine" src="/Themes/SECC2014/Assets/img/Easter2018/eventMoviePasses.jpg" class="img-responsive wow slideInRight" data-wow-duration="1s" style="border-radius:30px;">
+                  </a>
+                  <br />
+                  <a style="box-shadow: rgb(165, 86, 148) 5px 5px 0px;" href="/events/i-can-only-imagine/" class="btn btn-easter btn-large wow fadeIn" data-wow-delay=".8s" data-wow-duration="1s">Click here to get tickets!</a>
+                  <br /><br />
+              </div>
+              <div class="col-md-5 col-md-pull-5 biggerText">
+                  <p>We’re excited to share an opportunity with you! The film <i>I Can Only Imagine</i>, the inspiring true story behind the hit MercyMe song, releases in theaters this week! Our ministry partner City on a Hill is collaborating with the movie and have made a limited number of free tickets available to multiple showings March 14-18 located near each of our campuses. Prayerfully consider inviting a friend, a neighbor, or a coworker who isn’t connected to a church. We hope this is an opportunity for you to share some powerful discussions about Jesus and to open a door for you to invite someone to church.</p>
+                  <br />
+                  <br />
+              </div>
+          </div>
+        </div>
+    </section>
+    {% endif %}
 
     <!-- ========== Locations ========== -->
       <section id="locations" class="easter-section section easter-font" style="padding-bottom:0px;">
@@ -225,9 +270,14 @@
               <div class="row no-spacing">
                   <div class="col-sm-10 col-sm-offset-1" style="margin-bottom:1em">
                       <h2 style="letter-spacing:2px;">Easter Experience</h2>
-                      <p><strong><i>Thursday, March 29 • 7:30-8:30 p.m. <i class="fa fa-american-sign-language-interpreting" aria-hidden="true"></i></i></strong><strong><i></i></strong><br>
-                         <strong><i>Friday, March 30 • 5:30-7:30 p.m.</i></strong><strong><i></i></strong><br>
-                         <strong><i>Saturday, March 31 • 2:00-8:00 p.m</i></strong><strong><i>.</i></strong><br></p>
+                      <br />
+                      <p><strong><i>Blankenbaker Campus • Room FH2</i></strong></p>
+                      <p style="margin-left: 20px;">
+                         <strong><i>Thursday, March 29 • 7:30-8:30 p.m. <i class="fa fa-american-sign-language-interpreting" aria-hidden="true"></i></i></strong><br>
+                         <strong><i>Friday, March 30 • 5:30-7:30 p.m.</i></strong><br>
+                         <strong><i>Saturday, March 31 • 2:00-8:00 p.m.</i></strong>
+                      </p>
+
                       <p>Discover the truth, mystery, wonder, and hope surrounding the death and resurrection of Jesus like never before. You’ll walk through an interactive, sensory-driven experience that will take you back to Jesus’ last days on earth and awaken you to the deep beauty of what His sacrifice means for us. Experience the tastes of the Last Supper, drive a nail into the cross, feel the weight of the wooden beam on your shoulder, and reflect on the history-altering moments at the cross and the tomb.</p>
                       <p><i><i class="fa fa-american-sign-language-interpreting" aria-hidden="true"></i> interpreted for the deaf</i></p>
                   </div>
@@ -357,7 +407,7 @@
 	                  </div>
 	                  <div id="faq-1-collapse-1" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-1">
 	                    <div class="panel-body">
-                            <p>Senior Pastor Dave Stone and Teaching Pastor Kyle Idleman will be teaching at all services (except for the traditional services on Sunday). Dave and Kyle teach from the Bible in a way that is easy to understand, relevant to our daily lives, and dedicated to the truth. If you want to listen to previous messages, visit our <a href="https://www.southeastchristian.org/sermons/">Sermons page</a>. Greg Allen, Campus Pastor at Southeast's Crestwood Campus, will be speaking during our traditional services on Sunday.</p>
+                            <p>Senior Pastor Dave Stone will be teaching at all services (except for the traditional services on Sunday). Dave will teach from the Bible in a way that is easy to understand, relevant to our daily lives, and dedicated to the truth. If you want to listen to previous messages, visit our <a href="https://www.southeastchristian.org/sermons/">Sermons page</a>. Greg Allen, Campus Pastor at Southeast's Crestwood Campus, will be speaking during our traditional services on Sunday.</p>
                         </div>
 	                  </div>
 	                </div><!-- / .panel -->
@@ -438,7 +488,7 @@
 	                  </div>
 	                  <div id="faq-1-collapse-6" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-6">
 	                    <div class="panel-body">
-							<p>Each Thursday, support groups meet at our Blankenbaker Campus to help people experience growth, find hope, and receive help for a range of life situations-from everyday challenges to more severe crises. These groups come together every week for worship. On Thursday, March 29, the Encounter worship service will be centered around Easter, with Senior Pastor Dave Stone and Teaching Pastor Kyle Idleman speaking. Learn more about our <a href="https://www.southeastchristian.org/connect/care/encounter-groups">Encounter groups here</a>.</p>
+							<p>Each Thursday, support groups meet at our Blankenbaker Campus to help people experience growth, find hope, and receive help for a range of life situations-from everyday challenges to more severe crises. These groups come together every week for worship. On Thursday, March 29, the Encounter worship service will be centered around Easter, with Senior Pastor Dave Stone speaking. Learn more about our <a href="https://www.southeastchristian.org/connect/care/encounter-groups">Encounter groups here</a>.</p>
 						</div>
 	                  </div>
 	                </div><!-- / .panel -->
@@ -485,7 +535,7 @@
   	                  </div>
   	                  <div id="faq-carols" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-carols">
   	                    <div class="panel-body">
-                              <p>At the three traditional services on Easter Sunday-7:15 a.m. at our Blankenbaker Campus, 8:00 a.m. at our Indiana Campus and 7:30 a.m. at the Crestwood Campus - we'll sing hymns and hear teaching from Greg Allen, Campus Pastor at Southeast's Crestwood Campus. The other services on Easter weekend will feature more contemporary-style worship songs and teaching from Senior Pastor Dave Stone and Teaching Pastor Kyle Idleman.</p>
+                              <p>At the three traditional services on Easter Sunday-7:15 a.m. at our Blankenbaker Campus, 8:00 a.m. at our Indiana Campus and 7:30 a.m. at the Crestwood Campus - we'll sing hymns and hear teaching from Greg Allen, Campus Pastor at Southeast's Crestwood Campus. The other services on Easter weekend will feature more contemporary-style worship songs and teaching from Senior Pastor Dave Stone.</p>
                           </div>
   	                  </div>
   	                </div><!-- / .panel -->
