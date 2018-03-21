@@ -162,6 +162,10 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
                 for (var i = 0; i < data.Count; i++)
                 {
+                    if (data[i].Count == 0)
+                    {
+                        continue;
+                    }
                     string firstName = data[i][GetAttributeValue("FirstNameColumn").AsInteger()].ToString();
                     string lastName = data[i][GetAttributeValue("LastNameColumn").AsInteger()].ToString();
                     string grade = data[i][GetAttributeValue("GradeColumn").AsInteger()].ToString();

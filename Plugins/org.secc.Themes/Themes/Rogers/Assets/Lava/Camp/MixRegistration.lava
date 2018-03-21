@@ -30,7 +30,7 @@
     </div>
 
     <div class="col-md-4 text-center">
-        <p><b>Week 2&nbsp;</b></p><p><small>(Crestwood, La Grange, Blankenbaker)</small></p>
+        <p><b>Week 2&nbsp;</b></p><p><small>(Crestwood, La Grange)</small></p>
         <br>
 
         {% if releaseRegistration <= currentDate %}
