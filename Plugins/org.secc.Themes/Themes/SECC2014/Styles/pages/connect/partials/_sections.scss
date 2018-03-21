@@ -64,10 +64,13 @@ section:not(.row):not(.highlighted-section):not(.with-header):not(.footer-menu):
     }
 }
 
-.page-banner {
-	@include phones {
-        nav.section-nav { display: none;}
-    }
+// .page-banner {
+// 	@include phones {
+//         nav.section-nav { display: none;}
+//     }
+// }
+@include phones {
+    nav.section-nav { display: none;}
 }
 
 h4 {
@@ -76,6 +79,98 @@ h4 {
     font-weight: bolder;
 }
 
+/*****************************************************************************
+************************ Update on 03 - 21 - 2018 ****************************
+******************************************************************************
+***** Temporary Fix for Connect Sub - Menu Until Primary Nav is Updated ******
+******************************************************************************
+******************************************************************************
+*/
+.jarallax {
+    @include phones {
+    	min-height: 350px !important;
+    }
+    @include small-phones {
+    	min-height: 350px !important;
+    }
+    @include large-phones {
+    	min-height: 350px !important;
+    }
+    @include tablets {
+    	min-height: 400px !important;
+    }
+    @include desktops {
+    	min-height: 400px !important;
+    }
+    @include small-desktops {
+    	min-height: 400px !important;
+    }
+    @include large-desktops {
+    	min-height: 500px !important;
+    }
+}
+// updated on 03-21-2018 for a cleaner menu
+#sub-connect-menu {
+    nav.section-nav {
+        &.wow {
+            visibility: hidden;
+        }
+        color: inherit;
+        // font-size: .8em;
+        font-family: "proxima-nova-n7", "proxima-nova", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-weight: 700;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        position: absolute;
+        width: 23%;
+        right: 0;
+        top: 0;
+        overflow: hidden;
+        background: rgba(355, 355, 355, 0.9);
+        z-index: 5;
+        box-shadow: 5px 5px 20px rgba(0,0,0,0.2);
+        border-radius: 10px;
+        margin: 20px;
+        height: auto ;
+
+        @include large-desktops {
+        	font-size: inherit !important;
+        }
+
+        li.dropdown {
+            ul {
+                li {
+                    @include transform(translateX(-20px));
+                    @include transition(all 0.4s);
+                }
+			}
+            &.open > ul,
+			&.all.open ul {
+                li {
+                    @include transform(none);
+                    @include transition(all 0.4s);
+                }
+			}
+        }
+
+        ul {
+            li + li {
+                border-top: 1px solid rgba(160, 157, 153, 0.34);
+            }
+        }
+        li > *:first-child {
+            padding-left: 5%;
+            padding-top: 0.4em;
+            padding-bottom: 0.4em;
+        }
+    }
+}
+/*****************************************************************************
+*********************** END: Temporary Fix for Connect Sub *******************
+******************************************************************************
+*/
+
+// the old way of how it was inlcuded
 #PageHeader {
 	//No padding at the bottom of the first section
 	padding-bottom: 0 !important;
@@ -114,9 +209,11 @@ h4 {
 			position: absolute;
 			top: 0;
 			width: 100%;
-			background: rgba(#ffffff,0.35);
+			background: rgba(#ffffff,0.4);
 			text-shadow: 1px 1px 1px rgba($CopyColor, 1);
 			color: #fff;
+            text-align: left;
+            z-index: 10;
 		}
     }
 
