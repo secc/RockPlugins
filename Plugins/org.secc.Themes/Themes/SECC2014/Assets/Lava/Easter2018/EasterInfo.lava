@@ -1,4 +1,6 @@
-<script src="~~/Scripts/modernizr.js"></script>
+{% assign currentDate = 'Now' | Date:'yyyyMMddHHmm' | AsDouble %}
+
+<script src="/Themes/SECC2014/Scripts/modernizr.js"></script>
 <script src="https://www.southeastchristian.org/eastertogether/assets/js/vendor/wow.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
 <script src="https://use.typekit.net/osx6gkw.js"></script>
@@ -47,14 +49,16 @@
                     <span><i class="fa fa-pencil"></i></span>
                 </a>
             </li>
+            {% if showEasterDevotionals <= currentDate %}
             <li style="background-color: #a55694;">
-                <a href="#EasterDevo">
+                <a href="#devotional">
                     <i><b style="color: white;">Holy Week</b></i>
                     <span style="color: white;">
                         <i class="fa fa-book"></i>
                     </span>
                 </a>
             </li>
+            {% endif %}
             <li>
                 <a href="#map">
                     <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Map&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b>
@@ -264,6 +268,12 @@
             </div>
         </div>
     </section>
+
+    {% if showEasterDevotionals <= currentDate %}
+    <section id="devotional" class="easter-section easter-font">
+      {% include '~~/Assets/Lava/Easter2018/LentSeries.lava' %}
+    </section>
+    {% endif %}
 
     <section id="map" class="easter-section easter-font">
 
@@ -812,6 +822,7 @@ $(document).ready(function() {
                }
        	});
     }
+
 }); // $(document).ready();
 
 $(document).ajaxComplete(function() {
