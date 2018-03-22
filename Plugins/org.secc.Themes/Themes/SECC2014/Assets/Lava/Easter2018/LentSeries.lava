@@ -1,21 +1,22 @@
 <script src="/Themes/SECC2014/Scripts/readmore.min.js"></script>
-<script src="/Themes/SECC2014/Scripts/jquery-modal-video.min.js"></script>
+<script src="/Themes/SECC2014/Scripts/jquery-modal-video.js"></script>
 <script src="https://unpkg.com/imagesloaded@4/imagesloaded.pkgd.min.js"></script>
 
 {% assign currentSeries = Items | First %}
 {% assign currentSeriesImageGuid = currentSeries | Attribute:'SeriesImage','RawValue' %}
 
-<section class="easter-font">
-    <div class="container">
+<!-- <section class="easter-font"> -->
+    <div id="devotional" class="container">
 
         <div class="row" style="margin: 0;">
             <div class="col-sm-12 text-center">
+                <br />
                 <h1>HOLY WEEK AT SOUTHEAST</h1>
                 <br />
             </div>
         </div>
 
-        <div id="EasterDevo" class="row isotope" style="margin: 0;">
+        <div id="EasterDevo" class="row" style="margin: 0;">
 
                     {% assign fadeSeconds = 0 %}
     			    {% for item in Items %}
@@ -25,16 +26,15 @@
 
                         {% assign fadeSeconds = fadeSeconds | Plus:0.2 %}
 
-                        {% for childItem in item.ChildItems %}
-                        {% assign childItemAssigned = childItem.ChildContentChannelItem %}
-                        {% assign childImageGuid = childItem.ChildContentChannelItem | Attribute:'Image','RawValue' %}
+                        {% assign childItemAssigned = item %}
+                        {% assign childImageGuid = item | Attribute:'Image','RawValue' %}
                             <div class="EasterDevo-Item col-sm-6 col-md-6 col-lg-4" style="margin-bottom: 20px;">
                                 <div class="blog-post wow fadeIn" data-wow-duration="1s" data-wow-delay="{{fadeSeconds}}s">
                                     <img src="/GetImage.ashx?Guid={{ childImageGuid }}" class="img-responsive">
                                     <div class="bp-content">
                                         <!-- Post Title -->
                                         <div class="text-center" style="margin:5px auto 15px;">
-                                            <a href="javascript:void(0)" class="btn btn-easter js-modal-video" data-video-id="{{ childItemAssigned.Video | Remove:'https://vimeo.com/' }}" style="padding: 10px 16px; opacity: 0.7; width: 100%;">
+                                            <a href="javascript:void(0)" class="btn btn-easter js-modal-video" data-video-id="{{ childItemAssigned.EmbededVideoUrl | Remove:'https://vimeo.com/' }}" style="padding: 10px 16px; opacity: 0.7; width: 100%;">
                                                 <strong>Play Video</strong>
                                             </a>
                                         </div>
@@ -47,18 +47,15 @@
                                     </div><!-- / .bp-content -->
                                 </div>
                             </div>
-                        {% endfor %}
-
                 	{% endfor -%}
 
             </div>
-        </div>
+        <!-- </div> -->
     </div>
-</section>
+<!--</section> -->
 
 <script>
 $(document).ready(function() {
-
     initModalVideo();
     initIsoDevotionals();
 
@@ -71,7 +68,7 @@ $(document).ready(function() {
     function initIsoDevotionals(){
         $('.readmore').readmore({
             embedCSS: false,
-            collapsedHeight: 65,
+            collapsedHeight: 40,
             speed: 200,
             moreLink: '<div style="border-top: 2px solid rgb(204, 204, 204);"><a href="#" class="btn btn-easter pull-right" style="margin-top:15px;">Read more</a><div style="clear: both;"></div></div>',
             lessLink: '<a href="javascript:void(0)" class="btn btn-easter pull-right" style="margin-top:15px; padding: 10px 16px; opacity: 0.7;"><strong><i class="fa fa-times"></i></strong></a><div style="clear: both;"></div>',
@@ -92,7 +89,7 @@ $(document).ready(function() {
         });
         // bind event
         $grid.isotope( 'on', 'arrangeComplete', function() {
-          console.log('arrange is complete');
+          // console.log('arrange is complete');
         });
         // layout Isotope after each image loads
         $grid.imagesLoaded().progress( function() {

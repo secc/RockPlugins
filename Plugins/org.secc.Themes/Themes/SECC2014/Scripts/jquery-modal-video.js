@@ -232,8 +232,8 @@ var ModalVideo = function () {
     var speed = opt.animationSpeed;
     [].forEach.call(selectors, function (selector) {
       selector.addEventListener('click', function () {
-        var videoId = selector.dataset.videoId;
-        var channel = selector.dataset.channel || opt.channel;
+        var videoId = $(selector).data( "videoId" );
+        var channel = $(selector).data( "channel" ) || opt.channel;
         var id = (0, _util.getUniqId)();
         var videoUrl = _this.getVideoUrl(opt, channel, videoId);
         var html = _this.getHtml(opt, videoUrl, id);
