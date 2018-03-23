@@ -75,7 +75,7 @@ namespace org.secc.SafetyAndSecurity
                     }
                     break;
                 case "Fourth Reference":
-                    if ( !GetAttributeValue( action, "IsMinorApplication" ).AsBoolean() )
+                    if ( !GetAttributeValue( action, "IsMinorApplication", true ).AsBoolean() )
                     {
                         Guid? reference4Guid = action.Activity.Workflow.GetAttributeValue( "Reference4Address" ).AsGuidOrNull();
                         validateAddress( reference4Guid.Value, "Fourth Reference Address", sbErrorMessages );
