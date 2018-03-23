@@ -176,12 +176,16 @@ namespace RockWeb.Plugins.org_secc.TotalMD
                 for ( int i = 0; i <= rptr.Items.Count - 1; i++ )
                 {
                     var WorkPhone = ( HtmlGenericControl ) rptr.Items[i].FindControl( "liWorkPhone" );
-                    if ( WorkPhone.InnerText == "Work: " )
+                    if ( WorkPhone.InnerText.Trim() == "Work:" )
                         WorkPhone.Visible = false;
 
                     var CellPhone = ( HtmlGenericControl ) rptr.Items[i].FindControl( "liCellPhone" );
-                    if ( CellPhone.InnerText == "Cell: " )
+                    if ( CellPhone.InnerText.Trim() == "Cell:" )
                         CellPhone.Visible = false;
+
+                    var Notes = ( HtmlGenericControl ) rptr.Items[i].FindControl( "liNotes" );
+                    if ( Notes.InnerText.Trim() == "Notes:" )
+                        Notes.Visible = false;
                 }
             }
         }
@@ -262,9 +266,18 @@ namespace RockWeb.Plugins.org_secc.TotalMD
                     }
                 }
 
+                if (string.IsNullOrEmpty(whereClause))
+                {
+                    whereClause = "WHERE [Code] <> '00000'";
+                }
+                else
+                {
+                    whereClause = whereClause + " AND [Code] <> '00000'";
+                }
+
                 string qry = @"SELECT [Code], CONCAT(CONCAT([First Name] WITH ' ') WITH [Last Name]) AS [Counselor Name] 
                     FROM Provider " +
-                    whereClause +
+                    whereClause + 
                     " ORDER BY [Counselor Name]";
 
                 OdbcDataAdapter da = new OdbcDataAdapter( qry, con );
@@ -323,12 +336,13 @@ namespace RockWeb.Plugins.org_secc.TotalMD
             using ( OdbcConnection con = new OdbcConnection( ConnString ) )
             {
                 string qry = @"SELECT CONCAT(CONCAT([First Name] WITH ' ') WITH [Last Name]) AS [Patient Name], [Date], [Time], l.[Text] AS [Status],
-                    [Work Phone], [Mobile Phone], CONCAT(CONCAT(p.[First Name] WITH ' ') WITH p.[Last Name]) AS [Counselor Name] 
+                    [Work Phone], [Mobile Phone], CONCAT(CONCAT(p.[First Name] WITH ' ') WITH p.[Last Name]) AS [Counselor Name], [Note] 
                     FROM Appointment a
                     LEFT OUTER JOIN Provider p ON a.[Provider] = p.[Code]
                     INNER JOIN lookuplist l ON l.[Table] = 'APPOINTMENT' AND l.[Field] = 'STATUS' AND a.[Status] = CAST(l.[ID] AS Integer)" +
                   " WHERE a.[Date] >= " + "'" + BeginDate + "' AND a.[Date] < '" + EndDate + "' AND a.[Provider] IN (" + selectedCounselors + ")" +
                   " AND l.[Text] IN ('Unconfirmed','Left Message','Confirmed','Ready','Cancelled','Missed')" +
+                  " AND a.[Provider] <> '00000'" +
                   " ORDER BY [Date],[Time],[Counselor Name]";
 
                 OdbcDataAdapter da = new OdbcDataAdapter( qry, con );
