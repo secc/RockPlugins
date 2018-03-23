@@ -36,6 +36,7 @@
                                             <li id="liStatus" runat="server">Status: <b><%# ((DataRow)Container.DataItem)[3] %></b></li>
                                             <li id="liWorkPhone" runat="server">Work: <%# ((DataRow)Container.DataItem)[4] %></li>
                                             <li id="liCellPhone" runat="server">Cell: <%# ((DataRow)Container.DataItem)[5] %></li>
+                                            <li id="liNotes" runat="server">Notes: <%# ((DataRow)Container.DataItem)[7] %></li>
                                         </ul>
                                     </li>
                                 </ItemTemplate>
