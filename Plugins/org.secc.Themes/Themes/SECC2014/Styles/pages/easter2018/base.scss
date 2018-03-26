@@ -922,4 +922,58 @@ width: 33.3334%;
     span.br_line{
         background: -webkit-gradient(radial, 50% 50%, 0, 50% 50%, 150, from($color-3), to($color-1));
     }
+
+    .serve-easter {
+        -webkit-transition-property: none;
+        -moz-transition-property: none;
+        -o-transition-property: none;
+        transition-property: none;
+
+        a {
+            -webkit-transition-property: none;
+            -moz-transition-property: none;
+            -o-transition-property: none;
+            transition-property: none;
+            .box {
+                -webkit-transition-property: none;
+                -moz-transition-property: none;
+                -o-transition-property: none;
+                transition-property: none;
+            }
+        }
+        &:before {
+          -webkit-transition-property: none;
+          -moz-transition-property: none;
+          -o-transition-property: none;
+          transition-property: none;
+        }
+    	&:after {
+            -webkit-transition-property: none;
+            -moz-transition-property: none;
+            -o-transition-property: none;
+            transition-property: none;
+    	}
+
+    	&:hover {
+    		-webkit-transition-property: none;
+            -moz-transition-property: none;
+            -o-transition-property: none;
+            transition-property: none;
+
+            &:before {
+                opacity: 1;
+                -webkit-transition-property: none;
+                -moz-transition-property: none;
+                -o-transition-property: none;
+                transition-property: none;
+            }
+    		&:after {
+                opacity: 1;
+                -webkit-transition-property: none;
+                -moz-transition-property: none;
+                -o-transition-property: none;
+                transition-property: none;
+    		}
+    	}
+    }
 }
