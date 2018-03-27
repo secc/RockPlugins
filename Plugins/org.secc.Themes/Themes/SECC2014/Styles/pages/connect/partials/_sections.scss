@@ -86,7 +86,18 @@ h4 {
 ******************************************************************************
 ******************************************************************************
 */
-.jarallax {
+.jarallax.sub-menu-hero {
+    &.darken {
+        &:after {
+            top: 0;
+            left: 0;
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)) center/cover no-repeat fixed;
+        }
+    }
     @include phones {
     	min-height: 350px !important;
     }
@@ -195,15 +206,15 @@ h4 {
         nav.section-nav {
             z-index: 5;
         }
-        &:after {
-            top: 0;
-            left: 0;
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(rgba(0, 0, 0, 0.30), rgba(0, 0, 0, 0.30)) center/cover no-repeat fixed;
-        }
+        // &:after {
+        //     top: 0;
+        //     left: 0;
+        //     content: '';
+        //     position: absolute;
+        //     width: 100%;
+        //     height: 100%;
+        //     background: linear-gradient(rgba(0, 0, 0, 0.30), rgba(0, 0, 0, 0.30)) center/cover no-repeat fixed;
+        // }
 
 		#Breadcrumbs {
 			position: absolute;
