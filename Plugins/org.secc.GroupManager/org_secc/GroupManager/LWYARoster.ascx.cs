@@ -1,4 +1,18 @@
-﻿using Rock.Data;
+// <copyright>
+// Copyright Southeast Christian Church
+//
+// Licensed under the  Southeast Christian Church License (the "License");
+// you may not use this file except in compliance with the License.
+// A copy of the License shoud be included with this file.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+//
+using Rock.Data;
 using Rock.Model;
 using Rock.Web.UI;
 using System;
@@ -233,8 +247,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         protected void btnEmailSend_Click( object sender, EventArgs e )
         {
             bool sendToParents = cbEmailSendToParents.Checked;
-            string subject = tbSubject.Text;
-            string body = tbBody.Text;
 
             if ( Page.IsValid )
             {
@@ -251,7 +263,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     communication.FromName = CurrentPerson.FullName;
                     communication.FromEmail = GetSafeSender( CurrentPerson.Email );
                     communication.ReplyToEmail = CurrentPerson.Email;
-                    communication.Message = tbBody.Text;
+                    communication.Message = tbBody.Text.Replace( "\n", "<br />" );
 
                     communication.Status = CommunicationStatus.Approved;
                     communication.ReviewedDateTime = RockDateTime.Now;

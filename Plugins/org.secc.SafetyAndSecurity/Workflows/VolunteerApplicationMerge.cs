@@ -1,4 +1,18 @@
-﻿using System;
+// <copyright>
+// Copyright Southeast Christian Church
+//
+// Licensed under the  Southeast Christian Church License (the "License");
+// you may not use this file except in compliance with the License.
+// A copy of the License shoud be included with this file.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+//
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
@@ -17,8 +31,9 @@ namespace org.secc.SafetyAndSecurity
     [Description( "Merge the final PDF in the volunteer application (background check)." )]
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Volunteer Application Merge" )]
-    [BinaryFileField( VolunteerApplicationMerge.PDF_FORM_BINARY_FILE_TYPE, "Adult Volunteer Application PDF", "The Confidential Volunteer Application for Adult PDF form", true)]
+    [BinaryFileField( VolunteerApplicationMerge.PDF_FORM_BINARY_FILE_TYPE, "Adult Volunteer Application PDF", "The Confidential Volunteer Application for Adult PDF form", true )]
     [BinaryFileField( VolunteerApplicationMerge.PDF_FORM_BINARY_FILE_TYPE, "Minor Volunteer Application PDF", "The Confidential Volunteer Application for Minors PDF form", true )]
+    [WorkflowAttribute( "Is Minor Application", "Mark as yes if the application is for minors", fieldTypeClassNames: new string[] { "Rock.Field.Types.BooleanFieldType" } )]
     class VolunteerApplicationMerge : ActionComponent
     {
         public const string BACKGROUND_CHECK_BINARY_FILE_TYPE = "5C701472-8A6B-4BBE-AEC6-EC833C859F2D";
@@ -34,7 +49,7 @@ namespace org.secc.SafetyAndSecurity
             LocationService locationService = new LocationService( rockContext );
             Location currentMailingAddress = locationService.Get( action.Activity.Workflow.GetAttributeValue( "CurrentMailingAddress" ).AsGuid() );
             Location previousMailingAddress = locationService.Get( action.Activity.Workflow.GetAttributeValue( "PreviousMailingAddress" ).AsGuid() );
-            if ( previousMailingAddress == null)
+            if ( previousMailingAddress == null )
             {
                 previousMailingAddress = new Location();
             }
@@ -45,14 +60,17 @@ namespace org.secc.SafetyAndSecurity
 
             Dictionary<string, string> fields = new Dictionary<string, string>()
                 {
-				    {"ministryOfInterest", action.Activity.Workflow.GetAttributeValue("MinistryOfInterest") },
+                    {"ministryOfInterest", action.Activity.Workflow.GetAttributeValue("MinistryOfInterest") },
                     {"intPersonID", person.Id.ToString()},
 
                     {"txtLastName", action.Activity.Workflow.GetAttributeValue("LastName")},
                     {"txtFirstName",  action.Activity.Workflow.GetAttributeValue("FirstName")},
                     {"txtMiddleName", action.Activity.Workflow.GetAttributeValue("MiddleName")},
                     {"txtMaidenOtherName", action.Activity.Workflow.GetAttributeValue("MaidenOtherNames")},
-                    {"txtParent", action.Activity.Workflow.GetAttributeValue("")},
+                    {"txtParent", action.Activity.Workflow.GetAttributeValue("Parent")},
+                    {"txtParentEmail", action.Activity.Workflow.GetAttributeValue("ParentEmail")},
+                    {"txtParentHomePhone", action.Activity.Workflow.GetAttributeValue("ParentHomePhone")},
+                    {"txtParentCellPhone", action.Activity.Workflow.GetAttributeValue("ParentCellPhone")},
 
                     {"txtDateOfBirth", action.Activity.Workflow.GetAttributeValue("DateofBirth").AsDateTime().Value.ToShortDateString()},
 				    //{"txtSSN", action.Activity.Workflow.GetAttributeValue("")},
@@ -107,7 +125,7 @@ namespace org.secc.SafetyAndSecurity
 
                     {"txtRef2Name", action.Activity.Workflow.GetAttributeValue("Reference2Name")},
                     //{"txtRef2Relationship", action.Activity.Workflow.GetAttributeValue("")},
-				    {"radRef2YearsKnow", action.Activity.Workflow.GetAttributeValue("Reference2Relationship") 
+				    {"radRef2YearsKnow", action.Activity.Workflow.GetAttributeValue("Reference2Relationship")
                                         + "/" + action.Activity.Workflow.GetAttributeValue("Reference2YearsKnown")},
                     {"txtRef2Address", reference2Address.Street1},
                     {"txtRef2City", reference2Address.City},
@@ -178,6 +196,9 @@ namespace org.secc.SafetyAndSecurity
                     {"txtSOFDated", "{{t:d;r:n;o:\"Applicant\";l:\"Date\";dd:\""+DateTime.Now.ToShortDateString()+"\";}}" },
                     {"txtSOFPrintedName", person.FullNameFormal },
 
+                    {"txtParentSignature", "{{t:s;r:y;o:\"Parent\";}}" },
+                    {"txtDate1", "{{t:d;r:y;o:\"Parent\";l:\"Date\";dd:\""+DateTime.Now.ToShortDateString()+"\";}}" },
+
                     {"radReadSOFYes", action.Activity.Workflow.GetAttributeValue("ReadStatementOfFaith").AsBoolean()?"Yes":"No" },
                     {"radReadSOFNo", action.Activity.Workflow.GetAttributeValue("ReadStatementOfFaith").AsBoolean()?"No":"Yes" },
                     {"radAgreeSOFYes", action.Activity.Workflow.GetAttributeValue("AgreeStatementOfFaith").AsBoolean()?"Yes":"No" },
@@ -186,9 +207,18 @@ namespace org.secc.SafetyAndSecurity
                 };
 
             BinaryFileService binaryFileService = new BinaryFileService( rockContext );
-            BinaryFile adultPDF = binaryFileService.Get( GetActionAttributeValue( action, "AdultVolunteerApplicationPDF" ).AsGuid() );
+            BinaryFile PDF = null;
+            var isMinorApplicant = GetAttributeValue( action, "IsMinorApplication", true ).AsBoolean();
+            if ( isMinorApplicant )
+            {
+                PDF = binaryFileService.Get( GetActionAttributeValue( action, "MinorVolunteerApplicationPDF" ).AsGuid() );
+            }
+            else
+            {
+                PDF = binaryFileService.Get( GetActionAttributeValue( action, "AdultVolunteerApplicationPDF" ).AsGuid() );
+            }
 
-            var pdfBytes = adultPDF.ContentStream.ReadBytesToEnd();
+            var pdfBytes = PDF.ContentStream.ReadBytesToEnd();
 
             using ( MemoryStream ms = new MemoryStream() )
             {
@@ -213,7 +243,7 @@ namespace org.secc.SafetyAndSecurity
                 pdfStamper = null;
 
                 BinaryFile renderedPDF = new BinaryFile();
-                renderedPDF.CopyPropertiesFrom( adultPDF );
+                renderedPDF.CopyPropertiesFrom( PDF );
                 renderedPDF.Guid = Guid.NewGuid();
                 renderedPDF.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( new Guid( BACKGROUND_CHECK_BINARY_FILE_TYPE ) ).Id;
 
@@ -230,7 +260,7 @@ namespace org.secc.SafetyAndSecurity
 
 
             return true;
-            
+
         }
     }
 }

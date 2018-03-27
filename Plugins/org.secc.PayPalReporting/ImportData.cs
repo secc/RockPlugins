@@ -1,4 +1,18 @@
-﻿using System;
+// <copyright>
+// Copyright Southeast Christian Church
+//
+// Licensed under the  Southeast Christian Church License (the "License");
+// you may not use this file except in compliance with the License.
+// A copy of the License shoud be included with this file.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+//
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,9 +31,10 @@ namespace org.secc.PayPalReporting
 
     [TextField("Report Name", "Name of PayFlowPro Report/Template to retrieve.", true, "GivingReport")]
     [TextField("PayPal Report URL", "URL for paypal reporting (Update to change to test/prod mode)", true, "https://payments-reports.paypal.com/reportingengine")]
-    [EncryptedTextField("PayPal API Username", "Username for authenticating to the PayPal API", true, "", "PayPal API")]
-    [EncryptedTextField("PayPal API Password", "Password for authenticating to the PayPal API", true, "", "PayPal API")]
-    [EncryptedTextField("PayPal API Signature", "Signature for authenticating to the PayPal API", true, "", "PayPal API")]
+    [BooleanField("Fetch Fees", "Flag for indicating whether this import should fetch fees.", true, "PayPal API")]
+    [EncryptedTextField("PayPal API Username", "Username for authenticating to the PayPal API", false, "", "PayPal API")]
+    [EncryptedTextField("PayPal API Password", "Password for authenticating to the PayPal API", false, "", "PayPal API")]
+    [EncryptedTextField("PayPal API Signature", "Signature for authenticating to the PayPal API", false, "", "PayPal API")]
     [SlidingDateRangeField( "Date Range", "The range of dates to import.", true, "Previous|24|Hour||" )]
 
     [DisallowConcurrentExecution]
@@ -53,29 +68,25 @@ namespace org.secc.PayPalReporting
 
             JobDataMap dataMap = context.JobDetail.JobDataMap;
 
-            String apiUsername = Encryption.DecryptString(dataMap.GetString("PayPalAPIUsername"));
-            String apiPassword = Encryption.DecryptString(dataMap.GetString("PayPalAPIPassword"));
-            String apiSignature = Encryption.DecryptString(dataMap.GetString("PayPalAPISignature"));
-
             int totalTransactions = 0;
             int feesSuccessful = 0;
             int feesFailed = 0;
 
-            Rock.Model.FinancialGatewayService fgs = new Rock.Model.FinancialGatewayService(new Rock.Data.RockContext());
-            List<Rock.Model.FinancialGateway> gateways = fgs.Queryable().Where(fg => fg.IsActive && fg.EntityType.Name.Contains("PayFlowPro")).ToList();
-            foreach (Rock.Model.FinancialGateway gateway in gateways)
+            Rock.Model.FinancialGatewayService fgs = new Rock.Model.FinancialGatewayService( new Rock.Data.RockContext() );
+            List<Rock.Model.FinancialGateway> gateways = fgs.Queryable().Where( fg => fg.IsActive && fg.EntityType.Name.Contains( "PayFlowPro" ) ).ToList();
+            foreach ( Rock.Model.FinancialGateway gateway in gateways )
             {
                 XMLReport report = new XMLReport();
                 report.Gateway = gateway;
-                report.URL = dataMap.GetString("PayPalReportURL");
-                report.name = dataMap.GetString("ReportName");
+                report.URL = dataMap.GetString( "PayPalReportURL" );
+                report.name = dataMap.GetString( "ReportName" );
 
                 DateRange dateRange = Rock.Web.UI.Controls.SlidingDateRangePicker.CalculateDateRangeFromDelimitedValues( dataMap.GetString( "DateRange" ) ?? "-1||" );
-                DataTable data = report.RunReport( dateRange.Start ?? DateTime.Now.AddHours(0 - 24), dateRange.End ?? DateTime.Now.Date.AddSeconds(-1));
+                DataTable data = report.RunReport( dateRange.Start ?? DateTime.Now.AddHours( 0 - 24 ), dateRange.End ?? DateTime.Now.Date.AddSeconds( -1 ) );
 
-                foreach(DataRow row in data.Rows)
+                foreach ( DataRow row in data.Rows )
                 {
-                    ProcessTransaction(row);
+                    ProcessTransaction( row );
                 }
                 dbContext.SaveChanges();
 
@@ -83,31 +94,48 @@ namespace org.secc.PayPalReporting
             }
 
 
-            // Now load all transactions without feeds
-            List<Transaction> zeroFeeTrans = transactionService.Queryable()
-                .Where(tx => tx.Fees == 0 && !tx.IsZeroFee && tx.MerchantTransactionId != "").ToList();
-            API paypalAPI = new API();
-            paypalAPI.Username = apiUsername;
-            paypalAPI.Password = apiPassword;
-            paypalAPI.Signature = apiSignature;
-
-            foreach (Transaction zeroFeeTran in zeroFeeTrans)
+            // Now load all transaction fees
+            if ( dataMap.GetString( "FetchFees" ).AsBoolean() )
             {
-                Double fee = Convert.ToDouble(paypalAPI.GetTransactionFee(zeroFeeTran));
-                if (fee != 0)
+                if ( dataMap.GetString( "PayPalAPIUsername" ).IsNullOrWhiteSpace()
+                    || dataMap.GetString( "PayPalAPIPassword" ).IsNullOrWhiteSpace()
+                    || dataMap.GetString( "PayPalAPISignature" ).IsNullOrWhiteSpace() )
                 {
-                    zeroFeeTran.Fees = fee;
-                    feesSuccessful++;
-                } else
-                {
-                    feesFailed++;
+                    throw new Exception( "In order to fetch fees, the PayPal API Username, Password, and Signature are required." );
                 }
+
+                String apiUsername = Encryption.DecryptString( dataMap.GetString( "PayPalAPIUsername" ) );
+                String apiPassword = Encryption.DecryptString( dataMap.GetString( "PayPalAPIPassword" ) );
+                String apiSignature = Encryption.DecryptString( dataMap.GetString( "PayPalAPISignature" ) );
+                List<Transaction> zeroFeeTrans = transactionService.Queryable()
+                    .Where( tx => tx.Fees == 0 && !tx.IsZeroFee && tx.MerchantTransactionId != "" ).ToList();
+                API paypalAPI = new API();
+                paypalAPI.Username = apiUsername;
+                paypalAPI.Password = apiPassword;
+                paypalAPI.Signature = apiSignature;
+
+                foreach ( Transaction zeroFeeTran in zeroFeeTrans )
+                {
+                    Double fee = Convert.ToDouble( paypalAPI.GetTransactionFee( zeroFeeTran ) );
+                    if ( fee != 0 )
+                    {
+                        zeroFeeTran.Fees = fee;
+                        feesSuccessful++;
+                    } else
+                    {
+                        feesFailed++;
+                    }
+                }
+                dbContext.SaveChanges();
             }
-            dbContext.SaveChanges();
-            
-            String message = "Payflow Transactions Retrieved: " + totalTransactions + " - "
-                        + "Non-Zero Fee Transactions:" + feesSuccessful + " - "
-                        + "Zero Fee Transactions:" + feesFailed;
+
+            String message = "Payflow Transactions Retrieved: " + totalTransactions;
+
+            if ( dataMap.GetString( "FetchFees" ).AsBoolean() )
+            {
+                message += " - Non-Zero Fee Transactions:" + feesSuccessful;
+                message += " - Zero Fee Transactions:" + feesFailed;
+            }
 
             context.Result = message;
         }
