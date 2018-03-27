@@ -1,13 +1,12 @@
 {% assign currentDate = 'Now' | Date:'yyyyMMddHHmm' | AsDouble %}
-{% assign showMovieNotice = '201803111400' | AsDouble %}
 
-<script src="~~/Scripts/modernizr.js"></script>
+<script src="/Themes/SECC2014/Scripts/modernizr.js"></script>
 <script src="https://www.southeastchristian.org/eastertogether/assets/js/vendor/wow.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
 <script src="https://use.typekit.net/osx6gkw.js"></script>
 <script>try{Typekit.load({ async: true });}catch(e){}</script>
 
-<header class="cd-header">
+<header class="cd-header" style="z-index: 1">
 </header>
 
 <section id="PageHeader" style="overflow: hidden; background-color: #e6fdf7;">
@@ -32,19 +31,6 @@
                     <span><i class="fa fa-users"></i></span>
                 </a>
             </li>
-
-
-            {% if showMovieNotice <= currentDate %}
-            <li style="background-color: #a55694;">
-                <a href="#icanonlyimagine">
-                    <i><b style="color: white;">"I Can Only Imagine"</b></i>
-                    <span style="color: white;">
-                        <i class="fa fa-film"></i>
-                    </span>
-                </a>
-            </li>
-            {% endif %}
-
             <li>
                 <a href="#locations">
                     <b>Locations</b>
@@ -63,27 +49,37 @@
                     <span><i class="fa fa-pencil"></i></span>
                 </a>
             </li>
+            {% if showEasterDevotionals <= currentDate %}
+            <li style="background-color: #a55694;">
+                <a href="#devotional">
+                    <i><b style="color: white;">Holy Week</b></i>
+                    <span style="color: white;">
+                        <i class="fa fa-book"></i>
+                    </span>
+                </a>
+            </li>
+            {% endif %}
             <li>
                 <a href="#map">
-                    <b>Map</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Map&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b>
                     <span><i class="fa fa-map-marker"></i></span>
                 </a>
             </li>
             <li>
                 <a href="#times">
-                    <b>Times</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Times&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b>
                     <span><i class="fa fa-clock-o"></i></span>
                 </a>
             </li>
 			<li>
 				<a href="#serve">
-					<b>Serve</b>
+					<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Serve&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b>
 					<span><i class="fa fa-user"></i></span>
 				</a>
 			</li>
             <li>
                 <a href="#faq">
-                    <b>FAQ</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;FAQ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b>
                     <span><i class="fa fa-question-circle"></i></span>
                 </a>
             </li>
@@ -126,35 +122,6 @@
           </div>
         </div>
     </section>
-
-    {% if showMovieNotice <= currentDate %}
-    <section id="icanonlyimagine" class="easter-section easter-font">
-        <div class="container">
-
-			<div class="row section" style="padding:40px 0;">
-              <header class="text-center"  style="padding: 10px;">
-                  <br />
-                  <h1><i>I CAN ONLY IMAGINE</i></h1>
-              </header>
-
-              <br />
-              <div class="col-md-offset-1 col-md-5 col-md-push-5 text-center">
-                  <a href="/events/i-can-only-imagine/">
-                      <img alt="I Can Only Imagine" src="/Themes/SECC2014/Assets/img/Easter2018/eventMoviePasses.jpg" class="img-responsive wow slideInRight" data-wow-duration="1s" style="border-radius:30px;">
-                  </a>
-                  <br />
-                  <a style="box-shadow: rgb(165, 86, 148) 5px 5px 0px;" href="/events/i-can-only-imagine/" class="btn btn-easter btn-large wow fadeIn" data-wow-delay=".8s" data-wow-duration="1s">Click here to get tickets!</a>
-                  <br /><br />
-              </div>
-              <div class="col-md-5 col-md-pull-5 biggerText">
-                  <p>We’re excited to share an opportunity with you! The film <i>I Can Only Imagine</i>, the inspiring true story behind the hit MercyMe song, releases in theaters this week! Our ministry partner City on a Hill is collaborating with the movie and have made a limited number of free tickets available to multiple showings March 14-18 located near each of our campuses. Prayerfully consider inviting a friend, a neighbor, or a coworker who isn’t connected to a church. We hope this is an opportunity for you to share some powerful discussions about Jesus and to open a door for you to invite someone to church.</p>
-                  <br />
-                  <br />
-              </div>
-          </div>
-        </div>
-    </section>
-    {% endif %}
 
     <!-- ========== Locations ========== -->
       <section id="locations" class="easter-section section easter-font" style="padding-bottom:0px;">
@@ -301,6 +268,12 @@
             </div>
         </div>
     </section>
+
+    {% if showEasterDevotionals <= currentDate %}
+    <section id="devotional" class="easter-section easter-font">
+      {% include '~~/Assets/Lava/Easter2018/LentSeries.lava' %}
+    </section>
+    {% endif %}
 
     <section id="map" class="easter-section easter-font">
 
@@ -849,6 +822,7 @@ $(document).ready(function() {
                }
        	});
     }
+
 }); // $(document).ready();
 
 $(document).ajaxComplete(function() {
