@@ -32,27 +32,33 @@
 
             <!-- Setting Up Anchor Link for Deatails Page -->
             {% if eventItemOccurrence.DetailPage != null %}
-                {% assign openEventDetailsLink = eventItemOccurrence.DetailPage | Prepend:"<a href='" | Append:"'>" %}
+                {% assign openEventDetailsLink = eventItemOccurrence.DetailPage | Prepend:"<a href='" | Append:"' class='eventCardLink'>" %}
                 {% assign closeEventDetailsLink = "</a>" %}
             {% else %}
-                {% assign openEventDetailsLink = DetailsPage | Prepend:"<a href='" | Append:"?EventOccurrenceId=" | Append:eventItemOccurrence.EventItemOccurrence.Id | Append:"'>" %}
+                {% assign openEventDetailsLink = DetailsPage | Prepend:"<a href='" | Append:"?EventOccurrenceId=" | Append:eventItemOccurrence.EventItemOccurrence.Id | Append:"' class='eventCardLink' >" %}
                 {% assign closeEventDetailsLink = "</a>" %}
             {% endif %}
 
+            {{openEventDetailsLink}}
             <div class="isotope_item col-xs-12 col-sm-6 col-md-4 event-calendar card">
 
-                {{openEventDetailsLink}}
+
+                <!-- Image -->
+                {% assign occurrenceIdPhoto = eventItemOccurrence.PhotoId %}
+                {% if eventItem.Photo %}
                 <div class="img-hover">
-                    <!-- Image -->
-                    {% assign occurrenceIdPhoto = eventItemOccurrence.PhotoId %}
-                    {% if eventItem.Photo %}
-                        <img src="/GetImage.ashx?guid={{ eventItemOccurrence.EventItemOccurrence.EventItem.Photo.Guid }}&w=720" class="event-image img-responsive">
-                    {% else %}
-                        {% assign primaryMinistry = eventItem | Attribute:'PrimaryMinistry','Object' | Attribute:'CalendarImage','Object' %}
-                        <img src="/GetImage.ashx?guid={{ primaryMinistry.Guid }}&w=720" class="img-responsive">
-                    {% endif %}
+                    <img src="/GetImage.ashx?guid={{ eventItemOccurrence.EventItemOccurrence.EventItem.Photo.Guid }}&w=720" class="event-image img-responsive">
                 </div>
-                {{closeEventDetailsLink}}
+                {% else %}
+                <div class="img-hover">
+                    {% assign primaryMinistry = eventItem | Attribute:'PrimaryMinistry','Object' | Attribute:'CalendarImage','Object' %}
+                    <img src="/GetImage.ashx?guid={{ primaryMinistry.Guid }}&w=720" class="img-responsive">
+                </div>
+                {% endif %}
+
+
+                {% assign scheduledDates = eventItemOccurrence.EventItemOccurrence.Schedule.iCalendarContent | DatesFromICal:'all' %}
+                {% assign scheduledNumDates = scheduledDates | Size %}
 
                 <div class="caption">
                       <div class="clearfix">
@@ -64,7 +70,7 @@
                                   <b>Multiple Dates</b>
                                   <br />Starting on {{ eventItemOccurrence.Date | Date: 'MMM, dd'}}
                               </p>
-                          {% elseif numOccurrences > 1 %}
+                          {% elseif numOccurrences > 1 or scheduledNumDates > 1 %}
                               <div class="reoccur-date pull-left" style="margin-right: 10px;">
                               </div>
                               <br />
@@ -103,7 +109,9 @@
                     {% endif %}
                 </div><!-- END: caption -->
 
+
             </div><!-- END: isotope_item -->
+            {{closeEventDetailsLink}}
             {% comment %} **** Only need the first occurance, so break away. **** {% endcomment %}
             {% break %}
         {% endfor %}
