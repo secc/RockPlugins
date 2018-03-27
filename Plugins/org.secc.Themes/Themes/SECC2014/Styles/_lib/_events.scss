@@ -89,22 +89,31 @@ div[id$='pnlFilters'] {
 	}
 }
 
+a.eventCardLink {
+    color: $CopyColor;
+}
 .event-calendar {
 
     padding: 30px !important;
 	margin-bottom: 30px;
     border-radius: 8px;
 
+
     &.card {
+        background-color: rgba(239,239,239, 0.5);
+        @include transition(all .3s ease);
+
+
         @media (max-width: 768px) {
-            background-color: rgba(255, 255, 255, 0.6);
-            -webkit-box-shadow: 0 3px 12px 2px hsla(0,0%,78%,.5);
+            background-color: rgba(239,239,239, 0.5);
+            -webkit-box-shadow: 0 3px 12px 2px hsla(0,0%,78%,1);
             box-shadow: 0 3px 12px 2px hsla(0,0%,78%,.5);
         }
         &:hover {
-            background-color: rgba(255, 255, 255, 0.6);
-            -webkit-box-shadow: 0 3px 12px 2px hsla(0,0%,78%,.5);
-            box-shadow: 0 3px 12px 2px hsla(0,0%,78%,.5);
+            background-color: rgba(239,239,239, 0.5);
+            -webkit-box-shadow: 0 22px 43px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 22px 43px rgba(0, 0, 0, 0.15);
+            transform: translateY(-10px);
             @include transition(all .3s ease);
         }
     }

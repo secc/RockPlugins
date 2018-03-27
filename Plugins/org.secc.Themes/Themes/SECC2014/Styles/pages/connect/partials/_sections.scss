@@ -86,7 +86,8 @@ h4 {
 ******************************************************************************
 ******************************************************************************
 */
-.jarallax.sub-menu-hero {
+.jarallax {
+
     &.darken {
         &:after {
             top: 0;
@@ -98,26 +99,29 @@ h4 {
             background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)) center/cover no-repeat fixed;
         }
     }
-    @include phones {
-    	min-height: 350px !important;
-    }
-    @include small-phones {
-    	min-height: 350px !important;
-    }
-    @include large-phones {
-    	min-height: 350px !important;
-    }
-    @include tablets {
-    	min-height: 400px !important;
-    }
-    @include desktops {
-    	min-height: 400px !important;
-    }
-    @include small-desktops {
-    	min-height: 400px !important;
-    }
-    @include large-desktops {
-    	min-height: 500px !important;
+    
+    &.sub-menu-hero {
+        @include phones {
+            min-height: 350px !important;
+        }
+        @include small-phones {
+            min-height: 350px !important;
+        }
+        @include large-phones {
+            min-height: 350px !important;
+        }
+        @include tablets {
+            min-height: 400px !important;
+        }
+        @include desktops {
+            min-height: 400px !important;
+        }
+        @include small-desktops {
+            min-height: 400px !important;
+        }
+        @include large-desktops {
+            min-height: 500px !important;
+        }
     }
 }
 // updated on 03-21-2018 for a cleaner menu
