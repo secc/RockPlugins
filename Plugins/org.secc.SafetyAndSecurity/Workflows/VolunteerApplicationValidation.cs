@@ -1,4 +1,18 @@
-﻿using System;
+// <copyright>
+// Copyright Southeast Christian Church
+//
+// Licensed under the  Southeast Christian Church License (the "License");
+// you may not use this file except in compliance with the License.
+// A copy of the License shoud be included with this file.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+//
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -18,10 +32,11 @@ namespace org.secc.SafetyAndSecurity
     [Description( "Validate various steps in the volunteer application (background check)." )]
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Volunteer Application Validation" )]
-    [CustomDropdownListField( "Action Step", "Action Step to Validate",  "Personal Information,First Reference,Second Reference,Third Reference,Fourth Reference,Special Circumstances,Statement of Faith", true)]
-    [WorkflowAttribute("Error Messages", "Error Messages Attribute", true)]
+    [CustomDropdownListField( "Action Step", "Action Step to Validate", "Personal Information,First Reference,Second Reference,Third Reference,Fourth Reference,Special Circumstances,Statement of Faith", true )]
+    [WorkflowAttribute( "Error Messages", "Error Messages Attribute", true )]
     [WorkflowActivityType( "Success Activity", "The activity type to activate upon success.  Leave blank to end here.", false, "", "", 0 )]
     [WorkflowActivityType( "Fail Activity", "The activity type to activate upon failure.", true, "", "", 0 )]
+    [WorkflowAttribute( "Is Minor Application", "Mark as yes if the application is for minors", fieldTypeClassNames: new string[] { "Rock.Field.Types.BooleanFieldType" } )]
     class VolunteerApplicationValidation : ActionComponent
     {
         public override bool Execute( RockContext rockContext, WorkflowAction action, object entity, out List<string> errorMessages )
@@ -33,13 +48,14 @@ namespace org.secc.SafetyAndSecurity
 
             StringBuilder sbErrorMessages = new StringBuilder();
 
-            switch (actionStep) {
+            switch ( actionStep )
+            {
                 case "Statement of Faith":
                     if ( !action.Activity.Workflow.GetAttributeValue( "ReadStatementOfFaith" ).AsBoolean() )
                     {
                         sbErrorMessages.AppendLine( "<li>Please acknowledge that you have read the statement of faith.</li>" );
                     }
-                    if ( !action.Activity.Workflow.GetAttributeValue( "AgreeStatementOfFaith" ).AsBoolean() 
+                    if ( !action.Activity.Workflow.GetAttributeValue( "AgreeStatementOfFaith" ).AsBoolean()
                         && string.IsNullOrEmpty( action.Activity.Workflow.GetAttributeValue( "CommentsStatementOfFaith" ) ) )
                     {
                         sbErrorMessages.AppendLine( "<li>Please explain your disagreement with the statement of faith.</li>" );
@@ -59,28 +75,31 @@ namespace org.secc.SafetyAndSecurity
                     }
                     break;
                 case "Fourth Reference":
-                    Guid? reference4Guid = action.Activity.Workflow.GetAttributeValue( "Reference4Address" ).AsGuidOrNull();
-                    validateAddress( reference4Guid.Value, "Fourth Reference Address", sbErrorMessages );
-                    addressesUnique( rockContext, action, "Reference4Address", sbErrorMessages );
-
-                    // Verify phone numbers
-                    validatePhones( action, "Reference4HomePhone", "Reference4CellPhone", sbErrorMessages );
-
-                    // Verify Relative/Staff
-                    if ( action.Activity.Workflow.GetAttributeValue( "Reference4Relative" ).AsBoolean() )
+                    if ( !GetAttributeValue( action, "IsMinorApplication", true ).AsBoolean() )
                     {
-                        sbErrorMessages.AppendLine( "<li>Your reference must not be a relative.</li>" );
-                    }
-                    if ( action.Activity.Workflow.GetAttributeValue( "Reference4Staff" ).AsBoolean() )
-                    {
-                        sbErrorMessages.AppendLine( "<li>Your reference must not be a staff member of Southeast Christian Church.</li>" );
+                        Guid? reference4Guid = action.Activity.Workflow.GetAttributeValue( "Reference4Address" ).AsGuidOrNull();
+                        validateAddress( reference4Guid.Value, "Fourth Reference Address", sbErrorMessages );
+                        addressesUnique( rockContext, action, "Reference4Address", sbErrorMessages );
+
+                        // Verify phone numbers
+                        validatePhones( action, "Reference4HomePhone", "Reference4CellPhone", sbErrorMessages );
+
+                        // Verify Relative/Staff
+                        if ( action.Activity.Workflow.GetAttributeValue( "Reference4Relative" ).AsBoolean() )
+                        {
+                            sbErrorMessages.AppendLine( "<li>Your reference must not be a relative.</li>" );
+                        }
+                        if ( action.Activity.Workflow.GetAttributeValue( "Reference4Staff" ).AsBoolean() )
+                        {
+                            sbErrorMessages.AppendLine( "<li>Your reference must not be a staff member of Southeast Christian Church.</li>" );
+                        }
                     }
                     break;
                 case "Third Reference":
                     Guid? reference3Guid = action.Activity.Workflow.GetAttributeValue( "Reference3Address" ).AsGuidOrNull();
                     validateAddress( reference3Guid.Value, "Third Reference Address", sbErrorMessages );
                     addressesUnique( rockContext, action, "Reference3Address", sbErrorMessages );
-                    
+
                     // Verify phone numbers
                     validatePhones( action, "Reference3HomePhone", "Reference3CellPhone", sbErrorMessages );
 
@@ -89,7 +108,7 @@ namespace org.secc.SafetyAndSecurity
                     {
                         sbErrorMessages.AppendLine( "<li>Your reference must not be a relative.</li>" );
                     }
-                    if (  action.Activity.Workflow.GetAttributeValue( "Reference3Staff" ).AsBoolean() )
+                    if ( action.Activity.Workflow.GetAttributeValue( "Reference3Staff" ).AsBoolean() )
                     {
                         sbErrorMessages.AppendLine( "<li>Your reference must not be a staff member of Southeast Christian Church.</li>" );
                     }
@@ -138,7 +157,7 @@ namespace org.secc.SafetyAndSecurity
 
                     // Make sure the middle name is over 1 character long
                     string middleName = action.Activity.Workflow.GetAttributeValue( "MiddleName" );
-                    if (string.IsNullOrEmpty(middleName) || middleName.Length <= 1)
+                    if ( string.IsNullOrEmpty( middleName ) || middleName.Length <= 1 )
                     {
                         sbErrorMessages.AppendLine( "<li>A full Middle Name is Required." );
                     }
@@ -147,18 +166,22 @@ namespace org.secc.SafetyAndSecurity
                     string ssn = Encryption.DecryptString( action.Activity.Workflow.GetAttributeValue( "SSN1" ) ) + "-" +
                         Encryption.DecryptString( action.Activity.Workflow.GetAttributeValue( "SSN2" ) ) + "-" +
                         Encryption.DecryptString( action.Activity.Workflow.GetAttributeValue( "SSN3" ) );
-                    
-                    if ( Encryption.DecryptString( action.Activity.Workflow.GetAttributeValue( "SSN1" ) ) != "***" 
-                        && !Regex.Match(ssn, @"^(?!(123[ -]?45[ -]?6789)|((\d)\3\3[ -]?\3\3[ -]?\3\3\3\3))(\d{3}[- ]?\d{2}[- ]?\d{4})$").Success) {
-                        sbErrorMessages.AppendLine("<li>Social Security Number is Required and must be in a valid format (XXX-XX-XXXX).</li>");
+
+                    if ( Encryption.DecryptString( action.Activity.Workflow.GetAttributeValue( "SSN1" ) ) != "***"
+                        && !Regex.Match( ssn, @"^(?!(123[ -]?45[ -]?6789)|((\d)\3\3[ -]?\3\3[ -]?\3\3\3\3))(\d{3}[- ]?\d{2}[- ]?\d{4})$" ).Success )
+                    {
+                        sbErrorMessages.AppendLine( "<li>Social Security Number is Required and must be in a valid format (XXX-XX-XXXX).</li>" );
                     }
 
                     // Verify phone numbers
-                    validatePhones( action, "HomePhone", "CellPhone", sbErrorMessages );
-                    string workPhone = action.Activity.Workflow.GetAttributeValue( "WorkPhone" );
-                    if ( !string.IsNullOrEmpty( workPhone ) && !Regex.Match( workPhone, @"^[01]?[- .]?(\([2-9]\d{2}\)|[2-9]\d{2})[- .]?\d{3}[- .]?\d{4}$" ).Success )
+                    if ( !GetAttributeValue( action, "IsMinorApplication" ).AsBoolean() )
                     {
-                        sbErrorMessages.AppendLine( "<li>Work Phone must be in a valid format (XXX) XXX-XXXX.</li>" );
+                        validatePhones( action, "HomePhone", "CellPhone", sbErrorMessages );
+                        string workPhone = action.Activity.Workflow.GetAttributeValue( "WorkPhone" );
+                        if ( !string.IsNullOrEmpty( workPhone ) && !Regex.Match( workPhone, @"^[01]?[- .]?(\([2-9]\d{2}\)|[2-9]\d{2})[- .]?\d{3}[- .]?\d{4}$" ).Success )
+                        {
+                            sbErrorMessages.AppendLine( "<li>Work Phone must be in a valid format (XXX) XXX-XXXX.</li>" );
+                        }
                     }
 
                     // Make sure we have data for required fields which depend on other fields
@@ -175,8 +198,8 @@ namespace org.secc.SafetyAndSecurity
                     }
                     break;
             }
-            if ( sbErrorMessages.Length > 0)
-            { 
+            if ( sbErrorMessages.Length > 0 )
+            {
                 SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "ErrorMessages" ).AsGuid(), sbErrorMessages.ToString() );
 
                 // If we get here, it failed validation
@@ -186,11 +209,11 @@ namespace org.secc.SafetyAndSecurity
             SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "ErrorMessages" ).AsGuid(), "" );
 
             // If we get here, it was successful
-            return activateActivity( rockContext, action, "SuccessActivity");
+            return activateActivity( rockContext, action, "SuccessActivity" );
 
         }
 
-        private bool activateActivity( RockContext rockContext, WorkflowAction action, string activityAttributeName)
+        private bool activateActivity( RockContext rockContext, WorkflowAction action, string activityAttributeName )
         {
 
             Guid guid = GetAttributeValue( action, activityAttributeName ).AsGuid();
@@ -236,11 +259,11 @@ namespace org.secc.SafetyAndSecurity
             }
         }
 
-        private void validateAddress(Guid? addressGuid, String addressName, StringBuilder sbErrorMessages )
+        private void validateAddress( Guid? addressGuid, String addressName, StringBuilder sbErrorMessages )
         {
 
             // Check out lots of stuff with the fourth reference address
-            if ( addressGuid.HasValue && addressGuid != new Guid())
+            if ( addressGuid.HasValue && addressGuid != new Guid() )
             {
                 LocationService locationService = new LocationService( new RockContext() );
                 Location location = locationService.Get( addressGuid.Value );

@@ -150,8 +150,7 @@
                                             style="display: inline-block; z-index: 8; white-space: nowrap; font-size: 15px; line-height: 50px; font-weight: 700; color: rgba(0, 0, 0, 1.00);font-family:Poppins;background-color:rgba(0, 0, 0, 0);border-color:rgba(0, 0, 0, 1.00);border-style:solid;border-width:2px 2px 2px 2px;border-radius:30px 30px 30px 30px;outline:none;box-shadow:none;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;cursor:pointer;text-decoration: none;">View Series</a>
                                         {% endcontentchannelitem %}
                                 </div>
-                                <div class="tp-static-layers" style="position: relative; z-index: 101; top: 0;left: 0;display:inline-block;">
-                                        <!-- LAYER NR. 16 -->
+                                <!-- <div class="tp-static-layers" style="position: relative; z-index: 101; top: 0;left: 0;display:inline-block;">
                                         <a class="tp-caption rev-btn  tp-static-layer"
                                         href="/lwya/stories" id="slider-149-layer-18"
                                             data-x="['center','center','center','center']" data-hoffset="['0','0','0','0']"
@@ -179,7 +178,7 @@
                                             data-fontsize="['20','20','20','15']"
 
                                             style="display: inline-block; z-index: 8; white-space: nowrap; font-size: 15px; line-height: 50px; font-weight: 700; color: rgba(0, 0, 0, 1.00);font-family:Poppins;background-color:rgba(0, 0, 0, 0);border-color:rgba(161, 165, 170, 1.00);border-style:solid;border-width:2px 2px 2px 2px;border-radius:30px 30px 30px 30px;outline:none;box-shadow:none;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;cursor:pointer;text-decoration: none;">Watch Stories</a>
-                                </div>
+                                </div> -->
                             </div>
                         </div>
                     </div>
