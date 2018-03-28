@@ -26,11 +26,15 @@
             </asp:Panel>
 
             <asp:Panel ID="pnlMetrics" runat="server" Visible="false">
-
-                <div class="btn-group btn-group-justified margin-b-lg panel-settings-group" >
-                    <Rock:ButtonDropDownList ID="bddlCampus" runat="server" OnSelectionChanged="bddl_SelectionChanged" />
-                    <Rock:ButtonDropDownList ID="bddlWeekend" runat="server" OnSelectionChanged="bddl_SelectionChanged" />
-                    <Rock:ButtonDropDownList ID="bddlService" runat="server" OnSelectionChanged="bddl_SelectionChanged" />
+                <style>
+                    .panel-settings-group .btn-group,  .panel-settings-group .btn {
+                        width: 100%;
+                    }
+                </style>
+                <div class="panel-settings-group row" style="margin-bottom:15px" >
+                    <div class="col-md-4" style="padding:0px"><Rock:ButtonDropDownList ID="bddlCampus" runat="server" OnSelectionChanged="bddl_SelectionChanged" /></div>
+                    <div class="col-md-4" style="padding:0px"><Rock:ButtonDropDownList ID="bddlWeekend" runat="server" OnSelectionChanged="bddl_SelectionChanged" /></div>
+                    <div class="col-md-4" style="padding:0px"><Rock:ButtonDropDownList ID="bddlService" runat="server" OnSelectionChanged="bddl_SelectionChanged" /></div>
                 </div>
 
                 <asp:ValidationSummary ID="vsDetails" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-danger" />
@@ -50,7 +54,6 @@
                 <div class="actions">
                     <asp:LinkButton ID="btnSave" runat="server" Text="Save" AccessKey="s" CssClass="btn btn-primary" OnClick="btnSave_Click" />
                 </div>
-
             </asp:Panel>
 
         </div>

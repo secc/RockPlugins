@@ -265,7 +265,8 @@
 						{% for servingDay in servingDays %}
 							{% assign dayOutput = false %}
 							{% for shift in role.Partitions %}
-								{% if shift.Limit != 0 and shift.Entity.Name contains servingDay.Day  %}
+								{% assign shiftName = shift.Entity | Attribute:"PublicName" %}
+								{% if shift.Limit != 0 and shiftName contains servingDay.Day  %}
 									{% assign spotsLeft = shift.Limit | Minus: shift.Filled %}
 									{% if dayOutput == false %}
 										<div class="col-md-10 col-md-offset-1 col-lg-8 col-lg-offset-2">
@@ -279,7 +280,7 @@
 												<label>
 													<input type="checkbox" class="service-times" name="ServiceTimes" value="{{shift.Entity.Guid}}" {% if shift.Limit >0 and spotsLeft <= 0 %}disabled="true"{% endif %} />
 													<div class="icon-box"><i class="fa fa-check"></i></div>
-													<h2{% if  shift.Limit > 0 and spotsLeft <= 0 %} style="text-decoration: line-through"{% endif %}><strong><i>{{shift.Entity.Name | Replace:servingDay.ReplaceString,''}}</i></strong>{% if shift.Limit > 0 %}<span class="hidden-xs hidden-sm spots-left"> - <small>{% if spotsLeft <= 0 %}Full{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}</small></span>{% endif %}</h2>
+													<h2{% if  shift.Limit > 0 and spotsLeft <= 0 %} style="text-decoration: line-through"{% endif %}><strong><i>{{shiftName | Replace:servingDay.ReplaceString,''}}</i></strong>{% if shift.Limit > 0 %}<span class="hidden-xs hidden-sm spots-left"> - <small>{% if spotsLeft <= 0 %}Full{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}</small></span>{% endif %}</h2>
 												</label>
 												{% if shift.Limit > 0 %}<div class="hidden-md hidden-lg" style="margin: -20px 0px 0px 75px">{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining</div>{% endif %}
 
