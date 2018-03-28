@@ -213,7 +213,10 @@ namespace org.secc.SafetyAndSecurity
             {
                 PDF = binaryFileService.Get( GetActionAttributeValue( action, "MinorVolunteerApplicationPDF" ).AsGuid() );
             }
-            PDF = binaryFileService.Get( GetActionAttributeValue( action, "AdultVolunteerApplicationPDF" ).AsGuid() );
+            else
+            {
+                PDF = binaryFileService.Get( GetActionAttributeValue( action, "AdultVolunteerApplicationPDF" ).AsGuid() );
+            }
 
             var pdfBytes = PDF.ContentStream.ReadBytesToEnd();
 
