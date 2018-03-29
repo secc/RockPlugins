@@ -40,75 +40,81 @@
             {% endif %}
 
             {{openEventDetailsLink}}
-            <div class="isotope_item col-xs-12 col-sm-6 col-md-4 event-calendar card">
+            <div class="isotope_item col-xs-12 col-sm-6 col-md-4 event-calendar">
 
+                <div class="card">
 
-                <!-- Image -->
-                {% assign occurrenceIdPhoto = eventItemOccurrence.PhotoId %}
-                {% if eventItem.Photo %}
-                <div class="img-hover">
-                    <img src="/GetImage.ashx?guid={{ eventItemOccurrence.EventItemOccurrence.EventItem.Photo.Guid }}&w=720" class="event-image img-responsive">
-                </div>
-                {% else %}
-                <div class="img-hover">
-                    {% assign primaryMinistry = eventItem | Attribute:'PrimaryMinistry','Object' | Attribute:'CalendarImage','Object' %}
-                    <img src="/GetImage.ashx?guid={{ primaryMinistry.Guid }}&w=720" class="img-responsive">
-                </div>
-                {% endif %}
-
-
-                {% assign scheduledDates = eventItemOccurrence.EventItemOccurrence.Schedule.iCalendarContent | DatesFromICal:'all' %}
-                {% assign scheduledNumDates = scheduledDates | Size %}
-
-                <div class="caption">
-                      <div class="clearfix">
-                          {% if numOccurrences > 1 and multiCampus == true %}
-                              <div class="multi-date pull-left" style="margin-right: 10px;">
-                              </div>
-                              <br />
-                              <p>
-                                  <b>Multiple Dates</b>
-                                  <br />Starting on {{ eventItemOccurrence.Date | Date: 'MMM, dd'}}
-                              </p>
-                          {% elseif numOccurrences > 1 or scheduledNumDates > 1 %}
-                              <div class="reoccur-date pull-left" style="margin-right: 10px;">
-                              </div>
-                              <br />
-                              <p>
-                                  <b>Recurring Event</b>
-                                  <br/>
-                                  Next date: {{ eventItemOccurrence.Date | Date: 'MMM. dd'}}<br />
-                                  <b><i class="fa fa-map-marker"></i></b>
-                                  {{ eventItemOccurrence.EventItemOccurrence.Location}}
-                              </p>
-                          {% else %}
-                              <div class="date pull-left" style="margin-right: 10px;">
-                                  <div class="day">{{ eventItemOccurrence.Date | Date: 'dd'}}</div>
-                                  <div class="month">{{ eventItemOccurrence.Date | Date: 'MMMM'}}</div>
-                              </div>
-                              <br />
-                              <h2 class="copy item-title" style="font-weight: 300; margin: 0px;">{{ eventItemOccurrence.Time}}</h2>
-                              <b><i class="fa fa-map-marker"></i></b>
-                              {{ eventItemOccurrence.EventItemOccurrence.Location}}
-                          {% endif %}
+                    <!-- Image -->
+                    {% assign occurrenceIdPhoto = eventItemOccurrence.PhotoId %}
+                    {% if eventItem.Photo %}
+                    <div class="img-hover">
+                        <img src="/GetImage.ashx?guid={{ eventItemOccurrence.EventItemOccurrence.EventItem.Photo.Guid }}&w=720" class="event-image img-responsive">
                     </div>
-                    {% if eventItemOccurrence.Name != '' %}
-                        <b>{{ eventItemOccurrence.Name }}</b>
-                        <br />
-                    {% endif %}
-
-                    {% if eventItemOccurrence.Summary != '' %}
-                        {{eventItemOccurrence.Summary}}
-                        <br />
-                    {% endif %}
-
-                    {% if eventItemOccurrence.EventItemOccurrence.Campus != null %}
-                        <h4 style="margin-top:10px;"><span class="se-logo">{{eventItemOccurrence.EventItemOccurrence.Campus.ShortCode}}</span></h4>
                     {% else %}
-                        <h4 style="margin-top:10px;"><span class="se-logo">SE</span></h4>
+                    <div class="img-hover">
+                        {% assign primaryMinistry = eventItem | Attribute:'PrimaryMinistry','Object' | Attribute:'CalendarImage','Object' %}
+                        <img src="/GetImage.ashx?guid={{ primaryMinistry.Guid }}&w=720" class="img-responsive">
+                    </div>
                     {% endif %}
-                </div><!-- END: caption -->
 
+
+                    {% assign scheduledDates = eventItemOccurrence.EventItemOccurrence.Schedule.iCalendarContent | DatesFromICal:'all' %}
+                    {% assign scheduledNumDates = scheduledDates | Size %}
+
+                    <div class="caption">
+                          <div class="clearfix">
+                              {% if numOccurrences > 1 and multiCampus == true %}
+                                  <div class="multi-date pull-left" style="margin-right: 10px;">
+                                  </div>
+                                  <br />
+                                  <p>
+                                      <b>Multiple Dates</b>
+                                      <br />Starting on {{ eventItemOccurrence.Date | Date: 'MMM, dd'}}
+                                  </p>
+                              {% elseif numOccurrences > 1 or scheduledNumDates > 1 %}
+                                  <div class="reoccur-date pull-left" style="margin-right: 10px;">
+                                  </div>
+                                  <br />
+                                  <p>
+                                      <b>Recurring Event</b>
+                                      <br/>
+                                      Next date: {{ eventItemOccurrence.Date | Date: 'ddd. • MMM. dd'}}<br />
+                                      <b><i class="fa fa-map-marker"></i></b>
+                                      {{ eventItemOccurrence.EventItemOccurrence.Location}}
+                                  </p>
+                              {% else %}
+                                  <div class="date pull-left" style="margin-right: 10px;">
+                                      <div class="day">{{ eventItemOccurrence.Date | Date: 'dd'}}</div>
+                                      <div class="month">{{ eventItemOccurrence.Date | Date: 'MMMM'}}</div>
+                                  </div>
+                                  <br />
+                                  <p>
+                                      <b>Single Event</b>
+                                      <br/>
+                                      {{ eventItemOccurrence.Date | Date: 'ddd. • MMM. dd'}} &bull; {{ eventItemOccurrence.Time}}<br />
+                                      <b><i class="fa fa-map-marker"></i></b>
+                                      {{ eventItemOccurrence.EventItemOccurrence.Location}}
+                                  </p>
+                               {% endif %}
+                        </div>
+                        {% if eventItemOccurrence.Name != '' %}
+                            <b>{{ eventItemOccurrence.Name }}</b>
+                            <br />
+                        {% endif %}
+
+                        {% if eventItemOccurrence.Summary != '' %}
+                            {{eventItemOccurrence.Summary}}
+                            <br />
+                        {% endif %}
+
+                        {% if eventItemOccurrence.EventItemOccurrence.Campus != null %}
+                            <h4 style="margin-top:10px;"><span class="se-logo">{{eventItemOccurrence.EventItemOccurrence.Campus.ShortCode}}</span></h4>
+                        {% else %}
+                            <h4 style="margin-top:10px;"><span class="se-logo">SE</span></h4>
+                        {% endif %}
+                    </div><!-- END: caption -->
+
+                </div>
 
             </div><!-- END: isotope_item -->
             {{closeEventDetailsLink}}
