@@ -61,45 +61,47 @@ div[id$='pnlList'] {
 	transition: all 0.3s;
 }
 
-div[id$='pnlFilters'] {
-	&::after {
-		padding-right: 15px;
-		border-right: 1px solid #e1e1e1;
-	}
-	margin: 40px 0px;
-	padding-right: 0px;
-	transition: all 0.3s;
-
-	margin-left: -443px;
-	&.active {
-		margin-left: 0px;
-	}
-	.rock-control-wrapper {
-		padding: 15px;
-		min-height: auto;
-		background-color: rgba(355,355,355, 1);
-		border-radius: 10px;
-	}
-
-	.control-wrapper {
-		padding: 15px;
-		min-height: auto;
-		background-color: rgba(355,355,355, 1);
-		border-radius: 10px;
-	}
-}
+// div[id$='pnlFilters'] {
+// 	&::after {
+// 		padding-right: 15px;
+// 		border-right: 1px solid #e1e1e1;
+// 	}
+// 	margin: 40px 0px;
+// 	padding-right: 0px;
+// 	transition: all 0.3s;
+//
+// 	margin-left: -443px;
+// 	&.active {
+// 		margin-left: 0px;
+// 	}
+// 	.rock-control-wrapper {
+// 		padding: 15px;
+// 		min-height: auto;
+// 		background-color: rgba(355,355,355, 1);
+// 		border-radius: 10px;
+// 	}
+//
+// 	.control-wrapper {
+// 		padding: 15px;
+// 		min-height: auto;
+// 		background-color: rgba(355,355,355, 1);
+// 		border-radius: 10px;
+// 	}
+// }
 
 a.eventCardLink {
     color: $CopyColor;
 }
 .event-calendar {
 
-    padding: 30px !important;
 	margin-bottom: 30px;
-    border-radius: 8px;
+    padding: 0px !important;
 
-
-    &.card {
+    .card {
+        padding: 30px;
+        border-radius: 8px;
+        margin-left: 10px;
+        margin-right: 10px;
         background-color: rgba(239,239,239, 0.5);
         @include transition(all .3s ease);
 

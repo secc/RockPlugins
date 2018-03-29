@@ -79,6 +79,12 @@ h4 {
     font-weight: bolder;
 }
 
+.serviceBox {
+    .description {
+        min-height: 160px;
+    }
+}
+
 /*****************************************************************************
 ************************ Update on 03 - 21 - 2018 ****************************
 ******************************************************************************
@@ -99,7 +105,7 @@ h4 {
             background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)) center/cover no-repeat fixed;
         }
     }
-    
+
     &.sub-menu-hero {
         @include phones {
             min-height: 350px !important;
