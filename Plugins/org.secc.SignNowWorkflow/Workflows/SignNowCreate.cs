@@ -93,7 +93,7 @@ namespace org.secc.SignNowWorkflow
                 var redirectUri = GetAttributeValue( action, "RedirectUri" );
                 if ( !string.IsNullOrWhiteSpace( redirectUri ) )
                 {
-                    signNowInviteLink += "redirect_uri=" + redirectUri;
+                    signNowInviteLink += "?redirect_uri=" + redirectUri;
                 }
 
                 string newDocumentId = "";
