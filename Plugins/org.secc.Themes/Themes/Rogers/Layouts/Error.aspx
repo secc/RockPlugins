@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="<%= Page.ResolveUrl("~/Themes/Stark/Styles/bootstrap.css") %>" />
     <link rel="stylesheet" href="<%= Page.ResolveUrl("~/Themes/Stark/Styles/theme.css") %>" />
 
-    <script src="<%# ResolveUrl("~/Scripts/jquery-1.12.4.min.js") %>">
+    <script src="<%# ResolveUrl("~/Scripts/jquery-3.3.1.min.js") %>">
         $(document).ready(function () {
             $(".stack-trace").hide();
             
@@ -20,6 +20,7 @@
             });
         });
     </script>
+    <script src="<%# ResolveUrl("~/Scripts/jquery-migrate-3.0.1.min.js" ) %>"></script>
 </head>
 <body id="splash" class="error">
     <form id="form1" runat="server">
