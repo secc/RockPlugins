@@ -1,0 +1,119 @@
+/* --------------------------------------------------
+	6.0 FAQ - Accordions
+-------------------------------------------------- */
+
+
+
+.accordions-1 {
+
+	.panel {
+		border: none;
+        border-radius: 8px !important;
+        @include transition(all .3s ease);
+		// box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+        &:hover {
+            // background-color: rgba(239,239,239, 0.5);
+            // -webkit-box-shadow: 0 22px 43px rgba(355, 355, 355, 0.15);
+            // box-shadow: 0 22px 43px rgba(355, 355, 355, 0.15);
+            transform: translateY(-5px);
+            @include transition(all .3s ease);
+        }
+        @media (max-width: 768px) {
+            // background-color: rgba(239,239,239, 0.5);
+            // -webkit-box-shadow: 0 3px 12px 2px hsla(0,0%,78%,1);
+            // box-shadow: 0 3px 12px 2px hsla(0,0%,78%,.5);
+        }
+		.panel-heading {
+            background-color: rgba(239,239,239, 0.5);
+			position: relative;
+            cursor: pointer;
+			padding: 25px 14% 25px 25px;
+			text-align: left;
+
+			&::before {
+			  position: absolute;
+			  top: 50%;
+			  right: 7%;
+			  margin: -10px 0 0;
+			  display: inline-block;
+			  width: 15px;
+			  height: 15px;
+			  content: "";
+			  border: solid #656565;
+			  border-width: 0 2px 2px 0;
+			  display: inline-block;
+			  padding: 3px;
+			  transform: rotate(45deg);
+    		  -webkit-transform: rotate(45deg);
+			  transition: all 0.5s;
+			}
+			&[aria-expanded="true"] {
+				&::before {
+					-webkit-transform: translateY(5px) rotate(225deg);
+    				-moz-transform: translateY(5px) rotate(225deg);
+    				transform: translateY(5px) rotate(225deg);
+                }
+			}
+			.panel-title {
+				@extend h4;
+				font-size: 1.1em;
+				text-transform: none !important;
+				color: $CopyColor;
+				a {
+					&:focus {
+						text-decoration: none;
+					}
+				}
+			}
+		} // .panel-heading
+
+		.panel-collapse {
+
+			.panel-body {
+				border: none;
+                border-radius: 0;
+				border-top: 1px solid rgba(239, 239, 239, 1);
+                background-color: rgba(239, 239, 239, 1);
+                // background: linear-gradient(to bottom right, rgba(239, 239, 239, 1), rgba(355, 355, 355, 0.7));;
+				padding: 30px 50px;
+				text-align: left;
+
+				p {
+					margin: 0px;
+					color: $CopyColor;
+					a {
+						color: $CopyColor;
+                        font-weight: bolder;
+					}
+				}
+			} // .panel-body
+		} // .panel-collapse
+	} // .panel
+
+	.panel+.panel {
+		margin-top: 20px;
+	}
+} // .accordions-1
+
+.faq-contact-links {
+	color: rgba($CopyColor, 0.8);
+	font-size: .9em;
+
+	i {
+		color: rgba($CopyColor, 0.8);
+	}
+
+	a {
+		color: $CopyColor;
+		padding-bottom: 4px;
+		border-bottom: 1px solid rgba(17,17,17, 0);
+		transition: all .3s;
+
+
+		&:hover {
+			color: $CopyColor;
+			padding-bottom: 1px;
+			border-bottom: 1px solid rgba(17,17,17, 1);
+		}
+	}
+}
