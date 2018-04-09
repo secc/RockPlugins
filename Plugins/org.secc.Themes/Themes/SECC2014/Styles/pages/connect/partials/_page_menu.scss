@@ -55,7 +55,9 @@
 
         li {
             padding-left: 20px;
-
+            &:last-child {
+                padding-right: 50px;
+            }
             a {
                 color: rgb(135, 135, 135);
                 text-transform: uppercase;

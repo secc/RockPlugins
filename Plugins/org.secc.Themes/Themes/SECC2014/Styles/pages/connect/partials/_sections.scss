@@ -7,6 +7,10 @@ section:not(.row):not(.highlighted-section):not(.with-header):not(.footer-menu):
     padding: 0 !important;
 }
 
+.contrast-background {
+    background-color: $color-foreground;
+}
+
 .content-padding-top {
     padding-top: 0;
     @include tablets {
@@ -80,8 +84,35 @@ h4 {
 }
 
 .serviceBox {
+    // padding: 0px 5%;
+
+    .service-header {
+        letter-spacing: 6px;
+        background-color: #201e1d;
+        color: white;
+        border-radius:  10px;
+        padding: 10px;
+        text-transform: uppercase;
+    }
     .description {
         min-height: 160px;
+    }
+}
+
+.vcentered-flex-box {
+    margin-top: 30px;
+    align-items: center;
+    display: flex;
+    height: 500px;
+    .box {
+        display: block;
+        margin: 0 auto;
+    }
+    @include tablets {
+        height: auto;
+    }
+    @include phones {
+        height: auto;
     }
 }
 
@@ -92,6 +123,7 @@ h4 {
 ******************************************************************************
 ******************************************************************************
 */
+
 .jarallax {
 
     &.darken {
@@ -106,30 +138,51 @@ h4 {
         }
     }
 
-    &.sub-menu-hero {
-        @include phones {
-            min-height: 350px !important;
-        }
-        @include small-phones {
-            min-height: 350px !important;
-        }
-        @include large-phones {
-            min-height: 350px !important;
-        }
-        @include tablets {
-            min-height: 400px !important;
-        }
-        @include desktops {
-            min-height: 400px !important;
-        }
-        @include small-desktops {
-            min-height: 400px !important;
-        }
-        @include large-desktops {
-            min-height: 500px !important;
+    .parallax-body {
+        position: relative;
+        z-index: 2;
+
+        .row {
+            padding: 0px;
+            margin: 0px;
+            div {
+                padding: 150px 0px;
+                h1 {
+                    font-size: 4em;
+                    small {
+                        color: white;
+                        font-size: 50%;
+                    }
+                }
+            }
         }
     }
+    .parallax-logo {
+        z-index: 2;
+        position: relative;
+        max-width: 400px;
+        &.centered {
+          z-index: 2;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 100%;
+          padding: 50px;
+        }
+        a {
+            &:hover,&:active,&:focus,&:visited {
+                text-decoration: none;
+            }
+        }
+        h3 {
+            letter-spacing: 2px;
+            color: white;
+        }
+    }
+
 }
+
 // updated on 03-21-2018 for a cleaner menu
 #sub-connect-menu {
     nav.section-nav {
@@ -196,6 +249,10 @@ h4 {
 	//No padding at the bottom of the first section
 	padding-bottom: 0 !important;
     color: #222222;
+
+    .page-header-parallax {
+        background-color: black;
+    }
 
 	.page-banner {
 		//In order for the section-nav to be positioned properly,
