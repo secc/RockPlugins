@@ -8,6 +8,11 @@ $modal-bg-color: black;
 	&:focus {
   	  outline: none;
     }
+	.play {
+		height: 75px;
+		display: inline-block;
+		vertical-align: middle;
+	}
 }
 
 @keyframes modal-video {
