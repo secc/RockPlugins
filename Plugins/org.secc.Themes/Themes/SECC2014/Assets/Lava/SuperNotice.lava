@@ -2,6 +2,7 @@
 
 {% assign currentDate = 'Now' | Date:'yyyyMMddHHmm' | AsDouble %}
 
+{% comment %}
 <div style="padding: 10px; color: white; background-color: #201e1d;">
     <div class="container">
         <div class="row">
@@ -38,3 +39,5 @@
       $(this).html(event.strftime(totalHours + ' HR %M MIN %S SEC'));
     });
 </script> -->
+
+{% endcomment %}
