@@ -5,17 +5,25 @@
 	padding: 10px;
 	background: $color-1;
 	color: $color-1;
+
+	&.btn-light {
+		border-color: white;
+		color: white;
+	}
 	// font-family: $btn-font;
 	// text-transform: uppercase;
 	// letter-spacing: $btn-letter-spaceing;
 	// font-size: $btn-font-size;
 	// line-height: $btn-line-height;
 	border-radius: 0px;
-    @include transition(al 200ms ease-out);
+    @include transition(background-color 200ms ease-out,
+								   color 200ms ease-out,
+								   border-color 200ms linear);
 
 	&:hover {
 		// color: $light;
 		background: lighten($color-4, 18%);
+		border-color: $color-4;
 	}
 
 	&:focus {
@@ -74,6 +82,7 @@
 	&:hover {
 		color: white;
 		background: none;
+		border-color: rgba($CopyColor,0.9);
 
         box-shadow: 0 1px 8px rgba(58,51,53,0.3);
         -webkit-transition: all 0.5s cubic-bezier(0.02, 0.01, 0.47, 1);
@@ -117,7 +126,7 @@
   top: 0;
   left: 0;
   outline: none;
-  
+
   // Hover
   &:hover {
     .stroke-dotted {
