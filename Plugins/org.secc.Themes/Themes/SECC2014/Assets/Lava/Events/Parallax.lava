@@ -1,0 +1,140 @@
+<section id="event-detail-header">
+	<div class="container">
+		<div class="row">
+			<div class="col-sm-12">
+				<h1>{{Event.Name}}</h1>
+			</div>
+		</div>
+	</div>
+</section>
+
+<div style="background-color: #333;">
+{% if Event.Video != '' %}
+	<!-- Video -->
+	{[ parallax videourl:'{{ Event.Video }}' position:'10px top' height:'400px' speed:'-25' contentcolor:'inherit' contentalign:'left' ]}
+	<div class="container">
+		<div class="wellbox">
+			<div class="event-calendar">
+				<div class="date pull-left" style="">
+					<div class="day">02</div>
+					<div class="month">December</div>
+				</div>
+				<br />
+				<h2 class="copy item-title" style="font-weight: 300; margin: 0px;">6:30 PM</h2>
+				<b><i class="fa fa-map-marker"></i></b>
+				The Ice House • 226 E Washington Street
+			</div>
+		</div>
+	</div>
+	{[ endparallax ]}
+
+	{% comment %}
+    {[ jarallax videourl:'{{ Event.Video }}' position:'top' height:'400px']}
+	<div class="container">>
+		<div class="wellbox">
+			<div class="event-calendar">
+				<div class="date pull-left" style="">
+					<div class="day">02</div>
+					<div class="month">December</div>
+				</div>
+				<br />
+				<h2 class="copy item-title" style="font-weight: 300; margin: 0px;">6:30 PM</h2>
+				<b><i class="fa fa-map-marker"></i></b>
+				The Ice House • 226 E Washington Street
+			</div>
+		</div>
+	</div>
+	{[ endjarallax ]}
+	{% endcomment %}
+{% else %}
+	<!-- Image -->
+	{% assign eventParallaxImage = Event | Attribute:'ParallaxImage','Object' %}
+	{% assign primaryMinistry = Event | Attribute:'PrimaryMinistry','Object' | Attribute:'ParallaxImage','Object' %}
+
+	{% if eventParallaxImage.Guid %}
+		{% assign photoParallaxSrc = '/GetImage.ashx?guid=' | Plus: eventParallaxImage.Guid %}
+	{% elseif primaryMinistry.Guid %}
+		{% assign photoParallaxSrc = '/GetImage.ashx?guid=' | Plus: primaryMinistry.Guid %}
+	{% else %}
+		{% assign photoParallaxSrc = '/Themes/SECC2014/Assets/img/events/Default.jpg' %}
+	{% endif %}
+
+	{[ parallax image:'/Themes/SECC2014/Assets/img/events/Default.jpg' position:'top' height:'400px' speed:'-25' contentcolor:'inherit' contentalign:'left']}
+		<div class="container">
+			<div class="wellbox">
+				<div class="event-calendar">
+					<div class="date pull-left" style="">
+						<div class="day">02</div>
+						<div class="month">December</div>
+					</div>
+					<br />
+					<h2 class="copy item-title" style="font-weight: 300; margin: 0px;">6:30 PM</h2>
+					<b><i class="fa fa-map-marker"></i></b>
+					The Ice House • 226 E Washington Street
+				</div>
+			</div>
+		</div>
+	{[ endparallax ]}
+
+	{% comment %}
+    {[ jarallax image:'{{ photoParallaxSrc }}' position:'top' height:'400px']}
+		<div class="container">
+			<div class="wellbox">
+				<div class="event-calendar">
+					<div class="date pull-left" style="">
+						<div class="day">02</div>
+						<div class="month">December</div>
+					</div>
+					<br />
+					<h2 class="copy item-title" style="font-weight: 300; margin: 0px;">6:30 PM</h2>
+					<b><i class="fa fa-map-marker"></i></b>
+					The Ice House • 226 E Washington Street
+				</div>
+			</div>
+
+		</div>
+	{[ endjarallax ]}
+	{% endcomment %}
+{% endif %}
+</div>
+
+<script>
+if (typeof Modernizr == 'object') {
+	console.log(Modernizr);
+	if (!Modernizr.objectfit) {
+		  // alert("Ack! It doesn't work!");
+		  $('.jarallax').each(function () {
+			var $container = $(this),
+				imgUrl = $container.find('img').prop('src');
+			if (imgUrl) {
+			  $container
+				.css('backgroundImage', 'url(' + imgUrl + ')')
+				.addClass('compat-object-fit');
+			}
+			console.log('HELLO: '+imgUrl);
+		  });
+	  } else {
+		  // alert("Pft, we got this. Update.");
+		  $('.jarallax').each(function () {
+			var $container = $(this),
+				imgUrl = $container.find('img').prop('src');
+			if (imgUrl) {
+			  $container
+				.css('backgroundImage', 'url(' + imgUrl + ')')
+				.addClass('compat-object-fit');
+			}
+			console.log('HELLO: '+imgUrl);
+		  });
+	  }
+  } else {
+	  alert("Modernizr isn't an object");
+  }
+</script>
+
+<!-- {[ parallax image:'/Themes/SECC2014/Assets/img/events/Default.jpg' position:'top' height:'400px' speed:'-25' contentcolor:'inherit' contentalign:'left']}
+	<div class="container-fluid">
+	    <div class="row">
+	        <div class="col-md-12">EVENTS</div>
+	    </div>
+	</div>
+{[ endparallax ]} -->

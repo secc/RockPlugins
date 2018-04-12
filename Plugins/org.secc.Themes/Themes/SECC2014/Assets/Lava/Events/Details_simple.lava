@@ -1,0 +1,149 @@
+<div class="row">
+    <div class="col-md-8 col-md-4 margin-b-md"><!-- START: description of event -->
+
+        {{ Event.Description }}
+
+        <hr />
+
+        <!-- START: Social Media - Shareables -->
+        {{ 'summary_large_image' | AddMetaTagToHead:'property','twitter:card' }}
+        {{ Event.Name | AddMetaTagToHead:'property','twitter:title' }}
+        {{ Event.Description | AddMetaTagToHead:'property','twitter:description' }}
+
+        {{ Event.Name | AddMetaTagToHead:'property','og:title' }}
+        {{ Event.Description | AddMetaTagToHead:'property','og:description' }}
+
+        {% assign facebookPhoto = Event | Attribute:'core_calendar_FacebookPhoto','Object' %}
+        {% if facebookPhoto %}
+        {{ facebookPhoto.Url | AddMetaTagToHead:'property','og:image' }}
+        {% endif %}
+
+        {% assign twitterPhoto = Event | Attribute:'core_calendar_TwitterPhoto','Object' %}
+        {% if twitterPhoto != '' %}
+        {{ twitterPhoto.Url | AddMetaTagToHead:'property','twitter:image' }}
+        {% endif %}
+        <!-- END: Social Media - Shareable Media -->
+
+    </div><!-- END: description of event -->
+
+	<div class="col-md-4">
+
+        <!-- START: event details card -->
+        <div class="event-details">
+            <!-- <h2>Details</h2>
+            <hr /> -->
+
+            {% assign eventPhoto = '' %}
+            {% assign linkage = EventItemOccurrence.Linkages | First %}
+            {% assign scheduledDates = EventItemOccurrence.Schedule.iCalendarContent | DatesFromICal:'all' %}
+
+        	{% if Event.Photo.Guid %}
+        		{% assign eventPhoto = '/GetImage.ashx?guid=' | Plus: Event.Photo.Guid %}
+        	{% else %}
+        		{% assign primaryMinistry = Event | Attribute:'PrimaryMinistry','Object' | Attribute:'CalendarImage','Object' %}
+        		{% assign eventPhoto = '/GetImage.ashx?guid=' | Plus: primaryMinistry.Guid %}
+        	{% endif %}
+
+            {% if eventPhoto %}
+                <center>
+                  <img src="{{eventPhoto}}" class="title-image img-responsive img-rounded"></img>
+                </center>
+                <br />
+            {% endif %}
+
+            {% if EventItemOccurrence.Campus != null %}
+                <h4> <span class="se-logo">{{EventItemOccurrence.Campus.ShortCode}}</span> {{EventItemOccurrence.Campus.Name}} Campus</h4>
+                <br />
+            {% endif %}
+
+            {% if (EventItemOccurrence.ContactPersonAlias.Person.Fullname | Trim != '') or EventItemOccurrence.ContactEmail != '' or EventItemOccurrence.ContactPhone != '' %}
+                <p>
+                    <strong>Contact</strong><br />
+                    {% if EventItemOccurrence.ContactPersonAlias.Person.Fullname | Trim != '' %}
+                        {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} <br />
+                    {% endif %}
+                    {% if EventItemOccurrence.ContactEmail != '' %}
+                        <a href="mailto:{{ EventItemOccurrence.ContactEmail }}">{{ EventItemOccurrence.ContactEmail }}</a><br />
+                    {% endif %}
+                    {{ EventItemOccurrence.ContactPhone }}
+                </p>
+            {% endif %}
+
+            {% if EventItemOccurrence.Location != '' %}
+                <p>
+                <strong> Location</strong> <br />
+                {{ EventItemOccurrence.Location }}
+                </p>
+            {% endif %}
+
+            <strong>Date / Time</strong>
+            <ul class="list-unstyled">
+            {% for scheduledDate in scheduledDates %}
+                <li>
+                  {{  scheduledDate | Date:'dddd, MMM d, yyyy @ h:mm tt' }}
+                </li>
+            {% endfor %}
+            </ul>
+
+            {% if EventItemOccurrence.Note != '' %}
+                <strong>Note</strong><br />
+                {{ EventItemOccurrence.Note }}
+            {% endif %}
+
+            {% if linkage.RegistrationInstanceId > 0 ) %}
+                {% assign daysTillStartDate = 'Now' | DateDiff:linkage.RegistrationInstance.StartDateTime,'m' %}
+                {% assign daysTillEndDate = 'Now' | DateDiff:linkage.RegistrationInstance.EndDateTime,'m' %}
+                {% assign showRegistration = true %}
+                {% assign registrationMessage = '' %}
+
+                {% if daysTillStartDate and daysTillStartDate > 0 %}
+                    {% assign showRegistration = false %}
+                    {% capture registrationMessage %}<p>Registration opens on {{ linkage.RegistrationInstance.StartDateTime | Date:'dddd, MMMM d, yyyy' }}</p>{% endcapture %}
+                {% endif %}
+
+                {% if daysTillEndDate and daysTillEndDate < 0 %}
+                    {% assign showRegistration = false %}
+                    {% capture registrationMessage %}<p>Registration closed on {{ linkage.RegistrationInstance.EndDateTime | Date:'dddd, MMMM d, yyyy' }}</p>{% endcapture %}
+                {% endif %}
+
+
+                {% if showRegistration == true %}
+                  <a href="{{ RegistrationPage }}?RegistrationInstanceId={{ linkage.RegistrationInstanceId }}&EventOccurrenceID={{ EventItemOccurrence.Id }}" class="btn btn-primary btn-block margin-t-md">Register</a>
+                {% else %}
+                  {{ registrationMessage }}
+                {% endif %}
+            {% endif %}
+
+            <!-- <hr /> -->
+
+            <!-- START: Social Media - Shareables -->
+            <div class="socialbox clearfix text-center">
+                <script>function fbs_click() { u = location.href; t = document.title; window.open('http://www.facebook.com/sharer.php?u=' + encodeURIComponent(u) + '&t=' + encodeURIComponent(t), 'sharer', 'toolbar=0,status=0,width=626,height=436'); return false; }</script>
+                <script>function ics_click() { text = `{{ EventItemOccurrence.Schedule.iCalendarContent }}`.replace('END:VEVENT', 'SUMMARY: {{ Event.Name }}\r\nLOCATION: {{ EventItemOccurrence.Location }}\r\nEND:VEVENT'); var element = document.createElement('a'); element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); element.setAttribute('download', '{{ Event.Name }}.ics'); element.style.display = 'none'; document.body.appendChild(element); element.click(); document.body.removeChild(element); }</script>
+                <div class="socials" style="margin-top:10px;">
+                    <div class="socials_item">
+                        <a href="" onclick="return ics_click()" class="socialicon socialicon-calendar" title="Download Event" data-original-title="Download Event">
+                            <i class="fa fa-fw fa-calendar"></i>
+                        </a>
+                    </div>
+                    <div class="socials_item">
+                        <a href="http://www.facebook.com/share.php?u=<url>" onclick="return fbs_click()" target="_blank" class="social-facebook" title="Share via Facebook" data-original-title="Share via Facebook">
+                            <i class="fa fa-fw fa-facebook"></i>
+                        </a>
+                    </div>
+                    <div class="socials_item">
+                        <a href="http://twitter.com/home?status={{ 'Global' | Page:'Url' | Escape }}" class="social-twitter" title="Share via Twitter" data-original-title="Share via Twitter">
+                            <i class="fa fa-fw fa-twitter"></i>
+                        </a>
+                    </div>
+                    <div class="socials_item">
+                        <a href="mailto:?Subject={{ Event.Name | Escape }}&Body={{ 'Global' | Page:'Url' }}"  class="social-email" title="Share via Email" data-original-title="Share via Email">
+                            <i class="fa fa-fw fa-envelope-o"></i>
+                        </a>
+                    </div>
+                </div>
+            </div><!-- END: Social Media - Shareables -->
+        </div><!-- END: event details card -->
+
+    </div><!-- END: col-md-4 col-md-pull-8 -->
+</div><!-- END: row -->
