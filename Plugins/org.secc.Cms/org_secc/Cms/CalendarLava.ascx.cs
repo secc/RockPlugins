@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -508,13 +508,17 @@ namespace RockWeb.Blocks.Event
             var definedType = DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.MARKETING_CAMPAIGN_AUDIENCE_TYPE.AsGuid() );
             if ( definedType != null )
             {
-                cblCategory.DataSource = definedType.DefinedValues.Where( v => selectedCategoryGuids.Contains( v.Guid ) );
+                var categoryItems = definedType.DefinedValues.ToList();
+                if (selectedCategoryGuids.Count() > 0) {
+                    categoryItems = definedType.DefinedValues.Where( v => selectedCategoryGuids.Contains( v.Guid ) ).ToList();
+                }
+                cblCategory.DataSource = categoryItems;
                 cblCategory.DataBind();
             }
             var categoryId = PageParameter( GetAttributeValue( "CategoryParameterName" ) ).AsIntegerOrNull(); ;
             if ( categoryId.HasValue )
             {
-                if ( definedType.DefinedValues.Where( v => selectedCategoryGuids.Contains( v.Guid ) && v.Id == categoryId.Value ).FirstOrDefault() != null )
+                if ( definedType.DefinedValues.Where( v => (selectedCategoryGuids.Contains( v.Guid ) || selectedCategoryGuids.Count() == 0) && v.Id == categoryId.Value ).FirstOrDefault() != null )
                 {
                     cblCategory.SetValue( categoryId.Value );
                 }

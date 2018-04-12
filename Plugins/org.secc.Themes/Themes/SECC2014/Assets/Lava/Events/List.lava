@@ -78,7 +78,7 @@
                                   <p>
                                       <b>Recurring Event</b>
                                       <br/>
-                                      Next date: {{ eventItemOccurrence.Date | Date: 'ddd. • MMM. dd'}}<br />
+                                      {{ eventItemOccurrence.Date | Date: 'ddd. • MMM. dd'}}<br />
                                       <b><i class="fa fa-map-marker"></i></b>
                                       {{ eventItemOccurrence.EventItemOccurrence.Location}}
                                   </p>

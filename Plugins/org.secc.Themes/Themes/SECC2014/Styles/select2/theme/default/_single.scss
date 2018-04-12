@@ -1,6 +1,6 @@
 .select2-selection--single {
-  background-color: #fff;
-  border: 1px solid #fff;
+  background-color: rgba(239, 239, 239, 1);
+  border: 1px solid rgba(239, 239, 239, 1);
   border-radius: 4px;
   &:focus {
       outline: none;
@@ -9,6 +9,9 @@
   .select2-selection__rendered {
     color: #444;
     line-height: 28px;
+    text-transform: uppercase;
+    font-weight: 400;
+
     &:focus {
         outline: none;
     }

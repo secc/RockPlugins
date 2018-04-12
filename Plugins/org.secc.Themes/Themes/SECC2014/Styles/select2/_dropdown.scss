@@ -1,10 +1,10 @@
 .select2-dropdown {
-  background-color: white;
+  background-color: rgba(239, 239, 239, 1);
 
   border: 1px solid #efefef;
   border-radius: 4px;
   overflow: hidden;
-  
+
   box-sizing: border-box;
 
   display: block;
@@ -52,6 +52,7 @@
   border-top: none;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
+  box-shadow: 0 22px 43px rgba(0, 0, 0, 0.15);
 }
 
 .select2-search--dropdown {
