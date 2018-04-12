@@ -1,0 +1,181 @@
+
+{% assign eventItemOccurrenceCount = EventItemOccurrences | Size %}
+
+{% if eventItemOccurrenceCount == 0 %}
+<div class="panel panel-default margin-t-md">
+  <div class="margin-all-md"> There are no events in this time frame.</div>
+</div>
+{% endif %}
+
+<div class="container-fluid">
+
+<div class="row" style="margin: 0px;">
+    <div id="nextStep" class="col-xs-12">
+		 <h3>What’s your next step?</h3>
+         <p>Find a group or event that interests you by selecting a campus and/or ministry below. Click on the image to see more details or to register.</p>
+         <button type="button" id="sidebarCollapse" class="btn btn-normal">
+            <i class="fa fa-gear"></i>
+            Toggle Filters
+        </button>
+	</div>
+</div>
+
+<div class="isotope_wrap">
+    {% for eventItemList in EventItems %}
+        {% assign campusId = 0 %}
+        {% assign multiCampus = false %}
+        {% assign numOccurrences = eventItemList | Size %}
+        {% for eventItemOccurrence in eventItemList %}
+            {% if campusId == 0 %}
+                {% if eventItemOccurrence.EventItemOccurrence.CampusId == null %}
+                    {% assign multiCampus = true %}
+                {% else %}
+                    {% assign campusId = eventItemOccurrence.EventItemOccurrence.CampusId %}
+                {% endif %}
+            {% elseif eventItemOccurrence.EventItemOccurrence.CampusId != campusId %}
+                {% assign multiCampus = true %}
+            {% endif %}
+        {% endfor %}
+
+        {% for eventItemOccurrence in eventItemList %}
+
+            {% assign eventItem = eventItemOccurrence.EventItemOccurrence.EventItem %}
+            {% comment %} **** Looping through each occurance for each event item **** {% endcomment %}
+
+            <!-- Setting Up Anchor Link for Deatails Page -->
+            {% if eventItemOccurrence.DetailPage != null %}
+                {% assign openEventDetailsLink = eventItemOccurrence.DetailPage | Prepend:"<a href='" | Append:"'>" %}
+                {% assign closeEventDetailsLink = "</a>" %}
+            {% else %}
+                {% assign openEventDetailsLink = DetailsPage | Prepend:"<a href='" | Append:"?EventOccurrenceId=" | Append:eventItemOccurrence.EventItemOccurrence.Id | Append:"'>" %}
+                {% assign closeEventDetailsLink = "</a>" %}
+            {% endif %}
+
+            <div class="isotope_item col-xs-12 col-sm-6 col-md-4 event-calendar" style="padding: 15px;">
+
+                {{openEventDetailsLink}}
+                <div class="img-hover">
+                    <!-- Image -->
+                    {% assign occurrenceIdPhoto = eventItemOccurrence.PhotoId %}
+                    {% if eventItem.Photo %}
+                        <img src="/GetImage.ashx?guid={{ eventItemOccurrence.EventItemOccurrence.EventItem.Photo.Guid }}&w=720" class="event-image img-responsive">
+                    {% else %}
+                        {% assign primaryMinistry = eventItem | Attribute:'PrimaryMinistry','Object' | Attribute:'CalendarImage','Object' %}
+                        <img src="/GetImage.ashx?guid={{ primaryMinistry.Guid }}&w=720" class="img-responsive">
+                    {% endif %}
+                </div>
+                {{closeEventDetailsLink}}
+
+                <div class="caption">
+                      {% comment %}
+                      <div class="clearfix">
+                          {% if numOccurrences > 1 and multiCampus == true %}
+                              <div class="multi-date pull-left" style="margin-right: 10px;">
+                              </div>
+                              <br />
+                              <p>
+                                  <b>Multiple Dates</b>
+                                  <br />Starting on {{ eventItemOccurrence.Date | Date: 'MMM, dd'}}
+                              </p>
+                          {% elseif numOccurrences > 1 %}
+                              <div class="reoccur-date pull-left" style="margin-right: 10px;">
+                              </div>
+                              <br />
+                              <p>
+                                  <b>Recurring Event</b>
+                                  <br/>
+                                  Next date: {{ eventItemOccurrence.Date | Date: 'MMM. dd'}}<br />
+                                  <b><i class="fa fa-map-marker"></i></b>
+                                  {{ eventItemOccurrence.EventItemOccurrence.Location}}
+                              </p>
+                          {% else %}
+                              <div class="date pull-left" style="margin-right: 10px;">
+                                  <div class="day">{{ eventItemOccurrence.Date | Date: 'dd'}}</div>
+                                  <div class="month">{{ eventItemOccurrence.Date | Date: 'MMMM'}}</div>
+                              </div>
+                              <br />
+                              <h2 class="copy item-title" style="font-weight: 300; margin: 0px;">{{ eventItemOccurrence.Time}}</h2>
+                              <b><i class="fa fa-map-marker"></i></b>
+                              {{ eventItemOccurrence.EventItemOccurrence.Location}}
+                          {% endif %}
+                    </div>
+                    {% endcomment %}
+                    <br />
+                    {% if eventItemOccurrence.Name != '' %}
+                        <h2 class="copy item-title" style="font-weight: 300; margin: 0px;">
+                            {{ eventItemOccurrence.Name }}
+                        </h2>
+                    {% endif %}
+
+                    {% if eventItemOccurrence.Summary != '' %}
+                        {{eventItemOccurrence.Summary}}
+                        <br />
+                    {% endif %}
+
+                    <div id="datedetails" class="clearfix">
+                        <hr />
+                        {% if numOccurrences > 1 and multiCampus == true %}
+                            <p>
+                                <!-- <b>Multiple Dates</b> -->
+                                <b>Starting on {{ eventItemOccurrence.Date | Date: 'MMM, dd'}}</b>
+                            </p>
+                        {% elseif numOccurrences > 1 %}
+                            <p>
+                                <!-- <b>Recurring Event</b> -->
+                                <!-- <br/> -->
+                                <b>Next date: {{ eventItemOccurrence.Date | Date: 'MMM. dd'}}</b>
+                                <br /><b><i class="fa fa-map-marker"></i></b>
+                                {{ eventItemOccurrence.EventItemOccurrence.Location}}
+                            </p>
+                        {% else %}
+                            <p>
+                                <!-- <b>Sinlge Event</b> -->
+                                <!-- <br/> -->
+                                <b>{{ eventItemOccurrence.Date | Date: 'MMMM, dd'}} at {{ eventItemOccurrence.Time}}</b>
+                                <br /><b><i class="fa fa-map-marker"></i></b>
+                                {{ eventItemOccurrence.EventItemOccurrence.Location}}
+                            </p>
+                        {% endif %}
+                  </div>
+
+                    {% if eventItemOccurrence.EventItemOccurrence.Campus != null %}
+                        <h4 style="margin-top:10px;"><span class="se-logo">{{eventItemOccurrence.EventItemOccurrence.Campus.ShortCode}}</span></h4>
+                    {% else %}
+                        <h4 style="margin-top:10px;"><span class="se-logo">SE</span></h4>
+                    {% endif %}
+                </div><!-- END: caption -->
+
+            </div><!-- END: isotope_item -->
+            {% comment %} **** Only need the first occurance, so break away. **** {% endcomment %}
+            {% break %}
+        {% endfor %}
+    {% endfor %}
+</div><!-- END: isotope_wrap -->
+</div><!-- END: bootstrap container -->
+
+<script type="text/javascript">
+    // function pageLoad(sender, args) {}
+    $(window).load(function() {
+        $("div[id*='pnlList']").toggleClass('col-md-9'); // removes default onload
+        $("div[id*='pnlList']" ).toggleClass('col-md-12'); // adds it
+
+        $('#sidebarCollapse').on('click', function () {
+            console.log('clicked');
+            $("div[id*='pnlFilters']").toggleClass('active');
+            $("div[id*='pnlList']").toggleClass('col-md-9'); // removes it
+            $("div[id*='pnlList']" ).toggleClass('col-md-12'); // adds it
+        });
+
+        // Initialize Isotope
+        var $grid = $('.isotope_wrap').isotope({
+            // options
+            percentPosition: true,
+            itemSelector: '.isotope_item',
+            layoutMode: 'fitRows'
+        });
+        // reveal all items after init
+        var $items = $grid.find('.isotope_item');
+        $grid.addClass('is-showing-items')
+          .isotope( 'revealItemElements', $items );
+      });
+</script>

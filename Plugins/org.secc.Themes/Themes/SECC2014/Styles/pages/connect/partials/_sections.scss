@@ -7,6 +7,10 @@ section:not(.row):not(.highlighted-section):not(.with-header):not(.footer-menu):
     padding: 0 !important;
 }
 
+.contrast-background {
+    background-color: $color-foreground;
+}
+
 .content-padding-top {
     padding-top: 0;
     @include tablets {
@@ -64,10 +68,13 @@ section:not(.row):not(.highlighted-section):not(.with-header):not(.footer-menu):
     }
 }
 
-.page-banner {
-	@include phones {
-        nav.section-nav { display: none;}
-    }
+// .page-banner {
+// 	@include phones {
+//         nav.section-nav { display: none;}
+//     }
+// }
+@include phones {
+    nav.section-nav { display: none;}
 }
 
 h4 {
@@ -76,10 +83,176 @@ h4 {
     font-weight: bolder;
 }
 
+.serviceBox {
+    // padding: 0px 5%;
+
+    .service-header {
+        letter-spacing: 6px;
+        background-color: #201e1d;
+        color: white;
+        border-radius:  10px;
+        padding: 10px;
+        text-transform: uppercase;
+    }
+    .description {
+        min-height: 160px;
+    }
+}
+
+.vcentered-flex-box {
+    margin-top: 30px;
+    align-items: center;
+    display: flex;
+    height: 500px;
+    .box {
+        display: block;
+        margin: 0 auto;
+    }
+    @include tablets {
+        height: auto;
+    }
+    @include phones {
+        height: auto;
+    }
+}
+
+/*****************************************************************************
+************************ Update on 03 - 21 - 2018 ****************************
+******************************************************************************
+***** Temporary Fix for Connect Sub - Menu Until Primary Nav is Updated ******
+******************************************************************************
+******************************************************************************
+*/
+
+.jarallax {
+
+    &.darken {
+        &:after {
+            top: 0;
+            left: 0;
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)) center/cover no-repeat fixed;
+        }
+    }
+
+    .parallax-body {
+        position: relative;
+        z-index: 2;
+
+        .row {
+            padding: 0px;
+            margin: 0px;
+            div {
+                padding: 150px 0px;
+                h1 {
+                    font-size: 4em;
+                    small {
+                        color: white;
+                        font-size: 50%;
+                    }
+                }
+            }
+        }
+    }
+    .parallax-logo {
+        z-index: 2;
+        position: relative;
+        max-width: 400px;
+        &.centered {
+          z-index: 2;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 100%;
+          padding: 50px;
+        }
+        a {
+            &:hover,&:active,&:focus,&:visited {
+                text-decoration: none;
+            }
+        }
+        h3 {
+            letter-spacing: 2px;
+            color: white;
+        }
+    }
+
+}
+
+// updated on 03-21-2018 for a cleaner menu
+#sub-connect-menu {
+    nav.section-nav {
+        &.wow {
+            visibility: hidden;
+        }
+        color: inherit;
+        // font-size: .8em;
+        font-family: "proxima-nova-n7", "proxima-nova", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-weight: 700;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        position: absolute;
+        width: 23%;
+        right: 0;
+        top: 0;
+        overflow: hidden;
+        background: rgba(355, 355, 355, 0.9);
+        z-index: 5;
+        box-shadow: 5px 5px 20px rgba(0,0,0,0.2);
+        border-radius: 10px;
+        margin: 20px;
+        height: auto ;
+
+        @include large-desktops {
+        	font-size: inherit !important;
+        }
+
+        li.dropdown {
+            ul {
+                li {
+                    @include transform(translateX(-20px));
+                    @include transition(all 0.4s);
+                }
+			}
+            &.open > ul,
+			&.all.open ul {
+                li {
+                    @include transform(none);
+                    @include transition(all 0.4s);
+                }
+			}
+        }
+
+        ul {
+            li + li {
+                border-top: 1px solid rgba(160, 157, 153, 0.34);
+            }
+        }
+        li > *:first-child {
+            padding-left: 5%;
+            padding-top: 0.4em;
+            padding-bottom: 0.4em;
+        }
+    }
+}
+/*****************************************************************************
+*********************** END: Temporary Fix for Connect Sub *******************
+******************************************************************************
+*/
+
+// the old way of how it was inlcuded
 #PageHeader {
 	//No padding at the bottom of the first section
 	padding-bottom: 0 !important;
     color: #222222;
+
+    .page-header-parallax {
+        background-color: black;
+    }
 
 	.page-banner {
 		//In order for the section-nav to be positioned properly,
@@ -100,23 +273,25 @@ h4 {
         nav.section-nav {
             z-index: 5;
         }
-        &:after {
-            top: 0;
-            left: 0;
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(rgba(0, 0, 0, 0.30), rgba(0, 0, 0, 0.30)) center/cover no-repeat fixed;
-        }
+        // &:after {
+        //     top: 0;
+        //     left: 0;
+        //     content: '';
+        //     position: absolute;
+        //     width: 100%;
+        //     height: 100%;
+        //     background: linear-gradient(rgba(0, 0, 0, 0.30), rgba(0, 0, 0, 0.30)) center/cover no-repeat fixed;
+        // }
 
 		#Breadcrumbs {
 			position: absolute;
 			top: 0;
 			width: 100%;
-			background: rgba(#ffffff,0.35);
+			background: rgba(#ffffff,0.4);
 			text-shadow: 1px 1px 1px rgba($CopyColor, 1);
 			color: #fff;
+            text-align: left;
+            z-index: 10;
 		}
     }
 

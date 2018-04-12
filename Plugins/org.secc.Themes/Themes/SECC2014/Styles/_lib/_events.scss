@@ -1,5 +1,44 @@
 @import '../bootstrap/mixins/vendor-prefixes';
 
+.page_events_parallax {
+ 	header {
+		z-index: 5;
+		position: relative;
+		vertical-align: middle;
+		margin: 5%;
+		color: white;
+		h1 {
+			font-size: 10em;
+			@media (min-width: 769px) and (max-width: 992px) {
+		        font-size: 7.5em;
+		    }
+			@media (max-width: 768px) {
+		        font-size: 5em;
+		    }
+		}
+	}
+	&:after {
+		content: "";
+		background: rgba(0, 0, 0, 0.45);
+		width: 100%;
+		height: 100%;
+	    top: 0;
+	    left: 0;
+	    position: absolute;
+		display: block !important;
+	}
+}
+
+.wellbox {
+	position: absolute;
+	bottom: 0;
+	padding: 15px;
+	min-height: auto;
+	background-color: rgba(239,239,239, 1);
+	margin: 2em 1.5em 2em 0px;
+	border-radius: 10px;
+}
+
 .wellbox {
 	position: absolute;
 	bottom: 0;
@@ -22,35 +61,65 @@ div[id$='pnlList'] {
 	transition: all 0.3s;
 }
 
-div[id$='pnlFilters'] {
-	&::after {
-		padding-right: 15px;
-		border-right: 1px solid #e1e1e1;
-	}
-	margin: 40px 0px;
-	padding-right: 0px;
-	transition: all 0.3s;
+// div[id$='pnlFilters'] {
+// 	&::after {
+// 		padding-right: 15px;
+// 		border-right: 1px solid #e1e1e1;
+// 	}
+// 	margin: 40px 0px;
+// 	padding-right: 0px;
+// 	transition: all 0.3s;
+//
+// 	margin-left: -443px;
+// 	&.active {
+// 		margin-left: 0px;
+// 	}
+// 	.rock-control-wrapper {
+// 		padding: 15px;
+// 		min-height: auto;
+// 		background-color: rgba(355,355,355, 1);
+// 		border-radius: 10px;
+// 	}
+//
+// 	.control-wrapper {
+// 		padding: 15px;
+// 		min-height: auto;
+// 		background-color: rgba(355,355,355, 1);
+// 		border-radius: 10px;
+// 	}
+// }
 
-	margin-left: -443px;
-	&.active {
-		margin-left: 0px;
-	}
-	.rock-control-wrapper {
-		padding: 15px;
-		min-height: auto;
-		background-color: rgba(355,355,355, 1);
-		border-radius: 10px;
-	}
-
-	.control-wrapper {
-		padding: 15px;
-		min-height: auto;
-		background-color: rgba(355,355,355, 1);
-		border-radius: 10px;
-	}
+a.eventCardLink {
+    color: $CopyColor;
 }
-
 .event-calendar {
+
+	margin-bottom: 30px;
+    padding: 0px !important;
+
+    .card {
+        padding: 30px;
+        border-radius: 8px;
+        margin-left: 10px;
+        margin-right: 10px;
+        background-color: rgba(239,239,239, 0.5);
+        @include transition(all .3s ease);
+
+
+        @media (max-width: 768px) {
+            background-color: rgba(239,239,239, 0.5);
+            -webkit-box-shadow: 0 3px 12px 2px hsla(0,0%,78%,1);
+            box-shadow: 0 3px 12px 2px hsla(0,0%,78%,.5);
+        }
+        &:hover {
+            background-color: rgba(239,239,239, 0.5);
+            -webkit-box-shadow: 0 22px 43px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 22px 43px rgba(0, 0, 0, 0.15);
+            transform: translateY(-10px);
+            @include transition(all .3s ease);
+        }
+    }
+
 
 	#datedetails hr {
 		border-color: #e1e1e1;

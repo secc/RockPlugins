@@ -1,0 +1,161 @@
+/* ---- 2.1 Defualt Buttons ---- */
+.btn {
+	position: relative;
+	display: inline-block;
+	padding: 10px;
+	background: $color-1;
+	color: $color-1;
+	// font-family: $btn-font;
+	// text-transform: uppercase;
+	// letter-spacing: $btn-letter-spaceing;
+	// font-size: $btn-font-size;
+	// line-height: $btn-line-height;
+	border-radius: 0px;
+    @include transition(al 200ms ease-out);
+
+	&:hover {
+		// color: $light;
+		background: lighten($color-4, 18%);
+	}
+
+	&:focus {
+		outline: none;
+	}
+} // btn;
+
+.btn-doors {
+	@extend .btn;
+	background: none;
+	color: $CopyColor;
+	border: 2px solid $CopyColor;
+    border-radius: 100px !important;
+	overflow: hidden;
+	z-index: 0;
+	width: auto;
+    padding: 10px 30px;
+    -webkit-transition: color 0.3s cubic-bezier(0.02, 0.01, 0.47, 1), border-color 0.3s cubic-bezier(0.02, 0.01, 0.47, 1);
+    transition: color 0.3s cubic-bezier(0.02, 0.01, 0.47, 1), border-color 0.3s cubic-bezier(0.02, 0.01, 0.47, 1);
+
+    &:before {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 120%;
+      background: $CopyColor;
+      content: '';
+      opacity: 0;
+      z-index: -1;
+      -webkit-transition: opacity 0.15s cubic-bezier(0.02, 0.01, 0.47, 1), -webkit-transform 0.15s cubic-bezier(0.02, 0.01, 0.47, 1);
+      transition: opacity 0.15s cubic-bezier(0.02, 0.01, 0.47, 1), -webkit-transform 0.15s cubic-bezier(0.02, 0.01, 0.47, 1);
+      transition: transform 0.15s cubic-bezier(0.02, 0.01, 0.47, 1), opacity 0.15s cubic-bezier(0.02, 0.01, 0.47, 1);
+      transition: transform 0.15s cubic-bezier(0.02, 0.01, 0.47, 1), opacity 0.15s cubic-bezier(0.02, 0.01, 0.47, 1), -webkit-transform 0.15s cubic-bezier(0.02, 0.01, 0.47, 1);
+      -webkit-transform: translate3d(-110%, -10%, 0) skewX(-20deg);
+              transform: translate3d(-110%, -10%, 0) skewX(-20deg);
+    }
+	&:after {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 120%;
+        background: rgba($CopyColor,0.9);
+        content: '';
+        opacity: 0;
+        z-index: -1;
+        -webkit-transition: opacity 0.15s cubic-bezier(0.02, 0.01, 0.47, 1), -webkit-transform 0.15s cubic-bezier(0.02, 0.01, 0.47, 1);
+        transition: opacity 0.15s cubic-bezier(0.02, 0.01, 0.47, 1), -webkit-transform 0.15s cubic-bezier(0.02, 0.01, 0.47, 1);
+        transition: transform 0.15s cubic-bezier(0.02, 0.01, 0.47, 1), opacity 0.15s cubic-bezier(0.02, 0.01, 0.47, 1);
+        transition: transform 0.15s cubic-bezier(0.02, 0.01, 0.47, 1), opacity 0.15s cubic-bezier(0.02, 0.01, 0.47, 1), -webkit-transform 0.15s cubic-bezier(0.02, 0.01, 0.47, 1);
+        -webkit-transform: translate3d(110%, -10%, 0) skewX(-20deg);
+                transform: translate3d(110%, -10%, 0) skewX(-20deg);
+	}
+
+	&:hover {
+		color: white;
+		background: none;
+
+        box-shadow: 0 1px 8px rgba(58,51,53,0.3);
+        -webkit-transition: all 0.5s cubic-bezier(0.02, 0.01, 0.47, 1);
+        transition: all 0.5s cubic-bezier(0.02, 0.01, 0.47, 1);
+
+		&:visited {
+			// color: $color-1;
+			text-decoration: none;
+		}
+        &:before {
+            opacity: 1;
+            -webkit-transition: opacity 0.25s cubic-bezier(0.02, 0.01, 0.47, 1), -webkit-transform 0.25s cubic-bezier(0.02, 0.01, 0.47, 1);
+            transition: opacity 0.25s cubic-bezier(0.02, 0.01, 0.47, 1), -webkit-transform 0.25s cubic-bezier(0.02, 0.01, 0.47, 1);
+            transition: transform 0.25s cubic-bezier(0.02, 0.01, 0.47, 1), opacity 0.25s cubic-bezier(0.02, 0.01, 0.47, 1);
+            transition: transform 0.25s cubic-bezier(0.02, 0.01, 0.47, 1), opacity 0.25s cubic-bezier(0.02, 0.01, 0.47, 1), -webkit-transform 0.25s cubic-bezier(0.02, 0.01, 0.47, 1);
+            -webkit-transform: translate3d(-50%, -10%, 0) skewX(-20deg);
+                    transform: translate3d(-50%, -10%, 0) skewX(-20deg);
+        }
+		&:after {
+            opacity: 1;
+            -webkit-transition: opacity 0.25s cubic-bezier(0.02, 0.01, 0.47, 1), -webkit-transform 0.25s cubic-bezier(0.02, 0.01, 0.47, 1);
+            transition: opacity 0.25s cubic-bezier(0.02, 0.01, 0.47, 1), -webkit-transform 0.25s cubic-bezier(0.02, 0.01, 0.47, 1);
+            transition: transform 0.25s cubic-bezier(0.02, 0.01, 0.47, 1), opacity 0.25s cubic-bezier(0.02, 0.01, 0.47, 1);
+            transition: transform 0.25s cubic-bezier(0.02, 0.01, 0.47, 1), opacity 0.25s cubic-bezier(0.02, 0.01, 0.47, 1), -webkit-transform 0.25s cubic-bezier(0.02, 0.01, 0.47, 1);
+            -webkit-transform: translate3d(50%, -10%, 0) skewX(-20deg);
+                    transform: translate3d(50%, -10%, 0) skewX(-20deg);
+		}
+	}
+}
+
+// Spin animation
+@keyframes spin {
+  to {
+	  @include transform(rotate(360deg));
+  }
+}
+
+#play {
+  cursor: pointer;
+  position: relative;
+  top: 0;
+  left: 0;
+  outline: none;
+  
+  // Hover
+  &:hover {
+    .stroke-dotted {
+      stroke-width: 4px;
+      opacity: 1;
+    }
+    .stroke-solid {
+      opacity: 0;
+      stroke-dashoffset: 300;
+    }
+    .icon {
+	  @include transform(scale(1.05));
+    }
+  }
+  &:focus {
+	  outline: none;
+  }
+
+  .stroke-dotted {
+    opacity: 0;
+    stroke-dasharray: 4,5;
+    stroke-width: 1px;
+    transform-origin: 50% 50%;
+    animation: spin 4s infinite linear;
+	transition: opacity 1s ease,
+                stroke-width 1s ease;
+  }
+  .stroke-solid {
+    stroke-dashoffset: 0;
+    stroke-dashArray: 300;
+    stroke-width: 4px;
+    transition: stroke-dashoffset 1s ease,
+                opacity 1s ease;
+  }
+
+  .icon {
+    transform-origin: 50% 50%;
+    transition: transform 200ms ease-out;
+  }
+
+}
