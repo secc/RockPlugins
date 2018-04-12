@@ -25,7 +25,7 @@
             {% endif %}
 
             {% if EventItemOccurrence.Campus != null %}
-                <h4> <span class="se-logo">{{EventItemOccurrence.Campus.ShortCode}}</span> {{EventItemOccurrence.Campus.Name}} Campus</h4>
+                <h4> <span class="se-logo pull-left" style="margin: -5px 10px 0px 0px;">{{EventItemOccurrence.Campus.ShortCode}}</span> {{EventItemOccurrence.Campus.Name}} Campus</h4>
                 <br />
             {% endif %}
 
@@ -144,6 +144,6 @@
         {{ twitterPhoto.Url | AddMetaTagToHead:'property','twitter:image' }}
         {% endif %}
         <!-- END: Social Media - Shareable Media -->
-        
+
     </div>
 </div><!-- END: row -->

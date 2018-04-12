@@ -59,7 +59,7 @@
                 padding-right: 50px;
             }
             a {
-                color: rgb(135, 135, 135);
+                color: white;
                 text-transform: uppercase;
                 font-family: $Proxima-Bold;
                 font-weight: 700;
@@ -67,11 +67,11 @@
                 @include transition(all .15s);
 
                 &.active  {
-                    color: white;
+                    color: rgb(135, 135, 135);
                 }
                 &:hover {
                     text-decoration: none;
-                    color: white;
+                    color: rgb(135, 135, 135);
                 }
             }
         }

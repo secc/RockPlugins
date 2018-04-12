@@ -18,7 +18,7 @@
 
   .select2-search--dropdown {
     .select2-search__field {
-      border: 1px solid #aaa;
+      border: 1px solid rgba(239, 239, 239, 0.5);
     }
     .select2-search__field:focus {
       outline: 0px;
@@ -41,6 +41,11 @@
   }
 
   .select2-results__option {
+
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 400;
+
     &[role=group] {
       padding: 0;
     }
@@ -89,7 +94,7 @@
 
   .select2-results__option--highlighted[aria-selected] {
     background-color: #c4c4c4;
-    // color: white;
+    color: white;
   }
 
   .select2-results__group {
