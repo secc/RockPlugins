@@ -67,11 +67,10 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 {
                     ddlSchedule.DataSource = definedType.DefinedValues;
                     ddlSchedule.DataBind();
+                    ddlSchedule.Items.Insert( 0, new ListItem( "", "" ) );
                 }
                 BindGrid();
             }
-
-
         }
 
 
@@ -161,18 +160,29 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
             foreach ( var member in members )
             {
+                if ( !string.IsNullOrWhiteSpace( tbName.Text )
+                    && !member.Key.Person.FullName.ToLower().Contains( tbName.Text.ToLower() )
+                    && !member.Key.Person.FullNameReversed.ToLower().Contains( tbName.Text.ToLower() ) )
+                {
+                    continue;
+                }
+
                 var medicines = member.GroupBy( m => m.MatrixItemId );
                 foreach ( var medicine in medicines )
                 {
+                    var scheduleAtt = medicine.FirstOrDefault( m => m.Attribute.Key == "Schedule" );
+                    if ( ddlSchedule.SelectedValue != "" && ddlSchedule.SelectedValue.AsGuid() != scheduleAtt.AttributeValue.Value.AsGuid() )
+                    {
+                        continue;
+                    }
+
                     var medicalItem = new MedicalItem()
                     {
                         Person = member.Key.Person.FullNameReversed,
                         GroupMemberId = member.Key.Id,
                         PersonId = member.Key.Person.Id
-
                     };
 
-                    var scheduleAtt = medicine.FirstOrDefault( m => m.Attribute.Key == "Schedule" );
                     if ( scheduleAtt != null )
                     {
                         medicalItem.Schedule = DefinedValueCache.Read( scheduleAtt.AttributeValue.Value.AsGuid() ).Value;
@@ -203,6 +213,16 @@ namespace RockWeb.Blocks.Reporting.NextGen
             }
             gGrid.DataSource = medicalItems;
             gGrid.DataBind();
+
+            if ( !dpDate.SelectedDate.HasValue
+                || dpDate.SelectedDate.Value != Rock.RockDateTime.Today )
+            {
+                gGrid.Columns[gGrid.Columns.Count - 1].Visible=false;
+            }
+            else
+            {
+                gGrid.Columns[gGrid.Columns.Count - 1].Visible = true;
+            }
         }
 
         class MedicalItem
@@ -244,6 +264,21 @@ namespace RockWeb.Blocks.Reporting.NextGen
             };
             historyService.Add( history );
             rockContext.SaveChanges();
+            BindGrid();
+        }
+
+        protected void ddlSchedule_SelectedIndexChanged( object sender, EventArgs e )
+        {
+            BindGrid();
+        }
+
+        protected void dpDate_TextChanged( object sender, EventArgs e )
+        {
+            BindGrid();
+        }
+
+        protected void tbName_TextChanged( object sender, EventArgs e )
+        {
             BindGrid();
         }
     }
