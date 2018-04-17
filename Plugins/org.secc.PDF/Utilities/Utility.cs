@@ -14,6 +14,7 @@
 //
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,11 +22,61 @@ using Rock;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
+using WkHtmlToXSharp;
 
 namespace org.secc.PDF
 {
-    class Utility
+    public class Utility
     {
+        public static BinaryFile HtmlToPdf( string html, RockContext rockContext = null, string pdfFileName = "GeneratedPDF.pdf", PdfGlobalSettings settings = null)
+        {
+            if (rockContext == null)
+            {
+                rockContext = new RockContext();
+            }
+
+            WkHtmlToXLibrariesManager.Register( new Win64NativeBundle() );
+
+            IHtmlToPdfConverter htmlToPdfConverter = new MultiplexingConverter();
+            
+            if ( settings != null )
+            {
+                htmlToPdfConverter.GlobalSettings.DocumentTitle = settings.DocumentTitle;
+                htmlToPdfConverter.GlobalSettings.Dpi = settings.Dpi;
+                htmlToPdfConverter.GlobalSettings.ImageDpi = settings.ImageDpi;
+                htmlToPdfConverter.GlobalSettings.ImageQuality = settings.ImageQuality;
+                htmlToPdfConverter.GlobalSettings.Margin.Bottom = settings.Margin.Bottom;
+                htmlToPdfConverter.GlobalSettings.Margin.Left = settings.Margin.Left;
+                htmlToPdfConverter.GlobalSettings.Margin.Right = settings.Margin.Right;
+                htmlToPdfConverter.GlobalSettings.Margin.Top = settings.Margin.Top;
+                htmlToPdfConverter.GlobalSettings.Orientation = settings.Orientation;
+                htmlToPdfConverter.GlobalSettings.Out = settings.Out;
+                htmlToPdfConverter.GlobalSettings.Outline = htmlToPdfConverter.GlobalSettings.Outline;
+                htmlToPdfConverter.GlobalSettings.Size.Height = htmlToPdfConverter.GlobalSettings.Size.Height;
+                htmlToPdfConverter.GlobalSettings.Size.PageSize = htmlToPdfConverter.GlobalSettings.Size.PageSize;
+                htmlToPdfConverter.GlobalSettings.Size.Width = htmlToPdfConverter.GlobalSettings.Size.Width;
+            }
+
+            htmlToPdfConverter.ObjectSettings.Load.LoadErrorHandling = LoadErrorHandlingType.ignore;
+
+            using ( MemoryStream msPDF = new MemoryStream( htmlToPdfConverter.Convert( html ) ) )
+            {
+                BinaryFile pdfBinary = new BinaryFile();
+                pdfBinary.Guid = Guid.NewGuid();
+                pdfBinary.FileName = pdfFileName;
+                pdfBinary.MimeType = "application/pdf";
+                pdfBinary.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( new Guid( Rock.SystemGuid.BinaryFiletype.DEFAULT ) ).Id;
+
+                BinaryFileData pdfData = new BinaryFileData();
+                pdfData.Content = msPDF.ToArray();
+
+                pdfBinary.DatabaseData = pdfData;
+
+                htmlToPdfConverter.Dispose();
+
+                return pdfBinary;
+            }
+        }
         public static PDFWorkflowObject GetPDFFormMergeFromEntity( object entity, out List<string> errorMessages )
         {
             errorMessages = new List<string>();
