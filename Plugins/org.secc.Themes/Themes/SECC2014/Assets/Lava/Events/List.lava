@@ -1,4 +1,3 @@
-
 {% assign eventItemOccurrenceCount = EventItemOccurrences | Size %}
 
 {% if eventItemOccurrenceCount == 0 %}
@@ -8,6 +7,7 @@
 {% endif %}
 
 <div class="container">
+
 <div class="isotope_wrap">
     {% for eventItemList in EventItems %}
         {% assign campusId = 0 %}
@@ -126,18 +126,44 @@
 </div><!-- END: bootstrap container -->
 
 <script type="text/javascript">
-    // function pageLoad(sender, args) {}
-    $(window).load(function() {
-        // Initialize Isotope
-        var $grid = $('.isotope_wrap').isotope({
-            // options
-            percentPosition: true,
-            itemSelector: '.isotope_item',
-            layoutMode: 'fitRows'
-        });
-        // reveal all items after init
-        var $items = $grid.find('.isotope_item');
-        $grid.addClass('is-showing-items')
-          .isotope( 'revealItemElements', $items );
-      });
+    function InitLoadedRequest(visstring, elem, msg)
+    {
+       // Re-Initialize Isotope
+       var $grid = $('.isotope_wrap').isotope({
+           // options
+           percentPosition: true,
+           itemSelector: '.isotope_item',
+           layoutMode: 'fitRows'
+       });
+
+       // reveal all items after init
+       var $items = $grid.find('.isotope_item');
+       $grid.imagesLoaded().progress( function() {
+         $grid.addClass('is-showing-items').isotope('layout');
+       });
+       $grid.isotope( 'revealItemElements', $items );
+    }
+
+    // function reInitJarallax() {
+    //     //Re-Initialize other JS function here
+    //     jarallax(document.querySelectorAll('.jarallax'), {
+    //         disableParallax: /iPad|iPhone|iPod|Android/,
+    //         disableVideo: /iPad|iPhone|iPod|Android/
+    //     });
+    //     console.log('jarallax should be re-launched');
+    // }
+    // Initialize Isotope if Maxtrix Filter isn't being used
+    // function pageLoad() {
+    // $(document).ready(function() {
+    //     // reveal all items after init
+    //     var $grid = $('.isotope_wrap').isotope({
+    //         // options
+    //         percentPosition: true,
+    //         itemSelector: '.isotope_item',
+    //         layoutMode: 'fitRows'
+    //     });
+    //     var $items = $grid.find('.isotope_item');
+    //     $grid.addClass('is-showing-items')
+    //       .isotope( 'revealItemElements', $items );
+    // }
 </script>
