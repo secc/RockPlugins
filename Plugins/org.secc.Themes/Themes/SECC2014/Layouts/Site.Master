@@ -39,6 +39,7 @@
     <script src="<%# ResolveRockUrl("~~/Scripts/modernizr-custom.js" ) %>" ></script>
     <script src="<%# ResolveRockUrl("~~/Scripts/global-dist.js" ) %>" ></script>
     <script src="<%# ResolveRockUrl("~~/Scripts/isotope.pkgd.min.js" ) %>" ></script>
+    <script src="https://unpkg.com/imagesloaded@4/imagesloaded.pkgd.min.js"></script>
     <script src="<%# ResolveRockUrl("~~/Scripts/smooth-scroll.min.js" ) %>" ></script>
     <script src="<%# ResolveRockUrl("~~/Scripts/select2/select2.full.min.js" ) %>" ></script>
 
@@ -56,7 +57,9 @@
     <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
 
     <script src="https://use.typekit.net/eni5wig.js"></script>
-	<script>try{Typekit.load({ async: true });}catch(e){}</script>
+	<script>
+    try{Typekit.load({ async: true });}catch(e){}
+    </script>
 </head>
 <body runat="server" id="body">
     <div id="DocumentWrapper">
