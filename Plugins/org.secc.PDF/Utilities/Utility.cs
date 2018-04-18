@@ -18,48 +18,30 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NReco.PdfGenerator;
 using Rock;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
-using WkHtmlToXSharp;
 
 namespace org.secc.PDF
 {
     public class Utility
     {
-        public static BinaryFile HtmlToPdf( string html, RockContext rockContext = null, string pdfFileName = "GeneratedPDF.pdf", PdfGlobalSettings settings = null)
+        public static BinaryFile HtmlToPdf( string html, RockContext rockContext = null, string pdfFileName = "GeneratedPDF.pdf", PageMargins margins = null, PageOrientation orientation = PageOrientation.Default )
         {
             if (rockContext == null)
             {
                 rockContext = new RockContext();
             }
-
-            WkHtmlToXLibrariesManager.Register( new Win64NativeBundle() );
-
-            IHtmlToPdfConverter htmlToPdfConverter = new MultiplexingConverter();
-            
-            if ( settings != null )
+            var htmlToPdf = new HtmlToPdfConverter();
+            if (margins != null)
             {
-                htmlToPdfConverter.GlobalSettings.DocumentTitle = settings.DocumentTitle;
-                htmlToPdfConverter.GlobalSettings.Dpi = settings.Dpi;
-                htmlToPdfConverter.GlobalSettings.ImageDpi = settings.ImageDpi;
-                htmlToPdfConverter.GlobalSettings.ImageQuality = settings.ImageQuality;
-                htmlToPdfConverter.GlobalSettings.Margin.Bottom = settings.Margin.Bottom;
-                htmlToPdfConverter.GlobalSettings.Margin.Left = settings.Margin.Left;
-                htmlToPdfConverter.GlobalSettings.Margin.Right = settings.Margin.Right;
-                htmlToPdfConverter.GlobalSettings.Margin.Top = settings.Margin.Top;
-                htmlToPdfConverter.GlobalSettings.Orientation = settings.Orientation;
-                htmlToPdfConverter.GlobalSettings.Out = settings.Out;
-                htmlToPdfConverter.GlobalSettings.Outline = htmlToPdfConverter.GlobalSettings.Outline;
-                htmlToPdfConverter.GlobalSettings.Size.Height = htmlToPdfConverter.GlobalSettings.Size.Height;
-                htmlToPdfConverter.GlobalSettings.Size.PageSize = htmlToPdfConverter.GlobalSettings.Size.PageSize;
-                htmlToPdfConverter.GlobalSettings.Size.Width = htmlToPdfConverter.GlobalSettings.Size.Width;
+                htmlToPdf.Margins = margins;
             }
+            htmlToPdf.Orientation = orientation;
 
-            htmlToPdfConverter.ObjectSettings.Load.LoadErrorHandling = LoadErrorHandlingType.ignore;
-
-            using ( MemoryStream msPDF = new MemoryStream( htmlToPdfConverter.Convert( html ) ) )
+            using ( MemoryStream msPDF = new MemoryStream( htmlToPdf.GeneratePdf( html ) ) )
             {
                 BinaryFile pdfBinary = new BinaryFile();
                 pdfBinary.Guid = Guid.NewGuid();
@@ -71,8 +53,6 @@ namespace org.secc.PDF
                 pdfData.Content = msPDF.ToArray();
 
                 pdfBinary.DatabaseData = pdfData;
-
-                htmlToPdfConverter.Dispose();
 
                 return pdfBinary;
             }

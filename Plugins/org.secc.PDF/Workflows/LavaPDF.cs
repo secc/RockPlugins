@@ -26,7 +26,6 @@ using iTextSharp.text;
 using iTextSharp.text.html.simpleparser;
 using iTextSharp.tool.xml;
 using Rock.Attribute;
-using WkHtmlToXSharp;
 using Rock.Web.Cache;
 
 namespace org.secc.PDF
