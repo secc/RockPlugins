@@ -39,6 +39,7 @@ namespace org.secc.PDF
     //Settings
     [CodeEditorField("Lava", "The lava to convert to a PDF", Rock.Web.UI.Controls.CodeEditorMode.Lava)]
     [WorkflowAttribute( "PDF", "Binary File attribute to output PDF to.", fieldTypeClassNames: new string[] { "Rock.Field.Types.FileFieldType" } )]
+    [TextField( "Document Name", "The name of the document <span class='tip tip-lava'></span>.", true, "LavaDocument.pdf" )]
     class LavaPDF : ActionComponent
     {
         
@@ -54,11 +55,11 @@ namespace org.secc.PDF
         {
             errorMessages = new List<string>();
 
+            
+            string html = GetActionAttributeValue( action, "Lava" ).ResolveMergeFields( GetMergeFields( action ) );
+            string documentName = GetActionAttributeValue( action, "DocumentName" ).ResolveMergeFields( GetMergeFields( action ) );
 
-            string Lava = GetActionAttributeValue( action, "Lava" );
-            string html = Lava.ResolveMergeFields( GetMergeFields( action ) );
-
-            BinaryFile pdfBinary = Utility.HtmlToPdf( html, rockContext );
+            BinaryFile pdfBinary = Utility.HtmlToPdf( html, rockContext, documentName );
 
 
             Guid guid = GetAttributeValue( action, "PDF" ).AsGuid();
@@ -75,7 +76,7 @@ namespace org.secc.PDF
                     // Update the file type if necessary
                     Guid binaryFileTypeGuid = Guid.Empty;
                     var binaryFileTypeQualifier = destinationAttribute.QualifierValues["binaryFileType"];
-                    if ( binaryFileTypeQualifier != null )
+                    if ( !String.IsNullOrWhiteSpace( binaryFileTypeQualifier.Value ) )
                     {
                         if ( binaryFileTypeQualifier.Value != null )
                         {

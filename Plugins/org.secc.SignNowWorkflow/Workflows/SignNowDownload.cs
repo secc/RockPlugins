@@ -29,7 +29,7 @@ using System.Linq;
 
 namespace org.secc.SignNowWorkflow
 {
-    [ActionCategory( "SECC > Safety and Security" )]
+    [ActionCategory( "SECC > Sign Now" )]
     [ExportMetadata( "ComponentName", "SignNow Download" )]
     [Description( "Checks to see if the document has been signed and downloads it if so." )]
     [Export( typeof( ActionComponent ) )]
