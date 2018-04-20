@@ -32,13 +32,13 @@ using System.Text.RegularExpressions;
 
 namespace org.secc.SignNowWorkflow
 {
-    [ActionCategory( "SECC > Safety and Security" )]
+    [ActionCategory( "SECC > Sign Now" )]
     [Description( "Handle all the SignNow functionality in the volunteer application (background check)." )]
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "SignNow Create" )]
     [WorkflowAttribute( "SignNow Invite Link", "The attribute to save the SignNow invite link.", true, "", "", 0, null, new string[] { "Rock.Field.Types.TextFieldType" } )]
     [WorkflowAttribute( "SignNow Document Id", "The attribute to save the SignNow document id.", true, "", "", 0, null, new string[] { "Rock.Field.Types.TextFieldType" } )]
-    [WorkflowAttribute( "Document", "The attribute to upload to SignNow.", true, "", "", 0, null, new string[] { "Rock.Field.Types.BinaryFileFieldType" } )]
+    [WorkflowAttribute( "Document", "The attribute containing the document to upload to SignNow.", true, "", "", 0, null, new string[] { "Rock.Field.Types.BinaryFileFieldType", "Rock.Field.Types.FileFieldType" } )]
     [TextField( "Redirect Uri", "Webpage to redirect to after the document has been signed", false )]
     class SignNowCreate : ActionComponent
     {
@@ -67,7 +67,7 @@ namespace org.secc.SignNowWorkflow
                 BinaryFile renderedPDF = binaryfileService.Get( documentGuid );
 
                 // Save the file to a temporary place
-                string tempFile = Path.GetTempPath() + "VolunteerApplication_" + person.FirstName + person.LastName + ".pdf";
+                string tempFile = Path.GetTempPath() + renderedPDF.FileName;// "VolunteerApplication_" + person.FirstName + person.LastName + ".pdf";
 
                 // Open a FileStream to write to the file:
                 using ( Stream fileStream = File.OpenWrite( tempFile ) )
