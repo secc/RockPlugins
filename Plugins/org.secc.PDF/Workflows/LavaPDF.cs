@@ -25,6 +25,8 @@ using System.ComponentModel.Composition;
 using iTextSharp.text;
 using iTextSharp.text.html.simpleparser;
 using iTextSharp.tool.xml;
+using Rock.Attribute;
+using Rock.Web.Cache;
 
 namespace org.secc.PDF
 {
@@ -32,8 +34,15 @@ namespace org.secc.PDF
     [Description( "Creates pdf from lava" )]
     [Export( typeof( Rock.Workflow.ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Lava PDF" )]
+
+
+    //Settings
+    [CodeEditorField("Lava", "The lava to convert to a PDF", Rock.Web.UI.Controls.CodeEditorMode.Lava)]
+    [WorkflowAttribute( "PDF", "Binary File attribute to output PDF to.", fieldTypeClassNames: new string[] { "Rock.Field.Types.FileFieldType" } )]
+    [TextField( "Document Name", "The name of the document <span class='tip tip-lava'></span>.", true, "LavaDocument.pdf" )]
     class LavaPDF : ActionComponent
     {
+        
         /// <summary>
         /// Executes the action.
         /// </summary>
@@ -46,66 +55,49 @@ namespace org.secc.PDF
         {
             errorMessages = new List<string>();
 
-            PDFWorkflowObject pdfWorkflowObject = new PDFWorkflowObject();
+            
+            string html = GetActionAttributeValue( action, "Lava" ).ResolveMergeFields( GetMergeFields( action ) );
+            string documentName = GetActionAttributeValue( action, "DocumentName" ).ResolveMergeFields( GetMergeFields( action ) );
 
-            //A PDF merge can enter in two ways, kicked off with trigger or called from a block
-            //If it is called from a block we will get our information from a PDFWorkflowObject
-            //Otherwise we will need to get our information from the workflow attributes
-            if ( entity is PDFWorkflowObject )
+            BinaryFile pdfBinary = Utility.HtmlToPdf( html, rockContext, documentName );
+
+
+            Guid guid = GetAttributeValue( action, "PDF" ).AsGuid();
+            if ( !guid.IsEmpty() )
             {
-                pdfWorkflowObject = Utility.GetPDFFormMergeFromEntity( entity, out errorMessages );
-            }
-            else
-            {
-                pdfWorkflowObject = new PDFWorkflowObject( action, rockContext );
-            }
+                var destinationAttribute = AttributeCache.Read( guid, rockContext );
+                if ( destinationAttribute != null )
+                {
 
-            using ( MemoryStream msPDF = createPDF( pdfWorkflowObject.RenderedXHTML ) )
-            {
-                BinaryFile pdfBinary = new BinaryFile();
-                pdfBinary.Guid = Guid.NewGuid();
-                pdfBinary.FileName = "GeneratedPDF.pdf";
-                pdfBinary.MimeType = "application/pdf";
-                pdfBinary.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( new Guid( Rock.SystemGuid.BinaryFiletype.DEFAULT ) ).Id;
+                    BinaryFileService binaryFileService = new BinaryFileService( rockContext );
+                    binaryFileService.Add( pdfBinary );
+                    rockContext.SaveChanges();
 
-                BinaryFileData pdfData = new BinaryFileData();
-                pdfData.Content = msPDF.ToArray();
-                
-                pdfBinary.DatabaseData = pdfData;
+                    // Update the file type if necessary
+                    Guid binaryFileTypeGuid = Guid.Empty;
+                    var binaryFileTypeQualifier = destinationAttribute.QualifierValues["binaryFileType"];
+                    if ( !String.IsNullOrWhiteSpace( binaryFileTypeQualifier.Value ) )
+                    {
+                        if ( binaryFileTypeQualifier.Value != null )
+                        {
+                            binaryFileTypeGuid = binaryFileTypeQualifier.Value.AsGuid();
 
-                pdfWorkflowObject.PDF = pdfBinary;
+                            pdfBinary.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( binaryFileTypeGuid ).Id;
+                        }
+                    }
+
+                    // Now store the attribute
+                    if ( destinationAttribute.EntityTypeId == new Workflow().TypeId )
+                    {
+                        action.Activity.Workflow.SetAttributeValue( destinationAttribute.Key, pdfBinary.Guid.ToString() );
+                    }
+                    else if ( destinationAttribute.EntityTypeId == new WorkflowActivity().TypeId )
+                    {
+                        action.Activity.SetAttributeValue( destinationAttribute.Key, pdfBinary.Guid.ToString() );
+                    }
+                }
             }
-
-            if ( entity is PDFWorkflowObject )
-            {
-                entity = pdfWorkflowObject;
-            }
-            else
-            {
-                BinaryFileService binaryFileService = new BinaryFileService( rockContext );
-                binaryFileService.Add( pdfWorkflowObject.PDF );
-                rockContext.SaveChanges();
-                action.Activity.Workflow.SetAttributeValue( "PDFGuid", pdfWorkflowObject.PDF.Guid );
-            }
-
             return true;
-        }
-        private MemoryStream createPDF( string xhtml )
-        {
-            MemoryStream msOutput = new MemoryStream();
-            TextReader xhtmlReader = new StringReader( xhtml );
-
-            using ( Document document = new Document( PageSize.LETTER ) )
-            {
-                PdfWriter writer = PdfWriter.GetInstance( document, msOutput );
-                document.Open();
-
-                XMLWorkerHelper.GetInstance().ParseXHtml( writer, document, xhtmlReader );
-
-                document.Close();
-            }
-
-            return msOutput;
         }
 
     }

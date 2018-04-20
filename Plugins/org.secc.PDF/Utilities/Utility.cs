@@ -14,9 +14,11 @@
 //
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NReco.PdfGenerator;
 using Rock;
 using Rock.Data;
 using Rock.Model;
@@ -24,8 +26,37 @@ using Rock.Web.Cache;
 
 namespace org.secc.PDF
 {
-    class Utility
+    public class Utility
     {
+        public static BinaryFile HtmlToPdf( string html, RockContext rockContext = null, string pdfFileName = "GeneratedPDF.pdf", PageMargins margins = null, PageOrientation orientation = PageOrientation.Default )
+        {
+            if (rockContext == null)
+            {
+                rockContext = new RockContext();
+            }
+            var htmlToPdf = new HtmlToPdfConverter();
+            if (margins != null)
+            {
+                htmlToPdf.Margins = margins;
+            }
+            htmlToPdf.Orientation = orientation;
+
+            using ( MemoryStream msPDF = new MemoryStream( htmlToPdf.GeneratePdf( html ) ) )
+            {
+                BinaryFile pdfBinary = new BinaryFile();
+                pdfBinary.Guid = Guid.NewGuid();
+                pdfBinary.FileName = pdfFileName;
+                pdfBinary.MimeType = "application/pdf";
+                pdfBinary.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( new Guid( Rock.SystemGuid.BinaryFiletype.DEFAULT ) ).Id;
+
+                BinaryFileData pdfData = new BinaryFileData();
+                pdfData.Content = msPDF.ToArray();
+
+                pdfBinary.DatabaseData = pdfData;
+
+                return pdfBinary;
+            }
+        }
         public static PDFWorkflowObject GetPDFFormMergeFromEntity( object entity, out List<string> errorMessages )
         {
             errorMessages = new List<string>();

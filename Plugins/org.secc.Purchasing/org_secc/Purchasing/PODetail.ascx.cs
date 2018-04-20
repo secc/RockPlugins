@@ -45,8 +45,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
     [LinkedPage("Requisition Detail Page", "Requisition Detail Page", true)]
     [IntegerField("Ministry Person Attribute ID", "Ministry Person AttributeID", true)]
     [CodeEditorField("PDF Report Lava", "HTML/Lava for generating the PDF Report", CodeEditorMode.Lava, CodeEditorTheme.Rock, 200, true,"{% include '~/Plugins/org_secc/Purchasing/PurchaseOrderPDF.lava' %}", "PDF Report")]
-    [WorkflowTypeField("PDF Report Workflow", "The workflow type to activate to merge the output PDF", false, false, null, "PDF Report")]
-    [TextField("PDF Report Activity", "The workflow activity to merge the output PDF", false, "Lava", "PDF Report")]
     [GroupField("Receiving User Group", "Group that contains list of staff/volunteers who can receive items into purchasing/receiving.", true)]
     [LinkedPage("Person Detail Page", "Person Detail Page", false, "7", "Staff Selector")]
 
@@ -1673,13 +1671,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if (CurrentPurchaseOrder == null)
                 return;
 
-            PDFWorkflowObject pdfWorkflowObject = new PDFWorkflowObject();
-
-            pdfWorkflowObject.LavaInput = GetAttributeValue("PDFReportLava");
-
-            pdfWorkflowObject.MergeObjects = new Dictionary<string, object>();
-            pdfWorkflowObject.MergeObjects.Add("Vendor", CurrentPurchaseOrder.Vendor.VendorName);
-            pdfWorkflowObject.MergeObjects.Add("ShipTo", 
+            string Lava = GetAttributeValue("PDFReportLava");
+            Dictionary<string,object> mergeObjects = new Dictionary<string, object>();
+            mergeObjects.Add("Vendor", CurrentPurchaseOrder.Vendor.VendorName);
+            mergeObjects.Add("ShipTo", 
                 new Dictionary<String, String> {
                     { "Name", CurrentPurchaseOrder.ShipToName },
                     { "Attn", CurrentPurchaseOrder.ShipToAttn },
@@ -1702,52 +1697,30 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     });
                 }
             }
-            pdfWorkflowObject.MergeObjects.Add("PurchaseOrderItems", purchaseOrderItems);
+            mergeObjects.Add("PurchaseOrderItems", purchaseOrderItems);
 
-            pdfWorkflowObject.MergeObjects.Add("PurchaseOrder", 
+            mergeObjects.Add("PurchaseOrder", 
                 new Dictionary<String, Object> {
                     { "PurchaseOrderID", CurrentPurchaseOrder.PurchaseOrderID }
  
                 });
 
-            pdfWorkflowObject.MergeObjects.Add("SubTotal", CurrentPurchaseOrder.Items.Where(x => x.Active).Select(x => (x.Price * x.Quantity)).Sum());
-            pdfWorkflowObject.MergeObjects.Add("ShippingCharge", CurrentPurchaseOrder.ShippingCharge);
-            pdfWorkflowObject.MergeObjects.Add("OtherCharge", CurrentPurchaseOrder.OtherCharge);
+            mergeObjects.Add("SubTotal", CurrentPurchaseOrder.Items.Where(x => x.Active).Select(x => (x.Price * x.Quantity)).Sum());
+            mergeObjects.Add("ShippingCharge", CurrentPurchaseOrder.ShippingCharge);
+            mergeObjects.Add("OtherCharge", CurrentPurchaseOrder.OtherCharge);
 
-            pdfWorkflowObject.MergeObjects.Add("OrderedBy", CurrentPurchaseOrder.OrderedBy != null?CurrentPurchaseOrder.OrderedBy.FullName:"");
-            pdfWorkflowObject.MergeObjects.Add("OrderedDate", CurrentPurchaseOrder.DateOrdered);
+            mergeObjects.Add("OrderedBy", CurrentPurchaseOrder.OrderedBy != null?CurrentPurchaseOrder.OrderedBy.FullName:"");
+            mergeObjects.Add("OrderedDate", CurrentPurchaseOrder.DateOrdered);
 
-            Guid workflowTypeGuid = Guid.NewGuid();
-            if (Guid.TryParse(GetAttributeValue("PDFReportWorkflow"), out workflowTypeGuid))
-            {
-                var workflowTypeService = new WorkflowTypeService(rockContext);
-                var workflowType = workflowTypeService.Get(workflowTypeGuid);
-                if (workflowType != null)
-                {
-                    var workflow = Workflow.Activate(workflowType, "PDFLavaWorkflow");
+            BinaryFile pdf = Utility.HtmlToPdf( Lava.ResolveMergeFields( mergeObjects ) );
 
-                    List<string> workflowErrors;
-                    var workflowService = new WorkflowService(rockContext);
-                    var workflowActivity = GetAttributeValue("PDFReportActivity");
-                    var activityType = workflowType.ActivityTypes.Where(a => a.Name == workflowActivity).FirstOrDefault();
-                    if (activityType != null)
-                    {
-                        WorkflowActivity.Activate(activityType, workflow, rockContext);
-                        if (workflowService.Process(workflow, pdfWorkflowObject, out workflowErrors))
-                        {
-                            var b = pdfWorkflowObject.PDF.DatabaseData.Content;
-                            Response.Clear();
-                            Response.Buffer = true;
-                            //Response.Write(pdfWorkflowObject.RenderedXHTML);
-                            //Response.End();
-                            Response.ContentType = pdfWorkflowObject.PDF.MimeType;
-                            Response.AddHeader("content-disposition", "attachment;filename=\"PurchaseOrder-" + CurrentPurchaseOrder.PurchaseOrderID +".pdf\"");
-                            Response.OutputStream.Write(b, 0, b.Length);
-                            Response.End();
-                        }
-                    }
-                }
-            }
+            // Time to dump the PDF
+            Response.Clear();
+            Response.Buffer = true;
+            Response.ContentType = pdf.MimeType;
+            Response.AddHeader("content-disposition", "attachment;filename=\"PurchaseOrder-" + CurrentPurchaseOrder.PurchaseOrderID +".pdf\"");
+            Response.OutputStream.Write( pdf.DatabaseData.Content, 0, pdf.DatabaseData.Content.Length);
+            Response.End();
         }
 
         private bool SelectVendor()
