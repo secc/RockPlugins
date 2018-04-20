@@ -21,7 +21,7 @@
 
             </div>
             <div class="panel-body">
-                <Rock:Grid runat="server" ID="gGrid" TooltipField="History" DataKeyNames="Key" ShowActionRow="false">
+                <Rock:Grid runat="server" ID="gGrid" TooltipField="History" DataKeyNames="Key">
                     <Columns>
                         <asp:BoundField DataField="Person" HeaderText="Person" />
                         <asp:BoundField DataField="Medication" HeaderText="Medication" />
