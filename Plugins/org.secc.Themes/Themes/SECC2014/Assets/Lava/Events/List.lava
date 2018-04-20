@@ -35,7 +35,7 @@
                 {% assign openEventDetailsLink = eventItemOccurrence.DetailPage | Prepend:"<a href='" | Append:"' class='eventCardLink'>" %}
                 {% assign closeEventDetailsLink = "</a>" %}
             {% else %}
-                {% assign openEventDetailsLink = DetailsPage | Prepend:"<a href='" | Append:"?EventOccurrenceId=" | Append:eventItemOccurrence.EventItemOccurrence.Id | Append:"' class='eventCardLink' >" %}
+                {% assign openEventDetailsLink = DetailsPage | Prepend:"<a href='" | Append:"?EventItemId=" | Append:eventItem.Id | Append:"' class='eventCardLink' >" %}
                 {% assign closeEventDetailsLink = "</a>" %}
             {% endif %}
 
