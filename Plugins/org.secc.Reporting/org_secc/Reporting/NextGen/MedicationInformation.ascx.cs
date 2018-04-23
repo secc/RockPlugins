@@ -109,28 +109,32 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 AttributeMatrixService attributeMatrixService = new AttributeMatrixService( rockContext );
                 foreach ( var member in medicalMembers )
                 {
-                    member.LoadAttributes();
-                    var attribute = member.GetAttributeValue( GetAttributeValue( "MedicationMatrixKey" ) );
-                    var attributeMatrix = attributeMatrixService.Get( attribute.AsGuid() );
-                    var lava = attributeMatrix.AttributeMatrixTemplate.FormattedLava;
-                    var template = attributeMatrix.AttributeMatrixTemplate;
-                    template.LoadAttributes();
-                    AttributeMatrixItem tempAttributeMatrixItem = new AttributeMatrixItem();
-                    tempAttributeMatrixItem.AttributeMatrix = attributeMatrix;
-                    tempAttributeMatrixItem.LoadAttributes();
-                    Dictionary<string, object> mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, null, new Rock.Lava.CommonMergeFieldsOptions { GetLegacyGlobalMergeFields = false } );
-                    mergeFields.Add( "AttributeMatrix", attributeMatrix );
-                    mergeFields.Add( "ItemAttributes", tempAttributeMatrixItem.Attributes.Select( a => a.Value ).OrderBy( a => a.Order ).ThenBy( a => a.Name ) );
-                    mergeFields.Add( "AttributeMatrixItems", attributeMatrix.AttributeMatrixItems.OrderBy( a => a.Order ) );
-                    var medications = lava.ResolveMergeFields( mergeFields );
                     GridData data = new GridData
                     {
                         Id = member.Guid,
                         Name = member.Person.FullName,
                         Group = member.Group.Name,
-                        Medications = medications
+                        Medications = "No Medication Information"
                     };
-                    gridData.Add( data );
+                    member.LoadAttributes();
+                    var attribute = member.GetAttributeValue( GetAttributeValue( "MedicationMatrixKey" ) );
+                    var attributeMatrix = attributeMatrixService.Get( attribute.AsGuid() );
+                    if ( attributeMatrix != null )
+                    {
+                        var lava = attributeMatrix.AttributeMatrixTemplate.FormattedLava;
+                        var template = attributeMatrix.AttributeMatrixTemplate;
+                        template.LoadAttributes();
+                        AttributeMatrixItem tempAttributeMatrixItem = new AttributeMatrixItem();
+                        tempAttributeMatrixItem.AttributeMatrix = attributeMatrix;
+                        tempAttributeMatrixItem.LoadAttributes();
+                        Dictionary<string, object> mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, null, new Rock.Lava.CommonMergeFieldsOptions { GetLegacyGlobalMergeFields = false } );
+                        mergeFields.Add( "AttributeMatrix", attributeMatrix );
+                        mergeFields.Add( "ItemAttributes", tempAttributeMatrixItem.Attributes.Select( a => a.Value ).OrderBy( a => a.Order ).ThenBy( a => a.Name ) );
+                        mergeFields.Add( "AttributeMatrixItems", attributeMatrix.AttributeMatrixItems.OrderBy( a => a.Order ) );
+                        var medications = lava.ResolveMergeFields( mergeFields );
+                        data.Medications = medications;
+                    }
+                        gridData.Add( data );
                 }
 
                 gGrid.DataSource = gridData;
