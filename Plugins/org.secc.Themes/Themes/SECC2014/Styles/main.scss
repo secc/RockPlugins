@@ -77,10 +77,15 @@ button, a, input[type="submit"], input[type="reset"], input[type="button"] {
 	    border-color: none;
 	}
     &.btn-link {
-        float: left;
+        // float: left;
         line-height: 2.6em;
         color: #069;
 		display: inline-block;
+    }
+	&.btn-warning {
+		font-size: 1.2em;
+		line-height: 1.3em;
+		padding: 0.5em 1.3em;
     }
 	&.btn-normal,
     &.btn-primary {
@@ -88,7 +93,7 @@ button, a, input[type="submit"], input[type="reset"], input[type="button"] {
 		font-size: 1.2em;
 		line-height: 1.3em;
 		padding: 0.5em 1.3em;
-		display: table;
+		// display: table;
 		background: rgba(#fff,.2);
 		color: #000;
 		@include phones { font-size: 1em; }
