@@ -143,7 +143,9 @@ namespace RockWeb.Blocks.Event
                 if ( eventItem != null )
                 {
                     // removing any occurrences that don't have a start time in the next twelve months
-                    eventItem.EventItemOccurrences.RemoveAll( o => o.GetStartTimes( new DateTime(), new DateTime().AddYears(1) ).Count() == 0 );
+                    var occurrenceList = eventItem.EventItemOccurrences.ToList();
+                    occurrenceList.RemoveAll( o => o.GetStartTimes( new DateTime(), new DateTime().AddYears( 1 ) ).Count() == 0 );
+                    eventItem.EventItemOccurrences = occurrenceList;
 
                     var mergeFields = new Dictionary<string, object>();
                     mergeFields.Add( "RegistrationPage", LinkedPageRoute( "RegistrationPage" ) );
