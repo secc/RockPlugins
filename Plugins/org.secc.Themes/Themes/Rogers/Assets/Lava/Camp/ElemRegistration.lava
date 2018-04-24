@@ -57,7 +57,7 @@
     </div>
 
     <div class="col-md-3 text-center">
-        <p><b>Leader Registration</b></p><p><small>&nbsp;</small></p>
+        <p><b>Leader Registration</b></p><p><small>(Only males over 18 still needed)</small></p>
         <br>
         {% if releaseRegistration <= currentDate %}
         <nav class="menu">
