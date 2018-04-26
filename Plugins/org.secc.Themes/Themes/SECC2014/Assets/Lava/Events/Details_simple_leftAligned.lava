@@ -64,30 +64,31 @@
                     {{ EventItemOccurrence.Note }}
                 {% endif %}
 
-                {% if linkage.RegistrationInstanceId > 0 ) %}
-                    {% assign daysTillStartDate = 'Now' | DateDiff:linkage.RegistrationInstance.StartDateTime,'m' %}
-                    {% assign daysTillEndDate = 'Now' | DateDiff:linkage.RegistrationInstance.EndDateTime,'m' %}
-                    {% assign showRegistration = true %}
-                    {% assign registrationMessage = '' %}
+				{% for linkage in EventItemOccurrence.Linkages %}
+					{% if linkage.RegistrationInstanceId > 0 ) %}
+						{% assign daysTillStartDate = 'Now' | DateDiff:linkage.RegistrationInstance.StartDateTime,'m' %}
+						{% assign daysTillEndDate = 'Now' | DateDiff:linkage.RegistrationInstance.EndDateTime,'m' %}
+						{% assign showRegistration = true %}
+						{% assign registrationMessage = '' %}
 
-                    {% if daysTillStartDate and daysTillStartDate > 0 %}
-                        {% assign showRegistration = false %}
-                        {% capture registrationMessage %}<p>Registration opens on {{ linkage.RegistrationInstance.StartDateTime | Date:'dddd, MMMM d, yyyy' }}</p>{% endcapture %}
-                    {% endif %}
+						{% if daysTillStartDate and daysTillStartDate > 0 %}
+							{% assign showRegistration = false %}
+							{% capture registrationMessage %}<p>Registration opens on {{ linkage.RegistrationInstance.StartDateTime | Date:'dddd, MMMM d, yyyy' }}</p>{% endcapture %}
+						{% endif %}
 
-                    {% if daysTillEndDate and daysTillEndDate < 0 %}
-                        {% assign showRegistration = false %}
-                        {% capture registrationMessage %}<p>Registration closed on {{ linkage.RegistrationInstance.EndDateTime | Date:'dddd, MMMM d, yyyy' }}</p>{% endcapture %}
-                    {% endif %}
+						{% if daysTillEndDate and daysTillEndDate < 0 %}
+							{% assign showRegistration = false %}
+							{% capture registrationMessage %}<p>Registration closed on {{ linkage.RegistrationInstance.EndDateTime | Date:'dddd, MMMM d, yyyy' }}</p>{% endcapture %}
+						{% endif %}
 
 
-                    {% if showRegistration == true %}
-                      <a href="{{ RegistrationPage }}?RegistrationInstanceId={{ linkage.RegistrationInstanceId }}&EventOccurrenceID={{ EventItemOccurrence.Id }}" class="btn btn-primary btn-block margin-t-md">Register</a>
-                    {% else %}
-                      {{ registrationMessage }}
-                    {% endif %}
-                {% endif %}
-
+						{% if showRegistration == true %}
+						  <a href="{{ RegistrationPage }}?RegistrationInstanceId={{ linkage.RegistrationInstanceId }}&EventOccurrenceID={{ EventItemOccurrence.Id }}" class="btn btn-primary btn-block margin-t-md">Register</a>
+						{% else %}
+						  {{ registrationMessage }}
+						{% endif %}
+					{% endif %}
+				{% endfor %}
                 <!-- <hr /> -->
 
             {% endfor %}
@@ -219,29 +220,31 @@
                 {{ EventItemOccurrence.Note }}
             {% endif %}
 
-            {% if linkage.RegistrationInstanceId > 0 ) %}
-                {% assign daysTillStartDate = 'Now' | DateDiff:linkage.RegistrationInstance.StartDateTime,'m' %}
-                {% assign daysTillEndDate = 'Now' | DateDiff:linkage.RegistrationInstance.EndDateTime,'m' %}
-                {% assign showRegistration = true %}
-                {% assign registrationMessage = '' %}
+			{% for linkage in EventItemOccurrence.Linkages %}
+				{% if linkage.RegistrationInstanceId > 0 ) %}
+					{% assign daysTillStartDate = 'Now' | DateDiff:linkage.RegistrationInstance.StartDateTime,'m' %}
+					{% assign daysTillEndDate = 'Now' | DateDiff:linkage.RegistrationInstance.EndDateTime,'m' %}
+					{% assign showRegistration = true %}
+					{% assign registrationMessage = '' %}
 
-                {% if daysTillStartDate and daysTillStartDate > 0 %}
-                    {% assign showRegistration = false %}
-                    {% capture registrationMessage %}<p>Registration opens on {{ linkage.RegistrationInstance.StartDateTime | Date:'dddd, MMMM d, yyyy' }}</p>{% endcapture %}
-                {% endif %}
+					{% if daysTillStartDate and daysTillStartDate > 0 %}
+						{% assign showRegistration = false %}
+						{% capture registrationMessage %}<p>Registration opens on {{ linkage.RegistrationInstance.StartDateTime | Date:'dddd, MMMM d, yyyy' }}</p>{% endcapture %}
+					{% endif %}
 
-                {% if daysTillEndDate and daysTillEndDate < 0 %}
-                    {% assign showRegistration = false %}
-                    {% capture registrationMessage %}<p>Registration closed on {{ linkage.RegistrationInstance.EndDateTime | Date:'dddd, MMMM d, yyyy' }}</p>{% endcapture %}
-                {% endif %}
+					{% if daysTillEndDate and daysTillEndDate < 0 %}
+						{% assign showRegistration = false %}
+						{% capture registrationMessage %}<p>Registration closed on {{ linkage.RegistrationInstance.EndDateTime | Date:'dddd, MMMM d, yyyy' }}</p>{% endcapture %}
+					{% endif %}
 
 
-                {% if showRegistration == true %}
-                  <a href="{{ RegistrationPage }}?RegistrationInstanceId={{ linkage.RegistrationInstanceId }}&EventOccurrenceID={{ EventItemOccurrence.Id }}" class="btn btn-primary btn-block margin-t-md">Register</a>
-                {% else %}
-                  {{ registrationMessage }}
-                {% endif %}
-            {% endif %}
+					{% if showRegistration == true %}
+					  <a href="{{ RegistrationPage }}?RegistrationInstanceId={{ linkage.RegistrationInstanceId }}&EventOccurrenceID={{ EventItemOccurrence.Id }}" class="btn btn-primary btn-block margin-t-md">Register</a>
+					{% else %}
+					  {{ registrationMessage }}
+					{% endif %}
+				{% endif %}
+			{% endfor %}
 
             {% if scheduledDates != empty %}
             <!-- START: Social Media - Shareables -->
