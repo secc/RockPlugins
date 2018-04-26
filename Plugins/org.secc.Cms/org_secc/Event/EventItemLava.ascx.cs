@@ -143,7 +143,22 @@ namespace RockWeb.Blocks.Event
                 if ( eventItem != null )
                 {
                     // removing any occurrences that don't have a start time in the next twelve months
-                    eventItem.EventItemOccurrences.RemoveAll( o => o.GetStartTimes( new DateTime(), new DateTime().AddYears(1) ).Count() == 0 );
+                    var occurrenceList = eventItem.EventItemOccurrences.ToList();
+                    occurrenceList.RemoveAll( o => o.GetStartTimes( RockDateTime.Now, RockDateTime.Now.AddYears( 1 ) ).Count() == 0 );
+                    
+                    //Check for Campus Parameter
+                    var campusId = PageParameter("CampusId").AsIntegerOrNull();
+                    if (campusId.HasValue)
+                    {
+                        //check if there's a campus with this id.
+                        var campus = CampusCache.Read(campusId.Value);
+                        if (campus != null)
+                        {
+                            occurrenceList.RemoveAll(o => o.CampusId != campus.Id);
+                        }
+                    }
+
+                    eventItem.EventItemOccurrences = occurrenceList;
 
                     var mergeFields = new Dictionary<string, object>();
                     mergeFields.Add( "RegistrationPage", LinkedPageRoute( "RegistrationPage" ) );
@@ -155,57 +170,61 @@ namespace RockWeb.Blocks.Event
                     {
                         mergeFields.Add( "CampusContext", contextCampus );
                     }
-
+                    
                     // determine registration status (Register, Full, or Join Wait List) for each unique registration instance
-                    // Dictionary<int, string> registrationStatusLabels = new Dictionary<int, string>();
-                    // foreach ( var registrationInstance in eventItem.Linkages.Select( a => a.RegistrationInstance ).Distinct().ToList() )
-                    // {
-                    //     var maxRegistrantCount = 0;
-                    //     var currentRegistrationCount = 0;
-                    //
-                    //     if ( registrationInstance != null )
-                    //     {
-                    //         if ( registrationInstance.MaxAttendees != 0 )
-                    //         {
-                    //             maxRegistrantCount = registrationInstance.MaxAttendees;
-                    //         }
-                    //     }
-                    //
-                    //
-                    //     int? registrationSpotsAvailable = null;
-                    //     if ( maxRegistrantCount != 0 )
-                    //     {
-                    //         currentRegistrationCount = new RegistrationRegistrantService( rockContext ).Queryable().AsNoTracking()
-                    //                                         .Where( r =>
-                    //                                             r.Registration.RegistrationInstanceId == registrationInstance.Id
-                    //                                             && r.OnWaitList == false )
-                    //                                         .Count();
-                    //         registrationSpotsAvailable = maxRegistrantCount - currentRegistrationCount;
-                    //     }
-                    //
-                    //     string registrationStatusLabel = "Register";
-                    //
-                    //     if ( registrationSpotsAvailable.HasValue && registrationSpotsAvailable.Value < 1 )
-                    //     {
-                    //         if ( registrationInstance.RegistrationTemplate.WaitListEnabled )
-                    //         {
-                    //             registrationStatusLabel = "Join Wait List";
-                    //         }
-                    //         else
-                    //         {
-                    //             registrationStatusLabel = "Full";
-                    //         }
-                    //     }
-                    //
-                    //     registrationStatusLabels.Add( registrationInstance.Id, registrationStatusLabel );
-                    // }
-                    //
-                    // // Status of first registration instance
-                    // mergeFields.Add( "RegistrationStatusLabel", registrationStatusLabels.Values.FirstOrDefault() );
-                    //
-                    //
-                    // // Status of each registration instance
-                    // mergeFields.Add( "RegistrationStatusLabels", registrationStatusLabels );
+                    Dictionary<int, string> registrationStatusLabels = new Dictionary<int, string>();
+                    foreach (var occurance in eventItem.EventItemOccurrences)
+                    {
+
+                        foreach (var registrationInstance in occurance.Linkages.Select(a => a.RegistrationInstance).Distinct().ToList())
+                        {
+                            if ( registrationStatusLabels.ContainsKey(registrationInstance.Id) )
+                            {
+                                continue;
+                            }
+                            var maxRegistrantCount = 0;
+                            var currentRegistrationCount = 0;
+
+                            if (registrationInstance != null)
+                            {
+                                if (registrationInstance.MaxAttendees != 0)
+                                {
+                                    maxRegistrantCount = registrationInstance.MaxAttendees;
+                                }
+                            }
+
+
+                            int? registrationSpotsAvailable = null;
+                            if (maxRegistrantCount != 0)
+                            {
+                                currentRegistrationCount = new RegistrationRegistrantService(rockContext).Queryable().AsNoTracking()
+                                                                .Where(r =>
+                                                                   r.Registration.RegistrationInstanceId == registrationInstance.Id
+                                                                   && r.OnWaitList == false)
+                                                                .Count();
+                                registrationSpotsAvailable = maxRegistrantCount - currentRegistrationCount;
+                            }
+
+                            string registrationStatusLabel = "Register";
+
+                            if (registrationSpotsAvailable.HasValue && registrationSpotsAvailable.Value < 1)
+                            {
+                                if (registrationInstance.RegistrationTemplate.WaitListEnabled)
+                                {
+                                    registrationStatusLabel = "Join Wait List";
+                                }
+                                else
+                                {
+                                    registrationStatusLabel = "Full";
+                                }
+                            }
+
+                            registrationStatusLabels.Add(registrationInstance.Id, registrationStatusLabel);
+                        }
+                    }
+
+                    // Status of each registration instance
+                    mergeFields.Add("RegistrationStatusLabels", registrationStatusLabels);
 
                     mergeFields.Add( "Event", eventItem );
                     mergeFields.Add( "CurrentPerson", CurrentPerson );
