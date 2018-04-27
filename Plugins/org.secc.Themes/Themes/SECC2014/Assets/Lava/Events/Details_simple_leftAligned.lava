@@ -59,6 +59,36 @@
                 {% endfor %}
                 </ul>
 
+                <!-- START: Social Media - Shareables -->
+                <div class="socialbox clearfix text-center">
+                    <script>function fbs_click() { u = location.href; t = document.title; window.open('http://www.facebook.com/sharer.php?u=' + encodeURIComponent(u) + '&t=' + encodeURIComponent(t), 'sharer', 'toolbar=0,status=0,width=626,height=436'); return false; }</script>
+                    <script>function ics_click() { text = `{{ EventItemOccurrence.Schedule.iCalendarContent }}`.replace('END:VEVENT', 'SUMMARY: {{ Event.Name }}\r\nLOCATION: {{ EventItemOccurrence.Location }}\r\nEND:VEVENT'); var element = document.createElement('a'); element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); element.setAttribute('download', '{{ Event.Name }}.ics'); element.style.display = 'none'; document.body.appendChild(element); element.click(); document.body.removeChild(element); }</script>
+                    <div class="socials" style="margin-top:10px;">
+                        {% if eventOccurencesCount <= 1 %}
+                        <div class="socials_item">
+                            <a href="" onclick="return ics_click()" class="socialicon socialicon-calendar" title="Download Event" data-original-title="Download Event">
+                                <i class="fa fa-fw fa-calendar"></i>
+                            </a>
+                        </div>
+                        {% endif %}
+                        <div class="socials_item">
+                            <a href="http://www.facebook.com/share.php?u=<url>" onclick="return fbs_click()" target="_blank" class="social-facebook" title="Share via Facebook" data-original-title="Share via Facebook">
+                                <i class="fa fa-fw fa-facebook"></i>
+                            </a>
+                        </div>
+                        <div class="socials_item">
+                            <a href="http://twitter.com/home?status={{ 'Global' | Page:'Url' | Escape }}" class="social-twitter" title="Share via Twitter" data-original-title="Share via Twitter">
+                                <i class="fa fa-fw fa-twitter"></i>
+                            </a>
+                        </div>
+                        <div class="socials_item">
+                            <a href="mailto:?Subject={{ Event.Name | Escape }}&Body={{ 'Global' | Page:'Url' }}"  class="social-email" title="Share via Email" data-original-title="Share via Email">
+                                <i class="fa fa-fw fa-envelope-o"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div><!-- END: Social Media - Shareables -->
+                <br />
                 {% if EventItemOccurrence.Note != '' %}
                     <strong>Note</strong><br />
                     {{ EventItemOccurrence.Note }}
@@ -83,7 +113,7 @@
 
 
 						{% if showRegistration == true %}
-						  <a href="{{ RegistrationPage }}?RegistrationInstanceId={{ linkage.RegistrationInstanceId }}&EventOccurrenceID={{ EventItemOccurrence.Id }}" class="btn btn-primary btn-block margin-t-md">Register</a>
+						  <a href="{{ RegistrationPage }}?RegistrationInstanceId={{ linkage.RegistrationInstanceId }}&EventOccurrenceID={{ EventItemOccurrence.Id }}" class="btn btn-doors">Register</a>
 						{% else %}
 						  {{ registrationMessage }}
 						{% endif %}
@@ -93,35 +123,6 @@
 
             {% endfor %}
             {% endif %}
-            <!-- START: Social Media - Shareables -->
-            <div class="socialbox clearfix text-center">
-                <script>function fbs_click() { u = location.href; t = document.title; window.open('http://www.facebook.com/sharer.php?u=' + encodeURIComponent(u) + '&t=' + encodeURIComponent(t), 'sharer', 'toolbar=0,status=0,width=626,height=436'); return false; }</script>
-                <script>function ics_click() { text = `{{ EventItemOccurrence.Schedule.iCalendarContent }}`.replace('END:VEVENT', 'SUMMARY: {{ Event.Name }}\r\nLOCATION: {{ EventItemOccurrence.Location }}\r\nEND:VEVENT'); var element = document.createElement('a'); element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); element.setAttribute('download', '{{ Event.Name }}.ics'); element.style.display = 'none'; document.body.appendChild(element); element.click(); document.body.removeChild(element); }</script>
-                <div class="socials" style="margin-top:10px;">
-                    {% if eventOccurencesCount <= 1 %}
-                    <div class="socials_item">
-                        <a href="" onclick="return ics_click()" class="socialicon socialicon-calendar" title="Download Event" data-original-title="Download Event">
-                            <i class="fa fa-fw fa-calendar"></i>
-                        </a>
-                    </div>
-                    {% endif %}
-                    <div class="socials_item">
-                        <a href="http://www.facebook.com/share.php?u=<url>" onclick="return fbs_click()" target="_blank" class="social-facebook" title="Share via Facebook" data-original-title="Share via Facebook">
-                            <i class="fa fa-fw fa-facebook"></i>
-                        </a>
-                    </div>
-                    <div class="socials_item">
-                        <a href="http://twitter.com/home?status={{ 'Global' | Page:'Url' | Escape }}" class="social-twitter" title="Share via Twitter" data-original-title="Share via Twitter">
-                            <i class="fa fa-fw fa-twitter"></i>
-                        </a>
-                    </div>
-                    <div class="socials_item">
-                        <a href="mailto:?Subject={{ Event.Name | Escape }}&Body={{ 'Global' | Page:'Url' }}"  class="social-email" title="Share via Email" data-original-title="Share via Email">
-                            <i class="fa fa-fw fa-envelope-o"></i>
-                        </a>
-                    </div>
-                </div>
-            </div><!-- END: Social Media - Shareables -->
             </div><!-- END: event details card -->
 
         </div><!-- END: col-md-4 -->
@@ -220,6 +221,21 @@
                 {{ EventItemOccurrence.Note }}
             {% endif %}
 
+            {% if scheduledDates != empty %}
+            <!-- START: Social Media - Shareables -->
+            <div class="socialbox clearfix text-center" style="display: inline-block;">
+                <script>function fbs_click() { u = location.href; t = document.title; window.open('http://www.facebook.com/sharer.php?u=' + encodeURIComponent(u) + '&t=' + encodeURIComponent(t), 'sharer', 'toolbar=0,status=0,width=626,height=436'); return false; }</script>
+                <script>function ics_click() { text = `{{ EventItemOccurrence.Schedule.iCalendarContent }}`.replace('END:VEVENT', 'SUMMARY: {{ Event.Name }}\r\nLOCATION: {{ EventItemOccurrence.Location }}\r\nEND:VEVENT'); var element = document.createElement('a'); element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); element.setAttribute('download', '{{ Event.Name }}.ics'); element.style.display = 'none'; document.body.appendChild(element); element.click(); document.body.removeChild(element); }</script>
+                <div class="socials" style="margin-right:0px;">
+                    <div class="socials_item">
+                        <a href="" onclick="return ics_click()" class="socialicon socialicon-calendar" title="Download Event" data-original-title="Download Event">
+                            <i class="fa fa-fw fa-calendar"></i>
+                        </a>
+                    </div>
+                </div>
+            </div><!-- END: Social Media - Shareables -->
+            {% endif %}
+
 			{% for linkage in EventItemOccurrence.Linkages %}
 				{% if linkage.RegistrationInstanceId > 0 ) %}
 					{% assign daysTillStartDate = 'Now' | DateDiff:linkage.RegistrationInstance.StartDateTime,'m' %}
@@ -239,27 +255,12 @@
 
 
 					{% if showRegistration == true %}
-					  <a href="{{ RegistrationPage }}?RegistrationInstanceId={{ linkage.RegistrationInstanceId }}&EventOccurrenceID={{ EventItemOccurrence.Id }}" class="btn btn-primary btn-block margin-t-md">Register</a>
+					  <a href="{{ RegistrationPage }}?RegistrationInstanceId={{ linkage.RegistrationInstanceId }}&EventOccurrenceID={{ EventItemOccurrence.Id }}" class="btn btn-doors">Register</a>
 					{% else %}
 					  {{ registrationMessage }}
 					{% endif %}
 				{% endif %}
 			{% endfor %}
-
-            {% if scheduledDates != empty %}
-            <!-- START: Social Media - Shareables -->
-            <div class="socialbox clearfix text-center" style="display: inline-block;">
-                <script>function fbs_click() { u = location.href; t = document.title; window.open('http://www.facebook.com/sharer.php?u=' + encodeURIComponent(u) + '&t=' + encodeURIComponent(t), 'sharer', 'toolbar=0,status=0,width=626,height=436'); return false; }</script>
-                <script>function ics_click() { text = `{{ EventItemOccurrence.Schedule.iCalendarContent }}`.replace('END:VEVENT', 'SUMMARY: {{ Event.Name }}\r\nLOCATION: {{ EventItemOccurrence.Location }}\r\nEND:VEVENT'); var element = document.createElement('a'); element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); element.setAttribute('download', '{{ Event.Name }}.ics'); element.style.display = 'none'; document.body.appendChild(element); element.click(); document.body.removeChild(element); }</script>
-                <div class="socials" style="margin-right:0px;">
-                    <div class="socials_item">
-                        <a href="" onclick="return ics_click()" class="socialicon socialicon-calendar" title="Download Event" data-original-title="Download Event">
-                            <i class="fa fa-fw fa-calendar"></i>
-                        </a>
-                    </div>
-                </div>
-            </div><!-- END: Social Media - Shareables -->
-            {% endif %}
 
             </div>
         </div>
