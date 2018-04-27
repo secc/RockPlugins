@@ -147,17 +147,14 @@ namespace RockWeb.Blocks.Event
 
             nbMessage.Visible = false;
 
-            if ( !Page.IsPostBack )
+            if ( SetFilterControls() )
             {
-                if ( SetFilterControls() )
-                {
-                    pnlDetails.Visible = true;
-                    BindData();
-                }
-                else
-                {
-                    pnlDetails.Visible = false;
-                }
+                pnlDetails.Visible = true;
+                BindData();
+            }
+            else
+            {
+                pnlDetails.Visible = false;
             }
 
         }
