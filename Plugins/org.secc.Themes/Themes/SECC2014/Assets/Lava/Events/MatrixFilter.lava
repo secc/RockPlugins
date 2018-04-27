@@ -156,7 +156,7 @@ window.onpopstate = function(event) {
   // OPTIONAL - back to previous filter/result
   // var url_string = window.location.href;
   // var url = new URL(url_string);
-  // var c = url.searchParams.get("campusID");
+  // var c = url.searchParams.get("campusId");
   // // console.log(c);
   // runCampusFilters(c);
 };
@@ -170,10 +170,10 @@ function runCampusFilters(campus_selected) {
     var pnlContent = $('#event-results').find("div[id*='_upnlContent']");
     var pnlContent_ID = pnlContent.attr("id");
     pnlContent.slideUp();
-    $grid.isotope('destroy');
+    // $grid.isotope('destroy');
 
     // push a new URL state with filter parameter
-    var params = updateQueryStringParam('campusID',campus_selected.id);
+    var params = updateQueryStringParam('campusId',campus_selected.id);
 
     // update form action url
     $('#form1').attr('action', window.location.pathname + params);
@@ -194,7 +194,7 @@ function runMinistryFilters(ministry_selected) {
     var pnlContent = $('#event-results').find("div[id*='_upnlContent']");
     var pnlContent_ID = pnlContent.attr("id");
     pnlContent.slideUp();
-    $grid.isotope('destroy');
+    // $grid.isotope('destroy');
 
     // push a new URL state with filter parameter
     var params = updateQueryStringParam('categoryID',ministry_selected.id);
