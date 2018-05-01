@@ -337,7 +337,7 @@ namespace RockWeb.Blocks.Event
             }
 
             // Get the beginning and end dates
-            var today = RockDateTime.Today;
+            var today = RockDateTime.Now;
             var filterStart = FilterStartDate.HasValue ? FilterStartDate.Value : today;
             var monthStart = new DateTime( filterStart.Year, filterStart.Month, 1 );
             var rangeStart = monthStart.AddMonths( -1 );
@@ -447,7 +447,7 @@ namespace RockWeb.Blocks.Event
             pnlCalendar.Visible = GetAttributeValue( "ShowSmallCalendar" ).AsBoolean();
 
             // Get the first/last dates based on today's date and the viewmode setting
-            var today = RockDateTime.Today;
+            var today = RockDateTime.Now;
             FilterStartDate = today;
             FilterEndDate = today;
             if ( ViewMode == "Week" )
@@ -462,7 +462,6 @@ namespace RockWeb.Blocks.Event
             }
             else if ( ViewMode == "Year" )
             {
-                FilterStartDate = new DateTime( today.Year, today.Month, 1 );
                 FilterEndDate = FilterStartDate.Value.AddYears( 1 ).AddDays( -1 );
             }
 

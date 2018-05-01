@@ -46,12 +46,15 @@
                     </div>
                     {% endif %}
                 </div>
-                <br />
             {% endif %}
 
             {% assign eventOccurencesCount = Event.EventItemOccurrences | Size %}
 
+            {{eventOccurencesCount}}
+
+            <!-- ************************************ Start: Show only if it's an Individual Event ************************************ -->
             {% if eventOccurencesCount <= 1 %}
+            <br />
             {% for EventItemOccurrence in Event.EventItemOccurrences %}
 
                 {% if EventItemOccurrence.Campus != null %}
@@ -112,7 +115,9 @@
                     <strong>Note</strong><br />
                     {{ EventItemOccurrence.Note }}
                 {% endif %}
-                
+
+                {% assign scheduledDates = EventItemOccurrence.Schedule.iCalendarContent | DatesFromICal:'all' %}
+                {% assign scheduledNumDates = scheduledDates | Size %}
                 <div>
                     <strong>Date / Time</strong>
                     {% if EventItemOccurrence.ScheduleText != empty %}
@@ -129,10 +134,13 @@
                     </ul>
                     {% else %}
                         {% if EventItemOccurrence.ScheduleText == empty %}
-                            <p>Date and/or time hasn't been set yet. Please Contact.</p>
+                            {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}
+                                <p>Date and/or time has not been set yet. Please {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} for more details.</p>
+                            {% else %}
+                                <p>Date and/or time has not been set yet. Please contact for more details.</p>
+                            {% endif %}
                         {% endif %}
                     {% endif %}
-
                 </div>
 
                 <!-- START: Social Media - Shareables -->
@@ -169,12 +177,14 @@
 
             {% endfor %}
             {% endif %}
+            <!-- ************************************ End: Show only if it's an Individual Event ************************************ -->
+
             </div><!-- END: event details card -->
 
         </div><!-- END: col-md-4 -->
 
     <div class="col-md-8 col-md-4 margin-b-md">
-
+        
         {{ Event.Description }}
 
         <hr />
@@ -200,6 +210,7 @@
     </div>
 </div><!-- END: row -->
 
+<!-- ************************************ Start: Show only if it's a Multi Event ************************************ -->
 {% if eventOccurencesCount > 1 %}
 <div class="row">
     <div class="col-md-12">
@@ -211,9 +222,6 @@
         {% for EventItemOccurrence in Event.EventItemOccurrences %}
         <div class="col-md-4">
             <div class="event-details" style="margin-top:0;">
-
-            {% assign scheduledDates = EventItemOccurrence.Schedule.iCalendarContent | DatesFromICal:'all' %}
-            {% assign scheduledNumDates = scheduledDates | Size %}
 
             {% if EventItemOccurrence.Campus != null %}
                 <h4 class="text-center"> <span class="se-logo" style="margin: -5px 10px 0px 0px;">{{EventItemOccurrence.Campus.ShortCode}}</span> {{EventItemOccurrence.Campus.Name}} Campus</h4>
@@ -273,6 +281,8 @@
                 {{ EventItemOccurrence.Note }}
             {% endif %}
 
+            {% assign scheduledDates = EventItemOccurrence.Schedule.iCalendarContent | DatesFromICal:'all' %}
+            {% assign scheduledNumDates = scheduledDates | Size %}
             <div>
                 <strong>Date / Time</strong>
                 {% if EventItemOccurrence.ScheduleText != empty %}
@@ -289,10 +299,13 @@
                 </ul>
                 {% else %}
                     {% if EventItemOccurrence.ScheduleText == empty %}
-                        <p>Date and/or time hasn't been set yet. Please Contact.</p>
+                        {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}
+                            <p>Date and/or time has not been set yet. Please {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} for more details.</p>
+                        {% else %}
+                            <p>Date and/or time has not been set yet. Please contact for more details.</p>
+                        {% endif %}
                     {% endif %}
                 {% endif %}
-
             </div>
 
             {% if scheduledDates != empty %}
@@ -313,6 +326,6 @@
             </div>
         </div>
         {% endfor %}
-
 </div>
 {% endif %}
+<!-- ************************************ End: Show only if it's a Multi Event ************************************ -->
