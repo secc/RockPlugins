@@ -57,11 +57,31 @@
                     </div>
                     {% else %}
                     <div class="img-hover">
-                        {% assign primaryMinistry = eventItem | Attribute:'PrimaryMinistry','Object' | Attribute:'CalendarImage','Object' %}
-                        <img src="/GetImage.ashx?guid={{ primaryMinistry.Guid }}&w=720" class="img-responsive">
+                        {% assign primaryMinistryImage = eventItem | Attribute:'PrimaryMinistry','Object' | Attribute:'CalendarImage','Object' %}
+                        {% assign primaryMinistryTitle = eventItem | Attribute:'PrimaryMinistry' %}
+                        {% assign eventImageTitle = eventItem | Attribute:'ImageHeaderText' %}
+                        {% assign eventImageTitleSmall = eventItem | Attribute:'ImageHeaderTextSmall' %}
+
+                        {% assign photoTextHTML = ''%}
+
+                        {% if eventImageTitle != empty %}
+                            {% assign photoTextHTML = '<h1 class="uppercase">' | Plus: eventImageTitle %}
+                        {% else %}
+                            {% assign photoTextHTML = '<h1 class="uppercase">' | Plus: primaryMinistryTitle %}
+                        {% endif %}
+
+                        {% if eventImageTitleSmall != empty %}
+                            {% assign photoTextHTML = photoTextHTML | Plus: '<br /><small>'| Plus: eventImageTitleSmall | Plus: '</small></h1>' %}
+                        {% else %}
+                            {% assign photoTextHTML = photoTextHTML | Plus: '<br /><small>Ministry</small></h1>' %}
+                        {% endif %}
+
+                        <img src="/GetImage.ashx?guid={{ primaryMinistryImage.Guid }}&w=720" class="img-responsive">
+                        <div class="event-photo-title">
+                            {{photoTextHTML}}
+                        </div>
                     </div>
                     {% endif %}
-
 
                     {% assign scheduledDates = eventItemOccurrence.EventItemOccurrence.Schedule.iCalendarContent | DatesFromICal:'all' %}
                     {% assign scheduledNumDates = scheduledDates | Size %}
