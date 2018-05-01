@@ -114,7 +114,7 @@
                                   </div>
                                   <br />
                                   <p>
-                                      <b>Single Event</b>
+                                      <b>Individual Event</b>
                                       <br/>
                                       {{ eventItemOccurrence.Date | Date: 'ddd. • MMM. dd'}} &bull; {{ eventItemOccurrence.Time}}<br />
                                       <b><i class="fa fa-map-marker"></i></b>
