@@ -1,3 +1,26 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Readmore.js/2.2.0/readmore.min.js"></script>
+<script>
+$(window).load(function() {
+     // executes when complete page is fully loaded, including all frames, objects and images
+     $('.readmore_dates').readmore({
+      speed: 100,
+      lessLink: '<a href="#">Show Less Available Dates</a>',
+      moreLink: '<a href="#">Show All Available Dates</a>',
+      collapsedHeight: 0,
+      beforeToggle: function(tr, el, ex) {
+          $(el).show();
+      }
+    });
+});
+</script>
+<style>
+    .readmore_dates {
+       transition: height 750ms;
+       overflow: hidden;
+       display: none;
+    }
+</style>
+
 <div class="row">
     <div class="col-md-4">
 
@@ -123,8 +146,15 @@
                     {% endif %}
 
                     {% if scheduledDates != empty %}
-                    <ul class="list-unstyled">
+                    <ul class="list-unstyled" style="margin: 0;">
                         {% for scheduledDate in scheduledDates limit:3 %}
+                            <li style="vertical-align: middle;">
+                              {{  scheduledDate | Date:'dddd, MMM d, yyyy @ h:mm tt' }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <ul class="list-unstyled readmore_dates" style="margin: 0;">
+                        {% for scheduledDate in scheduledDates offset:3 %}
                             <li style="vertical-align: middle;">
                               {{  scheduledDate | Date:'dddd, MMM d, yyyy @ h:mm tt' }}
                             </li>
@@ -288,8 +318,15 @@
                 {% endif %}
 
                 {% if scheduledDates != empty %}
-                <ul class="list-unstyled">
+                <ul class="list-unstyled" style="margin: 0;">
                     {% for scheduledDate in scheduledDates limit:3 %}
+                        <li style="vertical-align: middle;">
+                          {{  scheduledDate | Date:'dddd, MMM d, yyyy @ h:mm tt' }}
+                        </li>
+                    {% endfor %}
+                </ul>
+                <ul class="list-unstyled readmore_dates" style="margin: 0;">
+                    {% for scheduledDate in scheduledDates offset:3 %}
                         <li style="vertical-align: middle;">
                           {{  scheduledDate | Date:'dddd, MMM d, yyyy @ h:mm tt' }}
                         </li>
