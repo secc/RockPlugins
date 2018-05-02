@@ -86,13 +86,14 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 return;
             }
             var groupId = group.Id.ToString();
+            var groupTypeId = group.GroupTypeId.ToString();
             var groupEntityid = EntityTypeCache.GetId<Rock.Model.GroupMember>();
             var key = GetAttributeValue( "MedicationMatrixKey" );
 
             AttributeService attributeService = new AttributeService( rockContext );
             var attribute = attributeService.Queryable()
                 .Where( a =>
-                    a.EntityTypeQualifierValue == groupId
+                    ( a.EntityTypeQualifierValue == groupId || a.EntityTypeQualifierValue == groupTypeId )
                     && a.Key == key
                     && a.EntityTypeId == groupEntityid )
                 .FirstOrDefault();
@@ -111,29 +112,29 @@ namespace RockWeb.Blocks.Reporting.NextGen
             AttributeMatrixItemService attributeMatrixItemService = new AttributeMatrixItemService( rockContext );
             HistoryService historyService = new HistoryService( rockContext );
 
-            var members = group
-                .Members
+            var qry = new GroupMemberService( rockContext ).Queryable().
+                Where( gm => gm.GroupId == group.Id )
                 .Join(
                     attributeValueService.Queryable().Where( av => av.AttributeId == attribute.Id ),
                     m => m.Id,
                     av => av.EntityId,
-                    ( m, av ) => new { Member = m, AttributeValue = av.Value.AsGuid() }
+                    ( m, av ) => new { Member = m, AttributeValue = av.Value }
                 )
                 .Join(
                     attributeMatrixService.Queryable(),
                     m => m.AttributeValue,
-                    am => am.Guid,
+                    am => am.Guid.ToString(),
                     ( m, am ) => new { Member = m.Member, AttributeMatrix = am }
                 )
                 .Join(
                     attributeMatrixItemService.Queryable(),
                     m => m.AttributeMatrix.Id,
                     ami => ami.AttributeMatrixId,
-                    ( m, ami ) => new { Member = m.Member, AttributeMatrixItem = ami, TemplateId = ami.AttributeMatrixTemplateId.ToString() }
+                    ( m, ami ) => new { Member = m.Member, AttributeMatrixItem = ami, TemplateId = ami.AttributeMatrix.AttributeMatrixTemplateId }
                 )
                 .Join(
                     attributeService.Queryable().Where( a => a.EntityTypeId == attributeMatrixItemEntityId ),
-                    m => m.TemplateId,
+                    m => m.TemplateId.ToString(),
                     a => a.EntityTypeQualifierValue,
                     ( m, a ) => new { Member = m.Member, AttributeMatrixItem = m.AttributeMatrixItem, Attribute = a }
                 )
@@ -143,7 +144,9 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     av => new { EntityId = av.EntityId ?? 0, AttributeId = av.AttributeId },
                     ( m, av ) => new { Member = m.Member, Attribute = m.Attribute, AttributeValue = av, MatrixItemId = m.AttributeMatrixItem.Id, }
                 )
-                .GroupBy( a => a.Member )
+                ;
+
+            var members = qry.GroupBy( a => a.Member )
                 .ToList();
 
             var firstDay = ( dpDate.SelectedDate ?? Rock.RockDateTime.Today ).Date;
@@ -217,7 +220,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
             if ( !dpDate.SelectedDate.HasValue
                 || dpDate.SelectedDate.Value != Rock.RockDateTime.Today )
             {
-                gGrid.Columns[gGrid.Columns.Count - 1].Visible=false;
+                gGrid.Columns[gGrid.Columns.Count - 1].Visible = false;
             }
             else
             {
