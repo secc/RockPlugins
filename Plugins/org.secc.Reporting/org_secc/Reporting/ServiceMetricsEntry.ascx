@@ -36,24 +36,31 @@
                     <div class="col-md-4" style="padding:0px"><Rock:ButtonDropDownList ID="bddlWeekend" runat="server" OnSelectionChanged="bddl_SelectionChanged" /></div>
                     <div class="col-md-4" style="padding:0px"><Rock:ButtonDropDownList ID="bddlService" runat="server" OnSelectionChanged="bddl_SelectionChanged" /></div>
                 </div>
-
-                <asp:ValidationSummary ID="vsDetails" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-danger" />
-                <Rock:NotificationBox ID="nbMetricsSaved" runat="server" Text="Metric Values Have Been Updated" NotificationBoxType="Success" Visible="false" />
-
-                <div class="form-horizontal label-md" >
-                    <asp:Repeater ID="rptrMetric" runat="server" OnItemDataBound="rptrMetric_ItemDataBound">
-                        <ItemTemplate>
-                            <asp:HiddenField ID="hfMetricId" runat="server" Value='<%# Eval("Id") %>' />
-                            <Rock:NumberBox ID="nbMetricValue" runat="server" NumberType="Double" Label='<%# Eval( "Name") %>' Text='<%# Eval( "Value") %>' />
-                        </ItemTemplate>
-                    </asp:Repeater>
-                </div>
-
-                <Rock:RockTextBox ID="tbNote" runat="server" Label="Note" TextMode="MultiLine" Rows="4" />
-
-                <div class="actions">
-                    <asp:LinkButton ID="btnSave" runat="server" Text="Save" AccessKey="s" CssClass="btn btn-primary" OnClick="btnSave_Click" />
-                </div>
+                
+                <asp:Repeater ID="rptrMetricCategory" runat="server" OnItemDataBound="rptrMetricCategory_ItemDataBound" DataSourceID="">
+                    <ItemTemplate>
+                        <asp:ValidationSummary ID="vsDetails" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-danger" />
+                        <Rock:NotificationBox ID="nbMetricsSaved" runat="server" Text="Metric Values Have Been Updated" NotificationBoxType="Success" Visible="false" />
+                        <h3><asp:Label ID="lMetricCategoryTitle" runat="server"></asp:Label></h3>
+                        <div class="form-horizontal label-md" >
+                            <asp:Repeater ID="rptrMetric" runat="server" OnItemDataBound="rptrMetric_ItemDataBound">
+                                <ItemTemplate>
+                                    <asp:HiddenField ID="hfMetricId" runat="server" Value='<%# Eval("Id") %>' />
+                                    <Rock:NumberBox ID="nbMetricValue" runat="server" NumberType="Double" Label='<%# Eval( "Name") %>' Text='<%# Eval( "Value") %>' />
+                                </ItemTemplate>
+                            </asp:Repeater>
+                            <div class="form-group">
+                                <div class="control-wrapper" style="width:100%">
+                                    <Rock:RockTextBox ID="tbNote" runat="server" Placeholder="Notes" TextMode="MultiLine" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="clearfix">
+                            <asp:LinkButton ID="btnSave" runat="server" Text="Save" AccessKey="s" CssClass="btn btn-primary pull-right" OnClick="btnSave_Click" CommandArgument='<%# Eval("Guid") %>' />
+                        </div>
+                        <hr />
+                    </ItemTemplate>
+                </asp:Repeater>
             </asp:Panel>
 
         </div>

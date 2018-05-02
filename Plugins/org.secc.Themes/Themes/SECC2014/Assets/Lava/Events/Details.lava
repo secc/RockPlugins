@@ -1,7 +1,195 @@
 <div class="row">
+    <div class="col-md-4">
+
+        <!-- START: event details card -->
+        <div class="event-details">
+
+            {% assign eventPhoto = '' %}
+            {% if Event.Photo.Guid %}
+                {% assign eventPhoto = '/GetImage.ashx?guid=' | Plus: Event.Photo.Guid %}
+            {% else %}
+                {% assign primaryMinistry = Event | Attribute:'PrimaryMinistry','Object' | Attribute:'CalendarImage','Object' %}
+                {% assign eventPhoto = '/GetImage.ashx?guid=' | Plus: primaryMinistry.Guid %}
+            {% endif %}
+
+            {% assign primaryMinistryTitle = Event | Attribute:'PrimaryMinistry' %}
+
+            {% if eventPhoto %}
+
+                {% assign primaryMinistryTitle = Event | Attribute:'PrimaryMinistry' %}
+                {% assign eventImageTitle = Event | Attribute:'ImageHeaderText' %}
+                {% assign eventImageTitleSmall = Event | Attribute:'ImageHeaderTextSmall' %}
+
+                {% assign photoTextHTML = ''%}
+
+                {% if eventImageTitle != empty %}
+                    {% assign photoTextHTML = '<h1 class="uppercase">' | Plus: eventImageTitle %}
+                {% else %}
+                    {% assign photoTextHTML = '<h1 class="uppercase">' | Plus: primaryMinistryTitle %}
+                {% endif %}
+
+                {% if eventImageTitleSmall != empty %}
+                    {% assign photoTextHTML = photoTextHTML | Plus: '<br /><small>'| Plus: eventImageTitleSmall | Plus: '</small></h1>' %}
+                {% else %}
+                    {% assign photoTextHTML = photoTextHTML | Plus: '<br /><small>Ministry</small></h1>' %}
+                {% endif %}
+
+                <div class="event-photo-container">
+                    <div class="event-photo">
+                        <center>
+                            <img src="{{eventPhoto}}" class="img-responsive img-rounded"></img>
+                        </center>
+                    </div>
+                    {% if Event.Photo.Guid == empy%}
+                    <div class="event-photo-title">
+                        {{photoTextHTML}}
+                    </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            {% assign eventOccurencesCount = Event.EventItemOccurrences | Size %}
+
+            {{eventOccurencesCount}}
+
+            <!-- ************************************ Start: Show only if it's an Individual Event ************************************ -->
+            {% if eventOccurencesCount <= 1 %}
+            <br />
+            {% for EventItemOccurrence in Event.EventItemOccurrences %}
+
+                {% if EventItemOccurrence.Campus != null %}
+                    <h4 class="text-center"> <span class="se-logo" style="margin: -5px 10px 0px 0px;">{{EventItemOccurrence.Campus.ShortCode}}</span> {{EventItemOccurrence.Campus.Name}} Campus</h4>
+                    <br />
+                {% endif %}
+
+                {% for linkage in EventItemOccurrence.Linkages %}
+                    {% if linkage.RegistrationInstanceId > 0 ) %}
+                        {% assign daysTillStartDate = 'Now' | DateDiff:linkage.RegistrationInstance.StartDateTime,'m' %}
+                        {% assign daysTillEndDate = 'Now' | DateDiff:linkage.RegistrationInstance.EndDateTime,'m' %}
+                        {% assign showRegistration = true %}
+                        {% assign registrationMessage = '' %}
+
+                        {% if daysTillStartDate and daysTillStartDate > 0 %}
+                            {% assign showRegistration = false %}
+                            {% capture registrationMessage %}<p>Registration opens on {{ linkage.RegistrationInstance.StartDateTime | Date:'dddd, MMMM d, yyyy' }}</p>{% endcapture %}
+                        {% endif %}
+
+                        {% if daysTillEndDate and daysTillEndDate < 0 %}
+                            {% assign showRegistration = false %}
+                            {% capture registrationMessage %}<p>Registration closed on {{ linkage.RegistrationInstance.EndDateTime | Date:'dddd, MMMM d, yyyy' }}</p>{% endcapture %}
+                        {% endif %}
+
+
+                        {% if showRegistration == true %}
+                          <a href="{{ RegistrationPage }}?RegistrationInstanceId={{ linkage.RegistrationInstanceId }}&EventOccurrenceID={{ EventItemOccurrence.Id }}" class="btn btn-doors btn-block uppercase">Register</a>
+                          <br />
+                          <br />
+                        {% else %}
+                          {{ registrationMessage }}
+                          <br />
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+
+                {% if (EventItemOccurrence.ContactPersonAlias.Person.Fullname | Trim != '') or EventItemOccurrence.ContactEmail != '' or EventItemOccurrence.ContactPhone != '' %}
+                    <p>
+                        <strong>Contact</strong><br />
+                        {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}
+                            {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} <br />
+                        {% endif %}
+                        {% if EventItemOccurrence.ContactEmail != '' %}
+                            <a href="mailto:{{ EventItemOccurrence.ContactEmail }}">{{ EventItemOccurrence.ContactEmail }}</a><br />
+                        {% endif %}
+                        {{ EventItemOccurrence.ContactPhone }}
+                    </p>
+                {% endif %}
+
+                {% if EventItemOccurrence.Location != '' %}
+                    <p>
+                    <strong> Location</strong> <br />
+                    {{ EventItemOccurrence.Location }}
+                    </p>
+                {% endif %}
+
+                {% if EventItemOccurrence.Note != '' %}
+                    <strong>Note</strong><br />
+                    {{ EventItemOccurrence.Note }}
+                {% endif %}
+
+                {% assign scheduledDates = EventItemOccurrence.Schedule.iCalendarContent | DatesFromICal:'all' %}
+                {% assign scheduledNumDates = scheduledDates | Size %}
+                <div>
+                    <strong>Date / Time</strong>
+                    {% if EventItemOccurrence.ScheduleText != empty %}
+                        <p>{{EventItemOccurrence.ScheduleText}}</p>
+                    {% endif %}
+
+                    {% if scheduledDates != empty %}
+                    <ul class="list-unstyled">
+                        {% for scheduledDate in scheduledDates limit:3 %}
+                            <li style="vertical-align: middle;">
+                              {{  scheduledDate | Date:'dddd, MMM d, yyyy @ h:mm tt' }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                        {% if EventItemOccurrence.ScheduleText == empty %}
+                            {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}
+                                <p>Date and/or time has not been set yet. Please {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} for more details.</p>
+                            {% else %}
+                                <p>Date and/or time has not been set yet. Please contact for more details.</p>
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                </div>
+
+                <!-- START: Social Media - Shareables -->
+                <div class="socialbox clearfix text-center">
+                    <script>function fbs_click() { u = location.href; t = document.title; window.open('http://www.facebook.com/sharer.php?u=' + encodeURIComponent(u) + '&t=' + encodeURIComponent(t), 'sharer', 'toolbar=0,status=0,width=626,height=436'); return false; }</script>
+                    <script>function ics_click() { text = `{{ EventItemOccurrence.Schedule.iCalendarContent }}`.replace('END:VEVENT', 'SUMMARY: {{ Event.Name }}\r\nLOCATION: {{ EventItemOccurrence.Location }}\r\nEND:VEVENT'); var element = document.createElement('a'); element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); element.setAttribute('download', '{{ Event.Name }}.ics'); element.style.display = 'none'; document.body.appendChild(element); element.click(); document.body.removeChild(element); }</script>
+                    <div class="socials" style="margin-top:10px;">
+                        {% if eventOccurencesCount <= 1 %}
+                        <div class="socials_item">
+                            <a href="" onclick="return ics_click()" class="socialicon socialicon-calendar" title="Download Event" data-original-title="Download Event">
+                                <i class="fa fa-fw fa-calendar"></i>
+                            </a>
+                        </div>
+                        {% endif %}
+                        <div class="socials_item">
+                            <a href="http://www.facebook.com/share.php?u=<url>" onclick="return fbs_click()" target="_blank" class="social-facebook" title="Share via Facebook" data-original-title="Share via Facebook">
+                                <i class="fa fa-fw fa-facebook"></i>
+                            </a>
+                        </div>
+                        <div class="socials_item">
+                            <a href="http://twitter.com/home?status={{ 'Global' | Page:'Url' | Escape }}" class="social-twitter" title="Share via Twitter" data-original-title="Share via Twitter">
+                                <i class="fa fa-fw fa-twitter"></i>
+                            </a>
+                        </div>
+                        <div class="socials_item">
+                            <a href="mailto:?Subject={{ Event.Name | Escape }}&Body={{ 'Global' | Page:'Url' }}"  class="social-email" title="Share via Email" data-original-title="Share via Email">
+                                <i class="fa fa-fw fa-envelope-o"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div><!-- END: Social Media - Shareables -->
+                <br />
+                <!-- <hr /> -->
+
+            {% endfor %}
+            {% endif %}
+            <!-- ************************************ End: Show only if it's an Individual Event ************************************ -->
+
+            </div><!-- END: event details card -->
+
+        </div><!-- END: col-md-4 -->
+
     <div class="col-md-8 col-md-4 margin-b-md">
+        
         {{ Event.Description }}
 
+        <hr />
+
+        <!-- START: Social Media - Shareables -->
         {{ 'summary_large_image' | AddMetaTagToHead:'property','twitter:card' }}
         {{ Event.Name | AddMetaTagToHead:'property','twitter:title' }}
         {{ Event.Description | AddMetaTagToHead:'property','twitter:description' }}
@@ -18,124 +206,126 @@
         {% if twitterPhoto != '' %}
         {{ twitterPhoto.Url | AddMetaTagToHead:'property','twitter:image' }}
         {% endif %}
+        <!-- END: Social Media - Shareable Media -->
     </div>
-	<div class="col-md-4">
-        <div class="event-details">
+</div><!-- END: row -->
 
-            <h2>Details</h2>
+<!-- ************************************ Start: Show only if it's a Multi Event ************************************ -->
+{% if eventOccurencesCount > 1 %}
+<div class="row">
+    <div class="col-md-12">
+        <br />
+    </div>
+</div>
 
-
-            <hr style="" />
-
-            {% assign eventPhoto = '' %}
-        	{% if Event.Photo.Guid %}
-        		{% assign eventPhoto = '/GetImage.ashx?guid=' | Plus: Event.Photo.Guid %}
-        	{% else %}
-        		{% assign primaryMinistry = Event | Attribute:'PrimaryMinistry','Object' | Attribute:'CalendarImage','Object' %}
-        		{% assign eventPhoto = '/GetImage.ashx?guid=' | Plus: primaryMinistry.Guid %}
-        	{% endif %}
-
-            {% if eventPhoto %}
-            <center>
-              <img src="{{eventPhoto}}" class="title-image img-responsive img-rounded"></img>
-            </center>
-            <br />
-            {% endif %}
-
-            {% assign linkage = EventItemOccurrence.Linkages | First %}
+<div class="row">
+        {% for EventItemOccurrence in Event.EventItemOccurrences %}
+        <div class="col-md-4">
+            <div class="event-details" style="margin-top:0;">
 
             {% if EventItemOccurrence.Campus != null %}
-                <h4> <span class="se-logo">{{EventItemOccurrence.Campus.ShortCode}}</span> {{EventItemOccurrence.Campus.Name}} Campus</h4>
+                <h4 class="text-center"> <span class="se-logo" style="margin: -5px 10px 0px 0px;">{{EventItemOccurrence.Campus.ShortCode}}</span> {{EventItemOccurrence.Campus.Name}} Campus</h4>
                 <br />
             {% endif %}
+
+            {% for linkage in EventItemOccurrence.Linkages %}
+				{% if linkage.RegistrationInstanceId > 0 ) %}
+					{% assign daysTillStartDate = 'Now' | DateDiff:linkage.RegistrationInstance.StartDateTime,'m' %}
+					{% assign daysTillEndDate = 'Now' | DateDiff:linkage.RegistrationInstance.EndDateTime,'m' %}
+					{% assign showRegistration = true %}
+					{% assign registrationMessage = '' %}
+
+					{% if daysTillStartDate and daysTillStartDate > 0 %}
+						{% assign showRegistration = false %}
+						{% capture registrationMessage %}<p>Registration opens on {{ linkage.RegistrationInstance.StartDateTime | Date:'dddd, MMMM d, yyyy' }}</p>{% endcapture %}
+					{% endif %}
+
+					{% if daysTillEndDate and daysTillEndDate < 0 %}
+						{% assign showRegistration = false %}
+						{% capture registrationMessage %}<p>Registration closed on {{ linkage.RegistrationInstance.EndDateTime | Date:'dddd, MMMM d, yyyy' }}</p>{% endcapture %}
+					{% endif %}
+
+
+					{% if showRegistration == true %}
+					  <a href="{{ RegistrationPage }}?RegistrationInstanceId={{ linkage.RegistrationInstanceId }}&EventOccurrenceID={{ EventItemOccurrence.Id }}" class="btn btn-doors btn-block">Register</a>
+					{% else %}
+					  {{ registrationMessage }}
+					{% endif %}
+                    <br />
+                    <br />
+				{% endif %}
+			{% endfor %}
+
             {% if (EventItemOccurrence.ContactPersonAlias.Person.Fullname | Trim != '') or EventItemOccurrence.ContactEmail != '' or EventItemOccurrence.ContactPhone != '' %}
-            <p>
-            <strong>Contact</strong><br />
-            {% if EventItemOccurrence.ContactPersonAlias.Person.Fullname | Trim != '' %}
-            {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} <br />
-            {% endif %}
-
-            {% if EventItemOccurrence.ContactEmail != '' %}
-            <a href="mailto:{{ EventItemOccurrence.ContactEmail }}">{{ EventItemOccurrence.ContactEmail }}</a><br />
-            {% endif %}
-
-            {{ EventItemOccurrence.ContactPhone }}
-            </p>
+                <p>
+                    <strong>Contact</strong><br />
+                    {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}
+                        {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} <br />
+                    {% endif %}
+                    {% if EventItemOccurrence.ContactEmail != '' %}
+                        <a href="mailto:{{ EventItemOccurrence.ContactEmail }}">{{ EventItemOccurrence.ContactEmail }}</a><br />
+                    {% endif %}
+                    {{ EventItemOccurrence.ContactPhone }}
+                </p>
             {% endif %}
 
             {% if EventItemOccurrence.Location != '' %}
-            <p>
-            <strong> Location</strong> <br />
-            {{ EventItemOccurrence.Location }}
-            </p>
+                <p>
+                <strong> Location</strong> <br />
+                {{ EventItemOccurrence.Location }}
+                </p>
+            {% endif %}
+
+            {% if EventItemOccurrence.Note != '' %}
+                <strong>Note</strong><br />
+                {{ EventItemOccurrence.Note }}
             {% endif %}
 
             {% assign scheduledDates = EventItemOccurrence.Schedule.iCalendarContent | DatesFromICal:'all' %}
-            <strong>Date / Time</strong>
-            <ul class="list-unstyled">
-            {% for scheduledDate in scheduledDates %}
-            <li>
-              {{  scheduledDate | Date:'dddd, MMM d, yyyy @ h:mm tt' }}
-            </li>
-            {% endfor %}
-            </ul>
+            {% assign scheduledNumDates = scheduledDates | Size %}
+            <div>
+                <strong>Date / Time</strong>
+                {% if EventItemOccurrence.ScheduleText != empty %}
+                    <p>{{EventItemOccurrence.ScheduleText}}</p>
+                {% endif %}
 
-            {% if EventItemOccurrence.Note != '' %}
-            <strong>Note</strong><br />
-            {{ EventItemOccurrence.Note }}
-            {% endif %}
+                {% if scheduledDates != empty %}
+                <ul class="list-unstyled">
+                    {% for scheduledDate in scheduledDates limit:3 %}
+                        <li style="vertical-align: middle;">
+                          {{  scheduledDate | Date:'dddd, MMM d, yyyy @ h:mm tt' }}
+                        </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                    {% if EventItemOccurrence.ScheduleText == empty %}
+                        {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}
+                            <p>Date and/or time has not been set yet. Please {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} for more details.</p>
+                        {% else %}
+                            <p>Date and/or time has not been set yet. Please contact for more details.</p>
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+            </div>
 
-            {% if linkage.RegistrationInstanceId > 0 ) %}
-            {% assign daysTillStartDate = 'Now' | DateDiff:linkage.RegistrationInstance.StartDateTime,'m' %}
-            {% assign daysTillEndDate = 'Now' | DateDiff:linkage.RegistrationInstance.EndDateTime,'m' %}
-            {% assign showRegistration = true %}
-            {% assign registrationMessage = '' %}
-
-            {% if daysTillStartDate and daysTillStartDate > 0 %}
-                {% assign showRegistration = false %}
-                {% capture registrationMessage %}<p>Registration opens on {{ linkage.RegistrationInstance.StartDateTime | Date:'dddd, MMMM d, yyyy' }}</p>{% endcapture %}
-            {% endif %}
-
-            {% if daysTillEndDate and daysTillEndDate < 0 %}
-                {% assign showRegistration = false %}
-                {% capture registrationMessage %}<p>Registration closed on {{ linkage.RegistrationInstance.EndDateTime | Date:'dddd, MMMM d, yyyy' }}</p>{% endcapture %}
-            {% endif %}
-
-
-            {% if showRegistration == true %}
-              <a href="{{ RegistrationPage }}?RegistrationInstanceId={{ linkage.RegistrationInstanceId }}&EventOccurrenceID={{ EventItemOccurrence.Id }}" class="btn btn-primary btn-block margin-t-md">Register</a>
-            {% else %}
-              {{ registrationMessage }}
-            {% endif %}
-
-            {% endif %}
-        </div><!-- END: well -->
-        <div class="socialbox clearfix text-center">
-            <script>function fbs_click() { u = location.href; t = document.title; window.open('http://www.facebook.com/sharer.php?u=' + encodeURIComponent(u) + '&t=' + encodeURIComponent(t), 'sharer', 'toolbar=0,status=0,width=626,height=436'); return false; }</script>
-            <script>function ics_click() { text = `{{ EventItemOccurrence.Schedule.iCalendarContent }}`.replace('END:VEVENT', 'SUMMARY: {{ Event.Name }}\r\nLOCATION: {{ EventItemOccurrence.Location }}\r\nEND:VEVENT'); var element = document.createElement('a'); element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); element.setAttribute('download', '{{ Event.Name }}.ics'); element.style.display = 'none'; document.body.appendChild(element); element.click(); document.body.removeChild(element); }</script>
-            <div class="socials" style="margin-top:10px;">
-                <div class="socials_item">
-                    <a href="" onclick="return ics_click()" class="socialicon socialicon-calendar" title="Download Event" data-original-title="Download Event">
-                        <i class="fa fa-fw fa-calendar"></i>
-                    </a>
+            {% if scheduledDates != empty %}
+            <!-- START: Social Media - Shareables -->
+            <div class="socialbox clearfix text-center" style="display: inline-block;">
+                <script>function fbs_click() { u = location.href; t = document.title; window.open('http://www.facebook.com/sharer.php?u=' + encodeURIComponent(u) + '&t=' + encodeURIComponent(t), 'sharer', 'toolbar=0,status=0,width=626,height=436'); return false; }</script>
+                <script>function ics_click() { text = `{{ EventItemOccurrence.Schedule.iCalendarContent }}`.replace('END:VEVENT', 'SUMMARY: {{ Event.Name }}\r\nLOCATION: {{ EventItemOccurrence.Location }}\r\nEND:VEVENT'); var element = document.createElement('a'); element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); element.setAttribute('download', '{{ Event.Name }}.ics'); element.style.display = 'none'; document.body.appendChild(element); element.click(); document.body.removeChild(element); }</script>
+                <div class="socials" style="margin-right:0px;">
+                    <div class="socials_item">
+                        <a href="" onclick="return ics_click()" class="socialicon socialicon-calendar" title="Download Event" data-original-title="Download Event">
+                            <i class="fa fa-fw fa-calendar"></i>
+                        </a>
+                    </div>
                 </div>
-                <div class="socials_item">
-                    <a href="http://www.facebook.com/share.php?u=<url>" onclick="return fbs_click()" target="_blank" class="social-facebook" title="Share via Facebook" data-original-title="Share via Facebook">
-                        <i class="fa fa-fw fa-facebook"></i>
-                    </a>
-                </div>
-                <div class="socials_item">
-                    <a href="http://twitter.com/home?status={{ 'Global' | Page:'Url' | Escape }}" class="social-twitter" title="Share via Twitter" data-original-title="Share via Twitter">
-                        <i class="fa fa-fw fa-twitter"></i>
-                    </a>
-                </div>
-                <div class="socials_item">
-                    <a href="mailto:?Subject={{ Event.Name | Escape }}&Body={{ 'Global' | Page:'Url' }}"  class="social-email" title="Share via Email" data-original-title="Share via Email">
-                        <i class="fa fa-fw fa-envelope-o"></i>
-                    </a>
-                </div>
+            </div><!-- END: Social Media - Shareables -->
+            {% endif %}
+
             </div>
         </div>
-
-    </div><!-- END: col-md-4 col-md-pull-8 -->
-</div><!-- END: row -->
+        {% endfor %}
+</div>
+{% endif %}
+<!-- ************************************ End: Show only if it's a Multi Event ************************************ -->
