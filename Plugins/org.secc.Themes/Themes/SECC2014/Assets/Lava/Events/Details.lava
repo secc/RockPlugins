@@ -50,8 +50,6 @@
 
             {% assign eventOccurencesCount = Event.EventItemOccurrences | Size %}
 
-            {{eventOccurencesCount}}
-
             <!-- ************************************ Start: Show only if it's an Individual Event ************************************ -->
             {% if eventOccurencesCount <= 1 %}
             <br />
@@ -184,7 +182,7 @@
         </div><!-- END: col-md-4 -->
 
     <div class="col-md-8 col-md-4 margin-b-md">
-        
+
         {{ Event.Description }}
 
         <hr />

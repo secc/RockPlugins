@@ -87,6 +87,8 @@
 <script>
 $(document).ready(function() {
 
+    loadQueryStringParam();
+
     ///////////////////////////////////////////////////
     /////////////// Initialize Select2 ////////////////
     ///////////////////////////////////////////////////
@@ -97,6 +99,7 @@ $(document).ready(function() {
     $('.select2-campuses').select2({
       formatResult: format,
       formatSelection: format,
+      placeholder: 'Select a Campus',
       escapeMarkup: function(m) { return m; },
       templateResult: function(data){
         var originalOption = data.element;
@@ -112,7 +115,7 @@ $(document).ready(function() {
         runCampusFilters(data);
     });
     $('.select2-ministries').select2({
-      placeholder: 'Select an option'
+      placeholder: 'Select a Ministry'
     });
     $('.select2-ministries').on('select2:select', function (e) {
         // prevent from submiting default form action
@@ -142,7 +145,6 @@ $(document).ready(function() {
         disableParallax: /iPad|iPhone|iPod|Android/,
         disableVideo: /iPad|iPhone|iPod|Android/
     });
-
 });
 
 
@@ -218,7 +220,7 @@ function processPageLoad(pnlContent_ID, params) {
     ///////////////////////////////////////////////////
     var prm = Sys.WebForms.PageRequestManager.getInstance();
     //Raised before processing of an asynchronous postback starts and the postback request is sent to the server.
-    prm.add_beginRequest(BeginRequestHandler);2
+    prm.add_beginRequest(BeginRequestHandler);
     // Raised after an asynchronous postback is finished and control has been returned to the browser.
     prm.add_endRequest(pageLoad);
     // Listen for PostBack
@@ -265,5 +267,42 @@ function updateQueryStringParam(key, value) {
     }
     window.history.pushState({}, '', baseUrl + params);
     return params;
+}
+
+var parseQueryString = function() {
+
+    var str = window.location.search;
+    var objURL = {};
+
+    str.replace(
+        new RegExp( "([^?=&]+)(=([^&]*))?", "g" ),
+        function( $0, $1, $2, $3 ){
+            objURL[ $1 ] = $3;
+        }
+    );
+    return objURL;
+};
+
+function loadQueryStringParam() {
+    //Example how to use it:
+    var params = parseQueryString();
+    if (params) {
+
+        // preselect options from Select2 dropdowns
+        $("select.select2-campuses option[value='"+params["campusId"]+"']").attr("selected","selected");
+        $("select.select2-ministries option[value='"+params["categoryID"]+"']").attr("selected","selected");
+
+        // set HTML to indicate the selected ministries and/or campuses
+        if (params["campusId"]) {
+            $('#campus_selected').find('.section-header span').html('Events @ ' + $( "select.select2-campuses option:selected" ).text() );
+            $('#campus_selected').removeClass('hide');
+        }
+
+        if (params["categoryID"]) {
+            $('#ministry_selected').find('.section-header span').html( $( "select.select2-ministries option:selected" ).text() + ' Ministry');
+            $('#ministry_selected').removeClass('hide');
+        }
+    }
+
 }
 </script>
