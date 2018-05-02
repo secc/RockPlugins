@@ -255,7 +255,7 @@ article {
 	text-transform: uppercase !important;
 	font-weight: 900 !important;
 	font-family: $TitleFont !important;
-	background: $GrayColor;
+	background: $CopyColor;
 	color: #FFFFFF;
 	width: 2.55em !important;
 	line-height: 2.4em !important;
@@ -633,6 +633,95 @@ article {
 		background-image: none !important;
 		// border-bottom: 1px solid #5697d0;
 	}
+}
+
+// Custom SECC Loading
+// -------------------------
+.modal-backdrop {
+	background-color: rgba(0, 0, 0, 0.5);
+}
+.updateprogress-status {
+  position: fixed;
+  top: 35%;
+  left: 50%;
+  z-index: ($zindex-modal-background + 100);
+  padding: 30px 20px;
+  margin-left: -60px;
+  background-color: transparent !important;
+  border-radius: 0px !important;
+  box-shadow: none !important;
+  opacity: 1;
+}
+@media #{$md} {
+  .updateprogress-status {
+    padding: 30px 20px;
+    margin-left: -60px;
+  }
+}
+.secc-cube-grid {
+  width: 80px;
+  height: 80px;
+}
+
+.secc-cube-grid .secc-cube {
+  width: 33%;
+  height: 33%;
+  background-color: white;
+  float: left;
+  box-shadow: 5px 5px 0px 0px rgba(0,0,0,.5);
+  -webkit-animation: secc-cubeGridScaleDelay 1.3s infinite ease-in-out;
+          animation: secc-cubeGridScaleDelay 1.3s infinite ease-in-out;
+}
+.secc-cube-grid .secc-cube1 {
+  -webkit-animation-delay: 0.2s;
+          animation-delay: 0.2s; }
+.secc-cube-grid .secc-cube2 {
+  -webkit-animation-delay: 0.3s;
+          animation-delay: 0.3s; }
+.secc-cube-grid .secc-cube3 {
+  -webkit-animation-delay: 0.4s;
+          animation-delay: 0.4s;
+	  border-radius: 0px 10px 0px 0px;
+  }
+.secc-cube-grid .secc-cube4 {
+  -webkit-animation-delay: 0.1s;
+          animation-delay: 0.1s; }
+.secc-cube-grid .secc-cube5 {
+  -webkit-animation-delay: 0.2s;
+          animation-delay: 0.2s; }
+.secc-cube-grid .secc-cube6 {
+  -webkit-animation-delay: 0.3s;
+          animation-delay: 0.3s; }
+.secc-cube-grid .secc-cube7 {
+  -webkit-animation-delay: 0s;
+          animation-delay: 0s;
+		  border-radius: 0px 0px 0px 10px;
+}
+.secc-cube-grid .secc-cube8 {
+  -webkit-animation-delay: 0.1s;
+          animation-delay: 0.1s; }
+.secc-cube-grid .secc-cube9 {
+  -webkit-animation-delay: 0.2s;
+          animation-delay: 0.2s; }
+
+@-webkit-keyframes secc-cubeGridScaleDelay {
+  0%, 70%, 100% {
+    -webkit-transform: scale3D(1, 1, 1);
+            transform: scale3D(1, 1, 1);
+  } 35% {
+    -webkit-transform: scale3D(0, 0, 1);
+            transform: scale3D(0, 0, 1);
+  }
+}
+
+@keyframes secc-cubeGridScaleDelay {
+  0%, 70%, 100% {
+    -webkit-transform: scale3D(1, 1, 1);
+            transform: scale3D(1, 1, 1);
+  } 35% {
+    -webkit-transform: scale3D(0, 0, 1);
+            transform: scale3D(0, 0, 1);
+  }
 }
 
 @import '_lib/print';

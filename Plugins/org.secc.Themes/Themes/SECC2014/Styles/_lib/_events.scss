@@ -107,6 +107,9 @@ a.eventCardLink {
 
 
         @media (max-width: 768px) {
+            padding: 15px;
+            margin-left: 0px;
+            margin-right: 0px;
             background-color: rgba(239,239,239, 0.5);
             -webkit-box-shadow: 0 3px 12px 2px hsla(0,0%,78%,1);
             box-shadow: 0 3px 12px 2px hsla(0,0%,78%,.5);
@@ -142,6 +145,38 @@ a.eventCardLink {
             // -webkit-backface-visibility: hidden;
             // backface-visibility: hidden;
             @include scale(1.01);
+        }
+
+        .event-photo-title {
+            width: 100%;
+            text-align: center;
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            h1 {
+                letter-spacing: 2px;
+                transform: translate(-50%, -50%);
+                @media (max-width: 768px) {
+                    font-size: 3rem;
+                    line-height: 2.5rem;
+                }
+                @media (min-width: 769px) and (max-width: 992px) {
+                    font-size: 1.2rem;
+                    line-height: 1rem;
+                }
+                @media (min-width: 993px) and (max-width: 1200px) {
+                    font-size: 1.5rem;
+                    line-height: 1.5rem;
+                }
+                @media (min-width: 1201px) {
+                    font-size: 3rem;
+                    line-height: 2.5rem;
+                }
+            }
+            h1, h2, h3, h4, h5, h6 {
+                small { color: white; }
+            }
         }
     }
 
@@ -196,14 +231,39 @@ a.eventCardLink {
     }
 }
 
-#event-detail-header {
+.event-detail-header {
     background-color: #333;
-    padding-top: 2em;
-    padding-bottom: 1em;
+    padding: 60px 0 10px 0px;
+    height: 200px;
+
+    div {
+        height: 100%;
+        div {
+            height: 100%;
+            div {
+                height: 100%;
+            }
+        }
+    }
+
+    @media (max-width: 992px) {
+        height: auto;
+        padding: 60px 0 10px 20px;
+    }
 
     h1 {
+        position: absolute;
+        bottom: 10px;
         font-size: 3em;
         color: white;
+        @media (min-width: 769px) and (max-width: 992px) {
+            font-size: 2.8em;
+            position: relative;
+        }
+        @media (max-width: 768px) {
+            position: relative;
+            font-size: 2.2em;
+        }
     }
 }
 
@@ -215,6 +275,7 @@ a.eventCardLink {
     box-sizing: border-box;
     border-radius: 10px;
     background-color: rgba(239,239,239, 1);
+    margin-bottom: 20px;
 
     h2 {
         font-weight: 300;
@@ -229,6 +290,44 @@ a.eventCardLink {
         border-color: rgba(101,101,101, 0.4);
     }
     @media (min-width: 992px) {
-        margin-top: -88px;
+        margin-top: -180px;
+    }
+
+    .event-photo-container {
+        position: relative;
+        .event-photo {
+            position: relative;
+        }
+        .event-photo-title {
+            width: 100%;
+            text-align: center;
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            h1 {
+                letter-spacing: 2px;
+                transform: translate(-50%, -50%);
+                @media (max-width: 768px) {
+                    font-size: 3rem;
+                    line-height: 2.5rem;
+                }
+                @media (min-width: 769px) and (max-width: 992px) {
+                    font-size: 3rem;
+                    line-height: 2.5rem;
+                }
+                @media (min-width: 993px) and (max-width: 1200px) {
+                    font-size: 1.5rem;
+                    line-height: 1.5rem;
+                }
+                @media (min-width: 1201px) {
+                    font-size: 3rem;
+                    line-height: 2.5rem;
+                }
+            }
+            h1, h2, h3, h4, h5, h6 {
+                small { color: white; }
+            }
+        }
     }
 }

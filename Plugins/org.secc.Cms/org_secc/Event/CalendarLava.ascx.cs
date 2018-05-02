@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -147,17 +147,14 @@ namespace RockWeb.Blocks.Event
 
             nbMessage.Visible = false;
 
-            if ( !Page.IsPostBack )
+            if ( SetFilterControls() )
             {
-                if ( SetFilterControls() )
-                {
-                    pnlDetails.Visible = true;
-                    BindData();
-                }
-                else
-                {
-                    pnlDetails.Visible = false;
-                }
+                pnlDetails.Visible = true;
+                BindData();
+            }
+            else
+            {
+                pnlDetails.Visible = false;
             }
 
         }
@@ -340,7 +337,7 @@ namespace RockWeb.Blocks.Event
             }
 
             // Get the beginning and end dates
-            var today = RockDateTime.Today;
+            var today = RockDateTime.Now;
             var filterStart = FilterStartDate.HasValue ? FilterStartDate.Value : today;
             var monthStart = new DateTime( filterStart.Year, filterStart.Month, 1 );
             var rangeStart = monthStart.AddMonths( -1 );
@@ -450,7 +447,7 @@ namespace RockWeb.Blocks.Event
             pnlCalendar.Visible = GetAttributeValue( "ShowSmallCalendar" ).AsBoolean();
 
             // Get the first/last dates based on today's date and the viewmode setting
-            var today = RockDateTime.Today;
+            var today = RockDateTime.Now;
             FilterStartDate = today;
             FilterEndDate = today;
             if ( ViewMode == "Week" )
@@ -465,7 +462,6 @@ namespace RockWeb.Blocks.Event
             }
             else if ( ViewMode == "Year" )
             {
-                FilterStartDate = new DateTime( today.Year, today.Month, 1 );
                 FilterEndDate = FilterStartDate.Value.AddYears( 1 ).AddDays( -1 );
             }
 
@@ -508,13 +504,17 @@ namespace RockWeb.Blocks.Event
             var definedType = DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.MARKETING_CAMPAIGN_AUDIENCE_TYPE.AsGuid() );
             if ( definedType != null )
             {
-                cblCategory.DataSource = definedType.DefinedValues.Where( v => selectedCategoryGuids.Contains( v.Guid ) );
+                var categoryItems = definedType.DefinedValues.ToList();
+                if (selectedCategoryGuids.Count() > 0) {
+                    categoryItems = definedType.DefinedValues.Where( v => selectedCategoryGuids.Contains( v.Guid ) ).ToList();
+                }
+                cblCategory.DataSource = categoryItems;
                 cblCategory.DataBind();
             }
             var categoryId = PageParameter( GetAttributeValue( "CategoryParameterName" ) ).AsIntegerOrNull(); ;
             if ( categoryId.HasValue )
             {
-                if ( definedType.DefinedValues.Where( v => selectedCategoryGuids.Contains( v.Guid ) && v.Id == categoryId.Value ).FirstOrDefault() != null )
+                if ( definedType.DefinedValues.Where( v => (selectedCategoryGuids.Contains( v.Guid ) || selectedCategoryGuids.Count() == 0) && v.Id == categoryId.Value ).FirstOrDefault() != null )
                 {
                     cblCategory.SetValue( categoryId.Value );
                 }

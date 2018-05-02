@@ -39,6 +39,7 @@
     <script src="<%# ResolveRockUrl("~~/Scripts/modernizr-custom.js" ) %>" ></script>
     <script src="<%# ResolveRockUrl("~~/Scripts/global-dist.js" ) %>" ></script>
     <script src="<%# ResolveRockUrl("~~/Scripts/isotope.pkgd.min.js" ) %>" ></script>
+    <script src="https://unpkg.com/imagesloaded@4/imagesloaded.pkgd.min.js"></script>
     <script src="<%# ResolveRockUrl("~~/Scripts/smooth-scroll.min.js" ) %>" ></script>
     <script src="<%# ResolveRockUrl("~~/Scripts/select2/select2.full.min.js" ) %>" ></script>
 
@@ -56,7 +57,9 @@
     <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
 
     <script src="https://use.typekit.net/eni5wig.js"></script>
-	<script>try{Typekit.load({ async: true });}catch(e){}</script>
+	<script>
+    try{Typekit.load({ async: true });}catch(e){}
+    </script>
 </head>
 <body runat="server" id="body">
     <div id="DocumentWrapper">
@@ -120,14 +123,18 @@
             <asp:ScriptManager ID="sManager" runat="server"/>
             <asp:UpdateProgress id="updateProgress" runat="server" DisplayAfter="800">
     		        <ProgressTemplate>
-    		            <div class="updateprogress-status">
-                            <div class="spinner">
-                              <div class="rect1"></div>
-                              <div class="rect2"></div>
-                              <div class="rect3"></div>
-                              <div class="rect4"></div>
-                              <div class="rect5"></div>
-                            </div>
+                        <div class="updateprogress-status">
+                            <div class="secc-cube-grid">
+                              <div class="secc-cube secc-cube1"></div>
+                              <div class="secc-cube secc-cube2"></div>
+                              <div class="secc-cube secc-cube3"></div>
+                              <div class="secc-cube secc-cube4"></div>
+                              <div class="secc-cube secc-cube5"></div>
+                              <div class="secc-cube secc-cube6"></div>
+                              <div class="secc-cube secc-cube7"></div>
+                              <div class="secc-cube secc-cube8"></div>
+                              <div class="secc-cube secc-cube9"></div>
+                           </div>
                         </div>
                         <div class="updateprogress-bg modal-backdrop"></div>
     		        </ProgressTemplate>

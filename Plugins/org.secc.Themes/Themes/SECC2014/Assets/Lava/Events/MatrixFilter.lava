@@ -1,43 +1,54 @@
 {% comment %}
-    ******* Filtering System for Calendar *******
+    ******* Filtering System for Calendar *****
 {% endcomment %}
 
 <div class="container">
     <div class="row">
-        <div class="col-xs-12 col-sm-12 col-md-10 col-md-offset-1" >
+        <div class="col-xs-12 col-sm-12 col-md-12" >
             <div class="filterbox">
 
+                <div class="row">
+                    <div class="col-xs-12">
+                        <h3>What’s your next step?</h3>
+                        <p>Find a group or event that interests you by selecting a campus and/or ministry below. Click on the image to see more details or to register.</p>
+                        <br />
+                    </div>
+                </div>
 
                 <div class="row">
-                    <div class="col-xs-12 col-md-6 col-lg-4" >
-                        <h4>Events From</h4>
+                    <div class="col-xs-12 col-md-6 col-lg-6" >
+                        <br />
+                        <h4 class="uppercase">Events From</h4>
                         <select class="select2-campuses" name="campus">
-                        <option value="allMinistries">All Campuses</option>
-                        <option value="920">Blankenbaker</option>
-                        <option value="IN">Indiana</option>
-                        <option value="CW">Crestwood</option>
-                        <option value="SW">Southwest</option>
-                        <option value="LA">La Grange</option>
-                        <option value="ET">Elizabethtown</option>
+                        <option value="allCampuses" data-shortcode="SE">All Campuses</option>
+                        {% for campus in Campuses %}
+                        	{% assign publicCampus = campus | Attribute:'Public' %}
+                        	{% if publicCampus == 'Yes' %}
+                                <option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}">
+                                    {{ campus.Name }}
+                                </option>
+                        	{% endif %}
+                        {% endfor %}
+
                         </select>
                     </div>
 
-                    <div class="col-xs-12 col-md-6 col-lg-4" >
-                        <h4>Select a Ministry</h4>
+                    <div class="col-xs-12 col-md-6 col-lg-6" >
+                        <br />
+                        <h4 class="uppercase">Select a Ministry</h4>
                         <select class="select2-ministries" name="minitry">
                         <option value="allMinistries">All Ministries</option>
-                        <option value="connection">Connection</option>
-                        <option value="men">Men</option>
-                        <option value="women">Women</option>
-                        <option value="seniors">Seniors</option>
-                        <option value="family">Family</option>
-                        <option value="children">Children</option>
-                        <option value="students">Students</option>
-                        <option value="missions">Missions</option>
-                        <option value="generousLiving">Generous Living</option>
-                        <option value="care">Care</option>
-                        <option value="deafNdisabilities">Deaf &amp; Disabilities</option>
-                        <option value="sportsNfitness">Sports & Fitness</option>
+
+                        {% definedvalue where:'DefinedTypeId==16' %}
+                            {% assign definedvalueItemsSorted = definedvalueItems | Sort: 'Order' %}
+                            {% for definedValue in definedvalueItemsSorted %}
+                                {% assign publicFilter = definedValue | Attribute:'PublicFilter' %}
+                                {% if publicFilter == "Yes" %}
+                                <option value="{{ definedValue.Id }}">{{ definedValue.Value | Capitalize }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        {% enddefinedvalue %}
+
                         </select>
                     </div>
                 </div>
@@ -47,10 +58,212 @@
     </div>
 </div>
 
+<style>
+.hide {
+    display: none;
+}
+</style>
+
+<div id="filter_selected" class="container-fluid">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12">
+            <div id="campus_selected" class="row" style="background-color:#201e1d;">
+                <div class="col-xs-12">
+                    <h2 class="section-header" style="margin: 30px 0px; color: white;">
+                        <span>Events @ All Campuses</span>
+                    </h2>
+                </div>
+            </div>
+            <div id="ministry_selected" class="row hide event-list-background">
+                <div class="col-xs-12">
+                    <h2 class="section-header" style="margin: 30px 0px;">
+                        <span></span>
+                    </h2>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <script>
-// In your Javascript (external .js resource or <script> tag)
 $(document).ready(function() {
-    $('.select2-campuses').select2();
-    $('.select2-ministries').select2();
+
+    ///////////////////////////////////////////////////
+    /////////////// Initialize Select2 ////////////////
+    ///////////////////////////////////////////////////
+    function format(state) {
+        var originalOption = state.element;
+        return "<h4><span class=\"se-logo\">" + $(originalOption).data('shortcode') + "</span></h4> " + state.text;
+    }
+    $('.select2-campuses').select2({
+      formatResult: format,
+      formatSelection: format,
+      escapeMarkup: function(m) { return m; },
+      templateResult: function(data){
+        var originalOption = data.element;
+        console.log(originalOption);
+        return $('<span>').html('<span class="se-logo">'+$(originalOption).data('shortcode')+'</span> '+data.text);
+      }
+    });
+    $('.select2-campuses').on('select2:select', function (e) {
+        // prevent from submiting default form actionn
+        e.preventDefault();
+        // pull in lava ID
+        var data = e.params.data;
+        runCampusFilters(data);
+    });
+    $('.select2-ministries').select2({
+      placeholder: 'Select an option'
+    });
+    $('.select2-ministries').on('select2:select', function (e) {
+        // prevent from submiting default form action
+        e.preventDefault();
+        // pull in lava ID
+        var data = e.params.data;
+        runMinistryFilters(data);
+    });
+
+    // Re-Initialize Isotope
+    var $grid = $('.isotope_wrap').isotope({
+        // options
+        percentPosition: true,
+        itemSelector: '.isotope_item',
+        layoutMode: 'fitRows'
+    });
+
+    // reveal all items after init
+    var $items = $grid.find('.isotope_item');
+    $grid.imagesLoaded().progress( function() {
+      $grid.addClass('is-showing-items').isotope('layout');
+    });
+    $grid.isotope( 'revealItemElements', $items );
+
+    // re-init jarallax
+    jarallax(document.querySelectorAll('.jarallax'), {
+        disableParallax: /iPad|iPhone|iPod|Android/,
+        disableVideo: /iPad|iPhone|iPod|Android/
+    });
+
 });
+
+
+///////////////////////////////////////////////////
+////////////// Listen for Back Clicks /////////////
+///////////////////////////////////////////////////
+window.onpopstate = function(event) {
+  // back to the same page without the filters
+  window.location.replace(window.location.protocol + "//" + window.location.host + window.location.pathname);
+
+  // OPTIONAL - back to previous filter/result
+  // var url_string = window.location.href;
+  // var url = new URL(url_string);
+  // var c = url.searchParams.get("campusId");
+  // // console.log(c);
+  // runCampusFilters(c);
+};
+
+
+///////////////////////////////////////////////////
+////////////// Run Campus Selection ///////////////
+///////////////////////////////////////////////////
+function runCampusFilters(campus_selected) {
+    // grab id to filter results
+    var pnlContent = $('#event-results').find("div[id*='_upnlContent']");
+    var pnlContent_ID = pnlContent.attr("id");
+    pnlContent.slideUp();
+    // $grid.isotope('destroy');
+
+    // push a new URL state with filter parameter
+    var params = updateQueryStringParam('campusId',campus_selected.id);
+
+    // update form action url
+    $('#form1').attr('action', window.location.pathname + params);
+
+    // do AJAX postback through .NET
+    processPageLoad(pnlContent_ID, '');
+
+    // console.log(data);
+    $('#campus_selected').find('.section-header span').html('Events @ ' + campus_selected.text);
+    $('#campus_selected').removeClass('hide');
+}
+
+///////////////////////////////////////////////////
+////////////// Run Ministry Selection ///////////////
+///////////////////////////////////////////////////
+function runMinistryFilters(ministry_selected) {
+    // grab id to filter results
+    var pnlContent = $('#event-results').find("div[id*='_upnlContent']");
+    var pnlContent_ID = pnlContent.attr("id");
+    pnlContent.slideUp();
+    // $grid.isotope('destroy');
+
+    // push a new URL state with filter parameter
+    var params = updateQueryStringParam('categoryID',ministry_selected.id);
+
+    // update form action url
+    $('#form1').attr('action', window.location.pathname + params);
+
+    // do AJAX postback through .NET
+    processPageLoad(pnlContent_ID, '');
+
+    // console.log(ministry_selected);
+    $('#ministry_selected').find('.section-header span').html(ministry_selected.text + ' Ministry');
+    $('#ministry_selected').removeClass('hide');
+}
+
+function processPageLoad(pnlContent_ID, params) {
+    // do AJAX postback through .NET
+    __doPostBack(pnlContent_ID, '');
+    ///////////////////////////////////////////////////
+    ////////////// Process Post Back //////////////////
+    ///////////////////////////////////////////////////
+    var prm = Sys.WebForms.PageRequestManager.getInstance();
+    //Raised before processing of an asynchronous postback starts and the postback request is sent to the server.
+    prm.add_beginRequest(BeginRequestHandler);2
+    // Raised after an asynchronous postback is finished and control has been returned to the browser.
+    prm.add_endRequest(pageLoad);
+    // Listen for PostBack
+    function pageLoad() {
+        var pnlContent = $('#event-results').find("div[id*='_upnlContent']");
+        var pnlContent_ID = pnlContent.attr("id");
+        // Once loaded, fire the Javascript function from the list
+        InitLoadedRequest(); // an Ajax pageLoad method that will call your jquery method
+        pnlContent.slideDown(400, function() {});
+        // $('html, body').animate({scrollTop: ($('#filter_selected').offset().top)}, 400);
+        // $('html, body').scrollspy({ target: '#filter_selected' });
+
+        var scroll = new SmoothScroll();
+        var anchor = document.querySelector( '#filter_selected' );
+        scroll.animateScroll( anchor );
+
+    }
+    // Run JS while waiting on PostBack
+    function BeginRequestHandler(sender, args) {
+        // hide current state
+        // hide Blocks that aren't needed when filtered
+        $('.hide-on-filter').slideUp();
+        // destropy any previous iso before postback
+        // $('.isotope_wrap').isotope('destroy');
+    }
+}
+
+function updateQueryStringParam(key, value) {
+    baseUrl = [location.protocol, '//', location.host, location.pathname].join('');
+    urlQueryString = window.location.search;
+    var newParam = key + '=' + value,
+    params = '?' + newParam;
+
+    // If the "search" string exists, then build params from it
+    if (urlQueryString) {
+        // alert('there is a urlQueryString');
+        keyRegex = new RegExp('([\?&])' + key + '[^&]*');
+        // If param exists already, update it
+        if (urlQueryString.match(keyRegex) !== null) {
+            params = urlQueryString.replace(keyRegex, "$1" + newParam);
+        } else { // Otherwise, add it to end of query string
+            params = urlQueryString + '&' + newParam;
+        }
+    }
+    window.history.pushState({}, '', baseUrl + params);
+    return params;
+}
 </script>
