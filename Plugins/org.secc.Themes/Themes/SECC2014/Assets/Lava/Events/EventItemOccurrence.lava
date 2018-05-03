@@ -14,7 +14,7 @@
 {% endif %}
 
 {% assign altLinks = EventItemOccurrence | Attribute: 'AlternativeRegistrations' %}
-{% if altLinks %}
+{% if altLinks != empty %}
     {% for links in altLinks %}
         {% assign linkkv = links | PropertyToKeyValue %}
         {% if linkkv.Value contains 'http://' or linkkv.Value contains 'https://' %}

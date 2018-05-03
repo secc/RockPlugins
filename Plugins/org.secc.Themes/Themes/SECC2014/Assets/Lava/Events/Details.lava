@@ -126,37 +126,51 @@
 
 <!-- ************************************ Start: Show only if it's a Multi Event ************************************ -->
 {% if eventOccurencesCount > 1 %}
-<div class="row">
-    <div class="col-md-12">
-        <br />
-    </div>
-</div>
+    <div class="row">
+        <div class="isotope_wrap">
+            {% for EventItemOccurrence in Event.EventItemOccurrences %}
+            <div class="isotope_item col-xs-12 col-sm-6 col-md-4">
+                <div class="event-details" style="margin-top:0;">
 
-<div class="row">
-        {% for EventItemOccurrence in Event.EventItemOccurrences %}
-        <div class="col-md-4">
-            <div class="event-details" style="margin-top:0;">
+                {% include '~~/Assets/Lava/Events/EventItemOccurrence.lava' %}
 
-            {% include '~~/Assets/Lava/Events/EventItemOccurrence.lava' %}
-
-            {% if scheduledDates != empty %}
-            <!-- START: Social Media - Shareables -->
-            <div class="socialbox clearfix text-center" style="display: inline-block;">
-                <script>function fbs_click() { u = location.href; t = document.title; window.open('http://www.facebook.com/sharer.php?u=' + encodeURIComponent(u) + '&t=' + encodeURIComponent(t), 'sharer', 'toolbar=0,status=0,width=626,height=436'); return false; }</script>
-                <script>function ics_click() { text = `{{ EventItemOccurrence.Schedule.iCalendarContent }}`.replace('END:VEVENT', 'SUMMARY: {{ Event.Name }}\r\nLOCATION: {{ EventItemOccurrence.Location }}\r\nEND:VEVENT'); var element = document.createElement('a'); element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); element.setAttribute('download', '{{ Event.Name }}.ics'); element.style.display = 'none'; document.body.appendChild(element); element.click(); document.body.removeChild(element); }</script>
-                <div class="socials" style="margin-right:0px;">
-                    <div class="socials_item">
-                        <a href="" onclick="return ics_click()" class="socialicon socialicon-calendar" title="Download Event" data-original-title="Download Event">
-                            <i class="fa fa-fw fa-calendar"></i> 
-                        </a>
+                {% if scheduledDates != empty %}
+                <!-- START: Social Media - Shareables -->
+                <div class="socialbox clearfix text-center" style="display: inline-block;">
+                    <script>function fbs_click() { u = location.href; t = document.title; window.open('http://www.facebook.com/sharer.php?u=' + encodeURIComponent(u) + '&t=' + encodeURIComponent(t), 'sharer', 'toolbar=0,status=0,width=626,height=436'); return false; }</script>
+                    <script>function ics_click() { text = `{{ EventItemOccurrence.Schedule.iCalendarContent }}`.replace('END:VEVENT', 'SUMMARY: {{ Event.Name }}\r\nLOCATION: {{ EventItemOccurrence.Location }}\r\nEND:VEVENT'); var element = document.createElement('a'); element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); element.setAttribute('download', '{{ Event.Name }}.ics'); element.style.display = 'none'; document.body.appendChild(element); element.click(); document.body.removeChild(element); }</script>
+                    <div class="socials" style="margin-right:0px;">
+                        <div class="socials_item">
+                            <a href="" onclick="return ics_click()" class="socialicon socialicon-calendar" title="Download Event" data-original-title="Download Event">
+                                <i class="fa fa-fw fa-calendar"></i>
+                            </a>
+                        </div>
                     </div>
-                </div>
-            </div><!-- END: Social Media - Shareables -->
-            {% endif %}
+                </div><!-- END: Social Media - Shareables -->
+                {% endif %}
 
+                </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-</div>
+    </div>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            //  Initialize Isotope
+            var $grid = $('.isotope_wrap').isotope({
+                // options
+                percentPosition: true,
+                itemSelector: '.isotope_item',
+                layoutMode: 'fitRows'
+            });
+
+            // reveal all items after init
+            var $items = $grid.find('.isotope_item');
+            $grid.imagesLoaded().progress( function() {
+              $grid.addClass('is-showing-items').isotope('layout');
+            });
+            $grid.isotope( 'revealItemElements', $items );
+        });
+    </script>
 {% endif %}
 <!-- ************************************ End: Show only if it's a Multi Event ************************************ -->
