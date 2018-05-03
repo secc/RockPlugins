@@ -1,26 +1,3 @@
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Readmore.js/2.2.0/readmore.min.js"></script>
-<script>
-$(window).load(function() {
-     // executes when complete page is fully loaded, including all frames, objects and images
-     $('.readmore_dates').readmore({
-      speed: 100,
-      lessLink: '<a href="#">Show Less Available Dates</a>',
-      moreLink: '<a href="#">Show All Available Dates</a>',
-      collapsedHeight: 0,
-      beforeToggle: function(tr, el, ex) {
-          $(el).show();
-      }
-    });
-});
-</script>
-<style>
-    .readmore_dates {
-       transition: height 750ms;
-       overflow: hidden;
-       display: none;
-    }
-</style>
-
 <div class="row">
     <div class="col-md-4">
 
@@ -102,9 +79,13 @@ $(window).load(function() {
 
 
                         {% if showRegistration == true %}
-                          <a href="{{ RegistrationPage }}?RegistrationInstanceId={{ linkage.RegistrationInstanceId }}&EventOccurrenceID={{ EventItemOccurrence.Id }}" class="btn btn-doors btn-block uppercase">Register</a>
-                          <br />
-                          <br />
+                            {% assign registerButtonTitle = linkage.PublicName %}
+                            {% if registerButtonTitle == '' %}
+                              {% assign registerButtonTitle = 'Register' %}
+                            {% endif %}
+                            <a href="{{ RegistrationPage }}?RegistrationInstanceId={{ linkage.RegistrationInstanceId }}&EventOccurrenceID={{ EventItemOccurrence.Id }}" class="btn btn-doors btn-block uppercase">{{ registerButtonTitle }}</a>
+                            <br />
+                            <br />
                         {% else %}
                           {{ registrationMessage }}
                           <br />
@@ -275,7 +256,11 @@ $(window).load(function() {
 
 
 					{% if showRegistration == true %}
-					  <a href="{{ RegistrationPage }}?RegistrationInstanceId={{ linkage.RegistrationInstanceId }}&EventOccurrenceID={{ EventItemOccurrence.Id }}" class="btn btn-doors btn-block">Register</a>
+                        {% assign registerButtonTitle = linkage.PublicName %}
+                        {% if registerButtonTitle == '' %}
+                          {% assign registerButtonTitle = 'Register' %}
+                        {% endif %}
+			            <a href="{{ RegistrationPage }}?RegistrationInstanceId={{ linkage.RegistrationInstanceId }}&EventOccurrenceID={{ EventItemOccurrence.Id }}" class="btn btn-doors btn-block">{{registerButtonTitle}}</a>
 					{% else %}
 					  {{ registrationMessage }}
 					{% endif %}
