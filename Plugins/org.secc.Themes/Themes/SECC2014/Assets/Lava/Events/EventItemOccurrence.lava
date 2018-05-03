@@ -1,0 +1,119 @@
+{% comment %}
+ This file is required to be used within a for loop for EventItemOccurrences (See Details Lava file for where its included).
+
+ Example:
+ {% for EventItemOccurrence in Event.EventItemOccurrences %}
+    {% include '~~/Assets/Lava/Events/EventItemOccurrence.lava' %}
+ {% endfor %}
+
+{% endcomment %}
+
+{% if EventItemOccurrence.Campus != null %}
+    <h4 class="text-center"> <span class="se-logo" style="margin: -5px 10px 0px 0px;">{{EventItemOccurrence.Campus.ShortCode}}</span> {{EventItemOccurrence.Campus.Name}} Campus</h4>
+    <br />
+{% endif %}
+
+{% assign altLinks = EventItemOccurrence | Attribute: 'AlternativeRegistrations' %}
+{% if altLinks %}
+    {% for links in altLinks %}
+        {% assign linkkv = links | PropertyToKeyValue %}
+        {% if linkkv.Value contains 'http://' or linkkv.Value contains 'https://' %}
+            <!--  relative URL-->
+            <a href="{{linkkv.Value}}" class="btn btn-doors btn-block" target="_blank" style="margin-bottom: 10px;">{{linkkv.Key}}</a>
+        {% else %}
+            <a href="{{linkkv.Value}}" class="btn btn-doors btn-block" style="margin-bottom: 10px;">{{linkkv.Key}}</a>
+        {% endif %}
+    {% endfor %}
+{% else %}
+    {% for linkage in EventItemOccurrence.Linkages %}
+        {% if linkage.RegistrationInstanceId > 0 ) %}
+            {% assign daysTillStartDate = 'Now' | DateDiff:linkage.RegistrationInstance.StartDateTime,'m' %}
+            {% assign daysTillEndDate = 'Now' | DateDiff:linkage.RegistrationInstance.EndDateTime,'m' %}
+            {% assign showRegistration = true %}
+            {% assign registrationMessage = '' %}
+
+            {% if daysTillStartDate and daysTillStartDate > 0 %}
+                {% assign showRegistration = false %}
+                {% capture registrationMessage %}<p>Registration opens on {{ linkage.RegistrationInstance.StartDateTime | Date:'dddd, MMMM d, yyyy' }}</p>{% endcapture %}
+            {% endif %}
+
+            {% if daysTillEndDate and daysTillEndDate < 0 %}
+                {% assign showRegistration = false %}
+                {% capture registrationMessage %}<p>Registration closed on {{ linkage.RegistrationInstance.EndDateTime | Date:'dddd, MMMM d, yyyy' }}</p>{% endcapture %}
+            {% endif %}
+
+
+            {% if showRegistration == true %}
+                {% assign registerButtonTitle = linkage.PublicName %}
+                {% if registerButtonTitle == '' %}
+                  {% assign registerButtonTitle = 'Register' %}
+                {% endif %}
+                <a href="{{ RegistrationPage }}?RegistrationInstanceId={{ linkage.RegistrationInstanceId }}&EventOccurrenceID={{ EventItemOccurrence.Id }}" class="btn btn-doors btn-block uppercase">{{ registerButtonTitle }}</a>
+                <br />
+                <br />
+            {% else %}
+              {{ registrationMessage }}
+              <br />
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+{% if (EventItemOccurrence.ContactPersonAlias.Person.Fullname | Trim != '') or EventItemOccurrence.ContactEmail != '' or EventItemOccurrence.ContactPhone != '' %}
+    <p>
+        <strong>Contact</strong><br />
+        {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}
+            {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} <br />
+        {% endif %}
+        {% if EventItemOccurrence.ContactEmail != '' %}
+            <a href="mailto:{{ EventItemOccurrence.ContactEmail }}">{{ EventItemOccurrence.ContactEmail }}</a><br />
+        {% endif %}
+        {{ EventItemOccurrence.ContactPhone }}
+    </p>
+{% endif %}
+
+{% if EventItemOccurrence.Location != '' %}
+    <p>
+    <strong> Location</strong> <br />
+    {{ EventItemOccurrence.Location }}
+    </p>
+{% endif %}
+
+{% if EventItemOccurrence.Note != '' %}
+    <strong>Note</strong><br />
+    {{ EventItemOccurrence.Note }}
+{% endif %}
+
+{% assign scheduledDates = EventItemOccurrence.Schedule.iCalendarContent | DatesFromICal:'all' %}
+{% assign scheduledNumDates = scheduledDates | Size %}
+<div>
+    <strong>Date / Time</strong>
+    {% if EventItemOccurrence.ScheduleText != empty %}
+        <p>{{EventItemOccurrence.ScheduleText}}</p>
+    {% endif %}
+
+    {% if scheduledDates != empty %}
+    <ul class="list-unstyled" style="margin: 0;">
+        {% for scheduledDate in scheduledDates limit:3 %}
+            <li style="vertical-align: middle;">
+              {{  scheduledDate | Date:'dddd, MMM d, yyyy @ h:mm tt' }}
+            </li>
+        {% endfor %}
+    </ul>
+    <ul class="list-unstyled readmore_dates" style="margin: 0;">
+        {% for scheduledDate in scheduledDates offset:3 %}
+            <li style="vertical-align: middle;">
+              {{  scheduledDate | Date:'dddd, MMM d, yyyy @ h:mm tt' }}
+            </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+        {% if EventItemOccurrence.ScheduleText == empty %}
+            {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}
+                <p>Date and/or time has not been set yet. Please {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} for more details.</p>
+            {% else %}
+                <p>Date and/or time has not been set yet. Please contact for more details.</p>
+            {% endif %}
+        {% endif %}
+    {% endif %}
+</div>
