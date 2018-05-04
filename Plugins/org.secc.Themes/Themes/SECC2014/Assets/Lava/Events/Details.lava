@@ -1,3 +1,11 @@
+<style>
+.readmore_dates {
+   transition: height 100ms;
+   overflow: hidden;
+   display: none;
+}
+</style>
+
 <div class="row">
     <div class="col-md-4">
 
@@ -92,16 +100,14 @@
             {% endfor %}
             {% endif %}
             <!-- ************************************ End: Show only if it's an Individual Event ************************************ -->
-
             </div><!-- END: event details card -->
+
 
         </div><!-- END: col-md-4 -->
 
     <div class="col-md-8 col-md-4 margin-b-md">
 
         {{ Event.Description }}
-
-        <hr />
 
         <!-- START: Social Media - Shareables -->
         {{ 'summary_large_image' | AddMetaTagToHead:'property','twitter:card' }}
@@ -126,10 +132,39 @@
 
 <!-- ************************************ Start: Show only if it's a Multi Event ************************************ -->
 {% if eventOccurencesCount > 1 %}
+
+    <div class="row">
+        <div class="col-md-4 margin-b-md text-center">
+            {% if eventOccurencesCount > 1 %}
+            {% assign campusesAvail = '' %}
+            {% assign campusesCount = 0 %}
+            {% for EventItemOccurrence in Event.EventItemOccurrences %}
+            {% assign campus_slug = EventItemOccurrence.Campus | Attribute:'Slug' %}
+            {% if campusesAvail contains campus_slug %}
+            {% comment %} Great – Skip this since it already conatains the Campus {% endcomment %}
+            {% else %}
+            {% assign campusesCount = campusesCount | Plus: 1 %}
+            {% assign campusesAvail = campusesAvail | Append: '<option value="' | Append: campus_slug | Append: '" data-shortcode="' | Append: EventItemOccurrence.Campus.ShortCode | Append: '">' | Append: EventItemOccurrence.Campus.Name | Append: '</option>' %}
+            {% endif %}
+            {% endfor %}
+
+            {% if campusesCount >= 2 %}
+            <select class="select2-campuses" name="campus">
+                <option value="*" data-shortcode="SE">All Campuses For This Event</option>
+                {{campusesAvail}}
+            </select>
+            {% endif %}
+            {% endif %}
+            <br />
+        </div>
+    </div>
+
     <div class="row">
         <div class="isotope_wrap">
             {% for EventItemOccurrence in Event.EventItemOccurrences %}
-            <div class="isotope_item col-xs-12 col-sm-6 col-md-4">
+
+            {% assign campus_slug = EventItemOccurrence.Campus | Attribute:'Slug' %}
+            <div class="isotope_item col-xs-12 col-sm-6 col-md-4 {{campus_slug}}_filter">
                 <div class="event-details" style="margin-top:0;">
 
                 {% include '~~/Assets/Lava/Events/EventItemOccurrence.lava' %}
@@ -154,23 +189,93 @@
             {% endfor %}
         </div>
     </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Readmore.js/2.2.0/readmore.min.js"></script>
     <script type="text/javascript">
+
+        // isotop options and wrapper
+        var $grid = $('.isotope_wrap');
+        var isoOptions = {
+            percentPosition: true,
+            itemSelector: '.isotope_item'
+        };
+
+        $(window).load(function() {
+             // executes when complete page is fully loaded, including all frames, objects and images
+             $('.readmore_dates').readmore({
+                 speed: 100,
+                 lessLink: '<a href="#">Show Less Available Dates</a>',
+                 moreLink: '<a href="#">Show All Available Dates</a>',
+                 collapsedHeight: 0,
+                 beforeToggle: function(tr, el, ex) {
+                     $(el).show();
+                 },
+                 afterToggle: function(trigger, element, expanded) {
+                     $grid.isotope(isoOptions); // re-initialize
+                 }
+            });
+        });
+
         $(document).ready(function() {
-            //  Initialize Isotope
-            var $grid = $('.isotope_wrap').isotope({
-                // options
-                percentPosition: true,
-                itemSelector: '.isotope_item',
-                layoutMode: 'fitRows'
+
+            ///////////////////////////////////////////////////
+            /////////////// Initialize Select2 ////////////////
+            ///////////////////////////////////////////////////
+            function format(state) {
+                var originalOption = state.element;
+                return "<h4><span class=\"se-logo\">" + $(originalOption).data('shortcode') + "</span></h4> " + state.text;
+            }
+            $('.select2-campuses').select2({
+              formatResult: format,
+              formatSelection: format,
+              placeholder: 'Select a Campus',
+              escapeMarkup: function(m) { return m; },
+              templateResult: function(data){
+                var originalOption = data.element;
+                // console.log(originalOption);
+                return $('<span>').html('<span class="se-logo">'+$(originalOption).data('shortcode')+'</span> '+data.text);
+              }
             });
 
-            // reveal all items after init
-            var $items = $grid.find('.isotope_item');
-            $grid.imagesLoaded().progress( function() {
-              $grid.addClass('is-showing-items').isotope('layout');
+            $('.select2-campuses').on('select2:select', function (e) {
+                // prevent from submiting default form actionn
+                e.preventDefault();
+                // pull in lava ID
+                var data = e.params.data;
+                if (data.id != '*') {
+                    var filterClass = '.' + data.id + '_filter';
+                } else {
+                    var filterClass = data.id;
+                }
+                console.log(filterClass);
+                $grid.isotope({
+                    // options
+                    filter: filterClass,
+                    percentPosition: true,
+                    itemSelector: '.isotope_item'
+                });
             });
-            $grid.isotope( 'revealItemElements', $items );
-        });
+             // Initialize Isotope
+            $grid.isotope({
+                // options
+                filter: '*',
+                percentPosition: true,
+                itemSelector: '.isotope_item'
+            });
+
+            // filter items on button click
+            // $('.filter-button-group').on( 'click', 'button', function(e) {
+            //     e.preventDefault();
+            //     var filterValue = $(this).attr('data-filter');
+            //     $grid.isotope({
+            //         // options
+            //         filter: filterValue,
+            //         percentPosition: true,
+            //         itemSelector: '.isotope_item'
+            //     });
+            // });
+         });
+
     </script>
 {% endif %}
 <!-- ************************************ End: Show only if it's a Multi Event ************************************ -->
