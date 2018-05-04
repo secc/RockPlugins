@@ -35,30 +35,19 @@
             {% assign eventItem = eventItemOccurrence.EventItemOccurrence.EventItem %}
             {% comment %} **** Looping through each occurance for each event item **** {% endcomment %}
 
-            <!-- Setting Up Anchor Link for Details Page -->
-            {% comment %}
-            {% if eventItemOccurrence.DetailPage != null %}
-                {% assign openEventDetailsLink = eventItemOccurrence.DetailPage | Prepend:"<a href='" | Append:"' class='eventCardLink'>" %}
-                {% assign closeEventDetailsLink = "</a>" %}
-            {% else %}
-                {% assign openEventDetailsLink = DetailsPage | Prepend:"<a href='" | Append:"?EventItemId=" | Append:eventItem.Id | Append:"' class='eventCardLink' >" %}
-                {% assign closeEventDetailsLink = "</a>" %}
-            {% endif %}
-            {% endcomment %}
-
             {% assign eventLinkURL = '' %}
             {% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
 
-            <!-- Setting Up Anchor Link for Details Page -->
+            {% comment %} Setting Up Anchor Link for Details Page {% endcomment %}
             {% if eventItemOccurrence.DetailPage != null %}
                 {% assign eventLinkURL = eventItemOccurrence.DetailPage %}
             {% else %}
                 {% assign eventLinkURL = DetailsPage | Append:"?EventItemId=" | Append:eventItem.Id %}
             {% endif %}
 
-            <!-- Include Campus Id if it already exists in the URL -->
+            {% comment %} Include Campus Id if it already exists in the URL {% endcomment %}
             {% if pageParamCampusId != null %}
-                <!-- check for existing param, if not then show -->
+                {% comment %} check for existing param, if not then show {% endcomment %}
                 {% if eventLinkURL contains '?' %}
                     {% assign eventLinkURL = eventLinkURL | Append:"&" %}
                 {% else %}
@@ -67,7 +56,7 @@
                 {% assign eventLinkURL = eventLinkURL | Append:"campusId=" | Append:pageParamCampusId %}
             {% endif %}
 
-            <!-- Make Anchor Element -->
+            {% comment %} Make Anchor Element {% endcomment %}
             {% assign openEventDetailsLink = eventLinkURL | Prepend:"<a href='" | Append:"' class='eventCardLink' >" %}
             {% assign closeEventDetailsLink = "</a>" %}
 
