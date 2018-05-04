@@ -56,7 +56,6 @@ namespace org.secc.SignNowWorkflow
 
             PersonAliasService personAliasService = new PersonAliasService( rockContext );
             BinaryFileService binaryfileService = new BinaryFileService( rockContext );
-            Person person = personAliasService.Get( action.Activity.Workflow.GetAttributeValue( "Person" ).AsGuid() ).Person;
 
 
             SignNow signNow = new SignNow();
@@ -74,14 +73,54 @@ namespace org.secc.SignNowWorkflow
             {
                 // Download the file
                 string tempPath = Path.GetTempPath();
-                string tempFileName = "VolunteerApplication_" + person.FirstName + person.LastName;
+                string tempFileName = (String)document["document_name"];
                 var result = SignNowSDK.Document.Download( token, signNowDocumentId, tempPath, tempFileName );
 
                 // Put it into the workflow attribute
                 BinaryFile signedPDF = binaryfileService.Get( documentGuid );
-                signedPDF.FileName = tempFileName;
-                signedPDF.DatabaseData.Content = File.ReadAllBytes( tempPath + tempFileName + ".pdf" );
+                if ( signedPDF == null )
+                {
+                    signedPDF = new BinaryFile();
+                    // TODO: This probably shouldn't be hardcoded
+                    signedPDF.MimeType = "application/pdf";
+                    signedPDF.FileName = tempFileName;
+                    signedPDF.IsTemporary = false;
+                    binaryfileService.Add(signedPDF);
 
+                    // Update the file type if necessary
+                    Guid binaryFileTypeGuid = Guid.Empty;
+
+                    var destinationAttribute = AttributeCache.Read(GetActionAttributeValue(action, "Document").AsGuid(), rockContext);
+                    var binaryFileTypeQualifier = destinationAttribute.QualifierValues["binaryFileType"];
+                    if (!String.IsNullOrWhiteSpace(binaryFileTypeQualifier.Value))
+                    {
+                        if (binaryFileTypeQualifier.Value != null)
+                        {
+                            binaryFileTypeGuid = binaryFileTypeQualifier.Value.AsGuid();
+
+                            signedPDF.BinaryFileTypeId = new BinaryFileTypeService(rockContext).Get(binaryFileTypeGuid).Id;
+                        }
+                    }
+                    signedPDF.DatabaseData = new BinaryFileData();
+                    signedPDF.DatabaseData.Content = File.ReadAllBytes( tempPath + tempFileName + ".pdf" );
+
+                    rockContext.SaveChanges();
+
+                    // Now store the attribute
+                    if (destinationAttribute.EntityTypeId == new Workflow().TypeId)
+                    {
+                        action.Activity.Workflow.SetAttributeValue(destinationAttribute.Key, signedPDF.Guid.ToString());
+                    }
+                    else if (destinationAttribute.EntityTypeId == new WorkflowActivity().TypeId)
+                    {
+                        action.Activity.SetAttributeValue(destinationAttribute.Key, signedPDF.Guid.ToString());
+                    }
+                }
+                else
+                {
+                    signedPDF.FileName = tempFileName;
+                    signedPDF.DatabaseData.Content = File.ReadAllBytes(tempPath + tempFileName + ".pdf");
+                }
 
                 // Delete the file when we are done:
                 File.Delete( tempPath + tempFileName );
