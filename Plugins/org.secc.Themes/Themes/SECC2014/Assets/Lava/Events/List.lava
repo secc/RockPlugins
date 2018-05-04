@@ -36,6 +36,7 @@
             {% comment %} **** Looping through each occurance for each event item **** {% endcomment %}
 
             <!-- Setting Up Anchor Link for Details Page -->
+            {% comment %}
             {% if eventItemOccurrence.DetailPage != null %}
                 {% assign openEventDetailsLink = eventItemOccurrence.DetailPage | Prepend:"<a href='" | Append:"' class='eventCardLink'>" %}
                 {% assign closeEventDetailsLink = "</a>" %}
@@ -43,6 +44,32 @@
                 {% assign openEventDetailsLink = DetailsPage | Prepend:"<a href='" | Append:"?EventItemId=" | Append:eventItem.Id | Append:"' class='eventCardLink' >" %}
                 {% assign closeEventDetailsLink = "</a>" %}
             {% endif %}
+            {% endcomment %}
+
+            {% assign eventLinkURL = '' %}
+            {% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
+
+            <!-- Setting Up Anchor Link for Details Page -->
+            {% if eventItemOccurrence.DetailPage != null %}
+                {% assign eventLinkURL = eventItemOccurrence.DetailPage %}
+            {% else %}
+                {% assign eventLinkURL = DetailsPage | Append:"?EventItemId=" | Append:eventItem.Id %}
+            {% endif %}
+
+            <!-- Include Campus Id if it already exists in the URL -->
+            {% if pageParamCampusId != null %}
+                <!-- check for existing param, if not then show -->
+                {% if eventLinkURL contains '?' %}
+                    {% assign eventLinkURL = eventLinkURL | Append:"&" %}
+                {% else %}
+                    {% assign eventLinkURL = eventLinkURL | Append:"?" %}
+                {% endif %}
+                {% assign eventLinkURL = eventLinkURL | Append:"campusId=" | Append:pageParamCampusId %}
+            {% endif %}
+
+            <!-- Make Anchor Element -->
+            {% assign openEventDetailsLink = eventLinkURL | Prepend:"<a href='" | Append:"' class='eventCardLink' >" %}
+            {% assign closeEventDetailsLink = "</a>" %}
 
             {{openEventDetailsLink}}
             <div class="isotope_item col-xs-12 col-sm-6 col-md-4 event-calendar">
