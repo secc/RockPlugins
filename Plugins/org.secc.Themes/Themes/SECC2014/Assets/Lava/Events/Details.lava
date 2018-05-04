@@ -136,25 +136,26 @@
     <div class="row">
         <div class="col-md-4 margin-b-md text-center">
             {% if eventOccurencesCount > 1 %}
-            {% assign campusesAvail = '' %}
-            {% assign campusesCount = 0 %}
-            {% for EventItemOccurrence in Event.EventItemOccurrences %}
-            {% assign campus_slug = EventItemOccurrence.Campus | Attribute:'Slug' %}
-            {% if campusesAvail contains campus_slug %}
-            {% comment %} Great – Skip this since it already conatains the Campus {% endcomment %}
-            {% else %}
-            {% assign campusesCount = campusesCount | Plus: 1 %}
-            {% assign campusesAvail = campusesAvail | Append: '<option value="' | Append: campus_slug | Append: '" data-shortcode="' | Append: EventItemOccurrence.Campus.ShortCode | Append: '">' | Append: EventItemOccurrence.Campus.Name | Append: '</option>' %}
-            {% endif %}
-            {% endfor %}
+                {% assign campusesAvail = '' %}
+                {% assign campusesCount = 0 %}
+                {% for EventItemOccurrence in Event.EventItemOccurrences %}
+                    {% assign campus_slug = EventItemOccurrence.Campus | Attribute:'Slug' %}
+                    {% if campusesAvail contains campus_slug %}
+                        {% comment %} Great – Skip this since it already conatains the Campus {% endcomment %}
+                    {% else %}
+                        {% assign campusesCount = campusesCount | Plus: 1 %}
+                        {% assign campusesAvail = campusesAvail | Append: '<option value="' | Append: campus_slug | Append: '" data-shortcode="' | Append: EventItemOccurrence.Campus.ShortCode | Append: '">' | Append: EventItemOccurrence.Campus.Name | Append: '</option>' %}
+                    {% endif %}
+                {% endfor %}
 
-            {% if campusesCount >= 2 %}
-            <select class="select2-campuses" name="campus">
-                <option value="*" data-shortcode="SE">All Campuses For This Event</option>
-                {{campusesAvail}}
-            </select>
+                {% if campusesCount >= 2 %}
+                <select class="select2-campuses" name="campus">
+                    <option value="*" data-shortcode="SE">All Campuses For This Event</option>
+                    {{campusesAvail}}
+                </select>
+                {% endif %}
             {% endif %}
-            {% endif %}
+            <br />
             <br />
         </div>
     </div>
