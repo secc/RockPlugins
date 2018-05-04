@@ -48,7 +48,11 @@
                 {% if registerButtonTitle == '' %}
                   {% assign registerButtonTitle = 'Register' %}
                 {% endif %}
-                <a href="{{ RegistrationPage }}?RegistrationInstanceId={{ linkage.RegistrationInstanceId }}&EventOccurrenceID={{ EventItemOccurrence.Id }}" class="btn btn-doors btn-block uppercase">{{ registerButtonTitle }}</a>
+                {% if linkage.UrlSlug != empty %}
+                    <a href="{{ RegistrationPage }}/{{ linkage.UrlSlug }}" class="btn btn-doors btn-block uppercase">{{ registerButtonTitle }}</a>
+                {% else %}
+                    <a href="{{ RegistrationPage }}?RegistrationInstanceId={{ linkage.RegistrationInstanceId }}&EventOccurrenceID={{ EventItemOccurrence.Id }}" class="btn btn-doors btn-block uppercase">{{ registerButtonTitle }}</a>
+                {% endif %}
                 <br />
                 <br />
             {% else %}
