@@ -182,7 +182,7 @@ namespace org.secc.Workflow.Person.Action
 
                             if ( newPhoneNumber != string.Empty && newPhoneNumber != oldPhoneNumber )
                             {
-                                if ( phone == null )
+                                if ( phoneModel == null )
                                 {
                                     phoneModel = new PhoneNumber();
                                     person.PhoneNumbers.Add( phoneModel );
@@ -192,7 +192,6 @@ namespace org.secc.Workflow.Person.Action
                                 {
                                     oldPhoneNumber = phoneModel.NumberFormattedWithCountryCode;
                                 }
-                                phoneModel.CountryCode = PhoneNumber.CleanNumber( phone );
                                 phoneModel.Number = newPhoneNumber;
 
                                 History.EvaluateChange(
