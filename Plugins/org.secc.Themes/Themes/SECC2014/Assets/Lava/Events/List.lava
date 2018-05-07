@@ -147,24 +147,43 @@
                             <br />
                         {% endif %}
 
-                        {% assign countocc = 0 %}
+                        {% assign countocc = 0 | AsInteger %}
                         {% assign campusesAvail = '' %}
-                        {% for eventItemOccurrence in eventItemList %}
-                            {% assign campus_slug = eventItemOccurrence.EventItemOccurrence.Campus.Slug %}
-                            {% if campusesAvail contains campus_slug %}
-                                {% comment %} Great – Skip this since it already conatains the Campus {% endcomment %}
-                            {% else %}
-                                {{campus_slug}}
-                                {% assign countocc = countocc | Plus: 1 %}
-                                {% assign campusesAvail = campusesAvail | Append: ' <span id="' | Append: campus_slug | Append: '" class="se-logo">' | Append: eventItemOccurrence.EventItemOccurrence.Campus.ShortCode | Append: '</span>' %}
-                            {% endif %}
-                        {% endfor %}
+
+                        {% if eventItemList != empty %}
+                            {% for eventItemOccurrence in eventItemList %}
+
+                                {% assign campus_slug = eventItemOccurrence.EventItemOccurrence.Campus.Slug %}
+
+                                {% if campus_slug != null %}
+                                    {% if campusesAvail contains campus_slug or campusesAvail == null %}
+                                        {% comment %} Great – Skip this since it already conatains the Campus or is null {% endcomment %}
+                                    {% else %}
+                                        {% assign countocc = countocc | Plus: 1 %}
+                                        {% assign campusesAvail = campusesAvail | Append: ' <span id="' | Append: campus_slug | Append: '" class="se-logo">' | Append: eventItemOccurrence.EventItemOccurrence.Campus.ShortCode | Append: '</span>' %}
+                                    {% endif %}
+                                {% endif %}
+
+                            {% endfor %}
+                        {% endif %}
 
                         <h4 style="margin-top:10px;">
                             {% if countocc <= 1 %}
-                                <span class="se-logo">{{eventItemOccurrence.EventItemOccurrence.Campus.ShortCode}}</span>
+                                  {% if eventItemOccurrence.Campus != 'All Campuses' %}
+                                    {% comment %} Show just the one campus this event item occurence is in {% endcomment %}
+                                    <span class="se-logo">{{eventItemOccurrence.EventItemOccurrence.Campus.ShortCode}}</span>
+                                  {% else %}
+
+                                    {% campus where:'Public == true' %}
+                                        {% for campus in campusItems %}
+                                                {% assign campusesAvail = campusesAvail | Append: ' <span id="' | Append: campus.Slug | Append: '" class="se-logo">' | Append: campus.ShortCode | Append: '</span>' %}
+                                        {% endfor %}
+                                    {% endcampus %}
+                                    {{ campusesAvail }}
+
+                                  {% endif %}
                             {% else %}
-                                {% comment %} Show All Available Campuses {% endcomment %}
+                                {% comment %} Show All Available Campuses in Event Item List {% endcomment %}
                                 {{ campusesAvail }}
                             {% endif %}
                         </h4>
