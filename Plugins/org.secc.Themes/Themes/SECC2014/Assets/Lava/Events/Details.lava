@@ -71,11 +71,13 @@
                     <script>function ics_click() { text = `{{ EventItemOccurrence.Schedule.iCalendarContent }}`.replace('END:VEVENT', 'SUMMARY: {{ Event.Name }}\r\nLOCATION: {{ EventItemOccurrence.Location }}\r\nEND:VEVENT'); var element = document.createElement('a'); element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); element.setAttribute('download', '{{ Event.Name }}.ics'); element.style.display = 'none'; document.body.appendChild(element); element.click(); document.body.removeChild(element); }</script>
                     <div class="socials" style="margin-top:10px;">
                         {% if eventOccurencesCount <= 1 and EventItemOccurrence.UseOnlyScheduleText != 'Yes' %}
+                        {% comment %}
                         <div class="socials_item">
                             <a href="" onclick="return ics_click()" class="socialicon socialicon-calendar" title="Download Event" data-original-title="Download Event">
                                 <i class="fa fa-fw fa-calendar"></i>
                             </a>
                         </div>
+                        {% endcomment %}
                         {% endif %}
                         <div class="socials_item">
                             <a href="http://www.facebook.com/share.php?u=<url>" onclick="return fbs_click()" target="_blank" class="social-facebook" title="Share via Facebook" data-original-title="Share via Facebook">
@@ -178,9 +180,11 @@
                     <div class="socials" style="margin-right:0px;">
                         <div class="socials_item">
                             {% if EventItemOccurrence.UseOnlyScheduleText != 'Yes' %}
+                            {% comment %}
                             <a href="" onclick="return ics_click()" class="socialicon socialicon-calendar" title="Download Event" data-original-title="Download Event">
                                 <i class="fa fa-fw fa-calendar"></i>
                             </a>
+                            {% endcomment %}
                             {% endif %}
                         </div>
                     </div>
