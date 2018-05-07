@@ -110,7 +110,13 @@
                                   <br />
                                   <p>
                                       <b>Multiple Dates</b>
-                                      <br />Starting on {{ eventItemOccurrence.Date | Date: 'MMM, dd'}}
+
+                                      {% if eventItemOccurrence.EventItemOccurrence.UseOnlyScheduleText == 'Yes' %}
+                                            {{eventItemOccurrence.EventItemOccurrence.ScheduleText}}<br />
+                                      {% else %}
+                                            <br />Starting on {{ eventItemOccurrence.Date | Date: 'MMM, dd'}}
+                                      {% endif %}
+
                                   </p>
                               {% elseif numOccurrences > 1 or scheduledNumDates > 1 %}
                                   <div class="reoccur-date pull-left" style="margin-right: 10px;">
@@ -119,7 +125,13 @@
                                   <p>
                                       <b>Recurring Event</b>
                                       <br/>
-                                      {{ eventItemOccurrence.Date | Date: 'ddd. • MMM. dd'}}<br />
+
+                                      {% if eventItemOccurrence.EventItemOccurrence.UseOnlyScheduleText == 'Yes' %}
+                                            {{eventItemOccurrence.EventItemOccurrence.ScheduleText}}<br />
+                                      {% else %}
+                                            {{ eventItemOccurrence.Date | Date: 'ddd. • MMM. dd'}}<br />
+                                      {% endif %}
+
                                       <b><i class="fa fa-map-marker"></i></b>
                                       {{ eventItemOccurrence.EventItemOccurrence.Location}}
                                   </p>
@@ -132,7 +144,13 @@
                                   <p>
                                       <b>Individual Event</b>
                                       <br/>
-                                      {{ eventItemOccurrence.Date | Date: 'ddd. • MMM. dd'}} &bull; {{ eventItemOccurrence.Time}}<br />
+
+                                      {% if eventItemOccurrence.EventItemOccurrence.UseOnlyScheduleText == 'Yes' %}
+                                            {{eventItemOccurrence.EventItemOccurrence.ScheduleText}}<br />
+                                      {% else %}
+                                            {{ eventItemOccurrence.Date | Date: 'ddd. • MMM. dd'}} &bull; {{ eventItemOccurrence.Time}}<br />
+                                      {% endif %}
+
                                       <b><i class="fa fa-map-marker"></i></b>
                                       {{ eventItemOccurrence.EventItemOccurrence.Location}}
                                   </p>

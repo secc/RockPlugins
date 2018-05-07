@@ -92,31 +92,34 @@
 {% assign scheduledNumDates = scheduledDates | Size %}
 <div>
     <strong>Date / Time</strong>
+
     {% if EventItemOccurrence.ScheduleText != empty %}
         <p>{{EventItemOccurrence.ScheduleText}}</p>
     {% endif %}
 
-    {% if scheduledDates != empty %}
-    <ul class="list-unstyled" style="margin: 0;">
-        {% for scheduledDate in scheduledDates limit:3 %}
-            <li style="vertical-align: middle;">
-              {{  scheduledDate | Date:'dddd, MMM d, yyyy @ h:mm tt' }}
-            </li>
-        {% endfor %}
-    </ul>
-    <ul class="list-unstyled readmore_dates" style="margin: 0;">
-        {% for scheduledDate in scheduledDates offset:3 %}
-            <li style="vertical-align: middle;">
-              {{  scheduledDate | Date:'dddd, MMM d, yyyy @ h:mm tt' }}
-            </li>
-        {% endfor %}
-    </ul>
-    {% else %}
-        {% if EventItemOccurrence.ScheduleText == empty %}
-            {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}
-                <p>Date and/or time has not been set yet. Please {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} for more details.</p>
-            {% else %}
-                <p>Date and/or time has not been set yet. Please contact for more details.</p>
+    {% if EventItemOccurrence.UseOnlyScheduleText != 'Yes' %}
+        {% if scheduledDates != empty %}
+        <ul class="list-unstyled" style="margin: 0;">
+            {% for scheduledDate in scheduledDates limit:3 %}
+                <li style="vertical-align: middle;">
+                  {{  scheduledDate | Date:'dddd, MMM d, yyyy @ h:mm tt' }}
+                </li>
+            {% endfor %}
+        </ul>
+        <ul class="list-unstyled readmore_dates" style="margin: 0;">
+            {% for scheduledDate in scheduledDates offset:3 %}
+                <li style="vertical-align: middle;">
+                  {{  scheduledDate | Date:'dddd, MMM d, yyyy @ h:mm tt' }}
+                </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+            {% if EventItemOccurrence.ScheduleText == empty %}
+                {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}
+                    <p>Date and/or time has not been set yet. Please {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} for more details.</p>
+                {% else %}
+                    <p>Date and/or time has not been set yet. Please contact for more details.</p>
+                {% endif %}
             {% endif %}
         {% endif %}
     {% endif %}
