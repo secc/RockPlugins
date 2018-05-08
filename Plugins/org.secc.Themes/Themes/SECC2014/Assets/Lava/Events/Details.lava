@@ -176,7 +176,7 @@
                     <script>function ics_click_{{ EventItemOccurrence.Guid | Replace:'-','_' }}() {
                         text = `{{ EventItemOccurrence.Schedule.iCalendarContent }}`.replace('END:VEVENT', 'SUMMARY: {{ Event.Name }}\r\nLOCATION: {{ EventItemOccurrence.Location }}\r\nEND:VEVENT');
                             var element = document.createElement('a'); element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-                            element.setAttribute('download', '{{ Event.Name }}.ics'); 
+                            element.setAttribute('download', '{{ Event.Name }}.ics');
                             element.style.display = 'none';
                             document.body.appendChild(element);
                             element.click();
