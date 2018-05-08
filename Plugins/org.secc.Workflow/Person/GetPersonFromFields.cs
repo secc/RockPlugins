@@ -38,28 +38,38 @@ namespace org.secc.Workflow.Person.Action
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Person Attribute From Fields" )]
 
+    /* Person Information */
     [WorkflowTextOrAttribute( "First Name", "Attribute Value", "The first name or an attribute that contains the first name of the person. <span class='tip tip-lava'></span>",
-        false, "", "", 0, "FirstName", new string[] { "Rock.Field.Types.TextFieldType" } )]
+        false, "", "1: Person Information", 0, "FirstName", new string[] { "Rock.Field.Types.TextFieldType" } )]
     [WorkflowTextOrAttribute( "Last Name", "Attribute Value", "The last name or an attribute that contains the last name of the person. <span class='tip tip-lava'></span>",
-        false, "", "", 1, "LastName", new string[] { "Rock.Field.Types.TextFieldType" } )]
+        false, "", "1: Person Information", 1, "LastName", new string[] { "Rock.Field.Types.TextFieldType" } )]
     [WorkflowTextOrAttribute( "Date of Birth", "Attribute Value", "The date of birth or an attribute that contains the date of birth of the person. <span class='tip tip-lava'></span>",
-        false, "", "", 2, "DOB", new string[] { "Rock.Field.Types.TextFieldType", "Rock.Field.Types.DateFieldType" } )]
-    [WorkflowTextOrAttribute( "Email Address", "Attribute Value", "The email address or an attribute that contains the email address of the person. <span class='tip tip-lava'></span>", 
-        false, "", "", 3, "Email", new string[] { "Rock.Field.Types.TextFieldType", "Rock.Field.Types.EmailFieldType" } )]
-    [WorkflowTextOrAttribute("Phone Number", "Attribute Value", "The phone number or an attribute that contains the phone number of the person. <span class='tip tip-lava'></span>",
-        false, "", "", 4, "Phone", new string[] { "Rock.Field.Types.TextFieldType", "Rock.Field.Types.PhoneNumberFieldType" })]
-    [WorkflowAttribute("Address", "The address or an attribute that contains the address of the person.",
-        false, "", "", 5, "Address", new string[] { "Rock.Field.Types.AddressFieldType" })]
-    [WorkflowAttribute( "Person Attribute", "The person attribute to set the value to the person found or created.", 
-        true, "", "", 6, "PersonAttribute", new string[] { "Rock.Field.Types.PersonFieldType" } )]
-    [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_RECORD_STATUS, "Default Record Status", "The record status to use when creating a new person", false, false,
-        Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING, "", 7 )]
-    [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Default Connection Status", "The connection status to use when creating a new person", false, false, 
-        Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT, "", 8)]
-    [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_PHONE_TYPE, "Default Phone Number Type", "The phone number type to use when adding the phone number.", false, false,
-        Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME, "", 9 )]
+        false, "", "1: Person Information", 2, "DOB", new string[] { "Rock.Field.Types.TextFieldType", "Rock.Field.Types.DateFieldType" } )]
     [WorkflowAttribute( "Default Campus", "The attribute value to use as the default campus when creating a new person.",
-        true, "", "", 10, "DefaultCampus", new string[] { "Rock.Field.Types.CampusFieldType" } )]
+        true, "", "1: Person Information", 3, "DefaultCampus", new string[] { "Rock.Field.Types.CampusFieldType" } )]
+
+    /* Contact Information */
+    [WorkflowAttribute( "Address", "The address or an attribute that contains the address of the person.",
+        false, "", "2: Contact Information", 4, "Address", new string[] { "Rock.Field.Types.AddressFieldType" } )]
+    [WorkflowTextOrAttribute( "Email Address", "Attribute Value", "The email address or an attribute that contains the email address of the person. <span class='tip tip-lava'></span>", 
+        false, "", "2: Contact Information", 5, "Email", new string[] { "Rock.Field.Types.TextFieldType", "Rock.Field.Types.EmailFieldType" } )]
+    [WorkflowTextOrAttribute("Phone Number", "Attribute Value", "The phone number or an attribute that contains the phone number of the person. <span class='tip tip-lava'></span>",
+        false, "", "2: Contact Information", 6, "Phone", new string[] { "Rock.Field.Types.TextFieldType", "Rock.Field.Types.PhoneNumberFieldType" })]
+    [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_PHONE_TYPE, "Phone Number Type", "The phone number type to use when adding the phone number.", false, false,
+        Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME, "2: Contact Information", 7 )]
+    [WorkflowTextOrAttribute( "Unlisted", "Attribute Value", "The value or attribute value to indicate if number should be unlisted. Only valid values are 'True' or 'False' any other value will be ignored. <span class='tip tip-lava'></span>", 
+        false, "", "2: Contact Information", 8, "Unlisted" )]
+    [WorkflowTextOrAttribute( "Messaging Enabled", "Attribute Value", "The value or attribute value to indicate if messaging (SMS) should be enabled for phone. Only valid values are 'True' or 'False' any other value will be ignored. <span class='tip tip-lava'></span>", 
+        false, "", "2: Contact Information", 9, "MessagingEnabled" )]
+
+    /* Other Settings */
+    [WorkflowAttribute( "Person Attribute", "The person attribute to set the value to the person found or created.", 
+        true, "", "3: Other Settings", 10, "PersonAttribute", new string[] { "Rock.Field.Types.PersonFieldType" } )]
+    [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_RECORD_STATUS, "Default Record Status", "The record status to use when creating a new person", false, false,
+        Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING, "3: Other Settings", 11 )]
+    [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Default Connection Status", "The connection status to use when creating a new person", false, false, 
+        Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT, "3: Other Settings", 12)]
+
     public class GetPersonFromFields : ActionComponent
     {
         /// <summary>
@@ -176,6 +186,34 @@ namespace org.secc.Workflow.Person.Action
                         var numberType = DefinedValueCache.Read( GetAttributeValue( action, "DefaultPhoneNumberType" ).AsGuid() );
                         if ( numberType != null )
                         {
+
+                            // gets value indicating if phone number is unlisted
+                            string unlistedValue = GetAttributeValue( action, "Unlisted" );
+                            Guid? unlistedValueGuid = unlistedValue.AsGuidOrNull();
+                            if ( unlistedValueGuid.HasValue )
+                            {
+                                unlistedValue = action.GetWorklowAttributeValue( unlistedValueGuid.Value );
+                            }
+                            else
+                            {
+                                unlistedValue = unlistedValue.ResolveMergeFields( GetMergeFields( action ) );
+                            }
+                            bool? unlisted = unlistedValue.AsBooleanOrNull();
+
+                            // gets value indicating if messaging should be enabled for phone number
+                            string smsEnabledValue = GetAttributeValue( action, "MessagingEnabled" );
+                            Guid? smsEnabledValueGuid = smsEnabledValue.AsGuidOrNull();
+                            if ( smsEnabledValueGuid.HasValue )
+                            {
+                                smsEnabledValue = action.GetWorklowAttributeValue( smsEnabledValueGuid.Value );
+                            }
+                            else
+                            {
+                                smsEnabledValue = smsEnabledValue.ResolveMergeFields( GetMergeFields( action ) );
+                            }
+                            bool? smsEnabled = smsEnabledValue.AsBooleanOrNull();
+
+
                             var phoneModel = person.PhoneNumbers.FirstOrDefault( p => p.NumberTypeValueId == numberType.Id );
                             string oldPhoneNumber = phoneModel != null ? phoneModel.NumberFormattedWithCountryCode : string.Empty;
                             string newPhoneNumber = PhoneNumber.CleanNumber( phone );
@@ -232,3 +270,4 @@ namespace org.secc.Workflow.Person.Action
 
      }
 }
+ 
