@@ -154,7 +154,7 @@ namespace RockWeb.Blocks.Event
                         var campus = CampusCache.Read(campusId.Value);
                         if (campus != null)
                         {
-                            occurrenceList.RemoveAll(o => o.CampusId != campus.Id);
+                            occurrenceList.RemoveAll(o => o.CampusId != null && o.CampusId != campus.Id);
                         }
                     }
 
