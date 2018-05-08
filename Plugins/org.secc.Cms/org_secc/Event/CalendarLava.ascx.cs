@@ -349,6 +349,11 @@ namespace RockWeb.Blocks.Event
 
             // Get the occurrences
             var occurrences = qry.ToList();
+            foreach (var occ in occurrences )
+            {
+                occ.EventItem.LoadAttributes();
+            }
+
             var occurrencesWithDates = occurrences
                 .Select( o => new EventOccurrenceDate
                 {
@@ -395,7 +400,8 @@ namespace RockWeb.Blocks.Event
                             Description = eventItemOccurrence.EventItem.Description,
                             Summary = eventItemOccurrence.EventItem.Summary,
                             OccurrenceNote = eventItemOccurrence.Note.SanitizeHtml(),
-                            DetailPage = String.IsNullOrWhiteSpace( eventItemOccurrence.EventItem.DetailsUrl ) ? null : eventItemOccurrence.EventItem.DetailsUrl
+                            DetailPage = String.IsNullOrWhiteSpace( eventItemOccurrence.EventItem.DetailsUrl ) ? null : eventItemOccurrence.EventItem.DetailsUrl,
+                            Priority = eventItemOccurrence.EventItem.GetAttributeValue("EventPriority").AsIntegerOrNull() ?? int.MaxValue
                         } );
                     }
                 }
@@ -404,6 +410,7 @@ namespace RockWeb.Blocks.Event
             var eventSummaries = eventOccurrenceSummaries
                 .OrderBy( e => e.DateTime )
                 .GroupBy( e => e.Name )
+                .OrderBy( e => e.First().Priority)
                 .Select( e => e.ToList() )
                 .ToList();
 
@@ -631,6 +638,7 @@ namespace RockWeb.Blocks.Event
             public String Description { get; set; }
             public String OccurrenceNote { get; set; }
             public String DetailPage { get; set; }
+            public int Priority { get; set; }
         }
 
         /// <summary>
