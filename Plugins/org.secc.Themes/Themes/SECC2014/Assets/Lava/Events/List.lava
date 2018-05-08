@@ -193,7 +193,7 @@
                                   {% else %}
                                     {% comment %} Reset string of Campues {% endcomment %}
                                     {% assign campusesAvail = '' %}
-                                    {% if pageParamCampusId != null and pageParamCampusId != 'allCampuses' %}
+                                    {% if pageParamCampusId != empty and pageParamCampusId != null and pageParamCampusId != 'allCampuses' %}
                                         {% campus id:'{{pageParamCampusId}}' %}{% endcampus %}
                                         {% assign campusesAvail = '<span id="' | Append: campus.Slug | Append: '" class="se-logo">' | Append: campus.ShortCode | Append: '</span>' %}
                                     {% else %}
