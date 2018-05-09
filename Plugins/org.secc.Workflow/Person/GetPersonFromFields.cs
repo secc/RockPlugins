@@ -179,7 +179,6 @@ namespace org.secc.Workflow.Person.Action
                         var familyGroup = SaveNewPerson( person, family, ( defaultCampus != null ? defaultCampus.Id : ( int? ) null ), rockContext );
                         if ( familyGroup != null && familyGroup.Members.Any() )
                         {
-                            person = familyGroup.Members.Select( m => m.Person ).First();
                             personAlias = person.PrimaryAlias;
 
                             // If we have an address, go ahead and save it here.
