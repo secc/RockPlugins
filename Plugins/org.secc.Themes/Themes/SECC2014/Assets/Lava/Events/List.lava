@@ -1,5 +1,6 @@
 {% assign eventItemOccurrenceCount = EventItemOccurrences | Size %}
 
+{% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
 
 <div class="container">
 
@@ -36,7 +37,6 @@
             {% comment %} **** Looping through each occurance for each event item **** {% endcomment %}
 
             {% assign eventLinkURL = '' %}
-            {% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
 
             {% comment %} Setting Up Anchor Link for Details Page {% endcomment %}
             {% if eventItemOccurrence.DetailPage != null %}
@@ -191,13 +191,19 @@
                                     {% comment %} Show just the one campus this event item occurence is in {% endcomment %}
                                     <span class="se-logo">{{eventItemOccurrence.EventItemOccurrence.Campus.ShortCode}}</span>
                                   {% else %}
-
-                                    {% campus where:'Public == true' %}
-                                        {% for campus in campusItems %}
-                                                {% assign campusesAvail = campusesAvail | Append: ' <span id="' | Append: campus.Slug | Append: '" class="se-logo">' | Append: campus.ShortCode | Append: '</span>' %}
-                                        {% endfor %}
-                                    {% endcampus %}
-                                    {{ campusesAvail }}
+                                    {% comment %} Reset string of Campues {% endcomment %}
+                                    {% assign campusesAvail = '' %}
+                                    {% if pageParamCampusId != empty and pageParamCampusId != null and pageParamCampusId != 'allCampuses' %}
+                                        {% campus id:'{{pageParamCampusId}}' %}{% endcampus %}
+                                        {% assign campusesAvail = '<span id="' | Append: campus.Slug | Append: '" class="se-logo">' | Append: campus.ShortCode | Append: '</span>' %}
+                                    {% else %}
+                                        {% campus where:'Public == true' %}
+                                            {% for campus in campusItems %}
+                                                    {% assign campusesAvail = campusesAvail | Append: ' <span id="' | Append: campus.Slug | Append: '" class="se-logo">' | Append: campus.ShortCode | Append: '</span>' %}
+                                            {% endfor %}
+                                        {% endcampus %}
+                                    {% endif %}
+                                    {{campusesAvail}}
 
                                   {% endif %}
                             {% else %}
