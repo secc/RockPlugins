@@ -29,6 +29,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Entity;
@@ -50,8 +51,6 @@ namespace RockWeb.Plugins.org_secc.Workflow
     [Description( "Block for launching workflows for common entity types" )]
     public partial class WorkflowLauncher : RockBlock
     {
-
-
         /// <summary>
         /// Raises the <see cref="E:System.Web.UI.Control.Init" /> event.
         /// </summary>
@@ -67,6 +66,7 @@ namespace RockWeb.Plugins.org_secc.Workflow
         /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         protected override void OnLoad( EventArgs e )
         {
+
             base.OnLoad( e );
 
             if ( !Page.IsPostBack )
@@ -86,11 +86,19 @@ namespace RockWeb.Plugins.org_secc.Workflow
             {
                 RegistrationInstanceService registrationInstanceService = new RegistrationInstanceService( rockContext );
 
-                var registrationInstances = registrationInstanceService.Queryable().AsNoTracking().ToList();
+                var registrationInstances = registrationInstanceService.Queryable().Where(ri => ri.IsActive == true).AsNoTracking().ToList();
                 ddlRegistrationInstances.DataSource = registrationInstances;
                 RegistrationInstance emptyRegistrationInstance = new RegistrationInstance { Id = -1, Name = "" };
                 registrationInstances.Insert( 0, emptyRegistrationInstance );
                 ddlRegistrationInstances.DataBind();
+
+                var entityTypes = new EntityTypeService( new RockContext() ).GetEntities()
+                    .Where( t => t.Guid.ToString() == Rock.SystemGuid.EntityType.GROUP.ToLower() || t.Guid.ToString() == "5cd9c0c8-c047-61a0-4e36-0fdb8496f066" )
+                    .OrderBy( t => t.FriendlyName )
+                    .ToList();
+                entityTypes.Insert(0, new EntityType() { Id = -1, FriendlyName = "Select One" } );
+                ddlEntityType.DataSource = entityTypes;
+                ddlEntityType.DataBind();
             }
         }
 
@@ -125,7 +133,7 @@ namespace RockWeb.Plugins.org_secc.Workflow
                 RegistrationService registrationService = new RegistrationService( rockContext );
 
                 var registrations = registrationService.Queryable().AsNoTracking().Where( r => r.RegistrationInstanceId == registrationInstanceId.Value ).ToList();
-                Registration emptyRegistration = new Registration { Id = -1, FirstName = "" };
+                Registration emptyRegistration = new Registration { Id = -1, FirstName = "All Registrants" };
                 registrations.Insert( 0, emptyRegistration );
                 ddlRegistrations.DataSource = registrations;
                 ddlRegistrations.Visible = true;
@@ -142,26 +150,78 @@ namespace RockWeb.Plugins.org_secc.Workflow
             }
             using ( var rockContext = new RockContext() )
             {
-                litOutput.Text = "";
-                RegistrationService registrationService = new RegistrationService( rockContext );
-
-                if ( ddlRegistrations.SelectedValueAsInt().HasValue && ddlRegistrations.SelectedValueAsInt() > 0)
+                if ( ddlEntityType.SelectedValue == "Rock.Model.Group" )
                 {
-                    var registration = registrationService.Get( ddlRegistrations.SelectedValueAsInt().Value );
-                    registration.LaunchWorkflow( wtpWorkflowType.SelectedValueAsInt().Value, registration.ToString() );
-                }
-                else if ( ddlRegistrationInstances.SelectedValueAsInt().HasValue && ddlRegistrationInstances.SelectedValueAsInt() > 0 )
-                {
-                    int registrationInstanceId = ddlRegistrationInstances.SelectedValueAsInt().Value;
-                    var registrations = registrationService.Queryable().Where( r => r.RegistrationInstanceId == registrationInstanceId );
-                    foreach ( Registration registration in registrations )
+                    litOutput.Text = "";
+                    GroupMemberService groupMemberService = new GroupMemberService( rockContext );
+                    List<GroupMember> groupMembers = new List<GroupMember>();
+                    if ( gmpGroupMemberPicker.SelectedIndex > 0 )
                     {
+                        GroupMember groupMember = groupMemberService.Get( gmpGroupMemberPicker.SelectedItem.Value.AsInteger() );
+                        if (groupMember != null)
+                        {
+                            groupMembers.Add( groupMember );
+                        }
+                    }
+                    else
+                    {
+                        int? groupId = gpGroupPicker.SelectedValueAsInt();
+                        groupMembers = groupMemberService.Queryable().Where( gm => gm.GroupId == groupId ).ToList();
+                    }
 
-                        litOutput.Text += "Launching workflow for " + registration.ToString() + "<br />";
+                    // Now iterate through all the selected group members and launch the workflow!
+                    foreach ( GroupMember groupMember in groupMembers )
+                    {
+                        litOutput.Text += "Launching workflow for " + groupMember.ToString() + "<br />";
+                        Dictionary<String, String> attributes = new Dictionary<String, String>();
+                        attributes.Add( "Group", groupMember.Group.Guid.ToString() );
+                        attributes.Add( "Person", groupMember.Person.PrimaryAlias.Guid.ToString() );
+                        groupMember.LaunchWorkflow( wtpWorkflowType.SelectedValueAsInt().Value, groupMember.ToString(), attributes );
+                    }
+                }
+                else if ( ddlEntityType.SelectedValue == "Rock.Model.RegistrationInstance" )
+                {
+                    litOutput.Text = "";
+                    RegistrationService registrationService = new RegistrationService( rockContext );
+
+                    if ( ddlRegistrations.SelectedValueAsInt().HasValue && ddlRegistrations.SelectedValueAsInt() > 0 )
+                    {
+                        var registration = registrationService.Get( ddlRegistrations.SelectedValueAsInt().Value );
                         registration.LaunchWorkflow( wtpWorkflowType.SelectedValueAsInt().Value, registration.ToString() );
+                    }
+                    else if ( ddlRegistrationInstances.SelectedValueAsInt().HasValue && ddlRegistrationInstances.SelectedValueAsInt() > 0 )
+                    {
+                        int registrationInstanceId = ddlRegistrationInstances.SelectedValueAsInt().Value;
+                        var registrations = registrationService.Queryable().Where( r => r.RegistrationInstanceId == registrationInstanceId );
+                        foreach ( Registration registration in registrations )
+                        {
+
+                            litOutput.Text += "Launching workflow for " + registration.ToString() + "<br />";
+                            registration.LaunchWorkflow( wtpWorkflowType.SelectedValueAsInt().Value, registration.ToString() );
+                        }
                     }
                 }
             }
+        }
+
+        protected void ddlEntityType_SelectedIndexChanged( object sender, EventArgs e )
+        {
+            divGroup.Visible = false;
+            divRegistration.Visible = false;
+            if ( ddlEntityType.SelectedValue == "Rock.Model.Group" )
+            {
+                divGroup.Visible = true;
+            }
+            else if( ddlEntityType.SelectedValue == "Rock.Model.RegistrationInstance" )
+            {
+                divRegistration.Visible = true;
+            }
+        }
+
+        protected void gpGroupPicker_SelectItem( object sender, EventArgs e )
+        {
+            gmpGroupMemberPicker.GroupId = gpGroupPicker.SelectedValue.AsInteger();
+            gmpGroupMemberPicker.Visible = true;
         }
     }
 }
