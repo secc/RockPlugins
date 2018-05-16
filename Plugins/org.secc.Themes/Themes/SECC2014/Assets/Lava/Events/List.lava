@@ -112,7 +112,7 @@
                                       <b>Multiple Dates</b>
 
                                       {% if eventItemOccurrence.EventItemOccurrence.UseOnlyScheduleText == 'Yes' %}
-                                            {{eventItemOccurrence.EventItemOccurrence.ScheduleText}}<br />
+                                            <br />{{eventItemOccurrence.EventItemOccurrence.ScheduleText}}<br />
                                       {% else %}
                                             <br />Starting on {{ eventItemOccurrence.Date | Date: 'MMM, dd'}}
                                       {% endif %}
@@ -146,7 +146,7 @@
                                       <br/>
 
                                       {% if eventItemOccurrence.EventItemOccurrence.UseOnlyScheduleText == 'Yes' %}
-                                            {{eventItemOccurrence.EventItemOccurrence.ScheduleText}}<br />
+                                            <br />{{eventItemOccurrence.EventItemOccurrence.ScheduleText}}<br />
                                       {% else %}
                                             {{ eventItemOccurrence.Date | Date: 'ddd. • MMM. dd'}} &bull; {{ eventItemOccurrence.Time}}<br />
                                       {% endif %}
