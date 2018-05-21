@@ -42,16 +42,20 @@ using Rock.Web.UI;
 using Rock.Web.Cache;
 using System.Web.UI.WebControls;
 using System.Collections.Generic;
+using OfficeOpenXml;
+using System.IO;
+using System.Drawing;
 
 namespace RockWeb.Blocks.Reporting.NextGen
 {
     [DisplayName( "Medication Dispense" )]
     [Category( "SECC > Reporting > NextGen" )]
-    [Description( "T" )]
+    [Description( "Tool for noting when medications should be given out." )]
     [DefinedTypeField( "Medication Schedule Defined Type", "Defined type which contain the values for the possible times to give medication.", key: "DefinedType" )]
     [GroupField( "Group", "Group of people to track medication despensment." )]
     [TextField( "Medication Matrix Key", "The attribute key for the medication schedule matrix." )]
     [CategoryField( "History Category", "Category to save the history.", false, "Rock.Model.History" )]
+    [TextField( "Group Member Attribute Filter", "Group member filter to sort group by.", false )]
     public partial class MedicationDispense : RockBlock
     {
         List<MedicalItem> medicalItems = new List<MedicalItem>();
@@ -69,12 +73,100 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     ddlSchedule.DataBind();
                     ddlSchedule.Items.Insert( 0, new ListItem( "", "" ) );
                 }
+
+                Rock.Model.Attribute filterAttribute = null;
+
+                var filterAttributeKey = GetAttributeValue( "GroupMemberAttributeFilter" );
+                if ( !string.IsNullOrWhiteSpace( filterAttributeKey ) )
+                {
+                    RockContext rockContext = new RockContext();
+                    GroupService groupService = new GroupService( rockContext );
+                    AttributeService attributeService = new AttributeService( rockContext );
+                    var group = groupService.Get( GetAttributeValue( "Group" ).AsGuid() );
+                    if ( group == null )
+                    {
+                        nbAlert.Visible = true;
+                        nbAlert.Text = "Group not found";
+                        return;
+                    }
+                    var groupId = group.Id.ToString();
+                    var groupTypeId = group.GroupTypeId.ToString();
+                    var groupEntityid = EntityTypeCache.GetId<Rock.Model.GroupMember>();
+
+                    filterAttribute = attributeService.Queryable()
+                        .Where( a =>
+                        ( a.EntityTypeQualifierValue == groupId || a.EntityTypeQualifierValue == groupTypeId )
+                        && a.Key == filterAttributeKey
+                        && a.EntityTypeId == groupEntityid )
+                    .FirstOrDefault();
+
+                    if ( filterAttribute != null )
+                    {
+                        AttributeValueService attributeValueService = new AttributeValueService( rockContext );
+                        ddlAttribute.Label = filterAttribute.Name;
+                        var qry = new GroupMemberService( rockContext ).Queryable().
+                            Where( gm => gm.GroupId == group.Id )
+                            .Join(
+                                attributeValueService.Queryable().Where( av => av.AttributeId == filterAttribute.Id ),
+                                m => m.Id,
+                                av => av.EntityId,
+                                ( m, av ) => new { Key = av.Value, Value = av.Value } )
+                                .DistinctBy( a => a.Key )
+                                .OrderBy( a => a.Key )
+                                .ToList();
+                        ddlAttribute.DataSource = qry;
+                        ddlAttribute.DataBind();
+                        ddlAttribute.Items.Insert( 0, new ListItem( "", "" ) );
+                    }
+                    else
+                    {
+                        pnlAttribute.Visible = false;
+                    }
+                }
+                else
+                {
+                    pnlAttribute.Visible = false;
+                }
                 BindGrid();
+            }
+
+            gGrid.Actions.ShowExcelExport = false;
+            gGrid.Actions.ShowMergeTemplate = false;
+
+            if ( this.ContextEntity() == null )
+            {
+                LinkButton excel = new LinkButton()
+                {
+                    ID = "btnExcel",
+                    Text = "<i class='fa fa-table'></i>",
+                    CssClass = "btn btn-default btn-sm"
+                };
+                gGrid.Actions.Controls.Add( excel );
+                excel.Click += GenerateExcel;
+                ScriptManager.GetCurrent( this.Page ).RegisterPostBackControl( excel );
             }
         }
 
 
+
         private void BindGrid()
+        {
+            gGrid.DataSource = GetMedicalItems();
+            ;
+            gGrid.DataBind();
+
+            if ( !dpDate.SelectedDate.HasValue
+                || dpDate.SelectedDate.Value != Rock.RockDateTime.Today )
+            {
+                gGrid.Columns[gGrid.Columns.Count - 1].Visible = false;
+            }
+            else
+            {
+                gGrid.Columns[gGrid.Columns.Count - 1].Visible = true;
+            }
+        }
+
+        private List<MedicalItem> GetMedicalItems()
         {
             RockContext rockContext = new RockContext();
             GroupService groupService = new GroupService( rockContext );
@@ -83,7 +175,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
             {
                 nbAlert.Visible = true;
                 nbAlert.Text = "Group not found";
-                return;
+                return null;
             }
             var groupId = group.Id.ToString();
             var groupTypeId = group.GroupTypeId.ToString();
@@ -91,7 +183,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
             var key = GetAttributeValue( "MedicationMatrixKey" );
 
             AttributeService attributeService = new AttributeService( rockContext );
-            var attribute = attributeService.Queryable()
+            Rock.Model.Attribute attribute = attributeService.Queryable()
                 .Where( a =>
                     ( a.EntityTypeQualifierValue == groupId || a.EntityTypeQualifierValue == groupTypeId )
                     && a.Key == key
@@ -102,7 +194,19 @@ namespace RockWeb.Blocks.Reporting.NextGen
             {
                 nbAlert.Visible = true;
                 nbAlert.Text = "Medication attribute not found";
-                return;
+                return null;
+            }
+
+            Rock.Model.Attribute filterAttribute = null;
+            var filterAttributeKey = GetAttributeValue( "GroupMemberAttributeFilter" );
+            if ( !string.IsNullOrWhiteSpace( filterAttributeKey ) )
+            {
+                filterAttribute = attributeService.Queryable()
+                    .Where( a =>
+                    ( a.EntityTypeQualifierValue == groupId || a.EntityTypeQualifierValue == groupTypeId )
+                    && a.Key == filterAttributeKey
+                    && a.EntityTypeId == groupEntityid )
+                .FirstOrDefault();
             }
 
             var attributeMatrixItemEntityId = EntityTypeCache.GetId<AttributeMatrixItem>();
@@ -142,9 +246,19 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     attributeValueService.Queryable(),
                     m => new { EntityId = m.AttributeMatrixItem.Id, AttributeId = m.Attribute.Id },
                     av => new { EntityId = av.EntityId ?? 0, AttributeId = av.AttributeId },
-                    ( m, av ) => new { Member = m.Member, Attribute = m.Attribute, AttributeValue = av, MatrixItemId = m.AttributeMatrixItem.Id, }
-                )
-                ;
+                    ( m, av ) => new { Member = m.Member, Attribute = m.Attribute, AttributeValue = av, MatrixItemId = m.AttributeMatrixItem.Id, FilterValue = "" }
+                );
+
+            if ( filterAttribute != null && pnlAttribute.Visible && !string.IsNullOrWhiteSpace( ddlAttribute.SelectedValue ) )
+            {
+                var filterValue = ddlAttribute.SelectedValue;
+                qry = qry
+                    .Join(
+                    attributeValueService.Queryable().Where( av => av.AttributeId == filterAttribute.Id ),
+                    m => new { Id = m.Member.Id, Value = filterValue },
+                    av => new { Id = av.EntityId ?? 0, Value = av.Value },
+                    ( m, av ) => new { Member = m.Member, Attribute = m.Attribute, AttributeValue = m.AttributeValue, MatrixItemId = m.MatrixItemId, FilterValue = av.Value } );
+            }
 
             var members = qry.GroupBy( a => a.Member )
                 .ToList();
@@ -183,7 +297,10 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     {
                         Person = member.Key.Person.FullNameReversed,
                         GroupMemberId = member.Key.Id,
-                        PersonId = member.Key.Person.Id
+                        GroupMember = member.FirstOrDefault().Member,
+                        PersonId = member.Key.Person.Id,
+                        FilterAttribute = member.FirstOrDefault().FilterValue
+
                     };
 
                     if ( scheduleAtt != null )
@@ -214,17 +331,173 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
                 }
             }
-            gGrid.DataSource = medicalItems;
-            gGrid.DataBind();
+            return medicalItems;
+        }
 
-            if ( !dpDate.SelectedDate.HasValue
-                || dpDate.SelectedDate.Value != Rock.RockDateTime.Today )
+        private void GenerateExcel( object sender, EventArgs e )
+        {
+            var medicalItems = GetMedicalItems();
+
+            string filename = gGrid.ExportFilename;
+            string workSheetName = "List";
+            string title = "Medication Information";
+
+            ExcelPackage excel = new ExcelPackage();
+            excel.Workbook.Properties.Title = title;
+
+            // add author info
+            Rock.Model.UserLogin userLogin = Rock.Model.UserLoginService.GetCurrentUser();
+            if ( userLogin != null )
             {
-                gGrid.Columns[gGrid.Columns.Count - 1].Visible = false;
+                excel.Workbook.Properties.Author = userLogin.Person.FullName;
             }
             else
             {
-                gGrid.Columns[gGrid.Columns.Count - 1].Visible = true;
+                excel.Workbook.Properties.Author = "Rock";
+            }
+
+            // add the page that created this
+            excel.Workbook.Properties.SetCustomPropertyValue( "Source", this.Page.Request.Url.OriginalString );
+
+            ExcelWorksheet worksheet = excel.Workbook.Worksheets.Add( workSheetName );
+            worksheet.PrinterSettings.LeftMargin = .5m;
+            worksheet.PrinterSettings.RightMargin = .5m;
+            worksheet.PrinterSettings.TopMargin = .5m;
+            worksheet.PrinterSettings.BottomMargin = .5m;
+
+            //// write data to worksheet there are three supported data sources
+            //// DataTables, DataViews and ILists
+
+            int rowCounter = 4;
+            int columnCounter = 0;
+
+            List<string> columns = new List<string>() { "Name", "Medication", "Instructions", "Schedule" };
+            var filterAttribute = "";
+            var hasFilter = false;
+            if ( !string.IsNullOrWhiteSpace( ddlAttribute.Label ) )
+            {
+                hasFilter = true;
+                columns.Add( ddlAttribute.Label );
+                filterAttribute = GetAttributeValue( "GroupMemberAttributeFilter" );
+            }
+
+            // print headings
+            foreach ( String column in columns )
+            {
+                columnCounter++;
+                worksheet.Cells[3, columnCounter].Value = column.SplitCase();
+            }
+
+            foreach ( var item in medicalItems )
+            {
+                SetExcelValue( worksheet.Cells[rowCounter, 1], item.Person );
+                SetExcelValue( worksheet.Cells[rowCounter, 2], item.Medication );
+                SetExcelValue( worksheet.Cells[rowCounter, 3], item.Instructions );
+                SetExcelValue( worksheet.Cells[rowCounter, 4], item.Schedule );
+                if ( hasFilter )
+                {
+                    item.GroupMember.LoadAttributes();
+                    SetExcelValue( worksheet.Cells[rowCounter, 5], item.GroupMember.GetAttributeValue( filterAttribute ) );
+                }
+                rowCounter++;
+            }
+
+            var range = worksheet.Cells[3, 1, rowCounter, columnCounter];
+
+            var table = worksheet.Tables.Add( range, "table1" );
+
+            // ensure each column in the table has a unique name
+            var columnNames = worksheet.Cells[3, 1, 3, columnCounter].Select( a => new { OrigColumnName = a.Text, Cell = a } ).ToList();
+            columnNames.Reverse();
+            foreach ( var col in columnNames )
+            {
+                int duplicateSuffix = 0;
+                string uniqueName = col.OrigColumnName;
+
+                // increment the suffix by 1 until there is only one column with that name
+                while ( columnNames.Where( a => a.Cell.Text == uniqueName ).Count() > 1 )
+                {
+                    duplicateSuffix++;
+                    uniqueName = col.OrigColumnName + duplicateSuffix.ToString();
+                    col.Cell.Value = uniqueName;
+                }
+            }
+
+            table.ShowFilter = true;
+            table.TableStyle = OfficeOpenXml.Table.TableStyles.None;
+
+            // format header range
+            using ( ExcelRange r = worksheet.Cells[3, 1, 3, columnCounter] )
+            {
+                r.Style.Font.Bold = true;
+                r.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                r.Style.Fill.BackgroundColor.SetColor( Color.FromArgb( 223, 223, 223 ) );
+                r.Style.Font.Color.SetColor( Color.Black );
+                r.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+            }
+
+            // format and set title
+            worksheet.Cells[1, 1].Value = title;
+            using ( ExcelRange r = worksheet.Cells[1, 1, 2, columnCounter] )
+            {
+                r.Merge = true;
+                r.Style.Font.SetFromFont( new Font( "Calibri", 22, FontStyle.Regular ) );
+                r.Style.Font.Color.SetColor( Color.White );
+                r.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+                r.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                r.Style.Fill.BackgroundColor.SetColor( Color.FromArgb( 34, 41, 55 ) );
+
+                // set border
+                r.Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                r.Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                r.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                r.Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+            }
+
+
+            // freeze panes
+            worksheet.View.FreezePanes( 3, 1 );
+
+            // autofit columns for all cells
+            worksheet.Cells.AutoFitColumns( 1000 );
+
+            byte[] byteArray;
+            using ( MemoryStream ms = new MemoryStream() )
+            {
+                excel.SaveAs( ms );
+                byteArray = ms.ToArray();
+            }
+
+            // send the spreadsheet to the browser
+            this.Page.EnableViewState = false;
+            this.Page.Response.Clear();
+            this.Page.Response.ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            this.Page.Response.AppendHeader( "Content-Disposition", "attachment; filename=" + filename );
+
+            this.Page.Response.Charset = string.Empty;
+            this.Page.Response.BinaryWrite( byteArray );
+            this.Page.Response.Flush();
+            this.Page.Response.End();
+        }
+
+        private void SetExcelValue( ExcelRange range, object exportValue )
+        {
+            if ( exportValue != null &&
+                ( exportValue is decimal || exportValue is decimal? ||
+                exportValue is int || exportValue is int? ||
+                exportValue is double || exportValue is double? ||
+                exportValue is DateTime || exportValue is DateTime? ) )
+            {
+                range.Value = exportValue;
+            }
+            else
+            {
+                string value = exportValue != null ? exportValue.ToString().ConvertBrToCrLf().Replace( "&nbsp;", " " ) : string.Empty;
+                range.Value = value;
+                if ( value.Contains( Environment.NewLine ) )
+                {
+                    range.Style.WrapText = true;
+                }
             }
         }
 
@@ -233,12 +506,14 @@ namespace RockWeb.Blocks.Reporting.NextGen
             public string Key { get; set; }
             public int PersonId { get; set; }
             public int GroupMemberId { get; set; }
+            public GroupMember GroupMember { get; set; }
             public string Person { get; set; }
             public string Medication { get; set; }
             public string Instructions { get; set; }
             public string Schedule { get; set; }
             public bool Distributed { get; set; }
             public string History { get; set; }
+            public string FilterAttribute { get; set; }
         }
 
         protected void Distribute_Click( object sender, Rock.Web.UI.Controls.RowEventArgs e )
@@ -281,6 +556,11 @@ namespace RockWeb.Blocks.Reporting.NextGen
         }
 
         protected void tbName_TextChanged( object sender, EventArgs e )
+        {
+            BindGrid();
+        }
+
+        protected void ddlAttribute_SelectedIndexChanged( object sender, EventArgs e )
         {
             BindGrid();
         }
