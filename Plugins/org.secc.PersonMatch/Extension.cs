@@ -44,12 +44,31 @@ namespace org.secc.PersonMatch
                 phone = phone ?? string.Empty;
                 List<Person> matchingPersons = new List<Person>();
 
+                // Do a quick check to see if we get a match right up front
+                List<Person> persons = new List<Person>();
+                if ( birthDate.HasValue || !string.IsNullOrEmpty( email ) )
+                {
+                    var fastQuery = personService.Queryable( false, false ).Where( p => p.FirstName == firstName && p.LastName == lastName );
+                    if (birthDate.HasValue)
+                    {
+                        fastQuery.Where( p => p.BirthDate == birthDate );
+                    }
+                    if (!String.IsNullOrEmpty(email))
+                    {
+                        fastQuery.Where( p => p.Email == email );
+                    }
+                    persons = fastQuery.ToList();
+                }
 
-                List<Person> persons = personService.Queryable(false, false)
-                    .Where(p =>
-                       p.LastName == lastName &&
-                       (p.BirthDate == null || p.BirthDate.Value == p.BirthDate))
-                    .ToList();
+                // Go ahead and do this more leniant search if we don't have an exact match already
+                if (persons.Count != 1)
+                {
+                    persons = personService.Queryable(false, false)
+                        .Where(p =>
+                           p.LastName == lastName &&
+                           ( p.BirthDate == null || p.BirthDate.Value == birthDate.Value ))
+                        .ToList();
+                }
 
                 // Check the address if it was passed
                 Location location = new Location();

@@ -103,7 +103,7 @@ $(document).ready(function() {
       escapeMarkup: function(m) { return m; },
       templateResult: function(data){
         var originalOption = data.element;
-        console.log(originalOption);
+        // console.log(originalOption);
         return $('<span>').html('<span class="se-logo">'+$(originalOption).data('shortcode')+'</span> '+data.text);
       }
     });
