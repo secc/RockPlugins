@@ -38,28 +38,40 @@ namespace org.secc.Workflow.Person.Action
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Person Attribute From Fields" )]
 
+    /* Person Information */
     [WorkflowTextOrAttribute( "First Name", "Attribute Value", "The first name or an attribute that contains the first name of the person. <span class='tip tip-lava'></span>",
-        false, "", "", 0, "FirstName", new string[] { "Rock.Field.Types.TextFieldType" } )]
+        false, "", "1: Person Information", 0, "FirstName", new string[] { "Rock.Field.Types.TextFieldType" } )]
     [WorkflowTextOrAttribute( "Last Name", "Attribute Value", "The last name or an attribute that contains the last name of the person. <span class='tip tip-lava'></span>",
-        false, "", "", 1, "LastName", new string[] { "Rock.Field.Types.TextFieldType" } )]
+        false, "", "1: Person Information", 1, "LastName", new string[] { "Rock.Field.Types.TextFieldType" } )]
     [WorkflowTextOrAttribute( "Date of Birth", "Attribute Value", "The date of birth or an attribute that contains the date of birth of the person. <span class='tip tip-lava'></span>",
-        false, "", "", 2, "DOB", new string[] { "Rock.Field.Types.TextFieldType", "Rock.Field.Types.DateFieldType" } )]
-    [WorkflowTextOrAttribute( "Email Address", "Attribute Value", "The email address or an attribute that contains the email address of the person. <span class='tip tip-lava'></span>", 
-        false, "", "", 3, "Email", new string[] { "Rock.Field.Types.TextFieldType", "Rock.Field.Types.EmailFieldType" } )]
-    [WorkflowTextOrAttribute("Phone Number", "Attribute Value", "The phone number or an attribute that contains the phone number of the person. <span class='tip tip-lava'></span>",
-        false, "", "", 4, "Phone", new string[] { "Rock.Field.Types.TextFieldType", "Rock.Field.Types.PhoneNumberFieldType" })]
-    [WorkflowAttribute("Address", "The address or an attribute that contains the address of the person.",
-        false, "", "", 5, "Address", new string[] { "Rock.Field.Types.AddressFieldType" })]
-    [WorkflowAttribute( "Person Attribute", "The person attribute to set the value to the person found or created.", 
-        true, "", "", 6, "PersonAttribute", new string[] { "Rock.Field.Types.PersonFieldType" } )]
-    [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_RECORD_STATUS, "Default Record Status", "The record status to use when creating a new person", false, false,
-        Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING, "", 7 )]
-    [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Default Connection Status", "The connection status to use when creating a new person", false, false, 
-        Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT, "", 8)]
-    [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_PHONE_TYPE, "Default Phone Number Type", "The phone number type to use when adding the phone number.", false, false,
-        Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME, "", 9 )]
+        false, "", "1: Person Information", 2, "DOB", new string[] { "Rock.Field.Types.TextFieldType", "Rock.Field.Types.DateFieldType" } )]
     [WorkflowAttribute( "Default Campus", "The attribute value to use as the default campus when creating a new person.",
-        true, "", "", 10, "DefaultCampus", new string[] { "Rock.Field.Types.CampusFieldType" } )]
+        true, "", "1: Person Information", 3, "DefaultCampus", new string[] { "Rock.Field.Types.CampusFieldType" } )]
+
+    /* Contact Information */
+    [WorkflowAttribute( "Address", "The address or an attribute that contains the address of the person.",
+        false, "", "2: Contact Information", 4, "Address", new string[] { "Rock.Field.Types.AddressFieldType" } )]
+    [WorkflowTextOrAttribute( "Email Address", "Attribute Value", "The email address or an attribute that contains the email address of the person. <span class='tip tip-lava'></span>",
+        false, "", "2: Contact Information", 5, "Email", new string[] { "Rock.Field.Types.TextFieldType", "Rock.Field.Types.EmailFieldType" } )]
+    [WorkflowTextOrAttribute( "Phone Number", "Attribute Value", "The phone number or an attribute that contains the phone number of the person. <span class='tip tip-lava'></span>",
+        false, "", "2: Contact Information", 6, "Phone", new string[] { "Rock.Field.Types.TextFieldType", "Rock.Field.Types.PhoneNumberFieldType" } )]
+    [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_PHONE_TYPE, "Phone Number Type", "The phone number type to use when adding the phone number.", false, false,
+        Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME, "2: Contact Information", 7 )]
+    [WorkflowTextOrAttribute( "Unlisted", "Attribute Value", "The value or attribute value to indicate if number should be unlisted. Only valid values are 'True' or 'False' any other value will be ignored. <span class='tip tip-lava'></span>",
+        false, "", "2: Contact Information", 8, "Unlisted" )]
+    [WorkflowTextOrAttribute( "Messaging Enabled", "Attribute Value", "The value or attribute value to indicate if messaging (SMS) should be enabled for phone. Only valid values are 'True' or 'False' any other value will be ignored. <span class='tip tip-lava'></span>",
+        false, "", "2: Contact Information", 9, "MessagingEnabled" )]
+
+    /* Other Settings */
+    [WorkflowAttribute( "Person Attribute", "The person attribute to set the value to the person found or created.",
+        true, "", "3: Other Settings", 10, "PersonAttribute", new string[] { "Rock.Field.Types.PersonFieldType" } )]
+    [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_RECORD_STATUS, "Default Record Status", "The record status to use when creating a new person", false, false,
+        Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING, "3: Other Settings", 11 )]
+    [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Default Connection Status", "The connection status to use when creating a new person", false, false,
+        Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT, "3: Other Settings", 12 )]
+    [WorkflowAttribute( "Family Group/Member", "A family group or family member to use if this creates a new person.",
+        false, "", "3: Other Settings", 13, "FamilyAttribute", new string[] { "Rock.Field.Types.PersonFieldType", "Rock.Field.Types.GroupFieldType" } )]
+
     public class GetPersonFromFields : ActionComponent
     {
         /// <summary>
@@ -84,6 +96,7 @@ namespace org.secc.Workflow.Person.Action
                 string phone = GetAttributeValue( action, "Phone", true ).ResolveMergeFields( mergeFields );
                 DateTime? dateofBirth = GetAttributeValue( action, "DOB", true ).AsDateTime();
                 Guid? addressGuid = GetAttributeValue( action, "Address", true ).AsGuidOrNull();
+                Guid? familyOrPersonGuid = GetAttributeValue( action, "FamilyAttribute", true ).AsGuidOrNull();
                 Location address = null;
                 // Set the street and postal code if we have an address
                 if ( addressGuid.HasValue )
@@ -98,8 +111,8 @@ namespace org.secc.Workflow.Person.Action
                     ( string.IsNullOrWhiteSpace( email ) &&
                         string.IsNullOrWhiteSpace( phone ) &&
                         !dateofBirth.HasValue &&
-                        address == null && 
-                        string.IsNullOrWhiteSpace( address.Street1 ) ) 
+                        address == null &&
+                        string.IsNullOrWhiteSpace( address.Street1 ) )
                     )
                 {
                     errorMessages.Add( "First Name, Last Name, and one of Email, Phone, DoB, or Address Street are required. One or more of these values was not provided!" );
@@ -109,12 +122,12 @@ namespace org.secc.Workflow.Person.Action
                     Rock.Model.Person person = null;
                     PersonAlias personAlias = null;
                     var personService = new PersonService( rockContext );
-                    var people = personService.GetByMatch(firstName, lastName, dateofBirth, email, phone, address?.Street1, address?.PostalCode).ToList();
+                    var people = personService.GetByMatch( firstName, lastName, dateofBirth, email, phone, address?.Street1, address?.PostalCode ).ToList();
                     if ( people.Count == 1 &&
                          // Make sure their email matches.  If it doesn't, we need to go ahead and create a new person to be matched later.
-                         (string.IsNullOrWhiteSpace(email) || 
-                         (people.First().Email != null &&
-                         email.ToLower().Trim() == people.First().Email.ToLower().Trim() ) ) 
+                         ( string.IsNullOrWhiteSpace( email ) ||
+                         ( people.First().Email != null &&
+                         email.ToLower().Trim() == people.First().Email.ToLower().Trim() ) )
                        )
                     {
                         person = people.First();
@@ -150,10 +163,22 @@ namespace org.secc.Workflow.Person.Action
                         }
 
                         var defaultCampus = CampusCache.Read( GetAttributeValue( action, "DefaultCampus", true ).AsGuid() );
-                        var familyGroup = PersonService.SaveNewPerson( person, rockContext, ( defaultCampus != null ? defaultCampus.Id : (int?)null ), false );
+
+                        // Get the default family if applicable
+                        Group family = null;
+                        if ( familyOrPersonGuid.HasValue )
+                        {
+                            PersonAliasService personAliasService = new PersonAliasService( rockContext );
+                            family = personAliasService.Get( familyOrPersonGuid.Value )?.Person?.GetFamily();
+                            if (family == null)
+                            {
+                                GroupService groupService = new GroupService( rockContext );
+                                family = groupService.Get( familyOrPersonGuid.Value );
+                            }
+                        }
+                        var familyGroup = SaveNewPerson( person, family, ( defaultCampus != null ? defaultCampus.Id : ( int? ) null ), rockContext );
                         if ( familyGroup != null && familyGroup.Members.Any() )
                         {
-                            person = familyGroup.Members.Select( m => m.Person ).First();
                             personAlias = person.PrimaryAlias;
 
                             // If we have an address, go ahead and save it here.
@@ -176,6 +201,34 @@ namespace org.secc.Workflow.Person.Action
                         var numberType = DefinedValueCache.Read( GetAttributeValue( action, "DefaultPhoneNumberType" ).AsGuid() );
                         if ( numberType != null )
                         {
+
+                            // gets value indicating if phone number is unlisted
+                            string unlistedValue = GetAttributeValue( action, "Unlisted" );
+                            Guid? unlistedValueGuid = unlistedValue.AsGuidOrNull();
+                            if ( unlistedValueGuid.HasValue )
+                            {
+                                unlistedValue = action.GetWorklowAttributeValue( unlistedValueGuid.Value );
+                            }
+                            else
+                            {
+                                unlistedValue = unlistedValue.ResolveMergeFields( GetMergeFields( action ) );
+                            }
+                            bool unlisted = unlistedValue.AsBoolean();
+
+                            // gets value indicating if messaging should be enabled for phone number
+                            string smsEnabledValue = GetAttributeValue( action, "MessagingEnabled" );
+                            Guid? smsEnabledValueGuid = smsEnabledValue.AsGuidOrNull();
+                            if ( smsEnabledValueGuid.HasValue )
+                            {
+                                smsEnabledValue = action.GetWorklowAttributeValue( smsEnabledValueGuid.Value );
+                            }
+                            else
+                            {
+                                smsEnabledValue = smsEnabledValue.ResolveMergeFields( GetMergeFields( action ) );
+                            }
+                            bool smsEnabled = smsEnabledValue.AsBoolean();
+
+
                             var phoneModel = person.PhoneNumbers.FirstOrDefault( p => p.NumberTypeValueId == numberType.Id );
                             string oldPhoneNumber = phoneModel != null ? phoneModel.NumberFormattedWithCountryCode : string.Empty;
                             string newPhoneNumber = PhoneNumber.CleanNumber( phone );
@@ -193,6 +246,8 @@ namespace org.secc.Workflow.Person.Action
                                     oldPhoneNumber = phoneModel.NumberFormattedWithCountryCode;
                                 }
                                 phoneModel.Number = newPhoneNumber;
+                                phoneModel.IsUnlisted = unlisted;
+                                phoneModel.IsMessagingEnabled = smsEnabled;
 
                                 History.EvaluateChange(
                                     changes,
@@ -230,5 +285,86 @@ namespace org.secc.Workflow.Person.Action
             return true;
         }
 
+        private Group SaveNewPerson(Rock.Model.Person person, Group existingFamily, int? defaultCampus, RockContext rockContext)
+        {
+            if (existingFamily == null)
+            {
+                return PersonService.SaveNewPerson( person, rockContext, ( defaultCampus != null ? defaultCampus : ( int? ) null ), false );
+
+            } else
+            {
+                person.FirstName = person.FirstName.FixCase();
+                person.NickName = person.NickName.FixCase();
+                person.MiddleName = person.MiddleName.FixCase();
+                person.LastName = person.LastName.FixCase();
+
+                // Create/Save Known Relationship Group
+                var knownRelationshipGroupType = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_KNOWN_RELATIONSHIPS );
+                if ( knownRelationshipGroupType != null )
+                {
+                    var ownerRole = knownRelationshipGroupType.Roles
+                        .FirstOrDefault( r =>
+                            r.Guid.Equals( Rock.SystemGuid.GroupRole.GROUPROLE_KNOWN_RELATIONSHIPS_OWNER.AsGuid() ) );
+                    if ( ownerRole != null )
+                    {
+                        var groupMember = new GroupMember();
+                        groupMember.Person = person;
+                        groupMember.GroupRoleId = ownerRole.Id;
+
+                        var group = new Group();
+                        group.Name = knownRelationshipGroupType.Name;
+                        group.GroupTypeId = knownRelationshipGroupType.Id;
+                        group.Members.Add( groupMember );
+
+                        var groupService = new GroupService( rockContext );
+                        groupService.Add( group );
+                    }
+                }
+
+                // Create/Save Implied Relationship Group
+                var impliedRelationshipGroupType = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_IMPLIED_RELATIONSHIPS );
+                if ( impliedRelationshipGroupType != null )
+                {
+                    var ownerRole = impliedRelationshipGroupType.Roles
+                        .FirstOrDefault( r =>
+                            r.Guid.Equals( Rock.SystemGuid.GroupRole.GROUPROLE_IMPLIED_RELATIONSHIPS_OWNER.AsGuid() ) );
+                    if ( ownerRole != null )
+                    {
+                        var groupMember = new GroupMember();
+                        groupMember.Person = person;
+                        groupMember.GroupRoleId = ownerRole.Id;
+
+                        var group = new Group();
+                        group.Name = impliedRelationshipGroupType.Name;
+                        group.GroupTypeId = impliedRelationshipGroupType.Id;
+                        group.Members.Add( groupMember );
+
+                        var groupService = new GroupService( rockContext );
+                        groupService.Add( group );
+                    }
+                }
+                var familyGroupType = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY );
+
+                var adultRole = familyGroupType?.Roles
+                   .FirstOrDefault( r =>
+                       r.Guid.Equals( Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() ) );
+
+                var childRole = familyGroupType?.Roles
+                    .FirstOrDefault( r =>
+                        r.Guid.Equals( Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_CHILD.AsGuid() ) );
+
+                var age = person.Age;
+
+                var familyRole = age.HasValue && age < 18 ? childRole : adultRole;
+
+                // Add to the existing family
+                PersonService.AddPersonToFamily( person, true, existingFamily.Id, familyRole.Id, rockContext );
+                return existingFamily;
+            }
+
+            
+        }
+
      }
 }
+ 
