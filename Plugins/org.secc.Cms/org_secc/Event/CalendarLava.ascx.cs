@@ -484,6 +484,7 @@ namespace RockWeb.Blocks.Event
 
             //Check for Campus Parameter
             var campusId = PageParameter( GetAttributeValue( "CampusParameterName" ) ).AsIntegerOrNull();
+            var campusStr = PageParameter( "Campus" );
             if ( campusId.HasValue )
             {
                 //check if there's a campus with this id.
@@ -491,6 +492,15 @@ namespace RockWeb.Blocks.Event
                 if ( campus != null )
                 {
                     cblCampus.SetValue( campusId.Value );
+                }
+            }
+            else if ( !string.IsNullOrEmpty( campusStr ) )
+            {
+                //check if there's a campus with this name.
+                var campusCache = CampusCache.All().Where( c => c.Name.ToLower().Replace(' ', '-') == campusStr.ToLower() ).FirstOrDefault();
+                if ( campusCache != null )
+                {
+                    cblCampus.SetValue( campusCache.Id );
                 }
             }
             else
@@ -518,12 +528,28 @@ namespace RockWeb.Blocks.Event
                 cblCategory.DataSource = categoryItems;
                 cblCategory.DataBind();
             }
-            var categoryId = PageParameter( GetAttributeValue( "CategoryParameterName" ) ).AsIntegerOrNull(); ;
+            var categoryId = PageParameter( GetAttributeValue( "CategoryParameterName" ) ).AsIntegerOrNull();
+            var ministrySlug = PageParameter( "ministry" ).ToLower();
             if ( categoryId.HasValue )
             {
                 if ( definedType.DefinedValues.Where( v => (selectedCategoryGuids.Contains( v.Guid ) || selectedCategoryGuids.Count() == 0) && v.Id == categoryId.Value ).FirstOrDefault() != null )
                 {
                     cblCategory.SetValue( categoryId.Value );
+                }
+
+            } else if ( !string.IsNullOrEmpty( ministrySlug ) )
+            {
+                var definedValues = definedType.DefinedValues.Where( v => ( selectedCategoryGuids.Contains( v.Guid ) || selectedCategoryGuids.Count() == 0 ) ).ToList();
+                DefinedTypeService definedTypeService = new DefinedTypeService( new RockContext() );
+                var definedTypeModel = definedTypeService.Get( definedType.Guid );
+                foreach (var dv in definedTypeModel.DefinedValues )
+                {
+                    dv.LoadAttributes();
+                    if ( dv.GetAttributeValue( "URLSlug" ) == ministrySlug )
+                    {
+                        cblCategory.SetValue( dv.Id );
+                        break;
+                    }
                 }
 
             }

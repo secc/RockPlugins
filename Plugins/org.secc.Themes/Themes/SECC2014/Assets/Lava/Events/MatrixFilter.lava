@@ -2,6 +2,18 @@
     ******* Filtering System for Calendar *****
 {% endcomment %}
 
+{% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
+{% assign campusIdSize = pageParamCampusId | Size %}
+{% assign pageParamCampus = 'Global' | PageParameter:'campus' | Downcase  %}
+{% assign selectedCampus = null %}
+{% for campus in Campuses %}
+	{% assign campusName = campus.Name | Downcase | Replace:" ","-"  %}
+	{% if campus.Id == pageParamCampusId or campusName == pageParamCampus %}
+		{% assign selectedCampus = campus %}
+		{% break %}
+	{% endif %}
+{% endfor %}
+
 <div class="container">
     <div class="row">
         <div class="col-xs-12 col-sm-12 col-md-12" >
@@ -24,7 +36,7 @@
                         {% for campus in Campuses %}
                         	{% assign publicCampus = campus | Attribute:'Public' %}
                         	{% if publicCampus == 'Yes' %}
-                                <option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}">
+                                <option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}"{% if selectedCampus.Id > 0 and selectedCampus.Id == campus.Id %} selected="selected"{% endif %}>
                                     {{ campus.Name }}
                                 </option>
                         	{% endif %}
@@ -39,12 +51,14 @@
                         <select class="select2-ministries" name="minitry">
                         <option value="allMinistries">All Ministries</option>
 
+						{% assign ministrySlug = 'Global' | PageParameter:'ministry' | Downcase  %}
                         {% definedvalue where:'DefinedTypeId==16' %}
                             {% assign definedvalueItemsSorted = definedvalueItems | Sort: 'Order' %}
                             {% for definedValue in definedvalueItemsSorted %}
                                 {% assign publicFilter = definedValue | Attribute:'PublicFilter' %}
                                 {% if publicFilter == "Yes" %}
-                                <option value="{{ definedValue.Id }}">{{ definedValue.Value | Capitalize }}</option>
+									{% assign urlSlug = definedValue | Attribute:'URLSlug' %}
+									<option value="{{ definedValue.Id }}"{% if urlSlug == ministrySlug %} selected="selected"{% endif %}>{{ definedValue.Value | Capitalize }}</option>
                                 {% endif %}
                             {% endfor %}
                         {% enddefinedvalue %}
@@ -70,7 +84,7 @@
             <div id="campus_selected" class="row" style="background-color:#201e1d;">
                 <div class="col-xs-12">
                     <h2 class="section-header" style="margin: 30px 0px; color: white;">
-                        <span>Events @ All Campuses</span>
+                        <span>Events @ {{selectedCampus.Name | Default: "All Campuses" }}</span>
                     </h2>
                 </div>
             </div>
