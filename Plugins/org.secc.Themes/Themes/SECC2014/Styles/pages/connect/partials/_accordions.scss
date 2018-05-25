@@ -82,7 +82,7 @@
 				p {
 					margin: 0px;
 					color: $CopyColor;
-					a {
+					a:not(.btn):not(.btn-doors) {
 						color: $CopyColor;
                         font-weight: bolder;
 					}
