@@ -635,11 +635,28 @@ article {
 	}
 }
 
+// Custom SECC Modals
+// -------------------------
+$zindex-navbar:            1000 !important;
+$zindex-dropdown:          1000 !important;
+$zindex-popover:           1060 !important;
+$zindex-tooltip:           1070 !important;
+$zindex-navbar-fixed:      1030 !important;
+$zindex-modal-background:  1040 !important;
+$zindex-modal:             1050 !important;
+//** Modal backdrop opacity
+$modal-backdrop-opacity:     .7 !important;
+.modal-backdrop {
+  z-index: $zindex-modal-background;
+  background-color: $modal-backdrop-bg;
+}
+// Close icon
+.modal-header .close {
+  margin-top: -28px;
+}
+
 // Custom SECC Loading
 // -------------------------
-.modal-backdrop {
-	background-color: rgba(0, 0, 0, 0.5);
-}
 .updateprogress-status {
   position: fixed;
   top: 35%;
