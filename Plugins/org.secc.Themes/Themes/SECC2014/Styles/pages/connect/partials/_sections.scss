@@ -134,6 +134,11 @@ h4 {
 */
 
 .jarallax {
+    background-color: black;
+    
+    iframe {
+        border: 0 !important;
+    }
 
     &.darken {
         &:after {
@@ -145,6 +150,22 @@ h4 {
             height: 100%;
             z-index: 1;
             background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)) center/cover no-repeat fixed;
+        }
+    }
+
+    &.hero_parallax {
+
+        @include tablets {
+            height: calc(50vh - 77px);
+            height: -o-calc(50vh - 77px); /* opera */
+            height: -webkit-calc(50vh - 77px); /* google, safari */
+            height: -moz-calc(50vh - 77px); /* firefox */
+        }
+        @include phones {
+            height: calc(50vh - 77px);
+            height: -o-calc(50vh - 77px); /* opera */
+            height: -webkit-calc(50vh - 77px); /* google, safari */
+            height: -moz-calc(50vh - 77px); /* firefox */
         }
     }
 
@@ -202,12 +223,12 @@ h4 {
             }
         }
         h1 {
-            font-size: 7em;
+            font-size: 5em;
             @include tablets {
-                font-size: 6em;
+                font-size: 4em;
             }
             @include phones {
-                font-size: 5em;
+                font-size: 3em;
             }
             text-shadow: 0px 0px 25px black;
             &.no-shadow {
