@@ -42,6 +42,7 @@ namespace RockWeb.Blocks.Event
     [CodeEditorField( "Lava Template", "Lava template to use to display the list of events.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 400, true, @"{% include '~~/Assets/Lava/CalendarItem.lava' %}", "", 2 )]
     [BooleanField( "Set Page Title", "Determines if the block should set the page title with the calendar item name.", false )]
     [LinkedPage( "Registration Page", "Registration page for events" )]
+    [AttributeField ( "E37FB26F-03F6-48DA-8E96-F412616F5EE4", "URL Slug Attribute", "The attribute on the calendar item which contains the URL Slug.", false)]
     public partial class EventItemLava : Rock.Web.UI.RockBlock
     {
         #region Base Control Methods
@@ -124,20 +125,62 @@ namespace RockWeb.Blocks.Event
             int eventItemId = 0;
             RockContext rockContext = new RockContext();
 
-            // get the calendarItem id
+            EventItemService eventItemService = new EventItemService( rockContext );
+            var qry = eventItemService
+                .Queryable();
+                
+
+            // get the eventItem id
             if ( !string.IsNullOrWhiteSpace( PageParameter( "EventItemId" ) ) )
             {
                 eventItemId = Convert.ToInt32( PageParameter( "EventItemId" ) );
             }
-
             if ( eventItemId > 0 )
             {
-                var eventItemService = new EventItemService( rockContext );
-
-                var qry = eventItemService
+                /*var qry = eventItemService
                     .Queryable()
-                    .Where( i => i.Id == eventItemId );
+                    ;*/
+                qry = qry.Where( i => i.Id == eventItemId );
+            }
+            else 
+            {
+                // Get the Slug Attribute
+                var slugAttribute = AttributeCache.Read( GetAttributeValue( "URLSlugAttribute" ).AsGuid() );
 
+                // get the slug
+                if ( !string.IsNullOrWhiteSpace( PageParameter( "URLSlug" ) ) && slugAttribute != null)
+                {
+                    int slugAttributeId = slugAttribute.Id;
+                    EventCalendarItemService eventCalendarItemService = new EventCalendarItemService( rockContext );
+                    AttributeValueService attributeValueService = new AttributeValueService( rockContext );
+
+                    var tmQry = qry.Join( eventCalendarItemService.Queryable(),
+                        ei => ei.Id,
+                        aci => aci.EventItemId,
+                        ( ei, aci ) => new { EventItem = ei, EventCalendarItem = aci }
+                    )
+                    .Join( attributeValueService.Queryable(),
+                        ei => new { Id = ei.EventCalendarItem.Id, AttributeId = slugAttributeId },
+                        av => new { Id = av.EntityId ?? 0, AttributeId = av.AttributeId },
+                        ( ei, av ) => new { EventItem = ei.EventItem, EventCalendarItem = ei.EventCalendarItem ,Slug = av } );
+
+                    string urlSlug = PageParameter( "URLSlug" );
+
+                    tmQry = tmQry.Where( obj => obj.Slug.Value.Contains( urlSlug ) );
+
+                    // The page parameter could contain something like 'camp' while the slug value list contains 'camp-freedom' so we need to double-check
+                    // to make sure we have an exact match
+                    qry = tmQry.ToList().AsQueryable().Where( obj => obj.Slug.Value.ToLower().Split( '|' ).Contains( urlSlug.ToLower() ) ).Select(obj => obj.EventItem);
+                }
+                else
+                {
+                    // If we don't have an eventItemId or slug we shouldn't get the first item in the database.  That would be . . . not good
+                    qry = null;
+                }
+            }
+
+            if (qry != null)
+            {
                 var eventItem = qry.FirstOrDefault();
 
                 if ( eventItem != null )
@@ -146,7 +189,7 @@ namespace RockWeb.Blocks.Event
                     var occurrenceList = eventItem.EventItemOccurrences.ToList();
                     occurrenceList.RemoveAll( o => o.GetStartTimes( RockDateTime.Now, RockDateTime.Now.AddYears( 1 ) ).Count() == 0 );
 
-                    //Check for Campus Parameter
+                    //Check for Campus Id Parameter 
                     var campusId = PageParameter("CampusId").AsIntegerOrNull();
                     if (campusId.HasValue)
                     {
@@ -155,6 +198,18 @@ namespace RockWeb.Blocks.Event
                         if (campus != null)
                         {
                             occurrenceList.RemoveAll(o => o.CampusId != null && o.CampusId != campus.Id);
+                        }
+                    }
+
+                    //Check for Campus
+                    var campusStr = PageParameter( "Campus" );
+                    if ( !string.IsNullOrEmpty( campusStr ) )
+                    {
+                        //check if there's a campus with this name.
+                        var campus = CampusCache.All().Where( c => c.Name.ToLower() == campusStr.ToLower() ).FirstOrDefault();
+                        if ( campus != null )
+                        {
+                            occurrenceList.RemoveAll( o => o.CampusId != null && o.CampusId != campus.Id );
                         }
                     }
 
@@ -253,4 +308,5 @@ namespace RockWeb.Blocks.Event
         #endregion
 
     }
+
 }

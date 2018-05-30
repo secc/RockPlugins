@@ -40,6 +40,7 @@ namespace org.secc.SignNowWorkflow
     [WorkflowAttribute( "SignNow Document Id", "The attribute to save the SignNow document id.", true, "", "", 0, null, new string[] { "Rock.Field.Types.TextFieldType" } )]
     [WorkflowAttribute( "Document", "The attribute containing the document to upload to SignNow.", true, "", "", 0, null, new string[] { "Rock.Field.Types.BinaryFileFieldType", "Rock.Field.Types.FileFieldType" } )]
     [TextField( "Redirect Uri", "Webpage to redirect to after the document has been signed", false )]
+    [TextField( "Signer Role", "Role the signature is assigned to.", true, "Applicant" )]
     class SignNowCreate : ActionComponent
     {
 
@@ -55,70 +56,70 @@ namespace org.secc.SignNowWorkflow
             }
 
             Guid documentGuid = action.GetWorklowAttributeValue( GetActionAttributeValue( action, "Document" ).AsGuid() ).AsGuid();
-            string signNowInviteLink = action.GetWorklowAttributeValue( GetActionAttributeValue( action, "signNowInviteLink" ).AsGuid() );
-
-            PersonAliasService personAliasService = new PersonAliasService( rockContext );
             BinaryFileService binaryfileService = new BinaryFileService( rockContext );
-            Person person = personAliasService.Get( action.Activity.Workflow.GetAttributeValue( "Person" ).AsGuid() ).Person;
 
-            if ( string.IsNullOrEmpty( signNowInviteLink ) )
+            BinaryFile renderedPDF = binaryfileService.Get( documentGuid );
+
+            // Save the file to a temporary place
+            string tempFile = Path.GetTempPath() + renderedPDF.FileName;
+
+            // Open a FileStream to write to the file:
+            using ( Stream fileStream = File.OpenWrite( tempFile ) )
             {
-
-                BinaryFile renderedPDF = binaryfileService.Get( documentGuid );
-
-                // Save the file to a temporary place
-                string tempFile = Path.GetTempPath() + renderedPDF.FileName;// "VolunteerApplication_" + person.FirstName + person.LastName + ".pdf";
-
-                // Open a FileStream to write to the file:
-                using ( Stream fileStream = File.OpenWrite( tempFile ) )
-                {
-                    renderedPDF.ContentStream.CopyTo( fileStream );
-                }
-
-                SignNow signNow = new SignNow();
-                string snErrorMessage = "";
-                String token = signNow.GetAccessToken( false, out snErrorMessage );
-                if ( !string.IsNullOrEmpty( snErrorMessage ) )
-                {
-                    errorMessages.Add( snErrorMessage );
-                    return false;
-                }
-                JObject result = SignNowSDK.Document.Create( token, tempFile, true );
-                string documentId = result.Value<string>( "id" );
-                SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "SignNowDocumentId" ).AsGuid(), documentId );
-
-                // Get the invite link
-                signNowInviteLink = signNow.GetInviteLink( documentId, out errorMessages );
-
-                var redirectUri = GetAttributeValue( action, "RedirectUri" );
-                if ( !string.IsNullOrWhiteSpace( redirectUri ) )
-                {
-                    signNowInviteLink += "?redirect_uri=" + redirectUri;
-                }
-
-                string newDocumentId = "";
-                using ( var client = new HttpClient( new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate } ) )
-                {
-                    client.DefaultRequestHeaders.TryAddWithoutValidation( "Accept", HttpContext.Current.Request.AcceptTypes );
-                    client.DefaultRequestHeaders.TryAddWithoutValidation( "Accept-Encoding", "gzip, deflate" );
-                    client.DefaultRequestHeaders.TryAddWithoutValidation( "User-Agent", HttpContext.Current.Request.UserAgent );
-                    client.DefaultRequestHeaders.TryAddWithoutValidation( "Accept-Charset", "ISO-8859-1" );
-
-                    client.BaseAddress = new Uri( signNowInviteLink );
-                    HttpResponseMessage response = client.GetAsync( "" ).Result;
-                    url = response.RequestMessage.RequestUri.AbsoluteUri;
-                    MatchCollection mc = Regex.Matches( url, "document_id%253D([0-9,a-f]{40})" );
-                    newDocumentId = mc[0].Groups[1].Value;
-                }
-
-                SignNowSDK.Document.Delete( token, documentId ); //Delete the original document
-
-                SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "SignNowInviteLink" ).AsGuid(), url );
-                SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "SignNowDocumentId" ).AsGuid(), newDocumentId );
-
-                // Delete the file when we are done:
-                File.Delete( tempFile );
+                renderedPDF.ContentStream.CopyTo( fileStream );
             }
+
+            SignNow signNow = new SignNow();
+            string snErrorMessage = "";
+            String token = signNow.GetAccessToken( false, out snErrorMessage );
+            if ( !string.IsNullOrEmpty( snErrorMessage ) )
+            {
+                errorMessages.Add( snErrorMessage );
+                return false;
+            }
+            JObject result = SignNowSDK.Document.Create( token, tempFile, true );
+            string documentId = result.Value<string>( "id" );
+            SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "SignNowDocumentId" ).AsGuid(), documentId );
+
+            var signerEmail = "guest_signer_" + Guid.NewGuid().ToString() + "@no.reply";
+            var signerPassword = Guid.NewGuid().ToString();
+
+            var user = SignNowSDK.User.Create( signerEmail, signerPassword );
+
+            JObject OAuthRes = SignNowSDK.OAuth2.RequestToken( signerEmail, signerPassword );
+            var userAccessToken = OAuthRes.Value<string>( "access_token" );
+
+            dynamic dataobject = new
+            {
+                to = new[]  {
+                        new {
+                            email = signerEmail,
+                            role = GetAttributeValue(action,"SignerRole"),
+                            role_id = "",
+                            order = 1
+                        }
+                    },
+                from = "SignNow@secc.org"
+            };
+
+
+            // Get the invite link
+            var generated = SignNowSDK.Document.Invite( token, documentId, dataobject, DisableEmail: true );
+
+            var signNowInviteLink = string.Format(
+                "https://signnow.com/dispatch?route=fieldinvite&document_id={0}&access_token={1}&mobileweb=mobileweb_only",
+                documentId,
+                userAccessToken );
+
+            var redirectUri = GetAttributeValue( action, "RedirectUri" );
+            if ( !string.IsNullOrWhiteSpace( redirectUri ) )
+            {
+                signNowInviteLink += "&redirect_uri=" + redirectUri;
+            }
+
+            SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "SignNowInviteLink" ).AsGuid(), signNowInviteLink );
+            SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "SignNowDocumentId" ).AsGuid(), documentId );
+
             return true;
         }
     }

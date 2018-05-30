@@ -52,7 +52,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
     [Category( "SECC > Reporting > NextGen" )]
     [Description( "Tool for noting when medications should be given out." )]
     [DefinedTypeField( "Medication Schedule Defined Type", "Defined type which contain the values for the possible times to give medication.", key: "DefinedType" )]
-    [GroupField( "Group", "Group of people to track medication despensment." )]
+    [TextField( "Group Ids", "Comma separated list of group ids." )]
     [TextField( "Medication Matrix Key", "The attribute key for the medication schedule matrix." )]
     [CategoryField( "History Category", "Category to save the history.", false, "Rock.Model.History" )]
     [TextField( "Group Member Attribute Filter", "Group member filter to sort group by.", false )]
@@ -82,20 +82,21 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     RockContext rockContext = new RockContext();
                     GroupService groupService = new GroupService( rockContext );
                     AttributeService attributeService = new AttributeService( rockContext );
-                    var group = groupService.Get( GetAttributeValue( "Group" ).AsGuid() );
-                    if ( group == null )
+                    var groupIdStrings = GetAttributeValue( "GroupIds" ).SplitDelimitedValues();
+                    var groupIds = new List<int>();
+                    foreach ( var id in groupIdStrings )
                     {
-                        nbAlert.Visible = true;
-                        nbAlert.Text = "Group not found";
-                        return;
+                        groupIds.Add( id.AsInteger() );
                     }
-                    var groupId = group.Id.ToString();
-                    var groupTypeId = group.GroupTypeId.ToString();
+
+                    var groups = groupService.GetByIds( groupIds );
+
+                    var groupTypeIds = groups.ToList().Select( g => g.GroupTypeId.ToString() ).Distinct();
                     var groupEntityid = EntityTypeCache.GetId<Rock.Model.GroupMember>();
 
                     filterAttribute = attributeService.Queryable()
                         .Where( a =>
-                        ( a.EntityTypeQualifierValue == groupId || a.EntityTypeQualifierValue == groupTypeId )
+                        ( groupIdStrings.Contains( a.EntityTypeQualifierValue ) || groupTypeIds.Contains( a.EntityTypeQualifierValue ) )
                         && a.Key == filterAttributeKey
                         && a.EntityTypeId == groupEntityid )
                     .FirstOrDefault();
@@ -104,8 +105,8 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     {
                         AttributeValueService attributeValueService = new AttributeValueService( rockContext );
                         ddlAttribute.Label = filterAttribute.Name;
-                        var qry = new GroupMemberService( rockContext ).Queryable().
-                            Where( gm => gm.GroupId == group.Id )
+                        var qry = new GroupMemberService( rockContext ).Queryable()
+                            .Where( gm => groupIds.Contains( gm.GroupId ) )
                             .Join(
                                 attributeValueService.Queryable().Where( av => av.AttributeId == filterAttribute.Id ),
                                 m => m.Id,
@@ -170,22 +171,25 @@ namespace RockWeb.Blocks.Reporting.NextGen
         {
             RockContext rockContext = new RockContext();
             GroupService groupService = new GroupService( rockContext );
-            var group = groupService.Get( GetAttributeValue( "Group" ).AsGuid() );
-            if ( group == null )
+            var groupIdStrings = GetAttributeValue( "GroupIds" ).SplitDelimitedValues();
+            var groupIds = new List<int>();
+            foreach ( var id in groupIdStrings )
             {
-                nbAlert.Visible = true;
-                nbAlert.Text = "Group not found";
-                return null;
+                groupIds.Add( id.AsInteger() );
             }
-            var groupId = group.Id.ToString();
-            var groupTypeId = group.GroupTypeId.ToString();
+
+            var groups = groupService.GetByIds( groupIds );
+
+            var groupTypeIds = groups.ToList().Select( g => g.GroupTypeId.ToString() ).Distinct();
+
             var groupEntityid = EntityTypeCache.GetId<Rock.Model.GroupMember>();
             var key = GetAttributeValue( "MedicationMatrixKey" );
 
             AttributeService attributeService = new AttributeService( rockContext );
+
             Rock.Model.Attribute attribute = attributeService.Queryable()
                 .Where( a =>
-                    ( a.EntityTypeQualifierValue == groupId || a.EntityTypeQualifierValue == groupTypeId )
+                    ( groupIdStrings.Contains( a.EntityTypeQualifierValue ) || groupTypeIds.Contains( a.EntityTypeQualifierValue ) )
                     && a.Key == key
                     && a.EntityTypeId == groupEntityid )
                 .FirstOrDefault();
@@ -203,7 +207,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
             {
                 filterAttribute = attributeService.Queryable()
                     .Where( a =>
-                    ( a.EntityTypeQualifierValue == groupId || a.EntityTypeQualifierValue == groupTypeId )
+                    ( groupIdStrings.Contains( a.EntityTypeQualifierValue ) || groupTypeIds.Contains( a.EntityTypeQualifierValue ) )
                     && a.Key == filterAttributeKey
                     && a.EntityTypeId == groupEntityid )
                 .FirstOrDefault();
@@ -217,7 +221,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
             HistoryService historyService = new HistoryService( rockContext );
 
             var qry = new GroupMemberService( rockContext ).Queryable().
-                Where( gm => gm.GroupId == group.Id )
+                Where( gm => groupIds.Contains( gm.GroupId ) )
                 .Join(
                     attributeValueService.Queryable().Where( av => av.AttributeId == attribute.Id ),
                     m => m.Id,
