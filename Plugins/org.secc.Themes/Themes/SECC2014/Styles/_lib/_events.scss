@@ -97,6 +97,10 @@ a.eventCardLink {
 	margin-bottom: 30px;
     padding: 0px !important;
 
+    &.hide-on-load {
+        opacity: 0; // hide card when loaded, then display with isotope
+    }
+    
     .card {
         padding: 30px;
         border-radius: 8px;
