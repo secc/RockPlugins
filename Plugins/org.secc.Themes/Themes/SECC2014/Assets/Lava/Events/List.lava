@@ -1,7 +1,15 @@
 {% assign eventItemOccurrenceCount = EventItemOccurrences | Size %}
 
 {% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
-{% assign pageParamCampus = 'Global' | PageParameter:'campus' %}
+
+{% if pageParamCampusId == empty and pageParamCampus != empty and pageParamCampus != null and pageParamCampus != 'allCampuses' %}
+    {% assign pageParamCampus = 'Global' | PageParameter:'campus' %}
+    {% campus where:'Name == "{{pageParamCampus | Replace:'-',' '}}"' %}
+        {% for campus in campusItems %}
+                {% assign pageParamCampusId = campus.Id %}
+        {% endfor %}
+    {% endcampus %}
+{% endif %}
 
 <div class="container">
 
@@ -38,13 +46,14 @@
             {% comment %} **** Looping through each occurance for each event item **** {% endcomment %}
 
             {% assign eventLinkURL = '' %}
+			{% assign urlSlug = '' %}
 
             {% comment %} Setting Up Anchor Link for Details Page {% endcomment %}
             {% if eventItemOccurrence.DetailPage != null %}
                 {% assign eventLinkURL = eventItemOccurrence.DetailPage %}
             {% else %}
-			    {% assign urlSlug = eventItem | Attribute:'URLSlugs'| Split:',' | First %}
-				{% if urlSlug != '' %}
+			    {% assign urlSlug = eventItemList | First | Property:"URLSlugs" | Split:'|' | First %}
+				{% if urlSlug != null && urlSlug != '' %}
 					{% assign eventLinkURL = DetailsPage | Replace:'/details','/' | Append:urlSlug %}
 				{% else %}
 					{% assign eventLinkURL = DetailsPage | Append:"?EventItemId=" | Append:eventItem.Id %}
@@ -71,7 +80,6 @@
             <div class="isotope_item col-xs-12 col-sm-6 col-md-4 event-calendar">
 
                 <div class="card">
-
                     <!-- Image -->
                     {% assign occurrenceIdPhoto = eventItemOccurrence.PhotoId %}
                     {% if eventItem.Photo %}
@@ -203,13 +211,7 @@
                                     {% if pageParamCampusId != empty and pageParamCampusId != null and pageParamCampusId != 'allCampuses' %}
                                         {% campus id:'{{pageParamCampusId}}' %}{% endcampus %}
                                         {% assign campusesAvail = '<span id="' | Append: campus.Slug | Append: '" class="se-logo">' | Append: campus.ShortCode | Append: '</span>' %}
-                                    {% elseif pageParamCampus != empty and pageParamCampus != null and pageParamCampus != 'allCampuses' %}
-                                        {% campus where:'Name == "{{pageParamCampus | Replace:'-',' '}}"' %}
-                                            {% for campus in campusItems %}
-                                                    {% assign campusesAvail = campusesAvail | Append: ' <span id="' | Append: campus.Slug | Append: '" class="se-logo">' | Append: campus.ShortCode | Append: '</span>' %}
-                                            {% endfor %}
-										{% endcampus %}
-									{% else %}
+                                    {% else %}
                                         {% campus where:'Public == true' %}
                                             {% for campus in campusItems %}
                                                     {% assign campusesAvail = campusesAvail | Append: ' <span id="' | Append: campus.Slug | Append: '" class="se-logo">' | Append: campus.ShortCode | Append: '</span>' %}
