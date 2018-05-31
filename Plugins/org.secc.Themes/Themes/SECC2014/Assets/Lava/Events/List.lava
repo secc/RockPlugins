@@ -53,7 +53,8 @@
                 {% assign eventLinkURL = eventItemOccurrence.DetailPage %}
             {% else %}
 			    {% assign urlSlug = eventItemList | First | Property:"URLSlugs" | Split:'|' | First %}
-				{% if urlSlug != null && urlSlug != '' %}
+				{% assign urlSlugLength = urlSlug | Size %}
+				{% if urlSlugLength > 0 %}
 					{% assign eventLinkURL = DetailsPage | Replace:'/details','/' | Append:urlSlug %}
 				{% else %}
 					{% assign eventLinkURL = DetailsPage | Append:"?EventItemId=" | Append:eventItem.Id %}
