@@ -1,7 +1,7 @@
 {% assign eventItemOccurrenceCount = EventItemOccurrences | Size %}
 
 {% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
-
+{% assign pageParamCampus = 'Global' | PageParameter:'Campus' %}
 {% if pageParamCampusId == empty and pageParamCampus != empty and pageParamCampus != null and pageParamCampus != 'allCampuses' %}
     {% assign pageParamCampus = 'Global' | PageParameter:'campus' %}
     {% campus where:'Name == "{{pageParamCampus | Replace:'-',' '}}"' %}
@@ -211,17 +211,7 @@
                                     {% if pageParamCampusId != empty and pageParamCampusId != null and pageParamCampusId != 'allCampuses' %}
                                         {% campus id:'{{pageParamCampusId}}' %}{% endcampus %}
                                         {% assign campusesAvail = '<span id="' | Append: campus.Slug | Append: '" class="se-logo">' | Append: campus.ShortCode | Append: '</span>' %}
-<<<<<<< HEAD
                                     {% else %}
-=======
-                                    {% elseif pageParamCampus != empty and pageParamCampus != null and pageParamCampus != 'allCampuses' and pageParamCampus != 'southeast' %}
-                                        {% campus where:'Name == "{{pageParamCampus | Replace:'-',' '}}"' %}
-                                            {% for campus in campusItems %}
-                                                    {% assign campusesAvail = campusesAvail | Append: ' <span id="' | Append: campus.Slug | Append: '" class="se-logo">' | Append: campus.ShortCode | Append: '</span>' %}
-                                            {% endfor %}
-										{% endcampus %}
-									{% else %}
->>>>>>> e54c9e0bde3f5448f504cee9c0c64b0bbbf20612
                                         {% campus where:'Public == true' %}
                                             {% for campus in campusItems %}
                                                     {% assign campusesAvail = campusesAvail | Append: ' <span id="' | Append: campus.Slug | Append: '" class="se-logo">' | Append: campus.ShortCode | Append: '</span>' %}
