@@ -32,11 +32,11 @@
                         <br />
                         <h4 class="uppercase">Events From</h4>
                         <select class="select2-campuses" name="campus">
-                        <option value="allCampuses" data-shortcode="SE">All Campuses</option>
+                        <option value="allCampuses" data-shortcode="SE" {% if selectedCampus == null %} selected="selected"{% endif %}>All Campuses</option>
                         {% for campus in Campuses %}
                         	{% assign publicCampus = campus | Attribute:'Public' %}
                         	{% if publicCampus == 'Yes' %}
-                                <option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}"{% if selectedCampus.Id > 0 and selectedCampus.Id == campus.Id %} selected="selected"{% endif %}>
+                                <option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campus.Name | Downcase | Replace:" ","-"}}"{% if selectedCampus.Id > 0 and selectedCampus.Id == campus.Id %} selected="selected"{% endif %}>
                                     {{ campus.Name }}
                                 </option>
                         	{% endif %}
@@ -58,7 +58,7 @@
                                 {% assign publicFilter = definedValue | Attribute:'PublicFilter' %}
                                 {% if publicFilter == "Yes" %}
 									{% assign urlSlug = definedValue | Attribute:'URLSlug' %}
-									<option value="{{ definedValue.Id }}"{% if urlSlug == ministrySlug %} selected="selected"{% endif %}>{{ definedValue.Value | Capitalize }}</option>
+									<option value="{{ definedValue.Id }}" data-ministry="{{urlSlug}}"{% if urlSlug == ministrySlug %} selected="selected"{% endif %}>{{ definedValue.Value | Capitalize }}</option>
                                 {% endif %}
                             {% endfor %}
                         {% enddefinedvalue %}
@@ -189,10 +189,10 @@ function runCampusFilters(campus_selected) {
     // $grid.isotope('destroy');
 
     // push a new URL state with filter parameter
-    var params = updateQueryStringParam('campusId',campus_selected.id);
+    var newPath = updatePath('campus',$(campus_selected.element).data('campus'));
 
     // update form action url
-    $('#form1').attr('action', window.location.pathname + params);
+    $('#form1').attr('action', newPath);
 
     // do AJAX postback through .NET
     processPageLoad(pnlContent_ID, '');
@@ -213,10 +213,10 @@ function runMinistryFilters(ministry_selected) {
     // $grid.isotope('destroy');
 
     // push a new URL state with filter parameter
-    var params = updateQueryStringParam('categoryID',ministry_selected.id);
+    var newPath = updatePath('ministry',$(ministry_selected.element).data('ministry'));
 
     // update form action url
-    $('#form1').attr('action', window.location.pathname + params);
+    $('#form1').attr('action', newPath);
 
     // do AJAX postback through .NET
     processPageLoad(pnlContent_ID, '');
@@ -262,25 +262,23 @@ function processPageLoad(pnlContent_ID, params) {
     }
 }
 
-function updateQueryStringParam(key, value) {
-    baseUrl = [location.protocol, '//', location.host, location.pathname].join('');
-    urlQueryString = window.location.search;
-    var newParam = key + '=' + value,
-    params = '?' + newParam;
-
-    // If the "search" string exists, then build params from it
-    if (urlQueryString) {
-        // alert('there is a urlQueryString');
-        keyRegex = new RegExp('([\?&])' + key + '[^&]*');
-        // If param exists already, update it
-        if (urlQueryString.match(keyRegex) !== null) {
-            params = urlQueryString.replace(keyRegex, "$1" + newParam);
-        } else { // Otherwise, add it to end of query string
-            params = urlQueryString + '&' + newParam;
-        }
-    }
-    window.history.pushState({}, '', baseUrl + params);
-    return params;
+function updatePath(key, value) {
+    baseUrl = [location.protocol, '//', location.host].join('');
+	parts = location.pathname.split('/');
+	// Set some defaults;
+	parts[2] = parts[2]||'southeast';
+	parts[3] = parts[3]||'all';
+	if (key == 'campus') {
+		parts[2] = value||'southeast';
+	}
+	if (key == 'ministry') {
+		parts[3] = value||'all';
+	}
+    window.history.pushState({}, '', baseUrl + parts.join('/'));
+	console.log(key);
+	console.log(value);
+	console.log(parts);
+    return parts.join('/');
 }
 
 var parseQueryString = function() {
