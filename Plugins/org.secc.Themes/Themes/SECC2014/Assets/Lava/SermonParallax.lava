@@ -1,0 +1,46 @@
+{% assign item = Items | First %}
+{% if item %}
+
+	{% assign currentDate = 'Now' | Date:'M/d/yyyy' %}
+	{% assign currentMessage = item.ChildItems | First %}
+
+	{% comment %}
+		The Lava Code below checks for the closest sermon message to this day.
+    {% endcomment %}
+	{% for childItem in item.ChildItems %}
+		{% assign currentMessageDays = currentDate | DateDiff:childItem.ChildContentChannelItem.StartDateTime,'d' %}
+		{% if currentMessageDays <= 0 %}
+			{% assign currentMessage = childItem %}
+		{% endif %}
+	{% endfor %}
+
+	{% assign seriesImageGuid = item | Attribute:'SeriesImage','RawValue' %}
+	{% assign currentMessageVimeoID = currentMessage.ChildContentChannelItem | Attribute:'VimeoId' %}
+
+    <section id="">
+    	<div style="background-color:black">
+            {% unless currentMessageVimeoID == empty %}
+
+                {[ parallax videourl:'https://vimeo.com/{{ currentMessageVimeoID }}' image:'https://www.southeastchristian.org/_/img/home/rotations/HOPE920-xl.jpg' videostarttime:'200' videoendtime:'210' addclass:'darken' height:'65vh' position:'top top' speed:'-25' ]}
+                    <!-- START: Ministry Logo & Video -->
+                    <div class="parallax-logo centered" style="max-width: inherit;">
+                        <h1>SERMONS</h1>
+                        <h4 class="uppercase" style="font-size: 3rem;">Current Series: {{ item.Title }}</h4>
+                        <br />
+                        <br />
+                        <a href="{{ 'Global' | Page:'Path' }}/{{ item.Slug }}" class="btn btn-doors btn-light" style="font-size: 2em; -webkit-font-smoothing: antialiased;">
+                            <h2 class="letter-spaced">Watch Now</h2>
+                        </a>
+                    </div>
+                    <!-- END: Ministry Logo & Videod -->
+                {[ endparallax ]}
+
+            {% endunless %}
+    	</div>
+    </section>
+
+{% else %}
+	<h1>Could not find series.</h1>
+{% endif %}
+
+<br />
