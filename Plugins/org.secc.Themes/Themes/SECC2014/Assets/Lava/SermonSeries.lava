@@ -1,0 +1,270 @@
+<style>
+	#loading-animation {
+		display: none;
+	}
+	.current-series {
+		height: 220px;
+		background-size: cover;
+		background-position: center center;
+		background-repeat: no-repeat;
+	}
+
+	@media (min-width: 992px) {
+		.current-series {
+			height: 420px;
+		}
+	}
+
+	.current-series h1 {
+		background-color: rgba(0, 0, 0, 0.3);
+		text-align: center;
+		font-size: 16px;
+		font-weight: 600;
+		color: #fff;
+		margin: 0;
+		padding: 6px;
+	}
+
+	.series {
+		border: 1px solid rgba(0, 0, 0, .3);
+		position: relative;
+	}
+
+	.series h1 {
+		font-size: 20px;
+		font-weight: 600;
+		margin-top: 4px;
+		margin-bottom: 0;
+	}
+
+	.series-dates {
+		opacity: .6;
+	}
+
+	.series-body {
+		padding: 15px;
+		/* height: 172px; */
+	}
+
+	.series-summary {
+		/* height: 60px; */
+		/* overflow: hidden; */
+	}
+
+	.series-link:hover {
+		text-decoration: none;
+	}
+
+	/* .series-image {
+		height: 158px;
+		width: 100%;
+		background-size: cover;
+		background-position: center center;
+		background-repeat: no-repeat;
+	} */
+
+	/* .series-image:after {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		transition: all .1s ease-in-out;
+	} */
+
+	/* .series-image:hover:after {
+		background: rgba(0,0,0,.2);
+	} */
+</style>
+
+{% assign currentSeries = Items | First %}
+{% assign currentSeriesImageGuid = currentSeries | Attribute:'Image','RawValue' %}
+
+{% comment %}
+{% if Pagination.CurrentPage == 1 %}
+<a href="{{ LinkedPages.DetailPage }}?Item={{ currentSeries.Id }}">
+  <header class="current-series" style="background-image: url('/GetImage.ashx?Guid={{ currentSeriesImageGuid }}')">
+	  <h1>Current Series</h1>
+  </header>
+</a>
+{% endif %}
+{% endcomment %}
+
+<div class="container-fluid" style="background-color:  rgba(239, 239, 239, 0.5); padding: 20px 0;">
+
+	<div class="container">
+		<div class="isotope_wrap margin-t-lg series-list">
+
+			{% for item in Items %}
+			{% assign seriesImageGuid = item | Attribute:'Image','RawValue' %}
+			<div class="isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load">
+				{% comment %}
+				{{ LinkedPages.DetailPage }}?Item={{ item.Id }}
+				{{ 'Global' | Page:'Path' }}/{{ item.Slug }}
+				{% endcomment %}
+				<a class="series-link" href="{{ 'Global' | Page:'Path' }}/{{ item.Slug }}">
+					<div class="card" style="background-color: white;">
+						{% if detailImageGuid != '' %}
+							<!-- Image -->
+							<div class="img-hover">
+								<img src="/GetImage.ashx?Guid={{ seriesImageGuid }}" class="img-responsive img-rounded" style="margin: 0 auto">
+							</div>
+						{% endif %}
+						<div class="series-body">
+							<h1 class="text-color">{{ item.Title }}</h1>
+							<p class="series-dates text-color">
+								{{ item.StartDateTime | Date:'M/d/yyyy' }}
+							</p>
+
+							<p class="series-summary text-color">
+								{{ item.Content }}
+							</p>
+						</div>
+					</div>
+				</a>
+			</div>
+			{% endfor -%}
+
+		</div>
+
+		<div class="text-center">
+			<a class="btn btn-doors" href="javascript:void(0)" id="loadSermons" onclick="getMoreSermons(jQuery);">
+  		    	Show More Series <i class="fa fa-chevron-down"></i>
+  		  	</a>
+			<img id="loading-animation" src="http://kyleidleman.com/wp-content/themes/kyleidleman/_/img/loading.gif" />
+		</div>
+
+		{% comment %}
+		{% if Pagination.TotalPages > 1 %}
+		<div class="margin-t-lg">
+		  {% assign nextPageString = Pagination.NextPage | ToString %}
+		  {% assign prevPageString = Pagination.PreviousPage | ToString %}
+
+		  {% if {{Pagination.PreviousPage == -1 }} %}
+
+		  {% else %}
+		  <a class="btn btn-doors pull-left" href="{{Pagination.UrlTemplate | Replace:'PageNum', prevPageString}}">
+		    <i class="fa fa-chevron-left"></i>  Prev
+		  </a>
+		  {% endif %}
+
+		  {% if {{Pagination.NextPage == -1 }} %}
+
+		  {% else %}
+		  <a class="btn btn-doors pull-right" href="{{Pagination.UrlTemplate | Replace:'PageNum', nextPageString}}">
+		    See More <i class="fa fa-chevron-right"></i>
+		  </a>
+		  {% endif %}
+		</div>
+		{% endif %}
+		{% endcomment %}
+	</div>
+
+<br />
+<br />
+</div>
+
+<script>
+
+var sermonOffset = 2;
+
+function getMoreSermons($) {
+	console.log("loading sermons. offset: " + sermonOffset);
+	$("a#loadSermons").hide();
+	$("#loading-animation").show();
+	$.ajax( {
+		url: 'http://rockdev.secc.org/Webhooks/Lava.ashx/sermons/'+sermonOffset,
+		async: true,
+		success: function(data) {
+			// console.log(data.Series);
+
+			$.each(data.Series, function(i, sermon_series){
+				  // console.log( v);
+
+				  var $grid = $('.isotope_wrap').isotope({
+			          // options
+			          percentPosition: true,
+			          itemSelector: '.isotope_item',
+			          layoutMode: 'fitRows'
+			      });
+
+				  var $elem = $('<div></div>', {
+					            "class": "isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load"
+					          }).append(
+					            $('<a/>', {
+					              "class": 'series-link',
+								  "href": window.location + '?Item=' + sermon_series.Id,
+					            }).append(
+					  	            $('<div/>', {
+					  	              "class": 'card',
+									  "style": 'background-color: white;',
+					  	            }).html(function() {
+				      				  var box =  "<div class=\"img-hover\">";
+					  	                  box +=    "<img src=\""+ sermon_series.Image +"\" class=\"img-responsive img-rounded\" style=\"margin: 0 auto; min-height: 229px;\">";
+										  box += "</div>";
+										  box += "<div class=\"series-body\">";
+					  	                  box +=    "<h1 class=\"text-color\">"+ sermon_series.Name +"</h1>";
+										  // box +=   	"<p class=\"series-dates text-color\">"+ series.Sermons[0].Date +"</p>";
+										  box +=   	"<p class=\"series-summary text-color\">"+ sermon_series.Description +"</p>";
+					  	                  box += "</div>";
+					  	              return box;
+					  	            })
+					  			)
+							);
+
+				  $grid.isotope()
+	  				  .append( $elem )
+	  				  .isotope( 'appended', $elem )
+	  				  .isotope('layout');
+			});
+
+			// Re-Initialize Isotope
+		    var $grid = $('.isotope_wrap').isotope({
+		        // options
+		        percentPosition: true,
+		        itemSelector: '.isotope_item',
+		        layoutMode: 'fitRows'
+		    });
+
+			// console.log( "Sample of data:", data);
+			sermonOffset += 6;
+			$("#loading-animation").hide();
+			console.log(data.Series.length);
+			if (data.Series.length != 0) {
+				$("a#loadSermons").show();
+			}
+			// $("#loading-animation").hide();
+			// if (data != "") {
+			// 	$('#series-list').append(data);
+			// 	sermonOffset += 6;
+			// 	$("a#loadSermons").show();
+			// }
+		}
+
+	});
+}
+
+$(document).ready(function() {
+    // Re-Initialize Isotope
+    var $grid = $('.isotope_wrap').isotope({
+        // options
+        percentPosition: true,
+        itemSelector: '.isotope_item',
+        layoutMode: 'fitRows'
+    });
+
+    // reveal all items after init
+    var $items = $grid.find('.isotope_item');
+    $grid.imagesLoaded().progress( function() {
+      $grid.removeClass('hide-on-load').addClass('is-showing-items').isotope('layout');
+    });
+    $grid.isotope( 'revealItemElements', $items );
+
+    // re-init jarallax
+    jarallax(document.querySelectorAll('.jarallax'), {
+        disableParallax: /iPad|iPhone|iPod|Android/,
+        disableVideo: /iPad|iPhone|iPod|Android/
+    });
+});
+</script>
