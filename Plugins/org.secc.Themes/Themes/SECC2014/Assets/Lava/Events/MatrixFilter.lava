@@ -58,7 +58,7 @@
                                 {% assign publicFilter = definedValue | Attribute:'PublicFilter' %}
                                 {% if publicFilter == "Yes" %}
 									{% assign urlSlug = definedValue | Attribute:'URLSlug' %}
-									<option value="{{ definedValue.Id }}" data-ministry="{{urlSlug}}"{% if urlSlug == ministrySlug %} selected="selected"{% endif %}>{{ definedValue.Value | Capitalize }}</option>
+									<option value="{{ definedValue.Id }}" data-ministry="{{urlSlug}}" {% if urlSlug == ministrySlug %} selected="selected"{% endif %}>{{ definedValue.Value | Capitalize }}</option>
                                 {% endif %}
                             {% endfor %}
                         {% enddefinedvalue %}
