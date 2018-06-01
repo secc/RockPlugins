@@ -1,7 +1,15 @@
 {% assign eventItemOccurrenceCount = EventItemOccurrences | Size %}
 
 {% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
-{% assign pageParamCampus = 'Global' | PageParameter:'campus' %}
+{% assign pageParamCampus = 'Global' | PageParameter:'Campus' %}
+{% if pageParamCampusId == empty and pageParamCampus != empty and pageParamCampus != null and pageParamCampus != 'allCampuses' %}
+    {% assign pageParamCampus = 'Global' | PageParameter:'campus' %}
+    {% campus where:'Name == "{{pageParamCampus | Replace:'-',' '}}"' %}
+        {% for campus in campusItems %}
+                {% assign pageParamCampusId = campus.Id %}
+        {% endfor %}
+    {% endcampus %}
+{% endif %}
 
 <div class="container">
 
@@ -45,7 +53,8 @@
                 {% assign eventLinkURL = eventItemOccurrence.DetailPage %}
             {% else %}
 			    {% assign urlSlug = eventItemList | First | Property:"URLSlugs" | Split:'|' | First %}
-				{% if urlSlug != null && urlSlug != '' %}
+				{% assign urlSlugLength = urlSlug | Size %}
+				{% if urlSlugLength > 0 %}
 					{% assign eventLinkURL = DetailsPage | Replace:'/details','/' | Append:urlSlug %}
 				{% else %}
 					{% assign eventLinkURL = DetailsPage | Append:"?EventItemId=" | Append:eventItem.Id %}
@@ -203,13 +212,7 @@
                                     {% if pageParamCampusId != empty and pageParamCampusId != null and pageParamCampusId != 'allCampuses' %}
                                         {% campus id:'{{pageParamCampusId}}' %}{% endcampus %}
                                         {% assign campusesAvail = '<span id="' | Append: campus.Slug | Append: '" class="se-logo">' | Append: campus.ShortCode | Append: '</span>' %}
-                                    {% elseif pageParamCampus != empty and pageParamCampus != null and pageParamCampus != 'allCampuses' and pageParamCampus != 'southeast' %}
-                                        {% campus where:'Name == "{{pageParamCampus | Replace:'-',' '}}"' %}
-                                            {% for campus in campusItems %}
-                                                    {% assign campusesAvail = campusesAvail | Append: ' <span id="' | Append: campus.Slug | Append: '" class="se-logo">' | Append: campus.ShortCode | Append: '</span>' %}
-                                            {% endfor %}
-										{% endcampus %}
-									{% else %}
+                                    {% else %}
                                         {% campus where:'Public == true' %}
                                             {% for campus in campusItems %}
                                                     {% assign campusesAvail = campusesAvail | Append: ' <span id="' | Append: campus.Slug | Append: '" class="se-logo">' | Append: campus.ShortCode | Append: '</span>' %}

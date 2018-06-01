@@ -1,0 +1,38 @@
+<section id="BannerRotations" class="carousel slide" data-ride="carousel">
+
+    {% assign itemCount = Items | Size %}
+
+    <ol class="carousel-indicators">
+    {% if itemCount > 0 %}
+        {% for item in Items %}
+            <li data-target="#BannerRotations" data-slide-to="0" {% if forloop.first -%}class="active"{% endif -%}></li>
+        {% endfor %}
+    {% endif %}
+    </ol>
+
+    <!-- Wrapper for slides -->
+	<div class="carousel-inner" controls>
+    {% if itemCount > 0 %}
+        {% for item in Items %}
+                {% assign bannerImage = item | Attribute:'Banner','Object'%}
+                {% assign bannerLink = item | Attribute:'BannerLInk' %}
+
+                <div class="item {% if forloop.first -%}active{% endif -%}">
+                    {% if bannerLink != '' %}<a href="{{ bannerLink }}">{% endif %}
+        				<img src="/GetImage.ashx?guid={{ bannerImage.Guid }}" srcset="/GetImage.ashx?guid={{ bannerImage.Guid }} 1920w, /GetImage.ashx?guid={{ bannerImage.Guid }} 1200w, /GetImage.ashx?guid={{ bannerImage.Guid }} 992w, /GetImage.ashx?guid={{ bannerImage.Guid }} 767w"  style="width: 100%;">
+                    {% if bannerLink %}</a>{% endif %}
+        		</div>
+
+        {% endfor %}
+    {% endif %}
+    </div>
+
+    <!-- Controls -->
+    <a class="left carousel-control" href="#BannerRotations" data-slide="prev">
+        <span class="glyphicon glyphicon-chevron-left"></span>
+    </a>
+    <a class="right carousel-control" href="#BannerRotations" data-slide="next">
+        <span class="glyphicon glyphicon-chevron-right"></span>
+    </a>
+
+</section>

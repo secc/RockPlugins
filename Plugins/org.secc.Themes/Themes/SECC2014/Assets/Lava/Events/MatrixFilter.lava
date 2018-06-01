@@ -32,7 +32,7 @@
                         <br />
                         <h4 class="uppercase">Events From</h4>
                         <select class="select2-campuses" name="campus">
-                        <option value="allCampuses" data-shortcode="SE">All Campuses</option>
+                        <option value="allCampuses" data-shortcode="SE" {% if selectedCampus == null %} selected="selected"{% endif %}>All Campuses</option>
                         {% for campus in Campuses %}
                         	{% assign publicCampus = campus | Attribute:'Public' %}
                         	{% if publicCampus == 'Yes' %}
@@ -58,7 +58,11 @@
                                 {% assign publicFilter = definedValue | Attribute:'PublicFilter' %}
                                 {% if publicFilter == "Yes" %}
 									{% assign urlSlug = definedValue | Attribute:'URLSlug' %}
+<<<<<<< HEAD
+									<option value="{{ definedValue.Id }}" data-ministry="{{urlSlug}}" {% if urlSlug == ministrySlug %} selected="selected"{% endif %}>{{ definedValue.Value | Capitalize }}</option>
+=======
 									<option value="{{ definedValue.Id }}" data-ministry="{{urlSlug}}"{% if urlSlug == ministrySlug %} selected="selected"{% endif %}>{{ definedValue.Value | Capitalize }}</option>
+>>>>>>> e54c9e0bde3f5448f504cee9c0c64b0bbbf20612
                                 {% endif %}
                             {% endfor %}
                         {% enddefinedvalue %}
