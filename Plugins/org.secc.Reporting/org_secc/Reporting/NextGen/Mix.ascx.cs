@@ -57,12 +57,14 @@ namespace RockWeb.Blocks.Reporting.NextGen
     /// </summary>
     [DisplayName("Mix")]
     [Category("SECC > Reporting > NextGen")]
-    [Description("A report for managing the trip attendeeds for NextGen's Bible & Beach Trip.")]
+    [Description("A report for managing the trip attendeeds for NextGen's MIX Trip.")]
     [GroupField("Group", "The group for managing the members of this trip.", true)]
+    [CustomEnhancedListField( "Registration Instances", "The registration instances this should connect to.",
+        "SELECT [Id] AS [Value], [Name] AS [Text] FROM [RegistrationInstance] WHERE isActive = 1 ORDER BY [Name]", true, "", "")]
     [LinkedPage("Registrant Page", "The page for viewing the registrant.", true)]
     [LinkedPage("Group Member Detail Page", "The page for editing the group member.", true)]
     [GroupTypeField("MSM Group Type", "The HSM Group Type to use for the HSM Group Field.", true)]
-    [CustomCheckboxListField("Signature Document Templates", "The signature document templates to include.", "select id as value, name as text from SignatureDocumentTemplate")]
+    [CustomEnhancedListField( "Signature Document Templates", "The signature document templates to include.", "select id as value, name as text from SignatureDocumentTemplate")]
     public partial class Mix : RockBlock
     {
 
@@ -140,14 +142,16 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 if (!string.IsNullOrWhiteSpace(GetAttributeValue("SignatureDocumentTemplates"))) {
                     signatureDocumentIds = Array.ConvertAll(GetAttributeValue("SignatureDocumentTemplates").Split(','), int.Parse);
                 }
+
+                int[] registrationInstanceIds = { };
+                if ( !string.IsNullOrWhiteSpace( GetAttributeValue( "RegistrationInstances" ) ) )
+                {
+                    registrationInstanceIds = Array.ConvertAll( GetAttributeValue( "RegistrationInstances" ).Split( ',' ), int.Parse );
+                }
+
                 Guid bbGroup = GetAttributeValue("Group").AsGuid();
                 var group = new GroupService(rockContext).Get(bbGroup);
                 
-                if (group.Name.Contains("Week 2"))
-                {
-                    cmpCampus.Visible = true;
-                }
-
                 Guid hsmGroupTypeGuid = GetAttributeValue("MSMGroupType").AsGuid();
                 int? hsmGroupTypeId = groupTypeService.Queryable().Where(gt => gt.Guid == hsmGroupTypeGuid).Select(gt => gt.Id).FirstOrDefault();
 
@@ -167,10 +171,15 @@ namespace RockWeb.Blocks.Reporting.NextGen
                      .Where(gm => (gm.GroupId == group.Id));
 
                 var qry = gmTmpqry
+                    .Join(personAliasService.Queryable(),
+                        obj => obj.PersonId,
+                        pa => pa.PersonId,
+                        (obj, pa) => new { GroupMember = obj, PersonAlias = pa }
+                    )
                     .Join(registrationRegistrantService.Queryable(),
-                        obj => obj.Id,
-                        rr => rr.GroupMemberId,
-                        (obj, rr) => new { GroupMember = obj, Person = obj.Person, RegistrationRegistrant = rr })
+                        obj => obj.PersonAlias.Id,
+                        rr => rr.PersonAliasId,
+                        (obj, rr) => new { GroupMember = obj.GroupMember, Person = obj.GroupMember.Person, RegistrationRegistrant = rr })
                     .GroupJoin(attributeValueService.Queryable(),
                         obj => new { PersonId = (int?)obj.Person.Id, AttributeId = 739 },
                         av => new { PersonId = av.EntityId, av.AttributeId },
@@ -182,7 +191,8 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     .GroupJoin(attributeValueService.Queryable(),
                         obj => obj.RegistrationRegistrant.Id,
                         av => av.EntityId.Value,
-                        (obj, avs) => new { GroupMember = obj.GroupMember, Person = obj.Person, RegistrationRegistrant = obj.RegistrationRegistrant, GroupMemberAttributeValues = obj.GroupMemberAttributeValues, RegistrationAttributeValues = avs.Where(av => attributeIds.Contains(av.AttributeId)), School = obj.School/*, Location = obj.Location */ });
+                        (obj, avs) => new { GroupMember = obj.GroupMember, Person = obj.Person, RegistrationRegistrant = obj.RegistrationRegistrant, GroupMemberAttributeValues = obj.GroupMemberAttributeValues, RegistrationAttributeValues = avs.Where(av => attributeIds.Contains(av.AttributeId)), School = obj.School/*, Location = obj.Location */ })
+                    .Where( obj => registrationInstanceIds.Contains( obj.RegistrationRegistrant.Registration.RegistrationInstanceId ) );
 
                 var qry2 = gmTmpqry
                         .GroupJoin(
@@ -238,10 +248,8 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 }
                 else if (!string.IsNullOrEmpty(cmpCampus.SelectedValue))
                 {
-                    if (group.Name.Contains("Week 2"))
-                    {
-                        qry = qry.ToList().Where(q => q.RegistrationAttributeValues.Where(ra => ra.AttributeKey == "Whichcampusdoyouwanttodepartforcampfromandroomwith" && ra.Value == cmpCampus.SelectedValue).Any()).AsQueryable();
-                    }
+                CampusCache campus = CampusCache.Read( cmpCampus.SelectedCampusId.Value );
+                    qry = qry.ToList().Where(q => q.RegistrationAttributeValues.Where(ra => ra.AttributeKey == "Whichcampus" && ra.Value.Contains( campus.Name.Replace(" ", "") ) ).Any()).AsQueryable();
                 }
 
                 var stopwatch = new Stopwatch();
@@ -578,7 +586,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
             public String TravelNotes { get { return GetAttributeValue("TravelNotes"); } }
             public String SpecialNotes { get { return GetAttributeValue("SpecialNotes"); } }
             public String TravelExceptions { get { return GetAttributeValue("TravelExceptions"); } }
-            public String Group { get { return GetAttributeValue("Group1"); } }
+            public String Group { get { return GetAttributeValue("FamilyGroup"); } }
             public String Dorm { get { return GetAttributeValue("Dorm"); } }
             public String Room { get { return GetAttributeValue("Room"); } }
             public String Bus { get { return GetAttributeValue("Bus"); } }
@@ -659,9 +667,9 @@ namespace RockWeb.Blocks.Reporting.NextGen
             public string Campus
             {
                 get {
-                    if (!String.IsNullOrEmpty(GetAttributeValue("Whichcampusdoyouwanttodepartforcampfromandroomwith")))
+                    if (!String.IsNullOrEmpty(GetAttributeValue( "Whichcampus" ) ))
                     {
-                        return GetAttributeValue("Whichcampusdoyouwanttodepartforcampfromandroomwith");
+                        return GetAttributeValue( "Whichcampus" );
                     }
                     else if(!String.IsNullOrEmpty(GetAttributeValue("Campus")))
                     {
