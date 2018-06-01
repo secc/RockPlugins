@@ -30,7 +30,7 @@
                     <Rock:RockTextBox Label="Person Name" ID="txtPersonName" runat="server" />
                     <Rock:RockDropDownList Label="POA Received:" ID="ddlPOA" runat="server" Visible="false" />
                     <Rock:NumberRangeEditor Label="Balance Owed" ID="nreBalanceOwed" runat="server" />
-                    <Rock:CampusPicker Label="Campus" ID="cmpCampus" Visible="false" runat="server"></Rock:CampusPicker>
+                    <Rock:CampusPicker Label="Campus" ID="cmpCampus" runat="server"></Rock:CampusPicker>
                 </Rock:GridFilter>
                 <Rock:Grid ID="gReport" runat="server" AllowSorting="true" EmptyDataText="No Results" PersonIdField="RegisteredBy.Id" DataKeyNames="Id, RegistrationId" OnRowSelected="gReport_RowSelected" ExportSource="ColumnOutput">
                     <Columns>
