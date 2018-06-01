@@ -309,7 +309,11 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
                     if ( scheduleAtt != null )
                     {
-                        medicalItem.Schedule = DefinedValueCache.Read( scheduleAtt.AttributeValue.Value.AsGuid() ).Value;
+                        var dv = DefinedValueCache.Read( scheduleAtt.AttributeValue.Value.AsGuid() );
+                        if ( dv != null )
+                        {
+                            medicalItem.Schedule = dv.Value;
+                        }
                     }
 
                     var medAtt = medicine.FirstOrDefault( m => m.Attribute.Key == "Medication" );
