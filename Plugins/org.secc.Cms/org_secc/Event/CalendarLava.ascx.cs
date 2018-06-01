@@ -32,6 +32,7 @@ using Rock.Attribute;
 using Rock.Store;
 using System.Text;
 using Rock.Security;
+using System.Runtime.Caching;
 
 namespace RockWeb.Blocks.Event
 {
@@ -59,14 +60,15 @@ namespace RockWeb.Blocks.Event
     [BooleanField( "Show Year View", "Determines whether the year view option is shown", true, order: 12 )]
 
     [BooleanField( "Enable Campus Context", "If the page has a campus context it's value will be used as a filter", order: 13 )]
-    [CodeEditorField( "Lava Template", "Lava template to use to display the list of events.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 400, true, @"{% include '~~/Assets/Lava/Calendar.lava' %}", "", 14 )]
+    [TextField( "Cache Duration", "Ammount of time in minutes to cache the output of this block.", true, "3600", order: 14 )]
+    [CodeEditorField( "Lava Template", "Lava template to use to display the list of events.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 400, true, @"{% include '~~/Assets/Lava/Calendar.lava' %}", "", 15 )]
 
-    [DayOfWeekField( "Start of Week Day", "Determines what day is the start of a week.", true, DayOfWeek.Sunday, order: 15 )]
+    [DayOfWeekField( "Start of Week Day", "Determines what day is the start of a week.", true, DayOfWeek.Sunday, order: 16 )]
 
-    [BooleanField( "Set Page Title", "Determines if the block should set the page title with the calendar name.", false, order: 16 )]
+    [BooleanField( "Set Page Title", "Determines if the block should set the page title with the calendar name.", false, order: 17 )]
 
-    [TextField( "Campus Parameter Name", "The page parameter name that contains the id of the campus entity.", false, "campusId", order: 17 )]
-    [TextField( "Category Parameter Name", "The page parameter name that contains the id of the category entity.", false, "categoryId", order: 18 )]
+    [TextField( "Campus Parameter Name", "The page parameter name that contains the id of the campus entity.", false, "campusId", order: 18 )]
+    [TextField( "Category Parameter Name", "The page parameter name that contains the id of the category entity.", false, "categoryId", order: 19 )]
 
     public partial class CalendarLava : Rock.Web.UI.RockBlock
     {
@@ -306,6 +308,22 @@ namespace RockWeb.Blocks.Event
         /// </summary>
         private void BindData()
         {
+            List<int> campusIds = cblCampus.Items.OfType<ListItem>().Where( l => l.Selected ).Select( a => a.Value.AsInteger() ).ToList();
+            List<int> categories = cblCategory.Items.OfType<ListItem>().Where( l => l.Selected ).Select( a => a.Value.AsInteger() ).ToList();
+
+            var cacheKey = string.Format( "{0}^{1}^{2}CalendarLava",
+                                            string.Join( "-", campusIds ),
+                                            string.Join( "-", categories ),
+                                            BlockCache.Id.ToString() );
+
+            var cache = RockMemoryCache.Default;
+            var content = cache.Get( cacheKey );
+            if ( content != null && !string.IsNullOrWhiteSpace( ( string ) content ) )
+            {
+                lOutput.Text = ( string ) content;
+                return;
+            }
+
             var rockContext = new RockContext();
             var eventItemOccurrenceService = new EventItemOccurrenceService( rockContext );
             var attributeService = new AttributeService( rockContext );
@@ -339,7 +357,6 @@ namespace RockWeb.Blocks.Event
                         m.EventItemOccurrence.EventItem.IsApproved );
 
             // Filter by campus
-            List<int> campusIds = cblCampus.Items.OfType<ListItem>().Where( l => l.Selected ).Select( a => a.Value.AsInteger() ).ToList();
             if ( campusIds.Any() )
             {
                 qry = qry
@@ -349,7 +366,6 @@ namespace RockWeb.Blocks.Event
             }
 
             // Filter by Category
-            List<int> categories = cblCategory.Items.OfType<ListItem>().Where( l => l.Selected ).Select( a => a.Value.AsInteger() ).ToList();
             if ( categories.Any() )
             {
                 qry = qry
@@ -452,6 +468,13 @@ namespace RockWeb.Blocks.Event
 
             lOutput.Text = GetAttributeValue( "LavaTemplate" ).ResolveMergeFields( mergeFields, GetAttributeValue( "EnabledLavaCommands" ) );
 
+            var minutes = GetAttributeValue( "CacheDuration" ).AsInteger();
+            if ( minutes > 0 )
+            {
+                var cachePolicy = new CacheItemPolicy();
+                cachePolicy.AbsoluteExpiration = DateTimeOffset.Now.AddMinutes( minutes );
+                cache.Set( cacheKey, lOutput.Text, cachePolicy );
+            }
         }
 
         /// <summary>
