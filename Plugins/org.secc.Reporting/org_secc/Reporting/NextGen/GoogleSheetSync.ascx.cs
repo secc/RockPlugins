@@ -66,9 +66,13 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
     [TextField("Person Id Column", "An optional column which contains the person id.  Data will be set into this field when a person is matched.", false, category:"Update Fields")]
     [TextField("Person Phone Column", "An optional column which will contain the person's mobile phone number.  Data will be set into this field when a person is matched.", false, category: "Update Fields")]
+    [TextField( "Parent 1 Column", "An optional column which will contain the first parent's name.  Data will be set into this field when a person is matched.", false, category: "Update Fields" )]
+    [TextField( "Parent 1 Phone Column", "An optional column which will contain the first parent's phone number.  Data will be set into this field when a person is matched.", false, category: "Update Fields" )]
+    [TextField( "Parent 2 Column", "An optional column which will contain the second parent's name.  Data will be set into this field when a person is matched.", false, category: "Update Fields" )]
+    [TextField( "Parent 2 Phone Column", "An optional column which will contain the second parent's phone number.  Data will be set into this field when a person is matched.", false, category: "Update Fields" )]
 
     [CampusField("Campus", "The campus to process for this sync.", false, includeInactive:false)]
-    [CustomDropdownListField("Role", "The role to process for this sync.", "Student, Leader, Other", true)]
+    [CustomDropdownListField("Role", "The role to process for this sync.", "Student, Other^Other (Leader/Staff/Advance)", true)]
 
     [CodeEditorField("Service Account Key", "A JSON string for the service account to access this sheet (https://developers.google.com/identity/protocols/OAuth2ServiceAccount)", CodeEditorMode.JavaScript)]
     [IntegerField("First Data Row", "The first row of data after the header rows where this will start synchronizing", true, 2, category: "Sheet Information")]
@@ -111,6 +115,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
             RockContext rockContext = new RockContext();
             GroupService groupService = new GroupService(rockContext);
+            PersonService personService = new PersonService( rockContext );
 
             Group group = groupService.Get(GetAttributeValue("Group").AsGuid());
 
@@ -159,6 +164,10 @@ namespace RockWeb.Blocks.Reporting.NextGen
             {
                 var personIds = new ValueRange() { Values = new List<IList<object>>() };
                 var phoneNumbers = new ValueRange() { Values = new List<IList<object>>() };
+                var parent1Names = new ValueRange() { Values = new List<IList<object>>() };
+                var parent1PhoneNumbers = new ValueRange() { Values = new List<IList<object>>() };
+                var parent2Names = new ValueRange() { Values = new List<IList<object>>() };
+                var parent2PhoneNumbers = new ValueRange() { Values = new List<IList<object>>() };
 
                 for (var i = 0; i < data.Count; i++)
                 {
@@ -188,6 +197,10 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
                     string personId = "";
                     string phone = "";
+                    string parent1Name = "";
+                    string parent1PhoneNumber = "";
+                    string parent2Name = "";
+                    string parent2PhoneNumber = "";
                     if (GetAttributeValue("PersonIdColumn") != "")
                     {
                         int columnIndex = ColumnNumber(GetAttributeValue("PersonIdColumn").ToString()) - ColumnNumber(GetAttributeValue("StartColumn").ToString());
@@ -211,9 +224,48 @@ namespace RockWeb.Blocks.Reporting.NextGen
                             phone = data[i][columnIndex].ToString();
                         }
                     }
-                    
+
+                    if ( GetAttributeValue( "Parent1Column" ) != "" )
+                    {
+                        int columnIndex = ColumnNumber( GetAttributeValue( "Parent1Column" ).ToString() ) - ColumnNumber( GetAttributeValue( "StartColumn" ).ToString() );
+
+                        if ( data[i].Count >= columnIndex + 1 )
+                        {
+                            parent1Name = data[i][columnIndex].ToString();
+                        }
+                    }
+
+                    if ( GetAttributeValue( "Parent1PhoneColumn" ) != "" )
+                    {
+                        int columnIndex = ColumnNumber( GetAttributeValue( "Parent1PhoneColumn" ).ToString() ) - ColumnNumber( GetAttributeValue( "StartColumn" ).ToString() );
+
+                        if ( data[i].Count >= columnIndex + 1 )
+                        {
+                            parent1PhoneNumber = data[i][columnIndex].ToString();
+                        }
+                    }
+                    if ( GetAttributeValue( "Parent2Column" ) != "" )
+                    {
+                        int columnIndex = ColumnNumber( GetAttributeValue( "Parent2Column" ).ToString() ) - ColumnNumber( GetAttributeValue( "StartColumn" ).ToString() );
+
+                        if ( data[i].Count >= columnIndex + 1 )
+                        {
+                            parent2Name = data[i][columnIndex].ToString();
+                        }
+                    }
+
+                    if ( GetAttributeValue( "Parent2PhoneColumn" ) != "" )
+                    {
+                        int columnIndex = ColumnNumber( GetAttributeValue( "Parent2PhoneColumn" ).ToString() ) - ColumnNumber( GetAttributeValue( "StartColumn" ).ToString() );
+
+                        if ( data[i].Count >= columnIndex + 1 )
+                        {
+                            parent2PhoneNumber = data[i][columnIndex].ToString();
+                        }
+                    }
+
                     // If the role or the campus short code don't match, just skip this
-                    if ((GetAttributeValue("Role").ToLower() == "other" && role.ToLower() != "student" && role.ToLower() != "leader" || role.ToLower() == GetAttributeValue("Role").ToLower()) && (string.IsNullOrEmpty(campus) || campus == campusShortCode) && firstName != "" && lastName != "")
+                    if ((GetAttributeValue("Role").ToLower() == "other" && role.ToLower() != "student" || role.ToLower() == GetAttributeValue("Role").ToLower()) && (string.IsNullOrEmpty(campus) || campus == campusShortCode) && firstName != "" && lastName != "")
                     {
                         var members = group.Members.Where(m => (m.Person.NickName.ToLower() == firstName.ToLower().Trim(' ') || m.Person.FirstName.ToLower() == firstName.ToLower().Trim(' ')) && (m.Person.LastName.ToLower() == lastName.ToLower().Trim(' ') || m.Person.LastName.ToLower() == lastName.ToLower().Replace("jr.", "").Trim(' ')));
 
@@ -234,6 +286,21 @@ namespace RockWeb.Blocks.Reporting.NextGen
                             {
                                 personId = member.PersonId.ToString();
                                 phone = member.Person.PhoneNumbers.Where(pn => pn.NumberTypeValue.Guid == Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid()).Select(pn => pn.NumberFormatted).FirstOrDefault();
+                                var parent1 = member.Person.GetFamilyMembers().Where( fm => fm.GroupRole.Guid.ToString() == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT ).Select(fm => fm.Person).FirstOrDefault();
+
+                                if ( parent1 != null)
+                                {
+                                    parent1Name = parent1.NickName + " " + parent1.LastName;
+                                    parent1PhoneNumber = personService.Get(parent1.Id).PhoneNumbers.Where( pn => pn.NumberTypeValueId == 12).Select( pn => pn.NumberFormatted ).FirstOrDefault();
+                                    var parent2 = member.Person.GetFamilyMembers().Where( fm => fm.GroupRole.Guid.ToString() == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT && fm.Id != parent1.Id ).Select(fm => fm.Person).FirstOrDefault();
+
+                                    if ( parent2 != null)
+                                    {
+                                        parent2Name = parent2.NickName + " " + parent2.LastName;
+                                        parent2PhoneNumber = personService.Get( parent2.Id ).PhoneNumbers.Where( pn => pn.NumberTypeValueId == 12 ).Select( pn => pn.NumberFormatted ).FirstOrDefault();
+
+                                    }
+                                }
 
                                 member.LoadAttributes();
 
@@ -265,7 +332,11 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     }
 
                     personIds.Values.Add(new List<object>() { personId });
-                    phoneNumbers.Values.Add(new List<object>() { phone });
+                    phoneNumbers.Values.Add( new List<object>() { phone } );
+                    parent1Names.Values.Add( new List<object>() { parent1Name } );
+                    parent1PhoneNumbers.Values.Add( new List<object>() { parent1PhoneNumber } );
+                    parent2Names.Values.Add( new List<object>() { parent2Name } );
+                    parent2PhoneNumbers.Values.Add( new List<object>() { parent2PhoneNumber } );
                 }
 
                 if (GetAttributeValue("PersonIdColumn") != "")
@@ -283,6 +354,38 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     var result = updateRequest.Execute();
 
                     litOutput.Text += "<br />Updated " + (phoneNumbers.Values.Select(v => v[0]).Where(v => v != null && v.ToString() != "").Count()) + " Phone Numbers in Column " + GetAttributeValue("PersonPhoneColumn");
+                }
+                if ( GetAttributeValue( "Parent1Column" ) != "" )
+                {
+                    var updateRequest = service.Spreadsheets.Values.Update( parent1Names, spreadsheetId, GetAttributeValue( "SheetName" ) + "!" + GetAttributeValue( "Parent1Column" ) + GetAttributeValue( "FirstDataRow" ) + ":" + GetAttributeValue( "Parent1Column" ) );
+                    updateRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+                    var result = updateRequest.Execute();
+
+                    litOutput.Text += "<br />Updated " + ( parent1Names.Values.Select( v => v[0] ).Where( v => v != null && v.ToString() != "" ).Count() ) + " Parent 1 Names in Column " + GetAttributeValue( "Parent1Column" );
+                }
+                if ( GetAttributeValue( "Parent1PhoneColumn" ) != "" )
+                {
+                    var updateRequest = service.Spreadsheets.Values.Update( parent1PhoneNumbers, spreadsheetId, GetAttributeValue( "SheetName" ) + "!" + GetAttributeValue( "Parent1PhoneColumn" ) + GetAttributeValue( "FirstDataRow" ) + ":" + GetAttributeValue( "Parent1PhoneColumn" ) );
+                    updateRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+                    var result = updateRequest.Execute();
+
+                    litOutput.Text += "<br />Updated " + ( parent1PhoneNumbers.Values.Select( v => v[0] ).Where( v => v != null && v.ToString() != "" ).Count() ) + " Parent 1 Phone Numbers in Column " + GetAttributeValue( "Parent1PhoneColumn" );
+                }
+                if ( GetAttributeValue( "Parent2Column" ) != "" )
+                {
+                    var updateRequest = service.Spreadsheets.Values.Update( parent2Names, spreadsheetId, GetAttributeValue( "SheetName" ) + "!" + GetAttributeValue( "Parent2Column" ) + GetAttributeValue( "FirstDataRow" ) + ":" + GetAttributeValue( "Parent2Column" ) );
+                    updateRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+                    var result = updateRequest.Execute();
+
+                    litOutput.Text += "<br />Updated " + ( parent2Names.Values.Select( v => v[0] ).Where( v => v != null && v.ToString() != "" ).Count() ) + " Parent 2 Names in Column " + GetAttributeValue( "Parent2Column" );
+                }
+                if ( GetAttributeValue( "Parent2PhoneColumn" ) != "" )
+                {
+                    var updateRequest = service.Spreadsheets.Values.Update( parent2PhoneNumbers, spreadsheetId, GetAttributeValue( "SheetName" ) + "!" + GetAttributeValue( "Parent2PhoneColumn" ) + GetAttributeValue( "FirstDataRow" ) + ":" + GetAttributeValue( "Parent2PhoneColumn" ) );
+                    updateRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+                    var result = updateRequest.Execute();
+
+                    litOutput.Text += "<br />Updated " + ( parent2PhoneNumbers.Values.Select( v => v[0] ).Where( v => v != null && v.ToString() != "" ).Count() ) + " Parent 2 Phone Numbers in Column " + GetAttributeValue( "Parent2PhoneColumn" );
                 }
 
                 var missedPeople = group.Members.Where(gm => !personIds.Values.Select(v => v[0]).Contains(gm.PersonId.ToString()) && gm.GroupMemberStatus == GroupMemberStatus.Active);
