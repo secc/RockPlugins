@@ -292,7 +292,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                                 {
                                     parent1Name = parent1.NickName + " " + parent1.LastName;
                                     parent1PhoneNumber = personService.Get(parent1.Id).PhoneNumbers.Where( pn => pn.NumberTypeValueId == 12).Select( pn => pn.NumberFormatted ).FirstOrDefault();
-                                    var parent2 = member.Person.GetFamilyMembers().Where( fm => fm.GroupRole.Guid.ToString() == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT && fm.Id != parent1.Id ).Select(fm => fm.Person).FirstOrDefault();
+                                    var parent2 = member.Person.GetFamilyMembers().Where( fm => fm.GroupRole.Guid.ToString() == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT && fm.PersonId != parent1.Id ).Select(fm => fm.Person).FirstOrDefault();
 
                                     if ( parent2 != null)
                                     {
