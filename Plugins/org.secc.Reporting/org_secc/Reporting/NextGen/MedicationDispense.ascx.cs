@@ -74,7 +74,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     ddlSchedule.Items.Insert( 0, new ListItem( "", "" ) );
                 }
 
-                Rock.Model.Attribute filterAttribute = null;
+                List<Rock.Model.Attribute> filterAttribute = null;
 
                 var filterAttributeKey = GetAttributeValue( "GroupMemberAttributeFilter" );
                 if ( !string.IsNullOrWhiteSpace( filterAttributeKey ) )
@@ -98,22 +98,23 @@ namespace RockWeb.Blocks.Reporting.NextGen
                         .Where( a =>
                         ( groupIdStrings.Contains( a.EntityTypeQualifierValue ) || groupTypeIds.Contains( a.EntityTypeQualifierValue ) )
                         && a.Key == filterAttributeKey
-                        && a.EntityTypeId == groupEntityid )
-                    .FirstOrDefault();
+                        && a.EntityTypeId == groupEntityid ).ToList();
 
                     if ( filterAttribute != null )
                     {
                         AttributeValueService attributeValueService = new AttributeValueService( rockContext );
-                        ddlAttribute.Label = filterAttribute.Name;
+                        ddlAttribute.Label = filterAttribute.FirstOrDefault().Name;
+                        List<int> attributeIds = filterAttribute.Select( a => a.Id ).ToList();
                         var qry = new GroupMemberService( rockContext ).Queryable()
                             .Where( gm => groupIds.Contains( gm.GroupId ) )
                             .Join(
-                                attributeValueService.Queryable().Where( av => av.AttributeId == filterAttribute.Id ),
+                                attributeValueService.Queryable().Where( av => attributeIds.Contains(av.AttributeId) ),
                                 m => m.Id,
                                 av => av.EntityId,
                                 ( m, av ) => new { Key = av.Value, Value = av.Value } )
                                 .DistinctBy( a => a.Key )
-                                .OrderBy( a => a.Key )
+                                .Where(a => !string.IsNullOrEmpty(a.Key))
+                                .OrderBy( a => a.Value )
                                 .ToList();
                         ddlAttribute.DataSource = qry;
                         ddlAttribute.DataBind();
@@ -187,30 +188,30 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
             AttributeService attributeService = new AttributeService( rockContext );
 
-            Rock.Model.Attribute attribute = attributeService.Queryable()
+            List<int> attributeIds = attributeService.Queryable()
                 .Where( a =>
                     ( groupIdStrings.Contains( a.EntityTypeQualifierValue ) || groupTypeIds.Contains( a.EntityTypeQualifierValue ) )
                     && a.Key == key
                     && a.EntityTypeId == groupEntityid )
-                .FirstOrDefault();
+                .Select(a => a.Id).ToList();
 
-            if ( attribute == null )
+            if ( attributeIds == null )
             {
                 nbAlert.Visible = true;
                 nbAlert.Text = "Medication attribute not found";
                 return null;
             }
 
-            Rock.Model.Attribute filterAttribute = null;
+            List<int> filterAttributeIds = null;
             var filterAttributeKey = GetAttributeValue( "GroupMemberAttributeFilter" );
             if ( !string.IsNullOrWhiteSpace( filterAttributeKey ) )
             {
-                filterAttribute = attributeService.Queryable()
+                filterAttributeIds = attributeService.Queryable()
                     .Where( a =>
                     ( groupIdStrings.Contains( a.EntityTypeQualifierValue ) || groupTypeIds.Contains( a.EntityTypeQualifierValue ) )
                     && a.Key == filterAttributeKey
                     && a.EntityTypeId == groupEntityid )
-                .FirstOrDefault();
+                .Select(a => a.Id).ToList();
             }
 
             var attributeMatrixItemEntityId = EntityTypeCache.GetId<AttributeMatrixItem>();
@@ -220,12 +221,11 @@ namespace RockWeb.Blocks.Reporting.NextGen
             AttributeMatrixItemService attributeMatrixItemService = new AttributeMatrixItemService( rockContext );
             HistoryService historyService = new HistoryService( rockContext );
 
-            var qry = new GroupMemberService( rockContext ).Queryable().
-                Where( gm => groupIds.Contains( gm.GroupId ) )
+            var qry = new GroupMemberService( rockContext ).Queryable()
                 .Join(
-                    attributeValueService.Queryable().Where( av => av.AttributeId == attribute.Id ),
+                    attributeValueService.Queryable().Where(av => attributeIds.Contains( av.AttributeId )),
                     m => m.Id,
-                    av => av.EntityId,
+                    av => av.EntityId.Value,
                     ( m, av ) => new { Member = m, AttributeValue = av.Value }
                 )
                 .Join(
@@ -241,9 +241,9 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     ( m, ami ) => new { Member = m.Member, AttributeMatrixItem = ami, TemplateId = ami.AttributeMatrix.AttributeMatrixTemplateId }
                 )
                 .Join(
-                    attributeService.Queryable().Where( a => a.EntityTypeId == attributeMatrixItemEntityId ),
-                    m => m.TemplateId.ToString(),
-                    a => a.EntityTypeQualifierValue,
+                    attributeService.Queryable(),
+                    m => new { TemplateIdString = m.TemplateId.ToString(), EntityTypeId = attributeMatrixItemEntityId },
+                    a => new { TemplateIdString = a.EntityTypeQualifierValue, EntityTypeId = a.EntityTypeId },
                     ( m, a ) => new { Member = m.Member, AttributeMatrixItem = m.AttributeMatrixItem, Attribute = a }
                 )
                 .Join(
@@ -251,21 +251,20 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     m => new { EntityId = m.AttributeMatrixItem.Id, AttributeId = m.Attribute.Id },
                     av => new { EntityId = av.EntityId ?? 0, AttributeId = av.AttributeId },
                     ( m, av ) => new { Member = m.Member, Attribute = m.Attribute, AttributeValue = av, MatrixItemId = m.AttributeMatrixItem.Id, FilterValue = "" }
-                );
+                ).
+                Where( obj => groupIds.Contains( obj.Member.GroupId ) );
 
-            if ( filterAttribute != null && pnlAttribute.Visible && !string.IsNullOrWhiteSpace( ddlAttribute.SelectedValue ) )
+            if ( filterAttributeIds != null && pnlAttribute.Visible && !string.IsNullOrWhiteSpace( ddlAttribute.SelectedValue ) )
             {
                 var filterValue = ddlAttribute.SelectedValue;
                 qry = qry
                     .Join(
-                    attributeValueService.Queryable().Where( av => av.AttributeId == filterAttribute.Id ),
+                    attributeValueService.Queryable().Where( av => filterAttributeIds.Contains(av.AttributeId) ),
                     m => new { Id = m.Member.Id, Value = filterValue },
                     av => new { Id = av.EntityId ?? 0, Value = av.Value },
                     ( m, av ) => new { Member = m.Member, Attribute = m.Attribute, AttributeValue = m.AttributeValue, MatrixItemId = m.MatrixItemId, FilterValue = av.Value } );
             }
-
-            var members = qry.GroupBy( a => a.Member )
-                .ToList();
+            var members = qry.ToList().GroupBy( a => a.Member ).ToList();
 
             var firstDay = ( dpDate.SelectedDate ?? Rock.RockDateTime.Today ).Date;
             var nextday = firstDay.AddDays( 1 );
