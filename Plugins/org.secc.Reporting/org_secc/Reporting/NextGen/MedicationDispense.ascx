@@ -25,9 +25,9 @@
 
             </div>
             <div class="panel-body">
-                <Rock:Grid runat="server" ID="gGrid" TooltipField="History" DataKeyNames="Key">
+                <Rock:Grid runat="server" ID="gGrid" TooltipField="History" DataKeyNames="Key" AllowSorting="true">
                     <Columns>
-                        <asp:BoundField DataField="Person" HeaderText="Person" />
+                        <asp:BoundField DataField="Person" HeaderText="Person" SortExpression="Person" />
                         <asp:BoundField DataField="Medication" HeaderText="Medication" />
                         <asp:BoundField DataField="Instructions" HeaderText="Instructions" />
                         <asp:BoundField DataField="Schedule" HeaderText="Schedule" />
