@@ -67,5 +67,18 @@ namespace org.secc.PayPalReporting.Model
 
         [DataMember]
         public bool IsZeroFee { get; set; }
+
+        [DataMember]
+        public int FinancialGatewayId { get; set; }
+
+
+        /// <summary>
+        /// Gets or sets the <see cref="Rock.Model.FinancialGateway"/> of the transaction.
+        /// </summary>
+        /// <value>
+        /// The <see cref="Rock.Model.FinancialGateway"/> of the file.
+        /// </value>
+        [DataMember]
+        public virtual Rock.Model.FinancialGateway FinancialGateway { get; set; }
     }
 }
