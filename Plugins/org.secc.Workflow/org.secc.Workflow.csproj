@@ -72,6 +72,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Person\GetPersonFromFields.cs" />
+    <Compile Include="WorkflowAttributes\CopyAttributeMatrix.cs" />
     <Compile Include="SignatureDocument\StoreSignedDocument.cs" />
   </ItemGroup>
   <ItemGroup />
