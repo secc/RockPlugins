@@ -69,7 +69,7 @@ namespace org.secc.PayPalReporting.Model
         public bool IsZeroFee { get; set; }
 
         [DataMember]
-        public int FinancialGatewayId { get; set; }
+        public int? FinancialGatewayId { get; set; }
 
 
         /// <summary>
