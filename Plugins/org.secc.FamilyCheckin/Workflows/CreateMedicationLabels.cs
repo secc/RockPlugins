@@ -83,7 +83,6 @@ namespace org.secc.FamilyCheckin
                         {
                             groupType.Labels = new List<CheckInLabel>();
 
-                            var PrinterIPs = new Dictionary<int, string>();
 
                             foreach ( var group in groupType.Groups )
                             {
@@ -132,87 +131,57 @@ namespace org.secc.FamilyCheckin
                                 mergeObjects.Add( "People", people );
                                 mergeObjects.Add( "GroupType", groupType );
 
-
-                                var items = attributeMatrix.AttributeMatrixItems.ToList();
-                                var index = 0;
-
-                                while ( index < items.Count )
+                                if (attributeMatrix == null || attributeMatrix.AttributeMatrixItems.Count == 0)
                                 {
+                                    // Add a No Medication Information label for anyone without data
                                     var checkInLabel = new CheckInLabel( labelCache, mergeObjects );
+                                    checkInLabel.MergeFields.Add( medicationText[0], "No Medication Information Found");
+                                    addLabel( checkInLabel, checkInState, groupType, group, rockContext );
+                                }
+                                else
+                                { 
+                                    var items = attributeMatrix.AttributeMatrixItems.ToList();
+                                    var index = 0;
 
-                                    foreach ( var med in medInfos )
+                                    while ( index < items.Count )
                                     {
+                                        var checkInLabel = new CheckInLabel( labelCache, mergeObjects );
 
-                                        if ( items.Count > index )
+                                        foreach ( var med in medInfos )
                                         {
-                                            items[index].LoadAttributes();
 
-                                            string scheduleText = "";
-                                            string separator = "";
-                                            var schedule = items[index].GetAttributeValue( matrixAttributeScheduleKey ).SplitDelimitedValues();
-                                            foreach(var scheduleGuid in schedule)
+                                            if ( items.Count > index )
                                             {
-                                                scheduleText += separator + DefinedValueCache.Read( scheduleGuid );
-                                                separator = ", ";
+                                                items[index].LoadAttributes();
+
+                                                string scheduleText = "";
+                                                string separator = "";
+                                                var schedule = items[index].GetAttributeValue( matrixAttributeScheduleKey ).SplitDelimitedValues();
+                                                foreach(var scheduleGuid in schedule)
+                                                {
+                                                    scheduleText += separator + DefinedValueCache.Read( scheduleGuid );
+                                                    separator = ", ";
+                                                }
+
+                                                checkInLabel.MergeFields.Add( med.Medication,
+                                                    items[index].GetAttributeValue( matrixAttributeMedicationKey )
+                                                    + " - "
+                                                    + scheduleText
+                                                );
+
+                                                checkInLabel.MergeFields.Add( med.Instructions, items[index].GetAttributeValue( matrixAttributeInstructionsKey ) );
+                                            }
+                                            else
+                                            {
+                                                checkInLabel.MergeFields.Add( med.Medication, "" );
+                                                checkInLabel.MergeFields.Add( med.Instructions, "" );
                                             }
 
-                                            checkInLabel.MergeFields.Add( med.Medication,
-                                                items[index].GetAttributeValue( matrixAttributeMedicationKey )
-                                                + " - "
-                                                + scheduleText
-                                            );
-
-                                            checkInLabel.MergeFields.Add( med.Instructions, items[index].GetAttributeValue( matrixAttributeInstructionsKey ) );
-                                        }
-                                        else
-                                        {
-                                            checkInLabel.MergeFields.Add( med.Medication, "" );
-                                            checkInLabel.MergeFields.Add( med.Instructions, "" );
+                                            addLabel( checkInLabel, checkInState, groupType, group, rockContext );
+                                            index++;
                                         }
 
-                                        index++;
                                     }
-
-                                    if ( checkInLabel.PrintTo == PrintTo.Default )
-                                    {
-                                        checkInLabel.PrintTo = groupType.GroupType.AttendancePrintTo;
-                                    }
-                                    else if ( checkInLabel.PrintTo == PrintTo.Location && group.Locations.Any() )
-                                    {
-                                        var deviceId = group.Locations.FirstOrDefault().Location.PrinterDeviceId;
-                                        if ( deviceId != null )
-                                        {
-                                            checkInLabel.PrinterDeviceId = deviceId;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        var device = checkInState.Kiosk.Device;
-                                        if ( device != null )
-                                        {
-                                            checkInLabel.PrinterDeviceId = device.PrinterDeviceId;
-                                        }
-                                    }
-
-
-                                    if ( checkInLabel.PrinterDeviceId.HasValue )
-                                    {
-                                        if ( PrinterIPs.ContainsKey( checkInLabel.PrinterDeviceId.Value ) )
-                                        {
-                                            checkInLabel.PrinterAddress = PrinterIPs[checkInLabel.PrinterDeviceId.Value];
-                                        }
-                                        else
-                                        {
-                                            var printerDevice = new DeviceService( rockContext ).Get( checkInLabel.PrinterDeviceId.Value );
-                                            if ( printerDevice != null )
-                                            {
-                                                PrinterIPs.Add( printerDevice.Id, printerDevice.IPAddress );
-                                                checkInLabel.PrinterAddress = printerDevice.IPAddress;
-                                            }
-                                        }
-                                    }
-
-                                    groupType.Labels.Insert( 0, checkInLabel );
                                 }
                             }
                         }
@@ -221,6 +190,53 @@ namespace org.secc.FamilyCheckin
                 return true;
             }
             return false;
+        }
+
+        private void addLabel( CheckInLabel checkInLabel, CheckInState checkInState, CheckInGroupType groupType, CheckInGroup group, RockContext rockContext )
+        {
+
+            var PrinterIPs = new Dictionary<int, string>();
+
+            if ( checkInLabel.PrintTo == PrintTo.Default )
+            {
+                checkInLabel.PrintTo = groupType.GroupType.AttendancePrintTo;
+            }
+            else if ( checkInLabel.PrintTo == PrintTo.Location && group.Locations.Any() )
+            {
+                var deviceId = group.Locations.FirstOrDefault().Location.PrinterDeviceId;
+                if ( deviceId != null )
+                {
+                    checkInLabel.PrinterDeviceId = deviceId;
+                }
+            }
+            else
+            {
+                var device = checkInState.Kiosk.Device;
+                if ( device != null )
+                {
+                    checkInLabel.PrinterDeviceId = device.PrinterDeviceId;
+                }
+            }
+
+
+            if ( checkInLabel.PrinterDeviceId.HasValue )
+            {
+                if ( PrinterIPs.ContainsKey( checkInLabel.PrinterDeviceId.Value ) )
+                {
+                    checkInLabel.PrinterAddress = PrinterIPs[checkInLabel.PrinterDeviceId.Value];
+                }
+                else
+                {
+                    var printerDevice = new DeviceService( rockContext ).Get( checkInLabel.PrinterDeviceId.Value );
+                    if ( printerDevice != null )
+                    {
+                        PrinterIPs.Add( printerDevice.Id, printerDevice.IPAddress );
+                        checkInLabel.PrinterAddress = printerDevice.IPAddress;
+                    }
+                }
+            }
+
+            groupType.Labels.Insert( 0, checkInLabel );
         }
 
         private class MedInfo
