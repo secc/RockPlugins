@@ -135,7 +135,14 @@ namespace org.secc.FamilyCheckin
                                 {
                                     // Add a No Medication Information label for anyone without data
                                     var checkInLabel = new CheckInLabel( labelCache, mergeObjects );
-                                    checkInLabel.MergeFields.Add( medicationText[0], "No Medication Information Found");
+
+                                    var index = 0;
+                                    foreach ( string mergeFieldText in medicationText )
+                                    {
+                                        checkInLabel.MergeFields.Add( mergeFieldText, index==0?"No Medication Information Found":"" );
+                                        checkInLabel.MergeFields.Add( instructionsText[index], "" );
+                                        index++;
+                                    }
                                     addLabel( checkInLabel, checkInState, groupType, group, rockContext );
                                 }
                                 else
