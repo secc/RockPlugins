@@ -147,10 +147,19 @@ namespace org.secc.FamilyCheckin
                                         {
                                             items[index].LoadAttributes();
 
+                                            string scheduleText = "";
+                                            string separator = "";
+                                            var schedule = items[index].GetAttributeValue( matrixAttributeScheduleKey ).SplitDelimitedValues();
+                                            foreach(var scheduleGuid in schedule)
+                                            {
+                                                scheduleText += separator + DefinedValueCache.Read( scheduleGuid );
+                                                separator = ", ";
+                                            }
+
                                             checkInLabel.MergeFields.Add( med.Medication,
                                                 items[index].GetAttributeValue( matrixAttributeMedicationKey )
                                                 + " - "
-                                                + DefinedValueCache.Read( items[index].GetAttributeValue( matrixAttributeScheduleKey ) )
+                                                + scheduleText
                                             );
 
                                             checkInLabel.MergeFields.Add( med.Instructions, items[index].GetAttributeValue( matrixAttributeInstructionsKey ) );
