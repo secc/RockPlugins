@@ -184,10 +184,10 @@ namespace org.secc.FamilyCheckin
                                                 checkInLabel.MergeFields.Add( med.Instructions, "" );
                                             }
 
-                                            addLabel( checkInLabel, checkInState, groupType, group, rockContext );
                                             index++;
                                         }
 
+                                        addLabel( checkInLabel, checkInState, groupType, group, rockContext );
                                     }
                                 }
                             }
