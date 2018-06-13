@@ -27,15 +27,7 @@
     <div class="col-md-3 text-center">
         <p><b>Elementary Camp 1</b></p><p><small>(3rd-5th Grade | July 15-18)</small></p>
         <br>
-        {% if releaseRegistration <= currentDate %}
-        <p>
-            <a class="btn btn-default" href="https://www.southeastchristian.org/registration/Elem1CAMP3rd5th" role="button">Register Student</a>
-        </p>
-        {% else %}
-            <div class="overlay">
-                <p><b>(Available Soon)</b></p>
-            </div>
-        {% endif %}
+        <p>This week is full.</p>
         <br />
         <br />
     </div>
