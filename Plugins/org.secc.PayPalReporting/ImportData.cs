@@ -86,7 +86,7 @@ namespace org.secc.PayPalReporting
 
                 foreach ( DataRow row in data.Rows )
                 {
-                    ProcessTransaction( row );
+                    ProcessTransaction( row, gateway);
                 }
                 dbContext.SaveChanges();
 
@@ -146,7 +146,7 @@ namespace org.secc.PayPalReporting
         /// </summary>
         /// <param name="dr"></param>
         /// <returns></returns>
-        private Transaction ProcessTransaction(DataRow dr)
+        private Transaction ProcessTransaction(DataRow dr, Rock.Model.FinancialGateway gateway )
         {
             Transaction transaction = null;
             if (dr["Transaction ID"] != null)
@@ -163,6 +163,8 @@ namespace org.secc.PayPalReporting
             {
                 throw new Exception("Transaction from PayPal is missing the Gateway Transaction ID.");
             }
+
+            transaction.FinancialGatewayId = gateway.Id;
 
             if (dr["Amount"] != null)
             {

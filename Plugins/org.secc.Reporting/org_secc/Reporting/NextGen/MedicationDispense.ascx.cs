@@ -45,6 +45,7 @@ using System.Collections.Generic;
 using OfficeOpenXml;
 using System.IO;
 using System.Drawing;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Blocks.Reporting.NextGen
 {
@@ -59,6 +60,18 @@ namespace RockWeb.Blocks.Reporting.NextGen
     public partial class MedicationDispense : RockBlock
     {
         List<MedicalItem> medicalItems = new List<MedicalItem>();
+
+
+        /// <summary>
+        /// Raises the <see cref="E:System.Web.UI.Control.Init" /> event.
+        /// </summary>
+        /// <param name="e">An <see cref="T:System.EventArgs" /> object that contains the event data.</param>
+        protected override void OnInit( EventArgs e )
+        {
+            base.OnInit( e );
+            gGrid.GridRebind += gGrid_GridRebind;
+        }
+
         protected override void OnLoad( EventArgs e )
         {
             nbAlert.Visible = false;
@@ -74,7 +87,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     ddlSchedule.Items.Insert( 0, new ListItem( "", "" ) );
                 }
 
-                Rock.Model.Attribute filterAttribute = null;
+                List<Rock.Model.Attribute> filterAttribute = null;
 
                 var filterAttributeKey = GetAttributeValue( "GroupMemberAttributeFilter" );
                 if ( !string.IsNullOrWhiteSpace( filterAttributeKey ) )
@@ -98,22 +111,23 @@ namespace RockWeb.Blocks.Reporting.NextGen
                         .Where( a =>
                         ( groupIdStrings.Contains( a.EntityTypeQualifierValue ) || groupTypeIds.Contains( a.EntityTypeQualifierValue ) )
                         && a.Key == filterAttributeKey
-                        && a.EntityTypeId == groupEntityid )
-                    .FirstOrDefault();
+                        && a.EntityTypeId == groupEntityid ).ToList();
 
                     if ( filterAttribute != null )
                     {
                         AttributeValueService attributeValueService = new AttributeValueService( rockContext );
-                        ddlAttribute.Label = filterAttribute.Name;
+                        ddlAttribute.Label = filterAttribute.FirstOrDefault().Name;
+                        List<int> attributeIds = filterAttribute.Select( a => a.Id ).ToList();
                         var qry = new GroupMemberService( rockContext ).Queryable()
                             .Where( gm => groupIds.Contains( gm.GroupId ) )
                             .Join(
-                                attributeValueService.Queryable().Where( av => av.AttributeId == filterAttribute.Id ),
+                                attributeValueService.Queryable().Where( av => attributeIds.Contains(av.AttributeId) ),
                                 m => m.Id,
                                 av => av.EntityId,
                                 ( m, av ) => new { Key = av.Value, Value = av.Value } )
                                 .DistinctBy( a => a.Key )
-                                .OrderBy( a => a.Key )
+                                .Where(a => !string.IsNullOrEmpty(a.Key))
+                                .OrderBy( a => a.Value )
                                 .ToList();
                         ddlAttribute.DataSource = qry;
                         ddlAttribute.DataBind();
@@ -149,11 +163,19 @@ namespace RockWeb.Blocks.Reporting.NextGen
         }
 
 
+        /// <summary>
+        /// Handles the GridRebind event of the gGrid control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void gGrid_GridRebind( object sender, EventArgs e )
+        {
+            BindGrid();
+        }
 
         private void BindGrid()
         {
             gGrid.DataSource = GetMedicalItems();
-            ;
             gGrid.DataBind();
 
             if ( !dpDate.SelectedDate.HasValue
@@ -187,30 +209,30 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
             AttributeService attributeService = new AttributeService( rockContext );
 
-            Rock.Model.Attribute attribute = attributeService.Queryable()
+            List<int> attributeIds = attributeService.Queryable()
                 .Where( a =>
                     ( groupIdStrings.Contains( a.EntityTypeQualifierValue ) || groupTypeIds.Contains( a.EntityTypeQualifierValue ) )
                     && a.Key == key
                     && a.EntityTypeId == groupEntityid )
-                .FirstOrDefault();
+                .Select(a => a.Id).ToList();
 
-            if ( attribute == null )
+            if ( attributeIds == null )
             {
                 nbAlert.Visible = true;
                 nbAlert.Text = "Medication attribute not found";
                 return null;
             }
 
-            Rock.Model.Attribute filterAttribute = null;
+            List<int> filterAttributeIds = null;
             var filterAttributeKey = GetAttributeValue( "GroupMemberAttributeFilter" );
             if ( !string.IsNullOrWhiteSpace( filterAttributeKey ) )
             {
-                filterAttribute = attributeService.Queryable()
+                filterAttributeIds = attributeService.Queryable()
                     .Where( a =>
                     ( groupIdStrings.Contains( a.EntityTypeQualifierValue ) || groupTypeIds.Contains( a.EntityTypeQualifierValue ) )
                     && a.Key == filterAttributeKey
                     && a.EntityTypeId == groupEntityid )
-                .FirstOrDefault();
+                .Select(a => a.Id).ToList();
             }
 
             var attributeMatrixItemEntityId = EntityTypeCache.GetId<AttributeMatrixItem>();
@@ -220,12 +242,11 @@ namespace RockWeb.Blocks.Reporting.NextGen
             AttributeMatrixItemService attributeMatrixItemService = new AttributeMatrixItemService( rockContext );
             HistoryService historyService = new HistoryService( rockContext );
 
-            var qry = new GroupMemberService( rockContext ).Queryable().
-                Where( gm => groupIds.Contains( gm.GroupId ) )
+            var qry = new GroupMemberService( rockContext ).Queryable()
                 .Join(
-                    attributeValueService.Queryable().Where( av => av.AttributeId == attribute.Id ),
+                    attributeValueService.Queryable().Where(av => attributeIds.Contains( av.AttributeId )),
                     m => m.Id,
-                    av => av.EntityId,
+                    av => av.EntityId.Value,
                     ( m, av ) => new { Member = m, AttributeValue = av.Value }
                 )
                 .Join(
@@ -241,9 +262,9 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     ( m, ami ) => new { Member = m.Member, AttributeMatrixItem = ami, TemplateId = ami.AttributeMatrix.AttributeMatrixTemplateId }
                 )
                 .Join(
-                    attributeService.Queryable().Where( a => a.EntityTypeId == attributeMatrixItemEntityId ),
-                    m => m.TemplateId.ToString(),
-                    a => a.EntityTypeQualifierValue,
+                    attributeService.Queryable(),
+                    m => new { TemplateIdString = m.TemplateId.ToString(), EntityTypeId = attributeMatrixItemEntityId },
+                    a => new { TemplateIdString = a.EntityTypeQualifierValue, EntityTypeId = a.EntityTypeId },
                     ( m, a ) => new { Member = m.Member, AttributeMatrixItem = m.AttributeMatrixItem, Attribute = a }
                 )
                 .Join(
@@ -251,21 +272,20 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     m => new { EntityId = m.AttributeMatrixItem.Id, AttributeId = m.Attribute.Id },
                     av => new { EntityId = av.EntityId ?? 0, AttributeId = av.AttributeId },
                     ( m, av ) => new { Member = m.Member, Attribute = m.Attribute, AttributeValue = av, MatrixItemId = m.AttributeMatrixItem.Id, FilterValue = "" }
-                );
+                ).
+                Where( obj => groupIds.Contains( obj.Member.GroupId ) );
 
-            if ( filterAttribute != null && pnlAttribute.Visible && !string.IsNullOrWhiteSpace( ddlAttribute.SelectedValue ) )
+            if ( filterAttributeIds != null && pnlAttribute.Visible && !string.IsNullOrWhiteSpace( ddlAttribute.SelectedValue ) )
             {
                 var filterValue = ddlAttribute.SelectedValue;
                 qry = qry
                     .Join(
-                    attributeValueService.Queryable().Where( av => av.AttributeId == filterAttribute.Id ),
+                    attributeValueService.Queryable().Where( av => filterAttributeIds.Contains(av.AttributeId) ),
                     m => new { Id = m.Member.Id, Value = filterValue },
                     av => new { Id = av.EntityId ?? 0, Value = av.Value },
                     ( m, av ) => new { Member = m.Member, Attribute = m.Attribute, AttributeValue = m.AttributeValue, MatrixItemId = m.MatrixItemId, FilterValue = av.Value } );
             }
-
-            var members = qry.GroupBy( a => a.Member )
-                .ToList();
+            var members = qry.ToList().GroupBy( a => a.Member ).ToList();
 
             var firstDay = ( dpDate.SelectedDate ?? Rock.RockDateTime.Today ).Date;
             var nextday = firstDay.AddDays( 1 );
@@ -292,53 +312,80 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 foreach ( var medicine in medicines )
                 {
                     var scheduleAtt = medicine.FirstOrDefault( m => m.Attribute.Key == "Schedule" );
-                    if ( ddlSchedule.SelectedValue != "" && ddlSchedule.SelectedValue.AsGuid() != scheduleAtt.AttributeValue.Value.AsGuid() )
+                    var schedules = scheduleAtt.AttributeValue.Value.SplitDelimitedValues();
+                    foreach(var schedule in schedules)
                     {
-                        continue;
-                    }
 
-                    var medicalItem = new MedicalItem()
-                    {
-                        Person = member.Key.Person.FullNameReversed,
-                        GroupMemberId = member.Key.Id,
-                        GroupMember = member.FirstOrDefault().Member,
-                        PersonId = member.Key.Person.Id,
-                        FilterAttribute = member.FirstOrDefault().FilterValue
-
-                    };
-
-                    if ( scheduleAtt != null )
-                    {
-                        var dv = DefinedValueCache.Read( scheduleAtt.AttributeValue.Value.AsGuid() );
-                        if ( dv != null )
+                        if ( ddlSchedule.SelectedValue != "" && ddlSchedule.SelectedValue.AsGuid() != schedule.AsGuid() )
                         {
-                            medicalItem.Schedule = dv.Value;
+                            continue;
                         }
-                    }
 
-                    var medAtt = medicine.FirstOrDefault( m => m.Attribute.Key == "Medication" );
-                    if ( medAtt != null )
-                    {
-                        medicalItem.Medication = medAtt.AttributeValue.Value;
-                    }
+                        var medicalItem = new MedicalItem()
+                        {
+                            Person = member.Key.Person.FullNameReversed,
+                            GroupMemberId = member.Key.Id,
+                            GroupMember = member.FirstOrDefault().Member,
+                            PersonId = member.Key.Person.Id,
+                            FilterAttribute = member.FirstOrDefault().FilterValue
+                        };
 
-                    var instructionAtt = medicine.FirstOrDefault( m => m.Attribute.Key == "Instructions" );
-                    if ( instructionAtt != null )
-                    {
-                        medicalItem.Instructions = instructionAtt.AttributeValue.Value;
-                    }
-                    medicalItem.Key = string.Format( "{0}|{1}", medicalItem.PersonId, medicine.Key );
+                        if ( !string.IsNullOrWhiteSpace(schedule) )
+                        {
+                            var dv = DefinedValueCache.Read( schedule.AsGuid() );
+                            if ( dv != null )
+                            {
+                                medicalItem.Schedule = dv.Value;
+                                medicalItem.ScheduleGuid = dv.Guid;
+                            }
+                        }
 
-                    var history = historyItems.Where( h => h.EntityId == medicalItem.PersonId && h.RelatedEntityId == medicine.Key );
-                    if ( history.Any() )
-                    {
-                        medicalItem.Distributed = true;
-                        medicalItem.History = string.Join( "<br>", history.Select( h => h.Summary ) );
-                    }
-                    medicalItems.Add( medicalItem );
+                        var medAtt = medicine.FirstOrDefault( m => m.Attribute.Key == "Medication" );
+                        if ( medAtt != null )
+                        {
+                            medicalItem.Medication = medAtt.AttributeValue.Value;
+                        }
 
+                        var instructionAtt = medicine.FirstOrDefault( m => m.Attribute.Key == "Instructions" );
+                        if ( instructionAtt != null )
+                        {
+                            medicalItem.Instructions = instructionAtt.AttributeValue.Value;
+                        }
+                        medicalItem.Key = string.Format( "{0}|{1}|{2}", medicalItem.PersonId, medicine.Key, medicalItem.ScheduleGuid );
+
+                        var history = historyItems.Where( h => h.EntityId == medicalItem.PersonId && h.RelatedEntityId == medicine.Key && (string.IsNullOrWhiteSpace(h.RelatedData) || h.RelatedData.AsGuid() == medicalItem.ScheduleGuid) );
+                        if ( history.Any() )
+                        {
+                            medicalItem.Distributed = true;
+                            medicalItem.History = string.Join( "<br>", history.Select( h => h.Summary ) );
+                        }
+                        medicalItems.Add( medicalItem );
+
+                    }
                 }
             }
+
+            SortProperty sortProperty = gGrid.SortProperty;
+            if ( sortProperty != null )
+            {
+                if (sortProperty.Property == "Person")
+                {
+                    if (sortProperty.Direction == SortDirection.Ascending)
+                    {
+                        medicalItems = medicalItems.OrderBy( mi => mi.Person ).ToList();
+                    }
+                    else
+                    {
+                        medicalItems = medicalItems.OrderByDescending( mi => mi.Person ).ToList();
+                    }
+                }
+            }
+            else
+            {
+                medicalItems = medicalItems.OrderBy( mi => mi.Person ).ToList();
+                gGrid.SortProperty = new SortProperty() { Property = "Person" };
+            }
+
             return medicalItems;
         }
 
@@ -519,6 +566,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
             public string Medication { get; set; }
             public string Instructions { get; set; }
             public string Schedule { get; set; }
+            public Guid ScheduleGuid { get; set; }
             public bool Distributed { get; set; }
             public string History { get; set; }
             public string FilterAttribute { get; set; }
@@ -531,6 +579,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
             var keys = ( ( string ) e.RowKeyValue ).SplitDelimitedValues();
             var personId = keys[0].AsInteger();
             var matrixId = keys[1].AsInteger();
+            var scheduleGuid = keys[2].AsGuid();
 
             AttributeMatrixItemService attributeMatrixItemService = new AttributeMatrixItemService( rockContext );
             var matrix = attributeMatrixItemService.Get( matrixId );
@@ -546,7 +595,8 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 RelatedEntityId = matrixId,
                 Verb = "Distributed",
                 Caption = "Medication Distributed",
-                Summary = string.Format( "<span class=\"field-name\">{0}</span> was distributed at <span class=\"field-name\">{1}</span>", matrix.GetAttributeValue( "Medication" ), Rock.RockDateTime.Now )
+                Summary = string.Format( "<span class=\"field-name\">{0}</span> was distributed at <span class=\"field-name\">{1}</span>", matrix.GetAttributeValue( "Medication" ), Rock.RockDateTime.Now ),
+                RelatedData = scheduleGuid.ToString()
             };
             historyService.Add( history );
             rockContext.SaveChanges();
