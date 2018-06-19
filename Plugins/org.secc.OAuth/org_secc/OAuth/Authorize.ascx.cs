@@ -201,12 +201,8 @@ namespace RockWeb.Plugins.org_secc.OAuth
 
         #endregion
 
-
-
-
         protected void btnGrant_Click(object sender, EventArgs e)
         {
-            btnGrant.Text = "This stinks";
         }
     }
 }

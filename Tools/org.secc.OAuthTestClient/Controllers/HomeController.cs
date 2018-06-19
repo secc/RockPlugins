@@ -76,17 +76,17 @@ namespace Arena.Custom.SECC.AuthCodeGrantTest.Web.Controllers
             else if ( !string.IsNullOrEmpty( Request.Form.Get( "submit.CallApi" ) ) )
             {
 
-                //try
-                //{
+                try
+                {
                     var meEndpoint = string.Format( "{0}api/oauth/profile", AppSettingValue( "ResourceServerBaseEndpoint" ) );
                     var client = new HttpClient( mWebServerClient.CreateAuthorizingHandler( accessToken ) );
                     var body = client.GetStringAsync( new Uri( resourceServerUri, meEndpoint ) ).Result;
                     ViewBag.ApiResponse = body;
-                //}
-                //catch ( Exception ex )
-                //{
-                //    ViewBag.ApiResponse = new Uri( resourceServerUri, string.Format( "{0}api/me", AppSettingValue( "ResourceServerBaseEndpoint" ) ) ).ToString();
-                //}
+                }
+                catch ( Exception ex )
+                {
+                    ViewBag.ApiResponse = new Uri( resourceServerUri, string.Format( "{0}api/me", AppSettingValue( "ResourceServerBaseEndpoint" ) ) ).ToString();
+                }
 
 
             }
@@ -99,7 +99,7 @@ namespace Arena.Custom.SECC.AuthCodeGrantTest.Web.Controllers
             }
             else if (!string.IsNullOrEmpty(Request.Form.Get("submit.CallApiPerson")))
             {
-                var familyEndpoint = string.Format( "{0}api/people/355801", AppSettingValue("ResourceServerBaseEndpoint"));
+                var familyEndpoint = string.Format( "{0}api/people/1", AppSettingValue("ResourceServerBaseEndpoint"));
                 var client = new HttpClient(mWebServerClient.CreateAuthorizingHandler(accessToken));
                 var body = client.GetStringAsync(new Uri(resourceServerUri, familyEndpoint)).Result;
                 ViewBag.ApiResponse = body;
