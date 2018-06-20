@@ -68,7 +68,7 @@ namespace org.secc.OAuth.Migrations
                         VALUES
                             (@ClientId
                             ,@ScopeId
-                            ,1
+                            ,0
                             ,GETDATE()
                             ,NEWID());");
 
@@ -95,7 +95,7 @@ namespace org.secc.OAuth.Migrations
                         VALUES
                             (@ClientId
                             ,@ScopeId
-                            ,1
+                            ,0
                             ,GETDATE()
                             ,NEWID());");
 
