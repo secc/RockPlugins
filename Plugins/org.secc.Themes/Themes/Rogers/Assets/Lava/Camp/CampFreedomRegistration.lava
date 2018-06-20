@@ -5,7 +5,7 @@
         {% assign releaseRegistration = '20180210' | AsInteger %}
     {% endcomment %}
 
-    <div class="col-md-6 text-center">
+    <div class="col-md-4 text-center">
         {% if releaseRegistration <= currentDate %}
         <p><b>Register for Camp Freedom</b></p>
         <br />
@@ -22,7 +22,7 @@
         <br />
     </div>
 
-    <div class="col-md-6 text-center">
+    <div class="col-md-4 text-center">
         {% if releaseRegistration <= currentDate %}
         <p><b>Leader Application</b></p>
         <br />
@@ -34,6 +34,23 @@
         {% else %}
             <div class="overlay">
                 <p><b>(Leader Application Available Soon)</b></p>
+            </div>
+        {% endif %}
+        <br />
+    </div>
+	
+	<div class="col-md-4 text-center">
+        {% if releaseRegistration <= currentDate %}
+        <p><b>Jr Leader Application (Under 18)</b></p>
+        <br />
+        <p>
+            <a class="btn btn-default" href="https://www.southeastchristian.org/registration/CampFreedomJrLEAD" role="button">Register Junior Leader</a>
+        </p>
+        <br />
+        <br />
+        {% else %}
+            <div class="overlay">
+                <p><b>(Registration Available Soon)</b></p>
             </div>
         {% endif %}
         <br />
