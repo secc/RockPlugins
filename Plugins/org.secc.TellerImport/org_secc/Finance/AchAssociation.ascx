@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="BankAccountEncoder.ascx.cs" Inherits="RockWeb.Plugins.org_secc.Finance.BankAccountEncoder" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="AchAssociation.ascx.cs" Inherits="RockWeb.Plugins.org_secc.Finance.AchAssociation" %>
 <asp:UpdatePanel ID="upnlContent" runat="server">
     <ContentTemplate>
         <asp:Panel ID="pnlList" CssClass="panel panel-block" runat="server">
