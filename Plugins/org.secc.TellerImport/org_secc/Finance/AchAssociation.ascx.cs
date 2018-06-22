@@ -15,11 +15,9 @@
 // </copyright>
 //
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
-using System.IO;
 using System.Linq;
 using Rock.Data;
 using Rock.Model;
@@ -29,11 +27,11 @@ namespace RockWeb.Plugins.org_secc.Finance
     /// <summary>
     /// Template block for developers to use to start a new block.
     /// </summary>
-    [DisplayName( "Bank Account Encoder" )]
+    [DisplayName( "ACH Association Tool" )]
     [Category( "SECC > Finance" )]
-    [Description( "Block for encoding bank routing and account number using SHA1 with HMAC." )]
+    [Description( "Block for associating unencrypted ShelbyTeller ACH info to Rock person/business records." )]
 
-    public partial class BankAccountEncoder : Rock.Web.UI.RockBlock
+    public partial class AchAssociation : Rock.Web.UI.RockBlock
     {
         protected void Page_Load( object sender, EventArgs e )
         {
@@ -89,14 +87,48 @@ namespace RockWeb.Plugins.org_secc.Finance
                     .GroupBy( g => new { g.RoutingNo, g.CheckAcctNo, g.AccountNumberSecured } )
                     .Select( s => new { s.Key.RoutingNo, s.Key.CheckAcctNo, s.Key.AccountNumberSecured, PersonAliasIds = string.Join( "|", s.Select( i => i.PersonAliasId ) ) } );
 
+                DataTable dt = new DataTable();
+                dt.TableName = "BankAcctRtng";
+                dt.Columns.Add( "RoutingNo", typeof( String ) );
+                dt.Columns.Add( "CheckAcctNo", typeof( String ) );
+                dt.Columns.Add( "PersonAliasIds", typeof( String ) );
+
+                foreach ( var row in matchingRows )
+                {
+                    dt.Rows.Add( row.RoutingNo, row.CheckAcctNo, row.PersonAliasIds );
+                }
+
                 try {
-                    string path = "D:\\BankAcctRtng.csv";
+                    string connectionString = System.Configuration.ConfigurationManager.ConnectionStrings["RockContext"].ConnectionString;
+                    using ( SqlConnection connection = new SqlConnection( connectionString ) )
+                    {
+                        connection.Open();
+                        using ( SqlBulkCopy bulkCopy = new SqlBulkCopy( connection ) )
+                        {
+                            foreach ( DataColumn c in dt.Columns )
+                                bulkCopy.ColumnMappings.Add( c.ColumnName, c.ColumnName );
+
+                            bulkCopy.DestinationTableName = dt.TableName;
+                            try
+                            {
+                                bulkCopy.WriteToServer( dt );
+                                lblExportStatus.Text = "Rows were appended to BankAcctRtng table.";
+                            }
+                            catch ( Exception ex )
+                            {
+                                lblExportStatus.Text = "Table was not created: " + ex.Message;
+                            }
+                        }
+                    }
+                    /*
+                    string path = Server.MapPath( "/Content" ) + "\\BankAcctRtng.csv";
                     File.WriteAllText( path, String.Format( "{0},{1},{2}", "RoutingNo", "CheckAcctNo", "PersonAliasIds\r\n" ) );
                     File.AppendAllLines( path, matchingRows.Select( x => String.Format( "{0},{1},{2}", x.RoutingNo, x.CheckAcctNo, x.PersonAliasIds ) ) );
                     lblExportStatus.Text = "File exported at " + path;
+                    */
                 }
-                catch {
-                    lblExportStatus.Text = "File was not exported";
+                catch (Exception ex) {
+                    lblExportStatus.Text = "File was not exported: " + ex.Message;
                 }
             }
         }
@@ -105,7 +137,6 @@ namespace RockWeb.Plugins.org_secc.Finance
             string toHash = string.Format( "{0}|{1}", routingNumber.Trim(), accountNumber.Trim() );
             return Rock.Security.Encryption.GetSHA1Hash( toHash );
         }
-
     }
 
 }
