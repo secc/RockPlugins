@@ -89,13 +89,14 @@ namespace RockWeb.Plugins.org_secc.Finance
 
                 DataTable dt = new DataTable();
                 dt.TableName = "BankAcctRtng";
+                dt.Columns.Add( "AccountNumberSecured", typeof( String ) );
                 dt.Columns.Add( "RoutingNo", typeof( String ) );
                 dt.Columns.Add( "CheckAcctNo", typeof( String ) );
                 dt.Columns.Add( "PersonAliasIds", typeof( String ) );
 
                 foreach ( var row in matchingRows )
                 {
-                    dt.Rows.Add( row.RoutingNo, row.CheckAcctNo, row.PersonAliasIds );
+                    dt.Rows.Add( row.AccountNumberSecured, row.RoutingNo, row.CheckAcctNo, row.PersonAliasIds );
                 }
 
                 try {
