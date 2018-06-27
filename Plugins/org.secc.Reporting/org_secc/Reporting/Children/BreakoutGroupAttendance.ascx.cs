@@ -186,7 +186,8 @@ namespace RockWeb.Blocks.Reporting.Children
                     var scheduleId = item.Value.AsInteger();
 
                     var attendanceQry = attendanceService.Queryable()
-                        .Where( a => personIds.Contains( a.PersonAlias.PersonId ) && a.ScheduleId == scheduleId );
+                        .Where( a => personIds.Contains( a.PersonAlias.PersonId ) && a.ScheduleId == scheduleId )
+                        .DistinctBy( a => new { a.StartDateTime.Date, a.PersonAliasId } );
 
                     if ( upper != null )
                     {
