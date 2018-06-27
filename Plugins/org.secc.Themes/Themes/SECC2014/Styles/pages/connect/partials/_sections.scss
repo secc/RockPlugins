@@ -135,7 +135,7 @@ h4 {
 
 .jarallax {
     background-color: black;
-    
+
     iframe {
         border: 0 !important;
     }
@@ -149,7 +149,7 @@ h4 {
             width: 100%;
             height: 100%;
             z-index: 1;
-            background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)) center/cover no-repeat fixed;
+            background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)) center/cover no-repeat;
         }
     }
 
@@ -157,7 +157,7 @@ h4 {
 
         @include tablets {
             height: calc(50vh - 77px);
-            height: -o-calc(50vh - 77px); /* opera */
+            height: -o-calc(50vh - 77px);
             height: -webkit-calc(50vh - 77px); /* google, safari */
             height: -moz-calc(50vh - 77px); /* firefox */
         }
