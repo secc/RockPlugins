@@ -157,7 +157,7 @@ h4 {
 
         @include tablets {
             height: calc(50vh - 77px);
-            height: -o-calc(50vh - 77px); /* opera */
+            height: -o-calc(50vh - 77px);
             height: -webkit-calc(50vh - 77px); /* google, safari */
             height: -moz-calc(50vh - 77px); /* firefox */
         }
