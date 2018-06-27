@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{ABB08976-24F0-4DA8-9B59-4659E23C597D}</ProjectGuid>
+    <ProjectGuid>{40881F39-F828-47C8-9789-A619EA2CC344}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>org.secc.Jobs</RootNamespace>
-    <AssemblyName>org.secc.Jobs</AssemblyName>
+    <RootNamespace>org.secc.ConnectionsDigest</RootNamespace>
+    <AssemblyName>org.secc.ConnectionsDigest</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -51,9 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="WorkflowLauncher.cs" />
-    <Compile Include="CloseDeseasedPastoralWorkflows.cs" />
-    <Compile Include="MigrateCommunicationMediumDataSECC.cs" />
+    <Compile Include="ConnectionsDigest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -67,12 +65,11 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.Jobs.dll" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.Jobs.pdb" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
+    <PostBuildEvent>xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.ConnectionsDigest.dll" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.ConnectionsDigest.pdb" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
   </PropertyGroup>
 </Project>
