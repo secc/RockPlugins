@@ -37,7 +37,7 @@
 		margin-bottom: 0;
 	}
 
-	.series-dates {
+	.series-dates, .sermons-count {
 		opacity: .6;
 	}
 
@@ -45,10 +45,20 @@
 		padding: 15px;
 		/* height: 172px; */
 	}
+	.series-body h3 {
+		font-weight: 300;
+	}
+	.series-body hr {
+		margin: 10px 0px;
+	}
 
 	.series-summary {
 		/* height: 60px; */
 		/* overflow: hidden; */
+	}
+
+	.series-link {
+		color: black;
 	}
 
 	.series-link:hover {
@@ -96,8 +106,9 @@
 	<div class="container">
 		<div class="isotope_wrap margin-t-lg series-list">
 
-			{% for item in Items %}
-			{% assign seriesImageGuid = item | Attribute:'Image','RawValue' %}
+			{% for item in Items -%}
+			{% assign seriesImage = item | Attribute:'Image' -%}
+			{% assign seriesImageGuid = item | Attribute:'Image','RawValue' -%}
 			<div class="isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load">
 				{% comment %}
 				{{ LinkedPages.DetailPage }}?Item={{ item.Id }}
@@ -105,20 +116,45 @@
 				{% endcomment %}
 				<a class="series-link" href="{{ 'Global' | Page:'Path' }}/{{ item.Slug }}">
 					<div class="card" style="background-color: white;">
-						{% if detailImageGuid != '' %}
+						{% if seriesImage != empty -%}
 							<!-- Image -->
 							<div class="img-hover">
 								<img src="/GetImage.ashx?Guid={{ seriesImageGuid }}" class="img-responsive img-rounded" style="margin: 0 auto">
 							</div>
-						{% endif %}
-						<div class="series-body">
-							<h1 class="text-color">{{ item.Title }}</h1>
-							<p class="series-dates text-color">
-								{{ item.StartDateTime | Date:'M/d/yyyy' }}
-							</p>
+						{% else -%}
 
+							<!-- Grab Sermon Image -->
+							{% for child in item.ChildItems -%}
+								{% assign seriesImage = child.ChildContentChannelItem | Attribute:'Image' -%}
+								{% assign seriesImageGuid = child.ChildContentChannelItem | Attribute:'Image','RawValue' -%}
+								{% if seriesImage != empty -%}
+									<!-- Image -->
+									<div class="img-hover">
+										<img src="/GetImage.ashx?Guid={{ seriesImageGuid }}" class="img-responsive img-rounded" style="margin: 0 auto">
+									</div>
+									{% break -%}
+								{% endif %}
+							{% endfor -%}
+
+						{% endif -%}
+						<div class="series-body">
+							<h3 class="text-color">{{ item.Title }}</h3>
+							<hr />
+							{% if item.Content != empty -%}
 							<p class="series-summary text-color">
 								{{ item.Content }}
+							</p>
+							<hr />
+							{% endif -%}
+							<p class="series-dates text-color text-right">
+								{% assign lastSermon = item.ChildItems | Last %}
+								{% assign sermonsCount = item.ChildItems | Size %}
+								{% if sermonsCount > 1 -%}
+								{{ item.StartDateTime | Date:'MMMM dd, yyyy' }} - {{ lastSermon.ChildContentChannelItem.StartDateTime | Date:'MMMM dd, yyyy' }}
+								{% else -%}
+								{{ item.StartDateTime | Date:'MMMM dd, yyyy' }}
+								{% endif -%}<br />
+								Sermons: {{ sermonsCount }}
 							</p>
 						</div>
 					</div>
@@ -129,9 +165,9 @@
 		</div>
 
 		<div class="text-center">
-			<a class="btn btn-doors" href="javascript:void(0)" id="loadSermons" onclick="getMoreSermons(jQuery);">
+			<!-- <a class="btn btn-doors" href="javascript:void(0)" id="loadSermons" onclick="getMoreSermons(jQuery);">
   		    	Show More Series <i class="fa fa-chevron-down"></i>
-  		  	</a>
+  		  	</a> -->
 			<img id="loading-animation" src="http://kyleidleman.com/wp-content/themes/kyleidleman/_/img/loading.gif" />
 		</div>
 
@@ -167,82 +203,106 @@
 
 <script>
 
+window.onscroll = function() {
+    var pageHeight=document.documentElement.offsetHeight,
+    windowHeight=window.innerHeight,
+    scrollPosition=window.scrollY || window.pageYOffset || document.body.scrollTop + (document.documentElement && document.documentElement.scrollTop || 0);
+
+    if (pageHeight - document.getElementById("SiteFooter").offsetHeight <= windowHeight+scrollPosition) {
+        getMoreSermons(jQuery);
+		console.log('Boom!');
+    }
+};
+
+// Set sermon series to start at the next set since the first set is already loaded.
 var sermonOffset = 2;
+// This dertimines whether the API requests should continue or stop.
+var sermonsContinueMakingRequests = true;
+// This determines whether an ajax request is already in the process or not.
+var sermonsLoading = false;
 
 function getMoreSermons($) {
-	console.log("loading sermons. offset: " + sermonOffset);
-	$("a#loadSermons").hide();
-	$("#loading-animation").show();
-	$.ajax( {
-		url: 'http://rockdev.secc.org/Webhooks/Lava.ashx/sermons/'+sermonOffset,
-		async: true,
-		success: function(data) {
-			// console.log(data.Series);
 
-			$.each(data.Series, function(i, sermon_series){
-				  // console.log( v);
+	if (sermonsContinueMakingRequests == true) {
+		console.log('sermonsContinueMakingRequests === '+sermonsContinueMakingRequests);
+		$("#loading-animation").show();
+	}
 
-				  var $grid = $('.isotope_wrap').isotope({
-			          // options
-			          percentPosition: true,
-			          itemSelector: '.isotope_item',
-			          layoutMode: 'fitRows'
-			      });
+	// check and see if another request is being loaded
+	if (sermonsLoading == false) {
+		$.ajax( {
+			url: 'https://rock.secc.org/Webhooks/Lava.ashx/sermons/'+sermonOffset,
+			async: true,
+			beforeSend: function(data) {
+				sermonsLoading = true; // start ajax loading process
+			},
+			success: function(data) {
+				// console.log(data.Series);
 
-				  var $elem = $('<div></div>', {
-					            "class": "isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load"
-					          }).append(
-					            $('<a/>', {
-					              "class": 'series-link',
-								  "href": window.location + '?Item=' + sermon_series.Id,
-					            }).append(
-					  	            $('<div/>', {
-					  	              "class": 'card',
-									  "style": 'background-color: white;',
-					  	            }).html(function() {
-				      				  var box =  "<div class=\"img-hover\">";
-					  	                  box +=    "<img src=\""+ sermon_series.Image +"\" class=\"img-responsive img-rounded\" style=\"margin: 0 auto; min-height: 229px;\">";
-										  box += "</div>";
-										  box += "<div class=\"series-body\">";
-					  	                  box +=    "<h1 class=\"text-color\">"+ sermon_series.Name +"</h1>";
-										  // box +=   	"<p class=\"series-dates text-color\">"+ series.Sermons[0].Date +"</p>";
-										  box +=   	"<p class=\"series-summary text-color\">"+ sermon_series.Description +"</p>";
-					  	                  box += "</div>";
-					  	              return box;
-					  	            })
-					  			)
-							);
+				$.each(data.Series, function(i, sermon_series){
+					  // console.log( v);
 
-				  $grid.isotope()
-	  				  .append( $elem )
-	  				  .isotope( 'appended', $elem )
-	  				  .isotope('layout');
-			});
+					  var $grid = $('.isotope_wrap').isotope({
+				          // options
+				          percentPosition: true,
+				          itemSelector: '.isotope_item',
+				          layoutMode: 'fitRows'
+				      });
 
-			// Re-Initialize Isotope
-		    var $grid = $('.isotope_wrap').isotope({
-		        // options
-		        percentPosition: true,
-		        itemSelector: '.isotope_item',
-		        layoutMode: 'fitRows'
-		    });
+					  var sermonsInSeries = sermon_series.Sermons.length;
+					  console.log('sermonsInSeries: '+ sermonsInSeries);
+					  var $elem = $('<div></div>', {
+						            "class": "isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load"
+						          }).append(
+						            $('<a/>', {
+						              "class": 'series-link',
+									  "href": window.location + '/' + sermon_series.Slug,
+						            }).append(
+						  	            $('<div/>', {
+						  	              "class": 'card',
+										  "style": 'background-color: white;',
+						  	            }).html(function() {
+					      				  var box =  "<div class=\"img-hover\">";
+						  	                  box +=    "<img src=\""+ sermon_series.Image +"\" class=\"img-responsive img-rounded\" style=\"margin: 0 auto; min-height: 229px;\">";
+											  box += "</div>";
+											  box += "<div class=\"series-body\">";
+						  	                  box +=    "<h3 class=\"text-color\">"+ sermon_series.Name +"</h3>";
+											  box +=    "<hr />";
+											  box +=   	"<p class=\"series-summary text-color\">"+ sermon_series.Description +"</p>";
+											  box +=    "<hr />";
+											  box +=   	"<p class=\"series-dates text-color text-right\">"+ sermon_series.Sermons[(sermonsInSeries-1)].Date +"</p>";
+						  	                  box += "</div>";
+						  	              return box;
+						  	            })
+						  			)
+								);
 
-			// console.log( "Sample of data:", data);
-			sermonOffset += 6;
-			$("#loading-animation").hide();
-			console.log(data.Series.length);
-			if (data.Series.length != 0) {
-				$("a#loadSermons").show();
+					  $grid.isotope()
+		  				  .append( $elem )
+		  				  .isotope( 'appended', $elem )
+		  				  .isotope('layout');
+				});
+
+				// Re-Initialize Isotope
+			    var $grid = $('.isotope_wrap').isotope({
+			        // options
+			        percentPosition: true,
+			        itemSelector: '.isotope_item',
+			        layoutMode: 'fitRows'
+			    });
+
+				sermonOffset += 1;
+				$("#loading-animation").hide();
+				sermonsLoading = false; // reset back to false to allow more requests
+
+				console.log('data.Series.length === '+data.Series.length);
+				if (data.Series.length == 0) {
+					sermonsContinueMakingRequests = false;
+				}
 			}
-			// $("#loading-animation").hide();
-			// if (data != "") {
-			// 	$('#series-list').append(data);
-			// 	sermonOffset += 6;
-			// 	$("a#loadSermons").show();
-			// }
-		}
 
-	});
+		});
+	}
 }
 
 $(document).ready(function() {
