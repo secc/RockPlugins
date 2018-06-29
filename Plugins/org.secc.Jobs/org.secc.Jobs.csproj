@@ -51,7 +51,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="WorkflowLauncher.cs" />
     <Compile Include="CloseDeseasedPastoralWorkflows.cs" />
     <Compile Include="MigrateCommunicationMediumDataSECC.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
