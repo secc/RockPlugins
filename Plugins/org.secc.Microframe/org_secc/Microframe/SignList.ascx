@@ -15,6 +15,7 @@
                         <Columns>
                             <Rock:RockBoundField DataField="Name" HeaderText="Name" SortExpression="Name" />
                             <Rock:RockBoundField DataField="IPAddress" HeaderText="IP Address" SortExpression="Address" />
+                            <Rock:RockBoundField DataField="Port" HeaderText="Port" SortExpression="Address" />
                             <Rock:RockBoundField DataField="Categories" HeaderText="Sign Categories" SortExpression="Categories" />
                             <Rock:DeleteField OnClick="gSigns_Delete" />
                         </Columns>
