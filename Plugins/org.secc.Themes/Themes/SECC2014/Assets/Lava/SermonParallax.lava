@@ -21,8 +21,76 @@
     	<div style="background-color:black">
             {% unless currentMessageVimeoID == empty %}
 
-                {[ parallax videourl:'https://vimeo.com/{{ currentMessageVimeoID }}' image:'https://www.southeastchristian.org/_/img/home/rotations/HOPE920-xl.jpg' videostarttime:'200' videoendtime:'210' addclass:'darken' height:'65vh' position:'top top' speed:'-25' ]}
-                    <!-- START: Ministry Logo & Video -->
+				<script>
+					
+				  var tmpCanInitParallax = jarallax.constructor.prototype.canInitParallax;
+				  jarallax.constructor.prototype.canInitParallax = function(callback) {
+					// Intercept the set call for the video object and manually set the image
+					var imageHandler = {
+					  set(target, prop, value) {
+						target[prop] = value;
+						if (prop == 'video') {
+							value.videoImage = "https://www.southeastchristian.org/_/img/home/rotations/HOPE920-xl.jpg";
+							value.userEventsList['started'][0] = function () {
+
+								self.image.$default_item = self.image.$item;
+								self.image.$item = self.$video;
+
+								// set video width and height
+								self.image.width = self.video.videoWidth || 1280;
+								self.image.height = self.video.videoHeight || 720;
+								self.options.imgWidth = self.image.width;
+								self.options.imgHeight = self.image.height;
+								self.coverImage();
+								self.clipContainer();
+								self.onScroll();
+
+								// hide image
+								if (self.image.$default_item) {
+									self.css(self.image.$default_item, {
+										'transition': 'opacity .25s ease-in-out',
+										'-moz-transition': 'opacity .25s ease-in-out',
+										'-webkit-transition': 'opacity .25s ease-in-out',
+										'opacity': 1,
+									});
+									setTimeout(function () {
+										self.image.$default_item.style.opacity = 0;
+									}, 500);
+								}
+							};
+						}
+						return true;
+					  }
+					};
+					// Use a proxy'ed JS object
+					var self = new Proxy(this, imageHandler);
+					self.defaultInitImgResult = true;
+					self.image.src = "https://www.southeastchristian.org/_/img/home/rotations/HOPE920-xl.jpg";
+
+					// save default user styles
+					var curStyle = self.$item.getAttribute('style');
+					if (curStyle) {
+						self.$item.setAttribute('data-jarallax-original-styles', curStyle);
+					}
+
+					// set new background
+					self.css(self.$item, {
+						'background-image': 'url("https://www.southeastchristian.org/_/img/home/rotations/HOPE920-xl.jpg")',
+						'background-position': 'center',
+						'background-size': 'cover',
+						'transition': 'opacity .25s ease-in-out',
+						'-moz-transition': 'opacity .25s ease-in-out',
+						'-webkit-transition': 'opacity .25s ease-in-out',
+						'opacity': 1,
+					});
+
+					// Now actually call the method against the proxy object
+					return tmpCanInitParallax.apply(self);
+				  }
+				</script>
+
+                {[ parallax videourl:'https://vimeo.com/{{ currentMessageVimeoID }}' image:'https://www.southeastchristian.org/_/img/home/rotations/HOPE920-xl.jpg' videostarttime:'200' videoendtime:'210' addclass:'darken' height:'65vh' position:'center center' speed:'-25' ]}
+					<!-- START: Ministry Logo & Video -->
                     <div class="parallax-logo centered" style="max-width: inherit;">
                         <h1>SERMONS</h1>
                         <h4 class="uppercase" style="font-size: 3rem;">Current Series: {{ item.Title }}</h4>
@@ -34,7 +102,6 @@
                     </div>
                     <!-- END: Ministry Logo & Videod -->
                 {[ endparallax ]}
-
             {% endunless %}
     	</div>
     </section>
