@@ -69,6 +69,8 @@ namespace org.secc.PastoralCare.Migrations
                 RockMigrationHelper.AddDefinedValueAttributeValue( "0997ACB6-A4B4-4766-B573-3C44D14DF343", "CEDC60C1-0F9E-4FE2-BE62-41716813C969", @"Louisville" );
                 RockMigrationHelper.AddDefinedValueAttributeValue( "0997ACB6-A4B4-4766-B573-3C44D14DF343", "D97EC9DE-5D6A-42FD-B4CE-0516FD5455F7", @"John Adams" );
             }
+            // Make sure to clear the Rock Cache so the defined type above will be there
+            RockMemoryCache.Clear();
         }
         public override void Down()
         {
