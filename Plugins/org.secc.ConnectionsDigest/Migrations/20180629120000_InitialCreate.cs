@@ -12,7 +12,7 @@
 // limitations under the License.
 // </copyright>
 //
-namespace org.secc.OAuth.Migrations
+namespace org.secc.ConnectionsDigest.Migrations
 {
     using Rock.Plugin;
     [MigrationNumber(1, "1.7.0")]
