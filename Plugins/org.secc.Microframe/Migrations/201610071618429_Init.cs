@@ -30,6 +30,7 @@ namespace org.secc.Microframe.Migrations
                     Name = c.String( maxLength: 255 ),
                     Description = c.String(),
                     IPAddress = c.String( maxLength: 45 ),
+                    Port = c.String( maxLength: 8 ),
                     PIN = c.String( maxLength: 4 ),
                     CreatedDateTime = c.DateTime(),
                     ModifiedDateTime = c.DateTime(),

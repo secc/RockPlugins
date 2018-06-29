@@ -38,11 +38,10 @@ namespace org.secc.Microframe.Utilities
 
     public class MicroframeConnection
     {
-        private const int port = 9107;
         private IPEndPoint _remoteEP;
         private byte[] _PIN;
 
-        public MicroframeConnection( string IP, string PIN )
+        public MicroframeConnection( string IP, int port, string PIN )
         {
             IPAddress ipAddress = IPAddress.Parse( IP );
             _remoteEP = new IPEndPoint( ipAddress, port );
