@@ -130,6 +130,7 @@ namespace RockWeb.Plugins.org_secc.Microframe
                     Id = s.Id,
                     Name = s.Name,
                     IPAddress = s.IPAddress,
+                    Port = s.Port,
                     Categories = string.Join(", ", s.SignCategories)
                 } )
                 .OrderBy(s => s.Name).ToList();
