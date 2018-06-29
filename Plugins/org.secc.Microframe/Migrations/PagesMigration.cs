@@ -7,24 +7,35 @@ using Rock.Plugin;
 
 namespace org.secc.Microframe.Migrations
 {
-    [MigrationNumber( 2, "1.4.0" )]
+    [MigrationNumber( 2, "1.7.0" )]
     class PagesMigration : Migration
     {
         public override void Up()
         {
-            // Page: Manage              
-            RockMigrationHelper.AddPage( "7F048367-B80E-41ED-A8EF-CCE3E93F96BF", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Microframe", "", "9DECF4F5-7BC6-42BD-A458-F03DF596958B", "" ); // Site:Rock RMS
-                                                                                                                                                                                         // Page: Signs              
-            RockMigrationHelper.AddPage( "0B213645-FA4E-44A5-8E4C-B2D8EF054985", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Sign Categories", "", "C7F67450-B0A8-446B-AD97-0BA84037F7F4", "fa fa-server" ); // Site:Rock RMS
+            // Page: Manage                ///parent page                         //Layout                                                  //Page guid
+            RockMigrationHelper.AddPage( "5B6DBC42-8B03-4D15-8D92-AAFA28FD8616", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Microframe", "", "43E0DBFF-A8CD-4E59-9B7A-A166C70892D7", "fa fa-wifi" ); // Add Page to Installed Plugins
+
+            RockMigrationHelper.AddPage( "43E0DBFF-A8CD-4E59-9B7A-A166C70892D7", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Sign Categories", "", "C7F67450-B0A8-446B-AD97-0BA84037F7F4", "fa fa-server" ); // Site:Rock RMS
 
             RockMigrationHelper.AddPage( "C7F67450-B0A8-446B-AD97-0BA84037F7F4", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Sign Category Detail", "", "02F88460-9550-49BB-90AE-C1C8CA78D8F4", "" ); // Site:Rock RMS
                                                                                                                                                                                                    // Page: Sign Categories       
-            RockMigrationHelper.AddPage( "0B213645-FA4E-44A5-8E4C-B2D8EF054985", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Signs", "", "CD80AF2A-EC8B-4232-8C31-CACFD3516008", "fa fa-wifi" ); // Site:Rock RMS
+            RockMigrationHelper.AddPage( "43E0DBFF-A8CD-4E59-9B7A-A166C70892D7", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Signs", "", "CD80AF2A-EC8B-4232-8C31-CACFD3516008", "fa fa-wifi" ); // Site:Rock RMS
                                                                                                                                                                                               // Page: Codes              
             RockMigrationHelper.AddPage( "CD80AF2A-EC8B-4232-8C31-CACFD3516008", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Sign Detail", "", "34ECCA9D-FA20-444D-B90B-FBD3CFA96C43", "" ); // Site:Rock RMS
                                                                                                                                                                                           // Page: Sign Detail             
-            RockMigrationHelper.AddPage( "164C7A7F-8C55-4E20-B582-D84D83174F2C", "D65F783D -87A9-4CC9-8110-E83466A0EADB", "Microframe Pager", "", "3A160BC4-D599-490D-9D8C-9CE079449B38", "fa fa-comment-o" ); // Site:Rock RMS
-                                                                                                                                                                                                               // Page: Sign Category Detail   
+            RockMigrationHelper.AddPage( "43E0DBFF-A8CD-4E59-9B7A-A166C70892D7", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Microframe Pager", "", "3A160BC4-D599-490D-9D8C-9CE079449B38", "fa fa-comment-o" ); // Site:Rock RMS
+
+            RockMigrationHelper.AddBlock( "43E0DBFF-A8CD-4E59-9B7A-A166C70892D7", "", "CACB9D1A-A820-4587-986A-D66A69EE9948", "Page Menu", "Main", "", "", 0, "5BD1106C-AA61-451F-A111-0CEA0A583525" );
+            RockMigrationHelper.AddBlockAttributeValue( "5BD1106C-AA61-451F-A111-0CEA0A583525", "7A2010F0-0C0C-4CC5-A29B-9CBAE4DE3A22", @"" ); // CSS File  
+            RockMigrationHelper.AddBlockAttributeValue( "5BD1106C-AA61-451F-A111-0CEA0A583525", "EEE71DDE-C6BC-489B-BAA5-1753E322F183", @"False" ); // Include Current Parameters  
+            RockMigrationHelper.AddBlockAttributeValue( "5BD1106C-AA61-451F-A111-0CEA0A583525", "1322186A-862A-4CF1-B349-28ECB67229BA", @"{% include '~~/Assets/Lava/PageListAsBlocks.lava' %}" ); // Template  
+            RockMigrationHelper.AddBlockAttributeValue( "5BD1106C-AA61-451F-A111-0CEA0A583525", "6C952052-BC79-41BA-8B88-AB8EA3E99648", @"1" ); // Number of Levels  
+            RockMigrationHelper.AddBlockAttributeValue( "5BD1106C-AA61-451F-A111-0CEA0A583525", "E4CF237D-1D12-4C93-AFD7-78EB296C4B69", @"False" ); // Include Current QueryString  
+            RockMigrationHelper.AddBlockAttributeValue( "5BD1106C-AA61-451F-A111-0CEA0A583525", "C80209A8-D9E0-4877-A8E3-1F7DBF64D4C2", @"False" ); // Is Secondary Block  
+            RockMigrationHelper.AddBlockAttributeValue( "5BD1106C-AA61-451F-A111-0CEA0A583525", "0CA0DDEF-48EF-4ABC-9822-A05E225DE26C", @"False" ); // Active  
+            RockMigrationHelper.AddBlockAttributeValue( "5BD1106C-AA61-451F-A111-0CEA0A583525", "0A49DABE-42EE-40E5-9E06-0E6530944865", @"" ); // Include Page List  
+
+            // Page: Sign Category Detail   
             RockMigrationHelper.UpdateBlockType( "Sign Category Detail", "Displays the details of the given sign category.", "~/Plugins/org_secc/Microframe/SignCategoryDetail.ascx", "SECC > Microframe", "F29D64BF-DC09-46C8-8C98-6F2BA281B686" );
             RockMigrationHelper.UpdateBlockType( "Sign Category List", "Lists all the sign categories.", "~/Plugins/org_secc/Microframe/SignCategoryList.ascx", "SECC > Microframe", "9D3256EF-9D39-4360-9EF8-AEB5372647BB" );
             RockMigrationHelper.UpdateBlockType( "Sign Code Manager", "Manages all of the codes sent out.", "~/Plugins/org_secc/Microframe/SignCodeManager.ascx", "SECC > Microframe", "84A28A57-5F62-4AAB-B219-1227E4EDB820" );
