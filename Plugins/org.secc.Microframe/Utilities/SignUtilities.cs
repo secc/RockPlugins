@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using org.secc.Microframe.Model;
+using Rock;
 using Rock.Data;
 
 namespace org.secc.Microframe.Utilities
@@ -45,7 +46,7 @@ namespace org.secc.Microframe.Utilities
                                 .ToList()
                                 );
                         }
-                        MicroframeConnection signConnection = new MicroframeConnection( sign.IPAddress, sign.PIN );
+                        MicroframeConnection signConnection = new MicroframeConnection( sign.IPAddress, sign.Port.AsIntegerOrNull() ?? 9107, sign.PIN );
                         signConnection.UpdateMessages( codes );
                     }
                 }
@@ -73,7 +74,7 @@ namespace org.secc.Microframe.Utilities
                             .ToList()
                             );
                     }
-                    MicroframeConnection signConnection = new MicroframeConnection( sign.IPAddress, sign.PIN );
+                    MicroframeConnection signConnection = new MicroframeConnection( sign.IPAddress, sign.Port.AsIntegerOrNull() ?? 9107, sign.PIN );
                     signConnection.UpdateMessages( codes );
                 }
             }

@@ -68,6 +68,7 @@
       <DependentUpon>201610071618429_Init.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Migrations\PagesMigration.cs" />
     <Compile Include="Model\SignCategory.cs" />
     <Compile Include="Model\SignCategoryService.cs" />
     <Compile Include="Model\SignService.cs" />
