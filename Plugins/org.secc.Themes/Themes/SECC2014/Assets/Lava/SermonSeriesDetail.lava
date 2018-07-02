@@ -1,0 +1,321 @@
+<style>
+	.series-banner {
+		height: 220px;
+		background-size: cover;
+		background-position: center center;
+		background-repeat: no-repeat;
+	}
+
+	@media (min-width: 992px) {
+		.series-banner {
+			height: 420px;
+		}
+	}
+
+	.series-title{
+		margin-bottom: 4px;
+	}
+
+	.series-dates {
+		opacity: .6;
+	}
+
+	.messages-title {
+		font-size: 24px;
+	}
+
+	.messages {
+		font-size: 18px;
+	}
+
+    #loading-animation {
+		display: none;
+	}
+	.current-series {
+		height: 220px;
+		background-size: cover;
+		background-position: center center;
+		background-repeat: no-repeat;
+	}
+
+	@media (min-width: 992px) {
+		.current-series {
+			height: 420px;
+		}
+	}
+
+	.current-series h1 {
+		background-color: rgba(0, 0, 0, 0.3);
+		text-align: center;
+		font-size: 16px;
+		font-weight: 600;
+		color: #fff;
+		margin: 0;
+		padding: 6px;
+	}
+
+	.series {
+		border: 1px solid rgba(0, 0, 0, .3);
+		position: relative;
+	}
+
+	.series h1 {
+		font-size: 20px;
+		font-weight: 600;
+		margin-top: 4px;
+		margin-bottom: 0;
+	}
+
+	.series-dates, .sermons-count {
+		opacity: .6;
+	}
+
+	.series-body {
+		padding: 15px;
+		/* height: 172px; */
+	}
+	.series-body h3 {
+		font-weight: 300;
+	}
+	.series-body hr {
+		margin: 10px 0px;
+	}
+
+	.series-summary {
+		/* height: 60px; */
+		/* overflow: hidden; */
+	}
+
+	.series-link {
+		color: black;
+	}
+
+	.series-link:hover {
+		text-decoration: none;
+	}
+
+	/* .series-image {
+		height: 158px;
+		width: 100%;
+		background-size: cover;
+		background-position: center center;
+		background-repeat: no-repeat;
+	} */
+
+	/* .series-image:after {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		transition: all .1s ease-in-out;
+	} */
+
+	/* .series-image:hover:after {
+		background: rgba(0,0,0,.2);
+	} */
+</style>
+
+{% assign item = Items | First %}
+{% if item  %}
+
+<!-- START: Page Sub-Menu -->
+        <div class="page-menu" >
+            <div class="container-fluid text-center" style="padding: 0;">
+                <nav class="page-nav text-center">
+                    <ul class="list-inline">
+                        <li><a href="#">Back to All Series</a></li>
+                        <li><a href="#">Jump to Current Series</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+        <!-- END: Page Sub-Menu -->
+
+<div class="container">
+	{% assign currentDate = 'Now' | Date:'M/d/yyyy' %}
+	{% assign currentMessage = item.ChildItems | First %}
+
+	{% comment %}
+		The Lava Code below checks for the closest sermon message to this day.
+	{% endcomment %}
+	{% for childItem in item.ChildItems %}
+		{% assign currentMessageDays = currentDate | DateDiff:childItem.ChildContentChannelItem.StartDateTime,'d' %}
+		{% if currentMessageDays <= 0 %}
+			{% assign currentMessage = childItem %}
+		{% endif %}
+	{% endfor %}
+
+	{% assign seriesImageGuid = item | Attribute:'SeriesImage','RawValue' %}
+	{% assign currentMessageVideoId = currentMessage.ChildContentChannelItem | Attribute:'VimeoId' %}
+
+	<article class="series-detail">
+
+		<div id="seriesHead" class="row">
+
+			{% unless currentMessageVideoId == empty %}
+			<div class="col-sm-12 col-md-7">
+				<div class="embed-responsive embed-responsive-16by9 media-border-only">
+				    <div class="embed-responsive embed-responsive-16by9 media-border-only">
+                        <iframe src="https://player.vimeo.com/video/{{ currentMessageVideoId }}?title=0&byline=0&portrait=0" width="640" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+                    </div>
+				</div>
+				<h5 style="margin-top: 10px;">
+					<span class="highlight_text">Recent Sermon in this Series:</span>
+					<a href="{{ LinkedPages.DetailPage }}?Item={{ currentMessage.ChildContentChannelItem.Id }}">{{ currentMessage.ChildContentChannelItem.Title }}</a>
+					<!-- <small class="pull-right">{{ currentMessage.ChildContentChannelItem.StartDateTime | Date:'MMM dd, yy' }}</small> -->
+				</h5>
+			</div>
+			{% endunless %}
+
+			<div class="col-sm-12 col-md-5">
+
+				<h1 class="series-title">
+					{{ item.Title }}
+				</h1>
+				<p class="series-dates">
+					Series Date:
+					<strong>{{ item.StartDateTime | Date:'M/d/yyyy' }}
+						{% if item.StartDateTime != item.ExpireDateTime %}
+						- {{ item.ExpireDateTime | Date:'M/d/yyyy' }}
+						{% endif %}
+					</strong>
+				</p>
+				<br />
+
+				<div class="margin-t-lg">
+					<span class="clearfix">{{ item.Content }}</span>
+
+					<div class="socials socials_type_icons socials_shape_round" style="margin-top:15px;">
+						<script>function fbs_click() { u = location.href; t = document.title; window.open('http://www.facebook.com/sharer.php?u=' + encodeURIComponent(u) + '&t=' + encodeURIComponent(t), 'sharer', 'toolbar=0,status=0,width=626,height=436'); return false; }</script>
+						<script>function ics_click() { text = `{{ EventItemOccurrence.Schedule.iCalendarContent }}`.replace('END:VEVENT', 'SUMMARY: {{ Event.Name }}\r\nLOCATION: {{ EventItemOccurrence.Location }}\r\nEND:VEVENT'); var element = document.createElement('a'); element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); element.setAttribute('download', '{{ Event.Name }}.ics'); element.style.display = 'none'; document.body.appendChild(element); element.click(); document.body.removeChild(element); }</script>
+						<div class="socials_item">
+							<a href="mailto:?Subject={{ Event.Name | Escape }}&Body={{ 'Global' | Page:'Url' }}" class="social_icons social_gplus" data-original-title="Share via Email">
+								<i class="fa fa-envelope"></i>
+							</a>
+						</div>
+						<div class="socials_item">
+							<a href="http://www.facebook.com/share.php?u=<url>" onclick="return fbs_click()" target="_blank" class="social_icons social_facebook" data-original-title="Share via Facebook">
+								<i class="fa fa-facebook"></i>
+							</a>
+						</div>
+						<div class="socials_item">
+							<a href="http://twitter.com/home?status={{ 'Global' | Page:'Url' | Escape }}" target="_blank" class="social_icons social_twitter" data-original-title="Share via Twitter">
+								<i class="fa fa-twitter"></i>
+							</a>
+						</div>
+					</div>
+				</div>
+
+			</div>
+
+		</div>
+    </article>
+</div>
+
+<div class="container-fluid" style="background-color:  rgba(239, 239, 239, 0.5); padding: 0 0 20px 0;">
+
+        <div class="container">
+            <div class="row">
+            {% unless currentMessageVideoEmbed == empty %}
+                <div class="col-md-12 text-center">
+                    <br />
+                    <h3 style="font-weight: 300" class="uppercase">Sermons Below - {{ item.Title }}</h3>
+                    <br />
+                </div>
+            {% endunless %}
+            </div>
+            <div class="messages isotope_wrap series-list">
+                {% for messages in item.ChildItems %}
+                    {% assign message = messages.ChildContentChannelItem %}
+                    {% assign videoImageGuid = message | Attribute:'Image','RawValue' %}
+
+                    <div class="isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load">
+
+                        <a class="series-link" href="{{ 'Global' | Page:'Path' }}/{{ item.Slug }}">
+                        <div class="card" style="background-color: white;">
+                            <!-- Image -->
+                            <div class="img-hover">
+                                <img src="/GetImage.ashx?Guid={{ videoImageGuid }}" class="img-responsive img-rounded" style="margin: 0 auto">
+                            </div>
+                            <div class="series-body">
+                                <h3 class="text-color">{{ message.Title }}</h3>
+                                <hr />
+                                {% if message.Content != empty -%}
+                                <p class="series-summary text-color">
+                                    {{ message.Content }}
+                                </p>
+                                <hr />
+                                {% endif -%}
+                                <p class="series-dates text-color text-right">
+                                    {{ message.StartDateTime | Date:'MMMM dd, yyyy' }}
+                                    <br />
+                                </p>
+                            </div>
+                        </div>
+                        </a>
+                    </div>
+
+                {% endfor %}
+            </div>
+</div>
+
+	<script>
+	$(window).load(function() {
+        // Initialize Isotope
+        var $grid = $('.isotope_wrap').isotope({
+            // options
+            percentPosition: true,
+            itemSelector: '.isotope_item',
+			layoutMode: 'fitRows'
+        });
+        // reveal all items after init
+        var $items = $grid.find('.isotope_item');
+        $grid.addClass('is-showing-items')
+          .isotope( 'revealItemElements', $items );
+    });
+
+    // $('.picture').each( function() {
+    //     var $pic     = $(this),
+    //         getItems = function() {
+    //             var items = [];
+    //             $pic.find('a').each(function() {
+    //                 var $href   = $(this).attr('href'),
+    //                     $size   = $(this).data('size').split('x'),
+    //                     $width  = $size[0],
+    //                     $height = $size[1];
+	//
+    //                 var item = {
+    //                     src : $href,
+    //                     w   : $width,
+    //                     h   : $height
+    //                 }
+	//
+    //                 items.push(item);
+    //             });
+    //             return items;
+    //         }
+	//
+    //     var items = getItems();
+    //     var $pswp = $('.pswp')[0];
+    //     $pic.on('click', 'figure', function(event) {
+    //         event.preventDefault();
+	//
+    //         var $index = $(this).index();
+    //         var options = {
+    //             index: $index,
+    //             bgOpacity: 0.7,
+    //             showHideOpacity: true
+    //         }
+	//
+    //         // Initialize PhotoSwipe
+    //         var lightBox = new PhotoSwipe($pswp, PhotoSwipeUI_Default, items, options);
+    //         lightBox.init();
+    //     });
+    // });
+    </script>
+
+{% else %}
+	<h1>Could not find series.</h1>
+{% endif %}
