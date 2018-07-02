@@ -1,4 +1,4 @@
-$pluginName = 'PastoralCare';
+$pluginName = 'Microframe';
 
 $scriptpath = $MyInvocation.MyCommand.Path
 $dir = Split-Path $scriptpath

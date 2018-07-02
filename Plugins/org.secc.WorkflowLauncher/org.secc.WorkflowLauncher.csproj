@@ -70,6 +70,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Migrations\20180630120000_InitialCreate.cs" />
     <Compile Include="WorkflowLauncher.cs" />
   </ItemGroup>
   <ItemGroup />
