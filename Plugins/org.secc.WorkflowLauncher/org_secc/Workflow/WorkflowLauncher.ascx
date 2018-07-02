@@ -19,13 +19,22 @@
                         <Rock:DataDropDownList ID="ddlRegistrations" runat="server" Label="Registration (optional)" Help="Select a specific registration to use to launch the workflow." SourceTypeName="Rock.Model.Registration, Rock"  Required="false" DataTextField="EntityStringValue" DataValueField="Id" PropertyName="FirstName" Visible="false" AutoPostBack="true" />
                     </div>
                     <div class="col-md-8" runat="server" visible="false" id="divGroup">
-                        
                         <div class="row">
                             <div class="col-md-3">
                                 <Rock:GroupPicker ID="gpGroupPicker" runat="server" Label="Group" Help="Select a group to launch a workflow for each member in the group." OnSelectItem="gpGroupPicker_SelectItem" />
                             </div>
                             <div class="col-md-9">
                                 <Rock:GroupMemberPicker ID="gmpGroupMemberPicker" runat="server" Label="Group Member (optional)" Help="Select a specific group member to run this workflow for." Visible="false" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8" runat="server" visible="false" id="divDataView">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <Rock:DataViewPicker ID="dvpDataViewPicker" runat="server" Label="Data View" Help="Select a dataview to launch a workflow for each person." AutoPostBack="true" OnSelectedIndexChanged="dvpDataViewPicker_SelectedIndexChanged" EntityTypeId="15" />
+                            </div>
+                            <div class="col-md-9">
+                                <Rock:DataDropDownList ID="ddlEntities" runat="server" Label="Person (optional)" Help="Select a specific person from the dataview to use to launch the workflow." SourceTypeName="Rock.Model.Person, Rock" Required="false" Visible="false" DataValueField="Id" DataTextField="EntityStringValue" PropertyName="FullName" />
                             </div>
                         </div>
                     </div>
