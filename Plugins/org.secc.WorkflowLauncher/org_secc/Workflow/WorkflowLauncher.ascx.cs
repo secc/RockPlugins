@@ -93,7 +93,9 @@ namespace RockWeb.Plugins.org_secc.Workflow
                 ddlRegistrationInstances.DataBind();
 
                 var entityTypes = new EntityTypeService( new RockContext() ).GetEntities()
-                    .Where( t => t.Guid.ToString() == Rock.SystemGuid.EntityType.GROUP.ToLower() || t.Guid.ToString() == "5cd9c0c8-c047-61a0-4e36-0fdb8496f066" )
+                    .Where( t => t.Guid.ToString() == Rock.SystemGuid.EntityType.GROUP.ToLower() ||
+                                 t.Guid.ToString() == "5cd9c0c8-c047-61a0-4e36-0fdb8496f066" ||
+                                 t.Guid.ToString() == Rock.SystemGuid.EntityType.DATAVIEW.ToLower() )
                     .OrderBy( t => t.FriendlyName )
                     .ToList();
                 entityTypes.Insert(0, new EntityType() { Id = -1, FriendlyName = "Select One" } );
@@ -187,6 +189,7 @@ namespace RockWeb.Plugins.org_secc.Workflow
                     if ( ddlRegistrations.SelectedValueAsInt().HasValue && ddlRegistrations.SelectedValueAsInt() > 0 )
                     {
                         var registration = registrationService.Get( ddlRegistrations.SelectedValueAsInt().Value );
+                        litOutput.Text += "Launching workflow for " + registration.ToString() + "<br />";
                         registration.LaunchWorkflow( wtpWorkflowType.SelectedValueAsInt().Value, registration.ToString() );
                     }
                     else if ( ddlRegistrationInstances.SelectedValueAsInt().HasValue && ddlRegistrationInstances.SelectedValueAsInt() > 0 )
@@ -201,6 +204,36 @@ namespace RockWeb.Plugins.org_secc.Workflow
                         }
                     }
                 }
+                else if ( ddlEntityType.SelectedValue == "Rock.Model.DataView" )
+                {
+                    litOutput.Text = "";
+                    if ( ddlEntities.SelectedValueAsInt().HasValue && ddlEntities.SelectedValueAsInt() > 0 )
+                    {
+                        var personService = new PersonService( rockContext );
+                        var person = personService.Get( ddlEntities.SelectedValueAsInt().Value );
+                        litOutput.Text += "Launching workflow for " + person.FullName + "<br />";
+                        person.LaunchWorkflow( wtpWorkflowType.SelectedValueAsInt().Value, person.FullName );
+                    }
+                    else if ( dvpDataViewPicker.SelectedValueAsInt().HasValue && dvpDataViewPicker.SelectedValueAsInt() > 0 )
+                    {
+                        DataViewService dataViewService = new DataViewService( rockContext );
+
+                        var dataview = dataViewService.Get( dvpDataViewPicker.SelectedValueAsInt().Value );
+                        var errors = new List<string>();
+
+                        if ( dataview.EntityType.Guid == new Guid( Rock.SystemGuid.EntityType.PERSON ) )
+                        {
+                            IQueryable<Person> entities = ( IQueryable<Person> ) dataview.GetQuery( null, null, out errors );
+
+                            foreach ( Person person in entities )
+                            {
+                                litOutput.Text += "Launching workflow for " + person.FullName + "<br />";
+                                person.LaunchWorkflow( wtpWorkflowType.SelectedValueAsInt().Value, person.FullName );
+                            }
+                        }
+                    }
+
+                }
             }
         }
 
@@ -208,6 +241,7 @@ namespace RockWeb.Plugins.org_secc.Workflow
         {
             divGroup.Visible = false;
             divRegistration.Visible = false;
+            divDataView.Visible = false;
             if ( ddlEntityType.SelectedValue == "Rock.Model.Group" )
             {
                 divGroup.Visible = true;
@@ -216,12 +250,36 @@ namespace RockWeb.Plugins.org_secc.Workflow
             {
                 divRegistration.Visible = true;
             }
+            else if (ddlEntityType.SelectedValue == "Rock.Model.DataView")
+            {
+                divDataView.Visible = true;
+            }
         }
 
         protected void gpGroupPicker_SelectItem( object sender, EventArgs e )
         {
             gmpGroupMemberPicker.GroupId = gpGroupPicker.SelectedValue.AsInteger();
             gmpGroupMemberPicker.Visible = true;
+        }
+
+        protected void dvpDataViewPicker_SelectedIndexChanged( object sender, EventArgs e )
+        {
+            ddlEntities.Visible = true;
+            using ( var rockContext = new RockContext() )
+            {
+                var errors = new List<string>();
+                DataViewService dataViewService = new DataViewService( rockContext );
+                var dataview = dataViewService.Get( dvpDataViewPicker.SelectedValue.AsInteger() );
+
+                if ( dataview.EntityType.Guid == new Guid(Rock.SystemGuid.EntityType.PERSON) )
+                {
+                    List<Person> people = (( IQueryable<Person> ) dataview.GetQuery( null, null, out errors )).OrderBy(p => p.LastName).ToList();
+                    Person emptyPerson = new Person { Id = -1, FirstName = "All People" };
+                    people.Insert( 0, emptyPerson );
+                    ddlEntities.DataSource = people;
+                    ddlEntities.DataBind();
+                }
+            }
         }
     }
 }
