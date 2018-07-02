@@ -168,7 +168,10 @@
 			<!-- <a class="btn btn-doors" href="javascript:void(0)" id="loadSermons" onclick="getMoreSermons(jQuery);">
   		    	Show More Series <i class="fa fa-chevron-down"></i>
   		  	</a> -->
-			<img id="loading-animation" src="http://kyleidleman.com/wp-content/themes/kyleidleman/_/img/loading.gif" />
+			<br />
+			<br />
+			<br />
+			<img id="loading-animation" src="/Content/ExternalSite/WebImages/loading.gif" />
 		</div>
 
 		{% comment %}
@@ -203,7 +206,8 @@
 
 <script>
 
-window.onscroll = function() {
+window.onscroll = function(e) {
+	e.preventDefault();
     var pageHeight=document.documentElement.offsetHeight,
     windowHeight=window.innerHeight,
     scrollPosition=window.scrollY || window.pageYOffset || document.body.scrollTop + (document.documentElement && document.documentElement.scrollTop || 0);
@@ -249,8 +253,26 @@ function getMoreSermons($) {
 				          layoutMode: 'fitRows'
 				      });
 
-					  var sermonsInSeries = sermon_series.Sermons.length;
-					  console.log('sermonsInSeries: '+ sermonsInSeries);
+					  var sermonsInSeries = sermon_series.Sermons.length,
+					      sermonsStartDate = new Date(sermon_series.Date),
+						  locale = "en-us",
+					      s_day = sermonsStartDate.getDate(),
+						  s_month = sermonsStartDate.toLocaleString(locale, { month: "long" }),
+					      s_year = sermonsStartDate.getFullYear();
+
+					  var sermonsDateStreak = "";
+				      if (sermonsInSeries <= 1) {
+						  var sermonsDateStreak = "<p class=\"series-dates text-color text-right\">"+ s_month + " " + s_day.toString() + ", " + s_year.toString() + "<br/>";
+					  } else {
+						  sermonsDateStreak = "<p class=\"series-dates text-color text-right\">"+ s_month + " " + s_day.toString() + ", " + s_year.toString() + " - "+ sermon_series.Sermons[(sermonsInSeries-1)].Date +"<br/>";
+					  }
+
+					  var descriptionContent = sermon_series.Description;
+					  if (descriptionContent != "") {
+						  descriptionContent = "<p class=\"series-summary text-color\">"+ sermon_series.Description +"</p><hr />";
+					  }
+					  console.log(sermon_series);
+
 					  var $elem = $('<div></div>', {
 						            "class": "isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load"
 						          }).append(
@@ -268,9 +290,9 @@ function getMoreSermons($) {
 											  box += "<div class=\"series-body\">";
 						  	                  box +=    "<h3 class=\"text-color\">"+ sermon_series.Name +"</h3>";
 											  box +=    "<hr />";
-											  box +=   	"<p class=\"series-summary text-color\">"+ sermon_series.Description +"</p>";
-											  box +=    "<hr />";
-											  box +=   	"<p class=\"series-dates text-color text-right\">"+ sermon_series.Sermons[(sermonsInSeries-1)].Date +"</p>";
+											  box +=   	descriptionContent;
+											  box +=   	sermonsDateStreak;
+											  box +=	"Sermons: "+ sermonsInSeries +"</p>"
 						  	                  box += "</div>";
 						  	              return box;
 						  	            })
