@@ -27,10 +27,13 @@
                     <Rock:NotificationBox ID="nbDuplicateSign" runat="server" NotificationBoxType="Warning" Title="Sorry" Visible="false" />
                     <Rock:DataTextBox ID="tbName" ValidationGroup="Main" runat="server" SourceTypeName="org.secc.Microframe.Model.Sign, org.secc.Microframe" PropertyName="Name" Required="true" />
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <Rock:DataTextBox ID="tbIPAddress" ValidationGroup="Main" runat="server" SourceTypeName="org.secc.Microframe.Model.Sign, org.secc.Microframe" PropertyName="IPAddress" Required="true" />
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
+                            <Rock:DataTextBox ID="tbPort" ValidationGroup="Main" runat="server" SourceTypeName="org.secc.Microframe.Model.Sign, org.secc.Microframe" PropertyName="Port" Required="true" />
+                        </div>
+                        <div class="col-md-4">
                             <Rock:DataTextBox ID="tbPIN" ValidationGroup="Main" runat="server" SourceTypeName="org.secc.Microframe.Model.Sign, org.secc.Microframe" PropertyName="PIN" Required="true" />
                         </div>
                     </div>
