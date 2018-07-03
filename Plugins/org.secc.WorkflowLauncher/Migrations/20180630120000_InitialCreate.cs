@@ -22,7 +22,7 @@ namespace org.secc.WorkflowLauncher.Migrations
         {
 
             // Page: Workflow Launcher              
-            RockMigrationHelper.AddPage( true, "5B6DBC42-8B03-4D15-8D92-AAFA28FD8616","D65F783D-87A9-4CC9-8110-E83466A0EADB","Workflow Launcher","","683D6BE3-A7DD-4833-89EB-735CEF3CA566","fa fa-rocket"); // Site:Rock RMS
+            RockMigrationHelper.AddPage( true, "7F1F4130-CB98-473B-9DE1-7A886D2283ED", "D65F783D-87A9-4CC9-8110-E83466A0EADB","Workflow Launcher","","683D6BE3-A7DD-4833-89EB-735CEF3CA566","fa fa-rocket"); // Site:Rock RMS
             RockMigrationHelper.UpdateBlockType( "Workflow Launcher", "Block for launching workflows for common entity types", "~/Plugins/org_secc/Workflow/WorkflowLauncher.ascx", "SECC > Workflow", "C2AB102F-E3B7-41BC-B0D0-6F7AF6E816B3" );
             // Add Block to Page: Workflow Launcher, Site: Rock RMS              
             RockMigrationHelper.AddBlock( true, "683D6BE3-A7DD-4833-89EB-735CEF3CA566","","C2AB102F-E3B7-41BC-B0D0-6F7AF6E816B3","Workflow Launcher","Main","","",0,"2EC7BC6B-312E-4EE4-AD64-42BDE04E448C");   
