@@ -91,9 +91,10 @@
 
                 {[ parallax videourl:'https://vimeo.com/{{ currentMessageVimeoID }}' image:'https://www.southeastchristian.org/_/img/home/rotations/HOPE920-xl.jpg' videostarttime:'200' videoendtime:'210' addclass:'darken' height:'65vh' position:'center center' speed:'-25' ]}
 					<!-- START: Ministry Logo & Video -->
-                    <div class="parallax-logo centered" style="max-width: inherit;">
-                        <h1>SERMONS</h1>
-                        <h4 class="uppercase" style="font-size: 3rem;">Current Series: {{ item.Title }}</h4>
+                    <div class="parallax-logo centered" style="max-width: inherit;padding: 0px;">
+                        <h4 class="uppercase" style="font-size: 3rem;">Latest Sermon</h4>
+                        <h1 style="text-shadow: none;">{{ item.Title }}</h1>
+						<p class="uppercase"><strong>{{ currentMessage.ChildContentChannelItem.Title }}</strong></p>
                         <br />
                         <br />
                         <a href="{{ 'Global' | Page:'Path' }}/{{ item.Slug }}" class="btn btn-doors btn-light" style="font-size: 2em; -webkit-font-smoothing: antialiased;">
@@ -109,5 +110,3 @@
 {% else %}
 	<h1>Could not find series.</h1>
 {% endif %}
-
-<br />

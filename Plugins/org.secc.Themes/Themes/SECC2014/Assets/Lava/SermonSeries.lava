@@ -101,7 +101,7 @@
 {% endif %}
 {% endcomment %}
 
-<div class="container-fluid" style="background-color:  rgba(239, 239, 239, 0.5); padding: 20px 0;">
+<div class="container-fluid" style="background-color:  rgba(239, 239, 239, 0.5); padding: 40px 0;">
 
 	<div class="container">
 		<div class="isotope_wrap margin-t-lg series-list">
@@ -150,9 +150,9 @@
 								{% assign lastSermon = item.ChildItems | Last %}
 								{% assign sermonsCount = item.ChildItems | Size %}
 								{% if sermonsCount > 1 -%}
-								{{ item.StartDateTime | Date:'MMMM dd, yyyy' }} - {{ lastSermon.ChildContentChannelItem.StartDateTime | Date:'MMMM dd, yyyy' }}
+								{{ item.StartDateTime | Date:'MMM dd, yyyy' }} - {{ lastSermon.ChildContentChannelItem.StartDateTime | Date:'MMM dd, yyyy' }}
 								{% else -%}
-								{{ item.StartDateTime | Date:'MMMM dd, yyyy' }}
+								{{ item.StartDateTime | Date:'MMM dd, yyyy' }}
 								{% endif -%}<br />
 								Sermons: {{ sermonsCount }}
 							</p>
@@ -207,14 +207,13 @@
 <script>
 
 window.onscroll = function(e) {
-	e.preventDefault();
     var pageHeight=document.documentElement.offsetHeight,
     windowHeight=window.innerHeight,
     scrollPosition=window.scrollY || window.pageYOffset || document.body.scrollTop + (document.documentElement && document.documentElement.scrollTop || 0);
 
     if (pageHeight - document.getElementById("SiteFooter").offsetHeight <= windowHeight+scrollPosition) {
         getMoreSermons(jQuery);
-		console.log('Boom!');
+		//console.log('Boom!');
     }
 };
 
@@ -228,7 +227,7 @@ var sermonsLoading = false;
 function getMoreSermons($) {
 
 	if (sermonsContinueMakingRequests == true) {
-		console.log('sermonsContinueMakingRequests === '+sermonsContinueMakingRequests);
+		//console.log('sermonsContinueMakingRequests === '+sermonsContinueMakingRequests);
 		$("#loading-animation").show();
 	}
 
@@ -240,6 +239,18 @@ function getMoreSermons($) {
 			beforeSend: function(data) {
 				sermonsLoading = true; // start ajax loading process
 			},
+			error: function(jqXHR,error, errorThrown) {  
+			   console.log('AJAX ERROR: '); 
+               if(jqXHR.status&&jqXHR.status==400){
+                   console.log(jqXHR.responseText); 
+               }else{
+				   console.log('URL Request: '+ 'https://rock.secc.org/Webhooks/Lava.ashx/sermons/'+sermonOffset);
+                   console.log("jqXHR:");
+				   console.log(jqXHR);
+				   console.log("error:"+error);
+				   console.log("errorThrown:"+errorThrown);
+               }
+            },
 			success: function(data) {
 				// console.log(data.Series);
 
