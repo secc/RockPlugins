@@ -245,6 +245,7 @@ namespace org.secc.SafetyAndSecurity
                 BinaryFile renderedPDF = new BinaryFile();
                 renderedPDF.CopyPropertiesFrom( PDF );
                 renderedPDF.Guid = Guid.NewGuid();
+                renderedPDF.FileName = "VolunteerApplication_" + person.FirstName + person.LastName + ".pdf";
                 renderedPDF.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( new Guid( BACKGROUND_CHECK_BINARY_FILE_TYPE ) ).Id;
 
                 BinaryFileData pdfData = new BinaryFileData();
