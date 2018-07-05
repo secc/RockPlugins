@@ -39,7 +39,7 @@ namespace org.secc.SignNowWorkflow
     [WorkflowAttribute( "SignNow Invite Link", "The attribute to save the SignNow invite link.", true, "", "", 0, null, new string[] { "Rock.Field.Types.TextFieldType" } )]
     [WorkflowAttribute( "SignNow Document Id", "The attribute to save the SignNow document id.", true, "", "", 0, null, new string[] { "Rock.Field.Types.TextFieldType" } )]
     [WorkflowAttribute( "Document", "The attribute containing the document to upload to SignNow.", true, "", "", 0, null, new string[] { "Rock.Field.Types.BinaryFileFieldType", "Rock.Field.Types.FileFieldType" } )]
-    [TextField( "Redirect Uri", "Webpage to redirect to after the document has been signed", false )]
+    [TextField( "Redirect Uri", "Webpage to redirect to after the document has been signed. <span class='tip tip-lava'></span>", false )]
     [TextField( "Signer Role", "Role the signature is assigned to.", true, "Applicant" )]
     class SignNowCreate : ActionComponent
     {
@@ -47,7 +47,6 @@ namespace org.secc.SignNowWorkflow
         public override bool Execute( RockContext rockContext, WorkflowAction action, object entity, out List<string> errorMessages )
         {
             errorMessages = new List<string>();
-            string url = "";
 
             // If this request isn't coming from a browser it can't be completed).
             if ( System.Web.HttpContext.Current == null )
@@ -110,8 +109,8 @@ namespace org.secc.SignNowWorkflow
                 "https://signnow.com/dispatch?route=fieldinvite&document_id={0}&access_token={1}&mobileweb=mobileweb_only",
                 documentId,
                 userAccessToken );
-
-            var redirectUri = GetAttributeValue( action, "RedirectUri" );
+            var mergeFields = GetMergeFields( action );
+            var redirectUri = GetAttributeValue( action, "RedirectUri" ).ResolveMergeFields(mergeFields);
             if ( !string.IsNullOrWhiteSpace( redirectUri ) )
             {
                 signNowInviteLink += "&redirect_uri=" + redirectUri;
