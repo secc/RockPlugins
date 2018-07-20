@@ -44,6 +44,7 @@ using System.Web.UI.WebControls;
 using System.Collections.Generic;
 using Rock.Field;
 using Rock.Web.UI.Controls;
+using System.Data.Entity;
 
 namespace RockWeb.Blocks.Reporting.NextGen
 {
@@ -78,6 +79,9 @@ namespace RockWeb.Blocks.Reporting.NextGen
             {
                 RockContext rockContext = new RockContext();
                 var familyMembers = CurrentPerson.GetFamilies().SelectMany( f => f.Members ).Select( m => m.Person ).ToList();
+
+                AddCaretakees( familyMembers, rockContext );
+
 
                 var groupIdsString = GetAttributeValue( "GroupIds" ).SplitDelimitedValues();
                 var groupIds = new List<int>();
@@ -134,12 +138,30 @@ namespace RockWeb.Blocks.Reporting.NextGen
                         var medications = lava.ResolveMergeFields( mergeFields );
                         data.Medications = medications;
                     }
-                        gridData.Add( data );
+                    gridData.Add( data );
                 }
 
                 gGrid.DataSource = gridData;
                 gGrid.DataBind();
             }
+        }
+
+        private void AddCaretakees( List<Person> familyMembers, RockContext rockContext )
+        {
+            var knownRelationships = Rock.SystemGuid.GroupType.GROUPTYPE_KNOWN_RELATIONSHIPS.AsGuid();
+            var caretakerRoll = new GroupTypeRoleService( rockContext )
+                .Queryable().AsNoTracking()
+                .Where( r => r.GroupType.Guid == knownRelationships && r.Name == "Caretaker" )
+                .FirstOrDefault()
+                .Id;
+
+            var caretakees = new GroupMemberService( rockContext ).Queryable()
+                .Where( gm => gm.GroupRoleId == caretakerRoll && gm.PersonId == CurrentPerson.Id )
+                .Select( gm => gm.Group )
+                .SelectMany( g => g.Members )
+                .Where( gm => gm.GroupRoleId == 5 )
+                .Select( gm => gm.Person );
+            familyMembers.AddRange( caretakees );
         }
 
         protected void SelectMember_Click( object sender, Rock.Web.UI.Controls.RowEventArgs e )
