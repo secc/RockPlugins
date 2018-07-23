@@ -27,29 +27,33 @@
                 <div class="panel-heading">Information</div>
                 <div class="panel-body">
                     <div class="form-group rock-text-box ">
-					    <label class="control-label">Group Name<span style="font-weight:normal">
-                            <a href="javascript:;" tabindex="0" role="button" data-toggle="popover" title="Group Name" data-trigger="focus" data-placement="right" data-content="Enter the name of your home group using your last name + &quot;Home&quot; such as &quot;Smith Home&quot;.">
-                                <i class="fa fa-question-circle"></i>
-                            </a></span>
-					    </label>
+                        <label class="control-label">
+                            Group Name<span style="font-weight: normal">
+                                <a href="javascript:;" tabindex="0" role="button" data-toggle="popover" title="Group Name" data-trigger="focus" data-placement="right" data-content="Enter the name of your home group using your last name + &quot;Home&quot; such as &quot;Smith Home&quot;.">
+                                    <i class="fa fa-question-circle"></i>
+                                </a></span>
+                        </label>
                         <div class="control-wrapper">
-                            <Rock:RockTextBox runat="server" ID="tbName" Enabled="false" ></Rock:RockTextBox>
+                            <Rock:RockTextBox runat="server" ID="tbName" Enabled="false"></Rock:RockTextBox>
                         </div>
-				    </div>
-                    
+                    </div>
+
+                    <Rock:CampusPicker runat="server" ID="cpCampus" Required="true" />
+
                     <Rock:RockTextBox runat="server" ID="tbDescription" Label="Description" Visible="false" TextMode="MultiLine"></Rock:RockTextBox>
-                    
+
                     <div class="form-group rock-text-box ">
-					    <label class="control-label">Schedule Type<span style="font-weight:normal">
-                            <a href="javascript:;" tabindex="0" role="button" data-toggle="popover" title="Schedule Type" data-trigger="focus" data-placement="right" data-content="Nearly all of our neighborhood groups meet weekly.  Please select the weekly option then select the day of the week and the time you are planning to meet.">
-                                <i class="fa fa-question-circle"></i>
-                            </a></span>
-					    </label>
+                        <label class="control-label">
+                            Schedule Type<span style="font-weight: normal">
+                                <a href="javascript:;" tabindex="0" role="button" data-toggle="popover" title="Schedule Type" data-trigger="focus" data-placement="right" data-content="Nearly all of our neighborhood groups meet weekly.  Please select the weekly option then select the day of the week and the time you are planning to meet.">
+                                    <i class="fa fa-question-circle"></i>
+                                </a></span>
+                        </label>
                         <div class="control-wrapper">
                             <Rock:RockRadioButtonList runat="server" ID="rblSchedule" Label="" OnSelectedIndexChanged="rblSchedule_SelectedIndexChanged" AutoPostBack="true" RepeatDirection="Horizontal">
                             </Rock:RockRadioButtonList>
                         </div>
-				    </div>
+                    </div>
                     <Rock:DayOfWeekPicker ID="dowWeekly" runat="server" CssClass="input-width-md" Label="Day of the Week" Visible="false" />
 
                     <Rock:TimePicker ID="timeWeekly" runat="server" Label="Time of Day" Visible="false" />
@@ -62,16 +66,19 @@
                 </div>
             </div>
             <asp:Panel runat="server" ID="pnlFilters" class="panel panel-default">
-                <div class="panel-heading">Filters
+                <div class="panel-heading">
+                    Filters
                         <a href="javascript:;" tabindex="0" role="button" data-toggle="popover" title="Filter Information" data-trigger="focus" data-placement="right" data-content="Filters are used for helping people find your home group.  It gives them an idea of what to expect when they come to your home.  <br /><br /><b>Max Members</b>: The max members filter option is used to restrict the number of people who will be allowed to signup for your home.  <br /><br /><b>Group Photo</b>: You can submit a photo of your house or your family if you would like.">
                             <i class="fa fa-question-circle"></i>
-                        </a></span></div>
+                        </a></span>
+                </div>
                 <div class="panel-body">
                     <asp:PlaceHolder runat="server" ID="phAttributes" EnableViewState="false"></asp:PlaceHolder>
                 </div>
             </asp:Panel>
             <asp:Panel runat="server" ID="pnlMembers" class="panel panel-default groupMembers" Visible="false">
-                <div class="panel-heading">Members <i>(select any existing group members who will rejoin)</i>
+                <div class="panel-heading">
+                    Members <i>(select any existing group members who will rejoin)</i>
                     <a href="javascript:;" tabindex="0" role="button" data-toggle="popover" title="Group Member Selection" data-trigger="focus" data-placement="right" data-content="Use this section to select which members who have previously attended your home group.  If you need to add additional members to your home, you can ask them to sign up using the neighborhood group finder tool or you can add them to your roster using the LWYA group manager website/app.  If you have additional questions or concerns, please email <a href=&quot;mailto:lwya@secc.org&quot;>lwya@secc.org</a>.">
                         <i class="fa fa-question-circle"></i>
                     </a>
@@ -96,8 +103,7 @@
 
 <script>
     $(document).ready(
-        function ()
-        {
+        function () {
             $('.groupMembers').find(':checkbox').prop('checked', true);
             $('a[data-toggle="popover"]').popover({ html: true });
         })

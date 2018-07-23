@@ -53,7 +53,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         200, true, "We're sorry we could not find your account in our system. Please log-in to continue.", "", 9 )]
     [CodeEditorField( "Multiple Groups Text", "Text to display when too many groups are found to make recomitment a possiblity.", CodeEditorMode.Text, CodeEditorTheme.Rock,
         200, true, "We found multiple groups matched to you. Please contact your leader to help you create your groups for this cycle.", "", 10 )]
-    [WorkflowTypeField ("Workflow", "Workflow to execute when this group is created/recommitted.  The group will be passed as the Entity to the workflow.", order: 11)]
+    [WorkflowTypeField( "Workflow", "Workflow to execute when this group is created/recommitted.  The group will be passed as the Entity to the workflow.", order: 11 )]
+    [KeyValueListField( "Campus Group Map", "Campus to parent group mapping. Each campus needs a parent group.", keyPrompt: "CampusId", valuePrompt: "GroupId" )]
 
     public partial class GroupRecommit : RockBlock
     {
@@ -61,7 +62,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         private Group _group;
         private GroupTypeCache _groupType;
         private RockContext _rockContext;
-        private List<string> CycleOrder = new List<string>() { "February 2018", "September 2017", "January 2017", "September 2016", "April 2016", "January 2016", "October 2015" };
+        private List<string> CycleOrder = new List<string>() { "September 2018, February 2018", "September 2017", "January 2017", "September 2016", "April 2016", "January 2016", "October 2015" };
 
         #region Base Control Methods
 
@@ -223,6 +224,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 ltTitle.Text = "Recommit To Lead Group";
                 tbName.Text = _group.Name;
+                cpCampus.SetValue( _group.CampusId );
                 _group.LoadAttributes();
             }
             else
@@ -305,14 +307,14 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 {
                     modes = modes | LocationPickerMode.Address;
                 }
-                
+
                 lopAddress.AllowedPickerModes = modes;
             }
 
             var meetingLocationDv = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_MEETING_LOCATION );
             var homeLocationDv = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME );
 
-            var groupLocation = _group.GroupLocations.Where(gl => gl.GroupLocationTypeValueId == meetingLocationDv.Id || gl.GroupLocationTypeValueId == homeLocationDv.Id || gl.GroupLocationTypeValueId == null).FirstOrDefault();
+            var groupLocation = _group.GroupLocations.Where( gl => gl.GroupLocationTypeValueId == meetingLocationDv.Id || gl.GroupLocationTypeValueId == homeLocationDv.Id || gl.GroupLocationTypeValueId == null ).FirstOrDefault();
             if ( groupLocation != null )
             {
                 lopAddress.Location = groupLocation.Location;
@@ -461,6 +463,15 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     group.ParentGroupId = destinationGroup.Id;
                 }
 
+                var parentMapping = GetAttributeValue( "CampusGroupMap" ).ToKeyValuePairList();
+                foreach ( var pair in parentMapping )
+                {
+                    if ( pair.Key.AsInteger() == cpCampus.SelectedValueAsId() )
+                    {
+                        group.ParentGroupId = ( ( string ) pair.Value ).AsInteger();
+                    }
+                }
+
                 var zip = "No Zip";
                 if ( lopAddress.Location != null && !string.IsNullOrWhiteSpace( lopAddress.Location.PostalCode ) )
                 {
@@ -477,6 +488,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 group.IsActive = true;
             }
 
+            group.CampusId = cpCampus.SelectedValueAsId();
             group.Description = tbDescription.Text;
 
 
@@ -486,7 +498,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 if ( group.GroupLocations != null && !group.GroupLocations.Select( gl => gl.LocationId ).Contains( lopAddress.Location.Id ) )
                 {
                     // Disassociate the old address(es)
-                    GroupLocationService groupLocationService = new GroupLocationService(_rockContext);
+                    GroupLocationService groupLocationService = new GroupLocationService( _rockContext );
                     var meetingLocationDv = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_MEETING_LOCATION );
                     var homeLocationDv = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME );
 
@@ -571,7 +583,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 availableGroupIds.Add( group.Id );
                 AddCacheItem( GetAttributeValue( "DestinationGroup" ), availableGroupIds );
             }
-            
+
             var workflowTypeService = new WorkflowTypeService( _rockContext );
             WorkflowType workflowType = null;
             Guid? workflowTypeGuid = GetAttributeValue( "Workflow" ).AsGuidOrNull();
