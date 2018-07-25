@@ -75,6 +75,11 @@
 				color: rgb(251, 57, 88);
 			}
 		}
+		&:focus {
+			outline: none !important; 
+			outline: none !important; 
+			outline-offset: none !important; 
+		}
 	}
 
 	.social_icons i {

@@ -1,0 +1,30 @@
+{% assign itemCount = Items | Size %}
+{% if itemCount > 0 %}
+<div id="story-results" class="container g-padding-y-20--xs g-padding-x-20--xs">
+
+    <div class="isotope_wrap g-margin-b-60--xs g-margin-b-70--md">
+        {% for item in Items %}
+        {% assign ImageGuid = item | Attribute:'Image','RawValue' %}
+
+        <div class="isotope_item col-xs-12 col-md-6 col-lg-4 g-margin-b-60--xs g-margin-b-20--md">
+            <article class="post_item_story">
+
+                <div class="post_featured_story">
+                    <div class="post_thumb_story" data-image="/GetImage.ashx?Guid={{ ImageGuid }}" data-title="{{ item.Title }}">
+    					<a class="hover_icon hover_icon_link" href="{{ 'Global' | Page:'Root' }}/stories/all/{{ item.Slug }}">
+                            <img class="img-responsive img-rounded" alt="{{ item.Title }}" src="/GetImage.ashx?Guid={{ ImageGuid }}" style="margin: 0 auto">
+                        </a>
+                    </div>
+                </div>
+                <div class="massonry_border">
+                    <h4 class="post_title text-center" style="font-weight: 400;color:  black;margin-top: 14px; font-size: 1.2em;">
+                        <a href="{{ 'Global' | Page:'Root' }}/stories/all/{{ item.Slug }}" style="color:  black;text-decoration:  none;">{{ item.Title }}</a>
+                    </h4>
+    			</div>
+            </article>
+        </div>
+
+        {% endfor %}
+    </div>
+</div>
+{% endif %}

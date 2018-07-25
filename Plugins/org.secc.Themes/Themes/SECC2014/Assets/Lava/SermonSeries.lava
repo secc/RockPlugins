@@ -296,7 +296,7 @@ function getMoreSermons($) {
 										  "style": 'background-color: white;',
 						  	            }).html(function() {
 					      				  var box =  "<div class=\"img-hover\">";
-						  	                  box +=    "<img src=\""+ sermon_series.Image +"\" class=\"img-responsive img-rounded\" style=\"margin: 0 auto; min-height: 229px;\">";
+						  	                  box +=    "<img src=\""+ sermon_series.Image +"\" class=\"img-responsive img-rounded\" style=\"margin: 0 auto; min-height: 100px;\">";
 											  box += "</div>";
 											  box += "<div class=\"series-body\">";
 						  	                  box +=    "<h3 class=\"text-color\">"+ sermon_series.Name +"</h3>";
