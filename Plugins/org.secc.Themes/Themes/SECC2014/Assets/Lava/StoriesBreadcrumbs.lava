@@ -1,0 +1,72 @@
+<div class="top_panel_title title_present breadcrumbs_present scheme_original">
+	<div class="top_panel_title_inner top_panel_inner_style_4  title_present_inner breadcrumbs_present_inner">
+        <div class="content_wrap container">
+			<!--<h1 class="page_title">{{ 'Global' | Page:'Title' }}</h1>-->
+			{% assign list = "1,2,3,4,5,6,7,8,9,10" | Split: "," %}
+            {% assign pageId = 'Global' | Page:'Id' %}
+            {% assign breadcrumbs = '' %}
+
+            {% for count in list %}
+            {% if pageId > 0 %}
+                {% page where:'Id == {{pageId}}' %}
+                    {% for page in pageItems %}
+                        {% if page.BreadCrumbDisplayName %}
+                            {% assign route = page.PageRoutes | First %}
+                            {% capture breadcrumbs %}
+                                {% if route %}
+                                    /{{route.Route}}
+                                {% else %}
+                                    /page/{{page.Id}}
+                                {% endif %}
+                                ^^^
+                                {%if count != 1 %}
+                                    {{ page.PageTitle }}|||
+                                {%else%}
+                                    {{ Global | Page:'Title'}}
+                                {%endif%}
+                                {{ breadcrumbs }}
+                            {% endcapture %}
+                        {% endif %}
+                    {% endfor %}
+                {% endpage %}
+            {% endif %}
+            {% assign pageId = page.ParentPageId %}
+            {% endfor %}
+            {% assign breadcrumbs = breadcrumbs | Split:'|||' %}
+
+            <div class="breadcrumbs">
+
+                {%for breadcrumb in breadcrumbs %}
+                    {% assign breadcrumbparts = breadcrumb | Split:'^^^' %}
+
+                    {% if forloop.last  %}
+                        <span class="breadcrumbs_item current">
+                            {% if breadcrumbparts[1] contains "Story Item"  %}
+
+                                {% assign storySlug = 'Global' | PageParameter:'Slug'  %}
+                                {% contentchannelitem where:'Status == 1 && ContentChannelId == 35' sort:'StartDateTime desc' %}
+                                   {% for item in contentchannelitemItems %}
+                                        {% if item.Slug == storySlug %}
+                                            {{ item.Title }}
+                                        {% endif %}
+                                   {% endfor %}
+                                {% endcontentchannelitem %}
+
+                            {% else %}
+                                {{breadcrumbparts[1]}}
+                            {% endif %}
+                        </span>
+                    {% else %}
+                        <a class="breadcrumbs_item {% if forloop.first %}home{% endif %}" href="{{breadcrumbparts[0]}}">
+                            {{breadcrumbparts[1]}}
+                        </a>
+                        <span class="breadcrumbs_delimiter"></span>
+                    {% endif %}
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+    </div>
+</div>
