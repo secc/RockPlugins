@@ -269,10 +269,13 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             {
                 DefinedValue dv = facilities.Where( h => h.Guid == locationGuid.AsGuid() ).FirstOrDefault();
                 Location location = new Location();
-                location.Street1 = dv.AttributeValues["Qualifier1"].ValueFormatted;
-                location.City = dv.AttributeValues["Qualifier2"].ValueFormatted;
-                location.State = dv.AttributeValues["Qualifier3"].ValueFormatted;
-                location.PostalCode = dv.AttributeValues["Qualifier4"].ValueFormatted;
+                if ( dv != null )
+                {
+                    location.Street1 = dv.AttributeValues["Qualifier1"].ValueFormatted;
+                    location.City = dv.AttributeValues["Qualifier2"].ValueFormatted;
+                    location.State = dv.AttributeValues["Qualifier3"].ValueFormatted;
+                    location.PostalCode = dv.AttributeValues["Qualifier4"].ValueFormatted;
+                }
                 return location;
             }
 
@@ -296,7 +299,10 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             if ( facility != null )
             {
                 DefinedValue dv = facilities.Where( h => h.Guid == facility.AsGuid() ).FirstOrDefault();
-                return dv.AttributeValues["Qualifier5"].ValueFormatted;
+                if (dv != null)
+                {
+                    return dv.AttributeValues["Qualifier5"].ValueFormatted;
+                }
             }
             return "";
         }
