@@ -153,28 +153,32 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                     gReport.Columns[10].Visible = true;
                 }
 
-                var qry = wfTmpqry.Join( attributeValueService.Queryable(),
-                    obj => obj.Id,
-                    av => av.EntityId.Value,
-                    ( obj, av ) => new { Workflow = obj, AttributeValue = av } )
+                var visits = workflowActivityService.Queryable()
+                        .Join(
+                            attributeValueService.Queryable(),
+                            wa => wa.Id,
+                            av => av.EntityId.Value,
+                            ( wa, av ) => new { WorkflowActivity = wa, AttributeValue = av } )
+                    .Where( a => activityAttributeIds.Contains( a.AttributeValue.AttributeId ) )
+                    .GroupBy( wa => wa.WorkflowActivity )
+                    .Select( obj => new { WorkflowActivity = obj.Key, AttributeValues = obj.Select( a => a.AttributeValue ) } )
+                    .ToList();
+
+                var workflows = wfTmpqry.Join(
+                        attributeValueService.Queryable(),
+                        obj => obj.Id,
+                        av => av.EntityId.Value,
+                        ( obj, av ) => new { Workflow = obj, AttributeValue = av } )
                     .Where( a => attributeIds.Contains( a.AttributeValue.AttributeId ) )
                     .GroupBy( obj => obj.Workflow )
                     .Select( obj => new { Workflow = obj.Key, AttributeValues = obj.Select( a => a.AttributeValue ) } )
-                    .GroupJoin( workflowActivityService.Queryable()
-                        .Join(
-                            attributeValueService.Queryable(),
-                            obj => obj.Id,
-                            av => av.EntityId.Value,
-                            ( obj, av ) => new { WorkflowActivity = obj, AttributeValue = av } )
-                            .Where( a => activityAttributeIds.Contains( a.AttributeValue.AttributeId )
-                        ).GroupBy( obj => obj.WorkflowActivity )
-                        .Select( obj => new { WorkflowActivity = obj.Key, AttributeValues = obj.Select( a => a.AttributeValue ) } ),
-                    obj => obj.Workflow.Id,
-                    wa => wa.WorkflowActivity.WorkflowId,
-                    ( obj, wa ) => new { Workflow = obj.Workflow, AttributeValues = obj.AttributeValues, VisitationActivities = wa } )
                     .ToList();
 
-                if (contextEntity == null)
+                var qry = workflows.AsQueryable().GroupJoin( visits.AsQueryable(), wf => wf.Workflow.Id, wa => wa.WorkflowActivity.WorkflowId, ( wf, wa ) => new { WorkflowObjects = wf, VisitationActivities = wa } )
+                    .Select( obj => new { Workflow = obj.WorkflowObjects.Workflow, AttributeValues = obj.WorkflowObjects.AttributeValues, VisitationActivities = obj.VisitationActivities } ).ToList();
+
+
+                if ( contextEntity == null)
                 {
                     // Make sure they aren't deceased
                     qry = qry.AsQueryable().Where( w => !
@@ -209,7 +213,14 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                     StartDate = w.AttributeValues.Where( av => av.AttributeKey == "StartDate" ).Select( av => av.ValueAsDateTime ).FirstOrDefault(),
                     Description = w.AttributeValues.Where( av => av.AttributeKey == "HomeboundResidentDescription" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                     Visits = w.VisitationActivities.Where( a => a.AttributeValues != null && a.AttributeValues.Where( av => av.AttributeKey == "VisitDate" && !string.IsNullOrWhiteSpace( av.Value ) ).Any() ).Count(),
-                    LastVisitor = w.VisitationActivities.Where( a => a.AttributeValues != null && a.AttributeValues.Where( av => av.AttributeKey == "VisitDate" && !string.IsNullOrWhiteSpace( av.Value ) ).Any() ).Select( va => va.AttributeValues.Where( av => av.AttributeKey == "Visitor" ).LastOrDefault() ).Select( av => av == null ? "N/A" : av.ValueFormatted ).DefaultIfEmpty( "N/A" ).LastOrDefault(),
+                    LastVisitor = new Func<string>( () => {
+                        var visitor = w.VisitationActivities.Where( a => a.AttributeValues != null && a.AttributeValues.Where( av => av.AttributeKey == "VisitDate" && !string.IsNullOrWhiteSpace( av.Value ) ).Any() ).Select( va => va.AttributeValues.Where( av => av.AttributeKey == "Visitor" ).LastOrDefault() ).LastOrDefault();
+                        if ( visitor != null )
+                        {
+                            return visitor.ValueFormatted;
+                        }
+                        return "N/A";
+                    } )(),
                     LastVisitDate = w.VisitationActivities.Where( a => a.AttributeValues != null && a.AttributeValues.Where( av => av.AttributeKey == "VisitDate" && !string.IsNullOrWhiteSpace( av.Value ) ).Any() ).Select( va => va.AttributeValues.Where( av => av.AttributeKey == "VisitDate" ).LastOrDefault() ).Select( av => av == null ? "N/A" : av.ValueFormatted ).DefaultIfEmpty( "N/A" ).LastOrDefault(),
                     LastVisitNotes = w.VisitationActivities.Where( a => a.AttributeValues != null && a.AttributeValues.Where( av => av.AttributeKey == "VisitDate" && !string.IsNullOrWhiteSpace( av.Value ) ).Any() ).Select( va => va.AttributeValues.Where( av => av.AttributeKey == "VisitNote" ).LastOrDefault() ).Select( av => av == null ? "N/A" : av.ValueFormatted ).DefaultIfEmpty( "N/A" ).LastOrDefault(),
                     EndDate = w.AttributeValues.Where( av => av.AttributeKey == "EndDate" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
