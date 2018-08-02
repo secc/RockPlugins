@@ -298,7 +298,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
 
                         SetExcelValue( worksheet.Cells[rowCounter, 5], patient.PersonToVisit.ConnectionStatusValue );
 
-                        SetExcelValue( worksheet.Cells[rowCounter, 6], patient.AdmitDate );
+                        SetExcelValue( worksheet.Cells[rowCounter, 6], patient.AdmitDate.HasValue?patient.AdmitDate.Value.Date.ToShortDateString():"" );
 
                         SetExcelValue( worksheet.Cells[rowCounter, 7], patient.Room );
                         rowCounter++;
