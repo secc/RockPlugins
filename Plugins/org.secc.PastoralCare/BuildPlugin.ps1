@@ -22,7 +22,7 @@ mkdir -Path "bin\$pluginName\uninstall"
 
 # Copy the bin files
 xcopy /Y /R "bin\Debug\org.secc.*.dll" "bin\$pluginName\content\bin"
-xcopy /Y /R "bin\Debug\org.secc.*.pdb" "bin\$pluginName\content\bin"
+#xcopy /Y /R "bin\Debug\org.secc.*.pdb" "bin\$pluginName\content\bin"
 
 # Copy any blocks
 $ValidBlocksPath = Test-Path ("org_secc")

@@ -28,6 +28,7 @@ using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 using Rock.Web.Cache;
 using System.Text.RegularExpressions;
+using org.secc.PersonMatch;
 
 namespace RockWeb.Blocks.Security
 {
@@ -37,13 +38,15 @@ namespace RockWeb.Blocks.Security
     [TextField( "MAC Address Paramameter", "The query string parameter used for the MAC Address", true, "client_mac", "", 0, "MacAddressParam" )]
     [TextField( "Release Link", "The full URL to redirect users to after registration.", true, "", "", 1, "ReleaseLink" )]
     [BooleanField("Show Name", "Show or hide the Name fields. If it is visible then it will be required.", true, "", 2, "ShowName", IsRequired = true )]
-    [BooleanField( "Show Mobile Phone", "Show or hide the Mobile Phone Number field. If it is visible then it will be required.", true, "", 3, "ShowMobilePhone", IsRequired = true )]
-    [BooleanField( "Show Email", "Show or hide the Email field. If it is visible then it will be required.", true, "", 4, "ShowEmail", IsRequired = true )]
-    [BooleanField( "Show Acceptance Checkbox", "Show or hide the \"I Accept\" checkbox. If it is visible then it will be required. This should be visible if the \"Terms And Conditions\" are also visible.", false, "", 5, "ShowAccept", IsRequired = true )]
-    [TextField( "Acceptance Checkbox Label", "Text used to signify user agreement with the Terms and Conditions", true, "I Accept", "", 6, "AcceptanceLabel" )]
-    [TextField( "Button Text", "Text to display on the button", true, "Accept and Connect", "", 7, "ButtonText" )]
-    [BooleanField( "Show Legal Note", "Show or hide the Terms and Conditions. This should be always be visible unless users are being automatically connected without any agreement needed.", true, "", 8, "ShowLegalNote", IsRequired = true )]
-    [CodeEditorField ( "Legal Note", "A legal note outlining the Terms and Conditions for using Wi-Fi.", CodeEditorMode.Html, CodeEditorTheme.Rock, 400, false, DEFAULT_LEGAL_NOTE, "", 9, "LegalNote" )]
+    [BooleanField( "Show Mobile Phone", "Show or hide the Mobile Phone Number field.", true, "", 3, "ShowMobilePhone", IsRequired = true )]
+    [BooleanField( "Require Mobile Phone", "Optionally require the Mobile Phone Number field.", true, "", 4, "RequireMobilePhone", IsRequired = true )]
+    [BooleanField( "Show Email", "Show or hide the Email field. If it is visible then it will be required.", true, "", 5, "ShowEmail", IsRequired = true )]
+    [BooleanField( "Show DOB", "Show or hide the DOB field. If it is visible then it will be required.", true, "", 6, "ShowDOB", IsRequired = true )]
+    [BooleanField( "Show Acceptance Checkbox", "Show or hide the \"I Accept\" checkbox. If it is visible then it will be required. This should be visible if the \"Terms And Conditions\" are also visible.", false, "", 7, "ShowAccept", IsRequired = true )]
+    [TextField( "Acceptance Checkbox Label", "Text used to signify user agreement with the Terms and Conditions", true, "I Accept", "", 8, "AcceptanceLabel" )]
+    [TextField( "Button Text", "Text to display on the button", true, "Accept and Connect", "", 9, "ButtonText" )]
+    [BooleanField( "Show Legal Note", "Show or hide the Terms and Conditions. This should be always be visible unless users are being automatically connected without any agreement needed.", true, "", 10, "ShowLegalNote", IsRequired = true )]
+    [CodeEditorField ( "Legal Note", "A legal note outlining the Terms and Conditions for using Wi-Fi.", CodeEditorMode.Html, CodeEditorTheme.Rock, 400, false, DEFAULT_LEGAL_NOTE, "", 11, "LegalNote" )]
     public partial class CaptivePortal : RockBlock
     {
         #region Block Setting Strings
@@ -426,13 +429,14 @@ namespace RockWeb.Blocks.Security
             
             // Use the entered info to try and find an existing user
             string mobilePhoneNumber = string.Concat( tbMobilePhone.Text.Where( c => char.IsLetterOrDigit( c ) ) );
-            Person person = personService
+            Person person = personService.GetByMatch( tbFirstName.Text, tbLastName.Text, dppDOB.SelectedDate, tbEmail.Text, mobilePhoneNumber, null, null ).FirstOrDefault();
+            /*Person person = personService
                 .Queryable()
                 .Where( p => p.FirstName == tbFirstName.Text )
                 .Where( p => p.LastName == tbLastName.Text )
                 .Where( p => p.Email == tbEmail.Text )
                 .Where( p => p.PhoneNumbers.Where( n => n.NumberTypeValueId == mobilePhoneTypeId ).FirstOrDefault().Number == mobilePhoneNumber )
-                .FirstOrDefault();
+                .FirstOrDefault();*/
             
             // If no known person record then create one
             if ( person == null )
@@ -443,6 +447,12 @@ namespace RockWeb.Blocks.Security
                     Email = tbEmail.Text,
                     PhoneNumbers = new List<PhoneNumber>() { new PhoneNumber { IsSystem = false, Number = string.Concat( tbMobilePhone.Text.Where( c => char.IsLetterOrDigit( c ) ) ), NumberTypeValueId = mobilePhoneTypeId } }
                 };
+                if (dppDOB.SelectedDate.HasValue)
+                {
+                    person.BirthDay = dppDOB.SelectedDate.Value.Day;
+                    person.BirthMonth = dppDOB.SelectedDate.Value.Month;
+                    person.BirthYear = dppDOB.SelectedDate.Value.Year;
+                }
 
                 PersonService.SaveNewPerson( person, new RockContext() );
             }
@@ -485,8 +495,12 @@ namespace RockWeb.Blocks.Security
             tbLastName.Enabled = isEnabled;
 
             tbMobilePhone.Visible = GetAttributeValue( "ShowMobilePhone" ).AsBoolean();
-            tbMobilePhone.Required = GetAttributeValue( "ShowMobilePhone" ).AsBoolean();
+            tbMobilePhone.Required = GetAttributeValue( "RequireMobilePhone" ).AsBoolean();
             tbMobilePhone.Enabled = isEnabled;
+			
+            dppDOB.Visible = GetAttributeValue( "ShowDOB" ).AsBoolean();
+            dppDOB.Required = GetAttributeValue( "ShowDOB" ).AsBoolean();
+            dppDOB.Enabled = isEnabled;
 
             tbEmail.Visible = GetAttributeValue( "ShowEmail" ).AsBoolean();
             tbEmail.Required = GetAttributeValue( "ShowEmail" ).AsBoolean();

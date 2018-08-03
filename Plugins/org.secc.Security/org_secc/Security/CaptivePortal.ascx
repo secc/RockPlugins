@@ -24,12 +24,17 @@
                 </div>
 
                 <div class="row">
-                    <div class="col-sm-6">
+
+                    <div class="col-sm-4">
                         <Rock:PhoneNumberBox ID="tbMobilePhone" runat="server" Required="false" Label="Mobile Number" ValidationGroup="CaptivePortal" />
                     </div>
                 
-                    <div class="col-sm-6">
+                    <div class="col-sm-4">
                         <Rock:RockTextBox ID="tbEmail" runat="server" Required="false" Label="Email Address" ValidationGroup="CaptivePortal" />
+                    </div>
+					
+                    <div class="col-sm-4">
+                        <Rock:DatePartsPicker ID="dppDOB" runat="server" Required="false" Label="Birth Date" FutureYearCount="0" ValidationGroup="CaptivePortal" />
                     </div>
                 </div>
 
