@@ -23,7 +23,7 @@
                 <br />
                 {{ item.Content }}
             </div>
-            <div class="post_info post_info_bottom post_tags">
+            {% comment %} <div class="post_info post_info_bottom post_tags">
                 <span class="post_info_item post_info_tags">Categories:
                     {% taggeditem where:'EntityGuid == "{{item.Guid}}"' %}
                         {% for taggedItem in taggeditemItems %}
@@ -31,7 +31,7 @@
                         {% endfor %}
                     {% endtaggeditem %}
                 </span>
-            </div>
+            </div> {% endcomment %}
             <hr />
             <div class="text-center">
                 <p class="uppercase"><i class="fa fa-share-alt"></i> <strong>Share</strong> this Story:
@@ -82,7 +82,7 @@
 
                 <br />
 
-                {% comment %} <hr /> {% endcomment %}
+                {% comment %} <hr />
                 <div class="post_info post_info_bottom post_tags">
                     <span class="post_info_item post_info_tags">Categories:
                         {% taggeditem where:'EntityGuid == "{{item.Guid}}"' %}
@@ -92,6 +92,7 @@
                         {% endtaggeditem %}
                     </span>
                 </div>
+                {% endcomment %}
                 <hr />
                 <div class="text-center">
                     <p class="uppercase"><i class="fa fa-share-alt"></i> <strong>Share</strong> this Story:
