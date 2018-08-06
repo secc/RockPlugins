@@ -24,7 +24,7 @@
                         <Rock:PersonField DataField="PersonToVisit" HeaderText="Person To Visit" SortExpression="Person.LastName" />
                         <Rock:RockBoundField DataField="Age" HeaderText="Age" SortExpression="Age"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="Room" HeaderText="Room" SortExpression="Room"></Rock:RockBoundField>
-                        <Rock:RockBoundField DataField="AdmitDate" HeaderText="Admit Date" SortExpression="AdmitDate"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="AdmitDate" DataFormatString="{0:MM/dd/yyyy}" HeaderText="Admit Date" SortExpression="AdmitDate"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="Description" HeaderText="Description" SortExpression="Description"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="Visits" HeaderText="Visits" SortExpression="Visits"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="LastVisitor" HeaderText="Last Visitor" SortExpression="LastVisitor"></Rock:RockBoundField>

@@ -1,0 +1,258 @@
+{% for item in Items %}
+
+
+    {% assign ImageGuid = item | Attribute:'Image','RawValue' %}
+    {% assign AuthorObject = item | Attribute:'Author','Object' %}
+    {% assign PostLayout = item | Attribute:'PostLayout','RawValue' %}
+
+    {% assign Author = AuthorObject | Attribute:'Person','Object' %}
+    {% assign AuthorImageGuid = AuthorObject | Attribute:'BioImage','RawValue' %}
+
+    <article class="post_item {{ PostLayout }} wow fadeIn">
+
+        {% comment %} 
+            ********************************************************************************************
+            ********************************************************************************************
+            ********* THIS IF CONDITION IS ONLY FOR A LAYOUT THAT IS MEANT FOR EMBEDED VIDEOS! *********
+            ********************************************************************************************
+            ********************************************************************************************
+        {% endcomment %}
+        {% if PostLayout contains "post_video"%}
+            <div class="post_content" itemprop="reviewBody">
+                <h2 itemprop="itemReviewed" class="post_title entry-title" style="text-transform: inherit;">{{ item.Title }}</h2>
+                <br />
+                {{ item.Content }}
+            </div>
+            {% comment %} <div class="post_info post_info_bottom post_tags">
+                <span class="post_info_item post_info_tags">Categories:
+                    {% taggeditem where:'EntityGuid == "{{item.Guid}}"' %}
+                        {% for taggedItem in taggeditemItems %}
+                                <a class="post_tag_link" href="#{{ taggedItem.Tag.Name }}">{{ taggedItem.Tag.Name }}</a>{% unless forloop.last %},{% endunless %}
+                        {% endfor %}
+                    {% endtaggeditem %}
+                </span>
+            </div> {% endcomment %}
+            <hr />
+            <div class="text-center">
+                <p class="uppercase"><i class="fa fa-share-alt"></i> <strong>Share</strong> this Story:
+                <div class="socials socials_type_icons socials_shape_round">
+                    <script>function fbs_click() { u = location.href; t = document.title; window.open('http://www.facebook.com/sharer.php?u=' + encodeURIComponent(u) + '&t=' + encodeURIComponent(t), 'sharer', 'toolbar=0,status=0,width=626,height=436'); return false; }</script>
+                    <script>function ics_click() { text = `{{ EventItemOccurrence.Schedule.iCalendarContent }}`.replace('END:VEVENT', 'SUMMARY: {{ Event.Name }}\r\nLOCATION: {{ EventItemOccurrence.Location }}\r\nEND:VEVENT'); var element = document.createElement('a'); element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); element.setAttribute('download', '{{ Event.Name }}.ics'); element.style.display = 'none'; document.body.appendChild(element); element.click(); document.body.removeChild(element); }</script>
+                    
+                    <div class="socials_item facebook">
+                        <a href="http://www.facebook.com/share.php?u=<url>" onclick="return fbs_click()" target="_blank" class="social_icons social-facebook wow rotateIn" data-wow-duration=".5s" data-wow-delay="0.5s" data-original-title="Share via Facebook">
+                            <i class="fa fa-facebook"></i>
+                        </a>
+                    </div>
+                    <div class="socials_item">
+                        <a href="http://twitter.com/home?status={{ 'Global' | Page:'Url' | Escape }}" target="_blank" class="social_icons social-twitter wow rotateIn" data-wow-duration=".5s" data-wow-delay="0.7s" data-original-title="Share via Twitter">
+                            <i class="fa fa-twitter"></i>
+                        </a>
+                    </div>
+                    <div class="socials_item">
+                        <a href="mailto:?Subject={{ Event.Name | Escape }}&Body={{ 'Global' | Page:'Url' }}" class="social_icons wow rotateIn" data-wow-duration=".5s" data-wow-delay="0.9s" data-original-title="Share via Email">
+                            <i class="fa fa-envelope"></i>
+                        </a>
+                    </div>
+                    <div class="socials_item">
+                        <a href="javascript:void(0);" class="social_icons copy-link wow rotateIn" data-toggle="tooltip" title="URL Copied" data-clipboard-text="{{ 'Global' | Page:'Url' }}" data-wow-duration=".5s" data-wow-delay="1.1s" data-original-title="Share via Copy URL">
+                            <i class="fa fa-link"></i>
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        {% else %}
+        {% comment %} 
+            ********************************************************************************************
+            ********************************************************************************************
+            ************************* ELSE THIS LAYOUT IS USED FOR ANY CONTENT *************************
+            ********************************************************************************************
+            ********************************************************************************************
+        {% endcomment %}
+            <div class="post_featured">
+
+                <div class="picture post_thumb" itemscope itemtype="http://schema.org/ImageGallery" data-title="{{ item.Title }}">
+                <figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject">
+                    <a href="/GetImage.ashx?Guid={{ ImageGuid }}" itemprop="contentUrl" data-size="1000x667" data-index="0" class="hover_icon hover_icon_view inited">
+                    <img src="/GetImage.ashx?Guid={{ ImageGuid }}" class="img-responsive img-rounded" itemprop="thumbnail" alt="Beach">
+                    </a>
+                </figure>
+                </div>
+
+                <br />
+
+                {% comment %} <hr />
+                <div class="post_info post_info_bottom post_tags">
+                    <span class="post_info_item post_info_tags">Categories:
+                        {% taggeditem where:'EntityGuid == "{{item.Guid}}"' %}
+                            {% for taggedItem in taggeditemItems %}
+                                    <a class="post_tag_link" href="#{{ taggedItem.Tag.Name }}">{{ taggedItem.Tag.Name }}</a>{% unless forloop.last %},{% endunless %}
+                            {% endfor %}
+                        {% endtaggeditem %}
+                    </span>
+                </div>
+                {% endcomment %}
+                <hr />
+                <div class="text-center">
+                    <p class="uppercase"><i class="fa fa-share-alt"></i> <strong>Share</strong> this Story:
+                    <div class="socials socials_type_icons socials_shape_round">
+                        <script>function fbs_click() { u = location.href; t = document.title; window.open('http://www.facebook.com/sharer.php?u=' + encodeURIComponent(u) + '&t=' + encodeURIComponent(t), 'sharer', 'toolbar=0,status=0,width=626,height=436'); return false; }</script>
+                        <script>function ics_click() { text = `{{ EventItemOccurrence.Schedule.iCalendarContent }}`.replace('END:VEVENT', 'SUMMARY: {{ Event.Name }}\r\nLOCATION: {{ EventItemOccurrence.Location }}\r\nEND:VEVENT'); var element = document.createElement('a'); element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); element.setAttribute('download', '{{ Event.Name }}.ics'); element.style.display = 'none'; document.body.appendChild(element); element.click(); document.body.removeChild(element); }</script>
+                        
+                        <div class="socials_item facebook">
+                            <a href="http://www.facebook.com/share.php?u=<url>" onclick="return fbs_click()" target="_blank" class="social_icons social-facebook wow rotateIn" data-wow-duration=".5s" data-wow-delay="0.5s" data-original-title="Share via Facebook">
+                                <i class="fa fa-facebook"></i>
+                            </a>
+                        </div>
+                        <div class="socials_item">
+                            <a href="http://twitter.com/home?status={{ 'Global' | Page:'Url' | Escape }}" target="_blank" class="social_icons social-twitter wow rotateIn" data-wow-duration=".5s" data-wow-delay="0.7s" data-original-title="Share via Twitter">
+                                <i class="fa fa-twitter"></i>
+                            </a>
+                        </div>
+                        <div class="socials_item">
+                            <a href="mailto:?Subject={{ Event.Name | Escape }}&Body={{ 'Global' | Page:'Url' }}" class="social_icons wow rotateIn" data-wow-duration=".5s" data-wow-delay="0.9s" data-original-title="Share via Email">
+                                <i class="fa fa-envelope"></i>
+                            </a>
+                        </div>
+                        <div class="socials_item">
+                            <a href="javascript:void(0);" class="social_icons copy-link wow rotateIn" data-toggle="tooltip" title="URL Copied" data-clipboard-text="{{ 'Global' | Page:'Url' }}" data-wow-duration=".5s" data-wow-delay="1.1s" data-original-title="Share via Copy URL">
+                                <i class="fa fa-link"></i>
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+                <hr />
+
+                <br />
+            </div>
+
+            <div class="post_content" itemprop="reviewBody">
+                <h2 itemprop="itemReviewed" class="post_title entry-title" style="text-transform: inherit;">{{ item.Title }}</h2>
+                <br />
+                {{ item.Content }}
+            </div>
+       {% endif %}
+
+    </article>
+
+    <!-- PHOTO SWIPE STYLE SHEETS/TEMPLATE -->
+    {{ '/Themes/SECC2014/Assets/vendor/photo_swipe/photoswipe.css?v=4.1.2-1.0.4' | AddCssLink }}
+    {{ '/Themes/SECC2014/Assets/vendor/photo_swipe/default-skin/default-skin.css?v=4.1.2-1.0.4' | AddCssLink }}
+    {{ '/Themes/SECC2014/Assets/vendor/photo_swipe/photoswipe.js' | AddScriptLink }}
+    {{ '/Themes/SECC2014/Assets/vendor/photo_swipe/photoswipe-ui-default.js' | AddScriptLink }}
+    <div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="pswp__bg"></div>
+        <div class="pswp__scroll-wrap">
+
+            <div class="pswp__container">
+                <div class="pswp__item"></div>
+                <div class="pswp__item"></div>
+                <div class="pswp__item"></div>
+            </div>
+
+            <div class="pswp__ui pswp__ui--hidden">
+                <div class="pswp__top-bar">
+                    <div class="pswp__counter"></div>
+                    <a href="javascript:void(0)" class="pswp__button pswp__button--close" title="Close (Esc)"></a>
+                    <a href="javascript:void(0)" class="pswp__button pswp__button--fs" title="Toggle fullscreen"></a>
+                    <a href="javascript:void(0)" class="pswp__button pswp__button--zoom" title="Zoom in/out"></a>
+                    <div class="pswp__preloader">
+                        <div class="pswp__preloader__icn">
+                          <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                          </div>
+                        </div>
+                    </div>
+                </div>
+                <a class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)" href="javascript:void(0)">
+                </a>
+                <a class="pswp__button pswp__button--arrow--right" title="Next (arrow right)" href="javascript:void(0)">
+                </a>
+                <div class="pswp__caption">
+                    <div class="pswp__caption__center"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END PHOTO SWIPE STYLE SHEETS -->
+
+    <script>
+
+    
+    $('.copy-link').tooltip({
+        placement: 'top',
+        trigger: 'manual'
+    });
+
+    var clipboard = new ClipboardJS('.copy-link');
+
+    clipboard.on('success', function(e) {
+        $('.copy-link').tooltip('show');
+        $( ".copy-link" ).on( "mouseleave", function() {
+            $('.copy-link').tooltip('hide');
+        });
+        e.clearSelection();
+    });
+
+    clipboard.on('error', function(e) {
+        console.error('Action:', e.action);
+        console.error('Trigger:', e.trigger);
+    });
+
+    $('.picture').each( function() {
+        var $pic     = $(this),
+            getItems = function() {
+                var items = [];
+                $pic.find('a').each(function() {
+                    var $href   = $(this).attr('href'),
+                        $size   = $(this).data('size').split('x'),
+                        $width = 0,
+                        $height = 0;
+                
+                    var img = new Image();
+                    img.onload = function() {
+                        $width = this.width,
+                        $height = this.height;
+                    };
+                    
+                    img.src = $href; // grab the original image size
+                    $width = img.width,
+                    $height = img.height;
+
+                    var item = {
+                        src : $href,
+                        w   : $width,
+                        h   : $height
+                    }
+                
+                    items.push(item);
+                });
+                return items;
+            }
+
+        var items = getItems();
+        var $pswp = $('.pswp')[0];
+        $pic.on('click', 'figure', function(event) {
+            event.preventDefault();
+
+            var $index = $(this).index();
+            var options = {
+                index: $index,
+                bgOpacity: 0.7,
+                showHideOpacity: true
+            }
+
+            // Initialize PhotoSwipe
+            var lightBox = new PhotoSwipe($pswp, PhotoSwipeUI_Default, items, options);
+            lightBox.init();
+        });
+    });
+    </script>
+    <meta property="og:url"           content="{{ 'Global' | Page:'Url' }}" />
+    <meta property="og:type"          content="website" />
+    <meta property="og:title"         content="{{item.Title}}" />
+    <meta property="og:description"   content="{{item.Summary}}" />
+    <meta property="og:image"         content="//{{ 'Global' | Page:'Host' }}/GetImage.ashx?Guid={{ ImageGuid }}" />
+{% endfor %}

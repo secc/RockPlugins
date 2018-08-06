@@ -58,11 +58,7 @@
                                 {% assign publicFilter = definedValue | Attribute:'PublicFilter' %}
                                 {% if publicFilter == "Yes" %}
 									{% assign urlSlug = definedValue | Attribute:'URLSlug' %}
-<<<<<<< HEAD
 									<option value="{{ definedValue.Id }}" data-ministry="{{urlSlug}}" {% if urlSlug == ministrySlug %} selected="selected"{% endif %}>{{ definedValue.Value | Capitalize }}</option>
-=======
-									<option value="{{ definedValue.Id }}" data-ministry="{{urlSlug}}"{% if urlSlug == ministrySlug %} selected="selected"{% endif %}>{{ definedValue.Value | Capitalize }}</option>
->>>>>>> e54c9e0bde3f5448f504cee9c0c64b0bbbf20612
                                 {% endif %}
                             {% endfor %}
                         {% enddefinedvalue %}
@@ -232,7 +228,9 @@ function runMinistryFilters(ministry_selected) {
 
 function processPageLoad(pnlContent_ID, params) {
     // do AJAX postback through .NET
-    __doPostBack(pnlContent_ID, '');
+    setTimeout(function () {
+		__doPostBack(pnlContent_ID, '');
+	}, 1);
     ///////////////////////////////////////////////////
     ////////////// Process Post Back //////////////////
     ///////////////////////////////////////////////////
