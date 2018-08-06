@@ -103,7 +103,6 @@
         <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/counterup.min.js", true) %>"></script>
         <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/cubeportfolio/js/jquery.cubeportfolio.min.js", true) %>"></script>
         <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/jquery.parallax.min.js", true) %>"></script>
-        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBsXUGTFS09pLVdsYEE9YrO2y4IAncAO2U"></script>
         <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/jquery.wow.min.js", true) %>"></script>
 
         <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/js/jquery.mobile.custom.min.js", true) %>"></script>
