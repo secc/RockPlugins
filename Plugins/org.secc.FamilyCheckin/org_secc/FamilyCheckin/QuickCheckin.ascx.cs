@@ -158,9 +158,18 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     DisplayPeople();
                     break;
                 case CullStatus.Inactive:
-                    btnParentGroupTypeHeader.Text = "Worship + Second Hour";
-                    btnParentGroupTypeHeader.DataLoadingText = "Worship + Second Hour <i class='fa fa-refresh fa-spin'>";
+
                     ltMessage.Text = "<style>#pgtSelect{display:none} #quickCheckinContent{left:0px;}</style>";
+                    if ( moreThanTwoServices() )
+                    {
+                        btnParentGroupTypeHeader.Text = "Worship + Additional Hours";
+                        btnParentGroupTypeHeader.DataLoadingText = "Worship + Additional Hours <i class='fa fa-refresh fa-spin'>";
+                    }
+                    else
+                    {
+                        btnParentGroupTypeHeader.Text = "Worship + Second Hour";
+                        btnParentGroupTypeHeader.DataLoadingText = "Worship + Second Hour <i class='fa fa-refresh fa-spin'>";
+                    }
                     DisplayPeople();
                     break;
                 case CullStatus.Select:
@@ -217,6 +226,31 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             btnInactive.ID = "btnInactive";
             btnInactive.DataLoadingText = "<i class='fa fa-refresh fa-spin'></i> Loading checkin...";
             phPgtSelect.Controls.Add( btnInactive );
+
+            if ( moreThanTwoServices() )
+            {
+                btnInactive.Text = "Worship + Additional Hours";
+            }
+        }
+
+        private bool? _moreThanTwo = null;
+        private bool moreThanTwoServices()
+        {
+            if ( _moreThanTwo == null )
+            {
+                _moreThanTwo = CurrentCheckInState
+                    .CheckIn
+                    .CurrentFamily
+                    .People
+                    .SelectMany( p => p.GroupTypes )
+                    .SelectMany( gt => gt.Groups )
+                    .SelectMany( g => g.Locations )
+                    .SelectMany( l => l.Schedules )
+                    .Select( s => s.Schedule )
+                    .DistinctBy( s => s.Id )
+                    .Count() > 2;
+            }
+            return _moreThanTwo.Value;
         }
 
         private void ChangeCullStatus( CullStatus cullStatus )
@@ -232,8 +266,16 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     btnParentGroupTypeHeader.DataLoadingText = "Worship Only <i class='fa fa-refresh fa-spin'>";
                     break;
                 case CullStatus.Inactive:
-                    btnParentGroupTypeHeader.Text = "Worship + Second Hour";
-                    btnParentGroupTypeHeader.DataLoadingText = "Worship + Second Hour <i class='fa fa-refresh fa-spin'>";
+                    if ( moreThanTwoServices() )
+                    {
+                        btnParentGroupTypeHeader.Text = "Worship + Additional Hours";
+                        btnParentGroupTypeHeader.DataLoadingText = "Worship + Additional Hours <i class='fa fa-refresh fa-spin'>";
+                    }
+                    else
+                    {
+                        btnParentGroupTypeHeader.Text = "Worship + Second Hour";
+                        btnParentGroupTypeHeader.DataLoadingText = "Worship + Second Hour <i class='fa fa-refresh fa-spin'>";
+                    }
                     break;
                 default:
                     break;
@@ -453,6 +495,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     .DistinctBy( s => s.Schedule.Id )
                     .Where( s => !s.Schedule.Description.ToLower().Contains( "cull" ) )
                     .OrderBy( s => s.Schedule.StartTimeOfDay )
+                    .Take( 1 )
                     .ToList();
             }
             else
