@@ -280,7 +280,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     var errorMessages = new List<string>();
                     var approvedPeopleQry = approvedPeople.GetQuery( null, 30, out errorMessages );
 
-                    if ( !approvedPeopleQry.Where( dv => dv.Id == checkinPerson.Person.Id ).Any() )
+                    if ( checkinPerson.Person.Age > 12 && !approvedPeopleQry.Where( dv => dv.Id == checkinPerson.Person.Id ).Any() )
                     {
                         btnCheckin.Visible = false;
                     }
