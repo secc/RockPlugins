@@ -33,7 +33,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [Description( "Helps manage rooms and room ratios." )]
     [DefinedTypeField( "Deactivated Defined Type", "Check-in monitor needs a place to save deactivated checkin configurations." )]
     [TextField( "Room Ratio Attribute Key", "Attribute key for room ratios", true, "RoomRatio" )]
-
+    [DataViewField( "Approved People", "Data view which contains the members who may check-in.", entityTypeName: "Rock.Model.Person" )]
     public partial class CheckinMonitor : CheckInBlock
     {
         KioskCountUtility kioskCountUtility;
@@ -659,10 +659,26 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     attendanceRecord.Location.Name,
                     attendanceRecord.Schedule.Name );
 
+                // If this person is not an approved volunteer generate a list of groups they cannot join
+                List<int> forbiddenGroupIds = new List<int>();
+                var approvedPeopleGuid = GetAttributeValue( "ApprovedPeople" ).AsGuid();
+                var approvedPeople = new DataViewService( _rockContext ).Get( approvedPeopleGuid );
+                var errorMessages = new List<string>();
+                if ( approvedPeople != null )
+                {
+                    var approvedPeopleQry = approvedPeople.GetQuery( null, 30, out errorMessages );
+                    if ( approvedPeopleQry.Where( dv => dv.Id == attendanceRecord.PersonAlias.PersonId ).Any() )
+                    {
+                        forbiddenGroupIds = kioskCountUtility.VolunteerGroupIds;
+                        ltMoveInfo.Text += "<br><i>"+ attendanceRecord.PersonAlias.Person.NickName + " is not cleared to work with minors.</i>";
+                    }
+                }
+
                 var groups = new GroupTypeService( _rockContext ).Queryable()
                      .Where( gt => CurrentCheckInState.ConfiguredGroupTypes.Contains( gt.Id ) )
                      .SelectMany( gt => gt.Groups )
                      .Where( g => g.IsActive )
+                     .Where( g => !forbiddenGroupIds.Contains( g.Id ) )
                      .OrderBy( g => g.GroupType.Order )
                      .ThenBy( g => g.Order )
                      .Select( g => new
@@ -1106,14 +1122,14 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     tcButtons.Controls.Add( btnSearchMove );
                 }
 
-                if (attendance.DidAttend == false && attendance.EndDateTime == null)
+                if ( attendance.DidAttend == false && attendance.EndDateTime == null )
                 {
                     BootstrapButton btnCancel = new BootstrapButton();
-                    btnCancel.ID = string.Format("btnSearchCancel{0}", attendance.Id);
+                    btnCancel.ID = string.Format( "btnSearchCancel{0}", attendance.Id );
                     btnCancel.Text = "Cancel";
                     btnCancel.CssClass = "btn btn-xs btn-danger";
-                    btnCancel.Click += (s, e) => { CancelReservation(attendance.Id); };
-                    tcButtons.Controls.Add(btnCancel);
+                    btnCancel.Click += ( s, e ) => { CancelReservation( attendance.Id ); };
+                    tcButtons.Controls.Add( btnCancel );
                 }
 
                 if ( attendance.DidAttend == true && attendance.EndDateTime == null )
