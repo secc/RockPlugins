@@ -8,9 +8,10 @@
     {% assign Author = AuthorObject | Attribute:'Person','Object' %}
     {% assign AuthorImageGuid = AuthorObject | Attribute:'BioImage','RawValue' %}
 
-    <article class="post_item {{ PostLayout }} wow fadeIn">
+    {[ wow animate:'fadeIn' ]}
+    <article class="post_item {{ PostLayout }}">
 
-        {% comment %} 
+        {% comment %}
             ********************************************************************************************
             ********************************************************************************************
             ********* THIS IF CONDITION IS ONLY FOR A LAYOUT THAT IS MEANT FOR EMBEDED VIDEOS! *********
@@ -35,35 +36,10 @@
             <hr />
             <div class="text-center">
                 <p class="uppercase"><i class="fa fa-share-alt"></i> <strong>Share</strong> this Story:
-                <div class="socials socials_type_icons socials_shape_round">
-                    <script>function fbs_click() { u = location.href; t = document.title; window.open('http://www.facebook.com/sharer.php?u=' + encodeURIComponent(u) + '&t=' + encodeURIComponent(t), 'sharer', 'toolbar=0,status=0,width=626,height=436'); return false; }</script>
-                    <script>function ics_click() { text = `{{ EventItemOccurrence.Schedule.iCalendarContent }}`.replace('END:VEVENT', 'SUMMARY: {{ Event.Name }}\r\nLOCATION: {{ EventItemOccurrence.Location }}\r\nEND:VEVENT'); var element = document.createElement('a'); element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); element.setAttribute('download', '{{ Event.Name }}.ics'); element.style.display = 'none'; document.body.appendChild(element); element.click(); document.body.removeChild(element); }</script>
-                    
-                    <div class="socials_item facebook">
-                        <a href="http://www.facebook.com/share.php?u=<url>" onclick="return fbs_click()" target="_blank" class="social_icons social-facebook wow rotateIn" data-wow-duration=".5s" data-wow-delay="0.5s" data-original-title="Share via Facebook">
-                            <i class="fa fa-facebook"></i>
-                        </a>
-                    </div>
-                    <div class="socials_item">
-                        <a href="http://twitter.com/home?status={{ 'Global' | Page:'Url' | Escape }}" target="_blank" class="social_icons social-twitter wow rotateIn" data-wow-duration=".5s" data-wow-delay="0.7s" data-original-title="Share via Twitter">
-                            <i class="fa fa-twitter"></i>
-                        </a>
-                    </div>
-                    <div class="socials_item">
-                        <a href="mailto:?Subject={{ Event.Name | Escape }}&Body={{ 'Global' | Page:'Url' }}" class="social_icons wow rotateIn" data-wow-duration=".5s" data-wow-delay="0.9s" data-original-title="Share via Email">
-                            <i class="fa fa-envelope"></i>
-                        </a>
-                    </div>
-                    <div class="socials_item">
-                        <a href="javascript:void(0);" class="social_icons copy-link wow rotateIn" data-toggle="tooltip" title="URL Copied" data-clipboard-text="{{ 'Global' | Page:'Url' }}" data-wow-duration=".5s" data-wow-delay="1.1s" data-original-title="Share via Copy URL">
-                            <i class="fa fa-link"></i>
-                        </a>
-                    </div>
-
-                </div>
+                {[ socialshare ]}
             </div>
         {% else %}
-        {% comment %} 
+        {% comment %}
             ********************************************************************************************
             ********************************************************************************************
             ************************* ELSE THIS LAYOUT IS USED FOR ANY CONTENT *************************
@@ -96,32 +72,7 @@
                 <hr />
                 <div class="text-center">
                     <p class="uppercase"><i class="fa fa-share-alt"></i> <strong>Share</strong> this Story:
-                    <div class="socials socials_type_icons socials_shape_round">
-                        <script>function fbs_click() { u = location.href; t = document.title; window.open('http://www.facebook.com/sharer.php?u=' + encodeURIComponent(u) + '&t=' + encodeURIComponent(t), 'sharer', 'toolbar=0,status=0,width=626,height=436'); return false; }</script>
-                        <script>function ics_click() { text = `{{ EventItemOccurrence.Schedule.iCalendarContent }}`.replace('END:VEVENT', 'SUMMARY: {{ Event.Name }}\r\nLOCATION: {{ EventItemOccurrence.Location }}\r\nEND:VEVENT'); var element = document.createElement('a'); element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); element.setAttribute('download', '{{ Event.Name }}.ics'); element.style.display = 'none'; document.body.appendChild(element); element.click(); document.body.removeChild(element); }</script>
-                        
-                        <div class="socials_item facebook">
-                            <a href="http://www.facebook.com/share.php?u=<url>" onclick="return fbs_click()" target="_blank" class="social_icons social-facebook wow rotateIn" data-wow-duration=".5s" data-wow-delay="0.5s" data-original-title="Share via Facebook">
-                                <i class="fa fa-facebook"></i>
-                            </a>
-                        </div>
-                        <div class="socials_item">
-                            <a href="http://twitter.com/home?status={{ 'Global' | Page:'Url' | Escape }}" target="_blank" class="social_icons social-twitter wow rotateIn" data-wow-duration=".5s" data-wow-delay="0.7s" data-original-title="Share via Twitter">
-                                <i class="fa fa-twitter"></i>
-                            </a>
-                        </div>
-                        <div class="socials_item">
-                            <a href="mailto:?Subject={{ Event.Name | Escape }}&Body={{ 'Global' | Page:'Url' }}" class="social_icons wow rotateIn" data-wow-duration=".5s" data-wow-delay="0.9s" data-original-title="Share via Email">
-                                <i class="fa fa-envelope"></i>
-                            </a>
-                        </div>
-                        <div class="socials_item">
-                            <a href="javascript:void(0);" class="social_icons copy-link wow rotateIn" data-toggle="tooltip" title="URL Copied" data-clipboard-text="{{ 'Global' | Page:'Url' }}" data-wow-duration=".5s" data-wow-delay="1.1s" data-original-title="Share via Copy URL">
-                                <i class="fa fa-link"></i>
-                            </a>
-                        </div>
-
-                    </div>
+                    {[ socialshare ]}
                 </div>
                 <hr />
 
@@ -136,6 +87,7 @@
        {% endif %}
 
     </article>
+    {[ endwow ]}
 
     <!-- PHOTO SWIPE STYLE SHEETS/TEMPLATE -->
     {{ '/Themes/SECC2014/Assets/vendor/photo_swipe/photoswipe.css?v=4.1.2-1.0.4' | AddCssLink }}
@@ -180,7 +132,7 @@
 
     <script>
 
-    
+
     $('.copy-link').tooltip({
         placement: 'top',
         trigger: 'manual'
@@ -210,13 +162,13 @@
                         $size   = $(this).data('size').split('x'),
                         $width = 0,
                         $height = 0;
-                
+
                     var img = new Image();
                     img.onload = function() {
                         $width = this.width,
                         $height = this.height;
                     };
-                    
+
                     img.src = $href; // grab the original image size
                     $width = img.width,
                     $height = img.height;
@@ -226,7 +178,7 @@
                         w   : $width,
                         h   : $height
                     }
-                
+
                     items.push(item);
                 });
                 return items;

@@ -1,0 +1,367 @@
+{% comment %}
+*********************************** NAME ***************************************
+{% endcomment %}
+* Slick Full-Width Image Carousel
+
+{% comment %}
+*********************************** TagType ************************************
+{% endcomment %}
+Block
+
+{% comment %}
+*********************************** TAG NAME ***********************************
+{% endcomment %}
+imagecarousel
+
+{% comment %}
+*********************************** DESCRIPTION ********************************
+{% endcomment %}
+Use this short-code to include a slider of full-width images.
+
+{% comment %}
+********************************* DOCUMENTATION ********************************
+{% endcomment %}
+
+This is a super simple slider using Ken Wheeler's "Slick Slider."
+It's responsive, swipable and light weight.
+
+{[ imagecarousel sliderscount:'4' ]}  {[ endimagecarousel]}
+
+Visit Ken's site for the source code and docs.
+
+Source: https://kenwheeler.github.io/slick/
+
+
+{% comment %}
+************************ MARKUP FOR THIS SHORTCODE IS BELOW ********************
+{% endcomment %}
+
+{{ 'https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick.css' | AddCssLink }}
+{{ 'https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick-theme.css' | AddCssLink }}
+{{ 'https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick.min.js' | AddScriptLink }}
+<style type="text/css">
+.slick-dots li button:before {
+    color: rgba(0,0,0,0.8);
+}
+.slick-dots li.slick-active button:before {
+    color: black;
+}
+
+.blockquote-container {
+    padding: 11px 22px;
+    margin: 0 0 22px;
+    border-left: none;
+    position: absolute;
+    bottom: 5%;
+    width: 45%;
+    left: 7%;
+    color: white;
+    height: 60%;
+}
+
+blockquote {
+    border-left: none;
+    font-family: "Proxima-Nova", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+blockquote cite {
+    bottom: -22px;
+    position: relative;
+}
+
+blockquote cite h2 {
+    font-size: 32px;
+}
+
+blockquote cite h2 small {
+    font-size: 65%;
+    color: white;
+}
+
+blockquote cite h2 small:before {
+    content: none;
+}
+
+blockquote p {
+    font-size: 1em;
+    border-left: none;
+    color: white;
+    font-weight: 600;
+}
+
+blockquote:before, blockquote:after {
+	position: absolute;
+	font-size: 120px;
+	padding: 10px;
+	line-height: 1;
+    font-weight: 400;
+	color: white;
+}
+blockquote:before {
+    content: "\201C";
+    top: -50px;
+    left: -35px;
+}
+
+blockquote:after {
+    content: "\201D";
+    right: 0px;
+    bottom: -90px;
+}
+
+.next {
+    cursor: pointer;
+    height: 50px;
+    left: 95%;
+    position: absolute;
+    top: 65%;
+    transform: translateX(-50%) translateY(-50%);
+    transition: transform .1s;
+    width: 50px;
+    z-index: 10;
+}
+.next-top, .next-bottom {
+  background-color: #666;
+  height: 4px;
+  left: -5px;
+  position: absolute;
+  top: 50%;
+  width: 100%;
+}
+.next-top:after, .next-bottom:after {
+  background-color: #fff;
+  content: '';
+  height: 100%;
+  position: absolute;
+  top: 0;
+  transition: all 0.15s;
+}
+.next-top {
+  transform: rotate(45deg);
+  transform-origin: bottom right;
+}
+.next-top:after {
+  left: 100%;
+  right: 0;
+  transition-delay: 0s;
+}
+.next-bottom {
+  transform: rotate(-45deg);
+  transform-origin: top right;
+}
+.next-bottom:after {
+  left: 0;
+  right: 100%;
+  transition-delay: 0.15s;
+}
+.next:hover .next-top:after {
+  left: 0;
+  transition-delay: 0.15s;
+}
+.next:hover .next-bottom:after {
+  right: 0;
+  transition-delay: 0s;
+}
+.next:active {
+  transform: translateX(-50%) translateY(-50%) scale(0.9);
+}
+
+.prev {
+  cursor: pointer;
+    height: 120px;
+    left: 5%;
+    position: absolute;
+    top: 65%;
+    transform: translateX(-50%) translateY(-50%);
+    transition: transform .1s;
+    width: 50px;
+    z-index: 10;
+}
+.prev-top, .prev-bottom {
+  background-color: #666;
+  height: 4px;
+  left: -5px;
+  position: absolute;
+  top: 50%;
+  width: 100%;
+}
+.prev-top:after, .prev-bottom:after {
+  background-color: #fff;
+  content: '';
+  height: 100%;
+  position: absolute;
+  top: 0;
+  transition: all 0.15s;
+}
+.prev-top {
+  transform: rotate(-45deg);
+  transform-origin: bottom left;
+}
+.prev-top:after {
+  left: 100%;
+  right: 0;
+  transition-delay: 0.15s;
+}
+.prev-bottom {
+  transform: rotate(45deg);
+  transform-origin: bottom left;
+}
+.prev-bottom:after {
+  left: 0;
+  right: 100%;
+  transition-delay: 0s;
+}
+.prev:hover .prev-top:after {
+  left: 0;
+  transition-delay: 0s;
+}
+.prev:hover .prev-bottom:after {
+  right: 0;
+  transition-delay: 0.15s;
+}
+.prev:active {
+  transform: translateX(-50%) translateY(-50%) scale(0.9);
+}
+
+
+.no-fouc {
+	display: none;
+}
+@media (min-width: 1200px) {
+    .blockquote-container {
+        bottom: 5%;
+    }
+    blockquote p {
+        font-size: 1.2em;
+    }
+    blockquote cite h2 {
+        font-size: 1.6em;
+    }
+}
+@media (min-width: 993px) and (max-width: 1199px) {
+    .blockquote-container {
+        bottom: 5%;
+    }
+    blockquote p {
+        font-size: 1em;
+    }
+    blockquote cite h2 {
+        font-size: 1.5em;
+    }
+}
+@media (min-width: 901px) and (max-width: 992px) {
+    blockquote p {
+        font-size: 0.9em;
+    }
+}
+@media (min-width: 768px) and (max-width: 900px) {
+    .blockquote-container {
+        bottom: 5%;
+        width: 55%;
+        left: 1%;
+    }
+    blockquote p {
+        font-size: 1em;
+    }
+    blockquote cite h2 {
+        font-size: 25px;
+    }
+    .slick-arrow {
+        display: none !important;
+    }
+}
+@media (max-width: 767px) {
+    blockquote {
+        position: relative;
+        top: inherit;
+        left: inherit;
+        transform: none;
+    }
+    blockquote:before, blockquote:after {
+        font-size: 70px;
+    }
+    blockquote:before {
+	    top: -30px;
+        left: -20px;
+    }
+
+    blockquote:after {
+        right: 0px;
+        bottom: -65px;
+    }
+    .slick-arrow {
+        display: none !important;
+    }
+    .blockquote-container {
+        padding: 22px;
+        position: absolute;
+        width: 100%;
+        left: 0%;
+        height: auto;
+        margin: 0px;
+        bottom: 0px;
+        background-color: rgba(37, 37, 37, 0.7);
+    }
+    blockquote p {
+        font-size: 0.8em;
+    }
+    blockquote cite h2 {
+        font-size: 25px;
+    }
+    .fw-image-carousel {
+        max-width: 350%;
+        left: -200%;
+        position: relative;
+        margin-bottom: 0%;
+    }
+    blockquote cite {
+        position: relative;
+    }
+}
+</style>
+
+{% assign id = uniqueid -%}
+
+<div id="{{ id }}" class="no-fouc">
+    {{ blockContent }}
+</div>
+
+<script>
+$('#{{ id }}').slick({
+  dots: true,
+  infinite: true,
+  autoplay: true,
+  autoplaySpeed: 553200,
+  speed: 800,
+  slidesToShow: {{ slidestoshow }},
+  slidesToScroll: {{ slidestoscroll }},
+  adaptiveHeight: {{ adaptiveHeight }},
+  fade: {{ fade }},
+  focusOnSelect: true,
+  arrows: true,
+  nextArrow: '<div class="next"><div class="next-top"></div><div class="next-bottom"></div></div>',
+  prevArrow: '<div class="prev"><div class="prev-top"></div><div class="prev-bottom"></div></div>'
+});
+
+{% comment %}
+  USE THIS FOR CUSTOM ARROWS
+  nextArrow: '<div class="next"><div class="next-top"></div><div class="next-bottom"></div></div>',
+  prevArrow: '<div class="prev"><div class="prev-top"></div><div class="prev-bottom"></div></div>'
+{% endcomment %}
+
+$( document ).ready(function() {
+    $('.no-fouc').removeClass('no-fouc');
+});
+</script>
+
+{% comment %}
+************************ PARAMETERS ********************
+{% endcomment %}
+slidestoshow     - 1
+slidestoscroll   - 1
+adaptiveHeight   - false
+fade             - true
