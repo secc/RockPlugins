@@ -1,0 +1,216 @@
+{% comment %}
+*********************************** NAME ***************************************
+{% endcomment %}
+* Parallax
+
+{% comment %}
+*********************************** TagType ************************************
+{% endcomment %}
+Block
+
+{% comment %}
+*********************************** TAG NAME ***********************************
+{% endcomment %}
+parallax
+
+{% comment %}
+*********************************** DESCRIPTION ********************************
+{% endcomment %}
+Add a scrolling background to a section of your page.
+
+{% comment %}
+********************************* DOCUMENTATION ********************************
+{% endcomment %}
+
+Adding parallax effects (when the background image of a section scrolls at a different speed than the rest of the page) can greatly enhance the aesthetics of the page. Until now, this effect has taken quite a bit of CSS know how to achieve. Now it’s as simple as:
+
+{[ parallax image:'http://cdn.wonderfulengineering.com/wp-content/uploads/2014/09/star-wars-wallpaper-4.jpg' contentpadding:'20px' ]}
+    <h1>Hello World</h1>
+{[ endparallax ]}
+This shotcode takes the content you provide it and places it into a div with a parallax background using the image you provide in the 'image' parameter. As always there are several parameters.
+
+  image (required) – A valid URL to the image that should be used as the background.
+  height (200px) – The minimum height of the content. This is useful if you want your section to not have any content, but instead be just the parallax image.
+  videourl - This is the URL to use if you'd like a video background.
+  speed (50) – the speed that the background should scroll. The value of 0 means the image will be fixed in place, the value of 100 would make the background scroll quick up as the page scrolls down, while the value of -100 would scroll quickly in the opposite direction.
+  zindex (1) – The z-index of the background image. Depending on your design you may need to adjust the z-index of the parallax image.
+  position (center center) - This is analogous to the background-position css property. Specify coordinates as top, bottom, right, left, center, or pixel values (e.g. -10px 0px). The parallax image will be positioned as close to these values as possible while still covering the target element.
+  contentpadding (0) – The amount of padding you’d like to have around your content. You can provide any valid CSS padding value. For example, the value ‘200px 20px’ would give you 200px top and bottom and 20px left and right.
+  contentcolor (#fff = white) – The font color you’d like to use for your content. This simplifies the styling of your content.
+  contentalign (center) – The alignment of your content inside of the section.
+  noios (false) – Disables the effect on iOS devices.
+  noandriod (center) – Disables the effect on driods.
+
+Note: Do to this javascript requirements of this shortcode you will need to do a full page reload before changes to the shortcode appear on your page.
+
+{% comment %}
+************************ MARKUP FOR THIS SHORTCODE IS BELOW ********************
+{% endcomment %}
+
+{{ 'https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.3/jarallax.js' | AddScriptLink }}
+{{ 'https://cdnjs.cloudflare.com/ajax/libs/object-fit-images/3.2.3/ofi.min.js' | AddScriptLink }}
+
+{% if videourl != '' -%}
+    {{ 'https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.3/jarallax-video.js' | AddScriptLink }}
+{% endif -%}
+
+{% assign id = uniqueid -%}
+{% assign bodyZindex = zindex | Plus:1 -%}
+{% assign speed = speed | AsInteger %}
+
+{% if speed > 0 -%}
+    {% assign speed = speed | Times:'.01' -%}
+    {% assign speed = speed | Plus:'1' -%}
+{% elseif speed == 0 -%}
+    {% assign speed = 1 -%}
+{% else -%}
+    {% assign speed = speed | Times:'.02' -%}
+    {% assign speed = speed | Plus:'1' -%}
+{% endif -%}
+
+{% if videourl != '' -%}
+    <div id="{{ id }}" class="jarallax {{addclass}}" data-img-size="{{ imgsize }}" data-jarallax-video="{{ videourl }}" data-type="{{ type }}" data-keep-img='true' data-speed="{{ speed }}" data-img-position="{{ position }}" data-z-index="{{ bodyZindex }}" data-video-start-time="{{ videostarttime }}" data-video-end-time="{{ videoendtime }}" >
+        {% if image != "" -%}{%comment %}
+            <img class="jarallax-img" src="{{ image }}" alt="">{% endcomment %}
+        {% endif -%}
+{% else -%}
+    <div id="{{ id }}" data-jarallax class="jarallax {{addclass}}" data-img-size="{{ imgsize }}" data-type="{{ type }}" data-speed="{{ speed }}" data-img-position="{{ position }}" data-object-position="{{ position }}" data-background-position="{{ position }}" data-zindex="{{ bodyZindex }}">
+    <img class="jarallax-img" src="{{ image }}" alt="">
+{% endif -%}
+
+    <script>
+
+    {% comment %}
+    {% if image != "" %}
+      var tmpCanInitParallax = jarallax.constructor.prototype.canInitParallax;
+      jarallax.constructor.prototype.canInitParallax = function(callback) {
+        // Intercept the set call for the video object and manually set the image
+        var imageHandler = {
+          set(target, prop, value) {
+            target[prop] = value;
+            if (prop == 'video') {
+                value.videoImage = "{{image}}";
+                value.userEventsList['started'][0] = function () {
+
+                    self.image.$default_item = self.image.$item;
+                    self.image.$item = self.$video;
+
+                    // set video width and height
+                    self.image.width = self.video.videoWidth || 1280;
+                    self.image.height = self.video.videoHeight || 720;
+                    self.options.imgWidth = self.image.width;
+                    self.options.imgHeight = self.image.height;
+                    self.coverImage();
+                    self.clipContainer();
+                    self.onScroll();
+
+                    // hide image
+                    if (self.image.$default_item) {
+                        self.css(self.image.$default_item, {
+                            'transition': 'opacity .25s ease-in-out',
+                            '-moz-transition': 'opacity .25s ease-in-out',
+                            '-webkit-transition': 'opacity .25s ease-in-out',
+                            'opacity': 1,
+                        });
+                        setTimeout(function () {
+                            self.image.$default_item.style.opacity = 0;
+                        }, 500);
+                    }
+                };
+            }
+            return true;
+          }
+        };
+        // Use a proxy'ed JS object
+        var self = new Proxy(this, imageHandler);
+        self.defaultInitImgResult = true;
+        self.image.src = "{{image}}";
+
+        // save default user styles
+        var curStyle = self.$item.getAttribute('style');
+        if (curStyle) {
+            self.$item.setAttribute('data-jarallax-original-styles', curStyle);
+        }
+
+        // set new background
+        self.css(self.$item, {
+            'background-image': 'url("{{image}}")',
+            'background-position': 'center',
+            'background-size': 'cover',
+            'transition': 'opacity .25s ease-in-out',
+            '-moz-transition': 'opacity .25s ease-in-out',
+            '-webkit-transition': 'opacity .25s ease-in-out',
+            'opacity': 1,
+        });
+
+        // Now actually call the method against the proxy object
+        return tmpCanInitParallax.apply(self);
+      }
+      {% endif %}
+      {% endcomment %}
+
+      jarallax(document.querySelectorAll('#{{ id }}'), {
+        disableParallax: /iPad|iPhone|iPod|Android/,
+        disableVideo: /iPad|iPhone|iPod|Android/
+      });
+    </script>
+
+        {% if blockContent != '' -%}
+            <div class="parallax-content">
+                {{ blockContent }}
+            </div>
+        {% else- %}
+            {{ blockContent }}
+        {% endif -%}
+    </div>
+
+{% stylesheet %}
+#{{ id }} {
+    /* eventually going to change the height using media queries with mixins using sass, and then include only the classes I want for certain parallaxes */
+    min-height: {{ height }};
+    background: transparent;
+    position: relative;
+    z-index: 0;
+}
+
+#{{ id }} .jarallax-img {
+    position: absolute;
+    object-fit: {{ imgsize }};
+    /* support for plugin https://github.com/bfred-it/object-fit-images */
+    font-family: 'object-fit: {{ imgsize }};';
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
+
+#{{ id }} .parallax-content{
+    display: inline-block;
+    margin: {{ contentpadding }};
+    color: {{ contentcolor }};
+    text-align: {{ contentalign }};
+	width: 100%;
+}
+{% endstylesheet %}
+
+{% comment %}
+************************ PARAMETERS ********************
+{% endcomment %}
+type            - scroll
+speed           - 50
+image           -
+zindex          - 0
+noandriod       - false
+noios           - false
+videourl        -
+height          - 200px
+contentpadding  - 0
+contentcolor    - #fff
+contentalign    - center
+loop            - true
+position        - top center
+addclass        -
+videostarttime  - 0
+videoendtime    - 0
+imgsize         - cover

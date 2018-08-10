@@ -1,0 +1,68 @@
+{% comment %}
+*********************************** NAME ***************************************
+{% endcomment %}
+* WOW Animate Elements
+
+{% comment %}
+*********************************** TagType ************************************
+{% endcomment %}
+Block
+
+{% comment %}
+*********************************** TAG NAME ***********************************
+{% endcomment %}
+wow
+
+{% comment %}
+*********************************** DESCRIPTION ********************************
+{% endcomment %}
+Animate any elements on your page!
+
+{% comment %}
+********************************* DOCUMENTATION ********************************
+{% endcomment %}
+
+Use this block-code to animate any elements – as many times as you want on a page. It even can be used in other short-codes! The cool thing about this shortcode, is that it not only animates the elements as requested, but it initiates the required css and scripts only once to be able to animate the elements in any pages.
+
+    {[ wow animate:'rotateIn' duration:'.5s' delay:'1.1s' ]}
+        ** Animated Element goes in here **
+    {[ endwow ]}
+
+This block shortcode creates a div container with a class of "wow" as part of its styling along with an animated class. As always there are several parameters; all of them are optional though.
+
+animate - use any animated class you can find from this link: https://daneden.github.io/animate.css/
+duration - insert a duration in milliseconds such as "0.5s"
+delay - insert a delay in milliseconds such as ".5s"
+Note: This command requires a full page reload in order for your changes to be displayed.
+
+{% comment %}
+************************ MARKUP FOR THIS SHORTCODE IS BELOW ********************
+{% endcomment %}
+
+{{- 'https://www.southeastchristian.org/eastertogether/assets/js/vendor/wow.min.js' | AddScriptLink -}}
+{{- 'https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css' | AddCssLink -}}
+{%- stylesheet id:'wow-shortcode' -%}
+    .wow { visibility: hidden; }
+{%- endstylesheet -%}
+{%- javascript id:'wow-shortcode' -%}
+$(document).ready(function() {
+    function afterReveal (el) {
+        el.addEventListener('animationend', function () {
+            console.log('This runs once finished!');
+            el.opacity = "1";
+        });
+    }
+    new WOW({ callback: afterReveal }).init();
+});
+{%- endjavascript -%}
+{%- assign css_string = " wow " | Append:animate -%}
+<div class="{{- css_string -}}" data-wow-duration="{{- duration -}}" data-wow-delay="{{- delay -}}">
+    {{ blockContent }}
+</div>
+
+{% comment %}
+************************ PARAMETERS ********************
+{% endcomment %}
+animate   -
+duration  -
+delay     - 
