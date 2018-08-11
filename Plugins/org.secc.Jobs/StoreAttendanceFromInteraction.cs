@@ -95,7 +95,7 @@ namespace org.secc.Jobs
                                     foreach ( int personAliasId in peopleAttended )
                                     {
                                         // Make sure we don't already have an attendance Record
-                                        if ( !attendanceService.Queryable().Any( a => a.ScheduleId == schedule.Id && a.PersonAliasId == personAliasId && a.GroupId == group.Id && a.LocationId == location.Id && a.DidAttend == true ) )
+                                        if ( !attendanceService.Queryable().Any( a => DbFunctions.TruncateTime( a.StartDateTime ) == occurrence.Period.StartTime.Value.Date && a.ScheduleId == schedule.Id && a.PersonAliasId == personAliasId && a.GroupId == group.Id && a.LocationId == location.Id && a.DidAttend == true ) )
                                         {
                                             Attendance attendance = new Attendance()
                                             {
