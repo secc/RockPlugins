@@ -581,9 +581,8 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 .Select( obj => new { Workflow = obj.Key, AttributeValues = obj.Select( a => a.AttributeValue ) } )
                 .ToList();
 
-            var qry = workflows.AsQueryable().Join( visits.AsQueryable(), wf => wf.Workflow.Id, wa => wa.WorkflowActivity.WorkflowId, ( wf, wa ) => new { Workflow = wf, WorkflowActivity = wa } )
-                .GroupBy( obj => obj.Workflow )
-                .Select( obj => new { Workflow = obj.Key.Workflow, AttributeValues = obj.Key.AttributeValues, VisitationActivities = obj.Select( b => b.WorkflowActivity ) } ).ToList();
+            var qry = workflows.AsQueryable().GroupJoin( visits.AsQueryable(), wf => wf.Workflow.Id, wa => wa.WorkflowActivity.WorkflowId, ( Workflow, wa ) => new { Workflow = Workflow, WorkflowActivities = wa } )
+                .Select( obj => new { Workflow = obj.Workflow.Workflow, AttributeValues = obj.Workflow.AttributeValues, VisitationActivities = obj.WorkflowActivities } ).ToList();
 
             if ( contextEntity == null )
             {
