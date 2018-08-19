@@ -32,6 +32,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.Entity;
 using System.Dynamic;
 using System.Linq;
 using System.Reflection;
@@ -170,22 +171,38 @@ namespace org.secc.Connection
         {
             base.OnLoad( e );
 
+
+            if ( Settings.Entity() == null )
+            {
+                nbConfigurationWarning.Visible = true;
+                nbConfigurationWarning.Text = "The connection opportunities, partitions, and display settings need to be configured in block settings.";
+            }
+
             if ( !IsPostBack )
             {
                 ceLava.Text = GetAttributeValue( "Lava" );
             }
-            
-            if ( Settings.Partitions.Count > 0)
+
+            if ( Settings.Partitions.Count > 0 )
             {
                 ConnectionOpportunity connection = ( ConnectionOpportunity ) Settings.Entity();
-                if ( connection != null && connectionRequests == null)
+                if ( connection != null && connectionRequests == null )
                 {
                     connectionRequests = connection.ConnectionRequests;
                 }
 
                 var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null );
                 mergeFields.Add( "Settings", Rock.Lava.RockFilters.FromJSON( GetAttributeValue( "Settings" ) ) );
-                mergeFields.Add( "Tree", GetTree( Settings.Partitions.FirstOrDefault(), connectionRequests ) );
+                string url = "";
+                if ( Settings.SignupPage() != null )
+                {
+                    url = new Rock.Web.PageReference( Settings.SignupPage().Id ).BuildUrl();
+                    if ( Settings.EntityTypeGuid == Rock.SystemGuid.EntityType.CONNECTION_OPPORTUNITY.AsGuid() )
+                    {
+                        url += "?OpportunityId=" + Settings.Entity().Id;
+                    }
+                }
+                mergeFields.Add( "Tree", GetTree( Settings.Partitions.FirstOrDefault(), connectionRequests, parentUrl: url ) );
                 mergeFields.Add( "ConnectionRequests", connectionRequests );
                 lBody.Text = GetAttributeValue( "Lava" ).ResolveMergeFields(mergeFields);
 
@@ -279,6 +296,11 @@ namespace org.secc.Connection
                 GroupTypeRoleService groupTypeRoleService = new GroupTypeRoleService( context );
                 ScheduleService scheduleService = new ScheduleService( context );
 
+                if ( Settings.SignupPage() != null)
+                {
+                    ppSignupPage.SetValue( Settings.SignupPage().Id );
+                }
+
                 // Load all the partition settings
                 if ( Settings.EntityGuid != Guid.Empty )
                 {
@@ -335,14 +357,17 @@ namespace org.secc.Connection
                             }
                             break;
                         case "Schedule":
-                            var selectedSchedules = partition.PartitionValue.Split( ',' );
+                            if ( partition.PartitionValue != null )
+                            { 
+                                var selectedSchedules = partition.PartitionValue.Split( ',' );
 
-                            foreach ( string scheduleGuid in selectedSchedules )
-                            {
-                                var schedule = scheduleService.Get( scheduleGuid.AsGuid() );
-                                if ( schedule != null )
+                                foreach ( string scheduleGuid in selectedSchedules )
                                 {
-                                    AddRowColumnPartition( dtTmp, dt, column + partition.Guid, schedule.Guid, schedule.Name );
+                                    var schedule = scheduleService.Get( scheduleGuid.AsGuid() );
+                                    if ( schedule != null )
+                                    {
+                                        AddRowColumnPartition( dtTmp, dt, column + partition.Guid, schedule.Guid, schedule.Name );
+                                    }
                                 }
                             }
                             break;
@@ -377,9 +402,9 @@ namespace org.secc.Connection
                         break;
                     }
                     dt = dvOrdered.CopyToDataTable();
-
                     gCounts.DataSource = dt;
                     gCounts.DataBind();
+
                 }
             }
         }
@@ -414,6 +439,7 @@ namespace org.secc.Connection
             public string PartitionType { get; set; }
             public string PartitionValue { get; set; }
             public Guid Guid { get; set; }
+            public Dictionary<string, string> GroupMap { get; set; }
 
             [JsonIgnore]
             public SignupSettings SignupSettings { get; set; }
@@ -432,6 +458,8 @@ namespace org.secc.Connection
         [Serializable]
         public class SignupSettings
         {
+            public Guid SignupPageGuid { get; set; }
+
             private List<PartitionSettings> _partitions = new List<PartitionSettings>();
 
             public List<PartitionSettings> Partitions { get { return _partitions; } }
@@ -465,6 +493,14 @@ namespace org.secc.Connection
                 return null;
             }
             
+            /// <summary>
+            /// Get the signup page
+            /// </summary>
+            /// <returns></returns>
+            public virtual PageCache SignupPage()
+            {
+                return PageCache.Read( SignupPageGuid );
+            }
         }
 
         #region Events
@@ -505,6 +541,46 @@ namespace org.secc.Connection
 
         }
 
+        protected List<Group> getGroups()
+        {
+            ConnectionOpportunity opportunity = ( ( ConnectionOpportunity ) Settings.Entity() );
+            int[] campusIds = opportunity.ConnectionOpportunityCampuses.Select( o => o.CampusId ).ToArray();
+            // Build list of groups
+            var groups = new List<Group>();
+
+            // First add any groups specifically configured for the opportunity 
+            var opportunityGroupIds = opportunity.ConnectionOpportunityGroups.Select( o => o.Id ).ToList();
+            if ( opportunityGroupIds.Any() )
+            {
+                groups = opportunity.ConnectionOpportunityGroups
+                    .Where( g =>
+                        g.Group != null &&
+                        g.Group.IsActive &&
+                        ( !g.Group.CampusId.HasValue || campusIds.Contains( g.Group.CampusId.Value ) ) )
+                    .Select( g => g.Group )
+                    .ToList();
+            }
+
+            // Then get any groups that are configured with 'all groups of type'
+            foreach ( var groupConfig in opportunity.ConnectionOpportunityGroupConfigs )
+            {
+                if ( groupConfig.UseAllGroupsOfType )
+                {
+                    var existingGroupIds = groups.Select( g => g.Id ).ToList();
+
+                    groups.AddRange( new GroupService( new RockContext() )
+                        .Queryable().AsNoTracking()
+                        .Where( g =>
+                            !existingGroupIds.Contains( g.Id ) &&
+                            g.IsActive &&
+                            g.GroupTypeId == groupConfig.GroupTypeId &&
+                            ( !g.CampusId.HasValue || campusIds.Contains(g.CampusId.Value) ) )
+                        .ToList() );
+                }
+            }
+            return groups;
+        }
+
         protected void rptPartions_ItemDataBound( object sender, RepeaterItemEventArgs e )
         {
             if ( e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem )
@@ -522,27 +598,41 @@ namespace org.secc.Connection
                 switch ( partition.PartitionType )
                 {
                     case "Campus":
-                        //ddlAttribute.Visible = false;
-                        var campuses = new CheckBoxList() { ID = partition.Guid.ToString() };
-                        var campusCache = Rock.Web.Cache.CampusCache.All();
-                        campuses.DataSource = campusCache;
-                        campuses.DataTextField = "Name";
-                        campuses.DataValueField = "Guid";
-                        campuses.DataBind();
-                        if ( !string.IsNullOrWhiteSpace(partition.PartitionValue) )
+                        phPartitionControl.Controls.Add( new LiteralControl( "<div class='row'><div class='col-md-4'><strong>Name</strong></div><div class='col-md-8'><strong>Group</strong></div>" ) );
+
+                        foreach ( var campus in CampusCache.All() )
                         {
-                            campuses.SetValues(partition.PartitionValue.Split( ',' ).Select( pv => pv ).ToList());
+                            phPartitionControl.Controls.Add( new LiteralControl( "<div class='row'><div class='col-xs-4'>" ) );
+                            var campusCbl = new CheckBox();
+                            campusCbl.ID = campus.Guid.ToString() + "_" + partition.Guid + "_checkbox";
+                            campusCbl.Checked = partition.PartitionValue.Contains( campus.Guid.ToString() );
+                            campusCbl.Text = campus.Name;
+                            campusCbl.CheckedChanged += CampusCbl_CheckedChanged;
+                            campusCbl.AutoPostBack = true;
+                            campusCbl.Checked = partition.PartitionValue.Contains( campus.Guid.ToString() );
+                            phPartitionControl.Controls.Add( campusCbl );
+                            phPartitionControl.Controls.Add( new LiteralControl( "</div>" ) );
+
+                            phPartitionControl.Controls.Add( new LiteralControl( "<div class='col-xs-8'>" ) );
+                            var ddlPlacementGroup = new RockDropDownList();
+                            ddlPlacementGroup.ID = campus.Guid.ToString() + "_" + partition.Guid + "_group";
+                            ddlPlacementGroup.SelectedIndexChanged += DdlPlacementGroup_SelectedIndexChanged;
+                            ddlPlacementGroup.AutoPostBack = true;
+                            List<ListItem> groupList = getGroups().Select( g => new ListItem( String.Format( "{0} ({1})", g.Name, g.Campus != null ? g.Campus.Name : "No Campus" ), g.Id.ToString() ) ).ToList();                  
+                            groupList.Insert( 0, new ListItem( "Not Mapped", null ) );
+                            ddlPlacementGroup.Items.AddRange( groupList.ToArray() );
+                            if ( partition.GroupMap != null && partition.GroupMap.ContainsKey( campus.Guid.ToString() ) )
+                            {
+                                ddlPlacementGroup.SetValue( partition.GroupMap[campus.Guid.ToString()] );
+                            }
+                            phPartitionControl.Controls.Add( ddlPlacementGroup );
+                            phPartitionControl.Controls.Add( new LiteralControl( "</div></div>" ) );
                         }
-                        else
-                        {
-                            campuses.SetValues( campusCache.Select( c => c.Guid.ToString() ).ToList() );
-                            partition.PartitionValue = string.Join( ",", campusCache.Select( c => c.Guid ).ToArray() );
-                        }
-                        campuses.AutoPostBack = true;
-                        campuses.SelectedIndexChanged += Cbl_SelectedIndexChanged;
-                        phPartitionControl.Controls.Add( campuses );
+                        phPartitionControl.Controls.Add( new LiteralControl( "</div>" ) );
+
                         break;
                     case "Schedule":
+                        phPartitionControl.Controls.Add( new LiteralControl( "<strong>Schedule</strong><br />" ) );
                         var schedule = new SchedulePicker() { AllowMultiSelect = true, ID = partition.Guid.ToString() };
                         schedule.SelectItem += Schedule_SelectItem;
                         if ( !string.IsNullOrWhiteSpace(partition.PartitionValue) )
@@ -555,6 +645,7 @@ namespace org.secc.Connection
                         phPartitionControl.Controls.Add( schedule );
                         break;
                     case "DefinedType":
+                        phPartitionControl.Controls.Add( new LiteralControl( "<strong>Defined Type</strong><br />" ) );
                         var definedTypeRddl = new RockDropDownList() { ID = partition.Guid.ToString() };
                         DefinedTypeService definedTypeService = new DefinedTypeService( new RockContext() );
                         var listItems = definedTypeService.Queryable().Select( dt => new { Name = ( dt.Category != null ? dt.Category.Name + ": " : "" ) + dt.Name, Guid = dt.Guid } ).ToList();
@@ -572,52 +663,92 @@ namespace org.secc.Connection
                         phPartitionControl.Controls.Add( definedTypeRddl );
                         break;
                     case "Role":
-                        //ddlAttribute.Visible = false;
-                        var cblRole = new CheckBoxList() { ID = partition.Guid.ToString() };
                         if ( Settings.EntityTypeGuid == Rock.SystemGuid.EntityType.CONNECTION_OPPORTUNITY.AsGuid() )
                         {
                             ConnectionOpportunity connection = ( ConnectionOpportunity ) Settings.Entity();
-                            var roles = connection.ConnectionOpportunityGroupConfigs.Where( cogc => cogc.GroupMemberRole != null).OrderBy(r => r.GroupTypeId).ThenBy(r => r.GroupMemberRole.Order).Select( r => new {Name = r.GroupType.Name + ": " + r.GroupMemberRole.Name, Guid = r.GroupMemberRole.Guid } ).ToList();
-                            cblRole.DataSource = roles;
-                            cblRole.DataTextField = "Name";
-                            cblRole.DataValueField = "Guid";
-                            cblRole.DataBind();
-                            if ( !string.IsNullOrWhiteSpace(partition.PartitionValue) )
+                            var roles = connection.ConnectionOpportunityGroupConfigs.Where( cogc => cogc.GroupMemberRole != null ).OrderBy( r => r.GroupTypeId ).ThenBy( r => r.GroupMemberRole.Order ).Select( r => new { Name = r.GroupType.Name + ": " + r.GroupMemberRole.Name, Guid = r.GroupMemberRole.Guid } ).ToList();
+
+                            phPartitionControl.Controls.Add( new LiteralControl( "<div class='row'><div class='col-md-4'><strong>Name</strong></div><div class='col-md-8'><strong>Group</strong></div>" ) );
+
+                            foreach ( var role in roles )
                             {
-                                cblRole.SetValues( partition.PartitionValue.Split( ',' ).ToList() );
+                                phPartitionControl.Controls.Add( new LiteralControl( "<div class='row'><div class='col-xs-4'>" ) );
+                                var campusCbl = new CheckBox();
+                                campusCbl.ID = role.Guid.ToString() + "_" + partition.Guid + "_checkbox";
+                                campusCbl.Checked = partition.PartitionValue.Contains( role.Guid.ToString() );
+                                campusCbl.Text = role.Name;
+                                campusCbl.CheckedChanged += CampusCbl_CheckedChanged;
+                                campusCbl.AutoPostBack = true;
+                                campusCbl.Checked = partition.PartitionValue.Contains( role.Guid.ToString() );
+                                phPartitionControl.Controls.Add( campusCbl );
+                                phPartitionControl.Controls.Add( new LiteralControl( "</div>" ) );
+
+                                phPartitionControl.Controls.Add( new LiteralControl( "<div class='col-xs-8'>" ) );
+                                var ddlPlacementGroup = new RockDropDownList();
+                                ddlPlacementGroup.ID = role.Guid.ToString() + "_" + partition.Guid + "_group";
+                                ddlPlacementGroup.SelectedIndexChanged += DdlPlacementGroup_SelectedIndexChanged;
+                                ddlPlacementGroup.AutoPostBack = true;
+
+                                List<ListItem> groupList = getGroups().Select( g => new ListItem( String.Format( "{0} ({1})", g.Name, g.Campus != null ? g.Campus.Name : "No Campus" ), g.Id.ToString() ) ).ToList();
+                                groupList.Insert( 0, new ListItem( "Not Mapped", null ) );
+                                ddlPlacementGroup.Items.AddRange(groupList.ToArray());
+                                if ( partition.GroupMap != null && partition.GroupMap.ContainsKey( role.Guid.ToString() ) )
+                                {
+                                    ddlPlacementGroup.SetValue( partition.GroupMap[role.Guid.ToString()] );
+                                }
+                                phPartitionControl.Controls.Add( ddlPlacementGroup );
+                                phPartitionControl.Controls.Add( new LiteralControl( "</div></div>" ) );
                             }
-                            else
-                            {
-                                cblRole.SetValues( roles.Select( c => c.Guid.ToString() ).ToList() );
-                                partition.PartitionValue = string.Join( ",", roles.Select( c => c.Guid.ToString() ).ToArray() );
-                            }
-                            cblRole.SelectedIndexChanged += Cbl_SelectedIndexChanged;
+                            phPartitionControl.Controls.Add( new LiteralControl( "</div>" ) );
                         }
-                        phPartitionControl.Controls.Add( cblRole );
+
                         break;
                 }
 
+                RockTextBox tbAttributeKey = ( ( RockTextBox ) e.Item.FindControl( "tbAttributeKey" ) );
+                tbAttributeKey.ID = "attribute_key_" + partition.Guid.ToString();
+                tbAttributeKey.Text = partition.AttributeKey;
                 ( ( LinkButton ) e.Item.FindControl( "bbPartitionDelete" ) ).CommandArgument = partition.Guid.ToString();
             }
             
         }
 
-        private void Cbl_SelectedIndexChanged( object sender, EventArgs e )
+        private void DdlPlacementGroup_SelectedIndexChanged( object sender, EventArgs e )
         {
-            var partition = Settings.Partitions.Where( p => p.Guid == ( ( Control ) sender ).ID.AsGuid() ).FirstOrDefault();
+            var partition = Settings.Partitions.Where( p => ( ( Control ) sender ).ID.Contains( p.Guid.ToString() ) ).FirstOrDefault();
             if ( partition != null )
             {
-                partition.PartitionValue = String.Join( ",",
-                        ( ( CheckBoxList ) sender ).Items.Cast<ListItem>().Where( i => i.Selected ).Select( i => i.Value )
-                        );
+                string valueGuid = ( ( Control ) sender ).ID.Replace( partition.Guid.ToString() + "_", "" ).Replace( "_group", "" );
+                if ( partition.GroupMap == null)
+                {
+                    partition.GroupMap = new Dictionary<string, string>();
+                }
+                partition.GroupMap.Remove( valueGuid );
+                partition.GroupMap.Add( valueGuid, ( ( RockDropDownList ) sender ).SelectedValue );
             }
             SaveViewState();
         }
 
+        private void CampusCbl_CheckedChanged( object sender, EventArgs e )
+        {
+            var partition = Settings.Partitions.Where( p => ( ( Control ) sender ).ID.Contains( p.Guid.ToString() ) ).FirstOrDefault();
+            if ( partition != null )
+            {
+                string valueGuid = ( ( Control ) sender ).ID.Replace( partition.Guid.ToString() + "_", "" ).Replace( "_checkbox", "" );
+                List<string> selectedValues = partition.PartitionValue.Split( ',' ).ToList();
+                selectedValues.Remove( valueGuid );
+                if ( ( ( CheckBox ) sender ).Checked)
+                {
+                    selectedValues.Add( valueGuid );
+                }
+                partition.PartitionValue = String.Join( ",", selectedValues );
+            }
+            SaveViewState();
+        }
 
         protected void tbAttributeKey_TextChanged( object sender, EventArgs e )
         {
-            var partition = Settings.Partitions.Where( p => p.Guid == ( ( Control ) sender ).ID.AsGuid() ).FirstOrDefault();
+            var partition = Settings.Partitions.Where( p => p.Guid == ( ( Control ) sender ).ID.Replace("attribute_key_", "").AsGuid() ).FirstOrDefault();
             if ( partition != null )
             {
                 partition.AttributeKey = ( ( TextBox ) sender ).Text;
@@ -630,7 +761,7 @@ namespace org.secc.Connection
             if ( Counts.Count > 0 )
             {
                 hdnPartitionType.Value = ( ( ButtonDropDownList ) sender ).SelectedValue;
-                ScriptManager.RegisterStartupScript( upEditControls, upEditControls.GetType(), "PartitionWarning", "Rock.dialogs.confirm('Making changes to partition settings will clear all existing counts!  Are you sure you want to proceed?', function(result) {if(result) {$(\"#" + btnAddPartition.ClientID + "\")[0].click();}});", true );
+                ScriptManager.RegisterStartupScript( upEditControls, upEditControls.GetType(), "PartitionWarning", "Rock.dialogs.confirm('Making changes to partition settings can affect existing counts!  Are you sure you want to proceed?', function(result) {if(result) {$(\"#" + btnAddPartition.ClientID + "\")[0].click();}});", true );
                 return;
             }
             var partition = new PartitionSettings() { PartitionType = ( ( ButtonDropDownList ) sender ).SelectedValue, Guid = Guid.NewGuid(), SignupSettings = Settings };
@@ -697,6 +828,7 @@ namespace org.secc.Connection
             SetAttributeValue( "Lava", ceLava.Text );
             SaveAttributeValues();
             mdEdit.Hide();
+            Response.Redirect( Request.RawUrl );
         }
 
         private void Schedule_SelectItem( object sender, EventArgs e )
@@ -738,7 +870,7 @@ namespace org.secc.Connection
             }
         }
 
-        protected List<IDictionary<string, object>> GetTree( PartitionSettings partition, ICollection<ConnectionRequest> connectionRequests = null, String concatGuid = null, GroupTypeRoleService groupTypeRoleService = null, ScheduleService scheduleService = null )
+        protected List<IDictionary<string, object>> GetTree( PartitionSettings partition, ICollection<ConnectionRequest> connectionRequests = null, String concatGuid = null, GroupTypeRoleService groupTypeRoleService = null, ScheduleService scheduleService = null, string ParentIdentifier = "signup", string parentUrl = "", string groupId = "", string roleId = "")
         {
 
             if ( groupTypeRoleService == null || scheduleService == null)
@@ -762,10 +894,26 @@ namespace org.secc.Connection
 
             foreach ( var value in values )
             {
+                if (partition.PartitionType == "Role")
+                {
+                    roleId = value;
+                }
+                if (partition.GroupMap != null && partition.GroupMap.ContainsKey(value))
+                {
+                    groupId = partition.GroupMap[value];
+                }
+                string url = parentUrl + ( parentUrl.Contains( "?" ) ? "&" : "?" ) + partition.AttributeKey + "=" + value;
                 IDictionary<string, object> inner = new Dictionary<string, object>();
+                inner.Add( "ParentIdentifier", ParentIdentifier );
+                inner.Add( "PartitionType", partition.PartitionType );
+                inner.Add( "Url", url );
+                inner.Add( "ParameterName", partition.AttributeKey );
                 inner.Add( "Value", value );
+                inner.Add( "RoleGuid", roleId );
+                inner.Add( "GroupId", groupId );
                 var newConcatGuid = concatGuid == null ? value : concatGuid + "," + value;
-                inner.Add( "Limit", Counts.Where( kvp => kvp.Key.Contains( newConcatGuid ) ).Select( kvp => kvp.Value.AsInteger() ).Sum() );
+                int? count = Counts.Where( kvp => kvp.Key.Contains( newConcatGuid ) ).Any(kvp => String.IsNullOrWhiteSpace(kvp.Value))?null:(int?)(Counts.Where( kvp => kvp.Key.Contains( newConcatGuid ) ).Select( kvp => kvp.Value.AsInteger() ).Sum());
+                inner.Add( "Limit", count );
                 ICollection<ConnectionRequest> subRequests = null;
                 switch ( partition.PartitionType )
                 {
@@ -811,7 +959,7 @@ namespace org.secc.Connection
                 inner.Add( "Filled", subRequests != null?subRequests.Where(sr => sr.ConnectionState != ConnectionState.Inactive).Count():0 );
                         
                 if ( partition.NextPartition != null) {
-                    inner.Add( "Partitions", GetTree( partition.NextPartition, subRequests, newConcatGuid, groupTypeRoleService, scheduleService ) );
+                    inner.Add( "Partitions", GetTree( partition.NextPartition, subRequests, newConcatGuid, groupTypeRoleService, scheduleService, ParentIdentifier + "_" + value, url, groupId, roleId ));
                 }
                 partitionList.Add( inner );
             }
@@ -819,5 +967,14 @@ namespace org.secc.Connection
         }
 
         #endregion
+
+        protected void ppSignupPage_SelectItem( object sender, EventArgs e )
+        {
+            if ( ppSignupPage.SelectedValueAsInt().HasValue )
+            {
+                Settings.SignupPageGuid = PageCache.Read( ppSignupPage.SelectedValueAsInt().Value ).Guid;
+            }
+            SaveViewState();
+        }
     }
 }

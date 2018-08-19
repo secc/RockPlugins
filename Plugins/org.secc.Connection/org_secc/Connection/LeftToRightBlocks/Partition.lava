@@ -1,0 +1,68 @@
+		{% if level > 0 %}
+			{% assign divId = partition.ParentIdentifier | Append:'_' | Append: partition.Value %}
+		{% else %}
+			{% assign url = '' %}
+			{% assign level = 0 %}
+			{% assign divId = 'signup' %}
+			{% assign show = 'Global' | PageParameter:'show' %}
+			{% assign foundDiv = false %}
+		{% endif %}
+		{% assign level = level | Plus:1 %}
+		<div class="row slide-box" id="{{divId}}" {% if show == '' and show == empty and level == 1 %}{% assign foundDiv = true %} style="left: 0%;"{% elseif show == divId %}{% assign foundDiv = true %} style="left: 0%;"{% elseif foundDiv == false %} style="left: -100%;"{% endif %}>
+			{% if level > 1 %}
+				<div class="col-xs-12">
+					<a href="#" onclick="doSlide('#{{divId}}', '#{{partition.ParentIdentifier}}'); return false;" title="Go Back" class="btn btn-default">
+						Back
+					</a>
+				</div>
+			{% endif %}
+            <div class="col-sm-10 col-sm-offset-1">
+			{% assign parameterName = '' %}
+            {% for partition in Tree %}
+				{% assign partitionSize = partition.Partitions | Size %}
+				{% if partitionSize > 0 %}
+					{% if partition.PartitionType == 'DefinedType' %}
+						{% if forloop.first %}<h2 class="section-header">Please select from the following:</h2>{% endif %}
+						{% include '~/Plugins/org_secc/Connection/LeftToRightBlocks/CardDefinedType.lava' %}
+					{% elseif partition.PartitionType == 'Schedule' %}
+						{% if forloop.first %}<h2 class="section-header">Please select your schedule:</h2>{% endif %}
+						{% include '~/Plugins/org_secc/Connection/LeftToRightBlocks/CardSchedule.lava' %}
+					{% elseif partition.PartitionType == 'Campus' %}
+						{% if forloop.first %}<h2 class="section-header">Please select your campus:</h2>{% endif %}
+						{% include '~/Plugins/org_secc/Connection/LeftToRightBlocks/CardCampus.lava' %}
+					{% elseif partition.PartitionType == 'Role' %}
+						{% if forloop.first %}<h2 class="section-header">Please select your serving role:</h2>{% endif %}
+						{% include '~/Plugins/org_secc/Connection/LeftToRightBlocks/CardRole.lava' %}
+					{% endif %}
+				{% else %}
+					{% assign parameterName = partition.ParameterName %}
+					{% assign type = partition.PartitionType %}
+					{% if partition.PartitionType == 'DefinedType' and forloop.first %}
+						<h2 class="section-header">Please select from the following:</h2>
+					{% elseif partition.PartitionType == 'Schedule' and forloop.first %}
+						<h2 class="section-header">Please select your schedule(s):</h2>
+					{% elseif partition.PartitionType == 'Campus' and forloop.first %}
+						<h2 class="section-header">Please select from the following:</h2>
+					{% elseif partition.PartitionType == 'Role' and forloop.first %}
+						<h2 class="section-header">Please select your serving role(s):</h2>
+					{% endif %}
+					{% include '~/Plugins/org_secc/Connection/LeftToRightBlocks/PartitionList.lava' %}
+				{% endif %}
+            {% endfor %}
+            </div>
+			{% if parameterName != '' %}
+				<div class="col-sm-10 col-sm-offset-1">
+					<a href="{{partition.Url}}" data-type="{{type}}" data-group-id="{{partition.GroupId}}" data-role="{{partition.RoleGuid}}" data-parameter-name="{{parameterName}}" title="Sign Up" class="btn btn-primary pull-right signup-button">
+						Sign Up
+					</a>
+				</div>
+			{% endif %}
+        </div>
+        {% for partition in Tree %}
+			{% assign partitionSize = partition.Partitions | Size %}
+			{% if partitionSize > 0 %}
+				{% assign Tree = partition.Partitions %}
+				{% include '~/Plugins/org_secc/Connection/LeftToRightBlocks/Partition.lava' %}
+			{% endif %}
+        {% endfor %}
+		{% assign level =  level | Minus:1 %}
