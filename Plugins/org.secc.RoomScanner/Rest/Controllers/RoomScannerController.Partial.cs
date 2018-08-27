@@ -545,7 +545,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                         return new Response( false, "There are no attendances which can be moved to this location", false );
                     }
 
-                    if ( ValidationHelper.LocationsFull( attendances.ToList(), req.LocationId, rockContext ) )
+                    if ( ValidationHelper.LocationsFull( attendances.ToList(), req.LocationId, VolunteerGroupIds, rockContext ) )
                     {
                         return new Response( false, "Could not move location. Location is full.", false );
                     }
