@@ -70,58 +70,59 @@ namespace org.secc.Jobs
                 if ( campus != null && component != null )
                 {
                     Group group = groups.Where( g => g.IsActive == true && g.CampusId == campus.Id ).FirstOrDefault();
-                    foreach( var gl in group?.GroupLocations)
-                    {
-                        Location location = gl.Location;
-                        foreach( Schedule schedule in gl.Schedules)
+                    if ( group?.GroupLocations != null)
+                    { 
+                        foreach( var gl in group?.GroupLocations)
                         {
-                            var occurrences = schedule.GetOccurrences( DateTime.MinValue, DateTime.Now );
-                            foreach ( var occurrence in occurrences )
+                            Location location = gl.Location;
+                            foreach( Schedule schedule in gl.Schedules)
                             {
-                                DateTime startDate = occurrence.Period.StartTime.Value;
-                                DateTime endDate = occurrence.Period.EndTime.Value;
+                                var occurrences = schedule.GetOccurrences( DateTime.MinValue, DateTime.Now );
+                                foreach ( var occurrence in occurrences )
+                                {
+                                    DateTime startDate = occurrence.Period.StartTime.Value;
+                                    DateTime endDate = occurrence.Period.EndTime.Value;
 
-                                var peopleAttended = interactionService.Queryable().Where( 
-                                    i => i.InteractionComponentId == component.Id && 
-                                            i.InteractionDateTime <= endDate && 
-                                            i.InteractionEndDateTime >= startDate && 
-                                            i.PersonAliasId != null && 
-                                            ( i.CreatedDateTime > lastRun || i.PersonalDevice.ModifiedDateTime > lastRun || i.PersonalDevice.CreatedDateTime > lastRun ) && 
-                                            ( operation == null || i.Operation == operation ) 
-                                ).Select( i => i.PersonAliasId );
-                                int newAttendance = 0;
-                                foreach ( int personAliasId in peopleAttended )
-                                {
-                                    // Make sure we don't already have an attendance Record
-                                    if ( !attendanceService.Queryable().Any( a => a.ScheduleId == schedule.Id && a.PersonAliasId == personAliasId && a.GroupId == group.Id && a.LocationId == location.Id && a.DidAttend == true ) )
+                                    var peopleAttended = interactionService.Queryable().Where( 
+                                        i => i.InteractionComponentId == component.Id && 
+                                                i.InteractionDateTime <= endDate && 
+                                                i.InteractionEndDateTime >= startDate && 
+                                                i.PersonAliasId != null && 
+                                                ( i.CreatedDateTime > lastRun || i.PersonalDevice.ModifiedDateTime > lastRun || i.PersonalDevice.CreatedDateTime > lastRun ) && 
+                                                ( operation == null || i.Operation == operation ) 
+                                    ).Select( i => i.PersonAliasId ).Distinct();
+                                    int newAttendance = 0;
+                                    foreach ( int personAliasId in peopleAttended )
                                     {
-                                        Attendance attendance = new Attendance()
+                                        // Make sure we don't already have an attendance Record
+                                        if ( !attendanceService.Queryable().Any( a => DbFunctions.TruncateTime( a.StartDateTime ) == occurrence.Period.StartTime.Value.Date && a.ScheduleId == schedule.Id && a.PersonAliasId == personAliasId && a.GroupId == group.Id && a.LocationId == location.Id && a.DidAttend == true ) )
                                         {
-                                            PersonAliasId = personAliasId,
-                                            CampusId = campus.Id,
-                                            GroupId = group.Id,
-                                            LocationId = location.Id,
-                                            ScheduleId = schedule.Id,
-                                            StartDateTime = occurrence.Period.StartTime.Value,
-                                            EndDateTime = occurrence.Period?.EndTime?.Value,
-                                            DidAttend = true
-                                        };
-                                        attendanceService.Add( attendance );
-                                        newAttendance++;
+                                            Attendance attendance = new Attendance()
+                                            {
+                                                PersonAliasId = personAliasId,
+                                                CampusId = campus.Id,
+                                                GroupId = group.Id,
+                                                LocationId = location.Id,
+                                                ScheduleId = schedule.Id,
+                                                StartDateTime = occurrence.Period.StartTime.Value,
+                                                EndDateTime = occurrence.Period?.EndTime?.Value,
+                                                DidAttend = true
+                                            };
+                                            attendanceService.Add( attendance );
+                                            newAttendance++;
+                                        }
                                     }
-                                }
-                                if ( newAttendance > 0 )
-                                {
-                                    context.Result += string.Format( "{0} people attended {1} on {2} (Component {3}).\n", newAttendance, campus.Name, occurrence.Period.StartTime.Value.ToString( "MM/dd/yyyy h:mm tt" ), component.Name );
+                                    if ( newAttendance > 0 )
+                                    {
+                                        rockContext.SaveChanges();
+                                        context.Result += string.Format( "{0} people attended {1} on {2} (Component {3}).\n", newAttendance, campus.Name, occurrence.Period.StartTime.Value.ToString( "MM/dd/yyyy h:mm tt" ), component.Name );
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-
-            rockContext.SaveChanges();
-            //context.Result = string.Format( "Closed {0} workflows.", workflowsToClose.Count() );
         }
     }
 }

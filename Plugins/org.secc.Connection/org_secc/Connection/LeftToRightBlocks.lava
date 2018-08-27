@@ -1,0 +1,268 @@
+<style>
+    .serve-card {
+		background: #f7f7f7;
+		border-radius: 4px;
+		transition: 0.3s;
+	}
+	.serve-card:hover {
+		box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+	}
+	.campus-circle {
+		display: inline-block;
+		height: 100px;
+		width: 100px;
+		line-height: 100px;
+
+		-moz-border-radius: 50px; /* or 50% */
+		border-radius: 50px; /* or 50% */
+
+		background-color: #555;
+		color: white;
+		text-align: center;
+		font-size: 2em;
+		margin: auto;
+		margin-top:15px;
+	}
+	.serve-card a:hover {
+		text-decoration: none;
+	}
+	
+	.check input {
+		display: none; 
+	}
+	.check input:checked + .icon-box {
+		animation: keyframes(animOn) 0.8s 1 forwards;
+		background: #428bca; 
+	}
+    .check input:checked + .icon-box i {
+		transform: translate(-50%, -50%) scale(1);
+		transition-duration: 250ms;
+		opacity: 1;
+		color: #fff;
+	}
+	.check label {
+		min-width: 100px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		flex-direction: row;
+		min-height: 60px;
+		cursor: pointer; 
+        -webkit-box-pack: left;
+        -webkit-justify-content: left;
+        -ms-flex-pack: left;
+        -ms-flex-align: left;
+	}
+	.check label .icon-box {
+		background: rgba(0, 0, 0, 0.3);
+		border-radius: 5px;
+		position: relative;
+		width: 50px;
+		height: 50px;
+		transition: background 300ms ease; 
+	}
+	.check label .icon-box:hover {
+		background: rgba(0, 0, 0, 0.5); 
+	}
+	.check label .icon-box i {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		font-size: 20px;
+		display: inline-block;
+		opacity: 0;
+		pointer-events: none;
+		transition: all 0.2s ease-in-out;
+		transition-delay: 200ms;
+		transform: translate(-50%, -50%) scale(6); 
+	}
+    .check .icon-box {
+        margin-left:10px;
+    }
+	
+	
+	
+	
+    #signup a:hover {
+        text-decoration: none !important;
+    }
+    #signup a .stroke:hover {
+        opacity: 1;
+        -moz-opacity: 1;
+        filter: alpha(opacity=1);
+        -webkit-transition: all ease .5s;
+        -moz-transition: all ease .5s;
+        -ms-transition: all ease .5s;
+        -o-transition: all ease .5s;
+        transition: all ease .5s;
+    }
+    #signup a:focus {
+        outline: none;
+        text-decoration: none;
+    }
+    .role-box {
+         margin-bottom: 20px;
+         overflow: show;
+    }
+    .box {
+        height: 180px;
+        box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.2);
+        transition: all .3s;
+        -webkit-transition: all 0.2s ease-in-out;
+        -o-transition: all 0.2s ease-in-out;
+        transition: all 0.2s ease-in-out;
+        border-radius: 4px;
+    }
+    .box h4 {
+        color: inherit;
+        font-size: 20;
+    }
+    .role-box>div>div {
+         margin-bottom: 15px;
+    }
+	.role-box a:hover {
+		color: #661f17;
+	}
+    #signup-container {
+        position: absolute;
+        margin: 0px;
+        padding: 0px;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
+    #signup-container .section-header {
+        margin-bottom:30px;
+    }
+    .slide-box {
+        position: absolute;
+        left: 100%;
+        width: 100%;
+    }
+    .cd-btn.invert:hover {
+        color:#fafbf9 !important;
+    }
+    @media (max-width:480px)
+    {
+        .check label h2 {
+            margin: -10px 10px 0px 10px !important;
+        }
+    }
+    @media (min-width:481px)
+    {
+        .check label h2 {
+            margin: 0px 10px !important;
+        }
+    }
+	@media (min-width:768px )
+    {
+		.pull-right-md {
+			float: right;
+		}
+	}
+    @media (max-width:1200px)
+    {
+        .spots-left {
+            letter-spacing:normal;
+        }
+    }
+</style>
+<script type="text/javascript">
+    var active = '#signup';
+    doSlide = function(slideOut, slideIn, captureHistory = true) {
+        active = slideIn;
+        //  Make sure we have the max height to accomodate the new area
+        if ($(slideOut).height() < $(slideIn).height())
+        {
+            resizeblock(slideIn);
+        }
+        if ($(slideIn).offset() != undefined && $(slideIn).offset().left < 0) {
+            $(slideIn).animate({
+                left: '0%',
+            }, 500, "swing", function() {resizeblock(slideIn);} );
+            $(slideOut).animate({
+                left: '100%',
+            }, 500, "swing", function() {resizeblock(slideIn);} );
+        } else {
+            $(slideIn).animate({
+                left: '0%',
+            }, 500, "swing", function() {resizeblock(slideIn);} );
+            $(slideOut).animate({
+                left: '-100%',
+            }, 500, "swing", function() {resizeblock(slideIn);} );
+        }
+		slideInId = slideIn.replace("#","");
+		if (captureHistory) {
+			history.pushState({slideIn:slideIn}, slideInId, "?show="+slideInId);
+		}
+    }
+    resizeblock = function(selector){
+        ch = $(selector).height();
+        $('#signup-parent').css({
+            height : ch + 50 + 'px'
+        });
+    }
+    $( window ).resize(function() {resizeblock(active)});
+    
+    $(document).ready(function() {
+       $('#signup-container').css('display', 'block');
+       resizeblock('#{{ 'Global' | PageParameter:'show' | default:'signup' }}');
+    });
+
+	$(window).on("popstate", function(e) {
+		if (e.originalEvent != null && e.originalEvent.state != null) {
+			doSlide(active, e.originalEvent.state.slideIn, false);
+		} else {
+			doSlide(active, "#signup");
+		}
+	});
+</script>
+
+
+<div id="signup-parent" style="height: 1362px;">
+    <div id="signup-container" style="display: none;">
+		{% include '~/Plugins/org_secc/Connection/LeftToRightBlocks/Partition.lava' %} 
+    </div>
+</div>
+<script type="text/javascript">
+
+	$('[data-toggle="tooltip"]').tooltip();
+	$('.signup-button').click(function() {
+		checked = []
+		$(this).parent().parent().find("input:checked").each(function () {
+			   checked.push($(this).val())
+		});
+		if (checked.length == 0) {
+			return false;
+		}
+		
+		roleRequests = [];
+		if ($(this).attr('data-type') == 'Role' || $(this).attr('data-type') == 'Campus') 
+		{
+			
+			for(var i = 0; i<checked.length; i++) {
+				var request = {};
+				if ($(this).attr('data-type') == 'Campus') {
+					request.GroupId = checked[i];
+				} else {
+					request.GroupId = $(this).attr('data-group-id');
+				}
+				if ($(this).attr('data-type') == 'Role') {
+					request.GroupTypeRole = checked[i];
+				} else {
+					request.GroupTypeRole = $(this).attr('data-role');
+				}
+				roleRequests.push(request);
+			}
+		} else {
+			var request = {};
+			request.GroupId = $(this).attr('data-group-id');
+			request.GroupTypeRole = $(this).attr('data-role');
+			request.Attributes = { };
+			request.Attributes[$(this).attr('data-parameter-name')] = checked.join(',');
+			roleRequests.push(request);
+		}
+		window.location.href=$(this).attr('href') + "&RoleRequests=" + JSON.stringify(roleRequests);
+		return false;
+	});
+</script>

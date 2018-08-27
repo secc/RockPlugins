@@ -1,0 +1,64 @@
+{% comment %}
+*********************************** NAME ***************************************
+{% endcomment %}
+* Vivus SVG Animations
+
+{% comment %}
+*********************************** TagType ************************************
+{% endcomment %}
+Inline
+
+{% comment %}
+*********************************** TAG NAME ***********************************
+{% endcomment %}
+vivus
+
+{% comment %}
+*********************************** DESCRIPTION ********************************
+{% endcomment %}
+Vivus is a lightweight JavaScript class (with no dependencies) that allows you to animate SVGs, giving them the appearance of being drawn. There are a variety of different animations available, as well as the option to create a custom script to draw your SVG in whatever way you like.
+
+{% comment %}
+********************************* DOCUMENTATION ********************************
+{% endcomment %}
+
+Vivus is a lightweight JavaScript class (with no dependencies) that allows you to animate SVGs, giving them the appearance of being drawn. There are a variety of different animations available, as well as the option to create a custom script to draw your SVG in whatever way you like.
+
+(Need to come back and work on the documentation for this)
+
+{% comment %}
+************************ MARKUP FOR THIS SHORTCODE IS BELOW ********************
+{% endcomment %}
+
+{{ 'https://cdnjs.cloudflare.com/ajax/libs/vivus/0.4.4/vivus.min.js' | AddScriptLink }}
+
+{% assign id = uniqueid -%}
+
+<style type="text/css">
+    #{{ id }} svg {
+        fill: white;
+    };
+    #{{ id }} svg:hover {
+        fill: black;
+        transition: all .4s ease;
+        stroke-width: 0px;
+    };
+</style>
+
+<div id="{{ id }}" style="max-width: 150px;margin:  0 auto;width:  100%;"></div>
+
+<script>
+    new Vivus('{{ id }}', {
+	  type: 'delayed',
+	  duration: {{ duration }},
+	  file: '{{ svg }}',
+	  animTimingFunction: Vivus.EASE
+	  }
+	);
+</script>
+
+{% comment %}
+************************ PARAMETERS ********************
+{% endcomment %}
+svg      -
+duration - 80
