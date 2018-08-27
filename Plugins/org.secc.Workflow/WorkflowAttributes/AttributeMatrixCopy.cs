@@ -28,10 +28,10 @@ namespace org.secc.Workflow.WorkflowAttributes
     [ActionCategory( "SECC > Workflow Attributes" )]
     [Description( "Copy/Clone an attribute matrix with all of it's items." )]
     [Export( typeof( ActionComponent ) )]
-    [ExportMetadata( "ComponentName", "Copy Attribute Matrix" )]
+    [ExportMetadata( "ComponentName", "Attribute Matrix - Copy" )]
     [WorkflowAttribute( "Source Attribute Matrix", "The source attribute matrix to copy from.", fieldTypeClassNames: new string[] { "Rock.Field.Types.MatrixFieldType" } )]
     [WorkflowAttribute( "Target Attribute Matrix", "The target attribute matrix to copy to.", fieldTypeClassNames: new string[] { "Rock.Field.Types.MatrixFieldType" } )]
-    class CopyAttributeMatrix : ActionComponent
+    class AttributeMatrixCopy : ActionComponent
     {
 
         public override bool Execute( RockContext rockContext, WorkflowAction action, object entity, out List<string> errorMessages )

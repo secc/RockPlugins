@@ -2,6 +2,8 @@
 
 <asp:UpdatePanel ID="upnlContent" runat="server">
     <ContentTemplate>
+
+       <Rock:NotificationBox ID="nbConfigurationWarning" runat="server" NotificationBoxType="Warning" Visible="false" />
         
         <asp:Literal ID="lBody" runat="server" ></asp:Literal> 
         <asp:Literal ID="lDebug" runat="server" ></asp:Literal> 
@@ -44,14 +46,16 @@
                                     </div>
                                     <div class="panel-body">
                                         <div class="row">
-                                            <div class="col-md-6">
+                                            <div class="col-md-3">
+                                                <Rock:PagePicker ID="ppSignupPage" runat="server" Label="Connections Signup Page" Help='The page the user should be sent to when they click the "Signup" button' OnSelectItem="ppSignupPage_SelectItem" />
+                                            </div>
+                                            <div class="col-md-4">
                                                 <Rock:RockDropDownList ID="rddlType" Label="Select the type of Volunteer Signup" runat="server" OnSelectedIndexChanged="RddlType_SelectedIndexChanged" AutoPostBack="true">
                                                     <asp:ListItem Value="">Select One . . .</asp:ListItem>
                                                     <asp:ListItem Value="Connection">Connection</asp:ListItem>
-                                                    <asp:ListItem Value="Group">Group</asp:ListItem>
                                                 </Rock:RockDropDownList>
                                             </div>
-                                            <div class="col-md-6">
+                                            <div class="col-md-5">
                                                 <Rock:RockDropDownList ID="rddlConnection" Label="Select the Connection Opportunity" runat="server" Visible="false" OnSelectedIndexChanged="ConnectionRddl_SelectedIndexChanged" AutoPostBack="true" />
                                                 <Rock:GroupPicker ID="gpGroup" Label="Select the Group" runat="server" Visible="false" OnSelectItem="GPicker_SelectItem" />
                                             </div>
@@ -81,7 +85,7 @@
                                                 <div class="row">
                                                     <div class="col-sm-2 col-xs-4"><strong><%# Eval("PartitionType") %></strong></div>
                                                     <div class="col-sm-6 col-xs-6"><asp:PlaceHolder ID="phPartitionControl" runat="server"></asp:PlaceHolder></div>
-                                                    <div class="col-sm-3 col-xs-10"><Rock:RockTextBox ID="tbAttributeKey" runat="server" Placeholder="Attribute Key"  OnTextChanged="tbAttributeKey_TextChanged" /></div>
+                                                    <div class="col-sm-3 col-xs-10"><strong>Parameter Name</strong><br /><Rock:RockTextBox ID="tbAttributeKey" runat="server" Placeholder="Parameter Name"  OnTextChanged="tbAttributeKey_TextChanged" AutoPostBack="true" /></div>
                                                     <div class="col-sm-1 col-xs-2"><asp:LinkButton ID="bbPartitionDelete" runat="server" OnClick="bbPartitionDelete_Click" ToolTip="Remove" CssClass="btn btn-danger" OnClientClick="Rock.dialogs.confirmPreventOnCancel(event, 'Making changes to partition settings will clear all existing counts!  Are you sure you want to proceed?');"><i class="fa fa-remove"></i></asp:LinkButton></div>
                                                 </div>
                                             </ItemTemplate>
@@ -98,7 +102,7 @@
                                     <h1 class="panel-title">Volunteers Needed</h1>
                                 </div>
                                 <div class="panel-body">
-                                    <Rock:Grid ID="gCounts" runat="server" AllowPaging="false" DataKeyNames="RowId" AllowSorting="false" ShowActionRow="false" OnRowDataBound="gCounts_RowDataBound">
+                                    <Rock:Grid ID="gCounts" runat="server" AllowPaging="false" DataKeyNames="RowId" AllowSorting="false" ShowActionRow="false" OnRowDataBound="gCounts_RowDataBound" ViewStateMode="Disabled">
                                         <Columns>
                                             <asp:TemplateField HeaderText="Total" ItemStyle-Width="75px"></asp:TemplateField>
                                         </Columns>

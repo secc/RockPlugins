@@ -40,7 +40,7 @@ namespace org.secc.PersonMatch
 
                 firstName = firstName ?? string.Empty;
                 lastName = lastName ?? string.Empty;
-                email = email ?? string.Empty;
+                email = email.ToLower() ?? string.Empty;
                 phone = phone ?? string.Empty;
                 List<Person> matchingPersons = new List<Person>();
 
@@ -48,16 +48,21 @@ namespace org.secc.PersonMatch
                 List<Person> persons = new List<Person>();
                 if ( birthDate.HasValue || !string.IsNullOrEmpty( email ) )
                 {
-                    var fastQuery = personService.Queryable( false, false ).Where( p => p.FirstName == firstName && p.LastName == lastName );
+                    var fastQuery = personService.Queryable( false, false ).Where( p => (p.FirstName.ToLower() == firstName.ToLower() || p.NickName.ToLower() == firstName.ToLower() ) && p.LastName == lastName );
                     if (birthDate.HasValue)
                     {
-                        fastQuery.Where( p => p.BirthDate == birthDate );
+                        fastQuery = fastQuery.Where( p => p.BirthDate == birthDate );
                     }
                     if (!String.IsNullOrEmpty(email))
                     {
-                        fastQuery.Where( p => p.Email == email );
+                        fastQuery = fastQuery.Where( p => p.Email.ToLower() == email );
                     }
                     persons = fastQuery.ToList();
+                }
+                // We have an exact match.  Just be done.
+                if ( persons.Count == 1 )
+                {
+                    return persons;
                 }
 
                 // Go ahead and do this more leniant search if we don't have an exact match already
