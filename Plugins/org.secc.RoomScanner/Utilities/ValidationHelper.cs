@@ -53,7 +53,7 @@ namespace org.secc.RoomScanner.Utilities
             return location?.LocationTypeValueId == subroomLocationTypeId;
         }
 
-        public static bool LocationsFull( List<Attendance> attendancesToMove, int locationId, RockContext rockContext )
+        public static bool LocationsFull( List<Attendance> attendancesToMove, int locationId, List<int> volunteerGroupIds, RockContext rockContext )
         {
             LocationService locationService = new LocationService( rockContext );
             AttendanceService attendanceService = new AttendanceService( rockContext );
@@ -66,20 +66,29 @@ namespace org.secc.RoomScanner.Utilities
 
             foreach ( var attendance in attendancesToMove )
             {
-                var count = attendanceService.Queryable()
+                var attendances = attendanceService.Queryable()
                     .Where( a => a.LocationId == locationId
                          && a.ScheduleId == attendance.ScheduleId
                          && a.EndDateTime == null
                          && a.StartDateTime >= Rock.RockDateTime.Today
-                        ).Count();
+                        ).ToList();
                 var threshold = location.FirmRoomThreshold ?? 0;
-                if ( !attendance.Group.GetAttributeValue( "IsVolunteer" ).AsBoolean() )
-                {
-                    threshold = Math.Min( location.SoftRoomThreshold ?? 0, threshold );
-                }
-                if ( count >= threshold )
+
+                //check to see if the room is going over
+                if ( attendances.Count() >= threshold )
                 {
                     return true;
+                }
+
+                //Now check if checking in a kid there is "kid room"
+                if ( !attendance.Group.GetAttributeValue( "IsVolunteer" ).AsBoolean() )
+                {
+                    threshold = Math.Min( location.SoftRoomThreshold ?? 0, threshold ); //lowest threshold
+                    var kidAttendances = attendances.Where( a => !volunteerGroupIds.Contains( a.GroupId ?? 0 ) ); //remove volunters
+                    if ( kidAttendances.Count() >= threshold )
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
@@ -125,7 +134,7 @@ namespace org.secc.RoomScanner.Utilities
             return GetAttendancesForAttendee( rockContext, attendeeAttendance )
                 .Where( a => a.DidAttend == true
                 && a.EndDateTime == null
-                &&  a.LocationId != exclusionLocation.Id
+                && a.LocationId != exclusionLocation.Id
                 && a.LocationId != exclusionLocation.ParentLocationId );
         }
     }
