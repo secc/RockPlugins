@@ -81,7 +81,7 @@ namespace org.secc.RoomScanner.Utilities
                 }
 
                 //Now check if checking in a kid there is "kid room"
-                if ( !attendance.Group.GetAttributeValue( "IsVolunteer" ).AsBoolean() )
+                if ( !volunteerGroupIds.Contains( attendance.GroupId ?? 0 ) )
                 {
                     threshold = Math.Min( location.SoftRoomThreshold ?? 0, threshold ); //lowest threshold
                     var kidAttendances = attendances.Where( a => !volunteerGroupIds.Contains( a.GroupId ?? 0 ) ); //remove volunters
