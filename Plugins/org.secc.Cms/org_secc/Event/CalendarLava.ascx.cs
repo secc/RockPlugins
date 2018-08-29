@@ -544,7 +544,8 @@ namespace RockWeb.Blocks.Event
             else if ( !string.IsNullOrEmpty( campusStr ) )
             {
                 //check if there's a campus with this name.
-                var campusCache = CampusCache.All().Where( c => c.Name.ToLower().Replace( ' ', '-' ) == campusStr.ToLower() ).FirstOrDefault();
+				campusStr = campusStr.Replace( " ", "" ).Replace( "-", "" );
+                var campusCache = CampusCache.All().Where( c => c.Name.ToLower().Replace( " ", "" ).Replace( "-", "" ) == campusStr.ToLower() ).FirstOrDefault();
                 if ( campusCache != null )
                 {
                     cblCampus.SetValue( campusCache.Id );
