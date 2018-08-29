@@ -4,10 +4,10 @@
 
 {% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
 {% assign campusIdSize = pageParamCampusId | Size %}
-{% assign pageParamCampus = 'Global' | PageParameter:'campus' | Downcase  %}
+{% assign pageParamCampus = 'Global' | PageParameter:'campus' | Downcase | Replace:"-","" %}
 {% assign selectedCampus = null %}
 {% for campus in Campuses %}
-	{% assign campusName = campus.Name | Downcase | Replace:" ","-"  %}
+	{% assign campusName = campus.Name | Downcase | Replace:" ",""  %}
 	{% if campus.Id == pageParamCampusId or campusName == pageParamCampus %}
 		{% assign selectedCampus = campus %}
 		{% break %}
@@ -36,7 +36,7 @@
                         {% for campus in Campuses %}
                         	{% assign publicCampus = campus | Attribute:'Public' %}
                         	{% if publicCampus == 'Yes' %}
-                                <option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campus.Name | Downcase | Replace:" ","-"}}"{% if selectedCampus.Id > 0 and selectedCampus.Id == campus.Id %} selected="selected"{% endif %}>
+                                <option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campus.Name | Downcase | Replace:" ",""}}"{% if selectedCampus.Id > 0 and selectedCampus.Id == campus.Id %} selected="selected"{% endif %}>
                                     {{ campus.Name }}
                                 </option>
                         	{% endif %}
