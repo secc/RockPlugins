@@ -272,8 +272,9 @@
         {% endunless %}
         </div>
         <div class="messages isotope_wrap series-list">
-            {% assign itemChildItems = item.ChildItems | Sort:'StartDateTime asc' %}
-            {% for messages in itemChildItems reversed %}
+            {% assign itemChildItems = item.ChildItems | Sort:'Order' %}
+
+			{% for messages in itemChildItems %}
                 {% assign message = messages.ChildContentChannelItem %}
                 {% assign videoImageGuid = message | Attribute:'Image','RawValue' %}
 
