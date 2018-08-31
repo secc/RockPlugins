@@ -299,23 +299,17 @@ namespace RockWeb.Blocks.Connection
                                 }
                             }
 
+                            var hdnGroupId = ( ( HiddenField ) ( rptGroupRoleAttributes.Items[RepeaterIndex].FindControl( "hdnGroupId" ) ) );
                             var hdnGroupRoleTypeId = ( ( HiddenField ) ( rptGroupRoleAttributes.Items[RepeaterIndex].FindControl( "hdnGroupRoleTypeId" ) ) );
 
 
-                            if ( hdnGroupRoleTypeId.Value.AsInteger() > 0 )
+                            if ( hdnGroupId.Value.AsInteger() > 0 && hdnGroupRoleTypeId.Value.AsInteger() > 0 )
                             {
+                                connectionRequest.AssignedGroupId = hdnGroupId.Value.AsInteger();
                                 connectionRequest.AssignedGroupMemberRoleId = hdnGroupRoleTypeId.Value.AsInteger();
                                 var groupConfig = opportunity.ConnectionOpportunityGroupConfigs.Where( gc => gc.GroupMemberRoleId == hdnGroupRoleTypeId.Value.AsInteger() ).FirstOrDefault();
                                 connectionRequest.AssignedGroupMemberStatus = groupConfig.GroupMemberStatus;
 
-                            }
-
-                            var hdnGroupId = ( ( HiddenField ) ( rptGroupRoleAttributes.Items[RepeaterIndex].FindControl( "hdnGroupId" ) ) );
-
-
-                            if ( hdnGroupId.Value.AsInteger() > 0 )
-                            {
-                                connectionRequest.AssignedGroupId = hdnGroupId.Value.AsInteger();
                             }
 
                             var connectionAttributes = GetGroupMemberAttributes( rockContext, RepeaterIndex);
@@ -399,18 +393,19 @@ namespace RockWeb.Blocks.Connection
                 }
 
                 if ( (!string.IsNullOrEmpty( PageParameter( "CampusId" ) ) && opportunity.ConnectionOpportunityCampuses.Any( o => o.CampusId == PageParameter( "CampusId" ).AsInteger() ))
-                    || ( !string.IsNullOrEmpty( PageParameter( "Campus" ) ) && opportunity.ConnectionOpportunityCampuses.Any( o => o.Guid == PageParameter( "Campus" ).AsGuidOrNull() ) ) )
+                    || ( !string.IsNullOrEmpty( PageParameter( "Campus" ) ) && opportunity.ConnectionOpportunityCampuses.Any( o => o.Campus.Guid == PageParameter( "Campus" ).AsGuidOrNull() ) ) )
                 {
                     if ( PageParameter( "Campus" ).AsGuidOrNull().HasValue )
                     {
                         cpCampus.SetValue( CampusCache.Read( PageParameter( "Campus" ).AsGuid() ).Id );
+                        ltCampus.Text = CampusCache.Read( PageParameter( "Campus" ).AsGuid() ).Name;
                     } else
                     {
                         cpCampus.SetValue( PageParameter( "CampusId" ).AsInteger() );
+                        ltCampus.Text = CampusCache.Read( PageParameter( "CampusId" ).AsInteger() ).Name;
                     }
                     cpCampus.CssClass = "hidden";
                     cpCampus.Label = null;
-                    ltCampus.Text = CampusCache.Read( PageParameter( "CampusId" ).AsInteger() ).Name;
                     ltCampus.Visible = true;
                 }
 
@@ -493,7 +488,6 @@ namespace RockWeb.Blocks.Connection
 
 
                 // Role
-
                 rptGroupRoleAttributes.DataSource = RoleRequests;
                 rptGroupRoleAttributes.DataBind();
                 int repeaterIndex = 0;
