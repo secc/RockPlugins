@@ -22,7 +22,7 @@
             {% unless currentMessageVimeoID == empty %}
 
 				<script>
-					
+
 				  var tmpCanInitParallax = jarallax.constructor.prototype.canInitParallax;
 				  jarallax.constructor.prototype.canInitParallax = function(callback) {
 					// Intercept the set call for the video object and manually set the image
@@ -89,7 +89,7 @@
 				  }
 				</script>
 
-                {[ parallax videourl:'https://vimeo.com/{{ currentMessageVimeoID }}' image:'https://www.southeastchristian.org/_/img/home/rotations/HOPE920-xl.jpg' videostarttime:'10' videoendtime:'25' addclass:'darken' height:'65vh' position:'center center' speed:'-25' ]}
+                {[ parallax videourl:'https://vimeo.com/{{ currentMessageVimeoID }}' image:'https://www.southeastchristian.org/_/img/home/rotations/HOPE920-xl.jpg' videostarttime:'{{ currentMessage.ChildContentChannelItem.VimeoPromoStartTime }}' videoendtime:'{{ currentMessage.ChildContentChannelItem.VimeoPromoEndTime }}' addclass:'darken' height:'65vh' position:'center center' speed:'-25' ]}
 					<!-- START: Ministry Logo & Video -->
                     <div class="parallax-logo centered" style="max-width: inherit;padding: 0px;">
                         <h4 class="uppercase" style="font-size: 3rem;">Latest Sermon</h4>
