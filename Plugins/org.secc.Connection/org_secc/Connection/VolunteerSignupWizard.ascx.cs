@@ -55,7 +55,7 @@ namespace org.secc.Connection
     /// Dev note: You can set the XML Document Url setting to your local
     /// file when you're testing new data.  Something like C:\Misc\Rock\Documentation\sampledata.xml
     /// </summary>
-    [DisplayName( "Volunteer Signup Block" )]
+    [DisplayName( "Volunteer Signup Wizard" )]
     [Category( "SECC > Connection" )]
     [Description( "Block for configuring and outputing a configurable page for setting numbers of volunteers needed." )]
     
@@ -65,7 +65,7 @@ namespace org.secc.Connection
     [BooleanField( "Enable Debug", "Display a list of merge fields available for lava.", false)]
 
     [ViewStateModeById]
-    public partial class Signup : Rock.Web.UI.RockBlockCustomSettings
+    public partial class VolunteerSignupWizard : Rock.Web.UI.RockBlockCustomSettings
     {
 
         private Dictionary<string, string> attributes = new Dictionary<string, string>();

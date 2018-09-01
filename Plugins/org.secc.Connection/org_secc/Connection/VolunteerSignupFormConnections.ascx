@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="ConnectionScheduleSignup.ascx.cs" Inherits="RockWeb.Blocks.Connection.ConnectionOpportunitySignup" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="VolunteerSignupFormConnections.ascx.cs" Inherits="RockWeb.Blocks.Connection.VolunteerSignupFormConnections" %>
 <asp:UpdatePanel ID="upnlOpportunityDetail" runat="server">
     <ContentTemplate>
         
