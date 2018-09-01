@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="Signup.ascx.cs" Inherits="org.secc.Connection.Signup" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="VolunteerSignupWizard.ascx.cs" Inherits="org.secc.Connection.VolunteerSignupWizard" %>
 
 <asp:UpdatePanel ID="upnlContent" runat="server">
     <ContentTemplate>

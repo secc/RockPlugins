@@ -50,7 +50,7 @@ namespace RockWeb.Blocks.Connection
     /// <summary>
     /// 
     /// </summary>
-    [DisplayName( "Connection Schedule Signup" )]
+    [DisplayName( "Volunteer Signup Form - Connections" )]
     [Category( "SECC > Connection" )]
     [Description( "Block used to sign up for a connection opportunity." )]
 
@@ -63,7 +63,7 @@ namespace RockWeb.Blocks.Connection
     [DefinedValueField( "8522BADD-2871-45A5-81DD-C76DA07E2E7E", "Record Status", "The record status to use for new individuals (default: 'Pending'.)", true, false, "283999EC-7346-42E3-B807-BCE9B2BABB49", "", 6 )]
     [TextField( "Group Member Attribute Keys - URL", "The key of any group member attributes that you would like to be set via the URL.  Enter as comma separated values.", false, key: "UrlKeys", order: 7)]
     [TextField( "Group Member Attribute Keys - Form", "The key of the group member attributes to show an edit control for on the opportunity signup.  Enter as comma separated values.", false, key: "FormKeys", order: 8 )]
-    public partial class ConnectionOpportunitySignup : RockBlock, IDetailBlock
+    public partial class VolunteerSignupFormConnections : RockBlock, IDetailBlock
     {
         #region Fields
 
@@ -493,12 +493,13 @@ namespace RockWeb.Blocks.Connection
                 int repeaterIndex = 0;
                 foreach (ConnectionRoleRequest roleRequest in RoleRequests)
                 {
-                    ( ( HiddenField ) ( rptGroupRoleAttributes.Items[repeaterIndex].FindControl( "hdnGroupRoleTypeId" ) ) ).Value = roleRequest.GroupTypeRoleId.ToString();
                     if ( opportunity.ConnectionOpportunityGroupConfigs.Where( gc => gc.GroupMemberRoleId == roleRequest.GroupTypeRoleId || gc.GroupMemberRole.Guid.ToString() == roleRequest.GroupTypeRole ).Any() )
                     {
                         var groupConfig = opportunity.ConnectionOpportunityGroupConfigs.Where( gc => gc.GroupMemberRoleId == roleRequest.GroupTypeRoleId || gc.GroupMemberRole.Guid.ToString() == roleRequest.GroupTypeRole ).FirstOrDefault();
                         ( ( Literal ) ( rptGroupRoleAttributes.Items[repeaterIndex].FindControl( "ltRole" ) ) ).Text = groupConfig.GroupType.Name + " - " + groupConfig.GroupMemberRole.Name;
                         ( ( Literal ) ( rptGroupRoleAttributes.Items[repeaterIndex].FindControl( "ltRole" ) ) ).Visible = true;
+                        ( ( HiddenField ) ( rptGroupRoleAttributes.Items[repeaterIndex].FindControl( "hdnGroupRoleTypeId" ) ) ).Value = groupConfig.GroupMemberRole.Id.ToString();
+
                     }
                     repeaterIndex++;
                 }
