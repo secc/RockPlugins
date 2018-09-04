@@ -76,16 +76,16 @@ namespace org.secc.Connection
         {
             get
             {
-                if ( _roleRequests == null)
+                if ( _roleRequests == null )
                 {
                     _roleRequests = PageParameter( "RoleRequests" ).FromJsonOrNull<List<ConnectionRoleRequest>>();
-                    if ( _roleRequests == null)
+                    if ( _roleRequests == null )
                     {
                         _roleRequests = new List<ConnectionRoleRequest>();
                         var roleRequest = new ConnectionRoleRequest();
                         roleRequest.GroupId = PageParameter( "GroupId" ).AsInteger();
                         roleRequest.GroupTypeRoleId = PageParameter( "GroupTypeRoleId" ).AsInteger();
-                        if (roleRequest.GroupTypeRoleId == 0 && PageParameter( "GroupTypeRole" ).AsGuidOrNull().HasValue)
+                        if ( roleRequest.GroupTypeRoleId == 0 && PageParameter( "GroupTypeRole" ).AsGuidOrNull().HasValue )
                         {
                             GroupTypeRoleService groupTypeRoleService = new GroupTypeRoleService( new RockContext() );
                             roleRequest.GroupTypeRoleId = groupTypeRoleService.Get( PageParameter( "GroupTypeRole" ).AsGuid() ).Id;
@@ -103,6 +103,26 @@ namespace org.secc.Connection
                         _roleRequests.Add( roleRequest );
                     }
                 }
+
+                // Handle any situation where we have a 0 role id
+                if (_roleRequests.Any(rr => rr.GroupId > 0 && rr.GroupTypeRoleId == 0))
+                {
+                    GroupService groupService = new GroupService( new RockContext() );
+                    foreach ( var roleRequest in _roleRequests )
+                    {
+                        // Get the Default role from this group
+                        if ( roleRequest.GroupId > 0 && roleRequest.GroupTypeRoleId == 0 )
+                        {
+                            Group group = groupService.Get( roleRequest.GroupId );
+                            if ( group != null && group.GroupType.DefaultGroupRoleId.HasValue )
+                            {
+                                roleRequest.GroupTypeRoleId = group.GroupType.DefaultGroupRoleId.Value;
+                            }
+                        }
+                    }
+                }
+                
+
                 return _roleRequests;
             }
         }
