@@ -32,6 +32,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
@@ -43,9 +44,8 @@ using Rock.Security;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
-using org.secc.PersonMatch;
 
-namespace RockWeb.Blocks.Connection
+namespace org.secc.Connection
 {
     /// <summary>
     /// 
@@ -56,13 +56,14 @@ namespace RockWeb.Blocks.Connection
 
     [BooleanField( "Display Home Phone", "Whether to display home phone", true, "", 0 )]
     [BooleanField( "Display Mobile Phone", "Whether to display mobile phone", true, "", 1 )]
-    [CodeEditorField( "Lava Template", "Lava template to use to display the response message.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 400, true, @"{% include '~~/Assets/Lava/OpportunityResponseMessage.lava' %}", "", 2 )]
-    [BooleanField( "Enable Debug", "Display a list of merge fields available for lava.", false, "", 3 )]
-    [BooleanField( "Enable Campus Context", "If the page has a campus context it's value will be used as a filter", true, "", 4 )]
-    [DefinedValueField( "2E6540EA-63F0-40FE-BE50-F2A84735E600", "Connection Status", "The connection status to use for new individuals (default: 'Web Prospect'.)", true, false, "368DD475-242C-49C4-A42C-7278BE690CC2", "", 5 )]
-    [DefinedValueField( "8522BADD-2871-45A5-81DD-C76DA07E2E7E", "Record Status", "The record status to use for new individuals (default: 'Pending'.)", true, false, "283999EC-7346-42E3-B807-BCE9B2BABB49", "", 6 )]
-    [TextField( "Group Member Attribute Keys - URL", "The key of any group member attributes that you would like to be set via the URL.  Enter as comma separated values.", false, key: "UrlKeys", order: 7)]
-    [TextField( "Group Member Attribute Keys - Form", "The key of the group member attributes to show an edit control for on the opportunity signup.  Enter as comma separated values.", false, key: "FormKeys", order: 8 )]
+    [BooleanField( "Display Birthdate", "Whether to display birthdate", true, "", 2 )]
+    [CodeEditorField( "Lava Template", "Lava template to use to display the response message.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 400, true, @"{% include '~~/Assets/Lava/OpportunityResponseMessage.lava' %}", "", 3 )]
+    [BooleanField( "Enable Debug", "Display a list of merge fields available for lava.", false, "", 4 )]
+    [BooleanField( "Enable Campus Context", "If the page has a campus context it's value will be used as a filter", true, "", 5 )]
+    [DefinedValueField( "2E6540EA-63F0-40FE-BE50-F2A84735E600", "Connection Status", "The connection status to use for new individuals (default: 'Web Prospect'.)", true, false, "368DD475-242C-49C4-A42C-7278BE690CC2", "", 6 )]
+    [DefinedValueField( "8522BADD-2871-45A5-81DD-C76DA07E2E7E", "Record Status", "The record status to use for new individuals (default: 'Pending'.)", true, false, "283999EC-7346-42E3-B807-BCE9B2BABB49", "", 7 )]
+    [TextField( "Group Member Attribute Keys - URL", "The key of any group member attributes that you would like to be set via the URL.  Enter as comma separated values.", false, key: "UrlKeys", order: 8)]
+    [TextField( "Group Member Attribute Keys - Form", "The key of the group member attributes to show an edit control for on the opportunity signup.  Enter as comma separated values.", false, key: "FormKeys", order: 9 )]
     public partial class VolunteerSignupFormConnections : RockBlock, IDetailBlock
     {
         #region Fields
@@ -209,8 +210,26 @@ namespace RockWeb.Blocks.Connection
 
                     else
                     {
-                        // Try to find matching person
-                        var personMatches = personService.GetByMatch( firstName, lastName, birthdate, email).ToList();
+                        List<Person> personMatches = new List<Person>();
+                        if ( Assembly.GetExecutingAssembly().GetReferencedAssemblies()
+                            .FirstOrDefault( c => c.FullName == "org.secc.PersonMatch" ) == null )
+                        {
+                            var assembly = Assembly.Load( "org.secc.PersonMatch" );
+                            Type type = assembly.GetExportedTypes().Where(et => et.FullName == "org.secc.PersonMatch.Extension" ).FirstOrDefault();
+                            if ( type != null)
+                            {
+                                var matchMethod = type.GetMethod( "GetByMatch" );
+                                personMatches = ( ( IEnumerable<Person> ) matchMethod.Invoke( null, new object[] { personService, firstName, lastName, birthdate, email, null, null, null } ) ).ToList();
+                            }
+                        }
+                        else
+                        {
+                            personMatches = personService.GetByMatch( firstName, lastName, email ).ToList();
+                            if ( bpBirthdate.Visible )
+                            {
+                                personMatches = personMatches.Where( p => p.BirthDate == birthdate ).ToList();
+                            }
+                        }
 
                         if ( personMatches.Count() == 1 && 
                             personMatches.First().Email != null && 
@@ -262,6 +281,14 @@ namespace RockWeb.Blocks.Connection
                         if ( pnMobile.Visible )
                         {
                             SavePhone( pnMobile, person, _cellPhone.Guid, changes );
+                        }
+
+                        // Save the DOB
+                        if (bpBirthdate.Visible && bpBirthdate.SelectedDate.HasValue && bpBirthdate.SelectedDate != person.BirthDate)
+                        {
+                            person.BirthDay = bpBirthdate.SelectedDate.Value.Day;
+                            person.BirthMonth = bpBirthdate.SelectedDate.Value.Month;
+                            person.BirthYear = bpBirthdate.SelectedDate.Value.Year;
                         }
 
                         if ( changes.Any() )
@@ -418,8 +445,20 @@ namespace RockWeb.Blocks.Connection
 
                 lTitle.Text = opportunity.Name;
 
-                pnHome.Visible = GetAttributeValue( "DisplayHomePhone" ).AsBoolean();
-                pnMobile.Visible = GetAttributeValue( "DisplayMobilePhone" ).AsBoolean();
+                divHome.Visible = pnHome.Visible = GetAttributeValue( "DisplayHomePhone" ).AsBoolean();
+                divMobile.Visible = pnMobile.Visible = GetAttributeValue( "DisplayMobilePhone" ).AsBoolean();
+                divBirthdate.Visible = bpBirthdate.Visible = GetAttributeValue( "DisplayBirthdate" ).AsBoolean();
+
+                // If any of these aren't showing then set the width to be a bit wider on the columns
+                if ( !(divHome.Visible && divMobile.Visible && divBirthdate.Visible ))
+                {
+                    divHome.RemoveCssClass( "col-md-4" );
+                    divHome.AddCssClass( "col-md-6" );
+                    divMobile.RemoveCssClass( "col-md-4" );
+                    divMobile.AddCssClass( "col-md-6" );
+                    divBirthdate.RemoveCssClass( "col-md-4" );
+                    divBirthdate.AddCssClass( "col-md-6" );
+                }
 
                 Person registrant = null;
 
