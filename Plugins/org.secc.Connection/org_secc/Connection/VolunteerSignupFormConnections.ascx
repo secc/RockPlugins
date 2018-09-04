@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="VolunteerSignupFormConnections.ascx.cs" Inherits="RockWeb.Blocks.Connection.VolunteerSignupFormConnections" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="VolunteerSignupFormConnections.ascx.cs" Inherits="org.secc.Connection.VolunteerSignupFormConnections" %>
 <asp:UpdatePanel ID="upnlOpportunityDetail" runat="server">
     <ContentTemplate>
         
@@ -27,13 +27,13 @@
                 </div>
 
                 <div class="row">
-                    <div class="col-md-4">
+                    <div class="col-md-4" id="divHome" runat="server">
                         <Rock:PhoneNumberBox ID="pnHome" runat="server" Label="Home Phone" />
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-4" id="divMobile" runat="server">
                         <Rock:PhoneNumberBox ID="pnMobile" runat="server" Label="Mobile Phone" />
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-4" id="divBirthdate" runat="server">
                         <Rock:BirthdayPicker ID="bpBirthdate" runat="server" Label="Birthday" Required="true" />
                     </div>
                 </div>
