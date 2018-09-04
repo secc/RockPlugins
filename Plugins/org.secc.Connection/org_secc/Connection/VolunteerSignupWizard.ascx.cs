@@ -61,9 +61,9 @@ namespace org.secc.Connection
     
     [CodeEditorField("Settings", mode:CodeEditorMode.JavaScript, category: "Custom Setting")]
     [KeyValueListField("Counts", category: "Custom Setting" )]
-    [CodeEditorField( "Lava", mode: CodeEditorMode.JavaScript, category: "Custom Setting", defaultValue: 
-@"<link rel=""stylesheet"" type=""text/css"" href=""/Plugins/org_secc/Connection/SignupWizardCards.css"" />
-{% include '~/Plugins/org_secc/Connection/SignupWizardCards.lava' %}" )]
+    [CodeEditorField( "Lava", mode: CodeEditorMode.JavaScript, category: "Custom Setting", defaultValue:
+@"<link rel=""stylesheet"" type=""text/css"" href=""/Plugins/org_secc/Connection/Cards.css"" />
+{% include '~/Plugins/org_secc/Connection/CardWizard.lava' %}" )]
     [BooleanField( "Enable Debug", "Display a list of merge fields available for lava.", false)]
 
     [ViewStateModeById]

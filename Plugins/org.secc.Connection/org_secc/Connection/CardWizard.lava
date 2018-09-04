@@ -1,6 +1,6 @@
 <div id="signup-parent" style="height: 1362px;">
     <div id="signup-container" style="display: none;">
-		{% include '~/Plugins/org_secc/Connection/SignupWizardCards/Partition.lava' %} 
+		{% include '~/Plugins/org_secc/Connection/CardWizard/Partition.lava' %} 
     </div>
 </div>
 <script type="text/javascript">
