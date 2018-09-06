@@ -4,7 +4,7 @@
 {% assign pageParamCampus = 'Global' | PageParameter:'Campus' %}
 {% if pageParamCampusId == empty and pageParamCampus != empty and pageParamCampus != null and pageParamCampus != 'allCampuses' %}
     {% assign pageParamCampus = 'Global' | PageParameter:'campus' %}
-    {% campus where:'Name == "{{pageParamCampus | Replace:'-',' '}}"' %}
+    {% campus where:'Name == "{{pageParamCampus | Replace:'-',''}}"' %}
         {% for campus in campusItems %}
                 {% assign pageParamCampusId = campus.Id %}
         {% endfor %}

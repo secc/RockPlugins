@@ -1,0 +1,141 @@
+.serve-card {
+	background: #f7f7f7;
+	border-radius: 4px;
+	transition: 0.3s;
+}
+.serve-card:hover {
+	box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+}
+.campus-circle {
+	display: inline-block;
+	height: 100px;
+	width: 100px;
+	line-height: 100px;
+
+	-moz-border-radius: 50px; /* or 50% */
+	border-radius: 50px; /* or 50% */
+
+	background-color: #555;
+	color: white;
+	text-align: center;
+	font-size: 2em;
+	margin: auto;
+	margin-top:15px;
+}
+.serve-card a:hover {
+	text-decoration: none;
+}
+
+.check input {
+	display: none; 
+}
+.check input:checked + .icon-box {
+	animation: keyframes(animOn) 0.8s 1 forwards;
+	background: #428bca; 
+}
+.check input:checked + .icon-box i {
+	transform: translate(-50%, -50%) scale(1);
+	transition-duration: 250ms;
+	opacity: 1;
+	color: #fff;
+}
+.check label {
+	min-width: 100px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: row;
+	min-height: 60px;
+	cursor: pointer; 
+	-webkit-box-pack: left;
+	-webkit-justify-content: left;
+	-ms-flex-pack: left;
+	-ms-flex-align: left;
+}
+.check label .icon-box {
+	background: rgba(0, 0, 0, 0.3);
+	border-radius: 5px;
+	position: relative;
+	width: 50px;
+	height: 50px;
+	transition: background 300ms ease; 
+}
+.check label .icon-box:hover {
+	background: rgba(0, 0, 0, 0.5); 
+}
+.check label .icon-box i {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	font-size: 20px;
+	display: inline-block;
+	opacity: 0;
+	pointer-events: none;
+	transition: all 0.2s ease-in-out;
+	transition-delay: 200ms;
+	transform: translate(-50%, -50%) scale(6); 
+}
+.check .icon-box {
+	margin-left:10px;
+}
+
+#signup a:hover {
+	text-decoration: none !important;
+}
+#signup a .stroke:hover {
+	opacity: 1;
+	-moz-opacity: 1;
+	filter: alpha(opacity=1);
+	-webkit-transition: all ease .5s;
+	-moz-transition: all ease .5s;
+	-ms-transition: all ease .5s;
+	-o-transition: all ease .5s;
+	transition: all ease .5s;
+}
+#signup a:focus {
+	outline: none;
+	text-decoration: none;
+}
+#signup-container {
+	position: absolute;
+	margin: 0px;
+	padding: 0px;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+}
+#signup-container .section-header {
+	margin-bottom:30px;
+}
+.slide-box {
+	position: absolute;
+	width: 100%;
+	left: 100%;
+}
+.cd-btn.invert:hover {
+	color:#fafbf9 !important;
+}
+@media (max-width:480px)
+{
+	.check label h2 {
+		margin: -10px 10px 0px 10px !important;
+	}
+}
+@media (min-width:481px)
+{
+	.check label h2 {
+		margin: 0px 10px !important;
+	}
+}
+@media (min-width:768px )
+{
+	.pull-right-md {
+		float: right;
+	}
+}
+@media (max-width:1200px)
+{
+	.spots-left {
+		letter-spacing:normal;
+	}
+}

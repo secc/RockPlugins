@@ -32,6 +32,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
@@ -43,27 +44,27 @@ using Rock.Security;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
-using org.secc.PersonMatch;
 
-namespace RockWeb.Blocks.Connection
+namespace org.secc.Connection
 {
     /// <summary>
     /// 
     /// </summary>
-    [DisplayName( "Connection Schedule Signup" )]
+    [DisplayName( "Volunteer Signup Form - Connections" )]
     [Category( "SECC > Connection" )]
     [Description( "Block used to sign up for a connection opportunity." )]
 
     [BooleanField( "Display Home Phone", "Whether to display home phone", true, "", 0 )]
     [BooleanField( "Display Mobile Phone", "Whether to display mobile phone", true, "", 1 )]
-    [CodeEditorField( "Lava Template", "Lava template to use to display the response message.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 400, true, @"{% include '~~/Assets/Lava/OpportunityResponseMessage.lava' %}", "", 2 )]
-    [BooleanField( "Enable Debug", "Display a list of merge fields available for lava.", false, "", 3 )]
-    [BooleanField( "Enable Campus Context", "If the page has a campus context it's value will be used as a filter", true, "", 4 )]
-    [DefinedValueField( "2E6540EA-63F0-40FE-BE50-F2A84735E600", "Connection Status", "The connection status to use for new individuals (default: 'Web Prospect'.)", true, false, "368DD475-242C-49C4-A42C-7278BE690CC2", "", 5 )]
-    [DefinedValueField( "8522BADD-2871-45A5-81DD-C76DA07E2E7E", "Record Status", "The record status to use for new individuals (default: 'Pending'.)", true, false, "283999EC-7346-42E3-B807-BCE9B2BABB49", "", 6 )]
-    [TextField( "Group Member Attribute Keys - URL", "The key of any group member attributes that you would like to be set via the URL.  Enter as comma separated values.", false, key: "UrlKeys", order: 7)]
-    [TextField( "Group Member Attribute Keys - Form", "The key of the group member attributes to show an edit control for on the opportunity signup.  Enter as comma separated values.", false, key: "FormKeys", order: 8 )]
-    public partial class ConnectionOpportunitySignup : RockBlock, IDetailBlock
+    [BooleanField( "Display Birthdate", "Whether to display birthdate", true, "", 2 )]
+    [CodeEditorField( "Lava Template", "Lava template to use to display the response message.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 400, true, @"{% include '~~/Assets/Lava/OpportunityResponseMessage.lava' %}", "", 3 )]
+    [BooleanField( "Enable Debug", "Display a list of merge fields available for lava.", false, "", 4 )]
+    [BooleanField( "Enable Campus Context", "If the page has a campus context it's value will be used as a filter", true, "", 5 )]
+    [DefinedValueField( "2E6540EA-63F0-40FE-BE50-F2A84735E600", "Connection Status", "The connection status to use for new individuals (default: 'Web Prospect'.)", true, false, "368DD475-242C-49C4-A42C-7278BE690CC2", "", 6 )]
+    [DefinedValueField( "8522BADD-2871-45A5-81DD-C76DA07E2E7E", "Record Status", "The record status to use for new individuals (default: 'Pending'.)", true, false, "283999EC-7346-42E3-B807-BCE9B2BABB49", "", 7 )]
+    [TextField( "Group Member Attribute Keys - URL", "The key of any group member attributes that you would like to be set via the URL.  Enter as comma separated values.", false, key: "UrlKeys", order: 8)]
+    [TextField( "Group Member Attribute Keys - Form", "The key of the group member attributes to show an edit control for on the opportunity signup.  Enter as comma separated values.", false, key: "FormKeys", order: 9 )]
+    public partial class VolunteerSignupFormConnections : RockBlock, IDetailBlock
     {
         #region Fields
 
@@ -75,16 +76,16 @@ namespace RockWeb.Blocks.Connection
         {
             get
             {
-                if ( _roleRequests == null)
+                if ( _roleRequests == null )
                 {
                     _roleRequests = PageParameter( "RoleRequests" ).FromJsonOrNull<List<ConnectionRoleRequest>>();
-                    if ( _roleRequests == null)
+                    if ( _roleRequests == null )
                     {
                         _roleRequests = new List<ConnectionRoleRequest>();
                         var roleRequest = new ConnectionRoleRequest();
                         roleRequest.GroupId = PageParameter( "GroupId" ).AsInteger();
                         roleRequest.GroupTypeRoleId = PageParameter( "GroupTypeRoleId" ).AsInteger();
-                        if (roleRequest.GroupTypeRoleId == 0 && PageParameter( "GroupTypeRole" ).AsGuidOrNull().HasValue)
+                        if ( roleRequest.GroupTypeRoleId == 0 && PageParameter( "GroupTypeRole" ).AsGuidOrNull().HasValue )
                         {
                             GroupTypeRoleService groupTypeRoleService = new GroupTypeRoleService( new RockContext() );
                             roleRequest.GroupTypeRoleId = groupTypeRoleService.Get( PageParameter( "GroupTypeRole" ).AsGuid() ).Id;
@@ -102,6 +103,26 @@ namespace RockWeb.Blocks.Connection
                         _roleRequests.Add( roleRequest );
                     }
                 }
+
+                // Handle any situation where we have a 0 role id
+                if (_roleRequests.Any(rr => rr.GroupId > 0 && rr.GroupTypeRoleId == 0))
+                {
+                    GroupService groupService = new GroupService( new RockContext() );
+                    foreach ( var roleRequest in _roleRequests )
+                    {
+                        // Get the Default role from this group
+                        if ( roleRequest.GroupId > 0 && roleRequest.GroupTypeRoleId == 0 )
+                        {
+                            Group group = groupService.Get( roleRequest.GroupId );
+                            if ( group != null && group.GroupType.DefaultGroupRoleId.HasValue )
+                            {
+                                roleRequest.GroupTypeRoleId = group.GroupType.DefaultGroupRoleId.Value;
+                            }
+                        }
+                    }
+                }
+                
+
                 return _roleRequests;
             }
         }
@@ -209,8 +230,26 @@ namespace RockWeb.Blocks.Connection
 
                     else
                     {
-                        // Try to find matching person
-                        var personMatches = personService.GetByMatch( firstName, lastName, birthdate, email).ToList();
+                        List<Person> personMatches = new List<Person>();
+                        if ( Assembly.GetExecutingAssembly().GetReferencedAssemblies()
+                            .FirstOrDefault( c => c.FullName == "org.secc.PersonMatch" ) == null )
+                        {
+                            var assembly = Assembly.Load( "org.secc.PersonMatch" );
+                            Type type = assembly.GetExportedTypes().Where(et => et.FullName == "org.secc.PersonMatch.Extension" ).FirstOrDefault();
+                            if ( type != null)
+                            {
+                                var matchMethod = type.GetMethod( "GetByMatch" );
+                                personMatches = ( ( IEnumerable<Person> ) matchMethod.Invoke( null, new object[] { personService, firstName, lastName, birthdate, email, null, null, null } ) ).ToList();
+                            }
+                        }
+                        else
+                        {
+                            personMatches = personService.GetByMatch( firstName, lastName, email ).ToList();
+                            if ( bpBirthdate.Visible )
+                            {
+                                personMatches = personMatches.Where( p => p.BirthDate == birthdate ).ToList();
+                            }
+                        }
 
                         if ( personMatches.Count() == 1 && 
                             personMatches.First().Email != null && 
@@ -264,6 +303,14 @@ namespace RockWeb.Blocks.Connection
                             SavePhone( pnMobile, person, _cellPhone.Guid, changes );
                         }
 
+                        // Save the DOB
+                        if (bpBirthdate.Visible && bpBirthdate.SelectedDate.HasValue && bpBirthdate.SelectedDate != person.BirthDate)
+                        {
+                            person.BirthDay = bpBirthdate.SelectedDate.Value.Day;
+                            person.BirthMonth = bpBirthdate.SelectedDate.Value.Month;
+                            person.BirthYear = bpBirthdate.SelectedDate.Value.Year;
+                        }
+
                         if ( changes.Any() )
                         {
                             HistoryService.SaveChanges(
@@ -299,23 +346,17 @@ namespace RockWeb.Blocks.Connection
                                 }
                             }
 
+                            var hdnGroupId = ( ( HiddenField ) ( rptGroupRoleAttributes.Items[RepeaterIndex].FindControl( "hdnGroupId" ) ) );
                             var hdnGroupRoleTypeId = ( ( HiddenField ) ( rptGroupRoleAttributes.Items[RepeaterIndex].FindControl( "hdnGroupRoleTypeId" ) ) );
 
 
-                            if ( hdnGroupRoleTypeId.Value.AsInteger() > 0 )
+                            if ( hdnGroupId.Value.AsInteger() > 0 && hdnGroupRoleTypeId.Value.AsInteger() > 0 )
                             {
+                                connectionRequest.AssignedGroupId = hdnGroupId.Value.AsInteger();
                                 connectionRequest.AssignedGroupMemberRoleId = hdnGroupRoleTypeId.Value.AsInteger();
                                 var groupConfig = opportunity.ConnectionOpportunityGroupConfigs.Where( gc => gc.GroupMemberRoleId == hdnGroupRoleTypeId.Value.AsInteger() ).FirstOrDefault();
                                 connectionRequest.AssignedGroupMemberStatus = groupConfig.GroupMemberStatus;
 
-                            }
-
-                            var hdnGroupId = ( ( HiddenField ) ( rptGroupRoleAttributes.Items[RepeaterIndex].FindControl( "hdnGroupId" ) ) );
-
-
-                            if ( hdnGroupId.Value.AsInteger() > 0 )
-                            {
-                                connectionRequest.AssignedGroupId = hdnGroupId.Value.AsInteger();
                             }
 
                             var connectionAttributes = GetGroupMemberAttributes( rockContext, RepeaterIndex);
@@ -399,18 +440,19 @@ namespace RockWeb.Blocks.Connection
                 }
 
                 if ( (!string.IsNullOrEmpty( PageParameter( "CampusId" ) ) && opportunity.ConnectionOpportunityCampuses.Any( o => o.CampusId == PageParameter( "CampusId" ).AsInteger() ))
-                    || ( !string.IsNullOrEmpty( PageParameter( "Campus" ) ) && opportunity.ConnectionOpportunityCampuses.Any( o => o.Guid == PageParameter( "Campus" ).AsGuidOrNull() ) ) )
+                    || ( !string.IsNullOrEmpty( PageParameter( "Campus" ) ) && opportunity.ConnectionOpportunityCampuses.Any( o => o.Campus.Guid == PageParameter( "Campus" ).AsGuidOrNull() ) ) )
                 {
                     if ( PageParameter( "Campus" ).AsGuidOrNull().HasValue )
                     {
                         cpCampus.SetValue( CampusCache.Read( PageParameter( "Campus" ).AsGuid() ).Id );
+                        ltCampus.Text = CampusCache.Read( PageParameter( "Campus" ).AsGuid() ).Name;
                     } else
                     {
                         cpCampus.SetValue( PageParameter( "CampusId" ).AsInteger() );
+                        ltCampus.Text = CampusCache.Read( PageParameter( "CampusId" ).AsInteger() ).Name;
                     }
                     cpCampus.CssClass = "hidden";
                     cpCampus.Label = null;
-                    ltCampus.Text = CampusCache.Read( PageParameter( "CampusId" ).AsInteger() ).Name;
                     ltCampus.Visible = true;
                 }
 
@@ -423,8 +465,20 @@ namespace RockWeb.Blocks.Connection
 
                 lTitle.Text = opportunity.Name;
 
-                pnHome.Visible = GetAttributeValue( "DisplayHomePhone" ).AsBoolean();
-                pnMobile.Visible = GetAttributeValue( "DisplayMobilePhone" ).AsBoolean();
+                divHome.Visible = pnHome.Visible = GetAttributeValue( "DisplayHomePhone" ).AsBoolean();
+                divMobile.Visible = pnMobile.Visible = GetAttributeValue( "DisplayMobilePhone" ).AsBoolean();
+                divBirthdate.Visible = bpBirthdate.Visible = GetAttributeValue( "DisplayBirthdate" ).AsBoolean();
+
+                // If any of these aren't showing then set the width to be a bit wider on the columns
+                if ( !(divHome.Visible && divMobile.Visible && divBirthdate.Visible ))
+                {
+                    divHome.RemoveCssClass( "col-md-4" );
+                    divHome.AddCssClass( "col-md-6" );
+                    divMobile.RemoveCssClass( "col-md-4" );
+                    divMobile.AddCssClass( "col-md-6" );
+                    divBirthdate.RemoveCssClass( "col-md-4" );
+                    divBirthdate.AddCssClass( "col-md-6" );
+                }
 
                 Person registrant = null;
 
@@ -493,18 +547,18 @@ namespace RockWeb.Blocks.Connection
 
 
                 // Role
-
                 rptGroupRoleAttributes.DataSource = RoleRequests;
                 rptGroupRoleAttributes.DataBind();
                 int repeaterIndex = 0;
                 foreach (ConnectionRoleRequest roleRequest in RoleRequests)
                 {
-                    ( ( HiddenField ) ( rptGroupRoleAttributes.Items[repeaterIndex].FindControl( "hdnGroupRoleTypeId" ) ) ).Value = roleRequest.GroupTypeRoleId.ToString();
                     if ( opportunity.ConnectionOpportunityGroupConfigs.Where( gc => gc.GroupMemberRoleId == roleRequest.GroupTypeRoleId || gc.GroupMemberRole.Guid.ToString() == roleRequest.GroupTypeRole ).Any() )
                     {
                         var groupConfig = opportunity.ConnectionOpportunityGroupConfigs.Where( gc => gc.GroupMemberRoleId == roleRequest.GroupTypeRoleId || gc.GroupMemberRole.Guid.ToString() == roleRequest.GroupTypeRole ).FirstOrDefault();
                         ( ( Literal ) ( rptGroupRoleAttributes.Items[repeaterIndex].FindControl( "ltRole" ) ) ).Text = groupConfig.GroupType.Name + " - " + groupConfig.GroupMemberRole.Name;
                         ( ( Literal ) ( rptGroupRoleAttributes.Items[repeaterIndex].FindControl( "ltRole" ) ) ).Visible = true;
+                        ( ( HiddenField ) ( rptGroupRoleAttributes.Items[repeaterIndex].FindControl( "hdnGroupRoleTypeId" ) ) ).Value = groupConfig.GroupMemberRole.Id.ToString();
+
                     }
                     repeaterIndex++;
                 }
