@@ -4,12 +4,12 @@
 {% assign pageParamCampus = 'Global' | PageParameter:'Campus' %}
 {% if pageParamCampusId == empty and pageParamCampus != empty and pageParamCampus != null and pageParamCampus != 'allCampuses' %}
     {% assign pageParamCampus = 'Global' | PageParameter:'campus' %}
-    {% if pageParamCampus == 'lagrange' %}
-        {% assign pageParamCampus = 'La Grange' %}
-    {% endif %}
-    {% campus where:'Name == "{{pageParamCampus | Replace:'-',''}}"' %}
+    {% campus where:'Public == true' %}
         {% for campus in campusItems %}
+            {% assign campusSlug = campus | Attribute: 'Slug' %}
+            {% if campus.Name == pageParamCampus or campusSlug == pageParamCampus %}
                 {% assign pageParamCampusId = campus.Id %}
+            {% endif %}
         {% endfor %}
     {% endcampus %}
 {% endif %}
