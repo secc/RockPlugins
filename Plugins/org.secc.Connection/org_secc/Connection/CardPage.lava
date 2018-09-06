@@ -1,0 +1,17 @@
+<div id="signup-parent">
+	{% for partition in Tree %}
+		{% if partition.PartitionType == 'DefinedType' %}
+			{% if forloop.first %}<h2 class="section-header">Please select from the following:</h2>{% endif %}
+			{% include '~/Plugins/org_secc/Connection/CardPage/CardDefinedType.lava' %}
+		{% elseif partition.PartitionType == 'Schedule' %}
+			{% if forloop.first %}<h2 class="section-header">Please select your schedule:</h2>{% endif %}
+			{% include '~/Plugins/org_secc/Connection/CardPage/CardSchedule.lava' %}
+		{% elseif partition.PartitionType == 'Campus' %}
+			{% if forloop.first %}<h2 class="section-header">Please select your campus:</h2>{% endif %}
+			{% include '~/Plugins/org_secc/Connection/CardPage/CardCampus.lava' %}
+		{% elseif partition.PartitionType == 'Role' %}
+			{% if forloop.first %}<h2 class="section-header">Please select your serving role:</h2>{% endif %}
+			{% include '~/Plugins/org_secc/Connection/CardPage/CardRole.lava' %}
+		{% endif %}
+	{% endfor %}
+</div>

@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="Signup.ascx.cs" Inherits="org.secc.Connection.Signup" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="VolunteerSignupWizard.ascx.cs" Inherits="org.secc.Connection.VolunteerSignupWizard" %>
 
 <asp:UpdatePanel ID="upnlContent" runat="server">
     <ContentTemplate>
@@ -47,7 +47,7 @@
                                     <div class="panel-body">
                                         <div class="row">
                                             <div class="col-md-3">
-                                                <Rock:PagePicker ID="ppSignupPage" runat="server" Label="Connections Signup Page" Help='The page the user should be sent to when they click the "Signup" button' OnSelectItem="ppSignupPage_SelectItem" />
+                                                <Rock:PagePicker ID="ppSignupPage" runat="server" Required="true" Label="Connections Signup Page" Help='The page the user should be sent to when they click the "Signup" button' OnSelectItem="ppSignupPage_SelectItem" />
                                             </div>
                                             <div class="col-md-4">
                                                 <Rock:RockDropDownList ID="rddlType" Label="Select the type of Volunteer Signup" runat="server" OnSelectedIndexChanged="RddlType_SelectedIndexChanged" AutoPostBack="true">
