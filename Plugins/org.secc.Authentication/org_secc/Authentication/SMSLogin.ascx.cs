@@ -45,7 +45,6 @@ namespace RockWeb.Plugins.org_secc.Authentication
 Please enter your cell phone number and we will text you a code to log in with. <br /><i>Text and data rates may apply</i>.
 ", "", 0 )]
 
-    [LinkedPage( "Create Account", "Page to navigate to create account.", true, "", "", 1 )]
     [CodeEditorField( "No Number Message", "Message to show if the SMS number cannot be found in our system.", CodeEditorMode.Html, CodeEditorTheme.Rock, 100, true, @"
 We are sorry, we could not find your phone number in our records.
 ", "", 2 )]
@@ -89,6 +88,11 @@ We are sorry, we dected more than one person with your number in our records.
 
         protected void btnGenerate_Click( object sender, EventArgs e )
         {
+            if ( !Page.IsValid )
+            {
+                return;
+            }
+
             pnlPhoneNumber.Visible = false;
             RockContext rockContext = new RockContext();
             PhoneNumberService phoneNumberService = new PhoneNumberService( rockContext );
@@ -100,13 +104,19 @@ We are sorry, we dected more than one person with your number in our records.
 
             if ( numberOwners.Count == 0 )
             {
-                pnlError.Visible = true;
+                lbNoNumber.Text = GetAttributeValue( "NoNumberMessage" );
+                pnlNoNumber.Visible = true;
                 return;
             }
 
             if ( numberOwners.Count > 1 )
             {
-                pnlError.Visible = true;
+                if ( GetAttributeValue( "DuplicateNumberPage" ).AsGuidOrNull() == null )
+                {
+                    btnResolution.Visible = false;
+                }
+                lbDuplicateNumber.Text = GetAttributeValue( "DuplicateMessage" );
+                pnlDuplicateNumber.Visible = true;
                 return;
             }
 
@@ -159,26 +169,38 @@ We are sorry, we dected more than one person with your number in our records.
             var message = GetAttributeValue( "Message" ).ResolveMergeFields( mergeObjects, null );
 
             smsMessage.Message = message;
-            pnlCode.Visible = true;
 
             var ipAddress = GetIpAddress();
             if ( SMSRecords.ReserveItems( ipAddress, PhoneNumber ) )
             {
+                pnlCode.Visible = true;
                 var delay = SMSRecords.GetDelay( ipAddress, PhoneNumber );
                 Task.Run( () => { SendSMS( smsMessage, ipAddress, PhoneNumber, delay ); } );
             }
-
+            else
+            {
+                LogException( new Exception( string.Format( "Unable to reserve for SMS message: IP: {0} PhoneNumber: {1}", ipAddress, PhoneNumber ) ) );
+                pnlRateLimited.Visible = true;
+            }
         }
 
         public async void SendSMS( RockSMSMessage smsMessage, string phoneNumber, string ipAddress, double delay )
         {
             await Task.Delay( ( int ) delay );
-            smsMessage.Send();
+            try
+            {
+                smsMessage.Send();
+            }
+            catch
+            {
+                //Nom Nom Nom
+            }
             SMSRecords.ReleaseItems( ipAddress, phoneNumber );
         }
 
         protected void btnLogin_Click( object sender, EventArgs e )
         {
+            nbError.Visible = false;
             if ( Page.IsValid )
             {
                 var rockContext = new RockContext();
@@ -197,6 +219,7 @@ We are sorry, we dected more than one person with your number in our records.
                     }
                 }
             }
+            nbError.Visible = true;
         }
 
         private void CheckUser( UserLogin userLogin, string returnUrl, bool rememberMe )
@@ -250,7 +273,6 @@ We are sorry, we dected more than one person with your number in our records.
         }
         public static string GetIpAddress()
         {
-
             System.Web.HttpContext context = System.Web.HttpContext.Current;
             string ipAddress = context.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
 
@@ -259,11 +281,42 @@ We are sorry, we dected more than one person with your number in our records.
                 string[] addresses = ipAddress.Split( ',' );
                 if ( addresses.Length != 0 )
                 {
-                    return addresses[0];
+                    var forwardedIp = addresses[0];
+                    var splitAddresss = forwardedIp.Split( ':' ); //Remove the occasional port
+                    return splitAddresss[0];
                 }
             }
             return context.Request.ServerVariables["REMOTE_ADDR"];
         }
+
+        protected void btnResolution_Click( object sender, EventArgs e )
+        {
+            NavigateToPage( GetAttributeValue( "DuplicateNumberPage" ).AsGuid(), new Dictionary<string, string>() );
+        }
+
+        protected void btnNoNmber_Click( object sender, EventArgs e )
+        {
+            Reset();
+        }
+
+        protected void btnDuplicateNumber_Click( object sender, EventArgs e )
+        {
+            Reset();
+        }
+
+        protected void btnRateLimited_Click( object sender, EventArgs e )
+        {
+            Reset();
+        }
+
+        private void Reset()
+        {
+            pnlDuplicateNumber.Visible = false;
+            pnlRateLimited.Visible = false;
+            pnlNoNumber.Visible = false;
+            pnlPhoneNumber.Visible = true;
+        }
+
     }
 
     public static class SMSRecords
@@ -280,7 +333,7 @@ We are sorry, we dected more than one person with your number in our records.
 
         public static bool ReserveItems( string ip, string phoneNumber )
         {
-            lock ( _delayLock )
+            lock ( _reserveLock )
             {
                 if ( ActiveItems.Contains( ip ) || ActiveItems.Contains( phoneNumber ) )
                 {
