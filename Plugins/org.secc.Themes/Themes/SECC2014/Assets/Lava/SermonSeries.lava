@@ -114,7 +114,7 @@
 				{{ LinkedPages.DetailPage }}?Item={{ item.Id }}
 				{{ 'Global' | Page:'Path' }}/{{ item.Slug }}
 				{% endcomment %}
-				<a class="series-link" href="{{ 'Global' | Page:'Path' }}/{{ item.Slug }}">
+				<a class="series-link" href="/sermons/{{ item.Slug }}">
 					<div class="card" style="background-color: white;">
 						{% if seriesImage != empty -%}
 							<!-- Image -->
