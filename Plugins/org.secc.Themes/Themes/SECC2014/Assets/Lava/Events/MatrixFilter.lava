@@ -268,8 +268,10 @@ function updatePath(key, value) {
     baseUrl = [location.protocol, '//', location.host].join('');
 	parts = location.pathname.split('/');
 	// Set some defaults;
+	parts[1] = 'events';
 	parts[2] = parts[2]||'southeast';
 	parts[3] = parts[3]||'all';
+	// Set default part one of Events
 	if (key == 'campus') {
 		parts[2] = value||'southeast';
 	}
@@ -277,9 +279,9 @@ function updatePath(key, value) {
 		parts[3] = value||'all';
 	}
     window.history.pushState({}, '', baseUrl + parts.join('/'));
-	console.log(key);
-	console.log(value);
-	console.log(parts);
+	console.log("key:" + key);
+	console.log("value:" + value);
+	console.log("parts:" + parts);
     return parts.join('/');
 }
 
