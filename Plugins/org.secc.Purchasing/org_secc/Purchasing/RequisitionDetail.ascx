@@ -109,6 +109,13 @@
         $("[id*=btnReturnToRequesterPart2]").click();
     }
     Sys.WebForms.PageRequestManager.getInstance().add_endRequest(function () { $('body').removeClass('modal-open'); });
+	function printContent(el){
+		var restorepage = $('body').html();
+		var printcontent = $('#' + el).clone();
+		$('body').empty().html(printcontent);
+		window.print();
+		$('body').html(restorepage);
+	}
 </script>
 
 <style>
@@ -175,7 +182,10 @@
   #page-content {
       padding: 5px !important;
   }
+  
 }
+@page { size:8.5in 11in; margin: 2cm }
+
 @media print and (-moz-images-in-menus:0) {
   #content-wrapper {
       margin: 0px !important;
@@ -231,7 +241,8 @@
             
             <div class="panel-heading">
                 <div class="pull-right">
-                    <asp:HyperLink ID="lnkNotes" runat="server" Visible="false" NavigateUrl="#catNotes"><i class="fa fa-sticky-note fa-2x" title="Notes"></i></asp:HyperLink>&nbsp; &nbsp;
+					<a href="#" onclick="printContent('pnlMain');" style="margin-right: 10px"><i class="fa fa-print fa-2x" title="Print"></i></a>
+                    <asp:HyperLink ID="lnkNotes" runat="server" Visible="false" NavigateUrl="#catNotes" style="margin-right: 10px"><i class="fa fa-sticky-note fa-2x" title="Notes"></i></asp:HyperLink>
                     <asp:HyperLink ID="lnkAttachments" runat="server" Visible="false" NavigateUrl="#catAttachments"><i class="fa fa-paperclip fa-2x" title="Attachments"></i></asp:HyperLink>
                 </div>
                 <h1 class="panel-title">
