@@ -4,7 +4,18 @@
 
 <asp:UpdatePanel ID="upnlContent" runat="server">
 <ContentTemplate>
-
+    <script src="/Themes/SECC2014/Scripts/isotope.pkgd.min.js" ></script>
+    <script>
+    $(window).load(function() {
+        // Initialize Isotope
+        var $grid = $('.isotope_wrap').isotope({
+            // options
+            percentPosition: true,
+            itemSelector: '.isotope_item',
+            layoutMode: 'fitRows'
+        });
+    });
+    </script>
     <div class="panel panel-block">
 
         <div class="panel-heading">
@@ -34,29 +45,36 @@
 
                 <asp:ValidationSummary ID="vsDetails" runat="server" HeaderText="Please Correct the Following" CssClass="alert alert-danger" />
                 <Rock:NotificationBox ID="nbMetricsSaved" runat="server" Text="Metric Values Have Been Updated" NotificationBoxType="Success" Visible="false" />
+
                 <asp:Repeater ID="rptrMetricCategory" runat="server">
                     <HeaderTemplate>
                         <h3>Weekly Metrics</h3>
+                        <div class="row isotope_wrap">
                     </HeaderTemplate>
                     <ItemTemplate>
-                        <div class="well well-sm">
-                            <h4><%# Eval("CategoryName") %></h4>
-                            <div class="row">
-                                <asp:Repeater ID="rptrMetric" runat="server" OnItemDataBound="rptrMetric_ItemDataBound" DataSource='<%# Eval("Metrics") %>'>
-                                    <ItemTemplate>
-                                        <div class="col-sm-6">
-                                            <div class="form-horizontal label-lg">
-                                                <asp:HiddenField ID="hfMetricId" runat="server" Value='<%# Eval("Id") %>' />
-                                                <Rock:NumberBox ID="nbMetricValue" runat="server" NumberType="Double" Label='<%# Eval( "Name") %>' Text='<%# Eval( "Value") %>' />
-                                            </div>
-                                        </div>
-                                    </ItemTemplate>
-                                </asp:Repeater>
-                            </div>
-                        </div>
+						<div class="col-md-4 col-sm-6 isotope_item">
+							<div class="well well-sm">
+								<h4><%# Eval("CategoryName") %></h4>
+								<div class="row">
+									<asp:Repeater ID="rptrMetric" runat="server" OnItemDataBound="rptrMetric_ItemDataBound" DataSource='<%# Eval("Metrics") %>'>
+										<ItemTemplate>
+											<div class="col-xs-12">
+												<div class="form-horizontal label-lg">
+													<asp:HiddenField ID="hfMetricId" runat="server" Value='<%# Eval("Id") %>' />
+													<Rock:NumberBox ID="nbMetricValue" runat="server" NumberType="Double" Label='<%# Eval( "Name") %>' Text='<%# Eval( "Value") %>' />
+												</div>
+											</div>
+										</ItemTemplate>
+									</asp:Repeater>
+								</div>
+							</div>
+						</div>
                     </ItemTemplate>
+                    <FooterTemplate>
+                        </div>
+                    </FooterTemplate>
                 </asp:Repeater>
-                
+                </div>
 
                 <asp:Repeater ID="rptrService" runat="server" OnItemDataBound="rptrService_ItemDataBound" Visible="false">
                     <HeaderTemplate>
