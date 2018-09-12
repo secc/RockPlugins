@@ -50,7 +50,7 @@
 			        <li><a href="/connect/seniors/">Seniors</a></li>    
 		        {% endif %}   
                 
-                {% if currentPage == '/connect/missions' or currentPage == '/connect/missions/mission-partners.php' or currentPage == '/connect/missions/education-partners.php' or currentPage == '/connect/missions/church-plants.php' or currentPage == '/connect/missions/trips.php' or currentPage == '/connect/missions/lifebridge.php' %}
+                {% if currentPage == '/connect/missions' or currentPage == '/connect/missions/mission-partners.php' or currentPage == '/connect/missions/education-partners' or currentPage == '/connect/missions/church-plants.php' or currentPage == '/connect/missions/trips.php' or currentPage == '/connect/missions/lifebridge' %}
                     <li class="dropdown active">
                 {% else %}
                     <li class="dropdown">
