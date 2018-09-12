@@ -1,4 +1,5 @@
-                {%- assign schedule = partition -%}
+			{%- assign schedule = partition -%}
+			{%- if schedule.Limit > 0 or schedule.Limit == null %}
 				{%- assign spotsLeft = schedule.Limit | Minus: schedule.Filled -%}
 				<div class="col-sm-6 col-md-4" style="margin-bottom: 20px;">
 					<div class="serve-card" style="height: 180px;">
@@ -11,8 +12,9 @@
 							</div>
                             <h3>{{ schedule.Entity.Name }}</h3>
                         </div>
-					{% if schedule.Limit == null or spotsLeft > 0 %}
+					{%- if schedule.Limit == null or spotsLeft > 0 -%}
                     </a>
-					{% endif %}
+					{%- endif -%}
 					</div>
                 </div>
+			{%- endif -%}

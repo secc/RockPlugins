@@ -1,4 +1,5 @@
-                {%- assign campus = partition -%}
+			{%- assign campus = partition -%}
+			{%- if campus.Limit > 0 or campus.Limit == null %}
 				{%- assign spotsLeft = campus.Limit | Minus: campus.Filled -%}
 				<div class="col-sm-6 col-md-4" style="margin-bottom: 20px;">
 					<div class="serve-card" style="height: 180px">
@@ -12,8 +13,9 @@
                             <span class="campus-circle">{{ campus.Entity.ShortCode }}</span>
                             <h4>{{ campus.Entity.Name }}</h4>
                         </div>
-					{% if campus.Limit == null or spotsLeft > 0 %}
+					{%- if campus.Limit == null or spotsLeft > 0 -%}
                     </a>
-					{% endif %}
+					{%- endif -%}
 					</div>
                 </div>
+			{%- endif -%}

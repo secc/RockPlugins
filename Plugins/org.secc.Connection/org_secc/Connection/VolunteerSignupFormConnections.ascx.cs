@@ -232,14 +232,17 @@ namespace org.secc.Connection
                     {
                         List<Person> personMatches = new List<Person>();
                         if ( Assembly.GetExecutingAssembly().GetReferencedAssemblies()
-                            .FirstOrDefault( c => c.FullName == "org.secc.PersonMatch" ) == null )
+                            .FirstOrDefault( c => c.FullName == "org.secc.PersonMatch" ) != null )
                         {
                             var assembly = Assembly.Load( "org.secc.PersonMatch" );
-                            Type type = assembly.GetExportedTypes().Where(et => et.FullName == "org.secc.PersonMatch.Extension" ).FirstOrDefault();
-                            if ( type != null)
+                            if (assembly != null) 
                             {
-                                var matchMethod = type.GetMethod( "GetByMatch" );
-                                personMatches = ( ( IEnumerable<Person> ) matchMethod.Invoke( null, new object[] { personService, firstName, lastName, birthdate, email, null, null, null } ) ).ToList();
+                                Type type = assembly.GetExportedTypes().Where(et => et.FullName == "org.secc.PersonMatch.Extension" ).FirstOrDefault();
+                                if ( type != null)
+                                {
+                                    var matchMethod = type.GetMethod( "GetByMatch" );
+                                    personMatches = ( ( IEnumerable<Person> ) matchMethod.Invoke( null, new object[] { personService, firstName, lastName, birthdate, email, null, null, null } ) ).ToList();
+                                }
                             }
                         }
                         else
