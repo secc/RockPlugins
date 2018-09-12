@@ -62,8 +62,32 @@ namespace org.secc.Connection
     [CodeEditorField("Settings", mode:CodeEditorMode.JavaScript, category: "Custom Setting")]
     [KeyValueListField("Counts", category: "Custom Setting" )]
     [CodeEditorField( "Lava", mode: CodeEditorMode.JavaScript, category: "Custom Setting", defaultValue:
-@"<link rel=""stylesheet"" type=""text/css"" href=""/Plugins/org_secc/Connection/Cards.css"" />
-{% include '~/Plugins/org_secc/Connection/CardWizard.lava' %}" )]
+@"<link rel=""stylesheet"" type=""text/css"" href=""/Plugins/org_secc/Connection/VolunteerSignupWizard.css"" />
+{%- comment -%}
+    Select from one of the following templates that come prebuilt for you with the Signup Wizard and set the
+    output variable below to the appropriate value
+    
+    Genius     - This will output as a structured table similar to other signup systems out there
+    CardPage   - This will output as a single page with panels containing cards.  This is probably best
+                 for outputting 1-2 partitions
+    CardWizard - This is good for fairly complex signups with 2-4 partitions (Campus, DefinedType, Role, Schedule).
+                 It will output and behave in a left-to-right animated set of cards and allow for signing up for
+                 multiple roles or attributes at once.
+
+    This is setup to encourage you to copy existing lava templates if you make modifications rather than modifying the
+    default ones which come with the Signup Wizard plugin.
+{%- endcomment -%}
+
+{%- assign output = ""Genius"" -%}
+
+{% if output == ""Genius"" %}
+{% include '~/Plugins/org_secc/Connection/VolunteerGenius.lava' %}
+{% else if output == ""CardPage"" %}
+{% include '~/Plugins/org_secc/Connection/CardPage.lava' %}
+{% else if output == ""CardWizard"" %}
+{% include '~/Plugins/org_secc/Connection/CardWizard.lava' %}
+{% endif %}
+" )]
     [BooleanField( "Enable Debug", "Display a list of merge fields available for lava.", false)]
 
     [ViewStateModeById]
