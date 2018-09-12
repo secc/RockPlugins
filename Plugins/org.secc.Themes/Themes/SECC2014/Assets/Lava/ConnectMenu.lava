@@ -1,0 +1,157 @@
+<!-- LAVA FILE FOR CONNECT MENU -->
+    
+    <!-- Assign the Global Page: Path filter to a local variable so we can use it in IF statements -->
+    {% assign currentPage = 'Global' | Page:'Path' %}
+    
+    <!-- For every menu item, check to see if the page the user is on matches that menu's relative URL; highlight it on the menu if so -->
+    <div id="sub-connect-menu">
+        <!-- Section Navigation. Remove this block if section nav is not needed. -->
+        <nav class="expandable-menu section-nav wow fadeInRight" style="visibility: visible; animation-name: fadeInRight;">
+            <ul>
+                {% if currentPage == '/connect/men' %}
+			        <li class="active"><a href="/connect/men/">Men</a></li>    
+		        {% else %}
+			        <li><a href="/connect/men/">Men</a></li>    
+		        {% endif %}
+		        
+                {% if currentPage == '/connect/women' %}
+			        <li class="active"><a href="/connect/women/">Women</a></li>    
+		        {% else %}
+			        <li><a href="/connect/women/">Women</a></li>    
+		        {% endif %}
+		        
+                {% if currentPage == '/connect/family' %}
+			        <li class="active"><a href="/connect/family/">Family</a></li>    
+		        {% else %}
+			        <li><a href="/connect/family/">Family</a></li>    
+		        {% endif %}
+		        
+                {% if currentPage == '/connect/children' %}
+			        <li class="active"><a href="/connect/children/">CHILDREN</a></li>    
+		        {% else %}
+			        <li><a href="/connect/children/">Children</a></li>    
+		        {% endif %}
+		        
+                {% if currentPage == '/connect/single' %}
+			        <li class="active"><a href="/connect/single/">Single Life</a></li>    
+		        {% else %}
+			        <li><a href="/connect/single/">Single Life</a></li>    
+		{% endif %}
+		        
+		{% if currentPage == '/connect/students' %}
+			        <li class="active"><a href="/connect/students/">Students</a></li>    
+		        {% else %}
+			        <li><a href="/connect/students/">Students</a></li>    
+		{% endif %}
+		        
+                {% if currentPage == '/connect/seniors' %}
+			        <li class="active"><a href="/connect/seniors/">Seniors</a></li>    
+		        {% else %}
+			        <li><a href="/connect/seniors/">Seniors</a></li>    
+		        {% endif %}   
+                
+                {% if currentPage == '/connect/missions' or currentPage == '/connect/missions/mission-partners.php' or currentPage == '/connect/missions/education-partners.php' or currentPage == '/connect/missions/church-plants.php' or currentPage == '/connect/missions/trips.php' or currentPage == '/connect/missions/lifebridge.php' %}
+                    <li class="dropdown active">
+                {% else %}
+                    <li class="dropdown">
+                {% endif %}   
+                
+                    <button class="toggle">Missions</button>
+                    <ul>
+                        {% if currentPage == '/connect/missions' %}
+			                <li class="active"><a href="/connect/missions/">Missions Overview</a></li>    
+		                {% else %}
+			                <li><a href="/connect/missions/">Missions Overview</a></li>    
+		                {% endif %}   
+                        
+                        {% if currentPage == '/connect/missions/mission-partners.php' %}
+			                <li class="active"><a href="/connect/missions/mission-partners.php">Mission Partners</a></li>    
+		                {% else %}
+			                <li><a href="/connect/missions/mission-partners.php">Mission Partners</a></li>    
+		                {% endif %}   
+		                
+                        {% if currentPage == '/connect/missions/education-partners.php' %}
+			                <li class="active"><a href="/connect/missions/education-partners.php">Education Partners</a></li>    
+		                {% else %}
+			                <li><a href="/connect/missions/education-partners.php">Education Partners</a></li>    
+		                {% endif %}  
+                        
+                        {% if currentPage == '/connect/missions/church-plants.php' %}
+			                <li class="active"><a href="/connect/missions/church-plants.php">Church Plants</a></li>    
+		                {% else %}
+			                <li><a href="/connect/missions/church-plants.php">Church Plants</a></li>    
+		                {% endif %}  
+                        
+                        {% if currentPage == '/connect/missions/trips.php' %}
+			                <li class="active"><a href="/connect/missions/trips.php">Mission Trips</a></li>    
+		                {% else %}
+			                <li><a href="/connect/missions/trips.php">Mission Trips</a></li>    
+		                {% endif %}  
+                        
+                        {% if currentPage == '/connect/missions/lifebridge.php' %}
+			                <li class="active"><a href="/connect/missions/lifebridge.php">LifeBridge</a></li>    
+		                {% else %}
+			                <li><a href="/connect/missions/lifebridge.php">LifeBridge</a></li>    
+		                {% endif %}  
+                        
+                    </ul>
+                </li>
+                
+                {% if currentPage == '/connect/generous-living' %}
+			        <li class="active"><a href="/connect/generous-living/">Generous Living</a></li>    
+		        {% else %}
+			        <li><a href="/connect/generous-living/">Generous Living</a></li>    
+		        {% endif %} 
+                
+                {% if currentPage == '/connect/deaf-and-disabilities-ministry' %}
+			        <li class="active"><a href="/connect/deaf-and-disabilities-ministry/">Deaf &amp; Disabilities</a></li>    
+		        {% else %}
+			        <li><a href="/connect/deaf-and-disabilities-ministry/">Deaf &amp; Disabilities</a></li>    
+		        {% endif %} 
+                
+                {% if currentPage == '/connect/care' or currentPage == '/connect/care/care-faq.php' or currentPage == '/connect/care/encounter-groups.php' or currentPage == '/connect/care/mentoring.php' %}
+                    <li class="dropdown active">   
+                {% else %}
+                    <li class="dropdown">
+                {% endif %} 
+                
+                    <button class="toggle">Care Ministry</button>
+                    <ul>
+                        
+                        {% if currentPage == '/connect/care' %}
+			                <li class="active"><a href="/connect/care/">Care Overview</a></li>    
+		                {% else %}
+			                <li><a href="/connect/care/">Care Overview</a></li>    
+		                {% endif %} 
+                        
+                        {% if currentPage == '/connect/care/care-faq.php' %}
+			                <li class="active"><a href="/connect/care/care-faq.php">Care FAQ</a></li>    
+		                {% else %}
+			                <li><a href="/connect/care/care-faq.php">Care FAQ</a></li>    
+		                {% endif %} 
+                        
+                        {% if currentPage == '/connect/care/encounter-groups.php' %}
+			                <li class="active"><a href="/connect/care/encounter-groups.php">Encounter Groups</a></li>    
+		                {% else %}
+			                <li><a href="/connect/care/encounter-groups.php">Encounter Groups</a></li>    
+		                {% endif %} 
+                        
+                        {% if currentPage == '/connect/care/mentoring.php' %}
+			                <li class="active"><a href="/connect/care/mentoring.php">Mentoring</a></li>    
+		                {% else %}
+			                <li><a href="/connect/care/mentoring.php">Mentoring</a></li>    
+		                {% endif %} 
+                        
+                    </ul>
+                </li>
+                
+                {% if currentPage == '/connect/sports-fitness' %}
+			        <li class="active"><a href="/connect/sports-fitness/">Sports &amp; Fitness</a></li>    
+		        {% else %}
+			        <li><a href="/connect/sports-fitness/">Sports &amp; Fitness</a></li>    
+		        {% endif %} 
+                
+            </ul>
+        </nav>
+        <!-- End Section Navigation. -->
+    </div>
