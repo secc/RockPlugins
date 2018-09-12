@@ -70,10 +70,10 @@
 			                <li><a href="/connect/missions/mission-partners.php">Mission Partners</a></li>    
 		                {% endif %}   
 		                
-                        {% if currentPage == '/connect/missions/education-partners.php' %}
-			                <li class="active"><a href="/connect/missions/education-partners.php">Education Partners</a></li>    
+                        {% if currentPage == '/connect/missions/education-partners' %}
+			                <li class="active"><a href="/connect/missions/education-partners/">Education Partners</a></li>    
 		                {% else %}
-			                <li><a href="/connect/missions/education-partners.php">Education Partners</a></li>    
+			                <li><a href="/connect/missions/education-partners/">Education Partners</a></li>    
 		                {% endif %}  
                         
                         {% if currentPage == '/connect/missions/church-plants.php' %}
@@ -88,10 +88,10 @@
 			                <li><a href="/connect/missions/trips.php">Mission Trips</a></li>    
 		                {% endif %}  
                         
-                        {% if currentPage == '/connect/missions/lifebridge.php' %}
-			                <li class="active"><a href="/connect/missions/lifebridge.php">LifeBridge</a></li>    
+                        {% if currentPage == '/connect/missions/lifebridge' %}
+			                <li class="active"><a href="/connect/missions/lifebridge/">LifeBridge</a></li>    
 		                {% else %}
-			                <li><a href="/connect/missions/lifebridge.php">LifeBridge</a></li>    
+			                <li><a href="/connect/missions/lifebridge/">LifeBridge</a></li>    
 		                {% endif %}  
                         
                     </ul>
@@ -109,7 +109,7 @@
 			        <li><a href="/connect/deaf-and-disabilities-ministry/">Deaf &amp; Disabilities</a></li>    
 		        {% endif %} 
                 
-                {% if currentPage == '/connect/care' or currentPage == '/connect/care/care-faq.php' or currentPage == '/connect/care/encounter-groups.php' or currentPage == '/connect/care/mentoring.php' %}
+                {% if currentPage == '/connect/care' or currentPage == '/connect/care/care-faq' or currentPage == '/connect/care/encounter-groups' or currentPage == '/connect/care/mentoring' %}
                     <li class="dropdown active">   
                 {% else %}
                     <li class="dropdown">
@@ -124,22 +124,22 @@
 			                <li><a href="/connect/care/">Care Overview</a></li>    
 		                {% endif %} 
                         
-                        {% if currentPage == '/connect/care/care-faq.php' %}
-			                <li class="active"><a href="/connect/care/care-faq.php">Care FAQ</a></li>    
+                        {% if currentPage == '/connect/care/care-faq' %}
+			                <li class="active"><a href="/connect/care/care-faq/">Care FAQ</a></li>    
 		                {% else %}
-			                <li><a href="/connect/care/care-faq.php">Care FAQ</a></li>    
+			                <li><a href="/connect/care/care-faq/">Care FAQ</a></li>    
 		                {% endif %} 
                         
-                        {% if currentPage == '/connect/care/encounter-groups.php' %}
-			                <li class="active"><a href="/connect/care/encounter-groups.php">Encounter Groups</a></li>    
+                        {% if currentPage == '/connect/care/encounter-groups' %}
+			                <li class="active"><a href="/connect/care/encounter-groups/">Encounter Groups</a></li>    
 		                {% else %}
-			                <li><a href="/connect/care/encounter-groups.php">Encounter Groups</a></li>    
+			                <li><a href="/connect/care/encounter-groups/">Encounter Groups</a></li>    
 		                {% endif %} 
                         
-                        {% if currentPage == '/connect/care/mentoring.php' %}
-			                <li class="active"><a href="/connect/care/mentoring.php">Mentoring</a></li>    
+                        {% if currentPage == '/connect/care/mentoring' %}
+			                <li class="active"><a href="/connect/care/mentoring/">Mentoring</a></li>    
 		                {% else %}
-			                <li><a href="/connect/care/mentoring.php">Mentoring</a></li>    
+			                <li><a href="/connect/care/mentoring/">Mentoring</a></li>    
 		                {% endif %} 
                         
                     </ul>
