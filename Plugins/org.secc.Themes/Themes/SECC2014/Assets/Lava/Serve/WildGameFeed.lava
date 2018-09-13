@@ -148,7 +148,9 @@ $(document).ready(function() {
                     {% if role.Limit != 0 %}
                     {% assign spotsLeft = role.Limit | Minus: role.Filled %}
 						<a href="#" class="list-group-item text-center" style="padding: 25px">
-						  <span class="badge badge-secondary" style="position: absolute; top:5px; right:5px;" title="{{spotsLeft}} Spots Left">{{spotsLeft}}</span>
+						  <span class="badge badge-secondary" style="position: absolute; top:5px; right:5px;" title="{{spotsLeft}} Spots Left">
+							{% if spotsLeft > 0%}{{spotsLeft}}{% else %}Full{% endif %}
+						  </span>
 						  <i class="{{role.Entity | Attribute:'Icon' }} fa-3x"></i><br/>{{role.Entity.Name}}
 						</a>
 						{% if role.Limit != 0 %}
