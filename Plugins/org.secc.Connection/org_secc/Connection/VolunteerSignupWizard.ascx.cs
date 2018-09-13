@@ -82,9 +82,9 @@ namespace org.secc.Connection
 
 {% if output == ""Genius"" %}
 {% include '~/Plugins/org_secc/Connection/VolunteerGenius.lava' %}
-{% else if output == ""CardPage"" %}
+{% elseif output == ""CardPage"" %}
 {% include '~/Plugins/org_secc/Connection/CardPage.lava' %}
-{% else if output == ""CardWizard"" %}
+{% elseif output == ""CardWizard"" %}
 {% include '~/Plugins/org_secc/Connection/CardWizard.lava' %}
 {% endif %}
 " )]
