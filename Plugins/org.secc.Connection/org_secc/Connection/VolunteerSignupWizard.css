@@ -2,6 +2,13 @@
 	background: #f7f7f7;
 	border-radius: 4px;
 	transition: 0.3s;
+	margin-bottom: 10px;
+}
+@media (max-width:768px)
+{
+	.serve-card {
+		box-shadow: 0 2px 2px 0 rgba(0,0,0,0.2);
+	}
 }
 .serve-card:hover {
 	box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
@@ -139,3 +146,48 @@
 		letter-spacing:normal;
 	}
 }
+
+
+/**
+ * Volunteer Genius Section
+ */
+#volunteer-genius .flex-container {
+	display: flex;
+	flex-wrap: wrap;
+	margin: -10px;
+  }
+  #volunteer-genius .flex-container > div {
+	outline: 1px solid #999;
+	background-color: #fff;
+	padding: 10px;
+  }
+  #volunteer-genius .heading {
+	background-color: #f1f1f1 !important;
+	color: #555;
+	font-weight: bold;
+	font-size: 24px;
+  }
+  #volunteer-genius .grid-20 {
+	width: calc(20%);
+  }
+  #volunteer-genius .grid-25 {
+	width: calc(25%);
+  }
+  #volunteer-genius .grid-33, #volunteer-genius .grid-34 {
+	width: calc(33.33333333333333333333%);
+  }
+  #volunteer-genius .grid-50 {
+	width: calc(50%);
+  }
+  #volunteer-genius .grid-66, #volunteer-genius .grid-67 {
+	width: calc(66.66666666666666666666%);
+  }
+  #volunteer-genius .grid-75 {
+	width: calc(75%);
+  }
+  #volunteer-genius .grid-80 {
+	width: calc(80%);
+  }
+  #volunteer-genius .grid-100 {
+	width: calc(100%);
+  }

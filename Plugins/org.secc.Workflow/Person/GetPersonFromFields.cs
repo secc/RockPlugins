@@ -34,7 +34,7 @@ namespace org.secc.Workflow.Person.Action
     /// Sets an attribute's value to the selected person 
     /// </summary>
     [ActionCategory( "SECC > People" )]
-    [Description( "Sets an attribute to a person using Southeast's custom person matching. If single match is not found a new person will be created." )]
+    [Description( "Sets an attribute to a person using Southeast's custom person matching. If single match is not found a new person will be created if configured." )]
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Person Attribute From Fields" )]
 
@@ -71,6 +71,8 @@ namespace org.secc.Workflow.Person.Action
         Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT, "3: Other Settings", 12 )]
     [WorkflowAttribute( "Family Group/Member", "A family group or family member to use if this creates a new person.",
         false, "", "3: Other Settings", 13, "FamilyAttribute", new string[] { "Rock.Field.Types.PersonFieldType", "Rock.Field.Types.GroupFieldType" } )]
+    [BooleanField ( "Match Only", "If Yes, this will NOT create new person records and the person will only be set if a single match is found.", false,
+        "3: Other Settings", 14)]
 
     public class GetPersonFromFields : ActionComponent
     {
@@ -133,7 +135,7 @@ namespace org.secc.Workflow.Person.Action
                         person = people.First();
                         personAlias = person.PrimaryAlias;
                     }
-                    else
+                    else if ( !GetAttributeValue( action, "MatchOnly" ).AsBoolean() )
                     {
                         // Add New Person
                         person = new Rock.Model.Person();
@@ -265,7 +267,7 @@ namespace org.secc.Workflow.Person.Action
                         action.AddLogEntry( string.Format( "Set '{0}' attribute to '{1}'.", attribute.Name, person.FullName ) );
                         return true;
                     }
-                    else
+                    else if ( !GetAttributeValue( action, "MatchOnly" ).AsBoolean() )
                     {
                         errorMessages.Add( "Person or Primary Alias could not be determined!" );
                     }
