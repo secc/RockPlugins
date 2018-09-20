@@ -4,7 +4,7 @@
 
 <asp:UpdatePanel ID="upnlContent" runat="server">
 <ContentTemplate>
-    <script src="/Themes/SECC2014/Scripts/isotope.pkgd.min.js" ></script>
+    <script src="/Plugins/org_secc/Reporting/Scripts/isotope.pkgd.min.js" ></script>
     <script>
     $(window).load(function() {
         // Initialize Isotope
@@ -12,7 +12,7 @@
             // options
             percentPosition: true,
             itemSelector: '.isotope_item',
-            layoutMode: 'fitRows'
+            layoutMode: 'masonry'
         });
     });
     </script>
