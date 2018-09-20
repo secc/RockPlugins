@@ -57,13 +57,15 @@ namespace org.secc.Connection
     [BooleanField( "Display Home Phone", "Whether to display home phone", true, "", 0 )]
     [BooleanField( "Display Mobile Phone", "Whether to display mobile phone", true, "", 1 )]
     [BooleanField( "Display Birthdate", "Whether to display birthdate", true, "", 2 )]
-    [CodeEditorField( "Lava Template", "Lava template to use to display the response message.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 400, true, @"{% include '~~/Assets/Lava/OpportunityResponseMessage.lava' %}", "", 3 )]
-    [BooleanField( "Enable Debug", "Display a list of merge fields available for lava.", false, "", 4 )]
-    [BooleanField( "Enable Campus Context", "If the page has a campus context it's value will be used as a filter", true, "", 5 )]
-    [DefinedValueField( "2E6540EA-63F0-40FE-BE50-F2A84735E600", "Connection Status", "The connection status to use for new individuals (default: 'Web Prospect'.)", true, false, "368DD475-242C-49C4-A42C-7278BE690CC2", "", 6 )]
-    [DefinedValueField( "8522BADD-2871-45A5-81DD-C76DA07E2E7E", "Record Status", "The record status to use for new individuals (default: 'Pending'.)", true, false, "283999EC-7346-42E3-B807-BCE9B2BABB49", "", 7 )]
-    [TextField( "Group Member Attribute Keys - URL", "The key of any group member attributes that you would like to be set via the URL.  Enter as comma separated values.", false, key: "UrlKeys", order: 8)]
-    [TextField( "Group Member Attribute Keys - Form", "The key of the group member attributes to show an edit control for on the opportunity signup.  Enter as comma separated values.", false, key: "FormKeys", order: 9 )]
+    [BooleanField("Display Comments", "Whether to display the comments box", true, "", 3)]
+    [TextField("Connect Button Text", "The wording that should be used for the connect button", true, "Connect", "", 4 )]
+    [CodeEditorField( "Lava Template", "Lava template to use to display the response message.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 400, true, @"{% include '~~/Assets/Lava/OpportunityResponseMessage.lava' %}", "", 5 )]
+    [BooleanField( "Enable Debug", "Display a list of merge fields available for lava.", false, "", 6 )]
+    [BooleanField( "Enable Campus Context", "If the page has a campus context it's value will be used as a filter", true, "", 7 )]
+    [DefinedValueField( "2E6540EA-63F0-40FE-BE50-F2A84735E600", "Connection Status", "The connection status to use for new individuals (default: 'Web Prospect'.)", true, false, "368DD475-242C-49C4-A42C-7278BE690CC2", "", 8 )]
+    [DefinedValueField( "8522BADD-2871-45A5-81DD-C76DA07E2E7E", "Record Status", "The record status to use for new individuals (default: 'Pending'.)", true, false, "283999EC-7346-42E3-B807-BCE9B2BABB49", "", 9 )]
+    [TextField( "Group Member Attribute Keys - URL", "The key of any group member attributes that you would like to be set via the URL.  Enter as comma separated values.", false, key: "UrlKeys", order: 10)]
+    [TextField( "Group Member Attribute Keys - Form", "The key of the group member attributes to show an edit control for on the opportunity signup.  Enter as comma separated values.", false, key: "FormKeys", order: 11 )]
     public partial class VolunteerSignupFormConnections : RockBlock, IDetailBlock
     {
         #region Fields
@@ -232,14 +234,17 @@ namespace org.secc.Connection
                     {
                         List<Person> personMatches = new List<Person>();
                         if ( Assembly.GetExecutingAssembly().GetReferencedAssemblies()
-                            .FirstOrDefault( c => c.FullName == "org.secc.PersonMatch" ) == null )
+                            .FirstOrDefault( c => c.FullName == "org.secc.PersonMatch" ) != null )
                         {
                             var assembly = Assembly.Load( "org.secc.PersonMatch" );
-                            Type type = assembly.GetExportedTypes().Where(et => et.FullName == "org.secc.PersonMatch.Extension" ).FirstOrDefault();
-                            if ( type != null)
+                            if (assembly != null) 
                             {
-                                var matchMethod = type.GetMethod( "GetByMatch" );
-                                personMatches = ( ( IEnumerable<Person> ) matchMethod.Invoke( null, new object[] { personService, firstName, lastName, birthdate, email, null, null, null } ) ).ToList();
+                                Type type = assembly.GetExportedTypes().Where(et => et.FullName == "org.secc.PersonMatch.Extension" ).FirstOrDefault();
+                                if ( type != null)
+                                {
+                                    var matchMethod = type.GetMethod( "GetByMatch" );
+                                    personMatches = ( ( IEnumerable<Person> ) matchMethod.Invoke( null, new object[] { personService, firstName, lastName, birthdate, email, null, null, null } ) ).ToList();
+                                }
                             }
                         }
                         else
@@ -464,10 +469,12 @@ namespace org.secc.Connection
                 }
 
                 lTitle.Text = opportunity.Name;
+                btnConnect.Text = GetAttributeValue( "ConnectButtonText" );
 
                 divHome.Visible = pnHome.Visible = GetAttributeValue( "DisplayHomePhone" ).AsBoolean();
                 divMobile.Visible = pnMobile.Visible = GetAttributeValue( "DisplayMobilePhone" ).AsBoolean();
                 divBirthdate.Visible = bpBirthdate.Visible = GetAttributeValue( "DisplayBirthdate" ).AsBoolean();
+                tbComments.Visible = GetAttributeValue( "DisplayComments" ).AsBoolean();
 
                 // If any of these aren't showing then set the width to be a bit wider on the columns
                 if ( !(divHome.Visible && divMobile.Visible && divBirthdate.Visible ))

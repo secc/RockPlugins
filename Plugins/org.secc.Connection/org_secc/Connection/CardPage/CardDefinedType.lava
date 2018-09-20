@@ -1,4 +1,5 @@
-                {%- assign definedType = partition -%}
+			{%- assign definedType = partition -%}
+			{%- if definedType.Limit > 0 or definedType.Limit == null %}
 				{%- assign spotsLeft = definedType.Limit | Minus: definedType.Filled -%}
 				<div class="col-sm-6 col-md-4" style="margin-bottom: 20px;">
 					<div class="serve-card" style="height: 180px;">
@@ -12,8 +13,9 @@
                             <h3>{{ definedType.Entity.Value }}</h3>
                             <span>{{ definedType.Entity.Description }}</span>
                         </div>
-					{% if definedType.Limit == null or spotsLeft > 0 %}
+					{%- if definedType.Limit == null or spotsLeft > 0 -%}
                     </a>
-					{% endif %}
+					{%- endif -%}
 					</div>
                 </div>
+			{%- endif -%}
