@@ -1,4 +1,5 @@
-                {%- assign role = partition -%}
+			{%- assign role = partition -%}
+			{%- if role.Limit > 0 or role.Limit == null %}
 				{%- assign spotsLeft = role.Limit | Minus: role.Filled -%}
 				<div class="col-sm-6 col-md-4">
 					<div class="serve-card" style="height: 180px;">
@@ -15,8 +16,9 @@
 							{% endif %}
                             <h3>{{ role.Entity.Name }}</h3>
                         </div>
-					{% if role.Limit == null or spotsLeft > 0 %}
+					{%- if role.Limit == null or spotsLeft > 0 -%}
                     </a>
-					{% endif %}
+					{%- endif -%}
 					</div>
                 </div>
+			{%- endif -%}
