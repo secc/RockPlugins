@@ -6,7 +6,7 @@
         }
     }
 </style>
-<section id="christmas" class="ministry squairy-light-mediumTan-overlay">
+<section id="christmas" class="ministry">
 
     <div class="container">
 	    <h3>Sign up to serve during Celebrate Christmas Together</h3>
@@ -18,10 +18,12 @@
 			{% assign definedvalueItemsSorted = definedvalueItems | Sort: 'Order' %}
 			{% for definedValue in definedvalueItemsSorted %}
         <!-- Suggestions -->
+                    {% assign cctDateYear = definedValue | Attribute:'Date' | Date:'yy' %}
                     {% assign campuses = definedValue | Attribute:'Campuses','RawValue' | Split: ',' %}
                     {% for campusGuid in campuses %}
                         {% for campus in Campuses %}
-                            {% if campusGuid == campus.Guid %}
+
+                            {% if campusGuid == campus.Guid and cctDateYear == '18' %}
                             <a href="#wrapper-role-{{definedValue.Guid}}">
 
                                 <div class="isotope_item col-sm-6 col-md-2" style="margin-top: 1.2em;">
@@ -62,9 +64,11 @@
 		{% definedvalue where:'DefinedTypeId==234' %}
 			{% assign definedvalueItemsSorted = definedvalueItems | Sort: 'Order' %}
 			{% for definedValue in definedvalueItemsSorted %}
-
+                {% assign cctDateYear = definedValue | Attribute:'Date' | Date:'yy' %}
+                {% if cctDateYear == '18' %}
 			<div class="row">
-			<hr class="christmas" />
+			<!-- <hr class="christmas" /> -->
+                <br >
 				<div class="col-xs-12 col-sm-4 col-lg-3 stickyDate" style="padding-right: 5px; min-width: 250px !important; margin-top:2px;">
                     <div class="pull-right" style="display: inline-block; font-size: 4em; font-weight: bolder;  float: left; margin: -25px 10px;">{{ definedValue | Attribute:'Date' | Date:'d'}}</div>
                     <div class="pull-right" style="display: inline-block">
@@ -110,7 +114,7 @@
 										{%else%}
 										<div class="full">
 										{% endif %}
-											<span class="role pull-left" data-role-id="{{ role.Entity.Id }}" data-day-guid="{{ day.Entity.Guid }}">{{ role.Entity.Name }}</span>
+											<span class="role pull-left" data-role-id="{{ role.Entity.Id }}" data-day-guid="{{ day.Entity.Guid }}"><i class="{{ role.Entity.Icon }}"></i> {{ role.Entity.Name }}</span>
 											<span class="label label-info pull-right">{% if role.Limit == -1 %}Unlimited{% else %}{% if spotsLeft <= 0 %}Full{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}{% endif %}</span>
 											<span class="clearfix"></span>
 											<span class="time">{% assign dayOfWeek = day.Entity | Attribute:'Date' | Date:'ddd' %}
@@ -156,10 +160,16 @@
 				</div>
 				<br />
 			</div>
+            {% endif %}
 			{% endfor %}
 		{% enddefinedvalue %}
-		<hr class="christmas" />
+		<br />
 		<a class="btn btn-primary pull-right" id="signup">Sign Up</a>
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
     </div>
 
 </section>
@@ -326,7 +336,7 @@
 		$.each(roleDays, function (roleId, days) {
 
 				var request = {};
-				request.GroupId = 500504;
+				request.GroupId = 843985;
 				request.GroupTypeRoleId = roleId;
 				request.Attributes = { "ServingDate": days.join(',')};
 				roleRequests.push(request);
