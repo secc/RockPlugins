@@ -8,17 +8,17 @@
             </div>
             <div class="panel-body">
                 <div class="row">
-                    <div class="col-md-2">
+                    <div class="col-lg-3">
                         <Rock:WorkflowTypePicker ID="wtpWorkflowType" runat="server" Label="Workflow" Help="Workflow to launch" />
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-lg-3">
                         <Rock:DataDropDownList ID="ddlEntityType" runat="server" Label="Entity Type" Help="Select the type of entity you want to launch workflows for." SourceTypeName="Rock.Model.EntityType, Rock" Required="false" DataTextField="FriendlyName" DataValueField="Name" PropertyName="Name" Visible="true" AutoPostBack="true" OnSelectedIndexChanged="ddlEntityType_SelectedIndexChanged" />
                     </div>
-                    <div class="col-md-8" runat="server" visible="false" id="divRegistration">
+                    <div class="col-lg-6" runat="server" visible="false" id="divRegistration">
                         <Rock:DataDropDownList ID="ddlRegistrationInstances" runat="server" Label="Registration (instances)" Help="Select a registration instance to launch a workflow for each existing registration." SourceTypeName="Rock.Model.RegistrationInstance, Rock" Required="false" DataTextField="Name" DataValueField="Id" PropertyName="Name" Visible="true" AutoPostBack="true" OnSelectedIndexChanged="ddlRegistrationInstances_SelectedIndexChanged" />
                         <Rock:DataDropDownList ID="ddlRegistrations" runat="server" Label="Registration (optional)" Help="Select a specific registration to use to launch the workflow." SourceTypeName="Rock.Model.Registration, Rock"  Required="false" DataTextField="EntityStringValue" DataValueField="Id" PropertyName="FirstName" Visible="false" AutoPostBack="true" />
                     </div>
-                    <div class="col-md-8" runat="server" visible="false" id="divGroup">
+                    <div class="col-lg-6" runat="server" visible="false" id="divGroup">
                         <div class="row">
                             <div class="col-md-3">
                                 <Rock:GroupPicker ID="gpGroupPicker" runat="server" Label="Group" Help="Select a group to launch a workflow for each member in the group." OnSelectItem="gpGroupPicker_SelectItem" />
@@ -28,7 +28,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-8" runat="server" visible="false" id="divDataView">
+                    <div class="col-lg-6" runat="server" visible="false" id="divDataView">
                         <div class="row">
                             <div class="col-md-3">
                                 <Rock:DataViewPicker ID="dvpDataViewPicker" runat="server" Label="Data View" Help="Select a dataview to launch a workflow for each person." AutoPostBack="true" OnSelectedIndexChanged="dvpDataViewPicker_SelectedIndexChanged" EntityTypeId="15" />
