@@ -59,9 +59,9 @@ namespace RockWeb.Blocks.Reporting.HomeGroups
             RockContext rockContext = new RockContext();
             GroupService groupService = new GroupService( rockContext );
             var group = groupService.Get( groupId );
-            var childGroups = group.Groups;
+            var childGroups = group.Groups.Where( g => g.IsActive );
             var childGroupIds = childGroups.Select( g => g.Id ).ToList();
-            var memberCount = childGroups.SelectMany( g => g.Members ).Count();
+            var memberCount = childGroups.SelectMany( g => g.Members ).Where( m => m.GroupMemberStatus == GroupMemberStatus.Active ).Count();
             AttendanceService attendanceService = new AttendanceService( rockContext );
             var attendances = attendanceService.Queryable()
                 .Where( a => a.StartDateTime >= dpStart.DateRange.Start
