@@ -1019,9 +1019,17 @@ namespace org.secc.Connection
                 if ( partition.NextPartition != null)
                 {
                     inner.Add( "Partitions", GetTree( partition.NextPartition, subRequests, newConcatGuid, groupTypeRoleService, scheduleService, childIdentifier, url, groupId, roleId ));
-                    // The amount filled for this inner node in the partition is the sum of the amount filled of the nodes beneath it
-                    IEnumerable<Dictionary<string, object>> childNodes = (( List<Dictionary<string, object>> ) inner["Partitions"]).Where( i => ((string) i["ParentIdentifier"] ).Equals( childIdentifier ) );
-                    inner.Add( "Filled", childNodes.Sum( i => (int) i["Filled"] ) );
+
+                    if (inner["Partitions"] != null)
+                    {
+                        // The amount filled for this inner node in the partition is the sum of the amount filled of the nodes beneath it
+                        IEnumerable<Dictionary<string, object>> childNodes = (( List<Dictionary<string, object>> ) inner["Partitions"]).Where( i => ((string) i["ParentIdentifier"] ).Equals( childIdentifier ) );
+                        inner.Add( "Filled", childNodes.Sum( i => (int) i["Filled"] ) );
+                    }
+                    else
+                    {
+                        inner.Add( "Filled", 0 );
+                    }
                 }
                 else
                 {
