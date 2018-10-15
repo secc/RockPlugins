@@ -8,49 +8,49 @@
         <!-- Section Navigation. Remove this block if section nav is not needed. -->
         <nav class="expandable-menu section-nav wow fadeInRight" style="visibility: visible; animation-name: fadeInRight;">
             <ul>
-                {% if currentPage == '/connect/men' %}
+                {% if currentPage == '/connect/men' or currentPage == '/connect/men/' %}
 			        <li class="active"><a href="/connect/men/">Men</a></li>    
 		        {% else %}
 			        <li><a href="/connect/men/">Men</a></li>    
 		        {% endif %}
 		        
-                {% if currentPage == '/connect/women' %}
+                {% if currentPage == '/connect/women' or currentPage == '/connect/women/' %}
 			        <li class="active"><a href="/connect/women/">Women</a></li>    
 		        {% else %}
 			        <li><a href="/connect/women/">Women</a></li>    
 		        {% endif %}
 		        
-                {% if currentPage == '/connect/family' %}
+                {% if currentPage == '/connect/family' or currentPage == '/connect/family/' %}
 			        <li class="active"><a href="/connect/family/">Family</a></li>    
 		        {% else %}
 			        <li><a href="/connect/family/">Family</a></li>    
 		        {% endif %}
 		        
-                {% if currentPage == '/connect/children' %}
+                {% if currentPage == '/connect/children' or currentPage == '/connect/children/' %}
 			        <li class="active"><a href="/connect/children/">CHILDREN</a></li>    
 		        {% else %}
 			        <li><a href="/connect/children/">Children</a></li>    
 		        {% endif %}
 		        
-                {% if currentPage == '/connect/single' %}
+                {% if currentPage == '/connect/single' or currentPage == '/connect/single/' %}
 			        <li class="active"><a href="/connect/single/">Single Life</a></li>    
 		        {% else %}
 			        <li><a href="/connect/single/">Single Life</a></li>    
 		{% endif %}
 		        
-		{% if currentPage == '/connect/students' %}
+		{% if currentPage == '/connect/students' or currentPage == '/connect/students/' %}
 			        <li class="active"><a href="/connect/students/">Students</a></li>    
 		        {% else %}
 			        <li><a href="/connect/students/">Students</a></li>    
 		{% endif %}
 		        
-                {% if currentPage == '/connect/seniors' %}
+                {% if currentPage == '/connect/seniors' or currentPage == '/connect/seniors/' %}
 			        <li class="active"><a href="/connect/seniors/">Seniors</a></li>    
 		        {% else %}
 			        <li><a href="/connect/seniors/">Seniors</a></li>    
 		        {% endif %}   
                 
-                {% if currentPage == '/connect/missions' or currentPage == '/connect/missions/mission-partners.php' or currentPage == '/connect/missions/education-partners.php' or currentPage == '/connect/missions/church-plants.php' or currentPage == '/connect/missions/trips.php' or currentPage == '/connect/missions/lifebridge.php' %}
+                {% if currentPage == '/connect/missions' or currentPage == '/connect/missions/' or currentPage == '/connect/missions/mission-partners.php' or currentPage == '/connect/missions/mission-partners.php/' or currentPage == '/connect/missions/education-partners' or currentPage == '/connect/missions/education-partners/' or currentPage == '/connect/missions/church-plants.php' or currentPage == '/connect/missions/church-plants.php/' or currentPage == '/connect/missions/trips.php' or currentPage == '/connect/missions/trips.php/' or currentPage == '/connect/missions/lifebridge' or currentPage == '/connect/missions/lifebridge/'%}
                     <li class="dropdown active">
                 {% else %}
                     <li class="dropdown">
@@ -58,37 +58,37 @@
                 
                     <button class="toggle">Missions</button>
                     <ul>
-                        {% if currentPage == '/connect/missions' %}
+                        {% if currentPage == '/connect/missions' or currentPage == '/connect/missions/' %}
 			                <li class="active"><a href="/connect/missions/">Missions Overview</a></li>    
 		                {% else %}
 			                <li><a href="/connect/missions/">Missions Overview</a></li>    
 		                {% endif %}   
                         
-                        {% if currentPage == '/connect/missions/mission-partners.php' %}
+                        {% if currentPage == '/connect/missions/mission-partners.php' or currentPage == '/connect/missions/mission-partners.php/' %}
 			                <li class="active"><a href="/connect/missions/mission-partners.php">Mission Partners</a></li>    
 		                {% else %}
 			                <li><a href="/connect/missions/mission-partners.php">Mission Partners</a></li>    
 		                {% endif %}   
 		                
-                        {% if currentPage == '/connect/missions/education-partners' %}
+                        {% if currentPage == '/connect/missions/education-partners' or currentPage == '/connect/missions/education-partners/' %}
 			                <li class="active"><a href="/connect/missions/education-partners/">Education Partners</a></li>    
 		                {% else %}
 			                <li><a href="/connect/missions/education-partners/">Education Partners</a></li>    
 		                {% endif %}  
                         
-                        {% if currentPage == '/connect/missions/church-plants.php' %}
+                        {% if currentPage == '/connect/missions/church-plants.php' or currentPage == '/connect/missions/church-plants.php/' %}
 			                <li class="active"><a href="/connect/missions/church-plants.php">Church Plants</a></li>    
 		                {% else %}
 			                <li><a href="/connect/missions/church-plants.php">Church Plants</a></li>    
 		                {% endif %}  
                         
-                        {% if currentPage == '/connect/missions/trips.php' %}
+                        {% if currentPage == '/connect/missions/trips.php' or currentPage == '/connect/missions/trips.php/' %}
 			                <li class="active"><a href="/connect/missions/trips.php">Mission Trips</a></li>    
 		                {% else %}
 			                <li><a href="/connect/missions/trips.php">Mission Trips</a></li>    
 		                {% endif %}  
                         
-                        {% if currentPage == '/connect/missions/lifebridge' %}
+                        {% if currentPage == '/connect/missions/lifebridge' or currentPage == '/connect/missions/lifebridge/' %}
 			                <li class="active"><a href="/connect/missions/lifebridge/">LifeBridge</a></li>    
 		                {% else %}
 			                <li><a href="/connect/missions/lifebridge/">LifeBridge</a></li>    
@@ -97,19 +97,19 @@
                     </ul>
                 </li>
                 
-                {% if currentPage == '/connect/generous-living' %}
+                {% if currentPage == '/connect/generous-living' or currentPage == '/connect/generous-living/' %}
 			        <li class="active"><a href="/connect/generous-living/">Generous Living</a></li>    
 		        {% else %}
 			        <li><a href="/connect/generous-living/">Generous Living</a></li>    
 		        {% endif %} 
                 
-                {% if currentPage == '/connect/deaf-and-disabilities-ministry' %}
+                {% if currentPage == '/connect/deaf-and-disabilities-ministry' or currentPage == '/connect/deaf-and-disabilities-ministry/'  %}
 			        <li class="active"><a href="/connect/deaf-and-disabilities-ministry/">Deaf &amp; Disabilities</a></li>    
 		        {% else %}
 			        <li><a href="/connect/deaf-and-disabilities-ministry/">Deaf &amp; Disabilities</a></li>    
 		        {% endif %} 
                 
-                {% if currentPage == '/connect/care' or currentPage == '/connect/care/care-faq' or currentPage == '/connect/care/encounter-groups' or currentPage == '/connect/care/mentoring' %}
+                {% if currentPage == '/connect/care' or currentPage == '/connect/care/' or currentPage == '/connect/care/care-faq' or currentPage == '/connect/care/care-faq/' or currentPage == '/connect/care/encounter-groups' or or currentPage == '/connect/care/encounter-groups/' or currentPage == '/connect/care/mentoring' or or currentPage == '/connect/care/mentoring/' %}
                     <li class="dropdown active">   
                 {% else %}
                     <li class="dropdown">
@@ -118,25 +118,25 @@
                     <button class="toggle">Care Ministry</button>
                     <ul>
                         
-                        {% if currentPage == '/connect/care' %}
+                        {% if currentPage == '/connect/care' or currentPage == '/connect/care/' %}
 			                <li class="active"><a href="/connect/care/">Care Overview</a></li>    
 		                {% else %}
 			                <li><a href="/connect/care/">Care Overview</a></li>    
 		                {% endif %} 
                         
-                        {% if currentPage == '/connect/care/care-faq' %}
+                        {% if currentPage == '/connect/care/care-faq' or currentPage == '/connect/care/care-faq/' %}
 			                <li class="active"><a href="/connect/care/care-faq/">Care FAQ</a></li>    
 		                {% else %}
 			                <li><a href="/connect/care/care-faq/">Care FAQ</a></li>    
 		                {% endif %} 
                         
-                        {% if currentPage == '/connect/care/encounter-groups' %}
+                        {% if currentPage == '/connect/care/encounter-groups' or currentPage == '/connect/care/encounter-groups/' %}
 			                <li class="active"><a href="/connect/care/encounter-groups/">Encounter Groups</a></li>    
 		                {% else %}
 			                <li><a href="/connect/care/encounter-groups/">Encounter Groups</a></li>    
 		                {% endif %} 
                         
-                        {% if currentPage == '/connect/care/mentoring' %}
+                        {% if currentPage == '/connect/care/mentoring' or currentPage == '/connect/care/mentoring/' %}
 			                <li class="active"><a href="/connect/care/mentoring/">Mentoring</a></li>    
 		                {% else %}
 			                <li><a href="/connect/care/mentoring/">Mentoring</a></li>    
@@ -145,7 +145,7 @@
                     </ul>
                 </li>
                 
-                {% if currentPage == '/connect/sports-fitness' %}
+                {% if currentPage == '/connect/sports-fitness' or currentPage == '/connect/sports-fitness/' %}
 			        <li class="active"><a href="/connect/sports-fitness/">Sports &amp; Fitness</a></li>    
 		        {% else %}
 			        <li><a href="/connect/sports-fitness/">Sports &amp; Fitness</a></li>    
