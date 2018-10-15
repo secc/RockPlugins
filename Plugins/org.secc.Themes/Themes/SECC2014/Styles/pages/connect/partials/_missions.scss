@@ -2,33 +2,6 @@
 	Missions: Sets the style for certain aspects of the Missions Page
 ----------------------------------------------------------------------------------- */
 
-@media (min-width: 768px) {
-  .missionsBody .section-header::before {
-    margin-left: -53%;
-    text-align: right;
-  }
-}
-
-@media (min-width: 768px) {
-  .missionsBody .section-header::after {
-    margin-left: 3%;
-  }
-}
-
-@media (min-width: 768px) {
-  .missionsBody .section-header {
-    &::after, &::before {
-      position: absolute;
-      top: 51%;
-      overflow: hidden;
-      width: 50%;
-      height: 1px;
-      content: '\a0';
-      background-color: rgba(160, 157, 153, 0.3);
-    }
-  }
-}
-
 .missionsBody {
   .section-header.inverse {
     &::after, &::before {
@@ -52,49 +25,7 @@
   }
 }
 
-@media only screen and (max-width: 600px) {
-  .missionsBody .jarallax {
-    min-height: 300px !important;
-  }
-}
-
-@media only screen and (min-width: 601px) and (max-width: 1200px) {
-  .missionsBody .jarallax {
-    min-height: 400px !important;
-  }
-}
-
-@media (max-width: 767px) {
-  .missionsBody .hidden-xs {
-    display: none !important;
-  }
-}
-
-@media (min-width: 768px) and (max-width: 991px) {
-  .missionsBody .hidden-sm {
-    display: none !important;
-  }
-}
-
-@media (min-width: 992px) and (max-width: 1199px) {
-  .missionsBody .hidden-md {
-    display: none !important;
-  }
-}
-
-@media (min-width: 1200px) {
-  .missionsBody .hidden-lg {
-    display: none !important;
-  }
-}
-
 @charset "UTF-8";
-
-@media (max-width: 991px) {
-  .missionsBody aside + * {
-    margin-top: 1em;
-  }
-}
 
 .section-header::before {
   background-color: rgba(0, 0, 0, 0.3);
@@ -372,46 +303,185 @@
   }
 }
 
+.upgotd-cite a {
+  font-weight: normal;
+  font-size: 10px;
+}
+
+.missionsBody .upgotd-logo {
+  padding: 0px 2px 4px 2px;
+  width: 22px;
+  height: 20px;
+}
+
+@media (min-width: 768px) {
+  .missionsBody {
+    .section-header {
+      &::before {
+        margin-left: -53%;
+        text-align: right;
+      }
+      &::after {
+        margin-left: 3%;
+        position: absolute;
+        top: 51%;
+        overflow: hidden;
+        width: 50%;
+        height: 1px;
+        content: '\a0';
+        background-color: rgba(160, 157, 153, 0.3);
+      }
+      &::before {
+        position: absolute;
+        top: 51%;
+        overflow: hidden;
+        width: 50%;
+        height: 1px;
+        content: '\a0';
+        background-color: rgba(160, 157, 153, 0.3);
+      }
+    }
+    .enhanced-photos {
+      #PRAY_THUMB::after {
+        background: url(/Content/Connect/send_cover.jpg) 50% top no-repeat;
+      }
+      #SEND_THUMB::after {
+        background: url(/Content/Connect/studying.jpg) 50% top no-repeat;
+      }
+      #GO_THUMB::after {
+        background: url("https://rock.secc.org/Content/Connect/helping_others.jpg") 50% top no-repeat;
+      }
+      .sp-photo::after {
+        position: absolute;
+        content: "";
+        background-size: cover;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: -1;
+      }
+    }
+  }
+}
+
+@media only screen and (max-width: 600px) {
+  .missionsBody .jarallax {
+    min-height: 300px !important;
+  }
+}
+
+@media only screen and (min-width: 601px) and (max-width: 1200px) {
+  .missionsBody .jarallax {
+    min-height: 400px !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .missionsBody {
+    .hidden-xs {
+      display: none !important;
+    }
+    .enhanced-photos .sp-photo {
+      width: 100%;
+      height: auto;
+      padding-bottom: 1em;
+      padding-top: 1em;
+      &.inactive {
+        background-color: #a09d99;
+      }
+      .carousel-inner .carousel-caption {
+        display: none;
+      }
+      .photo-content {
+        position: relative;
+        margin-bottom: 3%;
+        .missions_icon {
+          width: 80%;
+          margin-left: 20%;
+        }
+        .description {
+          text-align: left;
+          font-size: 1em;
+          padding: 0;
+          width: 60%;
+        }
+        .photo-title {
+          width: 75%;
+          margin: 0.5em auto 0;
+        }
+        h3 {
+          text-align: left;
+          font-size: 25px;
+          margin: 0;
+          background: 0 0;
+        }
+        .speaker {
+          text-align: left;
+          margin: 0;
+        }
+      }
+    }
+  }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  .missionsBody {
+    .hidden-sm {
+      display: none !important;
+    }
+    .enhanced-photos .sp-photo {
+      padding-bottom: 44%;
+      .photo-content {
+        .description {
+          font-size: .85em;
+          visibility: hidden;
+        }
+        h3 {
+          background: 0 0;
+          font-size: 1.5em;
+        }
+      }
+      &:not(.inactive) .photo-content {
+        .description {
+          visibility: visible;
+          font-weight: bolder;
+        }
+        p {
+          visibility: visible;
+        }
+      }
+    }
+  }
+}
+
+@media (min-width: 1200px) {
+  .missionsBody .hidden-lg {
+    display: none !important;
+  }
+}
+
 @media (max-width: 991px) {
-  .missionsBody .mission-actions {
-    > div {
-      margin-bottom: 2em;
+  .missionsBody {
+    aside + * {
+      margin-top: 1em;
     }
-    h3.copy {
-      margin-bottom: 10px;
-      font-size: 18px;
+    .mission-actions {
+      > div {
+        margin-bottom: 2em;
+      }
+      h3.copy {
+        margin-bottom: 10px;
+        font-size: 18px;
+      }
+      h4 {
+        margin-bottom: 0;
+        font-size: 15px;
+      }
     }
-    h4 {
-      margin-bottom: 0;
-      font-size: 15px;
+    .enhanced-photos .sp-photo {
+      background-color: rgba(35, 31, 32, 0.77);
     }
-  }
-}
-
-@media (min-width: 768px) {
-  .missionsBody .enhanced-photos {
-    #PRAY_THUMB::after {
-      background: url(/Content/Connect/send_cover.jpg) 50% top no-repeat;
-    }
-    #SEND_THUMB::after {
-      background: url(/Content/Connect/studying.jpg) 50% top no-repeat;
-    }
-    #GO_THUMB::after {
-      background: url("https://rock.secc.org/Content/Connect/helping_others.jpg") 50% top no-repeat;
-    }
-  }
-}
-
-@media (min-width: 768px) {
-  .missionsBody .enhanced-photos .sp-photo::after {
-    position: absolute;
-    content: "";
-    background-size: cover;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: -1;
   }
 }
 
@@ -430,101 +500,21 @@
 }
 
 @media (min-width: 992px) and (max-width: 1199px) {
-  .missionsBody .enhanced-photos .sp-photo .photo-content {
-    margin-bottom: 5%;
-    .description {
-      font-size: 0.85em;
-    }
-    h3 {
-      font-size: 1.5em;
-    }
-    .speaker {
-      margin-top: 5px;
-    }
-  }
-}
-
-@media (max-width: 991px) {
-  .missionsBody .enhanced-photos .sp-photo {
-    background-color: rgba(35, 31, 32, 0.77);
-  }
-}
-
-@media (min-width: 768px) and (max-width: 991px) {
-  .missionsBody .enhanced-photos .sp-photo {
-    padding-bottom: 44%;
-    .photo-content {
+  .missionsBody {
+    .enhanced-photos .sp-photo .photo-content {
+      margin-bottom: 5%;
       .description {
-        font-size: .85em;
-        visibility: hidden;
+        font-size: 0.85em;
       }
       h3 {
-        background: 0 0;
         font-size: 1.5em;
       }
-    }
-    &:not(.inactive) .photo-content {
-      .description {
-        visibility: visible;
-        font-weight: bolder;
-      }
-      p {
-        visibility: visible;
-      }
-    }
-  }
-}
-
-@media (max-width: 767px) {
-  .missionsBody .enhanced-photos .sp-photo {
-    width: 100%;
-    height: auto;
-    padding-bottom: 1em;
-    padding-top: 1em;
-    &.inactive {
-      background-color: #a09d99;
-    }
-    .carousel-inner .carousel-caption {
-      display: none;
-    }
-    .photo-content {
-      position: relative;
-      margin-bottom: 3%;
-      .missions_icon {
-        width: 80%;
-        margin-left: 20%;
-      }
-      .description {
-        text-align: left;
-        font-size: 1em;
-        padding: 0;
-        width: 60%;
-      }
-      .photo-title {
-        width: 75%;
-        margin: 0.5em auto 0;
-      }
-      h3 {
-        text-align: left;
-        font-size: 25px;
-        margin: 0;
-        background: 0 0;
-      }
       .speaker {
-        text-align: left;
-        margin: 0;
+        margin-top: 5px;
       }
     }
+    .hidden-md {
+      display: none !important;
+    }
   }
-}
-
-.upgotd-cite a {
-  font-weight: normal;
-  font-size: 10px;
-}
-
-.missionsBody .upgotd-logo {
-  padding: 0px 2px 4px 2px;
-  width: 22px;
-  height: 20px;
 }
