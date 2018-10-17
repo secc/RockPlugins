@@ -508,12 +508,6 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 //Need to move this person to a different location
                 if ( !attendancesToModify.Any() && req.Override )
                 {
-                    var authorizedPerson = ValidationHelper.TestPin( rockContext, req.PIN );
-                    if ( authorizedPerson == null )
-                    {
-                        return new Response( false, "PIN not authorized", false );
-                    }
-
                     AttributeValueService attributeValueService = new AttributeValueService( new RockContext() );
                     var childGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "False" ).Select( av => av.EntityId.Value ).ToList();
 
@@ -557,7 +551,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
 
                     DataHelper.CloseActiveAttendances( rockContext, attendeeAttendance, location, isSubroom );
                     //Set person history showing that the person was moved on scan in
-                    DataHelper.AddMoveHistory( rockContext, location, attendeeAttendance, authorizedPerson, isSubroom );
+                    DataHelper.AddMoveHistory( rockContext, location, attendeeAttendance, isSubroom );
                     rockContext.SaveChanges();
                     return DataHelper.GetEntryResponse( rockContext, person, location );
                 }
