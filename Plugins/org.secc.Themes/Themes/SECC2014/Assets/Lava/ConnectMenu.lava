@@ -116,10 +116,8 @@
                     <li class="dropdown">
                 {% endif %}
 
-                    <a href="javascript:void(0)" class="toggle">Care Ministry</button>
-                    <ul>
-
-                        {% if currentPage == '/connect/care' or currentPage == '/connect/care/' %}
+                    <a href="javascript:void(0)" class="toggle">Care Ministry</a>
+                    <ul>{% if currentPage == '/connect/care' or currentPage == '/connect/care/' %}
 			                <li class="active"><a href="/connect/care/">Care Overview</a></li>
 		                {% else %}
 			                <li><a href="/connect/care/">Care Overview</a></li>
