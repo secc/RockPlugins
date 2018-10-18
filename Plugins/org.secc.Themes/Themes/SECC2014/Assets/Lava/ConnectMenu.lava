@@ -1,4 +1,5 @@
 <!-- LAVA FILE FOR CONNECT MENU -->
+<!-- This creates the Connect Menu -->
 
     <!-- Assign the Global Page: Path filter to a local variable so we can use it in IF statements -->
     {% assign currentPage = 'Global' | Page:'Path' %}
