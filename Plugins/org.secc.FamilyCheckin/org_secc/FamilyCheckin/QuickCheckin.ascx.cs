@@ -371,6 +371,16 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 .SelectMany( f => f.People )
                 .OrderBy( p => p.Person.BirthDate );
 
+            //If all the people are can check-in relationships, only show them
+            if ( !people.Where( p => p.FamilyMember ).Any() )
+            {
+                foreach (var person in people )
+                {
+                    person.FamilyMember = true;
+                }
+                SaveState();
+            }
+
             btnAddPerson.Visible = people.Where( p => !p.FamilyMember ).Any();
 
             int i = 0;
