@@ -28,7 +28,7 @@
 		        {% endif %}
 
                 {% if currentPage == '/connect/children' or currentPage == '/connect/children/' %}
-			        <li class="active"><a href="/connect/children/">CHILDREN</a></li>
+			        <li class="active"><a href="/connect/children/">Children</a></li>
 		        {% else %}
 			        <li><a href="/connect/children/">Children</a></li>
 		        {% endif %}
@@ -57,7 +57,7 @@
                     <li class="dropdown">
                 {% endif %}
 
-                    <button class="toggle">Missions</button>
+                    <a href="javascript:void(0)" class="toggle">Missions</a>
                     <ul>
                         {% if currentPage == '/connect/missions' or currentPage == '/connect/missions/' %}
 			                <li class="active"><a href="/connect/missions/">Missions Overview</a></li>
@@ -116,7 +116,7 @@
                     <li class="dropdown">
                 {% endif %}
 
-                    <button class="toggle">Care Ministry</button>
+                    <a href="javascript:void(0)" class="toggle">Care Ministry</button>
                     <ul>
 
                         {% if currentPage == '/connect/care' or currentPage == '/connect/care/' %}
