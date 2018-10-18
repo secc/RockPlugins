@@ -1726,10 +1726,10 @@ h1.copy{
 .clickable{
     font-family:proxima-nova-n7,proxima-nova,"Helvetica Neue",Helvetica,Arial,sans-serif;
     font-weight:600;
-    color:#fecd08
+    color:#F3823D
 }
 section.with-header header{
-    background-color:#fecd08!important;
+    background-color:#F3823D!important;
     color:#222!important
 }
 #Intro .banner-image{
@@ -1848,7 +1848,7 @@ section.with-header header{
     font-style:italic;
     text-transform:uppercase;
     color:#fff;
-    background-color:rgba(254,205,8,.77);
+    background-color:rgba(243,130,61,.77);
     letter-spacing:0;
     padding-top:.15em;
     padding-bottom:.15em
@@ -1883,7 +1883,7 @@ section.with-header header{
 }
 @media (min-width:992px){
     .video-list .sp-video:not(.inactive):hover{
-        background-color:#fecd08;
+        background-color:#F3823D;
         cursor:pointer
     }
     .video-list .sp-video:not(.inactive):hover .play-button,.video-list .sp-video:not(.inactive):hover p{
@@ -1909,7 +1909,7 @@ section.with-header header{
 }
 @media (max-width:991px){
     .video-list .sp-video{
-        background-color:rgba(254,205,8,.77)
+        background-color:rgba(243,130,61,.77)
     }
 }
 @media (min-width:768px) and (max-width:991px){
@@ -2034,7 +2034,7 @@ section.with-header header{
     font-size:1.2em;
     border-top:2px solid #fff;
     padding:1.5em 0!important;
-    background-color:#fecd08;
+    background-color:#F3823D;
     color:#FFF;
     text-align:center
 }
@@ -2074,7 +2074,7 @@ section.with-header header{
     padding:0
 }
 #EmailModal header,#FaqModal header,#ThanksModal header{
-    background-color:#fecd08;
+    background-color:#F3823D;
     color:#fff;
     border-top-color:rgba(0,0,0,.2);
     border-top-left-radius:5px;
@@ -2120,7 +2120,7 @@ section.with-header header{
     width:3em!important
 }
 .submit{
-    background-color:#fecd08!important;
+    background-color:#F3823D!important;
     color:#fff!important;
     border:none!important
 }
@@ -2144,7 +2144,7 @@ section.with-header header{
     cursor:pointer
 }
 #MembershipForm .input-group .dropup .dropdown-menu li:hover{
-    background:#fecd08;
+    background:#F3823D;
     color:#fff
 }
 #MembershipForm .input-group .btn{
@@ -2287,7 +2287,7 @@ margin-top: -2px !important;
 				<h1 style="text-align: center;">Our Statement of Faith</h1>
 				<p style="text-align:center; margin-bottom: 2em; font-size: .95em;">Hover or click on the <i class="fa fa-book"></i> to see Scripture references</p>
 				<div class="container-fluid">
-					
+
 					<div class="row">
 						<div class="col-md-6">
 							<ul class="list-unstyled beliefs">
@@ -2551,7 +2551,7 @@ margin-top: -2px !important;
 					</div>
 				</div>
 				<div class="col-sm-5">
-					<img src="/Themes/SECC2014/Assets/img/starting-point/intro-banner.jpg" class="img-responsive banner-image" />
+					<img src="/Content/Connect/Starting_Point.jpg" class="img-responsive banner-image img-rounded" />
 					<p>If you’re new to Southeast or just want to learn more about who we are and what we believe, join us for Starting Point. No matter your previous church experience, this class is the best place to begin. You’ll learn more about Jesus, the Bible, and who we are as a church. If you can’t make it to Starting Point in person, you’ll find content from the class below so you can still participate online.</p>
 					<p class="text-center"><a href="https://www.southeastchristian.org/events/starting-point/"  class="btn-normal text-center">Find and register for upcoming<br /> <b>Starting Point</b> classes here.</a></p>
 				</div>
