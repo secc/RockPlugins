@@ -50,6 +50,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             mdChoose.Header.Visible = false;
             mdChoose.Footer.Visible = false;
+            mdAddPerson.Header.Visible = false;
+            mdAddPerson.Footer.Visible = false;
         }
 
         protected override void OnLoad( EventArgs e )
@@ -68,6 +70,18 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             if ( !Page.IsPostBack )
             {
+                //Clear UI state from session
+                Session["modalActive"] = false;
+                if ( Session["modalActive"] != null )
+                {
+                    Session.Remove( "modalPerson" );
+                }
+                if ( Session["modalPerson"] != null )
+                {
+                    Session.Remove( "modalSchedule" );
+                }
+
+
                 List<string> errors = new List<string>();
                 string workflowActivity = GetAttributeValue( "WorkflowActivity" );
                 try
@@ -185,6 +199,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 {
                     ShowRoomChangeModal( ( Person ) Session["modalPerson"], ( CheckInSchedule ) Session["modalSchedule"] );
                 }
+                else
+                {
+                    showAddPersonModal();
+                }
+
             }
         }
 
@@ -340,6 +359,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private void DisplayPeople()
         {
+            phPeople.Controls.Clear();
             if ( CurrentCheckInState == null )
             {
                 LogException( new CheckInStateLost( "Lost check-in state on displaying people" ) );
@@ -347,12 +367,16 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 return;
             }
 
-            var people = CurrentCheckInState.CheckIn.Families.SelectMany( f => f.People ).OrderBy( p => p.Person.BirthDate );
+            var people = CurrentCheckInState.CheckIn.Families
+                .SelectMany( f => f.People )
+                .OrderBy( p => p.Person.BirthDate );
+
+            btnAddPerson.Visible = people.Where( p => !p.FamilyMember ).Any();
 
             int i = 0;
             Panel hgcRow = new Panel();
 
-            foreach ( var person in people )
+            foreach ( var person in people.Where( p => p.FamilyMember ) )
             {
                 //Unselect person if no groups selected
                 if ( person.Selected && !PersonHasSelectedGroup( person ) )
@@ -666,6 +690,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                         {
                             ChangeRoomSelection( person, schedule, groupType, group, location );
                             Session["modalActive"] = false;
+                            Session.Remove( "modalPerson" );
+                            Session.Remove( "modalSchedule" );
                             mdChoose.Hide();
                             phPeople.Controls.Clear();
                             DisplayPeople();
@@ -688,6 +714,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 ClearRoomSelection( person, schedule );
                 Session["modalActive"] = false;
+                Session.Remove( "modalPerson" );
+                Session.Remove( "modalSchedule" );
                 mdChoose.Hide();
                 phPeople.Controls.Clear();
                 DisplayPeople();
@@ -1123,6 +1151,71 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         {
             //trigger the final checkin process!
             ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "doCheckin", "doCheckin();", true );
+        }
+
+        protected void addPerson_Click( object sender, EventArgs e )
+        {
+            showAddPersonModal();
+        }
+
+        private void showAddPersonModal()
+        {
+            phAddPerson.Controls.Clear();
+            var people = CurrentCheckInState.CheckIn.Families
+                .SelectMany( f => f.People )
+                .Where( p => !p.FamilyMember )
+                .OrderByDescending( p => p.Person.Age );
+
+            if ( !people.Any() )
+            {
+                Session["modalActive"] = false;
+                mdAddPerson.Hide();
+                DisplayPeople();
+                return;
+            }
+
+            foreach ( var person in people )
+            {
+                Session["modalActive"] = true;
+                Panel hgcPadding = new Panel();
+                hgcPadding.CssClass = "col-md-8 col-md-offset-2 col-xs-12";
+                hgcPadding.Style.Add( "padding", "5px" );
+                phAddPerson.Controls.Add( hgcPadding );
+
+                //Change room button
+                BootstrapButton btnPerson = new BootstrapButton();
+                btnPerson.ID = "btnAddPerson" + person.Person.Id.ToString();
+                btnPerson.Text = person.Person.FullName;
+
+                btnPerson.CssClass = "btn btn-success btn-block btn-lg";
+                btnPerson.Click += ( s, e ) =>
+                {
+                    person.FamilyMember = true;
+                    SaveState();
+                    showAddPersonModal();
+                };
+                btnPerson.DataLoadingText = "<i class='fa fa-refresh fa-spin'></i> Adding: " + person.Person.FullName + "to check-in...";
+                hgcPadding.Controls.Add( btnPerson );
+            }
+            Panel hgcCancelPadding = new Panel();
+            hgcCancelPadding.CssClass = "col-md-8 col-md-offset-2 col-xs-12";
+            hgcCancelPadding.Style.Add( "padding", "5px" );
+            phAddPerson.Controls.Add( hgcCancelPadding );
+
+            BootstrapButton btnDone = new BootstrapButton();
+            btnDone.ID = "btnDone";
+            btnDone.Text = "Done";
+            btnDone.CssClass = "btn btn-danger btn-lg col-md-8 col-xs-12 btn-block";
+            btnDone.Click += ( s, e ) =>
+            {
+                Session["modalActive"] = false;
+                mdAddPerson.Hide();
+                DisplayPeople();
+            };
+            btnCancel.DataLoadingText = "<i class='fa fa-refresh fa-spin'></i> Closing...";
+            hgcCancelPadding.Controls.Add( btnDone );
+
+            mdAddPerson.Show();
         }
     }
 
