@@ -46,7 +46,7 @@
             </li>
             <li>
                 <a href="#Activities">
-                    <b>Activities &amp; Food</b>
+                    <b>Activities</b>
                     <span><i class="fa fa-street-view"></i></span>
                 </a>
             </li>
@@ -84,10 +84,10 @@
         <div class="container-fluid left-aligned">
             <div class="row">
                 <div class="col-sm-10 col-sm-offset-1 animated wow fadeInRight">
-                    <h1>December 8 &amp; 10-15</h1>
+                    <h1>DECEMBER 7 &amp; 9-14</h1>
                     <p><strong>You’re invited to a free Christmas event open to the community!</strong></p>
-                    <p>Join us at this winter wonderland of light displays, train rides, and indoor ice-skating rinks. Walk through an old-timey Christmas village to meet our Mission Partners. And see the reason for the season with a nightly Christmas program and live nativity scene.</p>
-                    <p>Don’t miss this week of musical performances, rides, sweet treats, and activities for all ages as we <i>Celebrate Christmas Together</i>!</p>
+                    <p>Join us at this winter wonderland of train rides, an outdoor ice-skating rink, inflatables for all ages, crafts, a snowball frenzy, activities for the whole family, an opportunity to engage with some of our mission partners, light displays, and more!</p>
+                    <p>Don’t miss this week of musical performances and activities for all ages as we <i>Celebrate Christmas Together</i>!</p>
                     <br />
                 </div>
             </div>
@@ -99,14 +99,14 @@
             <div class="row">
                 <div class="col-sm-10 col-sm-offset-1 text-center" style="margin-bottom:1em">
                     <h1 style="color:white;">Hours:</h1><br />
-                    <p class="wow fadeInLeft" style="font-weight: 100;color: #797549; text-transform: uppercase; font-size: 2em;">Friday, December 8 • 5:00-10:00 p.m.</p>
-                    <p style="margin:0px;">Christmas program in the Sanctuary at 6:00, 8:00, &amp; 10:00 p.m.</p>
-                    <br /><br />
-                    <p class="wow fadeInLeft" style="font-weight: 100;color: #797549; text-transform: uppercase; font-size: 2em;" data-wow-delay=".3s">December 10-14 • 5:00-9:00 p.m.</p>
+                    <p class="wow fadeInLeft" style="font-weight: 100;color: #797549; text-transform: uppercase; font-size: 2em;">FRIDAY, DECEMBER 7 • 5:00-10:00 P.M.</p>
                     <p style="margin:0px;">Christmas program in the Sanctuary at 6:00 &amp; 8:00 p.m.</p>
+                    <br /><br />
+                    <p class="wow fadeInLeft" style="font-weight: 100;color: #797549; text-transform: uppercase; font-size: 2em;" data-wow-delay=".3s">SUNDAY-THURSDAY, DECEMBER 9-13 • 5:00-9:00 P.M.</p>
+                    <p style="margin:0px;">Christmas program in the Sanctuary at 6:00 & 8:00 p.m.</p>
                     <br />
-					<p class="wow fadeInLeft" style="font-weight: 100;color: #797549; text-transform: uppercase; font-size: 2em;">Friday, December 15 • 5:00-10:00 p.m.</p>
-                    <p style="margin:0px;">Christmas program in the Sanctuary at 6:00, 8:00, &amp; 10:00 p.m.</p>
+					<p class="wow fadeInLeft" style="font-weight: 100;color: #797549; text-transform: uppercase; font-size: 2em;">FRIDAY, DECEMBER 15 • 5:00-10:00 P.M.</p>
+                    <p style="margin:0px;">Christmas program in the Sanctuary at 6:00 & 8:00 p.m.</p>
                     <br /><br />
                     <h4 class="header-subtle"><i>No Celebrate Christmas Together programs or activities on Saturday, December 9.</i></h4>
                     <br />
@@ -124,17 +124,16 @@
 					<br />
 				</div>
 				<div class="col-sm-5 col-sm-offset-1 animated wow fadeInLeft" data-wow-duration="1s">
-                    <p style="text-transform: uppercase;"><strong>Nightly Christmas Program</strong></p>
+                    <p style="text-transform: uppercase;"><strong>NIGHTLY CHRISTMAS PROGRAM</strong></p>
                     <p>Get into the Christmas spirit as you watch a heartwarming, musical Christmas story come to life. Performances will take place in the Sanctuary every night of Celebrate Christmas Together and will last about 45 minutes. All other activities will be open during performances.</p>
                     <br />
-                    <p style="text-transform: uppercase;"><strong>Christmas Program Times</strong></p>
-                    <p>Friday, December 8 &amp; 15: 6:00, 8:00, &amp; 10:00 p.m.<br />
-                       December 10-14: 6:00 &amp; 8:00 p.m.</p>
+                    <p style="text-transform: uppercase;"><strong>CHRISTMAS PROGRAM TIMES</strong></p>
+                    <p>Friday, December 7, 9-14: 6:00 & 8:00 p.m.</p>
 					<br />
                 </div>
             	<div class="col-sm-5 animated wow fadeInRight" data-wow-duration="1s">
-                    <p style="text-transform: uppercase;"><strong>Live Nativity</strong></p>
-                    <p>A live nativity will also be part of <i>Celebrate Christmas Together</i>. Let your imagination wander back 2,000 years as you witness a depiction of the manger scene on the night Jesus was born, featuring live characters and animals. </p>
+                    <p style="text-transform: uppercase;"><strong>OUTDOOR LIVE NATIVITY</strong></p>
+                    <p>An outdoor live nativity will also be part of Celebrate Christmas Together. Let your imagination wander back 2,000 years as you witness a depiction of the manger scene on the night Jesus was born, featuring live characters and animals.</p>
                 </div>
             </div>
         </div>
@@ -143,7 +142,7 @@
     <section id="Activities" class="cd-section christmas-font">
         <div class="container-fluid left-aligned">
             <div class="row">
-                <div class="col-sm-6 col-sm-offset-1">
+                <div class="col-sm-10 col-sm-offset-1">
                     <h1 class="animated wow lightSpeedIn" style="font-weight: 700; letter-spacing: 5px;">Activities</h1>
                     <p>This is a FREE, family-friendly event for all ages that is open everyone in the community. Activities will include:</p>
 					<br />
@@ -160,7 +159,7 @@
 	                       <i class="fa fa-train" aria-hidden="true"></i>Trackless Train
 					    </p>
 						<p class="wow fadeInLeft activity" data-wow-delay=".6s">
-	                       <i class="fa fa-snowflake-o" aria-hidden="true"></i>Indoor Ice Skating Rinks
+	                       <i class="fa fa-snowflake-o" aria-hidden="true"></i>Outdoor Ice Skating Rink
 					    </p>
 						<p class="wow fadeInRight activity" data-wow-delay=".8s">
 	                       <i class="fa fa-paint-brush" aria-hidden="true"></i>Crafts
@@ -189,21 +188,22 @@
 	                       <i class="fa fa-th" aria-hidden="true"></i>Bingo
 					    </p>
 						<p class="wow fadeInRight activity" data-wow-delay=".8s">
-	                       <i class="fa fa-tree" aria-hidden="true"></i>Candy Cane Tree
+	                       <i class="fa fa-tree" aria-hidden="true"></i>Candy Cane Tree Land
 					    </p>
 						<p class="wow fadeInLeft activity" data-wow-delay="1s">
-	                       <i class="fa fa-pencil-square" aria-hidden="true"></i>Giant Color by Numbers
+	                       <i class="fa fa-pencil-square" aria-hidden="true"></i>Inflatables
+					    </p>
+						<p class="wow fadeInLeft activity" data-wow-delay="1s">
+	                       <i class="fa fa-pencil-square" aria-hidden="true"></i>Animal Riders for kids
+					    </p>
+						<p class="wow fadeInLeft activity" data-wow-delay="1s">
+	                       <i class="fa fa-pencil-square" aria-hidden="true"></i>Star Express
 					    </p>
 						<p class="wow fadeInRight activity" data-wow-delay="1.2s">
 	                       <i class="fa fa-snowflake-o" aria-hidden="true"></i>And More!
 					    </p>
 						<br />
 					</div>
-                </div>
-                <div class="col-sm-4">
-                    <h1 class="animated wow fadeIn">Food</h1>
-                    <p>Don’t stress about dinner! For your convenience, boxed meals will be available for purchase each night from 5:00-8:00 p.m.</p>
-					<p>Meals will cost $4 each and include a turkey or ham sandwich (your choice), chips, a cookie, and a bottled water.</p>
                 </div>
             </div>
         </div>
@@ -230,7 +230,7 @@
 						</span>
 						<div class="caption clearfix">
 							<p>Scarlet Hope exists to share the hope and love of Jesus Christ with women in the adult entertainment industry.</p>
-							<p><span class="marketplace">In the Marketplace</span></span>Purchase some delicious baked goods from Scarlet’s Bakery at the Scarlet Hope storefront.</p>
+							<p><span class="marketplace">In the Marketplace</span></span>Purchase some delicious baked goods, coffee(bags), mugs, t-shirts and cookie tins from Scarlet’s Bakery at the Scarlet Hope storefront.</p>
 						</div>
 					</div>
 
@@ -244,6 +244,19 @@
 						<div class="caption clearfix">
 							<p>The MAYA Collection meets at Refuge Louisville and serves refugees by sharing the love of Christ through mentoring, teaching, and relationships. Refugees utilize their native skills to create unique jewelry, handmade crafts and soaps, and various textile products. The purpose that drives these artisans is to help themselves become financially independent.</p>
 							<p><span class="marketplace">In the Marketplace</span>A variety of the MAYA Collection’s handmade products will be available at their storefront.</p>
+						</div>
+					</div>
+
+					<div class="card wow fadeInUp" data-wow-duration="1s" data-wow-delay=".2s">
+						<span>
+							<img src="/Content/ExternalSite/WebImages/Christmas/partners/CrossroadsMission.png" alt="Crossroads Mission" class="img-responsive">
+							<hr />
+							<h2><small>Louisville, KY</small></h2>
+							<a href="http://WWW.SERVELOUISVILLE.COM/" target="_blank">WWW.SERVELOUISVILLE.COM</a>
+						</span>
+						<div class="caption clearfix">
+							<p>Crossroads serves as a doorway for churches and individuals seeking to live on mission in Louisville by renovating and assisting families in homeownership.  You could be involved in home renovation, outreach opportunities, and other community transformation activities.</p>
+							<p><span class="marketplace">In the Marketplace</span>Visit Crossroads storefront at Celebrate Christmas Together to learn more about their ministry and to purchase unique ornaments to support them.</p>
 						</div>
 					</div>
 				</div>
@@ -289,43 +302,22 @@
 							<p><span class="marketplace">In the Marketplace</span>Items made in Kenya will be for sale at the LIA storefront. You can also “Give the Gift of Empowerment” by choosing from options such as providing a micro-loan to a family starting a business, purchasing a pair of sheep for a family, or supporting an orphan for one year.</p>
 						</div>
 					</div>
-				</div>
-            </div>
 
-        </div>
-    </section>
-
-	<section id="Giving" class="cd-section cct-green christmas-font">
-        <div class="container-fluid left-aligned">
-            <div class="row">
-				<div class="col-sm-10 col-sm-offset-1 animated wow fadeIn">
-					<h2 style="font-size: 2em;"><i class="fa fa-shopping-bag"></i> Giving Opportunity: Help Fill a Nursing Home Bag</h2 >
-					<br />
-				</div>
-				<div class="col-sm-10 col-sm-offset-1 animated wow fadeInLeft" data-wow-duration="1s">
-                    <p>Join our LifeBridge Ministry as they share the love of Jesus with those in need in our community. We’re partnering with area nursing homes by donating several items that their residents need most. Share some Christmas spirit with nursing home residents in our community by bringing items to contribute to nursing home bags. You can drop off your item(s) during Celebrate Christmas Together—boxes will be available in the Atrium. See the list of needed items below.</p>
-					<br />
-					<div class="col-sm-6">
-						<ul>
-							<li>Small throw or lap blanket</li>
-							<li>Shampoo/conditioner</li>
-							<li>Soap/body wash & bath sponges</li>
-							<li>Lip balm, emery boards</li>
-							<li>Lotions and body sprays</li>
-							<li>Non-slip footies or socks</li>
-						</ul>
+					<div class="card wow fadeInUp" data-wow-duration="1s" data-wow-delay=".5s">
+						<span>
+							<img src="/Content/ExternalSite/WebImages/Christmas/partners/PriscillasPlace.png" alt="PRISCILLA’S PLACE" class="img-responsive">
+							<hr />
+							<h2><small>LOUISVILLE, KY</small></h2>
+							<a href="https://TEENCHALLENGEKY.COM/" target="_blank">TEENCHALLENGEKY.COM</a>
+						</span>
+						<div class="caption clearfix">
+							<p>Priscilla’s Place provides a path to wholeness and purpose for women with life-controlling problems through a faith-based solution. Our Christian residential recovery programs are for women 18 and over who desire freedom from drug or alcohol addiction or other life-controlling problems.</p>
+							<p><span class="marketplace">In the Marketplace</span>Visit Priscilla’s Place storefront at Celebrate Christmas Together to learn more about their ministry and to purchase jams, jellies and other hand-made gifts to help support them.</p>
+						</div>
 					</div>
-					<div class="col-sm-6">
-						<ul>
-							<li>New assorted note cards with pre-stamped envelopes</li>
-							<li>Notepads and pencil/pen</li>
-							<li>Soap/body wash & bath sponges</li>
-							<li>Small wall calendars</li>
-							<li>Large print crossword & puzzle books</li>
-							<li>Large print devotionals</li>
-						</ul>
 				</div>
             </div>
+
         </div>
     </section>
 
@@ -338,6 +330,22 @@
                     {% include '~~/Assets/Lava/Christmas/Mapplic.lava' %}
                 </div>
             </div>
+        </div>
+    </section>
+
+	<section id="Serve" class="cd-section cct-green christmas-font">
+        <div class="container-fluid">
+			<div class="row">
+				<div class="col-sm-10 col-sm-offset-1 text-center">
+					<header>
+						<br />
+						<h1>WANT TO HELP SERVE?</h1>
+						<p style="color: #777777;">As thousands of guests visit our campuses this Christmas, we want to make their experience as smooth and pleasant as possible, because we want them to encounter the hope, peace, joy, and love of Jesus—and we want to see them again! And you can help. No matter what your gifts are, we have a spot for you.</p>
+						<br />
+						<a href="/serve/christmas-services" class="cd-btn sweep-to-top invert" style="font-size: 1.4em;"></span><strong>SIGN UP TO SERVE</strong></a>
+					</header>
+				</div>
+			</div>
         </div>
     </section>
 
@@ -366,7 +374,7 @@
 	                  </div>
 	                  <div id="faq-1-collapse-1" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-1">
 	                    <div class="panel-body">
-							<i>Celebrate Christmas Together</i> is a free Christmas event for everyone in our community. Join us at this winter wonderland of light displays, train rides, and indoor ice-skating rinks. Walk through an old-timey Christmas village to meet our Mission Partners. And see the reason for the season with a nightly Christmas program and live nativity scene.
+							<i>Celebrate Christmas Together</i> is a free Christmas event for everyone in our community. Join us at this winter wonderland of light displays, train rides, an outdoor ice-skating rink, inflatables. Walk through an old-timey Christmas village to meet our Mission Partners. And see the reason for the season with a nightly Christmas program and outdoor live nativity scene.
 						</div>
 	                  </div>
 	                </div><!-- / .panel -->
@@ -383,7 +391,9 @@
 	                  <div id="faq-1-collapse-2" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-2">
 	                    <div class="panel-body">
 							These are just some of the things you’ll experience at <i>Celebrate Christmas Together</i>:<br /><br />
-							Live Outdoor Nativity • Musical Performances • Activities for All Ages • Trackless Train • Indoor Ice Skating Rinks • Crafts • Games • Photo Booths • Carolers • Cakewalk • Indoor Snowball Frenzy • Arcade Games • Bingo • Candy Cane Tree • Giant Color by Numbers • And More!
+							Outdoor Ice-Skating Rink • Live Outdoor Nativity • Musical Performances • Trackless Train • Activities for All Ages • Christmas Village with our Mission Partners • Crafts • Photo Booths • Inflatables for all ages • Carolers • Cakewalk • Indoor Snowball Frenzy • Arcade Games • Bingo • Candy Cane Tree Lane • Animal Riders for kids • Games • Star Express
+							<br /><br />
+							To see a map of where things will be held, <a href="#Map">click here</a>.
 						</div>
 	                  </div>
 	                </div><!-- / .panel -->
@@ -399,7 +409,7 @@
 	                  </div>
 	                  <div id="faq-1-collapse-3" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-3">
 	                    <div class="panel-body">
-							Celebrate Christmas Together will be hosted at Southeast Christian Church’s Blankenbaker Campus, located at 920 Blankenbaker Pkwy, Louisville, KY 40243.
+							<i>Celebrate Christmas Together</i> will be hosted at Southeast Christian Church’s Blankenbaker Campus, located at 920 Blankenbaker Pkwy, Louisville, KY 40243.
 						</div>
 	                  </div>
 	                </div><!-- / .panel -->
@@ -415,13 +425,13 @@
 	                  </div>
 	                  <div id="faq-1-collapse-4" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-4">
 	                    <div class="panel-body">
-							Friday, December 8 &amp; 15 • 5:00-10:00 p.m.<br />
-							Christmas program in the Sanctuary at 6:00, 8:00, &amp; 10:00 p.m.<br />
+							Friday, December 7 &amp; 14 • 5:00-10:00 p.m.<br />
+							Christmas program in the Sanctuary at 6:00 and 8:00 p.m.<br />
 							<br />
-							December 10-14 • 5:00-9:00 p.m.<br />
-							Christmas program in the Sanctuary at 6:00 &amp; 8:00 p.m.<br />
+							December 8-13 • 5:00-9:00 p.m.<br />
+							Christmas program in the Sanctuary at 6:00 and 8:00 p.m.<br />
 							<br />
-							Activities are available all night, including during program performances.
+							Activities are available all nights, including during program performances.
 						</div>
 	                  </div>
 	                </div><!-- / .panel -->
@@ -437,7 +447,7 @@
 	                  </div>
 	                  <div id="faq-1-collapse-5" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-5">
 	                    <div class="panel-body">
-							This event is free. No tickets or reservations are required to enter the event or attend the Christmas program. Free tickets for ice skating and train rides will be available onsite each evening and will not be distributed in advance.
+							This event is free. No tickets or reservations are required to enter the event or attend the Christmas program.
 						</div>
 	                  </div>
 	                </div><!-- / .panel -->
@@ -453,7 +463,7 @@
 	                  </div>
 	                  <div id="faq-1-collapse-6" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-6">
 	                    <div class="panel-body">
-							The event is free, but food and other items will be available for purchase.
+							The event is free, but snacks will be available for purchase.
 						</div>
 	                  </div>
 	                </div><!-- / .panel -->
@@ -485,7 +495,7 @@
 	                  </div>
 	                  <div id="faq-carols" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-carols">
 	                    <div class="panel-body">
-							There will be roaming carolers around the building and Christmas music will be part of the nightly Christmas program.
+							There will be carolers, a kids choir, and our Hope choir that will be traveling around the building singing Christmas carols. Christmas music will be part of the nightly Christmas program as well.
 						</div>
 	                  </div>
 	                </div><!-- / .panel -->
@@ -596,7 +606,7 @@
 	                  </div>
 	                  <div id="myownskates" class="panel-collapse collapse" role="tabpanel" aria-labelledby="myownskates">
 	                    <div class="panel-body">
-							No. Ice skates will be provided.
+							No. Ice skates will be provided. The ice rink is outside, so please dress warmly.
 						</div>
 	                  </div>
 	                </div>
@@ -611,7 +621,7 @@
 	                  </div>
 	                  <div id="whatifneedhelp" class="panel-collapse collapse" role="tabpanel" aria-labelledby="whatifneedhelp">
 	                    <div class="panel-body">
-							Our volunteers throughout the event will be happy to assist you. Visit our Connection Center or security desk for information.
+							Our volunteers throughout the event will be happy to assist you. Visit our Connection Center or security desk for information in the atrium.
 						</div>
 	                  </div>
 	                </div>
@@ -626,7 +636,7 @@
 	                  </div>
 	                  <div id="howmuchtimetraffic" class="panel-collapse collapse" role="tabpanel" aria-labelledby="howmuchtimetraffic">
 	                    <div class="panel-body">
-							Allow at least 30 minutes to get into our campus and our building.
+							Allow at least 30 minutes to get on our campus and into our building. Park in one of our many labeled lots, but please look at the poles to see what letter lot you parked in so we can help direct you back to the correct parking lot.
 						</div>
 	                  </div>
 	                </div>
@@ -656,7 +666,7 @@
 	                  </div>
 	                  <div id="whatshouldIwear" class="panel-collapse collapse" role="tabpanel" aria-labelledby="whatshouldIwear">
 	                    <div class="panel-body">
-							Dress is casual—come as you are! There will be many opportunities for photos, so you are welcome to come dressed up if you wish!
+							Dress is casual—come as you are! There will be many opportunities for photos, so you are welcome to come dressed up if you wish! If you want to ice skate, please dress warmly because it is outside.
 						</div>
 	                  </div>
 	                </div>
@@ -688,11 +698,11 @@
 	                    <div class="panel-body">
 							You are welcome to come on any date, but each campus has a date specifically for their congregation to attend and serve.
 							<br /><br />
-							Elizabethtown Campus: Friday, December 8<br />
-							Crestwood Campus: Monday, December 11<br />
-							La Grange Campus: Tuesday, December 12<br />
-							Southwest Campus: Wednesday, December 13<br />
-							Indiana Campus: Thursday, December 14<br />
+							Elizabethtown Campus: Friday, December 7<br />
+							Crestwood Campus: Monday, December 10<br />
+							La Grange Campus: Tuesday, December 11<br />
+							Southwest Campus: Wednesday, December 12<br />
+							Indiana Campus: Thursday, December 13<br />
 						</div>
 	                  </div>
 	                </div>
