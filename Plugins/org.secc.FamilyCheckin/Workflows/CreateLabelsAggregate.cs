@@ -406,7 +406,7 @@ namespace org.secc.FamilyCheckin
                     //If the cache is empty, fill it up!
                     Guid breakoutGroupTypeGuid = GetAttributeValue( action, "BreakoutGroupType" ).AsGuid();
                     allBreakoutGroups = new GroupService( rockContext ).Queryable( "Members" ).AsNoTracking()
-                       .Where( g => g.GroupType.Guid == breakoutGroupTypeGuid ).ToList();
+                       .Where( g => g.GroupType.Guid == breakoutGroupTypeGuid && g.IsActive ).ToList();
                     var cachePolicy = new CacheItemPolicy();
                     cachePolicy.AbsoluteExpiration = DateTimeOffset.Now.AddMinutes( 10 );
                     cache.Set( cacheKey, allBreakoutGroups, cachePolicy );
