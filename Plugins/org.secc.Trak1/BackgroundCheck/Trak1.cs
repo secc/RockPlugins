@@ -52,6 +52,16 @@ namespace org.secc.Trak1.BackgroundCheck
     [UrlLinkField( "Report URL", "URL to get report of requests.", true, "https://stgapi.trak-1.com/Trak1.WebServices/Integration/GetReportUrl", "", 6 )]
     public class Trak1 : BackgroundCheckComponent
     {
+
+        private Person GetCurrentPerson()
+        {
+            using ( var rockContext = new RockContext() )
+            {
+                var currentUser = new UserLoginService( rockContext ).GetByUserName( UserLogin.GetCurrentUserName() );
+                return currentUser != null ? currentUser.Person : null;
+            }
+        }
+
         /// <summary>
         /// Sends a background request to Trak-1
         /// </summary>
@@ -256,6 +266,21 @@ namespace org.secc.Trak1.BackgroundCheck
                 packages = JsonConvert.DeserializeObject<List<Trak1Package>>( clientResponse );
             }
             return packages;
+        }
+
+        public override string GetReportUrl( string reportKey )
+        {
+            var isAuthorized = this.IsAuthorized( Rock.Security.Authorization.VIEW, this.GetCurrentPerson() );
+
+            if ( isAuthorized )
+            {
+                var filePath = System.Web.VirtualPathUtility.ToAbsolute( "~/GetFile.ashx" );
+                return string.Format( "{0}?guid={1}", filePath, reportKey );
+            }
+            else
+            {
+                return "Unauthorized";
+            }
         }
     }
 }
