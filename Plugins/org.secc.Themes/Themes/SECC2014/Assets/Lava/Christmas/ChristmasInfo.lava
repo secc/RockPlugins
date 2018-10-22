@@ -105,7 +105,7 @@
                     <p class="wow fadeInLeft" style="font-weight: 100;color: #797549; text-transform: uppercase; font-size: 2em;" data-wow-delay=".3s">SUNDAY-THURSDAY, DECEMBER 9-13 • 5:00-9:00 P.M.</p>
                     <p style="margin:0px;">Christmas program in the Sanctuary at 6:00 & 8:00 p.m.</p>
                     <br />
-					<p class="wow fadeInLeft" style="font-weight: 100;color: #797549; text-transform: uppercase; font-size: 2em;">FRIDAY, DECEMBER 15 • 5:00-10:00 P.M.</p>
+					<p class="wow fadeInLeft" style="font-weight: 100;color: #797549; text-transform: uppercase; font-size: 2em;">FRIDAY, DECEMBER 14 • 5:00-10:00 P.M.</p>
                     <p style="margin:0px;">Christmas program in the Sanctuary at 6:00 & 8:00 p.m.</p>
                     <br /><br />
                     <h4 class="header-subtle"><i>No Celebrate Christmas Together programs or activities on Saturday, December 9.</i></h4>
@@ -327,7 +327,10 @@
                 <div class="col-sm-12">
                     <h2>Celebrate Christmas Together Map</h2>
                     <br />
+					<p>MAP coming soon!</p>
+					{% comment %}
                     {% include '~~/Assets/Lava/Christmas/Mapplic.lava' %}
+					{% endcomment %}
                 </div>
             </div>
         </div>
@@ -342,7 +345,7 @@
 						<h1>WANT TO HELP SERVE?</h1>
 						<p style="color: #777777;">As thousands of guests visit our campuses this Christmas, we want to make their experience as smooth and pleasant as possible, because we want them to encounter the hope, peace, joy, and love of Jesus—and we want to see them again! And you can help. No matter what your gifts are, we have a spot for you.</p>
 						<br />
-						<a href="/serve/christmas-services" class="cd-btn sweep-to-top invert" style="font-size: 1.4em;"></span><strong>SIGN UP TO SERVE</strong></a>
+						<a href="/serve/Christmas" class="cd-btn sweep-to-top" style="font-size: 1.4em;"></span><strong>SIGN UP TO SERVE</strong></a>
 					</header>
 				</div>
 			</div>
@@ -548,6 +551,8 @@
 	                  </div>
 	                </div><!-- / .panel -->
 
+
+
 	              </div><!-- / .panel-group .accordion-1 -->
 
 	              <!-- <hr class="mb-sm-50"> -->
@@ -563,6 +568,21 @@
 	              <!-- FAQ Accordion -->
 	              <div class="panel-group accordions-1" id="faq-accordion-2" role="tablist" aria-multiselectable="true">
 
+					  <!-- Item 4 -->
+  	                <div class="panel panel-default">
+  	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-2-snacks" aria-expanded="false" aria-controls="faq-2-snacks">
+  	                    <h4 class="panel-title">
+  	                      <span class="collapsed">
+  	                        Will there be snacks?
+  	                      </span>
+  	                    </h4>
+  	                  </div>
+  	                  <div id="faq-2-snacks" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-snacks">
+  	                    <div class="panel-body">
+  							Yes. We will have light refreshments to purchase for a low cost. We will not have a meal, so please eat before or after you come.
+  						</div>
+  	                  </div>
+  	                </div><!-- / .panel -->
 
 	                <!-- Item 5 -->
 	                <div class="panel panel-default">
@@ -606,7 +626,7 @@
 	                  </div>
 	                  <div id="myownskates" class="panel-collapse collapse" role="tabpanel" aria-labelledby="myownskates">
 	                    <div class="panel-body">
-							No. Ice skates will be provided. The ice rink is outside, so please dress warmly.
+							Yes. Ice skates will be provided in a variety of sizes if you don’t own a pair. The ice rink is outside, so please dress warmly.
 						</div>
 	                  </div>
 	                </div>
