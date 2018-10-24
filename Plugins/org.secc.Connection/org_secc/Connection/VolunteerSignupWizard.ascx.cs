@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -807,11 +807,11 @@ namespace org.secc.Connection
         {
             if ( Counts.Count > 0 )
             {
-                hdnPartitionType.Value = ( ( ButtonDropDownList ) sender ).SelectedValue;
+                hdnPartitionType.Value = ( ( DropDownList ) sender ).SelectedValue;
                 ScriptManager.RegisterStartupScript( upEditControls, upEditControls.GetType(), "PartitionWarning", "Rock.dialogs.confirm('Making changes to partition settings can affect existing counts!  Are you sure you want to proceed?', function(result) {if(result) {$(\"#" + btnAddPartition.ClientID + "\")[0].click();}});", true );
                 return;
             }
-            var partition = new PartitionSettings() { PartitionType = ( ( ButtonDropDownList ) sender ).SelectedValue, Guid = Guid.NewGuid(), SignupSettings = Settings };
+            var partition = new PartitionSettings() { PartitionType = ( ( DropDownList ) sender ).SelectedValue, Guid = Guid.NewGuid(), SignupSettings = Settings };
             if ( partition.PartitionType == "Role" )
             {
                 partition.AttributeKey = "GroupTypeRole";

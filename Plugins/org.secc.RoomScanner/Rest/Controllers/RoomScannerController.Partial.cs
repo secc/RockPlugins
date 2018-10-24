@@ -494,7 +494,10 @@ namespace org.secc.RoomScanner.Rest.Controllers
                     var currentAttendances = new StringBuilder();
                     foreach ( var attendance in attendances )
                     {
-                        currentAttendances.Append( string.Format( "\n{0} @ {1} ", attendance.Location.Name, attendance.Schedule.Name ) );
+                        currentAttendances.Append( string.Format(
+                            "\n{0} @ {1}",
+                            attendance.Location?.Name ?? "Unknown Location",
+                            attendance.Schedule?.Name ?? "Unknown Schedule" ) );
                     }
 
                     return new Response( false, string.Format( "{0} is not checked-in to {1}. \n\n{2} is currently checked in to: {3} \n\nWould you like to override?",
