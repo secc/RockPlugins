@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -42,8 +42,10 @@ using System.Web;
 using System.Web.UI;
 
 using Rock;
+using Rock.Web.Cache;
 using Rock.Data;
 using Rock.Model;
+using Rock.Transactions;
 using Rock.VersionInfo;
 
 namespace RockWeb.Plugins.org_secc.Administration
@@ -56,6 +58,7 @@ namespace RockWeb.Plugins.org_secc.Administration
     [Description( "Displays system information on the installed version of Rock." )]
     public partial class SystemInfo : Rock.Web.UI.RockBlock
     {
+
         #region Fields
 
         private string _catalog = String.Empty;
@@ -69,7 +72,7 @@ namespace RockWeb.Plugins.org_secc.Administration
             base.OnInit( e );
 
             // Get Version, database info and executing assembly location
-            lRockVersion.Text = VersionInfo.GetRockProductVersionFullName();
+            lRockVersion.Text = string.Format( "{0} <small>({1})</small>", VersionInfo.GetRockProductVersionFullName(), VersionInfo.GetRockProductVersionNumber() );
             if ( File.Exists( Server.MapPath( "~/build.info" ) ) )
             {
                 lRockVersion.Text += " - " + File.ReadAllText( Server.MapPath( "~/build.info" ) );
@@ -90,6 +93,9 @@ namespace RockWeb.Plugins.org_secc.Administration
 
             lExecLocation.Text = Assembly.GetExecutingAssembly().Location;
             lLastMigrations.Text = GetLastMigrationData();
+
+            var transactionQueueStats = RockQueue.TransactionQueue.ToList().GroupBy( a => a.GetType().Name ).ToList().Select( a => new { Name = a.Key, Count = a.Count() } );
+            lTransactionQueue.Text = transactionQueueStats.Select( a => string.Format( "{0}: {1}", a.Name, a.Count ) ).ToList().AsDelimited( "<br/>" );
 
             lCacheOverview.Text = GetCacheInfo();
             lRoutes.Text = GetRoutesInfo();
@@ -117,7 +123,7 @@ namespace RockWeb.Plugins.org_secc.Administration
                     }
                 }
             }
-            
+
             base.OnPreRender( e );
         }
 
@@ -132,22 +138,10 @@ namespace RockWeb.Plugins.org_secc.Administration
         /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
         protected void btnClearCache_Click( object sender, EventArgs e )
         {
-            var msgs = new List<string>();
+            var msgs = RockCache.ClearAllCachedItems();
 
-            // Clear the static object that contains all auth rules (so that it will be refreshed)
-            Rock.Security.Authorization.Flush();
-            msgs.Add( "Authorizations have been cleared" );
-
-            // Flush the static entity attributes cache
-            Rock.Web.Cache.AttributeCache.FlushEntityAttributes();
-            msgs.Add( "EntityAttributes have been cleared" );
-
-            // Clear all cached items
-            Rock.Web.Cache.RockMemoryCache.Clear();
-            msgs.Add( "RockMemoryCache has been cleared" );
-
-            // Flush Site Domains
-            Rock.Web.Cache.SiteCache.Flush();
+            // Flush today's Check-in Codes
+            Rock.Model.AttendanceCodeService.FlushTodaysCodes();
 
             string webAppPath = Server.MapPath( "~" );
 
@@ -156,9 +150,6 @@ namespace RockWeb.Plugins.org_secc.Administration
             FieldTypeService.RegisterFieldTypes( webAppPath );
             BlockTypeService.RegisterBlockTypes( webAppPath, Page, false );
             msgs.Add( "EntityTypes, FieldTypes, BlockTypes have been re-registered" );
-
-            // Clear workflow trigger cache
-            Rock.Workflow.TriggerCache.Refresh();
 
             // Delete all cached files
             try
@@ -213,14 +204,18 @@ namespace RockWeb.Plugins.org_secc.Administration
             ResponseWrite( "Database:", lDatabase.Text.Replace( "<br />", Environment.NewLine.ToString() ), response );
             ResponseWrite( "Execution Location:", lExecLocation.Text, response );
             ResponseWrite( "Migrations:", GetLastMigrationData().Replace( "<br />", Environment.NewLine.ToString() ), response );
-            ResponseWrite( "Cache:", lCacheOverview.Text.Replace( "<br />", Environment.NewLine.ToString() ), response ); ;
+            ResponseWrite( "Cache:", lCacheOverview.Text.Replace( "<br />", Environment.NewLine.ToString() ), response );
+            ;
             ResponseWrite( "Routes:", lRoutes.Text.Replace( "<br />", Environment.NewLine.ToString() ), response );
 
             // Last and least...
             ResponseWrite( "Server Variables:", "", response );
             foreach ( string key in Request.ServerVariables )
             {
-                ResponseWrite( key, Request.ServerVariables[key], response );
+                if ( !key.Equals( "HTTP_COOKIE", StringComparison.OrdinalIgnoreCase ) )
+                {
+                    ResponseWrite( key, Request.ServerVariables[key], response );
+                }
             }
 
             response.Flush();
@@ -244,7 +239,7 @@ namespace RockWeb.Plugins.org_secc.Administration
             var result = DbService.ExecuteScaler( "SELECT TOP 1 [MigrationId] FROM [__MigrationHistory] ORDER BY [MigrationId] DESC ", CommandType.Text, null );
             if ( result != null )
             {
-                sb.AppendFormat( "Last Core Migration: {0}{1}", (string)result, Environment.NewLine );
+                sb.AppendFormat( "Last Core Migration: {0}{1}", ( string ) result, Environment.NewLine );
             }
 
             var tableResult = DbService.GetDataTable( @"
@@ -274,20 +269,22 @@ namespace RockWeb.Plugins.org_secc.Administration
 
         private string GetCacheInfo()
         {
-            var cache = Rock.Web.Cache.RockMemoryCache.Default;
-
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat( "<p><strong>Cache Items:</strong><br /> {0}</p>{1}", cache.Count(), Environment.NewLine );
-            sb.AppendFormat( "<p><strong>Cache Memory Limit:</strong><br /> {0:N0} (bytes)</p>{1}", cache.CacheMemoryLimit, Environment.NewLine );
-            sb.AppendFormat( "<p><strong>Physical Memory Limit:</strong><br /> {0} %</p>{1}", cache.PhysicalMemoryLimit, Environment.NewLine );
-            sb.AppendFormat( "<p><strong>Polling Interval:</strong><br /> {0}</p>{1}", cache.PollingInterval, Environment.NewLine );
-            lCacheObjects.Text = cache.GroupBy( a => a.Value.GetType() ).Select( a => new
+
+            var cacheStats = RockCache.GetAllStatistics();
+            foreach ( CacheItemStatistics cacheItemStat in cacheStats.OrderBy( s => s.Name ) )
             {
-                a.Key.Name,
-                Count = a.Count()
-            } ).OrderBy( a => a.Name ).Select( a => string.Format( "{0}: {1} items", a.Name, a.Count ) ).ToList().AsDelimited( "<br />" );
-            
-            return sb.ToString();
+                foreach ( CacheHandleStatistics cacheHandleStat in cacheItemStat.HandleStats )
+                {
+                    var stats = new List<string>();
+                    cacheHandleStat.Stats.ForEach( s => stats.Add( string.Format( "{0}: {1:N0}", s.CounterType.ConvertToString(), s.Count ) ) );
+                    sb.AppendFormat( "<p><strong>{0}:</strong><br/>{1}</p>{2}", cacheItemStat.Name, stats.AsDelimited( ", " ), Environment.NewLine );
+                }
+            }
+
+            lCacheObjects.Text = sb.ToString();
+
+            return string.Empty;
         }
 
         private string GetRoutesInfo()
@@ -295,7 +292,8 @@ namespace RockWeb.Plugins.org_secc.Administration
             var routes = new SortedDictionary<string, System.Web.Routing.Route>();
             foreach ( System.Web.Routing.Route route in System.Web.Routing.RouteTable.Routes.OfType<System.Web.Routing.Route>() )
             {
-                if ( !routes.ContainsKey( route.Url ) ) routes.Add( route.Url, route );
+                if ( !routes.ContainsKey( route.Url ) )
+                    routes.Add( route.Url, route );
             }
 
             StringBuilder sb = new StringBuilder();
@@ -310,7 +308,7 @@ namespace RockWeb.Plugins.org_secc.Administration
         private string GetDbInfo()
         {
             StringBuilder databaseResults = new StringBuilder();
-            
+
             var csBuilder = new System.Data.Odbc.OdbcConnectionStringBuilder( ConfigurationManager.ConnectionStrings["RockContext"].ConnectionString );
             object dataSource, catalog = string.Empty;
             if ( csBuilder.TryGetValue( "data source", out dataSource ) && csBuilder.TryGetValue( "initial catalog", out catalog ) )
@@ -327,7 +325,7 @@ namespace RockWeb.Plugins.org_secc.Administration
                 {
                     string version = "";
                     string versionInfo = "";
-                    
+
                     while ( reader.Read() )
                     {
                         version = reader[0].ToString();
@@ -340,7 +338,7 @@ namespace RockWeb.Plugins.org_secc.Administration
                 try
                 {
                     // get database size
-                    reader = DbService.GetDataReader( "sp_helpdb " + catalog, System.Data.CommandType.Text, null );
+                    reader = DbService.GetDataReader( "sp_helpdb '" + catalog.ToStringSafe().Replace( "'", "''" ) + "'", System.Data.CommandType.Text, null );
                     if ( reader != null )
                     {
                         // get second data table
