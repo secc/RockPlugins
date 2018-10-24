@@ -70,13 +70,13 @@
                                         <div class="pull-right" style="margin: -8px -10px">
                                             <asp:LinkButton ID="btnAddPartition" runat="server" CssClass="hidden" OnClick="btnAddPartition_Click" />
                                             <asp:HiddenField ID="hdnPartitionType" runat="server" />
-                                            <Rock:ButtonDropDownList ID="bddlAddPartition" OnSelectionChanged="BddlAddPartition_SelectionChanged" runat="server">
+                                            <Rock:RockDropDownList ID="bddlAddPartition" OnSelectedIndexChanged="BddlAddPartition_SelectionChanged" runat="server" AutoPostBack="true">
                                                 <asp:ListItem Value="">New Partition</asp:ListItem>
                                                 <asp:ListItem Value="Campus">Campus</asp:ListItem>
                                                 <asp:ListItem Value="DefinedType">Defined Type</asp:ListItem>
                                                 <asp:ListItem Value="Schedule">Schedule</asp:ListItem>
                                                 <asp:ListItem Value="Role">Group Type Role</asp:ListItem>
-                                            </Rock:ButtonDropDownList>
+                                            </Rock:RockDropDownList>
                                         </div>
                                     </div>
                                     <div class="panel-body">
