@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -112,6 +112,13 @@ namespace org.secc.Connection
                     GroupService groupService = new GroupService( new RockContext() );
                     foreach ( var roleRequest in _roleRequests )
                     {
+
+                        if ( roleRequest.GroupId > 0 && roleRequest.GroupTypeRole.AsGuidOrNull().HasValue )
+                        {
+                            GroupTypeRoleService groupTypeRoleService = new GroupTypeRoleService( new RockContext() );
+                            roleRequest.GroupTypeRoleId = groupTypeRoleService.Get( roleRequest.GroupTypeRole.AsGuid() ).Id;
+                        }
+
                         // Get the Default role from this group
                         if ( roleRequest.GroupId > 0 && roleRequest.GroupTypeRoleId == 0 )
                         {
