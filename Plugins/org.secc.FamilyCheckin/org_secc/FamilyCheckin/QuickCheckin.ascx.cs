@@ -306,6 +306,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 .SelectMany( g => g.Locations )
                 .SelectMany( l => l.Schedules )
                 .DistinctBy( s => s.Schedule.Id )
+                .OrderBy( s => s.Schedule.NextStartDateTime )
                 .ToList();
         }
 
