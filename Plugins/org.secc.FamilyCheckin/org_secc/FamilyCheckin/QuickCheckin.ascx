@@ -46,6 +46,7 @@
 
 <asp:UpdatePanel ID="upContent" runat="server">
     <ContentTemplate>
+        <asp:Label runat="server" ID="lStyle" />
         <Rock:ModalAlert runat="server" ID="maAlert"></Rock:ModalAlert>
         <asp:HiddenField runat="server" ID="hfCull" />
         <asp:Panel ID="pnlMain" runat="server" Style="margin-top: 10px;">
@@ -60,7 +61,8 @@
             <Rock:ModalDialog runat="server" ID="mdAddPerson" CssClass="modal">
                 <Content>
                     <h1>Add Person To Check-in:</h1>
-                    <br /><br />
+                    <br />
+                    <br />
                     <div class="row">
                         <asp:PlaceHolder runat="server" ID="phAddPerson" />
                     </div>
@@ -69,18 +71,16 @@
             <Rock:ModalAlert ID="maNotice" runat="server" />
             <div class="container" id="quickCheckinContainer">
                 <div id="pgtSelect">
-                    <h1>
-                        <asp:Literal ID="ltMessage" Text="" runat="server" />
+                    <h1>Please Select One Or More Services To Check-in
                     </h1>
-                    <asp:PlaceHolder runat="server" ID="phPgtSelect"></asp:PlaceHolder>
+                    <asp:PlaceHolder runat="server" ID="phServices"></asp:PlaceHolder>
                 </div>
                 <div class="container" id="quickCheckinContent">
                     <div id="quickCheckinPeople">
                         <div class="header">
-                            <span class="ParentGroupTypeHeader">
-                                <Rock:BootstrapButton CssClass="headerPgt" ID="btnParentGroupTypeHeader" OnClick="btnParentGroupTypeHeader_Click"
-                                    runat="server">
-                                </Rock:BootstrapButton>
+                            <span class="CheckinHeader">
+                                <Rock:BootstrapButton ID="btnCheckinHeader" OnClick="btnCheckinHeader_Click"
+                                    Text="Check-in" runat="server" />
                             </span>
                             <Rock:BootstrapButton ID="btnInterfaceCheckin" runat="server" CssClass="btn btn-lg btn-primary doCheckin" OnClick="btnInterfaceCheckin_Click">Check-In</Rock:BootstrapButton>
                             <Rock:BootstrapButton runat="server" ID="btnAddPerson" CssClass="btn btn-lg btn-default addPerson" OnClick="addPerson_Click">+</Rock:BootstrapButton>
