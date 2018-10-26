@@ -470,6 +470,13 @@ namespace org.secc.Connection
             public string AttributeKey { get; set; }
             public string PartitionType { get; set; }
             public string PartitionValue { get; set; }
+            /// <summary>
+            /// Only used for multi-step selections e.g. A Defined Type must be selected be defined values can be chosen. The Defined Type would be the Partition Value, the sub values are the selected defined values
+            /// </summary>
+            /// <value>
+            /// The partition group.
+            /// </value>
+            public string PartitionSubValues { get; set; }
             public Guid Guid { get; set; }
             public Dictionary<string, string> GroupMap { get; set; }
 
@@ -686,6 +693,8 @@ namespace org.secc.Connection
                         break;
                     case "DefinedType":
                         phPartitionControl.Controls.Add( new LiteralControl( "<strong>Defined Type</strong><br />" ) );
+                        e.Item.ID = "DefinedType" + partition.Guid.ToString();
+
                         var definedTypeRddl = new RockDropDownList() { ID = partition.Guid.ToString() };
                         DefinedTypeService definedTypeService = new DefinedTypeService( new RockContext() );
                         var listItems = definedTypeService.Queryable().Select( dt => new { Name = ( dt.Category != null ? dt.Category.Name + ": " : "" ) + dt.Name, Guid = dt.Guid } ).ToList();
@@ -696,11 +705,15 @@ namespace org.secc.Connection
                         definedTypeRddl.DataBind();
                         definedTypeRddl.AutoPostBack = true;
                         definedTypeRddl.SelectedIndexChanged += DefinedTypeRddl_SelectedIndexChanged;
-                        if (!string.IsNullOrWhiteSpace(partition.PartitionValue))
+                        phPartitionControl.Controls.Add( definedTypeRddl );
+                        var additionalControls = new DynamicPlaceholder() { ID = "phAdditionalControls" };
+                        phPartitionControl.Controls.Add( additionalControls );
+
+                        if ( !string.IsNullOrWhiteSpace( partition.PartitionValue ) )
                         {
                             definedTypeRddl.SelectedValue = partition.PartitionValue;
+                            SetUpDefinedTypeDynamicControls( additionalControls, partition.PartitionValue.AsGuid(), partition);
                         }
-                        phPartitionControl.Controls.Add( definedTypeRddl );
                         break;
                     case "Role":
                         if ( Settings.EntityTypeGuid == Rock.SystemGuid.EntityType.CONNECTION_OPPORTUNITY.AsGuid() )
@@ -778,17 +791,36 @@ namespace org.secc.Connection
             if ( partition != null )
             {
                 string valueGuid = ( ( Control ) sender ).ID.Replace( partition.Guid.ToString() + "_", "" ).Replace( "_checkbox", "" );
-                List<string> selectedValues = new List<string>();
-                if ( partition.PartitionValue != null)
+
+                // Defined Types don't store defined values in PartitionValue
+                if (partition.PartitionType == "DefinedType")
                 {
-                    selectedValues = partition.PartitionValue.Trim(',').Split( ',' ).ToList();
+                    List<string> selectedValues = new List<string>();
+                    if ( partition.PartitionSubValues != null )
+                    {
+                        selectedValues = partition.PartitionSubValues.Trim( ',' ).Split( ',' ).ToList();
+                    }
+                    selectedValues.Remove( valueGuid );
+                    if ( ( ( CheckBox ) sender ).Checked )
+                    {
+                        selectedValues.Add( valueGuid );
+                    }
+                    partition.PartitionSubValues = String.Join( ",", selectedValues );
                 }
-                selectedValues.Remove( valueGuid );
-                if ( ( ( CheckBox ) sender ).Checked)
+                else
                 {
-                    selectedValues.Add( valueGuid );
+                    List<string> selectedValues = new List<string>();
+                    if ( partition.PartitionValue != null)
+                    {
+                        selectedValues = partition.PartitionValue.Trim(',').Split( ',' ).ToList();
+                    }
+                    selectedValues.Remove( valueGuid );
+                    if ( ( ( CheckBox ) sender ).Checked)
+                    {
+                        selectedValues.Add( valueGuid );
+                    }
+                    partition.PartitionValue = String.Join( ",", selectedValues );
                 }
-                partition.PartitionValue = String.Join( ",", selectedValues );
             }
             SaveViewState();
         }
@@ -906,14 +938,74 @@ namespace org.secc.Connection
             SaveViewState();
         }
 
+        private void SetUpDefinedTypeDynamicControls(PlaceHolder placeHolder, Guid selectedDefinedType, PartitionSettings partition)
+        {
+            var definedType = DefinedTypeCache.Read( selectedDefinedType );
+            var definedValues = definedType.DefinedValues.OrderBy( r => r.Order ).Select( r => new { Value = r.Value, Guid = r.Guid } ).ToList();
+
+            placeHolder.Controls.Add( new LiteralControl( "<div class='row'><div class='col-md-4'><strong>Name</strong></div><div class='col-md-8'><strong>Group</strong></div>" ) );
+
+            foreach ( var definedValue in definedValues )
+            {
+
+                placeHolder.Controls.Add( new LiteralControl( "<div class='row'><div class='col-xs-4'>" ) );
+                var definedValueCbl = new CheckBox();
+                definedValueCbl.ID = definedValue.Guid.ToString() + "_" + partition.Guid + "_checkbox";
+                if ( !string.IsNullOrWhiteSpace( partition.PartitionSubValues ) )
+                {
+                    definedValueCbl.Checked = partition.PartitionSubValues.Contains( definedValue.Guid.ToString() );
+                }
+                definedValueCbl.Text = definedValue.Value;
+                definedValueCbl.CheckedChanged += CampusCbl_CheckedChanged;
+                definedValueCbl.AutoPostBack = true;
+                placeHolder.Controls.Add( definedValueCbl );
+                placeHolder.Controls.Add( new LiteralControl( "</div>" ) );
+
+                placeHolder.Controls.Add( new LiteralControl( "<div class='col-xs-8'>" ) );
+                var ddlPlacementGroup = new RockDropDownList();
+                ddlPlacementGroup.ID = definedValue.Guid.ToString() + "_" + partition.Guid + "_group";
+                ddlPlacementGroup.SelectedIndexChanged += DdlPlacementGroup_SelectedIndexChanged;
+                ddlPlacementGroup.AutoPostBack = true;
+
+                List<ListItem> groupList = getGroups().Select( g => new ListItem( String.Format( "{0} ({1})", g.Name, g.Campus != null ? g.Campus.Name : "No Campus" ), g.Id.ToString() ) ).ToList();
+                groupList.Insert( 0, new ListItem( "Not Mapped", null ) );
+                ddlPlacementGroup.Items.AddRange( groupList.ToArray() );
+                if ( partition.GroupMap != null && partition.GroupMap.ContainsKey( definedValue.Guid.ToString() ) )
+                {
+                    ddlPlacementGroup.SetValue( partition.GroupMap[definedValue.Guid.ToString()] );
+                }
+                placeHolder.Controls.Add( ddlPlacementGroup );
+                placeHolder.Controls.Add( new LiteralControl( "</div></div>" ) );
+            }
+            placeHolder.Controls.Add( new LiteralControl( "</div>" ) );
+            SaveViewState();
+        }
+
         private void DefinedTypeRddl_SelectedIndexChanged( object sender, EventArgs e )
         {
-            var partition = Settings.Partitions.Where( p => p.Guid == ( ( Control ) sender ).ID.AsGuid() ).FirstOrDefault();
+            var ddl = ( ( Control ) sender );
+            var repeater = ddl.NamingContainer.NamingContainer;
+
+            if (repeater == null)
+            {
+                throw new Exception( "Could not find repeater" );
+            }
+          
+            var partition = Settings.Partitions.Where( p => p.Guid == ( ddl.ID.AsGuid() )).FirstOrDefault();
+            var selectedValue = ( ( RockDropDownList ) sender ).SelectedValue;
             if (partition != null)
             {
-                partition.PartitionValue = ( ( RockDropDownList ) sender ).SelectedValue;
+                partition.PartitionValue = selectedValue;
             }
-            SaveViewState();
+
+            var repeaterItem = ( RepeaterItem ) repeater.FindControl( "DefinedType" + ddl.ID );
+            var placeHolder = ( DynamicPlaceholder ) repeaterItem.FindControl( "phAdditionalControls" );
+            if (repeaterItem == null || placeHolder == null)
+            {
+                throw new Exception( "Could not find defined type control or its child placeholder" );
+            }
+
+            SetUpDefinedTypeDynamicControls( placeHolder, selectedValue.AsGuid(), partition );
         }
 
         protected void gCounts_RowDataBound( object sender, GridViewRowEventArgs e )
@@ -943,16 +1035,26 @@ namespace org.secc.Connection
                 scheduleService = new ScheduleService( context );
             }
             var partitionList = new List<Dictionary<string, object>>();
+            
             if ( partition.PartitionValue == null)
             {
                 return null;
             }
-            var values =  partition.PartitionValue.Trim(',').Split( ',' );
 
+            var values = partition.PartitionValue.Trim(',').Split( ',' );
+
+            // Defined Types don't store the defined values in PartitionValue
             if (partition.PartitionType == "DefinedType")
             {
-                // Use every Defined Value 
-                values = DefinedTypeCache.Read( partition.PartitionValue.AsGuid() ).DefinedValues.Select( dv => dv.Guid.ToString() ).ToArray();
+                if (!string.IsNullOrWhiteSpace(partition.PartitionSubValues))
+                {
+                    values = partition.PartitionSubValues.SplitDelimitedValues().ToArray();
+                }
+                else
+                {
+                    // Use every Defined Value 
+                    values = DefinedTypeCache.Read( partition.PartitionValue.AsGuid() ).DefinedValues.Select( dv => dv.Guid.ToString() ).ToArray();
+                }
             }
 
             // For each inner node in this partition, build a dictionary that represents it
