@@ -933,7 +933,7 @@ namespace org.secc.Connection
             }
         }
 
-        protected List<IDictionary<string, object>> GetTree( PartitionSettings partition, ICollection<ConnectionRequest> connectionRequests = null, String concatGuid = null, GroupTypeRoleService groupTypeRoleService = null, ScheduleService scheduleService = null, string ParentIdentifier = "signup", string parentUrl = "", string groupId = "", string roleId = "")
+        protected List<Dictionary<string, object>> GetTree( PartitionSettings partition, ICollection<ConnectionRequest> connectionRequests = null, String concatGuid = null, GroupTypeRoleService groupTypeRoleService = null, ScheduleService scheduleService = null, string ParentIdentifier = "signup", string parentUrl = "", string groupId = "", string roleId = "")
         {
 
             if ( groupTypeRoleService == null || scheduleService == null)
@@ -942,7 +942,7 @@ namespace org.secc.Connection
                 groupTypeRoleService = new GroupTypeRoleService( context );
                 scheduleService = new ScheduleService( context );
             }
-            var partitionList = new List<IDictionary<string, object>>();
+            var partitionList = new List<Dictionary<string, object>>();
             if ( partition.PartitionValue == null)
             {
                 return null;
@@ -955,6 +955,7 @@ namespace org.secc.Connection
                 values = DefinedTypeCache.Read( partition.PartitionValue.AsGuid() ).DefinedValues.Select( dv => dv.Guid.ToString() ).ToArray();
             }
 
+            // For each inner node in this partition, build a dictionary that represents it
             foreach ( var value in values )
             {
                 if (partition.PartitionType == "Role")
@@ -966,7 +967,7 @@ namespace org.secc.Connection
                     groupId = partition.GroupMap[value];
                 }
                 string url = parentUrl + ( parentUrl.Contains( "?" ) ? "&" : "?" ) + partition.AttributeKey + "=" + value;
-                IDictionary<string, object> inner = new Dictionary<string, object>();
+                Dictionary<string, object> inner = new Dictionary<string, object>();
                 inner.Add( "ParentIdentifier", ParentIdentifier );
                 inner.Add( "PartitionType", partition.PartitionType );
                 inner.Add( "Url", url );
@@ -977,6 +978,8 @@ namespace org.secc.Connection
                 var newConcatGuid = concatGuid == null ? value : concatGuid + "," + value;
                 int? count = Counts.Where( kvp => kvp.Key.Contains( newConcatGuid ) ).Any(kvp => String.IsNullOrWhiteSpace(kvp.Value))?null:(int?)(Counts.Where( kvp => kvp.Key.Contains( newConcatGuid ) ).Select( kvp => kvp.Value.AsInteger() ).Sum());
                 inner.Add( "Limit", count );
+
+                // Filter the requests recursively depending on the type of partition
                 ICollection<ConnectionRequest> subRequests = null;
                 switch ( partition.PartitionType )
                 {
@@ -985,8 +988,6 @@ namespace org.secc.Connection
                         if ( connectionRequests != null)
                         {
                             subRequests = connectionRequests.Where( cr => cr.AssignedGroupMemberAttributeValues != null && cr.AssignedGroupMemberAttributeValues.Contains( value ) ).ToList();
-
-                            inner.Add( "TotalFilled", this.connectionRequests.Where( cr => cr.AssignedGroupMemberAttributeValues != null && cr.AssignedGroupMemberAttributeValues.Contains( value ) && cr.ConnectionState != ConnectionState.Inactive ).Count() );
                         }
                         break;
                     case "Schedule":
@@ -994,8 +995,6 @@ namespace org.secc.Connection
                         if ( connectionRequests != null )
                         {
                             subRequests = connectionRequests.Where( cr => cr.AssignedGroupMemberAttributeValues != null && cr.AssignedGroupMemberAttributeValues.Contains( value ) ).ToList();
-
-                            inner.Add( "TotalFilled", this.connectionRequests.Where( cr => cr.AssignedGroupMemberAttributeValues != null && cr.AssignedGroupMemberAttributeValues.Contains( value ) && cr.ConnectionState != ConnectionState.Inactive ).Count() );
                         }
                         break;
                     case "Campus":
@@ -1004,8 +1003,6 @@ namespace org.secc.Connection
                         if ( connectionRequests != null && campus != null )
                         {
                             subRequests = connectionRequests.Where( cr => cr.CampusId == campus.Id ).ToList();
-                            inner.Add( "TotalFilled", this.connectionRequests.Where( cr => cr.CampusId == campus.Id && cr.ConnectionState != ConnectionState.Inactive ).Count() );
-
                         }
                         break;
                     case "Role":
@@ -1014,15 +1011,30 @@ namespace org.secc.Connection
                         if ( connectionRequests != null )
                         {
                             subRequests = connectionRequests.Where( cr => cr.AssignedGroupMemberRoleId == role.Id ).ToList();
-                            inner.Add( "TotalFilled", this.connectionRequests.Where( cr => cr.AssignedGroupMemberRoleId == role.Id && cr.ConnectionState != ConnectionState.Inactive ).Count() );
                         }
                         break;
                 }
 
-                inner.Add( "Filled", subRequests != null?subRequests.Where(sr => sr.ConnectionState != ConnectionState.Inactive).Count():0 );
-                        
-                if ( partition.NextPartition != null) {
-                    inner.Add( "Partitions", GetTree( partition.NextPartition, subRequests, newConcatGuid, groupTypeRoleService, scheduleService, ParentIdentifier + "_" + value, url, groupId, roleId ));
+                string childIdentifier = ParentIdentifier + "_" + value;
+                if ( partition.NextPartition != null)
+                {
+                    inner.Add( "Partitions", GetTree( partition.NextPartition, subRequests, newConcatGuid, groupTypeRoleService, scheduleService, childIdentifier, url, groupId, roleId ));
+
+                    if (inner["Partitions"] != null)
+                    {
+                        // The amount filled for this inner node in the partition is the sum of the amount filled of the nodes beneath it
+                        IEnumerable<Dictionary<string, object>> childNodes = (( List<Dictionary<string, object>> ) inner["Partitions"]).Where( i => ((string) i["ParentIdentifier"] ).Equals( childIdentifier ) );
+                        inner.Add( "Filled", childNodes.Sum( i => (int) i["Filled"] ) );
+                    }
+                    else
+                    {
+                        inner.Add( "Filled", 0 );
+                    }
+                }
+                else
+                {
+                    // Base case for recursion
+                    inner.Add( "Filled", subRequests != null ? subRequests.Where( sr => sr.ConnectionState != ConnectionState.Inactive ).Count() : 0 );
                 }
                 partitionList.Add( inner );
             }
