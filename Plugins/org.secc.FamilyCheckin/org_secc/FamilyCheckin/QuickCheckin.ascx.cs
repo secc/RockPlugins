@@ -933,7 +933,18 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                         if ( checkinGroups.Where( g => g.PreSelected ).Any() )
                         {
                             checkinGroup = checkinGroups.Where( g => g.PreSelected ).FirstOrDefault();
+
                         }
+
+                        foreach ( var group in checkinGroups )
+                        {
+                            if ( group.Group.GetAttributeValue( "GivePriority" ).AsBoolean() )
+                            {
+                                checkinGroup = group;
+                                continue;
+                            }
+                        }
+
                         if ( checkinGroup != null )
                         {
                             var checkinLocations = GetLocations( checkinPerson.Person, checkinSchedule, checkinGroupType, checkinGroup );

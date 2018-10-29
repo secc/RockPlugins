@@ -59,7 +59,32 @@ namespace org.secc.FamilyCheckin
                 {
                     foreach ( var person in family.People )
                     {
-                        var acceptableGroupIds = person.GroupTypes.SelectMany( _gt => _gt.Groups ).Where( _g => !_g.ExcludedByFilter ).Select( _g => _g.Group.Id ).Distinct().ToList();
+                        var acceptableGroups = person
+                            .GroupTypes
+                            .SelectMany( _gt => _gt.Groups )
+                            .Where( _g => !_g.ExcludedByFilter )
+                            .DistinctBy( g => g.Group.Id )
+                            .ToList();
+
+                        var acceptableGroupIds = new List<int>();
+
+                        foreach ( var group in acceptableGroups )
+                        {
+                            if ( group.Group.Attributes == null || !group.Group.Attributes.Any() )
+                            {
+                                group.Group.LoadAttributes();
+                            }
+                            if ( group.Group.GetAttributeValue( "GivePriority" ).AsBoolean() )
+                            {
+                                acceptableGroupIds.Add( group.Group.Id );
+                            }
+                        }
+
+                        if ( !acceptableGroupIds.Any() )
+                        {
+                            acceptableGroupIds.AddRange( acceptableGroups.Select( g => g.Group.Id ).ToList() );
+                        }
+
                         var acceptableLocations = person.GroupTypes.SelectMany( _gt => _gt.Groups ).SelectMany( _g => _g.Locations ).Where( _l => !_l.ExcludedByFilter ).Select( _s => _s.Location.Id ).Distinct().ToList();
                         var acceptableScheduleIds = person.GroupTypes.SelectMany( _gt => _gt.Groups ).SelectMany( _g => _g.Locations ).SelectMany( _l => _l.Schedules ).Where( _s => !_s.ExcludedByFilter && _s.Schedule.IsCheckInActive ).Select( _s => _s.Schedule.Id ).Distinct().ToList();
 
