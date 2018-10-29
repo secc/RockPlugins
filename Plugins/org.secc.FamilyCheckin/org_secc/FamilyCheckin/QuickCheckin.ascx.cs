@@ -366,7 +366,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 hgcRow.Controls.Add( hgcPadding );
 
 
-                if ( GetCheckinSchedules( person.Person ).Count() > 0 )
+                if ( GetCheckinSchedules( person.Person ).Count() > 0
+                    && PersonHasCheckinAvailable( person ) )
                 { //Display check-in information
                     Panel hgcCell = new Panel();
                     hgcCell.ID = person.Person.Id.ToString() + "hgcCell";
@@ -393,6 +394,26 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 btnInterfaceCheckin.Visible = false;
             }
+        }
+
+        private bool PersonHasCheckinAvailable( CheckInPerson person )
+        {
+            var locations = person
+                .GroupTypes
+                .SelectMany( gt => gt.Groups )
+                .SelectMany( g => g.Locations )
+                .ToList();
+            foreach ( var location in locations )
+            {
+                foreach ( var schedule in location.Schedules )
+                {
+                    if ( LocationScheduleOkay( location, schedule ) )
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         private void DisplayPersonNoOptions( CheckInPerson person, Panel hgcCell )
@@ -774,7 +795,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                                  s => s.Schedule.Guid == schedule.Schedule.Guid ).Count() != 0 ) );
 
             return locations.ToList();
-
         }
 
         private List<CheckInGroup> GetGroups( Person person, CheckInSchedule schedule, CheckInGroupType groupType )
@@ -954,6 +974,12 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         /// <returns></returns>
         private bool LocationScheduleOkay( CheckInLocation location, CheckInSchedule schedule )
         {
+            var selectedSchedules = ( List<int> ) Session["SelectedSchedules"];
+            if ( !selectedSchedules.Contains( schedule.Schedule.Id ) )
+            {
+                return false;
+            }
+
             if ( location.Location.Attributes == null || !location.Location.Attributes.Any() )
             {
                 location.Location.LoadAttributes();
@@ -966,6 +992,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 pairs[( ( string ) pair.Value ).AsInteger()] = pair.Key.AsInteger();
             }
 
+
             if ( pairs.ContainsKey( schedule.Schedule.Id ) )
             {
                 var secondScheduleId = pairs[schedule.Schedule.Id];
@@ -977,12 +1004,17 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 }
 
                 //Check to see if the second schedule is in the selected schedules
-                var selectedSchedules = ( List<int> ) Session["SelectedSchedules"];
                 if ( !selectedSchedules.Contains( secondScheduleId ) )
                 {
                     return false;
                 }
             }
+
+            if ( location.Location.GetAttributeValue( "MinimumActiveSchedules" ).AsInteger() > selectedSchedules.Count() )
+            {
+                return false;
+            }
+
             return true;
         }
 
