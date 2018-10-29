@@ -182,6 +182,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                  .SelectMany( gt => gt.Groups )
                  .SelectMany( g => g.Locations )
                  .SelectMany( l => l.Schedules )
+                 .OrderBy( s => s.Schedule.StartTimeOfDay )
                  .ToList();
 
             //if no schedule is selected lets go ahead and auto select the first one...
@@ -458,7 +459,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         {
             var selectedSchedules = ( List<int> ) Session["SelectedSchedules"];
 
-
             return CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
             .SelectMany( f => f.People.Where( p => p.Person.Guid == person.Guid ) )
             .SelectMany( p => p.GroupTypes )
@@ -502,19 +502,26 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                         .SelectMany( g => g.Locations.Where( l => l.Schedules.Where( s => s.Selected ).Select( s => s.Schedule.Id ).Contains( schedule.Schedule.Id ) && l.Selected ) );
 
                     CheckInLocation room;
-
                     room = rooms.FirstOrDefault();
-
 
                     //If a room is selected
                     if ( room != null )
                     {
-                        if ( room.Selected && group.Group.GetAttributeValue( locationLinkAttributeKey ).AsBoolean() )
+                        if ( LocationScheduleOkay( room, schedule ) )
                         {
-                            LinkLocations( person, group, room );
+
+                            if ( room.Selected && group.Group.GetAttributeValue( locationLinkAttributeKey ).AsBoolean() )
+                            {
+                                LinkLocations( person, group, room );
+                            }
+                            btnSchedule.CssClass = "btn btn-primary col-xs-8 scheduleSelected";
+                            btnSchedule.Text = "<b>" + schedule.Schedule.Name + "</b><br>" + group + " > " + room;
                         }
-                        btnSchedule.CssClass = "btn btn-primary col-xs-8 scheduleSelected";
-                        btnSchedule.Text = "<b>" + schedule.Schedule.Name + "</b><br>" + group + " > " + room;
+                        else
+                        {
+                            room.Selected = false;
+                            SaveState();
+                        }
                     }
                 }
             }
@@ -594,6 +601,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     List<CheckInLocation> locations = GetLocations( person, schedule, groupType, group );
                     foreach ( var location in locations )
                     {
+                        if ( !LocationScheduleOkay( location, schedule ) )
+                        {
+                            continue;
+                        }
+
                         Panel hgcPadding = new Panel();
                         hgcPadding.CssClass = "col-md-8 col-md-offset-2 col-xs-12";
                         hgcPadding.Style.Add( "padding", "5px" );
@@ -821,6 +833,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
         }
 
+        private bool PersonHasGroupSelected( CheckInPerson checkinPerson )
+        {
+            return checkinPerson.GroupTypes
+                .SelectMany( gt => gt.Groups.Where( g => g.Selected ) )
+                .Any();
+        }
+
         private bool PersonHasSelectedOption( CheckInPerson checkinPerson )
         {
             return checkinPerson.GroupTypes
@@ -853,7 +872,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         /// <param name="checkinPerson">CheckInPerson</param>
         private void EnsureGroupSelected( CheckInPerson checkinPerson )
         {
-            if ( PersonHasSelectedOption( checkinPerson ) )
+            if ( PersonHasGroupSelected( checkinPerson ) )
             {
                 return;
             }
@@ -922,6 +941,49 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     }
                 }
             }
+        }
+
+
+        /// <summary>
+        /// Checks to see if the location has a schedule pair for this schedule
+        /// If it does it then looks to see if it's pair is available
+        /// If the second schedule is not available it returns false
+        /// </summary>
+        /// <param name="location"></param>
+        /// <param name="schedule"></param>
+        /// <returns></returns>
+        private bool LocationScheduleOkay( CheckInLocation location, CheckInSchedule schedule )
+        {
+            if ( location.Location.Attributes == null || !location.Location.Attributes.Any() )
+            {
+                location.Location.LoadAttributes();
+            }
+            var pairsList = location.Location.GetAttributeValue( "SchedulePairs" ).ToKeyValuePairList();
+            var pairs = new Dictionary<int, int>();
+            foreach ( var pair in pairsList )
+            {
+                pairs[pair.Key.AsInteger()] = ( ( string ) pair.Value ).AsInteger();
+                pairs[( ( string ) pair.Value ).AsInteger()] = pair.Key.AsInteger();
+            }
+
+            if ( pairs.ContainsKey( schedule.Schedule.Id ) )
+            {
+                var secondScheduleId = pairs[schedule.Schedule.Id];
+
+                //check to see if the schedule exists
+                if ( !location.Schedules.Where( s => s.Schedule.Id == secondScheduleId ).Any() )
+                {
+                    return false;
+                }
+
+                //Check to see if the second schedule is in the selected schedules
+                var selectedSchedules = ( List<int> ) Session["SelectedSchedules"];
+                if ( !selectedSchedules.Contains( secondScheduleId ) )
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         protected void btnCancel_Click( object sender, EventArgs e )
@@ -1003,6 +1065,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                             }
                             foreach ( var schedule in location.Schedules.Where( s => s.Selected ).ToList() )
                             {
+                                //Check to see if all the schedules have their pairs
+                                if ( !LocationScheduleOkay( location, schedule ) )
+                                {
+                                    schedule.Selected = false;
+                                    continue;
+                                }
+
                                 var threshold = locationEntity.FirmRoomThreshold ?? 0;
                                 var attendanceQry = attendanceService.Where( a =>
                                      a.EndDateTime == null
