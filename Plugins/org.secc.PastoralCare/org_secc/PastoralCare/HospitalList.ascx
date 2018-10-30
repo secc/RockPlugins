@@ -37,6 +37,7 @@
                             </ItemTemplate>
                         </Rock:RockTemplateField>
                         <Rock:BoolField DataField="Communion" HeaderText="Com." SortExpression="Communion" />
+                        <Rock:BoolField DataField="NotifyCongregation" HeaderText="Notify Cong." SortExpression="NotifyCongregation" />
                         <Rock:RockTemplateField HeaderText="Actions" ItemStyle-Width="160px">
                             <ItemTemplate>
                                 <a href="<%# "https://maps.google.com/?q="+Eval("HospitalAddress").ToString() %>" target="_blank" class="btn btn-default"><i class="fa fa-map-o" title="View Map"></i></a>

@@ -35,6 +35,7 @@
                             </ItemTemplate>
                         </Rock:RockTemplateField>
                         <Rock:BoolField DataField="Communion" HeaderText="Com." />
+                        <Rock:BoolField DataField="NotifyCongregation" HeaderText="Notify Cong." />
                         <Rock:RockTemplateField HeaderText="Actions" ItemStyle-Width="160px">
                             <ItemTemplate>
                                 <a href="<%# "https://maps.google.com/?q="+Eval("Address").ToString() %>" target="_blank" class="btn btn-default"><i class="fa fa-map-o" title="View Map"></i></a>
