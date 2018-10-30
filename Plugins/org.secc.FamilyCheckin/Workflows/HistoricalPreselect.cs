@@ -59,7 +59,39 @@ namespace org.secc.FamilyCheckin
                 {
                     foreach ( var person in family.People )
                     {
-                        var acceptableGroupIds = person.GroupTypes.SelectMany( _gt => _gt.Groups ).Where( _g => !_g.ExcludedByFilter ).Select( _g => _g.Group.Id ).Distinct().ToList();
+                        var acceptableGroups = person
+                            .GroupTypes
+                            .SelectMany( _gt => _gt.Groups )
+                            .Where( _g => !_g.ExcludedByFilter )
+                            .DistinctBy( g => g.Group.Id )
+                            .ToList();
+
+                        var priorityAttendances = new List<MiniAttendance>();
+
+                        foreach ( var group in acceptableGroups )
+                        {
+                            if ( group.Group.Attributes == null || !group.Group.Attributes.Any() )
+                            {
+                                group.Group.LoadAttributes();
+                            }
+                            if ( group.Group.GetAttributeValue( "GivePriority" ).AsBoolean() )
+                            {
+                                if ( group.Locations.Any() && group.Locations.FirstOrDefault().Schedules.Any() )
+                                {
+                                    var miniAttendance = new MiniAttendance
+                                    {
+                                        GroupId = group.Group.Id,
+                                        GroupTypeId = group.Group.GroupTypeId,
+                                        LocationId = group.Locations.FirstOrDefault().Location.Id,
+                                        ScheduleId = group.Locations.FirstOrDefault().Schedules.FirstOrDefault().Schedule.Id
+                                    };
+                                    priorityAttendances.Add( miniAttendance );
+                                }
+                            }
+                        }
+
+                        var acceptableGroupIds = acceptableGroups.Select( g => g.Group.Id ).ToList();
+
                         var acceptableLocations = person.GroupTypes.SelectMany( _gt => _gt.Groups ).SelectMany( _g => _g.Locations ).Where( _l => !_l.ExcludedByFilter ).Select( _s => _s.Location.Id ).Distinct().ToList();
                         var acceptableScheduleIds = person.GroupTypes.SelectMany( _gt => _gt.Groups ).SelectMany( _g => _g.Locations ).SelectMany( _l => _l.Schedules ).Where( _s => !_s.ExcludedByFilter && _s.Schedule.IsCheckInActive ).Select( _s => _s.Schedule.Id ).Distinct().ToList();
 
@@ -67,7 +99,7 @@ namespace org.secc.FamilyCheckin
                             .Where( pa => pa.PersonId == person.Person.Id )
                             .Select( pa => pa.Id ).ToList();
 
-                        var attendance = attendanceService.Queryable().AsNoTracking()
+                        var attendances = attendanceService.Queryable().AsNoTracking()
                             .Where( a =>
                                 personAlias.Contains( a.PersonAliasId ?? 0 )
                                 && a.DidAttend == true
@@ -78,29 +110,36 @@ namespace org.secc.FamilyCheckin
                                 && acceptableLocations.Contains( a.LocationId ?? 0 )
                                 && acceptableScheduleIds.Contains( a.ScheduleId ?? 0 )
                             )
-                        .GroupBy( a => new
+                        .GroupBy( a => new MiniAttendance
                         {
-                            ScheduleId = a.ScheduleId,
-                            GroupId = a.GroupId,
-                            LocationId = a.LocationId,
+                            ScheduleId = a.ScheduleId ?? 0,
+                            GroupId = a.GroupId ?? 0,
+                            LocationId = a.LocationId ?? 0,
                             GroupTypeId = a.Group.GroupTypeId
                         } )
                         .OrderByDescending( an => an.Count() )
-                        .DistinctBy( an => an.Key.ScheduleId )
+                        .Select( g => g.Key )
                         .ToList();
 
-                        foreach ( var item in attendance )
+                        foreach ( var priorityAttendance in priorityAttendances )
                         {
-                            var gt = person.GroupTypes.Where( _gt => _gt.GroupType.Id == item.Key.GroupTypeId ).FirstOrDefault();
+                            attendances.Insert( 0, priorityAttendance );
+                        }
+
+                        attendances = attendances.DistinctBy( an => an.ScheduleId ).ToList();
+
+                        foreach ( var item in attendances )
+                        {
+                            var gt = person.GroupTypes.Where( _gt => _gt.GroupType.Id == item.GroupTypeId ).FirstOrDefault();
                             if ( gt != null )
                             {
-                                var g = gt.Groups.Where( _g => _g.Group.Id == item.Key.GroupId ).FirstOrDefault();
+                                var g = gt.Groups.Where( _g => _g.Group.Id == item.GroupId ).FirstOrDefault();
                                 if ( g != null )
                                 {
-                                    var l = g.Locations.Where( _l => _l.Location.Id == item.Key.LocationId ).FirstOrDefault();
+                                    var l = g.Locations.Where( _l => _l.Location.Id == item.LocationId ).FirstOrDefault();
                                     if ( l != null )
                                     {
-                                        var s = l.Schedules.Where( _s => _s.Schedule.Id == item.Key.ScheduleId ).FirstOrDefault();
+                                        var s = l.Schedules.Where( _s => _s.Schedule.Id == item.ScheduleId ).FirstOrDefault();
                                         if ( s != null )
                                         {
                                             gt.Selected = true;
@@ -138,6 +177,14 @@ namespace org.secc.FamilyCheckin
                 lastSunday = lastSunday.AddDays( -7 );
             }
             return sundayList;
+        }
+
+        private class MiniAttendance
+        {
+            public int ScheduleId { get; set; }
+            public int GroupId { get; set; }
+            public int LocationId { get; set; }
+            public int GroupTypeId { get; set; }
         }
     }
 }
