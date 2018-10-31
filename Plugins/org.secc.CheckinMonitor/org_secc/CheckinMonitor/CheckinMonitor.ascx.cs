@@ -667,7 +667,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 if ( approvedPeople != null )
                 {
                     var approvedPeopleQry = approvedPeople.GetQuery( null, 30, out errorMessages );
-                    if ( approvedPeopleQry.Where( dv => dv.Id == attendanceRecord.PersonAlias.PersonId ).Any() )
+                    if ( !approvedPeopleQry.Where( dv => dv.Id == attendanceRecord.PersonAlias.PersonId ).Any() )
                     {
                         forbiddenGroupIds = kioskCountUtility.VolunteerGroupIds;
                         ltMoveInfo.Text += "<br><i>"+ attendanceRecord.PersonAlias.Person.NickName + " is not cleared to work with minors.</i>";

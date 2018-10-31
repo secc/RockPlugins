@@ -47,7 +47,7 @@
                                     <div class="panel-body">
                                         <div class="row">
                                             <div class="col-md-3">
-                                                <Rock:PagePicker ID="ppSignupPage" runat="server" Label="Connections Signup Page" Help='The page the user should be sent to when they click the "Signup" button' OnSelectItem="ppSignupPage_SelectItem" />
+                                                <Rock:PagePicker ID="ppSignupPage" runat="server" Required="true" Label="Connections Signup Page" Help='The page the user should be sent to when they click the "Signup" button' OnSelectItem="ppSignupPage_SelectItem" />
                                             </div>
                                             <div class="col-md-4">
                                                 <Rock:RockDropDownList ID="rddlType" Label="Select the type of Volunteer Signup" runat="server" OnSelectedIndexChanged="RddlType_SelectedIndexChanged" AutoPostBack="true">
@@ -70,13 +70,13 @@
                                         <div class="pull-right" style="margin: -8px -10px">
                                             <asp:LinkButton ID="btnAddPartition" runat="server" CssClass="hidden" OnClick="btnAddPartition_Click" />
                                             <asp:HiddenField ID="hdnPartitionType" runat="server" />
-                                            <Rock:ButtonDropDownList ID="bddlAddPartition" OnSelectionChanged="BddlAddPartition_SelectionChanged" runat="server">
+                                            <Rock:RockDropDownList ID="bddlAddPartition" OnSelectedIndexChanged="BddlAddPartition_SelectionChanged" runat="server" AutoPostBack="true">
                                                 <asp:ListItem Value="">New Partition</asp:ListItem>
                                                 <asp:ListItem Value="Campus">Campus</asp:ListItem>
                                                 <asp:ListItem Value="DefinedType">Defined Type</asp:ListItem>
                                                 <asp:ListItem Value="Schedule">Schedule</asp:ListItem>
                                                 <asp:ListItem Value="Role">Group Type Role</asp:ListItem>
-                                            </Rock:ButtonDropDownList>
+                                            </Rock:RockDropDownList>
                                         </div>
                                     </div>
                                     <div class="panel-body">

@@ -1,6 +1,6 @@
 <div id="signup-parent" style="height: 1362px;">
     <div id="signup-container" style="display: none;">
-		{% include '~/Plugins/org_secc/Connection/SignupWizardCards/Partition.lava' %} 
+		{% include '~/Plugins/org_secc/Connection/CardWizard/Partition.lava' %} 
     </div>
 </div>
 <script type="text/javascript">
@@ -53,6 +53,9 @@
 	 */
     doSlide = function(slideIn, captureHistory = true) {
 		slideOutEl = $(".slide-box.active");
+		if (slideOutEl.attr('id') == $(slideIn).attr('id')) {
+			return;
+		}
         //  Make sure we have the max height to accomodate the new area
         if (slideOutEl.height() < $(slideIn).height())
         {

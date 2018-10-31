@@ -114,7 +114,7 @@
 				{{ LinkedPages.DetailPage }}?Item={{ item.Id }}
 				{{ 'Global' | Page:'Path' }}/{{ item.Slug }}
 				{% endcomment %}
-				<a class="series-link" href="{{ 'Global' | Page:'Path' }}/{{ item.Slug }}">
+				<a class="series-link" href="/sermons/{{ item.Slug }}">
 					<div class="card" style="background-color: white;">
 						{% if seriesImage != empty -%}
 							<!-- Image -->
@@ -234,21 +234,21 @@ function getMoreSermons($) {
 	// check and see if another request is being loaded
 	if (sermonsLoading == false) {
 		$.ajax( {
-			url: 'https://rock.secc.org/Webhooks/Lava.ashx/sermons/'+sermonOffset,
+			url: 'https://www.southeastchristian.org/Webhooks/Lava.ashx/sermons/'+sermonOffset,
 			async: true,
 			beforeSend: function(data) {
 				sermonsLoading = true; // start ajax loading process
 			},
-			error: function(jqXHR,error, errorThrown) {  
-			   console.log('AJAX ERROR: '); 
+			error: function(jqXHR,error, errorThrown) {
+			   //console.log('AJAX ERROR: ');
                if(jqXHR.status&&jqXHR.status==400){
-                   console.log(jqXHR.responseText); 
+                   //console.log(jqXHR.responseText);
                }else{
-				   console.log('URL Request: '+ 'https://rock.secc.org/Webhooks/Lava.ashx/sermons/'+sermonOffset);
-                   console.log("jqXHR:");
-				   console.log(jqXHR);
-				   console.log("error:"+error);
-				   console.log("errorThrown:"+errorThrown);
+				   //console.log('URL Request: '+ 'https://www.southeastchristian.org/Webhooks/Lava.ashx/sermons/'+sermonOffset);
+                   //console.log("jqXHR:");
+				   //console.log(jqXHR);
+				   //console.log("error:"+error);
+				   //console.log("errorThrown:"+errorThrown);
                }
             },
 			success: function(data) {
@@ -282,7 +282,7 @@ function getMoreSermons($) {
 					  if (descriptionContent != "") {
 						  descriptionContent = "<p class=\"series-summary text-color\">"+ sermon_series.Description +"</p><hr />";
 					  }
-					  console.log(sermon_series);
+					  //console.log(sermon_series);
 
 					  var $elem = $('<div></div>', {
 						            "class": "isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load"
@@ -296,7 +296,7 @@ function getMoreSermons($) {
 										  "style": 'background-color: white;',
 						  	            }).html(function() {
 					      				  var box =  "<div class=\"img-hover\">";
-						  	                  box +=    "<img src=\""+ sermon_series.Image +"\" class=\"img-responsive img-rounded\" style=\"margin: 0 auto; min-height: 100px;\">";
+						  	                  box +=    "<img src=\""+ sermon_series.Image +"\" class=\"img-responsive img-rounded\" style=\"margin: 0 auto; min-height: 229px;\">";
 											  box += "</div>";
 											  box += "<div class=\"series-body\">";
 						  	                  box +=    "<h3 class=\"text-color\">"+ sermon_series.Name +"</h3>";
@@ -328,7 +328,7 @@ function getMoreSermons($) {
 				$("#loading-animation").hide();
 				sermonsLoading = false; // reset back to false to allow more requests
 
-				console.log('data.Series.length === '+data.Series.length);
+				//console.log('data.Series.length === '+data.Series.length);
 				if (data.Series.length == 0) {
 					sermonsContinueMakingRequests = false;
 				}

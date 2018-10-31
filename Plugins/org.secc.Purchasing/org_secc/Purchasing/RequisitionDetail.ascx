@@ -109,99 +109,14 @@
         $("[id*=btnReturnToRequesterPart2]").click();
     }
     Sys.WebForms.PageRequestManager.getInstance().add_endRequest(function () { $('body').removeClass('modal-open'); });
+	function printContent(el){
+		var restorepage = $('body').html();
+		var printcontent = $('#' + el).clone();
+		$('body').empty().html(printcontent);
+		window.print();
+		$('body').html(restorepage);
+	}
 </script>
-
-<style>
-.nothing {
-    border: 0;
-    outline: none;
-    background: transparent !important;
-    box-shadow: none;
-    padding: 0px;
-    height: auto;
-}
-.table > tfoot > tr > td {
-    background-color: #edeae6;
-    color: #6a6a6a;
-    font-weight: 600;
-    border-color: #d8d1c8;
-}
-.form-group
-{
-    height: 65px;
-}
-@media print {
-  .form-group {
-      height: auto;
-      font-size: 10px;
-      height: 30px;
-  }
-  .form-control
-  {
-    border: 0;
-    padding:0;
-    overflow:visible;
-    height: 20px;
-    font-size: 10px;
-  }
-  h3 {
-      font-weight: bolder;
-      margin-top: 5px;
-      font-size: 14px;
-  }
-  body {
-      margin-left: 0mm; 
-      margin-right: 0mm;
-      width: 100%;
-  }
-  #page-wrapper {
-      width: auto;
-      left: 0px;
-      margin: 0px;
-      padding: 0px;
-  }
-  #content-wrapper {
-      margin: -15px;
-      width: 100%;
-  }
-  body,html {
-      margin: 0px;
-      padding: 0px;
-  }
-  #page-title {
-      padding: 5px !important;
-      margin-top: 15px !important;
-  }
-  #page-content {
-      padding: 5px !important;
-  }
-}
-@media print and (-moz-images-in-menus:0) {
-  #content-wrapper {
-      margin: 0px !important;
-      border: 5px solid #FFF;
-  }
-}
-@media print and (-ms-high-contrast: none), (-ms-high-contrast: active) {
-  #content-wrapper {
-      left: -70px;
-  }
-  .table>thead>tr>th
-  {
-      border: 2px solid #000 !important;
-      border-collapse: collapse;
-  }
-  .table-bordered {
-      border: 2px solid #000 !important;
-      border-collapse: collapse;
-
-  }
-  .table-bordered>thead>tr>th, .table-bordered>tbody>tr>th, .table-bordered>tfoot>tr>th, .table-bordered>thead>tr>td, .table-bordered>tbody>tr>td, .table-bordered>tfoot>tr>td {
-    border: 2px solid #000 !important;
-    border-collapse: collapse;
-  }
-}
-</style>
 
 <asp:UpdatePanel ID="upMain" runat="server" UpdateMode="Conditional">
     <ContentTemplate>
@@ -228,10 +143,105 @@
             <asp:LinkButton ID="lbReturn" CssClass="btn btn-default" runat="server" CommandName="return" OnClick="ToolbarItem_click" Visible="true" CausesValidation="false">Return To List</asp:LinkButton>
         </div>
         <div id="pnlMain" class="panel panel-block">
-            
+			<style>
+			.nothing {
+				border: 0;
+				outline: none;
+				background: transparent !important;
+				box-shadow: none;
+				padding: 0px;
+				height: auto;
+			}
+			.table > tfoot > tr > td {
+				background-color: #edeae6;
+				color: #6a6a6a;
+				font-weight: 600;
+				border-color: #d8d1c8;
+			}
+			.form-group
+			{
+				height: 65px;
+			}
+			@media print {
+			  .form-group {
+				  height: auto;
+				  font-size: 10px;
+				  height: 30px;
+			  }
+			  .form-control
+			  {
+				border: 0;
+				padding:0;
+				overflow:visible;
+				height: 20px;
+				font-size: 10px;
+			  }
+			  h3 {
+				  font-weight: bolder;
+				  margin-top: 5px;
+				  font-size: 14px;
+			  }
+			  body {
+				  margin-left: 0mm; 
+				  margin-right: 0mm;
+				  width: 100%;
+			  }
+			  #page-wrapper {
+				  width: auto;
+				  left: 0px;
+				  margin: 0px;
+				  padding: 0px;
+			  }
+			  #content-wrapper {
+				  margin: -15px;
+				  width: 100%;
+			  }
+			  body,html {
+				  margin: 0px;
+				  padding: 0px;
+			  }
+			  #page-title {
+				  padding: 5px !important;
+				  margin-top: 15px !important;
+			  }
+			  #page-content {
+				  padding: 5px !important;
+			  }
+			  
+			}
+			@page { size:8.5in 11in; margin: 2cm }
+
+			@media print and (-moz-images-in-menus:0) {
+			  #content-wrapper {
+				  margin: 0px !important;
+				  border: 5px solid #FFF;
+			  }
+			}
+			@media print and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+			  #content-wrapper {
+				  left: -70px;
+			  }
+			  .table>thead>tr>th
+			  {
+				  border: 2px solid #000 !important;
+				  border-collapse: collapse;
+			  }
+			  .table-bordered {
+				  border: 2px solid #000 !important;
+				  border-collapse: collapse;
+
+			  }
+			  .table-bordered>thead>tr>th, .table-bordered>tbody>tr>th, .table-bordered>tfoot>tr>th, .table-bordered>thead>tr>td, .table-bordered>tbody>tr>td, .table-bordered>tfoot>tr>td {
+				border: 2px solid #000 !important;
+				border-collapse: collapse;
+			  }
+			}
+			</style>
+
             <div class="panel-heading">
                 <div class="pull-right">
-                    <asp:HyperLink ID="lnkNotes" runat="server" Visible="false" NavigateUrl="#catNotes"><i class="fa fa-sticky-note fa-2x" title="Notes"></i></asp:HyperLink>&nbsp; &nbsp;
+					<a href="#" onclick="printContent('pnlMain');" style="margin-right: 10px"><i class="fa fa-print fa-2x" title="Print"></i></a>
+                    <asp:HyperLink ID="lnkNotes" runat="server" Visible="false" NavigateUrl="#catNotes" style="margin-right: 10px"><i class="fa fa-sticky-note fa-2x" title="Notes"></i></asp:HyperLink>
                     <asp:HyperLink ID="lnkAttachments" runat="server" Visible="false" NavigateUrl="#catAttachments"><i class="fa fa-paperclip fa-2x" title="Attachments"></i></asp:HyperLink>
                 </div>
                 <h1 class="panel-title">

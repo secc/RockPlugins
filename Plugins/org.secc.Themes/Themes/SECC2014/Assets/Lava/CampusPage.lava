@@ -1,0 +1,382 @@
+{% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
+{% assign pageParamCampus = 'Global' | PageParameter:'Campus' %}
+{% if pageParamCampusId == empty and pageParamCampus != empty and pageParamCampus != null and pageParamCampus != 'allCampuses' %}
+    {% assign pageParamCampus = 'Global' | PageParameter:'campus' %}
+    {% campus where:'Public == true' %}
+        {% for campus in campusItems %}
+            {% assign campusSlug = campus | Attribute: 'Slug' %}
+            {% if campus.Name == pageParamCampus or campusSlug == pageParamCampus %}
+                {% assign pageParamCampus = campus %}
+            {% endif %}
+        {% endfor %}
+    {% endcampus %}
+{% endif %}
+
+{% assign campus = pageParamCampus %}
+{% assign campusSlug = campus | Attribute:'Slug' %}
+{% assign HeroImage = campus | Attribute:'HeroImage','Object' %}
+{% assign CampusSubMenuItems = campus | Attribute:'CampusSubMenu' %}
+{% assign CampusVideo = campus | Attribute:'CampusVideo' %}
+{% assign CampusEmail = campus | Attribute:'Email' %}
+{% assign CampusFacebookSlug = campus | Attribute:'FacebookSlug' %}
+{% assign CampusVimeoId = campus | Attribute:'VimeoID' %}
+{% assign CampusLongitude = campus | Attribute:'Longitude' %}
+{% assign CampusLatitude = campus | Attribute:'Latitude' %}
+
+<script>
+$('body').addClass('{{ campus.Slug }}-campus');
+</script>
+
+<section id="PageHeader">
+	<div class="page-banner" style="max-height: 450px; overflow: hidden; background-color: black;">
+        {[ parallax image:'/GetImage.ashx?Guid={{ HeroImage.Guid }}' zindex:'0' videostarttime:'01' videoendtime:'24' addclass:'darken' height:'450px' position:'45% 50%' speed:'-10' ]}
+        {[ endparallax ]}
+	</div>
+    <h1 class="page-title" style="padding:0px !important;">
+        <span>{{ campus.Name }} Campus</span>
+    </h1>
+
+    <div id="sub-connect-menu">
+        <nav class="expandable-menu section-nav">
+            <a href="/{{ campus.Slug }}/">
+                <div class="se-logo {{ campus.Slug }}">{{ campus.ShortCode }}</div>
+            </a>
+            <ul>
+                {% for item in CampusSubMenuItems %}
+                    {% assign itemkv = item | PropertyToKeyValue %}
+                    <li><a href="{{ itemkv.Value }}">{{ itemkv.Key }}</a></li>
+                {% endfor %}
+            </ul>
+        </nav>
+    </div>
+</section>
+
+{% comment %}
+****************************************
+Campus - Section
+****************************************
+{% endcomment %}
+<section style="padding: 60px 10px;">
+
+    <!-- Map Modal -->
+	<div class="modal fade" id="MapModal" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+					<h4 class="modal-title" id="myModalLabel">{{ campus.Name }} Campus</h4>
+				</div>
+				<div class="modal-body">
+                    {[ googlemap height:'450px']}
+                        [[ marker location:'{{ CampusLatitude }},{{ CampusLongitude }}' title:'{{ campus.Name }} Campus' ]]
+                        <h4>{{ campus.Name }} Campus</h4>
+                        <address>
+                            {{ campus.Location.Street1 }}<br />
+                            {{ campus.Location.City }}, {{ campus.Location.State }} {{ campus.Location.PostalCode }}<br />
+                            {{ campus.PhoneNumber }}<br />
+                            <a href="{[ googledirections street:'{{ campus.Location.Street1 }}' city:'{{ campus.Location.City }}' state:'{{ campus.Location.State }}' zip:'{{ campus.Location.PostalCode }}' ]}" target="_blank">Get Directions</a>
+                        </address>
+                        [[ endmarker ]]
+                    {[ endgooglemap ]}
+                </div>
+				<div class="modal-footer">
+					<a href="{[ googledirections street:'{{ campus.Location.Street1 }}' city:'{{ campus.Location.City }}' state:'{{ campus.Location.State }}' zip:'{{ campus.Location.PostalCode }}' ]}" target="_blank" class="btn btn-normal">Get Directions</a>
+					<a href="/locations" class="btn btn-normal">See All Campuses</a>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="container">
+		<div class="campus-info row">
+			<div class="col-sm-12 col-md-6 col-lg-4">
+				<h2>Location</h2>
+                <address>
+                    {{ campus.Location.Street1 }}<br />
+                    {{ campus.Location.City }}, {{ campus.Location.State }} {{ campus.Location.PostalCode }}<br />
+                    {{ campus.PhoneNumber }}<br />
+                </address>
+				<button class="btn btn-doors map-button" data-toggle="modal" data-target="#MapModal">View Map</button>
+                <br />
+                <br />
+				<div class="services">
+					<h2>Campus Service Times</h2>
+					<h4 class="service-times">
+                        {%assign campusServicesJSON = campus | Attribute:'SiteScheduleInformation' %}
+                        {%assign interpreted = false %}
+                        {% if campusServicesJSON != "" %}
+                            {% assign campusServices = campusServicesJSON | FromJSON %}
+
+                            {% for serviceDay in campusServices.adult %}
+                                {{serviceDay.day}}:
+                                {% assign timesCount = serviceDay.times | Size %}
+
+                                {% for times in serviceDay.times %}
+                                    {{times.time}}{% if (times.interpreted == true %}*{%assign interpreted = true %}{% endif %}
+                                    {% if (forloop.rindex0 == 0 %}<br />{% break %}
+                                    {% elseif (forloop.rindex0 == 1 and timesCount > 2) %} &amp;{% else %},{% endif %}
+                                {% endfor %}
+
+                            {% endfor %}
+                        {% endif %}
+					</h4>
+                    {% if interpreted == true %}
+                        <small>*Interpreted for the deaf</small>
+                    {% endif %}
+                    <br /><br />
+                	<span>Childrens programming available at all services</span>
+					<br />
+					<br />
+
+                    {%assign campusServicesJSON = campus | Attribute:'SiteScheduleInformation' %}
+                    {%assign interpreted = false %}
+                    {% if campusServicesJSON != "" %}
+                        {% assign campusServices = campusServicesJSON | FromJSON %}
+
+                        <strong>MSM:</strong>{% for serviceDay in campusServices.msm %}
+                                <span class="service-day">{{serviceDay.day}}s:</span>
+                                {% assign timesCount = serviceDay.times | Size %}
+                                {% assign serviceLocation = serviceDay.location %}
+                                <span class="service-time">
+                                    {% for times in serviceDay.times %}
+                                        {{times.time}}{% if (times.interpreted == true %}*{%assign interpreted = true %}{% endif %}
+                                        {% if (forloop.rindex0 == 0 %}
+                                            {% break %}
+                                        {% elseif (forloop.rindex0 == 1 and timesCount > 2) %}
+                                            &amp;
+                                        {% else %},
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if campusServicesJSON != "" %}
+                                        | {{ serviceLocation }}
+                                    {% endif %}
+    							</span>
+                                <br />
+                            {% endfor %}
+                    {% endif %}
+                    {% if campus.slug == 'indiana' %}
+						(in the back of the building)
+					{% endif %}
+
+					<br />
+
+                    {%assign campusServicesJSON = campus | Attribute:'SiteScheduleInformation' %}
+                    {%assign interpreted = false %}
+                    {% if campusServicesJSON != "" %}
+                        {% assign campusServices = campusServicesJSON | FromJSON %}
+
+                        <strong>HSM:</strong>{% for serviceDay in campusServices.hsm %}
+                                <span class="service-day">{{serviceDay.day}}s:</span>
+                                {% assign timesCount = serviceDay.times | Size %}
+                                {% assign serviceLocation = serviceDay.location %}
+                                <span class="service-time">
+                                    {% for times in serviceDay.times %}
+                                        {{times.time}}{% if (times.interpreted == true %}*{%assign interpreted = true %}{% endif %}
+                                        {% if (forloop.rindex0 == 0 %}
+                                            {% break %}
+                                        {% elseif (forloop.rindex0 == 1 and timesCount > 2) %}
+                                            &amp;
+                                        {% else %},
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if campusServicesJSON != "" %}
+                                        | {{ serviceLocation }}
+                                    {% endif %}
+    							</span>
+                                <br />
+                            {% endfor %}
+                    {% endif %}
+
+				</div>
+                <br />
+                <div class="well text-center">
+                    <span>Are you new to SE {{ campus.Name }} Campus?</span>
+                    <br /><br />
+                    <a href="#about.php" class="btn btn-doors">Learn More</a>
+                </div>
+			</div>
+            <div class="col-sm-12 col-md-6 col-lg-8">
+				<h2>Welcome to Southeast {{ campus.Name }}</h2>
+				<p>
+					We are just a group of imperfect people striving to live a life for God.
+					No matter where you are in this life, we hope you'll find a place to connect
+					to Jesus and one another.
+				</p>
+
+                {% if CampusVimeoId != null %}
+					<div class="welcome-video embed-responsive embed-responsive-16by9 {{CampusVimeoId}}">
+						<iframe src="//player.vimeo.com/video/{{ CampusVimeoId }}" class="embed-responsive-item"  webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+					</div>
+				{% endif %}
+
+
+                {% if campus.slug != 'blankenbaker' %}
+                <br />
+				<div class="fb-link">
+					Stay Connected: <a href="http://facebook.com/{{ CampusFacebookSlug }}"><img src="/Content/facebook.png" style="width: 20px; height: 20px;" /> {{ campus.Name }} Campus Facebook Page</a>
+				</div>
+				{% endif %}
+
+			</div>
+
+		</div>
+	</div>
+</section>
+
+{% comment %}
+****************************************
+Get Connected - Section
+****************************************
+{% endcomment %}
+{% contentchannelitem where:'Status == 1 && ContentChannelId == 40' sort:'Order asc' %}
+{% assign itemCount = 0 %}
+{% for item in contentchannelitemItems %}
+{% assign campus_item = item | Attribute:'Campus' %}
+    {% if campus_item == campus.Name %}
+    {% assign itemCount = itemCount | Plus:1%}
+    {% endif %}
+{% endfor %}
+{% if itemCount > 0 %}
+<section id="Ministries" style="padding: 60px 10px; background-color: #f1f1f1;">
+    <div class="container">
+        <h1 class="section-header">Get Connected</h1>
+        <div class="isotope_wrap">
+        {% for item in contentchannelitemItems %}
+            {% assign link = item | Attribute:'ActionButtonLink', 'RawValue' %}
+            {% assign linkText = item | Attribute:'ActionButtonText' %}
+            {% assign image = item | Attribute:'Image','RawValue' %}
+            {% assign campus_item = item | Attribute:'Campus' %}
+            {% if campus_item == campus.Name %}
+            <div class="isotope_item col-sm-12 col-sm-6 col-md-4 text-center">
+                <img class="img-responsive img-rounded" src="/GetImage.ashx?Guid={{ image }}" />
+                <br />
+                <h2 class="copy">{{ item.Title }} {{ campus_item }}</h2>
+                {{ item.Content }}
+                <a href="{{ link }}" class="btn btn-doors">{{ linkText }}</a>
+            </div>
+            {% endif %}
+
+        {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endcontentchannelitem %}
+
+<script>
+$(document).ready(function() {
+    var $grid = $('.isotope_wrap').isotope({
+        // options
+        percentPosition: true,
+        itemSelector: '.isotope_item',
+        layoutMode: 'fitRows'
+    });
+
+    // reveal all items after init
+    var $items = $grid.find('.isotope_item');
+    $grid.imagesLoaded().progress( function() {
+      $grid.addClass('is-showing-items').isotope('layout');
+    });
+    $grid.isotope( 'revealItemElements', $items );
+});
+</script>
+
+{% comment %}
+****************************************
+Items of Note / FB - Section
+****************************************
+{% assign CampusFacebookSlug = campus | Attribute:'FacebookSlug' %}
+{% endcomment %}
+
+{% assign CampusItemsOfNote = campus | Attribute:'ItemsOfNote' %}
+{% if campusSlug != 'lagrange' and campusSlug != 'elizabethtown' %}
+<section id="MoreInfo" style="padding: 60px 10px;">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-6">
+                <h1 class="section-header"><span>Items of note @ <span class="{{ campusSlug }} text">{{ campus.ShortCode }} {{ campusSlug }}</span></span></h1>
+                <div class="padded-content">
+                        {{ CampusItemsOfNote }}
+                </div>
+            </div>
+            <div class="col-sm-6 hidden-xs">
+                <h1 class="section-header">
+                    <span class="{{ campusSlug }} text">{{ campus.ShortCode }}</span> on Facebook
+                </h1>
+                <div class="text-center">
+                    <div class="fb-page" data-href="https://www.facebook.com/{{ CampusFacebookSlug }}/" data-tabs="timeline" data-width="500" data-small-header="false" data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="false">
+                        <blockquote cite="https://www.facebook.com/{{ CampusFacebookSlug }}/" class="fb-xfbml-parse-ignore"><a href="https://www.facebook.com/{{ CampusFacebookSlug }}/">Southeast Christian Southwest Campus</a></blockquote>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+
+{% comment %}
+****************************************
+Contact - Section
+****************************************
+{% assign campus = pageParamCampus %}
+{% endcomment %}
+
+{% assign CampusPastors = campus | Attribute:'Pastors' %}
+<section id="CampusAdmin" style="padding: 60px 10px;">
+	<div class="container">
+
+		<div class="row">
+			<div class="col-sm-6 leadership">
+				<h1 class="section-header"><span>Leadership</span></h1>
+				<div class="row">
+					<div class="col-sm-4 text-center">
+						<img src="/Content/dave-stone.jpg" class="img-responsive img-circle pastor-image" />
+						<h5>Dave Stone</h5>
+						Senior Pastor
+					</div>
+					<div class="col-sm-4 text-center">
+						<img src="/Content/kyle-idleman.jpg" class="img-responsive img-circle pastor-image" />
+						<h5>Kyle Idleman</h5>
+						Teaching Pastor
+					</div>
+
+                    {% for pastor in CampusPastors %}
+                        {% assign pastorkv = pastor | PropertyToKeyValue %}
+                        {% if pastorkv.Key contains 'Idleman' or pastorkv.Key contains 'Stone' %}
+                            {% comment %}
+                                Do nothing as Kyle and Dave are already included from above.
+                            {% endcomment %}
+                        {% else %}
+                            <div class="col-sm-4 text-center">
+                                <img src="/Content/{{ pastorkv.Key | Downcase | Replace:' ','-' }}.jpg" class="img-responsive img-circle pastor-image" />
+                                <h5>{{ pastorkv.Key }}</h5>
+                                {{ campus.Name }} Campus<br />
+                                {{ pastorkv.Value }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+				</div>
+			</div>
+			<div class="col-sm-6 contact-info">
+				<h1 class="section-header"><span>Contact Information</span></h1>
+                    <strong>{{ campus.Location.Street1 }}</strong><br />
+                    {{ campus.Location.City }}, {{ campus.Location.State }} {{ campus.Location.PostalCode }}<br /><br />
+                    <i class="fa fa-phone"></i> : <a href="tel:{{ campus.PhoneNumber }}">{{ campus.PhoneNumber }}</a><br /><br />
+                    <i class="fa fa-envelope"></i> : <a href="mailto:{{ campus.Email }}">{{ campus.Email }}</a>
+            </div>
+		</div>
+	</div>
+</section>
+
+<script type="text/javascript">
+	if ($(window).width() >= BREAKPOINTS.small) {
+		(function(d, s, id) {
+		  var js, fjs = d.getElementsByTagName(s)[0];
+		  if (d.getElementById(id)) return;
+		  js = d.createElement(s); js.id = id;
+		  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&appId=151901631617078&version=v2.0";
+		  fjs.parentNode.insertBefore(js, fjs);
+		}(document, 'script', 'facebook-jssdk'));
+	}
+</script>

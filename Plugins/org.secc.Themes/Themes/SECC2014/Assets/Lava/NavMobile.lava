@@ -12,19 +12,8 @@
 					<ul>
 						<li><a href="/connect/">Overview</a></li>
 						<li><a href="/connect/men/">Men</a></li>
-						<li class="dropdown">
-							<button class="toggle">Women</button>
-							<ul>
-								<li><a href="/connect/women/">Women Overview</a></li>
-							</ul>
-						</li>
-						<li class="dropdown">
-							<button class="toggle">Family</button>
-							<ul>
-								<li><a href="/connect/family/">Family Overview</a></li>
-								<li><a href="/connect/family/faq.php">FAQ</a></li>
-							</ul>
-						</li>
+						<li><a href="/connect/women/">Women</a></li>
+						<li><a href="/connect/family/">Family</a></li>
 						<li><a href="/connect/children/">Children</a></li>
 						<li><a href="/connect/single/">Single Life</a></li>
 						<li><a href="/connect/students/">Students</a></li>
@@ -33,7 +22,11 @@
 							<button class="toggle">Missions</button>
 							<ul>
 								<li><a href="/connect/missions/">Missions Overview</a></li>
-								<li><a href="/connect/missions/trips.php">Open Trips</a></li>
+								<li><a href="/connect/missions/mission-partners.php">Mission Partners</a></li>
+								<li><a href="/connect/missions/education-partners/">Education Partners</a></li>
+								<li><a href="/connect/missions/church-plants.php">Church Plants</a></li>
+								<li><a href="/connect/missions/trips.php">Mission Trips</a></li>
+								<li><a href="/connect/missions/lifebridge/">LifeBridge</a></li>
 							</ul>
 						</li>
 						<li><a href="/connect/generous-living/">Generous Living</a></li>
@@ -41,12 +34,10 @@
 						<li class="dropdown">
 							<button class="toggle">Care Ministry</button>
 							<ul>
-								<li><a href="/connect/care/">Care Overview</a></li>
-								<li><a href="/connect/care/care-faq.php">Care FAQ</a></li>
-								<li><a href="/connect/care/counseling.php">Counseling</a></li>
-								<li><a href="/connect/care/mentoring.php">Mentoring</a></li>
-								<li><a href="/connect/care/financial.php">Financial</a></li>
-								<li><a href="/connect/care/disabilities.php">Diabilities</a></li>
+									<li><a href="/connect/care/">Care Overview</a></li>
+									<li><a href="/connect/care/care-faq/">Care FAQ</a></li>
+									<li><a href="/connect/care/encounter-groups/">Encounter Groups</a></li>
+									<li><a href="/connect/care/mentoring/">Mentoring</a></li>
 							</ul>
 						</li>
 						<li><a href="/connect/sports-fitness/">Sports &amp; Fitness</a></li>
