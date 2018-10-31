@@ -1,18 +1,29 @@
-<section id="christmas" class="ministry squairy-light-mediumTan-overlay" style="padding-top: 2em;">
+<style>
+    .advent-border .christmas-box-body {
+        background-color: #f2f2f2;
+        border-radius: 15px;
+        margin-bottom: 20px;
+    }
+</style>
+
+<section id="christmas" class="ministry" style="padding-top: 2em;">
 
     <div class="container">
-		<h3>Sign up to serve during Celebrate Christmas Together</h3>
-		<p><i>December 8 & 10-15 • Blankenbaker Campus</i></p>
 
-		<p>These essential roles will take place before and after the Celebrate Christmas Together event. Find the role that works best for you and sign up below.</p>
-
+        <div class="row advent-border">
+			<div class="col-xs-12 col-sm-10 col-sm-offset-1 col-sm-10 col-sm-offset-1">
+        		<h3>Sign up to serve before or after Celebrate Christmas Together</h3>
+        		<p><i>December 8 & 10-15 • Blankenbaker Campus</i></p>
+        		<p>These essential roles will take place before and after the Celebrate Christmas Together event. Find the role that works best for you and sign up below.</p>
+            </div>
+        </div>
         <!--  *** BELOW: Ignore or delete *** For DEV only -->
-        <div class="row" style="margin:2rem 0"></div>
-        <h4>Choose your role below:</h4>
-        <br />
 
 		<div class="row advent-border">
-			<div class="col-xs-12">
+			<div class="col-xs-12 col-sm-10 col-sm-offset-1 col-sm-10 col-sm-offset-1">
+                    <div class="row" style="margin:2rem 0"></div>
+                    <h4>Choose your role below:</h4>
+                    <br />
 
                     <div class="christmas-box">
                     <!--  *** END: Ignore or delete *** For DEV only -->
@@ -27,22 +38,10 @@
 							{% assign minimumAge = role.Entity | Attribute:"MinimumAge" %}
 							{% assign requiresBackgroundCheck = role.Entity | Attribute:"RequiresBackgroundCheck" %}
 							{% assign membershipRequired = role.Entity | Attribute:"MembershipRequired" %}
-								<div class="christmas-border christmas-role" data-minimum-age="{{minimumAge}}" data-requires-background-check="{{requiresBackgroundCheck}}">
-								  <span id="no-border-tl"></span>
-								  <span id="no-outline-tl"></span>
-								  <span class="corner TL"></span>
-								  <span id="no-border-tr"></span>
-								  <span id="no-outline-tr"></span>
-								  <span class="corner TR"></span>
-								  <span id="no-border-bl"></span>
-								  <span id="no-outline-bl"></span>
-								  <span class="corner BL"></span>
-								  <span id="no-border-br"></span>
-								  <span id="no-outline-br"></span>
-								  <span class="corner BR"></span>
+								<div class="christmas-role" data-minimum-age="{{minimumAge}}" data-requires-background-check="{{requiresBackgroundCheck}}">
 								  <div class="christmas-box-body">
 
-									<span class="role pull-left">{{ role.Entity.Name }}</span>
+									<span class="role pull-left"><i class="{{ role.Entity.Icon }}"></i> {{ role.Entity.Name }}</span>
 									<span class="label label-info pull-right">{% if role.Limit == -1 %}Unlimited{% else %}{% if spotsLeft <= 0 %}Full{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}{% endif %}</span>
 									<span class="clearfix"></span>
 										{% assign familyFriendly = role.Entity | Attribute:"FamilyFriendly" %}
@@ -65,7 +64,7 @@
 										{% endif %}
 									<span class="clearfix"></span>
 									<p>
-										<a href="/serve/christmas-new/signup?OpportunityId=20&GroupId=501223&GroupTypeRoleId={{role.Entity.Id}}" class="btn btn-normal pull-right" style="margin-top:10px;">Sign up for this role</a>
+										<a href="/serve/christmas-new/signup?OpportunityId=20&GroupId=843989&GroupTypeRoleId={{role.Entity.Id}}" class="btn btn-doors pull-right" style="margin-top:10px;">Sign up for this role</a>
 										<span class="clearfix"></span>
 									</p>
 								</div>
@@ -97,7 +96,7 @@ $(document).ready(function() {
 	var age = getUrlParameter("a");
 	var bc = getUrlParameter("bc");
 	$('.christmas-role').each(function() {
-		
+
 		if (age > 0 && $(this).attr('data-minimum-age') > 0 && age < $(this).attr('data-minimum-age')) {
 			$(this).hide();
 		}

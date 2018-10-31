@@ -1,0 +1,2736 @@
+<link href="/Themes/SECC2014/Styles/theme.css?v=636723235791652824" type="text/css" rel="stylesheet" />
+<script>
+var Froogaloop = function () {
+  function e(a) {
+    return new e.fn.init(a)
+  }
+  function g(a, c, b) {
+    if (!b.contentWindow.postMessage) return !1;
+    a = JSON.stringify({
+      method: a,
+      value: c
+    });
+    b.contentWindow.postMessage(a, h)
+  }
+  function l(a) {
+    var c,
+    b;
+    try {
+      c = JSON.parse(a.data),
+      b = c.event || c.method
+    } catch (e) {
+    }
+    'ready' != b || k || (k = !0);
+    if (!/^https?:\/\/player.vimeo.com/.test(a.origin)) return !1;
+    '*' === h && (h = a.origin);
+    a = c.value;
+    var m = c.data,
+    f = '' === f ? null : c.player_id;
+    c = f ? d[f][b] : d[b];
+    b = [
+    ];
+    if (!c) return !1;
+    void 0 !== a && b.push(a);
+    m && b.push(m);
+    f && b.push(f);
+    return 0 < b.length ? c.apply(null, b)  : c.call()
+  }
+  function n(a, c, b) {
+    b ? (d[b] || (d[b] = {
+    }), d[b][a] = c)  : d[a] = c
+  }
+  var d = {
+  },
+  k = !1,
+  h = '*';
+  e.fn = e.prototype = {
+    element: null,
+    init: function (a) {
+      'string' === typeof a && (a = document.getElementById(a));
+      this.element = a;
+      return this
+    },
+    api: function (a, c) {
+      if (!this.element || !a) return !1;
+      var b = this.element,
+      d = '' !== b.id ? b.id : null,
+      e = c && c.constructor && c.call && c.apply ? null : c,
+      f = c && c.constructor && c.call && c.apply ? c : null;
+      f && n(a, f, d);
+      g(a, e, b);
+      return this
+    },
+    addEvent: function (a, c) {
+      if (!this.element) return !1;
+      var b = this.element,
+      d = '' !== b.id ? b.id : null;
+      n(a, c, d);
+      'ready' != a ? g('addEventListener', a, b)  : 'ready' == a && k && c.call(null, d);
+      return this
+    },
+    removeEvent: function (a) {
+      if (!this.element) return !1;
+      var c = this.element,
+      b = '' !== c.id ? c.id : null;
+      a: {
+        if (b && d[b]) {
+          if (!d[b][a]) {
+            b = !1;
+            break a
+          }
+          d[b][a] = null
+        } else {
+          if (!d[a]) {
+            b = !1;
+            break a
+          }
+          d[a] = null
+        }
+        b = !0
+      }
+      'ready' != a && b && g('removeEventListener', a, c)
+    }
+  };
+  e.fn.init.prototype = e.fn;
+  window.addEventListener ? window.addEventListener('message', l, !1)  : window.attachEvent('onmessage', l);
+  return window.Froogaloop = window.$f = e
+}();
+
+$(document).ready(function () {
+  var a = null;
+  $('[data-toggle="tooltip"]').tooltip(),
+  $('.sp-video:not(.inactive)').click(function () {
+    var b = $(this).data('vimeoId'),
+    c = $(this).data('title');
+    TrackEvent('Starting Point', 'Videos', c),
+    $('#ModalVideoTitle').html(c);
+    var d = 'https://player.vimeo.com/video/' + b + '?api=1&player=vimeoplayer',
+    e = $('#VideoFrame');
+    e.prop('src', d);
+    a = $f(e[0]);
+    $('#VideoModal').modal('show')
+  });
+  $('#VideoModal').on('shown.bs.modal', function () {
+    a.api('play')
+  }),
+  $('#VideoModal').on('hidden.bs.modal', function () {
+    a.api('pause')
+  })
+});
+</script>
+
+<style>
+
+
+
+
+@charset "UTF-8";
+nav.section-nav{
+    color:inherit;
+    font-size:.8em;
+    font-family:proxima-nova-n7,proxima-nova,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-weight:700;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    position:absolute;
+    width:23%;
+    height:100%;
+    right:0;
+    top:0;
+    overflow:scroll;
+    background:rgba(255,255,255,.8)
+}
+nav.section-nav a,nav.section-nav button{
+    color:inherit;
+    text-align:left;
+    display:inline-block;
+    width:100%
+}
+nav.section-nav>ul>li+li{
+    border-top:1px solid #a09d99
+}
+nav.section-nav li>:first-child{
+    padding-left:10%;
+    padding-top:.5em;
+    padding-bottom:.5em
+}
+nav.section-nav.no-gutter{
+    padding-left:0
+}
+nav.section-nav li li{
+    margin-left:10%
+}
+nav.section-nav .no-indent li li{
+    margin-left:0
+}
+nav.section-nav .indent-children li li{
+    margin-left:10%
+}
+nav.section-nav .pad-children li li{
+    margin-left:0
+}
+nav.section-nav .pad-children li li>:first-child{
+    padding-left:20%
+}
+nav.section-nav .pad-children li li li>:first-child{
+    padding-left:30%
+}
+nav.section-nav .pad-children li li li li>:first-child{
+    padding-left:40%
+}
+nav.section-nav .pad-children li li li li li>:first-child{
+    padding-left:50%
+}
+nav.section-nav .pad-children li li li li li li>:first-child{
+    padding-left:60%
+}
+nav.section-nav .pad-children li li li li li li li>:first-child{
+    padding-left:70%
+}
+@media (min-width:1600px){
+    nav.section-nav{
+        font-size:1em
+    }
+}
+@media (min-width:768px) and (max-width:991px){
+    nav.section-nav{
+        width:30%
+    }
+}
+nav.section-nav>ul>li.active,nav.section-nav>ul>li:hover{
+    background:rgba(255,255,255,.9)
+}
+nav.section-nav>ul>li .toggle:hover,nav.section-nav>ul>li a:hover{
+    text-decoration:none
+}
+nav.section-nav>ul>li.dropdown li>a{
+    color:#6D6A66!important
+}
+nav.section-nav>ul>li.dropdown li.active>a{
+    color:inherit!important
+}
+nav.section-nav>ul>li li{
+    font-size:.9em
+}
+nav.section-nav>ul>li li>:first-child{
+    padding-top:.25em;
+    padding-bottom:.5em
+}
+nav.section-nav .se-logo{
+    font-size:26px;
+    margin:14px auto;
+    display:block
+}
+@media (min-width:1600px){
+    nav.section-nav .se-logo{
+        font-size:35px;
+        margin-top:30px;
+        margin-bottom:30px
+    }
+}
+@media (min-width:992px) and (max-width:1199px){
+    nav.section-nav .se-logo{
+        font-size:16px;
+        margin-top:16px;
+        margin-bottom:8px
+    }
+}
+@media (min-width:768px) and (max-width:991px){
+    nav.section-nav .se-logo{
+        font-size:14px;
+        margin-top:20px;
+        margin-bottom:10px
+    }
+}
+@media (min-width:480px) and (max-width:767px){
+    nav.section-nav .se-logo{
+        font-size:28px
+    }
+}
+@media (max-width:480px){
+    nav.section-nav .se-logo{
+        font-size:20px;
+        margin:14px
+    }
+}
+nav.section-nav .se-logo.visible-sm-block{
+    float:left;
+    margin:0 5px 0 0
+}
+@media (min-width:768px){
+    .page-banner #Breadcrumbs{
+        background:0 0!important
+    }
+}
+@media (max-width:767px){
+    .section-nav{
+        display:-webkit-box;
+        display:-moz-box;
+        display:-ms-flexbox;
+        display:-webkit-flex;
+        display:flex;
+        -webkit-box-align-items:center;
+        -moz-box-align-items:center;
+        -webkit-align-items:center;
+        -ms-align-items:center;
+        align-items:center
+    }
+    .section-nav .se-logo{
+        margin:auto
+    }
+    .section-nav>ul{
+        display:none
+    }
+}
+#PageHeader.blankenbaker-campus h2,aside.blankenbaker-campus h2,body.blankenbaker-campus #PageBody h2{
+    color:#777600
+}
+#PageHeader.blankenbaker-campus a.btn-normal,#PageHeader.blankenbaker-campus button.btn-normal,aside.blankenbaker-campus a.btn-normal,aside.blankenbaker-campus button.btn-normal,body.blankenbaker-campus #PageBody a.btn-normal,body.blankenbaker-campus #PageBody button.btn-normal{
+    border-color:#777600;
+    color:#777600
+}
+#PageHeader.blankenbaker-campus a.btn-normal:hover,#PageHeader.blankenbaker-campus button.btn-normal:hover,aside.blankenbaker-campus a.btn-normal:hover,aside.blankenbaker-campus button.btn-normal:hover,body.blankenbaker-campus #PageBody a.btn-normal:hover,body.blankenbaker-campus #PageBody button.btn-normal:hover{
+    background:#777600;
+    color:#fff
+}
+#PageHeader.blankenbaker-campus .section-nav,aside.blankenbaker-campus .section-nav,body.blankenbaker-campus #PageBody .section-nav{
+    color:#777600
+}
+#PageHeader.blankenbaker-campus .section-nav li.dropdown li:hover>.toggle,#PageHeader.blankenbaker-campus .section-nav li.dropdown li:hover>a,aside.blankenbaker-campus .section-nav li.dropdown li:hover>.toggle,aside.blankenbaker-campus .section-nav li.dropdown li:hover>a,body.blankenbaker-campus #PageBody .section-nav li.dropdown li:hover>.toggle,body.blankenbaker-campus #PageBody .section-nav li.dropdown li:hover>a{
+    color:#777600!important
+}
+#PageHeader.indiana-campus h2,aside.indiana-campus h2,body.indiana-campus #PageBody h2{
+    color:#9F1C21
+}
+#PageHeader.indiana-campus a.btn-normal,#PageHeader.indiana-campus button.btn-normal,aside.indiana-campus a.btn-normal,aside.indiana-campus button.btn-normal,body.indiana-campus #PageBody a.btn-normal,body.indiana-campus #PageBody button.btn-normal{
+    border-color:#9F1C21;
+    color:#9F1C21
+}
+#PageHeader.indiana-campus a.btn-normal:hover,#PageHeader.indiana-campus button.btn-normal:hover,aside.indiana-campus a.btn-normal:hover,aside.indiana-campus button.btn-normal:hover,body.indiana-campus #PageBody a.btn-normal:hover,body.indiana-campus #PageBody button.btn-normal:hover{
+    background:#9F1C21;
+    color:#fff
+}
+#PageHeader.indiana-campus .section-nav,aside.indiana-campus .section-nav,body.indiana-campus #PageBody .section-nav{
+    color:#9F1C21
+}
+#PageHeader.indiana-campus .section-nav li.dropdown li:hover>.toggle,#PageHeader.indiana-campus .section-nav li.dropdown li:hover>a,aside.indiana-campus .section-nav li.dropdown li:hover>.toggle,aside.indiana-campus .section-nav li.dropdown li:hover>a,body.indiana-campus #PageBody .section-nav li.dropdown li:hover>.toggle,body.indiana-campus #PageBody .section-nav li.dropdown li:hover>a{
+    color:#9F1C21!important
+}
+#PageHeader.crestwood-campus h2,aside.crestwood-campus h2,body.crestwood-campus #PageBody h2{
+    color:#37a7cd
+}
+#PageHeader.crestwood-campus a.btn-normal,#PageHeader.crestwood-campus button.btn-normal,aside.crestwood-campus a.btn-normal,aside.crestwood-campus button.btn-normal,body.crestwood-campus #PageBody a.btn-normal,body.crestwood-campus #PageBody button.btn-normal{
+    border-color:#37a7cd;
+    color:#37a7cd
+}
+#PageHeader.crestwood-campus a.btn-normal:hover,#PageHeader.crestwood-campus button.btn-normal:hover,aside.crestwood-campus a.btn-normal:hover,aside.crestwood-campus button.btn-normal:hover,body.crestwood-campus #PageBody a.btn-normal:hover,body.crestwood-campus #PageBody button.btn-normal:hover{
+    background:#37a7cd;
+    color:#fff
+}
+#PageHeader.crestwood-campus .section-nav,aside.crestwood-campus .section-nav,body.crestwood-campus #PageBody .section-nav{
+    color:#37a7cd
+}
+#PageHeader.crestwood-campus .section-nav li.dropdown li:hover>.toggle,#PageHeader.crestwood-campus .section-nav li.dropdown li:hover>a,aside.crestwood-campus .section-nav li.dropdown li:hover>.toggle,aside.crestwood-campus .section-nav li.dropdown li:hover>a,body.crestwood-campus #PageBody .section-nav li.dropdown li:hover>.toggle,body.crestwood-campus #PageBody .section-nav li.dropdown li:hover>a{
+    color:#37a7cd!important
+}
+#PageHeader.southwest-campus h2,aside.southwest-campus h2,body.southwest-campus #PageBody h2{
+    color:#E87C1E
+}
+#PageHeader.southwest-campus a.btn-normal,#PageHeader.southwest-campus button.btn-normal,aside.southwest-campus a.btn-normal,aside.southwest-campus button.btn-normal,body.southwest-campus #PageBody a.btn-normal,body.southwest-campus #PageBody button.btn-normal{
+    border-color:#E87C1E;
+    color:#E87C1E
+}
+#PageHeader.southwest-campus a.btn-normal:hover,#PageHeader.southwest-campus button.btn-normal:hover,aside.southwest-campus a.btn-normal:hover,aside.southwest-campus button.btn-normal:hover,body.southwest-campus #PageBody a.btn-normal:hover,body.southwest-campus #PageBody button.btn-normal:hover{
+    background:#E87C1E;
+    color:#fff
+}
+#PageHeader.southwest-campus .section-nav,aside.southwest-campus .section-nav,body.southwest-campus #PageBody .section-nav{
+    color:#E87C1E
+}
+#PageHeader.southwest-campus .section-nav li.dropdown li:hover>.toggle,#PageHeader.southwest-campus .section-nav li.dropdown li:hover>a,aside.southwest-campus .section-nav li.dropdown li:hover>.toggle,aside.southwest-campus .section-nav li.dropdown li:hover>a,body.southwest-campus #PageBody .section-nav li.dropdown li:hover>.toggle,body.southwest-campus #PageBody .section-nav li.dropdown li:hover>a{
+    color:#E87C1E!important
+}
+#PageHeader.lagrange-campus h2,aside.lagrange-campus h2,body.lagrange-campus #PageBody h2{
+    color:#5C6D79
+}
+#PageHeader.lagrange-campus a.btn-normal,#PageHeader.lagrange-campus button.btn-normal,aside.lagrange-campus a.btn-normal,aside.lagrange-campus button.btn-normal,body.lagrange-campus #PageBody a.btn-normal,body.lagrange-campus #PageBody button.btn-normal{
+    border-color:#5C6D79;
+    color:#5C6D79
+}
+#PageHeader.lagrange-campus a.btn-normal:hover,#PageHeader.lagrange-campus button.btn-normal:hover,aside.lagrange-campus a.btn-normal:hover,aside.lagrange-campus button.btn-normal:hover,body.lagrange-campus #PageBody a.btn-normal:hover,body.lagrange-campus #PageBody button.btn-normal:hover{
+    background:#5C6D79;
+    color:#fff
+}
+#PageHeader.lagrange-campus .section-nav,aside.lagrange-campus .section-nav,body.lagrange-campus #PageBody .section-nav{
+    color:#5C6D79
+}
+#PageHeader.lagrange-campus .section-nav li.dropdown li:hover>.toggle,#PageHeader.lagrange-campus .section-nav li.dropdown li:hover>a,aside.lagrange-campus .section-nav li.dropdown li:hover>.toggle,aside.lagrange-campus .section-nav li.dropdown li:hover>a,body.lagrange-campus #PageBody .section-nav li.dropdown li:hover>.toggle,body.lagrange-campus #PageBody .section-nav li.dropdown li:hover>a{
+    color:#5C6D79!important
+}
+#PageHeader.default-campus h2,aside.default-campus h2,body.default-campus #PageBody h2{
+    color:#383735
+}
+#PageHeader.default-campus a.btn-normal,#PageHeader.default-campus button.btn-normal,aside.default-campus a.btn-normal,aside.default-campus button.btn-normal,body.default-campus #PageBody a.btn-normal,body.default-campus #PageBody button.btn-normal{
+    border-color:#383735;
+    color:#383735
+}
+#PageHeader.default-campus a.btn-normal:hover,#PageHeader.default-campus button.btn-normal:hover,aside.default-campus a.btn-normal:hover,aside.default-campus button.btn-normal:hover,body.default-campus #PageBody a.btn-normal:hover,body.default-campus #PageBody button.btn-normal:hover{
+    background:#383735;
+    color:#fff
+}
+#PageHeader.default-campus .section-nav,aside.default-campus .section-nav,body.default-campus #PageBody .section-nav{
+    color:#383735
+}
+#PageHeader.default-campus .section-nav li.dropdown li:hover>.toggle,#PageHeader.default-campus .section-nav li.dropdown li:hover>a,aside.default-campus .section-nav li.dropdown li:hover>.toggle,aside.default-campus .section-nav li.dropdown li:hover>a,body.default-campus #PageBody .section-nav li.dropdown li:hover>.toggle,body.default-campus #PageBody .section-nav li.dropdown li:hover>a{
+    color:#383735!important
+}
+@media (max-width:991px){
+    aside+*{
+        margin-top:1em
+    }
+}
+#PageHeader{
+    padding-bottom:0!important
+}
+#PageHeader .page-banner{
+    position:relative;
+    width:100%;
+    height:auto;
+    overflow:hidden
+}
+@media (min-width:1600px){
+    #PageHeader .page-banner{
+        max-height:566px
+    }
+}
+#PageHeader .page-banner>img{
+    width:100%
+}
+#PageHeader .page-banner #Breadcrumbs{
+    position:absolute;
+    top:0;
+    width:100%;
+    background:rgba(255,255,255,.35);
+    text-shadow:1px 1px 1px #222;
+    color:#fff
+}
+#PageHeader .page-title{
+    background:#383735;
+    padding:1em 0!important
+}
+#PageHeader .page-title h1{
+    color:rgba(255,255,255,.4)
+}
+#PageHeader .page-title a{
+    color:#FFF;
+    text-transform:uppercase;
+    font-family:proxima-nova-n7,proxima-nova,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-weight:700
+}
+@media (min-width:768px){
+    #PageHeader .page-title .page-nav,#PageHeader .page-title h1{
+        display:inline-block
+    }
+    #PageHeader .page-title .page-nav li{
+        margin-left:2em
+    }
+}
+.content-headers{
+    padding-top:0!important;
+    padding-bottom:0!important
+}
+@media (min-width:768px){
+    .content-headers::before{
+        content:"\00a0";
+        display:block;
+        width:100%;
+        background:#383735;
+        color:#383735;
+        position:absolute;
+        padding:.75em 0;
+        font-size:28px;
+        line-height:1.1
+    }
+}
+.content-headers h2{
+    background:#383735;
+    padding:.75em 0;
+    margin-bottom:.75em;
+    color:rgba(255,255,255,.4);
+    text-align:center;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+    overflow:hidden
+}
+@media (max-width:767px){
+    .content-headers h2{
+        margin-left:-15px;
+        margin-right:-15px
+    }
+}
+.content-headers .bar-col{
+    padding-bottom:5em
+}
+.content-headers .bar-col+.bar-col{
+    border-left:1px solid #a09d99
+}
+.image-divider{
+    padding:0!important
+}
+.image-divider img{
+    width:100%
+}
+/*! jQuery UI - v1.11.4 - 2015-11-05
+
+@charset "UTF-8";
+nav.section-nav{
+    color:inherit;
+    font-size:.8em;
+    font-family:proxima-nova-n7,proxima-nova,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-weight:700;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    position:absolute;
+    width:23%;
+    height:100%;
+    right:0;
+    top:0;
+    overflow:scroll;
+    background:rgba(255,255,255,.8)
+}
+nav.section-nav a,nav.section-nav button{
+    color:inherit;
+    text-align:left;
+    display:inline-block;
+    width:100%
+}
+nav.section-nav>ul>li+li{
+    border-top:1px solid #a09d99
+}
+nav.section-nav li>:first-child{
+    padding-left:10%;
+    padding-top:.5em;
+    padding-bottom:.5em
+}
+nav.section-nav.no-gutter{
+    padding-left:0
+}
+nav.section-nav li li{
+    margin-left:10%
+}
+nav.section-nav .no-indent li li{
+    margin-left:0
+}
+nav.section-nav .indent-children li li{
+    margin-left:10%
+}
+nav.section-nav .pad-children li li{
+    margin-left:0
+}
+nav.section-nav .pad-children li li>:first-child{
+    padding-left:20%
+}
+nav.section-nav .pad-children li li li>:first-child{
+    padding-left:30%
+}
+nav.section-nav .pad-children li li li li>:first-child{
+    padding-left:40%
+}
+nav.section-nav .pad-children li li li li li>:first-child{
+    padding-left:50%
+}
+nav.section-nav .pad-children li li li li li li>:first-child{
+    padding-left:60%
+}
+nav.section-nav .pad-children li li li li li li li>:first-child{
+    padding-left:70%
+}
+@media (min-width:1600px){
+    nav.section-nav{
+        font-size:1em
+    }
+}
+@media (min-width:768px) and (max-width:991px){
+    nav.section-nav{
+        width:30%
+    }
+}
+nav.section-nav>ul>li.active,nav.section-nav>ul>li:hover{
+    background:rgba(255,255,255,.9)
+}
+nav.section-nav>ul>li .toggle:hover,nav.section-nav>ul>li a:hover{
+    text-decoration:none
+}
+nav.section-nav>ul>li.dropdown li>a{
+    color:#6D6A66!important
+}
+nav.section-nav>ul>li.dropdown li.active>a{
+    color:inherit!important
+}
+nav.section-nav>ul>li li{
+    font-size:.9em
+}
+nav.section-nav>ul>li li>:first-child{
+    padding-top:.25em;
+    padding-bottom:.5em
+}
+nav.section-nav .se-logo{
+    font-size:26px;
+    margin:14px auto;
+    display:block
+}
+@media (min-width:1600px){
+    nav.section-nav .se-logo{
+        font-size:35px;
+        margin-top:30px;
+        margin-bottom:30px
+    }
+}
+@media (min-width:992px) and (max-width:1199px){
+    nav.section-nav .se-logo{
+        font-size:16px;
+        margin-top:16px;
+        margin-bottom:8px
+    }
+}
+@media (min-width:768px) and (max-width:991px){
+    nav.section-nav .se-logo{
+        font-size:14px;
+        margin-top:20px;
+        margin-bottom:10px
+    }
+}
+@media (min-width:480px) and (max-width:767px){
+    nav.section-nav .se-logo{
+        font-size:28px
+    }
+}
+@media (max-width:480px){
+    nav.section-nav .se-logo{
+        font-size:20px;
+        margin:14px
+    }
+}
+nav.section-nav .se-logo.visible-sm-block{
+    float:left;
+    margin:0 5px 0 0
+}
+@media (min-width:768px){
+    .page-banner #Breadcrumbs{
+        background:0 0!important
+    }
+}
+@media (max-width:767px){
+    .section-nav{
+        display:-webkit-box;
+        display:-moz-box;
+        display:-ms-flexbox;
+        display:-webkit-flex;
+        display:flex;
+        -webkit-box-align-items:center;
+        -moz-box-align-items:center;
+        -webkit-align-items:center;
+        -ms-align-items:center;
+        align-items:center
+    }
+    .section-nav .se-logo{
+        margin:auto
+    }
+    .section-nav>ul{
+        display:none
+    }
+}
+#PageHeader.blankenbaker-campus h2,aside.blankenbaker-campus h2,body.blankenbaker-campus #PageBody h2{
+    color:#777600
+}
+#PageHeader.blankenbaker-campus a.btn-normal,#PageHeader.blankenbaker-campus button.btn-normal,aside.blankenbaker-campus a.btn-normal,aside.blankenbaker-campus button.btn-normal,body.blankenbaker-campus #PageBody a.btn-normal,body.blankenbaker-campus #PageBody button.btn-normal{
+    border-color:#777600;
+    color:#777600
+}
+#PageHeader.blankenbaker-campus a.btn-normal:hover,#PageHeader.blankenbaker-campus button.btn-normal:hover,aside.blankenbaker-campus a.btn-normal:hover,aside.blankenbaker-campus button.btn-normal:hover,body.blankenbaker-campus #PageBody a.btn-normal:hover,body.blankenbaker-campus #PageBody button.btn-normal:hover{
+    background:#777600;
+    color:#fff
+}
+#PageHeader.blankenbaker-campus .section-nav,aside.blankenbaker-campus .section-nav,body.blankenbaker-campus #PageBody .section-nav{
+    color:#777600
+}
+#PageHeader.blankenbaker-campus .section-nav li.dropdown li:hover>.toggle,#PageHeader.blankenbaker-campus .section-nav li.dropdown li:hover>a,aside.blankenbaker-campus .section-nav li.dropdown li:hover>.toggle,aside.blankenbaker-campus .section-nav li.dropdown li:hover>a,body.blankenbaker-campus #PageBody .section-nav li.dropdown li:hover>.toggle,body.blankenbaker-campus #PageBody .section-nav li.dropdown li:hover>a{
+    color:#777600!important
+}
+#PageHeader.indiana-campus h2,aside.indiana-campus h2,body.indiana-campus #PageBody h2{
+    color:#9F1C21
+}
+#PageHeader.indiana-campus a.btn-normal,#PageHeader.indiana-campus button.btn-normal,aside.indiana-campus a.btn-normal,aside.indiana-campus button.btn-normal,body.indiana-campus #PageBody a.btn-normal,body.indiana-campus #PageBody button.btn-normal{
+    border-color:#9F1C21;
+    color:#9F1C21
+}
+#PageHeader.indiana-campus a.btn-normal:hover,#PageHeader.indiana-campus button.btn-normal:hover,aside.indiana-campus a.btn-normal:hover,aside.indiana-campus button.btn-normal:hover,body.indiana-campus #PageBody a.btn-normal:hover,body.indiana-campus #PageBody button.btn-normal:hover{
+    background:#9F1C21;
+    color:#fff
+}
+#PageHeader.indiana-campus .section-nav,aside.indiana-campus .section-nav,body.indiana-campus #PageBody .section-nav{
+    color:#9F1C21
+}
+#PageHeader.indiana-campus .section-nav li.dropdown li:hover>.toggle,#PageHeader.indiana-campus .section-nav li.dropdown li:hover>a,aside.indiana-campus .section-nav li.dropdown li:hover>.toggle,aside.indiana-campus .section-nav li.dropdown li:hover>a,body.indiana-campus #PageBody .section-nav li.dropdown li:hover>.toggle,body.indiana-campus #PageBody .section-nav li.dropdown li:hover>a{
+    color:#9F1C21!important
+}
+#PageHeader.crestwood-campus h2,aside.crestwood-campus h2,body.crestwood-campus #PageBody h2{
+    color:#37a7cd
+}
+#PageHeader.crestwood-campus a.btn-normal,#PageHeader.crestwood-campus button.btn-normal,aside.crestwood-campus a.btn-normal,aside.crestwood-campus button.btn-normal,body.crestwood-campus #PageBody a.btn-normal,body.crestwood-campus #PageBody button.btn-normal{
+    border-color:#37a7cd;
+    color:#37a7cd
+}
+#PageHeader.crestwood-campus a.btn-normal:hover,#PageHeader.crestwood-campus button.btn-normal:hover,aside.crestwood-campus a.btn-normal:hover,aside.crestwood-campus button.btn-normal:hover,body.crestwood-campus #PageBody a.btn-normal:hover,body.crestwood-campus #PageBody button.btn-normal:hover{
+    background:#37a7cd;
+    color:#fff
+}
+#PageHeader.crestwood-campus .section-nav,aside.crestwood-campus .section-nav,body.crestwood-campus #PageBody .section-nav{
+    color:#37a7cd
+}
+#PageHeader.crestwood-campus .section-nav li.dropdown li:hover>.toggle,#PageHeader.crestwood-campus .section-nav li.dropdown li:hover>a,aside.crestwood-campus .section-nav li.dropdown li:hover>.toggle,aside.crestwood-campus .section-nav li.dropdown li:hover>a,body.crestwood-campus #PageBody .section-nav li.dropdown li:hover>.toggle,body.crestwood-campus #PageBody .section-nav li.dropdown li:hover>a{
+    color:#37a7cd!important
+}
+#PageHeader.southwest-campus h2,aside.southwest-campus h2,body.southwest-campus #PageBody h2{
+    color:#E87C1E
+}
+#PageHeader.southwest-campus a.btn-normal,#PageHeader.southwest-campus button.btn-normal,aside.southwest-campus a.btn-normal,aside.southwest-campus button.btn-normal,body.southwest-campus #PageBody a.btn-normal,body.southwest-campus #PageBody button.btn-normal{
+    border-color:#E87C1E;
+    color:#E87C1E
+}
+#PageHeader.southwest-campus a.btn-normal:hover,#PageHeader.southwest-campus button.btn-normal:hover,aside.southwest-campus a.btn-normal:hover,aside.southwest-campus button.btn-normal:hover,body.southwest-campus #PageBody a.btn-normal:hover,body.southwest-campus #PageBody button.btn-normal:hover{
+    background:#E87C1E;
+    color:#fff
+}
+#PageHeader.southwest-campus .section-nav,aside.southwest-campus .section-nav,body.southwest-campus #PageBody .section-nav{
+    color:#E87C1E
+}
+#PageHeader.southwest-campus .section-nav li.dropdown li:hover>.toggle,#PageHeader.southwest-campus .section-nav li.dropdown li:hover>a,aside.southwest-campus .section-nav li.dropdown li:hover>.toggle,aside.southwest-campus .section-nav li.dropdown li:hover>a,body.southwest-campus #PageBody .section-nav li.dropdown li:hover>.toggle,body.southwest-campus #PageBody .section-nav li.dropdown li:hover>a{
+    color:#E87C1E!important
+}
+#PageHeader.lagrange-campus h2,aside.lagrange-campus h2,body.lagrange-campus #PageBody h2{
+    color:#5C6D79
+}
+#PageHeader.lagrange-campus a.btn-normal,#PageHeader.lagrange-campus button.btn-normal,aside.lagrange-campus a.btn-normal,aside.lagrange-campus button.btn-normal,body.lagrange-campus #PageBody a.btn-normal,body.lagrange-campus #PageBody button.btn-normal{
+    border-color:#5C6D79;
+    color:#5C6D79
+}
+#PageHeader.lagrange-campus a.btn-normal:hover,#PageHeader.lagrange-campus button.btn-normal:hover,aside.lagrange-campus a.btn-normal:hover,aside.lagrange-campus button.btn-normal:hover,body.lagrange-campus #PageBody a.btn-normal:hover,body.lagrange-campus #PageBody button.btn-normal:hover{
+    background:#5C6D79;
+    color:#fff
+}
+#PageHeader.lagrange-campus .section-nav,aside.lagrange-campus .section-nav,body.lagrange-campus #PageBody .section-nav{
+    color:#5C6D79
+}
+#PageHeader.lagrange-campus .section-nav li.dropdown li:hover>.toggle,#PageHeader.lagrange-campus .section-nav li.dropdown li:hover>a,aside.lagrange-campus .section-nav li.dropdown li:hover>.toggle,aside.lagrange-campus .section-nav li.dropdown li:hover>a,body.lagrange-campus #PageBody .section-nav li.dropdown li:hover>.toggle,body.lagrange-campus #PageBody .section-nav li.dropdown li:hover>a{
+    color:#5C6D79!important
+}
+#PageHeader.default-campus h2,aside.default-campus h2,body.default-campus #PageBody h2{
+    color:#383735
+}
+#PageHeader.default-campus a.btn-normal,#PageHeader.default-campus button.btn-normal,aside.default-campus a.btn-normal,aside.default-campus button.btn-normal,body.default-campus #PageBody a.btn-normal,body.default-campus #PageBody button.btn-normal{
+    border-color:#383735;
+    color:#383735
+}
+#PageHeader.default-campus a.btn-normal:hover,#PageHeader.default-campus button.btn-normal:hover,aside.default-campus a.btn-normal:hover,aside.default-campus button.btn-normal:hover,body.default-campus #PageBody a.btn-normal:hover,body.default-campus #PageBody button.btn-normal:hover{
+    background:#383735;
+    color:#fff
+}
+#PageHeader.default-campus .section-nav,aside.default-campus .section-nav,body.default-campus #PageBody .section-nav{
+    color:#383735
+}
+#PageHeader.default-campus .section-nav li.dropdown li:hover>.toggle,#PageHeader.default-campus .section-nav li.dropdown li:hover>a,aside.default-campus .section-nav li.dropdown li:hover>.toggle,aside.default-campus .section-nav li.dropdown li:hover>a,body.default-campus #PageBody .section-nav li.dropdown li:hover>.toggle,body.default-campus #PageBody .section-nav li.dropdown li:hover>a{
+    color:#383735!important
+}
+@media (max-width:991px){
+    aside+*{
+        margin-top:1em
+    }
+}
+#PageHeader{
+    padding-bottom:0!important
+}
+#PageHeader .page-banner{
+    position:relative;
+    width:100%;
+    height:auto;
+    overflow:hidden
+}
+@media (min-width:1600px){
+    #PageHeader .page-banner{
+        max-height:566px
+    }
+}
+#PageHeader .page-banner>img{
+    width:100%
+}
+#PageHeader .page-banner #Breadcrumbs{
+    position:absolute;
+    top:0;
+    width:100%;
+    background:rgba(255,255,255,.35);
+    text-shadow:1px 1px 1px #222;
+    color:#fff
+}
+#PageHeader .page-title{
+    background:#383735;
+    padding:1em 0!important
+}
+#PageHeader .page-title h1{
+    color:rgba(255,255,255,.4)
+}
+#PageHeader .page-title a{
+    color:#FFF;
+    text-transform:uppercase;
+    font-family:proxima-nova-n7,proxima-nova,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-weight:700
+}
+@media (min-width:768px){
+    #PageHeader .page-title .page-nav,#PageHeader .page-title h1{
+        display:inline-block
+    }
+    #PageHeader .page-title .page-nav li{
+        margin-left:2em
+    }
+}
+.content-headers{
+    padding-top:0!important;
+    padding-bottom:0!important
+}
+@media (min-width:768px){
+    .content-headers::before{
+        content:"\00a0";
+        display:block;
+        width:100%;
+        background:#383735;
+        color:#383735;
+        position:absolute;
+        padding:.75em 0;
+        font-size:28px;
+        line-height:1.1
+    }
+}
+.content-headers h2{
+    background:#383735;
+    padding:.75em 0;
+    margin-bottom:.75em;
+    color:rgba(255,255,255,.4);
+    text-align:center;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+    overflow:hidden
+}
+@media (max-width:767px){
+    .content-headers h2{
+        margin-left:-15px;
+        margin-right:-15px
+    }
+}
+.content-headers .bar-col{
+    padding-bottom:5em
+}
+.content-headers .bar-col+.bar-col{
+    border-left:1px solid #a09d99
+}
+.image-divider{
+    padding:0!important
+}
+.image-divider img{
+    width:100%
+}
+/*! jQuery UI - v1.11.4 - 2015-11-05 * http://jqueryui.com * Includes: core.css, datepicker.css, theme.css * To view and modify this theme, visit http://jqueryui.com/themeroller/?ffDefault=%22proxima-nova-n6%22%2C%20%22proxima-nova%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans-serif%3B&fwDefault=bold&fsDefault=1.1em&cornerRadius=2px&bgColorHeader=%23ff9933&bgTextureHeader=gloss_wave&bgImgOpacityHeader=0&borderColorHeader=%23ff9933&fcHeader=%23ffffff&iconColorHeader=%23ffffff&bgColorContent=%23ffffff&bgTextureContent=highlight_soft&bgImgOpacityContent=100&borderColorContent=%23dddddd&fcContent=%23333333&iconColorContent=%23222222&bgColorDefault=%23ffffff&bgTextureDefault=glass&bgImgOpacityDefault=100&borderColorDefault=%23cccccc&fcDefault=%23222222&iconColorDefault=%23ff9933&bgColorHover=%23ff9933&bgTextureHover=glass&bgImgOpacityHover=0&borderColorHover=%23dddddd&fcHover=%23ffffff&iconColorHover=%23ffffff&bgColorActive=%23ffffff&bgTextureActive=glass&bgImgOpacityActive=65&borderColorActive=%23dddddd&fcActive=%23ff9933&iconColorActive=%23ff9933&bgColorHighlight=%23ff9933&bgTextureHighlight=highlight_soft&bgImgOpacityHighlight=0&borderColorHighlight=%23dddddd&fcHighlight=%23ffffff&iconColorHighlight=%23ffffff&bgColorError=%23b81900&bgTextureError=diagonals_thick&bgImgOpacityError=18&borderColorError=%23cd0a0a&fcError=%23ffffff&iconColorError=%23ffd27a&bgColorOverlay=%23666666&bgTextureOverlay=diagonals_thick&bgImgOpacityOverlay=20&opacityOverlay=50&bgColorShadow=%23000000&bgTextureShadow=flat&bgImgOpacityShadow=10&opacityShadow=20&thicknessShadow=2px&offsetTopShadow=-2px&offsetLeftShadow=-2px&cornerRadiusShadow=2px * Copyright jQuery Foundation and other contributors;
+ Licensed MIT */
+.ui-helper-hidden{
+    display:none
+}
+.ui-helper-hidden-accessible{
+    border:0;
+    clip:rect(0 0 0 0);
+    height:1px;
+    margin:-1px;
+    overflow:hidden;
+    padding:0;
+    position:absolute;
+    width:1px
+}
+.ui-helper-reset{
+    margin:0;
+    padding:0;
+    border:0;
+    outline:0;
+    line-height:1.3;
+    text-decoration:none;
+    font-size:100%;
+    list-style:none
+}
+.ui-helper-clearfix:after,.ui-helper-clearfix:before{
+    content:"";
+    display:table;
+    border-collapse:collapse
+}
+.ui-helper-clearfix:after{
+    clear:both
+}
+.ui-helper-clearfix{
+    min-height:0
+}
+.ui-helper-zfix{
+    width:100%;
+    height:100%;
+    top:0;
+    left:0;
+    position:absolute;
+    opacity:0;
+    filter:Alpha(Opacity=0)
+}
+.ui-front{
+    z-index:100
+}
+.ui-state-disabled{
+    cursor:default!important
+}
+.ui-icon{
+    display:block;
+    text-indent:-99999px;
+    overflow:hidden;
+    background-repeat:no-repeat
+}
+.ui-widget-overlay{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%
+}
+.ui-datepicker{
+    width:17em;
+    padding:.2em .2em 0;
+    display:none
+}
+.ui-datepicker .ui-datepicker-header{
+    position:relative;
+    padding:.2em 0
+}
+.ui-datepicker .ui-datepicker-next,.ui-datepicker .ui-datepicker-prev{
+    position:absolute;
+    top:2px;
+    width:1.8em;
+    height:1.8em
+}
+.ui-datepicker .ui-datepicker-next-hover,.ui-datepicker .ui-datepicker-prev-hover{
+    top:1px
+}
+.ui-datepicker .ui-datepicker-prev{
+    left:2px
+}
+.ui-datepicker .ui-datepicker-next{
+    right:2px
+}
+.ui-datepicker .ui-datepicker-prev-hover{
+    left:1px
+}
+.ui-datepicker .ui-datepicker-next-hover{
+    right:1px
+}
+.ui-datepicker .ui-datepicker-next span,.ui-datepicker .ui-datepicker-prev span{
+    display:block;
+    position:absolute;
+    left:50%;
+    margin-left:-8px;
+    top:50%;
+    margin-top:-8px
+}
+.ui-datepicker .ui-datepicker-title{
+    margin:0 2.3em;
+    line-height:1.8em;
+    text-align:center
+}
+.ui-datepicker .ui-datepicker-title select{
+    font-size:1em;
+    margin:1px 0
+}
+.ui-datepicker select.ui-datepicker-month,.ui-datepicker select.ui-datepicker-year{
+    width:45%
+}
+.ui-datepicker table{
+    width:100%;
+    font-size:.9em;
+    border-collapse:collapse;
+    margin:0 0 .4em
+}
+.ui-datepicker th{
+    padding:.7em .3em;
+    text-align:center;
+    font-weight:700;
+    border:0
+}
+.ui-datepicker td{
+    border:0;
+    padding:1px
+}
+.ui-datepicker td a,.ui-datepicker td span{
+    display:block;
+    padding:.2em;
+    text-align:right;
+    text-decoration:none
+}
+.ui-datepicker .ui-datepicker-buttonpane{
+    background-image:none;
+    margin:.7em 0 0;
+    padding:0 .2em;
+    border-left:0;
+    border-right:0;
+    border-bottom:0
+}
+.ui-datepicker .ui-datepicker-buttonpane button{
+    float:right;
+    margin:.5em .2em .4em;
+    cursor:pointer;
+    padding:.2em .6em .3em;
+    width:auto;
+    overflow:visible
+}
+.ui-datepicker .ui-datepicker-buttonpane button.ui-datepicker-current{
+    float:left
+}
+.ui-datepicker.ui-datepicker-multi{
+    width:auto
+}
+.ui-datepicker-multi .ui-datepicker-group{
+    float:left
+}
+.ui-datepicker-multi .ui-datepicker-group table{
+    width:95%;
+    margin:0 auto .4em
+}
+.ui-datepicker-multi-2 .ui-datepicker-group{
+    width:50%
+}
+.ui-datepicker-multi-3 .ui-datepicker-group{
+    width:33.3%
+}
+.ui-datepicker-multi-4 .ui-datepicker-group{
+    width:25%
+}
+.ui-datepicker-multi .ui-datepicker-group-last .ui-datepicker-header,.ui-datepicker-multi .ui-datepicker-group-middle .ui-datepicker-header{
+    border-left-width:0
+}
+.ui-datepicker-multi .ui-datepicker-buttonpane{
+    clear:left
+}
+.ui-datepicker-row-break{
+    clear:both;
+    width:100%;
+    font-size:0
+}
+.ui-datepicker-rtl{
+    direction:rtl
+}
+.ui-datepicker-rtl .ui-datepicker-prev{
+    right:2px;
+    left:auto
+}
+.ui-datepicker-rtl .ui-datepicker-next{
+    left:2px;
+    right:auto
+}
+.ui-datepicker-rtl .ui-datepicker-prev:hover{
+    right:1px;
+    left:auto
+}
+.ui-datepicker-rtl .ui-datepicker-next:hover{
+    left:1px;
+    right:auto
+}
+.ui-datepicker-rtl .ui-datepicker-buttonpane{
+    clear:right
+}
+.ui-datepicker-rtl .ui-datepicker-buttonpane button{
+    float:left
+}
+.ui-datepicker-rtl .ui-datepicker-buttonpane button.ui-datepicker-current,.ui-datepicker-rtl .ui-datepicker-group{
+    float:right
+}
+.ui-datepicker-rtl .ui-datepicker-group-last .ui-datepicker-header,.ui-datepicker-rtl .ui-datepicker-group-middle .ui-datepicker-header{
+    border-right-width:0;
+    border-left-width:1px
+}
+.ui-widget{
+    font-family:proxima-nova-n6,proxima-nova,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size:1.1em
+}
+.ui-widget .ui-widget{
+    font-size:1em
+}
+.ui-widget button,.ui-widget input,.ui-widget select,.ui-widget textarea{
+    font-family:proxima-nova-n6,proxima-nova,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size:1em
+}
+.ui-widget-content{
+    border:1px solid #ddd;
+    background:url(/Themes/SECC2014/Assets/img/starting-point/jquery-ui/ui-bg_highlight-soft_100_ffffff_1x100.png) 50% top repeat-x #fff;
+    color:#333
+}
+.ui-widget-content a{
+    color:#333
+}
+.ui-widget-header{
+    border:1px solid #f93;
+    background:url(/Themes/SECC2014/Assets/img/starting-point/jquery-ui/ui-bg_gloss-wave_0_ff9933_500x100.png) 50% 50% repeat-x #f93;
+    color:#fff;
+    font-weight:700
+}
+.ui-widget-header a{
+    color:#fff
+}
+.ui-state-default,.ui-widget-content .ui-state-default,.ui-widget-header .ui-state-default{
+    border:1px solid #ccc;
+    background:url(/Themes/SECC2014/Assets/img/starting-point/jquery-ui/ui-bg_glass_100_ffffff_1x400.png) 50% 50% repeat-x #fff;
+    font-weight:700;
+    color:#222
+}
+.ui-state-default a,.ui-state-default a:link,.ui-state-default a:visited{
+    color:#222;
+    text-decoration:none
+}
+.ui-state-focus,.ui-state-hover,.ui-widget-content .ui-state-focus,.ui-widget-content .ui-state-hover,.ui-widget-header .ui-state-focus,.ui-widget-header .ui-state-hover{
+    border:1px solid #ddd;
+    background:url(/Themes/SECC2014/Assets/img/starting-point/jquery-ui/ui-bg_glass_0_ff9933_1x400.png) 50% 50% repeat-x #f93;
+    font-weight:700;
+    color:#fff
+}
+.ui-state-focus a,.ui-state-focus a:hover,.ui-state-focus a:link,.ui-state-focus a:visited,.ui-state-hover a,.ui-state-hover a:hover,.ui-state-hover a:link,.ui-state-hover a:visited{
+    color:#fff;
+    text-decoration:none
+}
+.ui-state-active,.ui-widget-content .ui-state-active,.ui-widget-header .ui-state-active{
+    border:1px solid #ddd;
+    background:url(/Themes/SECC2014/Assets/img/starting-point/jquery-ui/ui-bg_glass_65_ffffff_1x400.png) 50% 50% repeat-x #fff;
+    font-weight:700;
+    color:#f93
+}
+.ui-state-active a,.ui-state-active a:link,.ui-state-active a:visited{
+    color:#f93;
+    text-decoration:none
+}
+.ui-state-highlight,.ui-widget-content .ui-state-highlight,.ui-widget-header .ui-state-highlight{
+    border:1px solid #ddd;
+    background:url(/Themes/SECC2014/Assets/img/starting-point/jquery-ui/ui-bg_highlight-soft_0_ff9933_1x100.png) 50% top repeat-x #f93;
+    color:#fff
+}
+.ui-state-highlight a,.ui-widget-content .ui-state-highlight a,.ui-widget-header .ui-state-highlight a{
+    color:#fff
+}
+.ui-state-error,.ui-widget-content .ui-state-error,.ui-widget-header .ui-state-error{
+    border:1px solid #cd0a0a;
+    background:url(/Themes/SECC2014/Assets/img/starting-point/jquery-ui/ui-bg_diagonals-thick_18_b81900_40x40.png) 50% 50% #b81900;
+    color:#fff
+}
+.ui-state-error a,.ui-state-error-text,.ui-widget-content .ui-state-error a,.ui-widget-content .ui-state-error-text,.ui-widget-header .ui-state-error a,.ui-widget-header .ui-state-error-text{
+    color:#fff
+}
+.ui-priority-primary,.ui-widget-content .ui-priority-primary,.ui-widget-header .ui-priority-primary{
+    font-weight:700
+}
+.ui-priority-secondary,.ui-widget-content .ui-priority-secondary,.ui-widget-header .ui-priority-secondary{
+    opacity:.7;
+    filter:Alpha(Opacity=70);
+    font-weight:400
+}
+.ui-state-disabled,.ui-widget-content .ui-state-disabled,.ui-widget-header .ui-state-disabled{
+    opacity:.35;
+    filter:Alpha(Opacity=35);
+    background-image:none
+}
+.ui-state-disabled .ui-icon{
+    filter:Alpha(Opacity=35)
+}
+.ui-icon{
+    width:16px;
+    height:16px
+}
+.ui-icon,.ui-widget-content .ui-icon{
+    background-image:url(/Themes/SECC2014/Assets/img/starting-point/jquery-ui/ui-icons_222222_256x240.png)
+}
+.ui-widget-header .ui-icon{
+    background-image:url(/Themes/SECC2014/Assets/img/starting-point/jquery-ui/ui-icons_ffffff_256x240.png)
+}
+.ui-state-default .ui-icon{
+    background-image:url(/Themes/SECC2014/Assets/img/starting-point/jquery-ui/ui-icons_ff9933_256x240.png)
+}
+.ui-state-focus .ui-icon,.ui-state-hover .ui-icon{
+    background-image:url(/Themes/SECC2014/Assets/img/starting-point/jquery-ui/ui-icons_ffffff_256x240.png)
+}
+.ui-state-active .ui-icon{
+    background-image:url(/Themes/SECC2014/Assets/img/starting-point/jquery-ui/ui-icons_ff9933_256x240.png)
+}
+.ui-state-highlight .ui-icon{
+    background-image:url(/Themes/SECC2014/Assets/img/starting-point/jquery-ui/ui-icons_ffffff_256x240.png)
+}
+.ui-state-error .ui-icon,.ui-state-error-text .ui-icon{
+    background-image:url(/Themes/SECC2014/Assets/img/starting-point/jquery-ui/ui-icons_ffd27a_256x240.png)
+}
+.ui-icon-blank{
+    background-position:16px 16px
+}
+.ui-icon-carat-1-n{
+    background-position:0 0
+}
+.ui-icon-carat-1-ne{
+    background-position:-16px 0
+}
+.ui-icon-carat-1-e{
+    background-position:-32px 0
+}
+.ui-icon-carat-1-se{
+    background-position:-48px 0
+}
+.ui-icon-carat-1-s{
+    background-position:-64px 0
+}
+.ui-icon-carat-1-sw{
+    background-position:-80px 0
+}
+.ui-icon-carat-1-w{
+    background-position:-96px 0
+}
+.ui-icon-carat-1-nw{
+    background-position:-112px 0
+}
+.ui-icon-carat-2-n-s{
+    background-position:-128px 0
+}
+.ui-icon-carat-2-e-w{
+    background-position:-144px 0
+}
+.ui-icon-triangle-1-n{
+    background-position:0 -16px
+}
+.ui-icon-triangle-1-ne{
+    background-position:-16px -16px
+}
+.ui-icon-triangle-1-e{
+    background-position:-32px -16px
+}
+.ui-icon-triangle-1-se{
+    background-position:-48px -16px
+}
+.ui-icon-triangle-1-s{
+    background-position:-64px -16px
+}
+.ui-icon-triangle-1-sw{
+    background-position:-80px -16px
+}
+.ui-icon-triangle-1-w{
+    background-position:-96px -16px
+}
+.ui-icon-triangle-1-nw{
+    background-position:-112px -16px
+}
+.ui-icon-triangle-2-n-s{
+    background-position:-128px -16px
+}
+.ui-icon-triangle-2-e-w{
+    background-position:-144px -16px
+}
+.ui-icon-arrow-1-n{
+    background-position:0 -32px
+}
+.ui-icon-arrow-1-ne{
+    background-position:-16px -32px
+}
+.ui-icon-arrow-1-e{
+    background-position:-32px -32px
+}
+.ui-icon-arrow-1-se{
+    background-position:-48px -32px
+}
+.ui-icon-arrow-1-s{
+    background-position:-64px -32px
+}
+.ui-icon-arrow-1-sw{
+    background-position:-80px -32px
+}
+.ui-icon-arrow-1-w{
+    background-position:-96px -32px
+}
+.ui-icon-arrow-1-nw{
+    background-position:-112px -32px
+}
+.ui-icon-arrow-2-n-s{
+    background-position:-128px -32px
+}
+.ui-icon-arrow-2-ne-sw{
+    background-position:-144px -32px
+}
+.ui-icon-arrow-2-e-w{
+    background-position:-160px -32px
+}
+.ui-icon-arrow-2-se-nw{
+    background-position:-176px -32px
+}
+.ui-icon-arrowstop-1-n{
+    background-position:-192px -32px
+}
+.ui-icon-arrowstop-1-e{
+    background-position:-208px -32px
+}
+.ui-icon-arrowstop-1-s{
+    background-position:-224px -32px
+}
+.ui-icon-arrowstop-1-w{
+    background-position:-240px -32px
+}
+.ui-icon-arrowthick-1-n{
+    background-position:0 -48px
+}
+.ui-icon-arrowthick-1-ne{
+    background-position:-16px -48px
+}
+.ui-icon-arrowthick-1-e{
+    background-position:-32px -48px
+}
+.ui-icon-arrowthick-1-se{
+    background-position:-48px -48px
+}
+.ui-icon-arrowthick-1-s{
+    background-position:-64px -48px
+}
+.ui-icon-arrowthick-1-sw{
+    background-position:-80px -48px
+}
+.ui-icon-arrowthick-1-w{
+    background-position:-96px -48px
+}
+.ui-icon-arrowthick-1-nw{
+    background-position:-112px -48px
+}
+.ui-icon-arrowthick-2-n-s{
+    background-position:-128px -48px
+}
+.ui-icon-arrowthick-2-ne-sw{
+    background-position:-144px -48px
+}
+.ui-icon-arrowthick-2-e-w{
+    background-position:-160px -48px
+}
+.ui-icon-arrowthick-2-se-nw{
+    background-position:-176px -48px
+}
+.ui-icon-arrowthickstop-1-n{
+    background-position:-192px -48px
+}
+.ui-icon-arrowthickstop-1-e{
+    background-position:-208px -48px
+}
+.ui-icon-arrowthickstop-1-s{
+    background-position:-224px -48px
+}
+.ui-icon-arrowthickstop-1-w{
+    background-position:-240px -48px
+}
+.ui-icon-arrowreturnthick-1-w{
+    background-position:0 -64px
+}
+.ui-icon-arrowreturnthick-1-n{
+    background-position:-16px -64px
+}
+.ui-icon-arrowreturnthick-1-e{
+    background-position:-32px -64px
+}
+.ui-icon-arrowreturnthick-1-s{
+    background-position:-48px -64px
+}
+.ui-icon-arrowreturn-1-w{
+    background-position:-64px -64px
+}
+.ui-icon-arrowreturn-1-n{
+    background-position:-80px -64px
+}
+.ui-icon-arrowreturn-1-e{
+    background-position:-96px -64px
+}
+.ui-icon-arrowreturn-1-s{
+    background-position:-112px -64px
+}
+.ui-icon-arrowrefresh-1-w{
+    background-position:-128px -64px
+}
+.ui-icon-arrowrefresh-1-n{
+    background-position:-144px -64px
+}
+.ui-icon-arrowrefresh-1-e{
+    background-position:-160px -64px
+}
+.ui-icon-arrowrefresh-1-s{
+    background-position:-176px -64px
+}
+.ui-icon-arrow-4{
+    background-position:0 -80px
+}
+.ui-icon-arrow-4-diag{
+    background-position:-16px -80px
+}
+.ui-icon-extlink{
+    background-position:-32px -80px
+}
+.ui-icon-newwin{
+    background-position:-48px -80px
+}
+.ui-icon-refresh{
+    background-position:-64px -80px
+}
+.ui-icon-shuffle{
+    background-position:-80px -80px
+}
+.ui-icon-transfer-e-w{
+    background-position:-96px -80px
+}
+.ui-icon-transferthick-e-w{
+    background-position:-112px -80px
+}
+.ui-icon-folder-collapsed{
+    background-position:0 -96px
+}
+.ui-icon-folder-open{
+    background-position:-16px -96px
+}
+.ui-icon-document{
+    background-position:-32px -96px
+}
+.ui-icon-document-b{
+    background-position:-48px -96px
+}
+.ui-icon-note{
+    background-position:-64px -96px
+}
+.ui-icon-mail-closed{
+    background-position:-80px -96px
+}
+.ui-icon-mail-open{
+    background-position:-96px -96px
+}
+.ui-icon-suitcase{
+    background-position:-112px -96px
+}
+.ui-icon-comment{
+    background-position:-128px -96px
+}
+.ui-icon-person{
+    background-position:-144px -96px
+}
+.ui-icon-print{
+    background-position:-160px -96px
+}
+.ui-icon-trash{
+    background-position:-176px -96px
+}
+.ui-icon-locked{
+    background-position:-192px -96px
+}
+.ui-icon-unlocked{
+    background-position:-208px -96px
+}
+.ui-icon-bookmark{
+    background-position:-224px -96px
+}
+.ui-icon-tag{
+    background-position:-240px -96px
+}
+.ui-icon-home{
+    background-position:0 -112px
+}
+.ui-icon-flag{
+    background-position:-16px -112px
+}
+.ui-icon-calendar{
+    background-position:-32px -112px
+}
+.ui-icon-cart{
+    background-position:-48px -112px
+}
+.ui-icon-pencil{
+    background-position:-64px -112px
+}
+.ui-icon-clock{
+    background-position:-80px -112px
+}
+.ui-icon-disk{
+    background-position:-96px -112px
+}
+.ui-icon-calculator{
+    background-position:-112px -112px
+}
+.ui-icon-zoomin{
+    background-position:-128px -112px
+}
+.ui-icon-zoomout{
+    background-position:-144px -112px
+}
+.ui-icon-search{
+    background-position:-160px -112px
+}
+.ui-icon-wrench{
+    background-position:-176px -112px
+}
+.ui-icon-gear{
+    background-position:-192px -112px
+}
+.ui-icon-heart{
+    background-position:-208px -112px
+}
+.ui-icon-star{
+    background-position:-224px -112px
+}
+.ui-icon-link{
+    background-position:-240px -112px
+}
+.ui-icon-cancel{
+    background-position:0 -128px
+}
+.ui-icon-plus{
+    background-position:-16px -128px
+}
+.ui-icon-plusthick{
+    background-position:-32px -128px
+}
+.ui-icon-minus{
+    background-position:-48px -128px
+}
+.ui-icon-minusthick{
+    background-position:-64px -128px
+}
+.ui-icon-close{
+    background-position:-80px -128px
+}
+.ui-icon-closethick{
+    background-position:-96px -128px
+}
+.ui-icon-key{
+    background-position:-112px -128px
+}
+.ui-icon-lightbulb{
+    background-position:-128px -128px
+}
+.ui-icon-scissors{
+    background-position:-144px -128px
+}
+.ui-icon-clipboard{
+    background-position:-160px -128px
+}
+.ui-icon-copy{
+    background-position:-176px -128px
+}
+.ui-icon-contact{
+    background-position:-192px -128px
+}
+.ui-icon-image{
+    background-position:-208px -128px
+}
+.ui-icon-video{
+    background-position:-224px -128px
+}
+.ui-icon-script{
+    background-position:-240px -128px
+}
+.ui-icon-alert{
+    background-position:0 -144px
+}
+.ui-icon-info{
+    background-position:-16px -144px
+}
+.ui-icon-notice{
+    background-position:-32px -144px
+}
+.ui-icon-help{
+    background-position:-48px -144px
+}
+.ui-icon-check{
+    background-position:-64px -144px
+}
+.ui-icon-bullet{
+    background-position:-80px -144px
+}
+.ui-icon-radio-on{
+    background-position:-96px -144px
+}
+.ui-icon-radio-off{
+    background-position:-112px -144px
+}
+.ui-icon-pin-w{
+    background-position:-128px -144px
+}
+.ui-icon-pin-s{
+    background-position:-144px -144px
+}
+.ui-icon-play{
+    background-position:0 -160px
+}
+.ui-icon-pause{
+    background-position:-16px -160px
+}
+.ui-icon-seek-next{
+    background-position:-32px -160px
+}
+.ui-icon-seek-prev{
+    background-position:-48px -160px
+}
+.ui-icon-seek-end{
+    background-position:-64px -160px
+}
+.ui-icon-seek-first,.ui-icon-seek-start{
+    background-position:-80px -160px
+}
+.ui-icon-stop{
+    background-position:-96px -160px
+}
+.ui-icon-eject{
+    background-position:-112px -160px
+}
+.ui-icon-volume-off{
+    background-position:-128px -160px
+}
+.ui-icon-volume-on{
+    background-position:-144px -160px
+}
+.ui-icon-power{
+    background-position:0 -176px
+}
+.ui-icon-signal-diag{
+    background-position:-16px -176px
+}
+.ui-icon-signal{
+    background-position:-32px -176px
+}
+.ui-icon-battery-0{
+    background-position:-48px -176px
+}
+.ui-icon-battery-1{
+    background-position:-64px -176px
+}
+.ui-icon-battery-2{
+    background-position:-80px -176px
+}
+.ui-icon-battery-3{
+    background-position:-96px -176px
+}
+.ui-icon-circle-plus{
+    background-position:0 -192px
+}
+.ui-icon-circle-minus{
+    background-position:-16px -192px
+}
+.ui-icon-circle-close{
+    background-position:-32px -192px
+}
+.ui-icon-circle-triangle-e{
+    background-position:-48px -192px
+}
+.ui-icon-circle-triangle-s{
+    background-position:-64px -192px
+}
+.ui-icon-circle-triangle-w{
+    background-position:-80px -192px
+}
+.ui-icon-circle-triangle-n{
+    background-position:-96px -192px
+}
+.ui-icon-circle-arrow-e{
+    background-position:-112px -192px
+}
+.ui-icon-circle-arrow-s{
+    background-position:-128px -192px
+}
+.ui-icon-circle-arrow-w{
+    background-position:-144px -192px
+}
+.ui-icon-circle-arrow-n{
+    background-position:-160px -192px
+}
+.ui-icon-circle-zoomin{
+    background-position:-176px -192px
+}
+.ui-icon-circle-zoomout{
+    background-position:-192px -192px
+}
+.ui-icon-circle-check{
+    background-position:-208px -192px
+}
+.ui-icon-circlesmall-plus{
+    background-position:0 -208px
+}
+.ui-icon-circlesmall-minus{
+    background-position:-16px -208px
+}
+.ui-icon-circlesmall-close{
+    background-position:-32px -208px
+}
+.ui-icon-squaresmall-plus{
+    background-position:-48px -208px
+}
+.ui-icon-squaresmall-minus{
+    background-position:-64px -208px
+}
+.ui-icon-squaresmall-close{
+    background-position:-80px -208px
+}
+.ui-icon-grip-dotted-vertical{
+    background-position:0 -224px
+}
+.ui-icon-grip-dotted-horizontal{
+    background-position:-16px -224px
+}
+.ui-icon-grip-solid-vertical{
+    background-position:-32px -224px
+}
+.ui-icon-grip-solid-horizontal{
+    background-position:-48px -224px
+}
+.ui-icon-gripsmall-diagonal-se{
+    background-position:-64px -224px
+}
+.ui-icon-grip-diagonal-se{
+    background-position:-80px -224px
+}
+.ui-corner-all,.ui-corner-left,.ui-corner-tl,.ui-corner-top{
+    border-top-left-radius:2px
+}
+.ui-corner-all,.ui-corner-right,.ui-corner-top,.ui-corner-tr{
+    border-top-right-radius:2px
+}
+.ui-corner-all,.ui-corner-bl,.ui-corner-bottom,.ui-corner-left{
+    border-bottom-left-radius:2px
+}
+.ui-corner-all,.ui-corner-bottom,.ui-corner-br,.ui-corner-right{
+    border-bottom-right-radius:2px
+}
+.ui-widget-overlay{
+    background:url(/Themes/SECC2014/Assets/img/starting-point/jquery-ui/ui-bg_diagonals-thick_20_666666_40x40.png) 50% 50% #666;
+    opacity:.5;
+    filter:Alpha(Opacity=50)
+}
+.ui-widget-shadow{
+    margin:-2px 0 0 -2px;
+    padding:2px;
+    background:#000;
+    opacity:.2;
+    filter:Alpha(Opacity=20);
+    border-radius:2px
+}
+h1.copy{
+    text-align:center;
+    font-family:proxima-nova-n4,proxima-nova,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    margin-bottom:40px;
+    font-weight:800
+}
+.clickable{
+    font-family:proxima-nova-n7,proxima-nova,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-weight:600;
+    color:#F3823D
+}
+section.with-header header{
+    background-color:#F3823D!important;
+    color:#222!important
+}
+#Intro .banner-image{
+    margin-bottom:1.5em
+}
+@media (max-width:991px){
+    #Intro .banner-image{
+        margin:2em auto
+    }
+}
+#Videos{
+    text-align:center;
+    background-color:#F4F3EE;
+    z-index:-1;
+}
+#Videos .header{
+    display:block;
+    margin:0 auto 1em
+}
+#Videos h4{
+    font-family:proxima-nova-n9,proxima-nova,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-weight:600;
+    font-size:26px;
+    margin-top:2em;
+    margin-bottom:1em
+}
+@media (min-width:992px){
+    #Videos .container>p{
+        margin:0 10% 1em
+    }
+}
+.video-list{
+    display:-webkit-box;
+    display:-moz-box;
+    display:-ms-flexbox;
+    display:-webkit-flex;
+    display:flex;
+    -webkit-box-flex-direction:row;
+    -moz-box-flex-direction:row;
+    -webkit-flex-direction:row;
+    -ms-flex-direction:row;
+    flex-direction:row;
+    -webkit-box-flex-wrap:wrap;
+    -moz-box-flex-wrap:wrap;
+    -webkit-flex-wrap:wrap;
+    -ms-flex-wrap:wrap;
+    flex-wrap:wrap;
+    -webkit-box-justify-content:space-between;
+    -moz-box-justify-content:space-between;
+    -webkit-justify-content:space-between;
+    -ms-justify-content:space-between;
+    justify-content:space-between;
+    -webkit-box-align-items:stretch;
+    -moz-box-align-items:stretch;
+    -webkit-align-items:stretch;
+    -ms-align-items:stretch;
+    align-items:stretch;
+    -webkit-box-align-content:space-between;
+    -moz-box-align-content:space-between;
+    -webkit-align-content:space-between;
+    -ms-align-content:space-between;
+    align-content:space-between
+}
+@media (min-width:768px){
+    .video-list #StartingWithJesusVideo::after{
+        background:url(/Themes/SECC2014/Assets/img/starting-point/sermons/starting-with-jesus.jpg) 50% top no-repeat
+    }
+    .video-list #KnowingJesusVideo::after{
+        background:url(/Themes/SECC2014/Assets/img/starting-point/sermons/knowing-jesus.jpg) 50% top no-repeat
+    }
+    .video-list #FollowingJesusVideo::after{
+        background:url(/Themes/SECC2014/Assets/img/starting-point/sermons/following-jesus.jpg) 50% top no-repeat
+    }
+    .video-list #UnderstandingTheBibleVideo::after{
+        background:url(/Themes/SECC2014/Assets/img/starting-point/sermons/understanding-the-bible.jpg) 50% top no-repeat
+    }
+    .video-list #TrustingTheBibleVideo::after{
+        background:url(/Themes/SECC2014/Assets/img/starting-point/sermons/trusting-the-bible.jpg) 50% top no-repeat
+    }
+    .video-list #ReadingTheBibleVideo::after{
+        background:url(/Themes/SECC2014/Assets/img/starting-point/sermons/reading-the-bible.jpg) 50% top no-repeat
+    }
+    .video-list #GivingBackToGodVideo::after{
+        background:url(/Themes/SECC2014/Assets/img/starting-point/sermons/giving-back-to-god.jpg) 50% top no-repeat
+    }
+    .video-list #LivingOnMissionVideo::after{
+        background:url(/Themes/SECC2014/Assets/img/starting-point/sermons/living-on-mission.jpg) 50% top no-repeat
+    }
+    .video-list #UnitingInFocusVideo::after{
+        background:url(/Themes/SECC2014/Assets/img/starting-point/sermons/uniting-in-focus.jpg) 50% top no-repeat
+    }
+}
+.video-list .sp-video{
+    position:relative;
+    width:30%;
+    padding-bottom:30%;
+    height:0;
+    color:#222;
+    text-align:center;
+    transition:background-color 200ms ease-out;
+    display:table
+}
+.video-list .sp-video .video-content{
+    position:absolute;
+    bottom:0;
+    margin-bottom:10%
+}
+.video-list .sp-video .video-content p{
+    margin-bottom:0
+}
+.video-list .sp-video .video-content h3{
+    font-family:proxima-nova-n9,proxima-nova,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-weight:900;
+    font-size:1.75em;
+    line-height:.9;
+    font-style:italic;
+    text-transform:uppercase;
+    color:#fff;
+    background-color:rgba(243,130,61,.77);
+    letter-spacing:0;
+    padding-top:.15em;
+    padding-bottom:.15em
+}
+.video-list .sp-video .video-content .play-button{
+    width:20%;
+    margin:1em auto
+}
+.video-list .sp-video .video-content .description{
+    line-height:1.5em;
+    font-size:14px;
+    width:75%;
+    margin:0 auto
+}
+.video-list .sp-video .video-content .speaker{
+    margin-top:10px;
+    font-family:proxima-nova-n7,proxima-nova,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-weight:600;
+    text-transform:uppercase
+}
+@media (min-width:768px){
+    .video-list .sp-video::after{
+        position:absolute;
+        content:"";
+        background-size:cover;
+        top:0;
+        left:0;
+        right:0;
+        bottom:0;
+        z-index:-1
+    }
+}
+@media (min-width:992px){
+    .video-list .sp-video:not(.inactive):hover{
+        background-color:#F3823D;
+        cursor:pointer
+    }
+    .video-list .sp-video:not(.inactive):hover .play-button,.video-list .sp-video:not(.inactive):hover p{
+        visibility:visible
+    }
+    .video-list .sp-video .play-button,.video-list .sp-video p{
+        visibility:hidden
+    }
+}
+@media (min-width:992px) and (max-width:1199px){
+    .video-list .sp-video .video-content{
+        margin-bottom:5%
+    }
+    .video-list .sp-video .video-content .description{
+        font-size:.85em
+    }
+    .video-list .sp-video .video-content h3{
+        font-size:1.5em
+    }
+    .video-list .sp-video .video-content .speaker{
+        margin-top:5px
+    }
+}
+@media (max-width:991px){
+    .video-list .sp-video{
+        background-color:rgba(243,130,61,.77)
+    }
+}
+@media (min-width:768px) and (max-width:991px){
+    .video-list .sp-video{
+        padding-bottom:44%
+    }
+    .video-list .sp-video .video-content .description,.video-list .sp-video .video-content .play-button{
+        font-size:.85em;
+        visibility:hidden
+    }
+    .video-list .sp-video .video-content h3{
+        background:0 0;
+        font-size:1.5em
+    }
+    .video-list .sp-video:not(.inactive){
+        cursor:pointer
+    }
+    .video-list .sp-video:not(.inactive) .video-content .description,.video-list .sp-video:not(.inactive) .video-content .play-button,.video-list .sp-video:not(.inactive) .video-content p{
+        visibility:visible
+    }
+}
+@media (max-width:767px){
+    .video-list .sp-video{
+        position:relative;
+        width:100%;
+        margin-bottom:20px;
+        padding:10px 0;
+        height:initial
+    }
+    .video-list .sp-video.inactive{
+        background-color:#a09d99
+    }
+    .video-list .sp-video.inactive .play-button{
+        visibility:hidden
+    }
+    .video-list .sp-video .video-content{
+        position:relative;
+        margin-bottom:0
+    }
+    .video-list .sp-video .video-content .description{
+        display:none
+    }
+    .video-list .sp-video .video-content .play-button{
+        width:55px;
+        height:55px;
+        margin:0
+    }
+    .video-list .sp-video .video-content .video-title{
+        float:right;
+        width:80%
+    }
+    .video-list .sp-video .video-content h3{
+        text-align:left;
+        font-size:25px;
+        margin:0;
+        background:0 0
+    }
+    .video-list .sp-video .video-content .speaker{
+        text-align:left;
+        margin:0
+    }
+}
+#StatementOfFaith{
+    padding-bottom:0!important
+}
+#StatementOfFaith h1{
+    color:#000
+}
+#Questions{
+    background-color:#f3f2e5;
+    text-align:center
+}
+#Questions .questions-wrapper{
+    font-size:1.2em;
+    display:-webkit-box;
+    display:-moz-box;
+    display:-ms-flexbox;
+    display:-webkit-flex;
+    display:flex;
+    -webkit-box-flex-direction:row;
+    -moz-box-flex-direction:row;
+    -webkit-flex-direction:row;
+    -ms-flex-direction:row;
+    flex-direction:row;
+    -webkit-box-flex-wrap:wrap;
+    -moz-box-flex-wrap:wrap;
+    -webkit-flex-wrap:wrap;
+    -ms-flex-wrap:wrap;
+    flex-wrap:wrap;
+    -webkit-box-justify-content:center;
+    -moz-box-justify-content:center;
+    -webkit-justify-content:center;
+    -ms-justify-content:center;
+    justify-content:center;
+    -webkit-box-align-items:center;
+    -moz-box-align-items:center;
+    -webkit-align-items:center;
+    -ms-align-items:center;
+    align-items:center;
+    -webkit-box-align-content:center;
+    -moz-box-align-content:center;
+    -webkit-align-content:center;
+    -ms-align-content:center;
+    align-content:center
+}
+#Questions .questions-wrapper .btn-normal{
+    font-size:1em
+}
+#Questions .questions-wrapper>*{
+    margin:1em
+}
+@media (max-width:767px){
+    #Questions .questions-wrapper{
+        -webkit-box-flex-direction:column;
+        -moz-box-flex-direction:column;
+        -webkit-flex-direction:column;
+        -ms-flex-direction:column;
+        flex-direction:column
+    }
+}
+#StmtOfFaith{
+    font-size:1.2em;
+    border-top:2px solid #fff;
+    padding:1.5em 0!important;
+    background-color:#F3823D;
+    color:#FFF;
+    text-align:center
+}
+#StmtOfFaith a{
+    color:inherit
+}
+#StmtOfFaith a:hover{
+    text-decoration:none
+}
+#SofModal .modal-dialog .panel-default>.panel-heading{
+    background:#fff;
+    color:#222
+}
+#SofModal .modal-dialog .panel-group .panel+.panel{
+    margin-top:20px
+}
+@media (min-width:768px){
+    #SofModal .modal-dialog{
+        width:80%
+    }
+}
+#SofModal .modal-dialog h1{
+    margin-top:1em;
+    font-family:proxima-nova-n4,proxima-nova,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-weight:400
+}
+#SofModal .modal-dialog .beliefs li{
+    list-style:none;
+    margin-top:1em
+}
+@media (min-width:992px){
+    #EmailModal .modal-dialog,#FaqModal .modal-dialog,#ThanksModal .modal-dialog{
+        width:760px
+    }
+}
+#EmailModal .modal-body,#FaqModal .modal-body,#ThanksModal .modal-body{
+    padding:0
+}
+#EmailModal header,#FaqModal header,#ThanksModal header{
+    background-color:#F3823D;
+    color:#fff;
+    border-top-color:rgba(0,0,0,.2);
+    border-top-left-radius:5px;
+    border-top-right-radius:5px;
+    border-top-style:solid;
+    border-top-width:1px
+}
+#EmailModal header img,#FaqModal header img,#ThanksModal header img{
+    display:block;
+    margin:0 auto
+}
+#EmailModal header h1,#FaqModal header h1,#ThanksModal header h1{
+    text-transform:uppercase;
+    font-family:proxima-nova-n9,proxima-nova,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-weight:900;
+    text-align:center;
+    margin:1em 0
+}
+#EmailModal .body,#FaqModal .body,#ThanksModal .body{
+    padding:2em
+}
+#EmailModal .close-wrapper,#FaqModal .close-wrapper,#ThanksModal .close-wrapper{
+    text-align:center;
+    padding:1.5em 0
+}
+.dob-wrapper{
+    display:inline-block;
+    width:100%;
+    border:1px solid #a09d99;
+    padding:0 8px
+}
+.dob-wrapper .date-separator{
+    margin:0
+}
+.dob-wrapper .date-input{
+    border:none;
+    display:inline;
+    width:2em!important;
+    padding:0!important;
+    text-align:center
+}
+.dob-wrapper .year{
+    width:3em!important
+}
+.submit{
+    background-color:#F3823D!important;
+    color:#fff!important;
+    border:none!important
+}
+#MembershipForm fieldset{
+    margin-top:2em
+}
+#MembershipForm input:not([type=checkbox]),#MembershipForm select{
+    padding:8px;
+    width:100%
+}
+#MembershipForm .input-group .btn,#MembershipForm input:not([type=checkbox]),#MembershipForm select{
+    height:40px
+}
+#MembershipForm .input-group .dropup .dropdown-menu{
+    bottom:76%;
+    width:auto;
+    min-width:initial
+}
+#MembershipForm .input-group .dropup .dropdown-menu li{
+    padding:5px 10px;
+    cursor:pointer
+}
+#MembershipForm .input-group .dropup .dropdown-menu li:hover{
+    background:#F3823D;
+    color:#fff
+}
+#MembershipForm .input-group .btn{
+    padding:8px;
+    border:1px solid #a09d99;
+    border-radius:0
+}
+#MembershipForm .error{
+    font-weight:400;
+    font-size:.75em;
+    display:none
+}
+#MembershipForm label{
+    margin-top:20px;
+    font-family:proxima-nova-n4,proxima-nova,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-weight:400;
+    color:#acacac
+}
+#MembershipForm .valid-option{
+    color:#222
+}
+#MembershipForm .input-group-btn{
+    vertical-align:top
+}
+#MembershipForm .dob{
+    display:-webkit-box;
+    display:-moz-box;
+    display:-ms-flexbox;
+    display:-webkit-flex;
+    display:flex;
+    -webkit-box-flex-wrap:nowrap;
+    -moz-box-flex-wrap:nowrap;
+    -webkit-flex-wrap:nowrap;
+    -ms-flex-wrap:nowrap;
+    flex-wrap:nowrap;
+    -webkit-box-justify-content:flex-start;
+    -moz-box-justify-content:flex-start;
+    -webkit-justify-content:flex-start;
+    -ms-justify-content:flex-start;
+    justify-content:flex-start;
+    -webkit-box-align-items:flex-start;
+    -moz-box-align-items:flex-start;
+    -webkit-align-items:flex-start;
+    -ms-align-items:flex-start;
+    align-items:flex-start
+}
+#MembershipForm .dob select{
+    margin:0 10px 0 0;
+    font-size:.9em;
+    padding-left:4px;
+    padding-right:4px;
+    width:auto;
+    -webkit-box-flex-basis:auto;
+    -moz-box-flex-basis:auto;
+    -webkit-flex-basis:auto;
+    -ms-flex-basis:auto;
+    flex-basis:auto
+}
+#MembershipForm .sof-agreement,#MembershipForm .watched-videos{
+    text-align:center;
+    margin-top:40px
+}
+#MembershipForm .sof-agreement input,#MembershipForm .watched-videos input{
+    margin-right:10px
+}
+#MembershipForm .submit-wrapper{
+    text-align:center;
+    margin-top:25px
+}
+#MembershipForm .submit-wrapper .submit{
+    margin-bottom:1em
+}
+#ThanksModal .member,#ThanksModal .new-member{
+    display:none
+}
+
+a.btn-normal, button.btn-normal{
+	border: 1px solid #a09d99;
+	font-size: 1.2em;
+	line-height: 1.3em;
+	padding: .5em 1.3em;
+	display: inline-block;
+	background: rgba(255,255,255,.2);
+}
+
+main #PageBody {
+	z-index:10;
+}
+.modal-header .close {
+margin-top: -2px !important;
+}
+
+#SofModal{
+    display: block;
+	margin-top: 0px;
+	width: 80%;
+	margin-left: 10%;
+	margin-right: 10%;
+	left:0px;
+}
+#SofModal .modal-dialog {
+	left:0px;
+	width:100%;
+}
+
+#FaqModal{
+    display: block;
+	margin-top: 0px;
+	width: 700px;
+	margin-right: auto;
+}
+#FaqModal .modal-dialog {
+
+	width:100%;
+}
+
+
+</style>
+<div class="modal fade" id="VideoModal" tabindex="-1" role="dialog" aria-labelledby="ModalVideoTitle">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title" id="ModalVideoTitle"></h4>
+			</div>
+			<div class="modal-body">
+				<div class="embed-responsive embed-responsive-16by9">
+					<iframe class="embed-responsive-item" id="VideoFrame"></iframe>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="SofModal" tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-body">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h1 style="text-align: center;">Our Statement of Faith</h1>
+				<p style="text-align:center; margin-bottom: 2em; font-size: .95em;">Hover or click on the <i class="fa fa-book"></i> to see Scripture references</p>
+				<div class="container-fluid">
+
+					<div class="row">
+						<div class="col-md-6">
+							<ul class="list-unstyled beliefs">
+								<li class="nosub"><b>We believe in one God&mdash;Father, Son and Holy Spirit.</b> <span data-toggle="tooltip" data-placement="top" title="John14:9-20; 1 Peter 1:2; 2 Corinthians 13:14, 1 John 5:1-12"><i class="fa fa-book"></i></span></li>
+
+								<ul>
+								<li class="nosub">We believe in God the Father Almighty, Creator of all things visible and invisible. <span data-toggle="tooltip" data-placement="top" title="Genesis 1:1; Matthew 5:16, 45; 6:1, 4, 8, 9; Acts 17:24-28; Hebrews 11:3; James 1:17"><i class="fa fa-book"></i></span></li>
+
+								<li>We believe in Jesus Christ, the Son of God, the eternal Word, the one and only Savior. <span data-toggle="tooltip" data-placement="top" title="John 1:1, 14, 29; 3:16; Philippians 2:6-11; Colossians 1:15-19; 1 John 4:9"><i class="fa fa-book"></i></span>
+									<ul>
+						          		<li>Who was conceived by the Holy Spirit and born of the virgin Mary, both fully human and fully divine; Who lived a sinless life; Who suffered and was crucified as an atonement for sin; Who rose again bodily from the dead on the third day; Who ascended into Heaven; and Who will return in victory to rule forever. <span data-toggle="tooltip" data-placement="top" title="Luke 1:26-35; Colossians 2:9; Hebrews 4:15; Romans 5:15-17; Luke 22:47-24:53; John 20:24-29; 1 Corinthians 15:3-8; Acts 1:1-9; Colossians 3:1; Revelation 1:7-8; 11:15"><i class="fa fa-book"></i></span></li>
+									</ul>
+								</li>
+								<li>We believe in the Holy Spirit.
+									<ul>
+						         		<li>Who convicts of sin; Who indwells every Christian; Who helps us in our weakness and intercedes for us in prayer; and Who empowers us to a fruitful Christian life. <span data-toggle="tooltip" data-placement="top" title="John 16:8; 1 Corinthians 3:16, 6:19; 2 Timothy 1:14; Romans 8:26; Galatians 5:22-23"><i class="fa fa-book"></i></span></li>
+				       	  			</ul>
+								</li>
+							</ul>
+								<li><b>We believe in the Bible&mdash;God's Holy Word, Scripture.</b>
+									<ul>
+										<li>We believe God inspired the original writings of the Scripture and those original writings were consequently without error. <span data-toggle="tooltip" data-placement="top" title="Mark 12:36; John 14:26; 16:12-15; Acts 1:16; 1 Corinthians 2:12-13; 2 Timothy 3:14-16; 2 Peter 1:20-21"><i class="fa fa-book"></i></span></li>
+
+										<li>We believe that the Bible is the final authority for all matters of faith, truth, morality, and Christian living. <span data-toggle="tooltip" data-placement="top" title="Isaiah 40:8; Psalm 119:11, 105; Matthew 5:18; 24:35; Romans 15:4"><i class="fa fa-book"></i></span></li>
+
+										<li>We believe the Bible teaches that God is the Creator and Sustainer of human life; that God creates each person in His image; and that life is therefore sacred, from conception to natural death. We believe that God creates each person as male or female; that these two distinct, complementary genders together reflect the "image of God" in humankind; and that each person's biological gender is an intrinsic, immutable aspect of his or her nature and identity. <span data-toggle="tooltip" data-placement="top" title="Genesis 1:26-27; Genesis 2:7, 21-22; Psalm 139:13-18"><i class="fa fa-book"></i></span></li>
+
+										<li>We believe the Bible teaches that God established marriage in the beginning as a lifelong, exclusive relationship between one man and one woman; that He has reserved sexual intimacy as an expression of love and commitment between married couples; and that any intimate expression of sexuality outside of Biblical marriage is sin. <span data-toggle="tooltip" data-placement="top" title="Genesis 2:23-25; Exodus 20:14, 17, 22:19; Leviticus 18:1-20, 22-23; 20:11-21; Matthew 19:4-6, 9; Romans 1:18-31; 1 Corinthians 6:9-10, 15-20; 1 Timothy 1:8-11; Jude 7"><i class="fa fa-book"></i></span></li>
+									</ul>
+								</li>
+							</ul>
+						</div>
+						<div class="col-md-6">
+							<ul class="list-unstyled beliefs">
+								<li><b>We believe in the Gospel&mdash;the Good News of Salvation.</b>
+									<ul>
+										<li>That man, created by God, willfully sinned against God and is consequently lost and without hope apart from Jesus Christ. <span data-toggle="tooltip" data-placement="top" title="Isaiah 53:6; Acts 4:12; Romans 3:23"><i class="fa fa-book"></i></span></li>
+
+										<li>That salvation&mdash;the forgiveness of sins&mdash;is only by grace through the blood of Jesus Christ. <span data-toggle="tooltip" data-placement="top" title="Matthew 26:28; Romans 5:9; Ephesians 2:8-9; 1 Peter 1:18-19; 1 John 1:7"><i class="fa fa-book"></i></span></li>
+
+										<li>That one receives salvation by putting faith in Christ, repenting of sin, and confessing Christ, and that the Bible commands every believer in Christ to be baptized by immersion. <span data-toggle="tooltip" data-placement="top" title="Romans 5:1-2; 10:9; Ephesians 2:8-9; Acts 2:38, 3:19; Galatians 3:27; Colossians 2:12; 1 Peter 3:21"><i class="fa fa-book"></i></span></li>
+
+										<li>That those who have received salvation through faith in Jesus Christ are sent into the world to proclaim the gospel and to love and serve the world just as Jesus Himself did. <span data-toggle="tooltip" data-placement="top" title="2 Corinthians 5:11-21; Ephesians 2:10; Matthew 28:18-20; John 20:21"><i class="fa fa-book"></i></span></li>
+									</ul>
+								</li>
+								<li class="nosub"><b>We believe in the Church of Jesus Christ, founded on the Day of Pentecost, consisting of all Christians everywhere, and organized into local assemblies, called churches.</b> <span data-toggle="tooltip" data-placement="top" title="Matthew 16:13-18; Acts 2:14-47"><i class="fa fa-book"></i></span>
+									<ul>
+
+										<li>We believe the Bible teaches that every Christian should be an active member of a local church. <span data-toggle="tooltip" data-placement="top" title="Hebrews 10:24-25"><i class="fa fa-book"></i></span></li>
+
+										<li>We believe that the Elders of the church are the overseers of its affairs and the shepherds of its members; that they are the final interpretive authority of the Bible's meaning and application for the church; and that they are responsible for the oversight, instruction, edification, discipline, and restoration of church members. <span data-toggle="tooltip" data-placement="top" title="1 Peter 5:1-4; Titus 1:9, 2:1-15, Hebrews 13:17, Matthew 18:15-17; Galatians 6:1; 1 Corinthians 5:11-13"><i class="fa fa-book"></i></span></li>
+
+										<li>We believe that the Bible instructs church members to:
+											<ul>
+												<li>Meet together regularly for fellowship, worship, teaching, and the Lord's Supper. <span data-toggle="tooltip" data-placement="top" title="Acts 2:42, Hebrews 10:25; 1 Corinthians 11:23-26"><i class="fa fa-book"></i></span></li>
+
+												<li>Use our natural abilities and spiritual gifts to serve one another. <span data-toggle="tooltip" data-placement="top" title="Romans 12, 1 Peter 4:10, Galatians 5:13, 1 Corinthians 12:7"><i class="fa fa-book"></i></span></li>
+
+												<li>Love one another, bear with one another, accept one another, and forgive one another. <span data-toggle="tooltip" data-placement="top" title="John 13:34-35; John 15:17, 1 John 4:7, Romans 13:8; Ephesians 4:2, 32; Colossians 3:14, Romans 15:7"><i class="fa fa-book"></i></span></li>
+
+												<li>Seek unity, agreement, and peace with one another. <span data-toggle="tooltip" data-placement="top" title="Romans 12:16,18; 1 Thessalonians 5:13; Philippians 2:2; 2 Corinthians 13:11"><i class="fa fa-book"></i></span></li>
+
+												<li>Encourage and build up one another. <span data-toggle="tooltip" data-placement="top" title="1 Thessalonians 5:11"><i class="fa fa-book"></i></span></li>
+
+												<li>Bear one another's burdens and pray for one another. <span data-toggle="tooltip" data-placement="top" title="Galatians 6:2, James 5:16"><i class="fa fa-book"></i></span></li>
+
+												<li>Spur one another to love and good deeds. <span data-toggle="tooltip" data-placement="top" title="Hebrews 10:24"><i class="fa fa-book"></i></span></li>
+
+												<li>Submit to the authority of the elders of the church. <span data-toggle="tooltip" data-placement="top" title="Hebrews 13:17"><i class="fa fa-book"></i></span></li>
+
+												<li>Support the church financially. <span data-toggle="tooltip" data-placement="top" title="2 Corinthians 8:7, Malachi 3:10, 1 Timothy 5:17-18"><i class="fa fa-book"></i></span></li>
+
+												<li>Pursue personal holiness and obedience to God's Word. <span data-toggle="tooltip" data-placement="top" title="2 Corinthians 7:1, 1 Thessalonians 4:7, 1 Peter 1:15"><i class="fa fa-book"></i></span></li>
+
+												<li>Strive together to fulfill the Great Commission. <span data-toggle="tooltip" data-placement="top" title="Matthew 28:18-20"><i class="fa fa-book"></i></span></li>
+											</ul>
+										</li>
+									</ul>
+								</li>
+							</ul>
+						</div>
+					</div>
+					<p style="text-align: center">
+						<button type="button" class="btn-normal" data-dismiss="modal" aria-label="Close">Close</button>
+					</p>
+
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+	<!-- Modal -->
+<div class="modal fade" id="FaqModal" tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-body">
+				<header class="container-fluid">
+					<img src="/Themes/SECC2014/Assets/img/starting-point/intro-banner.jpg" class="img-responsive" alt="Starting Point" />
+					<h1>Frequently Asked Questions</h1>
+				</header>
+				<div class="container-fluid body">
+					<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+
+
+						<div class="panel panel-default">
+							<div class="panel-heading" role="tab" id="headingImportant">
+								<h4 class="panel-title">
+									<a role="button" class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseImportant" aria-expanded="false" aria-controls="collapseImportant" onclick="TrackEvent('Starting Point', 'FAQ Questions', 'Membership Importance');">
+										Why is church membership important? What does the Bible say about it?
+									</a>
+								</h4>
+							</div>
+							<div id="collapseImportant" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingImportant">
+								<div class="panel-body">
+									Church membership is not only important to us at Southeast for practical reasons&mdash;making sure we have accurate contact information and knowing who you are so we can pastor you better&mdash;it is also very important to us for Biblical reasons. The Bible refers to the church as a "body" (1 Corinthians 12:12-27) and says that the "body" is made up of many individual parts, each of which has a unique function to fulfill and contribution to make to the mission of that particular "body," or church.
+									We believe in church membership because it helps us identify ourselves as a unified "body" that needs each person in order to function at our highest capacity. The Bible also talks about the importance of being part of a community that can help meet each other's needs (Acts 2:42-47) and the importance of submitting ourselves to the leaders of a church (Hebrews 13:17), which both happen best through the commitment and accountability of church membership.
+									While the Bible does not specifically command people to become members of a church, we believe that having a membership and committing to it is the best way to cultivate the kind of community the Bible describes the church to be.
+								</div>
+							</div>
+						</div>
+
+						<div class="panel panel-default">
+							<div class="panel-heading" role="tab" id="headingMember">
+								<h4 class="panel-title">
+									<a role="button" class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseMember" aria-expanded="false" aria-controls="collapseMember" onclick="TrackEvent('Starting Point', 'FAQ Questions', 'Member or Non-Member');">
+										We're asking everyone to commit or recommit to membership. How do I know if I'm already a member?
+									</a>
+								</h4>
+							</div>
+							<div id="collapseMember" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingMember">
+								<div class="panel-body">
+									If you’ve met with one of our decision guides and you’ve been baptized at Southeast or another church, then you are most likely a member. If you’re still not sure, you can go forward and speak to a decision guide after one of our weekend services.								</div>
+							</div>
+						</div>
+
+
+						<div class="panel panel-default">
+							<div class="panel-heading" role="tab" id="headingBaptized">
+								<h4 class="panel-title">
+
+									<a role="button" class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseBaptized" aria-expanded="false" aria-controls="collapseBaptized" onclick="TrackEvent('Im In', 'FAQ Questions', 'Re-Baptized?');">
+										I have been baptized before. Do I need to be re-baptized in order to commit to membership?
+									</a>
+								</h4>
+							</div>
+							<div id="collapseBaptized" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingBaptized">
+								<div class="panel-body">
+									If you have been immersed, whether it was at Southeast or another church, and you accepted Jesus as the Lord and Savior of your life, there’s no need for you to be baptized again.
+								</div>
+							</div>
+						</div>
+
+
+
+
+
+
+					</div>
+					<p style="text-align: center">
+						<button type="button" class="btn-normal" data-dismiss="modal" aria-label="Close">Close</button>
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+	<!-- Modal -->
+<div class="modal fade" id="EmailModal" tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-body">
+				<header class="container-fluid">
+					<img src="/_/img/starting-point/intro-banner.jpg" class="img-responsive" alt="Starting Point" />
+					<h1>Email Us!</h1>
+				</header>
+				<div class="container-fluid body">
+					<form id="EmailForm" method="post" action="/starting-point/_/process-email-form.php" class="async">
+						<div class="row">
+							<div class="col-sm-6">
+								<label>Name</label>
+								<input type="text" name="contactname" id="contactname" />
+							</div>
+							<div class="col-sm-6">
+								<label>Campus</label>
+								<select name="contactcampus" id="contactcampus">
+									<option style="color: #acacac" value="" selected disabled>Select your campus</option>
+									<option>Blankenbaker</option>
+									<option>Indiana</option>
+									<option>Oldham</option>
+									<option>Southwest</option>
+									<option>Other</option>
+								</select>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-sm-6">
+								<label>Email</label>
+								<input type="text" name="contactemail" id="contactemail" />
+							</div>
+							<div class="col-sm-6">
+								<label>Phone</label>
+								<input type="text" name="contactphone" id="contactphone" />
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-xs-12">
+								<textarea id="question" name="question" style="margin-top: 1.5em; width: 100%; height: 8em;" placeholder="How can we help?"></textarea>
+							</div>
+						</div>
+						<p style="text-align: center; margin-top: 1.5em;">
+							<button type="button" class="btn-normal submit" id="SendEmail"><img src="/_/img/commitment/loading.gif" class="img-responsive form-processing" /> Email Us!</button>
+							<button type="button" class="btn-normal" data-dismiss="modal" aria-label="Close" onclick="TrackEvent('Starting Point', 'Email Form', 'Cancel');">Cancel</button>
+						</p>
+					</form>
+					<div id="EmailThankYou" style="display: none;">
+						<p>Thank you for reaching out to us! We have received your question and will follow up with you soon using the contact information you provided.</p>
+						<p style="text-align: center; margin-top: 1.5em;">
+							<button type="button" class="btn-normal" data-dismiss="modal" aria-label="Close">Close</button>
+						</p>
+					</div>
+					<div id="ContactEmailError" style="display: none;">
+						<p>
+							Something went wrong and your message was not delivered. You can try again, or just pick up the phone and give us a call at (502) 253-8001.
+						</p>
+						<p style="text-align: center; margin-top: 1.5em;">
+							<button type="button" class="btn-normal" data-dismiss="modal" aria-label="Close">Close</button>
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+
+<main id="PageBody">
+<section id="PageHeader" style="min-height:0px">
+	<div class="page-title" id="PageMenu">
+		<div class="container">
+			<h1>Starting Point</h1>
+			<nav class="page-nav">
+				<ul class="list-inline">
+					<li><a href="#Videos" onclick="TrackEvent('Starting Point', 'Section Nav', 'Videos');">Videos</a></li>
+					<li><a href="#StatementOfFaith" onclick="TrackEvent('Starting Point', 'Section Nav', 'Statement Of Faith');">Statement of Faith</a></li>
+					<li><a href="#ImReady" onclick="TrackEvent('Starting Point', 'Section Nav', 'Im Ready);">I'm Ready</a></li>
+					<li><a href="#Questions" onclick="TrackEvent('Starting Point', 'Section Nav', 'Questions');">Questions</a></li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+</section>
+<section id="Intro">
+		<div class="container">
+			<h1 class="copy">Starting Point Is Where We All Begin</h1>
+			<div class="row">
+				<div class="col-sm-6">
+					<div class="embed-responsive embed-responsive-16by9">
+					  <iframe class="embed-responsive-item" src="https://player.vimeo.com/video/149068834?title=0&byline=0&portrait=0"></iframe>
+					</div>
+				</div>
+				<div class="col-sm-5">
+					<img src="/Content/Connect/Starting_Point.jpg" class="img-responsive banner-image img-rounded" />
+					<p>If you’re new to Southeast or just want to learn more about who we are and what we believe, join us for Starting Point. No matter your previous church experience, this class is the best place to begin. You’ll learn more about Jesus, the Bible, and who we are as a church. If you can’t make it to Starting Point in person, you’ll find content from the class below so you can still participate online.</p>
+					<p class="text-center"><a href="https://www.southeastchristian.org/events/starting-point/"  class="btn-normal text-center">Find and register for upcoming<br /> <b>Starting Point</b> classes here.</a></p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+
+	<section id="Videos">
+		<div class="container">
+			<h1 class="copy">Starting Point</h1>
+			<p>In these videos, Senior Pastor Dave Stone, Teaching Pastor Kyle Idleman, and Executive Pastor Tim Hester will walk you through the three core beliefs highlighted in our Starting Point class: Jesus, the Bible, and the Church. Each section contains three videos. Please take the time to watch each video—feel free to watch through them on your own schedule—and contact us with any questions you may have.</p>
+
+			<h4 class="copy">Week One: Jesus</h2>
+			<p>Jesus is the beginning and end of our faith. He is the reason we exist as a church. In this section, our pastors will share the story of Jesus, what we believe about who He is, and how we live when we’re following Him. </p>
+
+			<div class="video-list">
+				<div id="StartingWithJesusVideo" class="sp-video" data-title="Starting With Jesus" data-vimeo-id="148937406">
+					<div class="video-content">
+						<p class="description">Jesus is the starting point for everything we believe and everything we do. It is essential to our faith to know who Jesus is and what He did.</p>
+						<img class="play-button" src="/Themes/SECC2014/Assets/img/starting-point/play-button.svg" onerror="this.onerror=null; this.src='/Themes/SECC2014/Assets/img/starting-point/play-button.png'" alt="Play Video" />
+						<div class="video-title">
+							<h3>Starting with<br class="hidden-xs"> Jesus</h3>
+							<p class="speaker">Dave Stone</p>
+						</div>
+					</div>
+				</div>
+
+				<div id="KnowingJesusVideo" class="sp-video" data-title="Knowing Jesus" data-vimeo-id="148937401">
+					<div class="video-content">
+						<p class="description">We believe that Jesus is the Christ, the Son of the living God, our Lord and Savior—and we can see Him in God’s whole plan throughout history.</p>
+						<img class="play-button" src="/Themes/SECC2014/Assets/img/starting-point/play-button.svg" onerror="this.onerror=null; this.src='/Themes/SECC2014/Assets/img/starting-point/play-button.png'" alt="Play Video" />
+						<div class="video-title">
+							<h3>Knowing<br class="hidden-xs"> Jesus</h3>
+							<p class="speaker">Tim Hester</p>
+						</div>
+					</div>
+				</div>
+
+				<div id="FollowingJesusVideo" class="sp-video" data-title="Following Jesus" data-vimeo-id="148937394">
+					<div class="video-content">
+						<p class="description">We want to follow after Jesus completely—obeying what He said, making disciples, and trusting that His Spirit will be with us as we go.</p>
+						<img class="play-button" src="/Themes/SECC2014/Assets/img/starting-point/play-button.svg" onerror="this.onerror=null; this.src='/Themes/SECC2014/Assets/img/starting-point/play-button.png'" alt="Play Video" />
+						<div class="video-title">
+							<h3>Following<br class="hidden-xs"> Jesus</h3>
+							<p class="speaker">Kyle Idleman</p>
+						</div>
+					</div>
+				</div>
+
+			</div>
+
+			<h4 class="copy">Week Two: The Bible</h4>
+			<p>The Bible is the clearest expression of who God is, who Jesus is, and who we are as His people. These videos spell out the significance of the Bible, the history of the Bible, and how we can get to know God’s Word better.</p>
+
+			<div class="video-list">
+				<div id="UnderstandingTheBibleVideo" class="sp-video" data-title="Understanding the Bible" data-vimeo-id="148937378">
+					<div class="video-content">
+						<p class="description">We believe the Bible is the Word of God, the story of God, and the plan of God. That’s why we want to learn what the Bible says and live it out.</p>
+						<img class="play-button" src="/Themes/SECC2014/Assets/img/starting-point/play-button.svg" onerror="this.onerror=null; this.src='/Themes/SECC2014/Assets/img/starting-point/play-button.png'" alt="Play Video" />
+						<div class="video-title">
+							<h3>Understanding<br class="hidden-xs"> the Bible</h3>
+							<p class="speaker">Kyle Idleman</p>
+						</div>
+					</div>
+				</div>
+
+				<div id="TrustingTheBibleVideo" class="sp-video" data-title="Trusting the Bible" data-vimeo-id="148937373">
+					<div class="video-content">
+						<p class="description">The Bible is unique, complete, and is God’s Word for us—and we can trust what it says.<br><br></p>
+						<img class="play-button" src="/Themes/SECC2014/Assets/img/starting-point/play-button.svg" onerror="this.onerror=null; this.src='/Themes/SECC2014/Assets/img/starting-point/play-button.png'" alt="Play Video" />
+						<div class="video-title">
+							<h3>Trusting<br class="hidden-xs"> the Bible</h3>
+							<p class="speaker">Dave Stone</p>
+						</div>
+					</div>
+				</div>
+
+				<div id="ReadingTheBibleVideo" class="sp-video" data-title="Reading the Bible" data-vimeo-id="148937186">
+					<div class="video-content">
+						<p class="description">Saturating yourself with Scripture is one of the best ways to grow in your relationship with Jesus. We want to read it consistently, intentionally, and with humility.</p>
+						<img class="play-button" src="/Themes/SECC2014/Assets/img/starting-point/play-button.svg" onerror="this.onerror=null; this.src='/Themes/SECC2014/Assets/img/starting-point/play-button.png'" alt="Play Video" />
+						<div class="video-title">
+							<h3>Reading<br class="hidden-xs"> the Bible</h3>
+							<p class="speaker">Tim Hester</p>
+						</div>
+					</div>
+				</div>
+
+			</div>
+
+			<h4 class="copy">Week Three: The Church</h4>
+			<p>Faith in Jesus is best lived out in the context of community—the Church. Learn from our pastors about who we are as a Church and how we can participate in the ways God works through the Church.  </p>
+
+			<div class="video-list">
+				<div id="GivingBackToGodVideo" class="sp-video" data-title="Giving Back to God" data-vimeo-id="148497586">
+					<div class="video-content">
+						<p class="description">Since Jesus has freely given us His extravagant grace, we freely give our time, talent, and treasure back to Him through the local church.</p>
+						<img class="play-button" src="/Themes/SECC2014/Assets/img/starting-point/play-button.svg" onerror="this.onerror=null; this.src='/Themes/SECC2014/Assets/img/starting-point/play-button.png'" alt="Play Video" />
+						<div class="video-title">
+							<h3>Giving Back<br class="hidden-xs"> to God</h3>
+							<p class="speaker">Tim Hester</p>
+						</div>
+					</div>
+				</div>
+
+				<div id="LivingOnMissionVideo" class="sp-video" data-title="Living on Mission" data-vimeo-id="148497583">
+					<div class="video-content">
+						<p class="description">Being a part of Southeast means being a part of the mission of Jesus to reach the world. We want to serve, grow, and be on mission together.</p>
+						<img class="play-button" src="/Themes/SECC2014/Assets/img/starting-point/play-button.svg" onerror="this.onerror=null; this.src='/Themes/SECC2014/Assets/img/starting-point/play-button.png'" alt="Play Video" />
+						<div class="video-title">
+							<h3>Living<br class="hidden-xs"> on Mission</h3>
+							<p class="speaker">Kyle Idleman</p>
+						</div>
+					</div>
+				</div>
+
+				<div id="UnitingInFocusVideo" class="sp-video" data-title="Uniting in Focus" data-vimeo-id="148497578">
+					<div class="video-content">
+						<p class="description">Learn about why there are so many different kinds of churches, how Southeast is unique, and what brings us together as the body of Christ.</p>
+						<img class="play-button" src="/Themes/SECC2014/Assets/img/starting-point/play-button.svg" onerror="this.onerror=null; this.src='/Themes/SECC2014/Assets/img/starting-point/play-button.png'" alt="Play Video" />
+						<div class="video-title">
+							<h3>Uniting<br class="hidden-xs"> in Focus</h3>
+							<p class="speaker">Dave Stone</p>
+						</div>
+					</div>
+				</div>
+
+			</div>
+
+		</div>
+	</section>
+
+
+	<section id="StatementOfFaith" class="with-header">
+		<header>
+			<button id="SofButton" class="btn-normal" data-toggle="modal" data-target="#SofModal" onclick="TrackEvent('Starting Point', 'Page Buttons', 'Statement of Faith');">Read our Statement of Faith</button>
+		</header>
+		<div id="ImReady" class="container">
+			<h1 class="copy">I would like to become a member</h1>
+
+			<div class="row">
+				<div class="col-md-6">
+					<p class="instructions">We’re excited that you invested in learning more about who we are through Starting Point. Once you have reviewed all of the content on this page, including our Statement of Faith and membership requirements, please click the button below to fill out the completion form and begin the process of becoming a member. We will follow up with you soon. While filling out this form does not automatically make you a member of Southeast, it is a first step toward membership. Thank you for your interest in being part of the Southeast family! </p>
+				</div>
+				<div class="col-md-6"><b>Requirements for Membership:</b><br>
+					<ul>
+					<li>Believe in Christ as your Lord and Savior. (John 3:16; Ephesians 2:8-9)</li>
+					<li>Confess your faith. (Romans 10:9)</li>
+					<li>Repent of your sins. (Acts 3:19)</li>
+					<li>Be baptized by immersion. (Acts 2:38)</li>
+					<li>Agree with and abide by the Statement of Faith.</li>
+					<li>Complete the Starting Point class.</li>
+				</ul>
+
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col-md-12 text-center">
+					<p>
+						<br />
+						<a href="/starting-point-form">Click Here to Complete Starting Point</a>
+												<br />
+						<br />
+						<br />
+					</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section id="Questions">
+		<h2 class="copy">Questions?</h2>
+
+		<div class="questions-wrapper">
+			<button type="button" class="btn-normal" data-toggle="modal" data-target="#FaqModal" onclick="TrackEvent('Starting Point', 'Page Buttons', 'FAQ');">View the FAQ</button>
+			<span style="white-space: nowrap;"><b>Call:</b> (502) 253-8476<br /><b>Email:</b> imin@secc.org</span>
+			<a href="mailto:imin@secc.org"class="btn-normal">Email Us</a>
+		</div>
+	</section>
+</main>

@@ -79,10 +79,10 @@ namespace org.secc.RoomScanner.Utilities
         }
 
 
-        public static void AddMoveHistory( RockContext rockContext, Location location, Attendance attendeeAttendance, Person authorizedPerson, bool isSubroom )
+        public static void AddMoveHistory( RockContext rockContext, Location location, Attendance attendeeAttendance, bool isSubroom )
         {
             HistoryService historyService = new HistoryService( rockContext );
-            var moveSummary = string.Format( "Moved to and Entered <span class=\"field-name\">{0}</span> at <span class=\"field-name\">{1}</span> under the authority of {2}", location.Name, Rock.RockDateTime.Now, authorizedPerson.FullName );
+            var moveSummary = string.Format( "Moved to and Entered <span class=\"field-name\">{0}</span> at <span class=\"field-name\">{1}</span>", location.Name, Rock.RockDateTime.Now );
             if ( isSubroom )
             {
                 moveSummary += string.Format( " (a subroom of <span class=\"field-name\">{0}</span>)", location.ParentLocation.Name );
@@ -229,7 +229,7 @@ namespace org.secc.RoomScanner.Utilities
                 newAttendance.ForeignId = null;
             }
             attendanceService.Add( newAttendance );
-            var stayedFifteenMinutes = (Rock.RockDateTime.Now - attendance.StartDateTime) > new TimeSpan(0,15,0);
+            var stayedFifteenMinutes = ( Rock.RockDateTime.Now - attendance.StartDateTime ) > new TimeSpan( 0, 15, 0 );
             attendance.DidAttend = stayedFifteenMinutes;
             attendance.EndDateTime = Rock.RockDateTime.Now;
             InMemoryPersonStatus.RemoveFromWorship( attendance.PersonAlias.PersonId );

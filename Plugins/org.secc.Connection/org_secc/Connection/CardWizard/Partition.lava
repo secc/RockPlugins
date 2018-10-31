@@ -23,16 +23,16 @@
 				{% if partitionSize > 0 %}
 					{% if partition.PartitionType == 'DefinedType' %}
 						{% if forloop.first %}<h2 class="section-header">Please select from the following:</h2>{% endif %}
-						{% include '~/Plugins/org_secc/Connection/SignupWizardCards/CardDefinedType.lava' %}
+						{% include '~/Plugins/org_secc/Connection/CardWizard/CardDefinedType.lava' %}
 					{% elseif partition.PartitionType == 'Schedule' %}
 						{% if forloop.first %}<h2 class="section-header">Please select your schedule:</h2>{% endif %}
-						{% include '~/Plugins/org_secc/Connection/SignupWizardCards/CardSchedule.lava' %}
+						{% include '~/Plugins/org_secc/Connection/CardWizard/CardSchedule.lava' %}
 					{% elseif partition.PartitionType == 'Campus' %}
 						{% if forloop.first %}<h2 class="section-header">Please select your campus:</h2>{% endif %}
-						{% include '~/Plugins/org_secc/Connection/SignupWizardCards/CardCampus.lava' %}
+						{% include '~/Plugins/org_secc/Connection/CardWizard/CardCampus.lava' %}
 					{% elseif partition.PartitionType == 'Role' %}
 						{% if forloop.first %}<h2 class="section-header">Please select your serving role:</h2>{% endif %}
-						{% include '~/Plugins/org_secc/Connection/SignupWizardCards/CardRole.lava' %}
+						{% include '~/Plugins/org_secc/Connection/CardWizard/CardRole.lava' %}
 					{% endif %}
 				{% else %}
 					{% assign parameterName = partition.ParameterName %}
@@ -46,7 +46,7 @@
 					{% elseif partition.PartitionType == 'Role' and forloop.first %}
 						<h2 class="section-header">Please select your serving role(s):</h2>
 					{% endif %}
-					{% include '~/Plugins/org_secc/Connection/SignupWizardCards/PartitionList.lava' %}
+					{% include '~/Plugins/org_secc/Connection/CardWizard/PartitionList.lava' %}
 				{% endif %}
             {% endfor %}
             </div>
@@ -62,7 +62,7 @@
 			{% assign partitionSize = partition.Partitions | Size %}
 			{% if partitionSize > 0 %}
 				{% assign Tree = partition.Partitions %}
-				{% include '~/Plugins/org_secc/Connection/SignupWizardCards/Partition.lava' %}
+				{% include '~/Plugins/org_secc/Connection/CardWizard/Partition.lava' %}
 			{% endif %}
         {% endfor %}
 		{% assign level =  level | Minus:1 %}
