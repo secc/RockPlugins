@@ -933,7 +933,7 @@ namespace org.secc.Connection
             {
                 List<int> scheduleIds = ( ( SchedulePicker ) ( ( Control ) sender ).Parent ).SelectedValues.Select( i => i.AsInteger() ).ToList();
                 ScheduleService scheduleService = new ScheduleService( new RockContext() );
-                partition.PartitionValue = String.Join(",", scheduleService.GetByIds( scheduleIds ).ToList().OrderBy(s => s.EffectiveStartDate.Value.ToString( "yyyyMMdd")).ThenBy(s => s.StartTimeOfDay).Select( s => s.Guid.ToString() ) );
+                partition.PartitionValue = String.Join(",", scheduleService.GetByIds( scheduleIds ).ToList().OrderBy( s => s.NextStartDateTime ).Select( s => s.Guid.ToString() ) );
             }
             SaveViewState();
         }
@@ -1055,6 +1055,11 @@ namespace org.secc.Connection
                     // Use every Defined Value 
                     values = DefinedTypeCache.Read( partition.PartitionValue.AsGuid() ).DefinedValues.Select( dv => dv.Guid.ToString() ).ToArray();
                 }
+            }
+
+            if (partition.PartitionType == "Schedule")
+            {
+                values =  scheduleService.GetByGuids( values.AsGuidList() ).ToList().OrderBy( s => s.NextStartDateTime).Select( s => s.Guid.ToString() ).ToArray();
             }
 
             // For each inner node in this partition, build a dictionary that represents it
