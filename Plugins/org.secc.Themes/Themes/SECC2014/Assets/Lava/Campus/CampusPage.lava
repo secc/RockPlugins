@@ -50,6 +50,22 @@ $('body').addClass('{{ campus.Slug }}-campus');
         </nav>
     </div>
 </section>
+{% comment %}
+    The script below is to add the sub menu into the mobile menu as well.
+{% endcomment %}
+<script>
+    console.log('hello');
+    $('nav#MobileNav > ul.no-indent').prepend(
+        '<li class="nav-section">' +
+            '<h4>{{ campus.Name }}</h4>' +
+            '<ul>' +
+            {% for item in CampusSubMenuItems %}
+                {% assign itemkv = item | PropertyToKeyValue %}
+                '<li><a href="{{ itemkv.Value }}">{{ itemkv.Key }}</a></li>' +
+            {% endfor %}
+            '</ul>' +
+        '</li>');
+</script>
 
 {% comment %}
 ****************************************
@@ -250,7 +266,7 @@ Get Connected - Section
             <div class="isotope_item col-sm-12 col-sm-6 col-md-4 text-center">
                 <img class="img-responsive img-rounded" src="/GetImage.ashx?Guid={{ image }}" />
                 <br />
-                <h2 class="copy">{{ item.Title }} {{ campus_item }}</h2>
+                <h2 class="copy">{{ item.Title }}</h2>
                 {{ item.Content }}
                 <a href="{{ link }}" class="btn btn-doors">{{ linkText }}</a>
             </div>

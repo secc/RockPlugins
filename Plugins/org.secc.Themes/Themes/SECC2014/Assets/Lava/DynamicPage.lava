@@ -1,0 +1,97 @@
+{% if debug == true %}
+<style>
+    .devmode {
+        background-color: #545E75;
+        color: white;
+        padding: 10px;
+        /* width: 100%; */
+        border-bottom: 3px dashed black;
+    }
+    .devmode.section {
+        background-color: #3CB2F6;
+    }
+    .devmode.lava {
+        background-color: #39304A;
+    }
+</style>
+{% endif %}
+
+{% assign pageID = 'Global' | Page:'Id' %}
+{% page id:'{{ pageID }}' %}
+    {% assign pageGuid = page.Guid %}
+{% endpage %}
+
+{% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
+{% assign pageParamCampus = 'Global' | PageParameter:'Campus' %}
+{% if pageParamCampusId == empty and pageParamCampus != empty and pageParamCampus != null and pageParamCampus != 'allCampuses' %}
+    {% assign pageParamCampus = 'Global' | PageParameter:'campus' %}
+    {% campus where:'Public == true' %}
+        {% for campus in campusItems %}
+            {% assign campusSlug = campus | Attribute: 'Slug' %}
+            {% if campus.Name == pageParamCampus or campusSlug == pageParamCampus %}
+                {% comment %}
+                    ** Assigning the Campus Object for all the info.
+                {% endcomment %}
+                {% assign pageParamCampus = campus %}
+            {% endif %}
+        {% endfor %}
+    {% endcampus %}
+{% endif %}
+
+{% assign campus = pageParamCampus %}
+
+{% if debug == true %}
+<div class="devmode">
+    <h1>Parameter: {{ pageParamCampus.Name }}</h1>
+</div>
+{% endif %}
+
+{% contentchannelitem where:'Status == 1 && ContentChannelId == 39' sort:'Order' %}
+
+    {% assign itemCount = 0 %}
+    {% for item in contentchannelitemItems %}
+        {% assign campus_item = item | Attribute:'Campus' %}
+        {% if campus_item == pageParamCampus.Name %}
+            {% assign itemCount = itemCount | Plus:1 %}
+        {% endif %}
+    {% endfor %}
+
+    {% if itemCount > 0 %}
+        {% for item in contentchannelitemItems %}
+            {% assign pageReference = item | Attribute:'Page','RawValue' %}
+            {% assign itemCampus = item | Attribute:'Campus' %}
+            {% assign lavaContent = item | Attribute:'LavaEditor' %}
+
+            {% comment %} *** Check/See if item belongs to this page *** {% endcomment %}
+            {% if pageGuid == pageReference %}
+
+            {% if itemCampus == null %}
+                {% comment %} *** Display Content *** {% endcomment %}
+                {% if debug == true and lavaContent == "" %}
+                    <div class="devmode section"><h1>HTML Block: {{ item.Title }}</h1></div>
+                {% elseif debug == true and lavaContent != "" %}
+                    <div class="devmode lava"><h1>Lava Block: {{ item.Title }}</h1></div>
+                {% else %} {% comment %} *** Do Nothing *** {% endcomment %} {% endif %}
+                {{ item.Content }}
+                {{ lavaContent}}
+            {% else %}
+                {% if itemCampus == campus.Name %}
+
+                    {% comment %} *** Display Content if the Campus matches *** {% endcomment %}
+                    {% if debug == true and lavaContent == "" %}
+                        <div class="devmode section"><h1>HTML Block: {{ item.Title }}</h1></div>
+                    {% elseif debug == true and lavaContent != "" %}
+                        <div class="devmode lava"><h1>Lava Block: {{ item.Title }}</h1></div>
+                    {% else %} {% comment %} *** Do Nothing *** {% endcomment %} {% endif %}
+                    {{ item.Content }}
+                    {{ lavaContent}}
+
+                {% endif%}
+            {% endif%}
+
+            {% endif%}
+
+        {% endfor %}
+    {% endif %}
+
+{% endcontentchannelitem %}
