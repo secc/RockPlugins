@@ -100,7 +100,7 @@
     
     $(document).ready(function() {
        $('#signup-container').css('display', 'block');
-       resizeblock('#{{ 'Global' | PageParameter:'show' | default:'signup' }}');
+       resizeblock('#{% assign showDiv = 'Global' | PageParameter:'show' | Size > 0 %}{% if show > 0 %}{{'Global' | PageParameter:'show'}}{% else %}signup{% endif %}');
     });
 
 	$(window).on("popstate", function(e) {
