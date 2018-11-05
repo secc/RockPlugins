@@ -60,29 +60,35 @@
         {% for item in contentchannelitemItems %}
             {% assign pageReference = item | Attribute:'Page','RawValue' %}
             {% assign itemCampus = item | Attribute:'Campus' %}
-            {% assign lavaContent = item | Attribute:'LavaEditor' %}
 
             {% comment %} *** Check/See if item belongs to this page *** {% endcomment %}
             {% if pageGuid == pageReference %}
 
             {% if itemCampus == null %}
+
                 {% comment %} *** Display Content *** {% endcomment %}
+                {% assign lavaContent = item | Attribute:'LavaEditor' %}
                 {% if debug == true and lavaContent == "" %}
                     <div class="devmode section"><h1>HTML Block: {{ item.Title }}</h1></div>
                 {% elseif debug == true and lavaContent != "" %}
                     <div class="devmode lava"><h1>Lava Block: {{ item.Title }}</h1></div>
                 {% else %} {% comment %} *** Do Nothing *** {% endcomment %} {% endif %}
+
                 {{ item.Content }}
                 {{ lavaContent}}
+
+
             {% else %}
                 {% if itemCampus == campus.Name %}
 
                     {% comment %} *** Display Content if the Campus matches *** {% endcomment %}
+                    {% assign lavaContent = item | Attribute:'LavaEditor' %}
                     {% if debug == true and lavaContent == "" %}
                         <div class="devmode section"><h1>HTML Block: {{ item.Title }}</h1></div>
                     {% elseif debug == true and lavaContent != "" %}
                         <div class="devmode lava"><h1>Lava Block: {{ item.Title }}</h1></div>
                     {% else %} {% comment %} *** Do Nothing *** {% endcomment %} {% endif %}
+
                     {{ item.Content }}
                     {{ lavaContent}}
 
