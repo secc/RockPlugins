@@ -115,7 +115,7 @@ namespace org.secc.FamilyCheckin
 
                                 var attributeMatrix = attributeMatrixService.Get( medicationMatrix.AsGuid() );
 
-                                var labelCache = KioskLabel.Read( new Guid( GetAttributeValue( action, "MedicationLabel" ) ) );
+                                var labelCache = KioskLabel.Get( new Guid( GetAttributeValue( action, "MedicationLabel" ) ) );
 
                                 //Set up merge fields so we can use the lava from the merge fields
                                 var mergeObjects = new Dictionary<string, object>();
@@ -166,7 +166,7 @@ namespace org.secc.FamilyCheckin
                                                 var schedule = items[index].GetAttributeValue( matrixAttributeScheduleKey ).SplitDelimitedValues();
                                                 foreach(var scheduleGuid in schedule)
                                                 {
-                                                    scheduleText += separator + DefinedValueCache.Read( scheduleGuid );
+                                                    scheduleText += separator + DefinedValueCache.Get( scheduleGuid );
                                                     separator = ", ";
                                                 }
 

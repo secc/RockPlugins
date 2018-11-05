@@ -32,25 +32,11 @@ namespace org.secc.RoomScanner.Rest.Controllers
 {
     public partial class RoomScannerController : ApiController
     {
-        public static AttributeCache volAttribute = AttributeCache.Read( new Guid( "F5DAD320-B77D-4282-98C9-35414FB0A6DC" ) );
+        public static AttributeCache volAttribute = AttributeCache.Get( new Guid( "F5DAD320-B77D-4282-98C9-35414FB0A6DC" ) );
 
         private List<int> VolunteerGroupIds
         {
-            get
-            {
-                ObjectCache cache = RockMemoryCache.Default;
-                var ids = ( List<int> ) cache.Get( "org_secc_familycheckin_volunteer_ids" );
-                if ( ids != null )
-                {
-                    return ids;
-                }
-
-                AttributeValueService attributeValueService = new AttributeValueService( new RockContext() );
-                var volAttributeId = AttributeCache.Read( Constants.VOLUNTEER_ATTRIBUTE_GUID.AsGuid() )?.Id;
-                ids = attributeValueService.Queryable().Where( av => av.AttributeId == volAttributeId && av.Value == "True" ).Select( av => av.EntityId ?? 0 ).ToList();
-                cache.Set( "org_secc_familycheckin_volunteer_ids", ids, new CacheItemPolicy() { AbsoluteExpiration = Rock.RockDateTime.Now.AddHours( 12 ) } );
-                return ids;
-            }
+            get => KioskCountUtility.GetVolunteerGroupIds();
         }
 
         private int NumberOfVolunteersCheckedIn( int locationId )
@@ -227,7 +213,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 RockContext rockContext = new RockContext();
                 LocationService locationService = new LocationService( rockContext );
                 var location = locationService.Get( guid.AsGuid() );
-                var campus = CampusCache.Read( location.CampusId ?? 0 );
+                var campus = CampusCache.Get( location.CampusId ?? 0 );
                 return new Template() { Name = location.Name, Id = location.Id, Description = campus?.Name ?? "" };
             }
             catch ( Exception e )
@@ -249,7 +235,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 PersonAliasService personAliasService = new PersonAliasService( rockContext );
                 List<Attendee> attendees = attendanceService
                     .Queryable().AsNoTracking()
-                    .Where( a => a.LocationId == locationId && a.StartDateTime >= Rock.RockDateTime.Today )
+                    .Where( a => a.Occurrence.LocationId == locationId && a.StartDateTime >= Rock.RockDateTime.Today )
                     .Join( personAliasService.Queryable(),
                         a => a.PersonAliasId,
                         pa => pa.Id,
@@ -293,7 +279,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 }
                 AttendanceService attendanceService = new AttendanceService( rockContext );
                 var qry = attendanceService.Queryable()
-                    .Where( a => a.LocationId == locationId && a.StartDateTime > Rock.RockDateTime.Today && a.StartDateTime < tomorrow );
+                    .Where( a => a.Occurrence.LocationId == locationId && a.StartDateTime > Rock.RockDateTime.Today && a.StartDateTime < tomorrow );
                 if ( isSubroom )
                 {
                     qry = qry.Where( a => ( a.DidAttend == true && a.ForeignId == location.Id ) || a.DidAttend != true );
@@ -308,7 +294,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                     EndDateTime = a.EndDateTime,
                     AttendanceGuid = a.Guid.ToString(),
                     DidAttend = a.DidAttend ?? false,
-                    IsVolunteer = VolunteerGroupIds.Contains( a.GroupId ?? 0 ) || a.GroupId == null
+                    IsVolunteer = VolunteerGroupIds.Contains( a.Occurrence.GroupId ?? 0 ) || a.Occurrence.GroupId == null
                 } )
                     .OrderBy( ae => ae.Id )
                     .ToList();
@@ -401,13 +387,13 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 }
 
                 var attendances = ValidationHelper.GetAttendancesForAttendee( rockContext, attendeeAttendance );
-                attendances = attendances.Where( a => a.LocationId == req.LocationId );
+                attendances = attendances.Where( a => a.Occurrence.LocationId == req.LocationId );
 
 
                 //If person is a volunteer, children are checked in, and would result in less than 2 volunteers
                 //Then don't allow for check-out
-                if ( ( attendances.Where( a => VolunteerGroupIds.Contains( a.GroupId ?? 0 ) ).Any()
-                    || attendances.Where( a => a.GroupId == 0 || a.GroupId == null ).Any() )
+                if ( ( attendances.Where( a => VolunteerGroupIds.Contains( a.Occurrence.GroupId ?? 0 ) ).Any()
+                    || attendances.Where( a => a.Occurrence.GroupId == 0 || a.Occurrence.GroupId == null ).Any() )
                     && AreChildrenCheckedIn( req.LocationId )
                     && NumberOfVolunteersCheckedIn( req.LocationId ) <= 2 )
                 {
@@ -478,7 +464,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
 
                 //If no volunteers are checked in and not checking-in a volunteer
                 if ( NumberOfVolunteersCheckedIn( req.LocationId ) < 2
-                    && !attendances.Where( a => VolunteerGroupIds.Contains( a.GroupId ?? 0 ) ).Any() )
+                    && !attendances.Where( a => VolunteerGroupIds.Contains( a.Occurrence.GroupId ?? 0 ) ).Any() )
                 {
                     return new Response(
                         false,
@@ -486,7 +472,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                         false );
                 }
 
-                var attendancesToModify = attendances.Where( a => a.LocationId == req.LocationId ).ToList();
+                var attendancesToModify = attendances.Where( a => a.Occurrence.LocationId == req.LocationId ).ToList();
 
                 //There was an attendance record, but not for the selected location
                 if ( !attendancesToModify.Any() && !req.Override )
@@ -496,8 +482,8 @@ namespace org.secc.RoomScanner.Rest.Controllers
                     {
                         currentAttendances.Append( string.Format(
                             "\n{0} @ {1}",
-                            attendance.Location?.Name ?? "Unknown Location",
-                            attendance.Schedule?.Name ?? "Unknown Schedule" ) );
+                            attendance.Occurrence.Location?.Name ?? "Unknown Location",
+                            attendance.Occurrence.Schedule?.Name ?? "Unknown Schedule" ) );
                     }
 
                     return new Response( false, string.Format( "{0} is not checked-in to {1}. \n\n{2} is currently checked in to: {3} \n\nWould you like to override?",
@@ -514,7 +500,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                     AttributeValueService attributeValueService = new AttributeValueService( new RockContext() );
                     var childGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "False" ).Select( av => av.EntityId.Value ).ToList();
 
-                    if ( childGroupIds.Contains( attendeeAttendance.GroupId ?? 0 ) )
+                    if ( childGroupIds.Contains( attendeeAttendance.Occurrence.GroupId ?? 0 ) )
                     {
                         //This section tests for attendances that can be moved to this location.
                         //It tests for people 
@@ -523,7 +509,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                             .Where( gl => gl.LocationId == req.LocationId && childGroupIds.Contains( gl.GroupId ) )
                             .SelectMany( gl => gl.Schedules )
                             .Select( s => s.Id ).ToList();
-                        var availableAttendances = attendances.Where( a => acceptableServiceIds.Contains( a.ScheduleId ?? 0 ) );
+                        var availableAttendances = attendances.Where( a => acceptableServiceIds.Contains( a.Occurrence.ScheduleId ?? 0 ) );
 
                         if ( availableAttendances.Any() )
                         {
@@ -694,16 +680,22 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 {
                     return new Response( false, "Person not authorized", false );
                 }
+
+                AttendanceOccurrence occurrence = ValidationHelper.GetOccurrenceForLocation( rockContext, location );
+                if ( occurrence == null )
+                {
+                    return new Response( false, "Could not find active occurence.", false );
+                }
+
                 var newAttendance = new Attendance
                 {
                     PersonAlias = person.PrimaryAlias,
-                    LocationId = location.Id,
+                    Occurrence = occurrence,
                     StartDateTime = Rock.RockDateTime.Now,
                     DidAttend = true,
                 };
                 if ( isSubroom )
                 {
-                    newAttendance.LocationId = location.ParentLocationId;
                     newAttendance.ForeignId = location.Id;
                 }
                 attendanceService.Add( newAttendance );

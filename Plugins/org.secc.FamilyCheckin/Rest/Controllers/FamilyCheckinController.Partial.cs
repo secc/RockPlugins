@@ -86,20 +86,18 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
                 CurrentCheckInState = new CheckInState( CurrentKioskId, null, CheckInGroupTypeIds );
                 CurrentCheckInState.CheckIn.UserEnteredSearch = true;
                 CurrentCheckInState.CheckIn.ConfirmSingleFamily = true;
-                CurrentCheckInState.CheckIn.SearchType = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER );
+                CurrentCheckInState.CheckIn.SearchType = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER );
                 CurrentCheckInState.CheckIn.SearchValue = param;
 
                 var rockContext = new Rock.Data.RockContext();
-                var block = BlockCache.Read( blockGuid, rockContext );
+                var block = BlockCache.Get( blockGuid );
                 string workflowActivity = block.GetAttributeValue( "WorkflowActivity" );
                 Guid? workflowGuid = block.GetAttributeValue( "WorkflowType" ).AsGuidOrNull();
 
                 List<string> errors;
-                var workflowTypeService = new WorkflowTypeService( rockContext );
                 var workflowService = new WorkflowService( rockContext );
-                var workflowType = workflowTypeService.Queryable( "ActivityTypes" )
-                    .Where( w => w.Guid.Equals( workflowGuid.Value ) )
-                    .FirstOrDefault();
+                var workflowType = WorkflowTypeCache.Get( workflowGuid.Value );
+
                 var CurrentWorkflow = Rock.Model.Workflow.Activate( workflowType, CurrentCheckInState.Kiosk.Device.Name, rockContext );
 
                 var activityType = workflowType.ActivityTypes.Where( a => a.Name == workflowActivity ).FirstOrDefault();
@@ -141,10 +139,10 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
             }
             else
             {
-                return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, new Dictionary<string, bool> { {"active", false } } );
+                return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, new Dictionary<string, bool> { { "active", false } } );
             }
 
-            if (kioskType == null
+            if ( kioskType == null
                 || CurrentCheckInState == null
                 || !kioskType.IsOpen()
                 || CurrentCheckInState.Kiosk.FilteredGroupTypes( CurrentCheckInState.ConfiguredGroupTypes ).Count == 0

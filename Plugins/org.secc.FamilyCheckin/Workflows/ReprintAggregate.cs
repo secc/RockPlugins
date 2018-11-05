@@ -60,7 +60,7 @@ namespace org.secc.FamilyCheckin
                 List<string> labelCodes = new List<string>();
 
                 var volAttributeGuid = GetAttributeValue( action, "VolunteerGroupAttribute" ).AsGuid();
-                var volAttribute = AttributeCache.Read( volAttributeGuid );
+                var volAttribute = AttributeCache.Get( volAttributeGuid );
 
                 List<int> ChildGroupIds;
 
@@ -75,7 +75,7 @@ namespace org.secc.FamilyCheckin
                 }
 
 
-                var globalAttributes = Rock.Web.Cache.GlobalAttributesCache.Read( rockContext );
+                var globalAttributes = GlobalAttributesCache.Get();
                 var globalMergeValues = Rock.Lava.LavaHelper.GetCommonMergeFields( null );
 
                 var groupMemberService = new GroupMemberService( rockContext );
@@ -89,7 +89,7 @@ namespace org.secc.FamilyCheckin
                         var attendances = attendanceService.Queryable( "AttendanceCode" )
                             .Where( a => a.CreatedDateTime >= Rock.RockDateTime.Today
                                          && person.Person.Id == a.PersonAlias.PersonId
-                                         && ChildGroupIds.Contains( a.GroupId ?? 0 )
+                                         && ChildGroupIds.Contains( a.Occurrence.GroupId ?? 0 )
                                          && a.AttendanceCode != null )
                             .DistinctBy( a => a.AttendanceCodeId ).ToList();
                         foreach ( var attendance in attendances )
@@ -123,7 +123,7 @@ namespace org.secc.FamilyCheckin
                             }
                         }
 
-                        var labelCache = KioskLabel.Read( new Guid( GetAttributeValue( action, "AggregatedLabel" ) ) );
+                        var labelCache = KioskLabel.Get( new Guid( GetAttributeValue( action, "AggregatedLabel" ) ) );
                         if ( labelCache != null )
                         {
                             var checkInLabel = new CheckInLabel( labelCache, new Dictionary<string, object>() );
@@ -154,7 +154,7 @@ namespace org.secc.FamilyCheckin
                                     checkInLabel.PrinterDeviceId = device.PrinterDeviceId;
                                 }
                             }
-                            
+
                             if ( checkInLabel.PrinterDeviceId.HasValue )
                             {
                                 var printerDevice = new DeviceService( rockContext ).Get( checkInLabel.PrinterDeviceId.Value );

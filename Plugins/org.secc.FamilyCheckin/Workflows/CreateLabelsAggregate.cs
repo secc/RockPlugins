@@ -28,6 +28,7 @@ using Rock.Workflow;
 using Rock.Workflow.Action.CheckIn;
 using Rock;
 using System.Runtime.Caching;
+using org.secc.FamilyCheckin.Utilities;
 
 namespace org.secc.FamilyCheckin
 {
@@ -69,7 +70,7 @@ namespace org.secc.FamilyCheckin
             string volAttributeKey = "";
             if ( !string.IsNullOrWhiteSpace( volAttributeGuid ) )
             {
-                volAttributeKey = AttributeCache.Read( volAttributeGuid.AsGuid() ).Key;
+                volAttributeKey = AttributeCache.Get( volAttributeGuid.AsGuid() ).Key;
                 childGroupIds = checkInState.Kiosk.KioskGroupTypes
                     .SelectMany( g => g.KioskGroups )
                     .Where( g => !g.Group.GetAttributeValue( volAttributeKey ).AsBoolean() )
@@ -83,7 +84,7 @@ namespace org.secc.FamilyCheckin
             if ( checkInState != null )
             {
                 var attendanceService = new AttendanceService( rockContext );
-                var globalAttributes = Rock.Web.Cache.GlobalAttributesCache.Read( rockContext );
+                var globalAttributes = Rock.Web.Cache.GlobalAttributesCache.Get();
                 var globalMergeValues = Rock.Lava.LavaHelper.GetCommonMergeFields( null );
 
                 var groupMemberService = new GroupMemberService( rockContext );
@@ -130,16 +131,16 @@ namespace org.secc.FamilyCheckin
                                      a.PersonAlias.Person.Id == person.Person.Id
                                      && a.StartDateTime >= Rock.RockDateTime.Today
                                      && a.EndDateTime == null
-                                     && a.Group != null
-                                     && a.Schedule != null
-                                     && a.Location != null
+                                     && a.Occurrence.Group != null
+                                     && a.Occurrence.Schedule != null
+                                     && a.Occurrence.Location != null
                                     )
                                     .Select( a =>
                                          new
                                          {
-                                             Group = a.Group,
-                                             Location = a.Location,
-                                             Schedule = a.Schedule,
+                                             Group = a.Occurrence.Group,
+                                             Location = a.Occurrence.Location,
+                                             Schedule = a.Occurrence.Schedule,
                                              AttendanceGuid = a.Guid
                                          }
                                     )
@@ -276,7 +277,7 @@ namespace org.secc.FamilyCheckin
 
                         mergeDict.Add( "Date", Rock.RockDateTime.Today.DayOfWeek.ToString().Substring( 0, 3 ) + " " + Rock.RockDateTime.Today.ToMonthDayString() );
 
-                        var labelCache = KioskLabel.Read( new Guid( GetAttributeValue( action, "AggregatedLabel" ) ) );
+                        var labelCache = KioskLabel.Get( new Guid( GetAttributeValue( action, "AggregatedLabel" ) ) );
                         if ( labelCache != null )
                         {
                             var checkInLabel = new CheckInLabel( labelCache, new Dictionary<string, object>() );
@@ -382,7 +383,7 @@ namespace org.secc.FamilyCheckin
                             //don't add an already exisiting label
                             continue;
                         }
-                        var labelCache = KioskLabel.Read( binaryFileGuid.Value );
+                        var labelCache = KioskLabel.Get( binaryFileGuid.Value );
                         if ( labelCache != null )
                         {
                             var checkInLabel = new CheckInLabel( labelCache, mergeObjects );
@@ -399,8 +400,7 @@ namespace org.secc.FamilyCheckin
         {
             if ( !string.IsNullOrWhiteSpace( GetAttributeValue( action, "BreakoutGroupType" ) ) )
             {
-                ObjectCache cache = Rock.Web.Cache.RockMemoryCache.Default;
-                List<Group> allBreakoutGroups = cache[cacheKey] as List<Group>;
+                List<Group> allBreakoutGroups = RockCache.Get( cacheKey ) as List<Group>;
                 if ( allBreakoutGroups == null || !allBreakoutGroups.Any() )
                 {
                     //If the cache is empty, fill it up!
@@ -408,8 +408,7 @@ namespace org.secc.FamilyCheckin
                     allBreakoutGroups = new GroupService( rockContext ).Queryable( "Members" ).AsNoTracking()
                        .Where( g => g.GroupType.Guid == breakoutGroupTypeGuid && g.IsActive ).ToList();
                     var cachePolicy = new CacheItemPolicy();
-                    cachePolicy.AbsoluteExpiration = DateTimeOffset.Now.AddMinutes( 10 );
-                    cache.Set( cacheKey, allBreakoutGroups, cachePolicy );
+                    RockCache.AddOrUpdate( cacheKey, null, allBreakoutGroups, RockDateTime.Now.AddMinutes( 10 ), Constants.CACHE_TAG );
                 }
 
                 return allBreakoutGroups.Where( g => g.Members

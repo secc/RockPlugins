@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -125,7 +125,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 KioskTypeService.Delete( KioskType );
                 checkinContext.SaveChanges();
 
-                Rock.CheckIn.KioskDevice.FlushAll();
+                Rock.CheckIn.KioskDevice.Clear();
             }
 
             BindGrid();

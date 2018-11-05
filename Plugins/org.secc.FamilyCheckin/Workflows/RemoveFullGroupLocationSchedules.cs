@@ -62,21 +62,8 @@ namespace org.secc.FamilyCheckin
                 var family = checkInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault();
                 if ( family != null )
                 {
-                    var volAttributeGuid = Constants.VOLUNTEER_ATTRIBUTE_GUID;
-
                     KioskCountUtility kioskCountUtility = new KioskCountUtility( checkInState.ConfiguredGroupTypes );
-
-                    ObjectCache cache = Rock.Web.Cache.RockMemoryCache.Default;
-                    List<int> volunteerGroupIds = cache[volAttributeGuid + "CachedVolunteerGroups"] as List<int>;
-                    if ( volunteerGroupIds == null ) //cache miss load from DB
-                    {
-                        var volAttribute = AttributeCache.Read( volAttributeGuid.AsGuid() );
-                        AttributeValueService attributeValueService = new AttributeValueService( rockContext );
-                        volunteerGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "True" ).Select( av => av.EntityId.Value ).ToList();
-                        var cachePolicy = new CacheItemPolicy();
-                        cachePolicy.AbsoluteExpiration = DateTimeOffset.Now.AddMinutes( 10 );
-                        cache.Set( volAttributeGuid + "CachedVolunteerGroups", volAttributeGuid + "CachedVolunteerGroups", cachePolicy );
-                    }
+                    List<int> volunteerGroupIds = kioskCountUtility.VolunteerGroupIds;
 
                     var locationService = new LocationService( rockContext );
                     var attendanceService = new AttendanceService( rockContext ).Queryable();
@@ -102,7 +89,7 @@ namespace org.secc.FamilyCheckin
 
                                         var attendanceQry = attendanceService.Where( a =>
                                              a.EndDateTime == null
-                                             && a.ScheduleId == schedule.Schedule.Id
+                                             && a.Occurrence.ScheduleId == schedule.Schedule.Id
                                              && a.StartDateTime >= Rock.RockDateTime.Today );
 
 
