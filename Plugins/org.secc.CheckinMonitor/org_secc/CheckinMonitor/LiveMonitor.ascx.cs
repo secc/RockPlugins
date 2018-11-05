@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -58,9 +58,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 {
                     CampusShortCode = a.Campus.ShortCode,
                     Person = a.PersonAlias.Person,
-                    GroupName = a.Group.Name,
-                    LocationName = a.Location.Name,
-                    ScheduleName = a.Schedule.Name,
+                    GroupName = a.Occurrence.Group.Name,
+                    LocationName = a.Occurrence.Location.Name,
+                    ScheduleName = a.Occurrence.Schedule.Name,
                     KioskName = a.Device.Name,
                     StartDateTime = a.StartDateTime
                 } )

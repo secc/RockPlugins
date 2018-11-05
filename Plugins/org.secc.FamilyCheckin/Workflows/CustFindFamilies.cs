@@ -73,13 +73,13 @@ namespace org.secc.FamilyCheckin
                 GroupService groupService = new GroupService( rockContext );
                 PhoneNumberService phoneNumberService = new PhoneNumberService( rockContext );
 
-                int familyGroupTypeId = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid() ).Id;
+                int familyGroupTypeId = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid() ).Id;
 
                 if ( checkInState.CheckIn.SearchType.Guid.Equals( new Guid( Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER ) ) )
                 {
                     string numericPhone = checkInState.CheckIn.SearchValue.AsNumeric();
 
-                    var personRecordTypeId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+                    var personRecordTypeId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
 
                     // Find the families with any member who has a phone number that contains selected value
                     var familyQry = phoneNumberService.Queryable().AsNoTracking();

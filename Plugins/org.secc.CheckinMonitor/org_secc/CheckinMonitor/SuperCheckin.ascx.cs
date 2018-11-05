@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -136,8 +136,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         private void BuildNewFamilyControls()
         {
-            ddlAdult1Suffix.BindToDefinedType( DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ), true );
-            ddlAdult2Suffix.BindToDefinedType( DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ), true );
+            ddlAdult1Suffix.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ), true );
+            ddlAdult2Suffix.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ), true );
 
             pnbAdult1Phone.Text = CurrentCheckInState.CheckIn.SearchValue.AsDouble().ToString();
 
@@ -488,7 +488,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                         foreach ( var schedule in location.Schedules )
                         {
-                            if ( !cbSuperCheckin.Checked && !schedule.Schedule.IsCheckInActive )
+                            if ( !cbSuperCheckin.Checked && !schedule.Schedule.WasCheckInActive( RockDateTime.Now ) )
                             {
                                 continue;
                             }
@@ -500,7 +500,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                                 btnSelect.Text += " [Location Not Active]";
                             }
 
-                            if ( !schedule.Schedule.IsCheckInActive )
+                            if ( !schedule.Schedule.WasCheckInActive( RockDateTime.Now ) )
                             {
                                 btnSelect.Text += " [Schedule Not Active]";
                             }
@@ -565,7 +565,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             pnlPersonInformation.Visible = false;
             pnlAddPerson.Visible = true;
 
-            ddlNewPersonSuffix.BindToDefinedType( DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ), true );
+            ddlNewPersonSuffix.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ), true );
 
             tbNewPersonFirstName.Text = "";
             tbNewPersonLastName.Text = "";
@@ -577,15 +577,15 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             var gradeLabel = "";
             var today = RockDateTime.Today;
-            var transitionDate = GlobalAttributesCache.Read().GetValue( "GradeTransitionDate" ).AsDateTime() ?? new DateTime( RockDateTime.Today.Year, 6, 1 );
+            var transitionDate = GlobalAttributesCache.Get().GetValue( "GradeTransitionDate" ).AsDateTime() ?? new DateTime( RockDateTime.Today.Year, 6, 1 );
 
             if ( transitionDate > today )
             {
-                gradeLabel = string.Format( "Grade (For School Year {0}-{1})", today.AddYears(-1).Year , today.Year );
+                gradeLabel = string.Format( "Grade (For School Year {0}-{1})", today.AddYears( -1 ).Year, today.Year );
             }
             else
             {
-                gradeLabel = string.Format( "Grade (For School Year {0}-{1})", today.Year, today.AddYears( 1 ).Year);
+                gradeLabel = string.Format( "Grade (For School Year {0}-{1})", today.Year, today.AddYears( 1 ).Year );
             }
             ddlGradePicker.Label = gradeLabel;
 
@@ -605,8 +605,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             Person person = new Person();
             person.FirstName = tbNewPersonFirstName.Text;
             person.LastName = tbNewPersonLastName.Text;
-            person.RecordTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
-            person.RecordStatusValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING.AsGuid() ).Id;
+            person.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+            person.RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING.AsGuid() ).Id;
             if ( !string.IsNullOrWhiteSpace( rblNewPersonGender.SelectedValue ) )
             {
                 person.Gender = rblNewPersonGender.SelectedValueAsEnum<Gender>();
@@ -617,9 +617,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 person.GraduationYear = ypNewGraduation.SelectedYear.Value;
             }
 
-            person.ConnectionStatusValueId = DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id;
+            person.ConnectionStatusValueId = DefinedValueCache.Get( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id;
 
-            var familyGroupType = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY );
+            var familyGroupType = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY );
             var adultRoleId = familyGroupType.Roles
                 .Where( r => r.Guid.Equals( Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() ) )
                 .Select( r => r.Id )
@@ -667,7 +667,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             pnlPersonInformation.Visible = false;
             pnlEditPerson.Visible = true;
 
-            if ( person.ConnectionStatusValueId == DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id )
+            if ( person.ConnectionStatusValueId == DefinedValueCache.Get( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id )
             {
                 pnlEditNameLiteral.Visible = false;
                 pnlEditNameTextBox.Visible = true;
@@ -712,7 +712,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
             var gradeLabel = "";
             var today = RockDateTime.Today;
-            var transitionDate = GlobalAttributesCache.Read().GetValue( "GradeTransitionDate" ).AsDateTime() ?? new DateTime( RockDateTime.Today.Year, 6, 1 );
+            var transitionDate = GlobalAttributesCache.Get().GetValue( "GradeTransitionDate" ).AsDateTime() ?? new DateTime( RockDateTime.Today.Year, 6, 1 );
 
             if ( transitionDate > today )
             {
@@ -729,15 +729,14 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             var AttributeList = new List<int>();
 
             string categoryGuid = GetAttributeValue( "CheckinCategory" );
-            Guid guid = Guid.Empty;
-            if ( Guid.TryParse( categoryGuid, out guid ) )
+            Guid guid = categoryGuid.AsGuid();
+
+            var category = CategoryCache.Get( guid );
+            if ( category != null )
             {
-                var category = CategoryCache.Read( guid );
-                if ( category != null )
-                {
-                    AttributeList = new AttributeService( _rockContext ).GetByCategoryId( category.Id )
-                        .OrderBy( a => a.Order ).ThenBy( a => a.Name ).Select( a => a.Id ).ToList();
-                }
+                AttributeList = new AttributeService( _rockContext ).GetByCategoryId( category.Id )
+                    .OrderBy( a => a.Order ).ThenBy( a => a.Name ).Select( a => a.Id ).ToList();
+
             }
             person.LoadAttributes();
 
@@ -745,7 +744,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             foreach ( int attributeId in AttributeList )
             {
-                var attribute = AttributeCache.Read( attributeId );
+                var attribute = AttributeCache.Get( attributeId );
                 string attributeValue = person.GetAttributeValue( attribute.Key );
                 attribute.AddControl( fsAttributes.Controls, attributeValue, "", setValue, true );
             }
@@ -753,17 +752,14 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected void btnSaveAttributes_Click( object sender, EventArgs e )
         {
-            var changes = new List<string>();
             var personId = ( int ) ViewState["SelectedPersonId"];
 
             var person = new PersonService( _rockContext ).Get( personId );
 
-            if ( person.ConnectionStatusValueId == DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id )
+            if ( person.ConnectionStatusValueId == DefinedValueCache.Get( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id )
             {
-                History.EvaluateChange( changes, "First Name", person.FirstName, tbEditFirst.Text );
                 person.FirstName = tbEditFirst.Text;
                 person.NickName = tbEditFirst.Text;
-                History.EvaluateChange( changes, "Last Name", person.LastName, tbEditLast.Text );
                 person.LastName = tbEditLast.Text;
 
                 var checkinPerson = CurrentCheckInState.CheckIn.CurrentFamily.People.Where( p => p.Person.Id == person.Id ).FirstOrDefault();
@@ -773,21 +769,16 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 }
             }
 
-            History.EvaluateChange( changes, "Birth Date", person.BirthDate, dpEditBirthDate.Text.AsDateTime() );
             person.SetBirthDate( dpEditBirthDate.Text.AsDateTime() );
 
             if ( ypEditGraduation.SelectedYear.HasValue )
             {
-                History.EvaluateChange( changes, "Graduation Year", person.GraduationYear, ypEditGraduation.SelectedYear.Value );
                 person.GraduationYear = ypEditGraduation.SelectedYear.Value;
             }
             else
             {
-                History.EvaluateChange( changes, "Graduation Year", person.GraduationYear, null );
                 person.GraduationYear = null;
             }
-
-            int personEntityTypeId = EntityTypeCache.Read( typeof( Person ) ).Id;
 
             var AttributeList = new List<int>();
 
@@ -795,7 +786,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             Guid guid = Guid.Empty;
             if ( Guid.TryParse( categoryGuid, out guid ) )
             {
-                var category = CategoryCache.Read( guid );
+                var category = CategoryCache.Get( guid );
                 if ( category != null )
                 {
                     AttributeList = new AttributeService( _rockContext ).GetByCategoryId( category.Id )
@@ -806,7 +797,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             foreach ( int attributeId in AttributeList )
             {
-                var attribute = AttributeCache.Read( attributeId );
+                var attribute = AttributeCache.Get( attributeId );
 
                 if ( person != null &&
                     attribute.IsAuthorized( Rock.Security.Authorization.EDIT, CurrentPerson ) )
@@ -832,16 +823,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                             {
                                 formattedNewValue = attribute.FieldType.Field.FormatValue( null, newValue, attribute.QualifierValues, false );
                             }
-
-                            History.EvaluateChange( changes, attribute.Name, formattedOriginalValue, formattedNewValue );
                         }
                     }
                 }
             }
-            if ( person.IsValid && changes.Any() )
+            if ( person.IsValid )
             {
-                HistoryService.SaveChanges( _rockContext, typeof( Person ), Rock.SystemGuid.Category.HISTORY_PERSON_DEMOGRAPHIC_CHANGES.AsGuid(),
-                    person.Id, changes );
                 _rockContext.SaveChanges();
             }
             pnlPersonInformation.Visible = true;
@@ -1007,7 +994,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     var lastLabel = labels.Last();
                     foreach ( var label in labels.Where( l => l.PrintFrom == PrintFrom.Server && !string.IsNullOrEmpty( l.PrinterAddress ) ) )
                     {
-                        var labelCache = KioskLabel.Read( label.FileGuid );
+                        var labelCache = KioskLabel.Get( label.FileGuid );
                         if ( labelCache != null )
                         {
                             if ( printerIp != label.PrinterAddress )
@@ -1164,7 +1151,7 @@ try{{
 
         protected void btnNewFamily_Click( object sender, EventArgs e )
         {
-            var familyGroupType = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY );
+            var familyGroupType = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY );
             var adultRoleId = familyGroupType.Roles
                 .Where( r => r.Guid.Equals( Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() ) )
                 .Select( r => r.Id )
@@ -1175,14 +1162,14 @@ try{{
             adult1.FirstName = tbAdult1FirstName.Text;
             adult1.LastName = tbAdult1LastName.Text;
             adult1.SuffixValueId = ddlAdult1Suffix.SelectedValueAsId();
-            adult1.ConnectionStatusValueId = DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id;
-            adult1.RecordTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
-            adult1.RecordStatusValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING.AsGuid() ).Id;
+            adult1.ConnectionStatusValueId = DefinedValueCache.Get( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id;
+            adult1.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+            adult1.RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING.AsGuid() ).Id;
 
             var newFamily = PersonService.SaveNewPerson( adult1, _rockContext );
             newFamily.Members.Where( m => m.Person == adult1 ).FirstOrDefault().GroupRoleId = adultRoleId;
 
-            int homeLocationTypeId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() ).Id;
+            int homeLocationTypeId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() ).Id;
             var familyLocation = new Location();
             familyLocation.Street1 = acNewFamilyAddress.Street1;
             familyLocation.Street2 = acNewFamilyAddress.Street2;
@@ -1196,12 +1183,12 @@ try{{
 
             if ( cbAdult1SMS.Checked )
             {
-                var smsPhone = DefinedValueCache.Read( GetAttributeValue( "SMSPhone" ).AsGuid() ).Id;
+                var smsPhone = DefinedValueCache.Get( GetAttributeValue( "SMSPhone" ).AsGuid() ).Id;
                 adult1.UpdatePhoneNumber( smsPhone, PhoneNumber.DefaultCountryCode(), pnbAdult1Phone.Text, true, false, _rockContext );
             }
             else
             {
-                var otherPhone = DefinedValueCache.Read( GetAttributeValue( "OtherPhone" ).AsGuid() ).Id;
+                var otherPhone = DefinedValueCache.Get( GetAttributeValue( "OtherPhone" ).AsGuid() ).Id;
                 adult1.UpdatePhoneNumber( otherPhone, PhoneNumber.DefaultCountryCode(), pnbAdult1Phone.Text, false, false, _rockContext );
             }
 
@@ -1212,20 +1199,20 @@ try{{
                 adult2.FirstName = tbAdult2FirstName.Text;
                 adult2.LastName = tbAdult2LastName.Text;
                 adult2.SuffixValueId = ddlAdult2Suffix.SelectedValueAsId();
-                adult2.ConnectionStatusValueId = DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id;
-                adult2.RecordTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
-                adult2.RecordStatusValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING.AsGuid() ).Id;
+                adult2.ConnectionStatusValueId = DefinedValueCache.Get( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id;
+                adult2.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+                adult2.RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING.AsGuid() ).Id;
 
                 PersonService.AddPersonToFamily( adult2, true, newFamily.Id, adultRoleId, _rockContext );
 
                 if ( cbAdult2SMS.Checked )
                 {
-                    var smsPhone = DefinedValueCache.Read( GetAttributeValue( "SMSPhone" ).AsGuid() ).Id;
+                    var smsPhone = DefinedValueCache.Get( GetAttributeValue( "SMSPhone" ).AsGuid() ).Id;
                     adult2.UpdatePhoneNumber( smsPhone, PhoneNumber.DefaultCountryCode(), pnbAdult2Phone.Text, true, false, _rockContext );
                 }
                 else
                 {
-                    var otherPhone = DefinedValueCache.Read( GetAttributeValue( "OtherPhone" ).AsGuid() ).Id;
+                    var otherPhone = DefinedValueCache.Get( GetAttributeValue( "OtherPhone" ).AsGuid() ).Id;
                     adult2.UpdatePhoneNumber( otherPhone, PhoneNumber.DefaultCountryCode(), pnbAdult2Phone.Text, false, false, _rockContext );
                 }
             }
@@ -1285,11 +1272,11 @@ try{{
                                      a.PersonAlias.Person.Id == personId
                                      && a.StartDateTime >= Rock.RockDateTime.Today
                                      && a.EndDateTime == null
-                                     && a.Group != null
-                                     && a.Schedule != null
-                                     && a.Location != null
+                                     && a.Occurrence.Group != null
+                                     && a.Occurrence.Schedule != null
+                                     && a.Occurrence.Location != null
                                     )
-                                    .Select( a => a.Group.GroupTypeId )
+                                    .Select( a => a.Occurrence.Group.GroupTypeId )
                                     .ToList();
                         checkinPerson.Selected = true;
                         foreach ( var groupType in checkinPerson.GroupTypes )
@@ -1395,7 +1382,7 @@ try{{
                             userLogin.UserName = pin;
                             userLogin.IsConfirmed = true;
                             userLogin.PersonId = person.Id;
-                            userLogin.EntityTypeId = EntityTypeCache.Read( "Rock.Security.Authentication.PINAuthentication" ).Id;
+                            userLogin.EntityTypeId = EntityTypeCache.Get( "Rock.Security.Authentication.PINAuthentication" ).Id;
                             userLoginService.Add( userLogin );
                             _rockContext.SaveChanges();
                             maWarning.Show( "PIN number linked to person", ModalAlertType.Information );
@@ -1433,11 +1420,11 @@ try{{
             var personId = ( int ) ViewState["SelectedPersonId"];
             PersonService personService = new PersonService( _rockContext );
             Person person = personService.Get( personId );
-            var globalAttributesCache = GlobalAttributesCache.Read( _rockContext );
+            var globalAttributesCache = GlobalAttributesCache.Get();
             var numberTypeValueId = ddlPhoneNumberType.SelectedValue.AsInteger();
             if ( numberTypeValueId == 0 )
             {
-                numberTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME ).Id;
+                numberTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME ).Id;
             }
             if ( person != null )
             {

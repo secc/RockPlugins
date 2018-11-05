@@ -74,7 +74,7 @@ namespace org.secc.FamilyCheckin.Model
 
         public bool IsOpen()
         {
-            return this.Schedules.Where( s => s.IsScheduleActive ).Any();
+            return this.Schedules.Where( s => s.WasCheckInActive( RockDateTime.Now ) ).Any();
         }
 
         [DataMember]
@@ -86,9 +86,9 @@ namespace org.secc.FamilyCheckin.Model
             var tomorrow = RockDateTime.Today.AddDays( 1 );
             var times = this.Schedules
                 .Where( s => s.GetScheduledStartTimes( now, tomorrow ).FirstOrDefault() > now )
-                .OrderBy( t => t.NextStartDateTime )
+                .OrderBy( t => t.GetNextStartDateTime( RockDateTime.Now ) )
                 .FirstOrDefault();
-            return times != null ? times.NextStartDateTime : ( DateTime? ) null;
+            return times != null ? times.GetNextStartDateTime( RockDateTime.Now ) : ( DateTime? ) null;
         }
 
     }

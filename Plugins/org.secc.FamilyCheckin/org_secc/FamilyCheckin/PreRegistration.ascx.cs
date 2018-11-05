@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -63,7 +63,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
 
             var gradeLabel = "";
             var today = RockDateTime.Today;
-            var transitionDate = GlobalAttributesCache.Read().GetValue( "GradeTransitionDate" ).AsDateTime() ?? new DateTime( RockDateTime.Today.Year, 6, 1 );
+            var transitionDate = GlobalAttributesCache.Get().GetValue( "GradeTransitionDate" ).AsDateTime() ?? new DateTime( RockDateTime.Today.Year, 6, 1 );
 
             if ( transitionDate > today )
             {
@@ -213,7 +213,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             HtmlGenericControl info = new HtmlGenericControl();
             info.Controls.Add( new RockLiteral() { Label = "Gender:", Text = child.Gender } );
             info.Controls.Add( new RockLiteral() { Label = "Birthdate:", Text = child.DateOfBirth.ToShortDateString() + " (" + child.DateOfBirth.Age() + " Yrs)" } );
-            info.Controls.Add( new RockLiteral() { Label = "Grade:", Text = ( child.Grade == null ? "Pre-school" : DefinedValueCache.Read( child.Grade.Value ).Description ) } );
+            info.Controls.Add( new RockLiteral() { Label = "Grade:", Text = ( child.Grade == null ? "Pre-school" : DefinedValueCache.Get( child.Grade.Value ).Description ) } );
             info.Controls.Add( new RockLiteral() { Label = "Allergies:", Text = !string.IsNullOrEmpty( child.Allergies ) ? child.Allergies : "[None]" } );
             info.Controls.Add( new RockLiteral() { Label = "Special&nbsp;Needs:", Text = !string.IsNullOrEmpty( child.SpecialNote ) ? child.SpecialNote : "[None]" } );
 
@@ -288,7 +288,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         }
         else
         {
-            DefinedValueCache homePhone = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME );
+            DefinedValueCache homePhone = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME );
 
             // Create the adult
             Person adult = new Person();
@@ -297,9 +297,9 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             adult.BirthDay = dpBirthday.SelectedDate.Value.Day;
             adult.BirthMonth = dpBirthday.SelectedDate.Value.Month;
             adult.BirthYear = dpBirthday.SelectedDate.Value.Year;
-            adult.RecordTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
-            adult.ConnectionStatusValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT.AsGuid() ).Id;
-            adult.RecordStatusValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id;
+            adult.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+            adult.ConnectionStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT.AsGuid() ).Id;
+            adult.RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id;
             adult.UpdatePhoneNumber( homePhone.Id, pnbPhone.CountryCode, pnbPhone.Number, false, false, rockContext );
             adult.Email = ebEmail.Text;
 
@@ -313,9 +313,9 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                 adult2.BirthDay = dpBirthday2.SelectedDate.Value.Day;
                 adult2.BirthMonth = dpBirthday2.SelectedDate.Value.Month;
                 adult2.BirthYear = dpBirthday2.SelectedDate.Value.Year;
-                adult2.RecordTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
-                adult2.ConnectionStatusValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT.AsGuid() ).Id;
-                adult2.RecordStatusValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id;
+                adult2.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+                adult2.ConnectionStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT.AsGuid() ).Id;
+                adult2.RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id;
                 adult2.UpdatePhoneNumber( homePhone.Id, pnbPhone2.CountryCode, pnbPhone2.Number, false, false, rockContext );
                 adult2.Email = ebEmail2.Text;
 
@@ -346,7 +346,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         rlDOB.Text = dpBirthday.SelectedDate.HasValue ? dpBirthday.SelectedDate.Value.ToShortDateString() : "";
         if ( CampusCache.All().Count() > 1 )
         {
-            rlCampus.Text = CampusCache.Read( cpCampus.Text.AsInteger() ).Name;
+            rlCampus.Text = CampusCache.Get( cpCampus.Text.AsInteger() ).Name;
         }
         else
         {
@@ -461,7 +461,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         public Person SaveAsPerson( int familyId, RockContext rockContext )
         {
 
-            var familyGroupType = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY );
+            var familyGroupType = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY );
             var childRoleId = familyGroupType.Roles
                 .Where( r => r.Guid.Equals( Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_CHILD.AsGuid() ) )
                 .Select( r => r.Id )
@@ -472,12 +472,12 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             person.BirthDay = this.DateOfBirth.Day;
             person.BirthMonth = this.DateOfBirth.Month;
             person.BirthYear = this.DateOfBirth.Year;
-            person.RecordTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
-            person.ConnectionStatusValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT.AsGuid() ).Id;
-            person.RecordStatusValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id;
+            person.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+            person.ConnectionStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT.AsGuid() ).Id;
+            person.RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id;
             if ( this.Grade.HasValue )
             {
-                person.GraduationYear = Person.GraduationYearFromGradeOffset( DefinedValueCache.Read( this.Grade.Value ).Value.AsInteger() );
+                person.GraduationYear = Person.GraduationYearFromGradeOffset( DefinedValueCache.Get( this.Grade.Value ).Value.AsInteger() );
             }
 
             PersonService.AddPersonToFamily( person, true, familyId, childRoleId, rockContext );

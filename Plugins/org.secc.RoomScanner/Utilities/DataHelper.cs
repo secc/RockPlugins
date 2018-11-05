@@ -28,10 +28,10 @@ namespace org.secc.RoomScanner.Utilities
 {
     public static class DataHelper
     {
-        private static int personEntityTypeId = EntityTypeCache.Read( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
+        private static int personEntityTypeId = EntityTypeCache.Get( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
         private const string locationEntityTypeGuid = "0D6410AD-C83C-47AC-AF3D-616D09EDF63B";
-        private static int locationEntityTypeId = EntityTypeCache.Read( locationEntityTypeGuid.AsGuid() ).Id;
-        private static int allergyAttributeId = AttributeCache.Read( Rock.SystemGuid.Attribute.PERSON_ALLERGY.AsGuid() ).Id;
+        private static int locationEntityTypeId = EntityTypeCache.Get( locationEntityTypeGuid.AsGuid() ).Id;
+        private static int allergyAttributeId = AttributeCache.Get( Rock.SystemGuid.Attribute.PERSON_ALLERGY.AsGuid() ).Id;
 
         public static string GetHostInfo()
         {
@@ -217,7 +217,7 @@ namespace org.secc.RoomScanner.Utilities
             newAttendance.DidAttend = true;
             newAttendance.Device = null;
             newAttendance.SearchTypeValue = null;
-            newAttendance.LocationId = req.LocationId;
+            newAttendance.Occurrence.LocationId = req.LocationId;
             newAttendance.AttendanceCode = null;
             newAttendance.AttendanceCodeId = attendance.AttendanceCodeId;
             if ( isSubroom )
@@ -268,7 +268,7 @@ namespace org.secc.RoomScanner.Utilities
                 var stayedFifteenMinutes = ( Rock.RockDateTime.Now - activeAttendance.StartDateTime ) > new TimeSpan( 0, 15, 0 );
                 activeAttendance.DidAttend = stayedFifteenMinutes;
                 activeAttendance.EndDateTime = Rock.RockDateTime.Now;
-                AddExitHistory( rockContext, attendeeAttendance.Location, attendeeAttendance, isSubroom );
+                AddExitHistory( rockContext, attendeeAttendance.Occurrence.Location, attendeeAttendance, isSubroom );
                 CheckInCountCache.RemoveAttendance( activeAttendance );
             }
             if ( didRemove )

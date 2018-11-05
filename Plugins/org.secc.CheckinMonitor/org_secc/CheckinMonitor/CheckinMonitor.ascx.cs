@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -157,7 +157,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
             else if ( selectedScheduleId == 0 )
             {
-                groupLocationSchedules = groupLocationSchedules.Where( gls => gls.Schedule.IsScheduleOrCheckInActive ).ToList();
+                groupLocationSchedules = groupLocationSchedules.Where( gls => gls.Schedule.WasScheduleOrCheckInActive( RockDateTime.Now ) ).ToList();
             }
 
             foreach ( var groupType in kioskCountUtility.GroupTypes.OrderBy( gt => gt.Order ).ToList() )
@@ -442,22 +442,22 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 AttendanceService attendanceService = new AttendanceService( _rockContext );
                 //Get all attendance data for grouplocationschedule for today
-                var data = attendanceService.Queryable( "PersonAlias.Person,Location,Group,Schedule" )
+                var data = attendanceService.Queryable( "PersonAlias.Person,Occurrence,Occurrence.Location,Occurrence.Group,Occurrence.Schedule" )
                     .Where( a =>
                             a.PersonAliasId != null
-                            && a.LocationId == groupLocation.LocationId
-                            && a.ScheduleId == schedule.Id
+                            && a.Occurrence.LocationId == groupLocation.LocationId
+                            && a.Occurrence.ScheduleId == schedule.Id
                             && a.StartDateTime >= Rock.RockDateTime.Today
                             )
                     .ToList();
                 var currentVolunteers = data.Where( a => a.DidAttend == true
                                                     && a.EndDateTime == null
-                                                    && kioskCountUtility.VolunteerGroupIds.Contains( a.GroupId ?? 0 ) )
+                                                    && kioskCountUtility.VolunteerGroupIds.Contains( a.Occurrence.GroupId ?? 0 ) )
                                                     .OrderBy( a => a.PersonAlias.Person.LastName )
                                                     .ThenBy( a => a.PersonAlias.Person.NickName );
                 var currentChildren = data.Where( a => a.DidAttend == true
                                                     && a.EndDateTime == null
-                                                    && !kioskCountUtility.VolunteerGroupIds.Contains( a.GroupId ?? 0 ) )
+                                                    && !kioskCountUtility.VolunteerGroupIds.Contains( a.Occurrence.GroupId ?? 0 ) )
                                                     .OrderBy( a => a.PersonAlias.Person.LastName )
                                                     .ThenBy( a => a.PersonAlias.Person.NickName );
 
@@ -497,9 +497,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                             TableCell tcGroup = new TableCell();
                             trRecord.Controls.Add( tcGroup );
                             tcGroup.Style.Add( "width", "30%" );
-                            if ( record.Group != null )
+                            if ( record.Occurrence.Group != null )
                             {
-                                tcGroup.Text = record.Group.Name;
+                                tcGroup.Text = record.Occurrence.Group.Name;
                             }
 
                             TableCell tcSchedule = new TableCell();
@@ -556,17 +556,17 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                             TableCell tcGroup = new TableCell();
                             trRecord.Controls.Add( tcGroup );
                             tcGroup.Style.Add( "width", "30%" );
-                            if ( record.Group != null )
+                            if ( record.Occurrence.Group != null )
                             {
-                                tcGroup.Text = record.Group.Name;
+                                tcGroup.Text = record.Occurrence.Group.Name;
                             }
 
                             TableCell tcSchedule = new TableCell();
                             trRecord.Controls.Add( tcSchedule );
                             tcSchedule.Style.Add( "width", "25%" );
-                            if ( record.Schedule != null )
+                            if ( record.Occurrence.Schedule != null )
                             {
-                                tcSchedule.Text = record.Schedule.Name;
+                                tcSchedule.Text = record.Occurrence.Schedule.Name;
                             }
 
                             TableCell tcButtons = new TableCell();
@@ -650,14 +650,14 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     return;
                 }
 
-                ltMove.Text = string.Format( "{0} @ {1}", attendanceRecord.PersonAlias.Person.FullName, attendanceRecord.Schedule.Name );
+                ltMove.Text = string.Format( "{0} @ {1}", attendanceRecord.PersonAlias.Person.FullName, attendanceRecord.Occurrence.Schedule.Name );
                 ltMoveInfo.Text = string.Format(
                     "{0} is currently in {1} > {2} at {3} for the schedule {4}",
                     attendanceRecord.PersonAlias.Person.NickName,
-                    attendanceRecord.Group.GroupType.Name,
-                    attendanceRecord.Group.Name,
-                    attendanceRecord.Location.Name,
-                    attendanceRecord.Schedule.Name );
+                    attendanceRecord.Occurrence.Group.GroupType.Name,
+                    attendanceRecord.Occurrence.Group.Name,
+                    attendanceRecord.Occurrence.Location.Name,
+                    attendanceRecord.Occurrence.Schedule.Name );
 
                 // If this person is not an approved volunteer generate a list of groups they cannot join
                 List<int> forbiddenGroupIds = new List<int>();
@@ -670,7 +670,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     if ( !approvedPeopleQry.Where( dv => dv.Id == attendanceRecord.PersonAlias.PersonId ).Any() )
                     {
                         forbiddenGroupIds = kioskCountUtility.VolunteerGroupIds;
-                        ltMoveInfo.Text += "<br><i>"+ attendanceRecord.PersonAlias.Person.NickName + " is not cleared to work with minors.</i>";
+                        ltMoveInfo.Text += "<br><i>" + attendanceRecord.PersonAlias.Person.NickName + " is not cleared to work with minors.</i>";
                     }
                 }
 
@@ -721,7 +721,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         }
                     }
                     _rockContext.SaveChanges();
-                    Rock.CheckIn.KioskDevice.FlushAll();
+                    Rock.CheckIn.KioskDevice.Clear();
                     CheckInCountCache.Flush();
                 }
                 BindTable();
@@ -746,8 +746,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     return;
                 }
 
-                Rock.Web.Cache.DefinedTypeCache.Flush( definedValue.DefinedTypeId );
-                Rock.Web.Cache.DefinedValueCache.Flush( definedValue.Id );
+                Rock.Web.Cache.DefinedTypeCache.Remove( definedValue.DefinedTypeId );
+                Rock.Web.Cache.DefinedValueCache.Remove( definedValue.Id );
 
                 definedValueService.Delete( definedValue );
                 _rockContext.SaveChanges();
@@ -786,8 +786,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                 definedValueService.Add( definedValue );
 
-                Rock.Web.Cache.DefinedTypeCache.Flush( definedValue.DefinedTypeId );
-                Rock.Web.Cache.DefinedValueCache.Flush( definedValue.Id );
+                Rock.Web.Cache.DefinedTypeCache.Remove( definedValue.DefinedTypeId );
+                Rock.Web.Cache.DefinedValueCache.Remove( definedValue.Id );
 
                 _rockContext.SaveChanges();
             }
@@ -808,7 +808,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                             RecordGroupLocationSchedule( groupLocation, schedule );
                             groupLocation.Schedules.Remove( schedule );
                             _rockContext.SaveChanges();
-                            Rock.CheckIn.KioskDevice.FlushAll();
+                            Rock.CheckIn.KioskDevice.Clear();
                             CheckInCountCache.Flush();
                             if ( bindTable )
                             {
@@ -868,11 +868,11 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                     if ( newGroupId != 0 )
                     {
-                        newRecord.GroupId = newGroupId;
+                        newRecord.Occurrence.GroupId = newGroupId;
                     }
                     if ( newLocationId != 0 )
                     {
-                        newRecord.LocationId = newLocationId;
+                        newRecord.Occurrence.LocationId = newLocationId;
                     }
 
                     //Close all other attendance records for this person today at this schedule
@@ -880,7 +880,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                          .Where( a =>
                          a.StartDateTime >= Rock.RockDateTime.Today
                         && a.PersonAliasId == attendanceRecord.PersonAliasId
-                        && a.ScheduleId == attendanceRecord.ScheduleId
+                        && a.Occurrence.ScheduleId == attendanceRecord.Occurrence.ScheduleId
                         && a.EndDateTime == null ).ToList();
 
                     foreach ( var record in currentRecords )
@@ -920,7 +920,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         protected void btnRefresh_Click( object sender, EventArgs e )
         {
             ViewState["LocationRatios"] = null;
-            KioskDevice.FlushAll();
+            KioskDevice.Clear();
             CheckInCountCache.Flush();
             BindTable();
         }
@@ -944,7 +944,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 _rockContext.SaveChanges();
                 mdLocation.Hide();
                 ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
-                Rock.CheckIn.KioskDevice.FlushAll();
+                Rock.CheckIn.KioskDevice.Clear();
                 CheckInCountCache.Flush();
             }
             ViewState["LocationRatios"] = null;
@@ -975,7 +975,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             using ( RockContext _rockContext = new RockContext() )
             {
                 AttendanceCodeService attendanceCodeService = new AttendanceCodeService( _rockContext );
-                var attendanceCode = attendanceCodeService.Queryable()
+                var attendanceCode = attendanceCodeService.Queryable( "Attendance,Attendance.Occurrence" )
                     .Where( ac =>
                         ac.Code == code && ac.IssueDateTime >= Rock.RockDateTime.Today
                     )
@@ -988,9 +988,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 var attendanceRecords = attendanceCode.Attendances
                     .Where( a =>
                         a.EndDateTime == null
-                        && a.ScheduleId != null
+                        && a.Occurrence.ScheduleId != null
                         && a.AttendanceCodeId != null
-                        && a.LocationId != null
+                        && a.Occurrence.LocationId != null
                     )
                     .ToList();
                 DisplaySearchRecords( attendanceRecords );
@@ -1018,14 +1018,14 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     return;
                 }
                 var aliasIds = people.ToList().Select( p => p.PrimaryAliasId );
-                var attendanceRecords = new AttendanceService( _rockContext ).Queryable( "AttendanceCode" )
+                var attendanceRecords = new AttendanceService( _rockContext ).Queryable( "AttendanceCode,Occurrence" )
                     .Where( a =>
                         a.StartDateTime >= Rock.RockDateTime.Today
                         && a.EndDateTime == null
                         && aliasIds.Contains( a.PersonAliasId )
-                        && a.ScheduleId != null
+                        && a.Occurrence.ScheduleId != null
                         && a.AttendanceCodeId != null
-                        && a.LocationId != null
+                        && a.Occurrence.LocationId != null
                     )
                     .ToList();
                 if ( !attendanceRecords.Any() )
@@ -1096,16 +1096,16 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 trRow.Controls.Add( tcDevice );
 
                 TableCell tcLocation = new TableCell();
-                if ( attendance.Location != null )
+                if ( attendance.Occurrence.Location != null )
                 {
-                    tcLocation.Text = attendance.Location.Name;
+                    tcLocation.Text = attendance.Occurrence.Location.Name;
                 }
                 trRow.Controls.Add( tcLocation );
 
                 TableCell tcSchedule = new TableCell();
-                if ( attendance.Schedule != null )
+                if ( attendance.Occurrence.Schedule != null )
                 {
-                    tcSchedule.Text = attendance.Schedule.Name;
+                    tcSchedule.Text = attendance.Occurrence.Schedule.Name;
                 }
                 trRow.Controls.Add( tcSchedule );
 

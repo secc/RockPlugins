@@ -56,7 +56,7 @@ namespace org.secc.FamilyCheckin
                 var checkinAttributeGuid = GetAttributeValue( action, "CheckinGroupsAttribute" );
                 if ( !string.IsNullOrWhiteSpace( checkinAttributeGuid ) )
                 {
-                    var attributeCache = AttributeCache.Read( checkinAttributeGuid.AsGuid() );
+                    var attributeCache = AttributeCache.Get( checkinAttributeGuid.AsGuid() );
                     if ( attributeCache != null )
                     {
                         checkinAttributeKey = attributeCache.Key;

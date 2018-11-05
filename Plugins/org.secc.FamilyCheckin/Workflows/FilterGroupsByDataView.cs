@@ -18,6 +18,7 @@ using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Runtime.Caching;
+using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -55,14 +56,11 @@ namespace org.secc.FamilyCheckin
             {
                 return false;
             }
-
-            ObjectCache cache = Rock.Web.Cache.RockMemoryCache.Default;
-
             var dataViewAttributeKey = string.Empty;
             var dataViewAttributeGuid = GetAttributeValue( action, "DataViewGroupAttribute" ).AsGuid();
             if ( dataViewAttributeGuid != Guid.Empty )
             {
-                dataViewAttributeKey = AttributeCache.Read( dataViewAttributeGuid, rockContext ).Key;
+                dataViewAttributeKey = AttributeCache.Get( dataViewAttributeGuid ).Key;
             }
 
             var dataViewService = new DataViewService( rockContext );
@@ -90,7 +88,7 @@ namespace org.secc.FamilyCheckin
                             }
 
                             //Get approved people dataview from cache or from db
-                            var approvedPeopleList = cache[approvedPeopleGuid] as List<int>;
+                            var approvedPeopleList = RockCache.Get( approvedPeopleGuid ) as List<int>;
 
                             if ( approvedPeopleList == null )
                             {
@@ -108,7 +106,7 @@ namespace org.secc.FamilyCheckin
                                     approvedPeopleList = approvedPeopleQry.Select( e => e.Id ).ToList();
                                     var cachePolicy = new CacheItemPolicy();
                                     cachePolicy.AbsoluteExpiration = DateTimeOffset.Now.AddMinutes( 10 );
-                                    cache.Set( approvedPeopleGuid, approvedPeopleList, cachePolicy );
+                                    RockCache.AddOrUpdate( approvedPeopleGuid, null, approvedPeopleList, RockDateTime.Now.AddMinutes(10), Constants.CACHE_TAG );
                                 }
                             }
 
