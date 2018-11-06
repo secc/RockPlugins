@@ -4,14 +4,14 @@
       <div class="col-sm-10 col-sm-offset-1">
 
             <header>
-                <h1>Christmas Weekend Services 2017</h1>
+                <h1>Christmas Weekend Services 2018</h1>
                 <p style="color: #777777;">This Christmas, come celebrate the birth of Jesus with us at Southeast. We hope to see you at one of our services. We’ll worship together and Teaching Pastor Kyle Idleman will share a Christmas message.</p>
                 <p style="color: #777777;">Below, you can browse all Christmas weekend services by date, location, and time.</p>
                 <br />
             </header>
           <!-- Schedule start -->
           <div class="schedule">
-              <!-- <h2 class="visible-xs visible-sm text-center">12/23/2017 - 12/24/2017</h2> -->
+              <!-- <h2 class="visible-xs visible-sm text-center">12/23/2018 - 12/24/2018</h2> -->
               <!-- Navigation by day start -->
               <ul class="nav nav-schedule" id="easterdays">
                   <li class="active"><a href="#campus1" data-toggle="tab">Blankenbaker</a></li>
