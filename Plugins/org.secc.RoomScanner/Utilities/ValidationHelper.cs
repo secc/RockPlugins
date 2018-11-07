@@ -148,7 +148,7 @@ namespace org.secc.RoomScanner.Utilities
 
             AttendanceOccurrenceService attendanceOccurrenceService = new AttendanceOccurrenceService( rockContext );
             var occurrences = attendanceOccurrenceService.Queryable()
-                .Where( o => o.OccurrenceDate == RockDateTime.Now && o.LocationId == location.Id ).ToList();
+                .Where( o => o.OccurrenceDate == RockDateTime.Now.Date && o.LocationId == location.Id ).ToList();
             var volunteerOccurrences = occurrences.Where( o => KioskCountUtility.GetVolunteerGroupIds().Contains( o.GroupId ?? 0 ) ).FirstOrDefault();
             if ( volunteerOccurrences != null )
             {
