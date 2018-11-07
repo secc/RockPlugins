@@ -123,15 +123,11 @@ namespace Rock.Workflow.Action.CheckIn
                                             var primaryAlias = personAliasService.GetPrimaryAlias( person.Person.Id );
                                             if ( primaryAlias != null )
                                             {
-                                                attendance = rockContext.Attendances.Create();
-                                                attendance.Occurrence.LocationId = location.Location.Id;
-                                                attendance.CampusId = location.CampusId;
-                                                attendance.Occurrence.ScheduleId = schedule.Schedule.Id;
-                                                attendance.Occurrence.GroupId = group.Group.Id;
-                                                attendance.PersonAlias = primaryAlias;
-                                                attendance.PersonAliasId = primaryAlias.Id;
-                                                attendance.DeviceId = checkInState.Kiosk.Device.Id;
-                                                attendance.SearchTypeValueId = checkInState.CheckIn.SearchType.Id;
+                                                attendance = attendanceService.AddOrUpdate( primaryAlias.Id, startDateTime.Date, group.Group.Id,
+                                                    location.Location.Id, schedule.Schedule.Id, location.CampusId,
+                                                    checkInState.Kiosk.Device.Id, checkInState.CheckIn.SearchType.Id,
+                                                    checkInState.CheckIn.SearchValue, family.Group.Id, attendanceCode.Id );
+
                                                 attendanceService.Add( attendance );
                                             }
 

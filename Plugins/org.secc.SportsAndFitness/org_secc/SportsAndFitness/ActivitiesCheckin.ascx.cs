@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -41,7 +41,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
         private RockContext _rockContext;
         private int _noteTypeId;
         private string _expirationDateKey;
-        private int _memberConnectionStatusId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_MEMBER.AsGuid() ).Id;
+        private int _memberConnectionStatusId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_MEMBER.AsGuid() ).Id;
 
         private List<GroupTypeCache> parentGroupTypesList;
         private GroupTypeCache currentParentGroupType;
@@ -64,7 +64,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             var expirationDateAttributeGuid = GetAttributeValue( "ExpirationDateAttribute" ).AsGuid();
             if ( expirationDateAttributeGuid != Guid.Empty )
             {
-                _expirationDateKey = AttributeCache.Read( expirationDateAttributeGuid, _rockContext ).Key;
+                _expirationDateKey = AttributeCache.Get( expirationDateAttributeGuid, _rockContext ).Key;
             }
 
             if ( !Page.IsPostBack )
