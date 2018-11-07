@@ -76,7 +76,7 @@
                                       <div class="lecture-icon-wrapper hidden-xs hidden-sm">
                                           <i class="fa fa-tree"></i>
                                       </div>
-                                      <h1>2:00 p.m.</h1>
+                                      <h1>2:00 p.m. <small title="interpreted for the deaf"><i class="fa fa-american-sign-language-interpreting" aria-hidden="true"></i></small></h1>
                                       <p><i>Children’s programming available for Birth-5th Grade.</i></p>
                                   </div>
 
@@ -92,7 +92,7 @@
                                       <div class="lecture-icon-wrapper hidden-xs hidden-sm">
                                           <i class="fa fa-tree"></i>
                                       </div>
-                                      <h1>11:00 p.m.</h1>
+                                      <h1>11:00 p.m. <small title="interpreted for the deaf"><i class="fa fa-american-sign-language-interpreting" aria-hidden="true"></i></small></h1>
                                       <p><i>No childcare available.</i></p>
                                   </div>
                               </div>
