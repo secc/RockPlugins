@@ -118,20 +118,22 @@ namespace org.secc.FamilyCheckin
                                                 oldAttendance.EndDateTime = Rock.RockDateTime.Now;
                                                 oldAttendance.DidAttend = false;
                                             }
-                                            var attendance = rockContext.Attendances.Create();
-                                            attendance.Occurrence.LocationId = location.Location.Id;
-                                            attendance.CampusId = location.CampusId;
-                                            attendance.Occurrence.ScheduleId = schedule.Schedule.Id;
-                                            attendance.Occurrence.GroupId = group.Group.Id;
-                                            attendance.PersonAliasId = primaryAlias.Id;
+                                            var attendance = attendanceService.AddOrUpdate( primaryAlias.Id, startDateTime.Date, group.Group.Id,
+                                                    location.Location.Id, schedule.Schedule.Id, location.CampusId,
+                                                    checkInState.Kiosk.Device.Id, checkInState.CheckIn.SearchType.Id,
+                                                    checkInState.CheckIn.SearchValue, family.Group.Id, attendanceCode.Id );
+
                                             attendance.DeviceId = checkInState.Kiosk.Device.Id;
                                             attendance.SearchTypeValueId = checkInState.CheckIn.SearchType.Id;
                                             attendance.SearchValue = checkInState.CheckIn.SearchValue;
+                                            attendance.CheckedInByPersonAliasId = checkInState.CheckIn.CheckedInByPersonAliasId;
                                             attendance.SearchResultGroupId = family.Group.Id;
                                             attendance.AttendanceCodeId = attendanceCode.Id;
                                             attendance.StartDateTime = startDateTime;
                                             attendance.EndDateTime = null;
+                                            attendance.Note = group.Notes;
                                             attendance.DidAttend = groupType.GroupType.GetAttributeValue( "SetDidAttend" ).AsBoolean();
+
                                             attendanceService.Add( attendance );
                                             CheckInCountCache.AddAttendance( attendance );
                                         }
