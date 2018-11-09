@@ -236,7 +236,20 @@ namespace org.secc.RoomScanner.Utilities
 
         public static Response GetEntryResponse( RockContext rockContext, Person person, Location location )
         {
-
+            var birthdateText = string.Empty;
+            if ( ( person.DaysToBirthday < 4 || person.DaysToBirthday > 363 ) && person.DaysToBirthday != int.MaxValue )
+            {
+                var birthdate = new DateTime( RockDateTime.Now.Year, person.BirthDate.Value.Month, person.BirthDate.Value.Day );
+                if ( birthdate == RockDateTime.Today )
+                {
+                    birthdateText = string.Format( "{0}'s Birthday is Today! {1}", person.NickName, GetAge( person ) );
+                }
+                else
+                {
+                    var elapsedString = birthdate.ToElapsedString( false, false );
+                    birthdateText = string.Format( "{0}'s Birthday {1} {2}! {3}", person.NickName, elapsedString.Contains( "Ago" ) ? "was" : "is", elapsedString, GetAge( person ) );
+                }
+            }
             var allergyAttributeValue = new AttributeValueService( rockContext )
                 .Queryable()
                 .FirstOrDefault( av => av.AttributeId == allergyAttributeId && av.EntityId == person.Id );
@@ -247,11 +260,21 @@ namespace org.secc.RoomScanner.Utilities
                     string.Format( "{0} has been checked-in to {1}. \n\n Allergy: {2}", person.FullName, location.Name, allergyAttributeValue.Value ),
                     false,
                     true,
-                    person.Id
+                    person.Id,
+                    birthdateText
                     );
             }
             var message2 = string.Format( "{0} has been checked-in to {1}.", person.FullName, location.Name );
-            return new Response( true, message2, false, personId: person.Id );
+            return new Response( true, message2, false, personId: person.Id, birthdayText: birthdateText );
+        }
+
+        private static string GetAge( Person person )
+        {
+            if ( person.Age > 18 )
+            {
+                return "";
+            }
+            return string.Format( "{0} years old.", RockDateTime.Today.Year - person.BirthYear );
         }
 
         public static void CloseActiveAttendances( RockContext rockContext, Attendance attendeeAttendance, Location location, bool isSubroom )
