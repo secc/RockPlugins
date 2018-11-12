@@ -36,6 +36,7 @@
     <link rel="stylesheet" href="<%# ResolveRockUrl("~/Styles/developer.css", true) %>"/>
     <asp:ContentPlaceHolder ID="css" runat="server" />
 
+    <!-- Included JS Files -->
     <script src="<%# ResolveRockUrl("~~/Scripts/modernizr-custom.js" ) %>" ></script>
     <script src="<%# ResolveRockUrl("~~/Scripts/global-dist.js" ) %>" ></script>
     <script src="<%# ResolveRockUrl("~~/Scripts/isotope.pkgd.min.js" ) %>" ></script>
@@ -52,73 +53,88 @@
     <link rel="apple-touch-icon-precomposed" sizes="72x72" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/secc-touch-icon-ipad.png", true) %>"/>
     <link rel="apple-touch-icon-precomposed" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/secc-touch-icon-iphone.png", true) %>"/>
 
+    <!-- Include Mega Menu Styles -->
+    <link href="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/css/reset.css", true) %>" rel="stylesheet" type="text/css"/>
+	<link href="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/css/style.css", true) %>" rel="stylesheet" type="text/css"/>
+	<script src="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/js/modernizr.js" ) %>" ></script>
+
     <!-- Include Fonts from Adobe Typekit -->
     <script type="text/javascript" src="//use.typekit.net/ayl1ond.js"></script>
     <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
-
     <script src="https://use.typekit.net/eni5wig.js"></script>
-	<script>
-    try{Typekit.load({ async: true });}catch(e){}
-    </script>
+	<script>try{Typekit.load({ async: true });}catch(e){}</script>
+
 </head>
-<body runat="server" id="body">
+
+<body runat="server" id="body" class="nav-is-fixed">
+
     <div id="DocumentWrapper">
+
         <form id="form1" runat="server">
-            <div id="DocumentWrapper">
-                <!-- Nav Mobile -->
-                <Rock:Zone Name="NavMobile" runat="server" />
 
-                <div id="PageCanvas">
+            <Rock:Zone Name="header-primary-nav" runat="server" />
 
-                    <!-- Page Header -->
-                    <header id="SiteHeader">
-                        <!-- SUPERNAV -->
-                        <Rock:Zone Name="SuperNav" runat="server" />
-                        <!-- MAIN SITE NAVIGATION -->
-                        <nav id="SiteNav" class="clearfix">
-                    		<div class="container">
-                                <!-- LEFT SIDE OF SITE NAV -->
-                                <Rock:Zone Name="LeftNav" runat="server" />
-                                <span class="site-logo">
-                                    <a href="/">
-                                        <img src="/Themes/SECC2014/Assets/img/logos/southeast/se-logo-invert-update.png" class="img-responsive" alt="Southeast Christian Church" style="width:100%; max-width:80px;" />
-                                    </a>
-                                </span>
-                                <!-- RIGHT SITE OF SITE NAV -->
-                                <Rock:Zone Name="RightNav" runat="server" />
-                    		</div>
-                    	</nav>
-                    </header>
+            <main id="PageBody" class="cd-main-content">
 
-                    <main id="PageBody">
-                    <asp:ContentPlaceHolder ID="feature" runat="server"></asp:ContentPlaceHolder>
+                <!-- Page Header -->
+                <header id="SiteHeader">
+                    <!-- SUPERNAV -->
+                    <Rock:Zone Name="SuperNav" runat="server" />
+                    <!-- MAIN SITE NAVIGATION -->
+                    <nav id="SiteNav" class="clearfix">
+                        <div class="container">
+                            <!-- LEFT SIDE OF SITE NAV -->
+                            <Rock:Zone Name="LeftNav" runat="server" />
+                            <span class="site-logo">
+                                <a href="/">
+                                    <img src="/Themes/SECC2014/Assets/img/logos/southeast/se-logo-invert-update.png" class="img-responsive" alt="Southeast Christian Church" style="width:100%; max-width:80px;" />
+                                </a>
+                            </span>
+                            <!-- RIGHT SITE OF SITE NAV -->
+                            <Rock:Zone Name="RightNav" runat="server" />
+                        </div>
+                    </nav>
+                </header>
 
-                    <asp:ContentPlaceHolder ID="main" runat="server"></asp:ContentPlaceHolder>
-                    </main>
+                <!--========== PAGE CONTENT ==========-->
+                <asp:ContentPlaceHolder ID="feature" runat="server"></asp:ContentPlaceHolder>
+                <asp:ContentPlaceHolder ID="main" runat="server"></asp:ContentPlaceHolder>
+                <!--========== END PAGE CONTENT ==========-->
 
-                    <footer id="SiteFooter">
-                    	<section class="footer-menu">
-                            <div class="container">
-                                <!-- SUB FOOTER -->
-                                <Rock:Zone Name="SubFooter" runat="server" />
-                    		</div>
-                    	</section>
-                    	<section class="partners">
-                    		<div class="container">
-                                <!-- FOOTER LINKS -->
-                                <Rock:Zone Name="FooterLinks" runat="server" />
-                    		</div>
-                    	</section>
-                    	<section class="signoff">
-                    		<div class="container">
-                                <!-- MAIN FOOTER -->
-                                <Rock:Zone Name="MainFooter" runat="server" />
-                    		</div>
-                    	</section>
-                    </footer>
+                <footer id="SiteFooter">
+                    <section class="footer-menu">
+                        <div class="container">
+                            <!-- SUB FOOTER -->
+                            <Rock:Zone Name="SubFooter" runat="server" />
+                        </div>
+                    </section>
+                    <section class="partners">
+                        <div class="container">
+                            <!-- FOOTER LINKS -->
+                            <Rock:Zone Name="FooterLinks" runat="server" />
+                        </div>
+                    </section>
+                    <section class="signoff">
+                        <div class="container">
+                            <!-- MAIN FOOTER -->
+                            <Rock:Zone Name="MainFooter" runat="server" />
+                        </div>
+                    </section>
+                </footer>
 
-                </div>
-            </div>
+            </main>
+
+            <!-- Back To Top -->
+            <a href="javascript:void(0);" class="s-back-to-top js__back-to-top"></a>
+
+            <Rock:Zone Name="primary-nav" runat="server" />
+
+        	<div id="cd-search" class="cd-search">
+        		<input type="search" name="q" placeholder="Search...">
+        	</div>
+
+            <div class="cd-overlay"></div>
+
             <%-- controls for scriptmanager and update panel --%>
             <asp:ScriptManager ID="sManager" runat="server"/>
             <asp:UpdateProgress id="updateProgress" runat="server" DisplayAfter="800">
@@ -140,7 +156,9 @@
     		        </ProgressTemplate>
             </asp:UpdateProgress>
 
+
         </form>
+
     </div>
 </body>
 
