@@ -57,12 +57,15 @@
     <link href="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/css/reset.css", true) %>" rel="stylesheet" type="text/css"/>
 	<link href="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/css/style.css", true) %>" rel="stylesheet" type="text/css"/>
 	<script src="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/js/modernizr.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/js/jquery.mobile.custom.min.js", true) %>"></script>
+    <script src="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/js/main.js", true) %>"></script>
 
     <!-- Include Fonts from Adobe Typekit -->
     <script type="text/javascript" src="//use.typekit.net/ayl1ond.js"></script>
     <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
     <script src="https://use.typekit.net/eni5wig.js"></script>
 	<script>try{Typekit.load({ async: true });}catch(e){}</script>
+
 
 </head>
 
@@ -72,7 +75,7 @@
 
         <form id="form1" runat="server">
 
-            <Rock:Zone Name="header-primary-nav" runat="server" />
+            <Rock:Zone Name="Primary Site Navigation Placeholder" runat="server" />
 
             <main id="PageBody" class="cd-main-content">
 
@@ -85,11 +88,11 @@
                         <div class="container">
                             <!-- LEFT SIDE OF SITE NAV -->
                             <Rock:Zone Name="LeftNav" runat="server" />
-                            <span class="site-logo">
-                                <a href="/">
-                                    <img src="/Themes/SECC2014/Assets/img/logos/southeast/se-logo-invert-update.png" class="img-responsive" alt="Southeast Christian Church" style="width:100%; max-width:80px;" />
-                                </a>
-                            </span>
+                            <!-- <span class="site-logo"> -->
+                                <!-- <a href="/"> -->
+                                    <!-- <img src="/Themes/SECC2014/Assets/img/logos/southeast/se-logo-invert-update.png" class="img-responsive" alt="Southeast Christian Church" style="width:100%; max-width:80px;" /> -->
+                                <!-- </a> -->
+                            <!-- </span> -->
                             <!-- RIGHT SITE OF SITE NAV -->
                             <Rock:Zone Name="RightNav" runat="server" />
                         </div>
@@ -127,7 +130,7 @@
             <!-- Back To Top -->
             <a href="javascript:void(0);" class="s-back-to-top js__back-to-top"></a>
 
-            <Rock:Zone Name="primary-nav" runat="server" />
+            <Rock:Zone Name="Primary Site Navigation" runat="server" />
 
         	<div id="cd-search" class="cd-search">
         		<input type="search" name="q" placeholder="Search...">
