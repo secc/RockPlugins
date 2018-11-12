@@ -1,0 +1,100 @@
+/* 7.3 Page info: page title and breadcrumbs
+-------------------------------------------------------------- */
+.page_title, .breadcrumbs {
+	max-width:90%;
+}
+
+.top_panel_title_inner {
+	overflow:hidden;
+    background-color: rgba(239, 239, 239, 0.5);
+}
+
+.top_panel_title {
+
+    .page_title {
+    	padding: 1.7em 0 1.7em;
+    	font-size:0.875em;
+    	line-height:1.5em;
+    }
+    .breadcrumbs {
+    	margin:0 auto;
+    	font-weight:400;
+    	font-size: 1em;
+    	padding: 1.7em 0 1.7em;
+    	line-height:1.2em;
+    	text-align: center;
+
+        .breadcrumbs_item {
+        	display:inline-block;
+        	vertical-align:top;
+        	white-space: normal;
+        }
+
+        .breadcrumbs_delimiter {
+        	display:inline-block;
+        	position:relative;
+        	margin: 0 0.4em;
+        	vertical-align:top;
+        	text-align:left;
+
+            &:before {
+                content:'>';
+            }
+        }
+    }
+}
+
+@media (min-width: 640px) and (max-width: 768px) {
+    .top_panel_title {
+        .page_title,.breadcrumbs {
+            max-width: 100% !important;
+        	float:none;
+        	text-align:left;
+        }
+        .page_title {
+            font-size: 1.3rem;
+            padding: 1em 0 0 0;
+    		line-height: 0.2em;
+        }
+        .breadcrumbs {
+            font-size: 0.7em;
+            padding: 1.5em 0 1.5em 0 !important;
+        }
+    }
+}
+@media (min-width: 480px) and (max-width: 639px) {
+    .top_panel_title {
+        .page_title,.breadcrumbs {
+            max-width: 100% !important;
+        	float:none;
+        	text-align:left;
+        }
+        .page_title {
+            font-size: 1.3rem;
+    		padding: 1em 0 0 0;
+    		line-height: 0.2em;
+        }
+        .breadcrumbs {
+            font-size: 0.7em;
+            padding: 1.5em 0 1.5em 0 !important;
+        }
+    }
+}
+@media (max-width: 479px) {
+    .top_panel_title {
+        .page_title, .breadcrumbs {
+            max-width: 100% !important;
+    		float:none;
+    		text-align:left;
+        }
+        .page_title {
+            font-size: 1.3rem;
+    		padding: 1em 0 0 0;
+    		line-height: 0.2em;
+        }
+        .breadcrumbs {
+            font-size: 0.7em;
+            padding: 1.5em 0 1.5em 0 !important;
+        }
+    }
+}

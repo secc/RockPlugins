@@ -1,0 +1,153 @@
+{% comment %}
+*********************************** NAME ***************************************
+{% endcomment %}
+* Photoswipe Photo Gallery
+
+{% comment %}
+*********************************** TagType ************************************
+{% endcomment %}
+Block
+
+{% comment %}
+*********************************** TAG NAME ***********************************
+{% endcomment %}
+photoswipe
+
+{% comment %}
+*********************************** DESCRIPTION ********************************
+{% endcomment %}
+JavaScript gallery with no dependencies.
+
+Images are displayed at their highest possible size and are not limited by the width of the column or wrapper. Each image is isolated from the other content and fits the viewport vertically, so that the user can focus on it. If an image is larger than the viewport, it can be zoomed (which most galleries are unable to do).
+
+For more information, checkout the plugin here: http://photoswipe.com/
+
+{% comment %}
+********************************* DOCUMENTATION ********************************
+{% endcomment %}
+
+Use this short-code to turn any images on your page into a gallery. Additionally, you can use it on as many images as you want throughout your web page – to be included in a gallery. 
+
+    Avoid serving big images (larger than 2000x1500px) for mobile, as they will dramatically reduce animation performance and can cause crash (especially on iOS Safari).
+
+    {[ photoswipe imgsrc:'' ]}
+        ** image tag to display goes here **
+    {[ endphotoswipe ]}
+
+This block shortcode creates a div container with a class of "picture" as part of the photoswipe plugin; along with a couple other nested tags – such as an anchor tag. As always there are a few parameters you can use, along with a required parameter of the image source.
+
+imgsrc - include the source of the image here.
+imgtitle - include the title of the image here.
+
+Note: when you use this shortcode multiple times across the same page, it will create a slider gallery for the users to look through.
+
+{% comment %}
+************************ MARKUP FOR THIS SHORTCODE IS BELOW ********************
+{% endcomment %}
+
+{{- '/Themes/SECC2014/Assets/vendor/photo_swipe/photoswipe.css?v=4.1.2-1.0.4' | AddCssLink -}}
+{{- '/Themes/SECC2014/Assets/vendor/photo_swipe/default-skin/default-skin.css?v=4.1.2-1.0.4' | AddCssLink -}}
+{{- '/Themes/SECC2014/Assets/vendor/photo_swipe/photoswipe.js' | AddScriptLink -}}
+{{- '/Themes/SECC2014/Assets/vendor/photo_swipe/photoswipe-ui-default.js' | AddScriptLink -}}
+{%- javascript id:'photoswipe-shortcode' -%}
+    $( document ).ready(function() {
+        // add UI controls for the photoswipe
+        photoswipeUIControls = '<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true"> \
+                <div class="pswp__bg"></div> \
+                <div class="pswp__scroll-wrap"> \
+                    \
+                    <div class="pswp__container"> \
+                        <div class="pswp__item"></div> \
+                        <div class="pswp__item"></div> \
+                        <div class="pswp__item"></div> \
+                    </div> \
+                    \
+                    <div class="pswp__ui pswp__ui--hidden"> \
+                        <div class="pswp__top-bar"> \
+                            <div class="pswp__counter"></div>   \
+                            <a href="javascript:void(0)" class="pswp__button pswp__button--close" title="Close (Esc)"></a>  \
+                            <a href="javascript:void(0)" class="pswp__button pswp__button--fs" title="Toggle fullscreen"></a>   \
+                            <a href="javascript:void(0)" class="pswp__button pswp__button--zoom" title="Zoom in/out"></a>   \
+                            <div class="pswp__preloader">   \
+                                <div class="pswp__preloader__icn">  \
+                                <div class="pswp__preloader__cut">  \
+                                    <div class="pswp__preloader__donut"></div>  \
+                                </div> \
+                                </div> \
+                            </div> \
+                        </div> \
+                        <a class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)" href="javascript:void(0)"> \
+                        </a> \
+                        <a class="pswp__button pswp__button--arrow--right" title="Next (arrow right)" href="javascript:void(0)"> \
+                        </a> \
+                        <div class="pswp__caption"> \
+                            <div class="pswp__caption__center"></div> \
+                        </div> \
+                    </div> \
+                </div> \
+            </div>';
+        $(document.body).append(photoswipeUIControls);
+        $('.picture').each( function() {
+            var $pic     = $(this),
+                getItems = function() {
+                    var items = [];
+                    $pic.find('a').each(function() {
+                        var $href   = $(this).attr('href'),
+                            $size   = $(this).data('size').split('x'),
+                            $width = 0,
+                            $height = 0;
+
+                        var img = new Image();
+                        img.onload = function() {
+                            $width = this.width,
+                            $height = this.height;
+                        };
+
+                        img.src = $href; // grab the original image size
+                        $width = img.width,
+                        $height = img.height;
+
+                        var item = {
+                            src : $href,
+                            w   : $width,
+                            h   : $height
+                        }
+
+                        items.push(item);
+                    });
+                    return items;
+                }
+            var items = getItems();
+            var $pswp = $('.pswp')[0];
+            $pic.on('click', 'figure', function(event) {
+                event.preventDefault();
+
+                var $index = $(this).index();
+                var options = {
+                    index: $index,
+                    bgOpacity: 0.7,
+                    showHideOpacity: true
+                }
+
+                // Initialize PhotoSwipe
+                var lightBox = new PhotoSwipe($pswp, PhotoSwipeUI_Default, items, options);
+                lightBox.init();
+            });
+        });
+    });
+{%- endjavascript -%}
+
+<div class="picture post_thumb" itemscope itemtype="http://schema.org/ImageGallery" data-title="{{- imgtitle -}}">
+    <figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject">
+        <a href="{{- imgsrc -}}" itemprop="contentUrl" data-size="1000x667" data-index="0" class="hover_icon hover_icon_view inited">
+            {% comment %} <img src="/GetImage.ashx?Guid={{ ImageGuid }}" class="img-responsive img-rounded" itemprop="thumbnail" alt="{{ item.Title }}"> {% endcomment %}
+            {{ blockContent }}
+        </a>
+    </figure>
+</div>
+
+{% comment %}
+************************ PARAMETERS ********************
+{% endcomment %}
+imgsrc      -
+imgtitle    -

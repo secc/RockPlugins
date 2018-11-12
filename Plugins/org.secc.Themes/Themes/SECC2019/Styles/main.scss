@@ -1,0 +1,745 @@
+@import '_lib/init';
+@import 'bootstrap';
+@import 'bootstrap/theme';
+@import '_lib/bootstrap-overrides';
+@import '_lib/type';
+@import '_lib/campus-styles';
+@import '_lib/forms';
+@import 'fontawesome/font-awesome';
+@import '_lib/isotope';
+@import '_lib/roles';
+@import '_lib/checkbox';
+@import '_lib/social';
+@import '_lib/events';
+@import '_lib/events-filters';
+@import '_lib/social';
+@import '_lib/breadcrumbs';
+@import 'select2/core';
+@import 'rock/init';
+
+/******************************************************
+* MAIN.SCSS
+*	Main site element styles go in this file.
+*	Iclude styles for primary elements that are
+*	used site wide (a, h1, p, body, etc).
+\******************************************************/
+#Colors li {
+	color: $DarkGrayColor;
+}
+
+html, body {
+	width: 100%;
+
+	@include small-desktops {
+		font-size: $font-size-base - 1px;
+	}
+	@include tablets {
+		font-size: $font-size-base - 1px;
+	}
+}
+
+button, a, input[type="submit"], input[type="reset"], input[type="button"] {
+	background: transparent;
+	outline: none;
+	border: none;
+	padding: 0;
+	color: inherit;
+
+    &.btn {
+        border-radius: 0;
+        -webkit-appearance: none;
+    }
+	&.btn:active,
+	&.btn.active {
+		outline: 0;
+		background-image: none;
+		-webkit-box-shadow: none;
+		box-shadow: none;
+	}
+	&.btn:focus,
+	&.btn:active:focus,
+	&.btn.active:focus {
+	    outline: none;
+	    outline: none;
+	    outline-offset: 2px;
+	}
+
+	&.btn-action {
+		float: right;
+        line-height: 2.6em;
+        color: #069;
+		display: block;
+	}
+	&.btn-action:hover,
+	&.btn-action:focus,
+	&.btn-action.focus {
+	    color: #245682;
+	    background-color: inherit;
+	    border-color: none;
+	}
+    &.btn-link {
+        // float: left;
+        line-height: 2.6em;
+        color: #069;
+		display: inline-block;
+    }
+	&.btn-warning {
+		font-size: 1.2em;
+		line-height: 1.3em;
+		padding: 0.5em 1.3em;
+    }
+	&.btn-normal,
+    &.btn-primary {
+		border: $DefaultBorder;
+		font-size: 1.2em;
+		line-height: 1.3em;
+		padding: 0.5em 1.3em;
+		// display: table;
+		background: rgba(#fff,.2);
+		color: #000;
+		@include phones { font-size: 1em; }
+
+		&:hover {
+			color: #ffffff;
+			background-color: $GrayColor;
+			@include BoxShadow($right: 1px, $bottom: 2px, $blur: 3px, $opacity: 0.5);
+			text-decoration: none;
+		}
+
+		&.small {
+			font-size: .8em;
+		}
+	}
+}
+
+
+a {
+	color: $LinkColor;
+
+	&:hover {
+		color: inherit;
+		text-decoration: underline;
+	}
+
+	&.btn-normal {
+		color: inherit;
+	}
+}
+
+a.line {
+    text-decoration: underline;
+}
+
+
+article {
+	margin-top: 3rem;
+	margin-bottom: 2rem;
+}
+
+//We need headers in general to be a bit smaller on tabets
+//as we're still using multiple cloumns, which means each
+//column can be fairly narrow.
+@include tablets {
+	h1 { font-size: floor(($font-size-base * 1.85));}
+	h2 { font-size: floor(($font-size-base * 1.6));}
+}
+
+.subhead {
+	color: $HighlightColor;
+}
+
+.button-list {
+	a, button {
+		display: block;
+		width: 100%;
+		margin-bottom: 10px;
+		text-align: center;
+	}
+}
+
+.sidebar {
+	padding: 20px 20px;
+	border: $DefaultBorder;
+	@include mobile-devices { margin-bottom: 2em; }
+}
+
+.sidebar-overlay {
+	padding-top: 0 !important;
+	padding-bottom: 0 !important;
+
+	&.with-header > header { margin-bottom: 0 !important; }
+
+	.content-wrapper {
+		position: relative;
+
+		& > img { width: 100%; }
+
+		aside {
+			position: absolute;
+			top:0;
+			right:0;
+			width: 30%;
+			height: 100%;
+			background: rgba(#ffffff, 0.9);
+
+			padding: 5% 3em 0;
+
+			.btn-normal { text-align: center;}
+
+			@include small-desktops {
+				padding-top: 3%;
+				.btn-normal { font-size: 1em; }
+			}
+
+			@include mobile-devices {
+				position: static;
+				background: transparent;
+				padding-bottom: 3em;
+				width: 100%;
+				text-align: center;
+			}
+		}
+	}
+}
+
+
+
+.contact-info {
+	.phone,.email {
+		display: block;
+	}
+}
+
+.header-menu {
+	border-bottom: 1px solid $CalloutColor;
+	padding-bottom: .5em;
+
+	h1 {
+		text-transform: uppercase;
+		font-size: 5.4em;
+		display: inline-block;
+		margin-right: .5em;
+		line-height: .75em;
+	}
+
+	h3 {
+		color: $HighlightColor;
+		text-transform: uppercase;
+		font-size: 1em;
+		font-family: inherit;
+		font-weight: inherit;
+		margin-bottom: .2em;
+	}
+
+	.sub-head {
+		display: inline-block;
+		font-family: $Proxima-Bold;
+		font-weight: 700;
+		font-size: 1.2em;
+		vertical-align: top;
+
+	}
+
+		@include phones {
+			.sub-head { font-size: 1em; }
+			h1 { font-size: 2.8em; }
+
+		}
+}
+
+.se-logo {
+	@include FontSmoothing;
+	border-top-right-radius: .36em !important;
+	border-bottom-left-radius: .36em !important;
+	border: none !important;
+	display: inline-block;
+	text-transform: uppercase !important;
+	font-weight: 900 !important;
+	font-family: $TitleFont !important;
+	background: $CopyColor;
+	color: #FFFFFF;
+	width: 2.55em !important;
+	line-height: 2.4em !important;
+	text-align: center !important;
+	font-size: 15px;
+	padding: 0 !important;
+	outline: none !important;
+
+	&.stroke {
+		border-width: 2px !important;
+		border-style: solid !important;
+		border-color: $GrayColor;
+		background: transparent;
+		color: $GrayColor;
+	}
+}
+
+.reverse {
+	@extend %reverse;
+}
+
+.reverse-type {
+	color: #ffffff;
+}
+
+
+.sectionTitle {
+	background: #8B7D6A;
+	padding: 1em 0 !important;
+	color:#ffffff;
+	text-align:center;
+	text-transform: uppercase;
+}
+
+.clickable {
+	cursor: pointer;
+}
+
+.center-text {
+	text-align: center;
+}
+
+.border-photo {
+	padding: 5px;
+	background-color:#ffffff;
+	border:1px solid $HighlightColor;
+}
+
+//A callout is a box that
+//is used to call out (gasp!) some important
+//info. It uses a combination of border and box-shadow
+//to create a thin inner border (the border style), and a thick
+//outer border (the box-shadow style)
+.callout {
+	$OuterBorderWidth: 12px;
+	background: $GrayColor;
+	color: #ffffff;
+	border: 1px solid #fff;
+	padding: 15px 10px;
+	margin-top: .75em;
+	margin-left: $OuterBorderWidth;
+	margin-right: $OuterBorderWidth;
+	font-size: 1.3em;
+	font-family: $Proxima;
+	text-align: left;
+	@include BoxShadow($right: 0px, $bottom: 0px, $blur: 0px, $spread: $OuterBorderWidth, $color: $GrayColor, $opacity: 1);
+
+	span { display: block; }
+
+	a {
+		display: block;
+		margin-top: 4em;
+		font-weight: 700;
+		color: inherit;
+		text-transform: uppercase;
+
+		@include mobile-devices { margin-top: 1em; }
+
+		&:hover { text-decoration: none;}
+	}
+
+	@include mobile-devices {
+		margin-top: 2em;
+		text-align: center;
+		span { display: inline; }
+	}
+
+}
+
+
+@mixin alternate-highlight {
+	// background: url('/_/img/backgrounds/seamless/gray-noise.png');
+	@include BoxShadow($right: 0px, $bottom: 0px, $blur:90px, $spread: 5px, $color: $GrayColor, $opacity: 0.2, $type: "inset");
+}
+.highlighted-section {
+	background: radial-gradient(circle farthest-side at center, rgba(#ffffff, 0.4) 68%,rgba($GrayColor, 0.6) 150%);
+
+	.no-multiplebgs & {
+		@include alternate-highlight;
+	}
+
+	@include phones {
+		@include alternate-highlight;
+	}
+}
+
+
+
+
+.arrow-down {
+	$arrow-size: 30px;
+
+	position: absolute;
+	left: 50%;
+	margin-left: ($arrow-size * -1);
+	width: 0;
+	height: 0;
+	border-left: $arrow-size solid transparent;
+	border-right: $arrow-size solid transparent;
+	background-size: ($arrow-size * 2) $arrow-size;
+	border-top-width: $arrow-size;
+	border-top-style: solid;
+}
+
+.vertical-nav-arrow-left {
+    $arrow-size: 10px;
+    width: 0;
+    height: 0;
+    border-top: $arrow-size solid transparent;
+    border-bottom: $arrow-size solid transparent;
+    border-right:$arrow-size solid $LightGrayColor;
+}
+
+
+.callout-section {
+	background: $CalloutColor;
+
+	& + * .arrow-down {
+		border-top-color: $CalloutColor;
+	}
+
+}
+
+.framed-section {
+	font-size: 1.2em;
+	font-family: $Proxima;
+	background: #ffffff;
+	padding-top: 25px;
+	padding-bottom: 25px;
+	@include BoxShadow($right: 0px, $bottom: 0px, $blur: 30px, $spread: 3px, $color: $DarkGrayColor, $opacity: .3);
+}
+
+.social-icon {
+	width: auto;
+	height: 22px;
+}
+
+.disclaimer {
+	font-style: italic;
+	font-size: .8em;
+	font-weight: 300;
+}
+
+.bible-verse {
+	.verse {
+		font-style: italic;
+		&::before {	content: "\201C"; }
+		&::after {	content: "\201D"; }
+	}
+
+	.citation {
+		display: block;
+
+		&.niv::after { content : " (NIV\00ae)"; }
+		&.gnt::after { content : " GNT"; }
+		&.nirv::after { content : " NIRV"; }
+		&.nlt::after { content : " (NLT\00ae)"; }
+	}
+}
+
+/* This is the css for the video player in the rotating banners
+.video-player {
+	position: relative;
+	width: 100%;
+	overflow: hidden;
+	text-align: center;
+
+	video {
+		position: relative;
+		width: 1920px;
+		left: 100%;
+		margin-left: -200%;
+	}
+}
+*/
+
+@for $i from 1 through 6 {
+	h#{$i}.section-header { margin-bottom: ($line-height-computed * 2)};
+
+	h#{$i}.copy, .h#{$i}.copy {
+		margin-bottom: ($line-height-computed);
+	}
+
+	h#{$i}.new-section, .h#{$i}.new-section {
+		@if $i < 4 { margin-top: $line-height-computed; }
+		@else {margin-top: ($line-height-computed / 2);}
+	}
+
+	h#{$i}.title {
+		color: $HighlightColor;
+	}
+
+}
+
+.section-header {
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    text-align: center;
+    text-transform: uppercase;
+    color: $HighlightColor;
+
+    // @include non-phones {
+	// 	&::before,
+	// 	&::after {
+	// 	    position: absolute;
+	// 	    top: 51%;
+	// 	    overflow: hidden;
+	// 	    width: 50%;
+	// 	    height: 1px;
+	// 	    // content: '\a0';
+	// 	    // background-color: rgba($LightGrayColor, .3);
+	// 	}
+	// 	&::before {
+	// 	    margin-left: -53%;
+	// 	    text-align: right;
+	// 	}
+	// 	&::after {
+	// 	    margin-left: 3%;
+	// 	}
+	// }
+}
+
+
+.plain-section-header {
+	text-align: center;
+	text-transform: uppercase;
+	margin-bottom: ($line-height-computed);
+	color: $HighlightColor;
+}
+
+@each $texture in map_get($Textures, "images") {
+	@each $color, $value in map_get($Textures, "colors") {
+		.#{$texture}-#{"" + $color}-overlay {
+			position: relative;
+			background: rgba($value, .2);
+
+			&::after {
+				position: absolute;
+				content: "";
+				background: url('/_/img/backgrounds/seamless/#{$texture}.png');
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				z-index: -1;
+			}
+
+			& + * .arrow-down {
+				background: url("/_/img/backgrounds/seamless/#{$texture}-triangle.png") no-repeat 50% -30px;
+				border-top-color: rgba($value, .2);
+			}
+		}
+	}
+}
+
+.no-items.msg {
+	visibility: hidden;
+	text-align: center;
+}
+
+
+.search-box {
+	& > div {
+		display: inline-block;
+	}
+}
+
+
+/* RESPONSIVE UTILITY CLASSES
+ * ==========================
+ *
+ * Some addtional classes to extend the visible/hidden
+ * responsive utilities that bootstrap provides. */
+.no-gutter-left {
+	padding-left: 0;
+}
+
+.no-gutter-right {
+	padding-right: 0;
+}
+
+.no-gutter {
+	padding-left: 0;
+	padding-right: 0;
+}
+
+.no-margin-left {
+	margin-left: 0;
+}
+
+.no-margin-right {
+	margin-right: 0;
+}
+
+.no-margin {
+	margin-left: 0;
+	margin-right: 0;
+}
+
+
+@include non-phones {
+	.padded-content {
+		width: 80%;
+		margin-left: auto;
+		margin-right: auto;
+	}
+}
+
+
+@include desktops {
+	.visible-mobile,
+	.hidden-desktop {
+		display: none !important;
+	}
+}
+
+@include mobile-devices {
+	.visible-desktop,
+	.hidden-mobile {
+		display: none !important;
+	}
+}
+
+
+
+.lt-ie9 {
+	.browser-alert {
+		position: fixed;
+		bottom: 0px;
+		left: 0px;
+		z-index: 1000;
+		background: #EEE;
+		text-align: left;
+
+		.popover {
+			width: 200px;
+		}
+	}
+
+}
+
+/* Bootstrap Overwrites to work with Rock Core theme */
+.alert-warning {
+	clear: both;
+}
+
+.well,.panel {
+	border-radius: 0px;
+}
+
+.panel {
+	// border: 1px solid #5697d0;
+	.panel-heading {
+		background-image: none !important;
+		// border-bottom: 1px solid #5697d0;
+	}
+}
+
+// Custom SECC Modals
+// -------------------------
+$zindex-navbar:            1000 !important;
+$zindex-dropdown:          1000 !important;
+$zindex-popover:           1060 !important;
+$zindex-tooltip:           1070 !important;
+$zindex-navbar-fixed:      1030 !important;
+$zindex-modal-background:  1040 !important;
+$zindex-modal:             1050 !important;
+//** Modal backdrop opacity
+$modal-backdrop-opacity:     .7 !important;
+.modal-backdrop {
+  z-index: $zindex-modal-background;
+  background-color: $modal-backdrop-bg;
+}
+// Close icon
+.modal-header .close {
+  margin-top: -28px;
+}
+
+// Custom SECC Loading
+// -------------------------
+.updateprogress-status {
+  position: fixed;
+  top: 35%;
+  left: 50%;
+  z-index: ($zindex-modal-background + 100);
+  padding: 30px 20px;
+  margin-left: -60px;
+  background-color: transparent !important;
+  border-radius: 0px !important;
+  box-shadow: none !important;
+  opacity: 1;
+}
+@media #{$md} {
+  .updateprogress-status {
+    padding: 30px 20px;
+    margin-left: -60px;
+  }
+}
+.secc-cube-grid {
+  width: 80px;
+  height: 80px;
+}
+
+.secc-cube-grid .secc-cube {
+  width: 33%;
+  height: 33%;
+  background-color: white;
+  float: left;
+  box-shadow: 5px 5px 0px 0px rgba(0,0,0,.5);
+  -webkit-animation: secc-cubeGridScaleDelay 1.3s infinite ease-in-out;
+          animation: secc-cubeGridScaleDelay 1.3s infinite ease-in-out;
+}
+.secc-cube-grid .secc-cube1 {
+  -webkit-animation-delay: 0.2s;
+          animation-delay: 0.2s; }
+.secc-cube-grid .secc-cube2 {
+  -webkit-animation-delay: 0.3s;
+          animation-delay: 0.3s; }
+.secc-cube-grid .secc-cube3 {
+  -webkit-animation-delay: 0.4s;
+          animation-delay: 0.4s;
+	  border-radius: 0px 10px 0px 0px;
+  }
+.secc-cube-grid .secc-cube4 {
+  -webkit-animation-delay: 0.1s;
+          animation-delay: 0.1s; }
+.secc-cube-grid .secc-cube5 {
+  -webkit-animation-delay: 0.2s;
+          animation-delay: 0.2s; }
+.secc-cube-grid .secc-cube6 {
+  -webkit-animation-delay: 0.3s;
+          animation-delay: 0.3s; }
+.secc-cube-grid .secc-cube7 {
+  -webkit-animation-delay: 0s;
+          animation-delay: 0s;
+		  border-radius: 0px 0px 0px 10px;
+}
+.secc-cube-grid .secc-cube8 {
+  -webkit-animation-delay: 0.1s;
+          animation-delay: 0.1s; }
+.secc-cube-grid .secc-cube9 {
+  -webkit-animation-delay: 0.2s;
+          animation-delay: 0.2s; }
+
+@-webkit-keyframes secc-cubeGridScaleDelay {
+  0%, 70%, 100% {
+    -webkit-transform: scale3D(1, 1, 1);
+            transform: scale3D(1, 1, 1);
+  } 35% {
+    -webkit-transform: scale3D(0, 0, 1);
+            transform: scale3D(0, 0, 1);
+  }
+}
+
+@keyframes secc-cubeGridScaleDelay {
+  0%, 70%, 100% {
+    -webkit-transform: scale3D(1, 1, 1);
+            transform: scale3D(1, 1, 1);
+  } 35% {
+    -webkit-transform: scale3D(0, 0, 1);
+            transform: scale3D(0, 0, 1);
+  }
+}
+
+@import '_lib/print';

@@ -1,0 +1,77 @@
+/* Masonry and Portfolio */
+.isotope_wrap {
+
+    /* clear fix */
+    &:after {
+       content: '';
+       display: block;
+       clear: both;
+    }
+
+    /* Isotope item decoration */
+    .isotope_item {
+        opacity: 0; /* hide by default */
+        // padding-right:30px;
+    	padding-bottom:30px;
+    	-webkit-box-sizing: border-box;
+    	   -moz-box-sizing: border-box;
+    	        box-sizing: border-box;
+    	filter: alpha(opacity=0);
+        .card {
+            .img-hover {
+                background-image: url('/Themes/SECC2014/Assets/img/pic-loading.gif');
+                min-height: 80px;
+                background-color: #5f5f5f;
+                background-repeat: no-repeat;
+                background-position: 50%;
+            }
+        }
+        .post_item {
+        	overflow:hidden;
+        }
+        .post_featured {
+            margin-bottom:0;
+
+            .hover_icon:before {
+            	font-size:3rem;
+            }
+        }
+
+        &:after {
+           content: '';
+           display: block;
+           clear: both;
+        }
+    }
+
+    &.is-showing-items {
+        .isotope_item {
+          opacity: 1; /* reveal when ready */
+          filter: alpha(opacity=100);
+        }
+    }
+
+    /* Isotope layout */
+    .isotope_column_2 {
+    	width:50%;
+    }
+    .isotope_column_3 {
+    	width:33%;
+    }
+    .isotope_column_4 {
+    	width:25%;
+    }
+    .isotope_column_5 {
+    	width:20%;
+    }
+    .isotope_column_6 {
+    	width:16.6666%;
+    }
+    .isotope_column_7 {
+    	width:14.2857%;
+    }
+    .isotope_column_8 {
+    	width:12.5%;
+    }
+
+}

@@ -1,0 +1,446 @@
+// SECONDARY-PAGE.SCSS
+// ====================
+
+/* hide empty sections */
+section:not(.row):not(.highlighted-section):not(.with-header):not(.footer-menu):not(.partners):not(.signoff) {
+    /* Styles */
+    padding: 0;
+}
+
+.contrast-background {
+    background-color: $color-foreground;
+}
+
+.content-padding-top {
+    padding-top: 0;
+    @include tablets {
+        padding-top: 1.2em;
+    }
+    @include phones {
+        padding-top: 1.2em;
+    }
+}
+
+.isotope_container {
+
+    padding: 0 4em;
+    @include phones {
+        padding: 0 1em;
+    }
+
+    .isotope_wrap {
+
+        .isotope_item {
+
+            .thumbnail {
+                padding: 0px;
+                height: 100%;
+                display: block;
+                border-top: 1px solid #f8f8f8;
+                background: #fff;
+                box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.2);
+                transition: all .3s;
+                border-radius: 5px;
+                overflow: hidden;
+
+                h4 {
+                    background-color: #f1f1f1;
+                    padding: 0.5em;
+                }
+            }
+            .thumbnail:hover {
+                transform: translateY(-10px);
+                box-shadow: 0 22px 43px rgba(0, 0, 0, 0.15);
+            }
+
+            .btn-normal:hover {
+                box-shadow: none !important;
+                opacity: 1;
+                -moz-opacity: 1;
+                filter: alpha(opacity=1);
+                -webkit-transition: all ease .1s;
+                -moz-transition: all ease .1s;
+                -ms-transition: all ease .1s;
+                -o-transition: all ease .1s;
+                transition: all ease .1s;
+            }
+        }
+    }
+}
+
+// .page-banner {
+// 	@include phones {
+//         nav.section-nav { display: none;}
+//     }
+// }
+@include phones {
+    nav.section-nav { display: none;}
+}
+
+h4 {
+    font-size: 1.5em;
+    margin: 0;
+    font-weight: bolder;
+}
+
+.serviceBox {
+    // padding: 0px 5%;
+
+    .service-header {
+        letter-spacing: 6px;
+        background-color: #201e1d;
+        color: white;
+        border-radius:  10px;
+        padding: 10px;
+        text-transform: uppercase;
+
+        &.lighter {
+            background-color: rgba(239, 239, 239, 0.5);
+            color: #201e1d;
+        }
+        &.light {
+            background-color: rgba(239, 239, 239, 0.9);
+            color: #201e1d;
+        }
+    }
+    .description {
+        min-height: 160px;
+    }
+}
+
+.vcentered-flex-box {
+    margin-top: 30px;
+    align-items: center;
+    display: flex;
+    height: 500px;
+    .box {
+        display: block;
+        margin: 0 auto;
+    }
+    @include tablets {
+        height: auto;
+    }
+    @include phones {
+        height: auto;
+    }
+}
+
+/*****************************************************************************
+************************ Update on 03 - 21 - 2018 ****************************
+******************************************************************************
+***** Temporary Fix for Connect Sub - Menu Until Primary Nav is Updated ******
+******************************************************************************
+******************************************************************************
+*/
+
+.jarallax {
+    background-color: black;
+
+    iframe {
+        border: 0 !important;
+    }
+
+    &.darken {
+        &:after {
+            top: 0;
+            left: 0;
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)) center/cover no-repeat;
+        }
+    }
+
+    &.darker {
+        &:after {
+            top: 0;
+            left: 0;
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)) center/cover no-repeat;
+        }
+    }
+
+    &.hero_parallax {
+
+        @include tablets {
+            height: calc(50vh - 77px);
+            height: -o-calc(50vh - 77px);
+            height: -webkit-calc(50vh - 77px); /* google, safari */
+            height: -moz-calc(50vh - 77px); /* firefox */
+        }
+        @include phones {
+            height: calc(50vh - 77px);
+            height: -o-calc(50vh - 77px); /* opera */
+            height: -webkit-calc(50vh - 77px); /* google, safari */
+            height: -moz-calc(50vh - 77px); /* firefox */
+        }
+    }
+
+    .parallax-body {
+        position: relative;
+        z-index: 2;
+
+        .row {
+            padding: 0px;
+            margin: 0px;
+            div {
+                padding: 150px 0px;
+            }
+        }
+
+        h1 {
+            &.big {
+                font-size: 6em;
+                @include tablets {
+                    font-size: 5em;
+                }
+                @include phones {
+                    font-size: 4em
+                }
+            }
+            font-size: 4em;
+            @include tablets {
+                font-size: 3.8em;
+            }
+            @include phones {
+                font-size: 3.4em
+            }
+            small {
+                color: white;
+                font-size: 50%;
+            }
+        }
+    }
+    .parallax-logo {
+        z-index: 2;
+        position: relative;
+        max-width: 400px;
+        &.centered {
+          z-index: 2;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 100%;
+          padding: 50px;
+        }
+        a {
+            &:hover,&:active,&:focus,&:visited {
+                text-decoration: none;
+            }
+        }
+        h1 {
+            font-size: 5em;
+            @include tablets {
+                font-size: 4em;
+            }
+            @include phones {
+                font-size: 3em;
+            }
+            text-shadow: 0px 0px 25px black;
+            &.no-shadow {
+                text-shadow: none;
+            }
+        }
+        h3 {
+            letter-spacing: 2px;
+            color: white;
+        }
+    }
+
+}
+
+// updated on 03-21-2018 for a cleaner menu
+#sub-connect-menu {
+    nav.section-nav {
+        &.wow {
+            visibility: hidden;
+        }
+        color: inherit;
+        // font-size: .8em;
+        font-family: "proxima-nova-n7", "proxima-nova", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-weight: 700;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        position: absolute;
+        width: 23%;
+        right: 0;
+        top: 0;
+        overflow: hidden;
+        background: rgba(355, 355, 355, 0.9);
+        z-index: 25;
+        box-shadow: 5px 5px 20px rgba(0,0,0,0.2);
+        border-radius: 10px;
+        margin: 20px;
+        height: auto ;
+
+        @include large-desktops {
+        	font-size: inherit !important;
+        }
+
+        li.dropdown {
+            ul {
+                li {
+                    @include transform(translateX(-20px));
+                    @include transition(all 0.4s);
+                }
+			}
+            &.open > ul,
+			&.all.open ul {
+                li {
+                    @include transform(none);
+                    @include transition(all 0.4s);
+                }
+			}
+        }
+
+        ul {
+            li + li {
+                border-top: 1px solid rgba(160, 157, 153, 0.34);
+            }
+        }
+        li > *:first-child {
+            padding-left: 5%;
+            padding-top: 0.4em;
+            padding-bottom: 0.4em;
+        }
+    }
+}
+/*****************************************************************************
+*********************** END: Temporary Fix for Connect Sub *******************
+******************************************************************************
+*/
+
+// the old way of how it was inlcuded
+#PageHeader {
+	//No padding at the bottom of the first section
+	padding-bottom: 0 !important;
+    color: #222222;
+
+    .page-header-parallax {
+        background-color: black;
+    }
+
+	.page-banner {
+		//In order for the section-nav to be positioned properly,
+		//we need the banner to be position relative
+		position: relative;
+		width: 100%;
+		height: auto;
+		overflow: hidden;
+		@include hd-displays {
+			max-height: 566px;
+		}
+
+		//We always want the banner image to fill it's container.
+		& > img {
+            width: 100%;
+        }
+
+        nav.section-nav {
+            z-index: 5;
+        }
+        // &:after {
+        //     top: 0;
+        //     left: 0;
+        //     content: '';
+        //     position: absolute;
+        //     width: 100%;
+        //     height: 100%;
+        //     background: linear-gradient(rgba(0, 0, 0, 0.30), rgba(0, 0, 0, 0.30)) center/cover no-repeat fixed;
+        // }
+
+		#Breadcrumbs {
+			position: absolute;
+			top: 0;
+			width: 100%;
+			background: rgba(#ffffff,0.4);
+			text-shadow: 1px 1px 1px rgba($CopyColor, 1);
+			color: #fff;
+            text-align: left;
+            z-index: 10;
+		}
+    }
+
+
+	//Set the page title bar, and the page menu
+	.page-title {
+		background: $HighlightColor;
+		padding: 1em 0 !important;
+
+		h1 { color: $HighlightText;}
+
+		a {
+			color: $NavItemColor;
+			text-transform: uppercase;
+			font-family: $Proxima-Bold;
+			font-weight: 700;
+		}
+
+		@include non-phones {
+			h1, .page-nav {display: inline-block;}
+
+			.page-nav li {
+				margin-left: 2em;
+			}
+		}
+	}
+}
+
+.content-headers {
+	padding-top: 0 !important;
+	padding-bottom: 0 !important;
+
+	@include non-phones {
+		&::before {
+			content: "\00a0";
+			display: block;
+			width: 100%;
+			background: $HighlightColor;
+			color: $HighlightColor;
+			position: absolute;
+			padding: .75em 0;
+			font-size: $font-size-h2;
+			line-height: $headings-line-height;
+
+		}
+	}
+
+
+	h2 {
+		background: $HighlightColor;
+		padding: .75em 0;
+		margin-bottom: .75em;
+		color: $HighlightText;
+		text-align: center;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		overflow: hidden;
+
+		@include phones {
+			margin-left: -15px;
+			margin-right: -15px;
+		}
+	}
+
+	.bar-col {
+		padding-bottom: 5em;
+		& + .bar-col {
+			border-left: $DefaultBorder;
+		}
+	}
+
+}
+
+//Styles for the images that serve as a divider between sections
+.image-divider {
+	padding: 0 !important;
+
+	img { width: 100%; }
+}

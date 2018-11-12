@@ -1,0 +1,147 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" Inherits="Rock.Web.UI.RockMasterPage" %>
+<%@ Import Namespace="System.Web.Optimization" %>
+<!DOCTYPE html>
+
+<script runat="server">
+
+    // keep code below to call base class init method
+
+    /// <summary>
+    /// Raises the <see cref="E:System.Web.UI.Control.Init" /> event.
+    /// </summary>
+    /// <param name="e">An <see cref="T:System.EventArgs" /> object that contains the event data.</param>
+    protected override void OnInit( EventArgs e )
+    {
+        base.OnInit( e );
+    }
+
+</script>
+
+<html class="no-js">
+<head runat="server">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=10" />
+    <meta charset="utf-8">
+    <title></title>
+
+    <script src="<%# ResolveRockUrl("~/Scripts/jquery-3.3.1.min.js" ) %>"></script>
+    <script src="<%# ResolveRockUrl("~/Scripts/jquery-migrate-3.0.1.min.js" ) %>"></script>
+
+    <!-- Set the viewport width to device width for mobile -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <!-- Included CSS Files -->
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/main.css", true) %>"/>
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/layout.css", true) %>"/>
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~/Styles/developer.css", true) %>"/>
+    <asp:ContentPlaceHolder ID="css" runat="server" />
+
+    <script src="<%# ResolveRockUrl("~~/Scripts/modernizr-custom.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~~/Scripts/global-dist.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~~/Scripts/isotope.pkgd.min.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~~/Scripts/imagesloaded.pkgd.min.js" ) %>"></script>
+    <script src="<%# ResolveRockUrl("~~/Scripts/smooth-scroll.min.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~~/Scripts/select2/select2.full.min.js" ) %>" ></script>
+
+    <asp:ContentPlaceHolder ID="head" runat="server"></asp:ContentPlaceHolder>
+
+    <!-- Icons -->
+    <link rel="shortcut icon" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/secc-favicon.ico", true) %>"/>
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/secc-touch-icon-ipad-retina.png", true) %>"/>
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/secc-touch-icon-iphone-retina.png", true) %>"/>
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/secc-touch-icon-ipad.png", true) %>"/>
+    <link rel="apple-touch-icon-precomposed" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/secc-touch-icon-iphone.png", true) %>"/>
+
+    <!-- Include Fonts from Adobe Typekit -->
+    <script type="text/javascript" src="//use.typekit.net/ayl1ond.js"></script>
+    <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+
+    <script src="https://use.typekit.net/eni5wig.js"></script>
+	<script>
+    try{Typekit.load({ async: true });}catch(e){}
+    </script>
+</head>
+<body runat="server" id="body">
+    <div id="DocumentWrapper">
+        <form id="form1" runat="server">
+            <div id="DocumentWrapper">
+                <!-- Nav Mobile -->
+                <Rock:Zone Name="NavMobile" runat="server" />
+
+                <div id="PageCanvas">
+
+                    <!-- Page Header -->
+                    <header id="SiteHeader">
+                        <!-- SUPERNAV -->
+                        <Rock:Zone Name="SuperNav" runat="server" />
+                        <!-- MAIN SITE NAVIGATION -->
+                        <nav id="SiteNav" class="clearfix">
+                    		<div class="container">
+                                <!-- LEFT SIDE OF SITE NAV -->
+                                <Rock:Zone Name="LeftNav" runat="server" />
+                                <span class="site-logo">
+                                    <a href="/">
+                                        <img src="/Themes/SECC2014/Assets/img/logos/southeast/se-logo-invert-update.png" class="img-responsive" alt="Southeast Christian Church" style="width:100%; max-width:80px;" />
+                                    </a>
+                                </span>
+                                <!-- RIGHT SITE OF SITE NAV -->
+                                <Rock:Zone Name="RightNav" runat="server" />
+                    		</div>
+                    	</nav>
+                    </header>
+
+                    <main id="PageBody">
+                    <asp:ContentPlaceHolder ID="feature" runat="server"></asp:ContentPlaceHolder>
+
+                    <asp:ContentPlaceHolder ID="main" runat="server"></asp:ContentPlaceHolder>
+                    </main>
+
+                    <footer id="SiteFooter">
+                    	<section class="footer-menu">
+                            <div class="container">
+                                <!-- SUB FOOTER -->
+                                <Rock:Zone Name="SubFooter" runat="server" />
+                    		</div>
+                    	</section>
+                    	<section class="partners">
+                    		<div class="container">
+                                <!-- FOOTER LINKS -->
+                                <Rock:Zone Name="FooterLinks" runat="server" />
+                    		</div>
+                    	</section>
+                    	<section class="signoff">
+                    		<div class="container">
+                                <!-- MAIN FOOTER -->
+                                <Rock:Zone Name="MainFooter" runat="server" />
+                    		</div>
+                    	</section>
+                    </footer>
+
+                </div>
+            </div>
+            <%-- controls for scriptmanager and update panel --%>
+            <asp:ScriptManager ID="sManager" runat="server"/>
+            <asp:UpdateProgress id="updateProgress" runat="server" DisplayAfter="800">
+    		        <ProgressTemplate>
+                        <div class="updateprogress-status">
+                            <div class="secc-cube-grid">
+                              <div class="secc-cube secc-cube1"></div>
+                              <div class="secc-cube secc-cube2"></div>
+                              <div class="secc-cube secc-cube3"></div>
+                              <div class="secc-cube secc-cube4"></div>
+                              <div class="secc-cube secc-cube5"></div>
+                              <div class="secc-cube secc-cube6"></div>
+                              <div class="secc-cube secc-cube7"></div>
+                              <div class="secc-cube secc-cube8"></div>
+                              <div class="secc-cube secc-cube9"></div>
+                           </div>
+                        </div>
+                        <div class="updateprogress-bg modal-backdrop"></div>
+    		        </ProgressTemplate>
+            </asp:UpdateProgress>
+
+        </form>
+    </div>
+</body>
+
+</html>
