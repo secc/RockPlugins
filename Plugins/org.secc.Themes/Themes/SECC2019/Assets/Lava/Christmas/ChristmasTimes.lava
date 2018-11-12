@@ -1,0 +1,486 @@
+<div class="container-fluid left-aligned" style="padding-bottom: 3em;">
+
+    <div class="row">
+      <div class="col-sm-10 col-sm-offset-1">
+
+            <header>
+                <h1>Christmas Weekend Services 2018</h1>
+                <p style="color: #777777;">This Christmas, come celebrate the birth of Jesus with us at Southeast. We hope to see you at one of our services. We’ll worship together and Teaching Pastor Kyle Idleman will share a Christmas message.</p>
+                <p style="color: #777777;">Below, you can browse all Christmas weekend services by date, location, and time.</p>
+                <br />
+            </header>
+          <!-- Schedule start -->
+          <div class="schedule">
+              <!-- <h2 class="visible-xs visible-sm text-center">12/23/2018 - 12/24/2018</h2> -->
+              <!-- Navigation by day start -->
+              <ul class="nav nav-schedule" id="easterdays">
+                  <li class="active"><a href="#campus1" data-toggle="tab">Blankenbaker</a></li>
+                  <li><a href="#campus2" data-toggle="tab">Indiana</a></li>
+                  <li><a href="#campus3" data-toggle="tab">Crestwood</a></li>
+                  <li><a href="#campus4" data-toggle="tab">Southwest</a></li>
+                  <li><a href="#campus5" data-toggle="tab">La Grange</a></li>
+                  <li><a href="#campus6" data-toggle="tab">Elizabethtown</a></li>
+              </ul>
+              <!-- Navigation by day end -->
+
+              <!-- Campus1 start -->
+              <div class="tab-content">
+
+                  <!-- Thursday content start -->
+                  <div id="campus1" class="tab-pane active fade in">
+
+                      <ul class="nav nav-schedule">
+                          <li class="day1 active"><a href="#campus1_dec22" data-toggle="tab"><h5 style="color:#661f17; margin: 0 0 -15px;">Saturday</h5><br />December 22</a></li>
+                          <li class="day2"><a href="#campus1_dec23" data-toggle="tab"><h5 style="color:#661f17; margin: 0 0 -15px;">Sunday</h5><br />December 23</a></li>
+                          <li class="day3"><a href="#campus1_dec24" data-toggle="tab"><h5 style="color:#661f17; margin: 0 0 -15px;">Monday</h5><br />December 24</a></li>
+                      </ul>
+
+                      <!-- tab-content start -->
+                      <div class="tab-content tab-content-schedule">
+
+                          <div id="campus1_dec22" class="tab-pane fade in day1 active">
+                              <div class="panel-group">
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>5:00 p.m.</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+                              </div>
+                          </div>
+
+                          <div id="campus1_dec23" class="tab-pane fade in day2">
+                              <div class="panel-group">
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>9:00 a.m.</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>11:15 a.m. <small title="interpreted for the deaf"><i class="fa fa-american-sign-language-interpreting" aria-hidden="true"></i></small></h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+                              </div>
+                          </div>
+
+                          <div id="campus1_dec24" class="tab-pane fade in day3">
+                              <div class="panel-group" id="campus1_auditorium2_timeline">
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>2:00 p.m.</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>4:00 p.m.</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>11:00 p.m.</h1>
+                                      <p><i>No childcare available.</i></p>
+                                  </div>
+                              </div>
+                          </div>
+
+                      </div>
+                      <!-- tab-content end -->
+                  </div>
+                  <!-- Campus1 End -->
+
+                  <!-- Campus2 start -->
+                  <div id="campus2" class="tab-pane fade in">
+
+                      <!-- Navigation by auditorium start -->
+                      <ul class="nav nav-schedule">
+                          <li class="day1 active"><a href="#campus2_dec22" data-toggle="tab"><h5 style="color:#661f17; margin: 0 0 -15px;">Saturday</h5><br />December 22</a></li>
+                          <li class="day2"><a href="#campus2_dec23" data-toggle="tab"><h5 style="color:#661f17; margin: 0 0 -15px;">Sunday</h5><br />December 23</a></li>
+                          <li class="day3"><a href="#campus2_dec24" data-toggle="tab"><h5 style="color:#661f17; margin: 0 0 -15px;">Monday</h5><br />December 24</a></li>
+                      </ul>
+                      <!-- Navigation by auditorium start -->
+
+                      <div class="tab-content tab-content-schedule">
+
+                          <div id="campus2_dec22" class="tab-pane fade in day1 active">
+                              <div class="panel-group">
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>5:30 p.m.</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+                              </div>
+                          </div>
+
+                          <div id="campus2_dec23" class="tab-pane fade in day2">
+                              <div class="panel-group">
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>9:30 a.m</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>11:15 a.m.</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+                              </div>
+                          </div>
+
+                          <div id="campus2_dec24" class="tab-pane fade in day3">
+                              <div class="panel-group" id="campus1_auditorium2_timeline">
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>2:00 p.m.</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>3:30 p.m.</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+                              </div>
+                          </div>
+
+                      </div>
+
+                  </div>
+                  <!-- Friday content end -->
+
+                  <!-- Saturday content start -->
+                  <div id="campus3" class="tab-pane fade in">
+
+                      <!-- Navigation by auditorium start -->
+                      <ul class="nav nav-schedule">
+                          <li class="day1 active"><a href="#campus3_dec22" data-toggle="tab"><h5 style="color:#661f17; margin: 0 0 -15px;">Saturday</h5><br />December 22</a></li>
+                          <li class="day2"><a href="#campus3_dec23" data-toggle="tab"><h5 style="color:#661f17; margin: 0 0 -15px;">Sunday</h5><br />December 23</a></li>
+                          <li class="day3"><a href="#campus3_dec24" data-toggle="tab"><h5 style="color:#661f17; margin: 0 0 -15px;">Monday</h5><br />December 24</a></li>
+                      </ul>
+                      <!-- Navigation by auditorium end -->
+
+                      <!-- Second level content start -->
+                      <div class="tab-content tab-content-schedule">
+
+                          <div id="campus3_dec22" class="tab-pane fade in day1 active">
+                              <div class="panel-group">
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>5:15 p.m.</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+                              </div>
+                          </div>
+
+                          <div id="campus3_dec23" class="tab-pane fade in day2">
+                              <div class="panel-group">
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>9:00 a.m.</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>10:30 a.m.</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>12:00 p.m.</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+                              </div>
+                          </div>
+
+                          <div id="campus3_dec24" class="tab-pane fade in day3">
+                              <div class="panel-group" id="campus1_auditorium2_timeline">
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>2:00 p.m.</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>3:30 p.m.</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+                              </div>
+                          </div>
+
+                      </div>
+                      <!-- Second level content end -->
+
+                  </div>
+                  <!-- Saturday content end -->
+
+                  <!-- Sunday content start -->
+                  <div id="campus4" class="tab-pane fade in">
+
+                      <!-- Navigation by auditorium start -->
+                      <ul class="nav nav-schedule">
+                          <li class="day1 active"><a href="#campus4_dec22" data-toggle="tab"><h5 style="color:#661f17; margin: 0 0 -15px;">Saturday</h5><br />December 22</a></li>
+                          <li class="day2"><a href="#campus4_dec23" data-toggle="tab"><h5 style="color:#661f17; margin: 0 0 -15px;">Sunday</h5><br />December 23</a></li>
+                          <li class="day3"><a href="#campus4_dec24" data-toggle="tab"><h5 style="color:#661f17; margin: 0 0 -15px;">Monday</h5><br />December 24</a></li>
+                      </ul>
+                      <!-- Navigation by auditorium start -->
+
+                      <!-- Second level content start -->
+                      <div class="tab-content tab-content-schedule">
+
+                          <div id="campus4_dec22" class="tab-pane fade in day1 active">
+                              <div class="panel-group">
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <p style="padding-top: 1.5em; font-style: italic;">No services at this location on this day.</p>
+                                  </div>
+                              </div>
+                          </div>
+
+                          <div id="campus4_dec23" class="tab-pane fade in day2">
+                              <div class="panel-group">
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>8:45 a.m.</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>10:10 a.m.</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>11:45 a.m.</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+                              </div>
+                          </div>
+
+                          <div id="campus4_dec24" class="tab-pane fade in day3">
+                              <div class="panel-group" id="campus1_auditorium2_timeline">
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>2:00 p.m.</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>3:30 p.m.</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+                              </div>
+                          </div>
+
+                      </div>
+                      <!-- Second level content end -->
+
+                  </div>
+                  <!-- Sunday content end -->
+
+                  <!-- Sunday content start -->
+                  <div id="campus5" class="tab-pane fade in">
+
+                      <!-- Navigation by auditorium start -->
+                      <ul class="nav nav-schedule">
+                          <li class="day1 active"><a href="#campus5_dec22" data-toggle="tab"><h5 style="color:#661f17; margin: 0 0 -15px;">Saturday</h5><br />December 22</a></li>
+                          <li class="day2"><a href="#campus5_dec23" data-toggle="tab"><h5 style="color:#661f17; margin: 0 0 -15px;">Sunday</h5><br />December 23</a></li>
+                          <li class="day3"><a href="#campus5_dec24" data-toggle="tab"><h5 style="color:#661f17; margin: 0 0 -15px;">Monday</h5><br />December 24</a></li>
+                      </ul>
+                      <!-- Navigation by auditorium start -->
+
+                      <!-- Second level content start -->
+                      <div class="tab-content tab-content-schedule">
+
+                          <div id="campus5_dec22" class="tab-pane fade in day1 active">
+                              <div class="panel-group">
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <p style="padding-top: 1.5em; font-style: italic;">No services at this location on this day.</p>
+                                  </div>
+                              </div>
+                          </div>
+
+                          <div id="campus5_dec23" class="tab-pane fade in day2">
+                              <div class="panel-group">
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>9:30 a.m</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>11:15 a.m.</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+                              </div>
+                          </div>
+
+                          <div id="campus5_dec24" class="tab-pane fade in day3">
+                              <div class="panel-group" id="campus1_auditorium2_timeline">
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>2:00 p.m.</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>3:30 p.m.</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+                              </div>
+                          </div>
+
+                      </div>
+                      <!-- Second level content end -->
+
+                  </div>
+                  <!-- Sunday content end -->
+
+                  <!-- Sunday content start -->
+                  <div id="campus6" class="tab-pane fade in">
+
+                      <!-- Navigation by auditorium start -->
+                      <ul class="nav nav-schedule">
+                          <li class="day1 active"><a href="#campus6_dec22" data-toggle="tab"><h5 style="color:#661f17; margin: 0 0 -15px;">Saturday</h5><br />December 22</a></li>
+                          <li class="day2"><a href="#campus6_dec23" data-toggle="tab"><h5 style="color:#661f17; margin: 0 0 -15px;">Sunday</h5><br />December 23</a></li>
+                          <li class="day3"><a href="#campus6_dec24" data-toggle="tab"><h5 style="color:#661f17; margin: 0 0 -15px;">Monday</h5><br />December 24</a></li>
+                      </ul>
+                      <!-- Navigation by auditorium start -->
+
+                      <div class="tab-content tab-content-schedule">
+
+                          <div id="campus6_dec22" class="tab-pane fade in day1 active">
+                              <div class="panel-group">
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <p style="padding-top: 1.5em; font-style: italic;">No services at this location on this day.</p>
+                                  </div>
+                              </div>
+                          </div>
+
+                          <div id="campus6_dec23" class="tab-pane fade in day2">
+                              <div class="panel-group">
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>9:30 a.m</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>11:15 a.m.</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+                              </div>
+                          </div>
+
+                          <div id="campus6_dec24" class="tab-pane fade in day3">
+                              <div class="panel-group" id="campus1_auditorium2_timeline">
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>2:00 p.m.</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+
+                                  <div class="panel schedule-item">
+                                      <div class="lecture-icon-wrapper hidden-xs hidden-sm">
+                                          <i class="fa fa-tree"></i>
+                                      </div>
+                                      <h1>3:30 p.m.</h1>
+                                      <p><i>Children’s programming available for Birth-5th Grade.</i></p>
+                                  </div>
+                              </div>
+                          </div>
+
+                      </div>
+
+                  </div>
+                  <!-- Sunday content end -->
+
+              </div>
+              <!-- First level content end -->
+
+          </div>
+
+          <span class="pull-right"><i class="fa fa-american-sign-language-interpreting" aria-hidden="true"></i> interpreted for the deaf</span>
+          <!-- Schedule end -->
+
+      </div>
+  </div>
+
+</div>

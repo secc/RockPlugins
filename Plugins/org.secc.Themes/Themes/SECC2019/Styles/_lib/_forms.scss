@@ -1,0 +1,97 @@
+form {
+	label {
+		display: block;
+		/* margin-top: 20px; */
+		margin-bottom: 5px;
+		font-weight: 700;
+
+		&.check,&.radio {
+			display: inline;
+			font-weight: 400;
+		}
+	}
+
+	&.stacked {
+		label { display: inline-block; }
+	}
+
+	select {
+		background-color: #fff;
+		padding-top: 2px;
+		padding-bottom: 2px;
+	}
+
+	input,
+	select,
+	textarea {
+		outline: none;
+		border: $DefaultBorder;
+		width: 100%;
+
+		&:-ms-input-placeholder {
+	   		color: $LightGrayColor;
+		}
+
+		&[type="radio"],
+		&[type="checkbox"],
+		&[type="submit"],
+		&[type="image"],
+		&[type="reset"] {
+			border: none;
+			width: auto;
+		}
+	}
+
+	fieldset {
+		border: none;
+	}
+
+	button[disabled].btn-normal, input[disabled].btn-normal {
+		color: $LightGrayColor;
+		border-color: $LightGrayColor;
+
+		&:hover {
+			color: $LightGrayColor;
+			border-color: $LightGrayColor;
+			background: rgba(#ffffff, .2);
+		}
+	}
+}
+
+
+label .validator {
+	font-weight: 400;
+	float: right;
+}
+
+.form-processing {
+	display: none;
+}
+
+.success {
+	color: #009000;
+	display: inline !important;
+}
+
+.error {
+	color: $ErrorColor;
+	font-weight: bold;
+
+	label & {
+		float: right;
+		font-weight: 400;
+	}
+}
+
+input.error {
+	border: 1px solid $ErrorColor;
+	background-color: lighten($ErrorColor, 55%);
+	color: $CopyColor;
+	font-weight: 400;
+}
+
+.error-summary {
+	margin: 15px 0px;
+	font-size: .8em;
+
+}

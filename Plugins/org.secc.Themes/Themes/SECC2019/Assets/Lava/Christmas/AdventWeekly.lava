@@ -1,0 +1,229 @@
+<script src="/Themes/SECC2014/Scripts/modernizr.js"></script>
+<script src="https://www.southeastchristian.org/eastertogether/assets/js/vendor/wow.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
+<script src="https://use.typekit.net/osx6gkw.js"></script>
+<script>try{Typekit.load({ async: true });}catch(e){}</script>
+<script>
+
+	/* --------------------------------------------------
+		Initialization
+	-------------------------------------------------- */
+
+    // Initialize all functions when the document is ready.
+    // $(document).ready(function(){
+	$(window).load(function() {
+		wow = new WOW(
+	 	  {
+	 		 boxClass:     'wow',      // default
+	 		 animateClass: 'animated', // default
+	 		 offset:       0,          // default
+	 		 mobile:       false,       // default
+	 		 live:         true        // default
+	 	  }
+	   );
+	    wow.init();
+		tabNavToSelect();
+		/* --------------------------------------------------
+        	Schedule Table
+        -------------------------------------------------- */
+		function tabNavToSelect() {
+
+	        $('.nav-schedule').each(function () {
+
+	            var $this = $(this),
+	                $active = $this.find('li.active > a'),
+	                $field = $('<span class="nav-current">' + $active.html() + '</span>');
+
+	            $this.wrapAll('<div class="nav-wrapper-schedual"></div>')
+
+	            $this.before($field);
+
+	            $field.on('click', function () {
+	                if ( !$this.is('.open') ) $this.stop(true, true).slideDown(250).addClass('open');
+	                else $this.stop(true, true).slideUp(150).removeClass('open');
+	            });
+
+	            $this.on('click', 'a', function () {
+	                $field.html($(this).html());
+				});
+
+				$('.nav-schedule > li > a').click( function() {
+					var idDay = $(this).parent().parent().parent().parent().attr("id");
+					if(typeof idDay != 'undefined') {
+						var varDayNumber = idDay.slice(-1); //Outputs: day number
+						$('.nav-wrapper-schedual > ul.nav-schedule > li.active').removeClass('active');
+						$('.tab-content-schedule > div.active').removeClass('active');
+
+						var campus = $(this).parent().attr("class");
+						$('.tab-pane > .nav-wrapper-schedual > .nav-current').html($(this).html());
+						$('.tab-content-schedule > div.'+campus).addClass('active');
+						$( '#easterdays li:nth-child('+varDayNumber+')' ).addClass('active');
+						$('.nav-wrapper-schedual > ul.nav-schedule > li.'+campus).addClass('active');
+					}
+				});
+
+	            $('body').on('click', function (event) {
+	                if ( !$(event.target).closest($field).length && $this.is('.open') ) {
+	                    $this.stop(true, true).slideUp(150).removeClass('open');
+	                }
+	            });
+	        });
+	    }
+
+    });
+</script>
+
+{% assign item = Items | First %}
+{% if item  %}
+
+	{% assign currentMessageVideoEmbed = item | Attribute:'EmbededVideoUrl','RawValue' %}
+	{% assign weeklyImage = item | Attribute:'ImageWide','RawValue' %}
+
+	<header class="cd-header hidden-xs hidden-sm">
+    	<div id="cd-logo">
+            <a href="/christmas/advent" class="cd-btn sweep-to-left" style="">
+                Back to ADVENT
+            </a>
+        </div>
+    </header>
+
+    <section id="PageHeader" class="red_advent_weeks christmas-font">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-12 text-center">
+                    <div class="advent_body">
+                        <h2 class="advent_title wow fadeInDown" style="font-size: 2.5em;">
+							<img class="img-responsive" src="/GetImage.ashx?Guid={{ weeklyImage }}" />
+                        </h2>
+                    </div>
+                    <!-- <img alt="Celebrate Christmas Together" src="/Content/ExternalSite/WebImages/Christmas/Advent.jpg" class="img-responsive wow fadeIn" data-wow-duration="1s" data-wow-delay=".7s" style="max-width: 60rem; max-width: 30em;margin: 4em auto;width: 100%; visibility: hidden;"> -->
+    			</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="AdventWeeklyHeader">
+        <div class="container left-aligned christmas-font">
+			<div id="seriesHead" class="row">
+				<div class="col-sm-12">
+					<br />
+				</div>
+			</div>
+			<div id="seriesHead" class="row">
+
+				{% unless currentMessageVideoEmbed == empty %}
+				<div class="col-sm-12 col-md-7 wow fadeInLeft" data-wow-duration="1.5s" data-wow-delay="0.3s">
+					<h2 style="word-wrap: break-word">
+						Message From Southeast
+					</h2>
+					<br />
+					<div class="embed-responsive embed-responsive-16by9 media-border-only">
+						<iframe src="{{ currentMessageVideoEmbed }}?title=0&byline=0&portrait=0" frameborder="0" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen=""></iframe>
+					</div>
+					<br />
+				</div>
+				{% endunless %}
+
+				<div class="col-sm-12 col-md-5 wow fadeInUp" data-wow-duration="1s" data-wow-delay="0.6s">
+					{% assign firstDevo = item.ChildItems | First %}
+					<h3 class="">
+						{{firstDevo.ChildContentChannelItem.Title}}
+					</h3>
+					<p>{{firstDevo.ChildContentChannelItem.Content}}</p>
+					<div class="embed-responsive embed-responsive-16by9 media-border-only">
+						<iframe src="https://player.vimeo.com/video/{{firstDevo.ChildContentChannelItem.VimeoID}}?title=0&byline=0&portrait=0" frameborder="0" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen=""></iframe>
+					</div>
+
+					<div class="socials socials_type_icons socials_shape_round" style="margin-top:15px;">
+						<script>function fbs_click() { u = 'https://rock.secc.org/christmas/advent/week?Item={{ item.Id }}'; t = document.title; window.open('http://www.facebook.com/sharer.php?u=' + encodeURIComponent(u) + '&t=' + encodeURIComponent(t), 'sharer', 'toolbar=0,status=0,width=626,height=436'); return false; }</script>
+						<script>function ics_click() { text = `{{ EventItemOccurrence.Schedule.iCalendarContent }}`.replace('END:VEVENT', 'SUMMARY: {{ Event.Name }}\r\nLOCATION: {{ EventItemOccurrence.Location }}\r\nEND:VEVENT'); var element = document.createElement('a'); element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); element.setAttribute('download', '{{ Event.Name }}.ics'); element.style.display = 'none'; document.body.appendChild(element); element.click(); document.body.removeChild(element); }</script>
+						<div class="socials_item">
+							<a href="mailto:?Subject={{ item.Title | Escape }}&Body=Advent – {{ item.Title | Escape }} – https://rock.secc.org/christmas/advent/week?Item={{ item.Id }}" class="social_icons social_gplus" data-original-title="Share via Email">
+								<i class="fa fa-envelope"></i>
+							</a>
+						</div>
+						<div class="socials_item">
+							<a href="http://www.facebook.com/share.php?u=<url>" onclick="return fbs_click()" target="_blank" class="social_icons social_facebook" data-original-title="Share via Facebook">
+								<i class="fa fa-facebook"></i>
+							</a>
+						</div>
+						<div class="socials_item">
+							<a href="http://twitter.com/home?status=Advent – {{ item.Title | Escape }} – https://rock.secc.org/christmas/advent/week?Item={{ item.Id }}" target="_blank" class="social_icons social_twitter" data-original-title="Share via Twitter">
+								<i class="fa fa-twitter"></i>
+							</a>
+						</div>
+					</div>
+					<br />
+					<br />
+				</div>
+
+			</div>
+
+        </div>
+    </section>
+
+
+	<section id="AdventWeeklyDevo">
+        <div class="container left-aligned christmas-font">
+
+					    <div class="row">
+					      <div class="col-sm-12">
+							  <!-- Schedule start -->
+					          <div class="schedule">
+					              <!-- Navigation by day start -->
+					              <ul class="nav nav-schedule advent_days">
+									  {% assign active = 0 %}
+									  {% for childItem in item.ChildItems %}
+									  {% assign startDate = childItem.ChildContentChannelItem.StartDateTime | Date:'MMdd' %}
+									  {% assign currentDate = 'Now' | Date:'MMdd' %}
+									  	{% unless forloop.index == 1 %}
+										    <li class="text-center {% if active == 0 and currentDate <= startDate or forloop.last %}active{% assign active = 1 %}{% endif %}">
+												<a href="#day{{forloop.index}}" data-toggle="tab">
+													{{childItem.ChildContentChannelItem.Title}}
+												</a>
+											</li>
+										{% endunless %}
+									  {% endfor %}
+					              </ul>
+					              <!-- Navigation by day end -->
+
+					              <!-- First level content start -->
+					              <div class="tab-content">
+									  {% assign active = 0 %}
+									  {% for childItem in item.ChildItems %}
+									  {% assign startDate = childItem.ChildContentChannelItem.StartDateTime | Date:'MMdd' %}
+									  {% assign currentDate = 'Now' | Date:'MMdd' %}
+									  	{% unless forloop.index == 1 %}
+
+									  <!-- Thursday content start -->
+					                  <div id="day{{forloop.index}}" class="tab-pane {% if active == 0 and currentDate <= startDate or forloop.last %}active{% assign active = 1 %}{% endif %} fade in">
+
+					                      <!-- Second level content start -->
+					                      <div class="tab-content tab-content-schedule advent_devo">
+
+					                          <!-- Auditorium 1 content start -->
+					                          <div id="day{{forloop.index}}_{{childItem.ChildContentChannelItem.StartDateTime | Date:'mmdd'}}" class="tab-pane fade active in easter_blankenbaker">
+
+					                              {{childItem.ChildContentChannelItem.Content}}
+
+					                          </div>
+					                          <!-- Auditorium 1 content end -->
+					                      </div>
+					                      <!-- Second level content end -->
+
+					                  </div>
+					                  <!-- Thursday content end -->
+									  {% endunless %}
+									{% endfor %}
+
+						          </div>
+							  </div>
+							  <!-- Schedule end -->
+
+				      </div>
+				  </div>
+
+        </div>
+    </section>
+
+{% endif %}

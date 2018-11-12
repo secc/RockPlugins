@@ -1,0 +1,324 @@
+{% comment %}
+    ******* Filtering System for Calendar *****
+{% endcomment %}
+
+{% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
+{% assign campusIdSize = pageParamCampusId | Size %}
+{% assign pageParamCampus = 'Global' | PageParameter:'campus' | Downcase | Replace:"-","" %}
+{% assign selectedCampus = null %}
+{% for campus in Campuses %}
+	{% assign campusName = campus.Name | Downcase | Replace:" ",""  %}
+	{% if campus.Id == pageParamCampusId or campusName == pageParamCampus %}
+		{% assign selectedCampus = campus %}
+		{% break %}
+	{% endif %}
+{% endfor %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12" >
+            <div class="filterbox">
+
+                <div class="row">
+                    <div class="col-xs-12">
+                        <h3>What’s your next step?</h3>
+                        <p>Find a group or event that interests you by selecting a campus and/or ministry below. Click on the image to see more details or to register.</p>
+                        <br />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xs-12 col-md-6 col-lg-6" >
+                        <br />
+                        <h4 class="uppercase">Events From</h4>
+                        <select class="select2-campuses" name="campus">
+                        <option value="allCampuses" data-shortcode="SE" {% if selectedCampus == null %} selected="selected"{% endif %}>All Campuses</option>
+                        {% for campus in Campuses %}
+                        	{% assign publicCampus = campus | Attribute:'Public' %}
+                        	{% if publicCampus == 'Yes' %}
+                                <option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campus.Name | Downcase | Replace:" ",""}}"{% if selectedCampus.Id > 0 and selectedCampus.Id == campus.Id %} selected="selected"{% endif %}>
+                                    {{ campus.Name }}
+                                </option>
+                        	{% endif %}
+                        {% endfor %}
+
+                        </select>
+                    </div>
+
+                    <div class="col-xs-12 col-md-6 col-lg-6" >
+                        <br />
+                        <h4 class="uppercase">Select a Ministry</h4>
+                        <select class="select2-ministries" name="minitry">
+                        <option value="allMinistries">All Ministries</option>
+
+						{% assign ministrySlug = 'Global' | PageParameter:'ministry' | Downcase  %}
+                        {% definedvalue where:'DefinedTypeId==16' %}
+                            {% assign definedvalueItemsSorted = definedvalueItems | Sort: 'Order' %}
+                            {% for definedValue in definedvalueItemsSorted %}
+                                {% assign publicFilter = definedValue | Attribute:'PublicFilter' %}
+                                {% if publicFilter == "Yes" %}
+									{% assign urlSlug = definedValue | Attribute:'URLSlug' %}
+									<option value="{{ definedValue.Id }}" data-ministry="{{urlSlug}}" {% if urlSlug == ministrySlug %} selected="selected"{% endif %}>{{ definedValue.Value | Capitalize }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        {% enddefinedvalue %}
+
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.hide {
+    display: none;
+}
+</style>
+
+<div id="filter_selected" class="container-fluid">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12">
+            <div id="campus_selected" class="row" style="background-color:#201e1d;">
+                <div class="col-xs-12">
+                    <h2 class="section-header" style="margin: 30px 0px; color: white;">
+                        <span>Events @ {{selectedCampus.Name | Default: "All Campuses" }}</span>
+                    </h2>
+                </div>
+            </div>
+            <div id="ministry_selected" class="row hide event-list-background">
+                <div class="col-xs-12">
+                    <h2 class="section-header" style="margin: 30px 0px;">
+                        <span></span>
+                    </h2>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+$(document).ready(function() {
+
+    loadQueryStringParam();
+
+    ///////////////////////////////////////////////////
+    /////////////// Initialize Select2 ////////////////
+    ///////////////////////////////////////////////////
+    function format(state) {
+        var originalOption = state.element;
+        return "<h4><span class=\"se-logo\">" + $(originalOption).data('shortcode') + "</span></h4> " + state.text;
+    }
+    $('.select2-campuses').select2({
+      formatResult: format,
+      formatSelection: format,
+      placeholder: 'Select a Campus',
+      escapeMarkup: function(m) { return m; },
+      templateResult: function(data){
+        var originalOption = data.element;
+        // console.log(originalOption);
+        return $('<span>').html('<span class="se-logo">'+$(originalOption).data('shortcode')+'</span> '+data.text);
+      }
+    });
+    $('.select2-campuses').on('select2:select', function (e) {
+        // prevent from submiting default form actionn
+        e.preventDefault();
+        // pull in lava ID
+        var data = e.params.data;
+        runCampusFilters(data);
+    });
+    $('.select2-ministries').select2({
+      placeholder: 'Select a Ministry'
+    });
+    $('.select2-ministries').on('select2:select', function (e) {
+        // prevent from submiting default form action
+        e.preventDefault();
+        // pull in lava ID
+        var data = e.params.data;
+        runMinistryFilters(data);
+    });
+
+    // Re-Initialize Isotope
+    var $grid = $('.isotope_wrap').isotope({
+        // options
+        percentPosition: true,
+        itemSelector: '.isotope_item',
+        layoutMode: 'fitRows'
+    });
+
+    // reveal all items after init
+    var $items = $grid.find('.isotope_item');
+    $grid.imagesLoaded().progress( function() {
+      $grid.addClass('is-showing-items').isotope('layout');
+    });
+    $grid.isotope( 'revealItemElements', $items );
+
+    // re-init jarallax
+    jarallax(document.querySelectorAll('.jarallax'), {
+        disableParallax: /iPad|iPhone|iPod|Android/,
+        disableVideo: /iPad|iPhone|iPod|Android/
+    });
+});
+
+
+///////////////////////////////////////////////////
+////////////// Listen for Back Clicks /////////////
+///////////////////////////////////////////////////
+window.onpopstate = function(event) {
+  // back to the same page without the filters
+  window.location.replace(window.location.protocol + "//" + window.location.host + window.location.pathname);
+
+  // OPTIONAL - back to previous filter/result
+  // var url_string = window.location.href;
+  // var url = new URL(url_string);
+  // var c = url.searchParams.get("campusId");
+  // // console.log(c);
+  // runCampusFilters(c);
+};
+
+
+///////////////////////////////////////////////////
+////////////// Run Campus Selection ///////////////
+///////////////////////////////////////////////////
+function runCampusFilters(campus_selected) {
+    // grab id to filter results
+    var pnlContent = $('#event-results').find("div[id*='_upnlContent']");
+    var pnlContent_ID = pnlContent.attr("id");
+    pnlContent.slideUp();
+    // $grid.isotope('destroy');
+
+    // push a new URL state with filter parameter
+    var newPath = updatePath('campus',$(campus_selected.element).data('campus'));
+
+    // update form action url
+    $('#form1').attr('action', newPath);
+
+    // do AJAX postback through .NET
+    processPageLoad(pnlContent_ID, '');
+
+    // console.log(data);
+    $('#campus_selected').find('.section-header span').html('Events @ ' + campus_selected.text);
+    $('#campus_selected').removeClass('hide');
+}
+
+///////////////////////////////////////////////////
+////////////// Run Ministry Selection ///////////////
+///////////////////////////////////////////////////
+function runMinistryFilters(ministry_selected) {
+    // grab id to filter results
+    var pnlContent = $('#event-results').find("div[id*='_upnlContent']");
+    var pnlContent_ID = pnlContent.attr("id");
+    pnlContent.slideUp();
+    // $grid.isotope('destroy');
+
+    // push a new URL state with filter parameter
+    var newPath = updatePath('ministry',$(ministry_selected.element).data('ministry'));
+
+    // update form action url
+    $('#form1').attr('action', newPath);
+
+    // do AJAX postback through .NET
+    processPageLoad(pnlContent_ID, '');
+
+    // console.log(ministry_selected);
+    $('#ministry_selected').find('.section-header span').html(ministry_selected.text + ' Ministry');
+    $('#ministry_selected').removeClass('hide');
+}
+
+function processPageLoad(pnlContent_ID, params) {
+    // do AJAX postback through .NET
+    setTimeout(function () {
+		__doPostBack(pnlContent_ID, '');
+	}, 1);
+    ///////////////////////////////////////////////////
+    ////////////// Process Post Back //////////////////
+    ///////////////////////////////////////////////////
+    var prm = Sys.WebForms.PageRequestManager.getInstance();
+    //Raised before processing of an asynchronous postback starts and the postback request is sent to the server.
+    prm.add_beginRequest(BeginRequestHandler);
+    // Raised after an asynchronous postback is finished and control has been returned to the browser.
+    prm.add_endRequest(pageLoad);
+    // Listen for PostBack
+    function pageLoad() {
+        var pnlContent = $('#event-results').find("div[id*='_upnlContent']");
+        var pnlContent_ID = pnlContent.attr("id");
+        // Once loaded, fire the Javascript function from the list
+        InitLoadedRequest(); // an Ajax pageLoad method that will call your jquery method
+        pnlContent.slideDown(400, function() {});
+        // $('html, body').animate({scrollTop: ($('#filter_selected').offset().top)}, 400);
+        // $('html, body').scrollspy({ target: '#filter_selected' });
+
+        var scroll = new SmoothScroll();
+        var anchor = document.querySelector( '#filter_selected' );
+        scroll.animateScroll( anchor );
+
+    }
+    // Run JS while waiting on PostBack
+    function BeginRequestHandler(sender, args) {
+        // hide current state
+        // hide Blocks that aren't needed when filtered
+        $('.hide-on-filter').slideUp();
+        // destropy any previous iso before postback
+        // $('.isotope_wrap').isotope('destroy');
+    }
+}
+
+function updatePath(key, value) {
+    baseUrl = [location.protocol, '//', location.host].join('');
+	parts = location.pathname.split('/');
+	// Set some defaults;
+	parts[1] = 'events';
+	parts[2] = parts[2]||'southeast';
+	parts[3] = parts[3]||'all';
+	// Set default part one of Events
+	if (key == 'campus') {
+		parts[2] = value||'southeast';
+	}
+	if (key == 'ministry') {
+		parts[3] = value||'all';
+	}
+    window.history.pushState({}, '', baseUrl + parts.join('/'));
+	console.log("key:" + key);
+	console.log("value:" + value);
+	console.log("parts:" + parts);
+    return parts.join('/');
+}
+
+var parseQueryString = function() {
+
+    var str = window.location.search;
+    var objURL = {};
+
+    str.replace(
+        new RegExp( "([^?=&]+)(=([^&]*))?", "g" ),
+        function( $0, $1, $2, $3 ){
+            objURL[ $1 ] = $3;
+        }
+    );
+    return objURL;
+};
+
+function loadQueryStringParam() {
+    //Example how to use it:
+    var params = parseQueryString();
+    if (params) {
+
+        // preselect options from Select2 dropdowns
+        $("select.select2-campuses option[value='"+params["campusId"]+"']").attr("selected","selected");
+        $("select.select2-ministries option[value='"+params["categoryID"]+"']").attr("selected","selected");
+
+        // set HTML to indicate the selected ministries and/or campuses
+        if (params["campusId"]) {
+            $('#campus_selected').find('.section-header span').html('Events @ ' + $( "select.select2-campuses option:selected" ).text() );
+            $('#campus_selected').removeClass('hide');
+        }
+
+        if (params["categoryID"]) {
+            $('#ministry_selected').find('.section-header span').html( $( "select.select2-ministries option:selected" ).text() + ' Ministry');
+            $('#ministry_selected').removeClass('hide');
+        }
+    }
+
+}
+</script>
