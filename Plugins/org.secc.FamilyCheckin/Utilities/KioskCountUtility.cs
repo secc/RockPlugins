@@ -150,14 +150,14 @@ namespace org.secc.FamilyCheckin.Utilities
             var lglsc = CheckInCountCache.GetByLocation( LocationId ).Where( glsc => glsc.ScheduleId == ScheduleId ).ToList();
 
             locationScheduleCount.ChildCount = lglsc.Where( glsc => ChildGroupIds.Contains( glsc.GroupId ) )
-                .Select( glsc => glsc.PersonIds.Count ).Sum();
+                .Sum( glsc => glsc.PersonIds.Count );
 
             locationScheduleCount.VolunteerCount = lglsc.Where( glsc => VolunteerGroupIds.Contains( glsc.GroupId ) )
-                .Select( glsc => glsc.PersonIds.Count ).Sum();
+                .Sum( glsc => glsc.PersonIds.Count );
 
-            locationScheduleCount.ReservedCount = 0;
+            locationScheduleCount.ReservedCount = lglsc.Sum( glsc => glsc.PersonIds.Count ) - lglsc.Sum( glsc => glsc.InRoomPersonIds.Count );
 
-            locationScheduleCount.TotalCount = lglsc.Select( glsc => glsc.PersonIds.Count ).Sum();
+            locationScheduleCount.TotalCount = lglsc.Sum( glsc => glsc.PersonIds.Count );
 
             return locationScheduleCount;
         }

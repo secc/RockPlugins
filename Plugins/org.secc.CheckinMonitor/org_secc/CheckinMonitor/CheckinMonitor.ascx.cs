@@ -200,7 +200,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                     TableHeaderCell thcName = new TableHeaderCell();
                     thcName.Text = group.Name;
-                    thcName.Style.Add( "width", "35%" );
+                    thcName.Style.Add( "width", "30%" );
                     thr.Controls.Add( thcName );
 
 
@@ -219,9 +219,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     TableHeaderCell thcCount = new TableHeaderCell();
                     if ( occurance.Any() )
                     {
-                        thcCount.Text = "Kid / Total Count";
+                        thcCount.Text = " Kid / Total Count";
                     }
-                    thcCount.Style.Add( "width", "20%" );
+                    thcCount.Style.Add( "width", "25%" );
                     thr.Controls.Add( thcCount );
 
                     TableHeaderCell thcToggle = new TableHeaderCell();
@@ -272,12 +272,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         {
 
                             tcRatio.CssClass = "info";
-                            tcRatio.Text += " [" + ratioDistance.ToString() + " remaining]";
+                            tcRatio.Text += " [" + ratioDistance.ToString() + " to ratio]";
                         }
                         else if ( lsCount.TotalCount != 0 )
                         {
                             tcRatio.CssClass = "success";
-                            tcRatio.Text += " [" + ratioDistance.ToString() + " remaining]";
+                            tcRatio.Text += " [" + ratioDistance.ToString() + " to ratio]";
                         }
 
                         tr.Controls.Add( tcRatio );
@@ -306,7 +306,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         {
                             tcCapacity.CssClass = "success";
                         }
-                        tcCapacity.Text = lsCount.ChildCount.ToString() + " of " + ( gls.GroupLocation.Location.SoftRoomThreshold ?? 0 ) + " / " + lsCount.TotalCount.ToString() + " of " + ( gls.GroupLocation.Location.FirmRoomThreshold ?? 0 ).ToString() + ( lsCount.ReservedCount > 0 ? " (+" + lsCount.ReservedCount + " reserved)" : "" );
+                        tcCapacity.Text = lsCount.ChildCount.ToString() + " of " + ( gls.GroupLocation.Location.SoftRoomThreshold ?? 0 ) + " / " + lsCount.TotalCount.ToString() + " of " + ( gls.GroupLocation.Location.FirmRoomThreshold ?? 0 ).ToString() + ( lsCount.ReservedCount > 0 ? " / (including " + lsCount.ReservedCount + " en route)" : "" );
 
                         tr.Controls.Add( tcCapacity );
 
