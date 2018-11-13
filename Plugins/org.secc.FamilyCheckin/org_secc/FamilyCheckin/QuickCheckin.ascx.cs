@@ -172,6 +172,14 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private void UpdateSelectedSchedules()
         {
+            if ( CurrentCheckInState == null
+                || CurrentCheckInState.CheckIn == null
+                || CurrentCheckInState.CheckIn.CurrentFamily == null
+                || CurrentCheckInState.CheckIn.CurrentFamily.People == null )
+            {
+                NavigateToPreviousPage();
+                return;
+            }
 
             var schedules =
                 CurrentCheckInState
@@ -209,12 +217,15 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 if ( selectedSchedules.Contains( schedule.Schedule.Id ) )
                 {
                     btnActive.CssClass = "btn btn-block btn-selectSchedule btn-selectSchedule-active";
+                    btnActive.Text = string.Format( "<div class='row'><div class='col-md-2'><i class='fa fa-check-square-o'></i></div><div class='col-md-10'>{0}</div></div>", schedule.Schedule.Name );
+
                 }
                 else
                 {
                     btnActive.CssClass = "btn  btn-block btn-selectSchedule";
+                    btnActive.Text = string.Format( "<div class='row'><div class='col-md-2'><i class='fa fa-square-o'></i></div><div class='col-md-10'>{0}</div></div>", schedule.Schedule.Name );
+
                 }
-                btnActive.Text = schedule.Schedule.Name;
                 btnActive.Click += ( s, e ) => { ToggleSchedule( schedule ); DisplayServiceOptions(); };
                 btnActive.ID = "btnSelectSchedule" + schedule.Schedule.Id.ToString();
                 btnActive.DataLoadingText = "<i class='fa fa-refresh fa-spin'></i>";
@@ -307,7 +318,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 .SelectMany( g => g.Locations )
                 .SelectMany( l => l.Schedules )
                 .DistinctBy( s => s.Schedule.Id )
-                .OrderBy( s => s.Schedule.GetNextStartDateTime(RockDateTime.Now) )
+                .OrderBy( s => s.Schedule.GetNextStartDateTime( RockDateTime.Now ) )
                 .ToList();
         }
 
