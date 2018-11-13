@@ -26,8 +26,8 @@ body {
 		// size: 1.6rem;
 		family: $primary-font; // variables inside partials > _variables.scss
 	}
-	color: $color-1;
-	background-color: $color-4;
+	color: $color-4;
+	background-color: $color-1;
 
 	@include MQ(maxL) { // layout mixins inside partials > _layout.scss
 		&.nav-on-left.overflow-hidden {
@@ -37,7 +37,7 @@ body {
 }
 
 a {
-	color: $color-2;
+	color: $color-4;
 	text-decoration: none;
 }
 
@@ -103,8 +103,18 @@ Main components
 
 .cd-main-header {
 	height: $header-height-S;
-	background: lighten($color-3, 9%);;
+	background: $color-1;
 	z-index: $above-content;
+
+	-webkit-box-shadow: 1px -5px 20px 0px rgba($color-4 ,0.5);
+	-moz-box-shadow: 1px -5px 20px 0px rgba($color-4 ,0.5);
+	box-shadow: 1px -5px 20px 0px rgba($color-4 ,0.5);
+
+	&.nav-is-visible {
+		-webkit-box-shadow: none;
+	    -moz-box-shadow: none;
+	    box-shadow: none;
+	}
 
 	.nav-is-fixed & {
 		/* add .nav-is-fixed class to body if you want a fixed navigation on > 1170px */
@@ -132,8 +142,10 @@ main, #revSlider {
 	left: 4%;
 
 	img {
-	    max-width: 245px;
+	    // max-width: 245px;
 		display: block;
+		height: 50px;
+		padding: 5px;
 	}
 
 	@include MQ(maxL) {
@@ -231,14 +243,14 @@ main, #revSlider {
 		width: 18px;
 		height: 18px;
 		border-radius: 50%;
-		border: 3px solid $color-1;
+		border: 3px solid $color-4;
 	}
 
 	&::after {
 		/* handle */
 		height: 3px;
 		width: 8px;
-		background: $color-1;
+		background: $color-4;
 		bottom: 14px;
 		right: 11px;
 		@include transform(rotate(45deg));
@@ -264,7 +276,7 @@ main, #revSlider {
 		margin-top: -2px;
 		left: 50%;
 		margin-left: -11px;
-		background: $color-1;
+		background: $color-4;
 		opacity: 0;
 		/* Force Hardware Acceleration in WebKit */
 		@include transform(translateZ(0));
@@ -282,14 +294,14 @@ main, #revSlider {
 			width: 20px;
 			height: 20px;
 			border-radius: 50%;
-			border: 3px solid $color-1;
+			border: 3px solid $color-4;
 		}
 
 		&::after {
 			/* handle */
 			height: 3px;
 		    width: 15px;
-			background: $color-1;
+			background: $color-4;
 			bottom: 16px;
 	    	right: 0px;
 			@include transform(rotate(45deg));
@@ -315,7 +327,7 @@ main, #revSlider {
 			margin-top: -3px;
 			left: 50%;
 			margin-left: -10px;
-			background: $color-1;
+			background: $color-4;
 			opacity: 0;
 			/* Force Hardware Acceleration in WebKit */
 			@include transform(translateZ(0));
@@ -362,7 +374,7 @@ main, #revSlider {
 		display: inline-block;
 		height: 3px;
 		width: 24px;
-		background: $color-1;
+		background: $color-4;
 	}
 
 	span {
@@ -399,12 +411,12 @@ main, #revSlider {
 	&.nav-is-visible {
 		span {
 			/* hide line in the center */
-			background: rgba($color-1, 0);
+			background: rgba($color-4, 0);
 		}
 
 		span::before, span::after {
 			/* keep visible other 2 lines */
-			background: rgba($color-1, 1);
+			background: rgba($color-4, 1);
 		}
 
 		span::before {
@@ -594,11 +606,23 @@ main, #revSlider {
 	top: 0;
 	right: 0;
 	height: 100%;
+	text-transform: uppercase;
+	font-weight: bold;
 	width: $nav-width-S;
 	background: $color-1;
 	overflow: auto;
 	-webkit-overflow-scrolling: touch;
 	z-index: $below-content;
+
+	-webkit-box-shadow: inset 1px 0px 0px 0px $color-3;
+	-moz-box-shadow: inset 1px 0px 0px 0px $color-3;
+	box-shadow: inset 1px 0px 0px 0px $color-3;
+
+	@include MQ(L) {
+		-webkit-box-shadow: none;
+		-moz-box-shadow: none;
+		box-shadow: none;
+	}
 
 	/* Force Hardware Acceleration in WebKit */
 	@include transform(translateZ(0));
@@ -611,12 +635,13 @@ main, #revSlider {
 		line-height: 50px;
 		padding: 0 20px;
 		color: $color-4;
+		text-decoration: none;
 		-webkit-font-smoothing: antialiased;
   		-moz-osx-font-smoothing: grayscale;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
-		border-bottom: 1px solid lighten($color-1, 5%);
+		border-bottom: 1px solid lighten($color-3, 20%);
 		@include transform(translateZ(0));
 		will-change: transform, opacity;
 		@include transition(transform .3s, opacity .3s);
@@ -679,7 +704,7 @@ main, #revSlider {
 		padding-left: 75px;
 
 		p {
-			color: $color-1;
+			color: $color-4;
 			font-size: 1.3rem;
 			/* hide description on small devices */
 			display: none;
@@ -688,11 +713,10 @@ main, #revSlider {
 		h3 {
 			font-size: 1em;
 			margin-top: 0px;
-			color: white;
 			font-weight: 200;
 
 			@include MQ(L) {
-				color: $color-1;
+				color: $color-4;
 				font-size:1.75rem;
 		        margin-top: 8px;
 			}
@@ -764,11 +788,10 @@ main, #revSlider {
 		h3 {
 			font-size: 1em;
 			margin-top: 0px;
-			color: white;
 			font-weight: 200;
 
 			@include MQ(L) {
-				color: $color-2;
+				color: $color-4;
 				font-weight: bold;
 				font-size:1.75rem;
 				margin-top: 8px;
@@ -791,11 +814,10 @@ main, #revSlider {
 		h3 {
 			font-size: 1em;
 			margin-top: 15px;
-			color: white;
 			font-weight: 200;
 
 			@include MQ(L) {
-				color: $color-1;
+				color: $color-4;
 				font-size: 0.8em;
 		        margin-top: 5px;
 				font-weight: 200;
@@ -913,7 +935,7 @@ main, #revSlider {
 			overflow: visible;
 			z-index: $above-content;
 			a {
-				color: $color-1;
+				color: $color-4;
 				border-bottom: 3px solid $color-3;
 				&:hover {
 					background-color: #f6f6f5;
@@ -933,7 +955,7 @@ main, #revSlider {
 
 		> li {
 			float: left;
-			margin-left: 3em;
+			margin-left: 1.5em;
 		}
 
 		> li > a {
@@ -943,13 +965,13 @@ main, #revSlider {
 			height: $header-height-L;
 			line-height: $header-height-L;
 			padding: 0 10px;
-			color: $color-1;
+			color: $color-4;
 			overflow: visible;
 			border-bottom: none;
 			@include transition(color .3s, box-shadow .3s);
 
 			&:hover {
-				color: $color-2;
+				color: $color-4;
 			}
 
 			&.selected {
@@ -967,10 +989,10 @@ main, #revSlider {
 			position: absolute;
 			top: $header-height-L;
 			width: 100vw;
-			background: $color-4;
+			background: $color-1;
 			// padding: 48px 64px 130px;
 			padding: 48px 64px;
-			border-bottom: 5px solid rgba(#000, .1);
+			border-bottom: 1px solid lighten($color-3, 20%);
 			box-shadow: inset 0 1px 0 $color-3, 0 3px 6px rgba(#000, .05);
 			@include transform(translateX(0));
 			@include clearfix;
@@ -1048,7 +1070,7 @@ main, #revSlider {
 
 				> a {
 					/* secondary nav title */
-					color: $color-2;
+					color: $color-4;
 					font-weight: bold;
 					font-size: 1.6rem;
 					margin-bottom: .6em;
@@ -1065,7 +1087,7 @@ main, #revSlider {
 				height: 60px;
 				line-height: 20px;
 				padding: 10px 18% 0 0;
-				color: $color-1;
+				color: $color-4;
 				border-bottom: none;
 				font-size: 1.4rem;
 
@@ -1142,7 +1164,7 @@ main, #revSlider {
 
 				h3 {
 					font-size: 1.4em;
-					color: $color-2;
+					color: $color-4;
 					font-weight: bold;
 					padding: 0 .4em;
 				}
@@ -1182,7 +1204,7 @@ main, #revSlider {
 				}
 
 				h3 {
-					color: $color-2;
+					color: $color-4;
 					font-weight: bold;
 				}
 
@@ -1251,7 +1273,7 @@ main, #revSlider {
 		display: inline-block;
 		height: 2px;
 		width: 10px;
-		background: lighten($color-1, 10%);
+		background: lighten($color-4, 10%);
 		-webkit-backface-visibility: hidden;
 		backface-visibility: hidden;
 	}
@@ -1266,11 +1288,11 @@ main, #revSlider {
 
 	@include MQ(L) {
 		&::before, &::after {
-			background: darken($color-3, 10%);
+			background: darken($color-4, 10%);
 		}
 
 		&:hover::before, &:hover::after {
-			background: $color-2;
+			background: $color-4;
 		}
 	}
 }
@@ -1379,7 +1401,7 @@ main, #revSlider {
 	input {
 		border-radius: 0;
 		border: none;
-		background: $color-4;
+		background: $color-1;
 		height: 100%;
 		width: 100%;
 		padding: 0 5%;
@@ -1387,7 +1409,7 @@ main, #revSlider {
 		@include appearance(none);
 
 		@include placeholder {
-			color: darken($color-3, 10%);
+			color: darken($color-4, 10%);
 		}
 
 		&:focus {
@@ -1432,7 +1454,7 @@ main, #revSlider {
 	top: 0;
 	left: 0;
 	cursor: pointer;
-	background-color: rgba($color-2, .8);
+	background-color: rgba($color-4, .3);
 	visibility: hidden;
 	opacity: 0;
 	@include backface-visibility(hidden);
