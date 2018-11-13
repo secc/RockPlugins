@@ -1,6 +1,6 @@
 <!--========== HEADER ==========-->
 <header class="cd-main-header">
-   <a class="cd-logo" href="/lwya"><img class="img-respoinsive" src="/Themes/LWYA/Assets/Img/lwya-logo.png" alt="Logo"></a>
+   <a class="cd-logo" href="/home"><img class="img-respoinsive" src="/Themes/SECC2019/Assets/img/logos/southeast/SECC_logo_wordmark_black.svg" alt="Logo"></a>
 
    <ul class="cd-header-buttons">
        {% assign personGuidSize = CurrentPerson.Guid | Size %}

@@ -2,10 +2,8 @@
     {% assign personGuidSize = CurrentPerson.Guid | Size %}
     <ul id="cd-primary-nav" class="cd-primary-nav is-fixed {% if personGuidSize != 0 %}logged-in{% endif %}">
 
-        <li><a href="/lwya/about">About</a></li>
-
         <li class="has-children">
-            <a href="/lwya/resources" class="arrow">Resources</a>
+            <a href="/lwya/resources" class="arrow">Locations</a>
             <ul class="cd-nav-icons is-hidden">
                 <li class="go-back arrow"><a href="#" class="arrow">Menu</a></li>
                 <!-- <li class="see-all"><a href="/lwya/resources">See All Resources</a></li> -->
@@ -22,30 +20,33 @@
                     </a>
                 </li>
                 <!-- <li>
-                    <a class="cd-nav-item item-7" href="/lwya/videos">
+                        <a class="cd-nav-item item-7" href="/lwya/videos">
                         <h3>Videos</h3>
                         <p>Watch videos from our Neighborhood Groups study series.</p>
                     </a>
                 </li> -->
                 <li class="has-children">
 
-                        <a class="cd-nav-item item-7" href="/lwya/videos">
-                            <div class="arrow"></div>
-                            <h3>Videos</h3>
-                            <p>Watch videos from our Neighborhood Groups study series.</p>
-                        </a>
+                    <a class="cd-nav-item item-7" href="/lwya/videos">
+                        <div class="arrow"></div>
+                        <h3>Videos</h3>
+                        <p>Watch videos from our Neighborhood Groups study series.</p>
+                    </a>
 
-                        <ul class="is-hidden">
-                            <li class="go-back"><a href="#" class="arrow">Videos</a></span></li>
-                            <li><a href="/lwya/videos" class="third-level">Series</a></span></li>
-                            <li><a href="/lwya/stories" class="third-level">Stories</a></span></li>
-                        </ul>
+                    <ul class="is-hidden">
+                        <li class="go-back"><a href="#" class="arrow">Videos</a></span></li>
+                        <li><a href="/lwya/videos" class="third-level">Series</a></span></li>
+                        <li><a href="/lwya/stories" class="third-level">Stories</a></span></li>
+                    </ul>
+
                 </li>
             </ul>
         </li>
 
+        <li><a href="/about">About</a></li>
+
         <li class="has-children">
-            <a href="/lwya/in-your-neighborhood" class="arrow">In Your Neighborhood</a>
+            <a href="/lwya/in-your-neighborhood" class="arrow">Media</a>
 
             <ul class="se-nav-icons cd-secondary-nav is-hidden">
                 <li class="go-back"><a href="#" class="arrow">Menu</a></li>
@@ -60,23 +61,6 @@
 
                 <li>
                     <!-- <p>Ipsum Text</p> -->
-                    {% contentchannelitem where:'Status == 1 && ContentChannelId == 16' sort:'StartDateTime desc' %}
-                        {% assign currentSeries = contentchannelitemItems | First %}
-                        {% assign ImageGuid = currentSeries | Attribute:'SeriesImage','RawValue' %}
-                        <h3 class="large_screen_only text-center nopadding">Upcoming Series</h3>
-                        <div style="padding:7% 7% 0 7%">
-                            <a href="/lwya/all-series/series?Item={{ currentSeries.Id }}" style="height: auto; padding: 0; line-height: 0;">
-                                <img src="/GetImage.ashx?Guid={{ ImageGuid }}" alt="{{currentSeries.Title}}" class="img-respoinsive" style="max-height:220px">
-                            </a>
-                        </div>
-                        <br class="large_screen_only" />
-                        <p class="text-center" style="width: 100%">
-                            <a class="text-center nohover" href="/lwya/all-series/series?Item={{ currentSeries.Id }}" style="padding: 0; white-space: normal;">
-                                <span class="hidden-xs hidden-sm hidden-md">{{currentSeries.Title}}</span>
-                                <span class="visible-xs visible-sm visible-md">Upcoming Series</span>
-                            </a>
-                        <p>
-                    {% endcontentchannelitem %}
                 </li>
 
                 <li>
@@ -101,12 +85,54 @@
             </ul>
         </li>
 
+        <li class="has-children">
+            <a href="/lwya/in-your-neighborhood" class="arrow">Ministries</a>
+
+            <ul class="se-nav-icons cd-secondary-nav is-hidden">
+                <li class="go-back"><a href="#" class="arrow">Menu</a></li>
+                <!-- <li class="see-all"><a href="/lwya/in-your-neighborhood">In Your Neighborhood</a></li> -->
+                <li class="large_screen_only">
+                    <div style="padding-right:10%">
+                        <h3 class="hidden-sm hidden-xs">In Your Neighborhood</h3>
+                        <br />
+                        <p>Are you a leader or member of a Neighborhood Group? Are you looking for a community of believers in your neighborhood committed to loving where they are? Find videos, leader guides, and other resources for Neighborhood Groups here.</p>
+                    </div>
+                </li>
+
+                <li>
+                    <!-- <p>Ipsum Text</p> -->
+                </li>
+
+                <li>
+                    <a class="cd-nav-item item-5" href="/lwya/group-finder">
+                        <h3>Group Finder</h3>
+                    </a>
+                    <a class="cd-nav-item item-2" href="/lwya/maps">
+                        <h3>Maps</h3>
+                    </a>
+                    <a class="cd-nav-item item-4" href="/lwya/all-series">
+                        <h3>All Series</h3>
+                    </a>
+                </li>
+                <li>
+                    <a class="cd-nav-item item-7" href="/lwya/community-pastors">
+                        <h3>Community Pastors</h3>
+                    </a>
+                    <a class="cd-nav-item item-6" href="/lwya/group-manager">
+                        <h3>Group Manager</h3>
+                    </a>
+                </li>
+            </ul>
+        </li>
+
+        <li><a href="/give">Give</a></li>
+
         {% if CurrentPerson.Guid %}
         <li class="has-children" id="GroupManager">
-            <a href="/lwya/resources" class="arrow">Your Group Manager</a>
+            <a href="/lwya/resources" class="arrow">Your Account</a>
             <ul class="cd-dash-icons is-hidden">
                 <li class="go-back"><a href="#" class="arrow">Menu</a></li>
-                <li class="see-all"><a href="/lwya/group-manager/menu">Group Manager Dashboard</a></li>
+                <li class="see-all"><a href="/lwya/group-manager/menu">See Account</a></li>
                 <li>
                     <a class="cd-nav-item" href="/lwya/group-manager/attendance">
                         <h3>Attendance</h3>
