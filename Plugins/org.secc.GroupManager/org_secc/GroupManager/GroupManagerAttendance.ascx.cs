@@ -414,9 +414,13 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 lvMembers.DataSource = items;
                 lvMembers.DataBind();
 
+                AttendanceOccurrenceService attendanceOccurenceService = new AttendanceOccurrenceService( _rockContext );
+                var occurrence = attendanceOccurenceService.Get( occurenceDate.Date, CurrentGroup.Id, null, CurrentGroup.ScheduleId );
+
                 cbDidNotMeet.Checked = (
-                       attendanceData.Where( a => a.DidAttend == true ).Count() <= 0
-                       && attendanceData.Where( a => a.Occurrence.DidNotOccur == true ).Count() > 0
+                       ( attendanceData.Where( a => a.DidAttend == true ).Count() <= 0
+                       && attendanceData.Where( a => a.Occurrence.DidNotOccur == true ).Count() > 0 )
+                       || (occurrence != null &&  occurrence.DidNotOccur == true)
                        );
                 if ( cbDidNotMeet.Checked )
                 {
