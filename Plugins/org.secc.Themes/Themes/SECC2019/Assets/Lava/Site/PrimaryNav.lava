@@ -8,78 +8,130 @@
                 <li class="go-back arrow"><a href="#" class="arrow">Menu</a></li>
                 <!-- <li class="see-all"><a href="/lwya/resources">See All Resources</a></li> -->
                 <li>
-                    <a class="cd-nav-item item-1" href="/lwya/blog">
-                        <h3>Blog</h3>
-                        <p>Read inspiring stories and learn best practices.</p>
+                    <a class="cd-nav-item" href="/location/blankenbaker">
+                        <h3>Blankenbaker</h3>
                     </a>
                 </li>
                 <li>
-                    <a class="cd-nav-item item-8" href="/lwya/podcasts">
-                        <h3>Podcasts</h3>
-                        <p>Listen to interviews and helpful conversations.</p>
+                    <a class="cd-nav-item" href="/location/indiana">
+                        <h3>Indiana</h3>
                     </a>
                 </li>
-                <!-- <li>
-                        <a class="cd-nav-item item-7" href="/lwya/videos">
-                        <h3>Videos</h3>
-                        <p>Watch videos from our Neighborhood Groups study series.</p>
+                <li>
+                    <a class="cd-nav-item" href="/location/crestwood">
+                        <h3>Crestwood</h3>
                     </a>
-                </li> -->
-                <li class="has-children">
-
-                    <a class="cd-nav-item item-7" href="/lwya/videos">
-                        <div class="arrow"></div>
-                        <h3>Videos</h3>
-                        <p>Watch videos from our Neighborhood Groups study series.</p>
+                </li>
+                <li>
+                    <a class="cd-nav-item" href="/location/southwest">
+                        <h3>Southwest</h3>
                     </a>
-
-                    <ul class="is-hidden">
-                        <li class="go-back"><a href="#" class="arrow">Videos</a></span></li>
-                        <li><a href="/lwya/videos" class="third-level">Series</a></span></li>
-                        <li><a href="/lwya/stories" class="third-level">Stories</a></span></li>
-                    </ul>
-
+                </li>
+                <li>
+                    <a class="cd-nav-item" href="/location/lagrange">
+                        <h3>La Grange</h3>
+                    </a>
+                </li>
+                <li>
+                    <a class="cd-nav-item" href="/location/elizabethtown">
+                        <h3>Elizabethtown</h3>
+                    </a>
                 </li>
             </ul>
         </li>
 
-        <li><a href="/about">About</a></li>
+        <li class="has-children">
+            <a href="/about" class="arrow">About</a>
+
+            <ul class="cd-nav-icons is-hidden">
+                <li class="go-back arrow"><a href="#" class="arrow">Menu</a></li>
+                <!-- <li class="see-all"><a href="/lwya/resources">See All Resources</a></li> -->
+                <li>
+                    <a class="cd-nav-item mission" href="#">
+                        <h3>Mission</h3>
+                    </a>
+                </li>
+                <li>
+                    <a class="cd-nav-item what-we-believe" href="#">
+                        <h3>What We Believe</h3>
+                    </a>
+                </li>
+                <li>
+                    <a class="cd-nav-item faq" href="#">
+                        <h3>FAQ</h3>
+                    </a>
+                </li>
+                <li>
+                    <a class="cd-nav-item leadership" href="#">
+                        <h3>Leadership</h3>
+                    </a>
+                </li>
+                <li>
+                    <a class="cd-nav-item baptism" href="#">
+                        <h3>Baptism</h3>
+                    </a>
+                </li>
+                <li>
+                    <a class="cd-nav-item employment" href="#">
+                        <h3>Employment</h3>
+                    </a>
+                </li>
+            </ul>
+        </li>
 
         <li class="has-children">
             <a href="/lwya/in-your-neighborhood" class="arrow">Media</a>
 
-            <ul class="se-nav-icons cd-secondary-nav is-hidden">
-                <li class="go-back"><a href="#" class="arrow">Menu</a></li>
-                <!-- <li class="see-all"><a href="/lwya/in-your-neighborhood">In Your Neighborhood</a></li> -->
-                <li class="large_screen_only">
-                    <div style="padding-right:10%">
-                        <h3 class="hidden-sm hidden-xs">In Your Neighborhood</h3>
-                        <br />
-                        <p>Are you a leader or member of a Neighborhood Group? Are you looking for a community of believers in your neighborhood committed to loving where they are? Find videos, leader guides, and other resources for Neighborhood Groups here.</p>
-                    </div>
+            <ul class="cd-nav-icons is-hidden">
+                <li class="go-back arrow"><a href="#" class="arrow">Menu</a></li>
+                <!-- <li class="see-all"><a href="/lwya/resources">See All Resources</a></li> -->
+                <li>
+                    <a class="cd-nav-item sermons" href="#">
+                        <h3>Sermons</h3>
+                    </a>
                 </li>
+                <li>
+                    <a class="cd-nav-item podcast" href="#">
+                        <h3>Podcast</h3>
+                    </a>
+                </li>
+                <li>
+                    <a class="cd-nav-item stoies" href="#">
+                        <h3>Stories</h3>
+                    </a>
+                </li>
+                <li>
+                    <a class="cd-nav-item live-stream" href="#">
+                        <h3>Live Stream<br /><small>coming soon</small></h3>
+                    </a>
+                </li>
+            </ul>
+        </li>
 
-                <li>
-                    <!-- <p>Ipsum Text</p> -->
-                </li>
+        <li class="has-children">
+            <a href="/lwya/in-your-neighborhood" class="arrow">Connect</a>
 
+            <ul class="cd-nav-icons is-hidden">
+                <li class="go-back arrow"><a href="#" class="arrow">Menu</a></li>
+                <!-- <li class="see-all"><a href="/lwya/resources">See All Resources</a></li> -->
                 <li>
-                    <a class="cd-nav-item item-5" href="/lwya/group-finder">
-                        <h3>Group Finder</h3>
-                    </a>
-                    <a class="cd-nav-item item-2" href="/lwya/maps">
-                        <h3>Maps</h3>
-                    </a>
-                    <a class="cd-nav-item item-4" href="/lwya/all-series">
-                        <h3>All Series</h3>
+                    <a class="cd-nav-item starting-point" href="/location/blankenbaker">
+                        <h3>Starting Point</h3>
                     </a>
                 </li>
                 <li>
-                    <a class="cd-nav-item item-7" href="/lwya/community-pastors">
-                        <h3>Community Pastors</h3>
+                    <a class="cd-nav-item events" href="/location/indiana">
+                        <h3>Events</h3>
                     </a>
-                    <a class="cd-nav-item item-6" href="/lwya/group-manager">
-                        <h3>Group Manager</h3>
+                </li>
+                <li>
+                    <a class="cd-nav-item groups" href="/location/crestwood">
+                        <h3>Groups</h3>
+                    </a>
+                </li>
+                <li>
+                    <a class="cd-nav-item serve" href="/location/southwest">
+                        <h3>Serve</h3>
                     </a>
                 </li>
             </ul>
@@ -88,38 +140,87 @@
         <li class="has-children">
             <a href="/lwya/in-your-neighborhood" class="arrow">Ministries</a>
 
-            <ul class="se-nav-icons cd-secondary-nav is-hidden">
-                <li class="go-back"><a href="#" class="arrow">Menu</a></li>
-                <!-- <li class="see-all"><a href="/lwya/in-your-neighborhood">In Your Neighborhood</a></li> -->
-                <li class="large_screen_only">
-                    <div style="padding-right:10%">
-                        <h3 class="hidden-sm hidden-xs">In Your Neighborhood</h3>
-                        <br />
-                        <p>Are you a leader or member of a Neighborhood Group? Are you looking for a community of believers in your neighborhood committed to loving where they are? Find videos, leader guides, and other resources for Neighborhood Groups here.</p>
-                    </div>
-                </li>
-
+            <ul class="cd-nav-icons is-hidden">
+                <li class="go-back arrow"><a href="#" class="arrow">Menu</a></li>
+                <!-- <li class="see-all"><a href="/lwya/resources">See All Resources</a></li> -->
                 <li>
-                    <!-- <p>Ipsum Text</p> -->
-                </li>
-
-                <li>
-                    <a class="cd-nav-item item-5" href="/lwya/group-finder">
-                        <h3>Group Finder</h3>
-                    </a>
-                    <a class="cd-nav-item item-2" href="/lwya/maps">
-                        <h3>Maps</h3>
-                    </a>
-                    <a class="cd-nav-item item-4" href="/lwya/all-series">
-                        <h3>All Series</h3>
+                    <a class="cd-nav-item" href="/location/blankenbaker">
+                        <h3>Men</h3>
                     </a>
                 </li>
                 <li>
-                    <a class="cd-nav-item item-7" href="/lwya/community-pastors">
-                        <h3>Community Pastors</h3>
+                    <a class="cd-nav-item" href="/location/indiana">
+                        <h3>Children</h3>
                     </a>
-                    <a class="cd-nav-item item-6" href="/lwya/group-manager">
-                        <h3>Group Manager</h3>
+                </li>
+                <li>
+                    <a class="cd-nav-item" href="/location/crestwood">
+                        <h3>Seniors</h3>
+                    </a>
+                </li>
+                <li>
+                    <a class="cd-nav-item" href="/location/southwest">
+                        <h3>Deaf & Disabilities</h3>
+                    </a>
+                </li>
+                <li>
+                    <a class="cd-nav-item" href="/location/lagrange">
+                        <h3>Women</h3>
+                    </a>
+                </li>
+                <li>
+                    <a class="cd-nav-item" href="/location/elizabethtown">
+                        <h3>College Age</h3>
+                    </a>
+                </li>
+                <li>
+                    <a class="cd-nav-item" href="/location/elizabethtown">
+                        <h3>Missions</h3>
+                    </a>
+                </li>
+                <li>
+                    <a class="cd-nav-item" href="/location/elizabethtown">
+                        <h3>Care</h3>
+                    </a>
+                </li>
+                <li>
+                    <a class="cd-nav-item" href="/location/elizabethtown">
+                        <h3>Family</h3>
+                    </a>
+                </li>
+                <li>
+                    <a class="cd-nav-item" href="/location/elizabethtown">
+                        <h3>High School</h3>
+                    </a>
+                </li>
+                <li>
+                    <a class="cd-nav-item" href="/location/elizabethtown">
+                        <h3>Generous Living</h3>
+                    </a>
+                </li>
+                <li>
+                    <a class="cd-nav-item" href="/location/elizabethtown">
+                        <h3>Sports & Fitness</h3>
+                    </a>
+                </li>
+                <li>
+                    <a class="cd-nav-item" href="/location/elizabethtown">
+                        <h3>Single</h3>
+                    </a>
+                </li>
+                <li>
+                    <a class="cd-nav-item" href="/location/elizabethtown">
+                        <h3>Middle School</h3>
+                    </a>
+                </li>
+                <li>
+                    <a class="cd-nav-item" href="/location/elizabethtown">
+                        <h3>Foster & Adoption</h3>
+                    </a>
+                </li>
+                <li>
+                    <a class="cd-nav-item" href="/location/elizabethtown">
+                        <h3>Awaken Worship</h3>
                     </a>
                 </li>
             </ul>
