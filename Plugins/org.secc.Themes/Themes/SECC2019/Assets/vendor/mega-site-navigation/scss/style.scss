@@ -139,13 +139,13 @@ main, #revSlider {
 .cd-logo {
 	position: absolute;
 	top: 10px;
-	left: 4%;
+	left: 3em;
 
 	img {
 	    // max-width: 245px;
 		display: block;
 		height: 50px;
-		padding: 5px;
+		padding: 7px;
 	}
 
 	@include MQ(maxL) {
@@ -742,44 +742,60 @@ main, #revSlider {
 			}
 		}
 
-		&.item-1::before {
-			background-image: url('../img/blogicon.svg');
+		&.mission::before {
+			background-image: url('../img/SE/Mission.svg');
 		}
 
-		&.item-2::before {
-			background-image: url('../img/line-icon-2.svg');
-			// background-image: $fa-var-video-camera;
+		&.what-we-believe::before {
+			background-image: url('../img/SE/bible.svg');
 		}
 
-		&.item-3::before {
-			background-image: url('../img/line-icon-3.svg');
+		&.faq::before {
+			background-image: url('../img/SE/FAQ.svg');
 		}
 
-		&.item-4::before {
-			// background-image: url('../img/line-icon-4.svg');
-			background-image: $fa-var-video-camera;
+		&.leadership::before {
+			background-image: url('../img/SE/Leadership.svg');
 		}
 
-		&.item-5::before {
-			background-image: url('../img/houseicon.svg');
+		&.baptism::before {
+			background-image: url('../img/SE/baptism.svg');
 		}
 
-		&.item-6::before {
-			background-image: url('../img/line-icon-6.svg');
+		&.employment::before {
+			background-image: url('../img/SE/Employment.svg');
 		}
 
-		&.item-7::before {
-			background-image: url('../img/line-icon-7.svg');
-			// content: $fa-var-home;
-			// font-family: FontAwesome;
-			// font-style: normal;
-			// font-size: 2.125rem;
-			// color: $color-5;
-			// margin-top: -12px;
+		&.sermons::before {
+			background-image: url('../img/SE/sermons.svg');
 		}
 
-		&.item-8::before {
-			background-image: url('../img/micicon.svg');
+		&.podcast::before {
+			background-image: url('../img/SE/Podcast.svg');
+		}
+
+		&.stoies::before {
+			background-image: url('../img/SE/Stories.svg');
+		}
+
+		&.live-stream::before {
+			background-image: url('../img/SE/Live-Stream.svg');
+		}
+
+		&.starting-point::before {
+			background-image: url('../img/SE/membership.svg');
+		}
+
+		&.events::before {
+			background-image: url('../img/SE/Events.svg');
+		}
+
+		&.groups::before {
+			background-image: url('../img/SE/groups.svg');
+		}
+
+		&.serve::before {
+			background-image: url('../img/SE/Serve.svg');
 		}
 	}
 
@@ -1174,9 +1190,11 @@ main, #revSlider {
 		.cd-nav-icons {
 			li {
 				/* set here number of columns - use width percentage */
-				@include column(.32);
+				@include column(.23);
 				// margin: 0 2% 20px 0;
 				margin: 0 0.65% 20px 0.65%;
+
+			    border-right: 1px solid #e2e3df;
 
 				// &:nth-child(3n+2) {
 				// 	/* +2 because we have two additional list items with display:none */
@@ -1192,15 +1210,15 @@ main, #revSlider {
 
 			.cd-nav-item {
 				border-bottom: none;
-				// height: 120px;
+				// height: 150px;
 				height: auto;
 				line-height: 1.2;
 				// padding: 10px 0 0 85px;
-			    padding: 0 20px 0 85px;
+			    padding: 5px 20px 5px 85px;
 				position: relative;
 
 				&:hover {
-					background: lighten($color-3, 8%);
+					// background: lighten($color-3, 8%);
 				}
 
 				h3 {
@@ -1247,7 +1265,7 @@ main, #revSlider {
 		        position: relative;
 
 		        &:hover {
-		            background: lighten($color-3, 8%);
+		            // background: lighten($color-3, 8%);
 		        }
 
 				span.niche {
