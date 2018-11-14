@@ -1,0 +1,15 @@
+/* ----------------------------------------------------------------------------------
+	Visit: Sets the style for certain aspects of the About Page
+----------------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  #leadership .pastors {
+    text-align: center;
+    > div {
+      margin-bottom: 2em;
+    }
+    img {
+      margin: 0 auto;
+    }
+  }
+}

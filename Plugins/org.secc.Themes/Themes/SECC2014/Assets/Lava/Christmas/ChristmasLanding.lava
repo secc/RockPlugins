@@ -199,7 +199,7 @@
 		            </li>
 		            <li>
 		                <a href="#ChristmasTimes">
-		                    <b>CHRISTMAS WEEKEND SERVICES 2017</b>
+		                    <b>CHRISTMAS WEEKEND SERVICES 2018</b>
 		                    <span><i class="fa fa-clock-o"></i></span>
 		                </a>
 		            </li>
@@ -260,17 +260,19 @@
     <div class="container-fluid left-aligned">
 		<div class="row">
 			<div class="col-sm-10 col-sm-offset-1 text-center">
-				<h2>The Other Side of Christmas</small></h2>
-				<hr style="width: 35%; border-top: 2px solid rgb(96, 105, 99); margin: 1em auto 0;"/>
 				<h1 class="wow flipInX">ADVENT</h1><br />
-				<h3>2017 DAILY DEVOTIONAL</h3>
+				<h3>2018 DAILY DEVOTIONAL</h3>
 				<br />
-				<div class="advent_copy">
+				<hr style="width: 35%; border-top: 2px solid rgb(96, 105, 99); margin: 1em auto 0;"/>
+				<br />
+				<h2>Coming Soon</h2>
+				<br />
+				<!-- <div class="advent_copy">
 					<p class="wow fadeIn">Encounter Christmas in a new way this Advent season by following along with our daily devotional, <i>The Other Side of Christmas</i>.</p>
 					<p class="wow fadeIn">We pray that on the other side of Christmas this year, Jesus will be your hope, peace, joy, and love.</p>
 					<br />
 					<a href="/christmas/advent" class="cd-btn sweep-to-right">Learn More</a>
-				</div>
+				</div> -->
 			</div>
 		</div>
     </div>
