@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -124,7 +124,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             if ( CurrentGroup.Schedule != null )
             {
                 AttendanceService attendanceService = new AttendanceService( rockContext );
-                var occurances = attendanceService.Queryable().Where( a => a.GroupId == CurrentGroup.Id )
+                var occurances = attendanceService.Queryable().Where( a => a.Occurrence.GroupId == CurrentGroup.Id )
                     .DistinctBy( s => s.StartDateTime )
                     .Select( s => s.StartDateTime )
                     .Take( 50 )
@@ -222,45 +222,52 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                     var attendanceData = new AttendanceService( _rockContext )
                         .Queryable( "PersonAlias" )
-                        .Where( a => a.GroupId == CurrentGroup.Id && a.StartDateTime == occurenceDate );
+                        .Where( a => a.Occurrence.GroupId == CurrentGroup.Id && a.StartDateTime == occurenceDate );
 
-                    var attendanceService = new AttendanceService( _rockContext );
-                    var personAliasService = new PersonAliasService( _rockContext );
 
-                    foreach ( var item in lvMembers.Items )
+                    var attendanceOccurenceService = new AttendanceOccurrenceService( _rockContext );
+                    if ( cbDidNotMeet.Checked == true )
                     {
-                        var hfMember = item.FindControl( "hfMember" ) as HiddenField;
-                        var cbMember = item.FindControl( "cbMember" ) as HtmlInputCheckBox;
-                        var personId = hfMember.Value.AsInteger();
-                        var attendanceItem = attendanceData.Where( a => a.PersonAlias.PersonId == personId )
-                            .FirstOrDefault();
-                        if ( attendanceItem == null )
+                        var occurrence = attendanceOccurenceService.Get( occurenceDate.Date, CurrentGroup.Id, null, CurrentGroup.ScheduleId );
+                        if (occurrence == null)
                         {
-                            var attendancePerson = new PersonService( _rockContext ).Get( personId );
-                            if ( attendancePerson != null )
-                            {
-                                attendanceItem = new Attendance()
-                                {
-                                    Id = 0,
-                                    PersonAliasId = attendancePerson.PrimaryAliasId,
-                                    GroupId = CurrentGroup.Id,
-                                    ScheduleId = CurrentGroup.ScheduleId,
-                                    StartDateTime = occurenceDate,
-                                    CampusId = CurrentGroup.CampusId
-                                };
-                                attendanceService.Add( attendanceItem );
-                            }
+                            occurrence = new AttendanceOccurrence();
+                            occurrence.OccurrenceDate = occurenceDate;
+                            occurrence.GroupId = CurrentGroup.Id;
+                            occurrence.ScheduleId = CurrentGroup.ScheduleId;
+                            attendanceOccurenceService.Add( occurrence );
                         }
+                        occurrence.DidNotOccur = true;
+                        foreach(var attendee in occurrence.Attendees)
+                        {
+                            attendee.DidAttend = false;
+                        }
+                    }
+                    else
+                    {
+                        var attendanceService = new AttendanceService( _rockContext );
+                        var personAliasService = new PersonAliasService( _rockContext );
 
-                        if ( cbDidNotMeet.Checked )
+                        foreach ( var item in lvMembers.Items )
                         {
-                            attendanceItem.DidAttend = false;
-                            attendanceItem.DidNotOccur = true;
-                        }
-                        else
-                        {
-                            attendanceItem.DidNotOccur = false;
-                            attendanceItem.DidAttend = cbMember.Checked;
+                            var hfMember = item.FindControl( "hfMember" ) as HiddenField;
+                            var cbMember = item.FindControl( "cbMember" ) as HtmlInputCheckBox;
+                            var personId = hfMember.Value.AsInteger();
+                            var attendanceItem = attendanceData.Where( a => a.PersonAlias.PersonId == personId )
+                                .FirstOrDefault();
+                            if ( attendanceItem == null )
+                            {
+                                var attendancePerson = new PersonService( _rockContext ).Get( personId );
+                                if ( attendancePerson != null && attendancePerson.PrimaryAliasId.HasValue )
+                                {
+                                    attendanceItem = attendanceService.AddOrUpdate( attendancePerson.PrimaryAliasId.Value, occurenceDate, CurrentGroup.Id, null, CurrentGroup.ScheduleId, CurrentGroup.CampusId );
+                                }
+                            }
+
+                            if (attendanceItem != null )
+                            {
+                                attendanceItem.DidAttend = cbMember.Checked;
+                            }
                         }
                     }
                 }
@@ -372,7 +379,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 var attendanceData = new AttendanceService( _rockContext )
                     .Queryable()
-                    .Where( a => a.GroupId == CurrentGroup.Id && a.StartDateTime == occurenceDate )
+                    .Where( a => a.Occurrence.GroupId == CurrentGroup.Id && a.StartDateTime == occurenceDate )
                     .ToList();
 
                 lvMembers.Items.Clear();
@@ -409,7 +416,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 cbDidNotMeet.Checked = (
                        attendanceData.Where( a => a.DidAttend == true ).Count() <= 0
-                       && attendanceData.Where( a => a.DidNotOccur == true ).Count() > 0
+                       && attendanceData.Where( a => a.Occurrence.DidNotOccur == true ).Count() > 0
                        );
                 if ( cbDidNotMeet.Checked )
                 {
