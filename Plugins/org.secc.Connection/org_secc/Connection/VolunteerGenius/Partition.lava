@@ -26,7 +26,7 @@
 			{% unless url contains "RoleGuid" or partition.RoleGuid == empty or partition.RoleGuid == null %}
 				{% assign url = url | Append: "&RoleGuid=" | Append : partition.RoleGuid %}
 			{% endunless %}
-			<a href="{{url}}" class="btn btn-primary pull-right" {%- unless partition.Limit == null or spotsLeft > 0 -%}disabled{%- endunless -%}>Sign Up!</a>
+			<a {% if partition.Limit == null or spotsLeft > 0 %}href="{{url}}"{% else %}disabled{% endif %} class="btn btn-primary pull-right">Sign Up!</a>
 			{%- if partition.Limit > 0 %}
 				<br /><span class="label label-default">{% if partition.Limit == null %}Unlimited{% else %}{% if spotsLeft <= 0 %}Full{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}{% endif %}</span>
 			{%- endif -%}
