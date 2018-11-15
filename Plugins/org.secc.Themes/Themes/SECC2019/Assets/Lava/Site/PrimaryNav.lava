@@ -4,37 +4,43 @@
 
         <li class="has-children">
             <a href="/lwya/resources" class="arrow">Locations</a>
-            <ul class="cd-nav-icons is-hidden">
-                <li class="go-back arrow"><a href="#" class="arrow">Menu</a></li>
+            <ul class="cd-nav-gallery is-hidden">
+                <li class="go-back arrow"><a class="arrow">Menu</a></li>
                 <!-- <li class="see-all"><a href="/lwya/resources">See All Resources</a></li> -->
                 <li>
                     <a class="cd-nav-item" href="/location/blankenbaker">
                         <h3>Blankenbaker</h3>
+                        <img src="/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/Campuses/920.jpg" class="img-responsive" />
                     </a>
                 </li>
                 <li>
                     <a class="cd-nav-item" href="/location/indiana">
                         <h3>Indiana</h3>
+                        <img src="/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/Campuses/IN.jpg" class="img-responsive" />
                     </a>
                 </li>
                 <li>
                     <a class="cd-nav-item" href="/location/crestwood">
                         <h3>Crestwood</h3>
+                        <img src="/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/Campuses/CW.jpg" class="img-responsive" />
                     </a>
                 </li>
                 <li>
                     <a class="cd-nav-item" href="/location/southwest">
                         <h3>Southwest</h3>
+                        <img src="/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/Campuses/SW.jpg" class="img-responsive" />
                     </a>
                 </li>
                 <li>
                     <a class="cd-nav-item" href="/location/lagrange">
                         <h3>La Grange</h3>
+                        <img src="/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/Campuses/LA.jpg" class="img-responsive" />
                     </a>
                 </li>
                 <li>
                     <a class="cd-nav-item" href="/location/elizabethtown">
                         <h3>Elizabethtown</h3>
+                        <img src="/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/Campuses/ET.jpg" class="img-responsive" />
                     </a>
                 </li>
             </ul>
@@ -44,7 +50,7 @@
             <a href="/about" class="arrow">About</a>
 
             <ul class="cd-nav-icons is-hidden">
-                <li class="go-back arrow"><a href="#" class="arrow">Menu</a></li>
+                <li class="go-back arrow"><a class="arrow">Menu</a></li>
                 <!-- <li class="see-all"><a href="/lwya/resources">See All Resources</a></li> -->
                 <li>
                     <a class="cd-nav-item mission" href="#">
@@ -101,9 +107,9 @@
                     </a>
                 </li>
                 <li>
-                    <a class="cd-nav-item live-stream" href="#">
+                    <div class="cd-nav-item live-stream disabled">
                         <h3>Live Stream<br /><small>coming soon</small></h3>
-                    </a>
+                    </div>
                 </li>
             </ul>
         </li>
@@ -140,7 +146,7 @@
         <li class="has-children">
             <a href="/lwya/in-your-neighborhood" class="arrow">Ministries</a>
 
-            <ul class="cd-nav-icons is-hidden">
+            <ul class="cd-nav-list is-hidden">
                 <li class="go-back arrow"><a href="#" class="arrow">Menu</a></li>
                 <!-- <li class="see-all"><a href="/lwya/resources">See All Resources</a></li> -->
                 <li>
