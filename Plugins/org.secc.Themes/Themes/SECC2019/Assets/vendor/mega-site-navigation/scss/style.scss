@@ -79,6 +79,23 @@ Main components
 	position: relative;
 	@include transition(transform .3s);
 
+	&.transparent-header-menu {
+		background-color: transparent !important;
+		box-shadow: none;
+
+		.cd-nav {
+			ul li a {
+				color: $color-1;
+			}
+		}
+		.cd-logo img.default-logo {
+			display: none;
+		}
+		.cd-logo img.inverse {
+			display: block;
+		}
+	}
+
 	@include MQ(maxL) {
 		&.nav-is-visible {
 			@include transform(translateX(-$nav-width-S));
@@ -147,6 +164,9 @@ main, #revSlider {
 		display: block;
 		height: 50px;
 		padding: 10px;
+		&.inverse {
+			display: none;
+		}
 	}
 
 	@include MQ(maxL) {
