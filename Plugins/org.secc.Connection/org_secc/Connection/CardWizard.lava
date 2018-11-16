@@ -96,7 +96,7 @@
             height : ch + 50 + 'px'
         });
     }
-     `$( window ).resize(function() {resizeblock("#"+$(".slide-box.active").attr('id'))});`
+    $( window ).resize(function() {resizeblock("#"+$(".slide-box.active").attr('id'))});
     
     $(document).ready(function() {
        $('#signup-container').css('display', 'block');
