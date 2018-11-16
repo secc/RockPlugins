@@ -1,6 +1,6 @@
 jQuery(document).ready(function($){
 	//if you change this breakpoint in the style.css file (or _layout.scss if you use SASS), don't forget to update this value as well
-	var MqL = 1170;
+	var MqL = 1200;
 	//move nav element position according to window width
 	moveNavigation();
 	$(window).on('resize', function(){
