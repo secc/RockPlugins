@@ -6,7 +6,9 @@
             <a href="/lwya/resources" class="arrow">Locations</a>
             <ul class="cd-nav-gallery is-hidden">
                 <li class="go-back arrow"><a class="arrow">Menu</a></li>
-                <!-- <li class="see-all"><a href="/lwya/resources">See All Resources</a></li> -->
+                <li class="see-all">
+                    <a href="/locations">Plan Your Visit</a>
+                </li>
                 <li>
                     <a class="cd-nav-item" href="/location/blankenbaker">
                         <h3>Blankenbaker</h3>
@@ -51,34 +53,33 @@
 
             <ul class="cd-nav-icons is-hidden">
                 <li class="go-back arrow"><a class="arrow">Menu</a></li>
-                <!-- <li class="see-all"><a href="/lwya/resources">See All Resources</a></li> -->
-                <li>
-                    <a class="cd-nav-item mission" href="#">
+                <li class="se-3-column">
+                    <a class="cd-nav-item mission" href="#mission">
                         <h3>Mission</h3>
                     </a>
                 </li>
-                <li>
-                    <a class="cd-nav-item what-we-believe" href="#">
+                <li class="se-3-column border-right">
+                    <a class="cd-nav-item what-we-believe" href="/beliefs">
                         <h3>What We Believe</h3>
                     </a>
                 </li>
-                <li>
-                    <a class="cd-nav-item faq" href="#">
+                <li class="se-3-column">
+                    <a class="cd-nav-item faq" href="#faq">
                         <h3>FAQ</h3>
                     </a>
                 </li>
-                <li>
-                    <a class="cd-nav-item leadership" href="#">
+                <li class="se-3-column">
+                    <a class="cd-nav-item leadership" href="#leadership">
                         <h3>Leadership</h3>
                     </a>
                 </li>
-                <li>
-                    <a class="cd-nav-item baptism" href="#">
+                <li class="se-3-column border-right">
+                    <a class="cd-nav-item baptism" href="/beliefs/#baptism">
                         <h3>Baptism</h3>
                     </a>
                 </li>
-                <li>
-                    <a class="cd-nav-item employment" href="#">
+                <li class="se-3-column">
+                    <a class="cd-nav-item se-about employment" href="/hr">
                         <h3>Employment</h3>
                     </a>
                 </li>
@@ -89,26 +90,25 @@
             <a href="/lwya/in-your-neighborhood" class="arrow">Media</a>
 
             <ul class="cd-nav-icons is-hidden">
-                <li class="go-back arrow"><a href="#" class="arrow">Menu</a></li>
-                <!-- <li class="see-all"><a href="/lwya/resources">See All Resources</a></li> -->
-                <li>
-                    <a class="cd-nav-item sermons" href="#">
+                <li class="go-back arrow"><a class="arrow">Menu</a></li>
+                <li class="se-4-column border-right">
+                    <a class="cd-nav-item sermons" href="/sermons">
                         <h3>Sermons</h3>
                     </a>
                 </li>
-                <li>
-                    <a class="cd-nav-item podcast" href="#">
+                <li class="se-4-column border-right">
+                    <a class="cd-nav-item podcast" href="https://itunes.apple.com/us/podcast/southeast-christian-church/id287341044?mt=2">
                         <h3>Podcast</h3>
                     </a>
                 </li>
-                <li>
-                    <a class="cd-nav-item stoies" href="#">
+                <li class="se-4-column border-right">
+                    <a class="cd-nav-item stoies" href="/stories">
                         <h3>Stories</h3>
                     </a>
                 </li>
-                <li>
+                <li class="se-4-column">
                     <div class="cd-nav-item live-stream disabled">
-                        <h3>Live Stream<br /><small>coming soon</small></h3>
+                        <h3>Live Stream<br /><small>coming soon!</small></h3>
                     </div>
                 </li>
             </ul>
@@ -118,25 +118,24 @@
             <a href="/lwya/in-your-neighborhood" class="arrow">Connect</a>
 
             <ul class="cd-nav-icons is-hidden">
-                <li class="go-back arrow"><a href="#" class="arrow">Menu</a></li>
-                <!-- <li class="see-all"><a href="/lwya/resources">See All Resources</a></li> -->
-                <li>
-                    <a class="cd-nav-item starting-point" href="/location/blankenbaker">
+                <li class="go-back arrow"><a class="arrow">Menu</a></li>
+                <li class="se-4-column border-right">
+                    <a class="cd-nav-item starting-point" href="/events/starting-point">
                         <h3>Starting Point</h3>
                     </a>
                 </li>
-                <li>
-                    <a class="cd-nav-item events" href="/location/indiana">
+                <li class="se-4-column border-right">
+                    <a class="cd-nav-item events" href="/events">
                         <h3>Events</h3>
                     </a>
                 </li>
-                <li>
-                    <a class="cd-nav-item groups" href="/location/crestwood">
+                <li class="se-4-column border-right">
+                    <a class="cd-nav-item groups" href="/#groups">
                         <h3>Groups</h3>
                     </a>
                 </li>
-                <li>
-                    <a class="cd-nav-item serve" href="/location/southwest">
+                <li class="se-4-column">
+                    <a class="cd-nav-item serve" href="/serve">
                         <h3>Serve</h3>
                     </a>
                 </li>
@@ -147,85 +146,84 @@
             <a href="/lwya/in-your-neighborhood" class="arrow">Ministries</a>
 
             <ul class="cd-nav-list is-hidden">
-                <li class="go-back arrow"><a href="#" class="arrow">Menu</a></li>
-                <!-- <li class="see-all"><a href="/lwya/resources">See All Resources</a></li> -->
-                <li>
-                    <a class="cd-nav-item" href="/location/blankenbaker">
+                <li class="go-back arrow"><a class="arrow">Menu</a></li>
+                <li class="border-right">
+                    <a class="cd-nav-item" href="/connect/men">
                         <h3>Men</h3>
                     </a>
                 </li>
-                <li>
-                    <a class="cd-nav-item" href="/location/indiana">
+                <li class="border-right">
+                    <a class="cd-nav-item" href="/connect/children">
                         <h3>Children</h3>
                     </a>
                 </li>
-                <li>
-                    <a class="cd-nav-item" href="/location/crestwood">
+                <li class="border-right">
+                    <a class="cd-nav-item" href="/connect/seniors">
                         <h3>Seniors</h3>
                     </a>
                 </li>
                 <li>
-                    <a class="cd-nav-item" href="/location/southwest">
+                    <a class="cd-nav-item" href="/connect/deaf-and-disabilities-ministry">
                         <h3>Deaf & Disabilities</h3>
                     </a>
                 </li>
-                <li>
-                    <a class="cd-nav-item" href="/location/lagrange">
+                <li class="border-right">
+                    <a class="cd-nav-item" href="/connect/women">
                         <h3>Women</h3>
                     </a>
                 </li>
-                <li>
-                    <a class="cd-nav-item" href="/location/elizabethtown">
+                <li class="border-right">
+                    <a class="cd-nav-item" href="#college-age">
                         <h3>College Age</h3>
                     </a>
                 </li>
-                <li>
-                    <a class="cd-nav-item" href="/location/elizabethtown">
+                <li class="border-right">
+                    <a class="cd-nav-item" href="/connect/missions">
                         <h3>Missions</h3>
                     </a>
                 </li>
                 <li>
-                    <a class="cd-nav-item" href="/location/elizabethtown">
+                    <a class="cd-nav-item" href="/connect/care">
                         <h3>Care</h3>
                     </a>
                 </li>
-                <li>
-                    <a class="cd-nav-item" href="/location/elizabethtown">
+                <li class="border-right">
+                    <a class="cd-nav-item" href="/connect/family">
                         <h3>Family</h3>
                     </a>
                 </li>
-                <li>
-                    <a class="cd-nav-item" href="/location/elizabethtown">
+                <li class="border-right">
+                    <a class="cd-nav-item" href="#highschool">
                         <h3>High School</h3>
                     </a>
                 </li>
-                <li>
-                    <a class="cd-nav-item" href="/location/elizabethtown">
+                <li class="border-right">
+                    <a class="cd-nav-item" href="/connect/generous-living">
                         <h3>Generous Living</h3>
                     </a>
                 </li>
                 <li>
-                    <a class="cd-nav-item" href="/location/elizabethtown">
+                    <a class="cd-nav-item" href="/connect/sports-fitness">
                         <h3>Sports & Fitness</h3>
                     </a>
                 </li>
-                <li>
-                    <a class="cd-nav-item" href="/location/elizabethtown">
+                <li class="border-right">
+                    <a class="cd-nav-item" href="/connect/single">
                         <h3>Single</h3>
                     </a>
                 </li>
-                <li>
-                    <a class="cd-nav-item" href="/location/elizabethtown">
+                <li class="border-right">
+                    <a class="cd-nav-item" href="#middleschool">
                         <h3>Middle School</h3>
                     </a>
                 </li>
-                <li>
-                    <a class="cd-nav-item" href="/location/elizabethtown">
+                <li class="border-right">
+                    <a class="cd-nav-item" href="#foster-and-adoption">
                         <h3>Foster & Adoption</h3>
                     </a>
                 </li>
                 <li>
-                    <a class="cd-nav-item" href="/location/elizabethtown">
+                    <a class="cd-nav-item" href="#awaken-worship">
                         <h3>Awaken Worship</h3>
                     </a>
                 </li>
@@ -236,43 +234,32 @@
 
         {% if CurrentPerson.Guid %}
         <li class="has-children" id="GroupManager">
-            <a href="/lwya/resources" class="arrow">Your Account</a>
-            <ul class="cd-dash-icons is-hidden">
-                <li class="go-back"><a href="#" class="arrow">Menu</a></li>
-                <li class="see-all"><a href="/lwya/group-manager/menu">See Account</a></li>
-                <li>
-                    <a class="cd-nav-item" href="/lwya/group-manager/attendance">
-                        <h3>Attendance</h3>
-                        <span class="niche"></span>
+            <a href="/lwya/resources" class="arrow"> My Account</a>
+            <ul class="cd-nav-list include-see-all is-hidden">
+                <li class="go-back"><a class="arrow">Menu</a></li>
+                <li class="see-all"><a href="/MyAccount">See My Account</a></li>
+                <li class="border-right">
+                    <a class="cd-nav-item" href="/MyEvents">
+                        <h3>My Events</h3>
+                    </a>
+                </li>
+
+                <li class="border-right">
+                    <a class="cd-nav-item" href="/my-classes">
+                        <h3>My Classes</h3>
+                    </a>
+                </li>
+
+                <li class="border-right">
+                    <a class="cd-nav-item" href="https://pushpay.com/g/southeastchristian/manageaccount">
+                        <h3>My Giving</h3>
                     </a>
                 </li>
 
                 <li>
-                    <a class="cd-nav-item" href="/page/882">
-                        <h3>Roster</h3>
-                        <span class="niche"></span>
-                    </a>
-                </li>
-
-                <li>
-                    <a class="cd-nav-item" href="/page/884">
-                        <h3>Leader Resources</h3>
-                        <span class="niche"></span>
-                    </a>
-                </li>
-
-                <li>
-                    <a class="cd-nav-item" href="/page/910">
-                        <h3>Your Community Pastor</h3>
-                        <span class="niche"></span>
-                    </a>
-                </li>
-
-                <li>
-                    <a class="cd-nav-item" href="/lwya?logout=true">
+                    <a class="cd-nav-item" href="/home?logout=true">
                         <!-- <h3>Logout |{{CurrentPerson.Guid}}|</h3> -->
                         <h3>Logout</h3>
-                        <span class="niche"></span>
                     </a>
                 </li>
 
@@ -280,9 +267,6 @@
         </li>
         {% endif %}
 
-        {% comment %}
-            I hate you lava
-        {% endcomment %}
         {% if personGuidSize == 0 %}
         <li class="MobileGroupManager">
             <a href="/lwya/group-manager">{{CurrentPerson}}Login to Your Account</a>
