@@ -77,26 +77,13 @@
 
             <Rock:Zone Name="Primary Site Navigation Placeholder" runat="server" />
 
-            <main id="PageBody" class="cd-main-content">
+            <main id="PageBody" class="cd-main-content transparent-content">
 
                 <!-- Page Header -->
                 <header id="SiteHeader">
                     <!-- SUPERNAV -->
                     <Rock:Zone Name="SuperNav" runat="server" />
                     <!-- MAIN SITE NAVIGATION -->
-                    <nav id="SiteNav" class="clearfix">
-                        <div class="container">
-                            <!-- LEFT SIDE OF SITE NAV -->
-                            <Rock:Zone Name="LeftNav" runat="server" />
-                            <!-- <span class="site-logo"> -->
-                                <!-- <a href="/"> -->
-                                    <!-- <img src="/Themes/SECC2014/Assets/img/logos/southeast/se-logo-invert-update.png" class="img-responsive" alt="Southeast Christian Church" style="width:100%; max-width:80px;" /> -->
-                                <!-- </a> -->
-                            <!-- </span> -->
-                            <!-- RIGHT SITE OF SITE NAV -->
-                            <Rock:Zone Name="RightNav" runat="server" />
-                        </div>
-                    </nav>
                 </header>
 
                 <!--========== PAGE CONTENT ==========-->

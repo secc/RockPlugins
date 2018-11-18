@@ -77,17 +77,46 @@ Main components
 
 .cd-main-content, .cd-main-header {
 	position: relative;
-	@include transition(transform .3s);
+	@include transition(transform .3s,background-color .3s, visibility 0s 0s);
 
-	&.transparent-header-menu {
+	&.transparent-header {
 		background-color: transparent !important;
 		box-shadow: none;
 
 		.cd-nav {
 			ul li a {
 				color: $color-1;
+				&:before,
+				&:after {
+					border-color: $color-1;
+				}
 			}
 		}
+		.cd-search-trigger {
+			&:before {
+				border-color: $color-1;
+			}
+			&:after {
+				background-color: $color-1;
+			}
+		}
+
+		.cd-nav-trigger {
+
+			&.nav-is-visible span {
+				background-color: transparent;
+			}
+			& span {
+				background-color: $color-1;
+				&:before {
+					background-color: $color-1;
+				}
+				&:after {
+					background-color: $color-1;
+				}
+			}
+		}
+
 		.cd-logo img.default-logo {
 			display: none;
 		}
@@ -146,10 +175,17 @@ Main components
 		@include clearfix;
 	}
 }
-main, #revSlider {
- margin-top: $header-height-S;
+
+main {
+ 	margin-top: $header-height-S;
+	 &.transparent-content {
+		 margin-top: 0 !important;
+	 }
 	 @include MQ(L) {
 	 	margin-top: $header-height-L;
+		&.transparent-content {
+	   	 margin-top: 0 !important;;
+	    }
 	 }
 }
 
@@ -1371,7 +1407,7 @@ support for no js
 
 @include MQ(L) {
 	.logged-in {
-		padding: 0 140px 0 0;
+		// padding: 0 140px 0 0;
 	}
 	.no-js .cd-primary-nav {
 		position: absolute;

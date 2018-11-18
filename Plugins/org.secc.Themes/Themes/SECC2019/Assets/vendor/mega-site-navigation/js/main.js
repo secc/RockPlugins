@@ -47,6 +47,7 @@ jQuery(document).ready(function($){
 		}
 	});
 	$('.cd-overlay').on('click', function(){
+		toggleTransparentMenu();
 		closeNav();
 		toggleSearch('close')
 		$('.cd-overlay').removeClass('is-visible');
@@ -63,10 +64,12 @@ jQuery(document).ready(function($){
 		var selected = $(this);
 		if( selected.next('ul').hasClass('is-hidden') ) {
 			//desktop version only
+			toggleTransparentMenu('hide');
 			selected.addClass('selected').next('ul').removeClass('is-hidden').end().parent('.has-children').parent('ul').addClass('moves-out');
 			selected.parent('.has-children').siblings('.has-children').children('ul').addClass('is-hidden').end().children('a').removeClass('selected');
 			$('.cd-overlay').addClass('is-visible');
 		} else {
+			toggleTransparentMenu();
 			selected.removeClass('selected').next('ul').addClass('is-hidden').end().parent('.has-children').parent('ul').removeClass('moves-out');
 			$('.cd-overlay').removeClass('is-visible');
 		}
@@ -77,6 +80,20 @@ jQuery(document).ready(function($){
 	$('.go-back').on('click', function(){
 		$(this).parent('ul').addClass('is-hidden').parent('.has-children').parent('ul').removeClass('moves-out');
 	});
+
+	function toggleTransparentMenu(type) {
+		var menu = $('.cd-main-header');
+		if(type=="hide") {
+			// remove class unless a drawer is open.
+			// if cd-nav-gallery, cd-nav-icons, cd-nav-list
+			//close search
+			menu.removeClass('transparent-header');
+		} else {
+			if( menu.hasClass('transparent-menu-enabled') ) {
+				menu.addClass('transparent-header');
+			}
+		}
+	}
 
 	function closeNav() {
 
@@ -94,12 +111,14 @@ jQuery(document).ready(function($){
 
 	function toggleSearch(type) {
 		if(type=="close") {
-			//close serach
+			//close search
+			// toggleTransparentMenu('hide');
 			$('.cd-search').removeClass('is-visible');
 			$('.cd-search-trigger').removeClass('search-is-visible');
 			$('.cd-overlay').removeClass('search-is-visible');
 		} else {
 			//toggle search visibility
+			// toggleTransparentMenu();
 			$('.cd-search').toggleClass('is-visible');
 			$('.cd-search-trigger').toggleClass('search-is-visible');
 			$('.cd-overlay').toggleClass('search-is-visible');
