@@ -144,7 +144,7 @@
         familyDiv = $("#familyDiv");
         if(families.length==1){
             setTimeout(function(){ showSign("Loading your family",true, "2.5vw")},300);
-            __doPostBack("ChooseFamily", families[0]["Group"]["Id"]);
+            setTimeout(function() {__doPostBack("ChooseFamily", families[0]["Group"]["Id"]);}, 1);
         }
         else{
             var content = document.getElementById("contentDiv");
@@ -172,8 +172,8 @@
         selectionActive=true
         this.innerHTML = "<h2><i class='fa fa-refresh fa-spin'></i> Loading Family</h2>Please wait..."
         this.className = "btn btn-success btn-block"
-            
-        __doPostBack("ChooseFamily", this.id);
+        familyId = this.id
+        setTimeout(function() { __doPostBack("ChooseFamily", familyId); },1)
     }
 
     var signVisible=false;

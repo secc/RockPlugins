@@ -7,6 +7,21 @@
     }
 </script>
 
+<style>
+    .grid-actions {
+        visibility: hidden;
+    }
+
+    .btn-danger {
+        color: white;
+        background-color: #d9534f;
+    }
+        .btn-danger:hover {
+        color: white;
+        background-color: #b24340;
+    }
+</style>
+
 <asp:UpdatePanel ID="upContent" runat="server">
     <ContentTemplate>
         <Rock:ModalAlert ID="maWarning" runat="server" />

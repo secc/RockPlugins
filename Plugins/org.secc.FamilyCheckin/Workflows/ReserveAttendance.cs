@@ -109,10 +109,10 @@ namespace Rock.Workflow.Action.CheckIn
                                             if ( primaryAlias != null )
                                             {
                                                 attendance = rockContext.Attendances.Create();
-                                                attendance.LocationId = location.Location.Id;
+                                                attendance.Occurrence.LocationId = location.Location.Id;
                                                 attendance.CampusId = location.CampusId;
-                                                attendance.ScheduleId = schedule.Schedule.Id;
-                                                attendance.GroupId = group.Group.Id;
+                                                attendance.Occurrence.ScheduleId = schedule.Schedule.Id;
+                                                attendance.Occurrence.GroupId = group.Group.Id;
                                                 attendance.PersonAlias = primaryAlias;
                                                 attendance.PersonAliasId = primaryAlias.Id;
                                                 attendance.DeviceId = checkInState.Kiosk.Device.Id;

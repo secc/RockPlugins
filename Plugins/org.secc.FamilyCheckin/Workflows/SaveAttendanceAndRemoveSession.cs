@@ -56,7 +56,7 @@ namespace Rock.Workflow.Action.CheckIn
                 {
                     throw new Exception( "CheckInGroupAttribute not set. Set attribute to continue." );
                 }
-                string checkinGroupAttributeKey = AttributeCache.Read( checkinGroupAttributeGuid, rockContext ).Key;
+                string checkinGroupAttributeKey = AttributeCache.Get( checkinGroupAttributeGuid ).Key;
 
                 string sessionAttributeKey = GetAttributeValue( action, "SessionAttributeKey" );
 
@@ -123,15 +123,11 @@ namespace Rock.Workflow.Action.CheckIn
                                             var primaryAlias = personAliasService.GetPrimaryAlias( person.Person.Id );
                                             if ( primaryAlias != null )
                                             {
-                                                attendance = rockContext.Attendances.Create();
-                                                attendance.LocationId = location.Location.Id;
-                                                attendance.CampusId = location.CampusId;
-                                                attendance.ScheduleId = schedule.Schedule.Id;
-                                                attendance.GroupId = group.Group.Id;
-                                                attendance.PersonAlias = primaryAlias;
-                                                attendance.PersonAliasId = primaryAlias.Id;
-                                                attendance.DeviceId = checkInState.Kiosk.Device.Id;
-                                                attendance.SearchTypeValueId = checkInState.CheckIn.SearchType.Id;
+                                                attendance = attendanceService.AddOrUpdate( primaryAlias.Id, startDateTime.Date, group.Group.Id,
+                                                    location.Location.Id, schedule.Schedule.Id, location.CampusId,
+                                                    checkInState.Kiosk.Device.Id, checkInState.CheckIn.SearchType.Id,
+                                                    checkInState.CheckIn.SearchValue, family.Group.Id, attendanceCode.Id );
+
                                                 attendanceService.Add( attendance );
                                             }
 

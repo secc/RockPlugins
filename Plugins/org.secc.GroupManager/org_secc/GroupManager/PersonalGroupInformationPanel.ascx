@@ -3,9 +3,9 @@
 <script>
     var groupMemberDeleteId = "";
 
-    var deleteGroupMember = function(confirm){
-        if (confirm){
-            __doPostBack('DeleteGroup', groupMemberDeleteId);
+    var deleteGroupMember = function (confirm) {
+        if (confirm) {
+            setTimeout(function () { __doPostBack('DeleteGroup', groupMemberDeleteId) }, 10);
         }
     }
 </script>

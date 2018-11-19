@@ -28,10 +28,10 @@ namespace org.secc.RoomScanner.Utilities
 {
     public static class DataHelper
     {
-        private static int personEntityTypeId = EntityTypeCache.Read( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
+        private static int personEntityTypeId = EntityTypeCache.Get( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
         private const string locationEntityTypeGuid = "0D6410AD-C83C-47AC-AF3D-616D09EDF63B";
-        private static int locationEntityTypeId = EntityTypeCache.Read( locationEntityTypeGuid.AsGuid() ).Id;
-        private static int allergyAttributeId = AttributeCache.Read( Rock.SystemGuid.Attribute.PERSON_ALLERGY.AsGuid() ).Id;
+        private static int locationEntityTypeId = EntityTypeCache.Get( locationEntityTypeGuid.AsGuid() ).Id;
+        private static int allergyAttributeId = AttributeCache.Get( Rock.SystemGuid.Attribute.PERSON_ALLERGY.AsGuid() ).Id;
 
         public static string GetHostInfo()
         {
@@ -209,16 +209,12 @@ namespace org.secc.RoomScanner.Utilities
 
         public static void CloneAttendance( Attendance attendance, bool isSubroom, Location location, AttendanceService attendanceService, Request req )
         {
-            Attendance newAttendance = ( Attendance ) attendance.Clone();
-            newAttendance.Id = 0;
-            newAttendance.Guid = new Guid();
+            var newAttendance = attendanceService.AddOrUpdate( attendance.PersonAliasId, attendance.StartDateTime.Date, attendance.Occurrence.GroupId,
+                                                    location.Id, attendance.Occurrence.ScheduleId, location.CampusId,
+                                                    null, null, null, null, null, null );
             newAttendance.StartDateTime = Rock.RockDateTime.Now;
             newAttendance.EndDateTime = null;
             newAttendance.DidAttend = true;
-            newAttendance.Device = null;
-            newAttendance.SearchTypeValue = null;
-            newAttendance.LocationId = req.LocationId;
-            newAttendance.AttendanceCode = null;
             newAttendance.AttendanceCodeId = attendance.AttendanceCodeId;
             if ( isSubroom )
             {
@@ -240,7 +236,20 @@ namespace org.secc.RoomScanner.Utilities
 
         public static Response GetEntryResponse( RockContext rockContext, Person person, Location location )
         {
-
+            var birthdateText = string.Empty;
+            if ( ( person.DaysToBirthday < 4 || person.DaysToBirthday > 363 ) && person.DaysToBirthday != int.MaxValue )
+            {
+                var birthdate = new DateTime( RockDateTime.Now.Year, person.BirthDate.Value.Month, person.BirthDate.Value.Day );
+                if ( birthdate == RockDateTime.Today )
+                {
+                    birthdateText = string.Format( "{0}'s Birthday is Today! {1}", person.NickName, GetAge( person ) );
+                }
+                else
+                {
+                    var elapsedString = birthdate.ToElapsedString( false, false );
+                    birthdateText = string.Format( "{0}'s Birthday {1} {2}! {3}", person.NickName, elapsedString.Contains( "Ago" ) ? "was" : "is", elapsedString, GetAge( person ) );
+                }
+            }
             var allergyAttributeValue = new AttributeValueService( rockContext )
                 .Queryable()
                 .FirstOrDefault( av => av.AttributeId == allergyAttributeId && av.EntityId == person.Id );
@@ -251,11 +260,21 @@ namespace org.secc.RoomScanner.Utilities
                     string.Format( "{0} has been checked-in to {1}. \n\n Allergy: {2}", person.FullName, location.Name, allergyAttributeValue.Value ),
                     false,
                     true,
-                    person.Id
+                    person.Id,
+                    birthdateText
                     );
             }
             var message2 = string.Format( "{0} has been checked-in to {1}.", person.FullName, location.Name );
-            return new Response( true, message2, false, personId: person.Id );
+            return new Response( true, message2, false, personId: person.Id, birthdayText: birthdateText );
+        }
+
+        private static string GetAge( Person person )
+        {
+            if ( person.Age > 18 )
+            {
+                return "";
+            }
+            return string.Format( "{0} years old.", RockDateTime.Today.Year - person.BirthYear );
         }
 
         public static void CloseActiveAttendances( RockContext rockContext, Attendance attendeeAttendance, Location location, bool isSubroom )
@@ -268,7 +287,7 @@ namespace org.secc.RoomScanner.Utilities
                 var stayedFifteenMinutes = ( Rock.RockDateTime.Now - activeAttendance.StartDateTime ) > new TimeSpan( 0, 15, 0 );
                 activeAttendance.DidAttend = stayedFifteenMinutes;
                 activeAttendance.EndDateTime = Rock.RockDateTime.Now;
-                AddExitHistory( rockContext, attendeeAttendance.Location, attendeeAttendance, isSubroom );
+                AddExitHistory( rockContext, attendeeAttendance.Occurrence.Location, attendeeAttendance, isSubroom );
                 CheckInCountCache.RemoveAttendance( activeAttendance );
             }
             if ( didRemove )

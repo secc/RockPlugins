@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -133,7 +133,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 if ( device == null )
                 {
                     device = new Device();
-                    device.DeviceTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.DEVICE_TYPE_CHECKIN_KIOSK ).Id;
+                    device.DeviceTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.DEVICE_TYPE_CHECKIN_KIOSK ).Id;
                     deviceService.Add( device );
                 }
 
@@ -157,7 +157,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 CurrentWorkflow = null;
                 Session["KioskTypeId"] = kiosk.KioskType.Id;
                 Session["KioskMessage"] = kiosk.KioskType.Message;
-                KioskDevice.Flush( device.Id );
+                KioskDevice.Remove( device.Id );
                 SaveState();
                 NavigateToNextPage();
             }

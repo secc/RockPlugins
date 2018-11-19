@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using org.secc.FamilyCheckin.Utilities;
 using org.secc.RoomScanner.Models;
 using Rock;
 using Rock.Data;
@@ -67,8 +68,8 @@ namespace org.secc.RoomScanner.Utilities
             foreach ( var attendance in attendancesToMove )
             {
                 var attendances = attendanceService.Queryable()
-                    .Where( a => a.LocationId == locationId
-                         && a.ScheduleId == attendance.ScheduleId
+                    .Where( a => a.Occurrence.LocationId == locationId
+                         && a.Occurrence.ScheduleId == attendance.Occurrence.ScheduleId
                          && a.EndDateTime == null
                          && a.StartDateTime >= Rock.RockDateTime.Today
                         ).ToList();
@@ -81,10 +82,10 @@ namespace org.secc.RoomScanner.Utilities
                 }
 
                 //Now check if checking in a kid there is "kid room"
-                if ( !volunteerGroupIds.Contains( attendance.GroupId ?? 0 ) )
+                if ( !volunteerGroupIds.Contains( attendance.Occurrence.GroupId ?? 0 ) )
                 {
                     threshold = Math.Min( location.SoftRoomThreshold ?? 0, threshold ); //lowest threshold
-                    var kidAttendances = attendances.Where( a => !volunteerGroupIds.Contains( a.GroupId ?? 0 ) ); //remove volunters
+                    var kidAttendances = attendances.Where( a => !volunteerGroupIds.Contains( a.Occurrence.GroupId ?? 0 ) ); //remove volunters
                     if ( kidAttendances.Count() >= threshold )
                     {
                         return true;
@@ -134,8 +135,26 @@ namespace org.secc.RoomScanner.Utilities
             return GetAttendancesForAttendee( rockContext, attendeeAttendance )
                 .Where( a => a.DidAttend == true
                 && a.EndDateTime == null
-                && a.LocationId != exclusionLocation.Id
-                && a.LocationId != exclusionLocation.ParentLocationId );
+                && a.Occurrence.LocationId != exclusionLocation.Id
+                && a.Occurrence.LocationId != exclusionLocation.ParentLocationId );
+        }
+
+        internal static AttendanceOccurrence GetOccurrenceForLocation( RockContext rockContext, Location location )
+        {
+            if ( IsSubRoom( location ) )
+            {
+                location = location.ParentLocation;
+            }
+
+            AttendanceOccurrenceService attendanceOccurrenceService = new AttendanceOccurrenceService( rockContext );
+            var occurrences = attendanceOccurrenceService.Queryable()
+                .Where( o => o.OccurrenceDate == RockDateTime.Now.Date && o.LocationId == location.Id ).ToList();
+            var volunteerOccurrences = occurrences.Where( o => KioskCountUtility.GetVolunteerGroupIds().Contains( o.GroupId ?? 0 ) ).FirstOrDefault();
+            if ( volunteerOccurrences != null )
+            {
+                return volunteerOccurrences;
+            }
+            return occurrences.FirstOrDefault();
         }
     }
 }

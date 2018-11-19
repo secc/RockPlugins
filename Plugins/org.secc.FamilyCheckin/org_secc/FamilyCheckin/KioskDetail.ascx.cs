@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -145,7 +145,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
                 rockContext.SaveChanges();
 
-                Rock.CheckIn.KioskDevice.FlushAll( );
+                Rock.CheckIn.KioskDevice.Clear( );
 
                 NavigateToParentPage();
             }
@@ -170,16 +170,16 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         /// Shows the edit.
         /// </summary>
         /// <param name="DeviceId">The device identifier.</param>
-        public void ShowDetail( int KioskId )
+        public void ShowDetail( int kioskId )
         {
             pnlDetails.Visible = true;
             Kiosk Kiosk = null;
 
             var rockContext = new RockContext();
 
-            if ( !KioskId.Equals( 0 ) )
+            if ( !kioskId.Equals( 0 ) )
             {
-                Kiosk = new KioskService( rockContext ).Get( KioskId );
+                Kiosk = new KioskService( rockContext ).Get( kioskId );
                 lActionTitle.Text = ActionTitle.Edit( Kiosk.FriendlyTypeName ).FormatAsHtmlTitle();
             }
 

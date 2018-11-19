@@ -59,7 +59,7 @@ namespace org.secc.FamilyCheckin
             var groupIdAttributeGuid = GetAttributeValue( action, "GroupMembershipGroupAttribute" ).AsGuid();
             if ( groupIdAttributeGuid != Guid.Empty )
             {
-                groupIdAttributeKey = AttributeCache.Read( groupIdAttributeGuid, rockContext ).Key;
+                groupIdAttributeKey = AttributeCache.Get( groupIdAttributeGuid ).Key;
             }
 
             var family = checkInState.CheckIn.CurrentFamily;

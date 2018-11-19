@@ -68,16 +68,16 @@ namespace org.secc.FamilyCheckin
             foreach (var value in dvDeactivated )
             {
                 definedValueService.Delete( value );
-                Rock.Web.Cache.DefinedValueCache.Flush( value.Id );
+                Rock.Web.Cache.DefinedValueCache.Remove( value.Id );
             }
 
             //clear defined type cache
-            Rock.Web.Cache.DefinedTypeCache.Flush( dtDeactivated.Id );
+            Rock.Web.Cache.DefinedTypeCache.Remove( dtDeactivated.Id );
 
             rockContext.SaveChanges();
             
             //flush kiosk cache
-            Rock.CheckIn.KioskDevice.FlushAll();
+            Rock.CheckIn.KioskDevice.Clear();
 
             context.Result = string.Format("Finished at {0}. Reset {1} GroupScheduleLocations.", Rock.RockDateTime.Now, deactivatedGroupLocationSchedules.Count);
         }

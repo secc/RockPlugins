@@ -110,6 +110,7 @@
       <DependentUpon>201607151453103_Message.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Migrations\UpdateCacheTags.cs" />
     <Compile Include="Model\Kiosk.cs" />
     <Compile Include="Model\KioskType.cs" />
     <Compile Include="Model\KioskService.cs" />
