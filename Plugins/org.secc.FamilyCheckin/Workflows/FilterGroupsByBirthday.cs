@@ -84,7 +84,7 @@ namespace org.secc.FamilyCheckin
                 var birthdayRangeAttributeGuid = GetAttributeValue( action, "GroupBirthdayRangeAttribute" ).AsGuid();
                 if ( birthdayRangeAttributeGuid != Guid.Empty )
                 {
-                    birthdayRangeAttributeKey = AttributeCache.Read( birthdayRangeAttributeGuid, rockContext ).Key;
+                    birthdayRangeAttributeKey = AttributeCache.Get( birthdayRangeAttributeGuid ).Key;
                 }
 
                 // log a warning if the attribute is missing or invalid
@@ -99,7 +99,7 @@ namespace org.secc.FamilyCheckin
                 {
                     throw new Exception( "Workflow attribute not set: Filter Groups By Birthday | Filter GradeSchool Students" );
                 }
-                string filterGradeSchoolKey = AttributeCache.Read( filterGradeSchoolGuid, rockContext ).Key;
+                string filterGradeSchoolKey = AttributeCache.Get( filterGradeSchoolGuid ).Key;
                 if ( string.IsNullOrWhiteSpace( filterGradeSchoolKey ) )
                 {
                     throw new Exception( "Workflow attribute not set: Filter Groups By Birthday | Filter GradeSchool Students" );

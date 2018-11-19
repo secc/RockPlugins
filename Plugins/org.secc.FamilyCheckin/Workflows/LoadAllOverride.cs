@@ -77,7 +77,7 @@ namespace org.secc.FamilyCheckin
                         foreach ( var id in checkInState.ConfiguredGroupTypes )
                         {
                             var cgt = new CheckInGroupType();
-                            cgt.GroupType = GroupTypeCache.Read( id );
+                            cgt.GroupType = GroupTypeCache.Get( id );
                             checkinGroupTypes.Add( cgt );
                             var groups = groupService.Queryable().Where( g => g.GroupTypeId == id );
                             List<CheckInGroup> checkinGroups = new List<CheckInGroup>();

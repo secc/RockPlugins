@@ -43,36 +43,42 @@ namespace org.secc.FamilyCheckin.Utilities
                 return _groupTypes;
             }
         }
-        private List<int> _volunteerGroupIds;
-        public List<int> VolunteerGroupIds
+        public List<int> VolunteerGroupIds { get => GetVolunteerGroupIds(); }
+        public static List<int> GetVolunteerGroupIds()
         {
-            get
+            if ( RockCache.Get( Constants.VOLUNTEER_ATTRIBUTE_GUID + "CachedVolunteerGroups" ) is List<int> volunteerGroupIds )
             {
-                if ( _volunteerGroupIds == null )
-                {
-                    var volAttribute = AttributeCache.Read( Constants.VOLUNTEER_ATTRIBUTE_GUID.AsGuid() );
-
-                    AttributeValueService attributeValueService = new AttributeValueService( new RockContext() );
-                    _volunteerGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "True" ).Select( av => av.EntityId.Value ).ToList();
-                }
-                return _volunteerGroupIds;
+                return volunteerGroupIds;
             }
+
+            //get value from db and update
+            var volAttribute = AttributeCache.Get( Constants.VOLUNTEER_ATTRIBUTE_GUID.AsGuid() );
+            AttributeValueService attributeValueService = new AttributeValueService( new RockContext() );
+            volunteerGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "True" ).Select( av => av.EntityId.Value ).ToList();
+            RockCache.AddOrUpdate( Constants.VOLUNTEER_ATTRIBUTE_GUID + "CachedVolunteerGroups", null, volunteerGroupIds, RockDateTime.Now.AddMinutes( 10 ), Constants.CACHE_TAG );
+
+            return volunteerGroupIds;
+
         }
 
-        private List<int> _childGroupIds;
         public List<int> ChildGroupIds
         {
-            get
+            get => GetChildGroupIds();
+        }
+        public static List<int> GetChildGroupIds()
+        {
+            if ( RockCache.Get( Constants.VOLUNTEER_ATTRIBUTE_GUID + "CachedChildGroups" ) is List<int> childGroupIds )
             {
-                if ( _childGroupIds == null )
-                {
-                    var volAttribute = AttributeCache.Read( Constants.VOLUNTEER_ATTRIBUTE_GUID.AsGuid() );
-
-                    AttributeValueService attributeValueService = new AttributeValueService( new RockContext() );
-                    _childGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "False" ).Select( av => av.EntityId.Value ).ToList();
-                }
-                return _childGroupIds;
+                return childGroupIds;
             }
+
+            //get value from db and update
+            var volAttribute = AttributeCache.Get( Constants.VOLUNTEER_ATTRIBUTE_GUID.AsGuid() );
+            AttributeValueService attributeValueService = new AttributeValueService( new RockContext() );
+            childGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "False" ).Select( av => av.EntityId.Value ).ToList();
+            RockCache.AddOrUpdate( Constants.VOLUNTEER_ATTRIBUTE_GUID + "CachedChildGroups", null, childGroupIds, RockDateTime.Now.AddMinutes( 10 ), Constants.CACHE_TAG );
+
+            return childGroupIds;
         }
 
         private Guid? _deactivatedDefinedTypeGuid;
@@ -104,7 +110,7 @@ namespace org.secc.FamilyCheckin.Utilities
                         GroupLocationService groupLocationService = new GroupLocationService( rockContext );
                         ScheduleService scheduleService = new ScheduleService( rockContext );
 
-                        var dtDeactivated = DefinedTypeCache.Read( _deactivatedDefinedTypeGuid ?? new Guid() );
+                        var dtDeactivated = DefinedTypeCache.Get( _deactivatedDefinedTypeGuid ?? new Guid() );
                         var dvDeactivated = dtDeactivated.DefinedValues;
                         _groupLocationSchedules.AddRange( dvDeactivated.Select( dv => dv.Value.Split( '|' ) )
                             .Select( s => new GroupLocationSchedule(
@@ -144,14 +150,14 @@ namespace org.secc.FamilyCheckin.Utilities
             var lglsc = CheckInCountCache.GetByLocation( LocationId ).Where( glsc => glsc.ScheduleId == ScheduleId ).ToList();
 
             locationScheduleCount.ChildCount = lglsc.Where( glsc => ChildGroupIds.Contains( glsc.GroupId ) )
-                .Select( glsc => glsc.PersonIds.Count ).Sum();
+                .Sum( glsc => glsc.PersonIds.Count );
 
             locationScheduleCount.VolunteerCount = lglsc.Where( glsc => VolunteerGroupIds.Contains( glsc.GroupId ) )
-                .Select( glsc => glsc.PersonIds.Count ).Sum();
+                .Sum( glsc => glsc.PersonIds.Count );
 
-            locationScheduleCount.ReservedCount = 0;
+            locationScheduleCount.ReservedCount = lglsc.Sum( glsc => glsc.PersonIds.Count ) - lglsc.Sum( glsc => glsc.InRoomPersonIds.Count );
 
-            locationScheduleCount.TotalCount = lglsc.Select( glsc => glsc.PersonIds.Count ).Sum();
+            locationScheduleCount.TotalCount = lglsc.Sum( glsc => glsc.PersonIds.Count );
 
             return locationScheduleCount;
         }

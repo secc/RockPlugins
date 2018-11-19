@@ -18,8 +18,10 @@ using System.Linq;
 using System.Runtime.Caching;
 using System.Text;
 using System.Threading.Tasks;
+using Rock;
 using Rock.Data;
 using Rock.Model;
+using Rock.Web.Cache;
 
 namespace org.secc.FamilyCheckin.Utilities
 {
@@ -30,8 +32,7 @@ namespace org.secc.FamilyCheckin.Utilities
         private const string cacheKey = "CheckInCountCache";
         public static List<GroupLocationScheduleCount> GetByLocation( int locationId )
         {
-            ObjectCache cache = Rock.Web.Cache.RockMemoryCache.Default;
-            var glsc = ( List<GroupLocationScheduleCount> ) cache.Get( cacheKey );
+            var glsc = ( List<GroupLocationScheduleCount> ) RockCache.Get( cacheKey );
             if ( glsc == null )
             {
                 glsc = UpdateCache();
@@ -43,24 +44,22 @@ namespace org.secc.FamilyCheckin.Utilities
         {
             lock ( LOCK )
             {
-
-                ObjectCache cache = Rock.Web.Cache.RockMemoryCache.Default;
-                var lglsc = ( List<GroupLocationScheduleCount> ) cache.Get( cacheKey );
+                var lglsc = ( List<GroupLocationScheduleCount> ) RockCache.Get( cacheKey );
                 if ( lglsc == null )
                 {
                     lglsc = UpdateCache();
                 }
                 GroupLocationScheduleCount glsc = lglsc.FirstOrDefault( g =>
-                                                                    g.LocationId == ( attendance.LocationId ?? 0 )
-                                                                    && g.ScheduleId == ( attendance.ScheduleId ?? 0 )
-                                                                    && g.GroupId == ( attendance.GroupId ?? 0 ) );
+                                                                    g.LocationId == ( attendance.Occurrence.LocationId ?? 0 )
+                                                                    && g.ScheduleId == ( attendance.Occurrence.ScheduleId ?? 0 )
+                                                                    && g.GroupId == ( attendance.Occurrence.GroupId ?? 0 ) );
                 if ( glsc == null )
                 {
                     glsc = new GroupLocationScheduleCount()
                     {
-                        LocationId = attendance.LocationId ?? 0,
-                        ScheduleId = attendance.ScheduleId ?? 0,
-                        GroupId = attendance.GroupId ?? 0,
+                        LocationId = attendance.Occurrence.LocationId ?? 0,
+                        ScheduleId = attendance.Occurrence.ScheduleId ?? 0,
+                        GroupId = attendance.Occurrence.GroupId ?? 0,
                         PersonIds = new List<int>(),
                         InRoomPersonIds = new List<int>()
 
@@ -78,10 +77,7 @@ namespace org.secc.FamilyCheckin.Utilities
                 {
                     glsc.InRoomPersonIds.Add( attendance.PersonAlias.PersonId );
                 }
-
-                var cachePolicy = new CacheItemPolicy();
-                cachePolicy.AbsoluteExpiration = DateTimeOffset.Now.AddMinutes( 10 );
-                cache.Set( cacheKey, lglsc, cachePolicy );
+                RockCache.AddOrUpdate( cacheKey, null, lglsc, RockDateTime.Now.AddMinutes( 10 ), Constants.CACHE_TAG );
             }
         }
 
@@ -89,8 +85,7 @@ namespace org.secc.FamilyCheckin.Utilities
         {
             lock ( LOCK )
             {
-                ObjectCache cache = Rock.Web.Cache.RockMemoryCache.Default;
-                var lglsc = ( List<GroupLocationScheduleCount> ) cache.Get( cacheKey );
+                var lglsc = ( List<GroupLocationScheduleCount> ) RockCache.Get( cacheKey );
                 if ( lglsc == null )
                 {
                     lglsc = UpdateCache();
@@ -99,9 +94,9 @@ namespace org.secc.FamilyCheckin.Utilities
                 var personId = attendance.PersonAlias.PersonId;
 
                 var items = lglsc.Where( g =>
-                                g.LocationId == attendance.LocationId
-                                && g.ScheduleId == attendance.ScheduleId
-                                && g.GroupId == attendance.GroupId )
+                                g.LocationId == attendance.Occurrence.LocationId
+                                && g.ScheduleId == attendance.Occurrence.ScheduleId
+                                && g.GroupId == attendance.Occurrence.GroupId )
                     .ToList();
 
                 foreach ( var glsc in items )
@@ -114,9 +109,7 @@ namespace org.secc.FamilyCheckin.Utilities
                     {
                         glsc.InRoomPersonIds.Remove( personId );
                     }
-                    var cachePolicy = new CacheItemPolicy();
-                    cachePolicy.AbsoluteExpiration = DateTimeOffset.Now.AddMinutes( 10 );
-                    cache.Set( cacheKey, lglsc, cachePolicy );
+                    RockCache.AddOrUpdate( cacheKey, null, lglsc, RockDateTime.Now.AddMinutes( 10 ), Constants.CACHE_TAG );
                 }
             }
         }
@@ -125,8 +118,7 @@ namespace org.secc.FamilyCheckin.Utilities
         {
             lock ( LOCK )
             {
-                ObjectCache cache = Rock.Web.Cache.RockMemoryCache.Default;
-                var lglsc = ( List<GroupLocationScheduleCount> ) cache.Get( cacheKey );
+                var lglsc = ( List<GroupLocationScheduleCount> ) RockCache.Get( cacheKey );
                 if ( lglsc == null )
                 {
                     lglsc = UpdateCache();
@@ -135,9 +127,9 @@ namespace org.secc.FamilyCheckin.Utilities
                 var personId = attendance.PersonAlias.PersonId;
 
                 var items = lglsc.Where( g =>
-                                g.LocationId == attendance.LocationId
-                                && g.ScheduleId == attendance.ScheduleId
-                                && g.GroupId == attendance.GroupId )
+                                g.LocationId == attendance.Occurrence.LocationId
+                                && g.ScheduleId == attendance.Occurrence.ScheduleId
+                                && g.GroupId == attendance.Occurrence.GroupId )
                     .ToList();
 
                 foreach ( var glsc in items )
@@ -165,9 +157,7 @@ namespace org.secc.FamilyCheckin.Utilities
                         }
                     }
                 }
-                var cachePolicy = new CacheItemPolicy();
-                cachePolicy.AbsoluteExpiration = DateTimeOffset.Now.AddMinutes( 10 );
-                cache.Set( cacheKey, lglsc, cachePolicy );
+                RockCache.AddOrUpdate( cacheKey, null, lglsc, RockDateTime.Now.AddMinutes( 10 ) );
             }
         }
 
@@ -192,7 +182,7 @@ namespace org.secc.FamilyCheckin.Utilities
                             a.StartDateTime >= today
                             && a.StartDateTime < tomorrow
                             && a.EndDateTime == null )
-                .GroupBy( a => new { a.GroupId, a.LocationId, a.ScheduleId } )
+                .GroupBy( a => new { a.Occurrence.GroupId, a.Occurrence.LocationId, a.Occurrence.ScheduleId } )
                 .ToList();
             foreach ( var attendance in attendances )
             {
@@ -207,10 +197,7 @@ namespace org.secc.FamilyCheckin.Utilities
                 output.Add( glsc );
             }
 
-            var cachePolicy = new CacheItemPolicy();
-            cachePolicy.AbsoluteExpiration = DateTimeOffset.Now.AddMinutes( 10 );
-            ObjectCache cache = Rock.Web.Cache.RockMemoryCache.Default;
-            cache.Set( cacheKey, output, cachePolicy );
+            RockCache.AddOrUpdate( cacheKey, null, output, RockDateTime.Now.AddMinutes( 10 ), Constants.CACHE_TAG );
             return output;
         }
     }

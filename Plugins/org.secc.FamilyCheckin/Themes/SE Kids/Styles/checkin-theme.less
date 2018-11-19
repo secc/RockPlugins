@@ -403,7 +403,23 @@ body {
   margin: 0px auto;
 }
 
-.pgtSelectButton, .pgtSelectButton:hover {
+.btn-selectSchedule, .btn-selectSchedule:hover {
+  font-size: 5em;
+  padding: 15px 0px;
+  margin: 25px;
+  width: 90%;
+  background-color: #dcdcdc;
+  border: 0px;
+  border-radius: 3px;
+  color: black;
+  box-shadow: 2px 2px 1px black;
+}
+
+.btn-selectSchedule:active {
+  box-shadow: -2px -2px 1px black;
+}
+
+.btn-selectSchedule-active, .btn-selectSchedule-active:hover {
   font-size: 5em;
   padding: 15px 0px;
   margin: 25px;
@@ -415,7 +431,21 @@ body {
   box-shadow: 2px 2px 1px black;
 }
 
-.pgtSelectButton:active {
+.btn-selectScheduleNext, .btn-selectScheduleNext:hover {
+  border: none;
+  color: white;
+  text-shadow: 1px 2px 4px #56BE89, 0 0 0 #000, 1px 2px 4px #56BE89;
+  font-size: 5em;
+  background-color: #12A158;
+  box-shadow: 2px 2px 1px black;
+  padding: 15px 0px;
+  margin: 25px auto;
+  width: 40%;
+  background-color: #12A158;
+  border-radius: 3px;
+}
+
+.btn-selectSchedule:active {
   box-shadow: -2px -2px 1px black;
 }
 
@@ -509,7 +539,7 @@ body {
   padding: 25px;
 }
 
-.ParentGroupTypeHeader a, .ParentGroupTypeHeader a:hover, .modal h1 {
+.CheckinHeader a, .CheckinHeader a:hover, .modal h1 {
   display: inline;
   cursor: pointer;
   font-weight: bold;

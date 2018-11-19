@@ -27,14 +27,16 @@ namespace org.secc.RoomScanner.Models
         public bool Overridable { get; set; }
         public bool RequireConfirmation { get; set; }
         public int PersonId { get; set; }
+        public string BirthdayText { get; set; }
 
-        public Response( bool success, string message, bool overridable, bool requireConfirmation = false, int personId = 0)
+        public Response( bool success, string message, bool overridable, bool requireConfirmation = false, int personId = 0, string birthdayText = "" )
         {
             this.Success = success;
             this.Message = message;
             this.Overridable = overridable;
             this.RequireConfirmation = requireConfirmation;
             this.PersonId = personId;
+            this.BirthdayText = birthdayText;
         }
     }
 }

@@ -226,7 +226,7 @@ namespace org.secc.FamilyCheckin
                     Guid? binaryFileGuid = groupType.GetAttributeValue( attribute.Key ).AsGuidOrNull();
                     if ( binaryFileGuid != null )
                     {
-                        var labelCache = KioskLabel.Read( binaryFileGuid.Value );
+                        var labelCache = KioskLabel.Get( binaryFileGuid.Value );
                         labelCache.Order = attribute.Value.Order;
                         if ( labelCache != null )
                         {

@@ -96,8 +96,8 @@ namespace org.secc.FamilyCheckin
                             DefinedValueCache maxGradeDefinedValue = null;
                             if ( gradeOffsetRangePair.Length == 2 )
                             {
-                                minGradeDefinedValue = gradeOffsetRangePair[0].HasValue ? DefinedValueCache.Read( gradeOffsetRangePair[0].Value ) : null;
-                                maxGradeDefinedValue = gradeOffsetRangePair[1].HasValue ? DefinedValueCache.Read( gradeOffsetRangePair[1].Value ) : null;
+                                minGradeDefinedValue = gradeOffsetRangePair[0].HasValue ? DefinedValueCache.Get( gradeOffsetRangePair[0].Value ) : null;
+                                maxGradeDefinedValue = gradeOffsetRangePair[1].HasValue ? DefinedValueCache.Get( gradeOffsetRangePair[1].Value ) : null;
                             }
 
                             /*
@@ -174,7 +174,7 @@ namespace org.secc.FamilyCheckin
 
         public int CurrentGraduationYear( GroupTypeCache area )
         {
-            var transitionDate = area.GetAttributeValue( "GradeTransitionDate" ).AsDateTime() ?? GlobalAttributesCache.Read().GetValue( "GradeTransitionDate" ).AsDateTime() ?? new DateTime( RockDateTime.Today.Year, 6, 1 );
+            var transitionDate = area.GetAttributeValue( "GradeTransitionDate" ).AsDateTime() ?? GlobalAttributesCache.Get().GetValue( "GradeTransitionDate" ).AsDateTime() ?? new DateTime( RockDateTime.Today.Year, 6, 1 );
             transitionDate = new DateTime( RockDateTime.Today.Year, transitionDate.Month, transitionDate.Day );
             return RockDateTime.Now.Date < transitionDate ? transitionDate.Year : transitionDate.Year + 1;
 

@@ -20,7 +20,7 @@
             });
         });
     </script>
-    <script src="<%# ResolveUrl("~/Scripts/jquery-migrate-3.0.1.min.js" ) %>"></script>
+    <script src="<%# ResolveUrl("~/Scripts/jquery-migrate-3.0.0.min.js" ) %>"></script>
 </head>
 <body id="splash" class="error">
     <form id="form1" runat="server">
