@@ -294,9 +294,12 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             Person adult = new Person();
             adult.FirstName = tbFirstname.Text;
             adult.LastName = tbLastName.Text;
-            adult.BirthDay = dpBirthday.SelectedDate.Value.Day;
-            adult.BirthMonth = dpBirthday.SelectedDate.Value.Month;
-            adult.BirthYear = dpBirthday.SelectedDate.Value.Year;
+            if ( dpBirthday.SelectedDate != null )
+            {
+                adult.BirthDay = dpBirthday.SelectedDate.Value.Day;
+                adult.BirthMonth = dpBirthday.SelectedDate.Value.Month;
+                adult.BirthYear = dpBirthday.SelectedDate.Value.Year;
+            }
             adult.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
             adult.ConnectionStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT.AsGuid() ).Id;
             adult.RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id;
@@ -310,9 +313,12 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                 Person adult2 = new Person();
                 adult2.FirstName = tbFirstName2.Text;
                 adult2.LastName = tbLastName2.Text;
-                adult2.BirthDay = dpBirthday2.SelectedDate.Value.Day;
-                adult2.BirthMonth = dpBirthday2.SelectedDate.Value.Month;
-                adult2.BirthYear = dpBirthday2.SelectedDate.Value.Year;
+                if ( dpBirthday2.SelectedDate != null )
+                {
+                    adult2.BirthDay = dpBirthday2.SelectedDate.Value.Day;
+                    adult2.BirthMonth = dpBirthday2.SelectedDate.Value.Month;
+                    adult2.BirthYear = dpBirthday2.SelectedDate.Value.Year;
+                }
                 adult2.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
                 adult2.ConnectionStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT.AsGuid() ).Id;
                 adult2.RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id;
