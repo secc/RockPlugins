@@ -30,14 +30,14 @@ using Rock.Web.Cache;
 using System.Text.RegularExpressions;
 using org.secc.PersonMatch;
 
-namespace RockWeb.Blocks.Security
+namespace RockWeb.Plugins.org_secc.Security
 {
     [DisplayName( "Captive Portal" )]
     [Category( "Security" )]
     [Description( "Controls access to Wi-Fi." )]
     [TextField( "MAC Address Paramameter", "The query string parameter used for the MAC Address", true, "client_mac", "", 0, "MacAddressParam" )]
     [TextField( "Release Link", "The full URL to redirect users to after registration.", true, "", "", 1, "ReleaseLink" )]
-    [BooleanField("Show Name", "Show or hide the Name fields. If it is visible then it will be required.", true, "", 2, "ShowName", IsRequired = true )]
+    [BooleanField( "Show Name", "Show or hide the Name fields. If it is visible then it will be required.", true, "", 2, "ShowName", IsRequired = true )]
     [BooleanField( "Show Mobile Phone", "Show or hide the Mobile Phone Number field.", true, "", 3, "ShowMobilePhone", IsRequired = true )]
     [BooleanField( "Require Mobile Phone", "Optionally require the Mobile Phone Number field.", true, "", 4, "RequireMobilePhone", IsRequired = true )]
     [BooleanField( "Show Email", "Show or hide the Email field. If it is visible then it will be required.", true, "", 5, "ShowEmail", IsRequired = true )]
@@ -46,7 +46,8 @@ namespace RockWeb.Blocks.Security
     [TextField( "Acceptance Checkbox Label", "Text used to signify user agreement with the Terms and Conditions", true, "I Accept", "", 8, "AcceptanceLabel" )]
     [TextField( "Button Text", "Text to display on the button", true, "Accept and Connect", "", 9, "ButtonText" )]
     [BooleanField( "Show Legal Note", "Show or hide the Terms and Conditions. This should be always be visible unless users are being automatically connected without any agreement needed.", true, "", 10, "ShowLegalNote", IsRequired = true )]
-    [CodeEditorField ( "Legal Note", "A legal note outlining the Terms and Conditions for using Wi-Fi.", CodeEditorMode.Html, CodeEditorTheme.Rock, 400, false, DEFAULT_LEGAL_NOTE, "", 11, "LegalNote" )]
+    [CodeEditorField( "Legal Note", "A legal note outlining the Terms and Conditions for using Wi-Fi.", CodeEditorMode.Html, CodeEditorTheme.Rock, 400, false, DEFAULT_LEGAL_NOTE, "", 11, "LegalNote" )]
+    [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Connection Status", "The connection status to use for new individuals (default: 'Visitor'.)", true, false, Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_VISITOR )]
     public partial class CaptivePortal : RockBlock
     {
         #region Block Setting Strings
@@ -136,7 +137,7 @@ namespace RockWeb.Blocks.Security
             {
                 string macAddress = RockPage.PageParameter( GetAttributeValue( "MacAddressParam" ) );
                 Regex regex = new Regex( "^([0-9a-fA-F]{2}(?:[:-]?[0-9a-fA-F]{2}){5})$" );
-                if ( string.IsNullOrWhiteSpace( macAddress ) || !regex.IsMatch(macAddress) )
+                if ( string.IsNullOrWhiteSpace( macAddress ) || !regex.IsMatch( macAddress ) )
                 {
                     nbAlert.Text = "Missing or invalid MAC Address";
                     nbAlert.Visible = true;
@@ -177,7 +178,7 @@ namespace RockWeb.Blocks.Security
                     personalDevice = CreateDevice( macAddress );
                     CreateDeviceCookie( macAddress );
                 }
-                
+
                 // See if user is logged and link the alias to the device.
                 if ( CurrentPerson != null )
                 {
@@ -355,7 +356,7 @@ namespace RockWeb.Blocks.Security
         /// <summary>
         /// Creates the device cookie if it does not exist.
         /// </summary>
-        private void CreateDeviceCookie(string macAddress )
+        private void CreateDeviceCookie( string macAddress )
         {
             if ( Request.Cookies["rock_wifi"] == null )
             {
@@ -373,7 +374,7 @@ namespace RockWeb.Blocks.Security
         /// <param name="rockUserId">The rock user identifier.</param>
         protected void Prefill( Person person )
         {
-            if (person == null)
+            if ( person == null )
             {
                 return;
             }
@@ -392,10 +393,15 @@ namespace RockWeb.Blocks.Security
                 PhoneNumberService phoneNumberService = new PhoneNumberService( new RockContext() );
                 int mobilePhoneTypeId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE ).Id;
                 PhoneNumber phoneNumber = phoneNumberService.Queryable().Where( p => p.PersonId == person.Id && p.NumberTypeValueId == mobilePhoneTypeId ).FirstOrDefault();
-                tbMobilePhone.Text = phoneNumber == null? string.Empty : phoneNumber.Number;
+                tbMobilePhone.Text = phoneNumber == null ? string.Empty : phoneNumber.Number;
             }
 
-            if (tbEmail.Visible == true )
+            if ( dppDOB.Visible )
+            {
+                dppDOB.SelectedDate = person.BirthDate;
+            }
+
+            if ( tbEmail.Visible == true )
             {
                 tbEmail.Text = person.Email;
             }
@@ -417,7 +423,7 @@ namespace RockWeb.Blocks.Security
 
             // We know there is a device with the stored MAC
             // If we have an alias ID then we have all data needed and can redirect the user to frontporch
-            if ( hfPersonAliasId.Value != string.Empty)
+            if ( hfPersonAliasId.Value != string.Empty )
             {
                 UpdatePersonInfo();
                 Response.Redirect( CreateRedirectUrl( int.Parse( hfPersonAliasId.Value ) ) );
@@ -426,7 +432,7 @@ namespace RockWeb.Blocks.Security
 
             PersonService personService = new PersonService( new RockContext() );
             int mobilePhoneTypeId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE ).Id;
-            
+
             // Use the entered info to try and find an existing user
             string mobilePhoneNumber = string.Concat( tbMobilePhone.Text.Where( c => char.IsLetterOrDigit( c ) ) );
             Person person = personService.GetByMatch( tbFirstName.Text, tbLastName.Text, dppDOB.SelectedDate, tbEmail.Text, mobilePhoneNumber, null, null ).FirstOrDefault();
@@ -437,17 +443,26 @@ namespace RockWeb.Blocks.Security
                 .Where( p => p.Email == tbEmail.Text )
                 .Where( p => p.PhoneNumbers.Where( n => n.NumberTypeValueId == mobilePhoneTypeId ).FirstOrDefault().Number == mobilePhoneNumber )
                 .FirstOrDefault();*/
-            
+
             // If no known person record then create one
             if ( person == null )
             {
-                person = new Person {
+                var defaultConnectionStatus = DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() );
+
+                person = new Person
+                {
                     FirstName = tbFirstName.Text,
                     LastName = tbLastName.Text,
                     Email = tbEmail.Text,
-                    PhoneNumbers = new List<PhoneNumber>() { new PhoneNumber { IsSystem = false, Number = string.Concat( tbMobilePhone.Text.Where( c => char.IsLetterOrDigit( c ) ) ), NumberTypeValueId = mobilePhoneTypeId } }
+                    ConnectionStatusValueId = defaultConnectionStatus.Id,
+                    RecordTypeValueId = 1,
+                    RecordStatusValueId = 3
                 };
-                if (dppDOB.SelectedDate.HasValue)
+                if ( !string.IsNullOrWhiteSpace( tbMobilePhone.Text ) )
+                {
+                    person.PhoneNumbers = new List<PhoneNumber>() { new PhoneNumber { IsSystem = false, Number = string.Concat( tbMobilePhone.Text.Where( c => char.IsLetterOrDigit( c ) ) ), NumberTypeValueId = mobilePhoneTypeId } };
+                }
+                if ( dppDOB.SelectedDate.HasValue )
                 {
                     person.BirthDay = dppDOB.SelectedDate.Value.Day;
                     person.BirthMonth = dppDOB.SelectedDate.Value.Month;
@@ -497,7 +512,7 @@ namespace RockWeb.Blocks.Security
             tbMobilePhone.Visible = GetAttributeValue( "ShowMobilePhone" ).AsBoolean();
             tbMobilePhone.Required = GetAttributeValue( "RequireMobilePhone" ).AsBoolean();
             tbMobilePhone.Enabled = isEnabled;
-			
+
             dppDOB.Visible = GetAttributeValue( "ShowDOB" ).AsBoolean();
             dppDOB.Required = GetAttributeValue( "ShowDOB" ).AsBoolean();
             dppDOB.Enabled = isEnabled;
@@ -537,7 +552,7 @@ namespace RockWeb.Blocks.Security
                 int? personId = CurrentPersonId ?? new PersonAliasService( rockContext ).GetPersonId( int.Parse( hfPersonAliasId.Value ) );
 
                 // If we can't get a person ID then just return
-                if( personId == null )
+                if ( personId == null )
                 {
                     return;
                 }
@@ -548,14 +563,17 @@ namespace RockWeb.Blocks.Security
 
                 person.Email = tbEmail.Text;
 
-                if ( !person.PhoneNumbers.Where( n => n.NumberTypeValueId == mobilePhoneTypeId ).Any() )
+                if ( !string.IsNullOrWhiteSpace( tbMobilePhone.Text ) )
                 {
-                    person.PhoneNumbers.Add( new PhoneNumber { IsSystem = false, Number = string.Concat( tbMobilePhone.Text.Where( c => char.IsLetterOrDigit( c ) ) ), NumberTypeValueId = mobilePhoneTypeId } );
-                }
-                else
-                {
-                    PhoneNumber phoneNumber = person.PhoneNumbers.Where( p => p.NumberTypeValueId == mobilePhoneTypeId ).FirstOrDefault();
-                    phoneNumber.Number = string.Concat( tbMobilePhone.Text.Where( c => char.IsLetterOrDigit( c ) ) );
+                    if ( !person.PhoneNumbers.Where( n => n.NumberTypeValueId == mobilePhoneTypeId ).Any() )
+                    {
+                        person.PhoneNumbers.Add( new PhoneNumber { IsSystem = false, Number = string.Concat( tbMobilePhone.Text.Where( c => char.IsLetterOrDigit( c ) ) ), NumberTypeValueId = mobilePhoneTypeId } );
+                    }
+                    else
+                    {
+                        PhoneNumber phoneNumber = person.PhoneNumbers.Where( p => p.NumberTypeValueId == mobilePhoneTypeId ).FirstOrDefault();
+                        phoneNumber.Number = string.Concat( tbMobilePhone.Text.Where( c => char.IsLetterOrDigit( c ) ) );
+                    }
                 }
 
                 rockContext.SaveChanges();
