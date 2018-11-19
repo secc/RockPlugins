@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -91,8 +91,8 @@ namespace RockWeb.Plugins.org_secc.RoomScanner
             context.SaveChanges();
 
             // Flush the cache(s)
-            AttributeCache.Flush( attribute.Id );
-            GlobalAttributesCache.Flush();
+            AttributeCache.Remove( attribute.Id );
+            GlobalAttributesCache.Clear();
         }
     }
 }
