@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -66,9 +66,9 @@ namespace RockWeb.Blocks.Reporting.HomeGroups
             var attendances = attendanceService.Queryable()
                 .Where( a => a.StartDateTime >= dpStart.DateRange.Start
                 && a.StartDateTime <= dpStart.DateRange.End
-                && childGroupIds.Contains( a.GroupId ?? 0 )
+                && childGroupIds.Contains( a.Occurrence.GroupId ?? 0 )
                 );
-            var groupsAttendance = attendances.DistinctBy( a => a.GroupId ).Count();
+            var groupsAttendance = attendances.DistinctBy( a => a.Occurrence.GroupId ).Count();
             var didAttend = attendances.Where( a => a.DidAttend == true ).Count();
             var total = attendances.Count();
             var percent = Decimal.Divide( didAttend, total );
