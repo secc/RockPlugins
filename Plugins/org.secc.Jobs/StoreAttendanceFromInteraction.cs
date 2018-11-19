@@ -95,7 +95,7 @@ namespace org.secc.Jobs
                                     foreach ( int personAliasId in peopleAttended )
                                     {
                                         // Make sure we don't already have an attendance Record
-                                        if ( !attendanceService.Queryable().Any( a => DbFunctions.TruncateTime( a.StartDateTime ) == occurrence.Period.StartTime.Value.Date && a.ScheduleId == schedule.Id && a.PersonAliasId == personAliasId && a.GroupId == group.Id && a.LocationId == location.Id && a.DidAttend == true ) )
+                                        if ( !attendanceService.Queryable().Any( a => DbFunctions.TruncateTime( a.StartDateTime ) == occurrence.Period.StartTime.Value.Date && a.Occurrence.ScheduleId == schedule.Id && a.PersonAliasId == personAliasId && a.Occurrence.GroupId == group.Id && a.Occurrence.LocationId == location.Id && a.DidAttend == true ) )
                                         {
                                             var attendance = attendanceService.AddOrUpdate( personAliasId, occurrence.Period.StartTime.Value, group.Id, location.Id, schedule.Id, campus.Id );
                                             attendance.EndDateTime = occurrence.Period?.EndTime?.Value;
