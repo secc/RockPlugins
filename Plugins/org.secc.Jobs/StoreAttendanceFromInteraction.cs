@@ -46,11 +46,11 @@ namespace org.secc.Jobs
             GroupService groupService = new GroupService( rockContext );
 
             // Load the channel
-            InteractionChannelCache channel = InteractionChannelCache.Read( dataMap.GetString( "InteractionChannel" ).AsGuid() );
+            InteractionChannelCache channel = InteractionChannelCache.Get( dataMap.GetString( "InteractionChannel" ).AsGuid() );
 
             // Setup 
-            int campusLocationTypeId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.LOCATION_TYPE_CAMPUS ).Id;
-            var groupType = GroupTypeCache.Read( dataMap.GetString( "GroupType" ).AsGuid() );
+            int campusLocationTypeId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.LOCATION_TYPE_CAMPUS ).Id;
+            var groupType = GroupTypeCache.Get( dataMap.GetString( "GroupType" ).AsGuid() );
             var groups = groupService.GetByGroupTypeId( groupType.Id );
             string operation = !string.IsNullOrWhiteSpace(dataMap.GetString( "Operation" )) ? dataMap.GetString( "Operation" ) : null;
 
@@ -97,18 +97,9 @@ namespace org.secc.Jobs
                                         // Make sure we don't already have an attendance Record
                                         if ( !attendanceService.Queryable().Any( a => DbFunctions.TruncateTime( a.StartDateTime ) == occurrence.Period.StartTime.Value.Date && a.ScheduleId == schedule.Id && a.PersonAliasId == personAliasId && a.GroupId == group.Id && a.LocationId == location.Id && a.DidAttend == true ) )
                                         {
-                                            Attendance attendance = new Attendance()
-                                            {
-                                                PersonAliasId = personAliasId,
-                                                CampusId = campus.Id,
-                                                GroupId = group.Id,
-                                                LocationId = location.Id,
-                                                ScheduleId = schedule.Id,
-                                                StartDateTime = occurrence.Period.StartTime.Value,
-                                                EndDateTime = occurrence.Period?.EndTime?.Value,
-                                                DidAttend = true
-                                            };
-                                            attendanceService.Add( attendance );
+                                            var attendance = attendanceService.AddOrUpdate( personAliasId, occurrence.Period.StartTime.Value, group.Id, location.Id, schedule.Id, campus.Id );
+                                            attendance.EndDateTime = occurrence.Period?.EndTime?.Value;
+                                            attendance.DidAttend = true;
                                             newAttendance++;
                                         }
                                     }
