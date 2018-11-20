@@ -33,6 +33,18 @@ jQuery(document).ready(function($){
 		closeNav();
 	});
 
+	// initiate search if entered
+	$("#cd-search input[name='q']").on('keyup', function (e) {
+		e.preventDefault();
+		var value = $( this ).val();
+		if (e.keyCode == 13) {
+			submitSearchSite(value);
+		}
+	});
+	function submitSearchSite(val) {
+		window.location = "https://www.southeastchristian.org/search.php?q="+val;
+	}
+
 	//close lateral menu on mobile
 	$('.cd-overlay').on('swiperight', function(){
 		if($('.cd-primary-nav').hasClass('nav-is-visible')) {
