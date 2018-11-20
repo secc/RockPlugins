@@ -92,6 +92,7 @@ Main components
 				}
 			}
 		}
+
 		.cd-search-trigger {
 			&:before {
 				border-color: $color-1;
@@ -101,8 +102,13 @@ Main components
 			}
 		}
 
-		.cd-nav-trigger {
+		.cd-nav-login {
+			&::before {
+				background-image: url('../img/SE/profile-white.svg');
+			}
+		}
 
+		.cd-nav-trigger {
 			&.nav-is-visible span {
 				background-color: transparent;
 			}
@@ -615,10 +621,12 @@ main {
 
 		&.disabled {
 			line-height: 25px;
-			margin-top: 5px;
-
 			h3 {
 				color: $color-3;
+			    margin-top: 5px;
+				@include MQ(L) {
+					margin-top: 0;
+				}
 				small {
 					clear: both;
 					display: block;
