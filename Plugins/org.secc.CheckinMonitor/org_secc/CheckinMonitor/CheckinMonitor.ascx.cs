@@ -855,25 +855,21 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                 if ( newGroupId != 0 || newLocationId != 0 )
                 {
-                    //Create a new attendance record
-                    Attendance newRecord = ( Attendance ) attendanceRecord.Clone();
-                    newRecord.Id = 0;
-                    newRecord.Guid = new Guid();
-                    newRecord.StartDateTime = Rock.RockDateTime.Now;
-                    newRecord.EndDateTime = null;
-                    newRecord.Device = null;
-                    newRecord.AttendanceCodeId = null;
-                    newRecord.AttendanceCode = null;
-                    newRecord.SearchTypeValue = null;
+                    var newRecord = attendanceService.AddOrUpdate(
+                        attendanceRecord.PersonAliasId,
+                        attendanceRecord.StartDateTime,
+                        newGroupId,
+                        newLocationId,
+                        attendanceRecord.Occurrence.ScheduleId,
+                        attendanceRecord.CampusId,
+                        attendanceRecord.DeviceId,
+                        null,
+                        "MOVED IN OZ",
+                        null,
+                        attendanceRecord.AttendanceCodeId,
+                        null );
 
-                    if ( newGroupId != 0 )
-                    {
-                        newRecord.Occurrence.GroupId = newGroupId;
-                    }
-                    if ( newLocationId != 0 )
-                    {
-                        newRecord.Occurrence.LocationId = newLocationId;
-                    }
+                    newRecord.DidAttend = attendanceRecord.DidAttend;
 
                     //Close all other attendance records for this person today at this schedule
                     var currentRecords = attendanceService.Queryable()
@@ -890,7 +886,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     }
 
                     attendanceService.Add( newRecord );
-                    attendanceRecord.DidAttend = false;
                     _rockContext.SaveChanges();
                 }
             }
@@ -975,7 +970,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             using ( RockContext _rockContext = new RockContext() )
             {
                 AttendanceCodeService attendanceCodeService = new AttendanceCodeService( _rockContext );
-                var attendanceCode = attendanceCodeService.Queryable( "Attendance,Attendance.Occurrence" )
+                var attendanceCode = attendanceCodeService.Queryable()
                     .Where( ac =>
                         ac.Code == code && ac.IssueDateTime >= Rock.RockDateTime.Today
                     )
@@ -985,10 +980,10 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     ltSearch.Text = "Attendance matching code not found";
                     return;
                 }
+
                 var attendanceRecords = attendanceCode.Attendances
                     .Where( a =>
-                        a.EndDateTime == null
-                        && a.Occurrence.ScheduleId != null
+                        a.Occurrence.ScheduleId != null
                         && a.AttendanceCodeId != null
                         && a.Occurrence.LocationId != null
                     )
