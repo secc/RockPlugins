@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.Data.Entity;
 using System.Linq;
 using System.Runtime.Caching;
 using org.secc.FamilyCheckin.Utilities;
@@ -63,7 +64,7 @@ namespace org.secc.FamilyCheckin
                 dataViewAttributeKey = AttributeCache.Get( dataViewAttributeGuid ).Key;
             }
 
-            var dataViewService = new DataViewService( rockContext );
+            var dataViewService = new DataViewService( new RockContext() );
 
             var family = checkInState.CheckIn.CurrentFamily;
             if ( family != null )
@@ -100,13 +101,28 @@ namespace org.secc.FamilyCheckin
                                 }
 
                                 var errors = new List<string>();
-                                var approvedPeopleQry = approvedPeople.GetQuery( null, 30, out errors );
+                                var dbContext = approvedPeople.GetDbContext();
+                                var approvedPeopleQry = ( IQueryable<Person> ) approvedPeople.GetQuery( null, dbContext, 30, out errors ).AsNoTracking();
                                 if ( approvedPeopleQry != null )
                                 {
-                                    approvedPeopleList = approvedPeopleQry.Select( e => e.Id ).ToList();
-                                    var cachePolicy = new CacheItemPolicy();
-                                    cachePolicy.AbsoluteExpiration = DateTimeOffset.Now.AddMinutes( 10 );
-                                    RockCache.AddOrUpdate( approvedPeopleGuid, null, approvedPeopleList, RockDateTime.Now.AddMinutes(10), Constants.CACHE_TAG );
+                                    try
+                                    {
+                                        approvedPeopleQry = approvedPeopleQry.Skip( 0 ).Take( 5000 );
+                                        approvedPeopleList = approvedPeopleQry.Select( e => e.Id ).ToList();
+                                        RockCache.AddOrUpdate( approvedPeopleGuid, null, approvedPeopleList, RockDateTime.Now.AddMinutes( 10 ), Constants.CACHE_TAG );
+                                    }
+                                    catch ( Exception ex )
+                                    {
+                                        if ( remove )
+                                        {
+                                            groupType.Groups.Remove( group );
+                                        }
+                                        else
+                                        {
+                                            group.ExcludedByFilter = true;
+                                        }
+                                        ExceptionLogService.LogException( ex );
+                                    }
                                 }
                             }
 
