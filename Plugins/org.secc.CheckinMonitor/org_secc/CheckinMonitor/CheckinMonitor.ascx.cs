@@ -852,14 +852,25 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                 var newGroupId = ddlGroup.SelectedValue.AsInteger();
                 var newLocationId = ddlLocation.SelectedValue.AsInteger();
+                var groupId = attendanceRecord.Occurrence.GroupId;
+                var locationId = attendanceRecord.Occurrence.LocationId;
 
-                if ( newGroupId != 0 || newLocationId != 0 )
+                if ( newGroupId != 0 )
+                {
+                    groupId = newGroupId;
+                }
+                if ( newLocationId != 0 )
+                {
+                    locationId = newLocationId;
+                }
+
+                if ( groupId != 0 && locationId != 0 )
                 {
                     var newRecord = attendanceService.AddOrUpdate(
                         attendanceRecord.PersonAliasId,
                         attendanceRecord.StartDateTime,
-                        newGroupId,
-                        newLocationId,
+                        groupId,
+                        locationId,
                         attendanceRecord.Occurrence.ScheduleId,
                         attendanceRecord.CampusId,
                         attendanceRecord.DeviceId,
