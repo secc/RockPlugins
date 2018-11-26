@@ -74,7 +74,7 @@ namespace org.secc.FamilyCheckin.Model
 
         public bool IsOpen()
         {
-            return this.Schedules.Where( s => s.WasCheckInActive( RockDateTime.Now ) ).Any();
+            return this.Schedules.Where( s => s.WasScheduleActive( RockDateTime.Now ) ).Any();
         }
 
         [DataMember]
