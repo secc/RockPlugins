@@ -175,7 +175,11 @@ namespace org.secc.FamilyCheckin
                                         if ( breakoutGroupEntity != null )
                                         {
                                             breakoutGroupEntity.LoadAttributes();
-                                            mergeObjects["BreakoutGroup"] = breakoutGroupEntity.GetAttributeValue( "Letter" );
+                                            var letter = breakoutGroupEntity.GetAttributeValue( "Letter" );
+                                            if ( !string.IsNullOrWhiteSpace( letter ) )
+                                            {
+                                                mergeObjects["BreakoutGroup"] = letter;
+                                            }
                                         }
                                     }
                                 }
@@ -406,13 +410,14 @@ namespace org.secc.FamilyCheckin
                     //If the cache is empty, fill it up!
                     Guid breakoutGroupTypeGuid = GetAttributeValue( action, "BreakoutGroupType" ).AsGuid();
                     allBreakoutGroups = new GroupService( rockContext ).Queryable( "Members" ).AsNoTracking()
-                       .Where( g => g.GroupType.Guid == breakoutGroupTypeGuid && g.IsActive ).ToList();
+                       .Where( g => g.GroupType.Guid == breakoutGroupTypeGuid && g.IsActive && !g.IsArchived ).ToList();
                     var cachePolicy = new CacheItemPolicy();
                     RockCache.AddOrUpdate( cacheKey, null, allBreakoutGroups, RockDateTime.Now.AddMinutes( 10 ), Constants.CACHE_TAG );
                 }
 
                 return allBreakoutGroups.Where( g => g.Members
-                        .Where( gm => gm.PersonId == person.Id && gm.GroupMemberStatus == GroupMemberStatus.Active ).Any() )
+                        .Where( gm => gm.PersonId == person.Id && gm.GroupMemberStatus == GroupMemberStatus.Active ).Any()
+                        && g.IsActive && !g.IsArchived )
                     .ToList();
             }
             else
