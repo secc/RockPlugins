@@ -138,7 +138,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     SaveState();
                 }
             }
-
             var quickCheckinState = ( QuickCheckinState ) Session["QuickCheckinState"];
 
             switch ( quickCheckinState )
@@ -199,11 +198,16 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 schedules.FirstOrDefault().Selected = true;
             }
 
-            Session["SelectedSchedules"] =
-                schedules.Where( s => s.Selected )
-                .DistinctBy( s => s.Schedule.Id )
-              .Select( s => s.Schedule.Id )
-              .ToList();
+            var selectedSchedules = new List<CheckInSchedule>();
+            foreach ( var s in schedules.Where( _s => _s.Selected ).DistinctBy( _s => _s.Schedule.Id ).ToList() )
+            {
+                if ( DoesNotOverlap( s, selectedSchedules ) )
+                {
+                    selectedSchedules.Add( s );
+                }
+            }
+
+            Session["SelectedSchedules"] = selectedSchedules.Select( s => s.Schedule.Id ).ToList();
         }
 
         private void DisplayServiceOptions()
@@ -307,12 +311,28 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             Session["SelectedSchedules"] = selectedSchedules;
         }
 
+        private bool DoesNotOverlap( CheckInSchedule schedule, List<CheckInSchedule> selectedSchedules )
+        {
+            var start = schedule.Schedule.GetCalenderEvent().DTStart;
+            var end = schedule.Schedule.GetCalenderEvent().DTEnd;
+
+            foreach ( var otherSchedule in selectedSchedules )
+            {
+                if ( start.LessThan( otherSchedule.Schedule.GetCalenderEvent().DTEnd )
+                    && otherSchedule.Schedule.GetCalenderEvent().DTStart.LessThan( end ) )
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         private List<CheckInSchedule> GetSchedules()
         {
             return CurrentCheckInState
                 .CheckIn
-                .CurrentFamily
-                .People
+                .Families
+                .SelectMany( f => f.People )
                 .SelectMany( p => p.GroupTypes )
                 .SelectMany( gt => gt.Groups )
                 .SelectMany( g => g.Locations )
@@ -409,18 +429,21 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private bool PersonHasCheckinAvailable( CheckInPerson person )
         {
-            var locations = person
+            KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes );
+            var groups = person
                 .GroupTypes
                 .SelectMany( gt => gt.Groups )
-                .SelectMany( g => g.Locations )
                 .ToList();
-            foreach ( var location in locations )
+            foreach ( var group in groups )
             {
-                foreach ( var schedule in location.Schedules )
+                foreach ( var location in group.Locations )
                 {
-                    if ( LocationScheduleOkay( location, schedule ) )
+                    foreach ( var schedule in location.Schedules )
                     {
-                        return true;
+                        if ( kioskCountUtility.VolunteerGroupIds.Contains( group.Group.Id ) || LocationScheduleOkay( location, schedule ) )
+                        {
+                            return true;
+                        }
                     }
                 }
             }
@@ -503,6 +526,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private void DisplayPersonSchedule( Person person, CheckInSchedule schedule, Panel hgcAreaRow )
         {
+            KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes );
             BootstrapButton btnSchedule = new BootstrapButton();
 
             btnSchedule.Text = schedule.Schedule.Name + "<br>(Select Room To Checkin)";
@@ -539,7 +563,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     //If a room is selected
                     if ( room != null )
                     {
-                        if ( LocationScheduleOkay( room, schedule ) )
+                        if ( kioskCountUtility.VolunteerGroupIds.Contains( group.Group.Id ) || LocationScheduleOkay( room, schedule ) )
                         {
 
                             if ( room.Selected && group.Group.GetAttributeValue( locationLinkAttributeKey ).AsBoolean() )
@@ -633,7 +657,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     List<CheckInLocation> locations = GetLocations( person, schedule, groupType, group );
                     foreach ( var location in locations )
                     {
-                        if ( !LocationScheduleOkay( location, schedule ) )
+                        if ( !kioskCountUtility.VolunteerGroupIds.Contains( group.Group.Id ) && !LocationScheduleOkay( location, schedule ) )
                         {
                             continue;
                         }
@@ -1022,7 +1046,9 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 //check to see if the schedule exists
                 if ( !location.Schedules.Where( s => s.Schedule.Id == secondScheduleId ).Any() )
                 {
-                    return false;
+                    //if the second schedule doesn't exist go ahead and approve
+                    //this way we don't lock people out needlessly
+                    return true;
                 }
 
                 //Check to see if the second schedule is in the selected schedules
@@ -1120,7 +1146,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                             foreach ( var schedule in location.Schedules.Where( s => s.Selected ).ToList() )
                             {
                                 //Check to see if all the schedules have their pairs
-                                if ( !LocationScheduleOkay( location, schedule ) )
+                                if ( !kioskCountUtility.VolunteerGroupIds.Contains( group.Group.Id ) && !LocationScheduleOkay( location, schedule ) )
                                 {
                                     schedule.Selected = false;
                                     continue;
