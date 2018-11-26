@@ -479,7 +479,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     }
                     groupWidget.ID = group.Group.Guid.ToString();
                     panelWidget.Controls.Add( groupWidget );
-                    foreach ( var location in group.Locations )
+                    foreach ( var location in group.Locations.OrderBy( l => l.Location.Name ) )
                     {
                         if ( !cbSuperCheckin.Checked && !location.Location.IsActive )
                         {
