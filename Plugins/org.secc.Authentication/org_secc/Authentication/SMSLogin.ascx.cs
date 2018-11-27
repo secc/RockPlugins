@@ -43,19 +43,19 @@ namespace RockWeb.Plugins.org_secc.Authentication
 
     [CodeEditorField( "Prompt Message", "Message to show before logging in.", CodeEditorMode.Html, CodeEditorTheme.Rock, 100, true, @"
 Please enter your cell phone number and we will text you a code to log in with. <br /><i>Text and data rates may apply</i>.
-", "", 0 )]
+", "" )]
 
     [CodeEditorField( "No Number Message", "Message to show if the SMS number cannot be found in our system.", CodeEditorMode.Html, CodeEditorTheme.Rock, 100, true, @"
 We are sorry, we could not find your phone number in our records.
-", "", 2 )]
+", "" )]
 
-    [LinkedPage( "Duplicate Number Page", "Page to navigate to create account.", true, "", "", 3 )]
+    [LinkedPage( "Duplicate Number Page", "Page to navigate to create account.", true, "", "" )]
     [CodeEditorField( "Duplicate Message", "Message to show if duplicate phone records are found.", CodeEditorMode.Html, CodeEditorTheme.Rock, 100, true, defaultValue: @"
 We are sorry, we dected more than one person with your number in our records.
-        ", order: 4 )]
-    [DefinedValueField( Rock.SystemGuid.DefinedType.COMMUNICATION_SMS_FROM, "From", "The number to originate message from (configured under Admin Tools > General Settings > Defined Types > SMS From Values).", true, false, "", "", 5 )]
-    [TextField( "Message", "Message that will be sent along with the login code.", true, "Use {{ password }} to log in.  If you received this message by mistake please disregard.", order: 6 )]
-    [LinkedPage( "Redirect Page", "Page to redirect user to upon successful login.", true, "", "", 7 )]
+        " )]
+    [DefinedValueField( Rock.SystemGuid.DefinedType.COMMUNICATION_SMS_FROM, "From", "The number to originate message from (configured under Admin Tools > General Settings > Defined Types > SMS From Values).", true, false, "", "" )]
+    [TextField( "Message", "Message that will be sent along with the login code.", true, "Use {{ password }} to log in.  If you received this message by mistake please disregard." )]
+    [LinkedPage( "Redirect Page", "Page to redirect user to upon successful login.", true, "", "")]
     public partial class SMSLogin : Rock.Web.UI.RockBlock
     {
 

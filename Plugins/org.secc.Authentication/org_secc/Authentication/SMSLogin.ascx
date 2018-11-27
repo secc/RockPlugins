@@ -3,7 +3,7 @@
     <ContentTemplate>
         <div class="col-md-12">
 
-            <legend>SMS Login</legend>
+            <legend>Mobile Phone Login</legend>
             <asp:Panel ID="pnlPhoneNumber" runat="server">
                 <asp:ValidationSummary ID="valSummary" runat="server" ValidationGroup="PhoneNumber" HeaderText="Please Correct the Following" CssClass="alert alert-danger" />
                 <p>
@@ -15,7 +15,7 @@
                 <asp:RegularExpressionValidator ID="validateEmail" runat="server" ErrorMessage="Please enter a valid phone number." ControlToValidate="tbPhoneNumber"
                     ValidationExpression="^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}$" ValidationGroup="PhoneNumber" Display="None" />
 
-                <Rock:BootstrapButton ID="btnGenerate" runat="server" Text="Generate Code" CssClass="btn btn-primary" OnClick="btnGenerate_Click" ValidationGroup="PhoneNumber" CausesValidation="true" />
+                <Rock:BootstrapButton ID="btnGenerate" runat="server" Text="Send Code" CssClass="btn btn-primary" OnClick="btnGenerate_Click" ValidationGroup="PhoneNumber" CausesValidation="true" />
             </asp:Panel>
 
             <asp:Panel runat="server" ID="pnlCode" Visible="false">
