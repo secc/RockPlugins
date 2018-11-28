@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -315,9 +315,7 @@ namespace RockWeb.Blocks.Event
                                             string.Join( "-", campusIds ),
                                             string.Join( "-", categories ),
                                             BlockCache.Id.ToString() );
-
-            var cache = RockMemoryCache.Default;
-            var content = cache.Get( cacheKey );
+            var content = RockCache.Get( cacheKey, System.Globalization.CultureInfo.CurrentCulture.ToString() );
             if ( content != null && !string.IsNullOrWhiteSpace( ( string ) content ) )
             {
                 lOutput.Text = ( string ) content;
@@ -471,9 +469,9 @@ namespace RockWeb.Blocks.Event
             var minutes = GetAttributeValue( "CacheDuration" ).AsInteger();
             if ( minutes > 0 )
             {
-                var cachePolicy = new CacheItemPolicy();
-                cachePolicy.AbsoluteExpiration = DateTimeOffset.Now.AddMinutes( minutes );
-                cache.Set( cacheKey, lOutput.Text, cachePolicy );
+                RockCache.AddOrUpdate( cacheKey,
+                    System.Globalization.CultureInfo.CurrentCulture.ToString(),
+                lOutput.Text, RockDateTime.Now.AddMinutes( minutes ) );
             }
         }
 
@@ -535,7 +533,7 @@ namespace RockWeb.Blocks.Event
             if ( campusId.HasValue )
             {
                 //check if there's a campus with this id.
-                var campus = CampusCache.Read( campusId.Value );
+                var campus = CampusCache.Get( campusId.Value );
                 if ( campus != null )
                 {
                     cblCampus.SetValue( campusId.Value );
@@ -544,7 +542,7 @@ namespace RockWeb.Blocks.Event
             else if ( !string.IsNullOrEmpty( campusStr ) )
             {
                 //check if there's a campus with this name.
-				campusStr = campusStr.Replace( " ", "" ).Replace( "-", "" );
+                campusStr = campusStr.Replace( " ", "" ).Replace( "-", "" );
                 var campusCache = CampusCache.All().Where( c => c.Name.ToLower().Replace( " ", "" ).Replace( "-", "" ) == campusStr.ToLower() ).FirstOrDefault();
                 if ( campusCache != null )
                 {
@@ -555,7 +553,7 @@ namespace RockWeb.Blocks.Event
             {
                 if ( GetAttributeValue( "EnableCampusContext" ).AsBoolean() )
                 {
-                    var contextCampus = RockPage.GetCurrentContext( EntityTypeCache.Read( "Rock.Model.Campus" ) ) as Campus;
+                    var contextCampus = RockPage.GetCurrentContext( EntityTypeCache.Get( "Rock.Model.Campus" ) ) as Campus;
                     if ( contextCampus != null )
                     {
                         cblCampus.SetValue( contextCampus.Id );
@@ -566,7 +564,7 @@ namespace RockWeb.Blocks.Event
             // Setup Category Filter
             var selectedCategoryGuids = GetAttributeValue( "FilterCategories" ).SplitDelimitedValues( true ).AsGuidList();
             rcwCategory.Visible = selectedCategoryGuids.Any() && GetAttributeValue( "CategoryFilterDisplayMode" ).AsInteger() > 1;
-            var definedType = DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.MARKETING_CAMPAIGN_AUDIENCE_TYPE.AsGuid() );
+            var definedType = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.MARKETING_CAMPAIGN_AUDIENCE_TYPE.AsGuid() );
             if ( definedType != null )
             {
                 var categoryItems = definedType.DefinedValues.ToList();

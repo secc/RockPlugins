@@ -158,7 +158,10 @@ namespace org.secc.OAuth
             if (!string.IsNullOrEmpty(context.UserName) && !string.IsNullOrEmpty(context.Password))
             {
                 var userLoginService = new UserLoginService(new RockContext());
-                var userLogin = userLoginService.GetByUserName(context.UserName);
+                //Older Avalanche Clients use __PHONENUMBER__+1 prefix vs the newer SMS_ prefix
+                //This makes sure we are using the new ROCK external sms authentication
+                var userName = context.UserName.Replace( "__PHONENUMBER__+1", "SMS_" );
+                var userLogin = userLoginService.GetByUserName( userName );
                 if (userLogin != null && userLogin.EntityType != null)
                 {
                     var component = AuthenticationContainer.GetComponent(userLogin.EntityType.Name);
@@ -177,7 +180,7 @@ namespace org.secc.OAuth
 
                                 bool scopesApproved = false;
                                 Client OAuthClient = clientService.GetByApiKey(context.ClientId.AsGuid());
-                                string[] authorizedScopes = authorizationService.Queryable().Where(a => a.Client.Id == OAuthClient.Id && a.UserLogin.UserName == context.UserName && a.Active == true).Select(a => a.Scope.Identifier).ToArray<string>();
+                                string[] authorizedScopes = authorizationService.Queryable().Where(a => a.Client.Id == OAuthClient.Id && a.UserLogin.UserName == userName && a.Active == true).Select(a => a.Scope.Identifier).ToArray<string>();
                                 if (!clientScopeService.Queryable().Where(cs => cs.ClientId == OAuthClient.Id && cs.Active == true).Any() ||
                                     (authorizedScopes != null && scopes.Where(s => !authorizedScopes.Select(a => a.ToLower()).Contains(s.ToLower())).Count() == 0))
                                 {
@@ -186,14 +189,14 @@ namespace org.secc.OAuth
 
                                 if (scopesApproved)
                                 {
-                                    var identity = new ClaimsIdentity(new GenericIdentity(context.UserName, OAuthDefaults.AuthenticationType));
+                                    var identity = new ClaimsIdentity(new GenericIdentity( userName, OAuthDefaults.AuthenticationType));
 
                                     //only allow claims that have been requested and the client has been authorized for
                                     foreach (var scope in scopes.Where(s => clientScopeService.Queryable().Where(cs => cs.ClientId == OAuthClient.Id && cs.Active == true).Select(cs => cs.Scope.Identifier.ToLower()).Contains(s.ToLower())))
                                     {
                                         identity.AddClaim(new Claim("urn:oauth:scope", scope));
                                     }
-                                    UserLoginService.UpdateLastLogin(context.UserName);
+                                    UserLoginService.UpdateLastLogin( userName );
                                     context.Validated(identity);
                                     return System.Threading.Tasks.Task.FromResult(0);
                                 }
