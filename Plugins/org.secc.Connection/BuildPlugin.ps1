@@ -15,7 +15,7 @@ if ($validPath -eq $True) {
 }
 
 # Create the directory structure
-mkdir -Path "bin\$pluginName\content\bin"
+#mkdir -Path "bin\$pluginName\content\bin"
 mkdir -Path "bin\$pluginName\install"
 mkdir -Path "bin\$pluginName\uninstall"
 
