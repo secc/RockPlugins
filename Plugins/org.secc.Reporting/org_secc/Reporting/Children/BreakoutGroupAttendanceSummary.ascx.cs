@@ -94,7 +94,7 @@ namespace RockWeb.Blocks.Reporting.Children
                     .ToList();
 
             var attendanceQry = new AttendanceService( rockContext ).Queryable();
-            attendanceQry = attendanceQry.Where( a => a.SundayDate != null && scheduleIds.Contains( a.ScheduleId ?? 0 ) );
+            attendanceQry = attendanceQry.Where( a => a.Occurrence.SundayDate != null && scheduleIds.Contains( a.Occurrence.ScheduleId ?? 0 ) );
             var upper = drpRange.UpperValue;
             var lower = drpRange.LowerValue;
             if ( upper != null )
@@ -167,8 +167,8 @@ namespace RockWeb.Blocks.Reporting.Children
             }
 
             var sundays = attendanceQry
-                            .DistinctBy( a => a.SundayDate )
-                            .Select( a => a.SundayDate )
+                            .DistinctBy( a => a.Occurrence.SundayDate )
+                            .Select( a => a.Occurrence.SundayDate )
                             .OrderBy( a => a )
                             .ToList();
 
@@ -180,8 +180,8 @@ namespace RockWeb.Blocks.Reporting.Children
                     ( a, p ) => new
                     {
                         PersonId = p.Id,
-                        ScheduleId = a.ScheduleId,
-                        SundayDate = a.SundayDate
+                        ScheduleId = a.Occurrence.ScheduleId,
+                        SundayDate = a.Occurrence.SundayDate
                     }
                     ).ToList();
 
