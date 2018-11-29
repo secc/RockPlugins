@@ -264,8 +264,10 @@
 				<h3>2018 DAILY DEVOTIONAL</h3>
 				<br />
 				<hr style="width: 35%; border-top: 2px solid rgb(96, 105, 99); margin: 1em auto 0;"/>
-				<br />
-				<h2>Coming Soon</h2>
+				<br /><br />
+				<a href="/Content/ExternalSite/WebImages/Christmas/SE_AdventDevo_2018__Web.pdf" class="cd-btn sweep-to-right" download="SE_AdventDevo_2018__Web" style="font-size: 1.4em;">
+					<i class="fa fa-file-pdf"></i> &nbsp; &nbsp; Download Advent Devotional
+				</a>
 				<br />
 				<!-- <div class="advent_copy">
 					<p class="wow fadeIn">Encounter Christmas in a new way this Advent season by following along with our daily devotional, <i>The Other Side of Christmas</i>.</p>
