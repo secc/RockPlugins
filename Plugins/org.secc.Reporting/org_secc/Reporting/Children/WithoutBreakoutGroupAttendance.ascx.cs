@@ -95,8 +95,8 @@ namespace RockWeb.Blocks.Reporting.Children
             var attendanceQry = attendanceService.Queryable()
                 .Where( a => !breakoutGroupMembers.Contains( a.PersonAliasId ?? 0 )
                     && a.DidAttend == true
-                    && a.ScheduleId != null
-                    && selectedScheduleIds.Contains( a.ScheduleId ?? 0 ) );
+                    && a.Occurrence.ScheduleId != null
+                    && selectedScheduleIds.Contains( a.Occurrence.ScheduleId ?? 0 ) );
 
             if ( gpGrade.SelectedGradeValue != null )
             {

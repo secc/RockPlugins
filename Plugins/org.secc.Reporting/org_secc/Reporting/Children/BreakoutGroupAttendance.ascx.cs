@@ -186,7 +186,7 @@ namespace RockWeb.Blocks.Reporting.Children
                     var scheduleId = item.Value.AsInteger();
 
                     var attendanceQry = attendanceService.Queryable()
-                        .Where( a => personIds.Contains( a.PersonAlias.PersonId ) && a.ScheduleId == scheduleId )
+                        .Where( a => personIds.Contains( a.PersonAlias.PersonId ) && a.Occurrence.ScheduleId == scheduleId )
                         .DistinctBy( a => new { a.StartDateTime.Date, a.PersonAliasId } );
 
                     if ( upper != null )
@@ -207,7 +207,7 @@ namespace RockWeb.Blocks.Reporting.Children
             List<int> selectedSchedulesInt = selectedSchedules.Select( ss => ss.AsInteger() ).ToList();
 
             var attendanceDateQry = attendanceService.Queryable()
-                .Where( a => personIds.Contains( a.PersonAlias.PersonId ) && a.ScheduleId != null && selectedSchedulesInt.Contains( a.ScheduleId ?? 0 ) );
+                .Where( a => personIds.Contains( a.PersonAlias.PersonId ) && a.Occurrence.ScheduleId != null && selectedSchedulesInt.Contains( a.Occurrence.ScheduleId ?? 0 ) );
 
             if ( upper != null )
             {
