@@ -1115,7 +1115,7 @@ namespace org.secc.Connection
                     case "Role":
                         var role = groupTypeRoleService.Get( value.AsGuid() );
                         inner["Entity"] = role;
-                        if ( connectionRequests != null )
+                        if ( connectionRequests != null && role != null )
                         {
                             subRequests = connectionRequests.Where( cr => cr.AssignedGroupMemberRoleId == role.Id ).ToList();
                         }
