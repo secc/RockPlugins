@@ -349,6 +349,7 @@ namespace org.secc.Purchasing
 
             int currentPersonId = 0;
             int currentMinistryId = 0;
+            int currentLocationId = 0;
             string currentUserId = null;
             bool isFinanceApprover = false;
 
@@ -366,6 +367,11 @@ namespace org.secc.Purchasing
             if ( filter.ContainsKey( "MinistryId" ) )
             {
                 int.TryParse( filter["MinistryId"], out currentMinistryId );
+            }
+
+            if ( filter.ContainsKey( "MyLocationId" ) )
+            {
+                int.TryParse( filter["MyLocationId"], out currentLocationId );
             }
 
             if ( filter.ContainsKey( "FinanceApprover" ) )
@@ -585,6 +591,19 @@ namespace org.secc.Purchasing
                                                 .ToList() );
                     }
                 }
+
+
+                if ( filter.ContainsKey( "Show_Location" ) )
+                {
+                    bool showLocation = false;
+                    if ( bool.TryParse( filter["Show_Location"], out showLocation ) && showLocation )
+                    {
+                        listItems.AddRange( query.Where( q => q.LocationLUID == currentLocationId)
+                                                .Where( q => !listItems.Select( l => l.CapitalRequestId ).Contains( q.CapitalRequestId ) )
+                                                .ToList() );
+                    }
+                }
+
 
                 if ( filter.ContainsKey( "Show_Approver" ) )
                 {

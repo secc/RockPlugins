@@ -24,6 +24,7 @@
                         RepeatDirection="Horizontal" Label="Show">
                         <asp:ListItem Text="Requested by Me" Value="Me" />
                         <asp:ListItem Text="Requested by My Ministry Team" Value="Ministry" />
+                        <asp:ListItem Text="Requested by My Campus/Location" Value="Location" />
                         <asp:ListItem Text="I am an approver" Value="Approver" />
                     </Rock:RockCheckBoxList>
                     <Rock:RockDropDownList ID="ddlLocation" runat="server" CssClass="smallText" Label="Location"/>
