@@ -209,9 +209,19 @@ namespace org.secc.RoomScanner.Utilities
 
         public static void CloneAttendance( Attendance attendance, bool isSubroom, Location location, AttendanceService attendanceService, Request req )
         {
-            var newAttendance = attendanceService.AddOrUpdate( attendance.PersonAliasId, attendance.StartDateTime.Date, attendance.Occurrence.GroupId,
-                                                    location.Id, attendance.Occurrence.ScheduleId, location.CampusId,
-                                                    null, null, null, null, null, null );
+            Attendance newAttendance = null;
+            if ( !isSubroom )
+            {
+                newAttendance = attendanceService.AddOrUpdate( attendance.PersonAliasId, attendance.StartDateTime.Date, attendance.Occurrence.GroupId,
+                                                        location.Id, attendance.Occurrence.ScheduleId, location.CampusId,
+                                                        null, null, null, null, null, null );
+            }
+            else
+            {
+                newAttendance = attendanceService.AddOrUpdate( attendance.PersonAliasId, attendance.StartDateTime.Date, attendance.Occurrence.GroupId,
+                                                        location.ParentLocationId, attendance.Occurrence.ScheduleId, location.CampusId,
+                                                        null, null, null, null, null, null );
+            }
             newAttendance.StartDateTime = Rock.RockDateTime.Now;
             newAttendance.EndDateTime = null;
             newAttendance.DidAttend = true;
