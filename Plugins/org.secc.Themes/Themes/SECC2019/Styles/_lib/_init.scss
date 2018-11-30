@@ -61,6 +61,11 @@ $SouthwestColor			: #E87C1E;
 $LaGrangeColor			: #5C6D79;
 $ElizabethtownColor     : #000000;
 
+// 2019 Website Colors
+$BlackColor    		: #000000;
+$WhiteColor    		: #FFFFFF;
+$LightGreyColor	    : #7C7C7C;
+
 //Other Colors
 $GrayColor 				: #6D6A66;
 $LightGrayColor 		: lighten($GrayColor, 20%);
@@ -72,6 +77,12 @@ $DefaultBorder			: 1px solid $LightGrayColor;
 $SectionNavWidth 		: 23%;
 $SectionNavTabletWidth 	: $SectionNavWidth + 7%;
 
+// Options
+//
+// Quickly modify global styling by enabling or disabling optional features.
+$enable-hover-media-query:   				false !default;
+$enable-child-media-query:   				false !default;
+$enable-before-after-media-query:   false !default;
 
 $Campuses: (
 	blankenbaker : (

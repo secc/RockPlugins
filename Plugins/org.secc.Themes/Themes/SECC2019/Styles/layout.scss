@@ -1,5 +1,5 @@
 @import '_lib/init';
-@import '_lib/site-navigation';
+/* @import '_lib/site-navigation'; */
 
 /******************************************************
 * LAYOUT.SCSS
@@ -12,6 +12,10 @@
 
 html {
 	background-color: #201e1d;
+}
+
+#sub-connect-menu {
+	display: none;
 }
 
 #PageCanvas {
@@ -79,9 +83,9 @@ nav ul {
 
 
 #SiteFooter {
-	background: $DarkGrayColor;
+	background: rgba($LightGreyColor, 0.18);
 	@include FontSmoothing;
-	color: #ffffff;
+	color: $BlackColor;
 	text-transform: uppercase;
 	font-family: $Proxima;
 	font-size: .9em;
@@ -94,10 +98,6 @@ nav ul {
 		ul { margin-left: 1em; }
 
 		& + ul { margin-top: 1.5em; }
-
-		&.list-inline {
-			li { margin-bottom: 10px;}
-		}
 	}
 
 	a { color: $LightGrayColor; }
@@ -106,10 +106,10 @@ nav ul {
 	section.footer-menu {
 		padding-top: 3em;
 		padding-bottom: 3em;
-
+		color: $BlackColor;
 
 		.menu > li > a,
-		:not(li) > a { color: #fff; }
+		:not(li) > a { color: $BlackColor; }
 
 		.menu li,
 		.campus-list {margin-top: .5em; }
@@ -118,10 +118,32 @@ nav ul {
 	}
 
 	section.partners {
-		background: #201e1d;
-		padding-top: 1em;
-		padding-bottom: 1em;
+		background: rgba($LightGreyColor, 0.68);
+		padding-top: 2em;
+		padding-bottom: 2em;
 		text-align: center;
+		font-weight: 600;
+
+		li {
+			/*&:before {
+				content : "";
+				  position: relative;
+				  left    : 0;
+				  bottom  : 0;
+				  height  : 100%;
+				  width   : 50%;
+				  border-right:1px solid magenta;
+			}*/
+			border-right: 1px solid $WhiteColor;
+			&:last-child {
+				border: 0;
+			}
+		}
+
+		a {
+			color: $WhiteColor;
+			padding: 10px 10px;
+		}
 
 		@include desktops {
 			li + li { border-left: 1px solid $LightGrayColor; }
@@ -137,7 +159,7 @@ nav ul {
 	}
 
 	section.signoff {
-		background: #000000;
+		background: $WhiteColor;
 		padding-top: 2em;
 		padding-bottom: 2em;
 
@@ -154,7 +176,7 @@ nav ul {
 	h4 {
 		text-transform: uppercase;
 		font-weight: 400;
-		color: $GrayColor;
+		color: $BlackColor;
 		margin: .75em 0;
 		line-height: 1.25;
 	}
@@ -323,7 +345,7 @@ nav ul {
 		height		: 100%;
 	}
 
-	#MobileNav {
+	/*#MobileNav {
 		position	: absolute;
 		top			: 0px;
 		left		: 0px;
@@ -341,7 +363,7 @@ nav ul {
 
 	#MegaMenus {
 		display: none !important;
-	}
+	}*/
 
 	#PageCanvas {
 		position	: absolute;
@@ -354,9 +376,9 @@ nav ul {
 		@include Transition(left 500ms ease-out);
 		@include BoxShadow(-2px, 0px);
 
-		body.menu-open & {
+		/*body.menu-open & {
 			left	: $MobileMenuWidth;
 			position: fixed;
-		}
+		}*/
 	}
 }
