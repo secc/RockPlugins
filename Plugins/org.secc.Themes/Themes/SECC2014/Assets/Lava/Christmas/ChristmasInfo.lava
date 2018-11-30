@@ -100,13 +100,13 @@
                 <div class="col-sm-10 col-sm-offset-1 text-center" style="margin-bottom:1em">
                     <h1 style="color:white;">Hours:</h1><br />
                     <p class="wow fadeInLeft" style="font-weight: 100;color: #797549; text-transform: uppercase; font-size: 2em;">FRIDAY, DECEMBER 7 • 5:00-10:00 P.M.</p>
-                    <p style="margin:0px;">Christmas program in the Sanctuary at 6:00 &amp; 8:00 p.m.</p>
+                    <p style="margin:0px;">Christmas program in the Sanctuary at 6:00 &amp; 8:00 p.m.<br /><i class="fa fa-american-sign-language-interpreting"></i> <i>Interpreted for the Deaf</i></p>
                     <br /><br />
                     <p class="wow fadeInLeft" style="font-weight: 100;color: #797549; text-transform: uppercase; font-size: 2em;" data-wow-delay=".3s">SUNDAY-THURSDAY, DECEMBER 9-13 • 5:00-9:00 P.M.</p>
                     <p style="margin:0px;">Christmas program in the Sanctuary at 6:00 & 8:00 p.m.</p>
                     <br />
 					<p class="wow fadeInLeft" style="font-weight: 100;color: #797549; text-transform: uppercase; font-size: 2em;">FRIDAY, DECEMBER 14 • 5:00-10:00 P.M.</p>
-                    <p style="margin:0px;">Christmas program in the Sanctuary at 6:00 & 8:00 p.m.</p>
+                    <p style="margin:0px;">Christmas program in the Sanctuary at 6:00 & 8:00 p.m.<br /><i class="fa fa-american-sign-language-interpreting"></i> <i>Interpreted for the Deaf</i></p>
                     <br /><br />
                     <h4 class="header-subtle"><i>No Celebrate Christmas Together programs or activities on Saturday, December 9.</i></h4>
                     <br />
@@ -128,7 +128,8 @@
                     <p>Get into the Christmas spirit as you watch a heartwarming, musical Christmas story come to life. Performances will take place in the Sanctuary every night of Celebrate Christmas Together and will last about 45 minutes. All other activities will be open during performances.</p>
                     <br />
                     <p style="text-transform: uppercase;"><strong>CHRISTMAS PROGRAM TIMES</strong></p>
-                    <p>Friday, December 7, 9-14: 6:00 & 8:00 p.m.</p>
+                    <p>Friday, December 7, 9-14: 6:00 & 8:00 p.m.<br />
+					<i class="fa fa-american-sign-language-interpreting"></i> <i>Interpreted for the Deaf on Friday, Dec 7 and Friday, Dec 14</i></p>
 					<br />
                 </div>
             	<div class="col-sm-5 animated wow fadeInRight" data-wow-duration="1s">
@@ -579,7 +580,7 @@
   	                  </div>
   	                  <div id="faq-2-snacks" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-snacks">
   	                    <div class="panel-body">
-  							Yes. We will have light refreshments to purchase for a low cost. We will not have a meal, so please eat before or after you come.
+  							Yes. We will be offering the following snacks all for $1: Granola bars, Rice Krispies treats, Apples, Bananas, Hot chocolate, Apple cider, Chips, and Sugar cookies.
   						</div>
   	                  </div>
   	                </div><!-- / .panel -->
