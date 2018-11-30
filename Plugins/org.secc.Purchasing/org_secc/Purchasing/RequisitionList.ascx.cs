@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -36,6 +36,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
     [Category("SECC > Purchasing")]
     [Description("Lists all requisitions.")]
     [LinkedPage("Requisition Detail Page", "Requisition Detail Page.", true)]
+    [SecurityRoleField("Location Admin Group", "Security role that contains location administrators.  These users will be able to see all requisitions for their location.", false)]
     [AttributeField(Rock.SystemGuid.EntityType.PERSON, "Ministry Location Person Attribute", "The person attribute that stores the user's Location.", false, false, null, "Staff Selector")]
     [AttributeField(Rock.SystemGuid.EntityType.PERSON, "Ministry Area Person Attribute", "The person attribute that stores the user's Ministry Area.", false, false, null, "Staff Selector")]
     [AttributeField(Rock.SystemGuid.EntityType.PERSON, "Position Person Attribute", "The person attribute that stores the user's job position.", false, false, null, "Staff Selector")]
@@ -487,7 +488,12 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     cbShow.Items.Remove(cbShow.Items.FindByValue("All"));
             }
 
+            Group locationAdminGroup = new GroupService( new RockContext() ).Get( GetAttributeValue( "LocationAdminGroup" ).AsGuid() );
 
+            if (!(isEditor || (locationAdminGroup != null && locationAdminGroup.ActiveMembers().Where( m => m.PersonId == CurrentPerson.Id ).Any()) ) )
+            {
+                cbShow.Items.Remove( cbShow.Items.FindByValue( "Location" ) );
+            }
 
             hfFilterSubmittedBy.Visible = isEditor;
             chkShowInactive.Visible = isEditor;
