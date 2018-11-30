@@ -1,7 +1,6 @@
 jQuery(document).ready(function($){
 	//if you change this breakpoint in the style.css file (or _layout.scss if you use SASS), don't forget to update this value as well
 	var MqL = 1200;
-	var menuTurnover = ''; // this class variable is set only if menu transparency is turned on, and there needs to be a time to switch it back to a normal non-transparent menu.
 
 	//move nav element position according to window width
 	moveNavigation();
@@ -163,7 +162,7 @@ jQuery(document).ready(function($){
 		}
 	}
 
-	function moveNavigation(){
+	function moveNavigation() {
 		var navigation = $('.cd-nav');
   		var desktop = checkWindowWidth();
         if ( desktop ) {
@@ -176,7 +175,7 @@ jQuery(document).ready(function($){
 	}
 
 	function getDivHeight(divClass) {
-		var divHeight = ""
+	  var divHeight = "";
 	  if (divClass != "") {
 	  	 divHeight = $(divClass).height();
 	  } else {
@@ -187,8 +186,7 @@ jQuery(document).ready(function($){
 
 	$(window).scroll(function() {
 		var menu = $('.cd-main-header');
-		var height = getDivHeight('.page-banner');
-		// menuTurnover
+		var height = getDivHeight('.menu-switch');
 		if (height == null) {
 	    	height = $('.page-banner').height();
 		}
