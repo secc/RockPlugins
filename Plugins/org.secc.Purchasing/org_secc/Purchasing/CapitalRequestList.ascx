@@ -42,6 +42,7 @@
                     <Rock:RockCheckBoxList ID="cblShow" runat="server" Label="Show" RepeatDirection="Horizontal">
                         <asp:ListItem Value="Me" Text="Requested By Me" />
                         <asp:ListItem Value="Ministry" Text="Requested By My Ministry" />
+                        <asp:ListItem Text="Requested by My Campus/Location" Value="Location" />
                         <asp:ListItem Value="Approver" Text="I am an Approver" />
                     </Rock:RockCheckBoxList>
                     <Rock:RockDropDownList ID="ddlMinistry" runat="server" Label="Requesting Ministry" />

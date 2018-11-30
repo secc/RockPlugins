@@ -425,6 +425,7 @@ namespace org.secc.Purchasing
         public static List<RequisitionListItem> GetRequisitionList(Dictionary<string, string> filter)
         {
             List<RequisitionListItem> ListItems = new List<RequisitionListItem>();
+            bool ShowLocation = false;
             bool ShowAll = false;
             bool ShowMinistry = false;
             bool ShowApprover = false;
@@ -443,7 +444,9 @@ namespace org.secc.Purchasing
                 bool.TryParse(filter["Show_Ministry"], out ShowMinistry);
             if (filter.ContainsKey("Show_Approver"))
                 bool.TryParse(filter["Show_Approver"], out ShowApprover);
-            if(filter.ContainsKey("Show_All"))
+            if ( filter.ContainsKey( "Show_Location" ) )
+                bool.TryParse( filter["Show_Location"], out ShowLocation );
+            if (filter.ContainsKey("Show_All"))
                 bool.TryParse(filter["Show_All"], out ShowAll);
 
             if (filter.ContainsKey("MinistryLUID"))
@@ -766,6 +769,37 @@ namespace org.secc.Purchasing
                         }
                             
                                 
+                    }
+                    
+                    if ( ShowLocation )
+                    {
+                        int MyLocationID = 0;
+
+                        var query2 = Query;
+                        
+                            if ( filter.ContainsKey( "MyLocationID" ) && int.TryParse( filter["MyLocationID"], out MyLocationID ) )
+                            {
+                                query2 = query2.Where( q => q.LocationLUID == MyLocationID );
+                            }
+
+                            ListItems.AddRange( query2.Where( r => !ListItems.Select( li => li.RequisitionID ).Contains( r.RequisitionId ) )
+                                                         .Select( q => new RequisitionListItem
+                                                         {
+                                                             RequisitionID = q.RequisitionId,
+                                                             Title = q.Title,
+                                                             RequesterID = q.RequesterId,
+                                                             RequesterLastFirst = q.RequesterLastFirst,
+                                                             Status = q.Status,
+                                                             RequisitionType = q.TypeName,
+                                                             ItemCount = q.ItemCount,
+                                                             NoteCount = q.NoteCount,
+                                                             AttachmentCount = q.AttachmentCount,
+                                                             DateCreated = q.DateCreated,
+                                                             DateSubmitted = q.DateSubmitted,
+                                                             IsExpedited = q.IsExpedited,
+                                                             IsApproved = q.IsApproved,
+                                                             IsAccepted = q.IsAccepted
+                                                         } ) );
                     }
                 }
 
