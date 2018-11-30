@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -39,8 +39,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
     [LinkedPage( "Capital Request Detail Page", "Page that shows the details of a selected capital request.", true )]
     [DefinedTypeField( "Ministry Area Lookup Type", "The Lookup Type that contains the ministry lookup values.", true )]
     [DefinedTypeField( "Location Lookup Type", "The lookup Type that contains the Location lookup values. If no value is selected, the Location filter will not be available.", true )]
-
+    [SecurityRoleField( "Location Admin Group", "Security role that contains location administrators.  These users will be able to see all requisitions for their location.", false )]
     [AttributeField( Rock.SystemGuid.EntityType.PERSON, "Ministry Area Person Attribute", "The person attribute that stores the user's Ministry Area.", key:"MinistryAttribute" )]
+    [AttributeField( Rock.SystemGuid.EntityType.PERSON, "SECC Location Person Attribute", "The person attribute that stores the user's SECC Location.", key: "LocationAttribute" )]
     public partial class CapitalRequestList : RockBlock
     {
         private string PersonSettingKey = "CapitalRequestList";
@@ -135,6 +136,14 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 {
                     filter.Add( "MinistryId", DefinedValueCache.Read( attributeValue.Value ).Id.ToString() );
 
+                }
+            }
+            if ( GetAttributeValue( "LocationAttribute" ).AsGuidOrNull() != null )
+            {
+                var attributeValue = CurrentPerson.AttributeValues[AttributeCache.Read( GetAttributeValue( "LocationAttribute" ).AsGuid() ).Key];
+                if ( attributeValue != null && !string.IsNullOrEmpty( attributeValue.Value ) )
+                {
+                    filter.Add( "MyLocationId", DefinedValueCache.Read( attributeValue.Value ).Id.ToString() );
                 }
             }
             //filter.Add( "FinanceApprover", UserIsFinanceApprover().ToString() );
@@ -321,6 +330,13 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             ddlFiscalYear.Visible = UserCanEdit;
 
             SetRequestedByAllOption( UserCanEdit );
+
+            Group locationAdminGroup = new GroupService( new RockContext() ).Get( GetAttributeValue( "LocationAdminGroup" ).AsGuid() );
+
+            if ( !( UserCanEdit || ( locationAdminGroup != null && locationAdminGroup.ActiveMembers().Where( m => m.PersonId == CurrentPerson.Id ).Any() ) ) )
+            {
+                cblShow.Items.Remove( cblShow.Items.FindByValue( "Location" ) );
+            }
 
         }
 

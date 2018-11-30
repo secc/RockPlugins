@@ -47,8 +47,7 @@ $deleteFiles | Out-File "bin\$pluginName\uninstall\deletefile.txt"
 
 
 # Zip it all up and name it appropriately
-Add-Type -assembly "system.io.compression.filesystem"
-[System.IO.Compression.ZipFile]::CreateFromDirectory("$dir\bin\$pluginName\","$dir\bin\$pluginName.zip")
+&"C:\Program Files\7-Zip\7z.exe" a "$dir\bin\$pluginName.zip" "$dir\bin\$pluginName\*"
 mv "bin\$pluginName.zip" "bin\$pluginName.plugin"
 
 Pop-Location
