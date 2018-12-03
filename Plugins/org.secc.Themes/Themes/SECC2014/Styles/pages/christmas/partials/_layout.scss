@@ -27,11 +27,14 @@ $L:     1200px;
 
 .blog-post {
     margin-top: 2em;
-	border-top: 1px solid rgba($color-1, 0.8);
-	background: rgba($color-1, 0.8);
+	// border-top: 1px solid rgba($color-1, 0.8);
+	background: rgba($color-1, 1);
 	box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.2);
 	transition: all .3s;
 
+    h2 {
+        text-transform: none;
+    }
 	&:hover {
 		transform: translateY(-10px);
 		box-shadow: 0 22px 43px rgba(0, 0, 0, 0.15);
@@ -55,7 +58,7 @@ $L:     1200px;
 	} // .post-img
 
 	.bp-content {
-		padding: 1em 1.5em 1.5em 1.5em;
+		padding: 1.5em;
 
 		.post-meta {
 
@@ -106,6 +109,7 @@ $L:     1200px;
 			h4,
 			h5 {
 				margin: 0;
+                color: black;
 			}
 		} // .post-title
 
