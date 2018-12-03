@@ -29,14 +29,16 @@
 @import '_lib/buttons';
 @import '_lib/page_menu';
 @import '_lib/modal_video';
-@import '_lib/ministries_container';
-@import '_lib/students';
-@import '_lib/missions';
-@import '_lib/visit';
-@import '_lib/contact';
-@import '_lib/beliefs';
-@import '_lib/about';
-@import '_lib/locations';
+
+// moving existing pages over, need to refactor this one day.
+@import '_lib/pages/ministries_container';
+@import '_lib/pages/students';
+@import '_lib/pages/missions';
+@import '_lib/pages/visit';
+@import '_lib/pages/contact';
+@import '_lib/pages/beliefs';
+@import '_lib/pages/about';
+@import '_lib/pages/locations';
 
 /******************************************************
 * MAIN.SCSS

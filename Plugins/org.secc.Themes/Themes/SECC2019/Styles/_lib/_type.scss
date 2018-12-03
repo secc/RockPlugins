@@ -78,6 +78,21 @@ $font-size-140:  						 8.75rem !default;
 $font-size-145:  						 9.0625rem !default;
 $font-size-150:  						 9.375rem !default;
 
+@include font-face('TisaPro', "FF-TisaPro");
+@include font-face('TisaPro', "FF-TisaPro-Ita", normal, italic);
+@include font-face('TisaPro', "FF-TisaPro-Thin", 100);
+@include font-face('TisaPro', "FF-TisaPro-ThinIta", 100, italic);
+@include font-face('TisaPro', "FF-TisaPro-Light", 200);
+@include font-face('TisaPro', "FF-TisaPro-LightIta", 200, italic);
+@include font-face('TisaPro', "FF-TisaPro-Medi", 600);
+@include font-face('TisaPro', "FF-TisaPro-MediIta", 600, italic);
+@include font-face('TisaPro', "FF-TisaPro-Bold", 700);
+@include font-face('TisaPro', "FF-TisaPro-BoldIta", 700, italic);
+@include font-face('TisaPro', "FF-TisaPro-Xbold", 800);
+@include font-face('TisaPro', "FF-TisaPro-XboldIta", 800, italic);
+@include font-face('TisaPro', "FF-TisaPro-Black", 900);
+@include font-face('TisaPro', "FF-TisaPro-BlackIta", 900, italic);
+
 // Forms
 $cursor-disabled:           not-allowed !default;
 
@@ -105,6 +120,11 @@ h6 {
 
 	a {
 		color: $color-heading;
+	}
+
+	&.tisa-pro {
+		font-weight: normal;
+		font-family: $TisaPro;
 	}
 }
 
