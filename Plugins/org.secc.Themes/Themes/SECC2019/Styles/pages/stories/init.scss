@@ -1,10 +1,10 @@
 @import '../../_lib/init';
+@import '../../_lib/type';
 @import '../../_lib/_section-navigation';
-@import '../../pages/connect/partials/type';
-@import '../../pages/connect/partials/intro_section';
-@import '../../pages/connect/partials/sections';
-@import '../../pages/connect/partials/accordions';
-@import '../../pages/connect/partials/buttons';
-@import '../../pages/connect/partials/page_menu';
-@import '../../pages/connect/partials/modal_video';
+@import '../../_lib/intro_section';
+@import '../../_lib/sections';
+@import '../../_lib/accordions';
+@import '../../_lib/buttons';
+@import '../../_lib/page_menu';
+@import '../../_lib/modal_video';
 @import '../../pages/stories/layouts';

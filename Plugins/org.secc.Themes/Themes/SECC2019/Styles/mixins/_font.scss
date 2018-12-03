@@ -7,3 +7,24 @@
   font-family: $family;
   line-height: $line-height;
 }
+
+// @font-face {
+// 	font-family: 'FF-TisaPro';
+// 	src: local('TisaPro'),
+// 		 local('FF-TisaPro'),
+// 		 local('FontFont TisaPro'),
+// 		 local('FontFont-TisaPro'),
+// 		 local('FontFont - TisaPro'),
+// 		 url('/Themes/SECC2019/Assets/fonts/tisa-pro/FF-TisaPro.otf'),
+// 		 format('opentype');
+// }
+
+
+@mixin font-face($name, $file, $weight: normal, $style: normal){
+	@font-face {
+		font-family: '#{$name}';
+		src: url('#{$fa-tisapro-path + $file}.otf');
+        font-weight: $weight;
+        font-style: $style;
+	}
+}
