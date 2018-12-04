@@ -15,12 +15,11 @@
 @import '_lib/events-filters';
 @import '_lib/social';
 @import '_lib/breadcrumbs';
-@import 'select2/core';
+@import 'select2/_core';
 
 @import 'rock/init';
 
 @import 'bourbon/bourbon'; // http://bourbon.io/
-@import '_lib/_variables'; // colors, fonts etc...
 @import '_lib/_layout'; // responsive grid and media queries
 @import '_lib/section-navigation';
 @import '_lib/intro_section';

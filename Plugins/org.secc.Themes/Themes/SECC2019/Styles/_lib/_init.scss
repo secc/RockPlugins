@@ -259,6 +259,7 @@ $fa-font-path:        "../Assets/fonts";
 	}
 }
 
+
 @mixin FontSmoothing($value: on) {
     @if $value == on {
         -webkit-font-smoothing: antialiased;
@@ -269,7 +270,6 @@ $fa-font-path:        "../Assets/fonts";
         -moz-osx-font-smoothing: auto;
     }
 }
-
 
 //FLEXBOX MIXINS
 

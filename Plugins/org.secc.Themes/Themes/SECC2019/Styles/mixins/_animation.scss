@@ -1,13 +1,103 @@
 // Animation
 @mixin animation(
-	$name,											// none | keyframe at-rule name
-	$duration,									// <time>
-	$timing-function,						// ease | linear | ease-in | ease-out | ease-in-out | cubic-bezier(<number>, <number>, <number>, <number>)
-	$delay,											// <time>
-	$iteration-count,   				// infinite | number
-	$direction,									// normal | alternate
-	$fill-mode									// none | both
+	$name: null,											// none | keyframe at-rule name
+	$duration: null,									// <time>
+	$timing-function: null,						// ease | linear | ease-in | ease-out | ease-in-out | cubic-bezier(<number>, <number>, <number>, <number>)
+	$delay: null,											// <time>
+	$iteration-count: null,   				// infinite | number
+	$direction: null,									// normal | alternate
+	$fill-mode: null									// none | both
 	) {
   -webkit-animation: $name $duration $timing-function $iteration-count $direction $fill-mode;
   animation: $name $duration $timing-function $iteration-count $direction $fill-mode;
+}
+
+// generic transform
+@mixin transform($transforms) {
+	   -moz-transform: $transforms;
+	     -o-transform: $transforms;
+	    -ms-transform: $transforms;
+	-webkit-transform: $transforms;
+          transform: $transforms;
+}
+
+@mixin center($xy:xy) {
+  @if $xy == xy {
+    left: 50%;
+    top: 50%;
+    bottom: auto;
+    right: auto;
+    @include transform(translateX(-50%) translateY(-50%));
+  }
+  @else if $xy == x {
+    left: 50%;
+    right: auto;
+    @include transform(translateX(-50%));
+  }
+  @else if $xy == y {
+    top: 50%;
+    bottom: auto;
+    @include transform(translateY(-50%));
+  }
+}
+
+// define a different bounce animation for h1 and p elements
+@mixin bounce($animation, $value1, $value2) {
+  @include keyframes($animation) {
+    0% {
+      opacity: .2;
+      @include transform(translateX($value1));
+    }
+    60% {
+      opacity: .7;
+      @include transform(translateX($value2));
+    }
+    100% {
+      opacity: 1;
+      @include transform(translateX(0));
+    }
+  }
+}
+
+// define different cut animations
+@mixin cut($animation, $value) {
+  @include keyframes($animation) {
+    0% {
+      opacity: 1;
+      @include transform(translateX($value));
+    }
+
+    100% {
+      opacity: 1;
+      @include transform(translateX(0));
+    }
+  }
+}
+
+// define different reveal animations
+@mixin reveal($animation, $value) {
+  @include keyframes($animation) {
+    0% {
+      opacity: 1;
+      @include transform(translateY($value));
+    }
+
+    100% {
+      opacity: 1;
+      @include transform(translateY(0));
+    }
+  }
+}
+
+// define different mask-2 animations
+@mixin mask2($animation, $value) {
+  @include keyframes($animation) {
+    0% {
+      @include transform(translateX($value));
+    }
+
+    100% {
+      @include transform(translateX(0));
+    }
+  }
 }
