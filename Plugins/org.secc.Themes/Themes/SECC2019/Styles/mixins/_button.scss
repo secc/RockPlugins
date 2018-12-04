@@ -14,6 +14,7 @@
   }
   &.focus {
     text-decoration: none;
+    outline: none;
   }
 
   &:active,
@@ -37,12 +38,17 @@
 }
 
 // Style
-@mixin btn-style($color: null, $hvr-color: null, $bg: null, $hvr-bg: null, $brd-width: null, $brd-style: null, $brd-color: null, $hvr-brd-color: null, $hvr-opacity: null, $line-height: null) {
+@mixin btn-style($dspy: null, $wht-space: null, $ps: null, $color: null, $padding: null, $brd-radius: null,$hvr-color: null, $bg: null, $hvr-bg: null, $brd-width: null, $brd-style: null, $brd-color: null, $hvr-brd-color: null, $hvr-opacity: null, $line-height: null) {
+  display: $dspy;
+  white-space: $wht-space;
+  position: $ps;
   color: $color;
   background: $bg;
+  padding: $padding;
   border-width: $brd-width;
   border-style: $brd-style;
   border-color: $brd-color;
+  border-radius: $brd-radius;
   line-height: $line-height;
 
   @include hover-focus {
