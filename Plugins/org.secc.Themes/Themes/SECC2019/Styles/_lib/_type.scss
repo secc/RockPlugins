@@ -88,7 +88,7 @@ h1, h2, h3, h4, h5, h6 {
 	line-height: $headings-line-height;
 	color: $color-heading;
 	margin-top: 0;
-	margin-bottom: .5rem;
+	// margin-bottom: .5rem;
 }
 
 h1,
@@ -98,25 +98,26 @@ h4,
 h5,
 h6 {
 	// text-transform: capitalize;
-	margin-bottom: $headings-margin-bottom;
+	// margin-bottom: $headings-margin-bottom;
 
 	a {
 		color: $color-heading;
 	}
 
-	&.tisa-pro {
-		font-weight: normal;
-		font-family: $TisaPro;
-	}
+	// &.tisa-pro {
+	// 	font-weight: normal;
+	// 	font-family: $TisaPro;
+	// }
 }
 
-h1 { @include font($size: $font-size-40); }
-h2 { @include font($size: $font-size-32); }
-h3 { @include font($size: $font-size-28); }
-h4 { @include font($size: $font-size-24); }
-h5 { @include font($size: $font-size-20); }
-h6 { @include font($size: $font-size-16); }
+h1, .h1 { @include font($size: $font-size-80, $weight: normal); }
+h2, .h2 { @include font($size: $font-size-65, $weight: normal); }
+h3, .h3 { @include font($size: $font-size-48, $weight: normal); }
+h4, .h4 { @include font($size: $font-size-36, $weight: normal); }
+h5, .h5 { @include font($size: $font-size-16, $weight: normal); }
+h6, .h6 { @include font($size: $font-size-12, $weight: normal); }
 
+//$font-size-h1;
 em,
 li {
   @include font($size: $font-size-24, $weight: 500);
@@ -168,15 +169,6 @@ a {
 		outline: none;
 	}
 }
-
-h1, .h1 {
-    font-size: $font-size-h1;
-}
-h2, .h2 { font-size: $font-size-h2; }
-h3, .h3 { font-size: $font-size-h3; }
-h4, .h4 { font-size: $font-size-h4; }
-h5, .h5 { font-size: $font-size-h5; }
-h6, .h6 { font-size: $font-size-h6; }
 
 .uppercase {
     text-transform: uppercase;

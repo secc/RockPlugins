@@ -68,19 +68,8 @@ section:not(.row):not(.highlighted-section):not(.with-header):not(.footer-menu):
     }
 }
 
-// .page-banner {
-// 	@include phones {
-//         nav.section-nav { display: none;}
-//     }
-// }
 @include phones {
     nav.section-nav { display: none;}
-}
-
-h4 {
-    font-size: 1.5em;
-    margin: 0;
-    font-weight: bolder;
 }
 
 .serviceBox {
@@ -135,6 +124,10 @@ h4 {
 
 .jarallax {
     background-color: black;
+
+    h1, h2, h3, h4, h5, h6, span, p, small {
+        color: $color-primary
+    }
 
     iframe {
         border: 0 !important;
@@ -234,6 +227,9 @@ h4 {
             &:hover,&:active,&:focus,&:visited {
                 text-decoration: none;
             }
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: $color-primary
         }
         h1 {
             font-size: 5em;

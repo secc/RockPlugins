@@ -1,0 +1,116 @@
+// Body
+//
+// Settings for the `<body>` element.
+
+$bg-color-body:             $color-white !default;
+$color-body:                $color-dark !default;
+
+
+// Links
+//
+// Style anchor elements.
+
+$link-hover-decoration:     none !default;
+
+
+// // Typography
+// //
+// // Font, line-height, and color for body text, headings, and more.
+
+$font-family-primary:			$Proxima 			!default; // Default Font Tisa Pro
+$font-family-secondary:			$TisaPro 			!default; // Proxima Nova
+$font-family-playfair:			$Proxima-SemiBold 	!default; // Proxima Semi-bold
+
+$line-height:                1.6 !default;
+
+$headings-margin-bottom:     .75rem !default;
+$headings-font-weight:       400 !default;
+$headings-line-height:       1.2 !default;
+
+
+// Z-index master list
+//
+// Warning: Avoid customizing these values. They're used for a bird's eye view
+// of components dependent on the z-axis and are designed to all work together.
+//
+// Note: These variables are not generated into the Customizer.
+
+$zindex-navbar:            	1000 !default;
+$zindex-dropdown:          	1000 !default;
+$zindex-cart:             	9999 !default;
+
+
+// Navbar
+
+$navbar-height:							88px !default;
+$navbar-height-shrink:			3.4375rem !default;
+
+
+// Options
+//
+// Quickly modify global styling by enabling or disabling optional features.
+
+$enable-hover-media-query:   				false !default;
+$enable-child-media-query:   				false !default;
+$enable-before-after-media-query:   false !default;
+
+
+// Spacing
+//
+// Control the default styling of most Dublin elements by modifying these
+// variables. Mostly focused on spacing.
+
+$spacer:                    1rem !default;
+$spacer-x:                  $spacer !default;
+$spacer-y:                  $spacer !default;
+$border-width:              .0625rem !default;
+
+
+// Container
+//
+
+$container-sm:              750px !default;
+$container-md:              970px !default;
+
+
+// Grid breakpoints
+//
+// Define the minimum and maximum dimensions at which your layout will change,
+// adapting to different screen sizes, for use in media queries.
+
+$grid-breakpoints: (
+	// Extra small screen / phone
+	xs: 0,
+	// Small screen / phone
+	sm: 34em,
+	// Medium screen / tablet
+	md: 48em,
+	// Large screen / desktop
+	lg: 62em,
+	// Extra large screen / wide desktop
+	xl: 75em
+) !default;
+
+
+// Grid containers
+//
+// Define the maximum width of `.container` for different screen sizes.
+
+$container-max-widths: (
+	sm: 34rem,    // 480
+	md: 45rem,    // 720
+	lg: 60rem,    // 960
+	xl: 72.25rem  // 1140
+) !default;
+
+
+// Typography
+//
+// Font, line-height, and color for body text, headings, and more.
+
+$font-family-ionicons:			 Ionicons !default; // Ionicons Icon font family
+$font-family-icomoon:			 	 icomoon !default; // icomoon Icon font family
+
+// Forms
+
+$cursor-disabled:           not-allowed !default;
