@@ -378,7 +378,7 @@ main {
 		top: 50%;
 		right: 10px;
 		margin-top: -2px;
-		@include transition(background .3s .3s);
+		/*@include transition(background .3s .3s);*/
 	}
 
 	span::before, span::after {

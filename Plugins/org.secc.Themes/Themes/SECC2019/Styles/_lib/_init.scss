@@ -76,6 +76,20 @@ $LightGrayColor 		: lighten($GrayColor, 20%);
 $LightHighlight 		: lighten($HighlightColor, 30%);
 $DarkGrayColor 			: darken($GrayColor, 20%);
 
+$color-primary:              $WhiteColor !default;
+$color-sub:           		 $BlackColor !default;
+$color-dark:                 $BlackColor !default;
+$color-dark-light:           rgba($BlackColor,.8) !default;
+$color-heading:              rgba($BlackColor,.8) !default;
+$color-white:                $WhiteColor !default;
+$color-sub-white:            rgba($color-white,.8) !default;
+$color-white-opacity:        rgba($color-white,.8) !default;
+$color-white-opacity-light:  rgba($color-white,.5) !default;
+$color-white-opacity-lighter:rgba($color-white,.3) !default;
+$color-white-opacity-lightest:rgba($color-white,.1) !default;
+$color-text:            	 $BlackColor !default;
+$color-gray-light:          rgba($color-dark-light,.2) !default;
+$color-gray-lighter:        rgba($color-dark-light,.1) !default;
 
 $DefaultBorder			: 1px solid $LightGrayColor;
 $SectionNavWidth 		: 23%;

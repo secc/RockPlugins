@@ -22,6 +22,10 @@ html {
 	background: $PrimaryBackground;
 }
 
+#SiteHeader {
+	display: none;
+}
+
 section:not(.parallax),
 #PageBody > section,
 #AdminPageBody > section {

@@ -50,18 +50,7 @@
 	color: $DarkGrayColor;
 }
 
-/*html, body {
-	width: 100%;
-
-	@include small-desktops {
-		font-size: $font-size-base - 1px;
-	}
-	@include tablets {
-		font-size: $font-size-base - 1px;
-	}
-}*/
-
-button, a, input[type="submit"], input[type="reset"], input[type="button"] {
+/*button, a, input[type="submit"], input[type="reset"], input[type="button"] {
 	background: transparent;
 	outline: none;
 	border: none;
@@ -134,7 +123,7 @@ button, a, input[type="submit"], input[type="reset"], input[type="button"] {
 		}
 	}
 }
-
+*/
 
 a {
 	color: $LinkColor;
