@@ -1,8 +1,28 @@
+@import '../mixins';
+@import '_layout';
+@import '../bootstrap/mixins';
 /* --------------------------------
 
 General Style
 
 -------------------------------- */
+
+$color-1: #040404; // Black
+$color-2: #2e416a; // San Juan
+$color-3: #ffffff; // White
+$color-4: #fb5e58; // Carnation
+$color-foreground: rgba(239, 239, 239, 0.5);
+
+// fonts
+$primary-font: 'Open Sans', sans-serif;
+
+// font size
+$font-size-h1: 3em;
+$font-size-h2: 2.5em;
+$font-size-h3: 2em;
+$font-size-h4: 1.5em;
+$font-size-h5: 1.2em;
+$font-size-h6: 1em;
 
 .cd-intro {
 	position: relative;
