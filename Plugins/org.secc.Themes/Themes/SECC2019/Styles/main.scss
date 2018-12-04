@@ -1,12 +1,13 @@
+// Core variables and mixins
 @import 'mixins';
 @import '_lib/init';
 @import 'bootstrap';
 @import 'bootstrap/theme';
 @import '_lib/bootstrap-overrides';
-@import '_lib/type';
-@import '_lib/campus-styles';
 @import '_lib/forms';
 @import 'fontawesome/font-awesome';
+
+// Gui
 @import '_lib/isotope';
 @import '_lib/roles';
 @import '_lib/checkbox';
@@ -17,8 +18,14 @@
 @import '_lib/breadcrumbs';
 @import 'select2/_core';
 
+// Rock Core Theme
 @import 'rock/init';
 
+// 2019 Custom SECC Theme
+@import '_lib/type';
+@import 'global/_global';
+
+// SECC Custom Components
 @import 'bourbon/bourbon'; // http://bourbon.io/
 @import '_lib/_layout'; // responsive grid and media queries
 @import '_lib/section-navigation';
@@ -29,7 +36,9 @@
 @import '_lib/page_menu';
 @import '_lib/modal_video';
 
+// 2019 Custom SECC Theme
 // moving existing pages over, need to refactor this one day.
+@import '_lib/campus-styles';
 @import '_lib/pages/ministries_container';
 @import '_lib/pages/students';
 @import '_lib/pages/missions';
@@ -150,10 +159,10 @@ article {
 //We need headers in general to be a bit smaller on tabets
 //as we're still using multiple cloumns, which means each
 //column can be fairly narrow.
-@include tablets {
+/*@include tablets {
 	h1 { font-size: floor(($font-size-base * 1.85));}
 	h2 { font-size: floor(($font-size-base * 1.6));}
-}
+}*/
 
 .subhead {
 	color: $HighlightColor;

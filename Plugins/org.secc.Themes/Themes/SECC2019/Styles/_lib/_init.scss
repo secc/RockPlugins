@@ -80,7 +80,7 @@ $color-primary:              $WhiteColor !default;
 $color-sub:           		 $BlackColor !default;
 $color-dark:                 $BlackColor !default;
 $color-dark-light:           rgba($BlackColor,.8) !default;
-$color-heading:              rgba($BlackColor,.8) !default;
+$color-heading:              $BlackColor !default;
 $color-white:                $WhiteColor !default;
 $color-sub-white:            rgba($color-white,.8) !default;
 $color-white-opacity:        rgba($color-white,.8) !default;

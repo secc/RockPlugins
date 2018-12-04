@@ -1,0 +1,58 @@
+/*----------------------------------
+  Colors
+------------------------------------*/
+
+$utils-colors: (
+	primary:              	(color: $WhiteColor),
+	red:                  	(color: #E41E26),
+	dark-red:               (color: #8c0000),
+	gold:                 	(color: #b99769),
+	body:             		(color: #fff),
+	dark:                 	(color: #222324),
+	dark-light:           	(color: #242526),
+	heading:              	(color: #242424),
+	white:                	(color: #fff),
+	text:            		  	(color: #656565),
+	gray-light:           	(color: #cecece),
+	gray-lighter:         	(color: #aeaeae),
+	white-opacity:        	(color: rgba($WhiteColor,.8)),
+	white-opacity-light:  	(color: rgba($WhiteColor,.5)),
+	white-opacity-lighter:	(color: rgba($WhiteColor,.3)),
+	white-opacity-lightest:	(color: rgba($WhiteColor,.1)),
+);
+
+/* Text Colors */
+@each $color-name, $color in $utils-colors {
+	.g-color--#{$color-name} {
+  	color: map-get($color, color) !important;
+  }
+}
+
+/* Text Shadow Colors */
+@each $color-name, $color in $utils-colors {
+	.g-text-shadow--#{$color-name} {
+  	text-shadow: -1px 1px 1px map-get($color, color) !important;
+  }
+}
+
+/* Hover Colors */
+.g-color--text[href] {
+	@include hover {
+		color: $color-primary !important;
+	}
+}
+
+.g-color--white-opacity[href] {
+	@include hover {
+		color: $color-primary !important;
+	}
+}
+
+/* Background Colors */
+@each $color-name, $color in $utils-colors {
+	.g-bg-color--#{$color-name} {
+  	background-color: map-get($color, color) !important;
+  }
+}
+
+.g-bg-color--primary-ltr { @include gradient-horizontal($direction: 145deg, $start-color: rgba($color-primary,.6), $end-color: $color-primary); }
