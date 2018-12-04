@@ -1,6 +1,9 @@
 {% comment %}
     ******* Filtering System for Calendar *****
 {% endcomment %}
+{% assign paramCampus = 'Global' | PageParameter:'campus' | Downcase | Replace:"-","" %}
+{% assign paramMinistry = 'Global' | PageParameter:'ministry' %}
+{% cache key:'event-matrix-filer-{{paramCampus}}-{{paramMinistry}}' duration:'60' %}
 
 {% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
 {% assign campusIdSize = pageParamCampusId | Size %}
@@ -322,3 +325,4 @@ function loadQueryStringParam() {
 
 }
 </script>
+{% endcache %}
