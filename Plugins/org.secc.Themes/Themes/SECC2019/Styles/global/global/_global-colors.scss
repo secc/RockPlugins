@@ -4,7 +4,7 @@
 
 $utils-colors: (
 	primary:              	(color: $WhiteColor),
-	red:                  	(color: #E41E26),
+	red:                  	(color: $ErrorColor),
 	dark-red:               (color: #8c0000),
 	gold:                 	(color: #b99769),
 	body:             		(color: #fff),
@@ -12,15 +12,21 @@ $utils-colors: (
 	dark-light:           	(color: #242526),
 	heading:              	(color: #242424),
 	white:                	(color: #fff),
-	text:            		  	(color: #656565),
+	text:            		(color: $CopyColor),
 	gray-light:           	(color: #cecece),
 	gray-lighter:         	(color: #aeaeae),
+	black: 					(color: $BlackColor),
+	black-opacity:        	(color: rgba($BlackColor,.8)),
+	black-opacity-light:  	(color: rgba($BlackColor,.5)),
+	black-opacity-lighter:	(color: rgba($BlackColor,.3)),
+	black-opacity-lightest:	(color: rgba($BlackColor,.1)),
 	white-opacity:        	(color: rgba($WhiteColor,.8)),
 	white-opacity-light:  	(color: rgba($WhiteColor,.5)),
 	white-opacity-lighter:	(color: rgba($WhiteColor,.3)),
 	white-opacity-lightest:	(color: rgba($WhiteColor,.1)),
 );
 
+//Some alternate colors used for Nav Items, highlights, and callouts
 /* Text Colors */
 @each $color-name, $color in $utils-colors {
 	.g-color--#{$color-name} {
@@ -44,15 +50,20 @@ $utils-colors: (
 
 .g-color--white-opacity[href] {
 	@include hover {
-		color: $color-primary !important;
+		color: $color-primary  v
 	}
 }
 
-/* Background Colors */
+/* Parallax Background Black Color */
 @each $color-name, $color in $utils-colors {
-	.g-bg-color--#{$color-name} {
-  	background-color: map-get($color, color) !important;
-  }
+	@for $i from 1 through 10 {
+	  .g-bg-parallax-color--#{$color-name}--#{$i * 10} {
+		@include gradient-horizontal-after(
+			$direction: 145deg,
+			$start-color: rgba(map-get($color, color),($i * 10 / 100)),
+			$end-color: rgba(map-get($color, color),($i * 10 / 100)),
+			$start-percent: 100%
+		);
+	  }
+	}
 }
-
-.g-bg-color--primary-ltr { @include gradient-horizontal($direction: 145deg, $start-color: rgba($color-primary,.6), $end-color: $color-primary); }

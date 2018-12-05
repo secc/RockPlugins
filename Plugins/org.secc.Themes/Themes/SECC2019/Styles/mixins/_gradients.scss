@@ -35,3 +35,17 @@
 @mixin gradient-striped($color: rgba(255,255,255,.15), $angle: 45deg) {
   background-image: linear-gradient($angle, $color 25%, transparent 25%, transparent 50%, $color 50%, $color 75%, transparent 75%, transparent);
 }
+
+@mixin gradient-horizontal-after($direction: to right, $start-color: #555, $end-color: #333, $start-percent: 0%, $end-percent: 100%) {
+      &:after {
+          top: 0;
+          left: 0;
+          content: '';
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          z-index: 1;
+          background-image: linear-gradient($direction, $start-color $start-percent, $end-color $end-percent) !important;
+          background-repeat: repeat-x !important;
+    }
+}
