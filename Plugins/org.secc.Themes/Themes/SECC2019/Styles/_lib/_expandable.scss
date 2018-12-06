@@ -1,0 +1,46 @@
+.se-expandable {
+
+    div {
+        overflow:hidden;
+        transition:height 0.3s ease-out;
+        height:auto;
+        &.se-expandable-content {
+            text-align: center;
+            li {
+                list-style-type: none;
+            }
+            ul { padding-bottom: 3rem; }
+        }
+        &.se-expandable-header {
+            cursor: pointer;
+            position: relative;
+            text-align: center;
+            margin: 10px 0px;
+
+            .carat {
+                position: relative;
+                top: -0.1em;
+                left: 1rem;
+                display: inline-block;
+                width: 8px;
+                height: 8px;
+                content: "";
+                border: solid black;
+                border-width: 0 1px 1px 0;
+                display: inline-block;
+                transform: rotate(-45deg);
+                -webkit-transform: rotate(-45deg);
+                @include transition(all 0.5s);
+            }
+
+            &[data-expanded="true"] {
+                .carat {
+                    -webkit-transform: translateY(-0.1rem) rotate(405deg);
+                    -moz-transform: translateY(-0.1rem) rotate(405deg);
+                    transform: translateY(-0.1rem) rotate(405deg);
+                }
+            }
+        }
+    }
+
+}
