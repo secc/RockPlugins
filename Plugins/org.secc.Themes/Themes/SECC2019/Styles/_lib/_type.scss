@@ -127,7 +127,7 @@ li {
   	color: $color-heading;
 
   	@include hover {
-  		color: $color-primary;
+  		color: darken($color-heading, 7%);
   	}
   }
 }
@@ -161,7 +161,7 @@ a {
 	text-decoration: $link-hover-decoration;
 
 	@include hover-focus {
-		color: darken($color-primary, 7%);
+		color: darken($color-heading, 7%);
 		text-decoration: $link-hover-decoration;
 	}
 

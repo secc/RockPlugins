@@ -54,16 +54,30 @@ $utils-colors: (
 	}
 }
 
-/* Parallax Background Black Color */
-@each $color-name, $color in $utils-colors {
-	@for $i from 1 through 10 {
-	  .g-bg-parallax-color--#{$color-name}--#{$i * 10} {
-		@include gradient-horizontal-after(
-			$direction: 145deg,
-			$start-color: rgba(map-get($color, color),($i * 10 / 100)),
-			$end-color: rgba(map-get($color, color),($i * 10 / 100)),
-			$start-percent: 100%
-		);
-	  }
-	}
+/************************************************************************************************/
+/* Parallax Background Color using all colors from above (use this only if you need all colors) */
+/************************************************************************************************/
+// @each $color-name, $color in $utils-colors {
+// 	@for $i from 1 through 10 {
+// 	  .g-bg-parallax-color--#{$color-name}--#{$i * 10} {
+// 		@include gradient-horizontal-after(
+// 			$direction: 145deg,
+// 			$start-color: rgba(map-get($color, color),($i * 10 / 100)),
+// 			$end-color: rgba(map-get($color, color),($i * 10 / 100)),
+// 			$start-percent: 100%
+// 		);
+// 	  }
+// 	}
+// }
+
+/* Parallax Background Color with only the black color */
+@for $i from 1 through 10 {
+  .g-bg-parallax-color--black--#{$i * 10} {
+	@include gradient-horizontal-after(
+		$direction: 145deg,
+		$start-color: rgba($BlackColor, ($i * 10 / 100)),
+		$end-color: rgba($BlackColor, ($i * 10 / 100)),
+		$start-percent: 100%
+	);
+  }
 }

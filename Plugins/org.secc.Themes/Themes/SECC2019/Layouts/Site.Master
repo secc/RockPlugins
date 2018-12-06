@@ -86,16 +86,16 @@
                 <!--========== END PAGE CONTENT ==========-->
 
                 <footer id="SiteFooter">
-                    <section class="footer-menu">
-                        <div class="container">
-                            <!-- SUB FOOTER -->
-                            <Rock:Zone Name="SubFooter" runat="server" />
-                        </div>
-                    </section>
                     <section class="partners">
                         <div class="container">
                             <!-- FOOTER LINKS -->
                             <Rock:Zone Name="FooterLinks" runat="server" />
+                        </div>
+                    </section>
+                    <section class="footer-menu">
+                        <div class="container">
+                            <!-- SUB FOOTER -->
+                            <Rock:Zone Name="SubFooter" runat="server" />
                         </div>
                     </section>
                     <section class="signoff">
