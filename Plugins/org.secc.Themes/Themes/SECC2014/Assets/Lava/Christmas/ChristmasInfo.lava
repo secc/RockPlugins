@@ -6,17 +6,17 @@
 
 <header class="cd-header">
 	<div id="cd-logo">
-        <a href="/christmas" id="cd-back" class="cd-btn sweep-to-left">
+        <a href="/christmas" id="cd-back" class="cd-btn invert sweep-to-left">
             Back
         </a>
     </div>
 </header>
 
-<section id="PageHeader" class="parallax" style="background-color:#561918;">
+<section id="PageHeader" class="parallax" style="background-color:#e9eae5;">
     <div class="container">
         <div class="row">
             <div class="col-sm-12 text-center">
-                <img alt="Celebrate Christmas Together" src="/Content/ExternalSite/WebImages/ChristmasTogetherNoBorder.png" class="img-responsive wow fadeInUp" data-wow-duration="1s" data-wow-delay=".7s" style="max-width: 60rem; max-width: 30em;margin: 4em auto;width: 100%; visibility: hidden;">
+                <img alt="Celebrate Christmas Together" src="/Themes/SECC2014/Assets/img/Christmas2018/ChristmasTogetherLogo.jpg" class="img-responsive wow fadeInUp" data-wow-duration="1s" data-wow-delay=".7s" style="max-width: 60rem; max-width: 30em;margin: 4em auto;width: 100%; visibility: hidden;">
 			</div>
         </div>
     </div>
@@ -57,12 +57,6 @@
                 </a>
             </li>
             <li>
-                <a href="#Map">
-                    <b>Map</b>
-                    <span><i class="fa fa-map-o"></i></span>
-                </a>
-            </li>
-            <li>
                 <a href="#FAQs">
                     <b>FAQ</b>
                     <span><i class="fa fa-question-circle"></i></span>
@@ -80,7 +74,7 @@
 
 <main class="cd-main-content">
 
-    <section id="CelebrateChristmasTogether" class="cd-section christmas-font">
+    <section id="CelebrateChristmasTogether" class="cd-section cct-green christmas-font" style="background: #24382f url('/Themes/SECC2014/Assets/img/Christmas2018/ChristmasPattern.jpg');">
         <div class="container-fluid left-aligned">
             <div class="row">
                 <div class="col-sm-10 col-sm-offset-1 animated wow fadeInRight">
@@ -214,7 +208,7 @@
         <div class="container-fluid" >
             <div class="row topper">
                 <div class="col-sm-10 col-sm-offset-1 text-center">
-                    <h2>Mission Partners</h2>
+                    <h2 style="color: white;">Mission Partners</h2>
 					<p>We are honored to have several mission partners joining us at Celebrate Christmas Together! Visit our Christmas Village marketplace to learn more about these wonderful ministries and find out how you can support their efforts this holiday season.</p>
 					<br />
 					<br />
@@ -322,21 +316,6 @@
         </div>
     </section>
 
-    <section id="Map" class="cd-section christmas-font" style="background-color:#fff;">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-sm-12">
-                    <h2>Celebrate Christmas Together Map</h2>
-                    <br />
-					<p>MAP coming soon!</p>
-					{% comment %}
-                    {% include '~~/Assets/Lava/Christmas/Mapplic.lava' %}
-					{% endcomment %}
-                </div>
-            </div>
-        </div>
-    </section>
-
 	<section id="Serve" class="cd-section cct-green christmas-font">
         <div class="container-fluid">
 			<div class="row">
@@ -357,7 +336,7 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-sm-12">
-                    <h1>Frequently Asked Questions</h1><br />
+                    <h1 style="color: white;">Frequently Asked Questions</h1><br />
 				</div>
 			</div>
 			<div class="row">

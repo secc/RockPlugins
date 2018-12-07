@@ -166,20 +166,21 @@
     });
 </script>
 
-<section id="Christmas" class="cd-section fs-video-hero">
+<section id="Christmas" class="cd-section" style="background: #24382f url('/Themes/SECC2014/Assets/img/Christmas2018/ChristmasPattern.jpg');">
     <!-- Video Background -->
-    <div id="fs-video-one-bg" class="player"
-         data-property="{videoURL:'https://youtu.be/ydFjXAarE30',anchor: 'center,center',containment:'.fs-video-hero',autoPlay:true, mute:true, startAt:1, stopAt:109, opacity:1, showControls: false, loop: true, stopMovieOnBlur: false, mobileFallbackImage: '/Content/ExternalSite/WebImages/Christmas/ChristmasVideoBG.jpg'}">
-    </div>
+
+
 	<div class="content-wrapper" style="vertical-align: bottom;">
 
-		<div id="JoinUsChristmas" class="text-center christmas-font wow fadeIn">
+		<img src="/Themes/SECC2014/Assets/img/Christmas2018/ChristmasAtSoutheast.jpg" class="img-responsive hidden-xs hidden-sm" style="margin: 0 auto;position: absolute;top: 50%;left: 50%;transform: translate(-50%, -80%);" />
+		<img src="/Themes/SECC2014/Assets/img/Christmas2018/MobileChristmas.jpg" class="img-responsive visible-xs visible-sm" style="margin: 0 auto;position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);" />
+		<!-- <div id="JoinUsChristmas" class="text-center christmas-font wow fadeIn">
 			<h2>Join Us This</h2>
 			<h1>CHRISTMAS</h1>
-		</div>
+		</div> -->
 
-		<div class="filler">
-		<div class="cd-secondary-nav cct-join-us">
+		<div class="filler" style="border: 0 !important;">
+		<div class="cd-secondary-nav">
 		    <a href="#0" class="cd-secondary-nav-trigger">Menu<span></span></a> <!-- button visible on small devices -->
 		    <nav>
 		        <ul>
@@ -211,12 +212,12 @@
 	</div>
 </section>
 
-<section id="CelebrateChristmasTogether" class="cd-section cct-red christmas-font">
+<section id="CelebrateChristmasTogether" class="cd-section christmas-font">
     <div class="container-fluid left-aligned">
 		<div class="row">
 			<div class="col-sm-10 col-sm-offset-1 col-lg-5 col-lg-offset-1 text-center">
-				<h1 class="text-center" style="color: white;">DECEMBER 7, 9-14</h1>
-				<a href="/christmas/info" class="grow"><img alt="Celebrate Christmas Together" src="/Content/ExternalSite/WebImages/ChristmasTogetherNoBorder.png" class="img-responsive wow fadeInDown" data-wow-duration="1s" style="max-width: 60rem; max-width: 30em;margin: 4em auto;width: 100%; visibility: hidden;"></a>
+				<h1 class="text-center">DECEMBER 7, 9-14</h1>
+				<a href="/christmas/info" class="grow"><img alt="Celebrate Christmas Together" src="/Themes/SECC2014/Assets/img/Christmas2018/ChristmasTogetherLogo.jpg" class="img-responsive wow fadeInDown" data-wow-duration="1s" style="max-width: 60rem; max-width: 30em;margin: 4em auto;width: 100%; visibility: hidden;"></a>
 			</div>
 			<div class="col-sm-10 col-sm-offset-1 col-lg-offset-0 col-lg-5">
 				<!-- <h1>Celebrate Christmas Together<br /> -->
@@ -224,7 +225,7 @@
 				<p>Join us at this winter wonderland of train rides, an outdoor ice-skating rink, inflatables for all ages, crafts, a snowball frenzy, activities for the whole family, an opportunity to engage with some of our mission partners, light displays, and more!</p>
 				<p>Don’t miss this week of musical performances, rides, and activities for all ages as we <i>Celebrate Christmas Together!</i></p>
 				<br />
-				<a href="/christmas/info" class="cd-btn sweep-to-right" style="font-size: 1.4em;"><span style="padding-right:1em;"><i class="fa fa-tree"></i></span><span class="hidden-xs hidden-sm">Click here to</span> <strong>learn more</strong>!</a>
+				<a href="/christmas/info" class="cd-btn invert sweep-to-right" style="font-size: 1.2em;"><span style="padding-right:1em;"><i class="fa fa-tree"></i></span><span class="hidden-xs hidden-sm">Click here to</span> <strong>learn more</strong>!</a>
 			</div>
 		</div>
 		<div class="row">
@@ -250,9 +251,6 @@
 				<p>920 Blankenbaker Pkwy<br />
 				Louisville, KY 40243<br />
 				</p>
-			</div>
-			<div class="col-sm-4" style="margin-top:20px;">
-				<a href="/christmas/info#Map" class="cd-btn sweep-to-right"><span style="padding-right:1em;"><i class="fa fa-map"></i></span><span class="hidden-xs hidden-sm">See our</span> map of <strong>activities</strong>!</a>
 			</div>
 		</div>
     </div>
