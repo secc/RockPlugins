@@ -42,7 +42,7 @@ Navigation
 	width: 100%;
 	height: $header-S;
 	box-shadow: 0 1px 3px rgba(#000, .2);
-	background-color: $color-3;
+	background-color: $color-1;
 	z-index: $header-zindex;
 
 	@include MQ(M) {
@@ -144,15 +144,15 @@ Secondary Fixed Navigation
 	height: auto;
 	background: none;
 	padding: 0px;
-	border: 1px solid #661f17;
+	border: 1px solid $color-1;
 	@include MQ(L) {
 		display: block;
 		height: 100px;
 		width: 99vw;
 		bottom: 0;
-		background-color: #661f17;
+		background-color: $color-1;
 		// this hides un-neccessary gaps on the left/right side
-		box-shadow: -50px 0px 0px 0px #661f17, 50px 0px 0px 0px #661f17;
+		box-shadow: -50px 0px 0px 0px $color-1, 50px 0px 0px 0px $color-1;
 		padding-bottom: 10%;
 		position: relative;
 	}
