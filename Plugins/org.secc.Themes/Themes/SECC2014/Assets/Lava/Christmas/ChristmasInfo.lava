@@ -6,17 +6,17 @@
 
 <header class="cd-header">
 	<div id="cd-logo">
-        <a href="/christmas" id="cd-back" class="cd-btn sweep-to-left">
+        <a href="/christmas" id="cd-back" class="cd-btn invert sweep-to-left">
             Back
         </a>
     </div>
 </header>
 
-<section id="PageHeader" class="parallax" style="background-color:#561918;">
+<section id="PageHeader" class="parallax" style="background-color:#e9eae5;">
     <div class="container">
         <div class="row">
             <div class="col-sm-12 text-center">
-                <img alt="Celebrate Christmas Together" src="/Content/ExternalSite/WebImages/ChristmasTogetherNoBorder.png" class="img-responsive wow fadeInUp" data-wow-duration="1s" data-wow-delay=".7s" style="max-width: 60rem; max-width: 30em;margin: 4em auto;width: 100%; visibility: hidden;">
+                <img alt="Celebrate Christmas Together" src="/Themes/SECC2014/Assets/img/Christmas2018/ChristmasTogetherLogo.jpg" class="img-responsive wow fadeInUp" data-wow-duration="1s" data-wow-delay=".7s" style="max-width: 60rem; max-width: 30em;margin: 4em auto;width: 100%; visibility: hidden;">
 			</div>
         </div>
     </div>
@@ -57,12 +57,6 @@
                 </a>
             </li>
             <li>
-                <a href="#Map">
-                    <b>Map</b>
-                    <span><i class="fa fa-map-o"></i></span>
-                </a>
-            </li>
-            <li>
                 <a href="#FAQs">
                     <b>FAQ</b>
                     <span><i class="fa fa-question-circle"></i></span>
@@ -80,7 +74,7 @@
 
 <main class="cd-main-content">
 
-    <section id="CelebrateChristmasTogether" class="cd-section christmas-font">
+    <section id="CelebrateChristmasTogether" class="cd-section cct-green christmas-font" style="background: #24382f url('/Themes/SECC2014/Assets/img/Christmas2018/ChristmasPattern.jpg');">
         <div class="container-fluid left-aligned">
             <div class="row">
                 <div class="col-sm-10 col-sm-offset-1 animated wow fadeInRight">
@@ -100,13 +94,13 @@
                 <div class="col-sm-10 col-sm-offset-1 text-center" style="margin-bottom:1em">
                     <h1 style="color:white;">Hours:</h1><br />
                     <p class="wow fadeInLeft" style="font-weight: 100;color: #797549; text-transform: uppercase; font-size: 2em;">FRIDAY, DECEMBER 7 • 5:00-10:00 P.M.</p>
-                    <p style="margin:0px;">Christmas program in the Sanctuary at 6:00 &amp; 8:00 p.m.</p>
+                    <p style="margin:0px;">Christmas program in the Sanctuary at 6:00 &amp; 8:00 p.m.<br /><i class="fa fa-american-sign-language-interpreting"></i> <i>Interpreted for the Deaf</i></p>
                     <br /><br />
                     <p class="wow fadeInLeft" style="font-weight: 100;color: #797549; text-transform: uppercase; font-size: 2em;" data-wow-delay=".3s">SUNDAY-THURSDAY, DECEMBER 9-13 • 5:00-9:00 P.M.</p>
                     <p style="margin:0px;">Christmas program in the Sanctuary at 6:00 & 8:00 p.m.</p>
                     <br />
 					<p class="wow fadeInLeft" style="font-weight: 100;color: #797549; text-transform: uppercase; font-size: 2em;">FRIDAY, DECEMBER 14 • 5:00-10:00 P.M.</p>
-                    <p style="margin:0px;">Christmas program in the Sanctuary at 6:00 & 8:00 p.m.</p>
+                    <p style="margin:0px;">Christmas program in the Sanctuary at 6:00 & 8:00 p.m.<br /><i class="fa fa-american-sign-language-interpreting"></i> <i>Interpreted for the Deaf</i></p>
                     <br /><br />
                     <h4 class="header-subtle"><i>No Celebrate Christmas Together programs or activities on Saturday, December 9.</i></h4>
                     <br />
@@ -128,7 +122,8 @@
                     <p>Get into the Christmas spirit as you watch a heartwarming, musical Christmas story come to life. Performances will take place in the Sanctuary every night of Celebrate Christmas Together and will last about 45 minutes. All other activities will be open during performances.</p>
                     <br />
                     <p style="text-transform: uppercase;"><strong>CHRISTMAS PROGRAM TIMES</strong></p>
-                    <p>Friday, December 7, 9-14: 6:00 & 8:00 p.m.</p>
+                    <p>Friday, December 7, 9-14: 6:00 & 8:00 p.m.<br />
+					<i class="fa fa-american-sign-language-interpreting"></i> <i>Interpreted for the Deaf on Friday, Dec 7 and Friday, Dec 14</i></p>
 					<br />
                 </div>
             	<div class="col-sm-5 animated wow fadeInRight" data-wow-duration="1s">
@@ -213,7 +208,7 @@
         <div class="container-fluid" >
             <div class="row topper">
                 <div class="col-sm-10 col-sm-offset-1 text-center">
-                    <h2>Mission Partners</h2>
+                    <h2 style="color: white;">Mission Partners</h2>
 					<p>We are honored to have several mission partners joining us at Celebrate Christmas Together! Visit our Christmas Village marketplace to learn more about these wonderful ministries and find out how you can support their efforts this holiday season.</p>
 					<br />
 					<br />
@@ -321,21 +316,6 @@
         </div>
     </section>
 
-    <section id="Map" class="cd-section christmas-font" style="background-color:#fff;">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-sm-12">
-                    <h2>Celebrate Christmas Together Map</h2>
-                    <br />
-					<p>MAP coming soon!</p>
-					{% comment %}
-                    {% include '~~/Assets/Lava/Christmas/Mapplic.lava' %}
-					{% endcomment %}
-                </div>
-            </div>
-        </div>
-    </section>
-
 	<section id="Serve" class="cd-section cct-green christmas-font">
         <div class="container-fluid">
 			<div class="row">
@@ -356,7 +336,7 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-sm-12">
-                    <h1>Frequently Asked Questions</h1><br />
+                    <h1 style="color: white;">Frequently Asked Questions</h1><br />
 				</div>
 			</div>
 			<div class="row">
@@ -579,7 +559,7 @@
   	                  </div>
   	                  <div id="faq-2-snacks" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-snacks">
   	                    <div class="panel-body">
-  							Yes. We will have light refreshments to purchase for a low cost. We will not have a meal, so please eat before or after you come.
+  							Yes. We will be offering the following snacks all for $1: Granola bars, Rice Krispies treats, Apples, Bananas, Hot chocolate, Apple cider, Chips, and Sugar cookies.
   						</div>
   	                  </div>
   	                </div><!-- / .panel -->

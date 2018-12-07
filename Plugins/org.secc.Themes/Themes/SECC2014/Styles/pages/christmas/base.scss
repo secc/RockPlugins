@@ -53,6 +53,11 @@ section:not(.row):not(.highlighted-section):not(.with-header):not(.footer-menu):
     }
 }
 
+#AdventWeeklyDevo {
+    p {
+        font-size: 24px;
+    }
+}
 #JoinUsChristmas {
     position: relative;
     vertical-align: middle;
@@ -150,11 +155,11 @@ section:not(.row):not(.highlighted-section):not(.with-header):not(.footer-menu):
     }
 }
 a {
-    color: #fafbf9;
+    color: #000;
     text-decoration: none;
 
     &:hover {
-        color: #797548;
+        color: #000;
         text-decoration: none;
     }
 }
@@ -244,7 +249,7 @@ a {
 }
 .red_advent_weeks {
       content: "";
-      background: #78242f url('/Content/ExternalSite/WebImages/Christmas/advent-background-pattern.png');
+      background: #292f28 url('/Themes/SECC2014/Assets/img/Christmas2018/AdventBackgroundPattern.jpg');
 
       .advent_body {
           text-align: center;
@@ -261,7 +266,7 @@ a {
 
 .green_advent_weeks {
       content: "";
-      background: #292f28 url('/Content/ExternalSite/WebImages/Christmas/background-pattern-green.png');
+      background: #292f28 url('/Themes/SECC2014/Assets/img/Christmas2018/AdventBackgroundPattern.jpg');
 
       .advent_body {
           text-align: center;
@@ -284,9 +289,7 @@ a {
                   margin: 1em auto 0;color:white;
               }
               padding: 1em;
-              background-color: #3b423a;
               display: inline-block;
-              outline: 1px solid white;
               margin: 1em 1em 3em;
               outline-offset: 15px;
               @include MQ(L) {
