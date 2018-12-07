@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -642,7 +642,7 @@ namespace RockWeb.Plugins.org_secc.Cms
                                                         .FirstOrDefault();
                                         if ( familyGroup != null )
                                         {
-                                            Guid? addressTypeGuid = GetAttributeValue( "LocationType" ).AsGuidOrNull();
+                                            Guid? addressTypeGuid = GetAttributeValue( "AddressType" ).AsGuidOrNull();
                                             if ( addressTypeGuid.HasValue )
                                             {
                                                 var groupLocationService = new GroupLocationService( rockContext );
