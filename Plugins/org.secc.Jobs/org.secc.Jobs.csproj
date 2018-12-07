@@ -52,6 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MigrateHistorySummaryDataSECC.cs" />
     <Compile Include="StoreAttendanceFromInteraction.cs" />
     <Compile Include="CloseDeseasedPastoralWorkflows.cs" />
     <Compile Include="MigrateCommunicationMediumDataSECC.cs" />
