@@ -78,6 +78,10 @@ namespace org.secc.SignNowWorkflow
             }
             JObject result = SignNowSDK.Document.Create( token, tempFile, true );
             string documentId = result.Value<string>( "id" );
+            if ( documentId.Length == 0 )
+            {
+                throw new Exception( "SignNow Document Creation Error: " + result.ToString() );
+            }
             SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "SignNowDocumentId" ).AsGuid(), documentId );
 
             var signerEmail = "guest_signer_" + Guid.NewGuid().ToString() + "@no.reply";
