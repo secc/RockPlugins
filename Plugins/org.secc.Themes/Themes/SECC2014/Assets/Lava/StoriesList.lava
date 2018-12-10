@@ -1,15 +1,15 @@
+{% assign dt =  'Now' | Date:'yyyy/MM/dd' | ToMidnight -%}
+{%- contentchannelitem where:'ContentChannelId == 35 && Status==2 && StartDateTime<="{{dt}}"' sort:'Order desc' limit:'6'  -%}
 <style>
 	#loading-animation {
 		display: none;
 	}
 </style>
 
-{% assign itemCount = Items | Size %}
-{% if itemCount > 0 %}
 <div id="story-results" class="container g-padding-y-20--xs g-padding-x-20--xs">
 
     <div class="isotope_wrap g-margin-b-60--xs g-margin-b-70--md">
-        {% for item in Items %}
+        {% for item in contentchannelitemItems %}
         {% assign ImageGuid = item | Attribute:'Image','RawValue' %}
 
         <div class="isotope_item col-xs-12 col-md-6 col-lg-4 g-margin-b-60--xs g-margin-b-20--md">
@@ -33,7 +33,7 @@
         {% endfor %}
     </div>
 </div>
-{% endif %}
+{% endcontentchannelitem %}
 
 <div class="text-center">
     <a class="btn btn-doors" id="loadStories" onclick="getMoreStories(jQuery);">
