@@ -17,22 +17,14 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data.Entity;
-using System.IO;
 using System.Linq;
-using System.Web.UI;
 using System.Web.UI.WebControls;
-
 using Rock;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
-using Rock.Attribute;
-using Rock.Store;
-using System.Text;
-using Rock.Security;
-using System.Runtime.Caching;
 
 namespace RockWeb.Blocks.Event
 {
@@ -69,6 +61,7 @@ namespace RockWeb.Blocks.Event
 
     [TextField( "Campus Parameter Name", "The page parameter name that contains the id of the campus entity.", false, "campusId", order: 18 )]
     [TextField( "Category Parameter Name", "The page parameter name that contains the id of the category entity.", false, "categoryId", order: 19 )]
+    [TextField( "Priority Attribute Key", "The calendar attribute which controls the ordering of the events", true, "EventPriority", order: 20 )]
 
     public partial class CalendarLava : Rock.Web.UI.RockBlock
     {
@@ -402,6 +395,8 @@ namespace RockWeb.Blocks.Event
 
             CalendarEventDates = new List<DateTime>();
 
+            var priorityAttributeKey = GetAttributeValue( "PriorityAttributeKey" );
+
             var eventOccurrenceSummaries = new List<EventOccurrenceSummary>();
             foreach ( var occurrenceDates in occurrencesWithDates )
             {
@@ -439,7 +434,7 @@ namespace RockWeb.Blocks.Event
                             URLSlugs = occurrenceDates.EventCalendarItemAttributeValues.Where( av => av.AttributeKey == "URLSlugs" ).Select( av => av.Value ).FirstOrDefault(),
                             OccurrenceNote = eventItemOccurrence.Note.SanitizeHtml(),
                             DetailPage = String.IsNullOrWhiteSpace( eventItemOccurrence.EventItem.DetailsUrl ) ? null : eventItemOccurrence.EventItem.DetailsUrl,
-                            Priority = occurrenceDates.EventCalendarItemAttributeValues.Where( av => av.AttributeKey == "EventPriority" ).Select( av => av.Value ).FirstOrDefault().AsIntegerOrNull() ?? int.MaxValue
+                            Priority = occurrenceDates.EventCalendarItemAttributeValues.Where( av => av.AttributeKey == priorityAttributeKey ).Select( av => av.Value ).FirstOrDefault().AsIntegerOrNull() ?? int.MaxValue
                         } );
                     }
                 }
