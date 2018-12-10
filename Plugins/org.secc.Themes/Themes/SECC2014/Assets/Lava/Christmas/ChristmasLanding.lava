@@ -252,6 +252,9 @@
 				Louisville, KY 40243<br />
 				</p>
 			</div>
+			<div class="col-sm-4" style="margin-top:20px;">
+				<a href="/christmas/info#Map" class="cd-btn invert sweep-to-right"><span style="padding-right:1em;"><i class="fa fa-map"></i></span><span class="hidden-xs hidden-sm">See our</span> map of <strong>activities</strong>!</a>
+			</div>
 		</div>
     </div>
 </section>
