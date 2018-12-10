@@ -56,6 +56,12 @@
                     <span><i class="fa fa-globe"></i></span>
                 </a>
             </li>
+			<li>
+                <a href="#Map">
+                    <b>Map</b>
+                    <span><i class="fa fa-map-o"></i></span>
+                </a>
+            </li>
             <li>
                 <a href="#FAQs">
                     <b>FAQ</b>
@@ -102,7 +108,7 @@
 					<p class="wow fadeInLeft" style="font-weight: 100;color: #797549; text-transform: uppercase; font-size: 2em;">FRIDAY, DECEMBER 14 • 5:00-10:00 P.M.</p>
                     <p style="margin:0px;">Christmas program in the Sanctuary at 6:00 & 8:00 p.m.<br /><i class="fa fa-american-sign-language-interpreting"></i> <i>Interpreted for the Deaf</i></p>
                     <br /><br />
-                    <h4 class="header-subtle"><i>No Celebrate Christmas Together programs or activities on Saturday, December 9.</i></h4>
+                    <h4 class="header-subtle"><i>No Celebrate Christmas Together programs or activities on Saturday, December 8.</i></h4>
                     <br />
                 </div>
             </div>
@@ -189,7 +195,7 @@
 	                       <i class="fa fa-star" aria-hidden="true"></i>Animal Riders for kids
 					    </p>
 						<p class="wow fadeInLeft activity" data-wow-delay="1s">
-							<i class="fa fa-shapes" aria-hidden="true"></i>Inflatables
+							<i class="fa fa-square" aria-hidden="true"></i>Inflatables
 						</p>
 						<p class="wow fadeInLeft activity" data-wow-delay="1s">
 	                       <i class="fa fa-star" aria-hidden="true"></i>Star Express
@@ -313,6 +319,27 @@
 				</div>
             </div>
 
+        </div>
+    </section>
+
+	<section id="Map" class="cd-section christmas-font" style="background-color:#fff;">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-sm-10 col-sm-offset-1">
+                    <h2>Celebrate Christmas Together Map</h2>
+                    <br />
+					<p><a href="/Themes/SECC2014/Assets/img/Christmas2018/CCT2018_Christmas_Map.pdf" class="cd-btn invert sweep-to-right" download="CCT2018_Christmas_Map">Download PDF Here!</a></p>
+					<br />
+					<br />
+					<h2 style="text-align: left;">Level 1</h2>
+                    <hr />
+					<img src="/Themes/SECC2014/Assets/img/Christmas2018/Level1_CCT_2018.svg" class="img-responsive" />
+					<br /><br />
+					<h2 style="text-align: left;">Level 2</h2>
+                    <hr />
+					<img src="/Themes/SECC2014/Assets/img/Christmas2018/Level2_CCT_2018.svg" class="img-responsive" />
+                </div>
+            </div>
         </div>
     </section>
 
@@ -510,7 +537,7 @@
 	                  </div>
 	                  <div id="faq-2-collapse-3" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-3">
 	                    <div class="panel-body">
-							ASL interpretation will be available for the musical program.
+							ASL interpretation will be available for the musical programs on Friday, December 7 & 14.
 						</div>
 	                  </div>
 	                </div><!-- / .panel -->
