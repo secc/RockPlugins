@@ -162,20 +162,20 @@ namespace org.secc.SafetyAndSecurity
                         sbErrorMessages.AppendLine( "<li>A full Middle Name is Required." );
                     }
 
-                    // Verify the SSN using regex
-                    string ssn = Encryption.DecryptString( action.Activity.Workflow.GetAttributeValue( "SSN1" ) ) + "-" +
-                        Encryption.DecryptString( action.Activity.Workflow.GetAttributeValue( "SSN2" ) ) + "-" +
-                        Encryption.DecryptString( action.Activity.Workflow.GetAttributeValue( "SSN3" ) );
-
-                    if ( Encryption.DecryptString( action.Activity.Workflow.GetAttributeValue( "SSN1" ) ) != "***"
-                        && !Regex.Match( ssn, @"^(?!(123[ -]?45[ -]?6789)|((\d)\3\3[ -]?\3\3[ -]?\3\3\3\3))(\d{3}[- ]?\d{2}[- ]?\d{4})$" ).Success )
-                    {
-                        sbErrorMessages.AppendLine( "<li>Social Security Number is Required and must be in a valid format (XXX-XX-XXXX).</li>" );
-                    }
-
-                    // Verify phone numbers
                     if ( !GetAttributeValue( action, "IsMinorApplication" ).AsBoolean() )
                     {
+                        // Verify the SSN using regex
+                        string ssn = Encryption.DecryptString( action.Activity.Workflow.GetAttributeValue( "SSN1" ) ) + "-" +
+                            Encryption.DecryptString( action.Activity.Workflow.GetAttributeValue( "SSN2" ) ) + "-" +
+                            Encryption.DecryptString( action.Activity.Workflow.GetAttributeValue( "SSN3" ) );
+
+                        if ( Encryption.DecryptString( action.Activity.Workflow.GetAttributeValue( "SSN1" ) ) != "***"
+                            && !Regex.Match( ssn, @"^(?!(123[ -]?45[ -]?6789)|((\d)\3\3[ -]?\3\3[ -]?\3\3\3\3))(\d{3}[- ]?\d{2}[- ]?\d{4})$" ).Success )
+                        {
+                            sbErrorMessages.AppendLine( "<li>Social Security Number is Required and must be in a valid format (XXX-XX-XXXX).</li>" );
+                        }
+
+                        // Verify phone numbers
                         validatePhones( action, "HomePhone", "CellPhone", sbErrorMessages );
                         string workPhone = action.Activity.Workflow.GetAttributeValue( "WorkPhone" );
                         if ( !string.IsNullOrEmpty( workPhone ) && !Regex.Match( workPhone, @"^[01]?[- .]?(\([2-9]\d{2}\)|[2-9]\d{2})[- .]?\d{3}[- .]?\d{4}$" ).Success )
