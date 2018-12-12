@@ -162,7 +162,7 @@ namespace org.secc.SafetyAndSecurity
                         sbErrorMessages.AppendLine( "<li>A full Middle Name is Required." );
                     }
 
-                    if ( !GetAttributeValue( action, "IsMinorApplication" ).AsBoolean() )
+                    if ( !GetAttributeValue( action, "IsMinorApplication", true ).AsBoolean() )
                     {
                         // Verify the SSN using regex
                         string ssn = Encryption.DecryptString( action.Activity.Workflow.GetAttributeValue( "SSN1" ) ) + "-" +
