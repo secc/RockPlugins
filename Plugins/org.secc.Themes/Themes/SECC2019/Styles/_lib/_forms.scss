@@ -25,13 +25,14 @@ form {
 	select,
 	textarea {
 		outline: none;
-		border: $DefaultBorder;
+		border: none;
 		width: 100%;
+		background-color: rgba($LightGrayColor, 0.2);
+		font-weight: 600;
 
 		&:-ms-input-placeholder {
 	   		color: $LightGrayColor;
 		}
-
 		&[type="radio"],
 		&[type="checkbox"],
 		&[type="submit"],

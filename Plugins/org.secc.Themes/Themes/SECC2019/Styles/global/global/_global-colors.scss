@@ -7,14 +7,14 @@ $utils-colors: (
 	red:                  	(color: $ErrorColor),
 	dark-red:               (color: #8c0000),
 	gold:                 	(color: #b99769),
-	body:             		(color: #fff),
+	body:             		(color: $WhiteColor),
 	dark:                 	(color: #222324),
 	dark-light:           	(color: #242526),
 	heading:              	(color: #242424),
-	white:                	(color: #fff),
+	white:                	(color: $WhiteColor),
 	text:            		(color: $CopyColor),
-	gray-light:           	(color: #cecece),
-	gray-lighter:         	(color: #aeaeae),
+	gray-light:           	(color: $LightGreyColor),
+	gray-lighter:         	(color: rgba($LightGreyColor, 0.2)),
 	black: 					(color: $BlackColor),
 	black-opacity:        	(color: rgba($BlackColor,.8)),
 	black-opacity-light:  	(color: rgba($BlackColor,.5)),
@@ -51,6 +51,12 @@ $utils-colors: (
 .g-color--white-opacity[href] {
 	@include hover {
 		color: $color-primary  v
+	}
+}
+
+@each $color-name, $color in $utils-colors {
+	.g-bg-color--#{$color-name} {
+	  background-color: map-get($color, color);
 	}
 }
 

@@ -25,14 +25,14 @@
 ------------------------------------*/
 
 .g-ver-center--xs {
-  @include position(absolute, $top: 50%, $left: 0, $right: 0);
+  @include position(absolute, $top: 50%, $left: auto, $right: auto);
   @include translate3d(0,-50%,0);
 }
 
 /* Small screen / phone */
 @include media-breakpoint-up(sm) {
   .g-ver-center--sm {
-    @include position(absolute, $top: 50%, $left: 0, $right: 0);
+    @include position(absolute, $top: 50%, $left: auto, $right: auto);
     @include translate3d(0,-50%,0);
   }
 }
@@ -40,7 +40,7 @@
 /* Medium screen / tablet */
 @include media-breakpoint-up(md) {
   .g-ver-center--md {
-    @include position(absolute, $top: 50%, $left: 0, $right: 0);
+    @include position(absolute, $top: 50%, $left: auto, $right: auto);
     @include translate3d(0,-50%,0);
   }
 }
@@ -48,7 +48,7 @@
 /* Extra large screen / wide desktop */
 @include media-breakpoint-up(lg) {
   .g-ver-center--lg {
-    @include position(absolute, $top: 50%, $left: 0, $right: 0);
+    @include position(absolute, $top: 50%, $left: auto, $right: auto);
     @include translate3d(0,-50%,0);
   }
 }
