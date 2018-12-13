@@ -7,6 +7,9 @@
 }
 
 .se-btn {
+	&__element--vertical-inherit {
+		vertical-align: inherit;
+	}
 	&__element--left,
 	&__element--right {
 		display: table-cell;
