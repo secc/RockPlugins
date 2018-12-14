@@ -184,6 +184,7 @@
 		    <a href="#0" class="cd-secondary-nav-trigger">Menu<span></span></a> <!-- button visible on small devices -->
 		    <nav>
 		        <ul>
+					{% comment %}
 		            <li>
 		                <a href="#CelebrateChristmasTogether">
 							<!-- <img alt="Celebrate Christmas Together" src="/Content/ExternalSite/WebImages/Christmas/ChristmasTogether.svg" class="img-responsive grow">  -->
@@ -191,7 +192,7 @@
 							<span><i class="fa fa-snowflake-o"></i></span>
 		                </a>
 		            </li>
-
+					{% endcomment %}
 		            <li>
 		                <a href="#Advent">
 		                    <b>Advent</b>
@@ -211,7 +212,7 @@
 		</div>
 	</div>
 </section>
-
+{% comment %}
 <section id="CelebrateChristmasTogether" class="cd-section christmas-font">
     <div class="container-fluid left-aligned">
 		<div class="row">
@@ -258,7 +259,7 @@
 		</div>
     </div>
 </section>
-
+{% endcomment %}
 <section id="Advent" class="cd-section cct-green christmas-font" style="background: #292f28 url('/Themes/SECC2014/Assets/img/Christmas2018/AdventPatternSm.jpg');">
     <div class="container-fluid left-aligned">
 		<div class="row">

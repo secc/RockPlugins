@@ -114,8 +114,8 @@ h1, .h1 { @include font($size: $font-size-80, $weight: normal); }
 h2, .h2 { @include font($size: $font-size-65, $weight: normal); }
 h3, .h3 { @include font($size: $font-size-48, $weight: normal); }
 h4, .h4 { @include font($size: $font-size-36, $weight: normal); }
-h5, .h5 { @include font($size: $font-size-16, $weight: normal); }
-h6, .h6 { @include font($size: $font-size-12, $weight: normal); }
+h5, .h5 { @include font($size: $font-size-24, $weight: normal); }
+h6, .h6 { @include font($size: $font-size-20, $weight: normal); }
 
 //$font-size-h1;
 em,

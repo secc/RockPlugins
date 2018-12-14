@@ -1,10 +1,6 @@
 // SECONDARY-PAGE.SCSS
 // ====================
 
-#PageBody {
-    overflow: hidden;
-}
-
 /* hide empty sections */
 section:not(.row):not(.highlighted-section):not(.with-header):not(.footer-menu):not(.partners):not(.signoff) {
     /* Styles */

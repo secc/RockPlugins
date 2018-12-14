@@ -39,16 +39,6 @@
 	border-radius: 10px;
 }
 
-.wellbox {
-	position: absolute;
-	bottom: 0;
-	padding: 15px;
-	min-height: auto;
-	background-color: rgba(239,239,239, 1);
-	margin: 2em 1.5em 2em 0px;
-	border-radius: 10px;
-}
-
 #nextStep {
 	padding-top: 1em;
 	padding-bottom: 1em;
@@ -60,34 +50,6 @@
 div[id$='pnlList'] {
 	transition: all 0.3s;
 }
-
-// div[id$='pnlFilters'] {
-// 	&::after {
-// 		padding-right: 15px;
-// 		border-right: 1px solid #e1e1e1;
-// 	}
-// 	margin: 40px 0px;
-// 	padding-right: 0px;
-// 	transition: all 0.3s;
-//
-// 	margin-left: -443px;
-// 	&.active {
-// 		margin-left: 0px;
-// 	}
-// 	.rock-control-wrapper {
-// 		padding: 15px;
-// 		min-height: auto;
-// 		background-color: rgba(355,355,355, 1);
-// 		border-radius: 10px;
-// 	}
-//
-// 	.control-wrapper {
-// 		padding: 15px;
-// 		min-height: auto;
-// 		background-color: rgba(355,355,355, 1);
-// 		border-radius: 10px;
-// 	}
-// }
 
 a.eventCardLink {
     color: $CopyColor;
@@ -102,11 +64,15 @@ a.eventCardLink {
     }
 
     .card {
-        padding: 30px;
-        border-radius: 8px;
-        margin-left: 10px;
-        margin-right: 10px;
-        background-color: rgba(239,239,239, 0.5);
+        // padding: 30px;
+        // border-radius: 8px;
+        margin-left: 15px;
+        margin-right: 15px;
+        // background-color: rgba(239,239,239, 0.5);
+
+        -webkit-box-shadow: 0px 0px 15px 1px rgba(0, 0, 0, 0.15);
+        box-shadow: 0px 0px 15px 1px rgba(0, 0, 0, 0.15);
+
         @include transition(all .3s ease);
 
 
@@ -119,7 +85,6 @@ a.eventCardLink {
             box-shadow: 0 3px 12px 2px hsla(0,0%,78%,.5);
         }
         &:hover {
-            background-color: rgba(239,239,239, 0.5);
             -webkit-box-shadow: 0 22px 43px rgba(0, 0, 0, 0.15);
             box-shadow: 0 22px 43px rgba(0, 0, 0, 0.15);
             transform: translateY(-10px);
@@ -136,7 +101,7 @@ a.eventCardLink {
     .img-hover {
         position:relative;
         overflow: hidden;
-        border-radius: 8px;
+        // border-radius: 8px;
         z-index: 3;
         img {
             z-index: -1;
@@ -180,6 +145,33 @@ a.eventCardLink {
             }
             h1, h2, h3, h4, h5, h6 {
                 small { color: white; }
+            }
+        }
+    }
+
+    .event-items {
+        height: 9.5rem;
+        overflow: hidden;
+        text-align: center;
+
+        .event-icon {
+            box-sizing: border-box;
+            position: relative;
+            width: 4.25rem;
+            height: 4.25rem;
+            margin: 5px auto;
+            background-repeat: no-repeat;
+            text-align: center;
+            color: #656565;
+
+            &.--calendar {
+                background-image: url('/Themes/SECC2019/Assets/img/events/Events.svg');
+            }
+            &.--clock {
+                background-image: url('/Themes/SECC2019/Assets/img/events/Clock.svg');
+            }
+            &.--location {
+                background-image: url('/Themes/SECC2019/Assets/img/events/Location.svg');
             }
         }
     }

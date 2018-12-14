@@ -58,7 +58,7 @@
                         <h3>Mission</h3>
                     </a>
                 </li>
-                <li class="se-3-column border-right">
+                <li class="se-3-column">
                     <a class="cd-nav-item what-we-believe" href="/beliefs">
                         <h3>What We Believe</h3>
                     </a>
@@ -73,7 +73,7 @@
                         <h3>Leadership</h3>
                     </a>
                 </li>
-                <li class="se-3-column border-right">
+                <li class="se-3-column">
                     <a class="cd-nav-item baptism" href="/beliefs/#baptism">
                         <h3>Baptism</h3>
                     </a>

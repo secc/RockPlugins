@@ -14,7 +14,7 @@ $utils-colors: (
 	white:                	(color: $WhiteColor),
 	text:            		(color: $CopyColor),
 	gray-light:           	(color: $LightGreyColor),
-	gray-lighter:         	(color: rgba($LightGreyColor, 0.2)),
+	gray-lighter:         	(color: rgba($LightGreyColor, 0.8)),
 	black: 					(color: $BlackColor),
 	black-opacity:        	(color: rgba($BlackColor,.8)),
 	black-opacity-light:  	(color: rgba($BlackColor,.5)),
@@ -53,6 +53,34 @@ $utils-colors: (
 		color: $color-primary  v
 	}
 }
+
+/*----------------------------------
+  Divider
+------------------------------------*/
+@each $color-name, $color in $utils-colors {
+	.g-hor-divider__solid__b--#{$color-name} {
+	  border-bottom: .0625rem solid map-get($color, color);
+	}
+}
+@each $color-name, $color in $utils-colors {
+	.g-hor-divider__solid__t--#{$color-name} {
+	  border-top: .0625rem solid map-get($color, color);
+	}
+}
+@each $color-name, $color in $utils-colors {
+	.g-ver-divider__solid__r--#{$color-name} {
+	  border-right: .0625rem solid map-get($color, color);
+	}
+}
+@each $color-name, $color in $utils-colors {
+	.g-ver-divider__solid__l--#{$color-name} {
+	  border-left: .0625rem solid map-get($color, color);
+	}
+}
+
+/*----------------------------------
+  Background
+------------------------------------*/
 
 @each $color-name, $color in $utils-colors {
 	.g-bg-color--#{$color-name} {
