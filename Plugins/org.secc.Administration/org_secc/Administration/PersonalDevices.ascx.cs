@@ -271,10 +271,10 @@ namespace RockWeb.Plugins.org_secc.Administration
                             Literal1.Text = "<div class='alert alert-warning'>Unknown";
                         }                    
                         }
-                    }                
-                    var interactions = interactionService.Queryable( "PersonalDevice" )
-                                    .Where( a => a.PersonalDeviceId == personalDeviceId )
-                                    .ToList();
+                    }
+                    /*var interactions = interactionService.Queryable( "PersonalDevice" )
+                        .Where( a => a.PersonalDeviceId == personalDeviceId )
+                        .ToList();
 
                     if ( interactions.Count > 0 )
                     {
@@ -283,10 +283,14 @@ namespace RockWeb.Plugins.org_secc.Administration
                             interaction.PersonalDevice = null;
                         }
                     }
-                    personalDeviceService.Delete( personalDevice );
-                    rockContext.SaveChanges();
+                    personalDeviceService.Delete( personalDevice );*/
+
+                    if (personalDevice.MACAddress != null)
+                    {
+                        personalDevice.DeviceUniqueIdentifier = string.Format("MAC:{0}", personalDevice.MACAddress);
+                    }
                 }
-            LoadContent();
+                LoadContent();
         }
 
         #endregion
