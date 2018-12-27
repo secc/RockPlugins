@@ -66,6 +66,7 @@ namespace org.secc.Connection
     [DefinedValueField( "8522BADD-2871-45A5-81DD-C76DA07E2E7E", "Record Status", "The record status to use for new individuals (default: 'Pending'.)", true, false, "283999EC-7346-42E3-B807-BCE9B2BABB49", "", 9 )]
     [TextField( "Group Member Attribute Keys - URL", "The key of any group member attributes that you would like to be set via the URL.  Enter as comma separated values.", false, key: "UrlKeys", order: 10)]
     [TextField( "Group Member Attribute Keys - Form", "The key of the group member attributes to show an edit control for on the opportunity signup.  Enter as comma separated values.", false, key: "FormKeys", order: 11 )]
+    [BooleanField( "Display Add Another", "Whether to display the \"Connect and Add Another\" button", false, "", 12 )]
     public partial class VolunteerSignupFormConnections : RockBlock, IDetailBlock
     {
         #region Fields
@@ -160,6 +161,8 @@ namespace org.secc.Connection
             base.OnLoad( e );
 
             nbErrorMessage.Visible = false;
+
+            btnConnectandAddAnother.Visible = GetAttributeValue( "DisplayAddAnother" ).AsBoolean();
 
             if ( !Page.IsPostBack )
             {
@@ -405,7 +408,15 @@ namespace org.secc.Connection
                         lResponseMessage.Text = GetAttributeValue( "LavaTemplate" ).ResolveMergeFields( mergeFields );
                         lResponseMessage.Visible = true;
 
-                        pnlSignup.Visible = false;
+                        if ((( LinkButton )sender).Text == "Connect and Add Another")
+                        {
+                            ShowDetail( opportunityId, true );
+                            AddGroupMemberAttributes( rockContext );
+                            pnlSignup.Visible = true;
+                        } else
+                        {
+                            pnlSignup.Visible = false;
+                        }
                     }
                 }
             }
@@ -430,6 +441,17 @@ namespace org.secc.Connection
         /// </summary>
         /// <param name="opportunityId">The opportunity identifier.</param>
         public void ShowDetail( int opportunityId )
+        {
+            ShowDetail( opportunityId, false );
+        }
+
+
+        /// <summary>
+        /// Shows the detail.
+        /// </summary>
+        /// <param name="opportunityId">The opportunity identifier.</param>
+        /// <param name="addAnother">Is this a request to add Another person?  If so always show a blank form.</param>
+        public void ShowDetail( int opportunityId, Boolean addAnother )
         {
             using ( var rockContext = new RockContext() )
             {
@@ -511,7 +533,19 @@ namespace org.secc.Connection
                     registrant = CurrentPerson;
                 }
 
-                if ( registrant != null )
+                if ( addAnother == true )
+                {
+
+                    tbFirstName.Text = null;
+                    tbLastName.Text = null;
+                    tbEmail.Text = null;
+                    bpBirthdate.SelectedDate = null;
+                    pnHome.Number = null;
+                    pnHome.CountryCode = null;
+                    pnMobile.Number = null;
+                    pnMobile.CountryCode = null;
+                }
+                else if ( registrant != null )
                 {
                     tbFirstName.Text = registrant.FirstName.EncodeHtml();
                     tbLastName.Text = registrant.LastName.EncodeHtml();
