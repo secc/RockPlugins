@@ -1190,8 +1190,8 @@ namespace org.secc.Connection
                 }
                 partitionList.Add( inner );
             }
-            partitionList = partitionList.OrderBy( a => a["Entity"].ToString() ).ToList();
-
+            // Try to sort by order than by string value
+            partitionList = partitionList.OrderBy( a => a["Entity"].GetType().GetProperty( "Order" )!=null?a["Entity"].GetType().GetProperty( "Order" ).GetValue( a["Entity"], null):0 ).ThenBy( a => a["Entity"].ToString() ).ToList();
             return partitionList;
         }
 
