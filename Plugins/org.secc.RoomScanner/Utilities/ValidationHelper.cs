@@ -15,8 +15,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using org.secc.FamilyCheckin.Utilities;
 using org.secc.RoomScanner.Models;
 using Rock;
@@ -154,7 +152,7 @@ namespace org.secc.RoomScanner.Utilities
             {
                 return volunteerOccurrences;
             }
-            return occurrences.FirstOrDefault();
+            return null;
         }
     }
 }
