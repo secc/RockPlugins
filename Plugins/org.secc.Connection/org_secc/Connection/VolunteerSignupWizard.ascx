@@ -1,12 +1,12 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="VolunteerSignupWizard.ascx.cs" Inherits="org.secc.Connection.VolunteerSignupWizard" %>
+<%@ Control Language="C#" AutoEventWireup="true" CodeFile="VolunteerSignupWizard.ascx.cs" Inherits="org.secc.Connection.VolunteerSignupWizard" %>
 
 <asp:UpdatePanel ID="upnlContent" runat="server">
     <ContentTemplate>
 
        <Rock:NotificationBox ID="nbConfigurationWarning" runat="server" NotificationBoxType="Warning" Visible="false" />
         
-        <asp:Literal ID="lBody" runat="server" ></asp:Literal> 
-        <asp:Literal ID="lDebug" runat="server" ></asp:Literal> 
+        <asp:Literal ID="lBody" runat="server"></asp:Literal> 
+        <asp:Literal ID="lDebug" runat="server" Visible="false"></asp:Literal> 
 
         
         <Rock:ModalDialog ID="mdEdit" runat="server" OnSaveClick="mdEdit_SaveClick" Title="Edit Signup Settings">
