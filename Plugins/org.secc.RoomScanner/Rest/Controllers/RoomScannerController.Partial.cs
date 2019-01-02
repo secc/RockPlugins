@@ -13,20 +13,19 @@
 // </copyright>
 //
 using System;
-using System.Linq;
-using System.Web.Http;
 using System.Collections.Generic;
-using Rock.Rest.Filters;
+using System.Data.Entity;
+using System.Linq;
+using System.Text;
+using System.Web.Http;
+using org.secc.FamilyCheckin.Utilities;
+using org.secc.RoomScanner.Models;
+using org.secc.RoomScanner.Utilities;
+using Rock;
 using Rock.Data;
 using Rock.Model;
-using System.Data.Entity;
-using Rock;
+using Rock.Rest.Filters;
 using Rock.Web.Cache;
-using System.Runtime.Caching;
-using System.Text;
-using org.secc.RoomScanner.Utilities;
-using org.secc.RoomScanner.Models;
-using org.secc.FamilyCheckin.Utilities;
 
 namespace org.secc.RoomScanner.Rest.Controllers
 {
@@ -682,23 +681,38 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 }
 
                 AttendanceOccurrence occurrence = ValidationHelper.GetOccurrenceForLocation( rockContext, location );
+                Attendance newAttendance;
                 if ( occurrence == null )
                 {
-                    return new Response( false, "Could not find active occurence.", false );
+                    GroupLocationService groupLocationService = new GroupLocationService( rockContext );
+
+                    var grouplocation = groupLocationService.Queryable().Where( gl => gl.LocationId == location.Id && VolunteerGroupIds.Contains( gl.GroupId ) ).FirstOrDefault();
+                    if ( grouplocation != null )
+                    {
+                        if ( !isSubroom )
+                        {
+                            newAttendance = attendanceService.AddOrUpdate( person.PrimaryAliasId ?? 0, Rock.RockDateTime.Now, grouplocation.GroupId, location.Id, null, null );
+                        }
+                        else
+                        {
+                            newAttendance = attendanceService.AddOrUpdate( person.PrimaryAliasId ?? 0, Rock.RockDateTime.Now, grouplocation.GroupId, location.ParentLocationId, null, null );
+                        }
+                    }
+                    else
+                    {
+                        return new Response( false, "Could not find a volunteer group which belongs to this location. Please check in to be added to this room.", false );
+                    }
+                }
+                else
+                {
+                    newAttendance = attendanceService.AddOrUpdate( person.PrimaryAliasId ?? 0, Rock.RockDateTime.Now, occurrence.GroupId, occurrence.LocationId, occurrence.ScheduleId, location.CampusId );
                 }
 
-                var newAttendance = new Attendance
-                {
-                    PersonAlias = person.PrimaryAlias,
-                    Occurrence = occurrence,
-                    StartDateTime = Rock.RockDateTime.Now,
-                    DidAttend = true,
-                };
+                newAttendance.DidAttend = true;
                 if ( isSubroom )
                 {
                     newAttendance.ForeignId = location.Id;
                 }
-                attendanceService.Add( newAttendance );
                 DataHelper.CloseActiveAttendances( rockContext, newAttendance, location, isSubroom );
                 DataHelper.AddEntranceHistory( rockContext, location, newAttendance, isSubroom );
                 CheckInCountCache.AddAttendance( newAttendance );
