@@ -15,21 +15,19 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-
-using Rock;
-using Rock.CheckIn;
-using Rock.Web.UI.Controls;
-using Rock.Web.Cache;
-using System.Web.UI.WebControls;
-using System.Web.UI;
-using Rock.Model;
-using Rock.Data;
-using org.secc.FamilyCheckin.Utilities;
-using Rock.Attribute;
 using System.Data.Entity;
+using System.Linq;
+using System.Web.UI;
+using System.Web.UI.WebControls;
 using org.secc.FamilyCheckin.Exceptions;
-using System.Collections.ObjectModel;
+using org.secc.FamilyCheckin.Utilities;
+using Rock;
+using Rock.Attribute;
+using Rock.CheckIn;
+using Rock.Data;
+using Rock.Model;
+using Rock.Web.Cache;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.FamilyCheckin
 {
@@ -138,7 +136,19 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     SaveState();
                 }
             }
-            var quickCheckinState = ( QuickCheckinState ) Session["QuickCheckinState"];
+
+            QuickCheckinState quickCheckinState;
+
+            if ( Session["QuickCheckinState"] != null && Session["QuickCheckinState"] is QuickCheckinState )
+            {
+                quickCheckinState = ( QuickCheckinState ) Session["QuickCheckinState"];
+            }
+            else
+            {
+                pnlMain.Visible = false;
+                pnlNoCheckin.Visible = true;
+                return;
+            }
 
             switch ( quickCheckinState )
             {
