@@ -25,7 +25,7 @@
 {{ 'https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.3/jarallax.js' | AddScriptLink }}
 {{ 'https://cdnjs.cloudflare.com/ajax/libs/object-fit-images/3.2.3/ofi.min.js' | AddScriptLink }}
 
-{% if campus != null %}
+{% if pageParamCampus.Name != null %}
 {% cache key:'{{ pageParamCampus.Name }}-dynamic-{{ pageID }}' duration:'3600' tags:'DynamicCampusPages' %}
 
     {% if debug == true %}
