@@ -1,0 +1,34 @@
+{% assign eventItemOccurrenceCount = EventItemOccurrences | Size %}
+
+{% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
+{% assign pageParamCampus = 'Global' | PageParameter:'Campus' %}
+{% if pageParamCampusId == empty and pageParamCampus != empty and pageParamCampus != null and pageParamCampus != 'allCampuses' %}
+    {% assign pageParamCampus = 'Global' | PageParameter:'campus' %}
+    {% campus where:'Public == true' %}
+        {% for campus in campusItems %}
+            {% assign campusSlug = campus | Attribute: 'Slug' %}
+            {% if campus.Name == pageParamCampus or campusSlug == pageParamCampus %}
+                {% assign pageParamCampusId = campus.Id %}
+            {% endif %}
+        {% endfor %}
+    {% endcampus %}
+{% endif %}
+
+{% include '~~/Assets/Lava/Events/EventItems.lava' %}
+
+<script type="text/javascript">
+    // This function gets called when a pageLoad() function is called from the Filters
+    function InitLoadedRequest(visstring, elem, msg)
+    {
+       // Re-Initialize Isotope
+        var $grid = $('.isotope_wrap').isotope({
+          itemSelector: '.isotope_item',
+          percentPosition: true,
+          layoutMode: 'fitRows'
+        });
+        // layout Isotope after each image loads
+        $grid.imagesLoaded().progress( function() {
+          $grid.addClass('is-showing-items').isotope('layout');
+        });
+    }
+</script>

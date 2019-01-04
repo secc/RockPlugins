@@ -20,19 +20,15 @@
             <div class="filterbox">
 
                 <div class="row">
-                    <div class="col-xs-12">
-                        <h3>What’s your next step?</h3>
-                        <p>Find a group or event that interests you by selecting a campus and/or ministry below. Click on the image to see more details or to register.</p>
+                    <div class="col-xs-12 col-md-6">
+                        <h3 class="g-font-weight--600">Find an Event</h3>
+                        <p class="g-font-weight--400">Find an Event Find an event that interests you by selecting a campus and/or ministry. Click on the image to see more details or to register.</p>
                         <br />
                     </div>
-                </div>
 
-                <div class="row">
-                    <div class="col-xs-12 col-md-6 col-lg-6" >
-                        <br />
-                        <h4 class="uppercase">Events From</h4>
+                    <div class="col-xs-12 col-md-3" >
                         <select class="select2-campuses" name="campus">
-                        <option value="allCampuses" data-shortcode="SE" {% if selectedCampus == null %} selected="selected"{% endif %}>All Campuses</option>
+                        <option value="allCampuses" data-shortcode="SE" {% if selectedCampus == null %} selected="selected"{% endif %}>All Locations</option>
                         {% for campus in Campuses %}
                         	{% assign publicCampus = campus | Attribute:'Public' %}
                         	{% if publicCampus == 'Yes' %}
@@ -45,9 +41,7 @@
                         </select>
                     </div>
 
-                    <div class="col-xs-12 col-md-6 col-lg-6" >
-                        <br />
-                        <h4 class="uppercase">Select a Ministry</h4>
+                    <div class="col-xs-12 col-md-3" >
                         <select class="select2-ministries" name="minitry">
                         <option value="allMinistries">All Ministries</option>
 
@@ -78,6 +72,7 @@
 }
 </style>
 
+{% comment %}
 <div id="filter_selected" class="container-fluid">
     <div class="row">
         <div class="col-xs-12 col-sm-12 col-md-12">
@@ -98,6 +93,8 @@
         </div>
     </div>
 </div>
+{% endcomment %}
+
 <script>
 $(document).ready(function() {
 
@@ -198,8 +195,8 @@ function runCampusFilters(campus_selected) {
     processPageLoad(pnlContent_ID, '');
 
     // console.log(data);
-    $('#campus_selected').find('.section-header span').html('Events @ ' + campus_selected.text);
-    $('#campus_selected').removeClass('hide');
+    //$('#campus_selected').find('.section-header span').html('Events @ ' + campus_selected.text);
+    //$('#campus_selected').removeClass('hide');
 }
 
 ///////////////////////////////////////////////////
@@ -222,8 +219,8 @@ function runMinistryFilters(ministry_selected) {
     processPageLoad(pnlContent_ID, '');
 
     // console.log(ministry_selected);
-    $('#ministry_selected').find('.section-header span').html(ministry_selected.text + ' Ministry');
-    $('#ministry_selected').removeClass('hide');
+    //$('#ministry_selected').find('.section-header span').html(ministry_selected.text + ' Ministry');
+    //$('#ministry_selected').removeClass('hide');
 }
 
 function processPageLoad(pnlContent_ID, params) {
@@ -249,9 +246,9 @@ function processPageLoad(pnlContent_ID, params) {
         // $('html, body').animate({scrollTop: ($('#filter_selected').offset().top)}, 400);
         // $('html, body').scrollspy({ target: '#filter_selected' });
 
-        var scroll = new SmoothScroll();
+        /*var scroll = new SmoothScroll();
         var anchor = document.querySelector( '#filter_selected' );
-        scroll.animateScroll( anchor );
+        scroll.animateScroll( anchor );*/
 
     }
     // Run JS while waiting on PostBack
