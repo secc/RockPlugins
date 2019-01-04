@@ -1,15 +1,3 @@
-{% assign limitEvents = 3 %}
-
-{% assign eventItemOccurrenceCount = EventItemOccurrences | Size %}
-
-{% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
-{% assign pageParamCampus = 'Global' | PageParameter:'campus' %}
-
-{% if limitEvents == null %}
-    {% assign limitEvents = 1000000 %}
-{% endif %}
-<br />
-<br />
 <div class="container">
 
     {% if eventItemOccurrenceCount == 0 %}
@@ -71,7 +59,7 @@
                 {% endif %}
 
                 {% comment %} Make Anchor Element {% endcomment %}
-                {% assign openEventDetailsLink = eventLinkURL | Prepend:"<a href='" | Append:"' class='eventCardLink' >" %}
+                {% assign openEventDetailsLink = eventLinkURL | Prepend:"<a href='" | Append:"' class='eventCardLink link--hover-underscore' >" %}
                 {% assign closeEventDetailsLink = "</a>" %}
 
                 <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
@@ -174,7 +162,7 @@
 
                         <div class="text-center col-xs-12 g-margin-t-40--xs g-hor-divider__solid__t--gray-lighter">
                             {{openEventDetailsLink}}
-                                <h5 class="uppercase g-font-weight--500 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">Contact</h5>
+                                <h5 class="uppercase g-font-weight--500 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">More Info</h5>
                             {{closeEventDetailsLink}}
                         </div>
 
@@ -190,6 +178,11 @@
 
 </div><!-- END: bootstrap container -->
 
+{% comment %}
+**********************************************************************************
+****** The code below will need to be included if this file isn't included *******
+******    anywhere else (such as 'FeaturedEvents' or 'ListEvents')         *******
+**********************************************************************************
 <script>
 $(window).load(function() {
     // Initialize Isotope
@@ -205,3 +198,4 @@ $(window).load(function() {
     .isotope( 'revealItemElements', $items );
 });
 </script>
+{% endcomment %}
