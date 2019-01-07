@@ -58,14 +58,10 @@
                     {% assign eventLinkURL = eventLinkURL | Append:"campusId=" | Append: pageParamCampusId %}
                 {% endif %}
 
-                {% comment %} Make Anchor Element {% endcomment %}
-                {% assign openEventDetailsLink = eventLinkURL | Prepend:"<a href='" | Append:"' class='eventCardLink link--hover-underscore' >" %}
-                {% assign closeEventDetailsLink = "</a>" %}
-
                 <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
 
                     <div class="clearfix card">
-                        {{openEventDetailsLink}}
+                        <a href="{{ eventLinkURL }}" class='eventCardLink'>
                             {% assign occurrenceIdPhoto = eventItemOccurrence.PhotoId %}
                             {% if eventItem.Photo %}
                             <div class="img-hover">
@@ -100,7 +96,7 @@
                                 {% endcomment %}
                             </div>
                             {% endif %}
-                        {{closeEventDetailsLink}}
+                        </a>
 
                         {% assign scheduledDates = eventItemOccurrence.EventItemOccurrence.Schedule.iCalendarContent | DatesFromICal:'all' %}
                         {% assign scheduledNumDates = scheduledDates | Size %}
@@ -161,9 +157,9 @@
                         </div>
 
                         <div class="text-center col-xs-12 g-margin-t-40--xs g-hor-divider__solid__t--gray-lighter">
-                            {{openEventDetailsLink}}
+                            <a href="{{ eventLinkURL }}" class='eventCardLink link--hover-underscore'>
                                 <h5 class="uppercase g-font-weight--500 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">More Info</h5>
-                            {{closeEventDetailsLink}}
+                            </a>
                         </div>
 
                     </div>

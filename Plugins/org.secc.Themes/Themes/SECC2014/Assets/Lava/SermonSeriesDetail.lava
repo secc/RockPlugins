@@ -240,7 +240,7 @@
 
 <div class="container-fluid" style="background-color:  rgba(239, 239, 239, 0.5); padding: 0 0 20px 0;">
 
-	{%- contentchannelitem where:'Status == 1 && ContentChannelId == 24' sort:'StartDateTime desc' -%}
+	{%- contentchannelitem where:'ContentChannelId == 24' sort:'StartDateTime desc' -%}
 		{%- for item in contentchannelitemItems -%}
 			{%- if forloop.first -%}
 				{% assign currentSeries = contentchannelitemItems | First -%}

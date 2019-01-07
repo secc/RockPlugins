@@ -140,10 +140,21 @@
 		background: rgba(0,0,0,.2);
 	} */
 </style>
+{% assign slug = 'Global' | PageParameter:'Slug' %}
+{% assign sermonSlug = 'Global' | PageParameter:'SermonSlug' %}
+{% cache key:'sermonPage:{{slug}}:{{sermonSlug}}' duration:'3600' %}
 
-{% assign item = Items | First %}
+{% assign slug = 'Global' | PageParameter:'Slug' %}
+{% contentchannelitemslug where:'Slug=="{{slug}}"' -%}
+{% for itemSlug in contentchannelitemslugItems -%}
+{% assign item = itemSlug.ContentChannelItem %}
+{% break %}
+{% endfor -%}
+{% endcontentchannelitemslug -%}
+
+
+
 {% if item  %}
-
 {% comment %}
     ************ SERMON VIDEO ************
 {% endcomment %}
@@ -224,9 +235,12 @@
 {% comment %}
     ************ SERIES - The rest of the Sermons ************
 {% endcomment %}
+
+
+
 <div class="container-fluid" style="background-color:  rgba(239, 239, 239, 0.5); padding: 0 0 20px 0;">
 
-	{%- contentchannelitem where:'Status == 1 && ContentChannelId == 24' sort:'StartDateTime desc' -%}
+	{%- contentchannelitem where:'ContentChannelId == 24' sort:'StartDateTime desc' -%}
 		{%- for item in contentchannelitemItems -%}
 			{%- if forloop.first -%}
 				{% assign currentSeries = contentchannelitemItems | First -%}
@@ -330,3 +344,4 @@
 {% else %}
 	<h1>Could not find series.</h1>
 {% endif %}
+{% endcache %}
