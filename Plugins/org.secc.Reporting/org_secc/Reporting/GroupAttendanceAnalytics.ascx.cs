@@ -70,6 +70,7 @@ namespace RockWeb.Blocks.CheckIn
         private Dictionary<int, string> _scheduleNameLookup = null;
         private Dictionary<int, Location> _personLocations = null;
         private Dictionary<int, List<PhoneNumber>> _personPhoneNumbers = null;
+        private List<FilterItem> filterItems = new List<FilterItem>();
 
         private bool _currentlyExporting = false;
 
@@ -348,6 +349,58 @@ namespace RockWeb.Blocks.CheckIn
                 gpGroups.Visible = false;
                 dvpDataView.Visible = false;
             }
+            BindFilter();
+        }
+
+        private void BindFilter()
+        {
+            RockContext rockContext = new RockContext();
+            GroupService groupService = new GroupService( rockContext );
+            AttributeService attributeService = new AttributeService( rockContext );
+            var groupTypes = groupService.GetByIds( GetSelectedGroupIds( false ) )
+                .Select( g => g.GroupType )
+                .DistinctBy( gt => gt.Id )
+                .ToList();
+
+            List<Rock.Model.Attribute> attributes = new List<Rock.Model.Attribute>();
+
+            foreach ( var groupType in groupTypes )
+            {
+                attributes.AddRange( attributeService.GetByEntityTypeId( new Group().TypeId, true ).AsQueryable()
+                       .Where( a =>
+                           a.EntityTypeQualifierColumn.Equals( "GroupTypeId", StringComparison.OrdinalIgnoreCase ) &&
+                           a.EntityTypeQualifierValue.Equals( groupType.Id.ToString() ) )
+                       .ToList() );
+            }
+
+            filterItems.Clear();
+
+            phAttributeFilters.Controls.Clear();
+
+            foreach ( var attribute in attributes )
+            {
+                var attributeCache = AttributeCache.Get( attribute.Id );
+                var control = attributeCache.FieldType.Field.FilterControl( attributeCache.QualifierValues, "filter_" + attributeCache.Id.ToString(), false, Rock.Reporting.FilterMode.SimpleFilter );
+                filterItems.Add( new FilterItem { Attribute = attributeCache, Control = control } );
+                if ( control != null )
+                {
+                    if ( control is IRockControl )
+                    {
+                        var rockControl = ( IRockControl ) control;
+                        rockControl.Label = attribute.Name;
+                        rockControl.Help = attribute.Description;
+                        phAttributeFilters.Controls.Add( control );
+                    }
+                    else
+                    {
+                        var wrapper = new RockControlWrapper();
+                        wrapper.ID = control.ID + "_wrapper";
+                        wrapper.Label = attribute.Name;
+                        wrapper.Controls.Add( control );
+                        phAttributeFilters.Controls.Add( wrapper );
+                    }
+                }
+            }
         }
 
         private void BindSelectedGroups()
@@ -385,8 +438,6 @@ namespace RockWeb.Blocks.CheckIn
         /// <returns></returns>
         private List<GroupType> GetSelectedGroupTypes()
         {
-
-
             if ( !_isGroupSpecific )
             {
                 var groupTypeGuids = this.GetAttributeValue( "GroupTypes" ).SplitDelimitedValues().AsGuidList();
@@ -602,7 +653,7 @@ function(item) {
             this.SetUserPreference( keyPrefix + "ScheduleIds", spSchedules.SelectedValues.ToList().AsDelimited( "," ), false );
             this.SetUserPreference( keyPrefix + "DataView", dvpDataView.SelectedValue, false );
 
-            var selectedGroupIds = GetSelectedGroupIds();
+            var selectedGroupIds = GetSelectedGroupIds( false );
             this.SetUserPreference( keyPrefix + "GroupIds", selectedGroupIds.AsDelimited( "," ), false );
 
             this.SetUserPreference( keyPrefix + "ShowBy", hfShowBy.Value, false );
@@ -646,7 +697,7 @@ function(item) {
         /// Gets the selected group ids.
         /// </summary>
         /// <returns></returns>
-        private List<int> GetSelectedGroupIds()
+        private List<int> GetSelectedGroupIds( bool filter = true )
         {
             var selectedGroupIds = new List<int>();
 
@@ -672,6 +723,21 @@ function(item) {
                 {
                     selectedGroupIds = gpGroups.SelectedValuesAsInt().ToList();
                 }
+            }
+
+            if ( filter )
+            {
+                List<int> idsToRemove = new List<int>();
+                RockContext rockContext = new RockContext();
+                GroupService groupService = new GroupService( rockContext );
+                var qry = groupService.GetByIds( selectedGroupIds );
+
+                foreach ( var filterItem in filterItems )
+                {
+                    var filterControl = phAttributeFilters.FindControl( "filter_" + filterItem.Attribute.Id.ToString() );
+                    qry = filterItem.Attribute.FieldType.Field.ApplyAttributeQueryFilter( qry, filterControl, filterItem.Attribute, groupService, Rock.Reporting.FilterMode.SimpleFilter );
+                }
+                return qry.Select( g => g.Id ).Distinct().ToList();
             }
 
             return selectedGroupIds;
@@ -1356,13 +1422,13 @@ function(item) {
                         switch ( groupBy )
                         {
                             case ChartGroupBy.Week:
-                                summaryDate = ( DateTime ) row["Date"];
+                                summaryDate = ( DateTime ) row[1];
                                 break;
                             case ChartGroupBy.Month:
-                                summaryDate = ( DateTime ) row["MonthDate"];
+                                summaryDate = ( DateTime ) row[2];
                                 break;
                             case ChartGroupBy.Year:
-                                summaryDate = ( DateTime ) row["YearDate"];
+                                summaryDate = ( DateTime ) row[3];
                                 break;
                         }
                         if ( !result.AttendanceSummary.Contains( summaryDate ) )
@@ -2556,6 +2622,11 @@ function(item) {
             btnApply_Click( sender, e );
         }
 
+        protected void fFilter_ApplyFilterClick( object sender, EventArgs e )
+        {
+            btnApply_Click( sender, e );
+        }
+
         /// <summary>
         /// Handles the Click event of the btnCheckinDetails control.
         /// </summary>
@@ -2652,6 +2723,12 @@ function(item) {
             }
         }
 
+        private class FilterItem
+        {
+            public AttributeCache Attribute { get; set; }
+            public Control Control { get; set; }
+        }
+
         /// <summary>
         /// All visit information from the most recent attendance
         /// </summary>
@@ -2717,5 +2794,7 @@ function(item) {
         {
             BindSelectedGroups();
         }
+
+
     }
 }
