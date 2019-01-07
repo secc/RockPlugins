@@ -1109,7 +1109,7 @@ function(item) {
                 Campus = new
                 {
                     Id = a.Attendance.CampusId,
-                    Name = a.Attendance.Campus.Name
+                    Name = a.Attendance.Campus == null ? "" : a.Attendance.Campus.Name
                 },
                 Group = new
                 {
@@ -1153,7 +1153,7 @@ function(item) {
                       Campus = new
                       {
                           Id = ao.Group.CampusId,
-                          Name = ao.Group.Campus.Name
+                          Name = ao.Group.Campus == null ? "" : ao.Group.Campus.Name
                       },
                       Group = new
                       {
