@@ -42,13 +42,35 @@ namespace org.secc.Workflow.WorkflowAttributes
             errorMessages = new List<string>();
 
             // Get all the attribute values
-            var attributeMatrixGuid = action.GetWorklowAttributeValue( GetActionAttributeValue( action, "AttributeMatrix" ).AsGuid() ).AsGuidOrNull();
+            var attributeGuid = GetActionAttributeValue( action, "AttributeMatrix" ).AsGuidOrNull();
+            var attributeMatrixGuid = action.GetWorklowAttributeValue( attributeGuid.HasValue?attributeGuid.Value:Guid.Empty ).AsGuidOrNull();
             var itemAttributes = GetActionAttributeValue( action, "ItemAttributes" ).AsDictionaryOrNull();
 
-            if ( attributeMatrixGuid.HasValue && itemAttributes != null)
+            if ( attributeGuid.HasValue && itemAttributes != null)
             {
                 // Load the matrix
-                AttributeMatrix matrix = attributeMatrixService.Get( attributeMatrixGuid.Value );
+                AttributeMatrix matrix = attributeMatrixService.Get( attributeMatrixGuid.HasValue? attributeMatrixGuid.Value:Guid.Empty );
+
+                // If the matrix is null, create it first
+                if (matrix == null)
+                {
+                    var attribute = AttributeCache.Get( GetActionAttributeValue( action, "AttributeMatrix" ).AsGuid() );
+                    matrix = new AttributeMatrix();
+                    matrix.AttributeMatrixItems = new List<AttributeMatrixItem>();
+                    matrix.AttributeMatrixTemplateId = attribute.QualifierValues["attributematrixtemplate"]?.Value?.AsInteger()??0;
+                    attributeMatrixService.Add( matrix );
+
+                    // Persist it and make sure it gets saved
+                    rockContext.SaveChanges();
+                    if ( attribute.EntityTypeId == new Rock.Model.Workflow().TypeId )
+                    {
+                        action.Activity.Workflow.SetAttributeValue( attribute.Key, matrix.Guid.ToString() );
+                    }
+                    else if ( attribute.EntityTypeId == new WorkflowActivity().TypeId )
+                    {
+                        action.Activity.SetAttributeValue( attribute.Key, matrix.Guid.ToString() );
+                    }
+                }
 
                 // Create the new item
                 AttributeMatrixItem item = new AttributeMatrixItem();
