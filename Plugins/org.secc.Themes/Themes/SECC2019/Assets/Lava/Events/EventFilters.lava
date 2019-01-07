@@ -22,11 +22,11 @@
                 <div class="row">
                     <div class="col-xs-12 col-md-6">
                         <h3 class="g-font-weight--600">Find an Event</h3>
-                        <p class="g-font-weight--400">Find an Event Find an event that interests you by selecting a campus and/or ministry. Click on the image to see more details or to register.</p>
+                        <p class="g-font-weight--400 g-line-height--sm">Find an Event Find an event that interests you by selecting a campus and/or ministry. Click on the image to see more details or to register.</p>
                         <br />
                     </div>
 
-                    <div class="col-xs-12 col-md-3" >
+                    <div class="col-xs-12 col-md-3 g-padding-y-40--md" >
                         <select class="select2-campuses" name="campus">
                         <option value="allCampuses" data-shortcode="SE" {% if selectedCampus == null %} selected="selected"{% endif %}>All Locations</option>
                         {% for campus in Campuses %}
@@ -41,7 +41,7 @@
                         </select>
                     </div>
 
-                    <div class="col-xs-12 col-md-3" >
+                    <div class="col-xs-12 col-md-3 g-padding-y-20--xs g-padding-y-40--sm" >
                         <select class="select2-ministries" name="minitry">
                         <option value="allMinistries">All Ministries</option>
 
@@ -103,20 +103,9 @@ $(document).ready(function() {
     ///////////////////////////////////////////////////
     /////////////// Initialize Select2 ////////////////
     ///////////////////////////////////////////////////
-    function format(state) {
-        var originalOption = state.element;
-        return "<h4><span class=\"se-logo\">" + $(originalOption).data('shortcode') + "</span></h4> " + state.text;
-    }
+
     $('.select2-campuses').select2({
-      formatResult: format,
-      formatSelection: format,
-      placeholder: 'Select a Campus',
-      escapeMarkup: function(m) { return m; },
-      templateResult: function(data){
-        var originalOption = data.element;
-        // console.log(originalOption);
-        return $('<span>').html('<span class="se-logo">'+$(originalOption).data('shortcode')+'</span> '+data.text);
-      }
+      placeholder: 'Location'
     });
     $('.select2-campuses').on('select2:select', function (e) {
         // prevent from submiting default form actionn
@@ -126,7 +115,7 @@ $(document).ready(function() {
         runCampusFilters(data);
     });
     $('.select2-ministries').select2({
-      placeholder: 'Select a Ministry'
+      placeholder: 'Ministry'
     });
     $('.select2-ministries').on('select2:select', function (e) {
         // prevent from submiting default form action
