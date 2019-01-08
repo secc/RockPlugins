@@ -23,6 +23,9 @@
 {% assign CampusLongitude = campus | Attribute:'Longitude' %}
 {% assign CampusLatitude = campus | Attribute:'Latitude' %}
 
+{{ 'https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.3/jarallax.js' | AddScriptLink }}
+{{ 'https://cdnjs.cloudflare.com/ajax/libs/object-fit-images/3.2.3/ofi.min.js' | AddScriptLink }}
+
 <script>
 $('body').addClass('{{ campus.Slug }}-campus');
 </script>
