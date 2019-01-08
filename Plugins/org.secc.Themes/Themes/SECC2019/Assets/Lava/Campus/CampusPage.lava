@@ -1,3 +1,9 @@
+{{ 'https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.3/jarallax.js' | AddScriptLink }}
+{{ 'https://cdnjs.cloudflare.com/ajax/libs/object-fit-images/3.2.3/ofi.min.js' | AddScriptLink }}
+
+{% assign pageParamCampus = 'Global' | PageParameter:'Campus' %}
+{% cache key:'{{pageParamCampus}}' duration:'3600' tags:'CampusLandingPage' %}
+
 {% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
 {% assign pageParamCampus = 'Global' | PageParameter:'Campus' %}
 {% if pageParamCampusId == empty and pageParamCampus != empty and pageParamCampus != null and pageParamCampus != 'allCampuses' %}
@@ -22,9 +28,6 @@
 {% assign CampusVimeoId = campus | Attribute:'VimeoID' %}
 {% assign CampusLongitude = campus | Attribute:'Longitude' %}
 {% assign CampusLatitude = campus | Attribute:'Latitude' %}
-
-{{ 'https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.3/jarallax.js' | AddScriptLink }}
-{{ 'https://cdnjs.cloudflare.com/ajax/libs/object-fit-images/3.2.3/ofi.min.js' | AddScriptLink }}
 
 <script>
 $('body').addClass('{{ campus.Slug }}-campus');
@@ -77,6 +80,7 @@ Campus - Section
 {% endcomment %}
 <section style="padding: 60px 10px;">
 
+    {% comment %}
     <!-- Map Modal -->
 	<div class="modal fade" id="MapModal" tabindex="-1" role="dialog" aria-hidden="true">
 		<div class="modal-dialog modal-lg">
@@ -105,6 +109,7 @@ Campus - Section
 			</div>
 		</div>
 	</div>
+    {% endcomment %}
 
 	<div class="container">
 		<div class="campus-info row">
@@ -115,7 +120,9 @@ Campus - Section
                     {{ campus.Location.City }}, {{ campus.Location.State }} {{ campus.Location.PostalCode }}<br />
                     {{ campus.PhoneNumber }}<br />
                 </address>
+                {% comment %}
 				<button class="btn btn-doors map-button" data-toggle="modal" data-target="#MapModal">View Map</button>
+                {% endcomment %}
                 <br />
                 <br />
 				<div class="services">
@@ -211,7 +218,7 @@ Campus - Section
                 <div class="well text-center">
                     <span>Are you new to SE {{ campus.Name }} Campus?</span>
                     <br /><br />
-                    <a href="#about.php" class="btn btn-doors">Learn More</a>
+                    <a href="{{ campus.Slug }}/about.php" class="btn btn-doors">Learn More</a>
                 </div>
 			</div>
             <div class="col-sm-12 col-md-6 col-lg-8">
@@ -399,3 +406,4 @@ Contact - Section
 		}(document, 'script', 'facebook-jssdk'));
 	}
 </script>
+{% endcache %}
