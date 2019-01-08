@@ -77,15 +77,17 @@
 
                             <Rock:GroupPicker ID="gpGroups" runat="server" Label="Select Group(s)" AllowMultiSelect="true" Visible="false" OnSelectItem="gpGroups_SelectItem" />
                             <Rock:RockControlWrapper ID="rcwSelectedGroups" runat="server" Label="Selected Groups" Visible="false">
-                                <ul class="list-unstyled" visible="false" >
+                                <ul class="list-unstyled" visible="false">
                                     <asp:Repeater ID="rptSelectedGroups" runat="server">
-                                        <ItemTemplate><li><%# Container.DataItem %></li></ItemTemplate>
+                                        <ItemTemplate>
+                                            <li><%# Container.DataItem %></li>
+                                        </ItemTemplate>
                                     </asp:Repeater>
                                 </ul>
                             </Rock:RockControlWrapper>
 
                             <asp:Panel ID="pnlGroups" runat="server" Visible="false" class="js-groups-container">
-                                <Rock:NotificationBox ID="nbGroupsWarning" runat="server" NotificationBoxType="Warning" Text="Please select at least one group." Visible="false"/>
+                                <Rock:NotificationBox ID="nbGroupsWarning" runat="server" NotificationBoxType="Warning" Text="Please select at least one group." Visible="false" />
 
                                 <div class="grouplist-actions rollover-container" id="divGroupListActions" runat="server">
                                     <Rock:Toggle runat="server" ID="cbShowInactive" CssClass="pull-right" ButtonSizeCssClass="btn-xs" OnCssClass="btn-primary" OffCssClass="btn-primary" OnText="All Groups" OffText="Active Groups" AutoPostBack="true" OnCheckedChanged="cbShowInactive_CheckedChanged" />
@@ -101,7 +103,7 @@
 
                                 <hr class="margin-t-sm" />
 
-                                <ul class="list-unstyled group-checkboxes" >
+                                <ul class="list-unstyled group-checkboxes">
                                     <asp:Repeater ID="rptGroupTypes" runat="server" OnItemDataBound="rptGroupTypes_ItemDataBound">
                                         <ItemTemplate>
                                         </ItemTemplate>
@@ -114,7 +116,6 @@
 
                         </div>
                         <div class="col-md-9">
-
                             <div class="row analysis-types">
                                 <div class="col-sm-8">
                                     <div class="controls">
@@ -138,29 +139,31 @@
                                 </div>
                             </div>
 
-                            <asp:Panel ID="pnlUpdateMessage" runat="server" Visible="true" >
+                            <asp:Panel ID="pnlUpdateMessage" runat="server" Visible="true">
                                 <Rock:NotificationBox ID="nbUpdateMessage" runat="server" NotificationBoxType="Default" CssClass="text-center padding-all-lg" Heading="Confirm Settings"
-                                    text="<p>Confirm your settings and select the 'Update' button to display your results.</p>" />
+                                    Text="<p>Confirm your settings and select the 'Update' button to display your results.</p>" />
                             </asp:Panel>
 
                             <asp:Panel ID="pnlResults" runat="server" Visible="false">
-
+                                <Rock:GridFilter runat="server" ID="fFilter" OnApplyFilterClick="fFilter_ApplyFilterClick">
+                                    <asp:PlaceHolder ID="phAttributeFilters" runat="server" />
+                                </Rock:GridFilter>
                                 <asp:Panel ID="pnlShowByChart" runat="server">
                                     <div class="clearfix">
                                         <div class="pull-right">
 
-                                                <Rock:RockControlWrapper ID="rcwGraphBy" runat="server" Label="Graph By">
-                                                    <div class="controls">
-                                                        <div class="js-graph-by">
-                                                            <Rock:HiddenFieldWithClass ID="hfGraphBy" CssClass="js-hidden-selected" runat="server" />
-                                                            <div class="btn-group">
-                                                                <asp:LinkButton ID="btnGraphByTotal" runat="server" CssClass="btn btn-xs btn-default active" Text="Total" data-val="0" OnClick="btnGraphBy_Click" />
-                                                                <asp:LinkButton ID="btnGraphByGroup" runat="server" CssClass="btn btn-xs btn-default" Text="Group" data-val="1" OnClick="btnGraphBy_Click" />
-                                                                <asp:LinkButton ID="btnGraphByCampus" runat="server" CssClass="btn btn-xs btn-default" Text="Campus" data-val="2" OnClick="btnGraphBy_Click" />
-                                                            </div>
+                                            <Rock:RockControlWrapper ID="rcwGraphBy" runat="server" Label="Graph By">
+                                                <div class="controls">
+                                                    <div class="js-graph-by">
+                                                        <Rock:HiddenFieldWithClass ID="hfGraphBy" CssClass="js-hidden-selected" runat="server" />
+                                                        <div class="btn-group">
+                                                            <asp:LinkButton ID="btnGraphByTotal" runat="server" CssClass="btn btn-xs btn-default active" Text="Total" data-val="0" OnClick="btnGraphBy_Click" />
+                                                            <asp:LinkButton ID="btnGraphByGroup" runat="server" CssClass="btn btn-xs btn-default" Text="Group" data-val="1" OnClick="btnGraphBy_Click" />
+                                                            <asp:LinkButton ID="btnGraphByCampus" runat="server" CssClass="btn btn-xs btn-default" Text="Campus" data-val="2" OnClick="btnGraphBy_Click" />
                                                         </div>
                                                     </div>
-                                                </Rock:RockControlWrapper>
+                                                </div>
+                                            </Rock:RockControlWrapper>
 
                                         </div>
                                     </div>
@@ -193,7 +196,7 @@
                                             <div class="controls pull-right margin-t-sm">
                                                 <div class="js-view-by">
                                                     <Rock:HiddenFieldWithClass ID="hfViewBy" CssClass="js-hidden-selected" runat="server" />
-                                                    <asp:panel ID="pnlViewBy" runat="server" CssClass="btn-group">
+                                                    <asp:Panel ID="pnlViewBy" runat="server" CssClass="btn-group">
                                                         <asp:HyperLink ID="btnViewAttendees" runat="server" CssClass="btn btn-default btn-sm active" data-val="0">
                                                             Attendees
                                                         </asp:HyperLink>
@@ -203,7 +206,7 @@
                                                         <asp:HyperLink ID="btnViewChildrenOfAttendees" runat="server" CssClass="btn btn-default btn-sm" data-val="2">
                                                             Children of Attendees
                                                         </asp:HyperLink>
-                                                    </asp:panel>
+                                                    </asp:Panel>
                                                 </div>
                                             </div>
                                             <Rock:RockControlWrapper ID="rcwAttendeesFilter" runat="server" Label="Filter">
@@ -254,16 +257,16 @@
                                     <Rock:Grid ID="gAttendeesAttendance" runat="server" AllowSorting="true" RowItemText="Attendee" OnRowDataBound="gAttendeesAttendance_RowDataBound" ExportSource="ColumnOutput" ExportFilename="AttendanceAnalytics">
                                         <Columns>
                                             <Rock:SelectField />
-                                            <asp:HyperLinkField DataNavigateUrlFields="ParentId" DataTextField="Parent" HeaderText="Parent" SortExpression="Parent.LastName, Parent.NickName"/>
+                                            <asp:HyperLinkField DataNavigateUrlFields="ParentId" DataTextField="Parent" HeaderText="Parent" SortExpression="Parent.LastName, Parent.NickName" />
                                             <Rock:RockBoundField DataField="Parent" HeaderText="Parent" Visible="false" ExcelExportBehavior="AlwaysInclude" />
                                             <Rock:RockBoundField DataField="Parent.Email" HeaderText="Parent Email" Visible="false" ExcelExportBehavior="AlwaysInclude" />
                                             <Rock:RockBoundField DataField="Parent.GivingId" HeaderText="Parent GivingId" Visible="false" ExcelExportBehavior="AlwaysInclude" />
-                                            <asp:HyperLinkField DataNavigateUrlFields="ChildId" DataTextField="Child" HeaderText="Child" SortExpression="Child.LastName, Child.NickName"/>
+                                            <asp:HyperLinkField DataNavigateUrlFields="ChildId" DataTextField="Child" HeaderText="Child" SortExpression="Child.LastName, Child.NickName" />
                                             <Rock:RockBoundField DataField="Child" HeaderText="Child" Visible="false" ExcelExportBehavior="AlwaysInclude" />
                                             <Rock:RockBoundField DataField="Child.Email" HeaderText="Child Email" Visible="false" ExcelExportBehavior="AlwaysInclude" />
                                             <Rock:RockBoundField DataField="Child.Age" HeaderText="Child Age" Visible="false" ExcelExportBehavior="AlwaysInclude" />
                                             <Rock:RockBoundField DataField="Child.GivingId" HeaderText="Child GivingId" Visible="false" ExcelExportBehavior="AlwaysInclude" />
-                                            <asp:HyperLinkField DataNavigateUrlFields="PersonId" DataTextField="Person" HeaderText="Name" SortExpression="Person.LastName, Person.NickName"/>
+                                            <asp:HyperLinkField DataNavigateUrlFields="PersonId" DataTextField="Person" HeaderText="Name" SortExpression="Person.LastName, Person.NickName" />
                                             <Rock:RockBoundField DataField="Person" HeaderText="Person" Visible="false" ExcelExportBehavior="AlwaysInclude" />
                                             <Rock:RockBoundField DataField="Person.Email" HeaderText="Email" Visible="false" ExcelExportBehavior="AlwaysInclude" />
                                             <Rock:RockBoundField DataField="Person.Gender" HeaderText="Gender" Visible="false" ExcelExportBehavior="AlwaysInclude" />
@@ -271,7 +274,7 @@
                                             <Rock:RockBoundField DataField="Person.GivingId" HeaderText="GivingId" Visible="false" ExcelExportBehavior="AlwaysInclude" />
                                             <Rock:RockBoundField DataField="Person.Birthdate" HeaderText="Birthdate" Visible="false" ExcelExportBehavior="AlwaysInclude" />
                                             <Rock:DefinedValueField DataField="Person.ConnectionStatusValueId" HeaderText="Connection Status" SortExpression="Person.ConnectionStatusValueId" />
-                                            <Rock:RockLiteralField HeaderText="First Visit" ID="lFirstVisitDate" SortExpression="FirstVisit.StartDateTime"/>
+                                            <Rock:RockLiteralField HeaderText="First Visit" ID="lFirstVisitDate" SortExpression="FirstVisit.StartDateTime" />
                                             <Rock:RockLiteralField HeaderText="Second Visit" ID="lSecondVisitDate" />
                                             <Rock:DateField DataField="LastVisit.StartDateTime" HeaderText="Last Visit" SortExpression="LastVisit.StartDateTime" />
                                             <Rock:CampusField DataField="LastVisit.CampusId" HeaderText="Campus" SortExpression="LastVisit.Campus.Name" />
@@ -281,7 +284,7 @@
                                             <Rock:RockBoundField DataField="LastVisit.InGroup" HeaderText="In Group" Visible="false" ExcelExportBehavior="AlwaysInclude" />
                                             <Rock:RockBoundField DataField="LastVisit.RoleName" HeaderText="Group Role" Visible="false" ExcelExportBehavior="AlwaysInclude" />
                                             <Rock:RockLiteralField HeaderText="Home Address" ID="lHomeAddress" ItemStyle-Wrap="false" />
-                                            <Rock:RockLiteralField HeaderText="Phone Numbers" ID="lPhoneNumbers"  ItemStyle-Wrap="false" />
+                                            <Rock:RockLiteralField HeaderText="Phone Numbers" ID="lPhoneNumbers" ItemStyle-Wrap="false" />
                                             <Rock:RockLiteralField HeaderText="Count" ID="lAttendanceCount" SortExpression="AttendanceSummary.Count" />
                                             <Rock:RockLiteralField HeaderText="Attendance %" ID="lAttendancePercent" SortExpression="AttendanceSummary.Count" />
                                         </Columns>
