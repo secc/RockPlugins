@@ -1,0 +1,36 @@
+{% contentchannelitem where:'ContentChannelId == 37' %}
+{% for contentItem in contentchannelitemItems %}
+{% assign item = contentItem %}
+{% endfor %}
+<section id="Promotions">
+	<div class="content-wrapper">
+		<div class="background-image-blur"></div>
+		<div class="flex-wrapper">
+			<div class="img-wrapper">
+				<img src="/Content/Home/Next_Magazine_Logo_white.svg" class="img-responsive logo" style="padding: 15% 25% 15% 25%;"/>
+				<br />
+			</div>
+			<div class="img-wrapper magazine-next-cover">
+
+                            {% assign nextImage = item | Attribute:'NextMagazineImage','Object' %}
+                            <img src='/GetImage.ashx?guid={{ nextImage.Guid }}' class='img-responsive' />
+            </div>
+			<div class="promo-copy">
+				<p class="buttons">
+					<a href="https://southeastchristian.org/events" class="btn btn-doors btn-light next-btn">
+					    <!--<span class="hidden-xs">Find where you can get connected</span>-->
+					    Get Connected
+				    </a>
+					<br />
+					<br />
+					<a href="https://southeastchristian.org/next-mag" class="btn btn-doors btn-light next-btn">
+					    <!--<span class="hidden-xs">View this month's issue of <i>NEXT</i></span>-->
+					    View <i>NEXT</i> Magazine
+				    </a>
+				</p>
+				<br />
+			</div>
+		</div>
+	</div>
+</section>
+{% endcontentchannelitem %}
