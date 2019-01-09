@@ -1119,7 +1119,7 @@ function(item) {
                 Schedule = new
                 {
                     Id = a.Attendance.Occurrence.ScheduleId,
-                    Name = a.Attendance.Occurrence.Schedule.Name
+                    Name = a.Attendance.Occurrence.Schedule == null ? "" : a.Attendance.Occurrence.Schedule.Name
                 }
             } ).ToList();
 
@@ -1163,7 +1163,7 @@ function(item) {
                       Schedule = new
                       {
                           Id = ao.ScheduleId,
-                          Name = ao.Schedule.Name
+                          Name = ao.Schedule == null ? "" : ao.Schedule.Name
                       }
                   }
                 ) );
