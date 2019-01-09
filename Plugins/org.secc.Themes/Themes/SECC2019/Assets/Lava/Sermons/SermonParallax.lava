@@ -89,17 +89,19 @@
 				  }
 				</script>
 
-                {[ parallax videourl:'https://vimeo.com/{{ currentMessageVimeoID }}' image:'https://www.southeastchristian.org/_/img/home/rotations/HOPE920-xl.jpg' videostarttime:'{{ currentMessage.ChildContentChannelItem.VimeoPromoStartTime }}' videoendtime:'{{ currentMessage.ChildContentChannelItem.VimeoPromoEndTime }}' addclass:'darken' height:'65vh' position:'center center' speed:'-25' ]}
+                {[ parallax videourl:'https://vimeo.com/{{ currentMessageVimeoID }}' image:'https://www.southeastchristian.org/_/img/home/rotations/HOPE920-xl.jpg' videostarttime:'{{ currentMessage.ChildContentChannelItem.VimeoPromoStartTime }}' videoendtime:'{{ currentMessage.ChildContentChannelItem.VimeoPromoEndTime }}' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'80vh' position:'center center' speed:'-25' ]}
 					<!-- START: Ministry Logo & Video -->
                     <div class="parallax-logo centered" style="max-width: inherit;padding: 0px;">
-                        <h4 class="uppercase" style="font-size: 3rem;">Latest Sermon</h4>
-                        <h1 style="text-shadow: none;">{{ item.Title }}</h1>
-						<p class="uppercase"><strong>{{ currentMessage.ChildContentChannelItem.Title }}</strong></p>
+                        <h5 class="uppercase g-letter-spacing--3">Latest Sermon</h5>
+						<hr class="g-width-80--xs">
+                        <h1 class="g-font-family--secondary" style="text-shadow: none;">{{ item.Title }}</h1>
+						<br />
+						<h5 class="uppercase g-letter-spacing--3">{{ currentMessage.ChildContentChannelItem.Title }}</h5>
                         <br />
                         <br />
-                        <a href="{{ 'Global' | Page:'Path' }}/{{ item.Slug }}" class="btn btn-doors btn-light" style="font-size: 2em; -webkit-font-smoothing: antialiased;">
-                            <h2 class="letter-spaced">Watch Now</h2>
-                        </a>
+						<a href="{{ 'Global' | Page:'Path' }}/{{ item.Slug }}" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
+				            <strong>Watch Sermon</strong>
+				        </a>
                     </div>
                     <!-- END: Ministry Logo & Videod -->
                 {[ endparallax ]}
