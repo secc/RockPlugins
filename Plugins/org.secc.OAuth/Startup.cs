@@ -30,6 +30,7 @@ using org.secc.OAuth.Data;
 using Rock.Model;
 using Rock.Data;
 using Rock.Security;
+using Rock.Security.ExternalAuthentication;
 
 namespace org.secc.OAuth
 {
@@ -157,10 +158,25 @@ namespace org.secc.OAuth
         {
             if (!string.IsNullOrEmpty(context.UserName) && !string.IsNullOrEmpty(context.Password))
             {
-                var userLoginService = new UserLoginService(new RockContext());
+                var rockContext = new RockContext();
+                var userLoginService = new UserLoginService( rockContext );
                 //Older Avalanche Clients use __PHONENUMBER__+1 prefix vs the newer SMS_ prefix
                 //This makes sure we are using the new ROCK external sms authentication
                 var userName = context.UserName.Replace( "__PHONENUMBER__+1", "SMS_" );
+
+                //SMS login does not use the phone number as the username.
+                //Instead we need to change it to use the person's id.
+                if (userName.StartsWith( "SMS_" ) )
+                {
+                    string error;
+                    var smsAuthentication = new SMSAuthentication();
+                    var person = smsAuthentication.GetNumberOwner( userName.Split( '_' ).Last(), rockContext, out error );
+                    if (person != null )
+                    {
+                        userName = string.Format( "SMS_{0}", person.Id );
+                    }
+                    //If we cannot find a person, do nothing and just pass through the existing username
+                }
                 var userLogin = userLoginService.GetByUserName( userName );
                 if (userLogin != null && userLogin.EntityType != null)
                 {
