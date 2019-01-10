@@ -56,7 +56,7 @@
 {% assign currentSeries = Items | First %}
 {% assign currentSeriesImageGuid = currentSeries | Attribute:'Image','RawValue' %}
 
-<div class="container-fluid" style="background-color:  rgba(239, 239, 239, 0.5); padding: 40px 0;">
+<div class="container-fluid g-padding-y-40--xs">
 
 	<div class="container">
 		<div class="isotope_wrap margin-t-lg series-list">

@@ -6,108 +6,66 @@
 }
 </style>
 
+<div class="event-detail-header">
+	<div class="container">
+		<div class="row">
+			<div class="col-sm-12">
+                {% comment %}
+                {% assign eventPhoto = '' %}
+                {% if Event.Photo.Guid %}
+                    {% assign eventPhoto = '/GetImage.ashx?guid=' | Plus: Event.Photo.Guid %}
+                {% else %}
+                    {% assign primaryMinistry = Event | Attribute:'PrimaryMinistry','Object' | Attribute:'CalendarImage','Object' %}
+                    {% assign eventPhoto = '/GetImage.ashx?guid=' | Plus: primaryMinistry.Guid %}
+                {% endif %}
+
+                {% if eventPhoto %}
+                    <div class="event-photo-container">
+                        <div class="event-photo">
+                            <center>
+                                <img src="{{eventPhoto}}" class="img-responsive img-rounded"></img>
+                            </center>
+                        </div>
+                    </div>
+                {% endif %}
+                {% endcomment %}
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="container">
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-4 g-padding-y-40--xs">
+
+        <div class="text-center">
+            {[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{ seriesImageGuid }}' ]}
+        </div>
 
         <!-- START: event details card -->
-        <div class="event-details">
+        {% assign eventOccurencesCount = Event.EventItemOccurrences | Size %}
 
-            {% assign eventPhoto = '' %}
-            {% if Event.Photo.Guid %}
-                {% assign eventPhoto = '/GetImage.ashx?guid=' | Plus: Event.Photo.Guid %}
-            {% else %}
-                {% assign primaryMinistry = Event | Attribute:'PrimaryMinistry','Object' | Attribute:'CalendarImage','Object' %}
-                {% assign eventPhoto = '/GetImage.ashx?guid=' | Plus: primaryMinistry.Guid %}
-            {% endif %}
-
-            {% assign primaryMinistryTitle = Event | Attribute:'PrimaryMinistry' %}
-
-            {% if eventPhoto %}
-
-                {% assign primaryMinistryTitle = Event | Attribute:'PrimaryMinistry' %}
-                {% assign eventImageTitle = Event | Attribute:'ImageHeaderText' %}
-                {% assign eventImageTitleSmall = Event | Attribute:'ImageHeaderTextSmall' %}
-
-                {% assign photoTextHTML = ''%}
-
-                {% if eventImageTitle != empty %}
-                    {% assign photoTextHTML = '<h1 class="uppercase">' | Plus: eventImageTitle %}
-                {% else %}
-                    {% assign photoTextHTML = '<h1 class="uppercase">' | Plus: primaryMinistryTitle %}
-                {% endif %}
-
-                {% if eventImageTitleSmall != empty %}
-                    {% assign photoTextHTML = photoTextHTML | Plus: '<br /><small>'| Plus: eventImageTitleSmall | Plus: '</small></h1>' %}
-                {% else %}
-                    {% assign photoTextHTML = photoTextHTML | Plus: '<br /><small>Ministry</small></h1>' %}
-                {% endif %}
-
-                <div class="event-photo-container">
-                    <div class="event-photo">
-                        <center>
-                            <img src="{{eventPhoto}}" class="img-responsive img-rounded"></img>
-                        </center>
-                    </div>
-                    {% if Event.Photo.Guid == empy%}
-                    <div class="event-photo-title">
-                        {{photoTextHTML}}
-                    </div>
-                    {% endif %}
-                </div>
-            {% endif %}
-
-            {% assign eventOccurencesCount = Event.EventItemOccurrences | Size %}
-
-            <!-- ************************************ Start: Show only if it's an Individual Event ************************************ -->
-            {% if eventOccurencesCount <= 1 %}
+        <!-- ************************************ Start: Show only if it's an Individual Event ************************************ -->
+        {% if eventOccurencesCount <= 1 %}
             <br />
-            {% for EventItemOccurrence in Event.EventItemOccurrences %}
+            <div class="event-calendar">
+                <div class="clearfix card g-padding-x-30--xs g-padding-t-30--xs g-margin-b-40--xs">
+                {% for EventItemOccurrence in Event.EventItemOccurrences %}
 
-                {% include '~~/Assets/Lava/Events/EventItemOccurrence.lava' %}
-                <!-- <hr /> -->
-                <br />
-            {% endfor %}
-
-            {% endif %}
-            <!-- START: Social Media - Shareables -->
-            <div class="socialbox clearfix text-center">
-                    <script>function fbs_click() { u = location.href; t = document.title; window.open('http://www.facebook.com/sharer.php?u=' + encodeURIComponent(u) + '&t=' + encodeURIComponent(t), 'sharer', 'toolbar=0,status=0,width=626,height=436'); return false; }</script>
-                    <script>function ics_click() { text = `{{ EventItemOccurrence.Schedule.iCalendarContent }}`.replace('END:VEVENT', 'SUMMARY: {{ Event.Name }}\r\nLOCATION: {{ EventItemOccurrence.Location }}\r\nEND:VEVENT'); var element = document.createElement('a'); element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); element.setAttribute('download', '{{ Event.Name }}.ics'); element.style.display = 'none'; document.body.appendChild(element); element.click(); document.body.removeChild(element); }</script>
-                    <div class="socials" style="margin-top:10px;">
-                    {% if eventOccurencesCount <= 1 and EventItemOccurrence.UseOnlyScheduleText != 'Yes' %}
-                    {% comment %}
-                    <div class="socials_item">
-                        <a href="javascript:void(0)" onclick="return ics_click()" class="socialicon socialicon-calendar" title="Download Event" data-original-title="Download Event">
-                            <i class="fa fa-fw fa-calendar"></i>
-                        </a>
-                    </div>
-                    {% endcomment %}
-                    {% endif %}
-                    <div class="socials_item">
-                        <a href="http://www.facebook.com/share.php?u=<url>" onclick="return fbs_click()" target="_blank" class="social-facebook" title="Share via Facebook" data-original-title="Share via Facebook">
-                            <i class="fa fa-fw fa-facebook"></i>
-                        </a>
-                    </div>
-                    <div class="socials_item">
-                        <a href="http://twitter.com/home?status={{ 'Global' | Page:'Url' | Escape }}" class="social-twitter" title="Share via Twitter" data-original-title="Share via Twitter">
-                            <i class="fa fa-fw fa-twitter"></i>
-                        </a>
-                    </div>
-                    <div class="socials_item">
-                        <a href="mailto:?Subject={{ Event.Name | Escape }}&Body={{ 'Global' | Page:'Url' }}"  class="social-email" title="Share via Email" data-original-title="Share via Email">
-                            <i class="fa fa-fw fa-envelope-o"></i>
-                        </a>
-                    </div>
+                    {% include '~~/Assets/Lava/Events/EventItemOccurrence.lava' %}
+                    <!-- <hr /> -->
+                    <br />
+                {% endfor %}
                 </div>
-            </div><!-- END: Social Media - Shareables -->
+            </div>
+        {% endif %}
 
-            <!-- ************************************ End: Show only if it's an Individual Event ************************************ -->
-            </div><!-- END: event details card -->
+    </div><!-- END: col-md-4 -->
 
+    <div class="col-md-8 g-padding-y-40--xs">
 
-        </div><!-- END: col-md-4 -->
-
-    <div class="col-md-8 col-md-4 margin-b-md">
+        <h3 class="g-font-family--secondary">{{Event.Name}}</h3>
+        <br />
 
         {{ Event.Description }}
 
@@ -132,11 +90,12 @@
     </div>
 </div><!-- END: row -->
 
-<!-- ************************************ Start: Show only if it's a Multi Event ************************************ -->
+{% assign eventOccurencesCount = Event.EventItemOccurrences | Size %}
+
 {% if eventOccurencesCount > 1 %}
 
     <div class="row">
-        <div class="col-md-4 margin-b-md text-center">
+        <div class="col-md-4 text-center">
             {% if eventOccurencesCount > 1 %}
                 {% assign campusesAvail = '' %}
                 {% assign campusesCount = 0 %}
@@ -152,7 +111,7 @@
 
                 {% if campusesCount >= 2 %}
                 <select class="select2-campuses" name="campus">
-                    <option value="*" data-shortcode="SE">All Campuses For This Event</option>
+                    <option value="*" data-shortcode="SE">Campuses for this Event</option>
                     {{campusesAvail}}
                 </select>
                 {% endif %}
@@ -163,135 +122,96 @@
     </div>
 
     <div class="row">
-        <div class="isotope_wrap">
+        <div class="isotope_wrap container g-margin-b-80--xs">
             {% for EventItemOccurrence in Event.EventItemOccurrences %}
 
             {% assign campus_slug = EventItemOccurrence.Campus | Attribute:'Slug' %}
-            <div class="isotope_item col-xs-12 col-sm-6 col-md-4 {{campus_slug}}_filter">
-                <div class="event-details" style="margin-top:0;">
+            <div class="isotope_item col-xs-12 col-md-6 col-lg-4 {{campus_slug}}_filter event-calendar">
+                <div class="clearfix card" >
 
-                {% include '~~/Assets/Lava/Events/EventItemOccurrence.lava' %}
-
-                {% if scheduledDates != empty %}
-                <!-- START: Social Media - Shareables -->
-                <div class="socialbox clearfix text-center" style="display: inline-block;">
-                    <script>function ics_click_{{ EventItemOccurrence.Guid | Replace:'-','_' }}() {
-                        text = `{{ EventItemOccurrence.Schedule.iCalendarContent }}`.replace('END:VEVENT', 'SUMMARY: {{ Event.Name }}\r\nLOCATION: {{ EventItemOccurrence.Location }}\r\nEND:VEVENT');
-                            var element = document.createElement('a');
-                            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-                            element.setAttribute('download', '{{ Event.Name }}.ics');
-                            element.style.display = 'none';
-                            document.body.appendChild(element);
-                            element.click();
-                            document.body.removeChild(element);
-                        }
-                    </script>
-                    <div class="socials" style="margin-right:0px;">
-                        <div class="socials_item">
-                            {% if EventItemOccurrence.UseOnlyScheduleText != 'Yes' %}
-                            {% comment %}
-                            <a href="" onclick="return ics_click_{{ EventItemOccurrence.Guid | Replace:'-','_' }}()" class="socialicon socialicon-calendar" title="Download Event" data-original-title="Download Event">
-                                <i class="fa fa-fw fa-calendar"></i>
-                            </a>
-                            {% endcomment %}
-                            {% endif %}
-                        </div>
-                    </div>
-                </div><!-- END: Social Media - Shareables -->
-                {% endif %}
+                    {% include '~~/Assets/Lava/Events/EventItemOccurrence.lava' %}
 
                 </div>
             </div>
             {% endfor %}
         </div>
     </div>
+</div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Readmore.js/2.2.0/readmore.min.js"></script>
-    <script type="text/javascript">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Readmore.js/2.2.0/readmore.min.js"></script>
+<script type="text/javascript">
 
-        // isotop options and wrapper
-        var $grid = $('.isotope_wrap');
-        var isoOptions = {
-            percentPosition: true,
-            itemSelector: '.isotope_item'
-        };
+    // isotop options and wrapper
+    var $grid = $('.isotope_wrap');
+    var isoOptions = {
+        percentPosition: true,
+        itemSelector: '.isotope_item'
+    };
 
-        $(window).load(function() {
-             // executes when complete page is fully loaded, including all frames, objects and images
-             $('.readmore_dates').readmore({
-                 speed: 100,
-                 lessLink: '<a href="#">Show Less Available Dates</a>',
-                 moreLink: '<a href="#">Show All Available Dates</a>',
-                 collapsedHeight: 0,
-                 beforeToggle: function(tr, el, ex) {
-                     $(el).show();
-                 },
-                 afterToggle: function(trigger, element, expanded) {
-                     $grid.isotope(isoOptions); // re-initialize
-                 }
-            });
+    $(window).load(function() {
+         // executes when complete page is fully loaded, including all frames, objects and images
+         $('.readmore_dates').readmore({
+             speed: 100,
+             lessLink: '<a href="#">Show Less Available Dates</a>',
+             moreLink: '<a href="#">Show All Available Dates</a>',
+             collapsedHeight: 0,
+             beforeToggle: function(tr, el, ex) {
+                 $(el).show();
+             },
+             afterToggle: function(trigger, element, expanded) {
+                 $grid.isotope(isoOptions); // re-initialize
+             }
+        });
+    });
+
+    $(document).ready(function() {
+
+        ///////////////////////////////////////////////////
+        /////////////// Initialize Select2 ////////////////
+        ///////////////////////////////////////////////////
+        $('.select2-campuses').select2({
+          placeholder: 'Select a Campus'
         });
 
-        $(document).ready(function() {
-
-            ///////////////////////////////////////////////////
-            /////////////// Initialize Select2 ////////////////
-            ///////////////////////////////////////////////////
-            function format(state) {
-                var originalOption = state.element;
-                return "<h4><span class=\"se-logo\">" + $(originalOption).data('shortcode') + "</span></h4> " + state.text;
+        $('.select2-campuses').on('select2:select', function (e) {
+            // prevent from submiting default form actionn
+            e.preventDefault();
+            // pull in lava ID
+            var data = e.params.data;
+            if (data.id != '*') {
+                var filterClass = '.' + data.id + '_filter';
+            } else {
+                var filterClass = data.id;
             }
-            $('.select2-campuses').select2({
-              formatResult: format,
-              formatSelection: format,
-              placeholder: 'Select a Campus',
-              escapeMarkup: function(m) { return m; },
-              templateResult: function(data){
-                var originalOption = data.element;
-                // console.log(originalOption);
-                return $('<span>').html('<span class="se-logo">'+$(originalOption).data('shortcode')+'</span> '+data.text);
-              }
-            });
-
-            $('.select2-campuses').on('select2:select', function (e) {
-                // prevent from submiting default form actionn
-                e.preventDefault();
-                // pull in lava ID
-                var data = e.params.data;
-                if (data.id != '*') {
-                    var filterClass = '.' + data.id + '_filter';
-                } else {
-                    var filterClass = data.id;
-                }
-                console.log(filterClass);
-                $grid.isotope({
-                    // options
-                    filter: filterClass,
-                    percentPosition: true,
-                    itemSelector: '.isotope_item'
-                });
-            });
-             // Initialize Isotope
+            console.log(filterClass);
             $grid.isotope({
                 // options
-                filter: '*',
+                filter: filterClass,
                 percentPosition: true,
                 itemSelector: '.isotope_item'
             });
+        });
+         // Initialize Isotope
+        $grid.isotope({
+            // options
+            filter: '*',
+            percentPosition: true,
+            itemSelector: '.isotope_item'
+        });
 
-            // filter items on button click
-            // $('.filter-button-group').on( 'click', 'button', function(e) {
-            //     e.preventDefault();
-            //     var filterValue = $(this).attr('data-filter');
-            //     $grid.isotope({
-            //         // options
-            //         filter: filterValue,
-            //         percentPosition: true,
-            //         itemSelector: '.isotope_item'
-            //     });
-            // });
-         });
+        // filter items on button click
+        // $('.filter-button-group').on( 'click', 'button', function(e) {
+        //     e.preventDefault();
+        //     var filterValue = $(this).attr('data-filter');
+        //     $grid.isotope({
+        //         // options
+        //         filter: filterValue,
+        //         percentPosition: true,
+        //         itemSelector: '.isotope_item'
+        //     });
+        // });
+     });
 
-    </script>
+</script>
 {% endif %}
 <!-- ************************************ End: Show only if it's a Multi Event ************************************ -->
