@@ -1061,7 +1061,9 @@ function(item) {
             var attendanceOccurences = new List<AttendanceOccurrence>();
             foreach ( var group in groups )
             {
-                attendanceOccurences.AddRange( attendanceOccurrenceService.GetGroupOccurrences( group, startDate, endDate, group.GroupLocations.Select( l => l.LocationId ).ToList(), new List<int>() ) );
+                var location = group.GroupLocations.Select( l => l.LocationId ).ToList();
+                location.Add( 0 );
+                attendanceOccurences.AddRange( attendanceOccurrenceService.GetGroupOccurrences( group, startDate, endDate, location, new List<int>() ) );
             }
 
             var qryAttendance = attendanceOccurences.Select( o => o ).ToList();
