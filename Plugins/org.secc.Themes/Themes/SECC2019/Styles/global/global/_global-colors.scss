@@ -59,22 +59,22 @@ $utils-colors: (
 ------------------------------------*/
 @each $color-name, $color in $utils-colors {
 	.g-hor-divider__solid__b--#{$color-name} {
-	  border-bottom: .0625rem solid map-get($color, color);
+	  border-bottom: 1px solid map-get($color, color);
 	}
 }
 @each $color-name, $color in $utils-colors {
 	.g-hor-divider__solid__t--#{$color-name} {
-	  border-top: .0625rem solid map-get($color, color);
+	  border-top: 1px solid map-get($color, color);
 	}
 }
 @each $color-name, $color in $utils-colors {
 	.g-ver-divider__solid__r--#{$color-name} {
-	  border-right: .0625rem solid map-get($color, color);
+	  border-right: 1px solid map-get($color, color);
 	}
 }
 @each $color-name, $color in $utils-colors {
 	.g-ver-divider__solid__l--#{$color-name} {
-	  border-left: .0625rem solid map-get($color, color);
+	  border-left: 1px solid map-get($color, color);
 	}
 }
 

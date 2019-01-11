@@ -44,3 +44,46 @@
     }
 
 }
+
+.se-carat {
+    position: relative;
+    top: -0.2em;
+    left: 1rem;
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    content: "";
+    border: solid #777777;
+    border-width: 0 1px 1px 0;
+    display: inline-block;
+    @include transition(all 0.5s);
+
+    &--right {
+        transform: rotate(-45deg);
+        -webkit-transform: rotate(-45deg);
+    }
+    &--left {
+        transform: rotate(-45deg);
+        -webkit-transform: rotate(-45deg);
+        @include transition(all 0.5s);
+    }
+    &--up {
+        top: 0;
+        transform: rotate(-135deg);
+        -webkit-transform: rotate(-135deg);
+        @include transition(all 0.5s);
+    }
+    &--down {
+        transform: rotate(45deg);
+        -webkit-transform: rotate(45deg);
+        @include transition(all 0.5s);
+    }
+
+    // &[data-expanded="true"] {
+    //     .carat {
+    //         -webkit-transform: translateY(-0.1rem) rotate(405deg);
+    //         -moz-transform: translateY(-0.1rem) rotate(405deg);
+    //         transform: translateY(-0.1rem) rotate(405deg);
+    //     }
+    // }
+}
