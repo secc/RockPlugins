@@ -22,7 +22,7 @@
                 <div class="event-photo-container">
                     <div class="event-photo">
                         <center>
-                            <img src="{{eventPhoto}}" class="img-responsive" style="width: 100%;">
+                            <img src="{{eventPhoto}}" class="img-responsive" style="width: 100%;" onerror="this.style.display='none'">
                         </center>
                     </div>
                 </div>
@@ -35,65 +35,66 @@
 <div class="container">
     <div class="row">
 
-        <div class="col-md-9 col-md-push-3 g-padding-y-40--xs">
+        <div class="container">
+            <div class="col-md-9 col-md-push-3 g-padding-y-100--xs">
 
-            <h3 class="g-font-family--secondary">{{Event.Name}}</h3>
-            <br />
+                <h3 class="g-font-family--secondary">{{Event.Name}}</h3>
 
-            {{ Event.Description }}
+                {{ Event.Description }}
 
-            <!-- START: Social Media - Shareables -->
-            {{ 'summary_large_image' | AddMetaTagToHead:'property','twitter:card' }}
-            {{ Event.Name | AddMetaTagToHead:'property','twitter:title' }}
-            {{ Event.Description | AddMetaTagToHead:'property','twitter:description' }}
+                <!-- START: Social Media - Shareables -->
+                {{ 'summary_large_image' | AddMetaTagToHead:'property','twitter:card' }}
+                {{ Event.Name | AddMetaTagToHead:'property','twitter:title' }}
+                {{ Event.Description | AddMetaTagToHead:'property','twitter:description' }}
 
-            {{ Event.Name | AddMetaTagToHead:'property','og:title' }}
-            {{ Event.Description | AddMetaTagToHead:'property','og:description' }}
+                {{ Event.Name | AddMetaTagToHead:'property','og:title' }}
+                {{ Event.Description | AddMetaTagToHead:'property','og:description' }}
 
-            {% assign facebookPhoto = Event | Attribute:'core_calendar_FacebookPhoto','Object' %}
-            {% if facebookPhoto %}
-            {{ facebookPhoto.Url | AddMetaTagToHead:'property','og:image' }}
-            {% endif %}
+                {% assign facebookPhoto = Event | Attribute:'core_calendar_FacebookPhoto','Object' %}
+                {% if facebookPhoto %}
+                {{ facebookPhoto.Url | AddMetaTagToHead:'property','og:image' }}
+                {% endif %}
 
-            {% assign twitterPhoto = Event | Attribute:'core_calendar_TwitterPhoto','Object' %}
-            {% if twitterPhoto != '' %}
-            {{ twitterPhoto.Url | AddMetaTagToHead:'property','twitter:image' }}
-            {% endif %}
-            <!-- END: Social Media - Shareable Media -->
+                {% assign twitterPhoto = Event | Attribute:'core_calendar_TwitterPhoto','Object' %}
+                {% if twitterPhoto != '' %}
+                {{ twitterPhoto.Url | AddMetaTagToHead:'property','twitter:image' }}
+                {% endif %}
+                <!-- END: Social Media - Shareable Media -->
 
-        </div>
-
-        <div class="col-md-3 col-md-pull-9 g-padding-b-60--sm g-padding-y-50--md">
-
-            <div class="text-center g-padding-b-20--xs">
-                {[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{ seriesImageGuid }}' ]}
             </div>
 
-            {% assign eventOccurencesCount = Event.EventItemOccurrences | Size %}
-            {% if eventOccurencesCount > 1 %}
-                {% if eventOccurencesCount > 1 %}
-                    {% assign campusesAvail = '' %}
-                    {% assign campusesCount = 0 %}
-                    {% for EventItemOccurrence in Event.EventItemOccurrences %}
-                        {% assign campus_slug = EventItemOccurrence.Campus | Attribute:'Slug' %}
-                        {% if campusesAvail contains campus_slug %}
-                            {% comment %} Great – Skip this since it already conatains the Campus {% endcomment %}
-                        {% else %}
-                            {% assign campusesCount = campusesCount | Plus: 1 %}
-                            {% assign campusesAvail = campusesAvail | Append: '<option value="' | Append: campus_slug | Append: '" data-shortcode="' | Append: EventItemOccurrence.Campus.ShortCode | Append: '">' | Append: EventItemOccurrence.Campus.Name | Append: '</option>' %}
-                        {% endif %}
-                    {% endfor %}
+            <div class="col-md-3 col-md-pull-9 g-padding-b-60--xs g-padding-y-100--md">
 
-                    {% if campusesCount >= 2 %}
-                    <select class="select2-campuses" name="campus">
-                        <option value="*" data-shortcode="SE">Select a Campus</option>
-                        {{campusesAvail}}
-                    </select>
+                <div class="text-center g-padding-b-20--xs">
+                    {[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{ seriesImageGuid }}' ]}
+                </div>
+
+                {% assign eventOccurencesCount = Event.EventItemOccurrences | Size %}
+                {% if eventOccurencesCount > 1 %}
+                    {% if eventOccurencesCount > 1 %}
+                        {% assign campusesAvail = '' %}
+                        {% assign campusesCount = 0 %}
+                        {% for EventItemOccurrence in Event.EventItemOccurrences %}
+                            {% assign campus_slug = EventItemOccurrence.Campus | Attribute:'Slug' %}
+                            {% if campusesAvail contains campus_slug %}
+                                {% comment %} Great – Skip this since it already conatains the Campus {% endcomment %}
+                            {% else %}
+                                {% assign campusesCount = campusesCount | Plus: 1 %}
+                                {% assign campusesAvail = campusesAvail | Append: '<option value="' | Append: campus_slug | Append: '" data-shortcode="' | Append: EventItemOccurrence.Campus.ShortCode | Append: '">' | Append: EventItemOccurrence.Campus.Name | Append: '</option>' %}
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if campusesCount >= 2 %}
+                        <select class="select2-campuses" name="campus">
+                            <option value="*" data-shortcode="SE">Select a Campus</option>
+                            {{campusesAvail}}
+                        </select>
+                        {% endif %}
                     {% endif %}
                 {% endif %}
-            {% endif %}
 
-        </div><!-- END: col-md-4 -->
+            </div><!-- END: col-md-4 -->
+        </div>
 
     </div><!-- END: row -->
 
@@ -104,7 +105,7 @@
 
                 {% assign campus_slug = EventItemOccurrence.Campus | Attribute:'Slug' %}
                 <div class="isotope_item col-xs-12 col-md-6 col-lg-4 {{campus_slug}}_filter event-calendar">
-                    <div class="clearfix card" >
+                    <div class="clearfix card g-padding-x-60--xs g-padding-y-60--xs" >
 
                         {% include '~~/Assets/Lava/Events/EventItemOccurrence.lava' %}
 
@@ -130,8 +131,8 @@
              // executes when complete page is fully loaded, including all frames, objects and images
              $('.readmore_dates').readmore({
                  speed: 100,
-                 lessLink: '<a href="#">Show Less Available Dates</a>',
-                 moreLink: '<a href="#">Show All Available Dates</a>',
+                 lessLink: '<a href="#" style="top:8px; position:relative;"><h5 class="g-display-inline-block--xs"><small>Show Less Dates</small> <span class="se-carat se-carat--up"></span></h5></a>',
+                 moreLink: '<a href="#" style="left: 14%;position:relative;top: -5px; position:relative;"><h5 class="g-display-inline-block--xs"><small>Show All Dates</small><span class="se-carat se-carat--down"></span></h5></a>',
                  collapsedHeight: 0,
                  beforeToggle: function(tr, el, ex) {
                      $(el).show();

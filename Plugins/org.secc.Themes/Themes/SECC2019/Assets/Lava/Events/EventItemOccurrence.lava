@@ -15,7 +15,7 @@
 {% assign scheduledDates =  EventItemOccurrence.Schedule.iCalendarContent | DatesFromICal:'all' %}
 {% assign scheduledNumDates = scheduledDates | Size %}
 
-<div class="caption g-padding-x-30--xs g-padding-t-30--xs g-margin-b-40--xs">
+<div class="caption g-margin-b-40--xs">
     {% if numOccurrences > 1 and multiCampus == true %}
             <h5 class="uppercase g-padding-b-20--xs g-font-weight--500">Multiple Campuses</h5>
     {% else %}
@@ -27,7 +27,7 @@
 </div><!-- END: caption -->
 
 
-<div class="g-margin-b-40--xs" style="display: inline-block; width: 100%;">
+<div class="g-margin-b-20--xs" style="display: inline-block; width: 100%;">
 
     <div class="event-items col-xs-4 col-xs-offset-2 g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter">
          <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
@@ -40,30 +40,23 @@
              {% endif %}
 
              {% if EventItemOccurrence.UseOnlyScheduleText != 'Yes' %}
-             {% if scheduledDates != empty %}
-             <ul class="list-unstyled" style="margin: 0;">
-                 {% for scheduledDate in scheduledDates limit:3 %}
-                 <li style="vertical-align: middle;">
-                     <h6>{{  scheduledDate | Date:'dddd, MMM d, yyyy @ h:mm tt' }}</h6>
-                 </li>
-                 {% endfor %}
-             </ul>
-             <ul class="list-unstyled readmore_dates" style="margin: 0;">
-                 {% for scheduledDate in scheduledDates offset:3 %}
-                 <li style="vertical-align: middle;">
-                     <h6>{{  scheduledDate | Date:'dddd, MMM d, yyyy @ h:mm tt' }}</h6>
-                 </li>
-                 {% endfor %}
-             </ul>
-             {% else %}
-             {% if EventItemOccurrence.ScheduleText == empty %}
-             {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}
-             <h6>Date and/or time has not been set yet. Please {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} for more details.</h6>
-             {% else %}
-             <h6>Date and/or time has not been set yet. Please contact for more details.</h6>
-             {% endif %}
-             {% endif %}
-             {% endif %}
+                 {% if scheduledDates != empty %}
+                     <ul class="list-unstyled" style="margin: 0;">
+                         {% for scheduledDate in scheduledDates limit:1 %}
+                         <li style="vertical-align: middle;">
+                             <h6>{{  scheduledDate | Date:'dddd, MMM d, @ h:mm tt' }}</h6>
+                         </li>
+                         {% endfor %}
+                     </ul>
+                {% else %}
+                     {% if EventItemOccurrence.ScheduleText == empty %}
+                        {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}
+                            <h6>Date and/or time has not been set yet. Please {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} for more details.</h6>
+                         {% else %}
+                            <h6>Date and/or time has not been set yet. Please contact for more details.</h6>
+                        {% endif %}
+                    {% endif %}
+                 {% endif %}
              {% endif %}
          </div>
     </div>
@@ -83,11 +76,28 @@
          </h6>
     </div>
 
+    <div class="col-xs-12 g-padding-x-0--xs">
+        {% if EventItemOccurrence.UseOnlyScheduleText != 'Yes' %}
+            {% if scheduledDates != empty %}
+                <ul class="list-unstyled readmore_dates" style="margin: 0;">
+                    {% for scheduledDate in scheduledDates offset:1 %}
+                    <li style="vertical-align: middle;">
+                        <h6>{{  scheduledDate | Date:'dddd, MMM d, @ h:mm tt' }}</h6>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endif %}
+    </div>
+
 </div>
 
 {% if (EventItemOccurrence.ContactPersonAlias.Person.Fullname | Trim != '') or EventItemOccurrence.ContactEmail != '' or EventItemOccurrence.ContactPhone != '' %}
-    <div class="col-xs-12 g-padding-y-20--xs g-hor-divider__solid__t--gray-lighter">
-        <h5 class="g-padding-y-20--xs">
+    <div class="col-xs-12 g-padding-y-20--xs g-padding-x-0--xs">
+
+        <hr style="border-color: rgba(124, 124, 124, 0.68); margin: 0 auto;" />
+
+        <h6 class="g-margin-t-40--xs">
             <span class="g-font-weight--800 uppercase">Contact</span><br />
             {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}
                 {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} <br />
@@ -96,12 +106,12 @@
                 <a href="mailto:{{ EventItemOccurrence.ContactEmail }}">{{ EventItemOccurrence.ContactEmail }}</a><br />
             {% endif %}
             {{ EventItemOccurrence.ContactPhone }}
-        </h5>
+        </h6>
         {% if EventItemOccurrence.Note != '' %}
-            <h5 class="g-padding-y-20--xs g-font-weight--800">
+            <h6 class="g-padding-t-20--xs g-font-weight--800">
                 <span class="g-font-weight--800 uppercase">Note</span><br />
                 {{ EventItemOccurrence.Note }}
-            </h5>
+            </h6>
         {% endif %}
     </div>
 {% endif %}
