@@ -554,6 +554,29 @@ function(item) {
                         }
 
                         break;
+                    case ChartGroupBy.Day:
+                        {
+                            if ( chartDataWeekCount < maxXLabelCount )
+                            {
+                                lcAttendance.Options.xaxis.tickSize = new string[] { "1", "day" };
+                            }
+                            else
+                            {
+                                lcAttendance.Options.xaxis.tickSize = null;
+                            }
+
+                            lcAttendance.TooltipFormatter = @"
+function(item) {
+    var itemDate = new Date(item.series.chartData[item.dataIndex].DateTimeStamp);
+    var dateText = itemDate.toLocaleDateString();
+    var seriesLabel = item.series.label || ( item.series.labels ? item.series.labels[item.dataIndex] : null );
+    var pointValue = item.series.chartData[item.dataIndex].YValue || item.series.chartData[item.dataIndex].YValueTotal || '-';
+    return dateText + '<br />' + seriesLabel + ': ' + pointValue;
+}
+";
+                        }
+
+                        break;
 
                     case ChartGroupBy.Month:
                         {
@@ -1410,7 +1433,7 @@ function(item) {
                     var ti = new TaskInfo { name = "Get Attendee Dates", start = DateTime.Now };
                     taskInfos.Add( ti );
 
-                    DataTable dtAttendeeDates = AttendanceService.GetAttendanceAnalyticsAttendeeDates(
+                    DataTable dtAttendeeDates = GetAttendanceAnalyticsAttendeeDates(
                         groupIdList, start, end, campusIdList, includeNullCampus, scheduleIdList ).Tables[0];
 
                     foreach ( DataRow row in dtAttendeeDates.Rows )
@@ -1425,6 +1448,9 @@ function(item) {
                         {
                             case ChartGroupBy.Week:
                                 summaryDate = ( DateTime ) row[1];
+                                break;
+                            case ChartGroupBy.Day:
+                                summaryDate = ( DateTime ) row[4];
                                 break;
                             case ChartGroupBy.Month:
                                 summaryDate = ( DateTime ) row[2];
@@ -1481,7 +1507,7 @@ function(item) {
 
                         personIdsWhoDidNotMiss = new List<int>();
 
-                        DataTable dtAttendeeDatesMissed = AttendanceService.GetAttendanceAnalyticsAttendeeDates(
+                        DataTable dtAttendeeDatesMissed = GetAttendanceAnalyticsAttendeeDates(
                             groupIdList, attendedMissedDateRange.Start.Value, attendedMissedDateRange.End.Value,
                             campusIdList, includeNullCampus, scheduleIdList ).Tables[0];
 
@@ -1504,6 +1530,9 @@ function(item) {
                                     break;
                                 case ChartGroupBy.Year:
                                     summaryDate = ( DateTime ) row["YearDate"];
+                                    break;
+                                case ChartGroupBy.Day:
+                                    summaryDate = ( DateTime ) row["Date"];
                                     break;
                             }
 
@@ -1532,9 +1561,16 @@ function(item) {
                     var ti = new TaskInfo { name = "Get First Five Dates", start = DateTime.Now };
                     taskInfos.Add( ti );
 
-                    dtAttendeeFirstDates = AttendanceService.GetAttendanceAnalyticsAttendeeFirstDates(
-                        groupTypeIdList, groupIdList, start, end, campusIdList, includeNullCampus, scheduleIdList ).Tables[0];
-
+                    var dataSet = AttendanceService.GetAttendanceAnalyticsAttendeeFirstDates(
+                        groupTypeIdList, groupIdList, start, end, campusIdList, includeNullCampus, scheduleIdList );
+                    if ( dataSet.Tables.Count > 0 )
+                    {
+                        dtAttendeeFirstDates = dataSet.Tables[0];
+                    }
+                    else
+                    {
+                        dtAttendeeFirstDates = new DataTable();
+                    }
                     ti.end = DateTime.Now;
 
                 } ) );
@@ -1949,7 +1985,6 @@ function(item) {
             try
             {
                 nbAttendeesError.Visible = false;
-
                 gAttendeesAttendance.SetLinqDataSource( qryResult );
                 var currentPageItems = gAttendeesAttendance.DataSource as List<AttendeeResult>;
                 if ( currentPageItems != null )
@@ -2116,6 +2151,9 @@ function(item) {
                         case ChartGroupBy.Week:
                             boolFromArrayField.HeaderText = summaryDate.ToShortDateString();
                             break;
+                        case ChartGroupBy.Day:
+                            boolFromArrayField.HeaderText = summaryDate.ToShortDateString();
+                            break;
 
                         default:
                             // shouldn't happen
@@ -2138,6 +2176,65 @@ function(item) {
             _possibleAttendances = GetPossibleAttendancesForDateRange( dateRange, attendanceGroupBy );
         }
 
+        private static Dictionary<string, object> GetAttendanceAnalyticsParameters( List<int> GroupTypeIds, List<int> groupIds, DateTime? start, DateTime? end,
+            List<int> campusIds, bool? includeNullCampusIds, List<int> scheduleIds, bool? IncludeParentsWithChild = null, bool? IncludeChildrenWithParents = null )
+        {
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
+
+            if ( GroupTypeIds != null && GroupTypeIds.Any() )
+            {
+                parameters.Add( "GroupTypeIds", GroupTypeIds.AsDelimited( "," ) );
+            }
+
+            if ( groupIds != null && groupIds.Any() )
+            {
+                parameters.Add( "GroupIds", groupIds.AsDelimited( "," ) );
+            }
+
+            if ( start.HasValue )
+            {
+                parameters.Add( "StartDate", start.Value );
+            }
+
+            if ( end.HasValue )
+            {
+                parameters.Add( "EndDate", end.Value );
+            }
+
+            if ( campusIds != null )
+            {
+                parameters.Add( "CampusIds", campusIds.AsDelimited( "," ) );
+            }
+
+            if ( includeNullCampusIds.HasValue )
+            {
+                parameters.Add( "includeNullCampusIds", includeNullCampusIds.Value );
+            }
+
+            if ( scheduleIds != null )
+            {
+                parameters.Add( "ScheduleIds", scheduleIds.AsDelimited( "," ) );
+            }
+
+            if ( IncludeParentsWithChild.HasValue )
+            {
+                parameters.Add( "IncludeParentsWithChild", IncludeParentsWithChild.Value );
+            }
+
+            if ( IncludeChildrenWithParents.HasValue )
+            {
+                parameters.Add( "IncludeChildrenWithParents", IncludeChildrenWithParents.Value );
+            }
+
+            return parameters;
+        }
+
+        public static DataSet GetAttendanceAnalyticsAttendeeDates( List<int> groupIds, DateTime? start, DateTime? end,
+            List<int> campusIds, bool? includeNullCampusIds, List<int> scheduleIds )
+        {
+            var parameters = GetAttendanceAnalyticsParameters( null, groupIds, start, end, campusIds, includeNullCampusIds, scheduleIds );
+            return DbService.GetDataSet( "_org_secc_spGroups_AttendanceAnalyticsQuery_AttendeeDates", System.Data.CommandType.StoredProcedure, parameters, 300 );
+        }
         /// <summary>
         /// Gets the possible attendances for the date range.
         /// </summary>
@@ -2165,7 +2262,7 @@ function(item) {
                 {
                     // Weeks are summarized as the last day of the "Rock" week (Sunday)
                     result.Add( weekEndDate );
-                    weekEndDate = weekEndDate.AddDays( 7 );
+                    weekEndDate = weekEndDate.AddDays( 6 );
                 }
             }
             else if ( attendanceGroupBy == ChartGroupBy.Month )
@@ -2192,6 +2289,16 @@ function(item) {
                 {
                     result.Add( yearStartDate );
                     yearStartDate = yearStartDate.AddYears( 1 );
+                }
+            }
+            else //Group by day
+            {
+                var startDay = dateRange.Start.Value;
+
+                while ( startDay < endDate )
+                {
+                    result.Add( startDay );
+                    startDay = startDay.AddDays( 1 );
                 }
             }
 
@@ -2753,6 +2860,30 @@ function(item) {
             public int? LocationId { get; set; }
 
             public string LocationName { get; set; }
+        }
+
+        public enum ChartGroupBy
+        {
+            /// <summary>
+            /// Week (using RockDateTime.FirstDayOfWeek to determine week)
+            /// </summary>
+            Week = 0,
+
+            /// <summary>
+            /// Month
+            /// </summary>
+            Month = 1,
+
+            /// <summary>
+            /// Year
+            /// </summary>
+            Year = 2,
+
+            /// <summary>
+            /// Day
+            /// </summary>
+            Day = 3
+
         }
 
         public class TaskInfo
