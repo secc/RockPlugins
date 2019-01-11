@@ -78,7 +78,12 @@
 ------------------------------------*/
 
 .g-width-auto--xs { width: auto; }
-.g-width-100-percent--xs { width: 100%; }
+
+@for $i from 1 through 10 {
+  .g-width-#{$i * 10}-percent--xs {
+    width: ($i * 10%);
+  }
+}
 
 @for $i from 1 through 10 {
   .g-width-#{$i * 5}--xs {
@@ -101,7 +106,12 @@
 /* Small screen / phone */
 @include media-breakpoint-up(sm) {
 	.g-width-auto--sm { width: auto; }
-	.g-width-100-percent--sm { width: 100%; }
+
+	@for $i from 1 through 10 {
+	  .g-width-#{$i * 10}-percent--sm {
+	    width: ($i * 10%);
+	  }
+	}
 
 	@for $i from 1 through 10 {
 	  .g-width-#{$i * 5}--sm {
@@ -125,7 +135,12 @@
 /* Medium screen / tablet */
 @include media-breakpoint-up(md) {
 	.g-width-auto--md { width: auto; }
-	.g-width-100-percent--md { width: 100%; }
+
+	@for $i from 1 through 10 {
+	  .g-width-#{$i * 10}-percent--md {
+	    width: ($i * 10%);
+	  }
+	}
 
 	@for $i from 1 through 10 {
 	  .g-width-#{$i * 5}--md {
@@ -149,7 +164,12 @@
 /* Extra large screen / wide desktop */
 @include media-breakpoint-up(lg) {
 	.g-width-auto--lg { width: auto; }
-	.g-width-100-percent--lg { width: 100%; }
+
+	@for $i from 1 through 10 {
+	  .g-width-#{$i * 10}-percent--lg {
+	    width: ($i * 10%);
+	  }
+	}
 
 	@for $i from 1 through 10 {
 	  .g-width-#{$i * 5}--lg {

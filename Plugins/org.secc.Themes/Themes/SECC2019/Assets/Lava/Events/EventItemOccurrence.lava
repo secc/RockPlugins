@@ -15,7 +15,7 @@
 {% assign scheduledDates =  EventItemOccurrence.Schedule.iCalendarContent | DatesFromICal:'all' %}
 {% assign scheduledNumDates = scheduledDates | Size %}
 
-<div class="caption g-margin-b-40--xs">
+<div class="caption g-margin-b-40--xs g-padding-x-60--xs g-padding-t-60--xs">
     {% if numOccurrences > 1 and multiCampus == true %}
             <h5 class="uppercase g-padding-b-20--xs g-font-weight--500">Multiple Campuses</h5>
     {% else %}
@@ -44,7 +44,9 @@
                      <ul class="list-unstyled" style="margin: 0;">
                          {% for scheduledDate in scheduledDates limit:1 %}
                          <li style="vertical-align: middle;">
-                             <h6>{{  scheduledDate | Date:'dddd, MMM d, @ h:mm tt' }}</h6>
+                             <h6>{{  scheduledDate | Date:'dddd,' }}<br />
+                                 {{  scheduledDate | Date:'MMM d,' }}<br />
+                                 {{  scheduledDate | Date:'@ h:mm tt' }}</h6>
                          </li>
                          {% endfor %}
                      </ul>
@@ -76,7 +78,7 @@
          </h6>
     </div>
 
-    <div class="col-xs-12 g-padding-x-0--xs">
+    <div class="col-xs-12 g-padding-x-60--xs">
         {% if EventItemOccurrence.UseOnlyScheduleText != 'Yes' %}
             {% if scheduledDates != empty %}
                 <ul class="list-unstyled readmore_dates" style="margin: 0;">
@@ -93,9 +95,9 @@
 </div>
 
 {% if (EventItemOccurrence.ContactPersonAlias.Person.Fullname | Trim != '') or EventItemOccurrence.ContactEmail != '' or EventItemOccurrence.ContactPhone != '' %}
-    <div class="col-xs-12 g-padding-y-20--xs g-padding-x-0--xs">
+    <div class="col-xs-12 g-padding-y-20--xs g-padding-x-60--xs">
 
-        <hr style="border-color: rgba(124, 124, 124, 0.68); margin: 0 auto;" />
+        <hr class="" style="border-color: rgba(124, 124, 124, 0.68); margin: 0 auto;" />
 
         <h6 class="g-margin-t-40--xs">
             <span class="g-font-weight--800 uppercase">Contact</span><br />
@@ -116,7 +118,7 @@
     </div>
 {% endif %}
 
-<div class="text-center col-xs-12 g-padding-x-0--xs">
+<div class="text-center col-xs-12 g-padding-x-0--xs g-padding-t-40--xs">
     {% assign altLinks = EventItemOccurrence | Attribute: 'AlternativeRegistrations' %}
     {% if altLinks != empty %}
         {% for links in altLinks %}

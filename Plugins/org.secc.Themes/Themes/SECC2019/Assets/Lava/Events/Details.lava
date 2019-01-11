@@ -105,7 +105,7 @@
 
                 {% assign campus_slug = EventItemOccurrence.Campus | Attribute:'Slug' %}
                 <div class="isotope_item col-xs-12 col-md-6 col-lg-4 {{campus_slug}}_filter event-calendar">
-                    <div class="clearfix card g-padding-x-60--xs g-padding-y-60--xs" >
+                    <div class="clearfix card" >
 
                         {% include '~~/Assets/Lava/Events/EventItemOccurrence.lava' %}
 
