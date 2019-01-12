@@ -64,6 +64,7 @@ a.eventCardLink {
     }
 
     .card {
+        background-color: $WhiteColor;
         // padding: 30px;
         // border-radius: 8px;
         margin-left: 15px;
@@ -83,8 +84,8 @@ a.eventCardLink {
             box-shadow: 0 3px 12px 2px hsla(0,0%,78%,.5);
         }
         &:hover {
-            -webkit-box-shadow: 0 22px 43px rgba(0, 0, 0, 0.15);
-            box-shadow: 0 22px 43px rgba(0, 0, 0, 0.15);
+            -webkit-box-shadow: 0 22px 133px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 22px 133px rgba(0, 0, 0, 0.15);
             transform: translateY(-10px);
             @include transition(all .3s ease);
         }

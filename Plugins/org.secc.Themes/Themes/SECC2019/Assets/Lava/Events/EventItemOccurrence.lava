@@ -110,7 +110,7 @@
             {{ EventItemOccurrence.ContactPhone }}
         </h6>
         {% if EventItemOccurrence.Note != '' %}
-            <h6 class="g-padding-t-20--xs g-font-weight--800">
+            <h6 class="g-padding-t-20--xs">
                 <span class="g-font-weight--800 uppercase">Note</span><br />
                 {{ EventItemOccurrence.Note }}
             </h6>
