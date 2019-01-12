@@ -86,10 +86,10 @@
 	margin-left:10px;
 }
 
-#signup a:hover {
+#signup-container a:hover {
 	text-decoration: none !important;
 }
-#signup a .stroke:hover {
+#signup-container a .stroke:hover {
 	opacity: 1;
 	-moz-opacity: 1;
 	filter: alpha(opacity=1);
@@ -99,7 +99,7 @@
 	-o-transition: all ease .5s;
 	transition: all ease .5s;
 }
-#signup a:focus {
+#signup-container a:focus {
 	outline: none;
 	text-decoration: none;
 }
