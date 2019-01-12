@@ -20,7 +20,7 @@
     // This function gets called when a pageLoad() function is called from the Filters
     function InitLoadedRequest(visstring, elem, msg)
     {
-       // Re-Initialize Isotope
+        // Re-Initialize Isotope
         var $grid = $('.isotope_wrap').isotope({
           itemSelector: '.isotope_item',
           percentPosition: true,
