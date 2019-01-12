@@ -1,3 +1,11 @@
+<style>
+.readmore_dates {
+   transition: height 100ms;
+   overflow: hidden;
+   display: none;
+}
+</style>
+
 <div class="container">
 
     {% if eventItemOccurrenceCount == 0 %}
@@ -70,7 +78,9 @@
                             {% else %}
                             <div class="img-hover">
                                 {% assign primaryMinistryImage = eventItem | Attribute:'PrimaryMinistry','Object' | Attribute:'CalendarImage','Object' %}
-                                {% assign primaryMinistryTitle = eventItem | Attribute:'PrimaryMinistry' %}
+                                <img src="/GetImage.ashx?guid={{ primaryMinistryImage.Guid }}&w=720" class="img-responsive"  onerror="this.style.display='none'">
+                                {% comment %}
+                                {% assign pri maryMinistryTitle = eventItem | Attribute:'PrimaryMinistry' %}
                                 {% assign eventImageTitle = eventItem | Attribute:'ImageHeaderText' %}
                                 {% assign eventImageTitleSmall = eventItem | Attribute:'ImageHeaderTextSmall' %}
 
@@ -87,9 +97,6 @@
                                 {% else %}
                                     {% assign photoTextHTML = photoTextHTML | Plus: '<br /><small>Ministry</small></h1>' %}
                                 {% endif %}
-
-                                <img src="/GetImage.ashx?guid={{ primaryMinistryImage.Guid }}&w=720" class="img-responsive"  onerror="this.style.display='none'">
-                                {% comment %}
                                 <div class="event-photo-title">
                                     {{photoTextHTML}}
                                 </div>
@@ -111,6 +118,13 @@
 
                             {% if eventItemOccurrence.Name != '' %}
                                 <h4 class="g-font-family--secondary" style="margin-bottom: 5px;">{{ eventItemOccurrence.Name }}</h4>
+                            {% endif %}
+
+                            {% if eventItemOccurrence.Summary != '' %}
+                            <div class="readmore_dates">
+                                {{eventItemOccurrence.Summary}}
+                                <br />
+                            </div>
                             {% endif %}
 
                         </div><!-- END: caption -->
@@ -142,7 +156,7 @@
                         {% endif %}
 
                         <div class="event-items col-xs-4 g-padding-x-10--xs">
-                             <div class="event-icon --location"></div>
+                             <div class="event-icon --location"><!-- Marker / Location SVG Image --></div>
                              <h6>
                                  {% if eventItemOccurrence.EventItemOccurrence.Location != '' %}
                                  {{ eventItemOccurrence.EventItemOccurrence.Location }}
@@ -177,21 +191,37 @@
 {% comment %}
 **********************************************************************************
 ****** The code below will need to be included if this file isn't included *******
-******    anywhere else (such as 'FeaturedEvents' or 'ListEvents')         *******
+******  anywhere else (such as 'FeaturedEvents.lava' or 'AllEvents.lava')  *******
 **********************************************************************************
+{% endcomment %}
 <script>
 $(window).load(function() {
+
+    // executes when complete page is fully loaded, including all frames, objects and images
+    // $('.readmore_dates').readmore({
+    //     speed: 100,
+    //     lessLink: '<a href="#" style="top:8px; position:relative;">close <span class="se-carat se-carat--up"></span></a>',
+    //     moreLink: '<a href="#" style="left: 14%;position:relative;top: -5px; position:relative;">open <span class="se-carat se-carat--down"></span></a>',
+    //     embedCSS: false,
+    //     collapsedHeight: 0,
+    //     beforeToggle: function(tr, el, ex) {
+    //         $(el).show();
+    //     },
+    //     afterToggle: function(trigger, element, expanded) {
+    //         $container.isotope(isoOptions); // re-initialize
+    //     }
+    // });
+
     // Initialize Isotope
-    var $grid = $('.isotope_wrap').isotope({
-        // options
-        percentPosition: true,
-        itemSelector: '.isotope_item',
-        layoutMode: 'fitRows'
-    });
+    // var $grid = $('.isotope_wrap').isotope({
+    //     // options
+    //     percentPosition: true,
+    //     itemSelector: '.isotope_item',
+    //     layoutMode: 'fitRows'
+    // });
     // reveal all items after init
-    var $items = $grid.find('.isotope_item');
-    $grid.addClass('is-showing-items')
-    .isotope( 'revealItemElements', $items );
+    // var $items = $grid.find('.isotope_item');
+    // $grid.addClass('is-showing-items')
+    // .isotope( 'revealItemElements', $items );
 });
 </script>
-{% endcomment %}

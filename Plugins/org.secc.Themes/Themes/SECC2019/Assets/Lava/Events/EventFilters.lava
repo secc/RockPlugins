@@ -95,6 +95,8 @@
 </div>
 {% endcomment %}
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Readmore.js/2.2.0/readmore.min.js"></script>
+
 <script>
 $(document).ready(function() {
 
@@ -125,13 +127,29 @@ $(document).ready(function() {
         runMinistryFilters(data);
     });
 
+	// hide descriptions
+	$('.readmore_dates').readmore({
+		speed: 100,
+		lessLink: '<a href="#" style="top:8px; position:relative;">close <span class="se-carat se-carat--up"></span></a>',
+		moreLink: '<a href="#" style="left: 14%;position:relative;top: -5px; position:relative;">open <span class="se-carat se-carat--down"></span></a>',
+		embedCSS: false,
+		collapsedHeight: 0,
+		beforeToggle: function(tr, el, ex) {
+			$(el).show();
+		},
+		afterToggle: function(trigger, element, expanded) {
+			$('.isotope_wrap').isotope(isoOptions); // re-initialize
+		}
+	});
+
+	var isoOptions = {
+		itemSelector: '.isotope_item',
+		percentPosition: true,
+		layoutMode: 'fitRows'
+	};
+
     // Re-Initialize Isotope
-    var $grid = $('.isotope_wrap').isotope({
-        // options
-        percentPosition: true,
-        itemSelector: '.isotope_item',
-        layoutMode: 'fitRows'
-    });
+    var $grid = $('.isotope_wrap').isotope(isoOptions);
 
     // reveal all items after init
     var $items = $grid.find('.isotope_item');
@@ -230,11 +248,28 @@ function processPageLoad(pnlContent_ID, params) {
         var pnlContent = $('#event-results').find("div[id*='_upnlContent']");
         var pnlContent_ID = pnlContent.attr("id");
         // Once loaded, fire the Javascript function from the list
+		$('article').readmore('destroy');
         InitLoadedRequest(); // an Ajax pageLoad method that will call your jquery method
-        pnlContent.slideDown(400, function() {});
-        // $('html, body').animate({scrollTop: ($('#filter_selected').offset().top)}, 400);
-        // $('html, body').scrollspy({ target: '#filter_selected' });
+        pnlContent.slideDown(400, function() {
 
+			$('.readmore_dates').readmore({
+	    		speed: 100,
+	    		lessLink: '<a href="#" style="top:8px; position:relative;">close <span class="se-carat se-carat--up"></span></a>',
+	    		moreLink: '<a href="#" style="left: 14%;position:relative;top: -5px; position:relative;">open <span class="se-carat se-carat--down"></span></a>',
+	    		embedCSS: false,
+	    		collapsedHeight: 0,
+	    		afterToggle: function(trigger, element, expanded) {
+	    			$('.isotope_wrap').isotope({
+	    				itemSelector: '.isotope_item',
+	    				percentPosition: true,
+	    				layoutMode: 'fitRows'
+	    			}); // re-initialize
+	    		}
+	    	});
+
+		});
+        // $('html, body').animate({scrollTop: ($('#filter_selected').offset().top)}, 400);
+        // $('html, body').scrollspy({ target: '#filter_selected' });		
         /*var scroll = new SmoothScroll();
         var anchor = document.querySelector( '#filter_selected' );
         scroll.animateScroll( anchor );*/
