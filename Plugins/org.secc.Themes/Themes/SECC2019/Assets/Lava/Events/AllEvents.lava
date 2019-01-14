@@ -26,9 +26,30 @@
           percentPosition: true,
           layoutMode: 'fitRows'
         });
-        // layout Isotope after each image loads
-        $grid.imagesLoaded().progress( function() {
-          $grid.addClass('is-showing-items').isotope('layout');
+
+        var isoOptions = {
+    		itemSelector: '.isotope_item',
+    		percentPosition: true,
+    		layoutMode: 'fitRows'
+    	};
+
+        $grid.imagesLoaded( function() {
+            // Re-Initialize ReadmoreJS
+            $('.readmore_dates').readmore({
+                speed: 200,
+                lessLink: '<a href="#" class="pull-right uppercase" style="padding: 2rem;width: 100%;text-align: right;"><span class="se-carat se-carat--up"></span></a>',
+        		moreLink: '<a href="#" class="pull-right" style="display: inline-block;padding: 2rem;position: relative;height: 7rem;width: 100%;margin-top: -6rem;"><span class="pull-right se-carat se-carat--down" style="margin-top: 2rem;"></span></a>',
+        		embedCSS: false,
+                collapsedHeight: 0,
+                beforeToggle: function(tr, el, ex) {
+                    $(el).show();
+                },
+                afterToggle: function(trigger, element, expanded) {
+                    $('.isotope_wrap').isotope(isoOptions); // re-initialize
+                }
+            });
+            // init Isotope after all images have loaded
+            $grid.addClass('is-showing-items').isotope(isoOptions);
         });
     }
 </script>

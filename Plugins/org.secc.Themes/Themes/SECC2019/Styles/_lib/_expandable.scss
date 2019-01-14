@@ -50,11 +50,11 @@
     top: -0.2em;
     left: 0.5rem;
     display: inline-block;
-    width: 5px;
-    height: 5px;
+    width: 10px;
+    height: 10px;
     content: "";
     border: solid #777777;
-    border-width: 0 1px 1px 0;
+    border-width: 0 2px 2px 0;
     display: inline-block;
     @include transition(all 0.5s);
 

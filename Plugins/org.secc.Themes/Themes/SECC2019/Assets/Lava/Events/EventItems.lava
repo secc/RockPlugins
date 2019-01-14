@@ -117,7 +117,7 @@
                             {% endif %}
 
                             {% if eventItemOccurrence.Name != '' %}
-                                <h4 class="g-font-family--secondary" style="margin-bottom: 5px;">{{ eventItemOccurrence.Name }}</h4>
+                                <h4 class="g-font-family--secondary g-padding-r-60--xs" style="margin-bottom: 5px;">{{ eventItemOccurrence.Name }}</h4>
                             {% endif %}
 
                             {% if eventItemOccurrence.Summary != '' %}
@@ -193,7 +193,6 @@
 ****** The code below will need to be included if this file isn't included *******
 ******  anywhere else (such as 'FeaturedEvents.lava' or 'AllEvents.lava')  *******
 **********************************************************************************
-{% endcomment %}
 <script>
 $(window).load(function() {
 
@@ -225,3 +224,4 @@ $(window).load(function() {
     // .isotope( 'revealItemElements', $items );
 });
 </script>
+{% endcomment %}
