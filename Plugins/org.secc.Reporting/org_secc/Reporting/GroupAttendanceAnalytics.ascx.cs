@@ -1433,10 +1433,20 @@ function(item) {
                     var ti = new TaskInfo { name = "Get Attendee Dates", start = DateTime.Now };
                     taskInfos.Add( ti );
 
-                    DataTable dtAttendeeDates = GetAttendanceAnalyticsAttendeeDates(
-                        groupIdList, start, end, campusIdList, includeNullCampus, scheduleIdList ).Tables[0];
+                    DataTable dtAttendeeDates;
+                    var dataset = GetAttendanceAnalyticsAttendeeDates(
+                        groupIdList, start, end, campusIdList, includeNullCampus, scheduleIdList );
+                    if ( dataset.Tables.Count > 0 )
+                    {
+                        dtAttendeeDates = dataset.Tables[0];
+                    }
+                    else
+                    {
+                        dtAttendeeDates = new DataTable();
+                    }
 
                     foreach ( DataRow row in dtAttendeeDates.Rows )
+
                     {
                         int personId = ( int ) row["PersonId"];
                         allAttendeeVisits.AddOrIgnore( personId, new AttendeeVisits() );
@@ -1475,8 +1485,16 @@ function(item) {
                     var ti = new TaskInfo { name = "Get Last Attendance", start = DateTime.Now };
                     taskInfos.Add( ti );
 
-                    dtAttendeeLastAttendance = AttendanceService.GetAttendanceAnalyticsAttendeeLastAttendance(
-                        groupIdList, start, end, campusIdList, includeNullCampus, scheduleIdList ).Tables[0];
+                    var dataset = GetAttendanceAnalyticsAttendeeLastAttendance(
+                        groupIdList, start, end, campusIdList, includeNullCampus, scheduleIdList );
+                    if ( dataset.Tables.Count > 0 )
+                    {
+                        dtAttendeeLastAttendance = dataset.Tables[0];
+                    }
+                    else
+                    {
+                        dtAttendeeLastAttendance = new DataTable();
+                    }
 
                     ti.end = DateTime.Now;
 
@@ -1488,9 +1506,16 @@ function(item) {
                     var ti = new TaskInfo { name = "Get Name/Demographic Data", start = DateTime.Now };
                     taskInfos.Add( ti );
 
-                    dtAttendees = AttendanceService.GetAttendanceAnalyticsAttendees(
-                        groupIdList, start, end, campusIdList, includeNullCampus, scheduleIdList, includeParents, includeChildren ).Tables[0];
-
+                    var dataset = GetAttendanceAnalyticsAttendees(
+                         groupIdList, start, end, campusIdList, includeNullCampus, scheduleIdList, includeParents, includeChildren );
+                    if ( dataset.Tables.Count > 0 )
+                    {
+                        dtAttendees = dataset.Tables[0];
+                    }
+                    else
+                    {
+                        dtAttendees = new DataTable();
+                    }
                     ti.end = DateTime.Now;
 
                 } ) );
@@ -1507,9 +1532,19 @@ function(item) {
 
                         personIdsWhoDidNotMiss = new List<int>();
 
-                        DataTable dtAttendeeDatesMissed = GetAttendanceAnalyticsAttendeeDates(
+                        DataTable dtAttendeeDatesMissed;
+
+                        var datatable = GetAttendanceAnalyticsAttendeeDates(
                             groupIdList, attendedMissedDateRange.Start.Value, attendedMissedDateRange.End.Value,
-                            campusIdList, includeNullCampus, scheduleIdList ).Tables[0];
+                            campusIdList, includeNullCampus, scheduleIdList );
+                        if ( datatable.Tables.Count>0 )
+                        {
+                            dtAttendeeDatesMissed = datatable.Tables[0];
+                        }
+                        else
+                        {
+                            dtAttendeeDatesMissed = new DataTable();
+                        }
 
                         var missedResults = new Dictionary<int, AttendeeResult>();
                         foreach ( DataRow row in dtAttendeeDatesMissed.Rows )
@@ -1582,7 +1617,7 @@ function(item) {
                     var ti = new TaskInfo { name = "Get Non-Attendees", start = DateTime.Now };
                     taskInfos.Add( ti );
 
-                    DataSet ds = AttendanceService.GetAttendanceAnalyticsNonAttendees(
+                    DataSet ds = GetAttendanceAnalyticsNonAttendees(
                         groupTypeIdList, groupIdList, start, end, campusIdList, includeNullCampus, scheduleIdList, includeParents, includeChildren );
 
                     DataTable dtNonAttenders = ds.Tables[0];
@@ -1953,7 +1988,7 @@ function(item) {
             }
 
             var attendancePercentField = gAttendeesAttendance.Columns.OfType<RockTemplateField>().First( a => a.HeaderText.EndsWith( "Attendance %" ) );
-            attendancePercentField.HeaderText = string.Format( "{0}ly Attendance %", groupBy.ConvertToString() );
+            attendancePercentField.HeaderText = string.Format( "{0}ly Attendance %", groupBy.ConvertToString().Replace( "Day", "Dai" ) );
 
             // Calculate all the possible attendance summary dates
             UpdatePossibleAttendances( dateRange, groupBy );
@@ -2071,6 +2106,34 @@ function(item) {
                     PhoneNumbers = n.ToList()
                 } )
                 .ToDictionary( k => k.PersonId, v => v.PhoneNumbers );
+        }
+
+        public static DataSet GetAttendanceAnalyticsAttendeeFirstDates( List<int> GroupTypeIds, List<int> groupIds, DateTime? start, DateTime? end,
+    List<int> campusIds, bool? includeNullCampusIds, List<int> scheduleIds )
+        {
+            var parameters = GetAttendanceAnalyticsParameters( GroupTypeIds, groupIds, start, end, campusIds, includeNullCampusIds, scheduleIds );
+            return DbService.GetDataSet( "_org_secc_spGroups_AttendanceAnalyticsQuery_AttendeeFirstDates", System.Data.CommandType.StoredProcedure, parameters, 300 );
+        }
+
+        public static DataSet GetAttendanceAnalyticsAttendees( List<int> groupIds, DateTime? start, DateTime? end,
+            List<int> campusIds, bool? includeNullCampusIds, List<int> scheduleIds, bool? IncludeParentsWithChild, bool? IncludeChildrenWithParents )
+        {
+            var parameters = GetAttendanceAnalyticsParameters( null, groupIds, start, end, campusIds, includeNullCampusIds, scheduleIds, IncludeParentsWithChild, IncludeChildrenWithParents );
+            return DbService.GetDataSet( "_org_secc_spGroups_AttendanceAnalyticsQuery_Attendees", System.Data.CommandType.StoredProcedure, parameters, 300 );
+        }
+
+        public static DataSet GetAttendanceAnalyticsAttendeeLastAttendance( List<int> groupIds, DateTime? start, DateTime? end,
+    List<int> campusIds, bool? includeNullCampusIds, List<int> scheduleIds )
+        {
+            var parameters = GetAttendanceAnalyticsParameters( null, groupIds, start, end, campusIds, includeNullCampusIds, scheduleIds );
+            return DbService.GetDataSet( "_org_secc_spGroups_AttendanceAnalyticsQuery_AttendeeLastAttendance", System.Data.CommandType.StoredProcedure, parameters, 300 );
+        }
+
+        public static DataSet GetAttendanceAnalyticsNonAttendees( List<int> GroupTypeIds, List<int> groupIds, DateTime? start, DateTime? end,
+    List<int> campusIds, bool? includeNullCampusIds, List<int> scheduleIds, bool? IncludeParentsWithChild, bool? IncludeChildrenWithParents )
+        {
+            var parameters = GetAttendanceAnalyticsParameters( GroupTypeIds, groupIds, start, end, campusIds, includeNullCampusIds, scheduleIds, IncludeParentsWithChild, IncludeChildrenWithParents );
+            return DbService.GetDataSet( "org_secc_spGroups_AttendanceAnalyticsQuery_NonAttendees", System.Data.CommandType.StoredProcedure, parameters, 300 );
         }
 
         /// <summary>
@@ -2262,7 +2325,7 @@ function(item) {
                 {
                     // Weeks are summarized as the last day of the "Rock" week (Sunday)
                     result.Add( weekEndDate );
-                    weekEndDate = weekEndDate.AddDays( 6 );
+                    weekEndDate = weekEndDate.AddDays( 7 );
                 }
             }
             else if ( attendanceGroupBy == ChartGroupBy.Month )
