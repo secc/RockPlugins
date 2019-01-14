@@ -90,6 +90,7 @@
     <Compile Include="WorkflowAttributes\AttributeMatrixAddRow.cs" />
     <Compile Include="WorkflowAttributes\AttributeMatrixCopy.cs" />
     <Compile Include="SignatureDocument\StoreSignedDocument.cs" />
+    <Compile Include="WorkflowControl\ActivateWorkflowWithLava.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
