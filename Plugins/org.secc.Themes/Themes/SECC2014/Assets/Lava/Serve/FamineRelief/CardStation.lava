@@ -2,7 +2,9 @@
 				{%- assign spotsLeft = definedType.Limit | Minus: definedType.Filled -%}
 				<div class="col-sm-6 col-md-4" style="margin-bottom: 20px;">
 					<div class="serve-card" style="height: 180px;">
+					{% if spotsLeft > 0 and definedType.Limit > 0 %}
                     <a href="{{partition.Url}}&GroupId={{partition.GroupId}}">
+					{% endif %}
                         <div class="box text-center">
 							<div class="clearfix">
 								<span class="label label-default pull-right" style="margin: 10px">{% if definedType.Limit == null %}Unlimited{% else %}{% if spotsLeft <= 0 %}Full{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}{% endif %}</span>
@@ -11,6 +13,8 @@
                             <h1 style="font-size: 75px">{{ definedType.Entity.Value }}</h1>
                             <span>{{ definedType.Entity.Description }}</span>
                         </div>
+					{% if spotsLeft > 0 and definedType.Limit > 0 %}
                     </a>
+					{% endif %}
 					</div>
                 </div>
