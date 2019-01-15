@@ -1,0 +1,181 @@
+@import '../mixins';
+
+// // Typography
+// //
+// // Font, line-height, and color for body text, headings, and more.
+$line-height:                1.6 !default;
+
+$headings-margin-bottom:     .75rem !default;
+$headings-font-weight:       400 !default;
+$headings-line-height:       1.2 !default;
+
+// Typography font sizes
+// Pixel value used to responsively scale all typography. Applied to the `<html>` element.
+
+$font-size-root:             16px !default;
+
+$font-size-10:               .625rem !default;
+$font-size-11:               .6875rem !default;
+$font-size-12:               .75rem !default;
+$font-size-13:               .8125rem !default;
+$font-size-14:               .875rem !default;
+$font-size-15:               .9375rem !default;
+$font-size-16:               1rem !default;
+$font-size-17:               1.0625rem !default;
+$font-size-18:               1.125rem !default;
+$font-size-20:               1.25rem !default;
+$font-size-22:               1.375rem !default;
+$font-size-24:               1.5rem !default;
+$font-size-26:               1.625rem !default;
+$font-size-28:               1.75rem !default;
+$font-size-30:               1.875rem !default;
+$font-size-32:               2rem !default;
+$font-size-34:               2.125rem !default;
+$font-size-36:               2.225rem !default;
+$font-size-38:               2.375rem !default;
+$font-size-40:               2.5rem !default;
+$font-size-42:               2.625rem !default;
+$font-size-44:               2.75rem !default;
+$font-size-46:               2.875rem !default;
+$font-size-48:               3rem !default;
+$font-size-50:               3.125rem !default;
+$font-size-55:               3.4375rem !default;
+$font-size-60:               3.75rem !default;
+$font-size-65:               4.625rem !default;
+$font-size-70:               4.375rem !default;
+$font-size-75:               4.6875rem !default;
+$font-size-80:               5rem !default;
+$font-size-85:               5.3125rem !default;
+$font-size-90:               5.625rem !default;
+$font-size-95:               5.9375rem !default;
+$font-size-100:              6.25rem !default;
+$font-size-105:  						 6.5625rem !default;
+$font-size-110:  						 6.875rem !default;
+$font-size-115:  						 7.1875rem !default;
+$font-size-120:  						 7.5rem !default;
+$font-size-125:  						 7.8125rem !default;
+$font-size-130:  						 8.125rem !default;
+$font-size-135:  						 8.4375rem !default;
+$font-size-140:  						 8.75rem !default;
+$font-size-145:  						 9.0625rem !default;
+$font-size-150:  						 9.375rem !default;
+
+@include font-face('TisaPro', "FF-TisaPro");
+@include font-face('TisaPro', "FF-TisaPro-Ita", normal, italic);
+@include font-face('TisaPro', "FF-TisaPro-Thin", 100);
+@include font-face('TisaPro', "FF-TisaPro-ThinIta", 100, italic);
+@include font-face('TisaPro', "FF-TisaPro-Light", 200);
+@include font-face('TisaPro', "FF-TisaPro-LightIta", 200, italic);
+@include font-face('TisaPro', "FF-TisaPro-Medi", 600);
+@include font-face('TisaPro', "FF-TisaPro-MediIta", 600, italic);
+@include font-face('TisaPro', "FF-TisaPro-Bold", 700);
+@include font-face('TisaPro', "FF-TisaPro-BoldIta", 700, italic);
+@include font-face('TisaPro', "FF-TisaPro-Xbold", 800);
+@include font-face('TisaPro', "FF-TisaPro-XboldIta", 800, italic);
+@include font-face('TisaPro', "FF-TisaPro-Black", 900);
+@include font-face('TisaPro', "FF-TisaPro-BlackIta", 900, italic);
+
+// Forms
+$cursor-disabled:           not-allowed !default;
+
+// Links
+//
+// Style anchor elements.
+$link-hover-decoration:     none !default;
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+	line-height: $headings-line-height;
+	color: $color-heading;
+	margin-top: 0;
+	// margin-bottom: .5rem;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	// text-transform: capitalize;
+	// margin-bottom: $headings-margin-bottom;
+
+	a {
+		color: $color-heading;
+	}
+
+	// &.tisa-pro {
+	// 	font-weight: normal;
+	// 	font-family: $TisaPro;
+	// }
+}
+
+h1, .h1 { @include font($size: $font-size-80, $weight: normal); }
+h2, .h2 { @include font($size: $font-size-65, $weight: normal); }
+h3, .h3 { @include font($size: $font-size-48, $weight: normal); }
+h4, .h4 { @include font($size: $font-size-36, $weight: normal); }
+h5, .h5 { @include font($size: $font-size-24, $weight: normal); }
+h6, .h6 { @include font($size: $font-size-20, $weight: normal); }
+
+//$font-size-h1;
+em,
+li {
+  @include font($size: $font-size-24, $weight: 500);
+  color: $color-heading;
+
+  > a {
+  	color: $color-heading;
+
+  	@include hover {
+  		color: darken($color-heading, 7%);
+  	}
+  }
+}
+
+small {
+	color: $color-text;
+}
+
+label {
+  @include font($size: $font-size-24, $weight: 700);
+  color: $color-heading;
+  margin-bottom: .25rem;
+}
+
+i {
+	line-height: 1;
+}
+
+/* Paragraph */
+p {
+  @include font($size: $font-size-30, $weight: 500);
+	color: $color-text;
+	line-height: $line-height;
+	margin-top: 0;
+	margin-bottom: 1rem;
+}
+
+/* Links */
+a {
+	color: $color-primary;
+	text-decoration: $link-hover-decoration;
+
+	@include hover-focus {
+		color: darken($color-heading, 7%);
+		text-decoration: $link-hover-decoration;
+	}
+
+	@include focus {
+		outline: none;
+	}
+}
+
+.uppercase {
+    text-transform: uppercase;
+}
+.letter-space {
+    letter-spacing: 2px;
+}
+.big-letter-space {
+    letter-spacing: 6px;
+}

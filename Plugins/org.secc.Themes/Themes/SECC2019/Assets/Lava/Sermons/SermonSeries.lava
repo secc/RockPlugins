@@ -1,0 +1,265 @@
+<style>
+	#loading-animation {
+		display: none;
+	}
+	.current-series {
+		height: 220px;
+		background-size: cover;
+		background-position: center center;
+		background-repeat: no-repeat;
+	}
+
+	@media (min-width: 992px) {
+		.current-series {
+			height: 420px;
+		}
+	}
+
+	.current-series h1 {
+		background-color: rgba(0, 0, 0, 0.3);
+		text-align: center;
+		font-size: 16px;
+		font-weight: 600;
+		color: #fff;
+		margin: 0;
+		padding: 6px;
+	}
+
+	.series {
+		border: 1px solid rgba(0, 0, 0, .3);
+		position: relative;
+	}
+
+	.series h1 {
+		font-size: 20px;
+		font-weight: 600;
+		margin-top: 4px;
+		margin-bottom: 0;
+	}
+
+	.series-dates, .sermons-count {
+		opacity: .6;
+	}
+
+	.series-body {
+		padding: 15px;
+		/* height: 172px; */
+	}
+	.series-body h3 {
+		font-weight: 300;
+	}
+	.series-body hr {
+		margin: 10px 0px;
+	}
+</style>
+
+{% assign currentSeries = Items | First %}
+{% assign currentSeriesImageGuid = currentSeries | Attribute:'Image','RawValue' %}
+
+<div class="container-fluid g-padding-y-40--xs">
+
+	<div class="container">
+		<div class="isotope_wrap margin-t-lg series-list">
+
+			{% for item in Items -%}
+			{% assign seriesImage = item | Attribute:'Image' -%}
+			{% assign seriesImageGuid = item | Attribute:'Image','RawValue' -%}
+			<div class="isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load">
+
+					<div class="card">
+						<a href="/sermons/{{ item.Slug }}">
+						{% if seriesImage != empty -%}
+							<!-- Image -->
+							<div class="img-hover">
+								<img src="/GetImage.ashx?Guid={{ seriesImageGuid }}" class="event-image img-responsive" onerror="this.style.display='none'">
+							</div>
+						{% else -%}
+
+							<!-- Grab Sermon Image -->
+							{% for child in item.ChildItems -%}
+								{% assign seriesImage = child.ChildContentChannelItem | Attribute:'Image' -%}
+								{% assign seriesImageGuid = child.ChildContentChannelItem | Attribute:'Image','RawValue' -%}
+								{% if seriesImage != empty -%}
+									<!-- Image -->
+									<div class="img-hover">
+										<img src="/GetImage.ashx?Guid={{ seriesImageGuid }}" class="event-image img-responsive" onerror="this.style.display='none'">
+									</div>
+									{% break -%}
+								{% endif %}
+							{% endfor -%}
+
+						{% endif -%}
+						</a>
+						<div class="g-padding-x-30--xs g-padding-y-40--xs g-margin-b-40--xs">
+							<h4 class="g-font-family--secondary g-padding-b-20--xs">{{ item.Title }}</h4>
+							{% if item.Content != empty -%}
+							{% comment %}
+							<p class="">
+								{{ item.Content }}
+							</p>
+							{% endcomment %}
+							{% endif -%}
+							<h6 class="g-line-height--normal">
+								{% assign lastSermon = item.ChildItems | Last %}
+								{% assign sermonsCount = item.ChildItems | Size %}
+								{% if sermonsCount > 1 -%}
+								{{ item.StartDateTime | Date:'MMM dd, yyyy' }} - {{ lastSermon.ChildContentChannelItem.StartDateTime | Date:'MMM dd, yyyy' }}
+								{% else -%}
+								{{ item.StartDateTime | Date:'MMM dd, yyyy' }}
+								{% endif -%}<br />
+								SERMONS: {{ sermonsCount }}
+							</h6>
+						</div>
+					</div>
+			</div>
+			{% endfor -%}
+
+		</div>
+
+		<div class="text-center">
+			<br />
+			<br />
+			<br />
+			<img id="loading-animation" src="/Content/ExternalSite/WebImages/loading.gif" />
+		</div>
+	</div>
+
+<br />
+<br />
+</div>
+
+<script>
+
+window.onscroll = function(e) {
+    var pageHeight=document.documentElement.offsetHeight,
+    windowHeight=window.innerHeight,
+    scrollPosition=window.scrollY || window.pageYOffset || document.body.scrollTop + (document.documentElement && document.documentElement.scrollTop || 0);
+
+    if (pageHeight - document.getElementById("SiteFooter").offsetHeight <= windowHeight+scrollPosition) {
+        getMoreSermons(jQuery);
+    }
+};
+
+// Set sermon series to start at the next set since the first set is already loaded.
+var sermonOffset = 2;
+// This dertimines whether the API requests should continue or stop.
+var sermonsContinueMakingRequests = true;
+// This determines whether an ajax request is already in the process or not.
+var sermonsLoading = false;
+
+function getMoreSermons($) {
+
+	if (sermonsContinueMakingRequests == true) {
+		$("#loading-animation").show();
+	}
+
+	// check and see if another request is being loaded
+	if (sermonsLoading == false) {
+		$.ajax( {
+			url: 'https://www.southeastchristian.org/Webhooks/Lava.ashx/sermons/'+sermonOffset,
+			async: true,
+			beforeSend: function(data) {
+				sermonsLoading = true; // start ajax loading process
+			},
+			success: function(data) {
+				$.each(data.Series, function(i, sermon_series){
+
+					  var $grid = $('.isotope_wrap').isotope({
+				          // options
+				          percentPosition: true,
+				          itemSelector: '.isotope_item',
+				          layoutMode: 'fitRows'
+				      });
+
+					  var sermonsInSeries = sermon_series.Sermons.length,
+					      sermonsStartDate = new Date(sermon_series.Date),
+						  locale = "en-us",
+					      s_day = sermonsStartDate.getDate(),
+						  s_month = sermonsStartDate.toLocaleString(locale, { month: "long" }),
+					      s_year = sermonsStartDate.getFullYear();
+
+					  var sermonsDateStreak = "";
+				      if (sermonsInSeries <= 1) {
+						  var sermonsDateStreak = "<h6 class=\"\">"+ s_month + " " + s_day.toString() + ", " + s_year.toString() + "<br/>";
+					  } else {
+						  sermonsDateStreak = "<h6 class=\"g-line-height--normal\">"+ s_month + " " + s_day.toString() + ", " + s_year.toString() + " - "+ sermon_series.Sermons[(sermonsInSeries-1)].Date +"<br/>";
+					  }
+
+					  var descriptionContent = sermon_series.Description;
+					  if (descriptionContent != "") {
+						  descriptionContent = "<p class=\"series-summary text-color\">"+ sermon_series.Description +"</p><hr />";
+					  }
+
+					  var $elem = $('<div></div>', {
+						            "class": "isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load"
+						          }).append(
+						            $('<a/>', {
+									  "href": window.location + '/' + sermon_series.Slug,
+						            }).append(
+						  	            $('<div/>', {
+						  	              "class": 'card',
+						  	            }).html(function() {
+					      				  var box =  "<div class=\"img-hover\">";
+						  	                  box +=    "<img src=\""+ sermon_series.Image +"\" class=\"img-responsive\" style=\"margin: 0 auto; min-height: 196.86px;\">";
+											  box += "</div>";
+											  box += "<div class=\"g-padding-x-30--xs g-padding-y-40--xs g-margin-b-40--xs\">";
+						  	                  box +=    "<h4 class=\"g-font-family--secondary g-padding-b-20--xs\">"+ sermon_series.Name +"</h3>";
+											  //box +=   	descriptionContent;
+											  box +=   	sermonsDateStreak;
+											  box +=	"SERMONS: "+ sermonsInSeries +"</h6>"
+						  	                  box += "</div>";
+						  	              return box;
+						  	            })
+						  			)
+								);
+
+					  $grid.isotope()
+		  				  .append( $elem )
+		  				  .isotope( 'appended', $elem )
+		  				  .isotope('layout');
+				});
+
+				// Re-Initialize Isotope
+			    var $grid = $('.isotope_wrap').isotope({
+			        // options
+			        percentPosition: true,
+			        itemSelector: '.isotope_item',
+			        layoutMode: 'fitRows'
+			    });
+
+				sermonOffset += 1;
+				$("#loading-animation").hide();
+				sermonsLoading = false; // reset back to false to allow more requests
+
+				if (data.Series.length == 0) {
+					sermonsContinueMakingRequests = false;
+				}
+			}
+
+		});
+	}
+}
+
+$(document).ready(function() {
+    // Re-Initialize Isotope
+    var $grid = $('.isotope_wrap').isotope({
+        // options
+        percentPosition: true,
+        itemSelector: '.isotope_item',
+        layoutMode: 'fitRows'
+    });
+
+    // reveal all items after init
+    var $items = $grid.find('.isotope_item');
+    $grid.imagesLoaded().progress( function() {
+      $grid.removeClass('hide-on-load').addClass('is-showing-items').isotope('layout');
+    });
+    $grid.isotope( 'revealItemElements', $items );
+
+    // re-init jarallax
+    jarallax(document.querySelectorAll('.jarallax'), {
+        disableParallax: /iPad|iPhone|iPod|Android/,
+        disableVideo: /iPad|iPhone|iPod|Android/
+    });
+});
+</script>

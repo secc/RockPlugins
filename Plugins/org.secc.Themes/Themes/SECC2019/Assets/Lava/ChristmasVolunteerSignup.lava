@@ -1,0 +1,349 @@
+<style>
+    a { color: #1f1f1f; }
+    @media (min-width: 1200px) {
+        .isotope_item.col-md-2 {
+            width: 20%;
+        }
+    }
+</style>
+<section id="christmas" class="ministry">
+
+    <div class="container">
+	    <h3>Sign up to serve during Celebrate Christmas Together</h3>
+        <p><i>December 8 &amp; 10-15 • Blankenbaker Campus</i></p>
+        <p><span style="font-weight: bolder; font-size: 1.4em">Step 2</span>: Choose the night(s) you would like to serve. If you would like to serve with others from your campus, you can look below to see what night your campus is serving—but you are welcome to serve any night that works best for you.</p>
+
+        <div class="isotope_wrap">
+        {% definedvalue where:'DefinedTypeId==234' %}
+			{% assign definedvalueItemsSorted = definedvalueItems | Sort: 'Order' %}
+			{% for definedValue in definedvalueItemsSorted %}
+        <!-- Suggestions -->
+                    {% assign cctDateYear = definedValue | Attribute:'Date' | Date:'yy' %}
+                    {% assign campuses = definedValue | Attribute:'Campuses','RawValue' | Split: ',' %}
+                    {% for campusGuid in campuses %}
+                        {% for campus in Campuses %}
+
+                            {% if campusGuid == campus.Guid and cctDateYear == '18' %}
+                            <a href="#wrapper-role-{{definedValue.Guid}}">
+
+                                <div class="isotope_item col-sm-6 col-md-2" style="margin-top: 1.2em;">
+                                    <div style="display:block; width: 140px;">
+                                        <span class="se-logo {{campus.Slug}} pull-right" style="font-size: 1em; display: inline-block; margin: -7px 0px 0px -3px;" data-toggle="tooltip" data-placement="top" title="This night of the week, we encourage attenders of the {{campus.Name}} campus to serve!">{{campus.ShortCode}}</span>
+
+                                        <div class="pull-right" style="display: inline-block; font-size: 2em; font-weight: bolder;  float: left; margin: -10px 10px 0px 5px; border-right: 1px solid #78744C; padding-right: 10px;">{{ definedValue | Attribute:'Date' | Date:'d'}}</div>
+
+                                        <div class="pull-right" style="display: inline-block">
+                                            <span class="clearfix">
+                                                <span class="pull-right" style="font-size: 1em; font-weight:bold; line-height: .75em">{{ definedValue | Attribute:'Date' | Date:'ddd'}}</span>
+                                            </span>
+                                            <span class="pull-right" style="font-size: 0.7em;">{{ definedValue | Attribute:'Date' | Date:'MMM'}}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+            {% endfor %}
+        {% enddefinedvalue %}
+        </div>
+
+        <div class="clearfix"></div>
+        <br />
+        <p><span style="font-weight: bolder; font-size: 1.4em">Step 3</span>: Select a serving role. Browse the options on the night(s) you want to serve and find which role interests you. Make sure you meet the requirements listed for that role before selecting it.</p>
+        <p><span style="font-weight: bolder; font-size: 1.4em">Step 4</span>: Sign up. Once you’ve selected the roles you want for as many nights as you want to serve, click “Sign Up” at the bottom of the page. Follow the instructions to complete your registration.</p>
+        <p><i>NOTE: You must sign up each individual volunteer separately.</i></p>
+
+        <!--  *** BELOW: Ignore or delete *** For DEV only -->
+        <div class="row" style="margin:2rem 0"></div>
+        <h4>Choose your role/date(s) below:</h4>
+        <br />
+        <!--  *** END: Ignore or delete *** For DEV only -->
+
+
+		{% definedvalue where:'DefinedTypeId==234' %}
+			{% assign definedvalueItemsSorted = definedvalueItems | Sort: 'Order' %}
+			{% for definedValue in definedvalueItemsSorted %}
+                {% assign cctDateYear = definedValue | Attribute:'Date' | Date:'yy' %}
+                {% if cctDateYear == '18' %}
+			<div class="row">
+			<!-- <hr class="christmas" /> -->
+                <br >
+				<div class="col-xs-12 col-sm-4 col-lg-3 stickyDate" style="padding-right: 5px; min-width: 250px !important; margin-top:2px;">
+                    <div class="pull-right" style="display: inline-block; font-size: 4em; font-weight: bolder;  float: left; margin: -25px 10px;">{{ definedValue | Attribute:'Date' | Date:'d'}}</div>
+                    <div class="pull-right" style="display: inline-block">
+						<span class="clearfix">
+							<span class="pull-right" style="font-size: 2em; font-weight:bold; line-height: .75em">{{ definedValue | Attribute:'Date' | Date:'ddd'}}</span>
+						</span>
+						<span class="pull-right" style="font-size: 1.2em;">{{ definedValue | Attribute:'Date' | Date:'MMMM'}}</span>
+					</div>
+				</div>
+				<div class="col-xs-12 col-sm-8 col-lg-9" id="wrapper-role-{{definedValue.Guid}}">
+					<div class="select-wrapper-role" style="">
+						<span class="nav-current" data-role-id="" data-day-guid="">
+							<p>Select Role</p>
+						</span>
+					</div>
+				</div>
+				<div class="col-xs-12 col-sm-push-4 col-sm-8 col-md-push-4 col-md-8 col-lg-push-3 col-lg-9">
+					<ul class="nav rolelist" style="display:none">
+					<li class="clear-selection" style="display: none">
+						<a class="not-full" href="javascript:void(0)">
+							<span class="role" style="display: none">Select Role</span>
+							<span class="role">Clear Selection</span>
+						</a>
+					</li>
+					{% for role in Tree %}
+						{% assign rolePublic = role.Entity | Attribute:"Public" %}
+						{% if rolePublic == 'No' %}
+							{% continue %}
+						{% endif %}
+						{% assign roleLocation = role.Entity | Attribute:"Location" %}
+						{% if role.Limit > 0 %}
+
+						   {% for day in role.Partitions %}
+							  {% if day.Entity.Guid == definedValue.Guid %}
+								  {% assign spotsLeft = day.Limit | Minus: day.Filled %}
+									{% assign minimumAge = role.Entity | Attribute:"MinimumAge" %}
+									{% assign requiresBackgroundCheck = role.Entity | Attribute:"RequiresBackgroundCheck" %}
+									{% assign membershipRequired = role.Entity | Attribute:"MembershipRequired" %}
+									{% assign menOnly = role.Entity | Attribute:"MenOnly" %}
+									<li class="christmas-role" data-minimum-age="{{minimumAge}}" data-requires-background-check="{{requiresBackgroundCheck}}">
+										{% if spotsLeft > 0 %}
+										<a href="#wrapper-role-{{definedValue.Guid}}" >
+										{%else%}
+										<div class="full">
+										{% endif %}
+											<span class="role pull-left" data-role-id="{{ role.Entity.Id }}" data-day-guid="{{ day.Entity.Guid }}"><i class="{{ role.Entity.Icon }}"></i> {{ role.Entity.Name }}</span>
+											<span class="label label-info pull-right">{% if role.Limit == -1 %}Unlimited{% else %}{% if spotsLeft <= 0 %}Full{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}{% endif %}</span>
+											<span class="clearfix"></span>
+											<span class="time">{% assign dayOfWeek = day.Entity | Attribute:'Date' | Date:'ddd' %}
+											  {% if dayOfWeek == 'Fri' %}
+												{{ role.Entity | Attribute: "FridayShiftTime" }}
+											  {% else %}
+												{{ role.Entity | Attribute: "StandardShiftTime" }}
+											  {% endif %}</span>
+											  {% assign familyFriendly = role.Entity | Attribute:"FamilyFriendly" %}
+											{% if familyFriendly == 'Yes' %}
+												<br /><span class="label label-success" data-toggle="tooltip" data-placement="right" title="We encourage all members of your family to sign up for this role to serve together! Please note, anyone under the minimum required age will need to serve with a parent or guardian.">Serve With Your Family</span>
+											{% endif %}
+											<p>{{ role.Entity.Description }}</p>
+
+											{% if minimumAge != "" or requiresBackgroundCheck == 'Yes' or membershipRequired == 'Yes' or menOnly == 'Yes' %}
+												<strong>Requirements</strong>:
+												{% if minimumAge != "" %}
+													<span class="label label-warning" style="margin: 3px" data-toggle="tooltip" title="This role has a minimum age requirement of {{ minimumAge }} years of age.">{{ minimumAge }} Yrs Old</span>
+												{% endif %}
+												{% if requiresBackgroundCheck == 'Yes' %}
+													<span class="label label-danger" style="margin: 3px" data-toggle="tooltip" data-placement="right" title="This role requires the volunteer to have a background check, ministry safe training, and requires the volunteer to have verified attendance for at least 6 months.">Volunteer Screening</span>
+												{% endif %}
+												{% if membershipRequired == 'Yes' %}
+													<span class="label label-default" style="margin: 3px" data-toggle="tooltip" data-placement="right" title="This role requires the volunteer to be a member of Southeast Christian Church.">Membership Required</span>
+												{% endif %}
+												{% if menOnly == 'Yes' %}
+													<span class="label label-default" style="margin: 3px" data-toggle="tooltip" data-placement="right" title="This role requires the volunteer a male.">Men Only</span>
+												{% endif %}
+											{% endif %}
+											<span class="clearfix"></span>
+										{% if spotsLeft > 0 %}
+										</a>
+										{%else%}
+										</div>
+										{% endif %}
+									</li>
+								{% endif %}
+						   {% endfor %}
+						{% endif %}
+					{% endfor %}
+
+					</ul>
+				</div>
+				<br />
+			</div>
+            {% endif %}
+			{% endfor %}
+		{% enddefinedvalue %}
+		<br />
+		<a class="btn btn-primary pull-right" id="signup">Sign Up</a>
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+    </div>
+
+</section>
+
+<script>
+/* --------------------------------------------------
+	Initialization
+-------------------------------------------------- */
+	function getUrlParameter(sParam) {
+		var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+			sURLVariables = sPageURL.split('&'),
+			sParameterName,
+			i;
+
+		for (i = 0; i < sURLVariables.length; i++) {
+			sParameterName = sURLVariables[i].split('=');
+
+			if (sParameterName[0] === sParam) {
+				return sParameterName[1] === undefined ? true : sParameterName[1];
+			}
+		}
+	};
+
+	function filterRoles()
+	{
+
+		var age = getUrlParameter("a");
+		var bc = getUrlParameter("bc");
+		$('.christmas-role').each(function() {
+
+			if (age > 0 && $(this).attr('data-minimum-age') > 0 && age < $(this).attr('data-minimum-age')) {
+				$(this).hide();
+			}
+			// debugger;
+			if (bc == "false" && $(this).attr('data-requires-background-check') == 'Yes') {
+				$(this).hide();
+			}
+		});
+	}
+
+    // var scroll = new SmoothScroll('a[href*="#"]', {
+    //     // Speed & Easing
+    //     speed: 500, // Integer. How fast to complete the scroll in milliseconds
+    //     offset: 0, // Integer or Function returning an integer. How far to offset the scrolling anchor location in pixels
+    //     easing: 'easeInOutQuad' // Easing pattern to use
+    // });
+
+    // Initialize all functions when the document is ready.
+	$(document).ready(function(){
+
+        // Initialize Isotope
+        var $grid = $('.isotope_wrap').isotope({
+            // options
+            percentPosition: true,
+            itemSelector: '.isotope_item',
+            masonry: {
+              horizontalOrder: true
+            }
+        });
+        // reveal all items after init
+        var $items = $grid.find('.isotope_item');
+        $grid.addClass('is-showing-items')
+          .isotope( 'revealItemElements', $items );
+
+        // console.log($('.select-wrapper-role:first').parent().parent().height());
+        var scroll = new SmoothScroll('a[href*="#"]', {
+            // Selectors
+            ignore: '[data-scroll-ignore]', // Selector for links to ignore (must be a valid CSS selector)
+            // Speed & Easing
+            speed: 500, // Integer. How fast to complete the scroll in milliseconds
+            offset: ($('.select-wrapper-role:first').parent().parent().height() / 2), // Integer or Function returning an integer. How far to offset the scrolling anchor location in pixels
+            easing: 'easeInOutCubic', // Easing pattern to use
+        });
+
+        tabNavToSelect(scroll);
+		filterRoles();
+    });
+
+    function tabNavToSelect() {
+        $('.rolelist').each(function () {
+
+            var $this = $(this),
+                $active = $this.find('li.active > a'),
+                $field = $this.parent().parent().find('.nav-current').html($active.html());
+
+            $this.wrapAll('<div class="select-role"></div>');
+
+            // $this.before($field);
+
+            $field.on('click', function () {
+                if ( !$this.is('.open') ) $this.stop(true, true).slideDown(250).addClass('open');
+                else $this.stop(true, true).slideUp(500).removeClass('open');
+            });
+
+            $this.on('click', 'a', function (event) {
+
+                $(this).parent().parent().find('.active').removeClass('active');
+                $(this).parent().addClass('active');
+                $field.html($(this).find('.role').html());
+                $field.attr("data-day-guid", $(this).find('.role').attr("data-day-guid"));
+                $field.attr("data-role-id", $(this).find('.role').attr("data-role-id"));
+                $(this).parent().parent().find('.clear-selection').show();
+
+                // var $hrefLink = $(this).attr('href');
+
+                // function isScrolledIntoView(elem)
+                // {
+                //     var docViewTop = $(window).scrollTop();
+                //     var docViewBottom = docViewTop + $(window).height();
+                //
+                //     var elemTop = $(elem).offset().top;
+                //     var elemBottom = elemTop + $(elem).height();
+                //
+                //     return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
+                // }
+                // console.log($($hrefLink).attr('id'));
+                //
+                // if (isScrolledIntoView( $($hrefLink) )) {
+                //     //Element is visible
+                //     event.preventDefault();
+                //     console.log('its visible: '+ $($hrefLink));
+                //     scroll.cancelScroll();
+                // } else {
+                //     event.preventDefault();
+                //
+                //       // Figure out element to scroll to
+                //       var target = $($hrefLink);
+                //       target = target.length ? target : $('[name=' + this.hash.slice(1) + ']');
+                //           // Does a scroll target exist?
+                //           if (target.length) {
+                //             // Only prevent default if animation is actually gonna happen
+                //             event.preventDefault();
+                //             $('html, body').animate({
+                //               scrollTop: target.offset().top
+                //           }, 250);
+                //       }
+                //     // scroll then
+                // }
+                //
+                // var scroll = new SmoothScroll('a[href*="#"]');
+			});
+
+            $('body').on('click', function (event) {
+                if ( !$(event.target).parents('.full').length && !$(event.target).closest($field).length && $this.is('.open') ) {
+                    $this.stop(true, true).slideUp(500).removeClass('open');
+                }
+            });
+        });
+    }
+	$('[data-toggle="tooltip"]').tooltip();
+	$('input.day').change(function() {
+		$(this).attr('class').replace('day ', '');
+	});
+
+	$('#signup').click(function() {
+		var roleDays = {};
+        $('.nav-current').each(function () {
+			if ($(this).attr('data-role-id') != '') {
+				roleDays[$(this).attr('data-role-id')] = roleDays[$(this).attr('data-role-id')] || [];
+				roleDays[$(this).attr('data-role-id')].push($(this).attr('data-day-guid'));
+			}
+		});
+		roleRequests = [];
+		$.each(roleDays, function (roleId, days) {
+
+				var request = {};
+				request.GroupId = 843985;
+				request.GroupTypeRoleId = roleId;
+				request.Attributes = { "ServingDate": days.join(',')};
+				roleRequests.push(request);
+		});
+		if (roleRequests.length > 0) {
+			window.location.href="/serve/christmas-new/signup?OpportunityId=19&RoleRequests=" + JSON.stringify(roleRequests);
+		}
+	});
+
+</script>

@@ -1,0 +1,144 @@
+{% comment %}
+*********************************** NAME ***************************************
+{% endcomment %}
+* Social Media Sharing – Buttons
+
+{% comment %}
+*********************************** TagType ************************************
+{% endcomment %}
+Inline
+
+{% comment %}
+*********************************** TAG NAME ***********************************
+{% endcomment %}
+socialshare
+
+{% comment %}
+*********************************** DESCRIPTION ********************************
+{% endcomment %}
+Social Media Share is a custom short-code to include a list of social media sharing buttons for any pages.
+
+{% comment %}
+********************************* DOCUMENTATION ********************************
+{% endcomment %}
+
+Adding social media sharing buttons is as simple as:
+
+{[ socialshare ]}
+This inline shortcode creates a div container with a class of "socials" as part of its styling. As always there are several parameters.
+
+    facebook (true) – Enables sharing through Facebook.
+    twitter (true) – Enables sharing through Twitter.
+    email (true) - This uses the "mailto:" function to share via email.
+    emailsubject - This is empty by default, but if you want to customize the subject of a composing email, do it here.
+    emailbody - This is also empty by default, but if you want to customize the body of a composing email, do it here.
+    copylink (true) – this includes a button to allow users to copy the url of the current page. You can change this if you want using the next optional parameter.
+    url (automatically grabs the current page) - to overwrite this, set your own url in this parameter. This will affect the sharing URL for all social buttons as well (facebook, twitter, etc.)
+    facebooktitle - Include a title of the post you want to share on Facebook (this will be used in Open Graph)
+    facebooksummary - Include a summary of the post you want to share on Facebook (this will be used in Open Graph)
+    facebookimage - Include a url of the image you want to use on Facebook (this will be used in Open Graph)
+
+Note: Do to this javascript requirements of this shortcode you will need to do a full page reload before changes to the shortcode appear on your page.
+Note: This requires the WOW animations shortcode, make sure you have included in your library of Shortcodes as well.
+
+{% comment %}
+************************ MARKUP FOR THIS SHORTCODE IS BELOW ********************
+{% endcomment %}
+
+{%- if url == empty -%}
+    {% assign social_url = 'Global' | Page:'Url' | Escape %}
+{%- else -%}
+    {% assign social_url = url | Escape %}
+{%- endif -%}
+
+<div class="socials socials_type_icons socials_shape_round">
+    {%- if facebook == "true" -%}
+        <script>function fbs_click() { u = "{{ social_url }}"; t = document.title; window.open('http://www.facebook.com/sharer.php?u=' + encodeURIComponent(u) + '&t=' + encodeURIComponent(t), 'sharer', 'toolbar=0,status=0,width=626,height=436'); return false; }</script>
+        <div class="socials_item facebook">
+            {[ wow animate:'rotateIn' duration:'.5s' delay:'0.5s' ]}
+            <a href="http://www.facebook.com/share.php?u={{ social_url }}" onclick="return fbs_click()" target="_blank" class="social_icons social-facebook" data-original-title="Share via Facebook">
+                <i class="fa fa-facebook"></i>
+            </a>
+            {[ endwow ]}
+        </div>
+        {{ social_url | AddMetaTagToHead:'property','og:url' }}
+        {{ "website" | AddMetaTagToHead:'property','og:type' }}
+        {% if facebooktitle != "" %}
+            {{ facebooktitle | AddMetaTagToHead:'property','og:title' }}
+        {% endif %}
+        {% if facebooksummary != "" %}
+            {{ facebooksummary | AddMetaTagToHead:'property','og:description' }}
+        {% endif %}
+        {% if facebookimage != "" %}
+            {{ facebookimage | Escape | AddMetaTagToHead:'property','og:image' }}
+        {% endif %}
+    {%- endif -%}
+    {%- if twitter == "true" -%}
+        <div class="socials_item">
+            {[ wow animate:'rotateIn' duration:'.5s' delay:'0.7s' ]}
+            <a href="http://twitter.com/home?status={{ social_url }}" target="_blank" class="social_icons social-twitter" data-original-title="Share via Twitter">
+                <i class="fa fa-twitter"></i>
+            </a>
+            {[ endwow ]}
+        </div>
+    {%- endif -%}
+    {%- if email == "true" -%}
+        <div class="socials_item">
+            {[ wow animate:'rotateIn' duration:'.5s' delay:'0.9s' ]}
+            <a href="mailto:?Subject={{ emailsubject | Escape }}&Body={{ emailbody | Escape }}%0D%0A%0D%0A{{ social_url }}" class="social_icons" data-original-title="Share via Email">
+                <i class="fa fa-envelope"></i>
+            </a>
+            {[ endwow ]}
+        </div>
+    {%- endif -%}
+    {%- if copylink == "true" -%}
+        {{ '/Themes/SECC2014/Scripts/clipboard/clipboard.js' | AddScriptLink }}
+        <div class="socials_item">
+            {[ wow animate:'rotateIn' duration:'.5s' delay:'1.1s' ]}
+            <a href="javascript:void(0);" class="social_icons copy-link" data-toggle="tooltip" title="URL Copied" data-clipboard-text="{{ social_url }}" data-original-title="Share via Copy URL">
+                <i class="fa fa-link"></i>
+            </a>
+            {[ endwow ]}
+        </div>
+    {%- endif -%}
+</div>
+
+{%- javascript id:'socical-media-sharing-shortcode' -%}
+$(document).ready(function() {
+    {% if copylink == "true" -%}
+        $('.copy-link').tooltip({
+            placement: 'top',
+            trigger: 'manual'
+        });
+
+        var clipboard = new ClipboardJS('.copy-link');
+
+        clipboard.on('success', function(e) {
+            $('.copy-link').tooltip('show');
+            $( ".copy-link" ).on( "mouseleave", function() {
+                $('.copy-link').tooltip('hide');
+            });
+            e.clearSelection();
+        });
+
+        clipboard.on('error', function(e) {
+            console.error('Action:', e.action);
+            console.error('Trigger:', e.trigger);
+        });
+    {% endif -%}
+});
+{%- endjavascript -%}
+
+{% comment %}
+************************ PARAMETERS ********************
+{% endcomment %}
+facebook        - true
+twitter         - true
+email           - true
+copylink        -
+emailsubject    -
+emailbody       -
+url             -
+facebooktitle   -
+facebooksummary -
+facebookimage   -

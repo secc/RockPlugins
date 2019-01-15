@@ -1,0 +1,301 @@
+@import '../../_lib/_reset_sections';
+
+/* Post / Story Itself
+------------------------------------------------------ */
+.post_item {
+
+    padding: 0px 75px;
+    font-size: 15px;
+
+    /*  Blogger: Classic*/
+    .post_featured {
+        position: relative;
+        .post_thumb {
+            display: inline-block;
+            overflow: hidden;
+        }
+        .post_info_item {
+            &.post_info_posted{
+                color: #fff;
+                position: absolute;
+                z-index: 1;
+                bottom: 2px;
+                left: 0;
+                width: 5rem;
+                height: 5rem;
+                text-align: center;
+
+                -webkit-transition: all 0.7s ease 0s;
+                -moz-transition: all 0.7s ease 0s;
+                -ms-transition: all 0.7s ease 0s;
+                -o-transition: all 0.7s ease 0s;
+                transition: all 0.7s ease 0s;
+
+                &:hover{
+                    cursor: pointer;
+                }
+                div {
+                    &.day {
+                        font-size: 2rem;
+                        padding-top: 0.9rem;
+                    }
+                    &.month_year{
+                        font-size: 0.6667rem;
+                    }
+                    &.month_year{
+                        font-size: 0.6667rem;
+                    }
+                }
+            }
+        }
+        &:hover{
+            .post_info_item {
+                &.post_info_posted {
+                    opacity:0;
+                }
+            }
+        }
+    }
+    .massonry_border {
+        .post_title{
+            font-size: 1.5em;
+            text-transform: none;
+            margin: 20px 0 6px 0;
+        }
+        p {
+            margin-bottom: 1em;
+        }
+        button, .button {
+            display: inline-block;
+            text-align: center;
+            padding: 0.65em 1.75em;
+            font-weight: 700;
+            font-size: 0.867em;
+            text-transform: uppercase;
+        }
+    }
+}
+
+/* Post Featured Block
+------------------------------------------------------ */
+.post_featured {
+	overflow:hidden;
+	/*margin-bottom:2em;*/
+	position:relative;
+	z-index: 10;
+
+    img {
+    	width:100%;
+    	height:auto;
+    }
+}
+.post_featured_right > .post_featured {
+	float: right;
+	width: 40%;
+	margin-left: 4.3478%;
+}
+.post_featured_left > .post_featured {
+	float: left;
+	width: 40%;
+	margin-right: 4.3478%;
+}
+.post_tag_link {
+    background-color: #f1f1f1;
+    padding: 5px;
+    color: black;
+    border-radius: 5px;
+    line-height: 35px;
+}
+
+/* Post Info Block
+------------------------------------------------------ */
+.post_info {
+    line-height: 1.8em;
+    margin-top: 0.6em;
+    /*margin-bottom: 1.6em;*/
+    .post_info_item {
+        margin-right:1em;
+    }
+    .post_info_counters {
+        .post_counters_item:before {
+        	margin-right:0.5em;
+        }
+        .post_counters_item + .post_counters_item {
+        	padding: 5px 0 5px 1em;
+            margin-left:1em;
+        }
+        .post_counters_like .fb-like {
+        	top: -5px;
+        }
+    }
+    &.post_info_share_vertical {
+    	margin:0;
+    }
+    .post_info_item + .post_info_item:before {
+    	content: "";
+    }
+}
+
+
+/* Post author
+------------------------------------------------------ */
+.post_author {
+	margin-bottom: 2em;
+	padding:2.666rem 2rem;
+	overflow:hidden;
+	background-color: #f4f4f4;
+    .post_author_avatar {
+    	float: left;
+        margin: 0 2rem 1em 0;
+        overflow: hidden;
+        max-width: 200px;
+        max-height: 200px;
+    }
+    .post_author_title {
+    	margin-top:0;
+    }
+    .post_author_about {
+        font-size:0.866rem;
+    	margin-top: 0.7em;
+    }
+    .post_author_info {
+        margin-top:2.5rem;
+        margin-bottom:0.67rem;
+    }
+    .post_author_title,
+    .post_author_about,
+    .post_author_info{
+        margin-left:12rem;
+    }
+}
+
+/* Post layouts for different screen sizes
+------------------------------------------------------ */
+
+@media (min-width: 1600px) {
+    .post_item {
+        padding: 0px 15%;
+    }
+}
+/*
+Apple iPhone 5, 5S & 5C
+Apple iPod Touch (5th generation)
+*/
+/* With side menu */
+@media (min-width: 1510px) and (max-width: 1600px) {
+/* Without side menu
+@media (min-width: 1280px) and (max-width: 1439px) {
+*/
+	.content_wrap {	width:1170px; }
+}
+
+
+/* With side menu */
+@media (min-width: 1366px) and (max-width: 1509px) {
+/* Without side menu
+@media (min-width: 1136px) and (max-width: 1279px) {
+*/
+	.content_wrap {	width:1170px; }
+}
+
+/* With side menu */
+@media (min-width: 1200px) and (max-width: 1365px) {
+/* Without side menu
+@media (min-width: 1024px) and (max-width: 1135px) {
+*/
+	.content_wrap {	width:1160px; }
+}
+
+/* With side menu */
+@media (min-width: 992px) and (max-width: 1199px) {
+/* Without side menu
+@media (min-width: 960px) and (max-width: 1023px) {
+*/
+	.content_wrap {	width:970px; }
+}
+
+/*
+Sony Xperia
+LG Optimus
+Blackberry Storm 3, Torch 9850 & Torch 9860
+Nokia Lumia 610, 710 & 800
+HTC Desire, Desire Z, Desire S & One V
+Samsung Galaxy
+*/
+@media (min-width: 769px) and (max-width: 991px) {
+	.content_wrap {	width:750px; }
+}
+
+@media (min-width: 640px) and (max-width: 768px) {
+	.content_wrap {	width:600px; }
+}
+
+@media (min-width: 480px) and (max-width: 639px) {
+	.content_wrap {	width:440px; }
+}
+
+/*
+Portrait orientation
+Sony Xperia
+LG Optimus
+Blackberry Storm 3, Torch 9850 & Torch 9860
+Nokia Lumia 610, 710 & 800
+HTC Desire, Desire Z, Desire S & One V
+Samsung Galaxy
+*/
+@media (max-width: 768px) { /*(max-width: 1439 1279 1135 1023 959 767 473 )*/
+    .post_item {
+        padding: 0px;
+    }
+
+	/*Posts layouts*/
+	.post_featured_left,
+	.post_featured_right {
+		padding: 0 1em;
+	}
+
+    .post_featured_left > .post_featured,
+    .post_featured_right > .post_featured {
+        float: none;
+        margin-left: 0;
+        margin-bottom: 2em;
+        width: 100%;
+	}
+
+	/*Single Post*/
+    .post_author {
+		& .post_author_title,
+		& .post_author_about,
+		& .post_author_info {
+			margin-left: 0;
+		}
+	}
+}
+
+/*
+Very common low res
+*/
+@media (max-width: 479px) {
+    .content_wrap {	width:300px; }
+
+	/* Posts layouts */
+    .post_featured_left > .post_featured,
+    .post_featured_right > .post_featured {
+        float: none;
+        margin-left: 0;
+        margin-bottom: 2em;
+        width: 100%;
+    }
+
+	/*Single Post*/
+    .post_author {
+		& .post_author_avatar {
+			max-width: 100px;
+			max-height: 100px;
+		}
+
+		& .post_author_info {
+			clear: both;
+		}
+	}
+}

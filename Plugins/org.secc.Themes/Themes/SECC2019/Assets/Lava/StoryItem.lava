@@ -1,0 +1,64 @@
+{% for item in Items %}
+
+    {% assign ImageFile = item | Attribute:'Image', 'FileName' %}
+    {% assign ImageGuid = item | Attribute:'Image','RawValue' %}
+    {% assign AuthorObject = item | Attribute:'Author','Object' %}
+    {% assign PostLayout = item | Attribute:'PostLayout','RawValue' %}
+
+    {% assign Author = AuthorObject | Attribute:'Person','Object' %}
+    {% assign AuthorImageGuid = AuthorObject | Attribute:'BioImage','RawValue' %}
+
+    {[ wow animate:'fadeIn' ]}
+    <article class="post_item {{ PostLayout }}">
+
+        {% comment %}
+            ********************************************************************************************
+            ********************************************************************************************
+            ********* THIS IF CONDITION IS ONLY FOR A LAYOUT THAT IS MEANT FOR EMBEDED VIDEOS! *********
+            ********************************************************************************************
+            ********************************************************************************************
+        {% endcomment %}
+        {% if PostLayout contains "post_video"%}
+            <div class="post_content" itemprop="reviewBody">
+                <h2 itemprop="itemReviewed" class="post_title entry-title" style="text-transform: inherit;">{{ item.Title }}</h2>
+                <br />
+                {{ item.Content }}
+            </div>
+            <hr />
+            <div class="text-center">
+                <p class="uppercase"><i class="fa fa-share-alt"></i> <strong>Share</strong> this Story:
+                {[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx/{{- ImageFile -}}?Guid={{- ImageGuid -}}' ]}
+            </div>
+        {% else %}
+        {% comment %}
+            ********************************************************************************************
+            ********************************************************************************************
+            ************************* ELSE THIS LAYOUT IS USED FOR ANY CONTENT *************************
+            ********************************************************************************************
+            ********************************************************************************************
+        {% endcomment %}
+            <div class="post_featured">
+
+                {[ photoswipe imgsrc:'/GetImage.ashx?Guid={{ ImageGuid }}' imgtitle:'{{ item.Title }}' ]}
+                    <img src="/GetImage.ashx?Guid={{ ImageGuid }}" class="img-responsive img-rounded" itemprop="thumbnail" alt="{{ item.Title }}">
+                {[ endphotoswipe ]}
+                <br />
+                <hr />
+                <div class="text-center">
+                    <p class="uppercase"><i class="fa fa-share-alt"></i> <strong>Share</strong> this Story:
+                    {[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx/{{- ImageFile -}}?Guid={{- ImageGuid -}}' ]}
+                </div>
+                <hr />
+                <br />
+            </div>
+            <div class="post_content" itemprop="reviewBody">
+                <h2 itemprop="itemReviewed" class="post_title entry-title" style="text-transform: inherit;">{{ item.Title }}</h2>
+                <br />
+                {{ item.Content }}
+            </div>
+       {% endif %}
+
+    </article>
+    {[ endwow ]}
+
+{% endfor %}

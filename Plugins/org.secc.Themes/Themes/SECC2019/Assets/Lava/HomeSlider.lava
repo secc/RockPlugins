@@ -1,0 +1,57 @@
+<section id="BannerRotations" class="carousel slide" data-ride="carousel">
+
+    {% assign itemCount = Items | Size %}
+
+    {% if itemCount > 1 %}
+    <ol class="carousel-indicators">
+    {% if itemCount > 0 %}
+        {% for item in Items %}
+            <li data-target="#BannerRotations" data-slide-to="0" {% if forloop.first -%}class="active"{% endif -%}></li>
+        {% endfor %}
+    {% endif %}
+    </ol>
+    {% endif %}
+
+    <!-- Wrapper for slides -->
+	<div class="carousel-inner" controls>
+    {% if itemCount > 0 %}
+        {% for item in Items %}
+                {% assign bannerDefaultImage = item | Attribute:'Banner','Object'%}
+                {% assign bannerMobileImage = item | Attribute:'BannerMobileImage','Object'%}
+                {% assign bannerTabletImage = item | Attribute:'Banner','Object' %}
+
+                {% if bannerMobileImage == empty or bannerMobileImage == null or bannerMobileImage == "" %}
+                    {% assign bannerMobileImage = item | Attribute:'Banner','Object' %}
+                {% endif %}
+                {% if bannerTabletImage == empty or bannerTabletImage == null or bannerTabletImage == "" %}
+                    {% assign bannerTabletImage = item | Attribute:'Banner','Object' %}
+                {% endif %}
+
+                {% assign bannerLink = item | Attribute:'BannerLInk' %}
+
+                <div class="item {% if forloop.first -%}active{% endif -%}">
+                    {% if bannerLink != '' %}<a href="{{ bannerLink }}">{% endif %}
+
+                        <picture>
+                           <source media="(max-width: 480px)" srcset="/GetImage.ashx/{{ bannerMobileImage.Guid }}.jpg?guid={{ bannerMobileImage.Guid }}" />
+                           <img src="/GetImage.ashx/{{ bannerDefaultImage.Guid }}.jpg?guid={{ bannerDefaultImage.Guid }}" style="width:100vw;" />
+                        </picture>
+
+                    {% if bannerLink %}</a>{% endif %}
+        		</div>
+
+        {% endfor %}
+    {% endif %}
+    </div>
+
+    {% if itemCount > 1 %}
+    <!-- Controls -->
+    <a class="left carousel-control" href="#BannerRotations" data-slide="prev">
+        <span class="glyphicon glyphicon-chevron-left"></span>
+    </a>
+    <a class="right carousel-control" href="#BannerRotations" data-slide="next">
+        <span class="glyphicon glyphicon-chevron-right"></span>
+    </a>
+    {% endif %}
+
+</section>

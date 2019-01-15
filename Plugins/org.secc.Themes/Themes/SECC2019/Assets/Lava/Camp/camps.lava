@@ -1,0 +1,235 @@
+<style>
+	#bse_logo {
+		max-width: 600px;
+		margin: 4rem auto;
+	}
+	.isotope_item {
+		padding: 0px !important;
+	}
+	.isotope_item a {
+		z-index: 3;
+		text-decoration: none;
+	}
+	.isotope_item img {
+		width: 100%;
+	}
+	/* .camp-overlay::before {
+	    content: '';
+	    z-index: 0;
+	    position: absolute;
+	    width: 80%;
+	    height: 100%;
+	    top: 0;
+	    left: 20%;
+	    background:rgba(245, 133, 87, 0.50);
+	    transition: all 0.3s;
+	    -webkit-transition: all 0.3s;
+	} */
+	/* .camp-overlay img {
+		position: absolute;
+		top: 0;
+		left: 0;
+	} */
+	.isotope_item a:after {
+		 content: '';
+		 z-index: 0;
+	     position: absolute;
+	     width: 100%; height:100%;
+	     top:0; left:0;
+	     background:rgba(0,0,0,0.6);
+	     opacity: 0;
+	     transition: all 0.3s;
+		 text-decoration: none;
+	     -webkit-transition: all 0.3s;
+	}
+	.isotope_item a:hover:after {
+		 opacity: 1;
+		 text-decoration: none;
+	}
+	main.container {
+		display: none;
+	}
+	.mix {
+		background-color: #f58557;
+	}
+	.mix:before {
+		border-bottom: 10px solid #f58557;
+	}
+
+	.biblenbeach {
+		background-color: #36cae8;
+	}
+	.biblenbeach:before {
+		border-bottom: 10px solid #36cae8;
+	}
+
+
+	.sekids {
+		background-color: #e5376b;
+	}
+	.sekids:before {
+		border-bottom: 10px solid #e5376b;
+	}
+
+	.freedom {
+		background-color: #78ead3;
+	}
+	.freedom:before {
+		border-bottom: 10px solid #78ead3;
+	}
+
+	.event-info-top {
+		padding: 3% 5%;
+		z-index: 2;
+		position: absolute;
+	    top: 10%;
+	    left: 0;
+	    width: 100%;
+		color: white;
+	}
+	.event-info-bottom {
+		padding: 3% 5%;
+		position: absolute;
+		z-index: 2;
+	    bottom: 10%;
+	    left: 0;
+	    width: 100%;
+		color: white;
+	}
+	.camp-text {
+		font-size: 18px;
+		margin: 4rem 0;
+	}
+	@media (min-width: 992px) {
+	  .event-info-top, .event-info-bottom {
+		  min-height: 160px;
+	  }
+	}
+	@media (max-width: 1200px) {
+	  .event-info-top, .event-info-bottom {
+		  position: relative;
+	  }
+	}
+	@media (max-width: 992px) {
+		.mix:before, .biblenbeach:before, .sekids:before, .freedom:before {
+			content: "\a0";
+		    display: block;
+			position: absolute;
+			width: 100%;
+			height: 100%;
+			bottom: -10px;
+	    	left: 0;
+		}
+	  .event-info-top, .event-info-bottom {
+		  min-height: 100%;
+	      display: inline-block;
+	      width: 100%;
+		  word-spacing: -1;
+  	  }
+	}
+</style>
+<!-- OK -->
+
+<div class="container-fluid" style="padding: 0px;">
+	<div class="isotope_wrap">
+
+		<div class="isotope_item col-sm-12 col-md-6">
+			<a href="/camp/mix">
+				<img src="/Themes/SECC2014/Assets/img/Camps/MIX-color.jpg" alt="palooza.png" class="img-responsive">
+				<!-- <div class="camp-overlay">
+					<img src="/Themes/SECC2014/Assets/img/Camps/MIX_effect.png" class="img-responsive"/>
+				</div> -->
+				<div class="event-info-top mix">
+					<div class="col-sm-7 col-md-5 col-lg-6">
+						<h4>MIX</h4>
+						<p>Middle School<br />
+						   Country Lake Christian Retreat</p>
+					</div>
+					<div class="col-sm-5 col-md-7 col-lg-6">
+						Blankenbaker • June 7-11<br />
+						Crestwood, La Grange, <br />
+						Blankenbaker • June 11-15 <br />
+						Indiana, Southwest, <br />
+						Elizabethtown • June 15-19 <br />
+					</div>
+				</div>
+			</a>
+		</div>
+
+		<div class="isotope_item col-sm-12 col-md-6">
+			<a href="/camp/bibleandbeach">
+				<img src="/Themes/SECC2014/Assets/img/Camps/BibleBeach-color.jpg" class="img-responsive">
+				<div class="event-info-top biblenbeach">
+					<div class="col-sm-12">
+						<h4>BIBLE &amp; BEACH</h4>
+						<p>High School<br />
+						   June 23-29<br />
+					   	   Daytona Beach, Florida<br /></p>
+					</div>
+				</div>
+			</a>
+		</div>
+
+		<div class="isotope_item col-sm-12 col-md-6">
+			<a href="/camp/sekids-summer-camp">
+				<img src="/Themes/SECC2014/Assets/img/Camps/SEKids-color.jpg" alt="Celebrate Christmas Together" class="img-responsive">
+				<div class="event-info-bottom sekids">
+					<div class="col-sm-6 col-md-5 col-lg-5">
+						<h4>SE!KIDS SUMMER CAMP</h4>
+						<p>Elementary School<br />
+						   Country Lake Christian Retreat</p>
+					</div>
+					<div class="col-sm-6 col-md-7 col-lg-7">
+						1<sup>st</sup> - 2<sup>nd</sup> Grade Camp • July 13-14<br />
+						3<sup>rd</sup> - 5<sup>th</sup> Grade Camp 1 • July 15-18<br />
+						3<sup>rd</sup> - 5<sup>th</sup> Grade Camp 2 • July 19-22<br />
+					</div>
+				</div>
+			</a>
+		</div>
+
+		<div class="isotope_item col-sm-12 col-md-6">
+			<a href="/camp/camp-freedom">
+				<img src="/Themes/SECC2014/Assets/img/Camps/CampFreedom-color.jpg" alt="Celebrate Christmas Together" class="img-responsive">
+				<div class="event-info-bottom freedom">
+					<div class="col-sm-12">
+						<h4>CAMP FREEDOM</h4>
+						<p>Campers with Developmental Disabilities<br />
+						   July 27-29 • Country Lake Christian Retreat</p>
+					</div>
+				</div>
+			</a>
+		</div>
+
+	</div>
+</div>
+
+<script>
+    $(window).load(function() {
+        // Initialize SmoothScroll
+        var scroll = new SmoothScroll('a[href*="#"]', {
+            speed: 500, // Integer. How fast to complete the scroll in milliseconds
+            easing: 'easeInOutCubic', // Easing pattern to use
+        });
+
+        // Initialize Isotope
+        var $grid = $('.isotope_wrap').isotope({
+            // options
+            percentPosition: true,
+			itemSelector: '.isotope_item',
+            masonry: {
+              horizontalOrder: true
+            }
+        });
+        // reveal all items after init
+        var $items = $grid.find('.isotope_item');
+        $grid.addClass('is-showing-items')
+          .isotope( 'revealItemElements', $items );
+    });
+</script>
+
+<script type="text/javascript">
+  $( document ).ready(function() {
+    $('.js-group-item').tooltip();
+  });
+</script>
