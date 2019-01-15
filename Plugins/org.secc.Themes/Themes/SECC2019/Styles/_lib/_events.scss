@@ -1,0 +1,328 @@
+@import '../bootstrap/mixins/vendor-prefixes';
+
+.page_events_parallax {
+ 	header {
+		z-index: 5;
+		position: relative;
+		vertical-align: middle;
+		margin: 5%;
+		color: white;
+		h1 {
+			font-size: 10em;
+			@media (min-width: 769px) and (max-width: 992px) {
+		        font-size: 7.5em;
+		    }
+			@media (max-width: 768px) {
+		        font-size: 5em;
+		    }
+		}
+	}
+	&:after {
+		content: "";
+		background: rgba(0, 0, 0, 0.45);
+		width: 100%;
+		height: 100%;
+	    top: 0;
+	    left: 0;
+	    position: absolute;
+		display: block !important;
+	}
+}
+
+.wellbox {
+	position: absolute;
+	bottom: 0;
+	padding: 15px;
+	min-height: auto;
+	background-color: rgba(239,239,239, 1);
+	margin: 2em 1.5em 2em 0px;
+	border-radius: 10px;
+}
+
+#nextStep {
+	padding-top: 1em;
+	padding-bottom: 1em;
+}
+.event-list-background {
+    background-color: #efefef;
+}
+
+div[id$='pnlList'] {
+	transition: all 0.3s;
+}
+
+a.eventCardLink {
+    color: $CopyColor;
+}
+.event-calendar {
+
+	margin-bottom: 30px;
+    padding: 0px !important;
+
+    &.hide-on-load {
+        opacity: 0; // hide card when loaded, then display with isotope
+    }
+
+    .card {
+        background-color: $WhiteColor;
+        // padding: 30px;
+        // border-radius: 8px;
+        margin-left: 15px;
+        margin-right: 15px;
+        // background-color: rgba(239,239,239, 0.5);
+
+        -webkit-box-shadow: 0px 0px 15px 1px rgba(0, 0, 0, 0.15);
+        box-shadow: 0px 0px 15px 1px rgba(0, 0, 0, 0.15);
+
+        @include transition(all .3s ease);
+
+
+        @media (max-width: 768px) {
+            margin-left: 0px;
+            margin-right: 0px;
+            -webkit-box-shadow: 0 3px 12px 2px hsla(0,0%,78%,1);
+            box-shadow: 0 3px 12px 2px hsla(0,0%,78%,.5);
+        }
+        &:hover {
+            -webkit-box-shadow: 0 22px 133px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 22px 133px rgba(0, 0, 0, 0.15);
+            transform: translateY(-10px);
+            @include transition(all .3s ease);
+        }
+    }
+
+
+	#datedetails hr {
+		border-color: #e1e1e1;
+		margin: 10px 0;
+	}
+
+    .img-hover {
+        position:relative;
+        overflow: hidden;
+        // border-radius: 8px;
+        z-index: 3;
+        img {
+            z-index: -1;
+            background-color: white;
+            position:relative;
+            @include transition(all .3s ease);
+            @include scale(1.06);
+        }
+        img:hover {
+            // -webkit-backface-visibility: hidden;
+            // backface-visibility: hidden;
+            @include scale(1.01);
+        }
+
+        .event-photo-title {
+            width: 100%;
+            text-align: center;
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            h1 {
+                letter-spacing: 2px;
+                transform: translate(-50%, -50%);
+                @media (max-width: 768px) {
+                    font-size: 3rem;
+                    line-height: 2.5rem;
+                }
+                @media (min-width: 769px) and (max-width: 992px) {
+                    font-size: 1.2rem;
+                    line-height: 1rem;
+                }
+                @media (min-width: 993px) and (max-width: 1200px) {
+                    font-size: 1.5rem;
+                    line-height: 1.5rem;
+                }
+                @media (min-width: 1201px) {
+                    font-size: 3rem;
+                    line-height: 2.5rem;
+                }
+            }
+            h1, h2, h3, h4, h5, h6 {
+                small { color: white; }
+            }
+        }
+    }
+
+    .event-items {
+        height: 9.5rem;
+        overflow: hidden;
+        text-align: center;
+
+        .event-icon {
+            box-sizing: border-box;
+            position: relative;
+            width: 4.25rem;
+            height: 4.25rem;
+            margin: 5px auto;
+            background-repeat: no-repeat;
+            text-align: center;
+            color: #656565;
+
+            &.--calendar {
+                background-image: url('/Themes/SECC2019/Assets/img/events/Events.svg');
+            }
+            &.--clock {
+                background-image: url('/Themes/SECC2019/Assets/img/events/Clock.svg');
+            }
+            &.--location {
+                background-image: url('/Themes/SECC2019/Assets/img/events/Location.svg');
+            }
+        }
+    }
+
+    .date {
+        box-sizing: border-box;
+        position: relative;
+        width: 114px;
+        height: 114px;
+        background: url('/Themes/SECC2014/Assets/img/events/EventCalendarWhite.svg');
+        background-repeat: no-repeat;
+        text-align: center;
+        color: #656565;
+
+        .day {
+            top: 35px;
+            font-weight: bold;
+            font-size: 45px;
+            line-height: 1;
+            position: absolute;
+            right: 0;
+            left: 0;
+        }
+
+        .month {
+            bottom: 20px;
+            font-size: 16px;
+            line-height: 1;
+            position: absolute;
+            right: 0;
+            left: 0;
+        }
+    }
+
+    .multi-date {
+        box-sizing: border-box;
+      position: relative;
+      width: 114px;
+      height: 114px;
+      background: url('/Themes/SECC2014/Assets/img/events/MultipleEventsCalendarWhite.svg');
+      background-repeat: no-repeat;
+      text-align: center;
+    }
+
+    .reoccur-date {
+        box-sizing: border-box;
+      position: relative;
+      width: 114px;
+      height: 114px;
+      background: url('/Themes/SECC2014/Assets/img/events/ReoccuringEventsCalendarWhite.svg');
+      background-repeat: no-repeat;
+      text-align: center;
+    }
+}
+
+.event-detail-header {
+    background-color: #333;
+    padding: 60px 0 10px 0px;
+    height: 200px;
+
+    div {
+        height: 100%;
+        div {
+            height: 100%;
+            div {
+                height: 100%;
+            }
+        }
+    }
+
+    @media (max-width: 992px) {
+        height: auto;
+        padding: 60px 0 10px 20px;
+    }
+
+    h1 {
+        position: absolute;
+        bottom: 10px;
+        font-size: 3em;
+        color: white;
+        @media (min-width: 769px) and (max-width: 992px) {
+            font-size: 2.8em;
+            position: relative;
+        }
+        @media (max-width: 768px) {
+            position: relative;
+            font-size: 2.2em;
+        }
+    }
+}
+
+
+.event-details {
+    padding: 25px;
+    border-radius: 5px;
+    background: #ffffff;
+    box-sizing: border-box;
+    border-radius: 10px;
+    background-color: rgba(239,239,239, 1);
+    margin-bottom: 20px;
+
+    h2 {
+        font-weight: 300;
+        letter-spacing: 2px;
+    }
+    h4 {
+        font-weight: 400;
+        text-transform: uppercase;
+    }
+    hr {
+        margin: 10px 0px 20px 0px;
+        border-color: rgba(101,101,101, 0.4);
+    }
+    @media (min-width: 992px) {
+        margin-top: -180px;
+    }
+
+    .event-photo-container {
+        position: relative;
+        .event-photo {
+            position: relative;
+        }
+        .event-photo-title {
+            width: 100%;
+            text-align: center;
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            h1 {
+                letter-spacing: 2px;
+                transform: translate(-50%, -50%);
+                @media (max-width: 768px) {
+                    font-size: 3rem;
+                    line-height: 2.5rem;
+                }
+                @media (min-width: 769px) and (max-width: 992px) {
+                    font-size: 3rem;
+                    line-height: 2.5rem;
+                }
+                @media (min-width: 993px) and (max-width: 1200px) {
+                    font-size: 1.5rem;
+                    line-height: 1.5rem;
+                }
+                @media (min-width: 1201px) {
+                    font-size: 3rem;
+                    line-height: 2.5rem;
+                }
+            }
+            h1, h2, h3, h4, h5, h6 {
+                small { color: white; }
+            }
+        }
+    }
+}

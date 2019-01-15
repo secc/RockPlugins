@@ -1,0 +1,80 @@
+
+#Events {
+	$EventHeight: 350px;
+
+	@mixin BlockEvent {
+		margin-bottom: 2em;
+		height: auto;
+	}
+
+	.event {
+		border: $DefaultBorder;
+		background: #ffffff;
+		width: 100%;
+		height: 390px;
+		overflow: hidden;
+
+		.event-image {
+			width: 100%;
+		}
+
+		@include phones {
+			@include BlockEvent;
+		}
+
+		.event-header {
+			background: lighten($LightGrayColor, 20%);
+			line-height: 2.5em;
+			font-size: 1em;
+			text-transform: uppercase;
+			font-family: $Proxima-SemiBold;
+			font-weight: 600;
+			text-align: left;
+			position: relative;
+			cursor: pointer;
+
+
+			img {
+				float: left;
+				margin: 6px;
+				width: 38px;
+			}
+
+			.se-logo {
+				float: left;
+				margin: 6px;
+				margin-top: 12px;
+			}
+
+		}
+
+		.event-details {
+			padding: 20px;
+			cursor: pointer;
+		}
+	}
+
+	.col-md-4 .event {
+		@include tablets {
+			@include BlockEvent;
+		}
+	}
+
+	.more-link {
+		text-align: center;
+		margin-top: 2em;
+	}
+	.scroller {
+		$ArrowFontSize: 28px;
+
+		margin-top: ($EventHeight / 2) - ($ArrowFontSize / 2);
+
+		.btn-prev,
+		.btn-next {
+		display: none;
+			color: rgba(#333333, .2);
+			font-size: $ArrowFontSize;
+		}
+	}
+
+}

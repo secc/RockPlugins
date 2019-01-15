@@ -1,0 +1,114 @@
+{% assign item = Items | First %}
+{% if item %}
+
+	{% assign currentDate = 'Now' | Date:'M/d/yyyy' %}
+	{% assign currentMessage = item.ChildItems | First %}
+
+	{% comment %}
+		The Lava Code below checks for the closest sermon message to this day.
+    {% endcomment %}
+	{% for childItem in item.ChildItems %}
+		{% assign currentMessageDays = currentDate | DateDiff:childItem.ChildContentChannelItem.StartDateTime,'d' %}
+		{% if currentMessageDays <= 0 %}
+			{% assign currentMessage = childItem %}
+		{% endif %}
+	{% endfor %}
+
+	{% assign seriesImageGuid = item | Attribute:'SeriesImage','RawValue' %}
+	{% assign currentMessageVimeoID = currentMessage.ChildContentChannelItem | Attribute:'VimeoId' %}
+
+    <section id="">
+    	<div style="background-color:black">
+            {% unless currentMessageVimeoID == empty %}
+
+				<script>
+
+				  var tmpCanInitParallax = jarallax.constructor.prototype.canInitParallax;
+				  jarallax.constructor.prototype.canInitParallax = function(callback) {
+					// Intercept the set call for the video object and manually set the image
+					var imageHandler = {
+					  set(target, prop, value) {
+						target[prop] = value;
+						if (prop == 'video') {
+							value.videoImage = "https://www.southeastchristian.org/_/img/home/rotations/HOPE920-xl.jpg";
+							value.userEventsList['started'][0] = function () {
+
+								self.image.$default_item = self.image.$item;
+								self.image.$item = self.$video;
+
+								// set video width and height
+								self.image.width = self.video.videoWidth || 1280;
+								self.image.height = self.video.videoHeight || 720;
+								self.options.imgWidth = self.image.width;
+								self.options.imgHeight = self.image.height;
+								self.coverImage();
+								self.clipContainer();
+								self.onScroll();
+
+								// hide image
+								if (self.image.$default_item) {
+									self.css(self.image.$default_item, {
+										'transition': 'opacity .25s ease-in-out',
+										'-moz-transition': 'opacity .25s ease-in-out',
+										'-webkit-transition': 'opacity .25s ease-in-out',
+										'opacity': 1,
+									});
+									setTimeout(function () {
+										self.image.$default_item.style.opacity = 0;
+									}, 500);
+								}
+							};
+						}
+						return true;
+					  }
+					};
+					// Use a proxy'ed JS object
+					var self = new Proxy(this, imageHandler);
+					self.defaultInitImgResult = true;
+					self.image.src = "https://www.southeastchristian.org/_/img/home/rotations/HOPE920-xl.jpg";
+
+					// save default user styles
+					var curStyle = self.$item.getAttribute('style');
+					if (curStyle) {
+						self.$item.setAttribute('data-jarallax-original-styles', curStyle);
+					}
+
+					// set new background
+					self.css(self.$item, {
+						'background-image': 'url("https://www.southeastchristian.org/_/img/home/rotations/HOPE920-xl.jpg")',
+						'background-position': 'center',
+						'background-size': 'cover',
+						'transition': 'opacity .25s ease-in-out',
+						'-moz-transition': 'opacity .25s ease-in-out',
+						'-webkit-transition': 'opacity .25s ease-in-out',
+						'opacity': 1,
+					});
+
+					// Now actually call the method against the proxy object
+					return tmpCanInitParallax.apply(self);
+				  }
+				</script>
+
+                {[ parallax videourl:'https://vimeo.com/{{ currentMessageVimeoID }}' image:'https://www.southeastchristian.org/_/img/home/rotations/HOPE920-xl.jpg' videostarttime:'{{ currentMessage.ChildContentChannelItem.VimeoPromoStartTime }}' videoendtime:'{{ currentMessage.ChildContentChannelItem.VimeoPromoEndTime }}' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'80vh' position:'center center' speed:'-25' ]}
+					<!-- START: Ministry Logo & Video -->
+                    <div class="parallax-logo centered" style="max-width: inherit;padding: 0px;">
+                        <h5 class="uppercase g-letter-spacing--3">Latest Sermon</h5>
+						<hr class="g-width-80--xs">
+                        <h1 class="g-font-family--secondary" style="text-shadow: none;">{{ item.Title }}</h1>
+						<br />
+						<h5 class="uppercase g-letter-spacing--3">{{ currentMessage.ChildContentChannelItem.Title }}</h5>
+                        <br />
+                        <br />
+						<a href="{{ 'Global' | Page:'Path' }}/{{ item.Slug }}" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
+				            <strong>Watch Sermon</strong>
+				        </a>
+                    </div>
+                    <!-- END: Ministry Logo & Videod -->
+                {[ endparallax ]}
+            {% endunless %}
+    	</div>
+    </section>
+
+{% else %}
+	<h1>Could not find series.</h1>
+{% endif %}

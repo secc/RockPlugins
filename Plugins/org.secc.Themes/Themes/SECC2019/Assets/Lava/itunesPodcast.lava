@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+{%- assign timezone = 'Now' | Date:'zzz' | Replace:':','' -%}
+{%- assign imageURL = 'https://www.southeastchristian.org/content/podcasts/SEC_logo_solid_black.png' -%}
+<rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:secc="http://www.secc.org/dtds/sermons-1.0.dtd" version="2.0">
+    <channel>
+        <title>Southeast Christian Church</title>
+        <description>Connecting people to Jesus and one another. The weekly audio podcast of Southeast Christian Church in Louisville Kentucky. Featuring Senior Minister Dave Stone and Teaching Minister Kyle Idleman.</description>
+        <link>https://www.southeastchristian.org</link>
+        <copyright> Copyright {{ 'Now' | Date: 'yyyy' }} Southeast Christian Church, Inc. All rights reserved.</copyright>
+        <language>en-us</language>
+        <webmaster>rockhelp@secc.org</webmaster>
+        <managingEditor>web@secc.org</managingEditor>
+        <ttl>{{ Channel.TimeToLive }}</ttl>
+        <lastBuildDate>{{ 'Now' | Date:'ddd, dd MMM yyyy HH:mm:00' }} {{ timezone }}</lastBuildDate>
+        <itunes:new-feed-url>https://secc.org/sermonsRSSFeed</itunes:new-feed-url>
+        <itunes:subtitle>The audio podcast of Southeast Christian Church</itunes:subtitle>
+        <itunes:author>Southeast Christian Church, Louisville, KY</itunes:author>
+        <itunes:summary>Connecting people to Jesus and one another. The weekly audio podcast of Southeast Christian Church in Louisville Kentucky. Featuring Senior Minister Dave Stone and Teaching Minister Kyle Idleman.</itunes:summary>
+        <itunes:owner><itunes:name>Southeast Christian Church</itunes:name><itunes:email>web@secc.org</itunes:email></itunes:owner>
+        <itunes:keywords>Southeast Christian Church, Kyle Idleman, Sermons, Dave Stone, Louisville Kentucky</itunes:keywords>
+        <itunes:image href="{{ imageURL }}"/>
+        <itunes:explicit>No</itunes:explicit>
+        <image>
+            <url>
+                {{ imageURL }}
+            </url>
+            <title>Southeast Christian Church Louisville Kentucky</title>
+            <link>http://www.southeastchristian.org</link>
+            <description/>
+            <width>3000</width>
+            <height>3000</height>
+        </image>
+        <itunes:category text="Religion &amp; Spirituality">
+            <itunes:category text="Christianity"></itunes:category>
+        </itunes:category>
+        {%- for item in Items -%}
+            {%- assign mediaURL = item | Attribute:'Audio','RawValue'-%}
+            {%- assign parent = item | Property:'ParentItems' | First  | Property:'ContentChannelItem' -%}
+            {%- assign expireDays = 'Now' | DateDiff: parent.ExpireDateTime, 'd' -%}
+            {%- if mediaURL != ''-%}
+                {%- assign size = item | Attribute:'AudioFileSize' -%}
+                {%- assign duration = item | Attribute:'Duration' -%}
+                {%- assign summary = item.Content | StripHTML | Escape -%}
+                {%- assign speaker = item | Attribute:'Speaker' | Escape -%}
+                {%- assign pubdate = item.StartDateTime | Date:'ddd, dd MMM yyyy 11:00:00' -%}
+                {%- assign vimeoId = item | Attribute:'VimeoId' -%}
+                <item>
+                    <title>{{ parent.Title | Escape }}: {{ item.Title | Escape }}</title>
+                    <secc:title>{{ item.Title | Escape }}</secc:title>
+                    <description>{{ summary }} Speaker: {{ speaker }}</description>
+                    <link>https://rock.secc.org/GetFile.ashx/{{ mediaURL }}.mp3?guid={{ mediaURL }}</link>
+                    <enclosure url="https://rock.secc.org/GetFile.ashx/{{ mediaURL }}.mp3?guid={{ mediaURL }}" length="{{ size }}" type="audio/mpeg"></enclosure>
+                    <guid>{{ mediaURL }}</guid>
+                    <pubDate>{{ pubdate }} EST</pubDate>
+                    <copyright>{{ pubdate | Date:'yyyy' }}</copyright>
+                    <itunes:subtitle>{{ summary }}</itunes:subtitle>
+                    <itunes:summary>{{ summary }} Speaker: {{ speaker }}</itunes:summary>
+                    <itunes:duration>{{ duration }}</itunes:duration>
+                    <itunes:keywords>sermon</itunes:keywords>
+                    <itunes:author>{{ speaker }}</itunes:author>
+                    <itunes:image href="{{ imageURL }}"></itunes:image>
+                    <itunes:explicit>No</itunes:explicit>
+                    <secc:vimeo>{{ vimeoId }}</secc:vimeo>
+                    <secc:series>{{ parent.Title | Escape }}</secc:series>
+                </item>
+            {%- endif -%}
+        {%- endfor -%}
+    </channel>
+</rss>

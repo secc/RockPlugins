@@ -1,0 +1,17 @@
+<!--========== HEADER ==========-->
+<header class="cd-main-header transparent-menu-enabled transparent-header">
+   <a class="cd-logo" href="/home">
+       <img class="img-respoinsive default-logo" src="/Themes/SECC2019/Assets/img/logos/southeast/SECC_logo_wordmark_black.svg" alt="Logo">
+       <img class="img-respoinsive inverse" src="/Themes/SECC2019/Assets/img/logos/southeast/SECC_logo_wordmark_white.svg" alt="Logo">
+   </a>
+
+   <ul class="cd-header-buttons">
+       <li><a class="cd-search-trigger" href="#cd-search" title="Search">Search<span></span></a></li>
+       {% assign personGuidSize = CurrentPerson.Guid | Size %}
+       {% if personGuidSize == 0 %}
+       <li><a class="cd-nav-login" href="/login" title="Login">Login<span></span></a></li>
+       {% endif %}
+       <li><a class="cd-nav-trigger" href="#cd-primary-nav">Menu<span></span></a></li>
+   </ul> <!-- cd-header-buttons -->
+</header>
+<!--========== END HEADER ==========-->

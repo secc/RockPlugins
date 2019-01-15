@@ -1,0 +1,334 @@
+/*******************************************************
+* _INIT.SCSS
+* =================================================
+*
+* This file contains intitial setup and configuration
+* data for all site stylesheets. It includes
+* Site-wide variables, mixins, & functions
+*
+* IMPORTING ADDITIONAL CONFIGURATION STYLESHEETS:
+* ----------------------------------------------
+* All other sitewide includes should be imported at
+* at the end of this file. As this file is imported
+* into all other stylesheets, anything imported here
+* will likewise be imported into those stylesheets.
+*
+* ==================== WARNING! =======================
+* DO NOT INCLUDE ANY ACTUAL STYLES THAT WILL GET OUTPUT
+* TO THE FINAL CSS IN THIS FILE OR ANY FILE IMPORTED IN
+* THIS FILE! ANY SUCH STYLES WILL END UP BEING DEFINED
+* IN EVERY OUTPUT CSS FILE THAT IMPORTS THIS FILE (I.E.
+* ALL STYLESHEET FILES SITE WIDE).
+********************************************************/
+
+
+/* TYPOGRAPHY
+   ========== */
+$PrimaryCopyFont: 			"Helvetica Neue", Helvetica, Arial, sans-serif;
+$SerifFont: 				"minion-pro", Georgia, "Times New Roman", serif;
+
+$Proxima: 					join(("proxima-nova-n4", "proxima-nova"), $PrimaryCopyFont, comma);
+$Proxima-Thin: 				join(("proxima-nova-n1", "proxima-nova"), $PrimaryCopyFont, comma);
+$Proxima-Light: 			join(("proxima-nova-n3", "proxima-nova"), $PrimaryCopyFont, comma);
+$Proxima-SemiBold: 			join(("proxima-nova-n6", "proxima-nova"), $PrimaryCopyFont, comma);
+$Proxima-Bold: 				join(("proxima-nova-n7", "proxima-nova"), $PrimaryCopyFont, comma);
+$Proxima-ExtraBold: 		join(("proxima-nova-n8", "proxima-nova"), $PrimaryCopyFont, comma);
+$Proxima-Black: 			join(("proxima-nova-n9", "proxima-nova"), $PrimaryCopyFont, comma);
+
+/* Define the path to use for TisaPro fonts */
+$fa-tisapro-path:  			"/Themes/SECC2019/Assets/fonts/tisa-pro/";
+$TisaPro: 					join(("TisaPro", "tisa-pro"), $SerifFont);
+
+$TitleFont: $Proxima-SemiBold; // Overwrites bootstrap default
+
+
+/* COLORS
+   ====== */
+
+//Basic Colors for Backgrounds, copy, and links
+$PrimaryBackground		: #FFFFFF;
+$CopyColor				: #222222;
+$LinkColor				: #006699;
+
+//Some alternate colors used for Nav Items, highlights, and callouts
+$NavItemColor     		: #FFFFFF;
+$HighlightColor			: #383735; //darken(#D0C6BC, 20%); //#b87333; //darken(#D0C6BC, 20%); //#b87333;  // doody brown/copper
+$HighlightText			: rgba(#ffffff, 0.4);
+$CalloutColor			: #C6C1BC;  // tan/kakhi
+$ErrorColor 			: #CC0000;
+
+// Campus Colors
+$BlankenbakerColor		: #777600;
+$IndianaColor			: #9F1C21;
+$CrestwoodColor			: #37a7cd;
+$SouthwestColor			: #E87C1E;
+$LaGrangeColor			: #5C6D79;
+$ElizabethtownColor     : #000000;
+
+// 2019 Website Colors
+$BlackColor    		: #000000;
+$WhiteColor    		: #FFFFFF;
+$LightGreyColor	    : #7C7C7C;
+
+//Other Colors
+$GrayColor 				: #6D6A66;
+$LightGrayColor 		: lighten($GrayColor, 20%);
+$LightHighlight 		: lighten($HighlightColor, 30%);
+$DarkGrayColor 			: darken($GrayColor, 20%);
+
+$color-primary:              $WhiteColor !default;
+$color-sub:           		 $BlackColor !default;
+$color-dark:                 $BlackColor !default;
+$color-dark-light:           rgba($BlackColor,.8) !default;
+$color-heading:              $BlackColor !default;
+$color-white:                $WhiteColor !default;
+$color-sub-white:            rgba($color-white,.8) !default;
+$color-white-opacity:        rgba($color-white,.8) !default;
+$color-white-opacity-light:  rgba($color-white,.5) !default;
+$color-white-opacity-lighter:rgba($color-white,.3) !default;
+$color-white-opacity-lightest:rgba($color-white,.1) !default;
+$color-text:            	 $BlackColor !default;
+$color-gray-light:          rgba($color-dark-light,.2) !default;
+$color-gray-lighter:        rgba($color-dark-light,.1) !default;
+
+$DefaultBorder			: 1px solid $LightGrayColor;
+$SectionNavWidth 		: 23%;
+$SectionNavTabletWidth 	: $SectionNavWidth + 7%;
+
+// Options
+//
+// Quickly modify global styling by enabling or disabling optional features.
+$enable-hover-media-query:   				false !default;
+$enable-child-media-query:   				false !default;
+$enable-before-after-media-query:   false !default;
+
+$Campuses: (
+	blankenbaker : (
+		color: $BlankenbakerColor,
+		map: url(/_/img/campuses/lou-map.jpg),
+	),
+	indiana : (
+		color: $IndianaColor,
+		map: url(/_/img/campuses/lou-map.jpg),
+	),
+	crestwood : (
+		color: $CrestwoodColor,
+		map: url(/_/img/campuses/lou-map.jpg),
+	),
+	southwest : (
+		color: $SouthwestColor,
+		map: url(/_/img/campuses/sw/sw-map.jpg),
+	),
+	lagrange : (
+		color: $LaGrangeColor,
+		map: url(/_/img/campuses/la/la-map.jpg),
+	),
+    elizabethtown : (
+		color: $ElizabethtownColor,
+		map: url(/_/img/campuses/et/et-map.jpg),
+	),
+	default: (
+		color: $HighlightColor,
+		map: url(/_/img/campuses/lou-map.jpg),
+	)
+);
+
+$Textures: (
+	images: (
+		"halftone",
+		"grunge-wall",
+		"squairy-light",
+		"crossword",
+		"gray-noise",
+		"mooning"
+	),
+	colors: (
+		red: #882211,
+		purple: #775555,
+		gray: #eeffff,
+		green: #d5d8ad,
+		darkGreen: #7a7f3f,
+		yellow: #f2be79,
+		orange: #ffd399,
+		offWhite: #f2e2c0,
+		lightTan: #a4a095,
+		mediumTan: #d8c6ad,
+		darkTan: #222222,
+		brown: #7f643f,
+		burntOrange: #A86000,
+	)
+);
+
+
+/*Define the path to use for font awesome fonts */
+// $fa-font-path:        "/_/asdf/fonts/fontawesome";
+
+
+@function campus_color($CampusName) {
+	@return map_get(map_get($Campuses, $CampusName), "color");
+}
+
+
+@function str-replace($string, $search, $replace) {
+  $length: str-length($search);
+  $index: str-index($string, $search);
+  $slice: $string;
+  @while $index != null {
+    $slice: str-slice($slice, 1, $index - 1);
+    $slice: $slice + $replace;
+    $slice: $slice + str-slice($string, $index + $length);
+    $index: str-index($slice, $search);
+  }
+  @return $slice;
+}
+
+/*Define the path to use for font awesome fonts */
+$fa-font-path:        "../Assets/fonts";
+
+/* MIXINS
+   ====== */
+
+@mixin BodyCopy($FontSize: 1em) {
+	color		: $CopyColor;
+	font-family	: $PrimaryCopyFont;
+	font-weight	: normal;
+	font-size	: $FontSize;
+}
+
+@mixin Gradient ($top, $bottom, $startPos: 0%, $endPos: 100%) {
+	background: -moz-linear-gradient(top,  $top $startPos, $bottom $endPos); /* FF3.6-15 */
+	background: -webkit-linear-gradient(top,  $top $startPos,$bottom $endPos); /* Chrome10-25,Safari5.1-6 */
+	background: linear-gradient(to bottom,  $top $startPos,$bottom $endPos); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='$top', endColorstr='$bottom',GradientType=0 ); /* IE6-9 */
+}
+
+
+
+@mixin BoxShadow($right: 2px, $bottom: 2px, $blur: 5px,  $opacity: 0.75, $color: $CopyColor, $spread: 0px, $type: "normal") {
+	@if $type == "none" {
+		-webkit-box-shadow	: none;
+		-moz-box-shadow		: none;
+		box-shadow			: none;
+	} @elseif $type == "inset" {
+		-webkit-box-shadow	: inset $right $bottom $blur $spread rgba($color, $opacity);
+		-moz-box-shadow		: inset $right $bottom $blur $spread rgba($color, $opacity);
+		box-shadow			: inset $right $bottom $blur $spread rgba($color, $opacity);
+	} @else {
+		-webkit-box-shadow	: $right $bottom $blur $spread rgba($color, $opacity);
+		-moz-box-shadow		: $right $bottom $blur $spread rgba($color, $opacity);
+		box-shadow			: $right $bottom $blur $spread rgba($color, $opacity);
+	}
+}
+
+@mixin Transition($value) {
+	-webkit-transition	: $value;
+	-moz-transition		: $value;
+	-o-transition		: $value;
+	-ms-transition		: $value;
+	transition			: $value;
+}
+
+@mixin Transform($value) {
+	-webkit-transform: $value;
+	-moz-transform: $value;
+	-ms-transform: $value;
+	-o-transform: $value;
+	transform: $value;
+}
+
+@mixin DropDown($right: 10px, $color: inherit, $font-size: .8em, $font-weight: 400) {
+	position: relative;
+	width: 100%;
+	display: inline-block;
+
+	&::after {
+		content: "\e080";
+		font-family: 'Glyphicons Halflings';
+		position: absolute;
+		right: $right;
+		color: $color;
+		font-size: $font-size;
+		font-weight: $font-weight;
+		@include Transition(all 0.5s);
+	}
+}
+
+@mixin RotateDropDown() {
+	&::after {
+		@include Transform(rotate(90deg));
+	}
+}
+
+
+@mixin FontSmoothing($value: on) {
+    @if $value == on {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    @else {
+        -webkit-font-smoothing: subpixel-antialiased;
+        -moz-osx-font-smoothing: auto;
+    }
+}
+
+//FLEXBOX MIXINS
+
+@mixin flexbox() {
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+}
+
+@mixin flex-flow($values) {
+  -webkit-box-flex-flow: $values;
+  -moz-box-flex-flow:  $values;
+  -webkit-flex-flow:  $values;
+  -ms-flex-flow:  $values;
+  flex-flow:  $values;
+}
+
+@mixin justify-content($values) {
+  -webkit-box-justify-content: $values;
+  -moz-box-justfy-content:  $values;
+  -webkit-justify-content:  $values;
+  -ms-justify-content:  $values;
+  justify-content:  $values;
+}
+
+@mixin flexbox-prop($propery, $values) {
+  -webkit-box-#{$propery}: $values;
+  -moz-box-#{$propery}:  $values;
+  -webkit-#{$propery}:  $values;
+  -ms-#{$propery}:  $values;
+  #{$propery}:  $values;
+}
+
+@mixin flex($values) {
+  -webkit-box-flex: $values;
+  -moz-box-flex:  $values;
+  -webkit-flex:  $values;
+  -ms-flex:  $values;
+  flex:  $values;
+}
+
+
+@mixin order($val) {
+  -webkit-box-ordinal-group: $val;
+  -moz-box-ordinal-group: $val;
+  -ms-flex-order: $val;
+  -webkit-order: $val;
+  order: $val;
+}
+
+%reverse {
+	background	: #000000;
+	color		: #FFFFFF;
+	@include FontSmoothing;
+}
+
+/* ADDITIONAL CONFIGURATION STYLESHEETS
+*  ==================================== */
+@import 'bootstrap-variables';
+@import 'responsive';

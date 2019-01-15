@@ -1,0 +1,36 @@
+// Font
+@mixin font($size: null, $style: null, $weight: null, $variant: null, $family: null, $line-height: null) {
+  font-size: $size;
+  font-style: $style;
+  font-weight: $weight;
+  font-variant: $variant;
+  font-family: $family;
+  line-height: $line-height;
+}
+
+// @font-face {
+// 	font-family: 'FF-TisaPro';
+// 	src: local('TisaPro'),
+// 		 local('FF-TisaPro'),
+// 		 local('FontFont TisaPro'),
+// 		 local('FontFont-TisaPro'),
+// 		 local('FontFont - TisaPro'),
+// 		 url('/Themes/SECC2019/Assets/fonts/tisa-pro/FF-TisaPro.otf'),
+// 		 format('opentype');
+// }
+
+
+@mixin font-face($name, $file, $weight: normal, $style: normal){
+	@font-face {
+		font-family: '#{$name}';
+		src: url('#{$fa-tisapro-path + $file}.otf');
+        font-weight: $weight;
+        font-style: $style;
+	}
+}
+
+// antialiasing mode font rendering
+@mixin font-smoothing {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

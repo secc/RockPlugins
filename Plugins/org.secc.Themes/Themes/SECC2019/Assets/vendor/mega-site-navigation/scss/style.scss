@@ -1,0 +1,1433 @@
+@import 'bourbon'; // http://bourbon.io/
+
+@import 'partials/variables'; // colors, fonts etc...
+
+@import 'partials/layout'; // responsive grid and media queries
+
+// @import '../../../../Styles/fontawesome/font-awesome';
+
+/* --------------------------------
+
+Primary style
+
+-------------------------------- */
+
+*, *::after, *::before {
+	box-sizing: border-box;
+}
+
+html {
+	// font-size: 100%;
+	// font-size: 62.5%;
+}
+
+body {
+	font: {
+		// size: 1.6rem;
+		family: $primary-font; // variables inside partials > _variables.scss
+	}
+	color: $color-4;
+	background-color: $color-1;
+
+	@include MQ(maxL) { // layout mixins inside partials > _layout.scss
+		&.nav-on-left.overflow-hidden {
+			overflow: hidden;
+		}
+	}
+}
+
+a {
+	color: $color-4;
+	text-decoration: none;
+}
+
+img {
+	/* make images responsive */
+	max-width: 100%;
+}
+
+input {
+	font-family: $primary-font;
+	font-size: 1.6rem;
+}
+
+input[type="search"]::-ms-clear {
+	/* removes close icon - IE */
+    display: none;
+}
+
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+  display: none;
+}
+
+/* --------------------------------
+
+Main components
+
+-------------------------------- */
+
+.cd-main-content, .cd-main-header {
+	/* Force Hardware Acceleration in WebKit */
+	/*@include transform(translateZ(0));
+	will-change: transform;*/
+}
+
+.cd-main-content, .cd-main-header {
+	position: relative;
+	@include transition(transform .3s,background-color .3s, visibility 0s 0s);
+
+	&.transparent-header {
+		background-color: transparent !important;
+		box-shadow: none;
+
+		.cd-nav {
+			ul li a {
+				color: $color-1;
+				&:before,
+				&:after {
+					border-color: $color-1;
+				}
+			}
+		}
+
+		.cd-search-trigger {
+			&:before {
+				border-color: $color-1;
+			}
+			&:after {
+				background-color: $color-1;
+			}
+		}
+
+		.cd-nav-login {
+			&::before {
+				background-image: url('../img/SE/profile-white.svg');
+			}
+		}
+
+		.cd-nav-trigger {
+			&.nav-is-visible span {
+				background-color: transparent;
+			}
+			& span {
+				background-color: $color-1;
+				&:before {
+					background-color: $color-1;
+				}
+				&:after {
+					background-color: $color-1;
+				}
+			}
+		}
+
+		.cd-logo img.default-logo {
+			display: none;
+		}
+		.cd-logo img.inverse {
+			display: block;
+		}
+	}
+
+	@include MQ(maxL) {
+		&.nav-is-visible {
+			@include transform(translateX(-$nav-width-S));
+		}
+
+		.nav-on-left &.nav-is-visible {
+			@include transform(translateX($nav-width-S));
+		}
+	}
+}
+
+.cd-main-content {
+	// background: lighten($color-3, 8%);
+	min-height: 100vh;
+	z-index: $content;
+	background-color: #fff;
+}
+
+// .cd-main-content-z-index {
+// 	z-index: $content;
+// }
+
+.cd-main-header {
+	height: $header-height-S;
+	background: $color-1;
+	z-index: $above-content;
+
+	-webkit-box-shadow: 1px -5px 20px 0px rgba($color-4 ,0.5);
+	-moz-box-shadow: 1px -5px 20px 0px rgba($color-4 ,0.5);
+	box-shadow: 1px -5px 20px 0px rgba($color-4 ,0.5);
+
+	&.nav-is-visible {
+		-webkit-box-shadow: none;
+	    -moz-box-shadow: none;
+	    box-shadow: none;
+	}
+
+	.nav-is-fixed & {
+		/* add .nav-is-fixed class to body if you want a fixed navigation on > 1170px */
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+	}
+
+	@include MQ(L) {
+		height: $header-height-L;
+		@include clearfix;
+	}
+}
+
+main {
+ 	margin-top: $header-height-S;
+	 &.transparent-content {
+		 margin-top: 0 !important;
+	 }
+	 @include MQ(L) {
+	 	margin-top: $header-height-L;
+		&.transparent-content {
+	   	 margin-top: 0 !important;;
+	    }
+	 }
+}
+
+.cd-logo {
+	position: absolute;
+	top: 10px;
+	left: 1.2em;
+	transition: all 0.4s;
+
+	img {
+	    // max-width: 245px;
+		display: block;
+		height: 50px;
+		padding: 10px;
+		&.inverse {
+			display: none;
+		}
+	}
+
+	@include MQ(maxL) {
+		.nav-on-left & {
+			left: auto;
+			right: 5%;
+		}
+	}
+
+	@include MQ(L) {
+		top: 15px;
+		left: 4em;
+
+		img {
+			padding: 7px;
+		}
+	}
+}
+
+.cd-header-buttons {
+	position: absolute;
+	display: inline-block;
+	top: 12px;
+	right: 5%;
+
+	li {
+		// display: inline-block;
+		display: inline-flex;
+	}
+
+	@include MQ(maxL) {
+		.nav-on-left & {
+			right: auto;
+			left: 5%;
+
+			li {
+				float: right;
+			}
+		}
+	}
+
+	@include MQ(L) {
+		top: 18px;
+		right: 100px;
+	}
+}
+
+.cd-search-trigger,
+.cd-nav-trigger,
+.cd-nav-login {
+	position: relative;
+	display: block;
+	width: 44px;
+	height: 44px;
+	overflow: hidden;
+	white-space: nowrap;
+	/* hide text */
+	color: transparent !important;
+	z-index: $above-content;
+}
+
+.cd-search-trigger {
+
+	&::before, &::after {
+		/* search icon */
+		content: '';
+		position: absolute;
+		@include transition(opacity .3s);
+		/* Force Hardware Acceleration in WebKit */
+		@include transform(translateZ(0));
+		-webkit-backface-visibility: hidden;
+		backface-visibility: hidden;
+	}
+
+	&::before {
+		/* lens */
+		top: 11px;
+		left: 11px;
+		width: 18px;
+		height: 18px;
+		border-radius: 50%;
+		border: 3px solid $color-4;
+	}
+
+	&::after {
+		/* handle */
+		height: 3px;
+		width: 8px;
+		background: $color-4;
+		bottom: 14px;
+		right: 11px;
+		@include transform(rotate(45deg));
+	}
+
+	span {
+		/* container for the X icon */
+		position: absolute;
+		height: 100%;
+		width: 100%;
+		top: 0;
+		left: 0;
+	}
+
+	span::before, span::after {
+		/* close icon */
+		content: '';
+		position: absolute;
+		display: inline-block;
+		height: 3px;
+		width: 22px;
+		top: 50%;
+		margin-top: -2px;
+		left: 50%;
+		margin-left: -11px;
+		background: $color-4;
+		opacity: 0;
+		/* Force Hardware Acceleration in WebKit */
+		@include transform(translateZ(0));
+		-webkit-backface-visibility: hidden;
+		backface-visibility: hidden;
+		@include transition(opacity .3s, transform .3s);
+	}
+
+	span::before {
+		@include transform(rotate(45deg));
+	}
+
+	span::after {
+		@include transform(rotate(-45deg));
+	}
+
+	&.search-is-visible {
+		&::before, &::after {
+			/* hide search icon */
+			opacity: 0;
+		}
+
+		span::before, span::after {
+			/* show close icon */
+			opacity: 1;
+		}
+
+		span::before {
+			@include transform(rotate(135deg));
+		}
+
+		span::after {
+			@include transform(rotate(45deg));
+		}
+	}
+}
+
+.cd-nav-trigger {
+
+	span, span::before, span::after {
+		/* hamburger icon in CSS */
+		position: absolute;
+		display: inline-block;
+		height: 3px;
+		width: 24px;
+		background: $color-4;
+	}
+
+	span {
+		/* line in the center */
+		position: absolute;
+		top: 50%;
+		right: 10px;
+		margin-top: -2px;
+		/*@include transition(background .3s .3s);*/
+	}
+
+	span::before, span::after {
+		/* other 2 lines */
+		content: '';
+		right: 0;
+		/* Force Hardware Acceleration in WebKit */
+		@include transform(translateZ(0));
+		-webkit-backface-visibility: hidden;
+		backface-visibility: hidden;
+		@include transform-origin(0% 50%);
+		@include transition(transform .3s .3s);
+	}
+
+	span::before {
+		/* menu icon top line */
+		top: -6px;
+	}
+
+	span::after {
+		/* menu icon bottom line */
+		top: 6px;
+	}
+
+	&.nav-is-visible {
+		span {
+			/* hide line in the center */
+			background: rgba($color-4, 0);
+		}
+
+		span::before, span::after {
+			/* keep visible other 2 lines */
+			background: rgba($color-4, 1);
+		}
+
+		span::before {
+			@include transform(translateX(4px) translateY(-3px) rotate(45deg));
+		}
+
+		span::after {
+			@include transform(translateX(4px) translateY(2px) rotate(-45deg));
+		}
+	}
+
+	@include MQ(L) {
+		display: none;
+	}
+}
+
+.large_screen_only {
+	display: none;
+	@include MQ(L) {
+		display: block;
+	}
+}
+
+.cd-nav-login {
+
+	&::before {
+		/* profile icon */
+		content: '';
+		position: absolute;
+		@include transition(opacity .3s);
+		/* Force Hardware Acceleration in WebKit */
+		@include transform(translateZ(0));
+		-webkit-backface-visibility: hidden;
+		backface-visibility: hidden;
+	}
+
+	&::before {
+		/* SVG */
+		content:'';
+		display: block;
+		position: absolute;
+		top: 50%;
+		margin-top: -20px;
+		width: 40px;
+		height: 40px;
+		background-repeat: no-repeat;
+		background-position: center center;
+		background-image: url('../img/SE/profile.svg');
+	}
+}
+
+.cd-primary-nav, .cd-primary-nav ul {
+	font-size: 1.5rem;
+	position: fixed;
+	top: 0;
+	right: 0;
+	height: 100%;
+	font-weight: bold;
+	text-transform: uppercase;
+	width: $nav-width-S;
+	background: $color-1;
+	overflow: auto;
+	-webkit-overflow-scrolling: touch;
+	z-index: $below-content;
+
+	-webkit-box-shadow: inset 1px 0px 0px 0px $color-3;
+	-moz-box-shadow: inset 1px 0px 0px 0px $color-3;
+	box-shadow: inset 1px 0px 0px 0px $color-3;
+
+	@include MQ(L) {
+		font-size: 1.1rem;
+		-webkit-box-shadow: none;
+		-moz-box-shadow: none;
+		box-shadow: none;
+	}
+
+	/* Force Hardware Acceleration in WebKit */
+	@include transform(translateZ(0));
+	@include transform(translateX(0));
+	@include transition(transform .3s);
+
+	a,div.disabled {
+		display: block;
+		height: 50px;
+		line-height: 50px;
+		padding: 0 20px;
+		color: $color-4;
+		text-decoration: none;
+		-webkit-font-smoothing: antialiased;
+  		-moz-osx-font-smoothing: grayscale;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		border-bottom: 1px solid lighten($color-3, 20%);
+		@include transform(translateZ(0));
+		will-change: transform, opacity;
+		@include transition(transform .3s, opacity .3s);
+	}
+
+	&.is-hidden {
+		/* secondary navigations hidden by default */
+		@include transform(translateX(100%));
+	}
+
+	&.moves-out > li > a {
+		/* push the navigation items to the left - and lower down opacity - when secondary nav slides in */
+		@include transform(translateX(-100%));
+		opacity: 0;
+	}
+}
+
+@include MQ(maxL) {
+	.nav-on-left .cd-primary-nav, .nav-on-left .cd-primary-nav ul {
+		right: auto;
+		left: 0;
+	}
+}
+
+.cd-primary-nav {
+
+	.see-all a {
+		/* different style for the See all button on mobile and tablet */
+		// color: $color-4;
+	}
+
+	.cd-nav-gallery .cd-nav-item,
+	.cd-nav-icons .cd-nav-item,
+	.cd-nav-list .cd-nav-item,
+	.cd-dash-icons .cd-nav-item {
+		/* items with picture (or icon) and title */
+		height: 50px;
+		line-height: 50px;
+		text-transform: none;
+
+		h3 {
+			color: inherit;
+			line-height: inherit;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+	}
+
+	.cd-nav-gallery .cd-nav-item {
+		padding-left: 75px;
+		text-transform: uppercase;
+
+		img {
+			position: absolute;
+			display: block;
+			height: 40px;
+			width: auto;
+			left: 20px;
+			top: 50%;
+			margin-top: -20px;
+			border-radius: 100%;
+		}
+
+		h3 {
+			font-size: 14px;
+		}
+	}
+
+	.cd-nav-icons .cd-nav-item {
+		padding-left: 75px;
+
+		p {
+			color: $color-4;
+			font-size: 1.3rem;
+			/* hide description on small devices */
+			display: none;
+		}
+
+		h3 {
+			font-size: 1.5rem;
+			margin-top: 0px;
+			font-weight: 600;
+
+			@include MQ(L) {
+				color: $color-4;
+				font-size:1.75rem;
+		        margin-top: 8px;
+			}
+		}
+
+		&::before {
+			/* item icon */
+			content:'';
+			display: block;
+			position: absolute;
+			left: 20px;
+			top: 50%;
+			margin-top: -20px;
+			width: 40px;
+			height: 40px;
+			background-repeat: no-repeat;
+			background-position: center center;
+			background-size: 35px 35px;
+
+			@include MQ(L) {
+				top: 25%;
+				margin-top: 0;
+				width: 70px;
+				height: 70px;
+				background-size: 65px 65px;
+			}
+		}
+
+		&.disabled {
+			line-height: 25px;
+			h3 {
+				color: $color-3;
+			    margin-top: 5px;
+				@include MQ(L) {
+					margin-top: 0;
+				}
+				small {
+					clear: both;
+					display: block;
+					text-transform: uppercase;
+					padding-left: 5px;
+					color: $color-3;
+					font-weight: 600;
+				}
+			}
+			&:before  {
+				fill: $color-3;
+			}
+		}
+
+		&.mission::before {
+			background-image: url('../img/SE/Mission.svg');
+		}
+
+		&.what-we-believe::before {
+			background-image: url('../img/SE/bible.svg');
+		}
+
+		&.faq::before {
+			background-image: url('../img/SE/FAQ.svg');
+		}
+
+		&.leadership::before {
+			background-image: url('../img/SE/Leadership.svg');
+		}
+
+		&.baptism::before {
+			background-image: url('../img/SE/baptism.svg');
+		}
+
+		&.employment::before {
+			background-image: url('../img/SE/Employment.svg');
+		}
+
+		&.sermons::before {
+			background-image: url('../img/SE/sermons.svg');
+		}
+
+		&.podcast::before {
+			background-image: url('../img/SE/Podcast.svg');
+		}
+
+		&.stoies::before {
+			background-image: url('../img/SE/Stories.svg');
+		}
+
+		&.live-stream::before {
+			background-image: url('../img/SE/Live-Stream-Grey.svg');
+		}
+
+		&.starting-point::before {
+			background-image: url('../img/SE/membership.svg');
+		}
+
+		&.events::before {
+			background-image: url('../img/SE/Events.svg');
+		}
+
+		&.groups::before {
+			background-image: url('../img/SE/groups.svg');
+		}
+
+		&.serve::before {
+			background-image: url('../img/SE/Serve.svg');
+		}
+	}
+
+	.cd-nav-list .cd-nav-item {
+
+		p {
+			color: $color-4;
+			font-size: 1.3rem;
+			/* hide description on small devices */
+			display: none;
+		}
+
+		h3 {
+			font-size: 1em;
+			margin-top: 0px;
+			font-weight: 600;
+
+			@include MQ(L) {
+				color: $color-4;
+				font-size:1.75rem;
+		        margin-top: 8px;
+			}
+		}
+	}
+
+	.cd-dash-icons .cd-nav-item {
+
+		h3 {
+			font-size: 1em;
+			margin-top: 0px;
+			font-weight: 200;
+
+			@include MQ(L) {
+				color: $color-4;
+				font-weight: bold;
+				font-size:1.75rem;
+				margin-top: 8px;
+			}
+		}
+	}
+
+	@include MQ(maxL) {
+		/* by default .cd-primary-nav is hidden - trick for iOS devices where you can see the navigation if you pull down */
+		visibility: hidden;
+		@include transition(visibility 0s .3s);
+
+		&.nav-is-visible {
+			visibility: visible;
+			@include transition(visibility 0s 0s);
+		}
+	}
+}
+
+@include MQ(L) {
+
+	.MobileGroupManager {
+		display: none;
+	}
+
+	.cd-primary-nav {
+		position: static;
+		// padding: 0 150px 0 0;
+		padding: 0 210px 0 0;
+		height: auto;
+		width: auto;
+		float: right;
+		overflow: visible;
+		background: transparent;
+		@include clearfix;
+
+		&.moves-out > li > a {
+			/* reset mobile style */
+			@include transform(translateX(0));
+			opacity: 1;
+		}
+
+		ul {
+			position: static;
+			height: auto;
+			width: auto;
+			background: transparent;
+			overflow: visible;
+			z-index: $above-content;
+			a {
+				color: $color-4;
+				border-bottom: 3px solid $color-3;
+				transition: all .3s;
+				&:hover {
+					background-color: lighten($color-3, 30%);
+				}
+			}
+			&.is-hidden {
+				/* reset mobile style */
+				@include transform(translateX(0));
+			}
+
+			&.moves-out > li > a {
+				/* reset mobile style */
+				@include transform(translateX(0));
+				opacity: 1;
+			}
+		}
+
+		> li {
+			float: left;
+			margin-left: 1.5em;
+		}
+
+		> li > a {
+			/* main navigation buttons style */
+			position: relative;
+			display: inline-block;
+			height: $header-height-L;
+			line-height: $header-height-L;
+			padding: 0 10px;
+			color: $color-4;
+			overflow: visible;
+			border-bottom: none;
+			@include transition(color .3s, box-shadow .3s);
+
+			&:hover {
+				color: $color-4;
+			}
+
+			&.selected {
+				color: $color-2;
+				box-shadow: inset 0 -2px 0 $color-2;
+			}
+		}
+
+		.go-back, .see-all {
+			display: none;
+		}
+
+		.cd-secondary-nav,
+		.cd-nav-gallery,
+		.cd-nav-icons,
+		.cd-nav-list,
+		.cd-dash-icons {
+			/* dropdown menu style */
+			position: absolute;
+			top: $header-height-L;
+			width: 100vw;
+			background: $color-1;
+			// padding: 48px 64px 130px;
+			padding: 48px 64px;
+			border-bottom: 1px solid lighten($color-3, 20%);
+			box-shadow: inset 0 1px 0 rgba($color-4, 0.16);
+			@include transform(translateX(0));
+			@include clearfix;
+			-webkit-transition: opacity .3s 0s, visibility 0s 0s;
+			-moz-transition: opacity .3s 0s, visibility 0s 0s;
+			transition: opacity .3s 0s, visibility 0s 0s;
+
+			&.is-hidden {
+				opacity: 0;
+				visibility: hidden;
+				-webkit-transition: opacity .3s 0s, visibility 0s .3s;
+				-moz-transition: opacity .3s 0s, visibility 0s .3s;
+				transition: opacity .3s 0s, visibility 0s .3s;
+			}
+
+			> .see-all {
+				/* this is the BIG See all button at the bottom of the dropdown menu */
+				display: block;
+				position: absolute;
+				left: 0;
+				bottom: 0;
+				height: 60px;
+				text-transform: none;
+				width: 100%;
+				overflow: hidden;
+				/* reset some inherited style */
+				margin: 0;
+				padding: 0;
+
+				a {
+					color: $color-4;
+					position: absolute;
+					width: 100%;
+					height: 100%;
+					top: 0;
+					left: 0;
+					font-size: 2rem;
+					font-weight: bold;
+					text-align: center;
+					line-height: 60px;
+					border-top: 1px solid rgba($color-4, 0.16);
+					/* reset some inherited style */
+					border-bottom: none;
+					margin: 0;
+					padding: 0;
+					@include transition(color .2s, background .2s, border .2s);
+				}
+			}
+		}
+
+		.cd-secondary-nav {
+
+			> li {
+				/* change the height according to your needs - you can even set height: auto */
+				height: auto;
+				/* here you set the number of columns - use width percentage */
+				@include column(.23); // see partials > _layout.scss
+				margin-right: 1.3%;
+				padding-right: 1.3%;
+				// border-right: 1px solid $color-3;
+				overflow: hidden;
+				overflow-x: hidden;
+				overflow-y: auto;
+				-webkit-overflow-scrolling: touch;
+
+				&:nth-child(4n+2) {
+					/* +2 because we have 2 list items with display:none */
+					margin-right: 0;
+					border-right: none;
+				}
+
+				> a {
+					/* secondary nav title */
+					color: $color-4;
+					font-weight: bold;
+					font-size: 1.6rem;
+					margin-bottom: .6em;
+				}
+			}
+
+			a {
+				// height: 40px;
+				// line-height: 30px;
+				// padding: 0 18% 0 0;
+				// color: $color-1;
+				// border-bottom: none;
+				// font-size: 1.4rem;
+				height: 60px;
+				line-height: 20px;
+				padding: 10px 18% 0 0;
+				color: $color-4;
+				border-bottom: none;
+				font-size: 1.4rem;
+
+				&:hover:not(.nohover) {
+					color: $color-2;
+					background-color: #f6f6f5;
+				}
+			}
+
+			ul {
+				/* Force Hardware Acceleration in WebKit */
+				@include transform(translateZ(0));
+			}
+
+			ul ul {
+				/* tertiary navigation */
+				position: absolute;
+				top: 0;
+				left: 0;
+				height: 100%;
+				width: 100%;
+
+				&.is-hidden {
+					@include transform(translateX(100%));
+				}
+
+				.go-back {
+					display: block;
+
+					a {
+						color: transparent;
+					}
+				}
+
+				.see-all {
+					display: block;
+				}
+			}
+
+			.moves-out > li > a {
+				/* push the navigation items to the left - and lower down opacity - when tertiary nav slides in */
+				@include transform(translateX(-100%));
+			}
+		}
+
+		.cd-nav-gallery {
+			li {
+				/* set here number of columns - use width percentage */
+				// @include column(.22);
+				// margin: 0 4% 40px 0;
+				@include column(.16666);
+
+				&:last-child {
+					/* This gives some space for the "See All" button */
+					margin-bottom: 50px;
+				}
+			}
+
+			.cd-nav-item {
+				border-bottom: none;
+				padding: 0;
+				height: auto;
+				line-height: 1.2;
+				text-align: center;
+
+				img {
+					position: static;
+					margin-top: 0;
+					height: auto;
+					border-radius: 100%;
+					width: 70%;
+					margin: 15px auto;
+				}
+
+				h3 {
+					margin-top: 15px;
+					font-size: 1.4em;
+					color: $color-4;
+					font-weight: bold;
+					padding: 0 .4em;
+				}
+			}
+		}
+
+		.cd-nav-icons {
+			li {
+				/* set here number of columns - use width percentage */
+				&.se-4-column {
+					@include column(.25);
+				}
+				&.se-3-column {
+					@include column(.3333);
+				}
+				&.border-right {
+					border-right: 1px solid rgba($color-4, 0.16);
+				}
+
+				.disabled {
+					h3 {
+						color: $color-3;
+						small {
+							clear: both;
+							display: block;
+							text-transform: uppercase;
+							padding-left: 5px;
+							color: $color-3;
+							font-weight: 600;
+						}
+					}
+					&:before  {
+						fill: $color-3;
+					}
+				}
+
+				/* child items within */
+				li {
+					@include column(.48);
+					margin: 0 2% 20px 0;
+					// margin: 0 0.65% 20px 0.65%;
+				}
+			}
+
+			.cd-nav-item {
+				border-bottom: none;
+				height: auto;
+				line-height: 1.2;
+				padding: 5px 20px 5px 85px;
+				position: relative;
+
+				@include MQ(L) {
+					height: 100px;
+					padding: 40px 0 40px 120px;
+				}
+
+				&:hover {
+					// background: lighten($color-3, 8%);
+				}
+
+				h3 {
+					color: $color-4;
+					font-weight: bold;
+				}
+
+				p {
+					display: block;
+					white-space: normal;
+				}
+
+				&::before {
+					left: 40px;
+    				top: 20%;
+				}
+			}
+		}
+
+		.cd-nav-list {
+			&.include-see-all {
+				li:last-child {
+					/* This gives some space for the "See All" button */
+					margin-bottom: 50px;
+				}
+			}
+			li {
+				/* set here number of columns - use width percentage */
+				@include column(.25);
+
+				&.border-right {
+					border-right: 1px solid rgba($color-4, 0.16);
+				}
+			}
+
+			.cd-nav-item {
+				border-bottom: none;
+				height: auto;
+				line-height: 1.2;
+				padding: 0px 20px 5px 30px;
+				position: relative;
+
+				h3 {
+					color: $color-4;
+					font-weight: bold;
+					padding-bottom: 5px;
+				}
+
+				p {
+					display: block;
+					white-space: normal;
+				}
+
+				&::before {
+					left: 10%;
+    				top: 23%;
+				}
+			}
+		}
+
+		.cd-dash-icons {
+
+			padding: 48px 64px 130px;
+			border-bottom: 0px;
+
+		    li {
+		        /* set here number of columns - use width percentage */
+		        @include column(.483);
+		        // margin: 0 2% 20px 0;
+		        margin: 0 0.65% 20px 0.65%;
+
+		        // &:nth-child(3n+2) {
+		        //     /* +2 because we have two additional list items with display:none */
+		        //     margin-right: 0;
+		        // }
+		    }
+
+
+		    .cd-nav-item {
+				text-align: left;
+		        border-bottom: none;
+		        height: 80px;
+		        line-height: 1.2;
+		        padding: 7px 0 0 22px;
+		        //padding: 0 0 0 85px;
+		        position: relative;
+
+		        &:hover {
+		            // background: lighten($color-3, 8%);
+		        }
+
+				span.niche {
+					width: 75px;
+				    background-color: $color-3;
+				    height: 3px;
+				    display: inline-block;
+				}
+			}
+		}
+	}
+}
+
+.has-children > a.arrow, .has-children > a > div.arrow, .go-back a.arrow {
+	position: relative;
+	cursor: pointer;
+
+	&::before, &::after {
+		/* arrow icon in CSS - for element with nested unordered lists */
+		content: '';
+		position: absolute;
+		top: 50%;
+		margin-top: -1px;
+		display: inline-block;
+		height: 2px;
+		width: 10px;
+		background: lighten($color-4, 10%);
+		-webkit-backface-visibility: hidden;
+		backface-visibility: hidden;
+	}
+
+	&::before {
+		@include transform(rotate(45deg));
+	}
+
+	&::after {
+		@include transform(rotate(-45deg));
+	}
+
+	@include MQ(L) {
+		&::before, &::after {
+			background: darken($color-4, 10%);
+		}
+
+		&:hover::before, &:hover::after {
+			background: $color-4;
+		}
+	}
+}
+.has-children > a > div.arrow {
+	position: absolute;
+    right: 0;
+    top: 50%;
+}
+.has-children > a, .has-children > a > div.arrow {
+	padding-right: 40px;
+
+	&::before, &::after {
+		/* arrow goes on the right side - children navigation */
+		right: 20px;
+		@include transform-origin(9px 50%);
+	}
+}
+
+.cd-primary-nav .go-back a {
+	padding-left: 40px;
+
+	&::before, &::after {
+		/* arrow goes on the left side - go back button */
+		left: 20px;
+		@include transform-origin(1px 50%);
+	}
+}
+
+@include MQ(L) {
+	.has-children > a > div.arrow {
+		display: none;
+	}
+
+	.has-children > a {
+		&::before, &::after {
+			right: 15%;
+		}
+	}
+
+	.cd-primary-nav > .has-children > a {
+		/* main navigation arrows on larger devices */
+		padding-right: 30px !important;
+
+		&::before, &::after {
+			width: 9px;
+			@include transform-origin(50% 50%);
+			background: darken($color-3, 10%);
+			-webkit-backface-visibility: hidden;
+			backface-visibility: hidden;
+			@include transition(width .3s, transform .3s);
+		}
+
+		&::before {
+			right: 12px;
+		}
+
+		&::after {
+			right: 7px;
+		}
+
+		&.selected::before, &.selected::after {
+			width: 14px;
+		}
+
+		&.selected::before {
+			@include transform(translateX(5px) rotate(-45deg));
+		}
+
+		&.selected::after {
+			@include transform(rotate(45deg));
+		}
+	}
+
+	.cd-secondary-nav > .has-children > a::before, .cd-secondary-nav > .has-children > a::after {
+		/* remove arrows on secondary nav titles */
+		display: none;
+	}
+
+	.cd-primary-nav .go-back a {
+		padding-left: 20px;
+
+		&::before, &::after {
+			left: 1px;
+		}
+	}
+}
+
+.cd-search {
+	position: absolute;
+	height: $search-height-S;
+	width: 100%;
+	top: $header-height-S;
+	left: 0;
+	z-index: $above-content;
+	opacity: 0;
+	visibility: hidden;
+	-webkit-transition: opacity .3s 0s, visibility 0s .3s;
+	-moz-transition: opacity .3s 0s, visibility 0s .3s;
+	transition: opacity .3s 0s, visibility 0s .3s;
+
+	form {
+		height: 100%;
+		width: 100%;
+	}
+
+	input {
+		border-radius: 0;
+		border: none;
+		background: $color-1;
+		height: 100%;
+		width: 100%;
+		padding: 0 5%;
+		box-shadow: inset 0 1px 0 rgba($color-4, 0.16);
+		@include appearance(none);
+
+		@include placeholder {
+			color: darken($color-4, 10%);
+		}
+
+		&:focus {
+			outline: none;
+		}
+	}
+
+	&.is-visible {
+		opacity: 1;
+		visibility: visible;
+		-webkit-transition: opacity .3s 0s, visibility 0s 0s;
+		-moz-transition: opacity .3s 0s, visibility 0s 0s;
+		transition: opacity .3s 0s, visibility 0s 0s;
+	}
+
+	.nav-is-fixed & {
+		position: fixed;
+	}
+
+	@include MQ(L) {
+		height: $search-height-L;
+		top: $header-height-L;
+
+		input {
+			padding: 0 2em;
+			font-size: 3rem;
+    		font-weight: bold;
+			color: $color-4;
+
+			@include placeholder {
+				color: $color-3;
+			}
+		}
+	}
+}
+
+.cd-overlay {
+	/* shadow layer visible when navigation is active */
+	position: fixed;
+	z-index: 2;
+	height: 100%;
+	width: 100%;
+	top: 0;
+	left: 0;
+	cursor: pointer;
+	background-color: rgba($color-4, .3);
+	visibility: hidden;
+	opacity: 0;
+	@include backface-visibility(hidden);
+	@include transition(opacity .3s 0s, visibility 0s .3s, transform .3s 0s);
+
+	&.is-visible {
+		opacity: 1;
+		visibility: visible;
+		@include transition(opacity .3s 0s, visibility 0s 0s, transform .3s 0s);
+	}
+
+	@include MQ(maxL) {
+		&.is-visible {
+			@include transform(translateX(-$nav-width-S));
+		}
+		.nav-on-left &.is-visible {
+			@include transform(translateX($nav-width-S));
+		}
+		&.is-visible.search-is-visible, .nav-on-left &.is-visible.search-is-visible {
+			@include transform(translateX(0));
+		}
+	}
+}
+
+/* --------------------------------
+
+support for no js
+
+-------------------------------- */
+
+.no-js .cd-primary-nav {
+	position: relative;
+	height: auto;
+	width: 100%;
+	overflow: visible;
+	visibility: visible;
+	z-index: $content;
+}
+
+.no-js .cd-search {
+	position: relative;
+	top: 0;
+	opacity: 1;
+	visibility: visible;
+}
+
+@include MQ(L) {
+	.logged-in {
+		// padding: 0 140px 0 0;
+	}
+	.no-js .cd-primary-nav {
+		position: absolute;
+		z-index: $above-content;
+		display: inline-block;
+		width: auto;
+		top: 0;
+		right: 150px;
+		padding: 0;
+	}
+
+	.no-js .nav-is-fixed .cd-primary-nav {
+		position: fixed;
+	}
+}
