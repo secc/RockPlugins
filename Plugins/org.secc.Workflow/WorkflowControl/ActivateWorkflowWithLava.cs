@@ -29,10 +29,10 @@ namespace org.secc.Workflow.WorkflowControl
     /// <summary>
     /// Activates all the actions for the current action's activity.
     /// </summary>
-    [ActionCategory( "SECC > Workflow Control with Lava" )]
+    [ActionCategory( "SECC > Workflow Control" )]
     [Description( "Activates a new workflow with the provided attribute values." )]
     [Export( typeof( ActionComponent ) )]
-    [ExportMetadata( "ComponentName", "Activate Workflow" )]
+    [ExportMetadata( "ComponentName", "Activate Workflow with Lava" )]
 
     [TextField( "Workflow Name", "The name of your new workflow", true, order: 1 )]
     [WorkflowTypeField( "Workflow Type", "The workflow type to activate.  To set the Workflow Type from an Attribute, leave this blank and set Workflow Type from Attribute.", false, false, order: 2 )]
