@@ -178,37 +178,6 @@ section:not(.row):not(.highlighted-section):not(.with-header):not(.footer-menu):
     .parallax-body {
         position: relative;
         z-index: 2;
-
-        .row {
-            padding: 0px;
-            margin: 0px;
-            div {
-                padding: 150px 0px;
-            }
-        }
-
-        h1 {
-            &.big {
-                font-size: 6em;
-                @include tablets {
-                    font-size: 5em;
-                }
-                @include phones {
-                    font-size: 4em
-                }
-            }
-            font-size: 4em;
-            @include tablets {
-                font-size: 3.8em;
-            }
-            @include phones {
-                font-size: 3.4em
-            }
-            small {
-                color: white;
-                font-size: 50%;
-            }
-        }
     }
     .parallax-logo {
         z-index: 2;
@@ -230,23 +199,6 @@ section:not(.row):not(.highlighted-section):not(.with-header):not(.footer-menu):
         }
         h1, h2, h3, h4, h5, h6 {
             color: $color-primary
-        }
-        h1 {
-            font-size: 5em;
-            @include tablets {
-                font-size: 4em;
-            }
-            @include phones {
-                font-size: 3em;
-            }
-            text-shadow: 0px 0px 25px black;
-            &.no-shadow {
-                text-shadow: none;
-            }
-        }
-        h3 {
-            letter-spacing: 2px;
-            color: white;
         }
     }
 

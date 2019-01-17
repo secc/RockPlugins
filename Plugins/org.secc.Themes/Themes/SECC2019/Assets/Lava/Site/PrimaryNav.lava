@@ -7,40 +7,40 @@
             <ul class="cd-nav-gallery is-hidden">
                 <li class="go-back arrow"><a class="arrow">Menu</a></li>
                 <li class="see-all">
-                    <a href="/locations">Plan Your Visit</a>
+                    <a href="/newsite/locations">Plan Your Visit</a>
                 </li>
                 <li>
-                    <a class="cd-nav-item" href="/location/blankenbaker">
+                    <a class="cd-nav-item" href="/newsite/location/blankenbaker">
                         <h3>Blankenbaker</h3>
                         <img src="/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/Campuses/920.jpg" class="img-responsive" />
                     </a>
                 </li>
                 <li>
-                    <a class="cd-nav-item" href="/location/indiana">
+                    <a class="cd-nav-item" href="/newsite/location/indiana">
                         <h3>Indiana</h3>
                         <img src="/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/Campuses/IN.jpg" class="img-responsive" />
                     </a>
                 </li>
                 <li>
-                    <a class="cd-nav-item" href="/location/crestwood">
+                    <a class="cd-nav-item" href="/newsite/location/crestwood">
                         <h3>Crestwood</h3>
                         <img src="/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/Campuses/CW.jpg" class="img-responsive" />
                     </a>
                 </li>
                 <li>
-                    <a class="cd-nav-item" href="/location/southwest">
+                    <a class="cd-nav-item" href="/newsite/location/southwest">
                         <h3>Southwest</h3>
                         <img src="/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/Campuses/SW.jpg" class="img-responsive" />
                     </a>
                 </li>
                 <li>
-                    <a class="cd-nav-item" href="/location/lagrange">
+                    <a class="cd-nav-item" href="/newsite/location/lagrange">
                         <h3>La Grange</h3>
                         <img src="/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/Campuses/LA.jpg" class="img-responsive" />
                     </a>
                 </li>
                 <li>
-                    <a class="cd-nav-item" href="/location/elizabethtown">
+                    <a class="cd-nav-item" href="/newsite/location/elizabethtown">
                         <h3>Elizabethtown</h3>
                         <img src="/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/Campuses/ET.jpg" class="img-responsive" />
                     </a>
@@ -49,37 +49,37 @@
         </li>
 
         <li class="has-children">
-            <a href="/about" class="arrow">About</a>
+            <a href="/newsite/about" class="arrow">About</a>
 
             <ul class="cd-nav-icons is-hidden">
                 <li class="go-back arrow"><a class="arrow">Menu</a></li>
                 <li class="se-3-column">
-                    <a class="cd-nav-item mission" href="#mission">
+                    <a class="cd-nav-item mission" href="/newsite/about#mission">
                         <h3>Mission</h3>
                     </a>
                 </li>
                 <li class="se-3-column">
-                    <a class="cd-nav-item what-we-believe" href="/beliefs">
+                    <a class="cd-nav-item what-we-believe" href="/newsite/about#belief">
                         <h3>What We Believe</h3>
                     </a>
                 </li>
                 <li class="se-3-column">
-                    <a class="cd-nav-item faq" href="#faq">
-                        <h3>FAQ</h3>
+                    <a class="cd-nav-item prayer" href="/newsite/about#prayer">
+                        <h3>Prayer</h3>
                     </a>
                 </li>
                 <li class="se-3-column">
-                    <a class="cd-nav-item leadership" href="#leadership">
+                    <a class="cd-nav-item leadership" href="/newsite/about#leadership">
                         <h3>Leadership</h3>
                     </a>
                 </li>
                 <li class="se-3-column">
-                    <a class="cd-nav-item baptism" href="/beliefs/#baptism">
+                    <a class="cd-nav-item baptism" href="/newsite/about#baptism">
                         <h3>Baptism</h3>
                     </a>
                 </li>
                 <li class="se-3-column">
-                    <a class="cd-nav-item se-about employment" href="/hr">
+                    <a class="cd-nav-item se-about employment" href="/newsite/hr">
                         <h3>Employment</h3>
                     </a>
                 </li>
@@ -87,12 +87,12 @@
         </li>
 
         <li class="has-children">
-            <a href="/lwya/in-your-neighborhood" class="arrow">Media</a>
+            <a href="#Media" class="arrow">Media</a>
 
             <ul class="cd-nav-icons is-hidden">
                 <li class="go-back arrow"><a class="arrow">Menu</a></li>
                 <li class="se-4-column border-right">
-                    <a class="cd-nav-item sermons" href="/sermons">
+                    <a class="cd-nav-item sermons" href="/newsite/sermons">
                         <h3>Sermons</h3>
                     </a>
                 </li>
@@ -102,7 +102,7 @@
                     </a>
                 </li>
                 <li class="se-4-column border-right">
-                    <a class="cd-nav-item stoies" href="/stories">
+                    <a class="cd-nav-item stoies" href="/newsite/stories">
                         <h3>Stories</h3>
                     </a>
                 </li>
@@ -115,27 +115,27 @@
         </li>
 
         <li class="has-children">
-            <a href="/lwya/in-your-neighborhood" class="arrow">Connect</a>
+            <a href="#Connect" class="arrow">Connect</a>
 
             <ul class="cd-nav-icons is-hidden">
                 <li class="go-back arrow"><a class="arrow">Menu</a></li>
                 <li class="se-4-column border-right">
-                    <a class="cd-nav-item starting-point" href="/events/starting-point">
+                    <a class="cd-nav-item starting-point" href="/newsite/starting-point">
                         <h3>Starting Point</h3>
                     </a>
                 </li>
                 <li class="se-4-column border-right">
-                    <a class="cd-nav-item events" href="/events">
+                    <a class="cd-nav-item events" href="/newsite/events">
                         <h3>Events</h3>
                     </a>
                 </li>
                 <li class="se-4-column border-right">
-                    <a class="cd-nav-item groups" href="/#groups">
+                    <a class="cd-nav-item groups" href="/newsite/groups">
                         <h3>Groups</h3>
                     </a>
                 </li>
                 <li class="se-4-column">
-                    <a class="cd-nav-item serve" href="/serve">
+                    <a class="cd-nav-item serve" href="/newsite/serve">
                         <h3>Serve</h3>
                     </a>
                 </li>
@@ -143,32 +143,32 @@
         </li>
 
         <li class="has-children">
-            <a href="/lwya/in-your-neighborhood" class="arrow">Ministries</a>
+            <a href="#Ministries" class="arrow">Ministries</a>
 
             <ul class="cd-nav-list is-hidden">
                 <li class="go-back arrow"><a class="arrow">Menu</a></li>
                 <li class="border-right">
-                    <a class="cd-nav-item" href="/connect/men">
+                    <a class="cd-nav-item" href="/newsite/connect/men">
                         <h3>Men</h3>
                     </a>
                 </li>
                 <li class="border-right">
-                    <a class="cd-nav-item" href="/connect/children">
+                    <a class="cd-nav-item" href="/newsite/connect/children">
                         <h3>Children</h3>
                     </a>
                 </li>
                 <li class="border-right">
-                    <a class="cd-nav-item" href="/connect/seniors">
+                    <a class="cd-nav-item" href="/newsite/connect/seniors">
                         <h3>Seniors</h3>
                     </a>
                 </li>
                 <li>
-                    <a class="cd-nav-item" href="/connect/deaf-and-disabilities-ministry">
+                    <a class="cd-nav-item" href="/newsite/connect/deaf-and-disabilities-ministry">
                         <h3>Deaf & Disabilities</h3>
                     </a>
                 </li>
                 <li class="border-right">
-                    <a class="cd-nav-item" href="/connect/women">
+                    <a class="cd-nav-item" href="/newsite/connect/women">
                         <h3>Women</h3>
                     </a>
                 </li>
@@ -178,17 +178,17 @@
                     </a>
                 </li>
                 <li class="border-right">
-                    <a class="cd-nav-item" href="/connect/missions">
+                    <a class="cd-nav-item" href="/newsite/connect/missions">
                         <h3>Missions</h3>
                     </a>
                 </li>
                 <li>
-                    <a class="cd-nav-item" href="/connect/care">
+                    <a class="cd-nav-item" href="/newsite/connect/care">
                         <h3>Care</h3>
                     </a>
                 </li>
                 <li class="border-right">
-                    <a class="cd-nav-item" href="/connect/family">
+                    <a class="cd-nav-item" href="/newsite/connect/family">
                         <h3>Family</h3>
                     </a>
                 </li>
@@ -198,17 +198,17 @@
                     </a>
                 </li>
                 <li class="border-right">
-                    <a class="cd-nav-item" href="/connect/generous-living">
+                    <a class="cd-nav-item" href="/newsite/connect/generous-living">
                         <h3>Generous Living</h3>
                     </a>
                 </li>
                 <li>
-                    <a class="cd-nav-item" href="/connect/sports-fitness">
+                    <a class="cd-nav-item" href="/newsite/connect/sports-fitness">
                         <h3>Sports & Fitness</h3>
                     </a>
                 </li>
                 <li class="border-right">
-                    <a class="cd-nav-item" href="/connect/single">
+                    <a class="cd-nav-item" href="/newsite/connect/single">
                         <h3>Single</h3>
                     </a>
                 </li>
@@ -223,14 +223,14 @@
                     </a>
                 </li>
                 <li>
-                    <a class="cd-nav-item" href="#awaken-worship">
+                    <a class="cd-nav-item" target=="_blank" href="https://www.awakenworship.org/">
                         <h3>Awaken Worship</h3>
                     </a>
                 </li>
             </ul>
         </li>
 
-        <li><a href="/give">Give</a></li>
+        <li><a href="/newsite/give">Give</a></li>
 
         {% if CurrentPerson.Guid %}
         <li class="has-children" id="GroupManager">

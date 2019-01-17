@@ -40,6 +40,11 @@ $utils-colors: (
   	text-shadow: -1px 1px 1px map-get($color, color) !important;
   }
 }
+@each $color-name, $color in $utils-colors {
+	.g-text-shadow--#{$color-name}--soft {
+	text-shadow: 0px 0px 25px map-get($color, color) !important;
+  }
+}
 
 /* Hover Colors */
 .g-color--text[href] {
