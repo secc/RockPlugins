@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -71,8 +71,9 @@ namespace org.secc.Connection
     CardPage   - This will output as a single page with panels containing cards.  This is probably best
                  for outputting 1-2 partitions
     CardWizard - This is good for fairly complex signups with 2-4 partitions (Campus, DefinedType, Role, Schedule).
-                 It will output and behave in a left-to-right animated set of cards and allow for signing up for
-                 multiple roles or attributes at once.
+                 It will output and behave in a left-to-right animated set of cards.  The CardWizardMode can be set 
+				 to "Single" or "Multiple" which configures the output style to allow for either a single signup or 
+				 multiple roles/attributes at once.
 
     This is setup to encourage you to copy existing lava templates if you make modifications rather than modifying the
     default ones which come with the Signup Wizard plugin.
@@ -85,6 +86,7 @@ namespace org.secc.Connection
 {% elseif output == ""CardPage"" %}
 {% include '~/Plugins/org_secc/Connection/CardPage.lava' %}
 {% elseif output == ""CardWizard"" %}
+{% assign CardWizardMode = ""Single"" %}
 {% include '~/Plugins/org_secc/Connection/CardWizard.lava' %}
 {% endif %}
 " )]
@@ -375,7 +377,7 @@ namespace org.secc.Connection
                     String column = partition.PartitionType;
                     if ( partition.PartitionType == "DefinedType" )
                     {
-                        var definedType = Rock.Web.Cache.DefinedTypeCache.Read( partition.PartitionValue.AsGuid() );
+                        var definedType = Rock.Web.Cache.DefinedTypeCache.Get( partition.PartitionValue.AsGuid() );
                         if ( definedType == null )
                         {
                             break;
@@ -390,7 +392,7 @@ namespace org.secc.Connection
                     {
                         case "DefinedType":
 
-                            var definedType = Rock.Web.Cache.DefinedTypeCache.Read( partition.PartitionValue.AsGuid() );
+                            var definedType = Rock.Web.Cache.DefinedTypeCache.Get( partition.PartitionValue.AsGuid() );
                             foreach ( var value in definedType.DefinedValues )
                             {
                                 AddRowColumnPartition( dtTmp, dt, column + partition.Guid, value.Guid, value.Value );
@@ -402,7 +404,7 @@ namespace org.secc.Connection
                                 var selectedCampuses = partition.PartitionValue.Split( ',' );
                                 foreach ( string campusGuid in selectedCampuses )
                                 {
-                                    var campus = CampusCache.Read( campusGuid.AsGuid() );
+                                    var campus = CampusCache.Get( campusGuid.AsGuid() );
                                     if ( campus != null )
                                     {
                                         AddRowColumnPartition( dtTmp, dt, column + partition.Guid, campus.Guid, campus.Name );
@@ -787,7 +789,6 @@ namespace org.secc.Connection
                 tbAttributeKey.Text = partition.AttributeKey;
                 ( ( LinkButton ) e.Item.FindControl( "bbPartitionDelete" ) ).CommandArgument = partition.Guid.ToString();
             }
-
         }
 
         private void DdlPlacementGroup_SelectedIndexChanged( object sender, EventArgs e )
@@ -1176,7 +1177,9 @@ namespace org.secc.Connection
                     {
                         // The amount filled for this inner node in the partition is the sum of the amount filled of the nodes beneath it
                         IEnumerable<Dictionary<string, object>> childNodes = ( ( List<Dictionary<string, object>> ) inner["Partitions"] ).Where( i => ( ( string ) i["ParentIdentifier"] ).Equals( childIdentifier ) );
-                        inner.Add( "Filled", childNodes.Sum( i => ( int ) i["Filled"] ) );
+                        // If the limit is not null, set the filled amount to the lesser of the sum of spots filled or the sum of the limits
+                        inner.Add( "Filled", childNodes.Sum( i => i["Limit"] == null ? ( int ) i["Filled"] : Math.Min( ( int ) i["Filled"], ( int ) i["Limit"] ) ) );
+                        //inner.Add( "Filled", childNodes.Sum( i => ( int ) i["Filled"] ) );
                     }
                     else
                     {
@@ -1191,7 +1194,7 @@ namespace org.secc.Connection
                 partitionList.Add( inner );
             }
             // Try to sort by order than by string value
-            partitionList = partitionList.OrderBy( a => a["Entity"].GetType().GetProperty( "Order" )!=null?a["Entity"].GetType().GetProperty( "Order" ).GetValue( a["Entity"], null):0 ).ThenBy( a => a["Entity"].ToString() ).ToList();
+            partitionList = partitionList.OrderBy( a => a["Entity"].GetType().GetProperty( "Order" ) != null ? a["Entity"].GetType().GetProperty( "Order" ).GetValue( a["Entity"], null ) : 0 ).ThenBy( a => a["Entity"].ToString() ).ToList();
             return partitionList;
         }
 

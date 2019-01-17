@@ -1,6 +1,13 @@
                 {%- assign campus = partition -%}
 				{%- assign spotsLeft = campus.Limit | Minus: campus.Filled -%}
 				<div class="col-sm-6 col-md-4" style="margin-bottom: 20px;">
+					{% if spotsLeft > 0 and campus.Limit > 0 %}
+						{% if partitionSize > 0 %}
+							<a href="#" onclick="doSlide('#{{divId}}_{{campus.Value}}'); return false;">
+						{% else %}
+							<a href="{{partition.Url}}&GroupId={{partition.GroupId}}">
+						{% endif %}
+					{% endif %}
 					<div class="serve-card" style="height: 180px">
                     <a href="#" onclick="doSlide('#{{divId}}_{{campus.Value}}'); return false;">
                         <div class="box text-center">
@@ -10,6 +17,8 @@
                             <span class="campus-circle">{{ campus.Entity.ShortCode }}</span>
                             <h4>{{ campus.Entity.Name }}</h4>
                         </div>
-                    </a>
 					</div>
+					{% if spotsLeft > 0 and campus.Limit > 0 %}
+						</a>
+					{% endif %}
                 </div>
