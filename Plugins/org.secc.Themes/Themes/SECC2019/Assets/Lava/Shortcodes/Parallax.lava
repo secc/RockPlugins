@@ -70,12 +70,14 @@ Note: Do to this javascript requirements of this shortcode you will need to do a
 
 {% if videourl != '' -%}
     <div id="{{ id }}" class="jarallax {{addclass}}" data-img-size="{{ imgsize }}" data-jarallax-video="{{ videourl }}" data-type="{{ type }}" data-keep-img='true' data-speed="{{ speed }}" data-img-position="{{ position }}" data-z-index="{{ bodyZindex }}" data-video-start-time="{{ videostarttime }}" data-video-end-time="{{ videoendtime }}" >
-        {% if image != "" -%}{%comment %}
-            <img class="jarallax-img" src="{{ image }}" alt="">{% endcomment %}
+        {% if image != "" -%}
+            {%comment %}
+            <img class="jarallax-img" src="{{ image | Escape }}" alt="">
+            {% endcomment %}
         {% endif -%}
 {% else -%}
     <div id="{{ id }}" data-jarallax class="jarallax {{addclass}}" data-img-size="{{ imgsize }}" data-type="{{ type }}" data-speed="{{ speed }}" data-img-position="{{ position }}" data-object-position="{{ position }}" data-background-position="{{ position }}" data-zindex="{{ bodyZindex }}">
-    <img class="jarallax-img" src="{{ image }}" alt="">
+    <img class="jarallax-img" src="{{ image | Escape }}" alt="">
 {% endif -%}
 
     <script>
@@ -164,7 +166,7 @@ Note: Do to this javascript requirements of this shortcode you will need to do a
         {% endif -%}
     </div>
 
-{% stylesheet %}
+<style>
 #{{ id }} {
     /* eventually going to change the height using media queries with mixins using sass, and then include only the classes I want for certain parallaxes */
     min-height: {{ height }};
@@ -192,7 +194,7 @@ Note: Do to this javascript requirements of this shortcode you will need to do a
     text-align: {{ contentalign }};
 	width: 100%;
 }
-{% endstylesheet %}
+</style>
 
 {% comment %}
 ************************ PARAMETERS ********************

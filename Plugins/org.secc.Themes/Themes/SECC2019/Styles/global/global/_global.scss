@@ -126,15 +126,27 @@
 .g-display-inline-block--xs { display: inline-block; }
 .g-display-inherit--xs { display: inherit; }
 .g-display-table--xs { display: table; }
+.g-display-flex--xs {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display:         flex;
+}
 
 /* Small screen / phone */
 @include media-breakpoint-up(sm) {
   .g-display-none--sm { display: none; }
   .g-display-block--sm { display: block; }
   .g-display-inline--sm { display: inline; }
-	.g-display-inline-block--sm { display: inline-block; }
+  .g-display-inline-block--sm { display: inline-block; }
   .g-display-inherit--sm { display: inherit; }
-	.g-display-table--sm { display: table; }
+  .g-display-table--sm { display: table; }
+  .g-display-flex--sm {
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: -ms-flexbox;
+      display:         flex;
+  }
 }
 
 /* Medium screen / tablet */
@@ -145,6 +157,12 @@
   .g-display-inline-block--md { display: inline-block; }
   .g-display-inherit--md { display: inherit; }
   .g-display-table--md { display: table; }
+  .g-display-flex--md {
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: -ms-flexbox;
+      display:         flex;
+  }
 }
 
 /* Extra large screen / wide desktop */
@@ -155,6 +173,12 @@
   .g-display-inline-block--lg { display: inline-block; }
   .g-display-inherit--lg { display: inherit; }
   .g-display-table--lg { display: table; }
+  .g-display-flex--lg { 
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: -ms-flexbox;
+      display:         flex;
+  }
 }
 
 
