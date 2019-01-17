@@ -20,7 +20,7 @@
 			{% assign parameterName = '' %}
             {% for partition in Tree %}
 				{% assign partitionSize = partition.Partitions | Size %}
-				{% if partitionSize > 0 %}
+				{% if partitionSize > 0 or CardWizardMode == "Single" %}
 					{% if partition.PartitionType == 'DefinedType' %}
 						{% if forloop.first %}<h2 class="section-header">Please select from the following:</h2>{% endif %}
 						{% include '~/Plugins/org_secc/Connection/CardWizard/CardDefinedType.lava' %}
@@ -50,7 +50,7 @@
 				{% endif %}
             {% endfor %}
             </div>
-			{% if parameterName != '' %}
+			{% if parameterName != '' and CardWizardMode != "Single" %}
 				<div class="col-sm-10 col-sm-offset-1">
 					<a href="{{partition.Url}}" data-type="{{type}}" data-group-id="{{partition.GroupId}}" data-role="{{partition.RoleGuid}}" data-parameter-name="{{parameterName}}" title="Sign Up" class="btn btn-primary pull-right signup-button">
 						Sign Up
