@@ -53,7 +53,7 @@
 	 */
     doSlide = function(slideIn, captureHistory) {
 		if(captureHistory === undefined) {
-		  captureHistory = false;
+		  captureHistory = true;
 		}
 		slideOutEl = $(".slide-box.active");
 		if (slideOutEl.attr('id') == $(slideIn).attr('id')) {
