@@ -253,8 +253,8 @@
         <div class="container-fluid text-center" style="padding: 0;">
             <nav class="page-nav text-center">
                 <ul class="list-inline">
-                    <li><a href="/sermons">Explore All Series</a></li>
-                    <li><a href="/sermons/{{ currentSeries.Slug | Escape }}">Jump to Current Series</a></li>
+                    <li><a href="/newsite/sermons">Explore All Series</a></li>
+                    <li><a href="/newsite/sermons/{{ currentSeries.Slug | Escape }}">Jump to Current Series</a></li>
                 </ul>
             </nav>
         </div>
@@ -294,7 +294,7 @@
 
                 <div class="isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load">
 
-                    <a class="series-link" href="/sermons/{{ item.Slug }}/{{ message.Slug }}">
+                    <a class="series-link" href="/newsite/sermons/{{ item.Slug }}/{{ message.Slug }}">
                     <div class="card" style="background-color: white;">
                         <!-- Image -->
                         <div class="img-hover">
@@ -326,6 +326,10 @@
 </div>
 
 	<script>
+	$(document).ready(function() {
+			$('.cd-main-header').removeClass('transparent-menu-enabled').removeClass('transparent-header');
+			$('.cd-main-content').removeClass('transparent-content');
+	});
 	$(window).load(function() {
         // Initialize Isotope
         var $grid = $('.isotope_wrap').isotope({
