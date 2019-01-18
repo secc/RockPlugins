@@ -61,7 +61,7 @@ namespace org.secc.Jobs
                                                       && ft.CreatedDateTime <= dateRange.End )
                                         .GroupJoin( attributeValueService.Queryable(),
                                             ft => new { EntityId = ( int? ) ft.Id, AttributeId = checkNumberAttribute.Id },
-                                            av => new { av.EntityId, AttributeId = checkNumberAttribute.Id },
+                                            av => new { av.EntityId, AttributeId = av.AttributeId },
                                             ( ft, av ) => new { Transaction = ft, CheckNumberAttributes = av } )
                                         .Where( ft => ft.CheckNumberAttributes.Count() == 0 );
                                                    
