@@ -15,6 +15,7 @@ $utils-colors: (
 	text:            		(color: $CopyColor),
 	gray-light:           	(color: $LightGreyColor),
 	gray-lighter:         	(color: rgba($LightGreyColor, 0.68)),
+	gray-lightest:         	(color: rgba($LightGreyColor, 0.18)),
 	black: 					(color: $BlackColor),
 	black-opacity:        	(color: rgba($BlackColor,.8)),
 	black-opacity-light:  	(color: rgba($BlackColor,.5)),

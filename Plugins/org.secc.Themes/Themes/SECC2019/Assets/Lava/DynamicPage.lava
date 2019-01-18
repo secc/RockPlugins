@@ -26,7 +26,7 @@
 {{ 'https://cdnjs.cloudflare.com/ajax/libs/object-fit-images/3.2.3/ofi.min.js' | AddScriptLink }}
 
 {% if pageParamCampus.Name != null %}
-{% cache key:'{{ pageParamCampus.Name }}-dynamic-{{ pageID }}' duration:'3600' tags:'DynamicCampusPages' %}
+{% cache key:'{{ pageParamCampus.Name }}-dynamic-{{ pageID }}' duration:'3600' tags:'2019CampusLandingPage' %}
 
     {% if debug == true %}
     <style>
