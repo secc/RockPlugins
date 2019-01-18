@@ -1,7 +1,9 @@
 {{ 'https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.3/jarallax.js' | AddScriptLink }}
 {{ 'https://cdnjs.cloudflare.com/ajax/libs/object-fit-images/3.2.3/ofi.min.js' | AddScriptLink }}
+{{ 'https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.3/jarallax-video.js' | AddScriptLink }}
 
 {% assign pageParamCampus = 'Global' | PageParameter:'Campus' %}
+{% cache key:'{{pageParamCampus}}' duration:'3600' tags:'2019CampusLandingPage' %}
 
 {% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
 {% assign pageParamCampus = 'Global' | PageParameter:'Campus' %}
@@ -169,12 +171,12 @@
             <div class="container-fluid text-center" style="padding: 0;">
                 <nav class="page-nav text-center">
                     <ul class="list-inline">
-                        <li><a href="#">Location</a></li>
-                        <li><a href="#">Worship Times</a></li>
-                        <li><a href="#">Leadership</a></li>
-                        <li><a href="#">Children</a></li>
-                        <li><a href="#">Students</a></li>
-                        <li><a href="#">Get Connected</a></li>
+                        <li><a href="#Location">Location</a></li>
+                        <li><a href="#WorshipTimes">Worship Times</a></li>
+                        <li><a href="#Leadership">Leadership</a></li>
+                        <li><a href="#Children">Children</a></li>
+                        <li><a href="#Students">Students</a></li>
+                        <li><a href="#Connect">Get Connected</a></li>
                     </ul>
                 </nav>
             </div>
@@ -398,6 +400,14 @@
     	</div>
     </section>
 
+    <script>
+    // Initialize SmoothScroll
+    var scroll = new SmoothScroll('a[href*="#"]', {
+        speed: 500, // Integer. How fast to complete the scroll in milliseconds
+        easing: 'easeInOutCubic', // Easing pattern to use
+        header: '.cd-main-header'
+    });
+    </script>
 {% else %}
         <!-- Campus Param Invalid -->
         <section>
@@ -426,3 +436,4 @@
             });
         </script>
 {% endif %}
+{% endcache %}
