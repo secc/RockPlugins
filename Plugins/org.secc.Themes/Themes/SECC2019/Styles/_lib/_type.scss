@@ -108,6 +108,10 @@ h6 {
 	// 	font-weight: normal;
 	// 	font-family: $TisaPro;
 	// }
+
+	small {
+		color: $CopyColor;
+	}
 }
 
 h1, .h1 { @include font($size: $font-size-80, $weight: normal); }
@@ -130,10 +134,6 @@ li {
   		color: darken($color-heading, 7%);
   	}
   }
-}
-
-small {
-	color: $color-text;
 }
 
 label {
