@@ -78,8 +78,11 @@
     <Compile Include="Controllers\GroupExtensionsController.Partial.cs" />
     <Compile Include="Controllers\PeopleExtensionsController.Partial.cs" />
     <Compile Include="Controllers\SecurityController.Partial.cs" />
+    <Compile Include="Controllers\SermonController.Partial.cs" />
     <Compile Include="Handlers\SessionControllerHandler.cs" />
     <Compile Include="Handlers\SessionRouteHandler.cs" />
+    <Compile Include="Models\Sermon.cs" />
+    <Compile Include="Models\SermonSeries.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
