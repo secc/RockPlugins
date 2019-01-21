@@ -517,7 +517,7 @@
 }
 
 @for $i from 0 through 30 {
-  .g-margin-x-#{$i * 5}--xs {
+  .g-margin-y-#{$i * 5}--xs {
     margin-top: ($i * .3125rem);
     margin-bottom: ($i * .3125rem);
   }
@@ -526,7 +526,7 @@
 /* Small screen / phone */
 @include media-breakpoint-up(sm) {
 	@for $i from 0 through 30 {
-	  .g-margin-x-#{$i * 5}--sm {
+	  .g-margin-y-#{$i * 5}--sm {
 	    margin-top: ($i * .3125rem);
 	    margin-bottom: ($i * .3125rem);
 	  }
@@ -536,7 +536,7 @@
 /* Medium screen / tablet */
 @include media-breakpoint-up(md) {
 	@for $i from 0 through 30 {
-	  .g-margin-x-#{$i * 5}--md {
+	  .g-margin-y-#{$i * 5}--md {
 	    margin-top: ($i * .3125rem);
 	    margin-bottom: ($i * .3125rem);
 	  }
@@ -546,7 +546,7 @@
 /* Extra large screen / wide desktop */
 @include media-breakpoint-up(lg) {
 	@for $i from 0 through 30 {
-	  .g-margin-x-#{$i * 5}--lg {
+	  .g-margin-y-#{$i * 5}--lg {
 	    margin-top: ($i * .3125rem);
 	    margin-bottom: ($i * .3125rem);
 	  }
