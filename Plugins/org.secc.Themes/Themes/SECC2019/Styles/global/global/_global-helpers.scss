@@ -19,6 +19,38 @@
   .g-fullheight--lg { height: 100vh; }
 }
 
+/*----------------------------------
+  Absolute Center Align
+------------------------------------*/
+
+.g-center--xs {
+  @include position(absolute, $top: 50%, $left: 50%, $right: auto);
+  @include translate3d(-50%,-50%,0);
+}
+
+/* Small screen / phone */
+@include media-breakpoint-up(sm) {
+  .g-center--sm {
+    @include position(absolute, $top: 50%, $left: 50%, $right: auto);
+    @include translate3d(-50%,-50%,0);
+  }
+}
+
+/* Medium screen / tablet */
+@include media-breakpoint-up(md) {
+  .g-center--md {
+    @include position(absolute, $top: 50%, $left: 50%, $right: auto);
+    @include translate3d(-50%,-50%,0);
+  }
+}
+
+/* Extra large screen / wide desktop */
+@include media-breakpoint-up(lg) {
+  .g-center--lg {
+    @include position(absolute, $top: 50%, $left: 50%, $right: auto);
+    @include translate3d(-50%,-50%,0);
+  }
+}
 
 /*----------------------------------
   Vertical Center Align
@@ -52,7 +84,6 @@
     @include translate3d(0,-50%,0);
   }
 }
-
 
 /*----------------------------------
   Overflow
