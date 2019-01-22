@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -61,7 +61,8 @@ namespace RockWeb.Blocks.Reporting.Children
             {
                 return;
             }
-            var groups = parentGroup.Groups.OrderBy( g => g.Name );
+            var groups = parentGroup.Groups
+                .Where(g => g.IsActive && !g.IsArchived).OrderBy( g => g.Name );
 
             //Group checkbox
             cblGroups.Items.Clear();
