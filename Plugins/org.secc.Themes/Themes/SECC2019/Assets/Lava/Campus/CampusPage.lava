@@ -21,7 +21,7 @@
 
 {% assign campus = pageParamCampus %}
 {% assign campusSlug = campus | Attribute:'Slug' %}
-{% assign HeroImage = campus | Attribute:'HeroImage','Object' %}
+{% assign HeroImage = campus | Attribute:'HeroImage2','Object' %}
 {% assign CampusImageThumb = campus | Attribute:'CampusThumbnail','Object' %}
 {% assign WorshipImage = campus | Attribute:'WorshipServiceImage','Object' %}
 {% assign CampusSubMenuItems = campus | Attribute:'CampusSubMenu' %}
