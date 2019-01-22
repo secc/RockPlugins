@@ -1,144 +1,6 @@
 <style>
-	.series-banner {
-		height: 220px;
-		background-size: cover;
-		background-position: center center;
-		background-repeat: no-repeat;
-	}
 
-	@media (min-width: 992px) {
-		.series-banner {
-			height: 420px;
-		}
-	}
 
-	.series-title{
-		margin-bottom: 4px;
-	}
-
-	.series-dates {
-		opacity: .6;
-	}
-
-	.messages-title {
-		font-size: 24px;
-	}
-
-	.messages {
-		font-size: 18px;
-	}
-
-    #loading-animation {
-		display: none;
-	}
-	.current-series {
-		height: 220px;
-		background-size: cover;
-		background-position: center center;
-		background-repeat: no-repeat;
-	}
-
-	@media (min-width: 992px) {
-		.current-series {
-			height: 420px;
-		}
-	}
-
-	.current-series h1 {
-		background-color: rgba(0, 0, 0, 0.3);
-		text-align: center;
-		font-size: 16px;
-		font-weight: 600;
-		color: #fff;
-		margin: 0;
-		padding: 6px;
-	}
-
-	.series {
-		border: 1px solid rgba(0, 0, 0, .3);
-		position: relative;
-	}
-
-	.series h1 {
-		font-size: 20px;
-		font-weight: 600;
-		margin-top: 4px;
-		margin-bottom: 0;
-	}
-
-	.series-dates, .sermons-count {
-		opacity: .6;
-	}
-
-	.series-body {
-		padding: 15px;
-		/* height: 172px; */
-	}
-	h3 {
-		font-weight: 300;
-	}
-	.series-body hr {
-		margin: 10px 0px;
-	}
-
-	.series-summary {
-		/* height: 60px; */
-		/* overflow: hidden; */
-	}
-
-	.series-link {
-		color: black;
-	}
-
-	.series-link:hover {
-		text-decoration: none;
-	}
-
-    #sermonVideo {
-        padding: 40px 0px;
-    }
-
-    @media (min-width: 993px) {
-		#sermonContent {
-            padding-top: 40px;
-            padding-bottom:40px;
-        }
-	}
-
-    @media (min-width: 768px) and (max-width: 992px) {
-        #sermonVideo {
-			margin: 0px;
-            padding: 40px 0px 0px 0px;
-		}
-	}
-
-    @media (max-width: 767px) {
-        #sermonVideo {
-		    padding: 0px;
-		}
-	}
-
-	/* .series-image {
-		height: 158px;
-		width: 100%;
-		background-size: cover;
-		background-position: center center;
-		background-repeat: no-repeat;
-	} */
-
-	/* .series-image:after {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		transition: all .1s ease-in-out;
-	} */
-
-	/* .series-image:hover:after {
-		background: rgba(0,0,0,.2);
-	} */
 </style>
 {% assign slug = 'Global' | PageParameter:'Slug' %}
 {% assign sermonSlug = 'Global' | PageParameter:'SermonSlug' %}
@@ -158,7 +20,7 @@
 {% comment %}
     ************ SERMON VIDEO ************
 {% endcomment %}
-<div class="container">
+<div class="container g-padding-y-100--md g-padding-x-0--xs">
     {% assign currentDate = 'Now' | Date:'M/d/yyyy' %}
     {% assign sermonSlug = 'Global' | PageParameter:'SermonSlug' %}
     {% assign currentMessage = item.ChildItems | First %}
@@ -182,10 +44,10 @@
     {% assign seriesImageGuid = item | Attribute:'SeriesImage','RawValue' %}
     {% assign currentMessageVideoId = currentMessage.ChildContentChannelItem | Attribute:'VimeoId' %}
 
-    <div class="series-detail">
+    <div class="series-detail container">
         <div id="seriesHead" class="row">
             {% unless currentMessageVideoId == empty %}
-            <div id="sermonVideo" class="col-sm-12 col-md-8">
+            <div id="sermonVideo" class="col-sm-12 col-lg-8 g-padding-x-0--xs g-padding-x-60--lg">
                 <div class="embed-responsive embed-responsive-16by9 media-border-only">
                     <div class="embed-responsive embed-responsive-16by9 media-border-only">
                         <iframe src="https://player.vimeo.com/video/{{ currentMessageVideoId }}?title=0&byline=0&portrait=0" width="640" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
@@ -194,14 +56,13 @@
 			</div>
             {% endunless %}
 
-            <div id="sermonContent" class="col-sm-12 col-md-4">
+            <div id="sermonContent" class="col-sm-12 col-lg-4">
                 <br />
-                <h2 style="font-weight: 400; text-transform: inherit;">{{ currentMessage.ChildContentChannelItem.Title }}<br />
-                    <i><small>by {{ currentMessage.ChildContentChannelItem | Attribute:'Speaker' }}</small> – <small>{{ currentMessage.ChildContentChannelItem.StartDateTime | Date:'MMMM dd, yyyy' }}</small></i><br />
-                </h2>
+                <h2 class="g-font-family--secondary">{{ currentMessage.ChildContentChannelItem.Title }}</h2>
+            	<h5 class="uppercase">by {{ currentMessage.ChildContentChannelItem | Attribute:'Speaker' }} – {{ currentMessage.ChildContentChannelItem.StartDateTime | Date:'MMMM dd, yyyy' }}</h5>
                 <hr />
                 {% if currentMessage.ChildContentChannelItem.Content != empty -%}
-                <p class="series-summary text-color">
+                <p class="series-summary g-line-height--sm">
                     {{ currentMessage.ChildContentChannelItem.Content }}
                 </p>
                 <hr />
@@ -238,7 +99,7 @@
 
 
 
-<div class="container-fluid" style="background-color:  rgba(239, 239, 239, 0.5); padding: 0 0 20px 0;">
+<div class="container-fluid" style="padding: 0 0 20px 0;">
 
 	{%- contentchannelitem where:'ContentChannelId == 24' sort:'StartDateTime desc' -%}
 		{%- for item in contentchannelitemItems -%}
@@ -261,12 +122,12 @@
     </div>
     <!-- END: Page Sub-Menu -->
 
-    <div class="container">
+    <div class="container g-padding-y-100--xs">
 
-        <div class="row">
+        <div class="row g-padding-b-60--xs">
             <div class="col-md-12 text-center">
                 <br />
-                <h1>{{ item.Title }}</h1>
+                <h1 class="g-font-family--secondary">{{ item.Title }}</h1>
                 <p class="series-dates">
                     Series Date:
                     <i><strong>
@@ -295,27 +156,20 @@
                 <div class="isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load">
 
                     <a class="series-link" href="/newsite/sermons/{{ item.Slug }}/{{ message.Slug }}">
-                    <div class="card" style="background-color: white;">
+                    <div class="card g-margin-b-25--xs">
                         <!-- Image -->
                         <div class="img-hover">
                             <img src="/GetImage.ashx?Guid={{ videoImageGuid }}" class="img-responsive img-rounded" style="margin: 0 auto">
                         </div>
-                        <div class="series-body">
-                            <h3 class="text-color">{{ message.Title }}<br />
-                            <i><small>by {{ message.Speaker }} – {{ message.StartDateTime | Date:'MMMM dd, yyyy' }}</small></i></h3>
-                            <hr />
-                            {% if message.Content != empty -%}
-                            <p class="series-summary text-color">
-                                {{ message.Content }}
-                            </p>
-                            <hr />
-                            {% endif -%}
-                            <h3 class="text-color text-right">
+                        <div class="series-body g-padding-x-40--xs g-padding-y-40--xs">
+                            <h4 class="g-font-family--secondary g-padding-b-20--xs">{{ message.Title }}</h4>
+                            <h6 class="g-line-height--normal uppercase">
+								{{ message.Speaker }} – {{ message.StartDateTime | Date:'MMMM dd, yyyy' }}<br />
                                 {% assign runningMinutes = message.Duration | DividedBy:60 | Floor %}
                                 {% assign temp = runningMinutes | Times:60 %}
                                 {% assign runningSeconds = message.Duration | Minus:temp %}
-                                <small>Running Time: {{runningMinutes}}:{{runningSeconds}}</small>
-                            </h3>
+                                Running Time: {{runningMinutes}}:{{runningSeconds}}
+						    </h4>
                         </div>
                     </div>
                     </a>
