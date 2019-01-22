@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -12,46 +12,27 @@
 // limitations under the License.
 // </copyright>
 //
-// <copyright>
-// Copyright by the Spark Development Network
-//
-// Licensed under the Rock Community License (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.rockrms.com/license
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
-//
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
-
+using System.Web.UI.WebControls;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.UI;
 using Rock.Web.Cache;
-using System.Web.UI.WebControls;
-using System.Collections.Generic;
-using Rock.Field;
-using Rock.Web.UI.Controls;
-using System.Data.Entity;
+using Rock.Web.UI;
 
 namespace RockWeb.Blocks.Reporting.NextGen
 {
     [DisplayName( "Medication Information" )]
     [Category( "SECC > Reporting > NextGen" )]
     [Description( "T" )]
-    [TextField( "Group Ids", "Comma separated list of group ids to check" )]
+    [GroupTypesField( "Group Types", "Any member of these group types will show up." )]
     [TextField( "Medication Matrix Key", "The attribute key for the medication schedule matrix." )]
     [WorkflowTypeField( "EditWorkflow" )]
     [LinkedPage( "Workflow Page" )]
@@ -83,14 +64,19 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 AddCaretakees( familyMembers, rockContext );
 
 
-                var groupIdsString = GetAttributeValue( "GroupIds" ).SplitDelimitedValues();
-                var groupIds = new List<int>();
-                foreach ( var id in groupIdsString )
+                var groupTypeStrings = GetAttributeValue( "GroupTypes" ).SplitDelimitedValues();
+                var groupTypeIds = new List<int>();
+                foreach ( var groupType in groupTypeStrings )
                 {
-                    groupIds.Add( id.AsInteger() );
+                    var groupTypeCache = GroupTypeCache.Get( groupType.AsGuid() );
+                    if ( groupTypeCache != null )
+                    {
+                        groupTypeIds.Add( groupTypeCache.Id );
+                    }
                 }
 
-                var groups = new GroupService( rockContext ).Queryable().Where( g => groupIds.Contains( g.Id ) );
+                var groups = new GroupService( rockContext ).Queryable()
+                    .Where( g => g.IsActive && !g.IsArchived && groupTypeIds.Contains( g.GroupTypeId ) );
                 if ( !groups.Any() )
                 {
                     nbAlert.Visible = true;
@@ -100,28 +86,28 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
                 var members = groups.SelectMany( g => g.Members );
 
-                List<GroupMember> medicalMembers = new List<GroupMember>();
-
-                foreach ( var person in familyMembers )
-                {
-                    var groupMember = members.Where( m => m.PersonId == person.Id );
-                    medicalMembers.AddRange( groupMember );
-                }
 
                 var gridData = new List<GridData>();
-
                 AttributeMatrixService attributeMatrixService = new AttributeMatrixService( rockContext );
-                foreach ( var member in medicalMembers )
+                foreach ( var person in familyMembers )
                 {
+                    //Get all the camp group members for this person
+                    List<GroupMember> medicalMembers = members.Where( m => m.PersonId == person.Id ).ToList();
+
+                    if ( !medicalMembers.Any() )
+                    {
+                        continue;
+                    }
+
                     GridData data = new GridData
                     {
-                        Id = member.Guid,
-                        Name = member.Person.FullName,
-                        Group = member.Group.Name,
+                        Id = person.PrimaryAlias.Guid,
+                        Name = person.FullName,
+                        Group = string.Join( "<br>", medicalMembers.Select( m => m.Group.Name ) ),
                         Medications = "No Medication Information"
                     };
-                    member.LoadAttributes();
-                    var attribute = member.GetAttributeValue( GetAttributeValue( "MedicationMatrixKey" ) );
+                    person.LoadAttributes();
+                    var attribute = person.GetAttributeValue( GetAttributeValue( "MedicationMatrixKey" ) );
                     var attributeMatrix = attributeMatrixService.Get( attribute.AsGuid() );
                     if ( attributeMatrix != null )
                     {
@@ -168,10 +154,10 @@ namespace RockWeb.Blocks.Reporting.NextGen
         {
             RockContext rockContext = new RockContext();
             WorkflowTypeService workflowTypeService = new WorkflowTypeService( rockContext );
-            var groupMemberGuid = ( ( Guid ) e.RowKeyValue ).ToString();
+            var personAliasGuid = ( ( Guid ) e.RowKeyValue ).ToString();
             var workflowGuid = GetAttributeValue( "EditWorkflow" );
             var workflowId = workflowTypeService.Get( workflowGuid.AsGuid() ).Id.ToString();
-            NavigateToLinkedPage( "WorkflowPage", new Dictionary<string, string> { { "WorkflowTypeId", workflowId }, { "GroupMemberGuid", groupMemberGuid } } );
+            NavigateToLinkedPage( "WorkflowPage", new Dictionary<string, string> { { "WorkflowTypeId", workflowId }, { "PersonGuid", personAliasGuid } } );
         }
 
         class GridData
