@@ -3,7 +3,7 @@
     <ul id="cd-primary-nav" class="cd-primary-nav is-fixed {% if personGuidSize != 0 %}logged-in{% endif %}">
 
         <li class="has-children">
-            <a href="/lwya/resources" class="arrow">Locations</a>
+            <a href="#Locations" class="arrow">Locations</a>
             <ul class="cd-nav-gallery is-hidden">
                 <li class="go-back arrow"><a class="arrow">Menu</a></li>
                 <li class="see-all">
@@ -97,8 +97,8 @@
                     </a>
                 </li>
                 <li class="se-4-column border-right">
-                    <a class="cd-nav-item podcast" href="https://itunes.apple.com/us/podcast/southeast-christian-church/id287341044?mt=2">
-                        <h3>Podcast</h3>
+                    <a class="cd-nav-item resources" href="/newsite/resources">
+                        <h3>Resources</h3>
                     </a>
                 </li>
                 <li class="se-4-column border-right">
@@ -234,7 +234,7 @@
 
         {% if CurrentPerson.Guid %}
         <li class="has-children" id="GroupManager">
-            <a href="/lwya/resources" class="arrow"><i class="fa fa-user"></i></a>
+            <a href="#MyAccount" class="arrow"><i class="fa fa-user"></i></a>
             <ul class="cd-nav-list include-see-all is-hidden">
                 <li class="go-back"><a class="arrow">Menu</a></li>
                 <li class="see-all"><a href="/MyAccount">See My Account</a></li>

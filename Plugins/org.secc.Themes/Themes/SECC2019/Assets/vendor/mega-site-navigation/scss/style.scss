@@ -661,12 +661,20 @@ main {
 			background-image: url('../img/SE/baptism.svg');
 		}
 
+		&.prayer::before {
+			background-image: url('../img/SE/Pray.svg');
+		}
+
 		&.employment::before {
 			background-image: url('../img/SE/Employment.svg');
 		}
 
 		&.sermons::before {
 			background-image: url('../img/SE/sermons.svg');
+		}
+
+		&.resources::before {
+			background-image: url('../img/SE/resources.svg');
 		}
 
 		&.podcast::before {
