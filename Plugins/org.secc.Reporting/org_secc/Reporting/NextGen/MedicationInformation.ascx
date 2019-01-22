@@ -7,7 +7,7 @@
         <Rock:Grid runat="server" ID="gGrid" ShowActionRow="false" DataKeyNames="Id" RowItemText="Student">
             <Columns>
                 <Rock:RockBoundField DataField="Name" HeaderText="Person" />
-                <Rock:RockBoundField DataField="Group" HeaderText="Group" />
+                <Rock:RockBoundField DataField="Group" HeaderText="Camp" />
                 <Rock:RockBoundField DataField="Medications" HeaderText="Medications" HtmlEncode="false" />
                 <Rock:LinkButtonField OnClick="SelectMember_Click" Text="Update Medications" />
             </Columns>
