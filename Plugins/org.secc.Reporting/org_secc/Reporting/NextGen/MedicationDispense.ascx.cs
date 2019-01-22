@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -11,40 +11,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
-//
-// <copyright>
-// Copyright by the Spark Development Network
-//
-// Licensed under the Rock Community License (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.rockrms.com/license
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
-//
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Web.UI;
-
+using System.Web.UI.WebControls;
+using OfficeOpenXml;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.UI;
 using Rock.Web.Cache;
-using System.Web.UI.WebControls;
-using System.Collections.Generic;
-using OfficeOpenXml;
-using System.IO;
-using System.Drawing;
+using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
 namespace RockWeb.Blocks.Reporting.NextGen
@@ -55,7 +37,8 @@ namespace RockWeb.Blocks.Reporting.NextGen
     [DefinedTypeField( "Medication Schedule Defined Type", "Defined type which contain the values for the possible times to give medication.", key: "DefinedType" )]
     [TextField( "Group Ids", "Comma separated list of group ids." )]
     [TextField( "Medication Matrix Key", "The attribute key for the medication schedule matrix." )]
-    [CategoryField( "History Category", "Category to save the history.", false, "Rock.Model.History" )]
+    [CategoryField( "History Category", "Category to save the history.", false, "Rock.Model.Note" )]
+    [NoteTypeField( "NoteType", "Medication Note Type", false, "Rock.Model.Person" )]
     [TextField( "Group Member Attribute Filter", "Group member filter to sort group by.", false )]
     public partial class MedicationDispense : RockBlock
     {
@@ -79,7 +62,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
             if ( !Page.IsPostBack )
             {
                 dpDate.SelectedDate = RockDateTime.Today;
-                var definedType = DefinedTypeCache.Read( GetAttributeValue( "DefinedType" ).AsGuid() );
+                var definedType = DefinedTypeCache.Get( GetAttributeValue( "DefinedType" ).AsGuid() );
                 if ( definedType != null )
                 {
                     ddlSchedule.DataSource = definedType.DefinedValues;
@@ -121,12 +104,12 @@ namespace RockWeb.Blocks.Reporting.NextGen
                         var qry = new GroupMemberService( rockContext ).Queryable()
                             .Where( gm => groupIds.Contains( gm.GroupId ) )
                             .Join(
-                                attributeValueService.Queryable().Where( av => attributeIds.Contains(av.AttributeId) ),
+                                attributeValueService.Queryable().Where( av => attributeIds.Contains( av.AttributeId ) ),
                                 m => m.Id,
                                 av => av.EntityId,
                                 ( m, av ) => new { Key = av.Value, Value = av.Value } )
                                 .DistinctBy( a => a.Key )
-                                .Where(a => !string.IsNullOrEmpty(a.Key))
+                                .Where( a => !string.IsNullOrEmpty( a.Key ) )
                                 .OrderBy( a => a.Value )
                                 .ToList();
                         ddlAttribute.DataSource = qry;
@@ -214,7 +197,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     ( groupIdStrings.Contains( a.EntityTypeQualifierValue ) || groupTypeIds.Contains( a.EntityTypeQualifierValue ) )
                     && a.Key == key
                     && a.EntityTypeId == groupEntityid )
-                .Select(a => a.Id).ToList();
+                .Select( a => a.Id ).ToList();
 
             if ( attributeIds == null )
             {
@@ -232,7 +215,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     ( groupIdStrings.Contains( a.EntityTypeQualifierValue ) || groupTypeIds.Contains( a.EntityTypeQualifierValue ) )
                     && a.Key == filterAttributeKey
                     && a.EntityTypeId == groupEntityid )
-                .Select(a => a.Id).ToList();
+                .Select( a => a.Id ).ToList();
             }
 
             var attributeMatrixItemEntityId = EntityTypeCache.GetId<AttributeMatrixItem>();
@@ -240,11 +223,11 @@ namespace RockWeb.Blocks.Reporting.NextGen
             AttributeValueService attributeValueService = new AttributeValueService( rockContext );
             AttributeMatrixService attributeMatrixService = new AttributeMatrixService( rockContext );
             AttributeMatrixItemService attributeMatrixItemService = new AttributeMatrixItemService( rockContext );
-            HistoryService historyService = new HistoryService( rockContext );
+            NoteService noteService = new NoteService( rockContext );
 
             var qry = new GroupMemberService( rockContext ).Queryable()
                 .Join(
-                    attributeValueService.Queryable().Where(av => attributeIds.Contains( av.AttributeId )),
+                    attributeValueService.Queryable().Where( av => attributeIds.Contains( av.AttributeId ) ),
                     m => m.Id,
                     av => av.EntityId.Value,
                     ( m, av ) => new { Member = m, AttributeValue = av.Value }
@@ -280,7 +263,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 var filterValue = ddlAttribute.SelectedValue;
                 qry = qry
                     .Join(
-                    attributeValueService.Queryable().Where( av => filterAttributeIds.Contains(av.AttributeId) ),
+                    attributeValueService.Queryable().Where( av => filterAttributeIds.Contains( av.AttributeId ) ),
                     m => new { Id = m.Member.Id, Value = filterValue },
                     av => new { Id = av.EntityId ?? 0, Value = av.Value },
                     ( m, av ) => new { Member = m.Member, Attribute = m.Attribute, AttributeValue = m.AttributeValue, MatrixItemId = m.MatrixItemId, FilterValue = av.Value } );
@@ -293,9 +276,9 @@ namespace RockWeb.Blocks.Reporting.NextGen
             var personIds = members.Select( m => m.Key.PersonId );
             var attributeMatrixEntityTypeId = EntityTypeCache.GetId<AttributeMatrixItem>().Value;
 
-            var historyItems = historyService.Queryable()
-                .Where( h => personIds.Contains( h.EntityId ) )
-                .Where( h => h.RelatedEntityTypeId == attributeMatrixEntityTypeId )
+            var noteItems = noteService.Queryable()
+                .Where( h => personIds.Contains( h.EntityId ?? 0 ) )
+                .Where( h => h.ForeignId == attributeMatrixEntityTypeId )
                 .Where( h => h.CreatedDateTime >= firstDay && h.CreatedDateTime < nextday )
                 .ToList();
 
@@ -313,7 +296,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 {
                     var scheduleAtt = medicine.FirstOrDefault( m => m.Attribute.Key == "Schedule" );
                     var schedules = scheduleAtt.AttributeValue.Value.SplitDelimitedValues();
-                    foreach(var schedule in schedules)
+                    foreach ( var schedule in schedules )
                     {
 
                         if ( ddlSchedule.SelectedValue != "" && ddlSchedule.SelectedValue.AsGuid() != schedule.AsGuid() )
@@ -330,9 +313,9 @@ namespace RockWeb.Blocks.Reporting.NextGen
                             FilterAttribute = member.FirstOrDefault().FilterValue
                         };
 
-                        if ( !string.IsNullOrWhiteSpace(schedule) )
+                        if ( !string.IsNullOrWhiteSpace( schedule ) )
                         {
-                            var dv = DefinedValueCache.Read( schedule.AsGuid() );
+                            var dv = DefinedValueCache.Get( schedule.AsGuid() );
                             if ( dv != null )
                             {
                                 medicalItem.Schedule = dv.Value;
@@ -353,7 +336,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                         }
                         medicalItem.Key = string.Format( "{0}|{1}|{2}", medicalItem.PersonId, medicine.Key, medicalItem.ScheduleGuid );
 
-                        var history = historyItems.Where( h => h.EntityId == medicalItem.PersonId && h.RelatedEntityId == medicine.Key && (string.IsNullOrWhiteSpace(h.RelatedData) || h.RelatedData.AsGuid() == medicalItem.ScheduleGuid) );
+                        var history = historyItems.Where( h => h.EntityId == medicalItem.PersonId && h.RelatedEntityId == medicine.Key && ( string.IsNullOrWhiteSpace( h.RelatedData ) || h.RelatedData.AsGuid() == medicalItem.ScheduleGuid ) );
                         if ( history.Any() )
                         {
                             medicalItem.Distributed = true;
@@ -368,9 +351,9 @@ namespace RockWeb.Blocks.Reporting.NextGen
             SortProperty sortProperty = gGrid.SortProperty;
             if ( sortProperty != null )
             {
-                if (sortProperty.Property == "Person")
+                if ( sortProperty.Property == "Person" )
                 {
-                    if (sortProperty.Direction == SortDirection.Ascending)
+                    if ( sortProperty.Direction == SortDirection.Ascending )
                     {
                         medicalItems = medicalItems.OrderBy( mi => mi.Person ).ToList();
                     }
@@ -575,7 +558,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
         protected void Distribute_Click( object sender, Rock.Web.UI.Controls.RowEventArgs e )
         {
             RockContext rockContext = new RockContext();
-            HistoryService historyService = new HistoryService( rockContext );
+            NoteService noteService = new NoteService( rockContext );
             var keys = ( ( string ) e.RowKeyValue ).SplitDelimitedValues();
             var personId = keys[0].AsInteger();
             var matrixId = keys[1].AsInteger();
@@ -584,21 +567,18 @@ namespace RockWeb.Blocks.Reporting.NextGen
             AttributeMatrixItemService attributeMatrixItemService = new AttributeMatrixItemService( rockContext );
             var matrix = attributeMatrixItemService.Get( matrixId );
             matrix.LoadAttributes();
-            var category = new CategoryService( rockContext ).Get( GetAttributeValue( "HistoryCategory" ).AsGuid() );
+            var noteType = NoteTypeCache.Get( GetAttributeValue( "HistoryCategory" ).AsGuid() );
 
-            History history = new History()
+            Note history = new Note()
             {
-                CategoryId = category.Id,
-                EntityTypeId = EntityTypeCache.GetId<Person>().Value,
+                NoteTypeId = noteType.Id,
                 EntityId = personId,
-                RelatedEntityTypeId = EntityTypeCache.GetId<AttributeMatrixItem>().Value,
-                RelatedEntityId = matrixId,
-                Verb = "Distributed",
+                ForeignId = matrixId,
                 Caption = "Medication Distributed",
-                Summary = string.Format( "<span class=\"field-name\">{0}</span> was distributed at <span class=\"field-name\">{1}</span>", matrix.GetAttributeValue( "Medication" ), Rock.RockDateTime.Now ),
-                RelatedData = scheduleGuid.ToString()
+                Text = string.Format( "<span class=\"field-name\">{0}</span> was distributed at <span class=\"field-name\">{1}</span>", matrix.GetAttributeValue( "Medication" ), Rock.RockDateTime.Now ),
+                ForeignGuid = scheduleGuid
             };
-            historyService.Add( history );
+            noteService.Add( history );
             rockContext.SaveChanges();
             BindGrid();
         }
