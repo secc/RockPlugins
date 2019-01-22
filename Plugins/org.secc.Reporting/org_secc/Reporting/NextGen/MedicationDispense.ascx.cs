@@ -37,7 +37,6 @@ namespace RockWeb.Blocks.Reporting.NextGen
     [DefinedTypeField( "Medication Schedule Defined Type", "Defined type which contain the values for the possible times to give medication.", key: "DefinedType" )]
     [TextField( "Group Ids", "Comma separated list of group ids." )]
     [TextField( "Medication Matrix Key", "The attribute key for the medication schedule matrix." )]
-    [CategoryField( "History Category", "Category to save the history.", false, "Rock.Model.Note" )]
     [NoteTypeField( "NoteType", "Medication Note Type", false, "Rock.Model.Person" )]
     [TextField( "Group Member Attribute Filter", "Group member filter to sort group by.", false )]
     public partial class MedicationDispense : RockBlock
@@ -184,19 +183,22 @@ namespace RockWeb.Blocks.Reporting.NextGen
             }
 
             var groups = groupService.GetByIds( groupIds );
-
             var groupTypeIds = groups.ToList().Select( g => g.GroupTypeId.ToString() ).Distinct();
 
-            var groupEntityid = EntityTypeCache.GetId<Rock.Model.GroupMember>();
+            var personEntityid = EntityTypeCache.GetId<Rock.Model.Person>().Value;
+            var groupMemberEntityid = EntityTypeCache.GetId<Rock.Model.GroupMember>().Value;
             var key = GetAttributeValue( "MedicationMatrixKey" );
+
+            var groupMembers = groups.SelectMany( g => g.Members );
 
             AttributeService attributeService = new AttributeService( rockContext );
 
+
+
             List<int> attributeIds = attributeService.Queryable()
                 .Where( a =>
-                    ( groupIdStrings.Contains( a.EntityTypeQualifierValue ) || groupTypeIds.Contains( a.EntityTypeQualifierValue ) )
-                    && a.Key == key
-                    && a.EntityTypeId == groupEntityid )
+                    a.EntityTypeId == personEntityid
+                    && a.Key == key )
                 .Select( a => a.Id ).ToList();
 
             if ( attributeIds == null )
@@ -214,7 +216,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     .Where( a =>
                     ( groupIdStrings.Contains( a.EntityTypeQualifierValue ) || groupTypeIds.Contains( a.EntityTypeQualifierValue ) )
                     && a.Key == filterAttributeKey
-                    && a.EntityTypeId == groupEntityid )
+                    && a.EntityTypeId == groupMemberEntityid )
                 .Select( a => a.Id ).ToList();
             }
 
@@ -225,38 +227,37 @@ namespace RockWeb.Blocks.Reporting.NextGen
             AttributeMatrixItemService attributeMatrixItemService = new AttributeMatrixItemService( rockContext );
             NoteService noteService = new NoteService( rockContext );
 
-            var qry = new GroupMemberService( rockContext ).Queryable()
+            var qry = groupMembers
                 .Join(
                     attributeValueService.Queryable().Where( av => attributeIds.Contains( av.AttributeId ) ),
-                    m => m.Id,
+                    m => m.PersonId,
                     av => av.EntityId.Value,
-                    ( m, av ) => new { Member = m, AttributeValue = av.Value }
+                    ( m, av ) => new { Person = m.Person, Member = m, AttributeValue = av.Value }
                 )
                 .Join(
                     attributeMatrixService.Queryable(),
                     m => m.AttributeValue,
                     am => am.Guid.ToString(),
-                    ( m, am ) => new { Member = m.Member, AttributeMatrix = am }
+                    ( m, am ) => new { Person = m.Person, Member = m.Member, AttributeMatrix = am }
                 )
                 .Join(
                     attributeMatrixItemService.Queryable(),
                     m => m.AttributeMatrix.Id,
                     ami => ami.AttributeMatrixId,
-                    ( m, ami ) => new { Member = m.Member, AttributeMatrixItem = ami, TemplateId = ami.AttributeMatrix.AttributeMatrixTemplateId }
+                    ( m, ami ) => new { Person = m.Person, Member = m.Member, AttributeMatrixItem = ami, TemplateId = ami.AttributeMatrix.AttributeMatrixTemplateId }
                 )
                 .Join(
                     attributeService.Queryable(),
                     m => new { TemplateIdString = m.TemplateId.ToString(), EntityTypeId = attributeMatrixItemEntityId },
                     a => new { TemplateIdString = a.EntityTypeQualifierValue, EntityTypeId = a.EntityTypeId },
-                    ( m, a ) => new { Member = m.Member, AttributeMatrixItem = m.AttributeMatrixItem, Attribute = a }
+                    ( m, a ) => new { Person = m.Person, Member = m.Member, AttributeMatrixItem = m.AttributeMatrixItem, Attribute = a }
                 )
                 .Join(
                     attributeValueService.Queryable(),
                     m => new { EntityId = m.AttributeMatrixItem.Id, AttributeId = m.Attribute.Id },
                     av => new { EntityId = av.EntityId ?? 0, AttributeId = av.AttributeId },
-                    ( m, av ) => new { Member = m.Member, Attribute = m.Attribute, AttributeValue = av, MatrixItemId = m.AttributeMatrixItem.Id, FilterValue = "" }
-                ).
-                Where( obj => groupIds.Contains( obj.Member.GroupId ) );
+                    ( m, av ) => new { Person = m.Person, Member = m.Member, Attribute = m.Attribute, AttributeValue = av, MatrixItemId = m.AttributeMatrixItem.Id, FilterValue = "" }
+                );
 
             if ( filterAttributeIds != null && pnlAttribute.Visible && !string.IsNullOrWhiteSpace( ddlAttribute.SelectedValue ) )
             {
@@ -266,27 +267,29 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     attributeValueService.Queryable().Where( av => filterAttributeIds.Contains( av.AttributeId ) ),
                     m => new { Id = m.Member.Id, Value = filterValue },
                     av => new { Id = av.EntityId ?? 0, Value = av.Value },
-                    ( m, av ) => new { Member = m.Member, Attribute = m.Attribute, AttributeValue = m.AttributeValue, MatrixItemId = m.MatrixItemId, FilterValue = av.Value } );
+                    ( m, av ) => new { Person = m.Person, Member = m.Member, Attribute = m.Attribute, AttributeValue = m.AttributeValue, MatrixItemId = m.MatrixItemId, FilterValue = av.Value } );
             }
-            var members = qry.ToList().GroupBy( a => a.Member ).ToList();
+            var members = qry.ToList().GroupBy( a => a.Person ).ToList();
 
             var firstDay = ( dpDate.SelectedDate ?? Rock.RockDateTime.Today ).Date;
             var nextday = firstDay.AddDays( 1 );
 
-            var personIds = members.Select( m => m.Key.PersonId );
+            var personIds = members.Select( m => m.Key.Id );
             var attributeMatrixEntityTypeId = EntityTypeCache.GetId<AttributeMatrixItem>().Value;
 
+            var noteType = NoteTypeCache.Get( GetAttributeValue( "NoteType" ).AsGuid() );
+
             var noteItems = noteService.Queryable()
-                .Where( h => personIds.Contains( h.EntityId ?? 0 ) )
-                .Where( h => h.ForeignId == attributeMatrixEntityTypeId )
+                .Where( n => n.NoteTypeId == noteType.Id )
+                .Where( n => personIds.Contains( n.EntityId ?? 0 ) )
                 .Where( h => h.CreatedDateTime >= firstDay && h.CreatedDateTime < nextday )
                 .ToList();
 
             foreach ( var member in members )
             {
                 if ( !string.IsNullOrWhiteSpace( tbName.Text )
-                    && !member.Key.Person.FullName.ToLower().Contains( tbName.Text.ToLower() )
-                    && !member.Key.Person.FullNameReversed.ToLower().Contains( tbName.Text.ToLower() ) )
+                    && !member.Key.FullName.ToLower().Contains( tbName.Text.ToLower() )
+                    && !member.Key.FullNameReversed.ToLower().Contains( tbName.Text.ToLower() ) )
                 {
                     continue;
                 }
@@ -306,10 +309,10 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
                         var medicalItem = new MedicalItem()
                         {
-                            Person = member.Key.Person.FullNameReversed,
+                            Person = member.Key.FullNameReversed,
                             GroupMemberId = member.Key.Id,
-                            GroupMember = member.FirstOrDefault().Member,
-                            PersonId = member.Key.Person.Id,
+                            //GroupMember = member.FirstOrDefault().Person,
+                            PersonId = member.Key.Id,
                             FilterAttribute = member.FirstOrDefault().FilterValue
                         };
 
@@ -336,11 +339,13 @@ namespace RockWeb.Blocks.Reporting.NextGen
                         }
                         medicalItem.Key = string.Format( "{0}|{1}|{2}", medicalItem.PersonId, medicine.Key, medicalItem.ScheduleGuid );
 
-                        var history = historyItems.Where( h => h.EntityId == medicalItem.PersonId && h.RelatedEntityId == medicine.Key && ( string.IsNullOrWhiteSpace( h.RelatedData ) || h.RelatedData.AsGuid() == medicalItem.ScheduleGuid ) );
-                        if ( history.Any() )
+                        var notes = noteItems
+                            .Where( n => n.EntityId == medicalItem.PersonId && n.ForeignId == medicine.Key && n.ForeignGuid == medicalItem.ScheduleGuid );
+
+                        if ( notes.Any() )
                         {
                             medicalItem.Distributed = true;
-                            medicalItem.History = string.Join( "<br>", history.Select( h => h.Summary ) );
+                            medicalItem.History = string.Join( "<br>", notes.Select( n => n.Text ) );
                         }
                         medicalItems.Add( medicalItem );
 
@@ -567,7 +572,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
             AttributeMatrixItemService attributeMatrixItemService = new AttributeMatrixItemService( rockContext );
             var matrix = attributeMatrixItemService.Get( matrixId );
             matrix.LoadAttributes();
-            var noteType = NoteTypeCache.Get( GetAttributeValue( "HistoryCategory" ).AsGuid() );
+            var noteType = NoteTypeCache.Get( GetAttributeValue( "NoteType" ).AsGuid() );
 
             Note history = new Note()
             {
