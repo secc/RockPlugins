@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -148,6 +148,7 @@ namespace RockWeb.Blocks.Reporting.Children
 
             var breakoutGroupMembers = new GroupService( rockContext )
                 .GetByIds( selectedGroups )
+                .Where( g => g.IsActive && !g.IsArchived )
                 .SelectMany( g => g.Members.Where( m => !m.GroupRole.IsLeader && m.GroupMemberStatus == GroupMemberStatus.Active ) )
                 .Select( gm => new BreakoutGroupMember
                 {
