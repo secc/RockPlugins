@@ -89,7 +89,7 @@
 </section>
 
 {% comment %}
-920 General FAQs -- 2019 Theme
+LA General FAQs -- 2019 Theme
 {% endcomment %}
 <section id="FAQs" class="g-bg-color--gray-lightest">
     <div class="container">
@@ -118,13 +118,13 @@
                   <div class="panel-heading collapsed" role="button" id="faq-1-h-1" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-1" aria-expanded="false" aria-controls="faq-1-collapse-1">
                     <h4 class="panel-title">
                       <span class="collapsed"><b>
-                          What do we wear?
+                          Where should I park if the parking lot is full?
                       </b></span>
                     </h4>
                   </div>
                   <div id="faq-1-collapse-1" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-1" aria-expanded="false" style="height: 0px;">
                     <div class="panel-body">
-                        <p>Come as you are! We're pretty casual here.</p>
+                        <p>We often have a few spaces scattered throughout the lot, even if you don't make it here a little early. Additional parking is available just a short walk away at the Oldham County Library or the Pollard Realty building up the street.</p>
                     </div>
                   </div>
                 </div><!-- / .panel -->
@@ -134,13 +134,13 @@
                   <div class="panel-heading collapsed" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-2" aria-expanded="false" aria-controls="faq-1-collapse-2">
                     <h4 class="panel-title">
                       <b><span class="collapsed">
-                          How early should we arrive before weekend services?
+                          When are Sunday services?
                       </span>
                     </b></h4>
                   </div>
                   <div id="faq-1-collapse-2" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-2" aria-expanded="false" style="height: 0px;">
                     <div class="panel-body">
-                        <p>We typically recommend arriving at least 20 minutes before the service time you wish to attend. If you have children, we recommend 30 minutes just to make sure you have a little extra time to get them checked in to our awesome children’s programming called <strong>SE!Kids</strong>.</p>
+                        <p>Our Sunday services take place at 9:30 a.m. and 11:15 a.m. every week. We also have Bible study opportunities for both men and women. Women's and men's studies meet every Tuesday at 6:30 p.m. Women's groups also meet on Wednesdays at 9:30 a.m.</p>
                     </div>
                   </div>
                 </div><!-- / .panel -->
@@ -150,13 +150,13 @@
                   <div class="panel-heading collapsed" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-3" aria-expanded="false" aria-controls="faq-1-collapse-3">
                     <h4 class="panel-title">
                       <span class="collapsed"><b>
-                          Where do we park?
+                          What can I expect from a church service?
                       </b></span>
                     </h4>
                   </div>
                   <div id="faq-1-collapse-3" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-3" aria-expanded="false" style="height: 0px;">
                     <div class="panel-body">
-                        <p>When you arrive on the campus, you can park in any parking lot. However, we do have special parking just for you! Look for our <strong>1st and 2nd-Time Guest Parking</strong> signs. They will guide you to the parking lot.</p>
+                        <p>You can expect to find a group of people navigating though life in pursuit of Jesus. We're not a perfect church, but our aim is to welcome you warmly with the love of Christ. You can expect a casual atmosphere with relevant music and a message from one of our pastors that will speak to where you are and lead you in an encounter with God.</p>
                     </div>
                   </div>
                 </div><!-- / .panel -->
@@ -180,13 +180,13 @@
                   <div class="panel-heading collapsed" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-2-collapse-4" aria-expanded="false" aria-controls="faq-2-collapse-4">
                     <h4 class="panel-title">
                       <span class="collapsed"><b>
-						  Where do we go once we’re in the building?
+						  Where can I bring my kids?
 					  </b></span>
                     </h4>
                   </div>
                   <div id="faq-2-collapse-4" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-4" aria-expanded="false" style="height: 0px;">
                     <div class="panel-body">
-						<p>When you’re inside, head to Guest Central. It’s easy to find—just look for the orange tables and signs in the Atrium. Friendly volunteers will be there to greet you and answer questions. If you have kids, they will also walk you through the check-in process.</p>
+						<p>We strive to have a relevant worship service for your children where they will be cared for and taught about Jesus in a way that is understandable to their age. Children’s programming is available during both both of our Sunday services. We also have children’s programming available during our women’s and men’s group times each week, but we ask that you register your child on the website for Bible study times so we can have enough staff ready. You can be confident that your children will always experience a safe, caring, growing experience that they will enjoy!</p>
 					</div>
                   </div>
                 </div><!-- / .panel -->
@@ -196,13 +196,13 @@
                   <div class="panel-heading collapsed" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-2-collapse-5" aria-expanded="false" aria-controls="faq-2-collapse-5">
                     <h4 class="panel-title">
                       <span class="collapsed"><b>
-						  How do I get my kids into SE!Kids children's programming?
+						  How can I learn more about the church or get connected?
                       </b></span>
                     </h4>
                   </div>
                   <div id="faq-2-collapse-5" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-5" aria-expanded="false" style="height: 0px;">
                     <div class="panel-body">
-                        <p>Come to Guest Central in the Atrium. We’ll walk you right over to our First-Time Kids' Check-In Tables.</p>
+                        <p>We would love to meet you! Every Sunday, you can stop by Guest Central in the Atrium and volunteers will be happy to answer your questions. Once a month, we also host Starting Point, where you can join other new folks for a tour of the building, an introduction to Southeast from our staff members, and the opportunity to have your questions answered. Finally, you can fill out a Connection Cards in our weekend bulletin.  Hand that card in at the Connection Center in the Atrium and we will get back to you soon!</p>
                     </div>
                   </div>
                 </div><!-- / .panel -->
@@ -212,14 +212,14 @@
                   <div class="panel-heading collapsed" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-2-collapse-6" aria-expanded="false" aria-controls="faq-2-collapse-6">
                     <h4 class="panel-title">
                       <span class="collapsed"><b>
-                          How long are weekend services?
+                          Do you have programs for my middle school or high school student?
                       </b></span>
                     </h4>
                   </div>
                   <div id="faq-2-collapse-6" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-6" aria-expanded="false" style="height: 0px;">
                     <div class="panel-body">
-						<p>Our services usually last about an hour. There is no reserved seating, so please sit wherever you like!</p>
-					</div>
+                        <p>Absolutely! Middle school students meet at 11:15 a.m. on Sunday mornings for worship and group time. The Middle School Ministry (MSM) meets in The Station at the end of the hallway on the right. High school students meet at 6:30 p.m. on Wednesday nights. They meet for worship followed by group time, and many stay later or begin early for games and fun events with friends.</p>
+                    </div>
                   </div>
                 </div><!-- / .panel -->
 
@@ -235,14 +235,14 @@
 </section>
 
 {% comment %}
-920 Children -- 2019 theme
+LA Children -- 2019 theme
 {% endcomment %}
 <section id="Children">
     <div class="container g-padding-y-150--xs">
 
         <div class="row">
             <div class="col-lg-12 clearfix text-center">
-                <h1 class="g-font-family--secondary">Blankenbaker Children</h1>
+                <h1 class="g-font-family--secondary">La Grange Children</h1>
                 <br>
                 <br>
     		</div>
@@ -251,20 +251,22 @@
 		<div class="row row g-display-flex--lg">
 
 		    <div class="col-sm-12 col-md-6 col-md-push-6">
-                <img src="/Content/Dynamic/Campus/Blankenbaker/920-12975.jpg" class="img-responsive img-circle g-margin-x-auto--xs g-margin-b-80--xs g-center--lg g-width-100-percent--xs" style="max-width: 40rem;" />
+                <img src="/Content/Dynamic/Campus/LaGrange/LA-12976.jpg" class="img-responsive img-circle g-margin-x-auto--xs g-margin-b-80--xs g-center--lg g-width-100-percent--xs" style="max-width: 40rem;" />
             </div>
 
 		    <div class="col-sm-12 col-md-6 col-md-pull-6">
                 <div class="g-text-center--xs g-text-left--xs g-padding-l-40--md">
                     <img src="/Content/Dynamic/SEKids-logo.jpg" class="img-responsive g-margin-x-auto--xs g-margin-x-0--md g-width-400--xs">
                     <br>
-                    <h5 class="uppercase g-padding-b-20--xs g-font-weight--700">Blankenbaker Campus</h5>
+                    <h5 class="uppercase g-padding-b-20--xs g-font-weight--700">LA GRANGE CAMPUS</h5>
                     <br />
                     <p class="g-font-weight--400 g-line-height g-margin-b-0--xs">
-                        We partner with moms and dads to help kids <strong>Know</strong> God and His love for them, <strong>Grow</strong> in faith and love Christ, and <strong>Show</strong> God’s love to others. Our weekly children’s programs meet kids right where they are and help them to discover God and His Word on their own level. We believe our kids aren’t just the church of tomorrow—they’re the church of today!</p>
+                        We partner with moms and dads to help kids <strong>Know</strong> God and His love for them, <strong>Grow</strong> in faith and love Christ, and <strong>Show</strong> God's love to others. Our weekly children's programs meet kids right where they are and help them to discover God and His Word on their own level. We believe our kids aren't just the church of tomorrow—they're the church of today!
+                    </p>
                     <br>
                     <p class="g-font-weight--400 g-line-height g-margin-b-0--xs">
-                        Children love SE!Kids because our programs are fun and our volunteers take time to know every child’s name and story. Parents love SE!Kids because the programs are educational, engaging, and absolutely safe.</p>
+                        Children love <i>SE!Kids</i> because our programs are fun and our volunteers take time to know every child's name and story. Parents love <i>SE!Kids</i> because the programs are educational, engaging, and absolutely safe.
+                    </p>
                     <br>
                     <a class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" target="_blank" href="/visit/children/register">
                         <strong>Register</strong>
@@ -277,7 +279,7 @@
 </section>
 
 {% comment %}
-920 Children FAQ -- 2019 theme
+LA Children FAQ -- 2019 theme
 {% endcomment %}
 <section id="ChildrensFAQs" class="g-bg-color--gray-lightest">
     <div class="container">
@@ -306,13 +308,13 @@
                   <div class="panel-heading collapsed" role="button" data-toggle="collapse" data-parent="#faq-accordion-3, #faq-accordion-4" href="#faq-3-h-1" aria-expanded="false" aria-controls="faq-3-h-1">
                     <h4 class="panel-title">
                       <span class="collapsed"><b>
-                          What can my children do during weekend church services?
+                         * What can my children do during weekend church services?
                       </b></span>
                     </h4>
                   </div>
                   <div id="faq-3-h-1" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-3-h-1" aria-expanded="false" style="height: 0px;">
                     <div class="panel-body">
-                        <p>Children from birth through 5th grade can join us in SE!Kids for fun, Biblical, and secure programs designed to meet them where they are and help them discover God and His Word on their level. Middle school and high school students meet in The Block building and do not check-in with <i>SE!Kids</i>.</p>
+                        <p>Need Copy.</p>
                     </div>
                   </div>
                 </div><!-- / .panel -->
@@ -322,13 +324,13 @@
                   <div class="panel-heading collapsed" role="button" data-toggle="collapse" data-parent="#faq-accordion-3, #faq-accordion-4" href="#faq-3-h-2" aria-expanded="false" aria-controls="faq-3-h-2">
                     <h4 class="panel-title">
                       <b><span class="collapsed">
-                          What do I need to do to have my children attend SE!Kids during weekend church services?
+                          * What do I need to do to have my children attend SE!Kids during weekend church services?
                       </span>
                     </b></h4>
                   </div>
                   <div id="faq-3-h-2" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-3-h-2" aria-expanded="false" style="height: 0px;">
                     <div class="panel-body">
-                        <p>To get your child checked in securely to his or her classroom, we will collect some basic information about you and your child. You can do this in person before church starts or click <b><a href="/visit/children/register">HERE</a></b> to register online. Check-in volunteers may be found in the Atrium at the First Time Check-In Counter and at all of our computer Check-In Kiosks in the Children’s Wing. Once you check in, you will receive a set of stickers for you and your child. These stickers show your child's room location, their name, age and service time, and a three-digit Child ID security code.</p>
+                        <p>Need Copy.</p>
                     </div>
                   </div>
                 </div><!-- / .panel -->
@@ -338,13 +340,13 @@
                   <div class="panel-heading collapsed" role="button" data-toggle="collapse" data-parent="#faq-accordion-3, #faq-accordion-4" href="#faq-3-h-3" aria-expanded="false" aria-controls="faq-3-h-3">
                     <h4 class="panel-title">
                       <span class="collapsed"><b>
-                          What time are <i><font color="#000000">SE!Kids</font></i> programs?
+                          * What time are <i><font color="#000000">SE!Kids</font></i> programs?
                       </b></span>
                     </h4>
                   </div>
                   <div id="faq-3-h-3" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-3-h-3" aria-expanded="false" style="height: 0px;">
                     <div class="panel-body">
-                        <p>Our children's programming happens during all of our regular weekend services. Children can check-in at <i>SE!Kids</i> on Saturdays at 5:00 p.m. and Sundays at 9:00 a.m. and 11:15 a.m. We also have children's classes available on Saturdays at 6:30 p.m. and Sundays at 10:45 a.m. that take place during most of our adult Weekend Groups. Children's check-in begins 30 minutes before the start of worship services and ends 20 minutes after each service begins.</p>
+                        <p>Need Copy.</p>
                     </div>
                   </div>
                 </div><!-- / .panel -->
@@ -368,14 +370,14 @@
                   <div class="panel-heading collapsed" role="button" data-toggle="collapse" data-parent="#faq-accordion-3, #faq-accordion-4" href="#faq-3-h-4" aria-expanded="false" aria-controls="faq-3-h-4">
                     <h4 class="panel-title">
                       <span class="collapsed"><b>
-						  Where does my child go?
+						* Where does my child go?
 					  </b></span>
                     </h4>
                   </div>
                   <div id="faq-3-h-4" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-3-h-4" aria-expanded="false" style="height: 0px;">
                     <div class="panel-body">
-						<p>Children are assigned rooms based on their age and grade in our Children’s Wing, located next to the Atrium. We will print your child's room on his or her sticker once you check in. Volunteers are always available to help you find your child's room.</p>
-					</div>
+                        <p>Need Copy.</p>
+                    </div>
                   </div>
                 </div><!-- / .panel -->
 
@@ -384,13 +386,13 @@
                   <div class="panel-heading collapsed" role="button" data-toggle="collapse" data-parent="#faq-accordion-3, #faq-accordion-4" href="#faq-3-h-5" aria-expanded="false" aria-controls="faq-3-h-5">
                     <h4 class="panel-title">
                       <span class="collapsed"><b>
-						  What if my child needs me during the worship service?
+						  * What if my child needs me during the worship service?
                       </b></span>
                     </h4>
                   </div>
                   <div id="faq-3-h-5" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-3-h-5" aria-expanded="false" style="height: 0px;">
                     <div class="panel-body">
-                        <p>When your child is checked in to our database, you receive a three-digit Child ID code on your stickers. If we need to contact you for any reason, we will display this number on the large screen in the Sanctuary, and also on the electronic display boxes in the adult Weekend Group classrooms.</p>
+                        <p>Need Copy.</p>
                     </div>
                   </div>
                 </div><!-- / .panel -->
@@ -400,14 +402,14 @@
                   <div class="panel-heading collapsed" role="button" data-toggle="collapse" data-parent="#faq-accordion-3, #faq-accordion-4" href="#faq-3-h-6" aria-expanded="false" aria-controls="faq-3-h-6">
                     <h4 class="panel-title">
                       <span class="collapsed"><b>
-                          How long are weekend services?
+                         * How long are weekend services?
                       </b></span>
                     </h4>
                   </div>
                   <div id="faq-3-h-6" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-3-h-6" aria-expanded="false" style="height: 0px;">
                     <div class="panel-body">
-						<p>Our services usually last about an hour. There is no reserved seating, so please sit wherever you like!</p>
-					</div>
+                        <p>Need Copy.</p>
+                    </div>
                   </div>
                 </div><!-- / .panel -->
 
@@ -424,14 +426,14 @@
 
 
 {% comment %}
-920 Student -- 2019 Theme
+CW Student -- 2019 Theme
 {% endcomment %}
 <section id="Students">
     <div class="container g-padding-y-150--xs">
 
         <div class="row">
             <div class="col-lg-12 clearfix text-center">
-                <h1 class="g-font-family--secondary">Blankenbaker Students</h1>
+                <h1 class="g-font-family--secondary">La Grange Students</h1>
                 <br>
                 <br>
     		</div>
@@ -440,7 +442,7 @@
 		<div class="row row g-display-flex--lg">
 
 		    <div class="col-sm-12 col-md-6">
-                <img src="/Content/Dynamic/Campus/Blankenbaker/920-12981.jpg" class="img-responsive img-circle g-margin-x-auto--xs g-margin-b-80--xs g-center--lg g-width-100-percent--xs" style="max-width: 40rem;">
+                <img src="/Content/Dynamic/Campus/LaGrange/LA-12982.jpg" class="img-responsive img-circle g-margin-x-auto--xs g-margin-b-80--xs g-center--lg g-width-100-percent--xs" style="max-width: 40rem;">
             </div>
 
 		    <div class="col-sm-12 col-md-6">
@@ -460,7 +462,7 @@
 </section>
 
 {% comment %}
-920 Student FAQs -- 2019 Theme
+CW Student FAQs -- 2019 Theme
 {% endcomment %}
 <section id="StudentsFAQs" class="g-bg-color--gray-lightest">
     <div class="container">
@@ -605,7 +607,7 @@
 </section>
 
 {% comment %}
-920 Student FAQs -- 2019 Theme
+LA Get Connected -- 2019 Theme
 {% endcomment %}
 <section id="Connect">
     <div class="container g-padding-y-150--xs">
