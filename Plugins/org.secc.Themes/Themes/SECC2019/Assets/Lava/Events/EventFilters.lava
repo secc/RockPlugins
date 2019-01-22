@@ -273,15 +273,16 @@ function updatePath(key, value) {
     baseUrl = [location.protocol, '//', location.host].join('');
 	parts = location.pathname.split('/');
 	// Set some defaults;
-	parts[1] = 'events';
-	parts[2] = parts[2]||'southeast';
-	parts[3] = parts[3]||'all';
+	parts[1] = 'newsite';
+	parts[2] = 'newevents';
+	parts[3] = parts[3]||'southeast';
+	parts[4] = parts[4]||'all';
 	// Set default part one of Events
 	if (key == 'campus') {
-		parts[2] = value||'southeast';
+		parts[3] = value||'southeast';
 	}
 	if (key == 'ministry') {
-		parts[3] = value||'all';
+		parts[4] = value||'all';
 	}
     window.history.pushState({}, '', baseUrl + parts.join('/'));
 	console.log("key:" + key);
@@ -297,7 +298,7 @@ var parseQueryString = function() {
 
     str.replace(
         new RegExp( "([^?=&]+)(=([^&]*))?", "g" ),
-        function( $0, $1, $2, $3 ){
+        function( $0, $1, $2, $3, $4 ){
             objURL[ $1 ] = $3;
         }
     );

@@ -125,7 +125,7 @@
                     </a>
                 </li>
                 <li class="se-4-column border-right">
-                    <a class="cd-nav-item events" href="/newsite/events">
+                    <a class="cd-nav-item events" href="/newsite/newevents">
                         <h3>Events</h3>
                     </a>
                 </li>
