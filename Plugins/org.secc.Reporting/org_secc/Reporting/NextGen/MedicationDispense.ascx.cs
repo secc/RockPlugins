@@ -279,6 +279,11 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
             var noteType = NoteTypeCache.Get( GetAttributeValue( "NoteType" ).AsGuid() );
 
+            if ( noteType == null )
+            {
+                return new List<MedicalItem>();
+            }
+
             var noteItems = noteService.Queryable()
                 .Where( n => n.NoteTypeId == noteType.Id )
                 .Where( n => personIds.Contains( n.EntityId ?? 0 ) )
