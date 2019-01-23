@@ -22,6 +22,7 @@ namespace org.secc.SermonFeed.Rest
         public IHttpActionResult GetSpeakerSeries( string slug = "", string speaker = "", int offset = 0 )
         {
             string imageLocation = GlobalAttributesCache.Get().GetValue( "PublicApplicationRoot" ).EnsureTrailingForwardslash() + "GetImage.ashx?Guid=";
+            string audioLocation = GlobalAttributesCache.Get().GetValue( "PublicApplicationRoot" ).EnsureTrailingForwardslash() + "GetFile.ashx?Guid=";
             RockContext rockContext = new RockContext();
 
             var speakerQry = new AttributeValueService( rockContext ).Queryable().Where( av => av.AttributeId == SPEAKER_ATTRIBUTE && av.Value == speaker );
@@ -89,7 +90,7 @@ namespace org.secc.SermonFeed.Rest
                             title = sermonItem.Title,
                             description = sermonItem.Content,
                             slug = sermonItem.PrimarySlug,
-                            audio_link = imageLocation + sermonItem.GetAttributeValue( "Audio" ),
+                            audio_link = audioLocation + sermonItem.GetAttributeValue( "Audio" ),
                             date = ConvertTime( sermonItem.StartDateTime ),
                             duration = sermonItem.GetAttributeValue( "Duration" ).AsInteger(),
                             image = imageLocation + sermonItem.GetAttributeValue( "Image" ),
