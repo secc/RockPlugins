@@ -37,13 +37,13 @@
             <div class="breadcrumbs">
                 {%for breadcrumb in breadcrumbs %}
                     {% assign breadcrumbparts = breadcrumb | Split:'^^^' %}
-
                     {% if forloop.last  %}
                         <span class="breadcrumbs_item current">
                             {% if breadcrumbparts[1] contains "Story Item"  %}
 
                                 {% assign storySlug = 'Global' | PageParameter:'Slug'  %}
-                                {% contentchannelitem where:'Status == 1 && ContentChannelId == 35' sort:'StartDateTime desc' %}
+								
+                                {% contentchannelitem where:'ContentChannelId == 35' sort:'StartDateTime desc' %}
                                    {% for item in contentchannelitemItems %}
                                         {% if item.Slug == storySlug %}
                                             {{ item.Title }}

@@ -1,45 +1,3 @@
-{% comment %}
-    ******* Filtering System for Stories *****
-{% endcomment %}
-
-{% comment %} 
-<div id="Intro" class="container">
-    <div class="row" style="padding-top: 2em;">
-        <div class="col-lg-8 col-md-8 col-md-offset-2 clearfix">
-            <div class="col-xs-12 text-center">
-                <h3 style="font-weight: 500;">
-                    SEE <strong>ALL</strong> STORIES BELOW<br />
-                    <small>OR SELECT A CATEGORY</small>
-                </h3>
-            </div>
-            <br />
-            <div class="filterbox">
-                <div class="row">
-                    <div class="col-xs-12 col-sm-8 col-sm-offset-2 col-md-6 col-md-offset-3" >
-                        <select class="select2-stories" name="stories">
-                        <option value="allStories">All Stories</option>
-
-                        {% contentchannelitem where:'Status == 1 && ContentChannelId == 35' sort:'StartDateTime desc' %}
-                        {% for item in contentchannelitemItems %}
-                                {% taggeditem where:'EntityGuid == "{{item.Guid}}"' %}
-                                {% for taggedItem in taggeditemItems %}
-                                        <option value="{{ taggedItem.Tag.Name }}" data-tag="{{ taggedItem.Tag.Name | Downcase }}">{{ taggedItem.Tag.Name }}</option>
-                                {% endfor %}
-                                {% endtaggeditem %}
-                        {% endfor %}
-                        {% endcontentchannelitem %}
-
-                        </select>
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
-    </div>
-</div> 
-{% endcomment %}
-
 <style>
 .hide {
     display: none;
@@ -48,27 +6,6 @@
 
 <script>
 $(document).ready(function() {
-    /*
-    //loadQueryStringParam();
-
-    ///////////////////////////////////////////////////
-    /////////////// Initialize Select2 ////////////////
-    ///////////////////////////////////////////////////
-    function format(state) {
-        var originalOption = state.element;
-        return "<h4><span class=\"se-logo\">" + $(originalOption).data('shortcode') + "</span></h4> " + state.text;
-    }
-    $('.select2-stories').select2({
-      placeholder: 'Select a Story Category'
-    });
-    $('.select2-stories').on('select2:select', function (e) {
-        // prevent from submiting default form action
-        e.preventDefault();
-        // pull in lava ID
-        var data = e.params.data;
-        runTagsFilter(data);
-    });
-    */
     // Initialize Isotope
     var $grid = $('.isotope_wrap').isotope({
         // options
@@ -76,102 +13,14 @@ $(document).ready(function() {
         itemSelector: '.isotope_item',
         layoutMode: 'fitRows'
     });
-    // reveal all items after init
-    //var $items = $grid.find('.isotope_item');
-    //$grid.addClass('is-showing-items')
-    //.isotope( 'revealItemElements', $items );
-    
+
     // reveal all items after init
     var $items = $grid.find('.isotope_item');
     $grid.imagesLoaded().progress( function() {
       $grid.removeClass('hide-on-load').addClass('is-showing-items').isotope('layout');
     });
     $grid.isotope( 'revealItemElements', $items );
-
-    // re-init jarallax
-    //jarallax(document.querySelectorAll('.jarallax'), {
-    //    disableParallax: /iPad|iPhone|iPod|Android/,
-    //    disableVideo: /iPad|iPhone|iPod|Android/
-    //});
 });
-
-/*
-///////////////////////////////////////////////////
-////////////// Run Tag Selection ///////////////
-///////////////////////////////////////////////////
-function runTagsFilter(tag_selected) {
-    console.log('Made it to filtering function!');
-    // grab id to filter results
-    var pnlContent = $('#story-results').find("div[id*='_upnlContent']");
-    var pnlContent_ID = pnlContent.attr("id");
-    pnlContent.slideUp();
-    // $grid.isotope('destroy');
-
-    // push a new URL state with filter parameter
-    var newPath = updatePath('story',$(tag_selected.element).data('tag'));
-
-    // update form action url
-    $('#form1').attr('action', newPath);
-
-    // do AJAX postback through .NET
-    //processPageLoad(pnlContent_ID, '');
-
-    console.log('TAG:'+tag_selected);
-}
-
-function updatePath(key, value) {
-    baseUrl = [location.protocol, '//', location.host].join('');
-	parts = location.pathname.split('/');
-	// Set some defaults;
-	parts[2] = parts[2]||'all';
-	if (key == 'story') {
-		parts[2] = value||'all';
-	}
-    window.history.pushState({}, '', baseUrl + parts.join('/'));
-	console.log(key);
-	console.log(value);
-	console.log(parts);
-    return parts.join('/');
-}
-
-
-function processPageLoad(pnlContent_ID, params) {
-    // do AJAX postback through .NET
-    setTimeout(function () {
-		__doPostBack(pnlContent_ID, '');
-	}, 1);
-    ///////////////////////////////////////////////////
-    ////////////// Process Post Back //////////////////
-    ///////////////////////////////////////////////////
-    var prm = Sys.WebForms.PageRequestManager.getInstance();
-    //Raised before processing of an asynchronous postback starts and the postback request is sent to the server.
-    prm.add_beginRequest(BeginRequestHandler);
-    // Raised after an asynchronous postback is finished and control has been returned to the browser.
-    prm.add_endRequest(pageLoad);
-    // Listen for PostBack
-    function pageLoad() {
-        var pnlContent = $('#event-results').find("div[id*='_upnlContent']");
-        var pnlContent_ID = pnlContent.attr("id");
-        // Once loaded, fire the Javascript function from the list
-        InitLoadedRequest(); // an Ajax pageLoad method that will call your jquery method
-        pnlContent.slideDown(400, function() {});
-        // $('html, body').animate({scrollTop: ($('#filter_selected').offset().top)}, 400);
-        // $('html, body').scrollspy({ target: '#filter_selected' });
-
-        var scroll = new SmoothScroll();
-        var anchor = document.querySelector( '#filter_selected' );
-        scroll.animateScroll( anchor );
-
-    }
-    // Run JS while waiting on PostBack
-    function BeginRequestHandler(sender, args) {
-        // hide current state
-        // hide Blocks that aren't needed when filtered
-        $('.hide-on-filter').slideUp();
-        // destropy any previous iso before postback
-        // $('.isotope_wrap').isotope('destroy');
-    }*/
-//}
 
 $( "#loadStories" ).click(function() {
   getMoreStories(jQuery);
@@ -199,10 +48,10 @@ function getMoreStories($) {
 			beforeSend: function(data) {
 				storiesLoading = true; // start ajax loading process
 			},
-			error: function(jqXHR,error, errorThrown) {  
-			   console.log('AJAX ERROR: '); 
+			error: function(jqXHR,error, errorThrown) {
+			   console.log('AJAX ERROR: ');
                if(jqXHR.status&&jqXHR.status==400){
-                   console.log(jqXHR.responseText); 
+                   console.log(jqXHR.responseText);
                }else{
 				   console.log('URL Request: '+ 'https://www.southeastchristian.org/Webhooks/Lava.ashx/secc-stories/'+storiesOffset);
                    console.log("jqXHR:");
@@ -231,34 +80,34 @@ function getMoreStories($) {
 					      s_day = sermonsStartDate.getDate(),
 						  s_month = sermonsStartDate.toLocaleString(locale, { month: "long" }),
 					      s_year = sermonsStartDate.getFullYear();
-                    
+
                     var $elem = $('<div></div>', {
-                                "class": "isotope_item isotope_new_item col-xs-12 col-md-6 col-lg-4 g-margin-b-60--xs g-margin-b-20--md"
+                                "class": "isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar"
                                 }).append(
                                     $('<article/>', {
-                                        "class": 'post_item_story'
+                                        "class": 'post_item_story g-margin-y-0--xs card'
                                     }).html(function() {
                                         var image_box = "<div class=\"post_featured_story\"> \
                                                             <div class=\"post_thumb_story\" data-image=\""+ story_group.Image +"\" data-title=\""+ story_group.Name +"\"> \
-                                                                <a class=\"hover_icon hover_icon_link\" href=\"/stories/"+ story_group.Slug +"\"> \
-                                                                    <img class=\"img-responsive img-rounded\" alt=\""+ story_group.Name +"\" src=\""+ story_group.Image +"\" style=\"margin: 0 auto\"> \
+                                                                <a class=\"hover_icon hover_icon_link\" href=\"/newsite/stories/"+ story_group.Slug +"\"> \
+                                                                    <img class=\"img-responsive\" alt=\""+ story_group.Name +"\" src=\""+ story_group.Image +"\" style=\"margin: 0 auto\"> \
                                                                 </a> \
                                                             </div> \
                                                         </div>";
-                                            image_box += "<div class=\"massonry_border\"> \
-                                                            <h4 class=\"post_title text-center\" style=\"font-weight: 400;color:  black;margin-top: 14px; font-size: 1.2em;\"> \
-                                                                <a href=\"/stories/"+ story_group.Slug +"\" style=\"color:  black;text-decoration:  none;\">"+ story_group.Name +"</a> \
-                                                            </h4> \
-                                                        </div>";   
+                                            image_box += "<div class=\"massonry_border g-height-150--xs g-padding-x-20--xs g-padding-y-20--xs\"> \
+                                                            <h5 class=\"g-font-family--secondary\"> \
+                                                                <a class=\"g-letter-spacing--1\" href=\"/newsite/stories/"+ story_group.Slug +"\">"+ story_group.Name +"</a> \
+                                                            </h5> \
+                                                        </div>";
                                         return image_box;
                                     })
                                 );
-            
+
 					  $grid.isotope()
 		  				  .append( $elem )
 		  				  .isotope( 'appended', $elem )
-		  				  .isotope('layout'); 
-                      
+		  				  .isotope('layout');
+
 
 				});
 
@@ -278,7 +127,7 @@ function getMoreStories($) {
                 $grid.isotope( 'revealItemElements', $items );
 
                 $('.isotope_new_item').removeClass('isotope_new_item');
-                
+
 				storiesOffset += 1;
 				$("#loading-animation").hide();
 				storiesLoading = false; // reset back to false to allow more requests
