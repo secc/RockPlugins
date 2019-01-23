@@ -3,7 +3,7 @@
 {{ 'https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.3/jarallax-video.js' | AddScriptLink }}
 
 {% assign pageParamCampus = 'Global' | PageParameter:'Campus' %}
-{% cache key:'{{pageParamCampus}}' duration:'0' tags:'2019CampusLandingPage' %}
+{% cache key:'{{pageParamCampus}}' duration:'3600' tags:'2019CampusLandingPage' %}
 
 {% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
 {% assign pageParamCampus = 'Global' | PageParameter:'Campus' %}
