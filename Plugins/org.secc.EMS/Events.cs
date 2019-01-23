@@ -35,8 +35,8 @@ namespace org.secc.EMS {
 
         public string HVACZone;
         public DateTime TimeBookingStart;   //Reserved Start Time
-        //public DateTime TimeBookingEnd;   //Reserved End Time
-        //public DateTime TimeEventStart;   //Event Start Time
+        public DateTime TimeBookingEnd;   //Reserved End Time
+        public DateTime TimeEventStart;   //Event Start Time
         public DateTime TimeEventEnd;       //Event End Time
         //public DateTime OpenTime; //Building Open Time
         //public DateTime CloseTime; //Building Close Time
@@ -46,18 +46,24 @@ namespace org.secc.EMS {
 
     public class webEvent {
         public webEvent() { }
-        public webEvent(DateTime timeEventStart, string activityName, string locationName, bool? displayOnWeb) {
+        public webEvent( DateTime timeBookingStart, DateTime timeBookingEnd, DateTime timeEventStart, DateTime timeEventEnd, string activityName, string locationName, bool? displayOnWeb) {
+            this.TimeBookingStart = timeBookingStart;
+            this.TimeBookingEnd = timeBookingEnd;
             this.TimeEventStart = timeEventStart;
+            this.TimeEventEnd = timeEventEnd;
             this.ActivityName = activityName;
             this.LocationName = locationName;
             this.DisplayOnWeb = displayOnWeb;
         }
 
-        public webEvent(DateTime timeEventStart, string activityName, string locationName) : 
-            this(timeEventStart, activityName, locationName, null){
+        public webEvent( DateTime timeBookingStart, DateTime timeBookingEnd, DateTime timeEventStart, DateTime timeEventEnd, string activityName, string locationName) : 
+            this(timeBookingStart, timeBookingEnd, timeEventStart, timeEventEnd, activityName, locationName, null){
         }
 
+        public DateTime TimeBookingStart { get; set; }
+        public DateTime TimeBookingEnd { get; set; }
         public DateTime TimeEventStart { get; set; }
+        public DateTime TimeEventEnd { get; set; }
         public string ActivityName { get; set; }
         public string LocationName { get; set; }
         public bool? DisplayOnWeb { get; set; }
