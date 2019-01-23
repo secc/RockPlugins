@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -182,9 +182,9 @@ namespace RockWeb.Plugins.org_secc.EMS
             DateTime dtDate = dpDate.SelectedDate ?? DateTime.Today;
             List<webEvent> webEvents = null;
             List<int> buildings = null;
-            string BuildingIDsSetting = GetAttributeValue( "BuildingIDs" );
-            if ( !string.IsNullOrEmpty( BuildingIDsSetting.Trim() ) )
-                buildings = BuildingIDsSetting.Trim().Split( ',' ).ToList<string>().Select( b => int.Parse( b.Trim() ) ).ToList<int>();
+            string buildingIDsSetting = GetAttributeValue( "BuildingIDs" );
+            if ( !string.IsNullOrEmpty( buildingIDsSetting.Trim() ) )
+                buildings = buildingIDsSetting.Trim().Split( ',' ).ToList<string>().Select( b => int.Parse( b.Trim() ) ).ToList<int>();
             try
             {
                 webEvents = ( new API() ).GetWebEvents( dtDate, dtDate.AddDays( 1 ).AddSeconds( -1 ), buildings, false, !cbShowAll.Checked, out errorMessage );
