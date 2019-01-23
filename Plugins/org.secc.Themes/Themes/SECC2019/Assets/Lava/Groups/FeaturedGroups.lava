@@ -1,0 +1,30 @@
+{% assign limitEvents = 3 %}
+
+{% assign eventItemOccurrenceCount = EventItemOccurrences | Size %}
+
+{% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
+{% assign pageParamCampus = 'Global' | PageParameter:'campus' %}
+
+{% if limitEvents == null %}
+    {% assign limitEvents = 1000000 %}
+{% endif %}
+<br />
+<br />
+
+{% include '~~/Assets/Lava/Groups/GroupItems.lava' %}
+
+<script>
+$(window).load(function() {
+    // Initialize Isotope
+    var $grid = $('.isotope_wrap').isotope({
+        // options
+        percentPosition: true,
+        itemSelector: '.isotope_item',
+        layoutMode: 'fitRows'
+    });
+    // reveal all items after init
+    var $items = $grid.find('.isotope_item');
+    $grid.addClass('is-showing-items')
+    .isotope( 'revealItemElements', $items );
+});
+</script>
