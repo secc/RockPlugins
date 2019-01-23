@@ -8,24 +8,25 @@
 {% if itemCount > 0 %}
 <div id="story-results" class="container g-padding-y-20--xs g-padding-x-20--xs">
 
-    <div class="isotope_wrap g-margin-b-60--xs g-margin-b-70--md">
+    <div class="isotope_wrap">
         {% for item in Items %}
         {% assign ImageGuid = item | Attribute:'Image','RawValue' %}
+		<div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
 
-        <div class="isotope_item col-xs-12 col-md-6 col-lg-4 g-margin-b-60--xs g-margin-b-20--md">
-            <article class="post_item_story">
+
+            <article class="post_item_story g-margin-y-0--xs card">
 
                 <div class="post_featured_story">
                     <div class="post_thumb_story" data-image="/GetImage.ashx?Guid={{ ImageGuid }}" data-title="{{ item.Title }}">
-    					<a class="hover_icon hover_icon_link" href="{{ 'Global' | Page:'Root' }}/stories/{{ item.Slug }}">
-                            <img class="img-responsive img-rounded" alt="{{ item.Title }}" src="/GetImage.ashx?Guid={{ ImageGuid }}" style="margin: 0 auto">
+    					<a class="hover_icon hover_icon_link" href="{{ 'Global' | Page:'Root' }}/newsite/stories/{{ item.Slug }}">
+                            <img class="img-responsive" alt="{{ item.Title }}" src="/GetImage.ashx?Guid={{ ImageGuid }}" style="margin: 0 auto">
                         </a>
                     </div>
                 </div>
-                <div class="massonry_border">
-                    <h4 class="post_title text-center" style="font-weight: 400;color:  black;margin-top: 14px; font-size: 1.2em;">
-                        <a href="{{ 'Global' | Page:'Root' }}/stories/{{ item.Slug }}" style="color:  black;text-decoration:  none;">{{ item.Title }}</a>
-                    </h4>
+                <div class="massonry_border g-height-150--xs g-padding-x-20--xs g-padding-y-20--xs">
+					<h5 class="g-font-family--secondary">
+						<a class="g-letter-spacing--1" href="{{ 'Global' | Page:'Root' }}/newsite/stories/{{ item.Slug }}">{{ item.Title }}</a>
+                    </h5>
     			</div>
             </article>
         </div>
@@ -36,7 +37,7 @@
 {% endif %}
 
 <div class="text-center">
-    <a class="btn btn-doors" id="loadStories" onclick="getMoreStories(jQuery);">
+	<a class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" id="loadStories" onclick="getMoreStories(jQuery);">
         Show More Stories <i class="fa fa-chevron-down"></i>
     </a>
     <br />

@@ -22,7 +22,6 @@
     	font-size: 1em;
     	padding: 1.7em 0 1.7em;
     	line-height:1.2em;
-    	text-align: center;
 
         .breadcrumbs_item {
         	display:inline-block;
@@ -38,7 +37,7 @@
         	text-align:left;
 
             &:before {
-                content:'>';
+                content:'|';
             }
         }
     }
