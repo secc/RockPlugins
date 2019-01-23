@@ -7,6 +7,7 @@ using Rock;
 using Rock.Data;
 using Rock.Model;
 using Rock.Rest;
+using Rock.Web.Cache;
 
 namespace org.secc.SermonFeed.Rest
 {
@@ -20,6 +21,7 @@ namespace org.secc.SermonFeed.Rest
         [System.Web.Http.Route( "api/sermonfeed/{slug}/" )]
         public IHttpActionResult GetSpeakerSeries( string slug = "", string speaker = "", int offset = 0 )
         {
+            string imageLocation = GlobalAttributesCache.Get().GetValue( "PublicApplicationRoot" ).EnsureTrailingForwardslash() + "GetImage.ashx?Guid=";
             RockContext rockContext = new RockContext();
 
             var speakerQry = new AttributeValueService( rockContext ).Queryable().Where( av => av.AttributeId == SPEAKER_ATTRIBUTE && av.Value == speaker );
@@ -56,8 +58,8 @@ namespace org.secc.SermonFeed.Rest
                     title = seriesItem.Title,
                     description = seriesItem.Content,
                     slug = seriesItem.PrimarySlug,
-                    image = "https://southeastchristian.org/GetImage.ashx?Guid=" + seriesItem.GetAttributeValue( "Image" ),
-                    image_url = "https://southeastchristian.org/GetImage.ashx?Guid=" + seriesItem.GetAttributeValue( "Image" ),
+                    image = imageLocation + seriesItem.GetAttributeValue( "Image" ),
+                    image_url = imageLocation + seriesItem.GetAttributeValue( "Image" ),
                     last_updated = ConvertTime( seriesItem.StartDateTime ),
                     sermons = new List<Sermon>()
                 };
@@ -65,8 +67,8 @@ namespace org.secc.SermonFeed.Rest
                 {
                     var childItem = seriesItem.ChildItems.FirstOrDefault().ChildContentChannelItem;
                     childItem.LoadAttributes();
-                    sermonSeries.image_url = "https://southeastchristian.org/GetImage.ashx?Guid=" + childItem.GetAttributeValue( "Image" );
-                    sermonSeries.image = "https://southeastchristian.org/GetImage.ashx?Guid=" + childItem.GetAttributeValue( "Image" );
+                    sermonSeries.image_url = imageLocation + childItem.GetAttributeValue( "Image" );
+                    sermonSeries.image = imageLocation + childItem.GetAttributeValue( "Image" );
                 }
 
                 output.Add( sermonSeries );
@@ -87,11 +89,11 @@ namespace org.secc.SermonFeed.Rest
                             title = sermonItem.Title,
                             description = sermonItem.Content,
                             slug = sermonItem.PrimarySlug,
-                            audio_link = "https://southeastchristian.org/GetFile.ashx?Guid=" + sermonItem.GetAttributeValue( "Audio" ),
+                            audio_link = imageLocation + sermonItem.GetAttributeValue( "Audio" ),
                             date = ConvertTime( sermonItem.StartDateTime ),
                             duration = sermonItem.GetAttributeValue( "Duration" ).AsInteger(),
-                            image = "https://southeastchristian.org/GetImage.ashx?Guid=" + sermonItem.GetAttributeValue( "Image" ),
-                            image_url = "https://southeastchristian.org/GetImage.ashx?Guid=" + sermonItem.GetAttributeValue( "Image" ),
+                            image = imageLocation + sermonItem.GetAttributeValue( "Image" ),
+                            image_url = imageLocation + sermonItem.GetAttributeValue( "Image" ),
                             speaker = sermonItem.GetAttributeValue( "Speaker" ),
                             vimeo_id = sermonItem.GetAttributeValue( "VimeoId" ).AsInteger()
                         } );
