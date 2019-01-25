@@ -72,7 +72,7 @@ namespace org.secc.Connection
                  for outputting 1-2 partitions
     CardWizard - This is good for fairly complex signups with 2-4 partitions (Campus, DefinedType, Role, Schedule).
                  It will output and behave in a left-to-right animated set of cards.  The CardWizardMode can be set 
-				 to "Single" or "Multiple" which configures the output style to allow for either a single signup or 
+				 to ""Single"" or ""Multiple"" which configures the output style to allow for either a single signup or 
 				 multiple roles/attributes at once.
 
     This is setup to encourage you to copy existing lava templates if you make modifications rather than modifying the
