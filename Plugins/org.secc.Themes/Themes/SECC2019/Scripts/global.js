@@ -125,6 +125,46 @@ function submitSearchSite(val) {
 }
 //@prepros-append event-rotator.js
 
+function modalMutationObserver()
+{
+	// Select the node that will be observed for mutations
+	var targetNode = document.getElementById('PageBody');
+
+	// Options for the observer (which mutations to observe)
+	var config = { attributes: true, childList: true, subtree: true };
+
+	// Callback function to execute when mutations are observed
+	var callback = function(mutationsList, observer) {
+		for(var mutation of mutationsList) {
+			if (mutation.type == 'childList') {
+				for(var j=0; j<mutation.addedNodes.length; ++j) {
+					if (mutation.target != undefined) {
+						// was a child added with class of modal-open
+						if(mutation.target.classList.contains('modal-open')) {
+							console.log('Removing the PageBody zIndex.');
+							document.getElementById('PageBody').style.zIndex = 'auto';
+						}
+					}
+				}
+				for(var j=0; j<mutation.removedNodes.length; ++j) {
+					if (mutation.target != undefined) {
+						// was a child removed with class of modal-scrollable
+						if(mutation.target.classList.contains('modal-scrollable')) {
+							console.log('Resetting the PageBody zIndex.');
+							document.getElementById('PageBody').style.zIndex = 2;
+						}
+					}
+				}
+			}
+		}
+	};
+
+	// Create an observer instance linked to the callback function
+	var observer = new MutationObserver(callback);
+
+	// Start observing the target node for configured mutations
+	observer.observe(targetNode, config);
+}
 
 /**********************************************************/
 /******** Start: Expandable DIVs for the footer ***********/
@@ -194,5 +234,7 @@ function submitSearchSite(val) {
 /**********************************************************/
 
 	$(document).ready(function(o){var t=300,a=1200,s=700,l=o(".js__back-to-top");o(window).scroll(function(){o(this).scrollTop()>t?l.addClass("-is-visible"):l.removeClass("-is-visible -zoom-out"),o(this).scrollTop()>a&&l.addClass("-zoom-out")}),l.on("click",function(t){t.preventDefault(),o("body,html").animate({scrollTop:0},s)})});
+
+	$(document).ready(modalMutationObserver);
 
 });
