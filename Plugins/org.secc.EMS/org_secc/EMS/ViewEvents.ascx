@@ -13,7 +13,7 @@
                     line-height: 1 !important;
                 }
                 .EventTable small {
-                    font-size:1vw;
+                    font-size:1.5vw;
                 }
                 .container {
                     width: 100% !important;
@@ -62,7 +62,7 @@
                             <Rock:RockTemplateField HeaderText="Event Time" SortExpression="TimeEventStart">
                                 <ItemTemplate>
                                     <%# ((DateTime)Eval("TimeEventStart")).ToString("hh:mm tt") + " - " + ((DateTime)Eval("TimeEventEnd")).ToString("hh:mm tt") %>
-                                    <%# ((DateTime)Eval("TimeEventStart") != (DateTime)Eval("TimeBookingStart") || (DateTime)Eval("TimeEventEnd") != (DateTime)Eval("TimeBookingEnd"))?"<br /><small>(Pre/Post Access: " + ((DateTime)Eval("TimeBookingStart")).ToString("hh:mm tt") + " - " + ((DateTime)Eval("TimeBookingEnd")).ToString("hh:mm tt") + ")</small>":"" %>
+                                    <%# ((DateTime)Eval("TimeEventStart") != (DateTime)Eval("TimeBookingStart") || (DateTime)Eval("TimeEventEnd") != (DateTime)Eval("TimeBookingEnd"))?"<br /><small>(Access: " + ((DateTime)Eval("TimeBookingStart")).ToString("hh:mm tt") + " - " + ((DateTime)Eval("TimeBookingEnd")).ToString("hh:mm tt") + ")</small>":"" %>
                                 </ItemTemplate>
                             </Rock:RockTemplateField>
                             <Rock:RockBoundField DataField="TimeEventStart" HeaderText="Date" SortExpression="TimeEventStart" DataFormatString ="{0:d}" />
