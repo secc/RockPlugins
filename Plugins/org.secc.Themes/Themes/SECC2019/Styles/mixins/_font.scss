@@ -20,10 +20,10 @@
 // }
 
 
-@mixin font-face($name, $file, $weight: normal, $style: normal){
+@mixin font-face($name, $file, $location: '/Themes/SECC2019/Assets/fonts/', $weight: normal, $style: normal){
 	@font-face {
 		font-family: '#{$name}';
-		src: url('#{$fa-tisapro-path + $file}.otf');
+		src: url('#{$location + $file}.otf');
         font-weight: $weight;
         font-style: $style;
 	}

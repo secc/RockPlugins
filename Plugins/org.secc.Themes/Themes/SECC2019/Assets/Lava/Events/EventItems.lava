@@ -111,9 +111,9 @@
                         <div class="caption g-padding-x-30--xs g-padding-t-30--xs g-margin-b-40--xs">
 
                             {% if numOccurrences > 1 and multiCampus == true %}
-                                    <h5 class="uppercase g-padding-b-20--xs g-font-weight--500">Multiple Campuses</h5>
+                                    <h5 class="uppercase g-padding-b-20--xs g-font-weight--700">Multiple Campuses</h5>
                             {% else %}
-                                    <h5 class="uppercase g-padding-b-20--xs g-font-weight--500">{{eventItemOccurrence.EventItemOccurrence.Campus.Name}} Campus</h5>
+                                    <h5 class="uppercase g-padding-b-20--xs g-font-weight--700">{{eventItemOccurrence.EventItemOccurrence.Campus.Name}} Campus</h5>
                             {% endif %}
 
                             {% if eventItemOccurrence.Name != '' %}
@@ -139,9 +139,9 @@
                                  {% endif %}
                                  <br />
                                  {% if numOccurrences > 1 and multiCampus == true %}
-                                         <small class="uppercase g-padding-b-20--xs g-font-weight--500">Multiple Dates</small>
+                                         <small class="uppercase g-padding-b-20--xs g-font-weight--700">Multiple Dates</small>
                                  {% elseif numOccurrences > 1 or scheduledNumDates > 1 %}
-                                         <small class="uppercase g-padding-b-20--xs g-font-weight--500">Recurring Event</small>
+                                         <small class="uppercase g-padding-b-20--xs g-font-weight--700">Recurring Event</small>
                                  {% endif %}
                              </h6>
                         </div>
@@ -172,7 +172,7 @@
 
                         <div class="text-center col-xs-12 g-margin-t-40--xs g-hor-divider__solid__t--gray-lighter">
                             <a href="{{ eventLinkURL }}" class='eventCardLink link--hover-underscore'>
-                                <h5 class="uppercase g-font-weight--500 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">More Info</h5>
+                                <h5 class="uppercase g-font-weight--700 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">More Info</h5>
                             </a>
                         </div>
 

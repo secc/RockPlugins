@@ -60,20 +60,20 @@ $font-size-140:  						 8.75rem !default;
 $font-size-145:  						 9.0625rem !default;
 $font-size-150:  						 9.375rem !default;
 
-@include font-face('TisaPro', "FF-TisaPro");
-@include font-face('TisaPro', "FF-TisaPro-Ita", normal, italic);
-@include font-face('TisaPro', "FF-TisaPro-Thin", 100);
-@include font-face('TisaPro', "FF-TisaPro-ThinIta", 100, italic);
-@include font-face('TisaPro', "FF-TisaPro-Light", 200);
-@include font-face('TisaPro', "FF-TisaPro-LightIta", 200, italic);
-@include font-face('TisaPro', "FF-TisaPro-Medi", 600);
-@include font-face('TisaPro', "FF-TisaPro-MediIta", 600, italic);
-@include font-face('TisaPro', "FF-TisaPro-Bold", 700);
-@include font-face('TisaPro', "FF-TisaPro-BoldIta", 700, italic);
-@include font-face('TisaPro', "FF-TisaPro-Xbold", 800);
-@include font-face('TisaPro', "FF-TisaPro-XboldIta", 800, italic);
-@include font-face('TisaPro', "FF-TisaPro-Black", 900);
-@include font-face('TisaPro', "FF-TisaPro-BlackIta", 900, italic);
+@include font-face('TisaPro', "FF-TisaPro", $location: $fa-tisapro-path, $weight:normal);
+@include font-face('TisaPro', "FF-TisaPro-Ita", $location: $fa-tisapro-path, $weight:normal, $style:italic);
+@include font-face('TisaPro', "FF-TisaPro-Thin", $location: $fa-tisapro-path, $weight:100);
+@include font-face('TisaPro', "FF-TisaPro-ThinIta", $location: $fa-tisapro-path, $weight:100, $style:italic);
+@include font-face('TisaPro', "FF-TisaPro-Light", $location: $fa-tisapro-path, $weight:200);
+@include font-face('TisaPro', "FF-TisaPro-LightIta", $location: $fa-tisapro-path, $weight:200, $style:italic);
+@include font-face('TisaPro', "FF-TisaPro-Medi", $location: $fa-tisapro-path, $weight:600);
+@include font-face('TisaPro', "FF-TisaPro-MediIta", $location: $fa-tisapro-path, $weight:600, $style:italic);
+@include font-face('TisaPro', "FF-TisaPro-Bold", $location: $fa-tisapro-path, $weight:700);
+@include font-face('TisaPro', "FF-TisaPro-BoldIta", $location: $fa-tisapro-path, $weight:700, $style:italic);
+@include font-face('TisaPro', "FF-TisaPro-Xbold", $location: $fa-tisapro-path, $weight:800);
+@include font-face('TisaPro', "FF-TisaPro-XboldIta", $location: $fa-tisapro-path, $weight:800, $style:italic);
+@include font-face('TisaPro', "FF-TisaPro-Black", $location: $fa-tisapro-path, $weight:900);
+@include font-face('TisaPro', "FF-TisaPro-BlackIta", $location: $fa-tisapro-path, $weight:900, $style:italic);
 
 // Forms
 $cursor-disabled:           not-allowed !default;
