@@ -26,7 +26,7 @@ body {
 }
 
 /* Typography */
-h1, h2, h3:not('.modal-title'), h4, h5, h6 {
+h1, h2, h3:not(.modal-title), h4, h5, h6 {
   @include font($family: $font-family-secondary, $weight: $headings-font-weight);
 	line-height: $headings-line-height;
 	color: $color-heading;
