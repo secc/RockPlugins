@@ -60,7 +60,13 @@
     <script src="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/js/jquery.mobile.custom.min.js", true) %>"></script>
     <script src="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/js/main.js", true) %>"></script>
 
-
+    <!-- Include Fonts from Adobe Typekit -->
+    <script type="text/javascript" src="//use.typekit.net/ayl1ond.js"></script>
+    <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+    <script src="https://use.typekit.net/eni5wig.js"></script>
+    <script>
+    try{Typekit.load({ async: true });}catch(e){}
+    </script>
 </head>
 
 <body runat="server" id="body" class="nav-is-fixed">
