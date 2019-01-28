@@ -149,7 +149,8 @@ a.eventCardLink {
     }
 
     .event-items {
-        height: 9.5rem;
+        height: auto;
+        min-height: 9.5rem;
         overflow: hidden;
         text-align: center;
 
