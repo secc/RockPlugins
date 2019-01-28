@@ -90,6 +90,13 @@ Main components
 				&:after {
 					border-color: $color-1;
 				}
+
+				&:hover {
+					&:before,
+					&:after {
+						background-color: $color-1;
+					}
+				}
 			}
 		}
 
@@ -488,6 +495,10 @@ main {
 		box-shadow: none;
 	}
 
+	ul {
+		position: fixed;
+		top: 0;
+	}
 	/* Force Hardware Acceleration in WebKit */
 	@include transform(translateZ(0));
 	@include transform(translateX(0));
@@ -496,7 +507,7 @@ main {
 	a,div.disabled {
 		display: block;
 		height: 50px;
-		line-height: 50px;
+		line-height: 55px;
 		padding: 0 20px;
 		color: $color-4;
 		text-decoration: none;
@@ -531,6 +542,8 @@ main {
 }
 
 .cd-primary-nav {
+
+	overflow: hidden;
 
 	.see-all a {
 		/* different style for the See all button on mobile and tablet */
@@ -902,6 +915,28 @@ main {
 
 		.cd-secondary-nav {
 
+			> div.extralinks {
+				width: auto;
+				float: none;
+				position: relative;
+				overflow: hidden;
+				height: auto;
+				// padding-right: 3rem;
+
+				@include MQ(L) {
+					// padding-right: 3rem;
+					@include column(.25);
+					position: relative;
+					overflow: hidden;
+					height: 23rem;
+					// padding-left: 3rem;
+				}
+
+				&.border-right {
+					border-right: 1px solid rgba($color-4, 0.16);
+				}
+			}
+
 			> li {
 				/* change the height according to your needs - you can even set height: auto */
 				height: auto;
@@ -911,6 +946,7 @@ main {
 				// border-right: 1px solid $color-3;
 				overflow: hidden;
 				-webkit-overflow-scrolling: touch;
+
 
 				&:nth-child(4n+2) {
 					/* +2 because we have 2 list items with display:none */
@@ -928,12 +964,18 @@ main {
 			}
 
 			a {
-				height: 30px;
-				line-height: 30px;
-				padding: 0 18% 0 0;
+				// height: 30px;
+				// line-height: 30px;
+				// padding: 0 18% 0 0;
 				color: $color-4;
 				border-bottom: none;
-				font-size: 1.4rem;
+				font-size: 1.75rem;
+				font-weight: bold;
+				text-transform: none;
+
+				border-bottom: none;
+			    height: auto;
+			    position: relative;
 
 				&:hover {
 					color: rgba($color-4, 0.5);
@@ -947,11 +989,19 @@ main {
 
 			ul {
 				/* tertiary navigation */
-				position: relative;
+				position: absolute;
 				top: 0;
 				left: 0;
 				height: 100%;
 				width: 100%;
+				background-color: white;
+				padding-left: 3rem;
+
+				li {
+					a {
+						line-height: 3.3rem;
+					}
+				}
 
 				&.is-hidden {
 					@include transform(translateX(100%));
@@ -961,7 +1011,7 @@ main {
 					display: block;
 
 					a {
-						color: transparent;
+						color: rgba($color-4, 0.5);
 					}
 				}
 
@@ -1282,7 +1332,7 @@ main {
 	}
 
 	.cd-primary-nav .go-back a {
-		padding-left: 20px;
+		padding-left: 40px;
 
 		&::before, &::after {
 			left: 1px;
