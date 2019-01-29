@@ -27,7 +27,7 @@
 						<h4 class="uppercase g-letter-spacing--3">{{ currentMessage.ChildContentChannelItem.Title }}</h4>
                         <br />
                         <br />
-						<a href="{{ 'Global' | Page:'Path' }}/{{ item.Slug }}" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
+						<a href="/newsite/sermons/{{ item.Slug }}" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
 				            <strong>Watch Sermon</strong>
 				        </a>
                     </div>
