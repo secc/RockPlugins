@@ -1,0 +1,53 @@
+{% assign item = Items | First %}
+{% if item %}
+	{% assign currentDate = 'Now' | Date:'M/d/yyyy' %}
+	{% assign currentMessage = item.ChildItems | First %}
+	{% comment %}
+		The Lava Code below checks for the closest sermon message to this day.
+    {% endcomment %}
+	{% for childItem in item.ChildItems %}
+		{% assign currentMessageDays = currentDate | DateDiff:childItem.ChildContentChannelItem.StartDateTime,'d' %}
+		{% if currentMessageDays <= 0 %}
+			{% assign currentMessage = childItem %}
+		{% endif %}
+	{% endfor %}
+	{% assign seriesImageGuid = item | Attribute:'SeriesImage','RawValue' %}
+	{% assign currentMessageVimeoID = currentMessage.ChildContentChannelItem | Attribute:'VimeoId' %}
+    <section id="">
+    	<div style="background-color:black">
+            {% unless currentMessageVimeoID == empty %}
+
+                {[ parallax image:'https://www.southeastchristian.org/Content/Main_homepage.jpg' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'100vh' position:'bottom center' speed:'-15' ]}
+					<!-- START: Ministry Logo & Video -->
+                    <div class="parallax-logo centered" style="max-width: inherit;padding: 0px;">
+                        <h4 class="uppercase g-letter-spacing--3">Latest Sermon</h4>
+						<hr class="g-width-80--xs">
+                        <h1 class="g-font-family--secondary g-font-size-150--lg g-font-size-80--xs g-text-shadow--black--soft" style="text-shadow: none;">{{ item.Title }}</h1>
+						<br />
+						<h4 class="uppercase g-letter-spacing--3">{{ currentMessage.ChildContentChannelItem.Title }}</h4>
+                        <br />
+                        <br />
+						<a href="{{ 'Global' | Page:'Path' }}/{{ item.Slug }}" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
+				            <strong>Watch Sermon</strong>
+				        </a>
+                    </div>
+                    <!-- END: Ministry Logo & Videod -->
+                {[ endparallax ]}
+
+            {% endunless %}
+    	</div>
+    </section>
+{% else %}
+	{[ parallax image:'https://www.southeastchristian.org/Content/Main_homepage.jpg' zindex:'0' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'100vh' position:'bottom center' speed:'-15' ]}
+	    <div class="parallax-logo centered" style="padding: 0px; z-index:3">
+	        <h4 class="uppercase g-letter-spacing--3">Connecting people to Jesus and one another</h4>
+	        <!-- <br /> -->
+	        <!-- <h1 class="g-font-family--secondary g-font-size-150--lg g-font-size-80--xs g-text-shadow--black--soft">See Latest Sermon</h1> -->
+	        <br />
+	        <br />
+	        <a href="/newsite/sermons" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
+	            <strong>Watch Sermon</strong>
+	        </a>
+	    </div>
+	{[ endparallax ]}
+{% endif %}
