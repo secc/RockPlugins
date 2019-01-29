@@ -89,6 +89,7 @@ Main components
 				&:before,
 				&:after {
 					border-color: $color-1;
+					background: rgba($color-1, .75);
 				}
 
 				&:hover {
@@ -136,6 +137,10 @@ Main components
 		.cd-logo img.inverse {
 			display: block;
 		}
+	}
+
+	li {
+		font-weight: 600;
 	}
 
 	@include MQ(maxL) {
@@ -247,6 +252,7 @@ main {
 	}
 
 	@include MQ(maxL) {
+		right: 100px;
 		.nav-on-left & {
 			right: auto;
 			left: 5%;
@@ -259,7 +265,7 @@ main {
 
 	@include MQ(L) {
 		top: 18px;
-		right: 100px;
+		// right: 100px;
 	}
 }
 
@@ -777,8 +783,8 @@ main {
 
 	.cd-primary-nav {
 		position: static;
-		// padding: 0 150px 0 0;
-		padding: 0 210px 0 0;
+		padding: 0 150px 0 0;
+		// padding: 0 210px 0 0;
 		height: auto;
 		width: auto;
 		float: right;
