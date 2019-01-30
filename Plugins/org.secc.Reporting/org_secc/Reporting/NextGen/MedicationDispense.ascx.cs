@@ -183,6 +183,12 @@ namespace RockWeb.Blocks.Reporting.NextGen
             }
 
             var groups = groupService.GetByIds( groupIds );
+
+            if ( cpCampus.SelectedCampusId != null && cpCampus.SelectedCampusId != 0 )
+            {
+                groups = groups.Where( g => g.CampusId == cpCampus.SelectedCampusId );
+            }
+
             var groupTypeIds = groups.ToList().Select( g => g.GroupTypeId.ToString() ).Distinct();
 
             var personEntityid = EntityTypeCache.GetId<Rock.Model.Person>().Value;
@@ -609,6 +615,11 @@ namespace RockWeb.Blocks.Reporting.NextGen
         }
 
         protected void ddlAttribute_SelectedIndexChanged( object sender, EventArgs e )
+        {
+            BindGrid();
+        }
+
+        protected void cpCampus_SelectedIndexChanged( object sender, EventArgs e )
         {
             BindGrid();
         }
