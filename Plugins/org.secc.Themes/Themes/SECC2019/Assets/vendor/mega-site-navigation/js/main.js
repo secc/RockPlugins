@@ -24,6 +24,7 @@ jQuery(document).ready(function($){
 			});
 			toggleSearch('close');
 			$('.cd-overlay').addClass('is-visible');
+			$('.s-back-to-top').css({'right':'280px','left': 'auto'});
 		}
 	});
 
@@ -43,7 +44,7 @@ jQuery(document).ready(function($){
 		}
 	});
 	function submitSearchSite(val) {
-		window.location = "https://www.southeastchristian.org/search.php?q="+val;
+		window.location = "https://www.southeastchristian.org/newsite/search?q="+val;
 	}
 
 	//close lateral menu on mobile
@@ -78,11 +79,14 @@ jQuery(document).ready(function($){
 		if( selected.next('ul').hasClass('is-hidden') ) {
 			//desktop version only
 			selected.addClass('selected').next('ul').removeClass('is-hidden').end().parent('.has-children').parent('ul').addClass('moves-out');
+			selected.addClass('moves-out').end();
+
 			selected.parent('.has-children').siblings('.has-children').children('ul').addClass('is-hidden').end().children('a').removeClass('selected');
 			$('.cd-overlay').addClass('is-visible');
 			toggleTransparentMenu();
 		} else {
 			selected.removeClass('selected').next('ul').addClass('is-hidden').end().parent('.has-children').parent('ul').removeClass('moves-out');
+			selected.removeClass('moves-out');
 			$('.cd-overlay').removeClass('is-visible');
 			toggleTransparentMenu();
 		}
@@ -92,6 +96,7 @@ jQuery(document).ready(function($){
 	//submenu items - go back link
 	$('.go-back').on('click', function(){
 		$(this).parent('ul').addClass('is-hidden').parent('.has-children').parent('ul').removeClass('moves-out');
+		$(this).parent('ul').parent('.has-children').children('a').removeClass('moves-out');
 	});
 
 	function toggleTransparentMenu() {
@@ -127,6 +132,7 @@ jQuery(document).ready(function($){
 			$('body').removeClass('overflow-hidden');
 			$('.cd-main-content').removeClass('cd-main-content-z-index');
 		});
+		$('.s-back-to-top').removeAttr("style");
 	}
 
 	function toggleSearch(type) {

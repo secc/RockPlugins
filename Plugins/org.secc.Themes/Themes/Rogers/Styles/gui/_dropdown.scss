@@ -1,0 +1,103 @@
+.wrapper-dropdown-registration {
+    /* Size & position */
+    position: relative;
+    width: 200px;
+    margin: 0 auto;
+    padding: 12px 15px;
+    background: #E5376B;
+    border-radius: 5px;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.2);
+    cursor: pointer;
+    outline: none;
+    transition: all 0.3s ease-out;
+    text-transform: uppercase;
+    font-weight: 800;
+    color: white;
+
+    &:after {
+        /* Little arrow */
+        content: "";
+        width: 0;
+        height: 0;
+        position: absolute;
+        top: 50%;
+        right: 15px;
+        margin-top: -3px;
+        border-width: 6px 6px 0 6px;
+        border-style: solid;
+        border-color: white transparent;
+    }
+
+    .dropdown {
+        /* Size & position */
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 2;
+
+        /* Styles */
+        background: #fff;
+        border-radius: 0 0 5px 5px;
+        border: 1px solid rgba(0,0,0,0.2);
+        border-top: none;
+        border-bottom: none;
+        list-style: none;
+        transition: all 0.3s ease-out;
+
+        /* Hiding */
+        max-height: 0;
+        overflow: hidden;
+
+        li {
+            padding: 0 10px ;
+            list-style: none;
+            margin-left: 0px;
+            margin-bottom: 0px;
+
+            a {
+                display: block;
+                text-decoration: none;
+                color: #333;
+                padding: 10px 0;
+                transition: all 0.3s ease-out;
+                border-bottom: 1px solid #e6e8ea;
+            }
+
+            &:last-of-type {
+                a {
+                    border: none;
+                }
+            }
+
+            i {
+                margin-right: 5px;
+                color: inherit;
+                vertical-align: middle;
+            }
+
+            /* Hover state */
+            &:hover a {
+                color: #57a9d9;
+            }
+        }
+    }
+
+    /* Active state */
+    &.active {
+        border-radius: 5px 5px 0 0;
+        background: #484848;
+        box-shadow: none;
+        border-bottom: none;
+        color: white;
+
+        &:after {
+            border-color: white transparent;
+        }
+
+        .dropdown {
+            border-bottom: 1px solid rgba(0,0,0,0.2);
+            max-height: 400px;
+        }
+    }
+}

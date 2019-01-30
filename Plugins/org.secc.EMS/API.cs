@@ -71,7 +71,7 @@ namespace org.secc.EMS {
                     (showSetup || !b.EventName.Trim().StartsWith("SET UP")) &&
                     ((eventStatusIDs.Count == 0 || eventStatusIDs.Contains(b.StatusID.ToString()))))
                 .OrderBy(b => DateTime.Parse(b.TimeEventStart)).ThenBy(b => b.EventName)
-                .Select(b => new webEvent(DateTime.Parse(b.TimeEventStart), b.EventName, b.RoomCode, true)).ToList<webEvent>();
+                .Select(b => new webEvent( DateTime.Parse( b.TimeBookingStart ), DateTime.Parse( b.TimeBookingEnd ), DateTime.Parse(b.TimeEventStart), DateTime.Parse( b.TimeEventEnd ), b.EventName, b.RoomCode, true)).ToList<webEvent>();
             return webEvents;
         }
 

@@ -20,6 +20,12 @@
   }
 }
 
+@for $i from 31 through 40 {
+  .g-font-size-#{$i * 5}--xs {
+    font-size: ($i * .375rem !important);
+  }
+}
+
 /* Small screen / phone */
 @include media-breakpoint-up(sm) {
   @for $i from 10 through 20 {
@@ -37,6 +43,12 @@
   @for $i from 11 through 30 {
     .g-font-size-#{$i * 5}--sm {
       font-size: ($i * .3125rem !important);
+    }
+  }
+
+  @for $i from 31 through 40 {
+    .g-font-size-#{$i * 5}--sm {
+      font-size: ($i * .375rem !important);
     }
   }
 }
@@ -60,6 +72,12 @@
       font-size: ($i * .3125rem !important);
     }
   }
+
+  @for $i from 31 through 40 {
+    .g-font-size-#{$i * 5}--md {
+      font-size: ($i * .375rem !important);
+    }
+  }
 }
 
 /* Extra large screen / wide desktop */
@@ -79,6 +97,12 @@
   @for $i from 11 through 30 {
     .g-font-size-#{$i * 5}--lg {
       font-size: ($i * .3125rem !important);
+    }
+  }
+
+  @for $i from 31 through 40 {
+    .g-font-size-#{$i * 5}--lg {
+      font-size: ($i * .375rem !important);
     }
   }
 }
@@ -173,7 +197,7 @@
   .g-display-inline-block--lg { display: inline-block; }
   .g-display-inherit--lg { display: inherit; }
   .g-display-table--lg { display: table; }
-  .g-display-flex--lg { 
+  .g-display-flex--lg {
       display: -webkit-box;
       display: -webkit-flex;
       display: -ms-flexbox;

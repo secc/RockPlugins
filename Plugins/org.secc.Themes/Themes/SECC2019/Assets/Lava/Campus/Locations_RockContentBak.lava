@@ -1,0 +1,257 @@
+<section id="Location">
+    <div class="container-fluid">
+        <div class="row g-padding-y-150--md g-padding-y-50--xs">
+
+            {[ wow animate:'fadeInLeft' duration:'.8s' ]}
+            <div class="col-sm-12 col-lg-7 g-padding-l-0--xs g-padding-r-100--xs g-margin-t-50--xs">
+                <div class="g-position--relative g-padding-l-80--md g-padding-y-30--xs g-hor-divider__solid__b--black clearfix" style="border-width: 5px;">
+                    <h1 class="g-font-size-200--xs g-font-weight--900 g-width-150--xs pull-left text-center">1</h1>
+                    <h1 class="g-font-family--secondary
+                        g-width-70-percent--xs
+                        g-font-size-60--xs
+                        g-padding-l-50--xs
+                        g-margin-l-150--xs
+                        g-font-size-75--md
+                        g-width-80-percent--md
+                        g-font-size-90--lg
+                        pull-left
+                        text-left
+                        g-ver-center--xs">
+                        Choose a Location & Service
+                    </h1>
+                </div>
+            </div>
+            {[ endwow ]}
+
+            {[ wow animate:'fadeIn' duration:'.8s' delay:'.8s' ]}
+            <div class="col-sm-12 col-lg-5 g-margin-t-50--xs g-margin-t-100--lg g-padding-x-20--xs g-padding-x-150--md">
+                <h3 class="g-line-height g-margin-b-0--xs">
+                    <strong>Southeast Christian Church is one church with multiple locations.</strong><br>
+                    Our mission is connecting people to Jesus and one another by loving where we are. We believe bringing the church to more communities is a great way to reach more people with Jesus’ love.
+                </h3>
+            </div>
+            {[ endwow ]}
+        </div>
+    </div>
+</section>
+
+<section id="Campuses">
+    {[ wow animate:'fadeIn' duration:'.8s' ]}
+    <div class="clearfix g-padding-t-0--xs g-padding-b-150--xs g-padding-x-150--md">
+        <div class="col-xs-6 col-md-4 col-lg-2 g-padding-b-60--xs">
+            <a class="text-center" href="/newsite/location/blankenbaker">
+                <img src="/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/Campuses/920.jpg" class="img-responsive img-circle">
+                <br />
+                <h4 class="g-font-weight--700">Blankenbaker</h4>
+            </a>
+        </div>
+        <div class="col-xs-6 col-md-4 col-lg-2 g-padding-b-60--xs">
+            <a class="text-center" href="/newsite/location/indiana">
+                <img src="/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/Campuses/IN.jpg" class="img-responsive img-circle">
+                <br />
+                <h4 class="g-font-weight--700">Indiana</h4>
+            </a>
+        </div>
+        <div class="col-xs-6 col-md-4 col-lg-2 g-padding-b-60--xs">
+            <a class="text-center" href="/newsite/location/crestwood">
+                <img src="/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/Campuses/CW.jpg" class="img-responsive img-circle">
+                <br />
+                <h4 class="g-font-weight--700">Crestwood</h4>
+            </a>
+        </div>
+        <div class="col-xs-6 col-md-4 col-lg-2 g-padding-b-60--xs">
+            <a class="text-center" href="/newsite/location/southwest">
+                <img src="/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/Campuses/SW.jpg" class="img-responsive img-circle">
+                <br />
+                <h4 class="g-font-weight--700">Southwest</h4>
+            </a>
+        </div>
+        <div class="col-xs-6 col-md-4 col-lg-2 g-padding-b-60--xs">
+            <a class="text-center" href="/newsite/location/lagrange">
+                <img src="/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/Campuses/LA.jpg" class="img-responsive img-circle">
+                <br />
+                <h4 class="g-font-weight--700">La Grange</h4>
+            </a>
+        </div>
+        <div class="col-xs-6 col-md-4 col-lg-2 g-padding-b-60--xs">
+            <a class="text-center" href="/newsite/location/elizabethtown">
+                <img src="/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/Campuses/ET.jpg" class="img-responsive img-circle">
+                <br />
+                <h4 class="g-font-weight--700">Elizabethtown</h4>
+            </a>
+        </div>
+    </div>
+    {[ endwow ]}
+</section>
+
+<section id="WhatToExpect">
+    {[ parallax image:'/Content/Locations/what-to-expect.jpg' addclass:'g-bg-parallax-color--black--30 g-padding-y-150--md g-padding-y-50--xs' height:'auto' position:'65% 50%' speed:'-15' ]}
+        <div class="parallax-body container-fluid">
+            <div class="row g-padding-y-150--md g-padding-y-50--xs">
+
+                {[ wow animate:'fadeInRight' duration:'.8s' ]}
+                <div class="col-sm-12 col-lg-6 col-lg-push-6 g-padding-r-0--xs g-padding-l-100--xs g-margin-t-50--xs">
+                    <div class="g-position--relative g-padding-r-80--md g-padding-y-30--xs g-hor-divider__solid__b--white clearfix" style="border-width: 5px;">
+                        <h1 class="g-font-size-200--xs g-font-weight--900 g-width-150--xs pull-left text-center">2</h1>
+                        <h1 class="g-font-family--secondary
+                            g-width-70-percent--xs
+                            g-font-size-60--xs
+                            g-padding-l-50--xs
+                            g-margin-l-150--xs
+                            g-font-size-75--md
+                            g-width-80-percent--md
+                            g-font-size-90--lg
+                            pull-left
+                            text-left
+                            g-ver-center--xs">
+                            Learn What to Expect
+                        </h1>
+                    </div>
+                </div>
+                {[ endwow ]}
+
+                {[ wow animate:'fadeIn' duration:'.8s' delay:'.8s' ]}
+                <div class="col-sm-12 col-lg-6 col-lg-pull-6 g-margin-t-50--xs g-margin-t-100--lg g-padding-x-60--xs g-padding-x-150--md">
+                    <h3 class="g-line-height--lg g-margin-b-0--xs text-left">
+                        Here are a few things you can expect to find at all of our campuses: <br />
+                        • Biblical, relevant teaching <br />
+                        • Engaging, contemporary music <br />
+                        • A safe, fun, Jesus-centered environment for your kids <br />
+                        • No dress code—come as you are! <br />
+                        • Friendly volunteers ready to answer your questions <br />
+                    </h3>
+                </div>
+                {[ endwow ]}
+
+            </div>
+        </div>
+    {[ endparallax ]}
+</section>
+
+<section id="KidsCheckin">
+    <div class="container-fluid">
+        <div class="row g-padding-y-150--md g-padding-y-50--xs">
+
+            {[ wow animate:'fadeInLeft' duration:'.8s' ]}
+            <div class="col-sm-12 col-lg-7 g-padding-l-0--xs g-margin-t-50--xs">
+                <div class="g-padding-r-80--xs">
+                    <div class="g-position--relative g-padding-l-80--md g-padding-y-30--xs g-hor-divider__solid__b--black clearfix" style="border-width: 5px;">
+                        <h1 class="g-padding-l-20--xs g-font-size-200--xs g-font-weight--900 g-width-150--xs pull-left text-center">3</h1>
+                        <h1 class="g-font-family--secondary
+                            g-width-70-percent--xs
+                            g-font-size-60--xs
+                            g-padding-l-50--xs
+                            g-margin-l-150--xs
+                            g-font-size-75--md
+                            g-width-80-percent--md
+                            g-font-size-90--lg
+                            pull-left
+                            text-left
+                            g-ver-center--xs">
+                            Check in the Kids
+                        </h1>
+                    </div>
+                </div>
+                <div class="g-padding-y-50--xs g-padding-x-50--xs g-padding-y-100--md g-padding-x-150--md">
+                    <h3 class="g-line-height g-margin-b-0--xs">
+                        If you arrive with kids, make your way to one of the <i>Children’s Ministry Check-in</i> Desks where a trained volunteer will assist you in checking in your child. To save time on your first visit, click the button below to register your children online ahead of time.
+                    </h3>
+                    <br />
+                    <br>
+                    <a class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1">
+                        <strong>Learn More</strong>
+                    </a>
+                </div>
+            </div>
+            {[ endwow ]}
+
+            {[ wow animate:'fadeIn' duration:'.8s' delay:'.8s' ]}
+            <div class="col-sm-12 col-lg-5 g-margin-t-50--xs g-margin-t-100--lg g-padding-x-20--xs">
+                <img src="/Content/Locations/12959.jpg" class="img-responsive img-circle g-margin-x-auto--xs g-margin-b-80--xs g-width-100-percent--xs" style="max-width: 40rem;" />
+            </div>
+            {[ endwow ]}
+
+        </div>
+    </div>
+</section>
+
+<section id="Refreshment">
+    {[ parallax image:'/Content/Locations/9A8A3826.jpg' addclass:'g-bg-parallax-color--black--30 g-padding-y-150--md g-padding-y-50--xs' height:'auto' position:'65% 50%' speed:'-15' ]}
+        <div class="parallax-body container-fluid">
+            <div class="row g-padding-y-150--md g-padding-y-50--xs">
+
+                {[ wow animate:'fadeInRight' duration:'.8s' ]}
+                <div class="col-sm-12 col-lg-6 col-lg-push-6 g-padding-r-0--xs g-padding-l-100--xs g-margin-t-50--xs">
+                    <div class="g-position--relative g-padding-r-80--md g-padding-y-30--xs g-hor-divider__solid__b--white clearfix" style="border-width: 5px;">
+                        <h1 class="g-font-size-200--xs g-font-weight--900 g-width-150--xs pull-left text-center">4</h1>
+                        <h1 class="g-font-family--secondary
+                            g-width-70-percent--xs
+                            g-font-size-50--xs
+                            g-padding-l-40--xs
+                            g-margin-l-150--xs
+                            g-font-size-75--md
+                            g-width-80-percent--md
+                            g-font-size-90--lg
+                            pull-left
+                            text-left
+                            g-ver-center--xs">
+                            Grab a Refreshment
+                        </h1>
+                    </div>
+                </div>
+                {[ endwow ]}
+
+                {[ wow animate:'fadeIn' duration:'.8s' delay:'.8s' ]}
+                <div class="col-sm-12 col-lg-6 col-lg-pull-6 g-margin-t-50--xs g-margin-t-100--lg g-padding-x-60--xs g-padding-x-150--md">
+                    <h3 class="g-line-height--lg g-margin-b-0--xs text-left">
+                        Several of our campus locations have a full-service café where you can grab a freshly brewed cup of coffee or espresso drink. If coffee isn’t your thing, we also serve pastries, sandwiches, smoothies, and more.
+                    </h3>
+                </div>
+                {[ endwow ]}
+
+            </div>
+        </div>
+    {[ endparallax ]}
+</section>
+
+<section id="Worship">
+    <div class="container-fluid">
+        <div class="row g-padding-y-150--md g-padding-y-50--xs">
+
+            {[ wow animate:'fadeInLeft' duration:'.8s' ]}
+            <div class="col-sm-12 col-lg-7 g-padding-l-0--xs g-margin-t-50--xs">
+                <div class="g-padding-r-80--xs">
+                    <div class="g-position--relative g-padding-l-80--md g-padding-y-30--xs g-hor-divider__solid__b--black clearfix" style="border-width: 5px;">
+                        <h1 class="g-padding-l-20--xs g-font-size-200--xs g-font-weight--900 g-width-150--xs pull-left text-center">5</h1>
+                        <h1 class="g-font-family--secondary
+                            g-width-70-percent--xs
+                            g-font-size-60--xs
+                            g-padding-l-50--xs
+                            g-margin-l-150--xs
+                            g-font-size-75--md
+                            g-width-80-percent--md
+                            g-font-size-90--lg
+                            pull-left
+                            text-left
+                            g-ver-center--xs">
+                            Worship With Us
+                        </h1>
+                    </div>
+                </div>
+                <div class="g-padding-y-50--xs g-padding-x-50--xs g-padding-y-100--md g-padding-x-150--md">
+                    <h3 class="g-line-height g-margin-b-0--xs">
+                        Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                    </h3>
+                </div>
+            </div>
+            {[ endwow ]}
+
+            {[ wow animate:'fadeIn' duration:'.8s' delay:'.8s' ]}
+            <div class="col-sm-12 col-lg-5 g-margin-t-50--xs g-margin-t-100--lg g-padding-x-20--xs">
+                <img src="/Content/Locations/12960.jpg" class="img-responsive img-circle g-margin-x-auto--xs g-margin-b-80--xs g-width-100-percent--xs" style="max-width: 40rem;" />
+            </div>
+            {[ endwow ]}
+
+        </div>
+    </div>
+</section>
