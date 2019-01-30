@@ -35,17 +35,12 @@ Vivus is a lightweight JavaScript class (with no dependencies) that allows you t
 {% assign id = uniqueid -%}
 
 <style type="text/css">
-    #{{ id }} svg {
-        fill: white;
-    };
-    #{{ id }} svg:hover {
-        fill: black;
-        transition: all .4s ease;
-        stroke-width: 0px;
+    #{{ id }} svg path {
+        stroke: {{ fill }};
     };
 </style>
 
-<div id="{{ id }}" style="max-width: 150px;margin:  0 auto;width:  100%;"></div>
+<div id="{{ id }}" style="max-width: {{ max-width }}; margin:  0 auto;width:  100%;"></div>
 
 <script>
     new Vivus('{{ id }}', {
@@ -60,5 +55,7 @@ Vivus is a lightweight JavaScript class (with no dependencies) that allows you t
 {% comment %}
 ************************ PARAMETERS ********************
 {% endcomment %}
-svg      -
-duration - 80
+svg       -
+duration  - 80
+fill      - black
+max-width - 150px
