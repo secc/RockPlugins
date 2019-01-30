@@ -39,12 +39,12 @@ Note: This command requires a full page reload in order for your changes to be d
 ************************ MARKUP FOR THIS SHORTCODE IS BELOW ********************
 {% endcomment %}
 
-{{- 'https://www.southeastchristian.org/eastertogether/assets/js/vendor/wow.min.js' | AddScriptLink -}}
-{{- 'https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css' | AddCssLink -}}
-{%- stylesheet id:'wow-shortcode' -%}
+<script src="https://www.southeastchristian.org/Themes/SECC2019/Scripts/WOW/wow.min.js" ></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" rel="stylesheet" type="text/css"/>
+<style>
     .wow { visibility: hidden; }
-{%- endstylesheet -%}
-{%- javascript id:'wow-shortcode' -%}
+</style>
+<script>
 $(document).ready(function() {
     function afterReveal (el) {
         el.addEventListener('animationend', function () {
@@ -54,7 +54,7 @@ $(document).ready(function() {
     }
     new WOW({ callback: afterReveal }).init();
 });
-{%- endjavascript -%}
+</script>
 {%- assign css_string = " wow " | Append:animate -%}
 <div class="{{- css_string -}}" data-wow-duration="{{- duration -}}" data-wow-delay="{{- delay -}}">
     {{ blockContent }}
@@ -65,4 +65,4 @@ $(document).ready(function() {
 {% endcomment %}
 animate   -
 duration  -
-delay     - 
+delay     -
