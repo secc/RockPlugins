@@ -7,17 +7,21 @@
             <div class="panel-heading">
 
                 <div class="row">
-                    <div class="col-md-3">
-                        <Rock:RockDropDownList runat="server" ID="ddlSchedule" DataTextField="Value" DataValueField="Guid"
-                            Label="Schedule" AutoPostBack="true" OnSelectedIndexChanged="ddlSchedule_SelectedIndexChanged" />
+                    <div class="col-md-9">
+                        <div class="col-md-6">
+                            <Rock:RockDropDownList runat="server" ID="ddlSchedule" DataTextField="Value" DataValueField="Guid"
+                                Label="Schedule" AutoPostBack="true" OnSelectedIndexChanged="ddlSchedule_SelectedIndexChanged" />
+                        </div>
+                        <div class="col-md-6">
+                            <Rock:RockTextBox runat="server" ID="tbName" Label="Name" AutoPostBack="true" OnTextChanged="tbName_TextChanged" />
+                        </div>
+                        <div class="col-md-6">
+                            <Rock:CampusPicker runat="server" ID="cpCampus" Label="Campus" AutoPostBack="true" OnSelectedIndexChanged="cpCampus_SelectedIndexChanged" />
+                        </div>
+                        <asp:Panel CssClass="col-md-6" ID="pnlAttribute" runat="server">
+                            <Rock:RockDropDownList runat="server" ID="ddlAttribute" AutoPostBack="true" DataTextField="Value" DataValueField="Key" OnSelectedIndexChanged="ddlAttribute_SelectedIndexChanged" />
+                        </asp:Panel>
                     </div>
-                    <div class="col-md-3">
-                        <Rock:RockTextBox runat="server" ID="tbName" Label="Name" AutoPostBack="true" OnTextChanged="tbName_TextChanged" />
-                    </div>
-                    <asp:Panel CssClass="col-md-3" ID="pnlAttribute" runat="server">
-                        <Rock:RockDropDownList runat="server" ID="ddlAttribute" AutoPostBack="true" DataTextField="Value" DataValueField="Key" OnSelectedIndexChanged="ddlAttribute_SelectedIndexChanged" />
-                    </asp:Panel>
-
                     <div class="col-md-3">
                         <Rock:DatePicker runat="server" ID="dpDate" Label="Day" OnTextChanged="dpDate_TextChanged" AutoPostBack="true" />
                     </div>
