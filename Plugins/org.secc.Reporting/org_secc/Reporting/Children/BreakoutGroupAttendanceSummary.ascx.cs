@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -56,7 +56,7 @@ namespace RockWeb.Blocks.Reporting.Children
         {
             RockContext rockContext = new RockContext();
             var parentGroupGuid = GetAttributeValue( "BreakoutParentGroup" ).AsGuid();
-            var gQry = new GroupService( rockContext ).Queryable().Where( g => g.ParentGroup.Guid == parentGroupGuid );
+            var gQry = new GroupService( rockContext ).Queryable().Where( g => g.IsActive && !g.IsArchived && g.ParentGroup.Guid == parentGroupGuid );
             var gmQry = gQry.SelectMany( g => g.Members.Where( gm => gm.GroupMemberStatus == GroupMemberStatus.Active ) );
 
             var personQry = new PersonService( rockContext ).Queryable().Where( p => p.GraduationYear != null );
