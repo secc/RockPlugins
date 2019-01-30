@@ -1,0 +1,205 @@
+<style>
+.readmore_dates {
+   transition: height 100ms;
+   overflow: hidden;
+   display: none;
+}
+</style>
+
+
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-sm-12 g-padding-x-0--xs">
+            {% assign eventPhoto = '' %}
+            {% if Event.Photo.Guid %}
+                {% assign eventPhoto = '/GetImage.ashx/' | Plus: Event.Photo.Guid | Plus: '.jpg?guid=' | Plus: Event.Photo.Guid %}
+            {% else %}
+                {% assign primaryMinistry = Event | Attribute:'PrimaryMinistry','Object' | Attribute:'CalendarImage','Object' %}
+                {% assign eventPhoto = '/GetImage.ashx/' | Plus: Event.Photo.Guid | Plus: '.jpg?guid=' | Plus: primaryMinistry.Guid %}
+            {% endif %}
+
+            {% if eventPhoto %}
+                <div class="event-photo-container">
+                    <div class="event-photo">
+                        <center>
+                            <img src="{{eventPhoto}}" class="img-responsive" style="width: 100%;" onerror="this.style.display='none'">
+                        </center>
+                    </div>
+                </div>
+            {% endif %}
+		</div>
+	</div>
+</div>
+
+
+<div class="container">
+    <div class="row">
+
+        <div class="container">
+            <div class="col-md-9 col-md-push-3 g-padding-y-100--xs">
+
+                <h3 class="g-font-family--secondary">{{Event.Name}}</h3>
+
+                {{ Event.Description }}
+
+                <!-- START: Social Media - Shareables -->
+                {{ 'summary_large_image' | AddMetaTagToHead:'property','twitter:card' }}
+                {{ Event.Name | AddMetaTagToHead:'property','twitter:title' }}
+                {{ Event.Description | StripHtml | AddMetaTagToHead:'property','twitter:description' }}
+
+                {{ Event.Name | AddMetaTagToHead:'property','og:title' }}
+                {{ Event.Description | StripHtml | AddMetaTagToHead:'property','og:description' }}
+
+                {% assign facebookPhoto = Event | Attribute:'core_calendar_FacebookPhoto','Object' %}
+                {% if facebookPhoto %}
+                    {{ facebookPhoto.Url | AddMetaTagToHead:'property','og:image' }}
+                {% else %}
+                    {% assign siteURL = 'Global' | Page:'Host' %}
+                    {% assign facebookPhoto = "https://" | Plus: siteURL | Plus: eventPhoto %}
+                    {{ facebookPhoto | AddMetaTagToHead:'property','og:image' }}
+                {% endif %}
+
+                {% assign twitterPhoto = Event | Attribute:'core_calendar_TwitterPhoto','Object' %}
+                {% if twitterPhoto != '' %}
+                    {{ twitterPhoto.Url | AddMetaTagToHead:'property','twitter:image' }}
+                {% else %}
+                    {% assign siteURL = 'Global' | Page:'Host' %}
+                    {% assign twitterPhoto = "https://" | Plus: siteURL | Plus: eventPhoto %}
+                    {{ twitterPhoto | AddMetaTagToHead:'property','og:image' }}
+                {% endif %}
+                <!-- END: Social Media - Shareable Media -->
+
+            </div>
+
+            <div class="col-md-3 col-md-pull-9 g-padding-b-60--xs g-padding-y-100--md">
+
+                <div class="text-center g-padding-b-20--xs">
+                    {[ socialshare facebooktitle:'{{ Event.Name }}' emailsubject:'{{ Event.Name | Escape }}' url:'{{ 'Global' | Page:'Url' }}' facebookimage:'https://{{- 'Global' | Page:'Host' -}}{{ eventPhoto }}' facebooksummary:'{{ Event.Description | StripHtml }}' ]}
+                </div>
+
+                {% assign eventOccurencesCount = Event.EventItemOccurrences | Size %}
+                {% if eventOccurencesCount > 1 %}
+                    {% if eventOccurencesCount > 1 %}
+                        {% assign campusesAvail = '' %}
+                        {% assign campusesCount = 0 %}
+                        {% for EventItemOccurrence in Event.EventItemOccurrences %}
+                            {% assign campus_slug = EventItemOccurrence.Campus | Attribute:'Slug' %}
+                            {% if campusesAvail contains campus_slug %}
+                                {% comment %} Great – Skip this since it already conatains the Campus {% endcomment %}
+                            {% else %}
+                                {% assign campusesCount = campusesCount | Plus: 1 %}
+                                {% assign campusesAvail = campusesAvail | Append: '<option value="' | Append: campus_slug | Append: '" data-shortcode="' | Append: EventItemOccurrence.Campus.ShortCode | Append: '">' | Append: EventItemOccurrence.Campus.Name | Append: '</option>' %}
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if campusesCount >= 2 %}
+                        <select class="select2-campuses" name="campus">
+                            <option value="*" data-shortcode="SE">Select a Campus</option>
+                            {{campusesAvail}}
+                        </select>
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+
+            </div><!-- END: col-md-4 -->
+        </div>
+
+    </div><!-- END: row -->
+
+    <div class="row">
+        <div class="container">
+            <div class="isotope_wrap g-margin-b-80--xs">
+                {% for EventItemOccurrence in Event.EventItemOccurrences %}
+
+                {% assign campus_slug = EventItemOccurrence.Campus | Attribute:'Slug' %}
+                <div class="isotope_item col-xs-12 col-md-6 col-lg-4 {{campus_slug}}_filter event-calendar">
+                    <div class="clearfix card g-margin-b-20--xs" >
+
+                        {% include '~~/Assets/Lava/Groups/GroupItemOccurrence.lava' %}
+
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    {% if eventOccurencesCount > 1 %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Readmore.js/2.2.0/readmore.min.js"></script>
+    <script type="text/javascript">
+
+        // isotop options and wrapper
+        var $grid = $('.isotope_wrap');
+        var isoOptions = {
+            percentPosition: true,
+            itemSelector: '.isotope_item'
+        };
+
+        $(window).load(function() {
+             // executes when complete page is fully loaded, including all frames, objects and images
+             $('.readmore_dates').readmore({
+                 speed: 100,
+                 lessLink: '<a href="#" style="top:8px; position:relative;"><h5 class="g-display-inline-block--xs"><small>Show Less Dates</small> <span class="se-carat se-carat--up"></span></h5></a>',
+                 moreLink: '<a href="#" style="left: 14%;position:relative;top: -5px; position:relative;"><h5 class="g-display-inline-block--xs"><small>Show All Dates</small><span class="se-carat se-carat--down"></span></h5></a>',
+                 collapsedHeight: 0,
+                 beforeToggle: function(tr, el, ex) {
+                     $(el).show();
+                 },
+                 afterToggle: function(trigger, element, expanded) {
+                     $grid.isotope(isoOptions); // re-initialize
+                 }
+            });
+        });
+
+        $(document).ready(function() {
+
+            ///////////////////////////////////////////////////
+            /////////////// Initialize Select2 ////////////////
+            ///////////////////////////////////////////////////
+            $('.select2-campuses').select2({
+              placeholder: 'Select a Campus'
+            });
+
+            $('.select2-campuses').on('select2:select', function (e) {
+                // prevent from submiting default form actionn
+                e.preventDefault();
+                // pull in lava ID
+                var data = e.params.data;
+                if (data.id != '*') {
+                    var filterClass = '.' + data.id + '_filter';
+                } else {
+                    var filterClass = data.id;
+                }
+                console.log(filterClass);
+                $grid.isotope({
+                    // options
+                    filter: filterClass,
+                    percentPosition: true,
+                    itemSelector: '.isotope_item'
+                });
+            });
+             // Initialize Isotope
+            $grid.isotope({
+                // options
+                filter: '*',
+                percentPosition: true,
+                itemSelector: '.isotope_item'
+            });
+
+            // filter items on button click
+            // $('.filter-button-group').on( 'click', 'button', function(e) {
+            //     e.preventDefault();
+            //     var filterValue = $(this).attr('data-filter');
+            //     $grid.isotope({
+            //         // options
+            //         filter: filterValue,
+            //         percentPosition: true,
+            //         itemSelector: '.isotope_item'
+            //     });
+            // });
+         });
+
+    </script>
+    {% endif %}
+    <!-- ************************************ End: Show only if it's a Multi Event ************************************ -->
+</div>

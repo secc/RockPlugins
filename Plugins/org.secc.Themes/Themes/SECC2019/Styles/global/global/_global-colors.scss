@@ -90,7 +90,7 @@ $utils-colors: (
 
 @each $color-name, $color in $utils-colors {
 	.g-bg-color--#{$color-name} {
-	  background-color: map-get($color, color);
+	  background-color: map-get($color, color) !important;
 	}
 }
 

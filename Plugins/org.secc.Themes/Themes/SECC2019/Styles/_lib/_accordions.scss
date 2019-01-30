@@ -21,7 +21,7 @@
 			-webkit-box-shadow: 0 22px 133px rgba(0, 0, 0, 0.15);
             box-shadow: 0 22px 133px rgba(0, 0, 0, 0.15);
             transform: translateY(-10px);
-            
+
             transform: translateY(-5px);
             @include transition(all .3s ease);
         }
@@ -31,7 +31,7 @@
             // box-shadow: 0 3px 12px 2px hsla(0,0%,78%,.5);
         }
 		.panel-heading {
-            background-color: rgba(239,239,239, 0.5);
+            background-color: $WhiteColor;
 			position: relative;
             cursor: pointer;
 			padding: 25px 14% 25px 25px;
@@ -80,8 +80,8 @@
 			.panel-body {
 				border: none;
                 border-radius: 0;
-				border-top: 1px solid rgba(239, 239, 239, 1);
-                background-color: rgba(239, 239, 239, 1);
+				border-top: 2px solid rgba(239, 239, 239, 1);
+                background-color: $WhiteColor;
                 // background: linear-gradient(to bottom right, rgba(239, 239, 239, 1), rgba(355, 355, 355, 0.7));;
 				padding: 30px 50px;
 				text-align: left;
@@ -99,7 +99,7 @@
 	} // .panel
 
 	.panel+.panel {
-		margin-top: 20px;
+		margin-top: 2.7rem;
 	}
 } // .accordions-1
 

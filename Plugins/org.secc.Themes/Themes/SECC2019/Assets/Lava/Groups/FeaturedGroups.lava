@@ -11,7 +11,7 @@
 <br />
 <br />
 
-{% include '~~/Assets/Lava/Events/EventItems.lava' %}
+{% include '~~/Assets/Lava/Groups/GroupItems.lava' %}
 
 <script>
 $(window).load(function() {
