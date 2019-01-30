@@ -54,12 +54,12 @@
             <ul class="cd-nav-icons is-hidden">
                 <li class="go-back arrow"><a class="arrow">Menu</a></li>
                 <li class="se-3-column">
-                    <a class="cd-nav-item mission" href="/newsite/about#mission">
+                    <a class="cd-nav-item mission" href="/newsite/about#Mission">
                         <h3>Mission</h3>
                     </a>
                 </li>
                 <li class="se-3-column">
-                    <a class="cd-nav-item what-we-believe" href="/newsite/about#belief">
+                    <a class="cd-nav-item what-we-believe" href="/newsite/about#WhatWeBelieve">
                         <h3>What We Believe</h3>
                     </a>
                 </li>
@@ -69,12 +69,12 @@
                     </a>
                 </li>
                 <li class="se-3-column">
-                    <a class="cd-nav-item leadership" href="/newsite/about#leadership">
+                    <a class="cd-nav-item leadership" href="/newsite/about#Leadership">
                         <h3>Leadership</h3>
                     </a>
                 </li>
                 <li class="se-3-column">
-                    <a class="cd-nav-item baptism" href="/newsite/about#baptism">
+                    <a class="cd-nav-item baptism" href="/newsite/about#Baptism">
                         <h3>Baptism</h3>
                     </a>
                 </li>
