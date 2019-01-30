@@ -6,11 +6,21 @@
 }
 </style>
 
+{% assign eventVimeoID = Event | Attribute:'EventVimeoID' %}
 
 <div class="container-fluid">
 	<div class="row">
 		<div class="col-sm-12 g-padding-x-0--xs">
+
+            {% if eventVimeoID != "" %}
+            <a class="js-modal-video" data-video-id="{{ eventVimeoID }}">
+            {% endif %}
+
+            {% assign eventPromoImageObject = Event | Attribute:'EventPromoImage','Object' %}
+            {% assign eventPromoImage = '/GetImage.ashx/' | Plus: eventPromoImageObject.Guid | Plus: '.jpg?guid=' | Plus: eventPromoImageObject.Guid %}
+
             {% assign eventPhoto = '' %}
+
             {% if Event.Photo.Guid %}
                 {% assign eventPhoto = '/GetImage.ashx/' | Plus: Event.Photo.Guid | Plus: '.jpg?guid=' | Plus: Event.Photo.Guid %}
             {% else %}
@@ -18,14 +28,28 @@
                 {% assign eventPhoto = '/GetImage.ashx/' | Plus: Event.Photo.Guid | Plus: '.jpg?guid=' | Plus: primaryMinistry.Guid %}
             {% endif %}
 
-            {% if eventPhoto %}
+            {% unless eventPromoImageObject != "" %}
+                {% if eventPhoto %}
+                    <div class="event-photo-container">
+                        <div class="event-photo">
+                            <center>
+                                <img src="{{eventPhoto}}" class="img-responsive" style="width: 100%;" onerror="this.style.display='none'">
+                            </center>
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
                 <div class="event-photo-container">
                     <div class="event-photo">
                         <center>
-                            <img src="{{eventPhoto}}" class="img-responsive" style="width: 100%;" onerror="this.style.display='none'">
+                            <img src="{{eventPromoImage}}" class="img-responsive" style="width: 100%;" onerror="this.style.display='none'">
                         </center>
                     </div>
                 </div>
+            {% endunless %}
+
+            {% if eventVimeoID != "" %}
+            </a> <!-- closing video modal link -->
             {% endif %}
 		</div>
 	</div>
@@ -36,7 +60,47 @@
     <div class="row">
 
         <div class="container">
-            <div class="col-md-9 col-md-push-3 g-padding-y-100--xs">
+
+            <div class="col-md-4 g-padding-t-70--xs g-padding-t-100--lg g-padding-x-50--lg">
+
+                {% if eventVimeoID != "" %}
+                    <div class="text-center g-padding-b-40--xs">
+                        <a href="javascript:void(0)" class="js-modal-video" data-video-id="{{ eventVimeoID }}">
+                            <h4 class="uppercase g-font-weight--600 g-padding-t-10--xs" style="margin-right:-15px;">Play
+                                <div class="play" style="height:75px;">
+                                    <svg version="1.1" id="play" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" height="75px" width="75px"
+                                        viewBox="0 0 100 100" enable-background="new 0 0 100 100" xml:space="preserve">
+                                        <path class="stroke-solid" fill="none" stroke="#7C7C7C"  d="M49.9,2.5C23.6,2.8,2.1,24.4,2.5,50.4C2.9,76.5,24.7,98,50.3,97.5c26.4-0.6,47.4-21.8,47.2-47.7
+                                        C97.3,23.7,75.7,2.3,49.9,2.5" />
+                                        <path class="stroke-dotted" fill="none" stroke="#7C7C7C"  d="M49.9,2.5C23.6,2.8,2.1,24.4,2.5,50.4C2.9,76.5,24.7,98,50.3,97.5c26.4-0.6,47.4-21.8,47.2-47.7
+                                        C97.3,23.7,75.7,2.3,49.9,2.5" />
+                                        <path class="icon" fill="#7C7C7C" d="M38,69c-1,0.5-1.8,0-1.8-1.1V32.1c0-1.1,0.8-1.6,1.8-1.1l34,18c1,0.5,1,1.4,0,1.9L38,69z" />
+                                    </svg>
+                                </div>
+                                Video
+                            </h4>
+                        </a>
+                    </div>
+                    <script src="/Themes/SECC2014/Scripts/jquery-modal-video.js"></script>
+                    <script>
+                    $(document).ready(function() {
+                        initModalVideo();
+                        function initModalVideo(){
+                            $(".js-modal-video").modalVideo({
+                                channel: 'vimeo'
+                            });
+                        }
+                    });
+                    </script>
+                {% endif %}
+
+                <div class="text-center g-padding-b-20--xs">
+                    {[ socialshare facebooktitle:'{{ Event.Name }}' emailsubject:'{{ Event.Name | Escape }}' url:'{{ 'Global' | Page:'Url' }}' facebookimage:'https://{{- 'Global' | Page:'Host' -}}{{ eventPhoto }}' facebooksummary:'{{ Event.Description | StripHtml }}' ]}
+                </div>
+
+            </div><!-- END: col-md-4 -->
+
+            <div class="col-md-8 g-padding-t-10--xs g-padding-t-70--lg g-padding-t-100--lg">
 
                 <h3 class="g-font-family--secondary">{{Event.Name}}</h3>
 
@@ -71,11 +135,8 @@
 
             </div>
 
-            <div class="col-md-3 col-md-pull-9 g-padding-b-60--xs g-padding-y-100--md">
 
-                <div class="text-center g-padding-b-20--xs">
-                    {[ socialshare facebooktitle:'{{ Event.Name }}' emailsubject:'{{ Event.Name | Escape }}' url:'{{ 'Global' | Page:'Url' }}' facebookimage:'https://{{- 'Global' | Page:'Host' -}}{{ eventPhoto }}' facebooksummary:'{{ Event.Description | StripHtml }}' ]}
-                </div>
+            <div class="col-md-4 g-padding-t-10--xs g-padding-b-60--xs g-padding-x-50--lg">
 
                 {% assign eventOccurencesCount = Event.EventItemOccurrences | Size %}
                 {% if eventOccurencesCount > 1 %}
@@ -102,6 +163,7 @@
                 {% endif %}
 
             </div><!-- END: col-md-4 -->
+
         </div>
 
     </div><!-- END: row -->
