@@ -47,12 +47,15 @@ Note: Do to this javascript requirements of this shortcode you will need to do a
 ************************ MARKUP FOR THIS SHORTCODE IS BELOW ********************
 {% endcomment %}
 
+{% comment %}
+************************ This is included in the Site.Master file ********************
 {{ 'https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.3/jarallax.js' | AddScriptLink }}
 {{ 'https://cdnjs.cloudflare.com/ajax/libs/object-fit-images/3.2.3/ofi.min.js' | AddScriptLink }}
 
 {% if videourl != '' -%}
     {{ 'https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.3/jarallax-video.js' | AddScriptLink }}
 {% endif -%}
+{% endcomment %}
 
 {% assign id = uniqueid -%}
 {% assign bodyZindex = zindex | Plus:1 -%}
