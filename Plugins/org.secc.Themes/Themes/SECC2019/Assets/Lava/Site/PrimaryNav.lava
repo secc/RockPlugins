@@ -54,7 +54,7 @@
             <ul class="cd-nav-icons is-hidden">
                 <li class="go-back arrow"><a class="arrow">Menu</a></li>
                 <li class="se-3-column">
-                    <a class="cd-nav-item mission" href="/newsite/about#Mission">
+                    <a class="cd-nav-item mission" href="/newsite/about">
                         <h3>Mission</h3>
                     </a>
                 </li>
