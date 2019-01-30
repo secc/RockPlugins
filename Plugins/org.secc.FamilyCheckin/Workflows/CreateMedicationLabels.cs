@@ -109,8 +109,7 @@ namespace org.secc.FamilyCheckin
                                 var groupMember = groupMemberService.GetByGroupIdAndPersonId( registrationGroup.Id, person.Person.Id ).FirstOrDefault();
 
                                 var medicationKey = GetAttributeValue( action, "MatrixAttributeKey" );
-                                groupMember.LoadAttributes();
-                                var medicationMatrix = groupMember.GetAttributeValue( medicationKey );
+                                var medicationMatrix = person.Person.GetAttributeValue( medicationKey );
 
 
                                 var attributeMatrix = attributeMatrixService.Get( medicationMatrix.AsGuid() );
