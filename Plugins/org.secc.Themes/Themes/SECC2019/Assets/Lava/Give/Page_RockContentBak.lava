@@ -33,8 +33,8 @@
     </script>
 </section>
 
-<section id="Intro" class="row wow fadeIn">
-    <div class="container">
+<section id="Intro" class="wow fadeIn">
+    <div class="container g-padding-y-150--xs">
         <div class="col-lg-6 col-md-6 clearfix text-center">
             <a href="javascript:void(0)" class="js-modal-video" data-video-id="288744226">
                 <img src="/Content/Giving/Online_Giving.png" class="img-responsive" style="margin: 0 auto">
@@ -147,16 +147,15 @@
     </div>
 </section>
 
-
-<section id="Generosity" class="row wow fadeIn g-display-flex--lg g-bg-color--gray-lightest">
+<section id="Generosity" class="wow fadeIn g-display-flex--lg g-bg-color--gray-lightest">
     <div class="container">
-        <div class="row">
+        <div class="row g-padding-y-150--xs">
             <div class="col-lg-6 col-md-6 clearfix text-center">
                 <img src="/Content/Giving/15.jpg" class="img-responsive img-circle" style="margin: 0 auto; width: 400px">
             </div>
             <div class="col-lg-6 col-md-6 clearfix g-padding-t-60--xs">
                 <div class="g-padding-l-60--md g-padding-t-40--xs g-width-100-percent--xs">
-        	        <h3 class="g-font-weight--700 g-line-height">Your Generosity is Changing Lives</h3>
+					<h3 class="g-font-weight--700 g-line-height">Your Generosity is Changing Lives</h3>
     			    <h4 class="g-line-height">Marriages are restored, families are strengthened, addictions are defeated and lives are changed for eternity.</h4>
         		    <br />
         		    <h4 class="g-line-height">20% of every dollar you give supports mission work locally, within the U.S., and around the world.</h4>
