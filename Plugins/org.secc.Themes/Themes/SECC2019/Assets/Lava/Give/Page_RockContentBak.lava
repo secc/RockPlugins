@@ -152,7 +152,7 @@
     <div class="container">
         <div class="row">
             <div class="col-lg-6 col-md-6 clearfix text-center">
-                <img src="https://rock.secc.org/Content/Giving/15.jpg" class="img-responsive img-circle" style="margin: 0 auto; width: 400px">
+                <img src="/Content/Giving/15.jpg" class="img-responsive img-circle" style="margin: 0 auto; width: 400px">
             </div>
             <div class="col-lg-6 col-md-6 clearfix g-padding-t-60--xs">
                 <div class="g-padding-l-60--md g-padding-t-40--xs g-width-100-percent--xs">
@@ -358,7 +358,7 @@
                   </div>
                   <div id="faq-2-collapse-8" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-8">
                     <div class="panel-body">
-                      <p>Visit <a href="https://www.southeastchristian.org/connect/missions/lifebridge.php">LifeBridge</a> to learn how you can donate non-perishable food, gently used clothing and other items at a LifeBridge Donation Center near you.  The items you donate will be distributed to help alleviate poverty in our communities.</p>
+                      <p>Visit <a href="/newsite/connect/missions/lifebridge.php">LifeBridge</a> to learn how you can donate non-perishable food, gently used clothing and other items at a LifeBridge Donation Center near you.  The items you donate will be distributed to help alleviate poverty in our communities.</p>
                     </div>
                   </div>
                 </div><!-- / .panel -->
@@ -401,7 +401,7 @@
         	        <h3 class="g-font-weight--700 g-line-height">Helping You Manage Money God's Way</h3>
     			    <h4 class="g-line-height">We’ve all needed help with our finances at one time or another. Take your next step by connecting to practical resources that will help you manage your money God’s way. We offer workshops, groups and one-on-one financial coaching.</h4>
         		    <br />
-                    <a href="https://www.southeastchristian.org/connect/generous-living/#Ministries" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 g-font-weight--700">
+                    <a href="/newsite/connect/generous-living/#Ministries" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 g-font-weight--700">
                         Learn More
                     </a>
                 </div>
