@@ -30,7 +30,10 @@ Vivus is a lightweight JavaScript class (with no dependencies) that allows you t
 ************************ MARKUP FOR THIS SHORTCODE IS BELOW ********************
 {% endcomment %}
 
+{% comment %}
+************************ This is included in the Site.Master file *******************
 {{ 'https://cdnjs.cloudflare.com/ajax/libs/vivus/0.4.4/vivus.min.js' | AddScriptLink }}
+{% endcomment %}
 
 {% assign id = uniqueid -%}
 

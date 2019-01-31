@@ -71,7 +71,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.3/jarallax.js" ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/object-fit-images/3.2.3/ofi.min.js" ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.3/jarallax-video.js" ></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vivus/0.4.4/vivus.min.js" ></script>
+    
 </head>
 
 <body runat="server" id="body" class="nav-is-fixed">
