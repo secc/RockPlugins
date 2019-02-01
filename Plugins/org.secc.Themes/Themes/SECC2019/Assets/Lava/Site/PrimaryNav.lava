@@ -217,13 +217,13 @@
                     </li>
 
                     <li class="">
-                        <a href="/newsite/connect/seniors">Care</a>
-                    </li>
-                    <li class="">
                         <a href="/newsite/connect/seniors">Sports & Fitness</a>
                     </li>
                     <li class="">
                         <a href="/newsite/connect/seniors">Awaken Worship</a>
+                    </li>
+                    <li class="">
+                        <a href="https://www.awakenworship.org/" target="_blank">Awaken Worship</a>
                     </li>
                 </div>
             </ul>
