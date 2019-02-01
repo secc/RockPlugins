@@ -17,11 +17,6 @@
         </div>
     </div>
     {% endif %}
-
-    {% if eventItemOccurrenceCount == 0 and campusesParam != null %}
-        {% include '~~/Assets/Lava/Campus/CampusSelection.lava' %}
-    {% endif %}
-
     <div class="isotope_wrap">
         {% for eventItemList in EventItems limit:limitEvents %}
             {% assign campusId = 0 %}
@@ -191,6 +186,10 @@
     </div><!-- END: isotope_wrap -->
 
 </div><!-- END: bootstrap container -->
+
+{% if eventItemOccurrenceCount == 0 and campusesParam != null %}
+    {% include '~~/Assets/Lava/Campus/CampusSelection.lava' %}
+{% endif %}
 
 {% comment %}
 **********************************************************************************
