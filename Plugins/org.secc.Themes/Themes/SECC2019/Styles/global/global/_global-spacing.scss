@@ -466,14 +466,14 @@
   Maring X (left & right)
 ------------------------------------*/
 .g-margin-x-auto--xs {
-	margin-left: auto;
-    margin-right: auto;
+	margin-left: auto !important;
+    margin-right: auto !important;
 }
 
 @for $i from 0 through 30 {
   .g-margin-x-#{$i * 5}--xs {
-    margin-left: ($i * .3125rem);
-    margin-right: ($i * .3125rem);
+    margin-left: ($i * .3125rem) !important;
+    margin-right: ($i * .3125rem) !important;
   }
 }
 
@@ -481,8 +481,8 @@
 @include media-breakpoint-up(sm) {
 	@for $i from 0 through 30 {
 	  .g-margin-x-#{$i * 5}--sm {
-	    margin-left: ($i * .3125rem);
-	    margin-right: ($i * .3125rem);
+	    margin-left: ($i * .3125rem) !important;
+	    margin-right: ($i * .3125rem) !important;
 	  }
 	}
 }
@@ -491,8 +491,8 @@
 @include media-breakpoint-up(md) {
 	@for $i from 0 through 30 {
 	  .g-margin-x-#{$i * 5}--md {
-	    margin-left: ($i * .3125rem);
-	    margin-right: ($i * .3125rem);
+	    margin-left: ($i * .3125rem) !important;
+	    margin-right: ($i * .3125rem) !important;
 	  }
 	}
 }
@@ -501,8 +501,8 @@
 @include media-breakpoint-up(lg) {
 	@for $i from 0 through 30 {
 	  .g-margin-x-#{$i * 5}--lg {
-	    margin-left: ($i * .3125rem);
-	    margin-right: ($i * .3125rem);
+	    margin-left: ($i * .3125rem) !important;
+	    margin-right: ($i * .3125rem) !important;
 	  }
 	}
 }
@@ -512,14 +512,14 @@
   Maring Y (top & bottom)
 ------------------------------------*/
 .g-margin-y-auto--xs {
-	margin-top: auto;
-    margin-bottom: auto;
+	margin-top: auto !important;
+    margin-bottom: auto !important;
 }
 
 @for $i from 0 through 30 {
   .g-margin-y-#{$i * 5}--xs {
-    margin-top: ($i * .3125rem);
-    margin-bottom: ($i * .3125rem);
+    margin-top: ($i * .3125rem) !important;
+    margin-bottom: ($i * .3125rem) !important;
   }
 }
 
@@ -527,8 +527,8 @@
 @include media-breakpoint-up(sm) {
 	@for $i from 0 through 30 {
 	  .g-margin-y-#{$i * 5}--sm {
-	    margin-top: ($i * .3125rem);
-	    margin-bottom: ($i * .3125rem);
+	    margin-top: ($i * .3125rem) !important;
+	    margin-bottom: ($i * .3125rem) !important;
 	  }
 	}
 }
@@ -537,8 +537,8 @@
 @include media-breakpoint-up(md) {
 	@for $i from 0 through 30 {
 	  .g-margin-y-#{$i * 5}--md {
-	    margin-top: ($i * .3125rem);
-	    margin-bottom: ($i * .3125rem);
+	    margin-top: ($i * .3125rem) !important;
+	    margin-bottom: ($i * .3125rem) !important;
 	  }
 	}
 }
@@ -547,8 +547,8 @@
 @include media-breakpoint-up(lg) {
 	@for $i from 0 through 30 {
 	  .g-margin-y-#{$i * 5}--lg {
-	    margin-top: ($i * .3125rem);
-	    margin-bottom: ($i * .3125rem);
+	    margin-top: ($i * .3125rem) !important;
+	    margin-bottom: ($i * .3125rem) !important;
 	  }
 	}
 }
