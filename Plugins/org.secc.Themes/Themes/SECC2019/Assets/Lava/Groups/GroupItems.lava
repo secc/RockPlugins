@@ -8,7 +8,7 @@
 
 <div class="container">
 
-    {% if eventItemOccurrenceCount == 0 %}
+    {% if eventItemOccurrenceCount == 0 and noMessages != true %}
     <div class="row">
         <div class="col-xs-12 text-center">
             <div style="border: 1px solid rgba(32, 30, 29, 0.50); padding: 20px; border-radius: 5px;">
@@ -16,6 +16,10 @@
             </div>
         </div>
     </div>
+    {% endif %}
+
+    {% if eventItemOccurrenceCount == 0 and campusesParam != null %}
+        {% include '~~/Assets/Lava/Campus/CampusSelection.lava' %}
     {% endif %}
 
     <div class="isotope_wrap">

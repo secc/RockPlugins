@@ -1,7 +1,7 @@
 {% if campusesParam != null %}
 
     {% if campusesInfo != null %}
-    <section>
+    <section class="g-padding-t-100--xs">
         <div class="clearfix g-padding-t-0--xs g-padding-x-150--md">
             <div class="row">
                 <div class="col-xs-12">
@@ -12,7 +12,7 @@
     </section>
     {% endif%}
 
-    <section id="Campuses">
+    <section class="g-padding-t-50--xs">
         {[ wow animate:'fadeIn' duration:'.8s' ]}
         <div class="clearfix g-padding-t-0--xs g-padding-b-150--xs g-padding-x-150--md">
             <div class="col-xs-6 col-md-4 col-lg-2 g-padding-b-60--xs">
