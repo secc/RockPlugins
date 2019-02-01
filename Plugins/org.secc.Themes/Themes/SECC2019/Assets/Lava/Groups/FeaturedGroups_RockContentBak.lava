@@ -11,13 +11,10 @@
 <br />
 <br />
 
-{% include '~~/Assets/Lava/Groups/GroupItems.lava' %}
-
+{% assign noMessages = true %}
 {% assign campusesParam = '#Students' %}
 {% assign campusesInfo = '<h3 class="text-center">Click on one of the campuses below for more information about Student Groups</h3><br /><p></p>'%}
-<div class="container g-padding-t-100--xs">
-{% include '~~/Assets/Lava/Campus/CampusSelection.lava' %}
-</div>
+{% include '~~/Assets/Lava/Groups/GroupItems.lava' %}
 
 <script>
 $(window).load(function() {
