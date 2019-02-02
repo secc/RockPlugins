@@ -1,5 +1,9 @@
-﻿<%@ Master Language="C#" AutoEventWireup="true" Inherits="Rock.Web.UI.RockMasterPage" %>
+<%@ Master Language="C#" AutoEventWireup="true" Inherits="Rock.Web.UI.RockMasterPage" %>
 <%@ Import Namespace="System.Web.Optimization" %>
+<%@ Import Namespace="Rock" %>
+<%@ Import Namespace="Rock.Model" %>
+<%@ Import Namespace="Rock.Web.UI" %>
+<%@ Import Namespace="Rock.Web.Cache" %>
 <!DOCTYPE html>
 
 <script runat="server">
@@ -13,6 +17,17 @@
     protected override void OnInit( EventArgs e )
     {
         base.OnInit( e );
+//Check to see if we should remove menu transparency
+        var page = PageCache.Get( ( ( RockPage ) Page ).PageId );
+        var showalert = page.GetAttributeValue( "TransparentMenu" ).AsBoolean();
+        if ( !showalert )
+        {
+            var script = @"$(document).ready(function() {  
+  $('.cd-main-header').removeClass('transparent-menu-enabled').removeClass('transparent-header');
+    $('.cd-main-content').removeClass('transparent-content');
+});";
+            ScriptManager.RegisterStartupScript( this.Page, this.GetType(), "transparentMenu", script, true );
+        }
     }
 
 </script>
@@ -71,8 +86,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.3/jarallax.js" ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/object-fit-images/3.2.3/ofi.min.js" ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.3/jarallax-video.js" ></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vivus/0.4.4/vivus.min.js" ></script>
-    
+
 </head>
 
 <body runat="server" id="body" class="nav-is-fixed">
