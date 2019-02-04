@@ -65,10 +65,10 @@
 
 
 	.sekids {
-		background-color: #e5376b;
+		background-color: #F8c356;
 	}
 	.sekids:before {
-		border-bottom: 10px solid #e5376b;
+		border-bottom: 10px solid #F8c356;
 	}
 
 	.freedom {
@@ -171,7 +171,7 @@
 
 		<div class="isotope_item col-sm-12 col-md-6">
 			<a href="/camp/sekids-summer-camp">
-				<img src="/Themes/SECC2014/Assets/img/Camps/SEKids-color.jpg" alt="Celebrate Christmas Together" class="img-responsive">
+				<img src="/Themes/SECC2014/Assets/img/Camps/SEKidsYellow.jpg" alt="Celebrate Christmas Together" class="img-responsive">
 				<div class="event-info-bottom sekids">
 					<div class="col-sm-6 col-md-5 col-lg-5">
 						<h4>SE!KIDS SUMMER CAMP</h4>
