@@ -77,13 +77,14 @@
       <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>
       <Name>Rock</Name>
     </ProjectReference>
-    <ProjectReference Include="..\org.secc.PersonMatch\org.secc.PersonMatch.csproj">
+    <ProjectReference Include="$(SolutionDir)org.secc.PersonMatch\org.secc.PersonMatch.csproj">
       <Project>{26cc0ba6-968b-4464-9992-d1d3510af9ab}</Project>
       <Name>org.secc.PersonMatch</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Person\GetPersonFromFields.cs" />
+    <Compile Include="Schedule\PreCalculateNextStartDate.cs" />
     <Compile Include="Twilio\Lookup.cs" />
     <Compile Include="WorkflowAttributes\AttributeMatrixUpdateRow.cs" />
     <Compile Include="WorkflowAttributes\AttributeMatrixDeleteRow.cs" />
@@ -96,6 +97,7 @@
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.Workflow.dll" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
