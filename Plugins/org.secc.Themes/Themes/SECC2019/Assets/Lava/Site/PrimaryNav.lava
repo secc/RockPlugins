@@ -148,38 +148,15 @@
             <ul class="cd-secondary-nav is-hidden">
                 <li class="go-back arrow"><a class="arrow">Menu</a></li>
                 <div class="extralinks border-right">
-                    <li>
-                        <a href="/newsite/ministries/men">Men</a>
-                    </li>
-                    <li>
-                        <a href="/newsite/ministries/women">Women</a>
-                    </li>
-                    <li>
-                        <a href="/newsite/ministries/women">Family</a>
-                    </li>
-                    <li>
-                        <a href="/newsite/ministries/women">Single</a>
-                    </li>
-                </div>
-
-                <div class="extralinks border-right">
-                    <li>
-                        <a href="/newsite/ministries/children">Children</a>
-                    </li>
-                    <li>
-                        <a href="/newsite/ministries/college-age">College Age</a>
-                    </li>
-                    <li>
-                        <a href="/newsite/ministries/high-school">High School</a>
-                    </li>
-                    <li>
-                        <a href="/newsite/ministries/middle-school">Middle School</a>
-                    </li>
-                </div>
-
-                <div class="extralinks border-right">
-                    <li>
-                        <a href="/newsite/ministries/seniors">Seniors</a>
+                    <li class="has-children">
+                        <a class="arrow">Care</a>
+                        <ul class="is-hidden">
+                            <li class="go-back arrow"><a class="arrow">Care</a></li>
+                            <li><a href="/newsite/ministries/care">Overview</a></li>
+                            <li><a href="/newsite/ministries/care/care-faq/">FAQs</a></li>
+                            <li><a href="/newsite/ministries/care/encounter-groups">Encounter Groups</a></li>
+                            <li><a href="/newsite/ministries/care/mentoring">Mentoring</a></li>
+                        </ul>
                     </li>
                     <li class="has-children">
                         <a class="arrow">Missions</a>
@@ -194,26 +171,49 @@
                         </ul>
                     </li>
                     <li>
-                        <a href="/newsite/ministries/seniors">Generous Living</a>
+                        <a href="/newsite/ministries/men">Men</a>
                     </li>
                     <li>
-                        <a href="/newsite/ministries/seniors">Foster & Adoption</a>
+                        <a href="/newsite/ministries/women">Women</a>
+                    </li>
+                </div>
+
+                <div class="extralinks border-right">
+                    <li>
+                        <a href="/newsite/ministries/women">Family</a>
+                    </li>
+                    <li>
+                        <a href="/newsite/ministries/children">Children</a>
+                    </li>
+                    <li>
+                        <a href="/newsite/ministries/women">Single</a>
+                    </li>
+                    <li>
+                        <a href="/newsite/ministries/college-age">College Age</a>
+                    </li>
+                </div>
+
+                <div class="extralinks border-right">
+                    <li>
+                        <a href="/newsite/ministries/high-school">High School</a>
+                    </li>
+                    <li>
+                        <a href="/newsite/ministries/middle-school">Middle School</a>
+                    </li>
+                    <li>
+                        <a href="/newsite/ministries/seniors">Seniors</a>
+                    </li>
+                    <li>
+                        <a href="/newsite/ministries/seniors">Generous Living</a>
                     </li>
                 </div>
 
                 <div class="extralinks">
                     <li>
-                        <a class="arrow">Deaf & Disabilities</a>
+                        <a href="/newsite/ministries/seniors">Foster & Adoption</a>
                     </li>
-                    <li class="has-children">
-                        <a class="arrow">Care</a>
-                        <ul class="is-hidden">
-                            <li class="go-back arrow"><a class="arrow">Care</a></li>
-                            <li><a href="/newsite/ministries/care">Overview</a></li>
-                            <li><a href="/newsite/ministries/care/care-faq/">FAQs</a></li>
-                            <li><a href="/newsite/ministries/care/encounter-groups">Encounter Groups</a></li>
-                            <li><a href="/newsite/ministries/care/mentoring">Mentoring</a></li>
-                        </ul>
+                    <li>
+                        <a href="/newsite/ministries/deaf-and-disabilities-ministry">Deaf & Disabilities</a>
                     </li>
                     <li>
                         <a href="/newsite/ministries/sports-fitness">Sports & Fitness</a>
