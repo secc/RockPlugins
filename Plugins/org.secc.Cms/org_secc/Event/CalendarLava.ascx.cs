@@ -84,7 +84,6 @@ namespace RockWeb.Blocks.Event
         private DateTime? SelectedDate { get; set; }
         private DateTime? FilterStartDate { get; set; }
         private DateTime? FilterEndDate { get; set; }
-        private List<DateTime> CalendarEventDates { get; set; }
 
         #endregion
 
@@ -102,7 +101,6 @@ namespace RockWeb.Blocks.Event
             SelectedDate = ViewState["SelectedDate"] as DateTime?;
             FilterStartDate = ViewState["FilterStartDate"] as DateTime?;
             FilterEndDate = ViewState["FilterEndDate"] as DateTime?;
-            CalendarEventDates = ViewState["CalendarEventDates"] as List<DateTime>;
         }
 
         /// <summary>
@@ -166,7 +164,6 @@ namespace RockWeb.Blocks.Event
             ViewState["SelectedDate"] = SelectedDate;
             ViewState["FilterStartDate"] = FilterStartDate;
             ViewState["FilterEndDate"] = FilterEndDate;
-            ViewState["CalendarEventDates"] = CalendarEventDates;
 
             return base.SaveViewState();
         }
@@ -230,11 +227,6 @@ namespace RockWeb.Blocks.Event
         /// <param name="e">The <see cref="DayRenderEventArgs"/> instance containing the event data.</param>
         protected void calEventCalendar_DayRender( object sender, DayRenderEventArgs e )
         {
-            DateTime day = e.Day.Date;
-            if ( CalendarEventDates != null && CalendarEventDates.Any( d => d.Date.Equals( day.Date ) ) )
-            {
-                e.Cell.AddCssClass( "calendar-hasevent" );
-            }
         }
 
         /// <summary>
@@ -325,27 +317,21 @@ namespace RockWeb.Blocks.Event
             // Grab events
             var qry = eventItemOccurrenceService
                     .Queryable( "EventItem, EventItem.EventItemAudiences,Schedule" )
-                    .GroupJoin(
-                        attributeService.Queryable(),
-                        p => calendarItemEntityTypeId,
-                        a => a.EntityTypeId,
-                        ( eio, a ) => new { EventItemOccurrence = eio, EventCalendarItemAttributes = a }
-                    )
+                    .Where( e =>
+                        e.EventItem.EventCalendarItems.Any( i => i.EventCalendarId == _calendarId ) &&
+                        e.EventItem.IsActive &&
+                        e.EventItem.IsApproved )
                     .GroupJoin(
                         attributeValueService.Queryable().Where( av => av.Attribute.EntityTypeId == ( int? ) calendarItemEntityTypeId ),
-                        obj => obj.EventItemOccurrence.EventItem.EventCalendarItems.Where( i => i.EventCalendarId == _calendarId ).Select( i => i.Id ).FirstOrDefault(),
+                        obj => obj.EventItem.EventCalendarItems.Where( i => i.EventCalendarId == _calendarId ).Select( i => i.Id ).FirstOrDefault(),
                         av => av.EntityId,
                         ( obj, av ) => new
                         {
-                            EventItemOccurrence = obj.EventItemOccurrence,
-                            EventCalendarItemAttributes = obj.EventCalendarItemAttributes,
+                            EventItemOccurrence = obj,
                             EventCalendarItemAttributeValues = av,
                         }
-                    )
-                    .Where( m =>
-                        m.EventItemOccurrence.EventItem.EventCalendarItems.Any( i => i.EventCalendarId == _calendarId ) &&
-                        m.EventItemOccurrence.EventItem.IsActive &&
-                        m.EventItemOccurrence.EventItem.IsApproved );
+                    );
+
 
             // Filter by campus
             if ( campusIds.Any() )
@@ -377,23 +363,16 @@ namespace RockWeb.Blocks.Event
 
             // Get the occurrences
             var occurrences = qry.ToList();
-            foreach ( var occ in occurrences )
-            {
-                occ.EventItemOccurrence.EventItem.LoadAttributes();
-            }
 
             var occurrencesWithDates = occurrences
                 .Select( o => new EventOccurrenceDate
                 {
                     EventItemOccurrence = o.EventItemOccurrence,
-                    EventCalendarItemAttributes = o.EventCalendarItemAttributes,
                     EventCalendarItemAttributeValues = o.EventCalendarItemAttributeValues,
-                    Dates = o.EventItemOccurrence.GetStartTimes( beginDate, endDate ).ToList()
+                    Dates = GetFirstDate( o.EventItemOccurrence.Schedule )
                 } )
-                .Where( d => d.Dates.Any() )
+                .Where( d => d.Dates.FirstOrDefault() > RockDateTime.Now )
                 .ToList();
-
-            CalendarEventDates = new List<DateTime>();
 
             var priorityAttributeKey = GetAttributeValue( "PriorityAttributeKey" );
 
@@ -403,22 +382,17 @@ namespace RockWeb.Blocks.Event
                 var eventItemOccurrence = occurrenceDates.EventItemOccurrence;
                 foreach ( var datetime in occurrenceDates.Dates )
                 {
-                    if ( eventItemOccurrence.Schedule.EffectiveEndDate.HasValue && ( eventItemOccurrence.Schedule.EffectiveStartDate != eventItemOccurrence.Schedule.EffectiveEndDate ) )
-                    {
-                        var multiDate = eventItemOccurrence.Schedule.EffectiveStartDate;
-                        while ( multiDate.HasValue && ( multiDate.Value < eventItemOccurrence.Schedule.EffectiveEndDate.Value ) )
-                        {
-                            CalendarEventDates.Add( multiDate.Value.Date );
-                            multiDate = multiDate.Value.AddDays( 1 );
-                        }
-                    }
-                    else
-                    {
-                        CalendarEventDates.Add( datetime.Date );
-                    }
-
                     if ( datetime >= beginDate && datetime < endDate )
                     {
+                        var primaryMinistry = DefinedValueCache.Get( occurrenceDates.EventCalendarItemAttributeValues.Where( av => av.AttributeKey == "PrimaryMinistry" ).Select( av => av.Value ).FirstOrDefault() );
+                        var primaryMinistryImageGuid = "";
+                        var primaryMinistryName = "";
+                        if ( primaryMinistry != null )
+                        {
+                            primaryMinistryName = primaryMinistry.Value;
+                            primaryMinistryImageGuid = primaryMinistry.GetAttributeValue( "CalendarImage" );
+                        }
+
                         eventOccurrenceSummaries.Add( new EventOccurrenceSummary
                         {
                             EventItemOccurrence = eventItemOccurrence,
@@ -434,7 +408,11 @@ namespace RockWeb.Blocks.Event
                             URLSlugs = occurrenceDates.EventCalendarItemAttributeValues.Where( av => av.AttributeKey == "URLSlugs" ).Select( av => av.Value ).FirstOrDefault(),
                             OccurrenceNote = eventItemOccurrence.Note.SanitizeHtml(),
                             DetailPage = String.IsNullOrWhiteSpace( eventItemOccurrence.EventItem.DetailsUrl ) ? null : eventItemOccurrence.EventItem.DetailsUrl,
-                            Priority = occurrenceDates.EventCalendarItemAttributeValues.Where( av => av.AttributeKey == priorityAttributeKey ).Select( av => av.Value ).FirstOrDefault().AsIntegerOrNull() ?? int.MaxValue
+                            Priority = occurrenceDates.EventCalendarItemAttributeValues.Where( av => av.AttributeKey == priorityAttributeKey ).Select( av => av.Value ).FirstOrDefault().AsIntegerOrNull() ?? int.MaxValue,
+                            PrimaryMinistryImageGuid = primaryMinistryImageGuid,
+                            PrimaryMinstryTitle = primaryMinistryName,
+                            ImageHeaderText = occurrenceDates.EventCalendarItemAttributeValues.Where( av => av.AttributeKey == "ImageHeaderText" ).Select( av => av.Value ).FirstOrDefault(),
+                            ImageHeaderTextSmall = occurrenceDates.EventCalendarItemAttributeValues.Where( av => av.AttributeKey == "ImageHeaderTextSmall" ).Select( av => av.Value ).FirstOrDefault()
                         } );
                     }
                 }
@@ -467,6 +445,21 @@ namespace RockWeb.Blocks.Event
                 RockCache.AddOrUpdate( cacheKey,
                     System.Globalization.CultureInfo.CurrentCulture.ToString(),
                 lOutput.Text, RockDateTime.Now.AddMinutes( minutes ) );
+            }
+        }
+
+        private List<DateTime> GetFirstDate( Schedule schedule )
+        {
+            var occ = schedule.GetOccurrences( Rock.RockDateTime.Now, Rock.RockDateTime.Now.AddMonths( 1 ) );
+            if ( occ.Any() )
+            {
+                var a = occ.FirstOrDefault();
+                return new List<DateTime> { a.Period.StartTime.Value };
+
+            }
+            else
+            {
+                return new List<DateTime>();
             }
         }
 
@@ -709,6 +702,10 @@ namespace RockWeb.Blocks.Event
             public String DetailPage { get; set; }
             public int Priority { get; set; }
             public String URLSlugs { get; set; }
+            public string PrimaryMinistryImageGuid { get; set; }
+            public string PrimaryMinstryTitle { get; set; }
+            public string ImageHeaderText { get; set; }
+            public string ImageHeaderTextSmall { get; set; }
         }
 
         /// <summary>
@@ -717,7 +714,6 @@ namespace RockWeb.Blocks.Event
         public class EventOccurrenceDate
         {
             public EventItemOccurrence EventItemOccurrence { get; set; }
-            public IEnumerable<Rock.Model.Attribute> EventCalendarItemAttributes { get; set; }
             public IEnumerable<AttributeValue> EventCalendarItemAttributeValues { get; set; }
             public List<DateTime> Dates { get; set; }
         }
