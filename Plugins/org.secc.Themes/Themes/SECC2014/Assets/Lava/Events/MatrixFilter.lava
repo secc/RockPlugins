@@ -37,12 +37,9 @@
                         <select class="select2-campuses" name="campus">
                         <option value="allCampuses" data-shortcode="SE" {% if selectedCampus == null %} selected="selected"{% endif %}>All Campuses</option>
                         {% for campus in Campuses %}
-                        	{% assign publicCampus = campus | Attribute:'Public' %}
-                        	{% if publicCampus == 'Yes' %}
-                                <option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campus.Name | Downcase | Replace:" ",""}}"{% if selectedCampus.Id > 0 and selectedCampus.Id == campus.Id %} selected="selected"{% endif %}>
-                                    {{ campus.Name }}
-                                </option>
-                        	{% endif %}
+                    	    <option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campus.Name | Downcase | Replace:" ",""}}"{% if selectedCampus.Id > 0 and selectedCampus.Id == campus.Id %} selected="selected"{% endif %}>
+                                {{ campus.Name }}
+                            </option>
                         {% endfor %}
 
                         </select>
