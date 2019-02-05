@@ -153,9 +153,7 @@
                         <ul class="is-hidden">
                             <li class="go-back arrow"><a class="arrow">Care</a></li>
                             <li><a href="/newsite/ministries/care">Overview</a></li>
-                            <li><a href="/newsite/ministries/care/care-faq/">FAQs</a></li>
                             <li><a href="/newsite/ministries/care/encounter-groups">Encounter Groups</a></li>
-                            <li><a href="/newsite/ministries/care/mentoring">Mentoring</a></li>
                         </ul>
                     </li>
                     <li class="has-children">
@@ -180,13 +178,13 @@
 
                 <div class="extralinks border-right">
                     <li>
-                        <a href="/newsite/ministries/women">Family</a>
+                        <a href="/newsite/ministries/famly">Family</a>
                     </li>
                     <li>
                         <a href="/newsite/ministries/children">Children</a>
                     </li>
                     <li>
-                        <a href="/newsite/ministries/women">Single</a>
+                        <a href="/newsite/ministries/single">Single</a>
                     </li>
                     <li>
                         <a href="/newsite/ministries/college-age">College Age</a>
@@ -204,13 +202,13 @@
                         <a href="/newsite/ministries/seniors">Seniors</a>
                     </li>
                     <li>
-                        <a href="/newsite/ministries/seniors">Generous Living</a>
+                        <a href="/newsite/ministries/generous-living">Generous Living</a>
                     </li>
                 </div>
 
                 <div class="extralinks">
                     <li>
-                        <a href="/newsite/ministries/seniors">Foster & Adoption</a>
+                        <a href="/newsite/ministries/foster-and-adoption">Foster & Adoption</a>
                     </li>
                     <li>
                         <a href="/newsite/ministries/deaf-and-disabilities-ministry">Deaf & Disabilities</a>
