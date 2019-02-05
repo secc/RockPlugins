@@ -84,7 +84,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Person\GetPersonFromFields.cs" />
-    <Compile Include="Schedule\PreCalculateNextStartDate.cs" />
+    <Compile Include="Schedule\ScheduleNextStartDate.cs" />
     <Compile Include="Twilio\Lookup.cs" />
     <Compile Include="WorkflowAttributes\AttributeMatrixUpdateRow.cs" />
     <Compile Include="WorkflowAttributes\AttributeMatrixDeleteRow.cs" />
