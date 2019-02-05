@@ -83,6 +83,9 @@ a.eventCardLink {
             -webkit-box-shadow: 0 3px 12px 2px hsla(0,0%,78%,1);
             box-shadow: 0 3px 12px 2px hsla(0,0%,78%,.5);
         }
+        .caption a {
+            cursor: pointer;
+        }
         &:hover {
             -webkit-box-shadow: 0 22px 133px rgba(0, 0, 0, 0.15);
             box-shadow: 0 22px 133px rgba(0, 0, 0, 0.15);
@@ -172,6 +175,9 @@ a.eventCardLink {
             }
             &.--location {
                 background-image: url('/Themes/SECC2019/Assets/img/events/Location.svg');
+            }
+            &.--teddy-bear {
+                background-image: url('/Themes/SECC2019/Assets/img/events/Teddy-Bear.svg');
             }
         }
     }
