@@ -29,7 +29,7 @@
 
 <div class="g-margin-b-20--xs" style="display: inline-block; width: 100%;">
 
-    <div class="event-items col-xs-4 col-xs-offset-2 g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter">
+    <div class="event-items col-xs-4 g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter {% if EventItemOccurrence.ChildcareAvailable != 'Yes' %}col-xs-offset-2{% endif %}">
          <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
 
          {% assign scheduledDates = EventItemOccurrence.Schedule.iCalendarContent | DatesFromICal:'all' %}
@@ -63,7 +63,7 @@
          </div>
     </div>
 
-    <div class="event-items col-xs-4 g-padding-x-10--xs">
+    <div class="event-items col-xs-4 g-padding-x-10--xs {% if EventItemOccurrence.ChildcareAvailable == 'Yes' %}g-ver-divider__solid__r--gray-lighter{% endif %}">
          <div class="event-icon --location"></div>
          <h6>
              {% if EventItemOccurrence.Location != '' %}
@@ -78,7 +78,15 @@
          </h6>
     </div>
 
-    <div class="col-xs-12 g-padding-x-60--xs">
+    <!-- ChildCare -->
+    {% if EventItemOccurrence.ChildcareAvailable == 'Yes' %}
+    <div class="event-items col-xs-4 g-padding-x-10--xs">
+        <div class="event-icon --teddy-bear"><!-- Teddy Bear SVG Image --></div>
+        <h6>Childcare<br> Available</h6>
+    </div>
+    {% endif %}
+
+    <div class="col-xs-12 {% if EventItemOccurrence.ChildcareAvailable != 'Yes' %}g-padding-l-150--xs{% else %}g-padding-x-60--xs{% endif %}">
         {% if EventItemOccurrence.UseOnlyScheduleText != 'Yes' %}
             {% if scheduledDates != empty %}
                 <ul class="list-unstyled readmore_dates" style="margin: 0;">

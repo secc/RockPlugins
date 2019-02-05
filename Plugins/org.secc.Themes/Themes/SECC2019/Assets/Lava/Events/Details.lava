@@ -100,7 +100,7 @@
 
             </div><!-- END: col-md-4 -->
 
-            <div class="col-md-8 g-padding-t-10--xs g-padding-t-70--lg g-padding-t-100--lg">
+            <div class="col-md-8 g-padding-t-10--xs g-padding-t-70--lg g-padding-t-100--lg" style="min-height: 150px;">
 
                 <h3 class="g-font-family--secondary">{{Event.Name}}</h3>
 
@@ -202,7 +202,7 @@
              $('.readmore_dates').readmore({
                  speed: 100,
                  lessLink: '<a href="#" style="top:8px; position:relative;"><h5 class="g-display-inline-block--xs"><small>Show Less Dates</small> <span class="se-carat se-carat--up"></span></h5></a>',
-                 moreLink: '<a href="#" style="left: 14%;position:relative;top: -5px; position:relative;"><h5 class="g-display-inline-block--xs"><small>Show All Dates</small><span class="se-carat se-carat--down"></span></h5></a>',
+                 moreLink: '<a href="#" style="position:relative;top: -5px; position:relative;"><h5 class="g-display-inline-block--xs"><small>Show All Dates</small><span class="se-carat se-carat--down"></span></h5></a>',
                  collapsedHeight: 0,
                  beforeToggle: function(tr, el, ex) {
                      $(el).show();

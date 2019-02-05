@@ -23,6 +23,8 @@
             {% assign campusId = 0 %}
             {% assign multiCampus = false %}
             {% assign numOccurrences = eventItemList | Size %}
+            {% assign childCareIsAvailable = 'No' %}
+
             {% for eventItemOccurrence in eventItemList %}
                 {% if campusId == 0 %}
                     {% if eventItemOccurrence.EventItemOccurrence.CampusId == null %}
@@ -33,20 +35,22 @@
                 {% elseif eventItemOccurrence.EventItemOccurrence.CampusId != campusId %}
                     {% assign multiCampus = true %}
                 {% endif %}
+                {% if eventItemOccurrence.EventItemOccurrence.ChildcareAvailable == 'Yes' %}
+                    {% assign childCareIsAvailable = 'Yes' %}
+                {% endif %}
             {% endfor %}
 
             {% for eventItemOccurrence in eventItemList %}
 
                 {% assign eventItem = eventItemOccurrence.EventItemOccurrence.EventItem %}
-                {% comment %} **** Looping through each occurance for each event item **** {% endcomment %}
+                {% comment %} **** Looping through the first occurance for each event item **** {% endcomment %}
 
                 {% assign eventLinkURL = '' %}
-
                 {% comment %} Setting Up Anchor Link for Details Page {% endcomment %}
                 {% if eventItemOccurrence.DetailPage != null %}
                     {% assign eventLinkURL = eventItemOccurrence.DetailPage %}
                 {% else %}
-    			    {% assign urlSlug = eventItem | Attribute:'URLSlugs'| Split:',' | First %}
+    			    {% assign urlSlug = eventItem | Property:'URLSlugs'| Split:',' | First %}
     				{% if urlSlug != '' %}
     					{% assign eventLinkURL = DetailsPage | Replace:'/details','/' | Append:urlSlug %}
     				{% else %}
@@ -78,29 +82,7 @@
                             {% else %}
                             <div class="img-hover">
                                 {% assign primaryMinistryImage = eventItem | Attribute:'PrimaryMinistry','Object' | Attribute:'CalendarImage','Object' %}
-                                <img src="/GetImage.ashx?guid={{ primaryMinistryImage.Guid }}&w=720" class="img-responsive"  onerror="this.style.display='none'">
-                                {% comment %}
-                                {% assign pri maryMinistryTitle = eventItem | Attribute:'PrimaryMinistry' %}
-                                {% assign eventImageTitle = eventItem | Attribute:'ImageHeaderText' %}
-                                {% assign eventImageTitleSmall = eventItem | Attribute:'ImageHeaderTextSmall' %}
-
-                                {% assign photoTextHTML = ''%}
-
-                                {% if eventImageTitle != empty %}
-                                    {% assign photoTextHTML = '<h1 class="uppercase">' | Plus: eventImageTitle %}
-                                {% else %}
-                                    {% assign photoTextHTML = '<h1 class="uppercase">' | Plus: primaryMinistryTitle %}
-                                {% endif %}
-
-                                {% if eventImageTitleSmall != empty %}
-                                    {% assign photoTextHTML = photoTextHTML | Plus: '<br /><small>'| Plus: eventImageTitleSmall | Plus: '</small></h1>' %}
-                                {% else %}
-                                    {% assign photoTextHTML = photoTextHTML | Plus: '<br /><small>Ministry</small></h1>' %}
-                                {% endif %}
-                                <div class="event-photo-title">
-                                    {{photoTextHTML}}
-                                </div>
-                                {% endcomment %}
+                                <img src="/GetImage.ashx?guid={{ primaryMinistryImage.Guid }}&w=720" class="img-responsive"  onerror="this.style.display='none'" />
                             </div>
                             {% endif %}
                         </a>
@@ -129,7 +111,7 @@
 
                         </div><!-- END: caption -->
 
-                        <div class="event-items col-xs-4 g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter">
+                        <div class="event-items col-xs-4 {% if childCareIsAvailable != 'Yes' %}col-xs-offset-2{% endif %} g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter">
                              <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
                              <h6>
                                  {% if eventItemOccurrence.EventItemOccurrence.UseOnlyScheduleText == 'Yes' %}
@@ -146,6 +128,7 @@
                              </h6>
                         </div>
 
+                        {% comment %}
                         {% if eventItemOccurrence.Time != '' %}
                         <div class="event-items col-xs-4 g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter">
                              <div class="event-icon --clock"><!-- Clock SVG Image --></div>
@@ -154,8 +137,9 @@
                              </h6>
                         </div>
                         {% endif %}
+                        {% endcomment %}
 
-                        <div class="event-items col-xs-4 g-padding-x-10--xs">
+                        <div class="event-items g-padding-x-10--xs col-xs-4 {% if childCareIsAvailable == 'Yes' %}g-ver-divider__solid__r--gray-lighter{% endif %}">
                              <div class="event-icon --location"><!-- Marker / Location SVG Image --></div>
                              <h6>
                                  {% if eventItemOccurrence.EventItemOccurrence.Location != '' %}
@@ -169,6 +153,14 @@
                                  {% endif %}
                              </h6>
                         </div>
+
+                        <!-- ChildCare -->
+                        {% if childCareIsAvailable == 'Yes' %}
+                        <div class="event-items col-xs-4 g-padding-x-10--xs">
+                            <div class="event-icon --teddy-bear"><!-- Teddy Bear SVG Image --></div>
+                            <h6>Childcare<br> Available</h6>
+                        </div>
+                        {% endif %}
 
                         <div class="text-center col-xs-12 g-margin-t-40--xs g-hor-divider__solid__t--gray-lighter">
                             <a href="{{ eventLinkURL }}" class='eventCardLink link--hover-underscore'>
