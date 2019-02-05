@@ -114,11 +114,13 @@
                         <div class="event-items col-xs-4 {% if childCareIsAvailable != 'Yes' %}col-xs-offset-2{% endif %} g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter">
                              <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
                              <h6>
+                                 {% unless eventItemDatesIsHidden == 'Yes' %}
                                  {% if eventItemOccurrence.EventItemOccurrence.UseOnlyScheduleText == 'Yes' %}
                                        {{eventItemOccurrence.EventItemOccurrence.ScheduleText}}
                                  {% else %}
                                        {{ eventItemOccurrence.Date | Date: 'ddd, MMM dd'}}
                                  {% endif %}
+                                 {% endunless %}
                                  <br />
                                  {% if numOccurrences > 1 and multiCampus == true %}
                                          <small class="uppercase g-padding-b-20--xs g-font-weight--700">Multiple Dates</small>
