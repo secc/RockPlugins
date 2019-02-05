@@ -50,7 +50,7 @@
                 {% if eventItemOccurrence.DetailPage != null %}
                     {% assign eventLinkURL = eventItemOccurrence.DetailPage %}
                 {% else %}
-    			    {% assign urlSlug = eventItem | Property:'URLSlugs'| Split:',' | First %}
+    			    {% assign urlSlug = eventItem | Property:'URLSlugs'| Split:',' | First | Trim %}
     				{% if urlSlug != '' %}
     					{% assign eventLinkURL = DetailsPage | Replace:'/details','/' | Append:urlSlug %}
     				{% else %}
@@ -94,7 +94,7 @@
 
                             {% if numOccurrences > 1 and multiCampus == true %}
                                     <h5 class="uppercase g-padding-b-20--xs g-font-weight--700">Multiple Campuses</h5>
-                            {% else %}
+                            {% elseif eventItemOccurrence.EventItemOccurrence.Campus.Name != null %}
                                     <h5 class="uppercase g-padding-b-20--xs g-font-weight--700">{{eventItemOccurrence.EventItemOccurrence.Campus.Name}} Campus</h5>
                             {% endif %}
 
