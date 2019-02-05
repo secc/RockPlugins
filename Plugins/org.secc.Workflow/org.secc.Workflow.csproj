@@ -84,6 +84,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Person\GetPersonFromFields.cs" />
+    <Compile Include="Registrations\AutoApplyDiscountCode.cs" />
+    <Compile Include="Registrations\SetAttributeFromRegistrantField.cs" />
     <Compile Include="Schedule\ScheduleNextStartDate.cs" />
     <Compile Include="Twilio\Lookup.cs" />
     <Compile Include="WorkflowAttributes\AttributeMatrixUpdateRow.cs" />
