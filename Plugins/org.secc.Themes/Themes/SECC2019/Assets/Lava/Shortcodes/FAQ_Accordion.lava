@@ -1,0 +1,95 @@
+{% comment %}
+*********************************** NAME ***************************************
+{% endcomment %}
+*FAQ Accordian
+
+{% comment %}
+*********************************** TagType ************************************
+{% endcomment %}
+Block
+
+{% comment %}
+*********************************** TAG NAME ***********************************
+{% endcomment %}
+faq
+
+{% comment %}
+*********************************** DESCRIPTION ********************************
+{% endcomment %}
+Accordion shortcode for the public website to be used in faq section
+
+{% comment %}
+********************************* DOCUMENTATION ********************************
+{% endcomment %}
+
+<p>
+    <a href="https://getbootstrap.com/docs/3.3/javascript/#collapse-example-accordion">Bootstrap accordions</a> are a clean way of displaying a large 
+    amount of structured content on a page. While they're not incredibly difficult to make using just HTML this shortcode simifies the markup 
+    quite a bit. The example below shows an accordion with three different sections.
+</p>
+
+<pre>{[ faq ]}
+
+    [[ item title:'Lorem Ipsum' ]]
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut pretium tortor et orci ornare 
+        tincidunt. In hac habitasse platea dictumst. Aliquam blandit dictum fringilla. 
+    [[ enditem ]]
+    
+    [[ item title:'In Commodo Dolor' ]]
+        In commodo dolor vel ante porttitor tempor. Ut ac convallis mauris. Sed viverra magna nulla, quis 
+        elementum diam ullamcorper et. 
+    [[ enditem ]]
+    
+    [[ item title:'Vivamus Sollicitudin' ]]
+        Vivamus sollicitudin, leo quis pulvinar venenatis, lorem sem aliquet nibh, sit amet condimentum
+        ligula ex a risus. Curabitur condimentum enim elit, nec auctor massa interdum in.
+    [[ enditem ]]
+
+{[ endfaq ]}</pre>
+
+
+<p>
+    The [[ item ]] block configuration has the following options:
+</p>
+<ul>
+    <li><strong>title</strong> - The title of the section.</li>
+</ul>
+
+{% comment %}
+************************ MARKUP FOR THIS SHORTCODE IS BELOW ********************
+{%- assign wrapperId = '1' -%}
+{%- assign nextPage = items | Size |  DividedBy:2,0 -%}
+
+
+   <div class="col-md-6 g-padding-x-20--xs">
+<div class="panel-{{ wrapperId }} accordions-1" id="faq-accordion-1" role="tablist" aria-multiselectable="true">
+  {%- for item in items -%}
+
+        <div class="panel panel-default">
+            <div class="panel-heading collapsed" role="button"  id="heading{{ forloop.index }}-{{ wrapperId }}" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2"
+            href="#collapse{{ forloop.index }}-{{ wrapperId }}" aria-expanded="false" aria-controls="faq-1-collapse-1" style="min-height:110px">
+              <h4 class="panel-title g-font-size-40--xs g-font-weight--700 g-ver-center--xs g-padding-r-100--xs g-padding-r-150--md">
+                  {{ item.title }}
+              </h4>
+            </div>
+            <div id="collapse{{ forloop.index }}-{{ wrapperId }}" class="panel-collapse collapse" role="tabpanel"
+            aria-labelledby="heading{{ forloop.index }}-{{ wrapperId }}" aria-expanded="false" style="height: 0px;">
+              <div class="panel-body">
+                <p>{{ item.content }}</p>
+              </div>
+            </div>
+          </div>
+     {% if nextPage == forloop.index %}
+        </div></div>
+        <div class="col-md-6 g-padding-x-20--xs">
+        <div class="panel-{{ wrapperId }} accordions-1" id="faq-accordion-2" role="tablist" aria-multiselectable="true">
+     {% endif%}
+     
+  {%- endfor -%}
+  </div>
+</div>
+
+{% comment %}
+************************ PARAMETERS ********************
+{% endcomment %}
+
