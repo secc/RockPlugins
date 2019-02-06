@@ -89,7 +89,9 @@
 				  }
 				</script>
 
-                {[ parallax videourl:'https://vimeo.com/{{ currentMessageVimeoID }}' image:'https://www.southeastchristian.org/_/img/home/rotations/HOPE920-xl.jpg' videostarttime:'{{ currentMessage.ChildContentChannelItem.VimeoPromoStartTime }}' videoendtime:'{{ currentMessage.ChildContentChannelItem.VimeoPromoEndTime }}' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'80vh' position:'center center' speed:'-25' ]}
+                {% assign videoStartTime =  currentMessage.ChildContentChannelItem | Attribute:'VimeoPromoStartTime'  %}
+				{% assign videoEndTime =  currentMessage.ChildContentChannelItem | Attribute:'VimeoPromoEndTime'  %}
+                {[ parallax videourl:'https://vimeo.com/{{ currentMessageVimeoID }}' image:'https://www.southeastchristian.org/_/img/home/rotations/hope920-xl.jpg' videostarttime:'{{videoStartTime}}' videoendtime:'{{ videoEndTime }}' addclass:'darken' height:'65vh' position:'center center' speed:'-25' ]}
 					<!-- START: Ministry Logo & Video -->
                     <div class="parallax-logo centered" style="max-width: inherit;padding: 0px;">
 						<h4 class="uppercase g-letter-spacing--3">Latest Sermon</h4>
@@ -99,7 +101,7 @@
 						<h4 class="uppercase g-letter-spacing--3">{{ currentMessage.ChildContentChannelItem.Title }}</h4>
                         <br />
                         <br />
-						<a href="{{ 'Global' | Page:'Path' }}/{{ item.Slug }}" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
+						<a href="{{ 'Global' | Page:'Path' }}/{{ item.PrimarySlug }}" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
 				            <strong>Watch Sermon</strong>
 				        </a>
                     </div>

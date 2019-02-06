@@ -30,7 +30,7 @@
     {% endcomment %}
     {% for childItem in item.ChildItems %}
         {% if sermonSlug != "" -%}
-            {% if sermonSlug == childItem.ChildContentChannelItem.Slug -%}
+            {% if sermonSlug == childItem.ChildContentChannelItem.PrimarySlug -%}
                 {% assign currentMessage = childItem %}
             {% endif -%}
         {% else -%}
@@ -115,7 +115,7 @@
             <nav class="page-nav text-center">
                 <ul class="list-inline">
                     <li><a href="/newsite/sermons">Explore All Series</a></li>
-                    <li><a href="/newsite/sermons/{{ currentSeries.Slug | Escape }}">Jump to Current Series</a></li>
+                    <li><a href="/newsite/sermons/{{ currentSeries.PrimarySlug | Escape }}">Jump to Current Series</a></li>
                 </ul>
             </nav>
         </div>
@@ -155,7 +155,7 @@
 
                 <div class="isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load">
 
-                    <a class="series-link" href="/newsite/sermons/{{ item.Slug }}/{{ message.Slug }}">
+                    <a class="series-link" href="/newsite/sermons/{{ item.PrimarySlug }}/{{ message.PrimarySlug }}">
                     <div class="card g-margin-b-25--xs">
                         <!-- Image -->
                         <div class="img-hover">
@@ -164,10 +164,10 @@
                         <div class="series-body g-padding-x-40--xs g-padding-y-40--xs">
                             <h4 class="g-font-family--secondary g-padding-b-20--xs">{{ message.Title }}</h4>
                             <h6 class="g-line-height--normal uppercase">
-								{{ message.Speaker }} – {{ message.StartDateTime | Date:'MMMM dd, yyyy' }}<br />
-                                {% assign runningMinutes = message.Duration | DividedBy:60 | Floor %}
+								{{ message| Attribute'Speaker' }} – {{ message.StartDateTime | Date:'MMMM dd, yyyy' }}<br />
+                                {% assign runningMinutes = message | Attribute: 'Duration' | DividedBy:60 | Floor %}
                                 {% assign temp = runningMinutes | Times:60 %}
-                                {% assign runningSeconds = message.Duration | Minus:temp %}
+                                {% assign runningSeconds = message | Attribute: 'Duration' | Minus:temp %}
                                 Running Time: {{runningMinutes}}:{{runningSeconds}}
 						    </h4>
                         </div>

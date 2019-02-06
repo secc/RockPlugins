@@ -302,7 +302,7 @@
                         </div>
                         <div class="series-body">
                             <h3 class="text-color">{{ message.Title }}<br />
-                            <i><small>by {{ message.Speaker }} – {{ message.StartDateTime | Date:'MMMM dd, yyyy' }}</small></i></h3>
+                            <i><small>by {{ message | Attribute: 'Speaker' }} – {{ message.StartDateTime | Date:'MMMM dd, yyyy' }}</small></i></h3>
                             <hr />
                             {% if message.Content != empty -%}
                             <p class="series-summary text-color">
@@ -311,9 +311,9 @@
                             <hr />
                             {% endif -%}
                             <h3 class="text-color text-right">
-                                {% assign runningMinutes = message.Duration | DividedBy:60 | Floor %}
+                                {% assign runningMinutes = message | Attribute: 'Duration' | DividedBy:60 | Floor %}
                                 {% assign temp = runningMinutes | Times:60 %}
-                                {% assign runningSeconds = message.Duration | Minus:temp %}
+                                {% assign runningSeconds = message | Attribute: 'Duration' | Minus:temp %}
                                 <small>Running Time: {{runningMinutes}}:{{runningSeconds}}</small>
                             </h3>
                         </div>
