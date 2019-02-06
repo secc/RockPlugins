@@ -62,18 +62,24 @@ namespace org.secc.Workflow.Registrations
                     string fieldKey = GetAttributeValue( action, "FieldKey", true ).ResolveMergeFields( GetMergeFields( action ) );
                     int registrantIndex = GetAttributeValue( action, "RegistrantIndex", true ).ResolveMergeFields( GetMergeFields( action ) ).AsInteger();
 
-                    var formField = registrationInstanceState.RegistrationTemplate.Forms.Select( f => f.Fields.Where( ff => ff.Attribute != null && ff.Attribute.Key == fieldKey ).FirstOrDefault() ).FirstOrDefault();
-                    var fieldValue = registrationState.Registrants[registrantIndex].FieldValues.Where( fv => fv.Key == formField.Id ).Select( fv => fv.Value.FieldValue ).FirstOrDefault();
+                    var formField = registrationInstanceState.RegistrationTemplate.Forms.SelectMany( f => f.Fields.Where( ff => ff.Attribute != null && ff.Attribute.Key == fieldKey ) ).FirstOrDefault();
+                    if ( formField != null)
+                    { 
+                        var fieldValue = registrationState.Registrants[registrantIndex].FieldValues.Where( fv => fv.Key == formField.Id ).Select( fv => fv.Value.FieldValue ).FirstOrDefault();
 
-                    // Now store the attribute
-                    var targetAttribute = AttributeCache.Get( GetActionAttributeValue( action, "WorkflowAttribute" ).AsGuid(), rockContext );
-                    if ( targetAttribute.EntityTypeId == new Rock.Model.Workflow().TypeId )
-                    {
-                        action.Activity.Workflow.SetAttributeValue( targetAttribute.Key, fieldValue.ToString() );
-                    }
-                    else if ( targetAttribute.EntityTypeId == new WorkflowActivity().TypeId )
-                    {
-                        action.Activity.SetAttributeValue( targetAttribute.Key, fieldValue.ToString() );
+                        if ( fieldValue != null)
+                        { 
+                            // Now store the attribute
+                            var targetAttribute = AttributeCache.Get( GetActionAttributeValue( action, "WorkflowAttribute" ).AsGuid(), rockContext );
+                            if ( targetAttribute.EntityTypeId == new Rock.Model.Workflow().TypeId )
+                            {
+                                action.Activity.Workflow.SetAttributeValue( targetAttribute.Key, fieldValue.ToString() );
+                            }
+                            else if ( targetAttribute.EntityTypeId == new WorkflowActivity().TypeId )
+                            {
+                                action.Activity.SetAttributeValue( targetAttribute.Key, fieldValue.ToString() );
+                            }
+                        }
                     }
 
                 }
