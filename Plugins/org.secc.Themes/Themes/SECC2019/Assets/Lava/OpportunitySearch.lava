@@ -1,88 +1,95 @@
-<hr />
-{% assign opportunityCount = Opportunities | Size %}
+<style>
+.readmore_summary {
+   transition: height 100ms;
+   overflow: hidden;
+   display: none;
+}
+</style>
 
+{% assign opportunityCount = Opportunities | Size %}
 {% if opportunityCount == 0 %}
   <div class="panel panel-default margin-t-md">
     <div class="margin-all-md"> There are no opportunities that match the criteria</div>
   </div>
+  <br />
 {% endif %}
 
-<br />
-
-{% comment %}
- This will get the numbers for each columns in bootsrap to create the clean masonry grid.
-{%endcomment %}
-{% assign columnOne = opportunityCount | DividedBy:3 | Ceiling %}
-{% assign columnLeftover = opportunityCount | Minus:columnOne %}
-{% assign columnTwo = columnLeftover | DividedBy:2 | Ceiling %}
 
 {% assign OpportunitiesSorted = Opportunities | SortByAttribute:'WebsiteOrder' %}
-
 <div class="isotope_wrap">
-        {% for opportunity in OpportunitiesSorted %}
-        <div class="isotope_item col-xs-12 col-sm-6 col-md-4">
-        	{% assign opportunityString = opportunity.Id | ToString %}
-        	{% assign opportunityId = "|" | Append: opportunityString | Append: "|" %}
-        	{% if (approvedIds contains opportunityId) %}
-                <h3 class="section-header">{{ opportunity.PublicName }}</h3>
-                <div class="thumbnail">
-                  <img src="/GetImage.ashx?id={{ opportunity.PhotoId }}&w=720">
-                    {% unless opportunity.ConnectionOpportunityCampuses.size == Campuses.size %}
-        			<div class="text-right" style="margin: -50px 10px 0px 0px; height: 50px;">
-                      {% for opportunityCampus in opportunity.ConnectionOpportunityCampuses %}
-        					{% for campus in Campuses %}
-        						{% if campus.Id == opportunityCampus.CampusId %}
-        							{% assign publicCampus = campus | Attribute:'Public' %}
-        							{% assign slug = campus | Attribute:'Slug' %}
-        							{% if publicCampus == 'Yes' %}
-        								<span class="se-logo stroke {{slug}}" style="background-color: rgba(0,0,0,0.6) !important;">{{ campus.ShortCode }}</span>
-        							{% endif %}
-        						{% endif %}
-        					{% endfor %}
-                      {% endfor %}
-        			</div>
-                    {% endunless %}
-                    <div class="caption">
-                      <p>{{opportunity.Summary}}</p>
-                      {% if DetailPage contains "?" %}
-                          <a class="btn btn-default" href="{{ DetailPage }}&OpportunityId={{ opportunity.Id }}" role="button">More Info</a>
-                      {% else %}
-                          <a class="btn btn-default" href="{{ DetailPage }}?OpportunityId={{ opportunity.Id }}" role="button">More Info</a>
-                      {% endif %}
+    {% for opportunity in OpportunitiesSorted %}
+
+        {% assign opportunityString = opportunity.Id | ToString %}
+        {% assign opportunityId = "|" | Append: opportunityString | Append: "|" %}
+
+        {% if (approvedIds contains opportunityId) %}
+        <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
+            <div class="clearfix card">
+
+                {% if DetailPage contains "?" %}
+                <a href="{{ DetailPage }}&OpportunityId={{ opportunity.Id }}" class='eventCardLink'>
+                {% else %}
+                <a href="{{ DetailPage }}?OpportunityId={{ opportunity.Id }}" class='eventCardLink'>
+                {% endif %}
+                    <div class="img-hover">
+                        <img src="/GetImage.ashx?id={{ opportunity.PhotoId }}&w=720&h=480&mode=crop&maxwidth=720&scale=both" class="event-image img-responsive" onerror="this.style.display='none'">
+                    </div>
+                </a>
+                <div class="caption g-padding-x-60--xs g-padding-y-60--xs">
+                    <h4 class="g-font-family--secondary g-padding-r-60--xs" style="margin-bottom: 5px;">{{ opportunity.PublicName }}</h4>
+                    <div class="readmore_summary">
+                        <p>{{opportunity.Summary}}</p>
+                        <br />
                     </div>
                 </div>
-
-        	{% endif %}
+                <div class="text-center col-xs-12 g-margin-t-0--xs g-hor-divider__solid__t--gray-lighter">
+                    {% if DetailPage contains "?" %}
+                    <a class="link--hover-underscore" href="{{ DetailPage }}&OpportunityId={{ opportunity.Id }}" role="button">
+                    {% else %}
+                    <a class="link--hover-underscore" href="{{ DetailPage }}?OpportunityId={{ opportunity.Id }}" role="button">
+                    {% endif %}
+                        <h5 class="uppercase g-font-weight--700 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">More Info</h5>
+                    </a>
+                </div>
+            </div>
         </div>
-        {% endfor %}
+        {% endif %}
+    {% endfor %}
 </div>
 
+<script src="/Themes/SECC2019/Scripts/readmore.min.js"></script>
 <script>
     $(window).load(function() {
-        // Initialize SmoothScroll
-        var scroll = new SmoothScroll('a[href*="#"]', {
-            speed: 500, // Integer. How fast to complete the scroll in milliseconds
-            easing: 'easeInOutCubic', // Easing pattern to use
-        });
+        $('.js-group-item').tooltip();
 
-        // Initialize Isotope
-        var $grid = $('.isotope_wrap').isotope({
-            // options
+        var isoOptions = {
             percentPosition: true,
             itemSelector: '.isotope_item',
-            masonry: {
-              horizontalOrder: true
-            }
-        });
+            layoutMode: 'fitRows'
+        };
+
+        // Initialize Connection Opportunities Isotope
+        var $grid = $('.isotope_wrap').isotope(isoOptions);
         // reveal all items after init
         var $items = $grid.find('.isotope_item');
-        $grid.addClass('is-showing-items')
-          .isotope( 'revealItemElements', $items );
+        $grid.imagesLoaded( function() {
+            // Re-Initialize ReadmoreJS
+            $('.readmore_summary').readmore({
+                speed: 200,
+                lessLink: '<a class="pull-right uppercase" style="padding: 2rem;width: 100%;text-align: right;"><span class="se-carat se-carat--up"></span></a>',
+                moreLink: '<a class="pull-right" style="display: inline-block;padding: 2rem;position: relative;height: 7rem;width: 100%;margin-top: -6rem;"><span class="pull-right se-carat se-carat--down" style="margin-top: 2rem;"></span></a>',
+                embedCSS: false,
+                heightMargin: 32,
+                collapsedHeight: 0,
+                beforeToggle: function(tr, el, ex) {
+                  $(el).show();
+                },
+                afterToggle: function(trigger, element, expanded) {
+                  $('.isotope_wrap').isotope(isoOptions); // re-initialize
+                }
+            });
+          // init Isotope after all images have loaded
+          $grid.addClass('is-showing-items').isotope(isoOptions);
+        });
     });
-</script>
-
-<script type="text/javascript">
-  $( document ).ready(function() {
-    $('.js-group-item').tooltip();
-  });
 </script>
