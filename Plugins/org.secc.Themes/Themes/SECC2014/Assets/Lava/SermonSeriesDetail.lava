@@ -168,7 +168,7 @@
     {% endcomment %}
     {% for childItem in item.ChildItems %}
         {% if sermonSlug != "" -%}
-            {% if sermonSlug == childItem.ChildContentChannelItem.Slug -%}
+            {% if sermonSlug == childItem.ChildContentChannelItem.PrimarySlug -%}
                 {% assign currentMessage = childItem %}
             {% endif -%}
         {% else -%}
@@ -254,7 +254,7 @@
             <nav class="page-nav text-center">
                 <ul class="list-inline">
                     <li><a href="/sermons">Explore All Series</a></li>
-                    <li><a href="/sermons/{{ currentSeries.Slug | Escape }}">Jump to Current Series</a></li>
+                    <li><a href="/sermons/{{ currentSeries.PrimarySlug | Escape }}">Jump to Current Series</a></li>
                 </ul>
             </nav>
         </div>
@@ -294,7 +294,7 @@
 
                 <div class="isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load">
 
-                    <a class="series-link" href="/sermons/{{ item.Slug }}/{{ message.Slug }}">
+                    <a class="series-link" href="/sermons/{{ item.PrimarySlug }}/{{ message.PrimarySlug }}">
                     <div class="card" style="background-color: white;">
                         <!-- Image -->
                         <div class="img-hover">
