@@ -67,15 +67,18 @@ namespace org.secc.Workflow.Registrations
                     { 
                         var fieldValue = registrationState.Registrants[registrantIndex].FieldValues.Where( fv => fv.Key == formField.Id ).Select( fv => fv.Value.FieldValue ).FirstOrDefault();
 
-                        // Now store the attribute
-                        var targetAttribute = AttributeCache.Get( GetActionAttributeValue( action, "WorkflowAttribute" ).AsGuid(), rockContext );
-                        if ( targetAttribute.EntityTypeId == new Rock.Model.Workflow().TypeId )
-                        {
-                            action.Activity.Workflow.SetAttributeValue( targetAttribute.Key, fieldValue.ToString() );
-                        }
-                        else if ( targetAttribute.EntityTypeId == new WorkflowActivity().TypeId )
-                        {
-                            action.Activity.SetAttributeValue( targetAttribute.Key, fieldValue.ToString() );
+                        if ( fieldValue != null)
+                        { 
+                            // Now store the attribute
+                            var targetAttribute = AttributeCache.Get( GetActionAttributeValue( action, "WorkflowAttribute" ).AsGuid(), rockContext );
+                            if ( targetAttribute.EntityTypeId == new Rock.Model.Workflow().TypeId )
+                            {
+                                action.Activity.Workflow.SetAttributeValue( targetAttribute.Key, fieldValue.ToString() );
+                            }
+                            else if ( targetAttribute.EntityTypeId == new WorkflowActivity().TypeId )
+                            {
+                                action.Activity.SetAttributeValue( targetAttribute.Key, fieldValue.ToString() );
+                            }
                         }
                     }
 
