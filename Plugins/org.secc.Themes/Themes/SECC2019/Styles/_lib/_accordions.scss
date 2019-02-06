@@ -31,7 +31,10 @@
             // box-shadow: 0 3px 12px 2px hsla(0,0%,78%,.5);
         }
 		.panel-heading {
-            background-color: $WhiteColor;
+
+			color: $CopyColor;
+			border-color: rgba($LightGreyColor, 0.17);
+			background-color: $WhiteColor;
 			position: relative;
             cursor: pointer;
 			padding: 25px 14% 25px 25px;

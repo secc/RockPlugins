@@ -23,23 +23,23 @@ Accordion shortcode for the public website to be used in faq section
 {% endcomment %}
 
 <p>
-    <a href="https://getbootstrap.com/docs/3.3/javascript/#collapse-example-accordion">Bootstrap accordions</a> are a clean way of displaying a large 
-    amount of structured content on a page. While they're not incredibly difficult to make using just HTML this shortcode simifies the markup 
+    <a href="https://getbootstrap.com/docs/3.3/javascript/#collapse-example-accordion">Bootstrap accordions</a> are a clean way of displaying a large
+    amount of structured content on a page. While they're not incredibly difficult to make using just HTML this shortcode simifies the markup
     quite a bit. The example below shows an accordion with three different sections.
 </p>
 
 <pre>{[ faq ]}
 
     [[ item title:'Lorem Ipsum' ]]
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut pretium tortor et orci ornare 
-        tincidunt. In hac habitasse platea dictumst. Aliquam blandit dictum fringilla. 
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut pretium tortor et orci ornare
+        tincidunt. In hac habitasse platea dictumst. Aliquam blandit dictum fringilla.
     [[ enditem ]]
-    
+
     [[ item title:'In Commodo Dolor' ]]
-        In commodo dolor vel ante porttitor tempor. Ut ac convallis mauris. Sed viverra magna nulla, quis 
-        elementum diam ullamcorper et. 
+        In commodo dolor vel ante porttitor tempor. Ut ac convallis mauris. Sed viverra magna nulla, quis
+        elementum diam ullamcorper et.
     [[ enditem ]]
-    
+
     [[ item title:'Vivamus Sollicitudin' ]]
         Vivamus sollicitudin, leo quis pulvinar venenatis, lorem sem aliquet nibh, sit amet condimentum
         ligula ex a risus. Curabitur condimentum enim elit, nec auctor massa interdum in.
@@ -57,18 +57,22 @@ Accordion shortcode for the public website to be used in faq section
 
 {% comment %}
 ************************ MARKUP FOR THIS SHORTCODE IS BELOW ********************
-{%- assign wrapperId = '1' -%}
-{%- assign nextPage = items | Size |  DividedBy:2,0 -%}
+
+{%- assign wrapperId = uniqueid -%}
+{%- assign wrapperId2 = uniqueid | Plus: uniqueid -%}
+
+{% assign mod = items | Size | Modulo: 2 -%}
+{%- assign nextPage = items | Size | DividedBy:2,0 | Plus: mod -%}
 
 
-   <div class="col-md-6 g-padding-x-20--xs">
-<div class="panel-{{ wrapperId }} accordions-1" id="faq-accordion-1" role="tablist" aria-multiselectable="true">
+<div class="col-md-6 g-padding-x-20--xs">
+  <div class="panel-{{ wrapperId }} accordions-1" id="faq-accordion-{{wrapperId}}" role="tablist" aria-multiselectable="true">
   {%- for item in items -%}
 
         <div class="panel panel-default">
-            <div class="panel-heading collapsed" role="button"  id="heading{{ forloop.index }}-{{ wrapperId }}" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2"
-            href="#collapse{{ forloop.index }}-{{ wrapperId }}" aria-expanded="false" aria-controls="faq-1-collapse-1" style="min-height:110px">
-              <h4 class="panel-title g-font-size-40--xs g-font-weight--700 g-ver-center--xs g-padding-r-100--xs g-padding-r-150--md">
+            <div class="panel-heading collapsed" role="button"  id="heading{{ forloop.index }}-{{ wrapperId }}" data-toggle="collapse" data-parent="#faq-accordion-{{wrapperId}}, #faq-accordion-{{wrapperId2}}"
+            href="#collapse{{ forloop.index }}-{{ wrapperId }}" aria-expanded="false" aria-controls="faq-1-collapse-1" style="min-height:{{minheight}}px">
+              <h4 class="panel-title g-font-size-40--xs g-font-weight--700 g-ver-center--lg g-padding-r-100--xs g-padding-r-150--md">
                   {{ item.title }}
               </h4>
             </div>
@@ -82,9 +86,9 @@ Accordion shortcode for the public website to be used in faq section
      {% if nextPage == forloop.index %}
         </div></div>
         <div class="col-md-6 g-padding-x-20--xs">
-        <div class="panel-{{ wrapperId }} accordions-1" id="faq-accordion-2" role="tablist" aria-multiselectable="true">
+        <div class="panel-{{ wrapperId }} accordions-1" id="faq-accordion-{{wrapperId2}}" role="tablist" aria-multiselectable="true">
      {% endif%}
-     
+
   {%- endfor -%}
   </div>
 </div>
@@ -92,4 +96,3 @@ Accordion shortcode for the public website to be used in faq section
 {% comment %}
 ************************ PARAMETERS ********************
 {% endcomment %}
-
