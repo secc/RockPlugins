@@ -61,7 +61,7 @@ Accordion shortcode for the public website to be used in faq section
 {%- assign wrapperId = uniqueid -%}
 {%- assign wrapperId2 = uniqueid | Plus: uniqueid -%}
 
-{% assign mod = items | Size | Modulo: 2 -%}
+{%- assign mod = items | Size | Modulo: 2 -%}
 {%- assign nextPage = items | Size | DividedBy:2,0 | Plus: mod -%}
 
 
@@ -71,8 +71,8 @@ Accordion shortcode for the public website to be used in faq section
 
         <div class="panel panel-default">
             <div class="panel-heading collapsed" role="button"  id="heading{{ forloop.index }}-{{ wrapperId }}" data-toggle="collapse" data-parent="#faq-accordion-{{wrapperId}}, #faq-accordion-{{wrapperId2}}"
-            href="#collapse{{ forloop.index }}-{{ wrapperId }}" aria-expanded="false" aria-controls="faq-1-collapse-1" style="min-height:{{minheight}}px">
-              <h4 class="panel-title g-font-size-40--xs g-font-weight--700 g-ver-center--lg g-padding-r-100--xs g-padding-r-150--md">
+            href="#collapse{{ forloop.index }}-{{ wrapperId }}" aria-expanded="false" aria-controls="faq-1-collapse-1" {% if autoheight == 'false' %} style="min-height:{{minheight}}px" {% endif %} >
+              <h4 class="panel-title g-font-size-40--xs g-font-weight--700 {% if autoheight == 'false' %} g-ver-center--lg {% endif %} g-padding-r-100--xs g-padding-r-150--md">
                   {{ item.title }}
               </h4>
             </div>
@@ -95,4 +95,8 @@ Accordion shortcode for the public website to be used in faq section
 
 {% comment %}
 ************************ PARAMETERS ********************
+
+minheight    - 110
+autoheight   - false
+
 {% endcomment %}
