@@ -125,7 +125,7 @@
                                   <br />
                                   <p>
                                       <b>Multiple Dates</b>
-
+                                      {% assign eventItemDatesIsHidden = eventItem.EventDatesHide %}
                                       {% unless eventItemDatesIsHidden == 'Yes' %}
                                       {% if eventItemOccurrence.EventItemOccurrence.UseOnlyScheduleText == 'Yes' %}
                                             <br />{{eventItemOccurrence.EventItemOccurrence.ScheduleText}}<br />
@@ -133,7 +133,6 @@
                                             <br />Starting on {{ eventItemOccurrence.Date | Date: 'MMM, dd'}}
                                       {% endif %}
                                       {% endunless %}
-
                                   </p>
                               {% elseif numOccurrences > 1 or scheduledNumDates > 1 %}
                                   <div class="reoccur-date pull-left" style="margin-right: 10px;">
