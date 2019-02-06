@@ -433,7 +433,8 @@ namespace RockWeb.Blocks.Event
                         PrimaryMinistryImageGuid = primaryMinistryImageGuid,
                         PrimaryMinstryTitle = primaryMinistryName,
                         ImageHeaderText = occurrenceDates.EventCalendarItemAttributeValues.Where( av => av.AttributeKey == "ImageHeaderText" ).Select( av => av.Value ).FirstOrDefault(),
-                        ImageHeaderTextSmall = occurrenceDates.EventCalendarItemAttributeValues.Where( av => av.AttributeKey == "ImageHeaderTextSmall" ).Select( av => av.Value ).FirstOrDefault()
+                        ImageHeaderTextSmall = occurrenceDates.EventCalendarItemAttributeValues.Where( av => av.AttributeKey == "ImageHeaderTextSmall" ).Select( av => av.Value ).FirstOrDefault(),
+                        EventDatesHide = occurrenceDates.EventCalendarItemAttributeValues.Where( av => av.AttributeKey == "EventDatesHide" ).Select( av => av.Value ).FirstOrDefault()
                     } );
 
                 }
@@ -697,7 +698,8 @@ namespace RockWeb.Blocks.Event
         /// </summary>
         [DotLiquid.LiquidType( "EventItemOccurrence", "DateTime", "Name", "Date", "Time", "Campus", "Location",
             "LocationDescription", "Description", "Summary", "OccurrenceNote", "DetailPage",
-            "Priority", "URLSlugs", "PrimaryMinistryImageGuid", "PrimaryMinstryTitle", "ImageHeaderText", "ImageHeaderTextSmall" )]
+            "Priority", "URLSlugs", "PrimaryMinistryImageGuid", "PrimaryMinstryTitle", "ImageHeaderText", "ImageHeaderTextSmall",
+            "EventDatesHide" )]
         public class EventOccurrenceSummary
         {
             public EventItemOccurrence EventItemOccurrence { get; set; }
@@ -718,6 +720,7 @@ namespace RockWeb.Blocks.Event
             public string PrimaryMinstryTitle { get; set; }
             public string ImageHeaderText { get; set; }
             public string ImageHeaderTextSmall { get; set; }
+            public string EventDatesHide { get; set; }
         }
 
         /// <summary>
