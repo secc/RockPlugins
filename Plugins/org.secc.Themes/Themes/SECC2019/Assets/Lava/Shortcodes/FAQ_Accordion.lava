@@ -57,13 +57,11 @@ Accordion shortcode for the public website to be used in faq section
 
 {% comment %}
 ************************ MARKUP FOR THIS SHORTCODE IS BELOW ********************
+{% endcomment %}
 
 {%- assign wrapperId = uniqueid -%}
 {%- assign wrapperId2 = uniqueid | Plus: uniqueid -%}
-
-{%- assign mod = items | Size | Modulo: 2 -%}
-{%- assign nextPage = items | Size | DividedBy:2,0 | Plus: mod -%}
-
+{%- assign nextPage = items | Size | DividedBy:2,2 | Ceiling -%}
 
 <div class="col-md-6 g-padding-x-20--xs">
   <div class="panel-{{ wrapperId }} accordions-1" id="faq-accordion-{{wrapperId}}" role="tablist" aria-multiselectable="true">
