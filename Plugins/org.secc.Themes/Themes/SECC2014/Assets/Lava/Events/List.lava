@@ -95,8 +95,8 @@
 
                         {% assign photoTextHTML = ''%}
 
-                        {% if eventItemOccurrence.ImageTitle != empty %}
-                            {% assign photoTextHTML = '<h1 class="uppercase">' | Plus: eventItemOccurrence.ImageTitle %}
+                        {% if eventItemOccurrence.ImageHeaderText != empty %}
+                            {% assign photoTextHTML = '<h1 class="uppercase">' | Plus: eventItemOccurrence.ImageHeaderText %}
                         {% else %}
                             {% assign photoTextHTML = '<h1 class="uppercase">' | Plus: eventItemOccurrence.PrimaryMinistryTitle %}
                         {% endif %}
