@@ -112,9 +112,9 @@
 			<div class="isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load">
 				{% comment %}
 				{{ LinkedPages.DetailPage }}?Item={{ item.Id }}
-				{{ 'Global' | Page:'Path' }}/{{ item.Slug }}
+				{{ 'Global' | Page:'Path' }}/{{ item.PrimarySlug }}
 				{% endcomment %}
-				<a class="series-link" href="/sermons/{{ item.Slug }}">
+				<a class="series-link" href="/sermons/{{ item.PrimarySlug }}">
 					<div class="card" style="background-color: white;">
 						{% if seriesImage != empty -%}
 							<!-- Image -->
@@ -289,7 +289,7 @@ function getMoreSermons($) {
 						          }).append(
 						            $('<a/>', {
 						              "class": 'series-link',
-									  "href": window.location + '/' + sermon_series.Slug,
+									  "href": window.location + '/' + sermon_series.PrimarySlug,
 						            }).append(
 						  	            $('<div/>', {
 						  	              "class": 'card',
