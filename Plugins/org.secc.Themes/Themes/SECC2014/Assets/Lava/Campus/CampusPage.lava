@@ -30,7 +30,7 @@
 {% assign CampusLatitude = campus | Attribute:'Latitude' %}
 
 <script>
-$('body').addClass('{{ campus.Slug }}-campus');
+$('body').addClass('{{ campus | Attribute: 'Slug' }}-campus');
 </script>
 
 <section id="PageHeader">
@@ -44,8 +44,8 @@ $('body').addClass('{{ campus.Slug }}-campus');
 
     <div id="sub-connect-menu">
         <nav class="expandable-menu section-nav">
-            <a href="/{{ campus.Slug }}/">
-                <div class="se-logo {{ campus.Slug }}">{{ campus.ShortCode }}</div>
+            <a href="/{{ campus | Attribute: 'Slug' }}/">
+                <div class="se-logo {{ campus | Attribute: 'Slug' }}">{{ campus | Attribute:'ShortCode' }}</div>
             </a>
             <ul>
                 {% for item in CampusSubMenuItems %}
@@ -110,7 +110,7 @@ Campus - Section
 		</div>
 	</div>
     {% endcomment %}
-
+{% assign slug =  campus | Attribute: 'Slug' %}
 	<div class="container">
 		<div class="campus-info row">
 			<div class="col-sm-12 col-md-6 col-lg-4">
@@ -180,7 +180,8 @@ Campus - Section
                                 <br />
                             {% endfor %}
                     {% endif %}
-                    {% if campus.slug == 'indiana' %}
+					
+                    {% if slug == 'indiana' %}
 						(in the back of the building)
 					{% endif %}
 
@@ -218,7 +219,7 @@ Campus - Section
                 <div class="well text-center">
                     <span>Are you new to SE {{ campus.Name }} Campus?</span>
                     <br /><br />
-                    <a href="{{ campus.Slug }}/about.php" class="btn btn-doors">Learn More</a>
+                    <a href="{{ campus | Attribute: 'Slug' }}/about.php" class="btn btn-doors">Learn More</a>
                 </div>
 			</div>
             <div class="col-sm-12 col-md-6 col-lg-8">
@@ -236,7 +237,7 @@ Campus - Section
 				{% endif %}
 
 
-                {% if campus.slug != 'blankenbaker' %}
+                {% if slug != 'blankenbaker' %}
                 <br />
 				<div class="fb-link">
 					Stay Connected: <a href="http://facebook.com/{{ CampusFacebookSlug }}"><img src="/Content/facebook.png" style="width: 20px; height: 20px;" /> {{ campus.Name }} Campus Facebook Page</a>
@@ -386,10 +387,10 @@ Contact - Section
 			</div>
 			<div class="col-sm-6 contact-info">
 				<h1 class="section-header"><span>Contact Information</span></h1>
-                    <strong>{{ campus.Location.Street1 }}</strong><br />
-                    {{ campus.Location.City }}, {{ campus.Location.State }} {{ campus.Location.PostalCode }}<br /><br />
-                    <i class="fa fa-phone"></i> : <a href="tel:{{ campus.PhoneNumber }}">{{ campus.PhoneNumber }}</a><br /><br />
-                    <i class="fa fa-envelope"></i> : <a href="mailto:{{ campus.Email }}">{{ campus.Email }}</a>
+                    <strong>{{ campus | Attribute: 'Location', 'Street1' }}</strong><br />
+                    {{ campus | Attribute: 'Location','City' }}, {{ campus | Attribute: 'Location','State' }} {{ campus | Attribute: 'Location', 'PostalCode' }}<br /><br />
+                    <i class="fa fa-phone"></i> : <a href="tel:{{ campus | Attribute: 'PhoneNumber' }}">{{ campus | Attribute: 'PhoneNumber' }}</a><br /><br />
+                    <i class="fa fa-envelope"></i> : <a href="mailto:{{ campus| Attribute:'Email' }}">{{campus| Attribute:'Email' }}</a>
             </div>
 		</div>
 	</div>

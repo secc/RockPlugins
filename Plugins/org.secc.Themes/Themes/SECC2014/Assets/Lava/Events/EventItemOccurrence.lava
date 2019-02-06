@@ -94,7 +94,7 @@
     <strong>Date / Time</strong>
 	{% assign scheduleText =  EventItemOccurrence | Attribute:'ScheduleText' %}
     {% if scheduleText != empty %}
-        <p>{{EventItemOccurrence.scheduleText}}</p>
+        <p>{{scheduleText}}</p>
     {% endif %}
 
 	{% assign useOnlyScheduleText = EventItemOccurrence | Attribute:'UseOnlyScheduleText' %}
