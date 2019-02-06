@@ -62,7 +62,7 @@ namespace org.secc.Workflow.Registrations
                     string fieldKey = GetAttributeValue( action, "FieldKey", true ).ResolveMergeFields( GetMergeFields( action ) );
                     int registrantIndex = GetAttributeValue( action, "RegistrantIndex", true ).ResolveMergeFields( GetMergeFields( action ) ).AsInteger();
 
-                    var formField = registrationInstanceState.RegistrationTemplate.Forms.Select( f => f.Fields.Where( ff => ff.Attribute != null && ff.Attribute.Key == fieldKey ).FirstOrDefault() ).FirstOrDefault();
+                    var formField = registrationInstanceState.RegistrationTemplate.Forms.SelectMany( f => f.Fields.Where( ff => ff.Attribute != null && ff.Attribute.Key == fieldKey ) ).FirstOrDefault();
                     if ( formField != null)
                     { 
                         var fieldValue = registrationState.Registrants[registrantIndex].FieldValues.Where( fv => fv.Key == formField.Id ).Select( fv => fv.Value.FieldValue ).FirstOrDefault();
