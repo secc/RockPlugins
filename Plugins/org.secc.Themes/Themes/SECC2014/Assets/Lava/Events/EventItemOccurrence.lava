@@ -92,12 +92,14 @@
 {% assign scheduledNumDates = scheduledDates | Size %}
 <div>
     <strong>Date / Time</strong>
-
-    {% if EventItemOccurrence.ScheduleText != empty %}
-        <p>{{EventItemOccurrence.ScheduleText}}</p>
+	{% assign scheduleText =  EventItemOccurrence | Attribute:'ScheduleText' %}
+    {% if scheduleText != empty %}
+        <p>{{EventItemOccurrence.scheduleText}}</p>
     {% endif %}
 
-    {% if EventItemOccurrence.UseOnlyScheduleText != 'Yes' %}
+	{% assign useOnlyScheduleText = EventItemOccurrence | Attribute:'UseOnlyScheduleText' %}
+	
+    {% if useOnlyScheduleText != 'Yes' %}
         {% if scheduledDates != empty %}
         <ul class="list-unstyled" style="margin: 0;">
             {% for scheduledDate in scheduledDates limit:3 %}
@@ -114,7 +116,7 @@
             {% endfor %}
         </ul>
         {% else %}
-            {% if EventItemOccurrence.ScheduleText == empty %}
+            {% if scheduleText == empty %}
                 {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}
                     <p>Date and/or time has not been set yet. Please {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} for more details.</p>
                 {% else %}

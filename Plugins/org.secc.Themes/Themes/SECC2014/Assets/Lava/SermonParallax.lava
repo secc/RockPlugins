@@ -88,8 +88,9 @@
 					return tmpCanInitParallax.apply(self);
 				  }
 				</script>
-
-                {[ parallax videourl:'https://vimeo.com/{{ currentMessageVimeoID }}' image:'https://www.southeastchristian.org/_/img/home/rotations/HOPE920-xl.jpg' videostarttime:'{{ currentMessage.ChildContentChannelItem.VimeoPromoStartTime }}' videoendtime:'{{ currentMessage.ChildContentChannelItem.VimeoPromoEndTime }}' addclass:'darken' height:'65vh' position:'center center' speed:'-25' ]}
+ {% assign videoStartTime =  currentMessage.ChildContentChannelItem | Attribute:'VimeoPromoStartTime'  %}
+  {% assign videoEndTime =  currentMessage.ChildContentChannelItem | Attribute:'VimeoPromoEndTime'  %}
+                {[ parallax videourl:'https://vimeo.com/{{ currentMessageVimeoID }}' image:'https://www.southeastchristian.org/_/img/home/rotations/hope920-xl.jpg' videostarttime:'{{videoStartTime}}' videoendtime:'{{ videoEndTime }}' addclass:'darken' height:'65vh' position:'center center' speed:'-25' ]}
 					<!-- START: Ministry Logo & Video -->
                     <div class="parallax-logo centered" style="max-width: inherit;padding: 0px;">
                         <h4 class="uppercase" style="font-size: 3rem;">Latest Sermon</h4>
@@ -97,7 +98,7 @@
 						<p class="uppercase"><strong>{{ currentMessage.ChildContentChannelItem.Title }}</strong></p>
                         <br />
                         <br />
-                        <a href="{{ 'Global' | Page:'Path' }}/{{ item.Slug }}" class="btn btn-doors btn-light" style="font-size: 2em; -webkit-font-smoothing: antialiased;">
+                        <a href="{{ 'Global' | Page:'Path' }}/{{ item.PrimarySlug }}" class="btn btn-doors btn-light" style="font-size: 2em; -webkit-font-smoothing: antialiased;">
                             <h2 class="letter-spaced">Watch Now</h2>
                         </a>
                     </div>
