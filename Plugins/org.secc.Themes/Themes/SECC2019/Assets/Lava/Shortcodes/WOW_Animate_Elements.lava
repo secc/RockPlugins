@@ -48,7 +48,6 @@ Note: This command requires a full page reload in order for your changes to be d
 $(document).ready(function() {
     function afterReveal (el) {
         el.addEventListener('animationend', function () {
-            console.log('This runs once finished!');
             el.opacity = "1";
         });
     }
