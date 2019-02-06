@@ -1,0 +1,147 @@
+<style>
+.hide {
+    display: none;
+}
+</style>
+
+<script>
+$(document).ready(function() {
+    // Initialize Isotope
+    var $grid = $('.isotope_wrap').isotope({
+        // options
+        percentPosition: true,
+        itemSelector: '.isotope_item',
+        layoutMode: 'fitRows'
+    });
+
+    // reveal all items after init
+    var $items = $grid.find('.isotope_item');
+    $grid.imagesLoaded().progress( function() {
+      $grid.removeClass('hide-on-load').addClass('is-showing-items').isotope('layout');
+    });
+    $grid.isotope( 'revealItemElements', $items );
+});
+
+$( "#loadArticles" ).click(function() {
+  getMoreStories(jQuery);
+});
+
+// Start at the next set since the first set is already loaded.
+var articlesOffset = 2;
+// This dertimines whether the API requests should continue or stop.
+var articlesContinueMakingRequests = true;
+// This determines whether an ajax request is already in the process or not.
+var articlesLoading = false;
+
+function getMoreStories($) {
+
+	if (articlesContinueMakingRequests == true) {
+		//console.log('articlesContinueMakingRequests === '+articlesContinueMakingRequests);
+		$("#loading-animation").show();
+	}
+
+	// check and see if another request is being loaded
+	if (articlesLoading == false) {
+		$.ajax( {
+			url: 'https://www.southeastchristian.org/Webhooks/Lava.ashx/bible-studies-articles/'+articlesOffset,
+			async: true,
+			beforeSend: function(data) {
+				articlesLoading = true; // start ajax loading process
+			},
+			error: function(jqXHR,error, errorThrown) {
+			   console.log('AJAX ERROR: ');
+               if(jqXHR.status&&jqXHR.status==400){
+                   console.log(jqXHR.responseText);
+               }else{
+				   console.log('URL Request: '+ 'https://www.southeastchristian.org/Webhooks/Lava.ashx/bible-studies-articles/'+articlesOffset);
+                   console.log("jqXHR:");
+				   console.log(jqXHR);
+				   console.log("error:"+error);
+				   console.log("errorThrown:"+errorThrown);
+               }
+            },
+			success: function(data) {
+				//console.log(data.Stories);
+
+				$.each(data.Stories, function(i, story_group){
+					  //console.log(story_group);
+
+					  var $grid = $('.isotope_wrap').isotope({
+				          // options
+				          percentPosition: true,
+				          itemSelector: '.isotope_item',
+				          layoutMode: 'fitRows'
+				      });
+
+
+					  var storiesInGroup = story_group.length,
+					      sermonsStartDate = new Date(story_group.Date),
+						  locale = "en-us",
+					      s_day = sermonsStartDate.getDate(),
+						  s_month = sermonsStartDate.toLocaleString(locale, { month: "long" }),
+					      s_year = sermonsStartDate.getFullYear();
+
+                    var $elem = $('<div></div>', {
+                                "class": "isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar"
+                                }).append(
+                                    $('<article/>', {
+                                        "class": 'post_item_story g-margin-y-0--xs card'
+                                    }).html(function() {
+                                        var image_box = "<div class=\"post_featured_story\"> \
+                                                            <div class=\"post_thumb_story\" data-image=\""+ story_group.Image +"\" data-title=\""+ story_group.Name +"\"> \
+                                                                <a class=\"hover_icon hover_icon_link\" href=\"/newsite/stories/"+ story_group.Slug +"\"> \
+                                                                    <img class=\"img-responsive\" alt=\""+ story_group.Name +"\" src=\""+ story_group.Image +"\" style=\"margin: 0 auto\"> \
+                                                                </a> \
+                                                            </div> \
+                                                        </div>";
+                                            image_box += "<div class=\"massonry_border g-height-150--xs g-padding-x-20--xs g-padding-y-20--xs\"> \
+                                                            <h4 class=\"g-font-family--secondary\"> \
+                                                                <a class=\"g-letter-spacing--1\" href=\"/newsite/stories/"+ story_group.Slug +"\">"+ story_group.Name +"</a> \
+                                                            </h4> \
+                                                        </div>";
+                                        return image_box;
+                                    })
+                                );
+
+					  $grid.isotope()
+		  				  .append( $elem )
+		  				  .isotope( 'appended', $elem )
+		  				  .isotope('layout');
+
+
+				});
+
+                // Re-Initialize Isotope
+                var $grid = $('.isotope_wrap').isotope({
+                    // options
+                    percentPosition: true,
+                    itemSelector: '.isotope_item',
+                    layoutMode: 'fitRows'
+                });
+
+                // reveal all items after init
+                var $items = $grid.find('.isotope_new_item');
+                $grid.imagesLoaded().progress( function() {
+                $grid.removeClass('hide-on-load').addClass('is-showing-items').isotope('layout');
+                });
+                $grid.isotope( 'revealItemElements', $items );
+
+                $('.isotope_new_item').removeClass('isotope_new_item');
+
+				articlesOffset += 1;
+				$("#loading-animation").hide();
+				articlesLoading = false; // reset back to false to allow more requests
+
+				//console.log('data.Stories.length === '+data.Stories.length);
+                if (data.Stories.length == 0) {
+					articlesContinueMakingRequests = false;
+                    $("#loadStories").hide();
+                }
+			}
+
+		});
+
+	}
+}
+
+</script>
