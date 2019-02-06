@@ -154,8 +154,8 @@
             <section id="PageHeader">
             <div id="sub-connect-menu">
             <nav class="expandable-menu section-nav">
-            <a href="/{{ campus.Slug }}/">
-            <div class="se-logo {{ campus.Slug }}">{{ campus.ShortCode }}</div>
+            <a href="/{{ campus | Attribute: 'Slug' }}/">
+            <div class="se-logo {{ campus | Attribute: 'Slug' }}">{{ campus | Attribute:'ShortCode' }}</div>
             </a>
             <ul>
             {% for item in CampusSubMenuItems %}
@@ -288,7 +288,8 @@
                                             <br />
                                         {% endfor %}
                                 {% endif %}
-                                {% if campus.slug == 'indiana' %}
+								{% assign slug = campus | Attribute: 'slug' %}
+                                {% if slug == 'indiana' %}
             						(in the back of the building)
             					{% endif %}
                                 </h4>

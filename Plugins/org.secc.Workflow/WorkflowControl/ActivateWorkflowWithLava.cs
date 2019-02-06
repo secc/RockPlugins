@@ -98,13 +98,15 @@ namespace org.secc.Workflow.WorkflowControl
             var workflow = Rock.Model.Workflow.Activate( workflowType, workflowName );
             workflow.LoadAttributes( rockContext );
             var newWorkFlowAttr = SetWorkflowAttributeValue( action, "WorkflowAttribute", workflow.Guid );
+            var mergeFields = GetMergeFields( action );
+            mergeFields["Entity"] = entity;
 
             foreach ( var keyPair in sourceKeyMap )
             {
                 string value = keyPair.Value;
                 if ( value.HasMergeFields())
                 {
-                    value = keyPair.Value.ResolveMergeFields( GetMergeFields( action ) );
+                    value = keyPair.Value.ResolveMergeFields( mergeFields );
                 }
                 // Does the source key exist as an attribute in the source workflow?
                 if ( action.Activity.Workflow.Attributes.ContainsKey( keyPair.Key ) )
@@ -123,7 +125,7 @@ namespace org.secc.Workflow.WorkflowControl
                 {
                     if ( workflow.Attributes.ContainsKey( value ) )
                     {
-                        workflow.SetAttributeValue( value, keyPair.Key.ResolveMergeFields( GetMergeFields( action ) ) );
+                        workflow.SetAttributeValue( value, keyPair.Key.ResolveMergeFields( mergeFields ) );
                     }
                     else
                     {

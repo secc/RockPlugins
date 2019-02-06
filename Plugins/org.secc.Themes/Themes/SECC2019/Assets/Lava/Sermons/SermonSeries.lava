@@ -67,7 +67,7 @@
 			<div class="isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load">
 
 					<div class="card">
-						<a href="/newsite/sermons/{{ item.Slug }}">
+						<a href="/newsite/sermons/{{ item.PimarySlug }}">
 						{% if seriesImage != empty -%}
 							<!-- Image -->
 							<div class="img-hover">
@@ -194,7 +194,7 @@ function getMoreSermons($) {
 						            "class": "isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load"
 						          }).append(
 						            $('<a/>', {
-									  "href": window.location + '/' + sermon_series.Slug,
+									  "href": window.location + '/' + sermon_series.PimarySlug,
 						            }).append(
 						  	            $('<div/>', {
 						  	              "class": 'card',
