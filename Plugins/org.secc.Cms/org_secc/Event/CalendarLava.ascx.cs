@@ -62,9 +62,16 @@ namespace RockWeb.Blocks.Event
     [TextField( "Campus Parameter Name", "The page parameter name that contains the id of the campus entity.", false, "campusId", order: 18 )]
     [TextField( "Category Parameter Name", "The page parameter name that contains the id of the category entity.", false, "categoryId", order: 19 )]
     [TextField( "Priority Attribute Key", "The calendar attribute which controls the ordering of the events", true, "EventPriority", order: 20 )]
-    [IntegerField("Limit", "Maximum number of items to display", defaultValue:30)]
+    [IntegerField( "Limit", "Maximum number of items to display", defaultValue: 30 )]
+    [CustomCheckboxListField( "Cache Tags", "Cached tags are used to link cached content so that it can be expired as a group", CACHE_TAG_LIST, false, key: "CacheTags", order: 31 )]
     public partial class CalendarLava : Rock.Web.UI.RockBlock
     {
+        private const string CACHE_TAG_LIST = @"
+            SELECT CAST([DefinedValue].[Value] AS VARCHAR) AS [Value], [DefinedValue].[Value] AS [Text]
+            FROM[DefinedType]
+            JOIN[DefinedValue] ON[DefinedType].[Id] = [DefinedValue].[DefinedTypeId]
+            WHERE[DefinedType].[Guid] = 'BDF73089-9154-40C1-90E4-74518E9937DC'";
+
         #region Fields
 
         private int _calendarId = 0;
@@ -437,7 +444,7 @@ namespace RockWeb.Blocks.Event
                 .GroupBy( e => e.Name )
                 .OrderBy( e => e.First().Priority )
                 .Select( e => e.ToList() )
-                .Take(GetAttributeValue("Limit").AsInteger())
+                .Take( GetAttributeValue( "Limit" ).AsInteger() )
                 .ToList();
 
             eventOccurrenceSummaries = eventOccurrenceSummaries
@@ -457,9 +464,11 @@ namespace RockWeb.Blocks.Event
             var minutes = GetAttributeValue( "CacheDuration" ).AsInteger();
             if ( minutes > 0 )
             {
+                string cacheTags = GetAttributeValue( "CacheTags" ) ?? string.Empty;
                 RockCache.AddOrUpdate( cacheKey,
                     System.Globalization.CultureInfo.CurrentCulture.ToString(),
-                lOutput.Text, RockDateTime.Now.AddMinutes( minutes ) );
+                lOutput.Text, RockDateTime.Now.AddMinutes( minutes ),
+                cacheTags );
             }
         }
 
@@ -688,7 +697,7 @@ namespace RockWeb.Blocks.Event
         /// </summary>
         [DotLiquid.LiquidType( "EventItemOccurrence", "DateTime", "Name", "Date", "Time", "Campus", "Location",
             "LocationDescription", "Description", "Summary", "OccurrenceNote", "DetailPage",
-            "Priority", "URLSlugs", "PrimaryMinistryImageGuid", "PrimaryMinstryTitle", "ImageHeaderText", "ImageHeaderTextSmall")]
+            "Priority", "URLSlugs", "PrimaryMinistryImageGuid", "PrimaryMinstryTitle", "ImageHeaderText", "ImageHeaderTextSmall" )]
         public class EventOccurrenceSummary
         {
             public EventItemOccurrence EventItemOccurrence { get; set; }
