@@ -1,25 +1,22 @@
 
-
-
-<div class="row">
-    {% if Opportunity.PhotoId %}
-        <div class="col-md-4">
-            <img src="/GetImage.ashx?id={{ Opportunity.PhotoId }}&w=720" style="width: 100%;" />
-        </div>
-    {% endif %}
-    <div class="col-md-8">
-        <h2 class="margin-t-none"><i class='{{Opportunity.IconCssClass}}'></i> {{ Opportunity.Name }}</h2>
-        {{ Opportunity.Description }}
-
-        <p class="margin-t-lg">
-	        {% if LinkedPages.SignupPage != '' %}
-		        <a href="{{ LinkedPages.SignupPage }}?OpportunityId={{ Opportunity.Id }}" class="btn btn-primary">Connect</a>
-	        {% endif %}
-        </p>
-
+{% if Opportunity.PhotoId %}
+<section>
+    <div>
+        {[ parallax image:'/GetImage.ashx?id={{ Opportunity.PhotoId }}' addclass:'g-bg-parallax-color--black--30 menu-switch' height:'50vh' position:'50% 50%' speed:'-15' ]}
+            <div class="parallax-logo centered" style="padding: 0px;">
+                <h1 class="g-font-family--secondary g-font-size-150--lg g-font-size-80--xs g-text-shadow--black--soft">
+                    {{ Opportunity.Name }}
+                </h1>
+            </div>
+        {[ endparallax ]}
     </div>
-</div>
+</section>
+{% endif %}
 
-
-
-	
+<section class="container">
+    <div class="row g-padding-y-50--xs g-padding-x-50--xs">
+        <div class="col-md-8">
+            {{ Opportunity.Description }}
+        </div>
+    </div>
+</section>

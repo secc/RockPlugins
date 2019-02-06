@@ -1,0 +1,39 @@
+{% assign dt =  'Now' | Date:'yyyy/MM/dd' | ToMidnight -%}
+{% contentchannelitem where:'ContentChannelId==34 && StartDateTime <= "{{dt}}" && ExpireDateTime >="{{dt}}"' sort:'Priority' %}
+    {% assign Items = contentchannelitemItems %}
+    {% assign itemCount = Items | Size %}
+
+    {% if itemCount > 0 %}
+        <section id="SpecialEvents">
+            <h3 class="g-font-weight--700 g-line-height text-center g-padding-y-50--xs">Special Event Serving Opportunities</h3>
+        </section>
+        <section>
+            {% for item in Items %}
+                    {% assign bannerDefaultImage = item | Attribute:'Banner','Object'%}
+                    {% assign bannerMobileImage = item | Attribute:'BannerMobileImage','Object'%}
+                    {% assign bannerTabletImage = item | Attribute:'Banner','Object' %}
+
+                    {% if bannerMobileImage == empty or bannerMobileImage == null or bannerMobileImage == "" %}
+                        {% assign bannerMobileImage = item | Attribute:'Banner','Object' %}
+                    {% endif %}
+                    {% if bannerTabletImage == empty or bannerTabletImage == null or bannerTabletImage == "" %}
+                        {% assign bannerTabletImage = item | Attribute:'Banner','Object' %}
+                    {% endif %}
+
+                    {% assign bannerLink = item | Attribute:'BannerLInk' %}
+
+                    <div class="item">
+                        {% if bannerLink != '' %}<a href="{{ bannerLink }}">{% endif %}
+
+                            <picture>
+                               <source media="(max-width: 575px)" srcset="/GetImage.ashx/{{ bannerMobileImage.Guid }}.jpg?guid={{ bannerMobileImage.Guid }}" />
+                               <img src="/GetImage.ashx/{{ bannerDefaultImage.Guid }}.jpg?guid={{ bannerDefaultImage.Guid }}" style="width:100vw;" />
+                            </picture>
+
+                        {% if bannerLink %}</a>{% endif %}
+            		</div>
+
+            {% endfor %}
+        </section>
+    {% endif %}
+{% endcontentchannelitem %}

@@ -50,7 +50,7 @@
                 {% if eventItemOccurrence.DetailPage != null %}
                     {% assign eventLinkURL = eventItemOccurrence.DetailPage %}
                 {% else %}
-    			    {% assign urlSlug = eventItem | Property:'URLSlugs'| Split:',' | First | Trim %}
+    			    {% assign urlSlug = eventItem.URLSlugs | Split:',' | First | Trim %}
     				{% if urlSlug != '' %}
     					{% assign eventLinkURL = DetailsPage | Replace:'/details','/' | Append:urlSlug %}
     				{% else %}
@@ -81,8 +81,7 @@
                             </div>
                             {% else %}
                             <div class="img-hover">
-                                {% assign primaryMinistryImage = eventItem | Attribute:'PrimaryMinistry','Object' | Attribute:'CalendarImage','Object' %}
-                                <img src="/GetImage.ashx?guid={{ primaryMinistryImage.Guid }}&w=720" class="img-responsive"  onerror="this.style.display='none'" />
+                                <img src="/GetImage.ashx?guid={{ eventItemOccurrence.PrimaryMinistryImageGuid }}&w=720" class="img-responsive"  onerror="this.style.display='none'" />
                             </div>
                             {% endif %}
                         </a>
@@ -111,8 +110,6 @@
 
                         </div><!-- END: caption -->
 
-
-                        {% assign eventItemDatesIsHidden = eventItem | Attribute:'EventDatesHide' %}
                         <div class="event-items col-xs-4 {% if childCareIsAvailable != 'Yes' %}col-xs-offset-2{% endif %} g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter">
                              <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
                              <h6>
