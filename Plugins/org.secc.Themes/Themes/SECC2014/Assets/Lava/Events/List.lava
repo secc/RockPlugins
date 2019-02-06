@@ -101,8 +101,8 @@
                             {% assign photoTextHTML = '<h1 class="uppercase">' | Plus: eventItemOccurrence.PrimaryMinistryTitle %}
                         {% endif %}
 
-                        {% if eventItemOccurrence.ImageTitleSmall != empty %}
-                            {% assign photoTextHTML = photoTextHTML | Plus: '<br /><small>'| Plus: eventItemOccurrence.ImageTitleSmall | Plus: '</small></h1>' %}
+                        {% if eventItemOccurrence.ImageHeaderTextSmall != empty %}
+                            {% assign photoTextHTML = photoTextHTML | Plus: '<br /><small>'| Plus: eventItemOccurrence.ImageHeaderTextSmall | Plus: '</small></h1>' %}
                         {% else %}
                             {% assign photoTextHTML = photoTextHTML | Plus: '<br /><small>Ministry</small></h1>' %}
                         {% endif %}
