@@ -129,7 +129,7 @@
                                       {% unless eventItemDatesIsHidden == 'Yes' %}
 									  {% assign useonlyScheduleText =  eventItemOccurrence.EventItemOccurrence | Attribute: 'UseOnlyScheduleText' %}
                                       {% if useonlyScheduleText == 'Yes' %}
-                                            <br />{{eventItemOccurrence.EventItemOccurrence.ScheduleText}}<br />
+                                            <br />{{eventItemOccurrence.EventItemOccurrence | Atribute: 'ScheduleText'}}<br />
                                       {% else %}
                                             <br />Starting on {{ eventItemOccurrence.Date | Date: 'MMM, dd'}}
                                       {% endif %}
@@ -144,7 +144,7 @@
                                       <br/>
 
                                       {% if useonlyScheduleText == 'Yes' %}
-                                            {{eventItemOccurrence.EventItemOccurrence.ScheduleText}}<br />
+                                            {{eventItemOccurrence.EventItemOccurrence | Attribute: 'ScheduleText' }}<br />
                                       {% else %}
                                             {{ eventItemOccurrence.Date | Date: 'ddd. • MMM. dd'}}<br />
                                       {% endif %}
@@ -162,7 +162,7 @@
                                       <b>Individual Event</b>
                                       <br/>
                                       {% if useonlyScheduleText == 'Yes' %}
-                                            <br />{{eventItemOccurrence.EventItemOccurrence.ScheduleText}}<br />
+                                            <br />{{eventItemOccurrence.EventItemOccurrence | Attribute: 'ScheduleText' }}<br />
                                       {% else %}
                                             {{ eventItemOccurrence.Date | Date: 'ddd. • MMM. dd'}} &bull; {{ eventItemOccurrence.Time}}<br />
                                       {% endif %}

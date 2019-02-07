@@ -106,7 +106,7 @@
         <h4 class="post_author_title"><span itemprop="name"><a href="/lwya/author?Author={{ AuthorObject.Guid }}" class="fn">{{Author.FullName}}</a></span></h4>
         <div class="post_author_about"><span>About author</span></div>
         <div class="post_author_info" itemprop="description">
-            <p>{{AuthorObject.ShortBiography}}</p>
+            <p>{{AuthorObject | Attribute: 'ShortBiography'}}</p>
         </div>
     </section>
     {% endunless %}
@@ -194,6 +194,6 @@
     <meta property="og:url"           content="{{ 'Global' | Page:'Url' }}" />
     <meta property="og:type"          content="website" />
     <meta property="og:title"         content="{{item.Title}}" />
-    <meta property="og:description"   content="{{item.Summary}}" />
+    <meta property="og:description"   content="{{item | Attribute: 'Summary' }}" />
     <meta property="og:image"         content="//{{ 'Global' | Page:'Host' }}/GetImage.ashx?Guid={{ ImageGuid }}" />
 {% endfor %}
