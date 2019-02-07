@@ -16,7 +16,7 @@
         }
         .post_info_item {
             &.post_info_posted{
-                color: #fff;
+                color: $CopyColor;
                 position: absolute;
                 z-index: 1;
                 bottom: 2px;

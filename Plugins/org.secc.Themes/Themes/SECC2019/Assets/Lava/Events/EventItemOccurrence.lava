@@ -25,21 +25,21 @@
         <h4 class="g-font-family--secondary" style="margin-bottom: 5px;">{{ Event.Name }}</h4>
     {% endif %}
 </div><!-- END: caption -->
-
+{% assign childcare = EventItemOccurrence | Attribute: 'ChildcareAvailable' %}
 
 <div class="g-margin-b-20--xs" style="display: inline-block; width: 100%;">
 
-    <div class="event-items col-xs-4 g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter {% if EventItemOccurrence.ChildcareAvailable != 'Yes' %}col-xs-offset-2{% endif %}">
+    <div class="event-items col-xs-4 g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter {% if childcare != 'Yes' %}col-xs-offset-2{% endif %}">
          <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
-
          {% assign scheduledDates = EventItemOccurrence.Schedule.iCalendarContent | DatesFromICal:'all' %}
          {% assign scheduledNumDates = scheduledDates | Size %}
          <div>
-             {% if EventItemOccurrence.ScheduleText != empty %}
-             <h6>{{EventItemOccurrence.ScheduleText}}</h6>
+		 {% assign scheduleText =  EventItemOccurrence | Attribute: 'ScheduleText' %}
+             {% if scheduleText != empty %}
+             <h6>{{scheduleText}}</h6>
              {% endif %}
-
-             {% if EventItemOccurrence.UseOnlyScheduleText != 'Yes' %}
+			{% assign useOnlyScheduleText = EventItemOccurrence | Attribute: 'UseOnlyScheduleText' %}
+             {% if useOnlyScheduleText != 'Yes' %}
                  {% if scheduledDates != empty %}
                      <ul class="list-unstyled" style="margin: 0;">
                          {% for scheduledDate in scheduledDates limit:1 %}
@@ -51,7 +51,7 @@
                          {% endfor %}
                      </ul>
                 {% else %}
-                     {% if EventItemOccurrence.ScheduleText == empty %}
+                     {% if scheduleText == empty %}
                         {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}
                             <h6>Date and/or time has not been set yet. Please {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} for more details.</h6>
                          {% else %}
@@ -63,7 +63,7 @@
          </div>
     </div>
 
-    <div class="event-items col-xs-4 g-padding-x-10--xs {% if EventItemOccurrence.ChildcareAvailable == 'Yes' %}g-ver-divider__solid__r--gray-lighter{% endif %}">
+    <div class="event-items col-xs-4 g-padding-x-10--xs {% if childcare == 'Yes' %}g-ver-divider__solid__r--gray-lighter{% endif %}">
          <div class="event-icon --location"></div>
          <h6>
              {% if EventItemOccurrence.Location != '' %}
@@ -79,15 +79,15 @@
     </div>
 
     <!-- ChildCare -->
-    {% if EventItemOccurrence.ChildcareAvailable == 'Yes' %}
+    {% if childcare == 'Yes' %}
     <div class="event-items col-xs-4 g-padding-x-10--xs">
         <div class="event-icon --teddy-bear"><!-- Teddy Bear SVG Image --></div>
         <h6>Childcare<br> Available</h6>
     </div>
     {% endif %}
 
-    <div class="col-xs-12 {% if EventItemOccurrence.ChildcareAvailable != 'Yes' %}g-padding-l-150--xs{% else %}g-padding-x-60--xs{% endif %}">
-        {% if EventItemOccurrence.UseOnlyScheduleText != 'Yes' %}
+    <div class="col-xs-12 {% if childcare != 'Yes' %}g-padding-l-150--xs{% else %}g-padding-x-60--xs{% endif %}">
+        {% if useOnlyScheduleText != 'Yes' %}
             {% if scheduledDates != empty %}
                 <ul class="list-unstyled readmore_dates" style="margin: 0;">
                     {% for scheduledDate in scheduledDates offset:1 %}
