@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -975,16 +975,14 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if ( LocationLookupTypeSetting.HasValue )
             {
                 ddlSCCLocation.DataSource = definedValueService.GetByDefinedTypeGuid( LocationLookupTypeSetting.Value )
+                                                    .OrderBy(l => l.Order)
                                                     .Select( l => new { l.Id, l.Value } )
-                                                    .OrderBy( l => l.Value ).ToList();
+                                                    .ToList();
                 ddlSCCLocation.DataValueField = "Id";
                 ddlSCCLocation.DataTextField = "Value";
                 ddlSCCLocation.DataBind();
 
                 ddlSCCLocation.Items.Insert( 0, new ListItem( "[Select]", "0" ) );
-                ddlSCCLocation.Items.Insert( 1, new ListItem( "Multiple", "-1" ) );
-
-         
             }
         }
 
