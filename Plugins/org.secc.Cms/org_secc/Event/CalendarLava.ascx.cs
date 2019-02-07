@@ -377,7 +377,9 @@ namespace RockWeb.Blocks.Event
                 .Id;
 
             // Get the occurrences
-            var occurrences = qry.ToList();
+            var occurrences = qry
+                .Where( o => o.EventItemOccurrence.Schedule != null )
+                .ToList();
 
             var eventSchedules = occurrences.Select( o => o.EventItemOccurrence.Schedule.Id ).ToList();
 
