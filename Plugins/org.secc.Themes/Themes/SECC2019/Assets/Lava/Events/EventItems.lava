@@ -111,7 +111,7 @@
 
                         </div><!-- END: caption -->
 
-                        <div class="event-items col-xs-4 {% if campus | Attribute: 'Slug' != 'Yes' %}col-xs-offset-2{% endif %} g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter">
+                        <div class="event-items col-xs-4 {% if campus | Attribute: 'Slug' != 'Yes' %}col-xs-offset-2{% endif %} g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter {% if childCareIsAvailable != 'Yes' %}col-xs-offset-2{% endif %}">
                              <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
                              <h6>
                                  {% assign eventItemDatesIsHidden = eventItem | Attribute: 'EventDatesHide' %}

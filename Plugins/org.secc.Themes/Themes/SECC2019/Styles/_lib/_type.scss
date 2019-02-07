@@ -157,7 +157,7 @@ p {
 
 /* Links */
 a {
-	color: $color-primary;
+	color: $CopyColor;
 	text-decoration: $link-hover-decoration;
 
 	@include hover-focus {
