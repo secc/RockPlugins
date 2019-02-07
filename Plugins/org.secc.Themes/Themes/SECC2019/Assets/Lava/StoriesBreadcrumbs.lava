@@ -45,7 +45,7 @@
 								
                                 {% contentchannelitem where:'ContentChannelId == 35' sort:'StartDateTime desc' %}
                                    {% for item in contentchannelitemItems %}
-                                        {% if item.Slug == storySlug %}
+                                        {% if item.PrimarySlug == storySlug %}
                                             {{ item.Title }}
                                         {% endif %}
                                    {% endfor %}

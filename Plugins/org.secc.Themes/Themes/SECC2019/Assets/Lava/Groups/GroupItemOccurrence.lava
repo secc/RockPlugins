@@ -3,7 +3,7 @@
 
  Example:
  {% for EventItemOccurrence in Event.EventItemOccurrences %}
-    {% include '~~/Assets/Lava/Groups/GroupItemOccurrence.lava' %}
+    {% include '~~/Assets/Lava/Events/EventItemOccurrence.lava' %}
  {% endfor %}
 
 {% endcomment %}
@@ -34,12 +34,14 @@
 
          {% assign scheduledDates = EventItemOccurrence.Schedule.iCalendarContent | DatesFromICal:'all' %}
          {% assign scheduledNumDates = scheduledDates | Size %}
+		 {% assign useOnlyScheduleText = EventItemOccurrence | Attribute: 'UseOnlyScheduleText '%}
+		 {% assign scheduleText =  EventItemOccurrence | Attribute: 'ScheduleText' %}
          <div>
-             {% if EventItemOccurrence.ScheduleText != empty %}
-             <h6>{{EventItemOccurrence.ScheduleText}}</h6>
+             {% if scheduleText != empty %}
+             <h6>{{scheduleText}}</h6>
              {% endif %}
 
-             {% if EventItemOccurrence.UseOnlyScheduleText != 'Yes' %}
+             {% if useOnlyScheduleText != 'Yes' %}
                  {% if scheduledDates != empty %}
                      <ul class="list-unstyled" style="margin: 0;">
                          {% for scheduledDate in scheduledDates limit:1 %}
@@ -51,7 +53,7 @@
                          {% endfor %}
                      </ul>
                 {% else %}
-                     {% if EventItemOccurrence.ScheduleText == empty %}
+                     {% if scheduleText == empty %}
                         {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}
                             <h6>Date and/or time has not been set yet. Please {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} for more details.</h6>
                          {% else %}
@@ -79,7 +81,7 @@
     </div>
 
     <div class="col-xs-12 g-padding-x-60--xs">
-        {% if EventItemOccurrence.UseOnlyScheduleText != 'Yes' %}
+        {% if useOnlyScheduleText != 'Yes' %}
             {% if scheduledDates != empty %}
                 <ul class="list-unstyled readmore_dates" style="margin: 0;">
                     {% for scheduledDate in scheduledDates offset:1 %}
