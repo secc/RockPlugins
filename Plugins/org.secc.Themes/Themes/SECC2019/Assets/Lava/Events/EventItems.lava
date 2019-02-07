@@ -117,7 +117,7 @@
                                  {% assign eventItemDatesIsHidden = eventItem | Attribute: 'EventDatesHide' %}
                                  {% unless eventItemDatesIsHidden == 'Yes' %}
 								 {% assign useOnlyScheduleText = eventItemOccurrence.EventItemOccurrence | Attribute: 'UseOnlyScheduleText' %}
-                                 {% if eventItemOccurrence.EventItemOccurrence.UseOnlyScheduleText == 'Yes' %}
+                                 {% if useOnlyScheduleText == 'Yes' %}
                                        {{eventItemOccurrence.EventItemOccurrence | Attribute: 'ScheduleText' }}
                                  {% else %}
                                        {{ eventItemOccurrence.Date | Date: 'ddd, MMM dd'}}
