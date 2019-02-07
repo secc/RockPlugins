@@ -114,10 +114,11 @@
                         <div class="event-items col-xs-4 {% if campus | Attribute: 'Slug' != 'Yes' %}col-xs-offset-2{% endif %} g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter">
                              <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
                              <h6>
-                                 {% assign eventItemDatesIsHidden = eventItem.EventDatesHide %}
+                                 {% assign eventItemDatesIsHidden = eventItem | Attribute: 'EventDatesHide' %}
                                  {% unless eventItemDatesIsHidden == 'Yes' %}
+								 {% assign useOnlyScheduleText = eventItemOccurrence.EventItemOccurrence | Attribute: 'UseOnlyScheduleText' %}
                                  {% if eventItemOccurrence.EventItemOccurrence.UseOnlyScheduleText == 'Yes' %}
-                                       {{eventItemOccurrence.EventItemOccurrence.ScheduleText}}
+                                       {{eventItemOccurrence.EventItemOccurrence | Attribute: 'ScheduleText' }}
                                  {% else %}
                                        {{ eventItemOccurrence.Date | Date: 'ddd, MMM dd'}}
                                  {% endif %}
