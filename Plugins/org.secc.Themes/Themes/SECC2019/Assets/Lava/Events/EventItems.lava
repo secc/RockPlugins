@@ -51,7 +51,7 @@
                 {% if eventItemOccurrence.DetailPage != null %}
                     {% assign eventLinkURL = eventItemOccurrence.DetailPage %}
                 {% else %}
-    			    {% assign urlSlug = eventItem | Attribute: 'URLSlugs' | Split:',' | First | Trim %}
+    			    {% assign urlSlug = eventItemOccurrence.URLSlugs | Split:'|' | First | Trim %}
     				{% if urlSlug != '' %}
     					{% assign eventLinkURL = DetailsPage | Replace:'/details','/' | Append:urlSlug %}
     				{% else %}
