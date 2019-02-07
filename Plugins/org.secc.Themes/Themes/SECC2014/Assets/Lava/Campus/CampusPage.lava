@@ -386,10 +386,11 @@ Contact - Section
 				</div>
 			</div>
 			<div class="col-sm-6 contact-info">
+			{% assign location = campus | Attribute: 'Location','object'%}
 				<h1 class="section-header"><span>Contact Information</span></h1>
-                    <strong>{{ campus | Attribute: 'Location', 'Street1' }}</strong><br />
-                    {{ campus | Attribute: 'Location','City' }}, {{ campus | Attribute: 'Location','State' }} {{ campus | Attribute: 'Location', 'PostalCode' }}<br /><br />
-                    <i class="fa fa-phone"></i> : <a href="tel:{{ campus | Attribute: 'PhoneNumber' }}">{{ campus | Attribute: 'PhoneNumber' }}</a><br /><br />
+                    <strong>{{ campus.Location.Street1 }}</strong><br />
+                    {{ campus.Location.City }}, {{ campus.Location.State }} {{ campus.Location.PostalCode }}<br /><br />
+                    <i class="fa fa-phone"></i> : <a href="tel:{{ campus.PhoneNumber }}">{{ campus.PhoneNumber }}</a><br /><br />
                     <i class="fa fa-envelope"></i> : <a href="mailto:{{ campus| Attribute:'Email' }}">{{campus| Attribute:'Email' }}</a>
             </div>
 		</div>

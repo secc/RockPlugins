@@ -125,7 +125,7 @@
                                   <br />
                                   <p>
                                       <b>Multiple Dates</b>
-                                      {% assign eventItemDatesIsHidden = eventItem.EventDatesHide %}
+                                      {% assign eventItemDatesIsHidden = eventItem | Attribute: 'EventDatesHide' %}
                                       {% unless eventItemDatesIsHidden == 'Yes' %}
 									  {% assign useonlyScheduleText =  eventItemOccurrence.EventItemOccurrence | Attribute: 'UseOnlyScheduleText' %}
                                       {% if useonlyScheduleText == 'Yes' %}
