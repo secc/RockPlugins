@@ -34,7 +34,7 @@
                                     <div class="bp-content">
                                         <!-- Post Title -->
                                         <div class="text-center" style="margin:5px auto 15px;">
-                                            <a href="javascript:void(0)" class="btn btn-easter js-modal-video" data-video-id="{{ childItemAssigned.EmbededVideoUrl | Remove:'https://vimeo.com/' }}" style="padding: 10px 16px; opacity: 0.7; width: 100%;">
+                                            <a href="javascript:void(0)" class="btn btn-easter js-modal-video" data-video-id="{{ childItemAssigned | Attribute: 'EmbededVideoUrl' | Remove:'https://vimeo.com/' }}" style="padding: 10px 16px; opacity: 0.7; width: 100%;">
                                                 <strong>Play Video</strong>
                                             </a>
                                         </div>
