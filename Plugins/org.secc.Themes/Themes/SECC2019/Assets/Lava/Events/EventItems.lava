@@ -35,7 +35,8 @@
                 {% elseif eventItemOccurrence.EventItemOccurrence.CampusId != campusId %}
                     {% assign multiCampus = true %}
                 {% endif %}
-                {% if eventItemOccurrence.EventItemOccurrence.ChildcareAvailable == 'Yes' %}
+				{% assign childcareTest = eventItemOccurrence.EventItemOccurrence | Attribute: 'ChildcareAvailable' %}
+                {% if childcareTest == 'Yes' %}
                     {% assign childCareIsAvailable = 'Yes' %}
                 {% endif %}
             {% endfor %}
@@ -50,7 +51,7 @@
                 {% if eventItemOccurrence.DetailPage != null %}
                     {% assign eventLinkURL = eventItemOccurrence.DetailPage %}
                 {% else %}
-    			    {% assign urlSlug = eventItem.URLSlugs | Split:',' | First | Trim %}
+    			    {% assign urlSlug = eventItem | Attribute: 'URLSlugs' | Split:',' | First | Trim %}
     				{% if urlSlug != '' %}
     					{% assign eventLinkURL = DetailsPage | Replace:'/details','/' | Append:urlSlug %}
     				{% else %}
@@ -110,10 +111,10 @@
 
                         </div><!-- END: caption -->
 
-                        {% assign eventItemDatesIsHidden = eventItem.EventDatesHide %}
-                        <div class="event-items col-xs-4 {% if childCareIsAvailable != 'Yes' %}col-xs-offset-2{% endif %} g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter">
+                        <div class="event-items col-xs-4 {% if campus | Attribute: 'Slug' != 'Yes' %}col-xs-offset-2{% endif %} g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter">
                              <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
                              <h6>
+                                 {% assign eventItemDatesIsHidden = eventItem.EventDatesHide %}
                                  {% unless eventItemDatesIsHidden == 'Yes' %}
                                  {% if eventItemOccurrence.EventItemOccurrence.UseOnlyScheduleText == 'Yes' %}
                                        {{eventItemOccurrence.EventItemOccurrence.ScheduleText}}
