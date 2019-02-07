@@ -17,8 +17,8 @@
 
 <div id="sub-connect-menu">
     <nav class="expandable-menu section-nav">
-        <a href="/{{ campus.Slug }}/">
-            <div class="se-logo {{ campus.Slug }}">{{ campus.ShortCode }}</div>
+        <a href="/{{ campus | Attribute: 'Slug' }}/">
+            <div class="se-logo {{ campus | Attribute: 'Slug' }}">{{ campus.ShortCode }}</div>
         </a>
         <ul>
             {% for item in CampusSubMenuItems %}

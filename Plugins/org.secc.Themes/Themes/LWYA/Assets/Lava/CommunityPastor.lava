@@ -22,13 +22,13 @@
                 <div class="col-sm-8">
                     <br />
                     <h2>{{Author.FullName}}<br />
-                        <small>{{definedValue.CommunityRole}}</small><br />
-                        <!-- <p>Community Areas: {{definedValue.CommunityAreas}}</p> -->
+                        <small>{{definedValue | Attribute:'CommunityRole'}}</small><br />
+                        <!-- <p>Community Areas: {{definedValue | Attribute:'CommunityAreas'}}</p> -->
                     </h2>
                     <br />
                     <h5>Biography</h5>
                     <br />
-                    <p>{{definedValue.Biography}}</p>
+                    <p>{{definedValue | Attribute: 'Biography' }}</p>
                     <br />
                     <div class="socials socials_type_icons socials_shape_round">
                         {% unless Author.Email == '' %}
@@ -38,28 +38,32 @@
                             </a>
                         </div>
                         {% endunless %}
-                        {% unless definedValue.FacebookLink == '' %}
+						{% assign facebooklink = definedValue | Attribute: 'FacebookLink' %}
+                        {% unless  facebooklink == '' %}
                         <div class="socials_item">
                             <a href="{{ definedValue | Attribute:'FacebookLink','RawValue' }}" target="_blank" class="social_icons social_facebook">
                                 <i class="fa fa-facebook"></i>
                             </a>
                         </div>
                         {% endunless %}
-                        {% unless definedValue.TwitterLink == '' %}
+						{% assign twitterlink = definedValue | Attribute: 'TwitterLink' %}
+                        {% unless twitterlink == '' %}
                         <div class="socials_item">
                             <a href="{{ definedValue | Attribute:'TwitterLink','RawValue' }}" target="_blank" class="social_icons social_twitter">
                                 <i class="fa fa-twitter"></i>
                             </a>
                         </div>
                         {% endunless %}
-                        {% unless definedValue.InstagramLink == '' %}
+						{% assign instagramLink = definedValue | Attribute: 'InstagramLink' %}
+                        {% unless instagramLink == '' %}
                         <div class="socials_item">
                             <a href="{{ definedValue | Attribute:'InstagramLink','RawValue' }}" target="_blank" class="social_icons social_instagramm">
                                 <i class="fa fa-instagram"></i>
                             </a>
                         </div>
                         {% endunless %}
-                        {% unless definedValue.GooglePlusLink == '' %}
+						{% assign googlelink = definedValue | Attribute: 'GooglePlusLink' %}
+                        {% unless googlelink == '' %}
                         <div class="socials_item">
                             <a href="{{ definedValue | Attribute:'GooglePlusLink','RawValue' }}" target="_blank" class="social_icons social_gplus">
                                 <i class="fa fa-google-plus"></i>
