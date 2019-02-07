@@ -67,7 +67,7 @@
 			<div class="isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load">
 
 					<div class="card">
-						<a href="/newsite/sermons/{{ item.PimarySlug }}">
+						<a href="/newsite/sermons/{{ item.PrimarySlug }}">
 						{% if seriesImage != empty -%}
 							<!-- Image -->
 							<div class="img-hover">
