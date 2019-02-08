@@ -12,7 +12,8 @@
 \******************************************************/
 
 html {
-	background-color: #201e1d;
+	text-rendering: optimizeLegibility; // emphasizes legibility over rendering speed and geometric precision
+	-webkit-font-smoothing: antialiased;
 }
 
 #sub-connect-menu {

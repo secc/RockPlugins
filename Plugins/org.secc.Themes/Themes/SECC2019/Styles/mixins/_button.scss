@@ -6,6 +6,10 @@
   touch-action: manipulation;
   cursor: pointer;
   user-select: none;
+  text-shadow: none;
+  box-shadow: none;
+  -webkit-box-shadow: none;
+  
   @include cubic-transition($delay: 0, $duration: 300ms, $property: (all));
 
   @include hover-focus {
@@ -38,7 +42,7 @@
 }
 
 // Style
-@mixin btn-style($dspy: null, $wht-space: null, $ps: null, $color: null, $padding: null, $brd-radius: null,$hvr-color: null, $bg: null, $hvr-bg: null, $brd-width: null, $brd-style: null, $brd-color: null, $hvr-brd-color: null, $hvr-opacity: null, $line-height: null) {
+@mixin btn-style($dspy: null, $wht-space: null, $ps: null, $color: null, $padding: null, $brd-radius: null,$hvr-color: null, $bg: null, $hvr-bg: null, $brd-width: null, $brd-style: null, $brd-color: null, $hvr-brd-color: null, $hvr-opacity: null, $line-height: null, $text-shadow: null, $box-shadow: null) {
   display: $dspy;
   white-space: $wht-space;
   position: $ps;
@@ -50,6 +54,9 @@
   border-color: $brd-color;
   border-radius: $brd-radius;
   line-height: $line-height;
+  text-shadow: $text-shadow;
+  box-shadow: $box-shadow;
+  -webkit-box-shadow: $box-shadow;
 
   @include hover-focus {
     color: $hvr-color;

@@ -29,6 +29,7 @@ form {
 		width: 100%;
 		background-color: rgba($LightGrayColor, 0.2);
 		font-weight: 600;
+		border-radius: 0px !important;
 
 		&:-ms-input-placeholder {
 	   		color: $LightGrayColor;
@@ -57,8 +58,29 @@ form {
 			background: rgba(#ffffff, .2);
 		}
 	}
-}
 
+	div:not(.rock-modal) {
+		 div:not(.modal-footer):not(.modal-body):not(.modal-header) {
+			> a.btn {
+				@include btn;
+			}
+
+			> a.btn-primary {
+				@include btn-style(
+				$color: $color-dark,
+				$padding: 0.5rem 1.5rem,
+				$bg: transparent,
+				$brd-width: .4rem,
+				$brd-style: solid,
+				$brd-color: $color-dark,
+				$brd-radius: 0.1rem,
+				$hvr-bg: lighten($color-dark, 18%),
+				$hvr-color: $color-primary,
+				$hvr-brd-color: $color-dark);
+			}
+		}
+	}
+}
 
 label .validator {
 	font-weight: 400;

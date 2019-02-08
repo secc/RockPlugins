@@ -1,7 +1,7 @@
 
 // Theme Colors *show in editor*
-@theme-1: #428bca; // bootstrap primary blue #color
-@theme-1-text: #fff; // #color
+@theme-1:                     #7C7C7C;
+@theme-1-text:                #222222;
 //--
 @theme-2: @gray-darker; // admin bar
 @theme-2-text: lighten(@gray-darker, 70%);
@@ -101,8 +101,8 @@
 @adminbar-bg: @theme-2;
 @adminbar-text-color: @theme-2-text;
 
-// Global Styles 
-@border-radius-base: 4px;       // The global setting for rounding corners.
+// Global Styles
+@border-radius-base: 0px;       // The global setting for rounding corners.
 
 @photo-border: @theme-3;   // Standard border color for photos.
 @hr-border: lighten(@text-color, 40%);      // The color horizontal rule lines.
@@ -146,14 +146,14 @@
 
 // Panel
 @panel-bg:                    #fff;                  // The background color of the panel body.
-@panel-text:                  @text-color; // The text color of the panel.
-@panel-border:                darken(@theme-3, 10%);                  // The panel's border color.
-@panel-top-border-color:      darken(@panel-border, 5%);           // Color of the panel's top border often used as an accent color.
+@panel-text:                  @theme-1-text; // The text color of the panel.
+@panel-border:                @theme-6;                  // The panel's border color.
+@panel-top-border-color:      @theme-6;           // Color of the panel's top border often used as an accent color.
 @panel-border-radius:         @border-radius-base;
 //--
-@panel-heading-bg:            @theme-5;                  // The background color of the panel's header.
-@panel-heading-text-color:    @theme-5-text;              // The heading's text color.
-@panel-heading-border:        darken(@panel-heading-bg, 30%); // The headings border color.
+@panel-heading-bg:            @theme-6;                  // The background color of the panel's header.
+@panel-heading-text-color:    #898989;              // The heading's text color.
+@panel-heading-border:        @theme-6; // The headings border color.
 //--
 @panel-following-active-bg:   @panel-top-border-color;   // The background color of the following square when it's active at the top of panels that support the following feature (e.g. Group Details block).
 //--
@@ -252,8 +252,8 @@
 @note-personal-border: @alert-info-border;
 
 // Modals
-@modal-header-bg: @theme-1;
-@modal-header-text-color: @theme-1-text;
+@modal-header-bg: @theme-2;
+@modal-header-text-color: @theme-3;
 @modal-body-bg: @body-bg;
 @modal-body-text-color: @text-color;
 @modal-footer-bg: @theme-5;

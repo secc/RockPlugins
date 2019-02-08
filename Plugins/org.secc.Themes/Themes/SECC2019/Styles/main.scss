@@ -4,7 +4,6 @@
 @import 'bootstrap';
 @import 'bootstrap/theme';
 @import '_lib/bootstrap-overrides';
-@import '_lib/forms';
 @import 'fontawesome/font-awesome';
 
 // Gui
@@ -27,6 +26,7 @@
 @import '_lib/_back-to-top';
 @import '_lib/links';
 @import 'global/_global';
+@import '_lib/forms';
 
 // SECC Custom Components
 @import 'bourbon/bourbon'; // http://bourbon.io/
