@@ -205,4 +205,14 @@ a {
 
 .wrapper-dropdown-registration {
 	background: $color-yellow;
+	h6 {
+		color: white;
+	}
+	.dropdown {
+		li:hover {
+			a {
+				color: $color-yellow;
+			}
+		}
+	}
 }

@@ -210,4 +210,14 @@ a {
 
 .wrapper-dropdown-registration {
 	background: $color-ocean-teal;
+	h6 {
+		color: white;
+	}
+	.dropdown {
+		li:hover {
+			a {
+				color: $color-ocean-teal;
+			}
+		}
+	}
 }

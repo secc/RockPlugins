@@ -250,4 +250,14 @@ a {
 
 .wrapper-dropdown-registration {
 	background: $color-believe;
+	h6 {
+		color: white;
+	}
+	.dropdown {
+		li:hover {
+			a {
+				color: $color-believe;
+			}
+		}
+	}
 }

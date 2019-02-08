@@ -198,4 +198,14 @@ a {
 
 .wrapper-dropdown-registration {
 	background: $color-sky-blue;
+	h6 {
+		color: white;
+	}
+	.dropdown {
+		li:hover {
+			a {
+				color: $color-sky-blue;
+			}
+		}
+	}
 }
