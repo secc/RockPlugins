@@ -1,6 +1,6 @@
 <nav class="cd-nav">
-    {% assign personGuidSize = CurrentPerson.Guid | Size %}
-    <ul id="cd-primary-nav" class="cd-primary-nav is-fixed {% if personGuidSize != 0 %}logged-in{% endif %}">
+    {% assign personGuid = CurrentPerson.Guid %}
+    <ul id="cd-primary-nav" class="cd-primary-nav is-fixed {% unless personGuid != null %}logged-in{% endunless %}">
 
         <li class="has-children">
             <a href="#Locations" class="arrow">Locations</a>
@@ -350,11 +350,11 @@
         </li>
         {% endif %}
 
-        {% if personGuidSize == 0 %}
+        {% unless personGuid != null %}
         <li class="MobileGroupManager">
-            <a href="/lwya/group-manager">{{CurrentPerson}}Login to Your Account</a>
+            <a href="/login">{{CurrentPerson}}Login to Your Account</a>
         </li>
-        {% endif %}
+        {% endunless %}
 
     </ul> <!-- primary-nav -->
 </nav> <!-- cd-nav -->
