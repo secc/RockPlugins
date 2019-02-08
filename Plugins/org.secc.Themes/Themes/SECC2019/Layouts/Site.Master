@@ -22,7 +22,7 @@
         var showalert = page.GetAttributeValue( "TransparentMenu" ).AsBoolean();
         if ( !showalert )
         {
-            var script = @"$(document).ready(function() {  
+            var script = @"$(document).ready(function() {
   $('.cd-main-header').removeClass('transparent-menu-enabled').removeClass('transparent-header');
     $('.cd-main-content').removeClass('transparent-content');
 });";
@@ -46,8 +46,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
     <!-- Included CSS Files -->
-    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/main.css", true) %>"/>
     <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/layout.css", true) %>"/>
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/main.css", true) %>"/>
     <link rel="stylesheet" href="<%# ResolveRockUrl("~/Styles/developer.css", true) %>"/>
     <asp:ContentPlaceHolder ID="css" runat="server" />
 
