@@ -289,7 +289,7 @@ function getMoreSermons($) {
 						          }).append(
 						            $('<a/>', {
 						              "class": 'series-link',
-									  "href": window.location + '/' + sermon_series.PrimarySlug,
+									  "href": window.location + '/' + sermon_series.Slug,
 						            }).append(
 						  	            $('<div/>', {
 						  	              "class": 'card',

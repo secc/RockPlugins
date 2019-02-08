@@ -194,7 +194,7 @@ function getMoreSermons($) {
 						            "class": "isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load"
 						          }).append(
 						            $('<a/>', {
-									  "href": window.location + '/' + sermon_series.PimarySlug,
+									  "href": window.location + '/' + sermon_series.Slug,
 						            }).append(
 						  	            $('<div/>', {
 						  	              "class": 'card',
