@@ -54,7 +54,7 @@
         }
 
         li {
-            padding-left: 20px;
+            padding-left: 2rem;
             &:last-child {
                 padding-right: 50px;
             }
@@ -78,10 +78,8 @@
     }
 
     @include non-phones {
-        h1, .page-nav {display: inline-block;}
-
         .page-nav li {
-            margin-left: 2em;
+            padding-left: 6rem;
         }
     }
 }

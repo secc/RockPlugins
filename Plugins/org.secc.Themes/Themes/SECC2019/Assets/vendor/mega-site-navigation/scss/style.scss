@@ -810,7 +810,7 @@ main {
 				border-bottom: 3px solid $color-3;
 				transition: all .3s;
 				&:hover {
-					background-color: lighten($color-3, 30%);
+					// background-color: lighten($color-3, 30%);
 				}
 			}
 			&.is-hidden {
