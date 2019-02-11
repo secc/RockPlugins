@@ -61,9 +61,9 @@
                 <li>
                     <!-- <p>Ipsum Text</p> -->
                     {% contentchannelitem where:'Status == 1 && ContentChannelId == 16' sort:'StartDateTime desc' %}
-                        {% assign currentSeries = contentchannelitemItems | First %}
+                        {% assign currentSeries = contentchannelitemItems | Index:2 %}
                         {% assign ImageGuid = currentSeries | Attribute:'SeriesImage','RawValue' %}
-                        <h3 class="large_screen_only text-center nopadding">Upcoming Series</h3>
+                        <h3 class="large_screen_only text-center nopadding">Recent Series</h3>
                         <div style="padding:7% 7% 0 7%">
                             <a href="/lwya/all-series/series?Item={{ currentSeries.Id }}" style="height: auto; padding: 0; line-height: 0;">
                                 <img src="/GetImage.ashx?Guid={{ ImageGuid }}" alt="{{currentSeries.Title}}" class="img-respoinsive" style="max-height:220px">
