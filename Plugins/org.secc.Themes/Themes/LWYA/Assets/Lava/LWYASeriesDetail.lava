@@ -1,4 +1,4 @@
-﻿<style>
+<style>
 	.series-banner {
 		height: 220px;
 		background-size: cover;
@@ -30,7 +30,7 @@
 </style>
 
 {% assign item = Items | First %}
-{% if item  %}
+{% if item and item.Id != "1539" %}
 
 	{% assign currentDate = 'Now' | Date:'M/d/yyyy' %}
 	{% assign currentMessage = item.ChildItems | First %}
