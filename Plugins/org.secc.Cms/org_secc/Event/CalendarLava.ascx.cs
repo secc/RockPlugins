@@ -320,6 +320,7 @@ namespace RockWeb.Blocks.Event
             var attributeValueService = new AttributeValueService( rockContext );
 
             int calendarItemEntityTypeId = EntityTypeCache.GetId( typeof( EventCalendarItem ) ).Value;
+            int eventItemOccurrenceEntityTypeId = EntityTypeCache.GetId( typeof( EventItemOccurrence ) ).Value;
 
             // Grab events
             var firstQry = eventItemOccurrenceService
@@ -331,13 +332,24 @@ namespace RockWeb.Blocks.Event
 
             var qry = firstQry
                     .GroupJoin(
-                        attributeValueService.Queryable().Where( av => av.Attribute.EntityTypeId == ( int? ) calendarItemEntityTypeId ),
+                        attributeValueService.Queryable().Where( av => av.Attribute.EntityTypeId == ( int? ) calendarItemEntityTypeId || av.Attribute.EntityTypeId == ( int? ) eventItemOccurrenceEntityTypeId ),
                         obj => obj.EventItem.EventCalendarItems.Where( i => i.EventCalendarId == _calendarId ).Select( i => i.Id ).FirstOrDefault(),
                         av => av.EntityId,
                         ( obj, av ) => new
                         {
                             EventItemOccurrence = obj,
                             EventCalendarItemAttributeValues = av,
+                        } )
+                        .GroupJoin(
+                        attributeValueService.Queryable().Where( av => av.Attribute.EntityTypeId == ( int? ) eventItemOccurrenceEntityTypeId ),
+                        obj => obj.EventItemOccurrence.Id,
+                        av => av.EntityId,
+                        ( obj, av ) => new
+                        {
+                            EventItemOccurrence = obj.EventItemOccurrence,
+                            EventCalendarItemAttributeValues = obj.EventCalendarItemAttributeValues,
+                            EventItemOccurrenceAttributeValues = av
+
                         }
                     );
 
@@ -393,6 +405,7 @@ namespace RockWeb.Blocks.Event
                 {
                     EventItemOccurrence = o.EventItemOccurrence,
                     EventCalendarItemAttributeValues = o.EventCalendarItemAttributeValues,
+                    EventItemOccurrenceAttributeValues = o.EventItemOccurrenceAttributeValues,
                     Date = schedules.ContainsKey( o.EventItemOccurrence.Schedule.Id ) ? schedules[o.EventItemOccurrence.Schedule.Id].AsDateTime() ?? new DateTime() : new DateTime()
                 } )
                 .Where( d => d.Date > RockDateTime.Now )
@@ -419,6 +432,9 @@ namespace RockWeb.Blocks.Event
                     eventOccurrenceSummaries.Add( new EventOccurrenceSummary
                     {
                         EventItemOccurrence = eventItemOccurrence,
+                        EventItem = eventItemOccurrence.EventItem,
+                        EventItemPhotoId = eventItemOccurrence.EventItem.PhotoId ?? 0,
+                        ICalendarContent = eventItemOccurrence.Schedule.iCalendarContent,
                         Name = eventItemOccurrence.EventItem.Name,
                         DateTime = occurrenceDates.Date,
                         Date = occurrenceDates.Date.ToShortDateString(),
@@ -428,312 +444,325 @@ namespace RockWeb.Blocks.Event
                         LocationDescription = eventItemOccurrence.Location,
                         Description = eventItemOccurrence.EventItem.Description,
                         Summary = eventItemOccurrence.EventItem.Summary,
-                        URLSlugs = occurrenceDates.EventCalendarItemAttributeValues.Where( av => av.AttributeKey == "URLSlugs" ).Select( av => av.Value ).FirstOrDefault(),
                         OccurrenceNote = eventItemOccurrence.Note.SanitizeHtml(),
                         DetailPage = String.IsNullOrWhiteSpace( eventItemOccurrence.EventItem.DetailsUrl ) ? null : eventItemOccurrence.EventItem.DetailsUrl,
-                        Priority = occurrenceDates.EventCalendarItemAttributeValues.Where( av => av.AttributeKey == priorityAttributeKey ).Select( av => av.Value ).FirstOrDefault().AsIntegerOrNull() ?? int.MaxValue,
                         PrimaryMinistryImageGuid = primaryMinistryImageGuid,
                         PrimaryMinstryTitle = primaryMinistryName,
+                        URLSlugs = occurrenceDates.EventCalendarItemAttributeValues.Where( av => av.AttributeKey == "URLSlugs" ).Select( av => av.Value ).FirstOrDefault(),
+                        Priority = occurrenceDates.EventCalendarItemAttributeValues.Where( av => av.AttributeKey == priorityAttributeKey ).Select( av => av.Value ).FirstOrDefault().AsIntegerOrNull() ?? int.MaxValue,
                         ImageHeaderText = occurrenceDates.EventCalendarItemAttributeValues.Where( av => av.AttributeKey == "ImageHeaderText" ).Select( av => av.Value ).FirstOrDefault(),
                         ImageHeaderTextSmall = occurrenceDates.EventCalendarItemAttributeValues.Where( av => av.AttributeKey == "ImageHeaderTextSmall" ).Select( av => av.Value ).FirstOrDefault(),
-                        EventDatesHide = occurrenceDates.EventCalendarItemAttributeValues.Where( av => av.AttributeKey == "EventDatesHide" ).Select( av => av.Value ).FirstOrDefault()
+                        EventDatesHide = occurrenceDates.EventCalendarItemAttributeValues.Where( av => av.AttributeKey == "EventDatesHide" ).Select( av => av.Value ).FirstOrDefault(),
+                        AttChildcareAvailable = occurrenceDates.EventItemOccurrenceAttributeValues.Where( av => av.AttributeKey == "ChildcareAvailable" ).Select( av => av.Value ).FirstOrDefault(),
+                        AttScheduleText = occurrenceDates.EventItemOccurrenceAttributeValues.Where( av => av.AttributeKey == "ScheduleText" ).Select( av => av.Value ).FirstOrDefault(),
+                        AttUseOnlyScheduleText = occurrenceDates.EventItemOccurrenceAttributeValues.Where( av => av.AttributeKey == "UseOnlyScheduleText" ).Select( av => av.Value ).FirstOrDefault(),
                     } );
 
-                }
             }
+        }
 
-            var eventSummaries = eventOccurrenceSummaries
-                .OrderBy( e => e.DateTime )
-                .GroupBy( e => e.Name )
-                .OrderBy( e => e.First().Priority )
-                .Select( e => e.ToList() )
-                .Take( GetAttributeValue( "Limit" ).AsInteger() )
-                .ToList();
+        var eventSummaries = eventOccurrenceSummaries
+            .OrderBy( e => e.DateTime )
+            .GroupBy( e => e.Name )
+            .OrderBy( e => e.First().Priority )
+            .Select( e => e.ToList() )
+            .Take( GetAttributeValue( "Limit" ).AsInteger() )
+            .ToList();
 
-            eventOccurrenceSummaries = eventOccurrenceSummaries
-                .OrderBy( e => e.DateTime )
+        eventOccurrenceSummaries = eventOccurrenceSummaries
+            .OrderBy(e => e.DateTime )
                 .ThenBy( e => e.Name )
                 .ToList();
 
-            var mergeFields = new Dictionary<string, object>();
-            mergeFields.Add( "TimeFrame", ViewMode );
+        var mergeFields = new Dictionary<string, object>();
+        mergeFields.Add( "TimeFrame", ViewMode );
             mergeFields.Add( "DetailsPage", LinkedPageRoute( "DetailsPage" ) );
             mergeFields.Add( "EventItems", eventSummaries );
             mergeFields.Add( "EventItemOccurrences", eventOccurrenceSummaries );
             mergeFields.Add( "CurrentPerson", CurrentPerson );
 
-            lOutput.Text = GetAttributeValue( "LavaTemplate" ).ResolveMergeFields( mergeFields, GetAttributeValue( "EnabledLavaCommands" ) );
+            var text = GetAttributeValue( "LavaTemplate" );
+        var commands = GetAttributeValue( "EnabledLavaCommands" );
+        lOutput.Text = text.ResolveMergeFields(mergeFields, commands);
 
             var minutes = GetAttributeValue( "CacheDuration" ).AsInteger();
-            if ( minutes > 0 )
+            if (minutes > 0 )
             {
                 string cacheTags = GetAttributeValue( "CacheTags" ) ?? string.Empty;
-                RockCache.AddOrUpdate( cacheKey,
-                    System.Globalization.CultureInfo.CurrentCulture.ToString(),
-                lOutput.Text, RockDateTime.Now.AddMinutes( minutes ),
+        RockCache.AddOrUpdate(cacheKey,
+            System.Globalization.CultureInfo.CurrentCulture.ToString(),
+                lOutput.Text, RockDateTime.Now.AddMinutes(minutes ),
                 cacheTags );
+            }
+}
+
+
+/// <summary>
+/// Loads the drop downs.
+/// </summary>
+private bool SetFilterControls()
+{
+    // Get and verify the calendar id
+    if ( _calendarId <= 0 )
+    {
+        ShowError( "Configuration Error", "The 'Event Calendar' setting has not been set correctly." );
+        return false;
+    }
+
+    // Get and verify the view mode
+    ViewMode = GetAttributeValue( "DefaultViewOption" );
+    if ( !GetAttributeValue( string.Format( "Show{0}View", ViewMode ) ).AsBoolean() )
+    {
+        ShowError( "Configuration Error", string.Format( "The Default View Option setting has been set to '{0}', but the Show {0} View setting has not been enabled.", ViewMode ) );
+        return false;
+    }
+
+    // Show/Hide calendar control
+    pnlCalendar.Visible = GetAttributeValue( "ShowSmallCalendar" ).AsBoolean();
+
+    // Get the first/last dates based on today's date and the viewmode setting
+    var today = RockDateTime.Now;
+    FilterStartDate = today;
+    FilterEndDate = today;
+    if ( ViewMode == "Week" )
+    {
+        FilterStartDate = today.StartOfWeek( _firstDayOfWeek );
+        FilterEndDate = today.EndOfWeek( _firstDayOfWeek );
+    }
+    else if ( ViewMode == "Month" )
+    {
+        FilterStartDate = new DateTime( today.Year, today.Month, 1 );
+        FilterEndDate = FilterStartDate.Value.AddMonths( 1 ).AddDays( -1 );
+    }
+    else if ( ViewMode == "Year" )
+    {
+        FilterEndDate = FilterStartDate.Value.AddYears( 1 ).AddDays( -1 );
+    }
+
+    // Setup small calendar Filter
+    calEventCalendar.FirstDayOfWeek = _firstDayOfWeek.ConvertToInt().ToString().ConvertToEnum<FirstDayOfWeek>();
+    calEventCalendar.SelectedDates.Clear();
+    calEventCalendar.SelectedDates.SelectRange( FilterStartDate.Value, FilterEndDate.Value );
+
+    // Setup Campus Filter
+    rcwCampus.Visible = GetAttributeValue( "CampusFilterDisplayMode" ).AsInteger() > 1;
+    cblCampus.DataSource = CampusCache.All();
+    cblCampus.DataBind();
+
+    //Check for Campus Parameter
+    var campusId = PageParameter( GetAttributeValue( "CampusParameterName" ) ).AsIntegerOrNull();
+    var campusStr = PageParameter( "Campus" );
+    if ( campusId.HasValue )
+    {
+        //check if there's a campus with this id.
+        var campus = CampusCache.Get( campusId.Value );
+        if ( campus != null )
+        {
+            cblCampus.SetValue( campusId.Value );
+        }
+    }
+    else if ( !string.IsNullOrEmpty( campusStr ) )
+    {
+        //check if there's a campus with this name.
+        campusStr = campusStr.Replace( " ", "" ).Replace( "-", "" );
+        var campusCache = CampusCache.All().Where( c => c.Name.ToLower().Replace( " ", "" ).Replace( "-", "" ) == campusStr.ToLower() ).FirstOrDefault();
+        if ( campusCache != null )
+        {
+            cblCampus.SetValue( campusCache.Id );
+        }
+    }
+    else
+    {
+        if ( GetAttributeValue( "EnableCampusContext" ).AsBoolean() )
+        {
+            var contextCampus = RockPage.GetCurrentContext( EntityTypeCache.Get( "Rock.Model.Campus" ) ) as Campus;
+            if ( contextCampus != null )
+            {
+                cblCampus.SetValue( contextCampus.Id );
+            }
+        }
+    }
+
+    // Setup Category Filter
+    var selectedCategoryGuids = GetAttributeValue( "FilterCategories" ).SplitDelimitedValues( true ).AsGuidList();
+    rcwCategory.Visible = selectedCategoryGuids.Any() && GetAttributeValue( "CategoryFilterDisplayMode" ).AsInteger() > 1;
+    var definedType = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.MARKETING_CAMPAIGN_AUDIENCE_TYPE.AsGuid() );
+    if ( definedType != null )
+    {
+        var categoryItems = definedType.DefinedValues.ToList();
+        if ( selectedCategoryGuids.Count() > 0 )
+        {
+            categoryItems = definedType.DefinedValues.Where( v => selectedCategoryGuids.Contains( v.Guid ) ).ToList();
+        }
+        cblCategory.DataSource = categoryItems;
+        cblCategory.DataBind();
+    }
+    var categoryId = PageParameter( GetAttributeValue( "CategoryParameterName" ) ).AsIntegerOrNull();
+    var ministrySlug = PageParameter( "ministry" ).ToLower();
+    if ( categoryId.HasValue )
+    {
+        if ( definedType.DefinedValues.Where( v => ( selectedCategoryGuids.Contains( v.Guid ) || selectedCategoryGuids.Count() == 0 ) && v.Id == categoryId.Value ).FirstOrDefault() != null )
+        {
+            cblCategory.SetValue( categoryId.Value );
+        }
+
+    }
+    else if ( !string.IsNullOrEmpty( ministrySlug ) )
+    {
+        var definedValues = definedType.DefinedValues.Where( v => ( selectedCategoryGuids.Contains( v.Guid ) || selectedCategoryGuids.Count() == 0 ) ).ToList();
+        DefinedTypeService definedTypeService = new DefinedTypeService( new RockContext() );
+        var definedTypeModel = definedTypeService.Get( definedType.Guid );
+        foreach ( var dv in definedTypeModel.DefinedValues )
+        {
+            dv.LoadAttributes();
+            if ( dv.GetAttributeValue( "URLSlug" ) == ministrySlug )
+            {
+                cblCategory.SetValue( dv.Id );
+                break;
             }
         }
 
+    }
 
-        /// <summary>
-        /// Loads the drop downs.
-        /// </summary>
-        private bool SetFilterControls()
-        {
-            // Get and verify the calendar id
-            if ( _calendarId <= 0 )
-            {
-                ShowError( "Configuration Error", "The 'Event Calendar' setting has not been set correctly." );
-                return false;
-            }
+    // Date Range Filter
+    drpDateRange.Visible = GetAttributeValue( "ShowDateRangeFilter" ).AsBoolean();
+    lbDateRangeRefresh.Visible = drpDateRange.Visible;
+    drpDateRange.LowerValue = FilterStartDate;
+    drpDateRange.UpperValue = FilterEndDate;
 
-            // Get and verify the view mode
-            ViewMode = GetAttributeValue( "DefaultViewOption" );
-            if ( !GetAttributeValue( string.Format( "Show{0}View", ViewMode ) ).AsBoolean() )
-            {
-                ShowError( "Configuration Error", string.Format( "The Default View Option setting has been set to '{0}', but the Show {0} View setting has not been enabled.", ViewMode ) );
-                return false;
-            }
-
-            // Show/Hide calendar control
-            pnlCalendar.Visible = GetAttributeValue( "ShowSmallCalendar" ).AsBoolean();
-
-            // Get the first/last dates based on today's date and the viewmode setting
-            var today = RockDateTime.Now;
-            FilterStartDate = today;
-            FilterEndDate = today;
-            if ( ViewMode == "Week" )
-            {
-                FilterStartDate = today.StartOfWeek( _firstDayOfWeek );
-                FilterEndDate = today.EndOfWeek( _firstDayOfWeek );
-            }
-            else if ( ViewMode == "Month" )
-            {
-                FilterStartDate = new DateTime( today.Year, today.Month, 1 );
-                FilterEndDate = FilterStartDate.Value.AddMonths( 1 ).AddDays( -1 );
-            }
-            else if ( ViewMode == "Year" )
-            {
-                FilterEndDate = FilterStartDate.Value.AddYears( 1 ).AddDays( -1 );
-            }
-
-            // Setup small calendar Filter
-            calEventCalendar.FirstDayOfWeek = _firstDayOfWeek.ConvertToInt().ToString().ConvertToEnum<FirstDayOfWeek>();
-            calEventCalendar.SelectedDates.Clear();
-            calEventCalendar.SelectedDates.SelectRange( FilterStartDate.Value, FilterEndDate.Value );
-
-            // Setup Campus Filter
-            rcwCampus.Visible = GetAttributeValue( "CampusFilterDisplayMode" ).AsInteger() > 1;
-            cblCampus.DataSource = CampusCache.All();
-            cblCampus.DataBind();
-
-            //Check for Campus Parameter
-            var campusId = PageParameter( GetAttributeValue( "CampusParameterName" ) ).AsIntegerOrNull();
-            var campusStr = PageParameter( "Campus" );
-            if ( campusId.HasValue )
-            {
-                //check if there's a campus with this id.
-                var campus = CampusCache.Get( campusId.Value );
-                if ( campus != null )
-                {
-                    cblCampus.SetValue( campusId.Value );
-                }
-            }
-            else if ( !string.IsNullOrEmpty( campusStr ) )
-            {
-                //check if there's a campus with this name.
-                campusStr = campusStr.Replace( " ", "" ).Replace( "-", "" );
-                var campusCache = CampusCache.All().Where( c => c.Name.ToLower().Replace( " ", "" ).Replace( "-", "" ) == campusStr.ToLower() ).FirstOrDefault();
-                if ( campusCache != null )
-                {
-                    cblCampus.SetValue( campusCache.Id );
-                }
-            }
-            else
-            {
-                if ( GetAttributeValue( "EnableCampusContext" ).AsBoolean() )
-                {
-                    var contextCampus = RockPage.GetCurrentContext( EntityTypeCache.Get( "Rock.Model.Campus" ) ) as Campus;
-                    if ( contextCampus != null )
-                    {
-                        cblCampus.SetValue( contextCampus.Id );
-                    }
-                }
-            }
-
-            // Setup Category Filter
-            var selectedCategoryGuids = GetAttributeValue( "FilterCategories" ).SplitDelimitedValues( true ).AsGuidList();
-            rcwCategory.Visible = selectedCategoryGuids.Any() && GetAttributeValue( "CategoryFilterDisplayMode" ).AsInteger() > 1;
-            var definedType = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.MARKETING_CAMPAIGN_AUDIENCE_TYPE.AsGuid() );
-            if ( definedType != null )
-            {
-                var categoryItems = definedType.DefinedValues.ToList();
-                if ( selectedCategoryGuids.Count() > 0 )
-                {
-                    categoryItems = definedType.DefinedValues.Where( v => selectedCategoryGuids.Contains( v.Guid ) ).ToList();
-                }
-                cblCategory.DataSource = categoryItems;
-                cblCategory.DataBind();
-            }
-            var categoryId = PageParameter( GetAttributeValue( "CategoryParameterName" ) ).AsIntegerOrNull();
-            var ministrySlug = PageParameter( "ministry" ).ToLower();
-            if ( categoryId.HasValue )
-            {
-                if ( definedType.DefinedValues.Where( v => ( selectedCategoryGuids.Contains( v.Guid ) || selectedCategoryGuids.Count() == 0 ) && v.Id == categoryId.Value ).FirstOrDefault() != null )
-                {
-                    cblCategory.SetValue( categoryId.Value );
-                }
-
-            }
-            else if ( !string.IsNullOrEmpty( ministrySlug ) )
-            {
-                var definedValues = definedType.DefinedValues.Where( v => ( selectedCategoryGuids.Contains( v.Guid ) || selectedCategoryGuids.Count() == 0 ) ).ToList();
-                DefinedTypeService definedTypeService = new DefinedTypeService( new RockContext() );
-                var definedTypeModel = definedTypeService.Get( definedType.Guid );
-                foreach ( var dv in definedTypeModel.DefinedValues )
-                {
-                    dv.LoadAttributes();
-                    if ( dv.GetAttributeValue( "URLSlug" ) == ministrySlug )
-                    {
-                        cblCategory.SetValue( dv.Id );
-                        break;
-                    }
-                }
-
-            }
-
-            // Date Range Filter
-            drpDateRange.Visible = GetAttributeValue( "ShowDateRangeFilter" ).AsBoolean();
-            lbDateRangeRefresh.Visible = drpDateRange.Visible;
-            drpDateRange.LowerValue = FilterStartDate;
-            drpDateRange.UpperValue = FilterEndDate;
-
-            // Get the View Modes, and only show them if more than one is visible
-            var viewsVisible = new List<bool> {
+    // Get the View Modes, and only show them if more than one is visible
+    var viewsVisible = new List<bool> {
                 GetAttributeValue( "ShowDayView" ).AsBoolean(),
                 GetAttributeValue( "ShowWeekView" ).AsBoolean(),
                 GetAttributeValue( "ShowMonthView" ).AsBoolean(),
                 GetAttributeValue( "ShowYearView" ).AsBoolean()
             };
-            var howManyVisible = viewsVisible.Where( v => v ).Count();
-            btnDay.Visible = howManyVisible > 1 && viewsVisible[0];
-            btnWeek.Visible = howManyVisible > 1 && viewsVisible[1];
-            btnMonth.Visible = howManyVisible > 1 && viewsVisible[2];
-            btnYear.Visible = howManyVisible > 1 && viewsVisible[3];
+    var howManyVisible = viewsVisible.Where( v => v ).Count();
+    btnDay.Visible = howManyVisible > 1 && viewsVisible[0];
+    btnWeek.Visible = howManyVisible > 1 && viewsVisible[1];
+    btnMonth.Visible = howManyVisible > 1 && viewsVisible[2];
+    btnYear.Visible = howManyVisible > 1 && viewsVisible[3];
 
-            // Set filter visibility
-            bool showFilter = ( pnlCalendar.Visible || rcwCampus.Visible || rcwCategory.Visible || drpDateRange.Visible );
-            pnlFilters.Visible = showFilter;
-            pnlList.CssClass = showFilter ? "col-md-9" : "col-md-12";
+    // Set filter visibility
+    bool showFilter = ( pnlCalendar.Visible || rcwCampus.Visible || rcwCategory.Visible || drpDateRange.Visible );
+    pnlFilters.Visible = showFilter;
+    pnlList.CssClass = showFilter ? "col-md-9" : "col-md-12";
 
-            return true;
-        }
+    return true;
+}
 
 
-        /// <summary>
-        /// Resets the calendar selection. The control is configured for day selection, but selection will be changed to the week or month or year if that is the viewmode being used
-        /// </summary>
-        private void ResetCalendarSelection()
-        {
-            // Even though selection will be a single date due to calendar's selection mode, set the appropriate days
-            if ( SelectedDate != null )
-            {
-                calEventCalendar.SelectedDate = SelectedDate.Value;
-            }
-            var selectedDate = calEventCalendar.SelectedDate;
-            FilterStartDate = selectedDate;
-            FilterEndDate = selectedDate;
-            if ( ViewMode == "Week" )
-            {
-                FilterStartDate = selectedDate.StartOfWeek( _firstDayOfWeek );
-                FilterEndDate = selectedDate.EndOfWeek( _firstDayOfWeek );
-            }
-            else if ( ViewMode == "Month" )
-            {
-                FilterStartDate = new DateTime( selectedDate.Year, selectedDate.Month, 1 );
-                FilterEndDate = FilterStartDate.Value.AddMonths( 1 ).AddDays( -1 );
-            }
+/// <summary>
+/// Resets the calendar selection. The control is configured for day selection, but selection will be changed to the week or month or year if that is the viewmode being used
+/// </summary>
+private void ResetCalendarSelection()
+{
+    // Even though selection will be a single date due to calendar's selection mode, set the appropriate days
+    if ( SelectedDate != null )
+    {
+        calEventCalendar.SelectedDate = SelectedDate.Value;
+    }
+    var selectedDate = calEventCalendar.SelectedDate;
+    FilterStartDate = selectedDate;
+    FilterEndDate = selectedDate;
+    if ( ViewMode == "Week" )
+    {
+        FilterStartDate = selectedDate.StartOfWeek( _firstDayOfWeek );
+        FilterEndDate = selectedDate.EndOfWeek( _firstDayOfWeek );
+    }
+    else if ( ViewMode == "Month" )
+    {
+        FilterStartDate = new DateTime( selectedDate.Year, selectedDate.Month, 1 );
+        FilterEndDate = FilterStartDate.Value.AddMonths( 1 ).AddDays( -1 );
+    }
 
-            // Reset the selection
-            calEventCalendar.SelectedDates.SelectRange( FilterStartDate.Value, FilterEndDate.Value );
-        }
+    // Reset the selection
+    calEventCalendar.SelectedDates.SelectRange( FilterStartDate.Value, FilterEndDate.Value );
+}
 
-        private void SetCalendarFilterDates()
-        {
-            FilterStartDate = calEventCalendar.SelectedDates.Count > 0 ? calEventCalendar.SelectedDates[0] : ( DateTime? ) null;
-            FilterEndDate = calEventCalendar.SelectedDates.Count > 0 ? calEventCalendar.SelectedDates[calEventCalendar.SelectedDates.Count - 1] : ( DateTime? ) null;
-        }
+private void SetCalendarFilterDates()
+{
+    FilterStartDate = calEventCalendar.SelectedDates.Count > 0 ? calEventCalendar.SelectedDates[0] : ( DateTime? ) null;
+    FilterEndDate = calEventCalendar.SelectedDates.Count > 0 ? calEventCalendar.SelectedDates[calEventCalendar.SelectedDates.Count - 1] : ( DateTime? ) null;
+}
 
-        /// <summary>
-        /// Shows the warning.
-        /// </summary>
-        /// <param name="heading">The heading.</param>
-        /// <param name="message">The message.</param>
-        private void ShowWarning( string heading, string message )
-        {
-            nbMessage.Heading = heading;
-            nbMessage.Text = string.Format( "<p>{0}</p>", message );
-            nbMessage.NotificationBoxType = NotificationBoxType.Danger;
-            nbMessage.Visible = true;
-        }
+/// <summary>
+/// Shows the warning.
+/// </summary>
+/// <param name="heading">The heading.</param>
+/// <param name="message">The message.</param>
+private void ShowWarning( string heading, string message )
+{
+    nbMessage.Heading = heading;
+    nbMessage.Text = string.Format( "<p>{0}</p>", message );
+    nbMessage.NotificationBoxType = NotificationBoxType.Danger;
+    nbMessage.Visible = true;
+}
 
-        /// <summary>
-        /// Shows the error.
-        /// </summary>
-        /// <param name="heading">The heading.</param>
-        /// <param name="message">The message.</param>
-        private void ShowError( string heading, string message )
-        {
-            nbMessage.Heading = heading;
-            nbMessage.Text = string.Format( "<p>{0}</p>", message );
-            nbMessage.NotificationBoxType = NotificationBoxType.Danger;
-            nbMessage.Visible = true;
-        }
+/// <summary>
+/// Shows the error.
+/// </summary>
+/// <param name="heading">The heading.</param>
+/// <param name="message">The message.</param>
+private void ShowError( string heading, string message )
+{
+    nbMessage.Heading = heading;
+    nbMessage.Text = string.Format( "<p>{0}</p>", message );
+    nbMessage.NotificationBoxType = NotificationBoxType.Danger;
+    nbMessage.Visible = true;
+}
 
-        #endregion
+#endregion
 
-        #region Helper Classes
+#region Helper Classes
 
-        /// <summary>
-        /// A class to store event item occurrence data for liquid
-        /// </summary>
-        [DotLiquid.LiquidType( "EventItemOccurrence", "DateTime", "Name", "Date", "Time", "Campus", "Location",
-            "LocationDescription", "Description", "Summary", "OccurrenceNote", "DetailPage",
-            "Priority", "URLSlugs", "PrimaryMinistryImageGuid", "PrimaryMinstryTitle", "ImageHeaderText", "ImageHeaderTextSmall",
-            "EventDatesHide" )]
-        public class EventOccurrenceSummary
-        {
-            public EventItemOccurrence EventItemOccurrence { get; set; }
-            public DateTime DateTime { get; set; }
-            public String Name { get; set; }
-            public String Date { get; set; }
-            public String Time { get; set; }
-            public String Campus { get; set; }
-            public String Location { get; set; }
-            public String LocationDescription { get; set; }
-            public String Summary { get; set; }
-            public String Description { get; set; }
-            public String OccurrenceNote { get; set; }
-            public String DetailPage { get; set; }
-            public int Priority { get; set; }
-            public String URLSlugs { get; set; }
-            public string PrimaryMinistryImageGuid { get; set; }
-            public string PrimaryMinstryTitle { get; set; }
-            public string ImageHeaderText { get; set; }
-            public string ImageHeaderTextSmall { get; set; }
-            public string EventDatesHide { get; set; }
-        }
+/// <summary>
+/// A class to store event item occurrence data for liquid
+/// </summary>
+[DotLiquid.LiquidType( "EventItemOccurrence", "DateTime", "Name", "Date", "Time", "Campus", "Location",
+    "LocationDescription", "Description", "Summary", "OccurrenceNote", "DetailPage",
+    "Priority", "URLSlugs", "PrimaryMinistryImageGuid", "PrimaryMinstryTitle", "ImageHeaderText", "ImageHeaderTextSmall",
+    "EventDatesHide", "AttUseOnlyScheduleText", "AttScheduleText", "AttChildcareAvailable", "EventItem", "EventItemPhotoId",
+    "ICalendarContent" )]
+public class EventOccurrenceSummary
+{
+    public EventItemOccurrence EventItemOccurrence { get; set; }
+    public EventItem EventItem { get; set; }
+    public int? EventItemPhotoId { get; set; }
+    public DateTime DateTime { get; set; }
+    public string ICalendarContent { get; set; }
+    public String Name { get; set; }
+    public String Date { get; set; }
+    public String Time { get; set; }
+    public String Campus { get; set; }
+    public String Location { get; set; }
+    public String LocationDescription { get; set; }
+    public String Summary { get; set; }
+    public String Description { get; set; }
+    public String OccurrenceNote { get; set; }
+    public String DetailPage { get; set; }
+    public int Priority { get; set; }
+    public String URLSlugs { get; set; }
+    public string PrimaryMinistryImageGuid { get; set; }
+    public string PrimaryMinstryTitle { get; set; }
+    public string ImageHeaderText { get; set; }
+    public string ImageHeaderTextSmall { get; set; }
+    public string EventDatesHide { get; set; }
+    public string AttUseOnlyScheduleText { get; set; }
+    public string AttScheduleText { get; set; }
+    public string AttChildcareAvailable { get; set; }
+}
 
-        /// <summary>
-        /// A class to store the event item occurrences dates
-        /// </summary>
-        public class EventOccurrenceDate
-        {
-            public EventItemOccurrence EventItemOccurrence { get; set; }
-            public IEnumerable<AttributeValue> EventCalendarItemAttributeValues { get; set; }
-            public DateTime Date { get; set; }
-        }
+/// <summary>
+/// A class to store the event item occurrences dates
+/// </summary>
+public class EventOccurrenceDate
+{
+    public EventItemOccurrence EventItemOccurrence { get; set; }
+    public IEnumerable<AttributeValue> EventCalendarItemAttributeValues { get; set; }
+    public IEnumerable<AttributeValue> EventItemOccurrenceAttributeValues { get; set; }
+    public DateTime Date { get; set; }
+}
 
         #endregion
 
