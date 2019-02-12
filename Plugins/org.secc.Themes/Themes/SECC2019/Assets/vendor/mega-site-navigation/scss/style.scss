@@ -504,10 +504,11 @@ main {
 	ul {
 		position: fixed;
 		top: 0;
+		overflow-x: hidden;
 	}
 	/* Force Hardware Acceleration in WebKit */
-	@include transform(translateZ(0));
-	@include transform(translateX(0));
+	// @include transform(translateZ(0));
+	// @include transform(translateX(0));
 	@include transition(transform .3s);
 
 	a,div.disabled {
@@ -760,6 +761,13 @@ main {
 				font-size:1.75rem;
 				margin-top: 8px;
 			}
+		}
+	}
+
+	.cd-secondary-nav {
+		&.moves-out {
+			/* push the navigation items to the left - and lower down opacity - when tertiary nav slides in */
+			@include transform(translateX(-100%));
 		}
 	}
 
