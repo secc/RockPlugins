@@ -100,7 +100,7 @@
 
             </div><!-- END: col-md-4 -->
 
-            <div class="col-md-8 g-padding-t-10--xs g-padding-t-70--lg g-padding-t-100--lg" style="min-height: 150px;">
+            <div class="col-md-8 g-padding-t-10--xs g-padding-t-70--lg g-padding-t-100--lg" style="min-height: 65px;">
 
                 <h3 class="g-font-family--secondary">{{Event.Name}}</h3>
 
