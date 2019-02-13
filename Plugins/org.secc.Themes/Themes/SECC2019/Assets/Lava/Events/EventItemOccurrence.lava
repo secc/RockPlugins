@@ -86,7 +86,7 @@
     </div>
     {% endif %}
 
-    <div class="col-xs-12 {% if childcare != 'Yes' %}g-padding-l-150--xs{% else %}g-padding-x-60--xs{% endif %}">
+    <div class="col-xs-12 {% if childcare != 'Yes' %}g-padding-l-100--xs{% else %}g-padding-x-20--xs{% endif %}">
         {% if useOnlyScheduleText != 'Yes' %}
             {% if scheduledDates != empty %}
                 <ul class="list-unstyled readmore_dates" style="margin: 0;">
