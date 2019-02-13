@@ -138,25 +138,34 @@ $(document).ready(function() {
 			$(el).show();
 		},
 		afterToggle: function(trigger, element, expanded) {
-			$('.isotope_wrap').isotope(isoOptions); // re-initialize
+			if (Modernizr.mq('only all and (max-width: 720px)')) {
+				// don't use isotope if mobile - it's heavy on JS
+			} else {
+				$('.isotope_wrap').isotope(isoOptions); // re-initialize
+			}
 		}
 	});
 
-	var isoOptions = {
-		itemSelector: '.isotope_item',
-		percentPosition: true,
-		layoutMode: 'fitRows'
-	};
+	if (Modernizr.mq('only all and (max-width: 720px)')) {
+		// don't use isotope on mobile - it's heavy on JS
+		var $grid = $('.isotope_wrap').addClass('is-showing-items');
+	} else {
+		var isoOptions = {
+			itemSelector: '.isotope_item',
+			percentPosition: true,
+			layoutMode: 'fitRows'
+		};
+		// Re-Initialize Isotope
+	    var $grid = $('.isotope_wrap').isotope(isoOptions);
 
-    // Re-Initialize Isotope
-    var $grid = $('.isotope_wrap').isotope(isoOptions);
+		// reveal all items after init
+		var $items = $grid.find('.isotope_item');
+		$grid.imagesLoaded().progress( function() {
+			$grid.addClass('is-showing-items').isotope('layout');
+		});
+		$grid.isotope( 'revealItemElements', $items );
+	}
 
-    // reveal all items after init
-    var $items = $grid.find('.isotope_item');
-    $grid.imagesLoaded().progress( function() {
-      $grid.addClass('is-showing-items').isotope('layout');
-    });
-    $grid.isotope( 'revealItemElements', $items );
 
     // re-init jarallax
     jarallax(document.querySelectorAll('.jarallax'), {
