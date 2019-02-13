@@ -107,7 +107,7 @@
 
         <hr class="" style="border-color: rgba(124, 124, 124, 0.68); margin: 0 auto;" />
 
-        <h6 class="g-margin-t-40--xs">
+        <h6 class="g-padding-t-40--xs">
             <span class="g-font-weight--800 uppercase">Contact</span><br />
             {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}
                 {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} <br />
