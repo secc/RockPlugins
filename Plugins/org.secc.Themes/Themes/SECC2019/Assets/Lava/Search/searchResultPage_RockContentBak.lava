@@ -1,0 +1,60 @@
+<br />
+<br />
+<div id="iframeHolder" class="container-fluid" style="white-space: nowrap;">
+    <!--<iframe id="myIFrame" width="100%" height="auto" style="width: 100%; height: 100vh; border: none; margin: none;"></iframe>-->
+</div>
+<br />
+<br />
+
+<script type="text/javascript">
+        function getParamValue(paramName) {
+            var url = window.location.search.substring(1); //get rid of "?" in querystring
+            var qArray = url.split('&'); //get key-value pairs
+            for (var i = 0; i < qArray.length; i++)
+            {
+                var pArr = qArray[i].split('='); //split key and value
+                if (pArr[0] == paramName)
+                    return pArr[1]; //return value
+            }
+        }
+
+
+        var iframeSrc = "/Themes/SECC2019/Assets/Lava/Search/search.html?q=" + getParamValue('q');
+
+        //console.log('"'+iframeSrc+'"');
+        //top.document.getElementById('myIframe').setAttribute("src",'"'+iframeSrc+'"');
+        // $('#myIframe').attr('src', '"'+iframeSrc+'"');
+
+        function createGoogleResultFrame() {
+            frame = document.createElement("iframe");
+            frame.setAttribute("src", iframeSrc);
+            frame.setAttribute("id", "myIFrame");
+            frame.setAttribute("height", "auto");
+            frame.setAttribute("width", "100%");
+            frame.frameBorder = 0;
+            frame.style.width = 100 + "%";
+            frame.style.height = 100 + "vh";
+            frame.style.border = "none";
+            frame.style.margin = "0";
+            document.getElementById("iframeHolder").appendChild(frame);
+        }
+        createGoogleResultFrame();
+
+        var resizeIFrame = function(event) {
+            var loc = document.location;
+            if (event.origin != loc.protocol + '//' + loc.host) return;
+
+            var myIFrame = document.getElementById('myIFrame');
+            if (myIFrame) {
+                myIFrame.style.height = event.data.h + "px";
+                myIFrame.style.width  = event.data.w + "px";
+            }
+        };
+
+        if (window.addEventListener) {
+            window.addEventListener("message", resizeIFrame, false);
+        } else if (window.attachEvent) {
+            window.attachEvent("onmessage", resizeIFrame);
+        }
+
+</script>

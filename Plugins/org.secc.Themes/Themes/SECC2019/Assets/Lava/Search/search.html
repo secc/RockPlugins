@@ -1,0 +1,132 @@
+<head>
+	<link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019/Styles/main.css"/>
+
+	<style>
+    	h1.section-header {
+    	    margin-bottom: 44px;
+    	}
+    	.section-header {
+    	    position: relative;
+    	    z-index: 1;
+    	    overflow: hidden;
+    	    text-align: center;
+    	    text-transform: none;
+    	    color: #383735;
+    	}
+
+    	#InlineSearch{
+    		font-size:1.5em;
+    		width:50%;
+    		margin:0 auto;
+    		display:-webkit-box;
+    		display:-moz-box;
+    		display:-ms-flexbox;
+    		display:-webkit-flex;
+    		display:flex;
+    		-webkit-box-flex-flow:row nowrap;
+    		-moz-box-flex-flow:row nowrap;
+    		-webkit-flex-flow:row nowrap;
+    		-ms-flex-flow:row nowrap;
+    		flex-flow:row nowrap
+    	}
+    	@media (max-width:991px){
+    		#InlineSearch {
+    			width:100%
+    		}
+
+			.gs-title {
+			    white-space: normal !important;
+			}
+			.gsc-url-top {
+				white-space: normal !important;
+			}
+			.gsc-result .gs-title {
+			    height: 3em !important;
+			}
+			.gs-result .gs-snippet {
+				padding-left: 10px;
+				padding-right: 10px;
+			}
+			.cse .gsc-control-cse, .gsc-control-cse {
+			    padding: 0px !important;
+			    width: auto;
+			}
+    	}
+
+    	.glyphicon {
+    	    font-size: .8em;
+    	}
+
+    	.glyphicon {
+    	    position: relative;
+    	    top: 1px;
+    	    display: inline-block;
+    	    font-family: 'Glyphicons Halflings';
+    	    font-style: normal;
+    	    font-weight: 400;
+    	    line-height: 1;
+    	    -webkit-font-smoothing: antialiased;
+    	    -moz-osx-font-smoothing: grayscale;
+    	}
+	</style>
+</head>
+<body onload="resizeIFrame();" id="googleSearchFullResult" style="white-space: nowrap; overflow:hidden;">
+	<section>
+		<div class="container-fluid">
+			<h1 class="section-header g-font-family--secondary">
+				Search
+			</h1>
+
+			<form method="GET" id="InlineSearch">
+				<input type="text" id="googleQuery" name="q" value="" class="g-padding-y-10--xs g-padding-x-10--xs g-margin-r-20--xs" />
+				<button onclick="$('#InlineSearch').submit();" class="uppercase se-btn se-btn--dark-brd"><span class="glyphicon glyphicon-search"></span></button>
+			</form>
+
+			<gcse:searchresults-only></gcse:searchresults-only>
+		</div>
+	</section>
+	<!-- Page Scripts go here -->
+	<script>
+		var q = decodeURIComponent(getParamValue('q'));
+		document.getElementById('googleQuery').value = q;
+
+		var init_width = (window.innerWidth < screen.width) ? window.innerWidth : screen.width;
+		var cx = '017451143928353547937:2467z7nsdck';
+		var gcse = document.createElement('script');
+		gcse.type = 'text/javascript';
+		gcse.async = true;
+		gcse.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//www.google.com/cse/cse.js?cx=' + cx;
+		var s = document.getElementsByTagName('script')[0];
+		s.parentNode.insertBefore(gcse, s);
+
+		function resizeIFrame(){
+		   if (parent.postMessage) {
+		     var body   = document.body,
+		        html   = document.documentElement,
+		        loc    = document.location,
+		        height = Math.max(body.scrollHeight, body.offsetHeight,
+		                          html.clientHeight, html.scrollHeight, html.offsetHeight),
+		        width  = Math.max(body.scrollWidth, body.offsetWidth, //add a bit of margin
+		                          html.clientWidth, html.scrollWidth, html.offsetWidth) + 5;
+
+		      parent.postMessage({ h: height, w: width }, loc.protocol + '//' + loc.host);
+
+			  var googleSearchFullResult = document.getElementById('googleSearchFullResult');
+			  googleSearchFullResult.style.width = init_width;
+		   }
+		}
+
+		function getParamValue(paramName)
+        {
+            var url = window.location.search.substring(1); //get rid of "?" in querystring
+            var qArray = url.split('&'); //get key-value pairs
+            for (var i = 0; i < qArray.length; i++)
+            {
+                var pArr = qArray[i].split('='); //split key and value
+                if (pArr[0] == paramName)
+                    return pArr[1]; //return value
+            }
+        }
+	</script>
+</body>
+</html>
