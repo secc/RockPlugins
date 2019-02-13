@@ -57,6 +57,16 @@ Note: Do to this javascript requirements of this shortcode you will need to do a
 {% endif -%}
 {% endcomment %}
 
+{% comment %}
+************************ This is included in the Site.Master file ********************
+{{ 'https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.3/jarallax.js' | AddScriptLink }}
+{{ 'https://cdnjs.cloudflare.com/ajax/libs/object-fit-images/3.2.3/ofi.min.js' | AddScriptLink }}
+
+{% if videourl != '' -%}
+    {{ 'https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.3/jarallax-video.js' | AddScriptLink }}
+{% endif -%}
+{% endcomment %}
+
 {% assign id = uniqueid -%}
 {% assign bodyZindex = zindex | Plus:1 -%}
 {% assign speed = speed | AsInteger %}
@@ -155,7 +165,7 @@ Note: Do to this javascript requirements of this shortcode you will need to do a
       {% endcomment %}
 
       jarallax(document.querySelectorAll('#{{ id }}'), {
-        disableParallax: /iPad|iPhone|iPod|Android/,
+	    disableParallax: /iPad|iPhone|iPod|Android/,
         disableVideo: /iPad|iPhone|iPod|Android/
       });
     </script>
@@ -181,6 +191,7 @@ Note: Do to this javascript requirements of this shortcode you will need to do a
 #{{ id }} .jarallax-img {
     position: absolute;
     object-fit: {{ imgsize }};
+    object-position: {{ position }}; /* default value: image is centered*/
     /* support for plugin https://github.com/bfred-it/object-fit-images */
     font-family: 'object-fit: {{ imgsize }};';
     top: 0;
@@ -214,7 +225,7 @@ contentpadding  - 0
 contentcolor    - #fff
 contentalign    - center
 loop            - true
-position        - top center
+position        - 0% 50%
 addclass        -
 videostarttime  - 0
 videoendtime    - 0
