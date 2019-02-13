@@ -127,29 +127,25 @@ $(document).ready(function() {
         runMinistryFilters(data);
     });
 
-	// hide descriptions
-	$('.readmore_dates').readmore({
-		speed: 200,
-		lessLink: '<a class="pull-right uppercase" style="padding: 2rem;width: 100%;text-align: right;"><span class="se-carat se-carat--up"></span></a>',
-		moreLink: '<a class="pull-right" style="display: inline-block;padding: 2rem;position: relative;height: 7rem;width: 100%;margin-top: -6rem;"><span class="pull-right se-carat se-carat--down" style="margin-top: 2rem;"></span></a>',
-		embedCSS: false,
-		collapsedHeight: 0,
-		beforeToggle: function(tr, el, ex) {
-			$(el).show();
-		},
-		afterToggle: function(trigger, element, expanded) {
-			if (Modernizr.mq('only all and (max-width: 720px)')) {
-				// don't use isotope if mobile - it's heavy on JS
-			} else {
+	if (Modernizr.mq('only all and (max-width: 720px)')) {
+		// don't use isotope or readmore on mobile - it's heavy on JS (breaks old iphones)
+		$('.isotope_wrap').addClass('is-showing-items');
+	} else {
+		// hide descriptions
+		$('.readmore_dates').readmore({
+			speed: 200,
+			lessLink: '<a class="pull-right uppercase" style="padding: 2rem;width: 100%;text-align: right;"><span class="se-carat se-carat--up"></span></a>',
+			moreLink: '<a class="pull-right" style="display: inline-block;padding: 2rem;position: relative;height: 7rem;width: 100%;margin-top: -6rem;"><span class="pull-right se-carat se-carat--down" style="margin-top: 2rem;"></span></a>',
+			embedCSS: false,
+			collapsedHeight: 0,
+			beforeToggle: function(tr, el, ex) {
+				$(el).show();
+			},
+			afterToggle: function(trigger, element, expanded) {
 				$('.isotope_wrap').isotope(isoOptions); // re-initialize
 			}
-		}
-	});
+		});
 
-	if (Modernizr.mq('only all and (max-width: 720px)')) {
-		// don't use isotope on mobile - it's heavy on JS
-		var $grid = $('.isotope_wrap').addClass('is-showing-items');
-	} else {
 		var isoOptions = {
 			itemSelector: '.isotope_item',
 			percentPosition: true,
