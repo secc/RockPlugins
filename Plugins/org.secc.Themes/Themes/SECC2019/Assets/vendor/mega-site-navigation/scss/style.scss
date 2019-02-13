@@ -651,7 +651,9 @@ main {
 					clear: both;
 					display: block;
 					text-transform: uppercase;
-					padding-left: 5px;
+					// padding-left: 5px;
+					line-height: 0.7rem;
+				    font-size: 1.1rem;
 					color: $color-3;
 					font-weight: 600;
 				}
@@ -1101,6 +1103,8 @@ main {
 							display: block;
 							text-transform: uppercase;
 							padding-left: 5px;
+							line-height: 0.9rem;
+						    font-size: 1.1rem;
 							color: $color-3;
 							font-weight: 600;
 						}
@@ -1480,7 +1484,7 @@ support for no js
 	.mega-menu-hide {
 		display: none;
 	}
-	
+
 	.logged-in {
 		// padding: 0 140px 0 0;
 	}
