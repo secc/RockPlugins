@@ -22,8 +22,10 @@
 {% assign campus = pageParamCampus %}
 {% assign campusSlug = campus | Attribute:'Slug' %}
 {% assign HeroImage = campus | Attribute:'HeroImage2','Object' %}
+{% assign HeroImagePosition = campus | Attribute:'HeroImage2Position','Object' %}
 {% assign CampusImageThumb = campus | Attribute:'CampusThumbnail','Object' %}
 {% assign WorshipImage = campus | Attribute:'WorshipServiceImage','Object' %}
+{% assign WorshipImagePosition = campus | Attribute:'WorshipServiceImagePosition','Object' %}
 {% assign CampusSubMenuItems = campus | Attribute:'CampusSubMenu' %}
 {% assign CampusVideo = campus | Attribute:'CampusVideo' %}
 {% assign CampusEmail = campus | Attribute:'Email' %}
@@ -94,7 +96,7 @@
                     // set new background
                     self.css(self.$item, {
                         'background-image': 'url("https://www.southeastchristian.org/GetImage.ashx?Guid={{ HeroImage.Guid }}")',
-                        'background-position': 'center',
+                        'background-position': '{{ HeroImagePosition }}',
                         'background-size': 'cover',
                         'transition': 'opacity .25s ease-in-out',
                         '-moz-transition': 'opacity .25s ease-in-out',
@@ -107,7 +109,7 @@
                   }
                 </script>
 
-                {[ parallax videourl:'https://vimeo.com/{{ CampusVimeoId }}' image:'https://www.southeastchristian.org/GetImage.ashx?Guid={{ HeroImage.Guid }}' videostarttime:'45' videoendtime:'55' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'80vh' position:'center center' speed:'-15' ]}
+                {[ parallax videourl:'https://vimeo.com/{{ CampusVimeoId }}' image:'https://www.southeastchristian.org/GetImage.ashx?Guid={{ HeroImage.Guid }}' videostarttime:'45' videoendtime:'55' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'80vh' position:'{{ HeroImagePosition }}' speed:'-15' ]}
                     <!-- START: Campus Logo & Video -->
                     <div class="parallax-logo centered" style="padding: 0px; z-index:3; max-width: 100%;">
                         <h4 class="uppercase g-font-weight--600 g-letter-spacing--3">Welcome To</h4>
@@ -222,7 +224,7 @@
     </section>
 
     <section id="WorshipTimes" class="g-margin-t-150--xs">
-        {[ parallax image:'/GetImage.ashx?Guid={{ WorshipImage.Guid }}' addclass:'g-bg-parallax-color--black--30 g-padding-y-150--md' height:'auto' position:'top top' speed:'-15' ]}
+        {[ parallax image:'/GetImage.ashx?Guid={{ WorshipImage.Guid }}' addclass:'g-bg-parallax-color--black--30 g-padding-y-150--md' height:'auto' position:'{{ WorshipImagePosition }}' speed:'-15' ]}
                 <div class="parallax-body container g-padding-y-150--xs">
                     <div class="row">
                         <div class="col-md-5">
