@@ -52,7 +52,7 @@ Accordion shortcode for the public website to be used in faq section
     The [[ item ]] block configuration has the following options:
 </p>
 <ul>
-    <li><strong>title</strong> - The title of the section.</li>
+    <li><strong>title</strong> - The title of the section.</li><li><b>minheight - </b>Set the minimum height of the question panels. (Increase this if the questions are too long for the default height.) <i>Default <b>110</b>.</i></li><li><b>autoheight - </b>Allow question panels to adjust automatically to length of questions using automatic height. <i>Default <b>false</b>. Set to <b>true</b> to enable.</i><br><i></i></li><li><b>columns</b> - Set the number of columns (from 1-4). <i>Default <b>2</b>.</i><br></li>
 </ul>
 
 {% comment %}
@@ -61,16 +61,19 @@ Accordion shortcode for the public website to be used in faq section
 
 {%- assign wrapperId = uniqueid -%}
 {%- assign wrapperId2 = uniqueid | Plus: uniqueid -%}
-{%- assign nextPage = items | Size | DividedBy:2,2 | Ceiling -%}
+{%- assign gridNum = 12 | DividedBy:columns -%}
+{%- assign nextPage = items | Size | DividedBy:columns,2 | Ceiling -%}
+{%- assign nextPageCounter = 0 -%}
 
-<div class="col-md-6 g-padding-x-20--xs">
+
+<div class="col-md-{{gridNum}} g-padding-x-20--xs">
   <div class="panel-{{ wrapperId }} accordions-1" id="faq-accordion-{{wrapperId}}" role="tablist" aria-multiselectable="true">
   {%- for item in items -%}
 
         <div class="panel panel-default">
             <div class="panel-heading collapsed" role="button"  id="heading{{ forloop.index }}-{{ wrapperId }}" data-toggle="collapse" data-parent="#faq-accordion-{{wrapperId}}, #faq-accordion-{{wrapperId2}}"
             href="#collapse{{ forloop.index }}-{{ wrapperId }}" aria-expanded="false" aria-controls="faq-1-collapse-1" {% if autoheight == 'false' %} style="min-height:{{minheight}}px" {% endif %} >
-              <h4 class="panel-title g-font-size-40--xs g-font-weight--700 {% if autoheight == 'false' %} g-ver-center--lg {% endif %} g-padding-r-100--xs g-padding-r-150--md">
+              <h4 class="panel-title g-font-size-40--xs g-font-weight--700 {% if autoheight == 'false' %} g-ver-center--xs {% endif %} g-padding-r-100--xs g-padding-r-150--md">
                   {{ item.title }}
               </h4>
             </div>
@@ -81,10 +84,12 @@ Accordion shortcode for the public website to be used in faq section
               </div>
             </div>
           </div>
-     {% if nextPage == forloop.index %}
+     {%- assign nextPageCounter = nextPageCounter | Plus:1 -%}
+     {% if nextPage == nextPageCounter %}
         </div></div>
-        <div class="col-md-6 g-padding-x-20--xs">
+        <div class="col-md-{{gridNum}} g-padding-x-20--xs">
         <div class="panel-{{ wrapperId }} accordions-1" id="faq-accordion-{{wrapperId2}}" role="tablist" aria-multiselectable="true">
+     {%- assign nextPageCounter = 0 -%}
      {% endif%}
 
   {%- endfor -%}
@@ -96,5 +101,6 @@ Accordion shortcode for the public website to be used in faq section
 
 minheight    - 110
 autoheight   - false
+columns      - 2
 
 {% endcomment %}
