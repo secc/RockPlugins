@@ -317,7 +317,7 @@
 
         {% if CurrentPerson.Guid %}
         <li class="has-children" id="GroupManager">
-            <a href="#MyAccount" class="arrow"><i class="fa fa-user"></i></a>
+            <a href="#MyAccount" class="arrow"><i class="fa fa-user"></i><span class="mega-menu-hide g-padding-l-20--xs">My Account</span></a>
             <ul class="cd-nav-list include-see-all is-hidden">
                 <li class="go-back"><a class="arrow">Menu</a></li>
                 <li class="see-all"><a href="/MyAccount">See My Account</a></li>
