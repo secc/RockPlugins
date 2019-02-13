@@ -1477,6 +1477,10 @@ support for no js
 }
 
 @include MQ(L) {
+	.mega-menu-hide {
+		display: none;
+	}
+	
 	.logged-in {
 		// padding: 0 140px 0 0;
 	}
