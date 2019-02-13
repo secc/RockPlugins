@@ -164,7 +164,7 @@
                         <div class="series-body g-padding-x-40--xs g-padding-y-40--xs">
                             <h4 class="g-font-family--secondary g-padding-b-20--xs">{{ message.Title }}</h4>
                             <h6 class="g-line-height--normal uppercase">
-								{{ message| Attribute'Speaker' }} – {{ message.StartDateTime | Date:'MMMM dd, yyyy' }}<br />
+								{{ message| Attribute: 'Speaker' }} – {{ message.StartDateTime | Date:'MMMM dd, yyyy' }}<br />
                                 {% assign runningMinutes = message | Attribute: 'Duration' | DividedBy:60 | Floor %}
                                 {% assign temp = runningMinutes | Times:60 %}
                                 {% assign runningSeconds = message | Attribute: 'Duration' | Minus:temp %}
