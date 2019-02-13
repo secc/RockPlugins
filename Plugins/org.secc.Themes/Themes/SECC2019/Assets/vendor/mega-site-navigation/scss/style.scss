@@ -514,7 +514,7 @@ main {
 	a,div.disabled {
 		display: block;
 		height: 50px;
-		line-height: 55px;
+		line-height: 60px;
 		padding: 0 20px;
 		color: $color-4;
 		text-decoration: none;
@@ -944,7 +944,7 @@ main {
 					@include column(.25);
 					position: relative;
 					overflow: hidden;
-					height: 23rem;
+					height: 23.5rem;
 					// padding-left: 3rem;
 				}
 
