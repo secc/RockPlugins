@@ -503,7 +503,10 @@ main {
 	a,div.disabled {
 		display: block;
 		height: 50px;
-		line-height: 60px;
+		line-height: 50px;
+		@include MQ(L) {
+			line-height: 60px;
+		}
 		padding: 0 20px;
 		color: $color-4;
 		text-decoration: none;

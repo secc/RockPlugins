@@ -25,6 +25,7 @@
 @import '_lib/_expandable';
 @import '_lib/_back-to-top';
 @import '_lib/links';
+@import '_lib/_photo_swipe';
 @import 'global/_global';
 @import '_lib/forms';
 
@@ -597,7 +598,7 @@ $zindex-modal:             1050 !important;
 $modal-backdrop-opacity:     .7 !important;
 .modal-backdrop {
   z-index: $zindex-modal-background;
-  background-color: $modal-backdrop-bg;
+  background-color: rgba($modal-backdrop-bg, 0.65);
 }
 // Close icon
 .modal-header .close {
