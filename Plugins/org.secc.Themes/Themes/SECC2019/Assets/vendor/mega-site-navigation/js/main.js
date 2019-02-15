@@ -36,15 +36,15 @@ jQuery(document).ready(function($){
 	});
 
 	// initiate search if entered
-	$("#cd-search input[name='q']").on('keyup', function (e) {
-		e.preventDefault();
+	$("#cd-search input[name='q']").on('keydown', function (e) {
 		var value = $( this ).val();
 		if (e.keyCode == 13) {
+			e.preventDefault();
 			submitSearchSite(value);
 		}
 	});
 	function submitSearchSite(val) {
-		window.location = "https://www.southeastchristian.org/newsite/search?q="+val;
+		window.location = "https://www.southeastchristian.org/search?q="+val;
 	}
 
 	//close lateral menu on mobile
