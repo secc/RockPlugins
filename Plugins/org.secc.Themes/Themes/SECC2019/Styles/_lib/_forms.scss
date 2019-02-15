@@ -61,7 +61,7 @@ form {
 
 	div:not(.rock-modal) {
 		 div:not(.modal-footer):not(.modal-body):not(.modal-header) {
-			> a.btn {
+			> a.btn, input.btn-action, input.btn-link {
 				@include btn;
 			}
 
@@ -73,6 +73,34 @@ form {
 				$brd-width: .4rem,
 				$brd-style: solid,
 				$brd-color: $color-dark,
+				$brd-radius: 0.1rem,
+				$hvr-bg: lighten($color-dark, 18%),
+				$hvr-color: $color-primary,
+				$hvr-brd-color: $color-dark);
+			}
+
+			> input.btn-action {
+				@include btn-style(
+				$color: $color-dark,
+				$padding: 0.5rem 1.5rem,
+				$bg: transparent,
+				$brd-width: .4rem,
+				$brd-style: solid,
+				$brd-color: lighten($color-dark, 60%),
+				$brd-radius: 0.1rem,
+				$hvr-bg: lighten($color-dark, 18%),
+				$hvr-color: $color-primary,
+				$hvr-brd-color: $color-dark);
+			}
+
+			> input.btn-link {
+				@include btn-style(
+				$color: $color-dark,
+				$padding: 0.5rem 1.5rem,
+				$bg: transparent,
+				$brd-width: .4rem,
+				$brd-style: solid,
+				$brd-color: lighten($color-dark, 80%),
 				$brd-radius: 0.1rem,
 				$hvr-bg: lighten($color-dark, 18%),
 				$hvr-color: $color-primary,
