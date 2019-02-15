@@ -20,16 +20,14 @@ using System.ComponentModel;
 using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
-
 using Rock;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web;
+using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
-using Rock.Attribute;
-using Rock.Security;
-using Rock.Web.Cache;
 
 namespace RockWeb.Blocks.Event
 {
@@ -39,10 +37,11 @@ namespace RockWeb.Blocks.Event
     [DisplayName( "Calendar Event Item Lava" )]
     [Category( "SECC > Event" )]
     [Description( "Renders a particular calendar event item using Lava." )]
+    [LinkedPage( "Registration Page", "Registration page for events", order: 1 )]
     [CodeEditorField( "Lava Template", "Lava template to use to display the list of events.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 400, true, @"{% include '~~/Assets/Lava/CalendarItem.lava' %}", "", 2 )]
-    [BooleanField( "Set Page Title", "Determines if the block should set the page title with the calendar item name.", false )]
-    [LinkedPage( "Registration Page", "Registration page for events" )]
-    [AttributeField ( "E37FB26F-03F6-48DA-8E96-F412616F5EE4", "URL Slug Attribute", "The attribute on the calendar item which contains the URL Slug.", false)]
+    [BooleanField( "Set Page Title", "Determines if the block should set the page title with the calendar item name.", false, order: 3 )]
+    [AttributeField( "E37FB26F-03F6-48DA-8E96-F412616F5EE4", "URL Slug Attribute", "The attribute on the calendar item which contains the URL Slug.", false, order: 4 )]
+    [CodeEditorField( "Event Not Found", "Lava template to use to display when no event is found.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 400, true, @"<h1>We are sorry, we couldn't find the event you are looking for.</h2>", "", 6 )]
     public partial class EventItemLava : Rock.Web.UI.RockBlock
     {
         #region Base Control Methods
@@ -128,7 +127,7 @@ namespace RockWeb.Blocks.Event
             EventItemService eventItemService = new EventItemService( rockContext );
             var qry = eventItemService
                 .Queryable();
-                
+
 
             // get the eventItem id
             if ( !string.IsNullOrWhiteSpace( PageParameter( "EventItemId" ) ) )
@@ -142,13 +141,13 @@ namespace RockWeb.Blocks.Event
                     ;*/
                 qry = qry.Where( i => i.Id == eventItemId );
             }
-            else 
+            else
             {
                 // Get the Slug Attribute
-                var slugAttribute = AttributeCache.Read( GetAttributeValue( "URLSlugAttribute" ).AsGuid() );
+                var slugAttribute = AttributeCache.Get( GetAttributeValue( "URLSlugAttribute" ).AsGuid() );
 
                 // get the slug
-                if ( !string.IsNullOrWhiteSpace( PageParameter( "URLSlug" ) ) && slugAttribute != null)
+                if ( !string.IsNullOrWhiteSpace( PageParameter( "URLSlug" ) ) && slugAttribute != null )
                 {
                     int slugAttributeId = slugAttribute.Id;
                     EventCalendarItemService eventCalendarItemService = new EventCalendarItemService( rockContext );
@@ -162,7 +161,7 @@ namespace RockWeb.Blocks.Event
                     .Join( attributeValueService.Queryable(),
                         ei => new { Id = ei.EventCalendarItem.Id, AttributeId = slugAttributeId },
                         av => new { Id = av.EntityId ?? 0, AttributeId = av.AttributeId },
-                        ( ei, av ) => new { EventItem = ei.EventItem, EventCalendarItem = ei.EventCalendarItem ,Slug = av } );
+                        ( ei, av ) => new { EventItem = ei.EventItem, EventCalendarItem = ei.EventCalendarItem, Slug = av } );
 
                     string urlSlug = PageParameter( "URLSlug" );
 
@@ -170,7 +169,7 @@ namespace RockWeb.Blocks.Event
 
                     // The page parameter could contain something like 'camp' while the slug value list contains 'camp-freedom' so we need to double-check
                     // to make sure we have an exact match
-                    qry = tmQry.ToList().AsQueryable().Where( obj => obj.Slug.Value.ToLower().Split( '|' ).Contains( urlSlug.ToLower() ) ).Select(obj => obj.EventItem);
+                    qry = tmQry.ToList().AsQueryable().Where( obj => obj.Slug.Value.ToLower().Split( '|' ).Contains( urlSlug.ToLower() ) ).Select( obj => obj.EventItem );
                 }
                 else
                 {
@@ -179,7 +178,7 @@ namespace RockWeb.Blocks.Event
                 }
             }
 
-            if (qry != null)
+            if ( qry != null )
             {
                 var eventItem = qry.FirstOrDefault();
 
@@ -190,14 +189,14 @@ namespace RockWeb.Blocks.Event
                     occurrenceList.RemoveAll( o => o.GetStartTimes( RockDateTime.Now, RockDateTime.Now.AddYears( 1 ) ).Count() == 0 );
 
                     //Check for Campus Id Parameter 
-                    var campusId = PageParameter("CampusId").AsIntegerOrNull();
-                    if (campusId.HasValue)
+                    var campusId = PageParameter( "CampusId" ).AsIntegerOrNull();
+                    if ( campusId.HasValue )
                     {
                         //check if there's a campus with this id.
-                        var campus = CampusCache.Read(campusId.Value);
-                        if (campus != null)
+                        var campus = CampusCache.Get( campusId.Value );
+                        if ( campus != null )
                         {
-                            occurrenceList.RemoveAll(o => o.CampusId != null && o.CampusId != campus.Id);
+                            occurrenceList.RemoveAll( o => o.CampusId != null && o.CampusId != campus.Id );
                         }
                     }
 
@@ -218,7 +217,7 @@ namespace RockWeb.Blocks.Event
                     var mergeFields = new Dictionary<string, object>();
                     mergeFields.Add( "RegistrationPage", LinkedPageRoute( "RegistrationPage" ) );
 
-                    var campusEntityType = EntityTypeCache.Read( "Rock.Model.Campus" );
+                    var campusEntityType = EntityTypeCache.Get( "Rock.Model.Campus" );
                     var contextCampus = RockPage.GetCurrentContext( campusEntityType ) as Campus;
 
                     if ( contextCampus != null )
@@ -228,21 +227,21 @@ namespace RockWeb.Blocks.Event
 
                     // determine registration status (Register, Full, or Join Wait List) for each unique registration instance
                     Dictionary<int, string> registrationStatusLabels = new Dictionary<int, string>();
-                    foreach (var occurance in eventItem.EventItemOccurrences)
+                    foreach ( var occurance in eventItem.EventItemOccurrences )
                     {
 
-                        foreach (var registrationInstance in occurance.Linkages.Select(a => a.RegistrationInstance).Distinct().ToList())
+                        foreach ( var registrationInstance in occurance.Linkages.Select( a => a.RegistrationInstance ).Distinct().ToList() )
                         {
-                            if ( registrationStatusLabels.ContainsKey(registrationInstance.Id) )
+                            if ( registrationStatusLabels.ContainsKey( registrationInstance.Id ) )
                             {
                                 continue;
                             }
                             var maxRegistrantCount = 0;
                             var currentRegistrationCount = 0;
 
-                            if (registrationInstance != null)
+                            if ( registrationInstance != null )
                             {
-                                if (registrationInstance.MaxAttendees != 0)
+                                if ( registrationInstance.MaxAttendees != 0 )
                                 {
                                     maxRegistrantCount = registrationInstance.MaxAttendees;
                                 }
@@ -250,21 +249,21 @@ namespace RockWeb.Blocks.Event
 
 
                             int? registrationSpotsAvailable = null;
-                            if (maxRegistrantCount != 0)
+                            if ( maxRegistrantCount != 0 )
                             {
-                                currentRegistrationCount = new RegistrationRegistrantService(rockContext).Queryable().AsNoTracking()
-                                                                .Where(r =>
-                                                                   r.Registration.RegistrationInstanceId == registrationInstance.Id
-                                                                   && r.OnWaitList == false)
+                                currentRegistrationCount = new RegistrationRegistrantService( rockContext ).Queryable().AsNoTracking()
+                                                                .Where( r =>
+                                                                    r.Registration.RegistrationInstanceId == registrationInstance.Id
+                                                                    && r.OnWaitList == false )
                                                                 .Count();
                                 registrationSpotsAvailable = maxRegistrantCount - currentRegistrationCount;
                             }
 
                             string registrationStatusLabel = "Register";
 
-                            if (registrationSpotsAvailable.HasValue && registrationSpotsAvailable.Value < 1)
+                            if ( registrationSpotsAvailable.HasValue && registrationSpotsAvailable.Value < 1 )
                             {
-                                if (registrationInstance.RegistrationTemplate.WaitListEnabled)
+                                if ( registrationInstance.RegistrationTemplate.WaitListEnabled )
                                 {
                                     registrationStatusLabel = "Join Wait List";
                                 }
@@ -274,12 +273,12 @@ namespace RockWeb.Blocks.Event
                                 }
                             }
 
-                            registrationStatusLabels.Add(registrationInstance.Id, registrationStatusLabel);
+                            registrationStatusLabels.Add( registrationInstance.Id, registrationStatusLabel );
                         }
                     }
 
                     // Status of each registration instance
-                    mergeFields.Add("RegistrationStatusLabels", registrationStatusLabels);
+                    mergeFields.Add( "RegistrationStatusLabels", registrationStatusLabels );
 
                     mergeFields.Add( "Event", eventItem );
                     mergeFields.Add( "CurrentPerson", CurrentPerson );
@@ -297,13 +296,31 @@ namespace RockWeb.Blocks.Event
                 }
                 else
                 {
-                    lOutput.Text = "<div class='alert alert-warning'>We could not find that event.</div>";
+
+                    lOutput.Text = EventNotFoundLava();
                 }
             }
             else
             {
-                lOutput.Text = "<div class='alert alert-warning'>No event was available from the querystring.</div>";
+                lOutput.Text = EventNotFoundLava();
             }
+        }
+
+        private string EventNotFoundLava()
+        {
+            var mergeFields = new Dictionary<string, object>();
+            mergeFields.Add( "RegistrationPage", LinkedPageRoute( "RegistrationPage" ) );
+
+            var campusEntityType = EntityTypeCache.Get( "Rock.Model.Campus" );
+            var contextCampus = RockPage.GetCurrentContext( campusEntityType ) as Campus;
+
+            if ( contextCampus != null )
+            {
+                mergeFields.Add( "CampusContext", contextCampus );
+            }
+            mergeFields.Add( "CurrentPerson", CurrentPerson );
+
+            return GetAttributeValue( "EventNotFound" ).ResolveMergeFields( mergeFields );
         }
         #endregion
 
