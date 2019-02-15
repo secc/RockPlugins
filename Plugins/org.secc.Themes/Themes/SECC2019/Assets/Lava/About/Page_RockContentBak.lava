@@ -120,7 +120,7 @@
 
                 <div class="row">
                     <div class="col-xs-12 col-sm-6 col-md-3 text-center g-padding-t-40--xs g-padding-t-0--md">
-                        {[ vivus svg:'/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/God.svg' fill:'white' max-width:'200px' ]}
+                        {[ vivus svg:'/Themes/SECC2019/Assets/img/SE/God.svg' fill:'white' max-width:'200px' ]}
                         <br />
                         <h3 class="g-font-weight--700">God</h3>
                         <h4 class="g-line-height--lg g-font-weight--300">God is the only sovereign, wise, and good Creator of all things, who reigns as King over all creation for His own glory.
@@ -129,7 +129,7 @@
                         </h4>
                     </div>
                     <div class="col-xs-12 col-sm-6 col-md-3 text-center g-padding-t-40--xs g-padding-t-0--md">
-                        {[ vivus svg:'/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/Man.svg' fill:'white' max-width:'200px' ]}
+                        {[ vivus svg:'/Themes/SECC2019/Assets/img/SE/Man.svg' fill:'white' max-width:'200px' ]}
                         <br />
                         <h3 class="g-font-weight--700">Man</h3>
                         <h4 class="g-line-height--lg g-font-weight--300">Human beings were made in God’s image to love and worship Him forever. But ever since Adam first rebelled against God, we have all been lost in sin, under God’s judgment, and unable to save ourselves.
@@ -138,7 +138,7 @@
                         </h4>
                     </div>
                     <div class="col-xs-12 col-sm-6 col-md-3 text-center g-padding-t-40--xs g-padding-t-0--md">
-                        {[ vivus svg:'/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/Christ.svg' fill:'white' max-width:'200px' ]}
+                        {[ vivus svg:'/Themes/SECC2019/Assets/img/SE/Christ.svg' fill:'white' max-width:'200px' ]}
                         <br />
                         <h3 class="g-font-weight--700">Christ</h3>
                         <h4 class="g-line-height--lg g-font-weight--300">Christ Out of undeserved love and grace, God sent His only Son to save us from sin and reconcile us to Himself through Jesus’ life, death, and resurrection.
@@ -147,7 +147,7 @@
                         </h4>
                     </div>
                     <div class="col-xs-12 col-sm-6 col-md-3 text-center g-padding-t-40--xs g-padding-t-0--md">
-                        {[ vivus svg:'/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/Response.svg' fill:'white' max-width:'200px' ]}
+                        {[ vivus svg:'/Themes/SECC2019/Assets/img/SE/Response.svg' fill:'white' max-width:'200px' ]}
                         <br />
                         <h3 class="g-font-weight--700">Response</h3>
                         <h4 class="g-line-height--lg g-font-weight--300">Christ Out of undeserved love and grace, God sent His only Son to save us from sin and reconcile us to Himself through Jesus’ life, death, and resurrection.

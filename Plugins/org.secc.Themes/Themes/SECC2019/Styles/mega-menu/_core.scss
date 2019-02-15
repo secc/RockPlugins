@@ -1,11 +1,6 @@
-@import 'bourbon'; // http://bourbon.io/
-
-@import 'partials/variables'; // colors, fonts etc...
-
-@import 'partials/layout'; // responsive grid and media queries
-
-// @import '../../../../Styles/fontawesome/font-awesome';
-
+@import '../bourbon/bourbon'; // http://bourbon.io/
+@import 'variables'; // colors, fonts etc...
+@import 'layout'; // responsive grid and media queries
 /* --------------------------------
 
 Primary style
@@ -16,14 +11,8 @@ Primary style
 	box-sizing: border-box;
 }
 
-html {
-	// font-size: 100%;
-	// font-size: 62.5%;
-}
-
 body {
 	font: {
-		// size: 1.6rem;
 		family: $primary-font; // variables inside partials > _variables.scss
 	}
 	color: $color-4;
@@ -112,7 +101,7 @@ Main components
 
 		.cd-nav-login {
 			&::before {
-				background-image: url('../img/SE/profile-white.svg');
+				background-image: url('../Assets/img/SE/profile-white.svg');
 			}
 		}
 
@@ -472,7 +461,7 @@ main {
 		height: 40px;
 		background-repeat: no-repeat;
 		background-position: center center;
-		background-image: url('../img/SE/profile.svg');
+		background-image: url('../Assets/img/SE/profile.svg');
 	}
 }
 
@@ -664,67 +653,67 @@ main {
 		}
 
 		&.mission::before {
-			background-image: url('../img/SE/Mission.svg');
+			background-image: url('../Assets/img/SE/Mission.svg');
 		}
 
 		&.what-we-believe::before {
-			background-image: url('../img/SE/bible.svg');
+			background-image: url('../Assets/img/SE/bible.svg');
 		}
 
 		&.faq::before {
-			background-image: url('../img/SE/FAQ.svg');
+			background-image: url('../Assets/img/SE/FAQ.svg');
 		}
 
 		&.leadership::before {
-			background-image: url('../img/SE/Leadership.svg');
+			background-image: url('../Assets/img/SE/Leadership.svg');
 		}
 
 		&.baptism::before {
-			background-image: url('../img/SE/baptism.svg');
+			background-image: url('../Assets/img/SE/baptism.svg');
 		}
 
 		&.prayer::before {
-			background-image: url('../img/SE/Pray.svg');
+			background-image: url('../Assets/img/SE/Pray.svg');
 		}
 
 		&.employment::before {
-			background-image: url('../img/SE/Employment.svg');
+			background-image: url('../Assets/img/SE/Employment.svg');
 		}
 
 		&.sermons::before {
-			background-image: url('../img/SE/sermons.svg');
+			background-image: url('../Assets/img/SE/sermons.svg');
 		}
 
 		&.resources::before {
-			background-image: url('../img/SE/resources.svg');
+			background-image: url('../Assets/img/SE/resources.svg');
 		}
 
 		&.podcast::before {
-			background-image: url('../img/SE/Podcast.svg');
+			background-image: url('../Assets/img/SE/Podcast.svg');
 		}
 
 		&.stoies::before {
-			background-image: url('../img/SE/Stories.svg');
+			background-image: url('../Assets/img/SE/Stories.svg');
 		}
 
 		&.live-stream::before {
-			background-image: url('../img/SE/Live-Stream-Grey.svg');
+			background-image: url('../Assets/img/SE/Live-Stream-Grey.svg');
 		}
 
 		&.starting-point::before {
-			background-image: url('../img/SE/membership.svg');
+			background-image: url('../Assets/img/SE/membership.svg');
 		}
 
 		&.events::before {
-			background-image: url('../img/SE/Events.svg');
+			background-image: url('../Assets/img/SE/Events.svg');
 		}
 
 		&.groups::before {
-			background-image: url('../img/SE/groups.svg');
+			background-image: url('../Assets/img/SE/groups.svg');
 		}
 
 		&.serve::before {
-			background-image: url('../img/SE/Serve.svg');
+			background-image: url('../Assets/img/SE/Serve.svg');
 		}
 	}
 

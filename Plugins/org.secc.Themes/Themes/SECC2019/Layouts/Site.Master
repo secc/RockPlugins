@@ -68,9 +68,7 @@
     <link rel="apple-touch-icon-precomposed" sizes="72x72" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/secc-touch-icon-ipad.png", true) %>"/>
     <link rel="apple-touch-icon-precomposed" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/secc-touch-icon-iphone.png", true) %>"/>
 
-    <!-- Include Mega Menu Styles -->
-    <link href="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/css/reset.css", true) %>" rel="stylesheet" type="text/css"/>
-	<link href="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/css/style.css", true) %>" rel="stylesheet" type="text/css"/>
+    <!-- Include Mega Menu Assets -->
 	<script src="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/js/modernizr.js" ) %>" ></script>
     <script src="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/js/jquery.mobile.custom.min.js", true) %>"></script>
     <script src="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/js/main.js", true) %>"></script>
