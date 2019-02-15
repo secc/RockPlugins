@@ -99,17 +99,17 @@ $(function() {
         </div>
         <div class="row g-padding-y-150--xs">
             <div class="col-md-4 col-sm-12 col-xs-12 clearfix text-center g-padding-b-20--xs">
-                {[ vivus svg:'/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/Pray.svg' max-width:'150px' ]}
+                {[ vivus svg:'/Themes/SECC2019/Assets/img/SE/Pray.svg' max-width:'150px' ]}
                 <h3 class="g-font-weight--700 g-line-height">Pray</h3>
                 <h4 class="g-line-height">Pray for those who will tell the good news of Jesus and those who need to hear it.</h4>
     		</div>
     		<div class="col-md-4 col-sm-12 col-xs-12 text-center g-padding-b-20--xs">
-    		    {[ vivus svg:'/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/Send.svg' max-width:'150px' ]}
+    		    {[ vivus svg:'/Themes/SECC2019/Assets/img/SE/Send.svg' max-width:'150px' ]}
                 <h3 class="g-font-weight--700 g-line-height">Send</h3>
                 <h4 class="g-line-height">Send and support the missionaries Southeast is involved with around the world.</h4>
     		</div>
     		<div class="col-md-4 col-sm-12 col-xs-12 text-center g-padding-b-20--xs">
-    		    {[ vivus svg:'/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/Go2.svg' max-width:'150px' ]}
+    		    {[ vivus svg:'/Themes/SECC2019/Assets/img/SE/Go2.svg' max-width:'150px' ]}
     		    <h3 class="g-font-weight--700 g-line-height">Go</h3>
                 <h4 class="g-line-height">Go locally, nationally or globally to spread the good news of Jesus.</h4>
     		</div>

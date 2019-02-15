@@ -89,17 +89,17 @@
     <div class="container g-padding-y-100--xs">
         <div class="row g-padding-y-150--xs">
             <div class="col-md-4 col-sm-12 col-xs-12 clearfix text-center g-padding-b-20--xs">
-                {[ vivus svg:'/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/1.svg' fill:'#7C7C7C' max-width:'100px' duration:'80' ]}
+                {[ vivus svg:'/Themes/SECC2019/Assets/img/SE/1.svg' fill:'#7C7C7C' max-width:'100px' duration:'80' ]}
                 <h3 class="g-font-weight--700 g-line-height">Online</h3>
                 <h4 class="g-line-height">You can easily give a single gift or schedule recurring giving through our secure giving platform.</h4>
     		</div>
     		<div class="col-md-4 col-sm-12 col-xs-12 text-center g-padding-b-20--xs">
-                {[ vivus svg:'/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/2.svg' fill:'#7C7C7C' max-width:'100px' duration:'80' ]}
+                {[ vivus svg:'/Themes/SECC2019/Assets/img/SE/2.svg' fill:'#7C7C7C' max-width:'100px' duration:'80' ]}
                 <h3 class="g-font-weight--700 g-line-height">Mobile</h3>
                 <h4 class="g-line-height">Give using the <strong>Southeast App</strong> or by texting GIVE to <strong>733733</strong></h4>
     		</div>
     		<div class="col-md-4 col-sm-12 col-xs-12 text-center g-padding-b-20--xs">
-                {[ vivus svg:'/Themes/SECC2019/Assets/vendor/mega-site-navigation/img/SE/3.svg' fill:'#7C7C7C' max-width:'100px' duration:'80' ]}
+                {[ vivus svg:'/Themes/SECC2019/Assets/img/SE/3.svg' fill:'#7C7C7C' max-width:'100px' duration:'80' ]}
                 <h3 class="g-font-weight--700 g-line-height">Cash or Check</h3>
                 <h4 class="g-line-height">You can always give during the worship service at any of our campuses.</h4>
     		</div>
