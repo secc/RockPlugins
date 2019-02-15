@@ -91,7 +91,7 @@
 
                 {% assign videoStartTime =  currentMessage.ChildContentChannelItem | Attribute:'VimeoPromoStartTime'  %}
 				{% assign videoEndTime =  currentMessage.ChildContentChannelItem | Attribute:'VimeoPromoEndTime'  %}
-                {[ parallax videourl:'https://vimeo.com/{{ currentMessageVimeoID }}' image:'https://www.southeastchristian.org/_/img/home/rotations/hope920-xl.jpg' videostarttime:'{{videoStartTime}}' videoendtime:'{{ videoEndTime }}' addclass:'darken' height:'75vh' position:'center center' speed:'-25' ]}
+                {[ parallax videourl:'https://vimeo.com/{{ currentMessageVimeoID }}' image:'https://www.southeastchristian.org/_/img/home/rotations/hope920-xl.jpg' videostarttime:'{{videoStartTime}}' videoendtime:'{{ videoEndTime }}' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'75vh' position:'center center' speed:'-25' ]}
 					<!-- START: Ministry Logo & Video -->
                     <div class="parallax-logo centered" style="max-width: inherit;padding: 0px;">
 						<h4 class="uppercase g-letter-spacing--3">Latest Sermon</h4>
