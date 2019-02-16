@@ -17,11 +17,14 @@
         </div>
     </div>
     {% endif %}
+
     <div class="isotope_wrap">
         {% for eventItemList in EventItems limit:limitEvents %}
             {% assign campusId = 0 %}
             {% assign multiCampus = false %}
             {% assign numOccurrences = eventItemList | Size %}
+            {% assign childCareIsAvailable = 'No' %}
+
             {% for eventItemOccurrence in eventItemList %}
                 {% if campusId == 0 %}
                     {% if eventItemOccurrence.EventItemOccurrence.CampusId == null %}
@@ -32,20 +35,23 @@
                 {% elseif eventItemOccurrence.EventItemOccurrence.CampusId != campusId %}
                     {% assign multiCampus = true %}
                 {% endif %}
+				{% assign childcareTest = eventItemOccurrence.AttChildcareAvailable %}
+                {% if childcareTest == 'True' %}
+                    {% assign childCareIsAvailable = 'Yes' %}
+                {% endif %}
             {% endfor %}
 
             {% for eventItemOccurrence in eventItemList %}
 
                 {% assign eventItem = eventItemOccurrence.EventItemOccurrence.EventItem %}
-                {% comment %} **** Looping through each occurance for each event item **** {% endcomment %}
+                {% comment %} **** Looping through the first occurance for each event item **** {% endcomment %}
 
                 {% assign eventLinkURL = '' %}
-
                 {% comment %} Setting Up Anchor Link for Details Page {% endcomment %}
                 {% if eventItemOccurrence.DetailPage != null %}
                     {% assign eventLinkURL = eventItemOccurrence.DetailPage %}
                 {% else %}
-    			    {% assign urlSlug = eventItem | Attribute:'URLSlugs'| Split:',' | First %}
+    			    {% assign urlSlug = eventItemOccurrence.URLSlugs | Split:'|' | First | Trim %}
     				{% if urlSlug != '' %}
     					{% assign eventLinkURL = DetailsPage | Replace:'/details','/' | Append:urlSlug %}
     				{% else %}
@@ -64,55 +70,28 @@
                     {% endif %}
                     {% assign eventLinkURL = eventLinkURL | Append:"campusId=" | Append: pageParamCampusId %}
                 {% endif %}
-
                 <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
-
                     <div class="clearfix card">
                         <a href="{{ eventLinkURL }}" class='eventCardLink'>
-                            {% assign occurrenceIdPhoto = eventItemOccurrence.PhotoId %}
-                            {% if eventItem.Photo %}
+                            {% if eventItemOccurrence.EventItemPhotoId != null and eventItemOccurrence.EventItemPhotoId != 0 %}
                             <div class="img-hover">
-                                <img src="/GetImage.ashx?guid={{ eventItemOccurrence.EventItemOccurrence.EventItem.Photo.Guid }}&w=720" class="event-image img-responsive" onerror="this.style.display='none'">
+                                <img src="/GetImage.ashx?id={{ eventItemOccurrence.EventItemPhotoId }}&w=720" class="event-image img-responsive" onerror="this.style.display='none'">
                             </div>
                             {% else %}
                             <div class="img-hover">
-                                {% assign primaryMinistryImage = eventItem | Attribute:'PrimaryMinistry','Object' | Attribute:'CalendarImage','Object' %}
-                                <img src="/GetImage.ashx?guid={{ primaryMinistryImage.Guid }}&w=720" class="img-responsive"  onerror="this.style.display='none'">
-                                {% comment %}
-                                {% assign pri maryMinistryTitle = eventItem | Attribute:'PrimaryMinistry' %}
-                                {% assign eventImageTitle = eventItem | Attribute:'ImageHeaderText' %}
-                                {% assign eventImageTitleSmall = eventItem | Attribute:'ImageHeaderTextSmall' %}
-
-                                {% assign photoTextHTML = ''%}
-
-                                {% if eventImageTitle != empty %}
-                                    {% assign photoTextHTML = '<h1 class="uppercase">' | Plus: eventImageTitle %}
-                                {% else %}
-                                    {% assign photoTextHTML = '<h1 class="uppercase">' | Plus: primaryMinistryTitle %}
-                                {% endif %}
-
-                                {% if eventImageTitleSmall != empty %}
-                                    {% assign photoTextHTML = photoTextHTML | Plus: '<br /><small>'| Plus: eventImageTitleSmall | Plus: '</small></h1>' %}
-                                {% else %}
-                                    {% assign photoTextHTML = photoTextHTML | Plus: '<br /><small>Ministry</small></h1>' %}
-                                {% endif %}
-                                <div class="event-photo-title">
-                                    {{photoTextHTML}}
-                                </div>
-                                {% endcomment %}
+                                <img src="/GetImage.ashx?guid={{ eventItemOccurrence.PrimaryMinistryImageGuid }}&w=720" class="img-responsive"  onerror="this.style.display='none'" />
                             </div>
                             {% endif %}
                         </a>
 
-                        {% assign scheduledDates = eventItemOccurrence.EventItemOccurrence.Schedule.iCalendarContent | DatesFromICal:'all' %}
+                        {% assign scheduledDates = eventItemOccurrence.ICalendarContent | Split: 'RRULE' %}
                         {% assign scheduledNumDates = scheduledDates | Size %}
-
                         <div class="caption g-padding-x-30--xs g-padding-t-30--xs g-margin-b-40--xs">
 
                             {% if numOccurrences > 1 and multiCampus == true %}
-                                    <h5 class="uppercase g-padding-b-20--xs g-font-weight--500">Multiple Campuses</h5>
-                            {% else %}
-                                    <h5 class="uppercase g-padding-b-20--xs g-font-weight--500">{{eventItemOccurrence.EventItemOccurrence.Campus.Name}} Campus</h5>
+                                    <h5 class="uppercase g-padding-b-20--xs g-font-weight--700">Multiple Campuses</h5>
+                            {% elseif eventItemOccurrence.EventItemOccurrence.Campus.Name != null %}
+                                    <h5 class="uppercase g-padding-b-20--xs g-font-weight--700">{{eventItemOccurrence.EventItemOccurrence.Campus.Name}} Campus</h5>
                             {% endif %}
 
                             {% if eventItemOccurrence.Name != '' %}
@@ -127,34 +106,29 @@
                             {% endif %}
 
                         </div><!-- END: caption -->
-						{% assign useOnlyScheduleText = eventItemOccurrence.EventItemOccurrence | Attribute: 'UseOnlyScheduleText' %}
-                        <div class="event-items col-xs-4 g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter">
+
+                        <div class="event-items col-xs-4 {% if campus | Attribute: 'Slug' != 'Yes' %}col-xs-offset-2{% endif %} g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter {% if childCareIsAvailable != 'Yes' %}col-xs-offset-2{% endif %}">
                              <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
                              <h6>
+                                 {% assign eventItemDatesIsHidden = eventItemOccurrence.AttEventDatesHide %}
+                                 {% unless eventItemDatesIsHidden == 'Yes' %}
+								 {% assign useOnlyScheduleText = eventItemOccurrence.AttUseOnlyScheduleText %}
                                  {% if useOnlyScheduleText == 'Yes' %}
-                                       {{ eventItemOccurrence.EventItemOccurrence | Attribute: 'ScheduleText' }}
+                                       {{eventItemOccurrence.AttScheduleText }}
                                  {% else %}
                                        {{ eventItemOccurrence.Date | Date: 'ddd, MMM dd'}}
                                  {% endif %}
+                                 {% endunless %}
                                  <br />
                                  {% if numOccurrences > 1 and multiCampus == true %}
-                                         <small class="uppercase g-padding-b-20--xs g-font-weight--500">Multiple Dates</small>
+                                         <small class="uppercase g-padding-b-20--xs g-font-weight--700">Multiple Dates</small>
                                  {% elseif numOccurrences > 1 or scheduledNumDates > 1 %}
-                                         <small class="uppercase g-padding-b-20--xs g-font-weight--500">Recurring Event</small>
+                                         <small class="uppercase g-padding-b-20--xs g-font-weight--700">Recurring Event</small>
                                  {% endif %}
                              </h6>
                         </div>
 
-                        {% if eventItemOccurrence.Time != '' %}
-                        <div class="event-items col-xs-4 g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter">
-                             <div class="event-icon --clock"><!-- Clock SVG Image --></div>
-                             <h6>
-                                 {{ eventItemOccurrence.Time }}
-                             </h6>
-                        </div>
-                        {% endif %}
-
-                        <div class="event-items col-xs-4 g-padding-x-10--xs">
+                        <div class="event-items g-padding-x-10--xs col-xs-4 {% if childCareIsAvailable == 'Yes' %}g-ver-divider__solid__r--gray-lighter{% endif %}">
                              <div class="event-icon --location"><!-- Marker / Location SVG Image --></div>
                              <h6>
                                  {% if eventItemOccurrence.EventItemOccurrence.Location != '' %}
@@ -169,14 +143,21 @@
                              </h6>
                         </div>
 
+                        <!-- ChildCare -->
+                        {% if childCareIsAvailable == 'Yes' %}
+                        <div class="event-items col-xs-4 g-padding-x-10--xs">
+                            <div class="event-icon --teddy-bear"><!-- Teddy Bear SVG Image --></div>
+                            <h6>Childcare<br> Available</h6>
+                        </div>
+                        {% endif %}
+
                         <div class="text-center col-xs-12 g-margin-t-40--xs g-hor-divider__solid__t--gray-lighter">
                             <a href="{{ eventLinkURL }}" class='eventCardLink link--hover-underscore'>
-                                <h5 class="uppercase g-font-weight--500 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">More Info</h5>
+                                <h5 class="uppercase g-font-weight--700 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">More Info</h5>
                             </a>
                         </div>
 
                     </div>
-
                 </div><!-- END: isotope_item -->
                 {% comment %} **** Only need the first occurance, so break away. **** {% endcomment %}
                 {% break %}
@@ -187,14 +168,10 @@
 
 </div><!-- END: bootstrap container -->
 
-{% if eventItemOccurrenceCount == 0 and campusesParam != null %}
-    {% include '~~/Assets/Lava/Campus/CampusSelection.lava' %}
-{% endif %}
-
 {% comment %}
 **********************************************************************************
 ****** The code below will need to be included if this file isn't included *******
-******  anywhere else (such as 'FeaturedGroups.lava' or 'AllEvents.lava')  *******
+******  anywhere else (such as 'FeaturedGroups.lava' or 'AllGroups.lava')  *******
 **********************************************************************************
 <script>
 $(window).load(function() {

@@ -17,30 +17,28 @@
 
 <div class="caption g-margin-b-40--xs g-padding-x-60--xs g-padding-t-60--xs">
     {% if numOccurrences > 1 and multiCampus == true %}
-            <h5 class="uppercase g-padding-b-20--xs g-font-weight--500">Multiple Campuses</h5>
+            <h5 class="uppercase g-padding-b-20--xs g-font-weight--700">Multiple Campuses</h5>
     {% else %}
-            <h5 class="uppercase g-padding-b-20--xs g-font-weight--500">{{ EventItemOccurrence.Campus.Name}} Campus</h5>
+            <h5 class="uppercase g-padding-b-20--xs g-font-weight--700">{{ EventItemOccurrence.Campus.Name}} Campus</h5>
     {% endif %}
     {% if EventItemOccurrence.Name != '' %}
         <h4 class="g-font-family--secondary" style="margin-bottom: 5px;">{{ Event.Name }}</h4>
     {% endif %}
 </div><!-- END: caption -->
-
+{% assign childcare = EventItemOccurrence | Attribute: 'ChildcareAvailable' %}
 
 <div class="g-margin-b-20--xs" style="display: inline-block; width: 100%;">
 
-    <div class="event-items col-xs-4 col-xs-offset-2 g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter">
+    <div class="event-items col-xs-4 g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter {% if childcare != 'Yes' %}col-xs-offset-2{% endif %}">
          <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
-
          {% assign scheduledDates = EventItemOccurrence.Schedule.iCalendarContent | DatesFromICal:'all' %}
          {% assign scheduledNumDates = scheduledDates | Size %}
-		 {% assign useOnlyScheduleText = EventItemOccurrence | Attribute: 'UseOnlyScheduleText '%}
-		 {% assign scheduleText =  EventItemOccurrence | Attribute: 'ScheduleText' %}
          <div>
+		 {% assign scheduleText =  EventItemOccurrence | Attribute: 'ScheduleText' %}
              {% if scheduleText != empty %}
              <h6>{{scheduleText}}</h6>
              {% endif %}
-
+			{% assign useOnlyScheduleText = EventItemOccurrence | Attribute: 'UseOnlyScheduleText' %}
              {% if useOnlyScheduleText != 'Yes' %}
                  {% if scheduledDates != empty %}
                      <ul class="list-unstyled" style="margin: 0;">
@@ -65,7 +63,7 @@
          </div>
     </div>
 
-    <div class="event-items col-xs-4 g-padding-x-10--xs">
+    <div class="event-items col-xs-4 g-padding-x-10--xs {% if childcare == 'Yes' %}g-ver-divider__solid__r--gray-lighter{% endif %}">
          <div class="event-icon --location"></div>
          <h6>
              {% if EventItemOccurrence.Location != '' %}
@@ -80,7 +78,15 @@
          </h6>
     </div>
 
-    <div class="col-xs-12 g-padding-x-60--xs">
+    <!-- ChildCare -->
+    {% if childcare == 'Yes' %}
+    <div class="event-items col-xs-4 g-padding-x-10--xs">
+        <div class="event-icon --teddy-bear"><!-- Teddy Bear SVG Image --></div>
+        <h6>Childcare<br> Available</h6>
+    </div>
+    {% endif %}
+
+    <div class="col-xs-12 {% if childcare != 'Yes' %}g-padding-l-100--xs{% else %}g-padding-x-20--xs{% endif %}">
         {% if useOnlyScheduleText != 'Yes' %}
             {% if scheduledDates != empty %}
                 <ul class="list-unstyled readmore_dates" style="margin: 0;">
@@ -101,7 +107,7 @@
 
         <hr class="" style="border-color: rgba(124, 124, 124, 0.68); margin: 0 auto;" />
 
-        <h6 class="g-margin-t-40--xs">
+        <h6 class="g-padding-t-40--xs">
             <span class="g-font-weight--800 uppercase">Contact</span><br />
             {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}
                 {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} <br />
@@ -129,11 +135,11 @@
                 {% if linkkv.Value contains 'http://' or linkkv.Value contains 'https://' %}
                     <!--  relative URL-->
                     <a href="{{linkkv.Value}}" class="link--hover-underscore uppercase" target="_blank">
-                        <h5 class="uppercase g-font-weight--500 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">{{linkkv.Key}}</h5>
+                        <h5 class="uppercase g-font-weight--700 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">{{linkkv.Key}}</h5>
                     </a>
                 {% else %}
                     <a href="{{linkkv.Value}}" class="link--hover-underscore uppercase">
-                        <h5 class="uppercase g-font-weight--500 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">{{linkkv.Key}}</h5>
+                        <h5 class="uppercase g-font-weight--700 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">{{linkkv.Key}}</h5>
                     </a>
                 {% endif %}
             </div>
@@ -148,12 +154,12 @@
 
                 {% if daysTillStartDate and daysTillStartDate > 0 %}
                     {% assign showRegistration = false %}
-                    {% capture registrationMessage %}<h5 class="uppercase g-font-weight--500 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">Registration opens on<br> {{ linkage.RegistrationInstance.StartDateTime | Date:'dddd, MMMM d, yyyy' }}</h5>{% endcapture %}
+                    {% capture registrationMessage %}<h5 class="uppercase g-font-weight--700 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">Registration opens on<br> {{ linkage.RegistrationInstance.StartDateTime | Date:'dddd, MMMM d, yyyy' }}</h5>{% endcapture %}
                 {% endif %}
 
                 {% if daysTillEndDate and daysTillEndDate < 0 %}
                     {% assign showRegistration = false %}
-                    {% capture registrationMessage %}<h5 class="uppercase g-font-weight--500 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">Registration closed on<br> {{ linkage.RegistrationInstance.EndDateTime | Date:'dddd, MMMM d, yyyy' }}</h5>{% endcapture %}
+                    {% capture registrationMessage %}<h5 class="uppercase g-font-weight--700 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">Registration closed on<br> {{ linkage.RegistrationInstance.EndDateTime | Date:'dddd, MMMM d, yyyy' }}</h5>{% endcapture %}
                 {% endif %}
 
 
@@ -165,11 +171,11 @@
                         {% endif %}
                             {% if linkage.UrlSlug != empty %}
                                 <a href="{{ RegistrationPage }}/{{ linkage.UrlSlug }}" class="link--hover-underscore uppercase">
-                                    <h5 class="uppercase g-font-weight--500 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">{{ registerButtonTitle }}</h5>
+                                    <h5 class="uppercase g-font-weight--700 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">{{ registerButtonTitle }}</h5>
                                 </a>
                             {% else %}
                                 <a href="{{ RegistrationPage }}?RegistrationInstanceId={{ linkage.RegistrationInstanceId }}&EventOccurrenceID={{ EventItemOccurrence.Id }}" class="link--hover-underscore uppercase">
-                                    <h5 class="uppercase g-font-weight--500 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">{{ registerButtonTitle }}</h5>
+                                    <h5 class="uppercase g-font-weight--700 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">{{ registerButtonTitle }}</h5>
                                 </a>
                             {% endif %}
                         <br />

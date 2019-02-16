@@ -70,14 +70,14 @@
 				<div class="text-center">
 					{%- assign mediaURL = currentMessage.ChildContentChannelItem | Attribute:'Audio','RawValue' -%}
 					{%- unless mediaURL == empty -%}
-					<a href="https://rock.secc.org/GetFile.ashx/{{ mediaURL }}.mp3?guid={{ mediaURL }}" class="btn btn-doors" style="margin-top: 5px;">
+					<a href="https://rock.secc.org/GetFile.ashx/{{ mediaURL }}.mp3?guid={{ mediaURL }}" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" style="margin-top: 5px;">
 						<i class="fa fa-headphones"></i>
-						Sermon Audio
+						Audio
 					</a>
 					{%- endunless -%}
-					<a href="https://itunes.apple.com/us/podcast/southeast-christian-church/id287341044?mt=2" class="btn btn-doors" style="margin-top: 5px;">
+					<a href="https://itunes.apple.com/us/podcast/southeast-christian-church/id287341044?mt=2" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" style="margin-top: 5px;">
 						<i class="fa fa-music"></i>
-						iTunes Podcast
+						iTunes
 					</a>
 				</div>
 				<br />
