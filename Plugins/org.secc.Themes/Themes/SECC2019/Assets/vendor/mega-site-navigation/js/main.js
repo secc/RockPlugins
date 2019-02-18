@@ -44,7 +44,7 @@ jQuery(document).ready(function($){
 		}
 	});
 	function submitSearchSite(val) {
-		window.location = "https://www.southeastchristian.org/search?q="+val;
+		window.location = "/newsite/search?q="+val;
 	}
 
 	//close lateral menu on mobile
