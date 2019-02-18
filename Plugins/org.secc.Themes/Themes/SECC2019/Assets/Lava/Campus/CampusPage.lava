@@ -119,7 +119,7 @@
                         <br />
                         {% if CampusVimeoId != null %}
 
-                            <script src="/Themes/SECC2014/Scripts/jquery-modal-video.js"></script>
+                            <script src="/Themes/SECC2019/Scripts/jquery-modal-video-se.js"></script>
                             <script>
                             $(document).ready(function() {
 
