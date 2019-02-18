@@ -96,7 +96,7 @@
                     <div class="parallax-logo centered" style="max-width: inherit;padding: 0px;">
 						<h4 class="uppercase g-letter-spacing--3">Latest Sermon</h4>
 						<hr class="g-width-80--xs">
-                        <h1 class="g-font-family--secondary g-font-size-150--lg g-font-size-80--xs g-text-shadow--black--soft" style="text-shadow: none;">{{ item.Title }}</h1>
+                        <h1 class="g-font-family--secondary g-font-size-130--lg g-font-size-80--xs g-text-shadow--black--soft" style="text-shadow: none;">{{ item.Title }}</h1>
 						<br />
 						<h4 class="uppercase g-letter-spacing--3">{{ currentMessage.ChildContentChannelItem.Title }}</h4>
                         <br />
