@@ -232,6 +232,11 @@ var ModalVideo = function () {
     var speed = opt.animationSpeed;
     [].forEach.call(selectors, function (selector) {
       selector.addEventListener('click', function () {
+        var j_item = $('.jarallax')[0];
+        // pause
+        if (typeof(j_item.jarallax.video) !== 'undefined') {
+            j_item.jarallax.video.pause();
+        }
         var videoId = $(selector).data( "videoId" );
         var channel = $(selector).data( "channel" ) || opt.channel;
         var id = (0, _util.getUniqId)();
@@ -247,6 +252,10 @@ var ModalVideo = function () {
             (0, _util.remove)(modal);
             selector.focus();
           }, speed);
+          // play
+          if (typeof(j_item.jarallax.video) !== 'undefined') {
+              j_item.jarallax.video.play();
+          }
         });
         modal.addEventListener('keydown', function (e) {
           if (e.which === 9) {
@@ -261,6 +270,9 @@ var ModalVideo = function () {
         });
         btn.addEventListener('click', function () {
           (0, _util.triggerEvent)(modal, 'click');
+        });
+        window.addEventListener('scroll', function(e) {
+            (0, _util.triggerEvent)(modal, 'click');
         });
       });
     });
