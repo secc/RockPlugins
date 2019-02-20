@@ -271,9 +271,9 @@ var ModalVideo = function () {
         btn.addEventListener('click', function () {
           (0, _util.triggerEvent)(modal, 'click');
         });
-        window.addEventListener('scroll', function(e) {
-            (0, _util.triggerEvent)(modal, 'click');
-        });
+        // window.addEventListener('scroll', function(e) {
+        //     (0, _util.triggerEvent)(modal, 'click');
+        // });
       });
     });
   }
