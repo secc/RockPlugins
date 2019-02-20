@@ -119,7 +119,7 @@
                         <br />
                         {% if CampusVimeoId != null %}
 
-                            <script src="/Themes/SECC2014/Scripts/jquery-modal-video.js"></script>
+                            <script src="/Themes/SECC2019/Scripts/jquery-modal-video-se.js"></script>
                             <script>
                             $(document).ready(function() {
 
@@ -234,77 +234,75 @@
                                     <strong>
                                     {%assign campusServicesJSON = campus | Attribute:'SiteScheduleInformation' %}
                                     {%assign interpreted = false %}
-                                    {% if campusServicesJSON != "" %}
-                                        {% assign campusServices = campusServicesJSON | FromJSON %}
+                                    {%- if campusServicesJSON != "" -%}
+                                        {%- assign campusServices = campusServicesJSON | FromJSON -%}
 
-                                        {% for serviceDay in campusServices.adult %}
+                                        {%- for serviceDay in campusServices.adult -%}
                                             {{serviceDay.day}} &bull;
-                                            {% assign timesCount = serviceDay.times | Size %}
+                                            {%- assign timesCount = serviceDay.times | Size -%}
 
-                                            {% for times in serviceDay.times %}
-                                                {{times.time}}{% if (times.interpreted == true %}*{%assign interpreted = true %}{% endif %}
-                                                {% if (forloop.rindex0 == 0 %}<br />{% break %}
-                                                {% elseif (forloop.rindex0 == 1 and timesCount > 2) %} &amp;{% else %},{% endif %}
-                                            {% endfor %}
+                                            {%- for times in serviceDay.times -%}
+                                                {{times.time}}{%- if (times.interpreted == true -%}*{%-assign interpreted = true -%}{%- endif -%}
+                                                {%- if (forloop.rindex0 == 0 -%}<br />{%- break -%}
+                                                {%- elseif (forloop.rindex0 == 1 and timesCount > 2) -%} &amp;{%- else -%},{%- endif -%}
+                                            {%- endfor -%}
 
-                                        {% endfor %}
-                                    {% endif %}
+                                        {%- endfor -%}
+                                    {%- endif -%}
                                     </strong>
             					</h4>
-                                {% if interpreted == true %}
+                                {%- if interpreted == true -%}
                                     <small>*Interpreted for the deaf</small>
-                                {% endif %}
+                                {%- endif -%}
                                 <br /><br />
                                 <h4>
                                 <strong>Children's Ministry</strong><br />
                             	<span>Children’s Ministry Programs are available during all worship services for birth through fifth grade</span>
                                 </h4>
                                 <br />
-            					<br />
 
                                 <h4>
                                 <strong>Student Ministries</strong><br />
-                                {%assign campusServicesJSON = campus | Attribute:'SiteScheduleInformation' %}
-                                {%assign interpreted = false %}
-                                {% if campusServicesJSON != "" %}
+                                {%-assign campusServicesJSON = campus | Attribute:'SiteScheduleInformation' -%}
+                                {%-assign interpreted = false -%}
+                                {%- if campusServicesJSON != "" -%}
                                     {% assign campusServices = campusServicesJSON | FromJSON %}
-
-                                    <strong>MSM &bull;</strong>{% for serviceDay in campusServices.msm %}
+                                    Middle School (MSM)
+                                    <br />
+                                    {% for serviceDay in campusServices.msm %}
                                             <span class="service-day">{{serviceDay.day}}s &bull;</span>
                                             {% assign timesCount = serviceDay.times | Size %}
                                             {% assign serviceLocation = serviceDay.location %}
                                             <span class="service-time">
-                                                {% for times in serviceDay.times %}
-                                                    {{times.time}}{% if (times.interpreted == true %}*{%assign interpreted = true %}{% endif %}
-                                                    {% if (forloop.rindex0 == 0 %}
+                                                {%- for times in serviceDay.times -%}
+                                                    {{times.time}}{%- if (times.interpreted == true -%}*{%-assign interpreted = true -%}{%- endif -%}
+                                                    {%- if (forloop.rindex0 == 0 -%}
                                                         {% break %}
-                                                    {% elseif (forloop.rindex0 == 1 and timesCount > 2) %}
+                                                    {%- elseif (forloop.rindex0 == 1 and timesCount > 2) -%}
                                                         &amp;
-                                                    {% else %},
-                                                    {% endif %}
-                                                {% endfor %}
-                                                {% if campusServicesJSON != "" %}
-                                                    | {{ serviceLocation }}
-                                                {% endif %}
+                                                    {%- else -%},{%- endif -%}
+                                                {%- endfor -%}
+                                                {%- if campusServicesJSON != "" -%}
+                                                    • {{ serviceLocation }}
+                                                {%- endif -%}
                 							</span>
                                             <br />
-                                        {% endfor %}
-                                {% endif %}
-								{% assign slug = campus | Attribute: 'slug' %}
-                                {% if slug == 'indiana' %}
+                                        {%- endfor -%}
+                                {%- endif -%}
+								{%- assign slug = campus | Attribute: 'slug' -%}
+                                {%- if slug == 'indiana' -%}
             						(in the back of the building)
-            					{% endif %}
+            					{%- endif -%}
                                 </h4>
-
-            					<br />
 
                                 <h4>
                                 {%assign campusServicesJSON = campus | Attribute:'SiteScheduleInformation' %}
                                 {%assign interpreted = false %}
                                 {% if campusServicesJSON != "" %}
                                     {% assign campusServices = campusServicesJSON | FromJSON %}
-
-                                    <strong>HSM &bull;</strong>{% for serviceDay in campusServices.hsm %}
+                                    High School Ministry (HSM)
+                                    <br/>
+                                            {% for serviceDay in campusServices.hsm %}
                                             <span class="service-day">{{serviceDay.day}}s:</span>
                                             {% assign timesCount = serviceDay.times | Size %}
                                             {% assign serviceLocation = serviceDay.location %}
@@ -319,7 +317,7 @@
                                                     {% endif %}
                                                 {% endfor %}
                                                 {% if campusServicesJSON != "" %}
-                                                    | {{ serviceLocation }}
+                                                    • {{ serviceLocation }}
                                                 {% endif %}
                 							</span>
                                             <br />
