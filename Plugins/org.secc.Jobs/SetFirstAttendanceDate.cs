@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Quartz;
 using Rock;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
@@ -24,13 +25,18 @@ using Rock.Web.Cache;
 namespace org.secc.Jobs
 {
     [DisallowConcurrentExecution]
+    [IntegerField( "Command Timeout", "Maximum amount of time (in seconds) to wait for the SQL Query to complete. Leave blank to use the default for this job (3600). Note, it could take several minutes, so you might want to set it at 3600 (60 minutes) or higher", false, 60 * 60, "General", 1, "CommandTimeout" )]
     public class SetFirstAttendanceDate
         : IJob
     {
         public void Execute( IJobExecutionContext context )
         {
+
+            JobDataMap dataMap = context.JobDetail.JobDataMap;
             var rockContext = new RockContext();
-            rockContext.Database.CommandTimeout = 300;
+
+            var commandTimeout = dataMap.GetString( "CommandTimeout" ).AsIntegerOrNull() ?? 3600;
+            rockContext.Database.CommandTimeout = commandTimeout;
 
             AttributeValueService attributeValueService = new AttributeValueService( rockContext );
             PersonService personService = new PersonService( rockContext );
