@@ -160,7 +160,7 @@
                     <Rock:DataTextBox ID="tbNickName" runat="server" SourceTypeName="Rock.Model.Person, Rock" PropertyName="NickName" />
                     <Rock:DataTextBox ID="tbLastName" runat="server" SourceTypeName="Rock.Model.Person, Rock" PropertyName="LastName" Required="true" />
                     <Rock:RockDropDownList ID="ddlSuffix" CssClass="input-width-md" runat="server" Label="Suffix" />
-                    <Rock:BirthdayPicker ID="bpBirthDay" runat="server" Label="Birthday" />
+                    <Rock:BirthdayPicker ID="bpBirthDay" RequireYear="true" runat="server" Label="Birthday" Required="true" />
                     <Rock:RockRadioButtonList ID="rblRole" runat="server" DataTextField="Name" DataValueField="Id" RepeatDirection="Horizontal" Label="Role" Visible="false" AutoPostBack="true" OnSelectedIndexChanged="rblRole_SelectedIndexChanged" />
                     <div class="row">
                         <div class="col-md-6">
