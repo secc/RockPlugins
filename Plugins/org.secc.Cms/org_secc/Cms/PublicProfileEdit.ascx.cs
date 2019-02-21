@@ -347,6 +347,7 @@ namespace RockWeb.Plugins.org_secc.Cms
                             groupMember.Person.SuffixValueId = ddlSuffix.SelectedValueAsId();
                             groupMember.Person.Gender = rblGender.SelectedValueAsEnum<Gender>();
                             DateTime? birthdate = bpBirthDay.SelectedDate;
+                            
                             if ( birthdate.HasValue )
                             {
                                 // If setting a future birthdate, subtract a century until birthdate is not greater than today.
