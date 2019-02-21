@@ -72,8 +72,20 @@ Accordion shortcode for the public website to be used in faq section
 
         <div class="panel panel-default">
             <div class="panel-heading collapsed" role="button"  id="heading{{ forloop.index }}-{{ wrapperId }}" data-toggle="collapse" data-parent="#faq-accordion-{{wrapperId}}, #faq-accordion-{{wrapperId2}}"
-            href="#collapse{{ forloop.index }}-{{ wrapperId }}" aria-expanded="false" aria-controls="faq-1-collapse-1" {% if autoheight == 'false' %} style="min-height:{{minheight}}px" {% endif %} >
-              <h4 class="panel-title g-font-size-40--xs g-font-weight--700 {% if autoheight == 'false' %} g-ver-center--xs {% endif %} g-padding-r-100--xs g-padding-r-150--md">
+            href="#collapse{{ forloop.index }}-{{ wrapperId }}" aria-expanded="false" aria-controls="faq-1-collapse-1">
+              <style>
+                #heading{{ forloop.index }}-{{ wrapperId }} {
+                    min-height: auto;
+                }
+                @media all and (min-width: 991px) {
+                      #heading{{ forloop.index }}-{{ wrapperId }} {
+                        {% if autoheight == 'false' %}
+                        min-height: {{minheight}}px;
+                        {% endif %}
+                      }
+                }
+                </style>
+              <h4 class="panel-title g-font-size-30--xs g-font-size-32--md g-font-weight--700 {% if autoheight == 'false' %} g-ver-center--lg {% endif %} g-padding-r-100--xs g-padding-r-150--md">
                   {{ item.title }}
               </h4>
             </div>
