@@ -46,7 +46,7 @@
     <script>
     try{Typekit.load({ async: true });}catch(e){}
     </script>
-    
+
 </head>
 <body runat="server" id="body">
 
@@ -95,5 +95,8 @@
         </asp:UpdateProgress>
 
     </form>
+
+    <!-- Back To Top -->
+    <a href="javascript:void(0);" class="s-back-to-top js__back-to-top"></a>
 </body>
 </html>
