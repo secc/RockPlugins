@@ -13,9 +13,9 @@
     <div class="g-padding-x-40--xs g-padding-b-150--xs">
         {[ wow animate:'fadeIn' duration:'.3s' delay:'.7s' ]}
         <div class="row">
-            <div class="col-md-5 g-padding-b-40--md g-text-left--xs g-text-center--md g-text-right--lg">
+            <div class="col-md-5 g-padding-t-30--md g-text-left--xs g-text-center--md g-text-right--lg">
                 <h1 class="g-font-family--secondary g-line-height--sm">Search Here</h1>
-                <h5 class="g-font-weight--300">and you will find answers</h5>
+                <!-- <h5 class="g-font-weight--300">and you will find answers</h5> -->
             </div>
             <div class="col-md-7 g-padding-y-30--xs g-text-center--md g-text-left--lg">
                 <input id="search_404_input" type="text"
