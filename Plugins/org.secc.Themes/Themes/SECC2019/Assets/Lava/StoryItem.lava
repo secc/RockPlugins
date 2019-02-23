@@ -20,7 +20,7 @@
         {% endcomment %}
         {% if PostLayout contains "post_video"%}
             <div class="post_content" itemprop="reviewBody">
-                <h2 itemprop="itemReviewed" class="post_title entry-title g-font-family--secondary" style="text-transform: inherit;">{{ item.Title }}</h2>
+                <h3 itemprop="itemReviewed" class="post_title entry-title g-font-family--secondary" style="text-transform: inherit;">{{ item.Title }}</h3>
                 <br />
                 {{ item.Content }}
             </div>
@@ -52,7 +52,7 @@
                 <br />
             </div>
             <div class="post_content" itemprop="reviewBody">
-                <h2 itemprop="itemReviewed" class="post_title entry-title g-font-family--secondary" style="text-transform: inherit;">{{ item.Title }}</h2>
+                <h3 itemprop="itemReviewed" class="post_title entry-title g-font-family--secondary" style="text-transform: inherit;">{{ item.Title }}</h3>
                 <br />
                 {{ item.Content }}
             </div>

@@ -211,7 +211,6 @@
                                 {{ campus.Location.City }}, {{ campus.Location.State }} {{ campus.Location.PostalCode }}<br />
                             </p>
                         </address>
-                        </h4>
                         <a class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1"
                            target="_blank"
                            href="https://www.google.com/maps/dir/Current+Location/{{campus.Location.Street1 | | Replace:' ','+' }}+{{campus.Location.City}}+{{campus.Location.State}}+{{campus.Location.PostalCode}}">
@@ -230,7 +229,7 @@
                         <div class="col-md-5">
                             <div class="services g-text-left--xs">
             					<h2 class="g-font-family--secondary">Worship Service Times</h2>
-            					<h4 class="service-times">
+            					<h5 class="service-times">
                                     <strong>
                                     {%assign campusServicesJSON = campus | Attribute:'SiteScheduleInformation' %}
                                     {%assign interpreted = false %}
@@ -250,18 +249,18 @@
                                         {%- endfor -%}
                                     {%- endif -%}
                                     </strong>
-            					</h4>
+            					</h5>
                                 {%- if interpreted == true -%}
                                     <small>*Interpreted for the deaf</small>
                                 {%- endif -%}
                                 <br /><br />
-                                <h4>
+                                <h5>
                                 <strong>Children's Ministry</strong><br />
                             	<span>Children’s Ministry Programs are available during all worship services for birth through fifth grade</span>
-                                </h4>
+                                </h5>
                                 <br />
 
-                                <h4>
+                                <h5>
                                 <strong>Student Ministries</strong><br />
                                 {%-assign campusServicesJSON = campus | Attribute:'SiteScheduleInformation' -%}
                                 {%-assign interpreted = false -%}
@@ -293,9 +292,9 @@
                                 {%- if slug == 'indiana' -%}
             						(in the back of the building)
             					{%- endif -%}
-                                </h4>
+                                </h5>
 
-                                <h4>
+                                <h5>
                                 {%assign campusServicesJSON = campus | Attribute:'SiteScheduleInformation' %}
                                 {%assign interpreted = false %}
                                 {% if campusServicesJSON != "" %}
@@ -323,7 +322,7 @@
                                             <br />
                                         {% endfor %}
                                 {% endif %}
-                            </h4>
+                            </h5>
             				</div>
                         </div>
                     </div>

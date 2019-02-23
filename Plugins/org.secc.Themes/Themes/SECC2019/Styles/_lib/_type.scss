@@ -3,7 +3,7 @@
 // // Typography
 // //
 // // Font, line-height, and color for body text, headings, and more.
-$line-height:                1.6 !default;
+$line-height:                1.4 !default;
 
 $headings-margin-bottom:     .75rem !default;
 $headings-font-weight:       400 !default;
@@ -115,12 +115,12 @@ h6 {
 	}
 }
 
-h1, .h1 { @include font($size: $font-size-80, $weight: normal); $line-height: $headings-line-height; }
-h2, .h2 { @include font($size: $font-size-65, $weight: normal); $line-height: $headings-line-height; }
-h3, .h3 { @include font($size: $font-size-48, $weight: normal); $line-height: $headings-line-height; }
-h4, .h4 { @include font($size: $font-size-36, $weight: normal); $line-height: $headings-line-height; }
+h1, .h1 { @include font($size: $font-size-80, $weight: normal, $line-height: $headings-line-height); }
+h2, .h2 { @include font($size: $font-size-65, $weight: normal, $line-height: $headings-line-height); }
+h3, .h3 { @include font($size: $font-size-36, $weight: normal, $line-height: 1.4); }
+h4, .h4 { @include font($size: $font-size-30, $weight: normal, $line-height: 1.4); }
 h5, .h5 { @include font($size: $font-size-30, $weight: normal, $line-height: 1.4); }
-h6, .h6 { @include font($size: $font-size-20, $weight: normal); $line-height: $headings-line-height; }
+h6, .h6 { @include font($size: $font-size-20, $weight: normal, $line-height: $headings-line-height); }
 
 //$font-size-h1;
 em,

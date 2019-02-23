@@ -85,13 +85,13 @@
                         </a>
 
                         {% assign scheduledDates = eventItemOccurrence.ICalendarContent | Split: 'RRULE' %}
-                        {% assign scheduledNumDates = scheduledDates | Size %} 
+                        {% assign scheduledNumDates = scheduledDates | Size %}
                         <div class="caption g-padding-x-30--xs g-padding-t-30--xs g-margin-b-40--xs">
 
                             {% if numOccurrences > 1 and multiCampus == true %}
-                                    <h5 class="uppercase g-padding-b-20--xs g-font-weight--700">Multiple Campuses</h5>
+                                    <h6 class="uppercase g-padding-b-20--xs g-font-weight--700">Multiple Campuses</h6>
                             {% elseif eventItemOccurrence.EventItemOccurrence.Campus.Name != null %}
-                                    <h5 class="uppercase g-padding-b-20--xs g-font-weight--700">{{eventItemOccurrence.EventItemOccurrence.Campus.Name}} Campus</h5>
+                                    <h6 class="uppercase g-padding-b-20--xs g-font-weight--700">{{eventItemOccurrence.EventItemOccurrence.Campus.Name}} Campus</h6>
                             {% endif %}
 
                             {% if eventItemOccurrence.Name != '' %}
@@ -153,10 +153,10 @@
 
                         <div class="text-center col-xs-12 g-margin-t-40--xs g-hor-divider__solid__t--gray-lighter">
                             <a href="{{ eventLinkURL }}" class='eventCardLink link--hover-underscore'>
-                                <h5 class="uppercase g-font-weight--700 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">More Info</h5>
+                                <h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">More Info</h6>
                             </a>
                         </div>
-						
+
                     </div>
                 </div><!-- END: isotope_item -->
                 {% comment %} **** Only need the first occurance, so break away. **** {% endcomment %}

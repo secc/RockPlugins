@@ -17,9 +17,9 @@
 
 <div class="caption g-margin-b-40--xs g-padding-x-60--xs g-padding-t-60--xs">
     {% if numOccurrences > 1 and multiCampus == true %}
-            <h5 class="uppercase g-padding-b-20--xs g-font-weight--700">Multiple Campuses</h5>
+            <h6 class="uppercase g-padding-b-20--xs g-font-weight--700">Multiple Campuses</h6>
     {% else %}
-            <h5 class="uppercase g-padding-b-20--xs g-font-weight--700">{{ EventItemOccurrence.Campus.Name}} Campus</h5>
+            <h6 class="uppercase g-padding-b-20--xs g-font-weight--700">{{ EventItemOccurrence.Campus.Name}} Campus</h6>
     {% endif %}
     {% if EventItemOccurrence.Name != '' %}
         <h4 class="g-font-family--secondary" style="margin-bottom: 5px;">{{ Event.Name }}</h4>
@@ -135,11 +135,11 @@
                 {% if linkkv.Value contains 'http://' or linkkv.Value contains 'https://' %}
                     <!--  relative URL-->
                     <a href="{{linkkv.Value}}" class="link--hover-underscore uppercase" target="_blank">
-                        <h5 class="uppercase g-font-weight--700 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">{{linkkv.Key}}</h5>
+                        <h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">{{linkkv.Key}}</h6>
                     </a>
                 {% else %}
                     <a href="{{linkkv.Value}}" class="link--hover-underscore uppercase">
-                        <h5 class="uppercase g-font-weight--700 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">{{linkkv.Key}}</h5>
+                        <h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">{{linkkv.Key}}</h6>
                     </a>
                 {% endif %}
             </div>
@@ -154,12 +154,12 @@
 
                 {% if daysTillStartDate and daysTillStartDate > 0 %}
                     {% assign showRegistration = false %}
-                    {% capture registrationMessage %}<h5 class="uppercase g-font-weight--700 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">Registration opens on<br> {{ linkage.RegistrationInstance.StartDateTime | Date:'dddd, MMMM d, yyyy' }}</h5>{% endcapture %}
+                    {% capture registrationMessage %}<h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">Registration opens on<br> {{ linkage.RegistrationInstance.StartDateTime | Date:'dddd, MMMM d, yyyy' }}</h6>{% endcapture %}
                 {% endif %}
 
                 {% if daysTillEndDate and daysTillEndDate < 0 %}
                     {% assign showRegistration = false %}
-                    {% capture registrationMessage %}<h5 class="uppercase g-font-weight--700 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">Registration closed on<br> {{ linkage.RegistrationInstance.EndDateTime | Date:'dddd, MMMM d, yyyy' }}</h5>{% endcapture %}
+                    {% capture registrationMessage %}<h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">Registration closed on<br> {{ linkage.RegistrationInstance.EndDateTime | Date:'dddd, MMMM d, yyyy' }}</h6>{% endcapture %}
                 {% endif %}
 
 
@@ -171,11 +171,11 @@
                         {% endif %}
                             {% if linkage.UrlSlug != empty %}
                                 <a href="{{ RegistrationPage }}/{{ linkage.UrlSlug }}" class="link--hover-underscore uppercase">
-                                    <h5 class="uppercase g-font-weight--700 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">{{ registerButtonTitle }}</h5>
+                                    <h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">{{ registerButtonTitle }}</h6>
                                 </a>
                             {% else %}
                                 <a href="{{ RegistrationPage }}?RegistrationInstanceId={{ linkage.RegistrationInstanceId }}&EventOccurrenceID={{ EventItemOccurrence.Id }}" class="link--hover-underscore uppercase">
-                                    <h5 class="uppercase g-font-weight--700 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">{{ registerButtonTitle }}</h5>
+                                    <h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">{{ registerButtonTitle }}</h6>
                                 </a>
                             {% endif %}
                         <br />
