@@ -75,6 +75,21 @@ $font-size-150:  						 9.375rem !default;
 @include font-face('TisaPro', "FF-TisaPro-Black", $location: $fa-tisapro-path, $weight:900);
 @include font-face('TisaPro', "FF-TisaPro-BlackIta", $location: $fa-tisapro-path, $weight:900, $style:italic);
 
+@include font-face('ProximaNova', "ProximaNova-Regular", $location: $fa-proximanova-path, $weight:normal);
+@include font-face('ProximaNova', "ProximaNova-RegularIt", $location: $fa-proximanova-path, $weight:normal, $style:italic);
+@include font-face('ProximaNova', "ProximaNova-Thin", $location: $fa-proximanova-path, $weight:100);
+@include font-face('ProximaNova', "ProximaNova-ThinIt", $location: $fa-proximanova-path, $weight:100, $style:italic);
+@include font-face('ProximaNova', "ProximaNova-Light", $location: $fa-proximanova-path, $weight:200);
+@include font-face('ProximaNova', "ProximaNova-LightIt", $location: $fa-proximanova-path, $weight:200, $style:italic);
+@include font-face('ProximaNova', "ProximaNova-Semibold", $location: $fa-proximanova-path, $weight:600);
+@include font-face('ProximaNova', "ProximaNova-SemiboldIt", $location: $fa-proximanova-path, $weight:600, $style:italic);
+@include font-face('ProximaNova', "ProximaNova-Bold", $location: $fa-proximanova-path, $weight:700);
+@include font-face('ProximaNova', "ProximaNova-BoldIt", $location: $fa-proximanova-path, $weight:700, $style:italic);
+@include font-face('ProximaNova', "ProximaNova-Extrabld", $location: $fa-proximanova-path, $weight:800);
+@include font-face('ProximaNova', "ProximaNova-ExtrabldIt", $location: $fa-proximanova-path, $weight:800, $style:italic);
+@include font-face('ProximaNova', "ProximaNova-Black", $location: $fa-proximanova-path, $weight:900);
+@include font-face('ProximaNova', "ProximaNova-BlackIt", $location: $fa-proximanova-path, $weight:900, $style:italic);
+
 // Forms
 $cursor-disabled:           not-allowed !default;
 
