@@ -1086,7 +1086,7 @@ function(item) {
             {
                 var location = group.GroupLocations.Select( l => l.LocationId ).ToList();
                 location.Add( 0 );
-                attendanceOccurences.AddRange( attendanceOccurrenceService.GetGroupOccurrences( group, startDate, endDate, location, new List<int>() ) );
+                attendanceOccurences.AddRange( GetGroupOccurrences( attendanceOccurrenceService, group, startDate, endDate, location ) );
             }
 
             var qryAttendance = attendanceOccurences.Select( o => o ).ToList();
@@ -1134,17 +1134,20 @@ function(item) {
                 Campus = new
                 {
                     Id = a.Attendance.CampusId,
-                    Name = a.Attendance.Campus == null ? "" : a.Attendance.Campus.Name
+                    Name = a.Attendance.Campus == null ? "" : a.Attendance.Campus.Name,
+                    DidNotOccur = a.Attendance.Occurrence.DidNotOccur
                 },
                 Group = new
                 {
                     Id = a.Attendance.Occurrence.GroupId,
-                    Name = a.Attendance.Occurrence.Group.Name
+                    Name = a.Attendance.Occurrence.Group.Name,
+                    DidNotOccur = a.Attendance.Occurrence.DidNotOccur
                 },
                 Schedule = new
                 {
                     Id = a.Attendance.Occurrence.ScheduleId,
-                    Name = a.Attendance.Occurrence.Schedule == null ? "" : a.Attendance.Occurrence.Schedule.Name
+                    Name = a.Attendance.Occurrence.Schedule == null ? "" : a.Attendance.Occurrence.Schedule.Name,
+                    DidNotOccur = a.Attendance.Occurrence.DidNotOccur
                 }
             } ).ToList();
 
@@ -1170,7 +1173,6 @@ function(item) {
                 }
             }
 
-
             summaryQry.AddRange(
                   qryAttendance.Select( ao => new
                   {
@@ -1178,17 +1180,20 @@ function(item) {
                       Campus = new
                       {
                           Id = ao.Group.CampusId,
-                          Name = ao.Group.Campus == null ? "" : ao.Group.Campus.Name
+                          Name = ao.Group.Campus == null ? "" : ao.Group.Campus.Name,
+                          DidNotOccur = ao.DidNotOccur
                       },
                       Group = new
                       {
                           Id = ao.GroupId,
-                          Name = ao.Group.Name
+                          Name = ao.Group.Name,
+                          DidNotOccur = ao.DidNotOccur
                       },
                       Schedule = new
                       {
                           Id = ao.ScheduleId,
-                          Name = ao.Schedule == null ? "" : ao.Schedule.Name
+                          Name = ao.Schedule == null ? "" : ao.Schedule.Name,
+                          DidNotOccur = ao.DidNotOccur
                       }
                   }
                 ) );
@@ -1199,44 +1204,53 @@ function(item) {
 
             if ( graphBy == AttendanceGraphBy.Total )
             {
-                var groupByQry = summaryQry.GroupBy( a => new { a.SummaryDateTime } ).Select( s => new { s.Key, Count = s.Count() - qryAttendance.Where( qa => qa.OccurrenceDate.Date == s.Key.SummaryDateTime ).Count() } ).ToList();
+                var groupByQry = summaryQry.GroupBy( a => new { a.SummaryDateTime } ).Select( s => new { s.Key, DidNotOccur = s.Select( c => c.Schedule.DidNotOccur ).Where( d => d == true ).FirstOrDefault(), Count = s.Count() - qryAttendance.Where( qa => qa.OccurrenceDate.Date == s.Key.SummaryDateTime ).Count() } ).ToList();
 
                 result = groupByQry.ToList().Select( a => new SummaryData
                 {
                     DateTimeStamp = a.Key.SummaryDateTime.ToJavascriptMilliseconds(),
                     DateTime = a.Key.SummaryDateTime,
                     SeriesName = "Total",
-                    YValue = a.Count
+                    YValue = a.Count,
+                    SeriesAddlInfo = a.Count > 0 ? "True" : a.DidNotOccur != null ? a.DidNotOccur.ToString() : "False"
                 } ).ToList();
             }
             else if ( graphBy == AttendanceGraphBy.Campus )
             {
-                var groupByQry = summaryQry.GroupBy( a => new { a.SummaryDateTime, Series = a.Campus } ).Select( s => new { s.Key, Count = s.Count() - qryAttendance.Where( qa => qa.OccurrenceDate.Date == s.Key.SummaryDateTime ).Select( q => q.Group ).Where( g => g.CampusId == s.Key.Series.Id ).Count() } );
+                var groupByQry = summaryQry.GroupBy( a => new { a.SummaryDateTime, Series = a.Campus } ).Select( s => new { s.Key, DidNotOccur = s.Select( c => c.Campus.DidNotOccur ).Where( d => d == true ).FirstOrDefault(), Count = s.Count() - qryAttendance.Where( qa => qa.OccurrenceDate.Date == s.Key.SummaryDateTime ).Select( q => q.Group ).Where( g => g.CampusId == s.Key.Series.Id ).Count() } );
 
                 result = groupByQry.ToList().Select( a => new SummaryData
                 {
                     DateTimeStamp = a.Key.SummaryDateTime.ToJavascriptMilliseconds(),
                     DateTime = a.Key.SummaryDateTime,
                     SeriesName = a.Key.Series.Name,
-                    YValue = a.Count
+                    YValue = a.Count,
+                    SeriesAddlInfo = a.Count > 0 ? "True" : a.DidNotOccur != null ? a.DidNotOccur.ToString() : "False"
                 } ).ToList();
             }
             else if ( graphBy == AttendanceGraphBy.Group )
             {
-                var groupByQry = summaryQry.GroupBy( a => new { a.SummaryDateTime, Series = a.Group } ).Select( s => new { s.Key, Count = s.Count() - 1 } );
+                var groupByQry = summaryQry.GroupBy( a => new { a.SummaryDateTime, Series = a.Group } ).Select( s => new { s.Key, DidNotOccur = s.Select( c => c.Group.DidNotOccur ).Where( d => d == true ).FirstOrDefault(), Count = s.Count() - 1 } ).ToList();
 
-                result = groupByQry.ToList().Select( a => new SummaryData
+                result = groupByQry.Select( a => new SummaryData
                 {
                     DateTimeStamp = a.Key.SummaryDateTime.ToJavascriptMilliseconds(),
                     DateTime = a.Key.SummaryDateTime,
                     SeriesName = a.Key.Series.Name,
                     MetricValuePartitionEntityIds = a.Key.Series.Id.ToString(),
-                    YValue = a.Count
+                    YValue = a.Count,
+                    SeriesAddlInfo = a.Count > 0 ? "True" : a.DidNotOccur != null ? a.DidNotOccur.ToString() : "False"
                 } ).ToList();
             }
-
-
             return result;
+        }
+
+        private IEnumerable<AttendanceOccurrence> GetGroupOccurrences( AttendanceOccurrenceService attendanceOccurrenceService, Group group, DateTime? startDate, DateTime? endDate, List<int> locations )
+        {
+            return attendanceOccurrenceService
+                .Queryable()
+                .Where( ao => ao.GroupId == group.Id && ao.OccurrenceDate >= startDate && ao.OccurrenceDate <= endDate && locations.Contains( ao.LocationId ?? 0 ) )
+                .ToList();
         }
 
         private static IEnumerable<AttendanceService.AttendanceWithSummaryDateTime> GetAttendanceWithSummaryDateTime( IEnumerable<Attendance> qryAttendance, CustomChartGroupBy summarizeBy )
@@ -1537,7 +1551,7 @@ function(item) {
                         var datatable = GetAttendanceAnalyticsAttendeeDates(
                             groupIdList, attendedMissedDateRange.Start.Value, attendedMissedDateRange.End.Value,
                             campusIdList, includeNullCampus, scheduleIdList );
-                        if ( datatable.Tables.Count>0 )
+                        if ( datatable.Tables.Count > 0 )
                         {
                             dtAttendeeDatesMissed = datatable.Tables[0];
                         }
@@ -2109,7 +2123,7 @@ function(item) {
         }
 
         public static DataSet GetAttendanceAnalyticsAttendeeFirstDates( List<int> GroupTypeIds, List<int> groupIds, DateTime? start, DateTime? end,
-    List<int> campusIds, bool? includeNullCampusIds, List<int> scheduleIds )
+        List<int> campusIds, bool? includeNullCampusIds, List<int> scheduleIds )
         {
             var parameters = GetAttendanceAnalyticsParameters( GroupTypeIds, groupIds, start, end, campusIds, includeNullCampusIds, scheduleIds );
             return DbService.GetDataSet( "_org_secc_spGroups_AttendanceAnalyticsQuery_AttendeeFirstDates", System.Data.CommandType.StoredProcedure, parameters, 300 );
@@ -2123,14 +2137,14 @@ function(item) {
         }
 
         public static DataSet GetAttendanceAnalyticsAttendeeLastAttendance( List<int> groupIds, DateTime? start, DateTime? end,
-    List<int> campusIds, bool? includeNullCampusIds, List<int> scheduleIds )
+        List<int> campusIds, bool? includeNullCampusIds, List<int> scheduleIds )
         {
             var parameters = GetAttendanceAnalyticsParameters( null, groupIds, start, end, campusIds, includeNullCampusIds, scheduleIds );
             return DbService.GetDataSet( "_org_secc_spGroups_AttendanceAnalyticsQuery_AttendeeLastAttendance", System.Data.CommandType.StoredProcedure, parameters, 300 );
         }
 
         public static DataSet GetAttendanceAnalyticsNonAttendees( List<int> GroupTypeIds, List<int> groupIds, DateTime? start, DateTime? end,
-    List<int> campusIds, bool? includeNullCampusIds, List<int> scheduleIds, bool? IncludeParentsWithChild, bool? IncludeChildrenWithParents )
+        List<int> campusIds, bool? includeNullCampusIds, List<int> scheduleIds, bool? IncludeParentsWithChild, bool? IncludeChildrenWithParents )
         {
             var parameters = GetAttendanceAnalyticsParameters( GroupTypeIds, groupIds, start, end, campusIds, includeNullCampusIds, scheduleIds, IncludeParentsWithChild, IncludeChildrenWithParents );
             return DbService.GetDataSet( "org_secc_spGroups_AttendanceAnalyticsQuery_NonAttendees", System.Data.CommandType.StoredProcedure, parameters, 300 );
