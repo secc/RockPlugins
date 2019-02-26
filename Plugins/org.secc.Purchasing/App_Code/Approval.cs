@@ -46,8 +46,9 @@ namespace org.secc.Purchasing
         private static Guid RequisitionApprovalTypeGUID = new Guid( "952EC9FE-6827-4CD8-9980-63B511447333" );
         private static Guid MinistryApprovalTypeGUID = new Guid( "8F840130-8B50-45DB-8AEE-FABE541C7AF1" );
         private static Guid FinanceApprovalTypeGUID = new Guid( "91BBB5E5-3A3E-4E82-878C-2573DAC00B9A" );
+        private static Guid LeadTeamApprovalTypeGUID = new Guid( "0B6680DD-0D67-456F-832E-89E7399DE05F" );
         #endregion
-        
+
         #region Properties
         public int ApprovalID { get; set; }
         public string ObjectTypeName { get; set; }
@@ -272,6 +273,12 @@ namespace org.secc.Purchasing
         {
             return definedValueService.Get(FinanceApprovalTypeGUID).Id;
         }
+
+        public static int LeadTeamApprovalTypeLUID()
+        {
+            return definedValueService.Get( LeadTeamApprovalTypeGUID ).Id;
+        }
+
 
         public bool HasChanged()
         {

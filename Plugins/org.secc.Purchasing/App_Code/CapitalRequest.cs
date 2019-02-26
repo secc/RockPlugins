@@ -277,10 +277,14 @@ namespace org.secc.Purchasing
 
         #region Public
 
-        public int AddMinistryApprovalRequest( int approverId, string userID )
+        public int AddApprovalRequest( int approverId, string userID, int? approvalType = null )
         {
+            if ( approvalType  == null )
+            {
+                approvalType = Approval.MinistryApprovalTypeLUID();
+            }
             var requestsForApprover = ApprovalRequests.Where( a => a.Active )
-                                .Where( a => a.ApprovalTypeLUID == Approval.MinistryApprovalTypeLUID() )
+                                .Where( a => a.ApprovalTypeLUID == approvalType )
                                 .Where( a => a.Approver.Id == approverId );
 
             if ( requestsForApprover.Count() > 0 )
@@ -289,7 +293,7 @@ namespace org.secc.Purchasing
             }
 
             Approval approvalRequest = new Approval();
-            approvalRequest.ApprovalTypeLUID = Approval.MinistryApprovalTypeLUID();
+            approvalRequest.ApprovalTypeLUID = approvalType.Value;
             approvalRequest.ApprovalStatusLUID = Approval.NotSubmittedStatusLUID();
             approvalRequest.ApproverID = approverId;
             approvalRequest.ObjectTypeName = this.GetType().ToString();
@@ -733,6 +737,8 @@ namespace org.secc.Purchasing
             {
                 return;
             }
+            SystemEmailService systemEmailService = new SystemEmailService( new Rock.Data.RockContext() );
+
             Rock.Model.SystemEmail template = systemEmailService.Get(templateId.Value);
             Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
             Fields.Add("RequestTitle", ProjectName);
@@ -759,40 +765,42 @@ namespace org.secc.Purchasing
 
         }
 
-        public void RequestMinistryApproval(Guid? templateId, string userId, string cerLink)
+        public void RequestApproval(Guid? templateId, string userId, string cerLink)
         {
-            var currentRequest = ApprovalRequests.Where( a => a.Active )
-                            .Where( a => a.ApprovalTypeLUID == Approval.MinistryApprovalTypeLUID() )
+            var requests = ApprovalRequests.Where( a => a.Active )
+                            .Where( a => a.ApprovalTypeLUID != Approval.FinanceApprovalTypeLUID() )
                             .Where( a => a.ApprovalStatusLUID == Approval.NotSubmittedStatusLUID() || a.ApprovalStatusLUID == Approval.NotApprovedStatusLUID() )
-                            .OrderBy( a => a.ApprovalID )
-                            .FirstOrDefault();
-
-            if ( currentRequest == null )
+                            .OrderBy( a => a.ApprovalID );
+            foreach(var currentRequest in requests )
             {
-                throw new RequisitionException( "Approval Request not found." );
+                if ( currentRequest == null )
+                {
+                    throw new RequisitionException( "Approval Request not found." );
+                }
+
+                currentRequest.ApprovalStatusLUID = Approval.PendingApprovalStatusLUID();
+                currentRequest.Save( userId );
+                RefreshApprovalRequests();
+
+                if (!templateId.HasValue)
+                {
+                    return;
+                }
+                SystemEmailService systemEmailService = new SystemEmailService( new Rock.Data.RockContext() );
+                SystemEmail template = systemEmailService.Get(templateId.Value);
+
+                Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
+                Fields["ApproverName"] = currentRequest.Approver.NickName;
+                Fields["Requester"] = Requester.FullName;
+                Fields["ProjectTitle"] = ProjectName;
+                Fields["CERLink"] = cerLink;
+
+                template.Body = template.Body.ResolveMergeFields(Fields);
+
+                List<Person> approver = new List<Person>() { currentRequest.Approver };
+
+                SendCommunication( template, null, approver );
             }
-
-            currentRequest.ApprovalStatusLUID = Approval.PendingApprovalStatusLUID();
-            currentRequest.Save( userId );
-            RefreshApprovalRequests();
-
-            if (!templateId.HasValue)
-            {
-                return;
-            }
-            SystemEmail template = systemEmailService.Get(templateId.Value);
-
-            Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
-            Fields.Add("ApproverName", currentRequest.Approver.NickName);
-            Fields.Add("Requester", Requester.FullName);
-            Fields.Add("ProjectTitle", ProjectName);
-            Fields.Add("CERLink", cerLink);
-
-            template.Body = template.Body.ResolveMergeFields(Fields);
-
-            List<Person> approver = new List<Person>() { currentRequest.Approver };
-
-            SendCommunication( template, null, approver );
         }
 
         public void Save( string userId )
@@ -981,6 +989,7 @@ namespace org.secc.Purchasing
             {
                 return;
             }
+            SystemEmailService systemEmailService = new SystemEmailService( new Rock.Data.RockContext() );
             SystemEmail template = systemEmailService.Get( templateId.Value );
 
             Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
@@ -1002,6 +1011,7 @@ namespace org.secc.Purchasing
                 return;
             }
 
+            SystemEmailService systemEmailService = new SystemEmailService( new Rock.Data.RockContext() );
             SystemEmail template = systemEmailService.Get( templateId.Value );
 
 

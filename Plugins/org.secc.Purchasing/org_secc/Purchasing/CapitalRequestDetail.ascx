@@ -39,7 +39,10 @@
         <div class="btn-group" role="group" style="margin-bottom: 10px;">
             <asp:LinkButton ID="lbMenuItem_EditSummary" CssClass="btn btn-default" runat="server" CommandName="editsummary" OnClick="lbMenuItem_Click" Visible="false">Edit Summary</asp:LinkButton>
             <asp:LinkButton ID="lbMenuItem_AddBid" CssClass="btn btn-default" runat="server" CommandName="addbid" OnClick="lbMenuItem_Click" Visible="false">Add Bid</asp:LinkButton>
-            <asp:LinkButton ID="lbMenuItem_AddMinistryApproval" CssClass="btn btn-default" runat="server" CommandName="addministryapproval" OnClick="lbMenuItem_Click" Visible="false">Add Ministry Approver</asp:LinkButton>
+            <Rock:ButtonDropDownList ID="bddlMenuItem_AddApproval" runat="server" Title="Add Approver" OnSelectionChanged="lbMenuItem_Click">
+                <asp:ListItem Text="Ministry Approval" Value="Ministry"></asp:ListItem>
+                <asp:ListItem Text="Lead Team Approval" Value="LeadTeam"></asp:ListItem>
+            </Rock:ButtonDropDownList>
             <asp:LinkButton ID="lbMenuItem_RequestApproval" CssClass="btn btn-default" runat="server" CommandName="requestapproval" OnClick="lbMenuItem_Click" Visible="false">Request Approval</asp:LinkButton>
             <asp:LinkButton ID="lbMenuItem_AddRequisition" CssClass="btn btn-default" runat="server" CommandName="addrequisition" OnClick="lbMenuItem_Click" Visible="false">Add Requisition</asp:LinkButton>
             <asp:LinkButton ID="lbMenuItem_Close" CssClass="btn btn-default" runat="server" CommandName="close" OnClick="lbMenuItem_Click" Visible="false">Close</asp:LinkButton>
