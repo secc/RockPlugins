@@ -35,6 +35,7 @@ Source: https://kenwheeler.github.io/slick/
 {% comment %}
 ************************ MARKUP FOR THIS SHORTCODE IS BELOW ********************
 {% endcomment %}
+
 {{ 'https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick.css' | AddCssLink }}
 {{ 'https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick-theme.css' | AddCssLink }}
 {{ 'https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick.min.js' | AddScriptLink }}
@@ -51,7 +52,7 @@ Source: https://kenwheeler.github.io/slick/
     margin: 0 0 22px;
     border-left: none;
     position: absolute;
-    bottom: 5%;
+    bottom: 10%;
     width: 45%;
     left: 7%;
     color: white;
@@ -231,13 +232,25 @@ blockquote p span.ending-quote:after {
   transform: translateX(-50%) translateY(-50%) scale(0.9);
 }
 
-
 .no-fouc {
 	display: none;
 }
+
+.slider-background-radial {
+    width: 100%;
+    height: 78%;
+    content: '';
+    position: absolute;
+    display: block;
+    z-index: 0;
+    min-height: 500px;
+    background: radial-gradient(500px 500px at 74% 70%, #545454, #252525);
+    bottom: 129px;
+}
+
 @media (min-width: 1200px) {
     .blockquote-container {
-        bottom: 5%;
+        bottom: 10%;
     }
     blockquote p {
         font-size: 1.2em;
@@ -248,7 +261,7 @@ blockquote p span.ending-quote:after {
 }
 @media (min-width: 993px) and (max-width: 1199px) {
     .blockquote-container {
-        bottom: 5%;
+        bottom: 10%;
     }
     blockquote p {
         font-size: 1em;
@@ -256,15 +269,56 @@ blockquote p span.ending-quote:after {
     blockquote cite h2 {
         font-size: 1.5em;
     }
+    .slider-background-radial {
+        width: 100%;
+        height: 81%;
+        content: '';
+        position: absolute;
+        display: block;
+        z-index: 0;
+        min-height: 300px;
+        background: radial-gradient(500px 500px at 74% 70%, #545454, #252525);
+    }
+    .fw-image-carousel {
+        width: 50%;
+    }
 }
 @media (min-width: 901px) and (max-width: 992px) {
+    .slider-background-radial {
+        width: 100%;
+        height: 81%;
+        content: '';
+        position: absolute;
+        display: block;
+        z-index: 0;
+        min-height: 300px;
+        /* bottom: 6px; */
+        background: radial-gradient(500px 500px at 74% 70%, #545454, #252525);
+    }
+    .fw-image-carousel {
+        width: 50%;
+    }
     blockquote p {
         font-size: 0.9em;
     }
 }
 @media (min-width: 768px) and (max-width: 900px) {
+    .slider-background-radial {
+        width: 100%;
+        height: 81%;
+        content: '';
+        position: absolute;
+        display: block;
+        z-index: 0;
+        min-height: 300px;
+        /* bottom: 6px; */
+        background: radial-gradient(500px 500px at 74% 70%, #545454, #252525);
+    }
+    .fw-image-carousel {
+        width: 50%;
+    }
     .blockquote-container {
-        bottom: 5%;
+        bottom: 10%;
         width: 55%;
         left: 1%;
     }
@@ -276,6 +330,11 @@ blockquote p span.ending-quote:after {
     }
     .slick-arrow {
         display: none !important;
+    }
+}
+@media (min-width: 490px) and (max-width: 767px) {
+    .fw-image-carousel {
+        margin-bottom: -100px;
     }
 }
 @media (max-width: 767px) {
@@ -308,7 +367,7 @@ blockquote p span.ending-quote:after {
         height: auto;
         margin: 0px;
         bottom: 0px;
-        background-color: rgba(37, 37, 37, 0.7);
+        background-color: rgba(37, 37, 37, 1);
     }
     blockquote p {
         font-size: 0.8em;
@@ -316,14 +375,13 @@ blockquote p span.ending-quote:after {
     blockquote cite h2 {
         font-size: 25px;
     }
-    .fw-image-carousel {
-        max-width: 350%;
-        left: -200%;
-        position: relative;
-        margin-bottom: 0%;
-    }
     blockquote cite {
         position: relative;
+    }
+}
+@media (max-width: 490px) {
+    .fw-image-carousel {
+        margin-bottom: 90px;
     }
 }
 </style>
@@ -334,32 +392,64 @@ blockquote p span.ending-quote:after {
     {{ blockContent }}
 </div>
 
+<div id="{{ id }}-nav" style="margin-top: -80px;">
+  <div><img src="/Content/HR/ds_thumb.png" class="" style="border: 3px solid white; max-width: 200px;margin: 0 auto;"/></div>
+  <div><img src="/Content/HR/l_thumb.png" class="" style="border: 3px solid white; max-width: 200px;margin: 0 auto;"/></div>
+  <div><img src="/Content/HR/lc_thumb.png" class="" style="border: 3px solid white; max-width: 200px;margin: 0 auto;"/></div>
+  <div><img src="/Content/HR/dh_thumb.png" class="" style="border: 3px solid white; max-width: 200px;margin: 0 auto;"/></div>
+  <div><img src="/Content/HR/mk_thumb.png" class="" style="border: 3px solid white; max-width: 200px;margin: 0 auto;"/></div>
+</div>
+
 <script>
+
 //initialise carousel
 function slickCarousel() {
     $('#{{ id }}').slick({
-      dots: true,
+      dots: false,
       infinite: true,
       autoplay: true,
       autoplaySpeed: 553200,
-      speed: 800,
       slidesToShow: {{ slidestoshow }},
       slidesToScroll: {{ slidestoscroll }},
       adaptiveHeight: {{ adaptiveHeight }},
       fade: {{ fade }},
       focusOnSelect: true,
-      arrows: true,
-      nextArrow: '<div class="next"><div class="next-top"></div><div class="next-bottom"></div></div>',
-      prevArrow: '<div class="prev"><div class="prev-top"></div><div class="prev-bottom"></div></div>'
+      arrows: false
     });
-    console.log("slider init");
-}
 
-{% comment %}
-  USE THIS FOR CUSTOM ARROWS
-  nextArrow: '<div class="next"><div class="next-top"></div><div class="next-bottom"></div></div>',
-  prevArrow: '<div class="prev"><div class="prev-top"></div><div class="prev-bottom"></div></div>'
-{% endcomment %}
+    $('#{{ id }}-nav').slick({
+      slidesToShow: 5,
+      slidesToScroll: 1,
+      asNavFor: '#{{ id }}',
+      dots: true,
+      focusOnSelect: true,
+      centerMode: true,
+      centerPadding: '60px',
+      arrows: false,
+      nextArrow: '<div class="next"><div class="next-top"></div><div class="next-bottom"></div></div>',
+      prevArrow: '<div class="prev"><div class="prev-top"></div><div class="prev-bottom"></div></div>',
+      responsive: [
+        {
+          breakpoint: 768,
+          settings: {
+            arrows: false,
+            centerMode: true,
+            centerPadding: '40px',
+            slidesToShow: 3
+          }
+        },
+        {
+          breakpoint: 480,
+          settings: {
+            arrows: false,
+            centerMode: true,
+            centerPadding: '40px',
+            slidesToShow: 1
+          }
+        }
+      ]
+    });
+}
 
 $( document ).ready(function() {
     $('.no-fouc').removeClass('no-fouc');
