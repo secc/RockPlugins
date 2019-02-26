@@ -24,13 +24,11 @@ namespace org.secc.Purchasing
     [Serializable]
     public class PurchasingBase
     {
-        protected PersonAliasService personAliasService = new PersonAliasService(new Rock.Data.RockContext());
-        protected UserLoginService userLoginService = new UserLoginService(new Rock.Data.RockContext());
-        protected static DefinedTypeService definedTypeService = new DefinedTypeService(new Rock.Data.RockContext());
-        protected static DefinedValueService definedValueService = new DefinedValueService(new Rock.Data.RockContext());
-        protected static SystemEmailService systemEmailService = new SystemEmailService(new Rock.Data.RockContext());
+        protected PersonAliasService personAliasService = new PersonAliasService( new Rock.Data.RockContext() );
+        protected UserLoginService userLoginService = new UserLoginService( new Rock.Data.RockContext() );
+        protected static DefinedTypeService definedTypeService = new DefinedTypeService( new Rock.Data.RockContext() );
+        protected static DefinedValueService definedValueService = new DefinedValueService( new Rock.Data.RockContext() );
 
-        
         private Person mCurrentPerson;
         [XmlIgnore]
         public Person CurrentPerson
