@@ -184,6 +184,7 @@
                                                     <Rock:DateField DataField="DateTime" HeaderText="Date" SortExpression="DateTimeStamp" />
                                                     <Rock:RockBoundField DataField="SeriesName" HeaderText="Series" SortExpression="SeriesName" />
                                                     <Rock:RockBoundField DataField="YValue" HeaderText="Count" SortExpression="YValue" />
+                                                    <Rock:BoolField DataField="SeriesAddlInfo" HeaderText="Took Attendance" />
                                                 </Columns>
                                             </Rock:Grid>
                                         </div>
