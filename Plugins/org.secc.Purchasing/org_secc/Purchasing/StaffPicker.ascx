@@ -68,7 +68,7 @@
                                             </Rock:RockTemplateField>
                                             <Rock:DefinedValueField HeaderText="Ministry Area" DataField="Ministry Area" SortExpression="Ministry Area" />
                                             <Rock:DefinedValueField HeaderText="Position" DataField="Position" SortExpression="Position" />
-                                            <Rock:LinkButtonField Text="Select" CssClass="btn btn-primary" OnClick="SelectButton_Click"/>
+                                            <Rock:LinkButtonField Text="Select" CssClass="btn btn-primary" OnClick="SelectButton_Click" ControlStyle-Width="65px" />
                                         </Columns>
                                     </Rock:Grid>
                                 </asp:Panel>

@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -305,7 +305,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         #region Public
         public void Show()
         {
-
+            Visible = true;
             Dictionary<string, string> ValErrors = ValidatePreReqs();
             if (ValErrors.Count > 0)
                 throw new org.secc.Purchasing.RequisitionNotValidException("Staff Search Properties are not valid.", ValErrors);
