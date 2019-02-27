@@ -57,16 +57,6 @@ Note: Do to this javascript requirements of this shortcode you will need to do a
 {% endif -%}
 {% endcomment %}
 
-{% comment %}
-************************ This is included in the Site.Master file ********************
-{{ 'https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.3/jarallax.js' | AddScriptLink }}
-{{ 'https://cdnjs.cloudflare.com/ajax/libs/object-fit-images/3.2.3/ofi.min.js' | AddScriptLink }}
-
-{% if videourl != '' -%}
-    {{ 'https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.3/jarallax-video.js' | AddScriptLink }}
-{% endif -%}
-{% endcomment %}
-
 {% assign id = uniqueid -%}
 {% assign bodyZindex = zindex | Plus:1 -%}
 {% assign speed = speed | AsInteger %}
@@ -84,7 +74,7 @@ Note: Do to this javascript requirements of this shortcode you will need to do a
 {% if videourl != '' -%}
     <div id="{{ id }}" class="jarallax {{addclass}}" data-img-size="{{ imgsize }}" data-jarallax-video="{{ videourl }}" data-type="{{ type }}" data-keep-img='true' data-speed="{{ speed }}" data-img-position="{{ position }}" data-z-index="{{ bodyZindex }}" data-video-start-time="{{ videostarttime }}" data-video-end-time="{{ videoendtime }}" >
         {% if image != "" -%}
-            {%comment %}
+            {% comment %}
             <img class="jarallax-img" src="{{ image | Escape }}" alt="">
             {% endcomment %}
         {% endif -%}
@@ -94,6 +84,50 @@ Note: Do to this javascript requirements of this shortcode you will need to do a
 {% endif -%}
 
     <script>
+    var BrowserDetect = {
+        init: function () {
+            this.browser = this.searchString(this.dataBrowser) || "Other";
+            this.version = this.searchVersion(navigator.userAgent) || this.searchVersion(navigator.appVersion) || "Unknown";
+        },
+        searchString: function (data) {
+            for (var i = 0; i < data.length; i++) {
+                var dataString = data[i].string;
+                this.versionSearchString = data[i].subString;
+
+                if (dataString.indexOf(data[i].subString) !== -1) {
+                    return data[i].identity;
+                }
+            }
+        },
+        searchVersion: function (dataString) {
+            var index = dataString.indexOf(this.versionSearchString);
+            if (index === -1) {
+                return;
+            }
+
+            var rv = dataString.indexOf("rv:");
+            if (this.versionSearchString === "Trident" && rv !== -1) {
+                return parseFloat(dataString.substring(rv + 3));
+            } else {
+                return parseFloat(dataString.substring(index + this.versionSearchString.length + 1));
+            }
+        },
+
+        dataBrowser: [
+            {string: navigator.userAgent, subString: "Edge", identity: "MS Edge"},
+            {string: navigator.userAgent, subString: "MSIE", identity: "Explorer"},
+            {string: navigator.userAgent, subString: "Trident", identity: "Explorer"},
+            {string: navigator.userAgent, subString: "Firefox", identity: "Firefox"},
+            {string: navigator.userAgent, subString: "Opera", identity: "Opera"},
+            {string: navigator.userAgent, subString: "OPR", identity: "Opera"},
+
+            {string: navigator.userAgent, subString: "Chrome", identity: "Chrome"},
+            {string: navigator.userAgent, subString: "Safari", identity: "Safari"}
+        ]
+    };
+
+    BrowserDetect.init();
+    // console.log('The browser is:'+BrowserDetect.browser);
 
     {% comment %}
     {% if image != "" %}
@@ -164,9 +198,17 @@ Note: Do to this javascript requirements of this shortcode you will need to do a
       {% endif %}
       {% endcomment %}
 
+
       jarallax(document.querySelectorAll('#{{ id }}'), {
-	    disableParallax: /iPad|iPhone|iPod|Android/,
-        disableVideo: /iPad|iPhone|iPod|Android/
+	    disableParallax: function () {
+          if (BrowserDetect.browser = "Explorer") {
+              document.getElementById('{{ id }}').innerHTML = '<img class="jarallax-img" src="{{ image | Escape }}" alt="">';
+          }
+          return /iPad|iPhone|iPod|Android|Edge|MSIE|IE/.test(navigator.userAgent);
+        },
+        disableVideo: function () {
+          return /iPad|iPhone|iPod|Android|Edge|MSIE|IE/.test(navigator.userAgent);
+        }
       });
     </script>
 
