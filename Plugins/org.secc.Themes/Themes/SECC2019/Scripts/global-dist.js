@@ -785,8 +785,7 @@ $("a#search-submit").click(function(e) {
 });
 
 function submitSearchSite(val) {
-	// alert('ya :' + val);
-	window.location = "https://www.southeastchristian.org/search.php?q="+val;
+	window.location = "/search?q="+val;
 }
 //@prepros-append event-rotator.js
 

@@ -30,6 +30,7 @@
 
             {% unless eventPromoImageObject != "" %}
                 {% if eventPhoto %}
+                    {% comment %}
                     <div class="event-photo-container">
                         <div class="event-photo">
                             <center>
@@ -37,6 +38,10 @@
                             </center>
                         </div>
                     </div>
+                    {% endcomment %}
+                    {[ parallax image:'{{ eventPhoto }}' addclass:'menu-switch' height:'55vh' position:'center center' speed:'-15' ]}
+    				{[ endparallax ]}
+                    
                 {% endif %}
             {% else %}
                 <div class="event-photo-container">
