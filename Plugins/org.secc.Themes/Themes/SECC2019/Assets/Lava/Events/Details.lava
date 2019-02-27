@@ -186,15 +186,34 @@
         </div>
     </div>
 
-    {% if eventOccurencesCount > 1 %}
-    <script type="text/javascript">
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Readmore.js/2.2.0/readmore.min.js"></script>
+    <script>
+    $(window).load(function() {
         // isotop options and wrapper
         var $grid = $('.isotope_wrap');
         var isoOptions = {
             percentPosition: true,
             itemSelector: '.isotope_item'
         };
+
+        // executes when complete page is fully loaded, including all frames, objects and images
+        $('.readmore_dates').readmore({
+            speed: 100,
+            lessLink: '<a href="#" style="top:8px; position:relative;"><h6 class="g-display-inline-block--xs">Show Less Dates<span class="se-carat se-carat--up"></span></h6></a>',
+            moreLink: '<a href="#" style="position:relative;top: -5px; position:relative;"><h6 class="g-display-inline-block--xs">Show All Dates<span class="se-carat se-carat--down"></span></h6></a>',
+            collapsedHeight: 0,
+            beforeToggle: function(tr, el, ex) {
+                $(el).show();
+            },
+            afterToggle: function(trigger, element, expanded) {
+                $grid.isotope(isoOptions); // re-initialize
+            }
+        });
+    });
+    </script>
+
+    {% if eventOccurencesCount > 1 %}
+    <script type="text/javascript">
 
         $(document).ready(function() {
 
@@ -245,25 +264,6 @@
          });
 
     </script>
-    {% endif %}
     <!-- ************************************ End: Show only if it's a Multi Event ************************************ -->
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Readmore.js/2.2.0/readmore.min.js"></script>
-    <script>
-    $(window).load(function() {
-         // executes when complete page is fully loaded, including all frames, objects and images
-         $('.readmore_dates').readmore({
-             speed: 100,
-             lessLink: '<a href="#" style="top:8px; position:relative;"><h5 class="g-display-inline-block--xs"><small>Show Less Dates</small> <span class="se-carat se-carat--up"></span></h5></a>',
-             moreLink: '<a href="#" style="position:relative;top: -5px; position:relative;"><h5 class="g-display-inline-block--xs"><small>Show All Dates</small><span class="se-carat se-carat--down"></span></h5></a>',
-             collapsedHeight: 0,
-             beforeToggle: function(tr, el, ex) {
-                 $(el).show();
-             },
-             afterToggle: function(trigger, element, expanded) {
-                 $grid.isotope(isoOptions); // re-initialize
-             }
-        });
-    });
-    </script>
+    {% endif %}
 </div>

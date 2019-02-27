@@ -27,17 +27,21 @@
 $PrimaryCopyFont: 			"Helvetica Neue", Helvetica, Arial, sans-serif;
 $SerifFont: 				"minion-pro", Georgia, "Times New Roman", serif;
 
-$Proxima: 					join(("proxima-nova-n4", "proxima-nova"), $PrimaryCopyFont, comma);
-$Proxima-Thin: 				join(("proxima-nova-n1", "proxima-nova"), $PrimaryCopyFont, comma);
-$Proxima-Light: 			join(("proxima-nova-n3", "proxima-nova"), $PrimaryCopyFont, comma);
-$Proxima-SemiBold: 			join(("proxima-nova-n6", "proxima-nova"), $PrimaryCopyFont, comma);
-$Proxima-Bold: 				join(("proxima-nova-n7", "proxima-nova"), $PrimaryCopyFont, comma);
-$Proxima-ExtraBold: 		join(("proxima-nova-n8", "proxima-nova"), $PrimaryCopyFont, comma);
-$Proxima-Black: 			join(("proxima-nova-n9", "proxima-nova"), $PrimaryCopyFont, comma);
+/* Define the path to use for TisaPro fonts */
+$fa-proximanova-path:  			"/Themes/SECC2019/Assets/fonts/proxima-nova/";
+$Proxima: 					join(("ProximaNova", "proxima-nova"), $PrimaryCopyFont, comma);
+$Proxima-Thin: 				join(("ProximaNova", "proxima-nova"), $PrimaryCopyFont, comma);
+$Proxima-Light: 			join(("ProximaNova", "proxima-nova"), $PrimaryCopyFont, comma);
+$Proxima-SemiBold: 			join(("ProximaNova", "proxima-nova"), $PrimaryCopyFont, comma);
+$Proxima-Bold: 				join(("ProximaNova", "proxima-nova"), $PrimaryCopyFont, comma);
+$Proxima-ExtraBold: 		join(("ProximaNova", "proxima-nova"), $PrimaryCopyFont, comma);
+$Proxima-Black: 			join(("ProximaNova", "proxima-nova"), $PrimaryCopyFont, comma);
 
 /* Define the path to use for TisaPro fonts */
 $fa-tisapro-path:  			"/Themes/SECC2019/Assets/fonts/tisa-pro/";
 $TisaPro: 					join(("TisaPro", "tisa-pro"), $SerifFont);
+
+/*$ProximaNova: 				join(("ProximaNova", "proxima-nova"), $PrimaryCopyFont, comma); */
 
 $TitleFont: $Proxima-SemiBold; // Overwrites bootstrap default
 

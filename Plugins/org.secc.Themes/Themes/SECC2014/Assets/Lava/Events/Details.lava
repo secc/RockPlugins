@@ -207,6 +207,24 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Readmore.js/2.2.0/readmore.min.js"></script>
+    <script>
+    $(window).load(function() {
+        // executes when complete page is fully loaded, including all frames, objects and images
+        $('.readmore_dates').readmore({
+            speed: 100,
+            lessLink: '<a href="#">Show Less Available Dates</a>',
+            moreLink: '<a href="#">Show All Available Dates</a>',
+            collapsedHeight: 0,
+            beforeToggle: function(tr, el, ex) {
+                $(el).show();
+            },
+            afterToggle: function(trigger, element, expanded) {
+                $grid.isotope(isoOptions); // re-initialize
+            }
+        });
+    });
+    </script>
     <script type="text/javascript">
 
         // isotop options and wrapper
@@ -277,24 +295,21 @@
          });
 
     </script>
-{% endif %}
 <!-- ************************************ End: Show only if it's a Multi Event ************************************ -->
-
+{% else %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Readmore.js/2.2.0/readmore.min.js"></script>
 <script>
 $(window).load(function() {
-     // executes when complete page is fully loaded, including all frames, objects and images
-     $('.readmore_dates').readmore({
-         speed: 100,
-         lessLink: '<a href="#">Show Less Available Dates</a>',
-         moreLink: '<a href="#">Show All Available Dates</a>',
-         collapsedHeight: 0,
-         beforeToggle: function(tr, el, ex) {
-             $(el).show();
-         },
-         afterToggle: function(trigger, element, expanded) {
-             $grid.isotope(isoOptions); // re-initialize
-         }
+    // executes when complete page is fully loaded, including all frames, objects and images
+    $('.readmore_dates').readmore({
+        speed: 100,
+        lessLink: '<a href="#">Show Less Available Dates</a>',
+        moreLink: '<a href="#">Show All Available Dates</a>',
+        collapsedHeight: 0,
+        beforeToggle: function(tr, el, ex) {
+            $(el).show();
+        }
     });
 });
 </script>
+{% endif %}
