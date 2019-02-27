@@ -26,6 +26,7 @@ namespace org.secc.Jobs
 {
     [DisallowConcurrentExecution]
     [IntegerField( "Command Timeout", "Maximum amount of time (in seconds) to wait for the SQL Query to complete. Leave blank to use the default for this job (3600). Note, it could take several minutes, so you might want to set it at 3600 (60 minutes) or higher", false, 60 * 60, "General", 1, "CommandTimeout" )]
+    [IntegerField( "Take", "Number of people to run qry against at a time", false, 1000, "General", 1, "Take" )]
     public class SetFirstAttendanceDate
         : IJob
     {
@@ -65,11 +66,13 @@ namespace org.secc.Jobs
             var eraStartQry = attributeValueService.Queryable()
                 .Where( av => av.AttributeId == eraStartDateAttribute.Id );
 
+            var take = dataMap.GetString( "Take" ).AsIntegerOrNull() ?? 1000;
 
             //Linq!
             var people = personService.Queryable()              //Get all the people
                 .Where( p => inEraQry.Contains( p.Id ) )        //Who are era
                 .Where( p => !firstAttQry.Contains( p.Id ) )    //And don't have a first attendance
+                .Take( take )
                 .Join(                                          //Get the ERA Start Date
                     eraStartQry,
                     p => p.Id,
