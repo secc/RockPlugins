@@ -20,6 +20,9 @@
 //Check to see if we should remove menu transparency
         var page = PageCache.Get( ( ( RockPage ) Page ).PageId );
         var showalert = page.GetAttributeValue( "TransparentMenu" ).AsBoolean();
+        var facebookOG = page.GetAttributeValue("UseFaceBookOG").AsBoolean();
+        var facebookOGImage = page.GetAttributeValue("FacebookOGImage");
+
         if ( !showalert )
         {
             var script = @"$(document).ready(function() {
@@ -28,6 +31,39 @@
 });";
             ScriptManager.RegisterStartupScript( this.Page, this.GetType(), "transparentMenu", script, true );
         }
+                if (facebookOG)
+        {
+            HtmlMeta typeOGMetaTag = new HtmlMeta();
+            typeOGMetaTag.Attributes.Add("property", "og:type");
+            typeOGMetaTag.Attributes.Add("content", "website");
+            Page.Header.Controls.Add(typeOGMetaTag);
+            if (!(string.IsNullOrEmpty(page.PageTitle)))
+            {
+                HtmlMeta titleOGMetaTag = new HtmlMeta();
+                titleOGMetaTag.Attributes.Add("property", "og:title");
+                titleOGMetaTag.Attributes.Add("content", page.PageTitle);
+                Page.Header.Controls.Add(titleOGMetaTag);
+            }
+            if (!(string.IsNullOrEmpty(page.Description)))
+            {
+                HtmlMeta descOGMetaTag = new HtmlMeta();
+                descOGMetaTag.Attributes.Add("property", "og:description");
+                descOGMetaTag.Attributes.Add("content", page.Description);
+                Page.Header.Controls.Add(descOGMetaTag);
+            }
+            if (!(string.IsNullOrEmpty(facebookOGImage)))
+            {
+                HtmlMeta imageOGMetaTag = new HtmlMeta();
+                imageOGMetaTag.Attributes.Add("property", "og:image");
+                imageOGMetaTag.Attributes.Add("content", "https://staging.southeastchristian.org/GetImage.ashx?Guid=" + facebookOGImage);
+                Page.Header.Controls.Add(imageOGMetaTag);
+            }
+            HtmlMeta urlOGMetaTag = new HtmlMeta();
+            urlOGMetaTag.Attributes.Add("property", "og:url");
+            urlOGMetaTag.Attributes.Add("content", Request.Url.AbsoluteUri);
+            Page.Header.Controls.Add(urlOGMetaTag);
+        }
+
     }
 
 </script>
