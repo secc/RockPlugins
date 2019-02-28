@@ -79,6 +79,7 @@ namespace org.secc.Connection
         {
             get
             {
+
                 if ( _roleRequests == null )
                 {
                     _roleRequests = PageParameter( "RoleRequests" ).FromJsonOrNull<List<ConnectionRoleRequest>>();
@@ -93,18 +94,24 @@ namespace org.secc.Connection
                             GroupTypeRoleService groupTypeRoleService = new GroupTypeRoleService( new RockContext() );
                             roleRequest.GroupTypeRoleId = groupTypeRoleService.Get( PageParameter( "GroupTypeRole" ).AsGuid() ).Id;
                         }
-
-                        roleRequest.Attributes = new Dictionary<string, string>();
-                        var urlKeys = GetAttributeValues( "UrlKeys" );
-                        foreach ( string urlKey in urlKeys )
-                        {
-                            if ( !string.IsNullOrEmpty( PageParameter( urlKey ) ) )
-                            {
-                                roleRequest.Attributes.Add( urlKey, PageParameter( urlKey ) );
-                            }
-                        }
                         _roleRequests.Add( roleRequest );
                     }
+                    foreach ( var roleRequest in _roleRequests )
+                    {
+                        if ( roleRequest.Attributes == null )
+                        {
+                            roleRequest.Attributes = new Dictionary<string, string>();
+                            var urlKeys = GetAttributeValues( "UrlKeys" );
+                            foreach ( string urlKey in urlKeys )
+                            {
+                                if ( !string.IsNullOrEmpty( PageParameter( urlKey ) ) )
+                                {
+                                    roleRequest.Attributes.Add( urlKey, PageParameter( urlKey ) );
+                                }
+                            }
+                        }
+                    }
+
                 }
 
                 // Handle any situation where we have a 0 role id
