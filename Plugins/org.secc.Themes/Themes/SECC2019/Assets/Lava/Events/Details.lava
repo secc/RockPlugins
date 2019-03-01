@@ -6,7 +6,20 @@
 }
 </style>
 
-{% assign eventVimeoID = Event | Attribute:'EventVimeoID' %}
+{% comment %}
+    *** Make sure to load attributes that only exists in the public calendar. Otherise, it will break ***
+{% endcomment %}
+{% for eventCalendarItem in Event.EventCalendarItems %}
+    {% if eventCalendarItem.EventCalendarId == 1 %}
+        {% assign eventVimeoID = eventCalendarItem | Attribute:'EventVimeoID' %}
+        {% assign eventPromoImageObject = eventCalendarItem | Attribute:'EventPromoImage','Object' %}
+
+        {% assign primaryMinistry = eventCalendarItem | Attribute:'PrimaryMinistry','Object' | Attribute:'CalendarImage','Object' %}
+
+        {% assign facebookPhoto = eventCalendarItem | Attribute:'core_calendar_FacebookPhoto','Object' %}
+        {% assign twitterPhoto = eventCalendarItem | Attribute:'core_calendar_TwitterPhoto','Object' %}
+    {% endif %}
+{% endfor %}
 
 <div class="container-fluid">
 	<div class="row">
@@ -16,19 +29,16 @@
             <a class="js-modal-video" data-video-id="{{ eventVimeoID }}">
             {% endif %}
 
-            {% assign eventPromoImageObject = Event | Attribute:'EventPromoImage','Object' %}
             {% assign eventPromoImage = '/GetImage.ashx/' | Plus: eventPromoImageObject.Guid | Plus: '.jpg?guid=' | Plus: eventPromoImageObject.Guid %}
-
             {% assign eventPhoto = '' %}
 
             {% if Event.Photo.Guid %}
                 {% assign eventPhoto = '/GetImage.ashx/' | Plus: Event.Photo.Guid | Plus: '.jpg?guid=' | Plus: Event.Photo.Guid %}
             {% else %}
-                {% assign primaryMinistry = Event | Attribute:'PrimaryMinistry','Object' | Attribute:'CalendarImage','Object' %}
                 {% assign eventPhoto = '/GetImage.ashx/' | Plus: Event.Photo.Guid | Plus: '.jpg?guid=' | Plus: primaryMinistry.Guid %}
             {% endif %}
 
-            {% unless eventPromoImageObject != "" %}
+            {% if eventPromoImageObject == null or eventPromoImageObject == '' %}
                 {% if eventPhoto %}
                     {% comment %}
                     <div class="event-photo-container">
@@ -39,9 +49,9 @@
                         </div>
                     </div>
                     {% endcomment %}
-                    {[ parallax image:'{{ eventPhoto }}' addclass:'menu-switch' height:'55vh' position:'center center' speed:'-15' ]}
-    				{[ endparallax ]}
-                    
+                    {[ parallax image:'{{ eventPhoto }}' height:'55vh' position:'center center' speed:'-15' ]}
+                    {[ endparallax ]}
+
                 {% endif %}
             {% else %}
                 <div class="event-photo-container">
@@ -51,7 +61,7 @@
                         </center>
                     </div>
                 </div>
-            {% endunless %}
+            {% endif %}
 
             {% if eventVimeoID != "" %}
             </a> <!-- closing video modal link -->
@@ -119,7 +129,7 @@
                 {{ Event.Name | AddMetaTagToHead:'property','og:title' }}
                 {{ Event.Description | StripHtml | AddMetaTagToHead:'property','og:description' }}
 
-                {% assign facebookPhoto = Event | Attribute:'core_calendar_FacebookPhoto','Object' %}
+
                 {% if facebookPhoto %}
                     {{ facebookPhoto.Url | AddMetaTagToHead:'property','og:image' }}
                 {% else %}
@@ -128,7 +138,6 @@
                     {{ facebookPhoto | AddMetaTagToHead:'property','og:image' }}
                 {% endif %}
 
-                {% assign twitterPhoto = Event | Attribute:'core_calendar_TwitterPhoto','Object' %}
                 {% if twitterPhoto != '' %}
                     {{ twitterPhoto.Url | AddMetaTagToHead:'property','twitter:image' }}
                 {% else %}
@@ -193,14 +202,14 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Readmore.js/2.2.0/readmore.min.js"></script>
     <script>
-    $(window).load(function() {
-        // isotop options and wrapper
-        var $grid = $('.isotope_wrap');
-        var isoOptions = {
-            percentPosition: true,
-            itemSelector: '.isotope_item'
-        };
+    // isotop options and wrapper
+    var $grid = $('.isotope_wrap');
+    var isoOptions = {
+        percentPosition: true,
+        itemSelector: '.isotope_item'
+    };
 
+    $(window).load(function() {
         // executes when complete page is fully loaded, including all frames, objects and images
         $('.readmore_dates').readmore({
             speed: 100,
