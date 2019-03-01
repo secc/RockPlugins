@@ -225,7 +225,7 @@ namespace org.secc.Connection
                 PreloadPartitionPointers();
 
                 var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null );
-                //mergeFields.Add( "Settings", Rock.Lava.RockFilters.FromJSON( GetAttributeValue( "Settings" ) ) );
+                mergeFields.Add( "Settings", Rock.Lava.RockFilters.FromJSON( GetAttributeValue( "Settings" ) ) );
                 string url = "";
                 if ( Settings.SignupPage() != null )
                 {
@@ -1114,7 +1114,7 @@ namespace org.secc.Connection
                     roleId = value;
                 }
 
-                if ( partition.GroupMap != null && partition.GroupMap.ContainsKey( value ) )
+                if ( partition.GroupMap != null && partition.GroupMap.ContainsKey( value ) && partition.GroupMap[value] != "Not Mapped" )
                 {
                     groupId = partition.GroupMap[value];
                 }
