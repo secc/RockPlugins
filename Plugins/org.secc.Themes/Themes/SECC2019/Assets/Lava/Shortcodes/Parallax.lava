@@ -127,8 +127,9 @@ Note: Do to this javascript requirements of this shortcode you will need to do a
     };
 
     BrowserDetect.init();
-    // console.log('The browser is:'+BrowserDetect.browser);
-
+    if (BrowserDetect.browser = "Explorer") {
+        $('body').css( "overflow-x", "hidden" );
+    }
     {% comment %}
     {% if image != "" %}
       var tmpCanInitParallax = jarallax.constructor.prototype.canInitParallax;
@@ -201,9 +202,6 @@ Note: Do to this javascript requirements of this shortcode you will need to do a
 
       jarallax(document.querySelectorAll('#{{ id }}'), {
 	    disableParallax: function () {
-          if (BrowserDetect.browser = "Explorer") {
-              document.getElementById('{{ id }}').innerHTML = '<img class="jarallax-img" src="{{ image | Escape }}" alt="">';
-          }
           return /iPad|iPhone|iPod|Android|Edge|MSIE|IE/.test(navigator.userAgent);
         },
         disableVideo: function () {
