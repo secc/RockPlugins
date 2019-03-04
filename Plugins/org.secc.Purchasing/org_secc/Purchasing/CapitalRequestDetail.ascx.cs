@@ -2272,7 +2272,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 return (bool)ViewState[viewStateKey];
             }
 
-            Boolean isApprover = FinanceApproverGroup.Members.Where(m => m.GroupMemberStatus == GroupMemberStatus.Active).Count() > 0;
+            Boolean isApprover = FinanceApproverGroup.Members.Where(m => m.GroupMemberStatus == GroupMemberStatus.Active && m.Person.Id == CurrentPerson.Id ).Count() > 0;
 
             ViewState[viewStateKey] = isApprover;
 
