@@ -132,6 +132,8 @@
     <Compile Include="Workflows\FilterGroupsByBirthday.cs" />
     <Compile Include="Workflows\FilterGroupsByDataView.cs" />
     <Compile Include="Workflows\FilterGroupsByGrade.cs" />
+    <Compile Include="Workflows\SportsFitnessSaveAttendance.cs" />
+    <Compile Include="Workflows\SportsFitnessGroupFilter.cs" />
     <Compile Include="Workflows\FilterGroupsByMembership.cs" />
     <Compile Include="Workflows\LoadAllLocations.cs" />
     <Compile Include="Workflows\LoadAllCacheless.cs" />
