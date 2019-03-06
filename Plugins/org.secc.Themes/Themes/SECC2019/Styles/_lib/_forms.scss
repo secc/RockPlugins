@@ -61,7 +61,7 @@ form {
 
 	div:not(.rock-modal) {
 		 div:not(.modal-footer):not(.modal-body):not(.modal-header) {
-			> a.btn, input.btn-action, input.btn-link {
+			> a.btn, input.btn-action, input.btn-link,> a.btn-default {
 				@include btn;
 			}
 
@@ -79,7 +79,7 @@ form {
 				$hvr-brd-color: $color-dark);
 			}
 
-			> input.btn-action {
+			> input.btn-action, > a.btn-default {
 				@include btn-style(
 				$color: $color-dark,
 				$padding: 0.5rem 1.5rem,

@@ -1,0 +1,27 @@
+                {%- assign campus = partition -%}
+				{%- assign spotsLeft = campus.Limit | Minus: campus.Filled -%}
+				<div class="col-sm-6 col-md-4" style="margin-bottom: 20px;">
+					{% if spotsLeft > 0 and campus.Limit > 0 %}
+						{% if partitionSize > 0 %}
+							<a href="#" onclick="doSlide('#{{divId}}_{{campus.Value}}'); return false;">
+						{% else %}
+							<a href="{{partition.Url}}&GroupId={{partition.GroupId}}">
+						{% endif %}
+					{% endif %}
+					<div class="g-padding-y-40--xs" style="">
+                    <a href="#" onclick="doSlide('#{{divId}}_{{campus.Value}}'); return false;">
+                        <div class="box text-center">
+                            <h4 class="uppercase g-font-weight--800">
+                                {{ campus.Entity.Name }}<br />
+                            </h4>
+                            <img src="/Themes/SECC2019/Assets/img/SE/Campuses/{{ campus.Entity.ShortCode }}.jpg" class="img-circle g-width-350--xs g-margin-y-20--xs" style="padding: 3px;" />
+                            <h4 class="uppercase g-font-weight--800">
+                                <span class="label label-default label label-default g-bg-color--black-opacity" style="margin: 10px 10px 0px 0px;">{% if campus.Limit == null %}Unlimited{% else %}{% if spotsLeft <= 0 %}Full{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}{% endif %}</span>
+                            </h4>
+                            <!-- <span class="campus-circle">{{ campus.Entity.ShortCode }}</span> -->
+                        </div>
+					</div>
+					{% if spotsLeft > 0 and campus.Limit > 0 %}
+						</a>
+					{% endif %}
+                </div>
