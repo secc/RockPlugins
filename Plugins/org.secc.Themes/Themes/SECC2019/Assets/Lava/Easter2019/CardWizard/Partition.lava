@@ -1,0 +1,93 @@
+		{% if level > 0 %}
+			{% assign divId = partition.ParentIdentifier | Append:'_' | Append: partition.Value %}
+		{% else %}
+			{% assign url = '' %}
+			{% assign level = 0 %}
+			{% assign divId = 'signup' %}
+			{% assign show = 'Global' | PageParameter:'show' %}
+			{% assign foundDiv = false %}
+		{% endif %}
+		{% assign level = level | Plus:1 %}
+
+
+		<div id="{{divId}}" data-level="{{level}}" class="container-fluid slide-box {% if show == '' and show == empty and level == 1 %}{% assign foundDiv = true %}active" style="left: 0%;{% elseif show == divId %}{% assign foundDiv = true %}active" style="left: 0%;{% endif %}">
+
+			{% if level == 1 %}
+			<div class="row g-padding-b-10--xs">
+				<div class="col-xs-12">
+					<header class="text-center"  style="padding-bottom: 0px;">
+						<br />
+						<h2 class="uppercase
+						g-font-weight--900
+						g-font-size-40--xs
+						g-font-size-60--md
+						g-font-size-80--lg">Easter at Southeast Serving</h2>
+					</header>
+				</div>
+			</div>
+			{% elseif level > 1 %}
+			<div class="row g-padding-b-30--xs">
+				<div class="col-xs-12">
+					<br />
+					<a href="#" onclick="doSlide('#{{partition.ParentIdentifier}}'); return false;" title="Go Back" class="btn btn-default uppercase g-letter-spacing--1 g-color--black-opacity-light g-color-hover--white">
+						<strong>Back</strong>
+					</a>
+				</div>
+			</div>
+			{% endif %}
+
+			<div class="row">
+	            <div class="col-sm-10 col-sm-offset-1">
+				{% assign parameterName = '' %}
+	            {% for partition in Tree %}
+					{% assign partitionSize = partition.Partitions | Size %}
+					{% if partitionSize > 0 or CardWizardMode == "Single" %}
+						{% if partition.PartitionType == 'DefinedType' %}
+							{% if forloop.first %}<h3 class="uppercase text-center g-padding-b-20--xs g-font-size-28--xs g-font-size-36--md">Please select from the following:</h3>{% endif %}
+							{% include '~~/Assets/Lava/Easter2019/CardWizard/CardDefinedType.lava' %}
+						{% elseif partition.PartitionType == 'Schedule' %}
+							{% if forloop.first %}<h3 class="uppercase text-center g-padding-b-20--xs g-font-size-28--xs g-font-size-36--md">Please select your schedule:</h3>{% endif %}
+							{% include '~~/Assets/Lava/Easter2019/CardWizard/CardSchedule.lava' %}
+						{% elseif partition.PartitionType == 'Campus' %}
+							{% if forloop.first %}<h3 class="uppercase text-center g-padding-b-20--xs g-font-size-28--xs g-font-size-36--md">Please select your campus:</h3>{% endif %}
+							{% include '~~/Assets/Lava/Easter2019/CardWizard/CardCampus.lava' %}
+						{% elseif partition.PartitionType == 'Role' %}
+							{% if forloop.first %}<h3 class="uppercase text-center g-padding-b-20--xs g-font-size-28--xs g-font-size-36--md">Please select your serving role:</h3>{% endif %}
+							{% include '~~/Assets/Lava/Easter2019/CardWizard/CardRole.lava' %}
+						{% endif %}
+					{% else %}
+						{% assign parameterName = partition.ParameterName %}
+						{% assign type = partition.PartitionType %}
+						{% if partition.PartitionType == 'DefinedType' and forloop.first %}
+							<h3 class="uppercase text-center g-padding-b-20--xs g-font-size-28--xs g-font-size-36--md">Please select from the following:</h3>
+						{% elseif partition.PartitionType == 'Schedule' and forloop.first %}
+							<h3 class="uppercase text-center g-padding-b-20--xs g-font-size-28--xs g-font-size-36--md">Please select your schedule(s):</h3>
+						{% elseif partition.PartitionType == 'Campus' and forloop.first %}
+							<h3 class="uppercase text-center g-padding-b-20--xs g-font-size-28--xs g-font-size-36--md">Please select from the following:</h3>
+						{% elseif partition.PartitionType == 'Role' and forloop.first %}
+							<h3 class="uppercase text-center g-padding-b-20--xs g-font-size-28--xs g-font-size-36--md">Please select your serving role(s):</h3>
+						{% endif %}
+						{% include '~~/Assets/Lava/Easter2019/CardWizard/PartitionList.lava' %}
+					{% endif %}
+	            {% endfor %}
+	            </div>
+			</div>
+
+			{% if parameterName != '' and CardWizardMode != "Single" %}
+			<div class="row">
+				<div class="col-sm-10 col-sm-offset-1">
+					<a href="{{partition.Url}}" data-type="{{type}}" data-group-id="{{partition.GroupId}}" data-role="{{partition.RoleGuid}}" data-parameter-name="{{parameterName}}" title="Sign Up" class="btn btn-primary pull-right signup-button uppercase g-letter-spacing--1">
+						<strong>Sign Up</strong>
+					</a>
+				</div>
+			</div>
+			{% endif %}
+        </div>
+        {% for partition in Tree %}
+			{% assign partitionSize = partition.Partitions | Size %}
+			{% if partitionSize > 0 %}
+				{% assign Tree = partition.Partitions %}
+				{% include '~~/Assets/Lava/Easter2019/CardWizard/Partition.lava' %}
+			{% endif %}
+        {% endfor %}
+		{% assign level =  level | Minus:1 %}

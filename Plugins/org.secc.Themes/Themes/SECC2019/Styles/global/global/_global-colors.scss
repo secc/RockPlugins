@@ -25,6 +25,14 @@ $utils-colors: (
 	white-opacity-light:  	(color: rgba($WhiteColor,.5)),
 	white-opacity-lighter:	(color: rgba($WhiteColor,.3)),
 	white-opacity-lightest:	(color: rgba($WhiteColor,.1)),
+	2019-easter-purple: (color: #804470),
+	2019-easter-920: (color: #804470),
+	2019-easter-CW: (color: #D75546),
+	2019-easter-EZ: (color: #F2AB4B),
+	2019-easter-IN: (color: #286A69),
+	2019-easter-LA: (color: #09AABA),
+	2019-easter-RV: (color: #3B9D8C),
+	2019-easter-SW: (color: #1C2045),
 );
 
 //Some alternate colors used for Nav Items, highlights, and callouts
@@ -48,6 +56,14 @@ $utils-colors: (
 }
 
 /* Hover Colors */
+@each $color-name, $color in $utils-colors {
+	.g-color-hover--#{$color-name} {
+		@include hover {
+	  		color: map-get($color, color) !important;
+		}
+  	}
+}
+
 .g-color--text[href] {
 	@include hover {
 		color: $color-primary !important;
