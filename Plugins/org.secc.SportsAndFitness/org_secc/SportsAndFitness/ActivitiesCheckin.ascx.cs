@@ -40,13 +40,18 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
     public partial class ActivitiesCheckin : CheckInBlock
     {
 
+        #region Field
+
         private RockContext _rockContext;
         private int _noteTypeId;
         private string _expirationDateKey;
         private int _memberConnectionStatusId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_MEMBER.AsGuid() ).Id;
-
         private List<GroupTypeCache> parentGroupTypesList;
         private GroupTypeCache currentParentGroupType;
+
+        #endregion
+
+        #region Events
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
@@ -134,6 +139,166 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             }
         }
 
+        protected void btnCancel_Click( object sender, EventArgs e )
+        {
+            NavigateToPreviousPage();
+        }
+
+        protected void btnCheckin_Click( object sender, EventArgs e )
+        {
+            var locationlessPeople = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).SelectMany( f => f.People )
+                .Where( p => p.Selected && !p.GroupTypes.Where( gt => gt.Selected ).Any() ).ToList();
+            if ( locationlessPeople.Any() )
+            {
+                if ( locationlessPeople.Count == 1 )
+                {
+                    maError.Show( locationlessPeople.First().Person.FullName + " is selected for check-in, but does not have any locations selected.", ModalAlertType.Alert );
+                }
+                else
+                {
+                    maError.Show( "The following people are selected for check-in in but do not have any locations selected: " + string.Join( ", ", locationlessPeople.Select( p => p.Person.FullName ) ), ModalAlertType.Alert );
+                }
+                return;
+            }
+            List<string> errors = new List<string>();
+            string workflowActivity = GetAttributeValue( "CheckinActivity" );
+            try
+            {
+                bool test = ProcessActivity( workflowActivity, out errors );
+                NavigateToNextPage();
+            }
+            catch
+            {
+                maError.Show( "There was an issue processing check-in. If the problem persists, please contact your administrator.", ModalAlertType.Warning );
+            }
+        }
+
+        protected void btnBack_Click( object sender, EventArgs e )
+        {
+            NavigateToPreviousPage();
+        }
+
+        protected void btnAdd_Click( object sender, EventArgs e )
+        {
+            ShowAddPersonModal();
+        }
+
+        protected void btnPhone_Click( object sender, EventArgs e )
+        {
+            RockContext rockContext = new RockContext();
+            PhoneNumberService phoneNumberService = new PhoneNumberService( rockContext );
+            if ( !string.IsNullOrWhiteSpace( tbSearch.Text ) )
+            {
+                var people = phoneNumberService.GetBySearchterm( tbSearch.Text )
+                    .Select( pn => pn.Person )
+                    .DistinctBy( p => p.Id )
+                    .ToList() //Leave EF
+                    .Select( p => new GridPerson
+                    {
+                        Person = p,
+                        Id = p.Id,
+                        Address = p.GetHomeLocation().ToString()
+                    } )
+                    .ToList();
+                gPeopleToAdd.DataSource = people;
+                gPeopleToAdd.DataBind();
+            }
+            gPeopleToAdd.Visible = true;
+            btnOpenCreatePerson.Visible = true;
+        }
+
+        protected void btnName_Click( object sender, EventArgs e )
+        {
+            RockContext rockContext = new RockContext();
+            PersonService personService = new PersonService( rockContext );
+            if ( !string.IsNullOrWhiteSpace( tbSearch.Text ) )
+            {
+                var people = personService.GetByFullName( tbSearch.Text, false )
+                    .ToList() //Leave EF
+                    .Select( p => new GridPerson
+                    {
+                        Person = p,
+                        Id = p.Id,
+                        Address = p.GetHomeLocation() != null ? p.GetHomeLocation().ToString() : ""
+                    } )
+                    .ToList();
+                gPeopleToAdd.DataSource = people;
+                gPeopleToAdd.DataBind();
+            }
+            gPeopleToAdd.Visible = true;
+            btnOpenCreatePerson.Visible = true;
+        }
+
+        protected void lbAddGuest_Click( object sender, RowEventArgs e )
+        {
+            AddCheckInRelationship( ( int ) e.RowKeyValue );
+        }
+        protected void btnCancelSearch_Click( object sender, EventArgs e )
+        {
+            gPeopleToAdd.Visible = false;
+            btnOpenCreatePerson.Visible = false;
+            mdSearchPerson.Hide();
+        }
+
+        protected void btnOpenCreatePerson_Click( object sender, EventArgs e )
+        {
+            mdSearchPerson.Hide();
+            mdCreatePerson.Show();
+        }
+
+        protected void lbCancel_Click( object sender, EventArgs e )
+        {
+            mdCreatePerson.Hide();
+        }
+
+        protected void btnNewFamily_Click( object sender, EventArgs e )
+        {
+            RockContext rockContext = new RockContext();
+            Person person = new Person();
+            person.FirstName = tbFirstName.Text;
+            person.LastName = tbLastName.Text;
+            person.SuffixValueId = ddlSuffix.SelectedValueAsId();
+            person.Email = ebEmail.Text;
+            person.SetBirthDate( bpBirthday.SelectedDate );
+
+            person.ConnectionStatusValueId = DefinedValueCache.Get( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id;
+            person.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+            person.RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING.AsGuid() ).Id;
+
+            var newFamily = PersonService.SaveNewPerson( person, rockContext, cpNewFamilyCampus.SelectedCampusId );
+
+            int homeLocationTypeId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() ).Id;
+            var familyLocation = new Location();
+            familyLocation.Street1 = acNewFamilyAddress.Street1;
+            familyLocation.Street2 = acNewFamilyAddress.Street2;
+            familyLocation.City = acNewFamilyAddress.City;
+            familyLocation.State = acNewFamilyAddress.State;
+            familyLocation.PostalCode = acNewFamilyAddress.PostalCode;
+            newFamily.GroupLocations.Add( new GroupLocation() { Location = familyLocation, GroupLocationTypeValueId = homeLocationTypeId } );
+
+            if ( cbSMS.Checked )
+            {
+                var smsPhone = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).Id;
+                person.UpdatePhoneNumber( smsPhone, PhoneNumber.DefaultCountryCode(), pnbPhone.Text, true, false, _rockContext );
+            }
+            else
+            {
+                var otherPhone = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME.AsGuid() ).Id;
+                person.UpdatePhoneNumber( otherPhone, PhoneNumber.DefaultCountryCode(), pnbPhone.Text, false, false, _rockContext );
+            }
+
+            rockContext.SaveChanges();
+
+            AddCheckInRelationship( person.Id );
+        }
+
+        protected void btnCameraCancel_Click( object sender, EventArgs e )
+        {
+            mdCamera.Hide();
+        }
+        #endregion
+
+        #region Methods
         private void UpdatePhoto( string requestJSON )
         {
             var requestObj = JsonConvert.DeserializeObject<Dictionary<string, object>>( requestJSON );
@@ -216,6 +381,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                 DisplayNoEligibleMembers();
                 return;
             }
+            var count = 0;
             foreach ( var person in family.People.Where( p => p.FamilyMember ).Where( p => p.GroupTypes.Where( gt => gt.Groups.Any() ).Any() ) )
             {
                 var card = new Panel();
@@ -330,6 +496,17 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                         }
                     }
                 }
+                //clearfix
+                count++;
+                if ( count == 4 )
+                {
+                    Panel panelClearfix = new Panel
+                    {
+                        CssClass = "clearfix"
+                    };
+                    phMembers.Controls.Add( panelClearfix );
+                    count = 0;
+                }
             }
         }
 
@@ -373,6 +550,73 @@ req['Image']=canvas.toDataURL('image/jpeg');
 __doPostBack('PhotoUpload', JSON.stringify(req))
 }});", person.Person.Id );
             ScriptManager.RegisterStartupScript( this, this.GetType(), "Camera", script, true );
+        }
+
+        private void ShowGuestOfModal()
+        {
+            phAddPerson.Controls.Clear();
+            var guest = Session["selectedGuest"] as CheckInPerson;
+
+            mdAddPerson.Title = guest.Person.FullName + " is a guest of:";
+
+            var family = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault();
+            var people = family
+                .People
+                .Where( p => p.FamilyMember && p.ExcludedByFilter == false )
+                .Where( p => p.GroupTypes.Where( gt => gt.Groups.Any() ).Any() );
+
+            foreach ( var person in people )
+            {
+
+                Panel hgcPadding = new Panel();
+                hgcPadding.CssClass = "col-md-8 col-md-offset-2 col-xs-12";
+                hgcPadding.Style.Add( "padding", "5px" );
+                phAddPerson.Controls.Add( hgcPadding );
+
+                BootstrapButton btnPerson = new BootstrapButton();
+                btnPerson.ID = "btnAddGuestOf" + person.Person.Id.ToString();
+                btnPerson.Text = person.Person.FullName;
+
+                btnPerson.CssClass = "btn btn-success btn-block btn-lg";
+                btnPerson.Click += ( s, e ) =>
+                {
+                    var guestReference = family.People.Where( p => p.Person.Id == guest.Person.Id ).FirstOrDefault();
+                    guestReference.FamilyMember = true;
+                    //hijacking the excluded by filter to show they are not card holders
+                    guestReference.ExcludedByFilter = true;
+                    //we are hijacking the security code to pass throug the guest of information
+                    RockContext rockContext = new RockContext();
+                    PersonAliasService personAliasService = new PersonAliasService( rockContext );
+                    var personAliasId = personAliasService.GetPrimaryAliasId( person.Person.Id ) ?? 0;
+                    guestReference.SecurityCode = personAliasId.ToString();
+                    Session["selectedGuest"] = null;
+                    SaveState();
+                    mdAddPerson.Hide();
+                    CheckForRelease( guestReference );
+                    BuildMemberCards();
+                };
+                btnPerson.DataLoadingText = "<i class='fa fa-refresh fa-spin'></i> Adding: " + person.Person.FullName + " as guest sponsor...";
+                hgcPadding.Controls.Add( btnPerson );
+            }
+            Panel hgcCancelPadding = new Panel();
+            hgcCancelPadding.CssClass = "col-md-8 col-md-offset-2 col-xs-12";
+            hgcCancelPadding.Style.Add( "padding", "5px" );
+            phAddPerson.Controls.Add( hgcCancelPadding );
+
+            BootstrapButton btnDone = new BootstrapButton
+            {
+                ID = "btnDone",
+                Text = "Cancel",
+                CssClass = "btn btn-danger btn-lg col-md-8 col-xs-12 btn-block",
+            };
+            btnDone.Click += ( s, e ) =>
+            {
+                Session["selectedGuest"] = null;
+                mdAddPerson.Hide();
+            };
+            btnCancel.DataLoadingText = "<i class='fa fa-refresh fa-spin'></i> Closing...";
+            hgcCancelPadding.Controls.Add( btnDone );
+
         }
 
         private void SelectLocation( CheckInPerson person, CheckInGroupType gt, CheckInGroup g, CheckInLocation l )
@@ -494,14 +738,6 @@ __doPostBack('PhotoUpload', JSON.stringify(req))
             }
         }
 
-        enum GroupMembershipStatus
-        {
-            Expired,
-            NearExpired,
-            NotExpired,
-            Member
-        }
-
         private Rock.Model.Group GetMembershipGroup( CheckInPerson person, Rock.Model.Group group )
         {
             group.LoadAttributes();
@@ -521,50 +757,6 @@ __doPostBack('PhotoUpload', JSON.stringify(req))
             pnlMain.Visible = false;
         }
 
-        protected void btnCancel_Click( object sender, EventArgs e )
-        {
-            NavigateToPreviousPage();
-        }
-
-        protected void btnCheckin_Click( object sender, EventArgs e )
-        {
-            var locationlessPeople = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).SelectMany( f => f.People )
-                .Where( p => p.Selected && !p.GroupTypes.Where( gt => gt.Selected ).Any() ).ToList();
-            if ( locationlessPeople.Any() )
-            {
-                if ( locationlessPeople.Count == 1 )
-                {
-                    maError.Show( locationlessPeople.First().Person.FullName + " is selected for check-in, but does not have any locations selected.", ModalAlertType.Alert );
-                }
-                else
-                {
-                    maError.Show( "The following people are selected for check-in in but do not have any locations selected: " + string.Join( ", ", locationlessPeople.Select( p => p.Person.FullName ) ), ModalAlertType.Alert );
-                }
-                return;
-            }
-            List<string> errors = new List<string>();
-            string workflowActivity = GetAttributeValue( "CheckinActivity" );
-            try
-            {
-                bool test = ProcessActivity( workflowActivity, out errors );
-                NavigateToNextPage();
-            }
-            catch
-            {
-                maError.Show( "There was an issue processing check-in. If the problem persists, please contact your administrator.", ModalAlertType.Warning );
-            }
-        }
-
-        protected void btnBack_Click( object sender, EventArgs e )
-        {
-            NavigateToPreviousPage();
-        }
-
-        protected void btnAdd_Click( object sender, EventArgs e )
-        {
-            ShowAddPersonModal();
-        }
-
         private void ShowAddPersonModal()
         {
             Session["modalActive"] = true;
@@ -573,13 +765,6 @@ __doPostBack('PhotoUpload', JSON.stringify(req))
                 .SelectMany( f => f.People )
                 .Where( p => !p.FamilyMember )
                 .OrderByDescending( p => p.Person.Age );
-
-            if ( !people.Any() )
-            {
-                Session["modalActive"] = false;
-                mdAddPerson.Hide();
-                return;
-            }
 
             mdAddPerson.Title = "Select Person To Add:";
 
@@ -651,70 +836,6 @@ __doPostBack('PhotoUpload', JSON.stringify(req))
 
             mdAddPerson.Show();
         }
-
-        private void ShowGuestOfModal()
-        {
-            phAddPerson.Controls.Clear();
-            var guest = Session["selectedGuest"] as CheckInPerson;
-
-            mdAddPerson.Title = guest.Person.FullName + " is a guest of:";
-
-            var family = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault();
-            var people = family
-                .People
-                .Where( p => p.FamilyMember && p.ExcludedByFilter == false )
-                .Where( p => p.GroupTypes.Where( gt => gt.Groups.Any() ).Any() );
-
-            foreach ( var person in people )
-            {
-                Panel hgcPadding = new Panel();
-                hgcPadding.CssClass = "col-md-8 col-md-offset-2 col-xs-12";
-                hgcPadding.Style.Add( "padding", "5px" );
-                phAddPerson.Controls.Add( hgcPadding );
-
-                BootstrapButton btnPerson = new BootstrapButton();
-                btnPerson.ID = "btnAddGuestOf" + person.Person.Id.ToString();
-                btnPerson.Text = person.Person.FullName;
-
-                btnPerson.CssClass = "btn btn-success btn-block btn-lg";
-                btnPerson.Click += ( s, e ) =>
-                {
-                    var guestReference = family.People.Where( p => p.Person.Id == guest.Person.Id ).FirstOrDefault();
-                    guestReference.FamilyMember = true;
-                    //hijacking the excluded by filter to show they are not card holders
-                    guestReference.ExcludedByFilter = true;
-                    //we are hijacking the security code to pass throug the guest of information
-                    guestReference.SecurityCode = person.Person.Id.ToString();
-                    Session["selectedGuest"] = null;
-                    SaveState();
-                    mdAddPerson.Hide();
-                    CheckForRelease( guestReference );
-                    BuildMemberCards();
-                };
-                btnPerson.DataLoadingText = "<i class='fa fa-refresh fa-spin'></i> Adding: " + person.Person.FullName + " as guest sponsor...";
-                hgcPadding.Controls.Add( btnPerson );
-            }
-            Panel hgcCancelPadding = new Panel();
-            hgcCancelPadding.CssClass = "col-md-8 col-md-offset-2 col-xs-12";
-            hgcCancelPadding.Style.Add( "padding", "5px" );
-            phAddPerson.Controls.Add( hgcCancelPadding );
-
-            BootstrapButton btnDone = new BootstrapButton
-            {
-                ID = "btnDone",
-                Text = "Cancel",
-                CssClass = "btn btn-danger btn-lg col-md-8 col-xs-12 btn-block",
-            };
-            btnDone.Click += ( s, e ) =>
-            {
-                Session["selectedGuest"] = null;
-                mdAddPerson.Hide();
-            };
-            btnCancel.DataLoadingText = "<i class='fa fa-refresh fa-spin'></i> Closing...";
-            hgcCancelPadding.Controls.Add( btnDone );
-
-        }
-
         private void CheckForRelease( CheckInPerson guestReference )
         {
             var signatureDocumentTemplateId = GetAttributeValue( "RequiredSignatureDocument" ).AsInteger();
@@ -725,62 +846,12 @@ __doPostBack('PhotoUpload', JSON.stringify(req))
             var documents = signatureDocumentService.Queryable()
                 .Where( d => d.SignedByPersonAlias != null
                 && d.SignatureDocumentTemplateId == signatureDocumentTemplateId
-                && personAliases.Contains( d.AppliesToPersonAliasId ?? 0 ) ).Any();
+                && personAliases.Contains( d.AppliesToPersonAliasId ?? 0 )
+                && d.Status == SignatureDocumentStatus.Signed ).Any();
             if ( !documents )
             {
                 maError.Show( guestReference.Person.FullName + " does not have a signed release on file. Do not allow them to check-in without signing a release.", ModalAlertType.Alert );
             }
-        }
-
-        protected void btnPhone_Click( object sender, EventArgs e )
-        {
-            RockContext rockContext = new RockContext();
-            PhoneNumberService phoneNumberService = new PhoneNumberService( rockContext );
-            if ( !string.IsNullOrWhiteSpace( tbSearch.Text ) )
-            {
-                var people = phoneNumberService.GetBySearchterm( tbSearch.Text )
-                    .Select( pn => pn.Person )
-                    .DistinctBy( p => p.Id )
-                    .ToList() //Leave EF
-                    .Select( p => new GridPerson
-                    {
-                        Person = p,
-                        Id = p.Id,
-                        Address = p.GetHomeLocation().ToString()
-                    } )
-                    .ToList();
-                gPeopleToAdd.DataSource = people;
-                gPeopleToAdd.DataBind();
-            }
-            gPeopleToAdd.Visible = true;
-            btnOpenCreatePerson.Visible = true;
-        }
-
-        protected void btnName_Click( object sender, EventArgs e )
-        {
-            RockContext rockContext = new RockContext();
-            PersonService personService = new PersonService( rockContext );
-            if ( !string.IsNullOrWhiteSpace( tbSearch.Text ) )
-            {
-                var people = personService.GetByFullName( tbSearch.Text, false )
-                    .ToList() //Leave EF
-                    .Select( p => new GridPerson
-                    {
-                        Person = p,
-                        Id = p.Id,
-                        Address = p.GetHomeLocation() != null ? p.GetHomeLocation().ToString() : ""
-                    } )
-                    .ToList();
-                gPeopleToAdd.DataSource = people;
-                gPeopleToAdd.DataBind();
-            }
-            gPeopleToAdd.Visible = true;
-            btnOpenCreatePerson.Visible = true;
-        }
-
-        protected void gPeopleToAdd_RowSelected( object sender, RowEventArgs e )
-        {
-            AddCheckInRelationship( ( int ) e.RowKeyValue );
         }
 
         private void AddCheckInRelationship( int guestId )
@@ -809,6 +880,16 @@ __doPostBack('PhotoUpload', JSON.stringify(req))
             //we have to reload the page to add the person
             Page.Response.Redirect( Page.Request.Url.ToString(), true );
         }
+        #endregion
+
+        #region Helpers
+        enum GroupMembershipStatus
+        {
+            Expired,
+            NearExpired,
+            NotExpired,
+            Member
+        }
 
         private class GridPerson
         {
@@ -816,64 +897,9 @@ __doPostBack('PhotoUpload', JSON.stringify(req))
             public string Address { get; set; }
             public Person Person { get; set; }
         }
+        #endregion
 
-        protected void btnCancelSearch_Click( object sender, EventArgs e )
-        {
-            gPeopleToAdd.Visible = false;
-            btnOpenCreatePerson.Visible = false;
-            mdSearchPerson.Hide();
-        }
 
-        protected void btnOpenCreatePerson_Click( object sender, EventArgs e )
-        {
-            mdSearchPerson.Hide();
-            mdCreatePerson.Show();
-        }
 
-        protected void lbCancel_Click( object sender, EventArgs e )
-        {
-            mdCreatePerson.Hide();
-        }
-
-        protected void btnNewFamily_Click( object sender, EventArgs e )
-        {
-            RockContext rockContext = new RockContext();
-            Person person = new Person();
-            person.FirstName = tbFirstName.Text;
-            person.LastName = tbLastName.Text;
-            person.SuffixValueId = ddlSuffix.SelectedValueAsId();
-            person.Email = ebEmail.Text;
-            person.SetBirthDate( bpBirthday.SelectedDate );
-
-            person.ConnectionStatusValueId = DefinedValueCache.Get( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id;
-            person.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
-            person.RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING.AsGuid() ).Id;
-
-            var newFamily = PersonService.SaveNewPerson( person, rockContext, cpNewFamilyCampus.SelectedCampusId );
-
-            int homeLocationTypeId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() ).Id;
-            var familyLocation = new Location();
-            familyLocation.Street1 = acNewFamilyAddress.Street1;
-            familyLocation.Street2 = acNewFamilyAddress.Street2;
-            familyLocation.City = acNewFamilyAddress.City;
-            familyLocation.State = acNewFamilyAddress.State;
-            familyLocation.PostalCode = acNewFamilyAddress.PostalCode;
-            newFamily.GroupLocations.Add( new GroupLocation() { Location = familyLocation, GroupLocationTypeValueId = homeLocationTypeId } );
-
-            if ( cbSMS.Checked )
-            {
-                var smsPhone = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).Id;
-                person.UpdatePhoneNumber( smsPhone, PhoneNumber.DefaultCountryCode(), pnbPhone.Text, true, false, _rockContext );
-            }
-            else
-            {
-                var otherPhone = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME.AsGuid() ).Id;
-                person.UpdatePhoneNumber( otherPhone, PhoneNumber.DefaultCountryCode(), pnbPhone.Text, false, false, _rockContext );
-            }
-
-            rockContext.SaveChanges();
-
-            AddCheckInRelationship( person.Id );
-        }
     }
 }

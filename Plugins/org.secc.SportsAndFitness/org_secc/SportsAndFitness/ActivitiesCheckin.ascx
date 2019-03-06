@@ -41,6 +41,10 @@
                     <a href="javascript:void(0);" class="btn btn-lg btn-danger" id="retakeImage"><i class="fa fa-times"></i>Retake Photo</a>
                     <a href="javascript:void(0);" class="btn btn-lg btn-success" id="saveImage"><i class="fa fa-check"></i>Keep Photo</a>
                 </div>
+                <br />
+                <div class="text-center">
+                    <Rock:BootstrapButton runat="server" CssClass="btn btn-danger" Text="Cancel" ID="btnCameraCancel" OnClick="btnCameraCancel_Click"></Rock:BootstrapButton>
+                </div>
             </Content>
         </Rock:ModalDialog>
 
@@ -64,18 +68,20 @@
                             <Rock:BootstrapButton runat="server" ID="btnName" Text="Search By Name" OnClick="btnName_Click" CssClass="btn btn-primary " />
                         </div>
                         <div class="col-md-2">
-                            <Rock:BootstrapButton runat="server" ID="btnCancelSearch" Text="Cancel" OnClick="btnCancelSearch_Click" CssClass="btn btn-danger" />
+                            <Rock:BootstrapButton runat="server" ID="btnCancelSearch" Text="Cancel" OnClick="btnCancelSearch_Click" CssClass="btn btn-danger pull-right" />
                         </div>
                     </div>
+                    <br />
                     <div class="row">
                         <div class="col-md-12">
                             <Rock:Grid runat="server" ID="gPeopleToAdd" Visible="false" ShowActionRow="false" ShowFooter="false"
-                                DataKeyNames="Id" OnRowSelected="gPeopleToAdd_RowSelected" AllowPaging="false">
+                                DataKeyNames="Id" AllowPaging="false">
                                 <Columns>
                                     <Rock:RockBoundField DataField="Person.FullName" HeaderText="Name" />
                                     <Rock:RockBoundField DataField="Person.Email" HeaderText="Email" />
                                     <Rock:RockBoundField DataField="Person.Age" HeaderText="Age" />
                                     <Rock:RockBoundField DataField="Address" HeaderText="Address" />
+                                    <Rock:LinkButtonField Text="Add Guest" HeaderText="Person To Add" ID="lbAddGuest" OnClick="lbAddGuest_Click"></Rock:LinkButtonField>
                                 </Columns>
                             </Rock:Grid>
                         </div>
@@ -122,7 +128,8 @@
                     </div>
                 </div>
                 <Rock:CampusPicker runat="server" ID="cpNewFamilyCampus" DataValueField="Id" DataTextField="Name"
-                    ValidationGroup="CreatePerson" Required="true" SelectedCampusId="1">                </Rock:CampusPicker>
+                    ValidationGroup="CreatePerson" Required="true" SelectedCampusId="1">
+                </Rock:CampusPicker>
                 <Rock:AddressControl runat="server" ID="acNewFamilyAddress" ValidationGroup="CreatePerson" Required="true" />
                 <Rock:BootstrapButton runat="server" CausesValidation="true" ValidationGroup="CreatePerson" ID="btnNewFamily" Text="Create New Guest"
                     CssClass="btn btn-primary" OnClick="btnNewFamily_Click" />
@@ -135,8 +142,12 @@
         <Rock:ModalAlert ID="maError" runat="server" />
         <asp:Panel runat="server" ID="pnlMain">
             <div style="margin-top: 50px">
-                <Rock:NotificationBox NotificationBoxType="Validation" runat="server" Dismissable="true"></Rock:NotificationBox>
-                <asp:PlaceHolder runat="server" ID="phMembers"></asp:PlaceHolder>
+                <div class="container-fluid">
+                    <div class="row">
+                        <Rock:NotificationBox NotificationBoxType="Validation" runat="server" Dismissable="true"></Rock:NotificationBox>
+                        <asp:PlaceHolder runat="server" ID="phMembers"></asp:PlaceHolder>
+                    </div>
+                </div>
             </div>
             <div class="checkin-header">
                 <Rock:BootstrapButton runat="server" ID="btnAdd" CssClass="btn btn-default btn-lg" OnClick="btnAdd_Click"><i class="fa fa-plus"></i> Add Person</Rock:BootstrapButton>
