@@ -29,9 +29,19 @@
 			<div class="row g-padding-b-30--xs">
 				<div class="col-xs-12">
 					<br />
-					<a href="#" onclick="doSlide('#{{partition.ParentIdentifier}}'); return false;" title="Go Back" class="btn btn-default uppercase g-letter-spacing--1 g-color--black-opacity-light g-color-hover--white">
+					<a href="#" onclick="doSlide('#{{partition.ParentIdentifier}}'); return false;" title="Go Back" class="pull-left  btn btn-default uppercase g-letter-spacing--1 g-color--black-opacity-light g-color-hover--white">
 						<strong>Back</strong>
 					</a>
+					<br />
+					<header class="text-center"  style="padding-bottom: 0px;">
+						<br />
+						<h2 class="uppercase
+						g-font-weight--900
+						g-font-size-40--xs
+						g-font-size-60--md
+						g-font-size-80--lg">{{ parentPartition.Entity.Name }}</h2>
+						<p class="text-center col-sm-10 col-sm-offset-1">{{ parentPartition.Entity.Description }}</p>
+					</header>
 				</div>
 			</div>
 			{% endif %}
@@ -87,6 +97,7 @@
 			{% assign partitionSize = partition.Partitions | Size %}
 			{% if partitionSize > 0 %}
 				{% assign Tree = partition.Partitions %}
+				{% assign parentPartition = partition %}
 				{% include '~~/Assets/Lava/Easter2019/CardWizard/Partition.lava' %}
 			{% endif %}
         {% endfor %}

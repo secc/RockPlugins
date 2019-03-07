@@ -8,8 +8,8 @@
 							<a href="{{partition.Url}}&GroupId={{partition.GroupId}}">
 						{% endif %}
 					{% endif %}
-					<div class="serve-card serve-card g-padding-y-40--xs g-margin-y-40--xs g-margin-x-auto--xs">
-                        <div class="box text-center">
+					<div class="serve-card serve-card g-margin-y-40--xs g-margin-x-auto--xs">
+                        <div class="box text-center g-padding-t-60--xs" style="min-height: 220px;">
                             {% assign icon = role.Entity | Attribute:"Icon" %}
 							{% if icon != '' and icon != empty %}
 								<i class="{{icon}} fa-5x g-color--2019-easter-purple"></i>
