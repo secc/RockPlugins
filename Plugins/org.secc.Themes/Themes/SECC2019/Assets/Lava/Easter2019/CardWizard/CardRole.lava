@@ -18,7 +18,7 @@
 							{% if icon != '' and icon != empty %}
 								<i class="{{icon}} fa-5x g-color--2019-easter-purple"></i>
 							{% endif %}
-                            <h3>{{ role.Entity.Name }} - [{{ role.Entity.GroupTypeId }}]</h3>
+                            <h3>{{ role.Entity.Name }}</h3>
                             <div class="clearfix">
                                 <span class="label label-default g-bg-color--black-opacity" style="margin: 10px">{% if role.Limit == null %}Unlimited{% else %}{% if spotsLeft <= 0 %}Full{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}{% endif %}</span>
                             </div>

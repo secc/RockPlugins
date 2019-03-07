@@ -39,42 +39,42 @@
     {[ wow animate:'fadeIn' duration:'.8s' ]}
     <div class="clearfix g-padding-t-0--xs g-padding-b-150--xs g-padding-x-150--md">
         <div class="col-xs-6 col-md-4 col-lg-2 g-padding-b-60--xs">
-            <a class="text-center" href="/newsite/location/blankenbaker">
+            <a class="text-center" href="/location/blankenbaker">
                 <img src="/Themes/SECC2019/Assets/img/SE/Campuses/920.jpg" class="img-responsive img-circle">
                 <br />
                 <h4 class="g-font-weight--700">Blankenbaker</h4>
             </a>
         </div>
         <div class="col-xs-6 col-md-4 col-lg-2 g-padding-b-60--xs">
-            <a class="text-center" href="/newsite/location/indiana">
+            <a class="text-center" href="/location/indiana">
                 <img src="/Themes/SECC2019/Assets/img/SE/Campuses/IN.jpg" class="img-responsive img-circle">
                 <br />
                 <h4 class="g-font-weight--700">Indiana</h4>
             </a>
         </div>
         <div class="col-xs-6 col-md-4 col-lg-2 g-padding-b-60--xs">
-            <a class="text-center" href="/newsite/location/crestwood">
+            <a class="text-center" href="/location/crestwood">
                 <img src="/Themes/SECC2019/Assets/img/SE/Campuses/CW.jpg" class="img-responsive img-circle">
                 <br />
                 <h4 class="g-font-weight--700">Crestwood</h4>
             </a>
         </div>
         <div class="col-xs-6 col-md-4 col-lg-2 g-padding-b-60--xs">
-            <a class="text-center" href="/newsite/location/southwest">
+            <a class="text-center" href="/location/southwest">
                 <img src="/Themes/SECC2019/Assets/img/SE/Campuses/SW.jpg" class="img-responsive img-circle">
                 <br />
                 <h4 class="g-font-weight--700">Southwest</h4>
             </a>
         </div>
         <div class="col-xs-6 col-md-4 col-lg-2 g-padding-b-60--xs">
-            <a class="text-center" href="/newsite/location/lagrange">
+            <a class="text-center" href="/location/lagrange">
                 <img src="/Themes/SECC2019/Assets/img/SE/Campuses/LA.jpg" class="img-responsive img-circle">
                 <br />
                 <h4 class="g-font-weight--700">La Grange</h4>
             </a>
         </div>
         <div class="col-xs-6 col-md-4 col-lg-2 g-padding-b-60--xs">
-            <a class="text-center" href="/newsite/location/elizabethtown">
+            <a class="text-center" href="/location/elizabethtown">
                 <img src="/Themes/SECC2019/Assets/img/SE/Campuses/ET.jpg" class="img-responsive img-circle">
                 <br />
                 <h4 class="g-font-weight--700">Elizabethtown</h4>

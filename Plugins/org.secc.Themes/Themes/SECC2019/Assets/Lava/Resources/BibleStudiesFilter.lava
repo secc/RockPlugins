@@ -89,14 +89,14 @@ function getMoreStories($) {
                                     }).html(function() {
                                         var image_box = "<div class=\"post_featured_story\"> \
                                                             <div class=\"post_thumb_story\" data-image=\""+ story_group.Image +"\" data-title=\""+ story_group.Name +"\"> \
-                                                                <a class=\"hover_icon hover_icon_link\" href=\"/newsite/stories/"+ story_group.Slug +"\"> \
+                                                                <a class=\"hover_icon hover_icon_link\" href=\"/stories/"+ story_group.Slug +"\"> \
                                                                     <img class=\"img-responsive\" alt=\""+ story_group.Name +"\" src=\""+ story_group.Image +"\" style=\"margin: 0 auto\"> \
                                                                 </a> \
                                                             </div> \
                                                         </div>";
                                             image_box += "<div class=\"massonry_border g-height-150--xs g-padding-x-20--xs g-padding-y-20--xs\"> \
                                                             <h4 class=\"g-font-family--secondary\"> \
-                                                                <a class=\"g-letter-spacing--1\" href=\"/newsite/stories/"+ story_group.Slug +"\">"+ story_group.Name +"</a> \
+                                                                <a class=\"g-letter-spacing--1\" href=\"/stories/"+ story_group.Slug +"\">"+ story_group.Name +"</a> \
                                                             </h4> \
                                                         </div>";
                                         return image_box;
