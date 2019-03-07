@@ -16,7 +16,7 @@
 	 */
 	$('.signup-button').click(function() {
 		checked = []
-		$(this).parent().parent().find("input:checked").each(function () {
+		$(this).parents('.slide-box').find("input:checked").each(function () {
 			   checked.push($(this).val())
 		});
 		if (checked.length == 0) {
