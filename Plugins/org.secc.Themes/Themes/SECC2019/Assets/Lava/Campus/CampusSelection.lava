@@ -16,42 +16,42 @@
         {[ wow animate:'fadeIn' duration:'.8s' ]}
         <div class="clearfix g-padding-t-0--xs g-padding-b-150--xs g-padding-x-150--md">
             <div class="col-xs-6 col-md-4 col-lg-2 g-padding-b-60--xs">
-                <a class="text-center" href="/newsite/location/blankenbaker{{ campusesParam }}">
+                <a class="text-center" href="/location/blankenbaker{{ campusesParam }}">
                     <img src="/Themes/SECC2019/Assets/img/SE/Campuses/920.jpg" class="img-responsive img-circle">
                     <br />
                     <h4 class="g-font-weight--700">Blankenbaker</h4>
                 </a>
             </div>
             <div class="col-xs-6 col-md-4 col-lg-2 g-padding-b-60--xs">
-                <a class="text-center" href="/newsite/location/indiana{{ campusesParam }}">
+                <a class="text-center" href="/location/indiana{{ campusesParam }}">
                     <img src="/Themes/SECC2019/Assets/img/SE/Campuses/IN.jpg" class="img-responsive img-circle">
                     <br />
                     <h4 class="g-font-weight--700">Indiana</h4>
                 </a>
             </div>
             <div class="col-xs-6 col-md-4 col-lg-2 g-padding-b-60--xs">
-                <a class="text-center" href="/newsite/location/crestwood{{ campusesParam }}">
+                <a class="text-center" href="/location/crestwood{{ campusesParam }}">
                     <img src="/Themes/SECC2019/Assets/img/SE/Campuses/CW.jpg" class="img-responsive img-circle">
                     <br />
                     <h4 class="g-font-weight--700">Crestwood</h4>
                 </a>
             </div>
             <div class="col-xs-6 col-md-4 col-lg-2 g-padding-b-60--xs">
-                <a class="text-center" href="/newsite/location/southwest{{ campusesParam }}">
+                <a class="text-center" href="/location/southwest{{ campusesParam }}">
                     <img src="/Themes/SECC2019/Assets/img/SE/Campuses/SW.jpg" class="img-responsive img-circle">
                     <br />
                     <h4 class="g-font-weight--700">Southwest</h4>
                 </a>
             </div>
             <div class="col-xs-6 col-md-4 col-lg-2 g-padding-b-60--xs">
-                <a class="text-center" href="/newsite/location/lagrange{{ campusesParam }}">
+                <a class="text-center" href="/location/lagrange{{ campusesParam }}">
                     <img src="/Themes/SECC2019/Assets/img/SE/Campuses/LA.jpg" class="img-responsive img-circle">
                     <br />
                     <h4 class="g-font-weight--700">La Grange</h4>
                 </a>
             </div>
             <div class="col-xs-6 col-md-4 col-lg-2 g-padding-b-60--xs">
-                <a class="text-center" href="/newsite/location/elizabethtown{{ campusesParam }}">
+                <a class="text-center" href="/location/elizabethtown{{ campusesParam }}">
                     <img src="/Themes/SECC2019/Assets/img/SE/Campuses/ET.jpg" class="img-responsive img-circle">
                     <br />
                     <h4 class="g-font-weight--700">Elizabethtown</h4>

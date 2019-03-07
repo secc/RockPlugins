@@ -27,7 +27,7 @@
 						<h4 class="uppercase g-letter-spacing--3">{{ currentMessage.ChildContentChannelItem.Title }}</h4>
                         <br />
                         <br />
-						<a href="/newsite/sermons/{{ item | Attribute: 'Slug' }}" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
+						<a href="/sermons/{{ item | Attribute: 'Slug' }}" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
 				            <strong>Watch Sermon</strong>
 				        </a>
                     </div>
@@ -45,7 +45,7 @@
 	        <!-- <h1 class="g-font-family--secondary g-font-size-150--lg g-font-size-80--xs g-text-shadow--black--soft">See Latest Sermon</h1> -->
 	        <br />
 	        <br />
-	        <a href="/newsite/sermons" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
+	        <a href="/sermons" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
 	            <strong>Watch Sermon</strong>
 	        </a>
 	    </div>

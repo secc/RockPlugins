@@ -114,8 +114,8 @@
         <div class="container-fluid text-center" style="padding: 0;">
             <nav class="page-nav text-center">
                 <ul class="list-inline">
-                    <li><a href="/newsite/sermons">Explore All Series</a></li>
-                    <li><a href="/newsite/sermons/{{ currentSeries.PrimarySlug | Escape }}">Jump to Current Series</a></li>
+                    <li><a href="/sermons">Explore All Series</a></li>
+                    <li><a href="/sermons/{{ currentSeries.PrimarySlug | Escape }}">Jump to Current Series</a></li>
                 </ul>
             </nav>
         </div>
@@ -155,7 +155,7 @@
 
                 <div class="isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load">
 
-                    <a class="series-link" href="/newsite/sermons/{{ item.PrimarySlug }}/{{ message.PrimarySlug }}">
+                    <a class="series-link" href="/sermons/{{ item.PrimarySlug }}/{{ message.PrimarySlug }}">
                     <div class="card g-margin-b-25--xs">
                         <!-- Image -->
                         <div class="img-hover">

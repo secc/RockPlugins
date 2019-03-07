@@ -118,7 +118,7 @@
                         <br>
                         <br>
                         <br>
-                        <a href="/newsite/noncash-giving" class="uppercase se-btn se-btn--primary-brd uppercase g-letter-spacing--3">
+                        <a href="/noncash-giving" class="uppercase se-btn se-btn--primary-brd uppercase g-letter-spacing--3">
                             <strong>Learn More</strong>
                         </a>
                     </div>
@@ -357,7 +357,7 @@
                   </div>
                   <div id="faq-2-collapse-8" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-8">
                     <div class="panel-body">
-                      <p>Visit <a href="/newsite/connect/missions/lifebridge.php">LifeBridge</a> to learn how you can donate non-perishable food, gently used clothing and other items at a LifeBridge Donation Center near you.  The items you donate will be distributed to help alleviate poverty in our communities.</p>
+                      <p>Visit <a href="/connect/missions/lifebridge.php">LifeBridge</a> to learn how you can donate non-perishable food, gently used clothing and other items at a LifeBridge Donation Center near you.  The items you donate will be distributed to help alleviate poverty in our communities.</p>
                     </div>
                   </div>
                 </div><!-- / .panel -->
@@ -400,7 +400,7 @@
         	        <h3 class="g-font-weight--700 g-line-height">Helping You Manage Money God's Way</h3>
     			    <h4 class="g-line-height">We’ve all needed help with our finances at one time or another. Take your next step by connecting to practical resources that will help you manage your money God’s way. We offer workshops, groups and one-on-one financial coaching.</h4>
         		    <br />
-                    <a href="/newsite/connect/generous-living/#Ministries" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 g-font-weight--700">
+                    <a href="/connect/generous-living/#Ministries" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 g-font-weight--700">
                         Learn More
                     </a>
                 </div>

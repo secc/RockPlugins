@@ -19,14 +19,14 @@
 
                 <div class="post_featured_story">
                     <div class="post_thumb_story" data-image="/GetImage.ashx?Guid={{ ImageGuid }}" data-title="{{ item.Title }}">
-    					<a class="hover_icon hover_icon_link" href="{{ 'Global' | Page:'Root' }}/newsite/resources/bible-studies/{{ item.PrimarySlug }}">
+    					<a class="hover_icon hover_icon_link" href="{{ 'Global' | Page:'Root' }}/resources/bible-studies/{{ item.PrimarySlug }}">
                             <img class="img-responsive" alt="{{ item.Title }}" src="/GetImage.ashx?Guid={{ ImageGuid }}" style="margin: 0 auto">
                         </a>
                     </div>
                 </div>
                 <div class="massonry_border g-height-150--xs g-padding-x-20--xs g-padding-y-20--xs">
 					<h4 class="g-font-family--secondary">
-						<a class="g-letter-spacing--1" href="{{ 'Global' | Page:'Root' }}/newsite/resources/{{ item.Slug }}">{{ item.Title }}</a>
+						<a class="g-letter-spacing--1" href="{{ 'Global' | Page:'Root' }}/resources/{{ item.Slug }}">{{ item.Title }}</a>
                     </h4>
     			</div>
             </article>

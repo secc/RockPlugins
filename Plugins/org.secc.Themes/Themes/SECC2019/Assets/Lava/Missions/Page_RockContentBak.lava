@@ -174,13 +174,13 @@ $(function() {
             <div class="col-xs-12 col-sm-6 col-md-3 event-calendar text-center">
                 <article class="g-margin-x-40--xs g-margin-x-20--md card">
                     <div>
-                        <a class="hover_icon hover_icon_link" href="/newsite/ministries/missions/mission-partners">
+                        <a class="hover_icon hover_icon_link" href="/ministries/missions/mission-partners">
                             <img class="img-responsive g-width-100-percent--xs" alt="{{ item.Title }}" src="/Content/Ministries/Missions/Overview/24.jpg" style="margin: 0 auto">
                         </a>
                     </div>
                     <div class="massonry_border g-height-200--xs g-position--relative">
     					<h3 class="g-center--xs g-font-weight--700">
-    						<a class="g-letter-spacing--1" href="/newsite/ministries/missions/mission-partners">
+    						<a class="g-letter-spacing--1" href="/ministries/missions/mission-partners">
     						    Mission Partners
     						</a>
                         </h3>
@@ -191,13 +191,13 @@ $(function() {
             <div class="col-xs-12 col-sm-6 col-md-3 event-calendar text-center">
                 <article class="g-margin-x-40--xs g-margin-x-20--md card">
                     <div>
-                        <a class="hover_icon hover_icon_link" href="/newsite/ministries/missions/education-partners/">
+                        <a class="hover_icon hover_icon_link" href="/ministries/missions/education-partners/">
                             <img class="img-responsive g-width-100-percent--xs" src="/Content/Ministries/Missions/Overview/neonbrand-426918-unsplash.jpg" style="margin: 0 auto">
                         </a>
                     </div>
                     <div class="massonry_border g-height-200--xs g-position--relative">
     					<h3 class="g-center--xs g-font-weight--700">
-    						<a class="g-letter-spacing--1" href="/newsite/ministries/missions/education-partners/">
+    						<a class="g-letter-spacing--1" href="/ministries/missions/education-partners/">
     						    Education Partners
     						</a>
                         </h3>
@@ -208,13 +208,13 @@ $(function() {
             <div class="col-xs-12 col-sm-6 col-md-3 event-calendar text-center">
                 <article class="g-margin-x-40--xs g-margin-x-20--md card">
                     <div>
-                        <a class="hover_icon hover_icon_link" href="/newsite/ministries/missions/church-plants">
+                        <a class="hover_icon hover_icon_link" href="/ministries/missions/church-plants">
                             <img class="img-responsive g-width-100-percent--xs" src="/Content/Ministries/Missions/Overview/akira-hojo-502567-unsplash.jpg" style="margin: 0 auto">
                         </a>
                     </div>
                     <div class="massonry_border g-height-200--xs g-position--relative">
     					<h3 class="g-center--xs g-font-weight--700">
-    						<a class="g-letter-spacing--1" href="/newsite/ministries/missions/church-plants">
+    						<a class="g-letter-spacing--1" href="/ministries/missions/church-plants">
     						    Church Plants
     						</a>
                         </h3>
@@ -225,13 +225,13 @@ $(function() {
             <div class="col-xs-12 col-sm-6 col-md-3 event-calendar text-center">
                 <article class="g-margin-x-40--xs g-margin-x-20--md card">
                     <div>
-                        <a class="hover_icon hover_icon_link" href="/newsite/ministries/missions/lifebridge">
+                        <a class="hover_icon hover_icon_link" href="/ministries/missions/lifebridge">
                             <img class="img-responsive g-width-100-percent--xs" src="/Content/Ministries/Missions/Overview/HurricaneRelief.jpg" style="margin: 0 auto">
                         </a>
                     </div>
                     <div class="massonry_border g-height-200--xs g-position--relative">
     					<h3 class="g-center--xs g-font-weight--700">
-    						<a class="g-letter-spacing--1" href="/newsite/ministries/missions/lifebridge">
+    						<a class="g-letter-spacing--1" href="/ministries/missions/lifebridge">
     						    LifeBridge
     						</a>
                         </h3>
@@ -291,7 +291,7 @@ $(function() {
 					<h4 class="g-line-height">Through short-term trips, mid-term missions work, or long-term missions work, you can be involved in taking the hope of Jesus to the world. Sign up for trips, learn about unreached people groups, and explore how God may be leading you to <i>Go</i>.
     				</h4>
     				<br />
-					<a href="/newsite/ministries/missions/trips" class="uppercase se-btn se-btn--dark-brd uppercase">
+					<a href="/ministries/missions/trips" class="uppercase se-btn se-btn--dark-brd uppercase">
 					    Available Trips
 					</a>
 					<br />
