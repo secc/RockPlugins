@@ -11,13 +11,13 @@
 {% endcomment %}
 {% for eventCalendarItem in Event.EventCalendarItems %}
     {% if eventCalendarItem.EventCalendarId == 1 %}
-        {% assign eventVimeoID = eventCalendarItem | Attribute:'EventVimeoID' %}
-        {% assign eventPromoImageObject = eventCalendarItem | Attribute:'EventPromoImage','Object' %}
+        {% assign eventVimeoID = eventCalendarItem | Attribute:'GroupVimeoID' %}
+        {% assign eventPromoImageObject = eventCalendarItem | Attribute:'GroupPromoImage','Object' %}
 
         {% assign primaryMinistry = eventCalendarItem | Attribute:'PrimaryMinistry','Object' | Attribute:'CalendarImage','Object' %}
 
-        {% assign facebookPhoto = eventCalendarItem | Attribute:'core_calendar_FacebookPhoto','Object' %}
-        {% assign twitterPhoto = eventCalendarItem | Attribute:'core_calendar_TwitterPhoto','Object' %}
+        {% assign facebookPhoto = eventCalendarItem | Attribute:'group_calendar_FacebookPhoto','Object' %}
+        {% assign twitterPhoto = eventCalendarItem | Attribute:'group_calendar_TwitterPhoto','Object' %}
     {% endif %}
 {% endfor %}
 
@@ -25,7 +25,7 @@
 	<div class="row">
 		<div class="col-sm-12 g-padding-x-0--xs">
 
-            {% if eventVimeoID != "" %}
+            {% if eventVimeoID != null and eventVimeoID != "" %}
             <a class="js-modal-video" data-video-id="{{ eventVimeoID }}">
             {% endif %}
 
@@ -63,7 +63,7 @@
                 </div>
             {% endif %}
 
-            {% if eventVimeoID != "" %}
+            {% if eventVimeoID != null and eventVimeoID != "" %}
             </a> <!-- closing video modal link -->
             {% endif %}
 		</div>
@@ -78,7 +78,7 @@
 
             <div class="col-md-4 g-padding-t-70--xs g-padding-t-100--lg g-padding-x-50--lg">
 
-                {% if eventVimeoID != "" %}
+                {% if eventVimeoID != null and eventVimeoID != "" %}
                     <div class="text-center g-padding-b-40--xs">
                         <a href="javascript:void(0)" class="js-modal-video" data-video-id="{{ eventVimeoID }}">
                             <h4 class="uppercase g-font-weight--600 g-padding-t-10--xs" style="margin-right:-15px;">Play
