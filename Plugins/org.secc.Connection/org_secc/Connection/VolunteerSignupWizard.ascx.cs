@@ -33,9 +33,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Entity;
+using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
@@ -200,6 +202,17 @@ namespace org.secc.Connection
         /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         protected override void OnLoad( EventArgs e )
         {
+
+            var slDebugTimings = new StringBuilder();
+            var stopwatchInitEvents = Stopwatch.StartNew();
+            bool showDebugTimings = this.PageParameter( "ShowDebugTimings" ).AsBoolean();
+
+            if ( showDebugTimings )
+            {
+                TimeSpan tsDuration = RockDateTime.Now.Subtract( ( DateTime ) Context.Items["Request_Start_Time"] );
+                slDebugTimings.AppendFormat( "Signup Wizard OnInit [{0}ms] @ {1} \n", stopwatchInitEvents.Elapsed.TotalMilliseconds, tsDuration.TotalMilliseconds );
+                stopwatchInitEvents.Restart();
+            }
             base.OnLoad( e );
 
 
@@ -222,7 +235,19 @@ namespace org.secc.Connection
                     connectionRequests = connection.ConnectionRequests;
                 }
 
+                if ( showDebugTimings )
+                {
+                    slDebugTimings.AppendFormat( "Loading Settings [{0}ms]\n", stopwatchInitEvents.Elapsed.TotalMilliseconds );
+                    stopwatchInitEvents.Restart();
+                }
+
                 PreloadPartitionPointers();
+
+                if ( showDebugTimings )
+                {
+                    slDebugTimings.AppendFormat( "Preloading Partition Pointers [{0}ms]\n", stopwatchInitEvents.Elapsed.TotalMilliseconds );
+                    stopwatchInitEvents.Restart();
+                }
 
                 var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null );
                 mergeFields.Add( "Settings", Rock.Lava.RockFilters.FromJSON( GetAttributeValue( "Settings" ) ) );
@@ -236,16 +261,42 @@ namespace org.secc.Connection
                     }
                 }
 
+
+                if ( showDebugTimings )
+                {
+                    slDebugTimings.AppendFormat( "Loading Merge Fields [{0}ms]\n", stopwatchInitEvents.Elapsed.TotalMilliseconds );
+                    stopwatchInitEvents.Restart();
+                }
                 mergeFields.Add( "Tree", GetTree( Settings.Partitions.FirstOrDefault(), connectionRequests, parentUrl: url ) );
 
+
+                if ( showDebugTimings )
+                {
+                    slDebugTimings.AppendFormat( "Loading Tree [{0}ms]\n", stopwatchInitEvents.Elapsed.TotalMilliseconds );
+                    stopwatchInitEvents.Restart();
+                }
                 //mergeFields.Add( "ConnectionRequests", connectionRequests );
                 lBody.Text = GetAttributeValue( "Lava" ).ResolveMergeFields( mergeFields );
 
+
+                if ( showDebugTimings )
+                {
+                    slDebugTimings.AppendFormat( "Rendering Lava [{0}ms]\n", stopwatchInitEvents.Elapsed.TotalMilliseconds );
+                    stopwatchInitEvents.Restart();
+                }
                 if ( GetAttributeValue( "EnableDebug" ).AsBoolean() && IsUserAuthorized( Authorization.EDIT ) )
                 {
                     lDebug.Visible = true;
                     lDebug.Text = mergeFields.lavaDebugInfo();
                 }
+            }
+            if ( showDebugTimings && IsUserAuthorized( Authorization.ADMINISTRATE ) )
+            {
+                phTimings.Controls.Add( new Label
+                {
+                    ID = "lblShowDebugTimingsSignupWizard",
+                    Text = string.Format( "<pre>{0}</pre>", slDebugTimings.ToString() )
+                } );
             }
         }
 
@@ -1051,6 +1102,9 @@ namespace org.secc.Connection
             }
         }
 
+        protected List<Schedule> Schedules { get ; set; }
+        protected List<GroupTypeRole> GroupTypeRoles { get; set; }
+
         /// <summary>
         /// Recursively builds a tree like structure of dictionaries which represent the nodes of the tree. Each node is an option which belongs to a partition.
         /// </summary>
@@ -1064,6 +1118,21 @@ namespace org.secc.Connection
         /// <returns></returns>
         protected List<Dictionary<string, object>> GetTree( PartitionSettings partition, ICollection<ConnectionRequest> connectionRequests = null, String concatGuid = null, string parentIdentifier = "signup", string parentUrl = "", string groupId = "", string roleId = "" )
         {
+            if (Schedules == null)
+            {
+                Schedules = new List<Schedule>();
+                if ( Settings.Partitions.Any( p => p.PartitionType == "Schedule" ) )
+                {
+                    var scheduleService = new ScheduleService( new RockContext() );
+                    var scheduleGuidList = Settings.Partitions.Where( p => p.PartitionType == "Schedule" ).SelectMany( p => p.PartitionValue.Trim( ',' ).Split( ',' ).AsGuidList() ).ToArray();
+                    Schedules = scheduleService.Queryable().Where(s => scheduleGuidList.Contains( s.Guid ) ).ToList().OrderBy( s => s.GetNextStartDateTime( DateTime.Now ) ).ToList();
+                }
+            }
+            if ( GroupTypeRoles == null )
+            {
+                var groupTypeRoleService = new GroupTypeRoleService( new RockContext() );
+                GroupTypeRoles = groupTypeRoleService.Queryable().ToList();
+            }
 
             if ( partition.PartitionValue == null )
             {
@@ -1088,8 +1157,7 @@ namespace org.secc.Connection
 
             if ( partition.PartitionType == "Schedule" )
             {
-                var scheduleService = new ScheduleService( new RockContext() );
-                values = scheduleService.GetByGuids( values.AsGuidList() ).ToList().OrderBy( s => s.NextStartDateTime ).Select( s => s.Guid.ToString() ).ToArray();
+                values = Schedules.Where(s => values.AsGuidList().Contains(s.Guid) ).Select( s => s.Guid.ToString() ).ToArray();
             }
 
 
@@ -1142,8 +1210,7 @@ namespace org.secc.Connection
                         }
                         break;
                     case "Schedule":
-                        var scheduleService = new ScheduleService( new RockContext() );
-                        inner["Entity"] = scheduleService.Get( value.AsGuid() );
+                        inner["Entity"] = Schedules.Where(s => s.Guid == value.AsGuid() ).FirstOrDefault();
                         if ( connectionRequests != null )
                         {
                             subRequests = connectionRequests.Where( cr => cr.AssignedGroupMemberAttributeValues != null && cr.AssignedGroupMemberAttributeValues.Contains( value ) ).ToList();
@@ -1158,8 +1225,7 @@ namespace org.secc.Connection
                         }
                         break;
                     case "Role":
-                        var groupTypeRoleService = new GroupTypeRoleService( new RockContext() );
-                        var role = groupTypeRoleService.Get( value.AsGuid() );
+                        var role = GroupTypeRoles.Where(gtr => gtr.Guid == value.AsGuid() ).FirstOrDefault();
                         inner["Entity"] = role;
                         if ( connectionRequests != null && role != null )
                         {
