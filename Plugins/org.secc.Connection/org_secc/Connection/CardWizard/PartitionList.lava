@@ -6,12 +6,10 @@
 							<label>
 								<input type="checkbox" name="{{partition.ParameterName}}" value="{{partition.Entity.Guid}}" {% if partition.Limit > 0 and spotsLeft <= 0 %}disabled="true"{% endif %} />
 								<div class="icon-box"><i class="fa fa-check"></i></div>
-								<h2{% if  partition.Limit > 0 and spotsLeft <= 0 %} style="text-decoration: line-through"{% endif %}><strong><i>{{partition.Entity.Name}}{{partition.Entity.Value}}</i></strong><span class="hidden-xs hidden-sm spots-left"> - <small>{% if spotsLeft <= 0 %}Full{% elseif partition.Limit == null %}Unlimited{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}</small></span></h2>
+								<h3{% if  partition.Limit > 0 and spotsLeft <= 0 %} style="text-decoration: line-through"{% endif %}><strong><i>{{partition.Entity.Name}}{{partition.Entity.Value}}</i></strong><span class="hidden-xs hidden-sm spots-left"> - <small>{% if spotsLeft <= 0 %}Full{% elseif partition.Limit == null %}Unlimited{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}</small></span></h3>
 							</label>
 							<div class="hidden-md hidden-lg" style="margin: -20px 0px 0px 75px">{% if spotsLeft <= 0 %}Full{% elseif partition.Limit == null %}Unlimited{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}</div>
-
 						</div>
-
 					</div>
 				</div>
 			{% endif %}
