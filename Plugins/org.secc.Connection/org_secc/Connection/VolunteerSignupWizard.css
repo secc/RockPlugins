@@ -34,11 +34,11 @@
 }
 
 .check input {
-	display: none; 
+	display: none;
 }
 .check input:checked + .icon-box {
 	animation: keyframes(animOn) 0.8s 1 forwards;
-	background: #428bca; 
+	background: #428bca;
 }
 .check input:checked + .icon-box i {
 	transform: translate(-50%, -50%) scale(1);
@@ -53,7 +53,7 @@
 	align-items: center;
 	flex-direction: row;
 	min-height: 60px;
-	cursor: pointer; 
+	cursor: pointer;
 	-webkit-box-pack: left;
 	-webkit-justify-content: left;
 	-ms-flex-pack: left;
@@ -65,10 +65,11 @@
 	position: relative;
 	width: 50px;
 	height: 50px;
-	transition: background 300ms ease; 
+	transition: background 300ms ease;
+	margin-right: 10px;
 }
 .check label .icon-box:hover {
-	background: rgba(0, 0, 0, 0.5); 
+	background: rgba(0, 0, 0, 0.5);
 }
 .check label .icon-box i {
 	position: absolute;
@@ -80,12 +81,15 @@
 	pointer-events: none;
 	transition: all 0.2s ease-in-out;
 	transition-delay: 200ms;
-	transform: translate(-50%, -50%) scale(6); 
+	transform: translate(-50%, -50%) scale(6);
 }
 .check .icon-box {
 	margin-left:10px;
 }
 
+#signup-parent {
+	transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
 #signup-container a:hover {
 	text-decoration: none !important;
 }
