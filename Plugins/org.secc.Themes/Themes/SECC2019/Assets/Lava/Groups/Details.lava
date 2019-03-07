@@ -6,26 +6,65 @@
 }
 </style>
 
+{% comment %}
+    *** Make sure to load attributes that only exists in the public calendar. Otherise, it will break ***
+{% endcomment %}
+{% for eventCalendarItem in Event.EventCalendarItems %}
+    {% if eventCalendarItem.EventCalendarId == 1 %}
+        {% assign eventVimeoID = eventCalendarItem | Attribute:'EventVimeoID' %}
+        {% assign eventPromoImageObject = eventCalendarItem | Attribute:'EventPromoImage','Object' %}
+
+        {% assign primaryMinistry = eventCalendarItem | Attribute:'PrimaryMinistry','Object' | Attribute:'CalendarImage','Object' %}
+
+        {% assign facebookPhoto = eventCalendarItem | Attribute:'core_calendar_FacebookPhoto','Object' %}
+        {% assign twitterPhoto = eventCalendarItem | Attribute:'core_calendar_TwitterPhoto','Object' %}
+    {% endif %}
+{% endfor %}
 
 <div class="container-fluid">
 	<div class="row">
 		<div class="col-sm-12 g-padding-x-0--xs">
+
+            {% if eventVimeoID != "" %}
+            <a class="js-modal-video" data-video-id="{{ eventVimeoID }}">
+            {% endif %}
+
+            {% assign eventPromoImage = '/GetImage.ashx/' | Plus: eventPromoImageObject.Guid | Plus: '.jpg?guid=' | Plus: eventPromoImageObject.Guid %}
             {% assign eventPhoto = '' %}
+
             {% if Event.Photo.Guid %}
                 {% assign eventPhoto = '/GetImage.ashx/' | Plus: Event.Photo.Guid | Plus: '.jpg?guid=' | Plus: Event.Photo.Guid %}
             {% else %}
-                {% assign primaryMinistry = Event | Attribute:'PrimaryMinistry','Object' | Attribute:'CalendarImage','Object' %}
                 {% assign eventPhoto = '/GetImage.ashx/' | Plus: Event.Photo.Guid | Plus: '.jpg?guid=' | Plus: primaryMinistry.Guid %}
             {% endif %}
 
-            {% if eventPhoto %}
+            {% if eventPromoImageObject == null or eventPromoImageObject == '' %}
+                {% if eventPhoto %}
+                    {% comment %}
+                    <div class="event-photo-container">
+                        <div class="event-photo">
+                            <center>
+                                <img src="{{eventPhoto}}" class="img-responsive" style="width: 100%;" onerror="this.style.display='none'">
+                            </center>
+                        </div>
+                    </div>
+                    {% endcomment %}
+                    {[ parallax image:'{{ eventPhoto }}' height:'55vh' position:'center center' speed:'-15' ]}
+                    {[ endparallax ]}
+
+                {% endif %}
+            {% else %}
                 <div class="event-photo-container">
                     <div class="event-photo">
                         <center>
-                            <img src="{{eventPhoto}}" class="img-responsive" style="width: 100%;" onerror="this.style.display='none'">
+                            <img src="{{eventPromoImage}}" class="img-responsive" style="width: 100%;" onerror="this.style.display='none'">
                         </center>
                     </div>
                 </div>
+            {% endif %}
+
+            {% if eventVimeoID != "" %}
+            </a> <!-- closing video modal link -->
             {% endif %}
 		</div>
 	</div>
@@ -36,9 +75,49 @@
     <div class="row">
 
         <div class="container">
-            <div class="col-md-9 col-md-push-3 g-padding-y-100--xs">
 
-                <h3 class="g-font-family--secondary">{{Event.Name}}</h3>
+            <div class="col-md-4 g-padding-t-70--xs g-padding-t-100--lg g-padding-x-50--lg">
+
+                {% if eventVimeoID != "" %}
+                    <div class="text-center g-padding-b-40--xs">
+                        <a href="javascript:void(0)" class="js-modal-video" data-video-id="{{ eventVimeoID }}">
+                            <h4 class="uppercase g-font-weight--600 g-padding-t-10--xs" style="margin-right:-15px;">Play
+                                <div class="play" style="height:75px;">
+                                    <svg version="1.1" id="play" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" height="75px" width="75px"
+                                        viewBox="0 0 100 100" enable-background="new 0 0 100 100" xml:space="preserve">
+                                        <path class="stroke-solid" fill="none" stroke="#7C7C7C"  d="M49.9,2.5C23.6,2.8,2.1,24.4,2.5,50.4C2.9,76.5,24.7,98,50.3,97.5c26.4-0.6,47.4-21.8,47.2-47.7
+                                        C97.3,23.7,75.7,2.3,49.9,2.5" />
+                                        <path class="stroke-dotted" fill="none" stroke="#7C7C7C"  d="M49.9,2.5C23.6,2.8,2.1,24.4,2.5,50.4C2.9,76.5,24.7,98,50.3,97.5c26.4-0.6,47.4-21.8,47.2-47.7
+                                        C97.3,23.7,75.7,2.3,49.9,2.5" />
+                                        <path class="icon" fill="#7C7C7C" d="M38,69c-1,0.5-1.8,0-1.8-1.1V32.1c0-1.1,0.8-1.6,1.8-1.1l34,18c1,0.5,1,1.4,0,1.9L38,69z" />
+                                    </svg>
+                                </div>
+                                Video
+                            </h4>
+                        </a>
+                    </div>
+                    <script src="/Themes/SECC2019/Scripts/jquery-modal-video.js"></script>
+                    <script>
+                    $(document).ready(function() {
+                        initModalVideo();
+                        function initModalVideo(){
+                            $(".js-modal-video").modalVideo({
+                                channel: 'vimeo'
+                            });
+                        }
+                    });
+                    </script>
+                {% endif %}
+
+                <div class="text-center g-padding-b-20--xs">
+                    {[ socialshare facebooktitle:'{{ Event.Name }}' emailsubject:'{{ Event.Name | Escape }}' url:'{{ 'Global' | Page:'Url' }}' facebookimage:'https://{{- 'Global' | Page:'Host' -}}{{ eventPhoto }}' facebooksummary:'{{ Event.Description | StripHtml }}' ]}
+                </div>
+
+            </div><!-- END: col-md-4 -->
+
+            <div class="col-md-8 g-padding-t-10--xs g-padding-t-70--lg g-padding-t-100--lg" style="min-height: 65px;">
+
+                <h3 class="g-font-family--secondary g-padding-b-10--xs">{{Event.Name}}</h3>
 
                 {{ Event.Description }}
 
@@ -50,7 +129,7 @@
                 {{ Event.Name | AddMetaTagToHead:'property','og:title' }}
                 {{ Event.Description | StripHtml | AddMetaTagToHead:'property','og:description' }}
 
-                {% assign facebookPhoto = Event | Attribute:'core_calendar_FacebookPhoto','Object' %}
+
                 {% if facebookPhoto %}
                     {{ facebookPhoto.Url | AddMetaTagToHead:'property','og:image' }}
                 {% else %}
@@ -59,7 +138,6 @@
                     {{ facebookPhoto | AddMetaTagToHead:'property','og:image' }}
                 {% endif %}
 
-                {% assign twitterPhoto = Event | Attribute:'core_calendar_TwitterPhoto','Object' %}
                 {% if twitterPhoto != '' %}
                     {{ twitterPhoto.Url | AddMetaTagToHead:'property','twitter:image' }}
                 {% else %}
@@ -71,11 +149,8 @@
 
             </div>
 
-            <div class="col-md-3 col-md-pull-9 g-padding-b-60--xs g-padding-y-100--md">
 
-                <div class="text-center g-padding-b-20--xs">
-                    {[ socialshare facebooktitle:'{{ Event.Name }}' emailsubject:'{{ Event.Name | Escape }}' url:'{{ 'Global' | Page:'Url' }}' facebookimage:'https://{{- 'Global' | Page:'Host' -}}{{ eventPhoto }}' facebooksummary:'{{ Event.Description | StripHtml }}' ]}
-                </div>
+            <div class="col-md-4 g-padding-t-10--xs g-padding-b-60--xs g-padding-x-50--lg">
 
                 {% assign eventOccurencesCount = Event.EventItemOccurrences | Size %}
                 {% if eventOccurencesCount > 1 %}
@@ -102,6 +177,7 @@
                 {% endif %}
 
             </div><!-- END: col-md-4 -->
+
         </div>
 
     </div><!-- END: row -->
@@ -115,7 +191,7 @@
                 <div class="isotope_item col-xs-12 col-md-6 col-lg-4 {{campus_slug}}_filter event-calendar">
                     <div class="clearfix card g-margin-b-20--xs" >
 
-                        {% include '~~/Assets/Lava/Groups/GroupItemOccurrence.lava' %}
+                        {% include '~~/Assets/Lava/Events/EventItemOccurrence.lava' %}
 
                     </div>
                 </div>
@@ -124,32 +200,34 @@
         </div>
     </div>
 
-    {% if eventOccurencesCount > 1 %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Readmore.js/2.2.0/readmore.min.js"></script>
-    <script type="text/javascript">
+    <script>
+    // isotop options and wrapper
+    var $grid = $('.isotope_wrap');
+    var isoOptions = {
+        percentPosition: true,
+        itemSelector: '.isotope_item'
+    };
 
-        // isotop options and wrapper
-        var $grid = $('.isotope_wrap');
-        var isoOptions = {
-            percentPosition: true,
-            itemSelector: '.isotope_item'
-        };
-
-        $(window).load(function() {
-             // executes when complete page is fully loaded, including all frames, objects and images
-             $('.readmore_dates').readmore({
-                 speed: 100,
-                 lessLink: '<a href="#" style="top:8px; position:relative;"><h5 class="g-display-inline-block--xs"><small>Show Less Dates</small> <span class="se-carat se-carat--up"></span></h5></a>',
-                 moreLink: '<a href="#" style="left: 14%;position:relative;top: -5px; position:relative;"><h5 class="g-display-inline-block--xs"><small>Show All Dates</small><span class="se-carat se-carat--down"></span></h5></a>',
-                 collapsedHeight: 0,
-                 beforeToggle: function(tr, el, ex) {
-                     $(el).show();
-                 },
-                 afterToggle: function(trigger, element, expanded) {
-                     $grid.isotope(isoOptions); // re-initialize
-                 }
-            });
+    $(window).load(function() {
+        // executes when complete page is fully loaded, including all frames, objects and images
+        $('.readmore_dates').readmore({
+            speed: 100,
+            lessLink: '<a href="#" style="top:8px; position:relative;"><h6 class="g-display-inline-block--xs">Show Less Dates<span class="se-carat se-carat--up"></span></h6></a>',
+            moreLink: '<a href="#" style="position:relative;top: -5px; position:relative;"><h6 class="g-display-inline-block--xs">Show All Dates<span class="se-carat se-carat--down"></span></h6></a>',
+            collapsedHeight: 0,
+            beforeToggle: function(tr, el, ex) {
+                $(el).show();
+            },
+            afterToggle: function(trigger, element, expanded) {
+                $grid.isotope(isoOptions); // re-initialize
+            }
         });
+    });
+    </script>
+
+    {% if eventOccurencesCount > 1 %}
+    <script type="text/javascript">
 
         $(document).ready(function() {
 
@@ -200,6 +278,6 @@
          });
 
     </script>
-    {% endif %}
     <!-- ************************************ End: Show only if it's a Multi Event ************************************ -->
+    {% endif %}
 </div>
