@@ -6,7 +6,8 @@
        <Rock:NotificationBox ID="nbConfigurationWarning" runat="server" NotificationBoxType="Warning" Visible="false" />
         
         <asp:Literal ID="lBody" runat="server"></asp:Literal> 
-        <asp:Literal ID="lDebug" runat="server" Visible="false"></asp:Literal> 
+        <asp:Literal ID="lDebug" runat="server" Visible="false"></asp:Literal>
+        <asp:PlaceHolder ID="phTimings" runat="server"></asp:PlaceHolder>
 
         
         <Rock:ModalDialog ID="mdEdit" runat="server" OnSaveClick="mdEdit_SaveClick" Title="Edit Signup Settings">
