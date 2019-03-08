@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -625,6 +625,15 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                             dv.AttributeValues["Qualifier2"].ValueFormatted + " " +
                             dv.AttributeValues["Qualifier3"].ValueFormatted + ", " +
                             dv.AttributeValues["Qualifier4"].ValueFormatted;
+                    }
+                    return "";
+                } )(),
+                PastoralMinister = new Func<string>( () =>
+                {
+                    DefinedValue dv = facilities.Where( h => h.Guid == w.AttributeValues.Where( av => av.AttributeKey == "NursingHome" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).FirstOrDefault();
+                    if ( dv != null )
+                    {
+                        return dv.AttributeValues["PastoralMinister"].ValueFormatted;
                     }
                     return "";
                 } )(),
