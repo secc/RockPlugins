@@ -8,11 +8,11 @@
 
 <div class="container">
 
-    {% if eventItemOccurrenceCount == 0 and noMessages != true %}
+    {% if eventItemOccurrenceCount == 0 %}
     <div class="row">
         <div class="col-xs-12 text-center">
             <div style="border: 1px solid rgba(32, 30, 29, 0.50); padding: 20px; border-radius: 5px;">
-                <p style="margin: 0px;">There are no groups for this ministy at this time. Please try another campus or ministry.</p>
+                <p style="margin: 0px;">There are no events for this ministy at this time. Please try another campus or ministry.</p>
             </div>
         </div>
     </div>
@@ -89,9 +89,9 @@
                         <div class="caption g-padding-x-30--xs g-padding-t-30--xs g-margin-b-40--xs">
 
                             {% if numOccurrences > 1 and multiCampus == true %}
-                                    <h5 class="uppercase g-padding-b-20--xs g-font-weight--700">Multiple Campuses</h5>
+                                    <h6 class="uppercase g-padding-b-20--xs g-font-weight--700">Multiple Campuses</h6>
                             {% elseif eventItemOccurrence.EventItemOccurrence.Campus.Name != null %}
-                                    <h5 class="uppercase g-padding-b-20--xs g-font-weight--700">{{eventItemOccurrence.EventItemOccurrence.Campus.Name}} Campus</h5>
+                                    <h6 class="uppercase g-padding-b-20--xs g-font-weight--700">{{eventItemOccurrence.EventItemOccurrence.Campus.Name}} Campus</h6>
                             {% endif %}
 
                             {% if eventItemOccurrence.Name != '' %}
@@ -153,7 +153,7 @@
 
                         <div class="text-center col-xs-12 g-margin-t-40--xs g-hor-divider__solid__t--gray-lighter">
                             <a href="{{ eventLinkURL }}" class='eventCardLink link--hover-underscore'>
-                                <h5 class="uppercase g-font-weight--700 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">More Info</h5>
+                                <h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">More Info</h6>
                             </a>
                         </div>
 
@@ -171,7 +171,7 @@
 {% comment %}
 **********************************************************************************
 ****** The code below will need to be included if this file isn't included *******
-******  anywhere else (such as 'FeaturedGroups.lava' or 'AllGroups.lava')  *******
+******  anywhere else (such as 'FeaturedEvents.lava' or 'AllEvents.lava')  *******
 **********************************************************************************
 <script>
 $(window).load(function() {
