@@ -9,7 +9,9 @@
        <li><a class="cd-search-trigger" href="#cd-search" title="Search">Search<span></span></a></li>
        {% assign personGuid = CurrentPerson.Guid %}
        {% unless personGuid != null %}
-       <li><a class="cd-nav-login" href="/login" title="Login">Login<span></span></a></li>
+	   {% assign host = 'Global' | Page:'Host' %}
+	   {% assign url = 'Global' | Page:'Url' %}
+       <li><a class="cd-nav-login" href="/login?returnurl={{ url | Replace:host, 'www.southeastchristian.org' }}" title="Login">Login<span></span></a></li>
        {% endunless %}
        <li><a class="cd-nav-trigger" href="#cd-primary-nav">Menu<span></span></a></li>
    </ul> <!-- cd-header-buttons -->
