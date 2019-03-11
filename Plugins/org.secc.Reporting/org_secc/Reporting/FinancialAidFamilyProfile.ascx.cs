@@ -34,7 +34,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
     [DisplayName( "Financial Aid - Family Profile" )]
     [Category( "SECC > Reporting" )]
     [Description( "A block to display the financial aid information for an entire family." )]
-    [WorkflowTypeField( "Workflow Type", "The workflow type for financial aid." )]
+    [WorkflowTypeField( "Workflow Types", "The workflow type(s) for financial aid.", true, true )]
     
     public partial class FinancialAidFamilyProfile : RockBlock
     {
@@ -83,14 +83,23 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
         protected void BindGrid()
         {
+
             RockContext rockContext = new RockContext();
             PersonAliasService personAliasService = new PersonAliasService( rockContext );
+            WorkflowService workflowTypeService = new WorkflowService( rockContext );
             WorkflowService workflowService = new WorkflowService( rockContext );
             AttributeService attributeService = new AttributeService( rockContext );
             AttributeValueService attributeValueService = new AttributeValueService( rockContext );
             RegistrationRegistrantService registrationRegistrantService = new RegistrationRegistrantService( rockContext );
 
-            var attributes = attributeService.Queryable().Where( a => a.EntityTypeQualifierValue == "139" && a.EntityTypeQualifierColumn == "WorkflowTypeId" );
+            List<string> workflowTypes = GetAttributeValues( "WorkflowTypes" );
+            List<string> workflowTypeIds = new List<string>();
+            foreach( string workflowTypeGuid in workflowTypes )
+            {
+                workflowTypeIds.Add( WorkflowTypeCache.Get( workflowTypeGuid.AsGuid() ).Id.ToString() );
+            }
+
+            var attributes = attributeService.Queryable().Where( a => workflowTypeIds.Contains( a.EntityTypeQualifierValue ) && a.EntityTypeQualifierColumn == "WorkflowTypeId" );
             var attributeIds = attributes.Select( a => a.Id );
 
             // Get all the family members
@@ -102,7 +111,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
                                 .Where( rr => rr.Registration.DiscountCode != null && rr.Registration.DiscountCode != "" )
                                 .ToDictionary( x => x.Registration.DiscountCode, x => x.Registration.DiscountAmount );
 
-            var qry = workflowService.Queryable().Where( w => w.WorkflowTypeId == 139 )
+            var qry = workflowService.Queryable().Where( w => workflowTypeIds.Contains( w.WorkflowTypeId.ToString() ) )
                 .GroupJoin( attributeValueService.Queryable().Where( av => attributeIds.Contains( av.AttributeId ) ),
                     w => w.Id,
                     av => av.EntityId,
@@ -111,13 +120,13 @@ namespace RockWeb.Plugins.org_secc.Reporting
                 .ToList()
                 .Select(obj => new {
                     Id = obj.Workflow.Id,
-                    FirstName = obj.AttributeValues.Where( av => av.Attribute.Key == "StudentFirstName" ).Select( av => av.Value ).FirstOrDefault(),
-                    LastName = obj.AttributeValues.Where( av => av.Attribute.Key == "StudentLastName" ).Select( av => av.Value ).FirstOrDefault(),
+                    FirstName = obj.AttributeValues.Where( av => av.Attribute.Key == "StudentFirstName" ).Select( av => av.Value ).DefaultIfEmpty( obj.AttributeValues.Where( av => av.Attribute.Key == "ParentFirstName" ).Select( av => av.Value ).FirstOrDefault() ).FirstOrDefault(),
+                    LastName = obj.AttributeValues.Where( av => av.Attribute.Key == "StudentLastName" ).Select( av => av.Value ).DefaultIfEmpty( obj.AttributeValues.Where( av => av.Attribute.Key == "ParentLastName" ).Select( av => av.Value ).FirstOrDefault() ).FirstOrDefault(),
                     Campus = obj.AttributeValues.Where( av => av.Attribute.Key == "Campus" ).Select( av => CampusCache.Get(av.Value.AsGuid()) ).FirstOrDefault(),
                     ApplicationYear = obj.AttributeValues.Where( av => av.Attribute.Key == "ApplicationYear" ).Select( av => av.Value ).DefaultIfEmpty( attributes.Where( a => a.Key == "ApplicationYear" ).Select( a => a.DefaultValue ).FirstOrDefault() ).FirstOrDefault(),
                     DiscountCode = obj.AttributeValues.Where( av => av.Attribute.Key == "DiscountCode" ).Select( av => av.Value ).FirstOrDefault(),
                     DiscountAmount = discountCodes[obj.AttributeValues.Where( av => av.Attribute.Key == "DiscountCode" ).Select( av => av.Value ).FirstOrDefault()],
-                    Event = obj.AttributeValues.Where( av => av.Attribute.Key == "EventStudentisAttending" ).Select( av => av.Value ).FirstOrDefault(),
+                    Event = obj.AttributeValues.Where( av => av.Attribute.Key == "EventStudentisAttending" ).Select( av => av.Value ).DefaultIfEmpty( obj.AttributeValues.Where( av => av.Attribute.Key == "EventLeaderisAttending" ).Select( av => av.Value ).FirstOrDefault() ).FirstOrDefault(),
                     Status = obj.Workflow.Status
                 } );
 
