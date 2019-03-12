@@ -75,6 +75,7 @@ namespace RockWeb.Blocks.Reporting.Children
 
         private void BindGrid()
         {
+            gReport.Visible = false;
             nbNotification.Visible = false;
             RockContext rockContext = new RockContext();
             AttendanceOccurrenceService attendanceOccurrenceService = new AttendanceOccurrenceService( rockContext );
@@ -207,9 +208,9 @@ namespace RockWeb.Blocks.Reporting.Children
                 .OrderBy( r => r.CheckInTime )
                 .ToList();
 
+            gReport.Visible = true;
             gReport.DataSource = records;
             gReport.DataBind();
-
         }
 
         private List<Location> GetChildLocations( Location parentLocation )
