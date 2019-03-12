@@ -11,7 +11,7 @@
 
 
 		<div id="{{divId}}" data-level="{{level}}" class="container-fluid slide-box {% if show == '' and show == empty and level == 1 %}{% assign foundDiv = true %}active" style="left: 0%;{% elseif show == divId %}{% assign foundDiv = true %}active" style="left: 0%;{% endif %}">
-
+			
 			{% if level == 1 %}
 			<div class="row g-padding-b-10--xs">
 				<div class="col-xs-12">
@@ -21,10 +21,11 @@
 						g-font-weight--900
 						g-font-size-40--xs
 						g-font-size-60--md
-						g-font-size-80--lg">Easter at Southeast Serving</h2>
+						g-font-size-80--lg">&nbsp;</h2>
 					</header>
 				</div>
 			</div>
+			
 			{% elseif level > 1 %}
 			<div class="row g-padding-b-30--xs">
 				<div class="col-xs-12">
@@ -86,7 +87,11 @@
 			{% if parameterName != '' and CardWizardMode != "Single" %}
 			<div class="row">
 				<div class="col-sm-10 col-sm-offset-1">
-					<a href="{{partition.Url}}" data-type="{{type}}" data-group-id="{{partition.GroupId}}" data-role="{{partition.RoleGuid}}" data-parameter-name="{{parameterName}}" title="Sign Up" class="btn btn-primary pull-right signup-button uppercase g-letter-spacing--1">
+					{%- assign groupId = partition.GroupId -%}
+					{%- if role.Entity.GroupTypeId == 167 -%}
+						{%- assign groupId = groupId | Plus: 1 -%}
+					{%- endif -%}
+					<a href="{{partition.Url}}" data-type="{{type}}" data-group-id="{{groupId}}" data-role="{{partition.RoleGuid}}" data-parameter-name="{{parameterName}}" title="Sign Up" class="btn btn-primary pull-right signup-button uppercase g-letter-spacing--1">
 						<strong>Sign Up</strong>
 					</a>
 				</div>
