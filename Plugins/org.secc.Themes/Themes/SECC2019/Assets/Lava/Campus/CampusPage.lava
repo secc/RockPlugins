@@ -109,7 +109,7 @@
                   }
                 </script>
 
-                {[ parallax videourl:'https://vimeo.com/{{ CampusVimeoId }}' image:'https://www.southeastchristian.org/GetImage.ashx?Guid={{ HeroImage.Guid }}' videostarttime:'45' videoendtime:'55' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'80vh' position:'{{ HeroImagePosition }}' speed:'-15' ]}
+                {[ parallax videourl:'https://vimeo.com/{{ CampusVimeoId }}' image:'https://www.southeastchristian.org/GetImage.ashx?Guid={{ HeroImage.Guid }}' videostarttime:'75' videoendtime:'105' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'80vh' position:'{{ HeroImagePosition }}' speed:'-15' ]}
                     <!-- START: Campus Logo & Video -->
                     <div class="parallax-logo centered" style="padding: 0px; z-index:3; max-width: 100%;">
                         <h4 class="uppercase g-font-weight--600 g-letter-spacing--3">Welcome To</h4>
@@ -127,7 +127,8 @@
 
                                 function initModalVideo(){
                                     $(".js-modal-video").modalVideo({
-                                        channel: 'vimeo'
+                                        channel: 'vimeo',
+										autoplay: true
                                     });
                                 }
 
