@@ -48,6 +48,7 @@ using Rock.Model;
 using Rock.Transactions;
 using Rock.VersionInfo;
 
+
 namespace RockWeb.Plugins.org_secc.Administration
 {
     /// <summary>
@@ -58,7 +59,6 @@ namespace RockWeb.Plugins.org_secc.Administration
     [Description( "Displays system information on the installed version of Rock." )]
     public partial class SystemInfo : Rock.Web.UI.RockBlock
     {
-
         #region Fields
 
         private string _catalog = String.Empty;
@@ -289,6 +289,8 @@ namespace RockWeb.Plugins.org_secc.Administration
 
         private string GetRoutesInfo()
         {
+            var pageService = new PageService( new RockContext() );
+
             var routes = new SortedDictionary<string, System.Web.Routing.Route>();
             foreach ( System.Web.Routing.Route route in System.Web.Routing.RouteTable.Routes.OfType<System.Web.Routing.Route>() )
             {
@@ -297,11 +299,17 @@ namespace RockWeb.Plugins.org_secc.Administration
             }
 
             StringBuilder sb = new StringBuilder();
+            sb.AppendFormat( "<table class='table table-condensed'>" );
+            sb.Append( "<tr><th>Route</th><th>Pages</th></tr>" );
             foreach ( var routeItem in routes )
             {
-                sb.AppendFormat( "{0}<br />", routeItem.Key );
+                //sb.AppendFormat( "{0}<br />", routeItem.Key );
+                var pages = pageService.GetListByIds( routeItem.Value.PageIds() );
+
+                sb.AppendFormat( "<tr><td>{0}</td><td>{1}</td></tr>", routeItem.Key, string.Join( "<br />", pages.Select( n => n.InternalName + " (" + n.Id.ToString() + ")" ).ToArray() ) );
             }
 
+            sb.AppendFormat( "</table>" );
             return sb.ToString();
         }
 
