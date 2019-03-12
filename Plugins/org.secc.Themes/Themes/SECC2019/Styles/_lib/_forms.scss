@@ -60,12 +60,19 @@ form {
 	}
 
 	div:not(.rock-modal) {
-		 div:not(.modal-footer):not(.modal-body):not(.modal-header) {
-			> a.btn, input.btn-action, input.btn-link,> a.btn-default {
+		 > div:not(.modal-footer):not(.modal-body):not(.modal-header):not(.modal-header) {
+			> .btn:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on),
+			> .btn-default:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on),
+			> .btn-primary:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on),
+			> .primary:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on),
+			> .btn-action:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on),
+			> .btn-link:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on) {
 				@include btn;
+				margin: 4px 2px;
 			}
 
-			> a.btn-primary {
+			> .btn-primary:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on),
+			> .btn-primary:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on) {
 				@include btn-style(
 				$color: $color-dark,
 				$padding: 0.5rem 1.5rem,
@@ -79,7 +86,8 @@ form {
 				$hvr-brd-color: $color-dark);
 			}
 
-			> input.btn-action, > a.btn-default {
+			> .btn-action:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on),
+			> .btn-default:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on) {
 				@include btn-style(
 				$color: $color-dark,
 				$padding: 0.5rem 1.5rem,
@@ -93,7 +101,7 @@ form {
 				$hvr-brd-color: $color-dark);
 			}
 
-			> input.btn-link {
+			> .btn-link:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on) {
 				@include btn-style(
 				$color: $color-dark,
 				$padding: 0.5rem 1.5rem,
