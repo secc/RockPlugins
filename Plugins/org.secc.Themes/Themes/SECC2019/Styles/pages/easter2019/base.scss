@@ -6,7 +6,7 @@
 @import 'partials/animations';
 @import 'partials/schedule';
 // @import 'partials/verticalnav';
-@import 'partials/secondarynav';
+// @import 'partials/secondarynav';
 @import 'partials/mapplic_extras';
 @import 'partials/intro_section';
 @import 'partials/accordions';
@@ -19,8 +19,9 @@
 
 .easter-font {
     // normal font style for Easter
-    h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6, p {
+    h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
         font-family: $easter-font !important;
+        color: #3E3E3E;
     }
 }
 
