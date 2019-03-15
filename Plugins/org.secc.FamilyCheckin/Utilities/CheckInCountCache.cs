@@ -15,9 +15,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Caching;
-using System.Text;
-using System.Threading.Tasks;
 using Rock;
 using Rock.Data;
 using Rock.Model;
@@ -173,17 +170,16 @@ namespace org.secc.FamilyCheckin.Utilities
         {
             var output = new List<GroupLocationScheduleCount>();
 
-            var today = Rock.RockDateTime.Today;
-            var tomorrow = Rock.RockDateTime.Today.AddDays( 1 );
             RockContext rockContext = new RockContext();
-            AttendanceService attendanceService = new AttendanceService( rockContext );
-            var attendances = attendanceService.Queryable()
-                .Where( a =>
-                            a.StartDateTime >= today
-                            && a.StartDateTime < tomorrow
-                            && a.EndDateTime == null )
+
+            AttendanceOccurrenceService attendanceOccurrenceService = new AttendanceOccurrenceService( rockContext );
+            var attendances = attendanceOccurrenceService.Queryable()
+                .Where( ao => ao.OccurrenceDate == RockDateTime.Today )
+                .SelectMany( ao => ao.Attendees )
+                .Where( a => a.EndDateTime == null )
                 .GroupBy( a => new { a.Occurrence.GroupId, a.Occurrence.LocationId, a.Occurrence.ScheduleId } )
                 .ToList();
+
             foreach ( var attendance in attendances )
             {
                 var glsc = new GroupLocationScheduleCount()
