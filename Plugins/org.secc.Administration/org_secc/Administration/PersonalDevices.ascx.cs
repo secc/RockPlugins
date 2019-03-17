@@ -185,8 +185,8 @@ namespace RockWeb.Plugins.org_secc.Administration
 
                 if ( tbmaddress.Text != "" )
                 {
-                    var authToken = GlobalAttributesCache.Value( "APIAuthorizationToken" );
-                    var hostAddr = GlobalAttributesCache.Value( "Host" );
+                    var authToken = GlobalAttributesCache.Value( "FrontporchAPIToken" );
+                    var hostAddr = GlobalAttributesCache.Value( "FrontporchHost" );
                     var authentication = string.Format( "authorization-token:{0}", authToken );
                     var url = string.Format( "https://{0}/api/user/delete?mac={1}", hostAddr, personalDevice.MACAddress );
                     personalDevice.MACAddress = tbmaddress.Text;
