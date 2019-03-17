@@ -1,12 +1,14 @@
-<div class="container left-aligned" style="padding: 4em 1em;">
-
-    <div class="row no-spacing">
-      <div class="col-sm-12 no-spacing">
+<div class="container g-padding-y-150--xs">
+    <div class="row">
+        <div class="col-sm-6 col-sm-offset-3 text-center">
             <header>
-                <h1>SERVICE TIMES</h1>
-                <p style="color: #777777;">During Easter, each of our locations offers a variety of service times to fit your schedule. Below, you can browse all Easter weekend services by date, location, and time.</p>
+                <p>During Easter, each of our locations offers a variety of service times to fit your schedule. Below, you can browse all Easter weekend services by date, location, and time.</p>
                 <br />
             </header>
+        </div>
+    </dvi>
+    <div class="row">
+        <div class="col-sm-12 no-spacing">
           <!-- Schedule start -->
           <div class="schedule">
               <!-- <h2 class="visible-xs visible-sm text-center">12/23/2017 - 12/24/2017</h2> -->
