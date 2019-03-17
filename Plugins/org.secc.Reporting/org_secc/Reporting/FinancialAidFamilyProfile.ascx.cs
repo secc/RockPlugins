@@ -77,7 +77,10 @@ namespace RockWeb.Plugins.org_secc.Reporting
                       
             if ( !Page.IsPostBack )
             {
-                BindGrid();
+                if ( !PageParameter("PersonAliasId").IsNullOrWhiteSpace() )
+                {
+                    BindGrid();
+                }
             }
         }
 
