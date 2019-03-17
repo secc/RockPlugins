@@ -1,106 +1,96 @@
 {% assign currentDate = 'Now' | Date:'yyyyMMddHHmm' | AsDouble %}
 
-<script src="/Themes/SECC2014/Scripts/modernizr.js"></script>
-<script src="https://www.southeastchristian.org/eastertogether/assets/js/vendor/wow.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw" crossorigin="anonymous">
+<link rel="stylesheet" href="/Themes/SECC2019/Styles/pages/easter2019/base.css" />
 <script src="https://use.typekit.net/osx6gkw.js"></script>
 <script>try{Typekit.load({ async: true });}catch(e){}</script>
 
 <header class="cd-header" style="z-index: 1">
 </header>
 
-<section id="PageHeader" style="overflow: hidden; background-color: #e6fdf7;">
-    {[ parallax image:'/Themes/SECC2014/Assets/img/Easter2018/easterBackground.jpg' height:'auto' noios:'true' position:'top top' speed:'-25' ]}
-    <div class="container-fluid" style="padding: 3em 0;">
-        <div class="row" style="padding: 0px; margin: 0;">
-            <div class="col-sm-12 text-center" style="padding: 20px 0px;">
-                <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/EasterLogoUpdate.svg" class="img-responsive wow zoomIn" data-wow-duration="1s" style="z-index: 5; position: relative; max-width: 450px; margin: 0 auto; width: 100%; visibility: hidden; display:block;">
-            </div>
+<section>
+	<div class="g-bg-color--gray-lightest">
+    {[ parallax addclass:'menu-switch' image:'/Content/Home/Easter_Horizontal-1920.jpg' height:'75vh' position:'center center' speed:'-15' ]}
+        <div class="parallax-logo centered" style="max-width: inherit;padding: 0px;">
+            <img src="/Content/Serve/Easter/Easter-2019-Logo-Web.svg" class="img-responsive g-width-80-percent--xs g-width-60-percent--md g-width-40-percent--lg g-margin-x-auto--xs" />
         </div>
-    </div>
     {[ endparallax ]}
+    </div>
+    <div class="page-menu" style="background-color: #FAFBF9;">
+    	<div class="container-fluid text-center" style="padding: 0;">
+    		<nav class="page-nav text-center" style="padding-top:2.5rem">
+    			<ul class="list-inline" style="color: #399B8C;">
+    				<li>
+                        <a href="#about" class="g-color--2019-easter-IN">
+                            <span><i class="fa fa-users fa-2x"></i></span><br />
+                            <b>About</b>
+                        </a>
+                    </li>
+    				<li>
+                        <a href="#locations" class="g-color--2019-easter-IN">
+                            <span><i class="fa fa-map fa-2x"></i></span><br />
+                            <b>Locations</b>
+                        </a>
+                    </li>
+    				<li>
+                        <a href="#easter-experience" class="g-color--2019-easter-IN">
+                            <span><i class="fa fa-music fa-2x"></i></span><br />
+                            <b>Experience</b>
+                        </a>
+                    </li>
+    				<li>
+                        <a href="#preregister-kids" class="g-color--2019-easter-IN">
+                            <span><i class="fa fa-pencil fa-2x"></i></span><br />
+                            <b>Pre-Register Kids</b>
+                        </a>
+                    </li>
+    				<li>
+                        <a href="#map" class="g-color--2019-easter-IN">
+                            <span><i class="fa fa-map-marker fa-2x"></i></span><br />
+                            <b>&nbsp;Map&nbsp;</b>
+                        </a>
+                    </li>
+    				<li>
+                        <a href="#times" class="g-color--2019-easter-IN">
+                            <span><i class="fa fa-clock-o fa-2x"></i></span><br />
+                            <b>&nbsp;Times&nbsp;</b>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#serve" class="g-color--2019-easter-IN">
+        					<span><i class="fa fa-user fa-2x"></i></span><br />
+                            <b>&nbsp;Serve&nbsp;</b>
+        				</a>
+                    </li>
+                    <li>
+                        <a href="#faq" class="g-color--2019-easter-IN">
+                            <span><i class="fa fa-question-circle fa-2x"></i></span><br />
+                            <b>&nbsp;FAQ&nbsp;</b>
+                        </a>
+                    </li>
+    			</ul>
+    		</nav>
+    	</div>
+    </div>
+    <script>
+    var scroll = new SmoothScroll('div.page-menu a[href*="#"]', {
+        speed: 500, // Integer. How fast to complete the scroll in milliseconds
+        easing: 'easeInOutCubic', // Easing pattern to use
+        header: '.cd-main-header'
+    });
+    </script>
 </section>
-
-<div class="cd-secondary-nav">
-    <a href="#0" class="cd-secondary-nav-trigger">Menu<span></span></a> <!-- button visible on small devices //-->
-    <nav>
-        <ul>
-            <li>
-                <a href="#about">
-                    <b>About</b>
-                    <span><i class="fa fa-users"></i></span>
-                </a>
-            </li>
-            <li>
-                <a href="#locations">
-                    <b>Locations</b>
-                    <span><i class="fa fa-map"></i></span>
-                </a>
-            </li>
-            <li>
-                <a href="#easter-experience">
-                    <b>Experience</b>
-                    <span><i class="fa fa-music"></i></span>
-                </a>
-            </li>
-            <li>
-                <a href="#preregister-kids">
-                    <b>Pre-Register Kids</b>
-                    <span><i class="fa fa-pencil"></i></span>
-                </a>
-            </li>
-            {% if showEasterDevotionals <= currentDate %}
-            <li style="background-color: #a55694;">
-                <a href="#devotional">
-                    <i><b style="color: white;">Holy Week</b></i>
-                    <span style="color: white;">
-                        <i class="fa fa-book"></i>
-                    </span>
-                </a>
-            </li>
-            {% endif %}
-            <li>
-                <a href="#map">
-                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Map&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b>
-                    <span><i class="fa fa-map-marker"></i></span>
-                </a>
-            </li>
-            <li>
-                <a href="#times">
-                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Times&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b>
-                    <span><i class="fa fa-clock-o"></i></span>
-                </a>
-            </li>
-			<li>
-				<a href="#serve">
-					<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Serve&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b>
-					<span><i class="fa fa-user"></i></span>
-				</a>
-			</li>
-            <li>
-                <a href="#faq">
-                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;FAQ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b>
-                    <span><i class="fa fa-question-circle"></i></span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</div> <!-- .cd-secondary-nav -->
 
 <main class="cd-main-content">
 
     <section id="about" class="easter-section easter-font">
-        <div class="container">
+        <div class="container g-padding-y-150--xs">
 
-			<div class="row section" style="padding:40px 0;">
+			<div class="row section">
               <header class="sec-heading text-center">
-                  <!-- <h1>CONNECTED BY LOVE</h1> -->
-              <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/connectedbylove02.svg" class="img-responsive wow fadeIn zoomIn" data-wow-duration="1s" data-wow-delay=".4s" style="max-width: 40em; max-height: 15em; margin: 0 auto; width: 100%; visibility: hidden; padding: 0 20px;">
+                  <h2 class="uppercase g-font-weight--900">Easter at Southeast</h2>
               </header>
               <br />
               <div class="col-md-offset-1 col-md-5 biggerText">
-                  <h2>Easter at Southeast</h2>
-                  <br />
                   <p>There's not another day like it on the calendar-a day of hope, joy, and love that brings people together.</p>
                   <p>This day is for all of us. So, let's share it. Let's celebrate <i>Easter at Southeast</i>!</p>
                   <p>Our doors are open wide-and no matter where you are, wherever you're coming from, you're welcome here.</p>
@@ -108,8 +98,7 @@
                   <br />
               </div>
               <div class="col-md-5 biggerText" style="text-align: left;">
-                  <h2>What to Expect</h2>
-                  <br />
+                  <h3 class="g-font-weight--900">What to Expect</h3>
                   <ul>
                       <li><p class="no-spacing">Biblical, relevant teaching from Dave Stone (all services except for the traditional services on Sunday morning)</p></li>
                       <li><p class="no-spacing">Worship</p></li>
@@ -124,108 +113,116 @@
     </section>
 
     <!-- ========== Locations ========== -->
-      <section id="locations" class="easter-section section easter-font" style="padding-bottom:0px;">
+      <section id="locations" class="easter-section section easter-font g-bg-color--2019-easter-tan" style="padding-bottom:0px;">
 
-          <header class="text-center"  style="padding: 10px;">
-            <br />
-            <h1>Locations</h1>
-            <p>Select a campus below for service times and more!</p>
-          </header>
 
-          <div class="container-fluid" style="padding-top:30px;">
+          <div class="container-fluid  g-padding-y-150--xs">
+              <header class="text-center" >
+                  <br />
+                  <h2 class="uppercase g-font-weight--900">Locations</h2>
+            </header>
               <div class="row no-spacing">
-                  <div class="col-md-12 no-spacing">
+                  <div class="col-md-12 g-padding-t-50--xs">
 
                       <div id="ajax"></div>
 
-                      <div class="portfolio-grid">
-                          <div id="folio" class="isotope">
+                      <div class="portfolio-grid g-padding-t-100--xs">
+                          <ul class="list-inline text-center g-margin-x-auto--xs">
 
 
-                                  <div class="folio-item col-xs-12 col-sm-6 col-md-4 no-spacing">
+                                  <li class="">
                                       <div class="portfolio-thumb">
                                           <a id="blankenbaker" class="folio-project" href="/easterBlankenbaker #campus-easter-info">
-                                              <div class="portfolio-inner">
-                                                  <div class="portfolio-inner-ctr">
-                                                      <span class="se-logo stroke">920</span>
-                                                      <h4>Blankenbaker</h4>
-                                                  </div>
-                                              </div>
+                                            <div class="box text-center">
+                                            <h4 class="uppercase g-font-weight--800">
+                                                Blankenbaker<br>
+                                            </h4>
+                                            <img src="/Themes/SECC2019/Assets/img/SE/Campuses/920.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
+                                            </div>
                                           </a>
                                       </div>
-                                  </div>
+                                  </li>
 
-                                  <div class="folio-item col-xs-12 col-sm-6 col-md-4 no-spacing" >
+                                  <li class="" >
                                       <div class="portfolio-thumb">
                                           <a id="indiana" class="folio-project" href="/easterIndiana #campus-easter-info">
-                                              <div class="portfolio-inner">
-                                                  <div class="portfolio-inner-ctr">
-                                                      <span class="se-logo stroke">IN</span>
-                                                      <h4>Indiana</h4>
-                                                  </div>
-                                              </div>
+                                            <div class="box text-center">
+                                            <h4 class="uppercase g-font-weight--800">
+                                                Indiana<br>
+                                            </h4>
+                                            <img src="/Themes/SECC2019/Assets/img/SE/Campuses/IN.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
+                                            </div>
                                           </a>
                                       </div>
-                                  </div>
+                                  </li>
 
-
-
-
-                                  <div class="folio-item col-xs-12 col-sm-6 col-md-4 no-spacing" >
+                                  <li class="" >
                                       <div class="portfolio-thumb">
                                           <a id="crestwood" class="folio-project" href="/easterCrestwood #campus-easter-info">
-                                              <div class="portfolio-inner">
-                                                  <div class="portfolio-inner-ctr">
-                                                      <span class="se-logo stroke">CW</span>
-                                                      <h4>Crestwood</h4>
-                                                  </div>
-                                              </div>
+                                            <div class="box text-center">
+                                            <h4 class="uppercase g-font-weight--800">
+                                                Crestwood<br>
+                                            </h4>
+                                            <img src="/Themes/SECC2019/Assets/img/SE/Campuses/CW.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
+                                            </div>
                                           </a>
                                       </div>
-                                  </div>
+                                  </li>
 
 
-                                  <div class="folio-item col-xs-12 col-sm-6 col-md-4 no-spacing">
+                                  <li class="" >
                                       <div class="portfolio-thumb">
                                           <a id="southwest" class="folio-project" href="/easterSouthwest #campus-easter-info">
-                                              <div class="portfolio-inner">
-                                                  <div class="portfolio-inner-ctr">
-                                                      <span class="se-logo stroke">SW</span>
-                                                      <h4>Southwest</h4>
-                                                  </div>
-                                              </div>
+                                            <div class="box text-center">
+                                            <h4 class="uppercase g-font-weight--800">
+                                                Southwest<br>
+                                            </h4>
+                                            <img src="/Themes/SECC2019/Assets/img/SE/Campuses/SW.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
+                                            </div>
                                           </a>
                                       </div>
-                                  </div>
+                                  </li>
 
-
-                                  <div class="folio-item col-xs-12 col-sm-6 col-md-4 no-spacing" >
+                                  <li class="" >
                                       <div class="portfolio-thumb">
                                           <a id="lagrange" class="folio-project" href="/easterLaGrange #campus-easter-info">
-                                              <div class="portfolio-inner">
-                                                  <div class="portfolio-inner-ctr">
-                                                     <span class="se-logo stroke">LA</span>
-                                                      <h4>La Grange</h4>
-                                                  </div>
-                                              </div>
+                                            <div class="box text-center">
+                                            <h4 class="uppercase g-font-weight--800">
+                                                La Grange<br>
+                                            </h4>
+                                            <img src="/Themes/SECC2019/Assets/img/SE/Campuses/LA.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
+                                            </div>
                                           </a>
                                       </div>
-                                  </div>
+                                  </li>
 
-                                  <div class="folio-item col-xs-12 col-sm-6 col-md-4 no-spacing" >
+                                  <li class="" >
                                       <div class="portfolio-thumb">
-                                          <a id="lagrange" class="folio-project" href="/easterElizabethtown #campus-easter-info">
-                                              <div class="portfolio-inner">
-                                                  <div class="portfolio-inner-ctr">
-                                                      <span class="se-logo stroke">ET</span>
-                                                      <h4>Elizabethtown</h4>
-                                                  </div>
-                                              </div>
+                                          <a id="elizabethtown" class="folio-project" href="/easterElizabethtown #campus-easter-info">
+                                            <div class="box text-center">
+                                            <h4 class="uppercase g-font-weight--800">
+                                                Elizabethtown<br>
+                                            </h4>
+                                            <img src="/Themes/SECC2019/Assets/img/SE/Campuses/ET.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
+                                            </div>
                                           </a>
                                       </div>
-                                  </div>
+                                  </li>
 
-                          </div> <!-- End #folio -->
+                                  <li class="" >
+                                      <div class="portfolio-thumb">
+                                          <a id="rivervalley" class="folio-project" href="/easterRiverValley #campus-easter-info">
+                                            <div class="box text-center">
+                                            <h4 class="uppercase g-font-weight--800">
+                                                River Valley<br>
+                                            </h4>
+                                            <img src="/Themes/SECC2019/Assets/img/SE/Campuses/RV.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
+                                            </div>
+                                          </a>
+                                      </div>
+                                  </li>
+
+                          </ul> <!-- End #folio -->
                       </div> <!-- End .portfolio-grid -->
                   </div> <!-- End .jt_col -->
               </div> <!-- End .jt_row -->
@@ -233,16 +230,16 @@
       </section>
 
       <section id="easter-experience" class="easter-section easter-font">
-          <div class="container-fluid">
+          <div class="container-fluid g-padding-y-150--xs">
               <div class="row no-spacing">
-                  <div class="col-sm-10 col-sm-offset-1" style="margin-bottom:1em">
-                      <h2 style="letter-spacing:2px;">Easter Experience</h2>
+                  <div class="col-sm-6 col-sm-offset-3" style="margin-bottom:1em">
+                      <h2 class="uppercase g-font-weight--900 text-center">Easter Experience</h2>
                       <br />
-                      <p><strong><i>Blankenbaker Campus • Room FH2</i></strong></p>
-                      <p style="margin-left: 20px;">
-                         <strong><i>Thursday, March 29 • 7:30-8:30 p.m. <i class="fa fa-american-sign-language-interpreting" aria-hidden="true"></i></i></strong><br>
-                         <strong><i>Friday, March 30 • 5:30-7:30 p.m.</i></strong><br>
-                         <strong><i>Saturday, March 31 • 2:00-8:00 p.m.</i></strong>
+                      <p><strong>Blankenbaker Campus • Room FH2</strong></p>
+                      <p>
+                         <strong>Thursday, March 29 • 7:30-8:30 p.m. <i class="fa fa-american-sign-language-interpreting" aria-hidden="true"></i></strong><br>
+                         <strong>Friday, March 30 • 5:30-7:30 p.m.</strong><br>
+                         <strong>Saturday, March 31 • 2:00-8:00 p.m.</strong>
                       </p>
 
                       <p>Discover the truth, mystery, wonder, and hope surrounding the death and resurrection of Jesus like never before. You’ll walk through an interactive, sensory-driven experience that will take you back to Jesus’ last days on earth and awaken you to the deep beauty of what His sacrifice means for us. Experience the tastes of the Last Supper, drive a nail into the cross, feel the weight of the wooden beam on your shoulder, and reflect on the history-altering moments at the cross and the tomb.</p>
@@ -252,17 +249,17 @@
           </div>
       </section>
 
-    <section id="preregister-kids" class="easter-section easter-font">
-        <div class="container-fluid">
-            <div class="row no-spacing">
-                <div class="col-sm-10 col-sm-offset-1" style="margin-bottom:1em">
-                    <h2 style="letter-spacing:2px;">Pre-register Your Kids for Easter</h2 >
+    <section id="preregister-kids" class="easter-section easter-font g-bg-color--2019-easter-red">
+        <div class="container-fluid g-padding-y-150--xs">
+            <div class="row">
+                <div class="col-sm-6 col-sm-offset-3">
+                    <h2 class="uppercase g-font-weight--900 text-center g-color--white">Pre-register Your Kids</h2>
                     <br />
-                    <p>Our Children's Ministry (SE!Kids) provides a safe, fun environment where kids ages birth-fifth grade can make new friends and learn about Jesus while parents attend the worship service in the Sanctuary.</p>
-                    <p>For your convenience, first-time guests can fill out a short online form that will allow for a quicker check-in when you arrive for services on Easter weekend.</p>
+                    <p class="g-color--white">Our Children's Ministry (SE!Kids) provides a safe, fun environment where kids ages birth-fifth grade can make new friends and learn about Jesus while parents attend the worship service in the Sanctuary.</p>
+                    <p class="g-color--white">For your convenience, first-time guests can fill out a short online form that will allow for a quicker check-in when you arrive for services on Easter weekend.</p>
+                    <br />
                     <p class="text-center">
-                        <br />
-                        <a href="https://www.southeastchristian.org/visit/children/register" class="btn btn-easter btn-large wow fadeIn" data-wow-delay=".3s" data-wow-duration="1s">Click here to get started</a>
+                        <a href="https://www.southeastchristian.org/visit/children/register" class="uppercase se-btn se-btn--primary-brd uppercase g-letter-spacing--1 btn-large wow fadeIn" data-wow-delay=".3s" data-wow-duration="1s">Register</a>
                     </p>
                 </div>
             </div>
@@ -270,30 +267,32 @@
     </section>
 
     {% if showEasterDevotionals <= currentDate %}
+    {% comment %}
     <section id="devotional" class="easter-section easter-font">
       {% include '~~/Assets/Lava/Easter2018/LentSeries.lava' %}
     </section>
+    {% endcomment %}
     {% endif %}
 
     <section id="map" class="easter-section easter-font">
 
-        <header class="text-center"  style="padding: 10px;">
-          <br />
-          <h1>Find a Service Near You</h1>
-          <p>Click on each location to see more information and get directions.</p>
-        </header>
-        <br />
-        <br />
-        <div class="container-fluid no-spacing">
+        <div class="container-fluid g-padding-x-0--xs g-padding-y-150--xs">
+            <header class="text-center"  style="padding: 10px;">
+                <br />
+                <h2 class="uppercase g-font-weight--900 text-center">Find a Service Near You</h2>
+                <p>Click on each location to see more information and get directions.</p>
+            </header>
+            <br />
+            <br />
             {[ googlemap showfullscreen:'false' markerannimation:'drop' ]}
                 {% for campus in Campuses %}
                     {% assign publicCampus = campus | Attribute:'Public' %}
                     {% assign slug = campus | Attribute:'Slug' %}
                     {% if publicCampus == 'Yes' %}
                         [[ marker location:'{{ campus.Location.Latitude }},{{ campus.Location.Longitude }}' title:'{{ campus.Name }} Campus' icon:'/Themes/SECC2014/Assets/img/Easter2018/map/marker-{{ campus | Attribute:'Slug' }}.png' ]]
-                            <h2 class="text-center" style="margin: 10px 0px;">{{ campus.Name }}</h2>
-                            <p class="text-center"><a style="width: 100%;" class="folio-project btn btn-easter" onclick="googleCallbackLocations('/easter{{ campus | Attribute:'Slug' | Capitalize }} #campus-easter-info', this)" href="javascript:void(0)">Campus Info</a></p>
-                            <p class="text-center"><a style="width: 100%;" class="btn btn-easter" target="_blank" href="https://www.google.com/maps/dir/Current+Location/{{ campus.Location.Street1 | Replace:' ','+' }}+{{ campus.Location.City | Replace:' ','+' }}+{{ campus.Location.State | Replace:' ','+' }}+{{ campus.Location.PostalCode | Replace:' ','+' }}">Directions</a></p>
+                            <h3 class="text-center uppercase g-font-weight--800" style="margin: 10px 0px;">{{ campus.Name }}</h3>
+                            <p class="text-center"><a style="width: 100%;" class="folio-project uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" onclick="googleCallbackLocations('/easter{{ campus | Attribute:'Slug' | Capitalize }} #campus-easter-info', this)" href="javascript:void(0)">Campus Info</a></p>
+                            <p class="text-center"><a style="width: 100%;" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" target="_blank" href="https://www.google.com/maps/dir/Current+Location/{{ campus.Location.Street1 | Replace:' ','+' }}+{{ campus.Location.City | Replace:' ','+' }}+{{ campus.Location.State | Replace:' ','+' }}+{{ campus.Location.PostalCode | Replace:' ','+' }}">Directions</a></p>
                         [[ endmarker ]]
                     {% endif %}
                 {% endfor %}
@@ -306,59 +305,45 @@
     </section>
 
     <section id="times" class="easter-section easter-font">
-	      {% include '~~/Assets/Lava/Easter2018/EasterTimes.lava' %}
+	      {% include '~~/Assets/Lava/Easter2019/EasterTimes.lava' %}
 	</section>
 
 
     <section id="serve" class="easter-section easter-font" style="z-index: 1;">
-            {[ parallax image:'/Themes/SECC2014/Assets/img/Easter2018/Serve_Easter.jpg' height:'auto' noios:'true' position:'top top' speed:'-25' zindex:'1' ]}
-            <!-- Round Select Overlay -->
-            <div class="round-select-overlay-js"></div>
-            <div class="container">
-                <div class="row" style="padding: 0px; margin: 0;">
-                    <div class="col-sm-12 text-center" style="padding: 50px 0px;">
-                        <!-- <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/easterLogoBG.svg" class="img-responsive wow fadeIn" data-wow-duration="1s" data-wow-delay="1s" style="z-index: 4; max-width: 60rem; max-height: 25em; margin: 0 auto; width: 100%; visibility: hidden; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"> -->
-                        <img alt="Easter Together" src="/Themes/SECC2014/Assets/img/Easter2018/serve.svg" class="img-responsive wow fadeIn" data-wow-duration="1s" data-wow-delay=".3s" style="z-index: 5; position: relative; max-width: 60rem; max-height: 15em; margin: 0 auto; width: 100%; visibility: hidden;">
-                        <br />
-                        <br />
-                        <h2>WANT TO HELP WITH EASTER AT SOUTHEAST?</h2>
-                        <br />
-                        <h3>As thousands of guests visit our campuses this Easter, we want to make their experience as smooth and pleasant as possible, because we want them to encounter the hope of Easter and we want to see them again! You can help. No matter your gifts or experience, we have a spot for you.</h3>
-                        <br />
-                        <!-- <p class="text-center"><a class="btn btn-easter" style="background-color:white;" href="/easter/serve/">Sign Up to Serve</a></p> -->
-                        <br />
-                        <h2>Sign Up to Serve</h2>
-                        <br />
-                        <nav class="swoosh-menu">
-                          <input type="checkbox" href="#" class="swoosh-menu-open" name="swoosh-menu-open-serve" id="swoosh-menu-open-serve">
-                          <label class="swoosh-menu-open-button" for="swoosh-menu-open-serve">
-                            SELECT A CAMPUS
-                            <span class="lines line-1"></span>
-                            <span class="lines line-2"></span>
-                            <span class="lines line-3"></span>
-                          </label>
-                          <a href="/serve/easter?CampusId=1" class="swoosh-menu-item item-1"><span class="se-logo">920</span></a>
-                          <a href="/serve/easter?CampusId=3" class="swoosh-menu-item item-2"><span class="se-logo">IN</span></a>
-                          <a href="/serve/easter?CampusId=4" class="swoosh-menu-item item-3"><span class="se-logo">CW</span></a>
-                          <a href="/serve/easter?CampusId=5" class="swoosh-menu-item item-4"><span class="se-logo">SW</span></a>
-                          <a href="/serve/easter?CampusId=6" class="swoosh-menu-item item-5"><span class="se-logo">LA</span></a>
-                          <a href="/serve/easter?CampusId=7" class="swoosh-menu-item item-6"><span class="se-logo">ET</span></a>
-                        </nav>
+        {[ parallax image:'/Content/Serve/Easter/Easter_Serve-web.jpg' height:'auto' position:'center center' speed:'-25' ]}
 
-                    </div>
+            <div class="centered g-padding-y-150--xs" style="max-width: inherit;">
+
+                <div class="container">
+                    <div class="row">
+                        <div class="col-sm-10 col-sm-offset-1 text-center">
+                            <img src="/Content/Serve/Easter/Serve-Easter-2019-Logo-Web.svg" class="img-responsive g-width-80-percent--xs g-width-50-percent--md g-margin-x-auto--xs" />
+                            <br />
+                            <p class="g-color--white">As thousands of guests visit our campuses this Easter, we want to make their experience as smooth and pleasant as possible, because we want them to encounter the hope of Easter and we want to see them again! You can help. No matter your gifts or experience, we have a spot for you.</p>
+                            <br />
+                            <!-- <p class="text-center"><a class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" style="background-color:white;" href="/easter/serve/">Sign Up to Serve</a></p> -->
+                            <br />
+                            <a href="/serve/easter" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1 g-padding-x-150--xs">
+                                <strong>Serve At Easter</strong>
+                            </a>
+                            <br />
+                        </div>
+        			</div>
                 </div>
+
             </div>
-            {[ endparallax ]}
+
+        {[ endparallax ]}
     </section>
 
     <section id="faq" class="easter-section easter-font">
-        <div class="container">
+        <div class="container g-padding-y-150--xs">
             <div class="row">
                 <div class="col-sm-12 text-center">
                     <br />
                     <br />
                     <br />
-                    <h1>Frequently Asked Questions</h1>
+                    <h2 class="uppercase g-font-weight--900 text-center">Frequently Asked Questions</h2>
                     <br />
 				</div>
 			</div>
@@ -630,7 +615,7 @@ $(document).ready(function() {
     initLocations(); // Animate Elements
     initWow(); // Animate Elements
 	initScheduleTable(); // Table for Easter Times
-	initSecondaryNav(); // Secondary nav while scrolling
+	//initSecondaryNav(); // Secondary nav while scrolling
     initServeCampusSelection();
 
     /* --------------------------------------------------
