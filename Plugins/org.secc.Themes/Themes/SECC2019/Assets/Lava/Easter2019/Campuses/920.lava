@@ -1,6 +1,6 @@
 <div id="campus-easter-info" class="project-single">
-	<div class="project-info container">
-		<a href="javascript:void(0)" class="btn btn-easter close-project pull-right hidden-xs icon-only"><strong><i class="fa fa-times"></i></strong></a>
+	<div class="project-info container g-bg-color--white g-padding-y-40--xs g-padding-x-40--xs">
+		<a href="javascript:void(0)" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 close-project pull-right hidden-xs icon-only"><strong><i class="fa fa-times"></i></strong></a>
 		<h6 style="text-align: center; "><i>920 BLANKENBAKER PKWY</i></h6>
 		<h1 style="text-align: center;">BLANKENBAKER</h1>
 		<br>
@@ -21,8 +21,8 @@
 
 						<!-- Phone -->
 						<div class="col-md-12 col-lg-6">
-							<p><a style="width:100%" href="https://www.google.com/maps/dir/Current+Location/920+Blankenbaker+Pkwy+Louisville+KY+40243" class="btn btn-easter" target="_blank"><strong><i class="fa fa-map-marker"></i> Get Directions</strong></a></p>
-							<p><a style="width:100%" href="mailto:?subject=Check this out—Easter at Southeast Christian (Blankenbaker)&amp;body=Hi! I'm going to Easter at Southeast Christian Church (Blankenbaker Campus). I hope you'll join me! Find out more here: http://southeastchristian.org/easteratsoutheast/#blankenbaker" class="btn btn-easter"><strong><i class="fa fa-envelope"></i> Invite a Friend</strong></a></p>
+							<p><a style="width:100%" href="https://www.google.com/maps/dir/Current+Location/920+Blankenbaker+Pkwy+Louisville+KY+40243" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" target="_blank"><strong><i class="fa fa-map-marker"></i> Get Directions</strong></a></p>
+							<p><a style="width:100%" href="mailto:?subject=Check this out—Easter at Southeast Christian (Blankenbaker)&amp;body=Hi! I'm going to Easter at Southeast Christian Church (Blankenbaker Campus). I hope you'll join me! Find out more here: http://southeastchristian.org/easteratsoutheast/#blankenbaker" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1"><strong><i class="fa fa-envelope"></i> Invite a Friend</strong></a></p>
 							<!--<p><button id="shareBtn" style="width:100%" class="btn btn-easter"><strong><i class="fa fa-facebook-official"></i> Share</strong></button></p>-->
 						</div>
 
@@ -78,6 +78,6 @@
 				</div>
 			</div>
 		</div>
-		<a href="javascript:void(0)" class="btn btn-easter close-project pull-right">close campus</a>
+		<a href="javascript:void(0)" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 close-project pull-right">close campus</a>
 	</div>
 </div>

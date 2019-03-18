@@ -1,6 +1,6 @@
 <div id="campus-easter-info" class="project-single">
-	<div class="project-info container">
-	    <a href="javascript:void(0)" class="btn btn-easter close-project pull-right hidden-xs icon-only"><strong><i class="fa fa-times"></i></strong></a>
+	<div class="project-info container g-bg-color--white g-padding-y-40--xs g-padding-x-40--xs">
+	    <a href="javascript:void(0)" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 close-project pull-right hidden-xs icon-only"><strong><i class="fa fa-times"></i></strong></a>
 		<h6 style="text-align: center; "><i>600 NORTH DIXIE AVENUE</i></h6>
 		<h1 style="text-align: center; ">ELIZABETHTOWN</h1><p style="text-align: center;"><br></p>
 
@@ -20,8 +20,8 @@
 
 						<!-- Phone -->
 						<div class="col-md-12 col-lg-6">
-							<p><a style="width:100%" href="https://www.google.com/maps/dir/Current+Location/600+N+Dixie+Ave+Elizabethtown+KY+42701-2409" class="btn btn-easter" target="_blank"><strong><i class="fa fa-map-marker"></i> Get Directions</strong></a></p>
-							<p><a style="width:100%" href="mailto:?subject=Check this out—Easter Together at Southeast Christian (Southwest)&amp;body=Hi! I'm going to Easter Together at Southeast Christian Church (Southwest Campus). I hope you'll join me! Find out more here: http://southeastchristian.org/eastertogether/#southwest" class="btn btn-easter"><strong><i class="fa fa-envelope"></i> Invite a Friend</strong></a></p>
+							<p><a style="width:100%" href="https://www.google.com/maps/dir/Current+Location/600+N+Dixie+Ave+Elizabethtown+KY+42701-2409" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" target="_blank"><strong><i class="fa fa-map-marker"></i> Get Directions</strong></a></p>
+							<p><a style="width:100%" href="mailto:?subject=Check this out—Easter at Southeast Christian (Elizabethtown)&amp;body=Hi! I'm going to Easter at Southeast Christian Church (Elizabethtown Campus). I hope you'll join me! Find out more here: http://southeastchristian.org/easteratsoutheast/#elizabethtown" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1"><strong><i class="fa fa-envelope"></i> Invite a Friend</strong></a></p>
 							<!--<p><button id="shareBtn" style="width:100%" class="btn btn-easter"><strong><i class="fa fa-facebook-official"></i> Share</strong></button></p>-->
 						</div>
 
@@ -32,7 +32,7 @@
 							display: 'popup',
 							hashtag: '#EasterTogether',
 							quote: "Let’s celebrate Easter Together at Southeast Christian Church. Our doors are open wide—and no matter where you are, wherever you’re coming from, you’re welcome here.",
-							href: 'http://southeastchristian.org/eastertogether/#southwest',
+							href: 'http://southeastchristian.org/easteratsoutheast/#elizabethtown',
 						  }, function(response){});
 						}
 						</script>
@@ -45,7 +45,7 @@
 						<p>Friday, March 30 • 7:00 p.m.<br>
 						   Saturday, March 31 • 4:00, 5:30 p.m.<br>
 						   Sunday, April 1 • 9:30, 11:15 a.m.<br></p>
-					    <h5>Children’s programming available from birth – 5th grade – for all services.</h5>
+					    <h5>Children’s programming available from birth – age 5 – for all services.</h5>
 						<br>
 						<p><a href="#times">Click here to see times for all locations</a>.</p>
 						<hr>
@@ -55,7 +55,7 @@
 
 				<div class="col-md-6">
 					<div class="welcome-video embed-responsive embed-responsive-16by9" style="margin-top:-13px;">
-						<iframe src="//player.vimeo.com/video/233547557" class="embed-responsive-item" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen=""></iframe>
+						<iframe src="//player.vimeo.com/video/257954996" class="embed-responsive-item" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen=""></iframe>
 					</div>
 
 				</div>
@@ -68,6 +68,6 @@
 				</div>
 			</div>
 		</div>
-		<a href="javascript:void(0)" class="btn btn-easter close-project pull-right">close campus</a>
+		<a href="javascript:void(0)" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 close-project pull-right">close campus</a>
 	</div>
 </div>

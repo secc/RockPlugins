@@ -4,9 +4,6 @@
 <script src="https://use.typekit.net/osx6gkw.js"></script>
 <script>try{Typekit.load({ async: true });}catch(e){}</script>
 
-<header class="cd-header" style="z-index: 1">
-</header>
-
 <section>
 	<div class="g-bg-color--gray-lightest">
     {[ parallax addclass:'menu-switch' image:'/Content/Home/Easter_Horizontal-1920.jpg' height:'75vh' position:'center center' speed:'-15' ]}
@@ -80,32 +77,34 @@
     </script>
 </section>
 
-<main class="cd-main-content">
+<main>
 
     <section id="about" class="easter-section easter-font">
-        <div class="container g-padding-y-150--xs">
+        <div class="container g-padding-b-150--xs g-padding-t-20--xs">
 
 			<div class="row section">
               <header class="sec-heading text-center">
                   <h2 class="uppercase g-font-weight--900">Easter at Southeast</h2>
               </header>
               <br />
-              <div class="col-md-offset-1 col-md-5 biggerText">
-                  <p>There's not another day like it on the calendar-a day of hope, joy, and love that brings people together.</p>
-                  <p>This day is for all of us. So, let's share it. Let's celebrate <i>Easter at Southeast</i>!</p>
-                  <p>Our doors are open wide-and no matter where you are, wherever you're coming from, you're welcome here.</p>
+              <div class="col-md-offset-2 col-md-4">
+                  <h3 class="g-line-height--md g-font-family--primary">There's not another day like it on the calendar-a day of hope, joy, and love that brings people together.</h3>
+				  <br />
+                  <h3 class="g-line-height--md g-font-family--primary">This day is for all of us. So, let's share it. Let's celebrate <i>Easter at Southeast</i>!</h3>
+				  <br />
+				  <h3 class="g-line-height--md g-font-family--primary">Our doors are open wide-and no matter where you are, wherever you're coming from, you're welcome here.</h3>
                   <br />
                   <br />
               </div>
-              <div class="col-md-5 biggerText" style="text-align: left;">
+              <div class="col-md-4 biggerText" style="text-align: left;">
                   <h3 class="g-font-weight--900">What to Expect</h3>
                   <ul>
-                      <li><p class="no-spacing">Biblical, relevant teaching from Dave Stone (all services except for the traditional services on Sunday morning)</p></li>
-                      <li><p class="no-spacing">Worship</p></li>
-                      <li><p class="no-spacing">Multiple locations and service times<br> to fit your schedule</p></li>
-                      <li><p class="no-spacing">Friendly people and helpful volunteers</p></li>
-                      <li><p class="no-spacing">Great options for kids</p></li>
-                      <li><p class="no-spacing">No dress code—come as you are!</p></li>
+                      <li><h3 class="g-line-height--sm g-font-family--primary">Biblical, relevant teaching from Dave Stone (all services except for the traditional services on Sunday morning)</h3></li>
+                      <li><h3 class="g-line-height--sm g-font-family--primary">Worship</h3></li>
+                      <li><h3 class="g-line-height--sm g-font-family--primary">Multiple locations and service times<br> to fit your schedule</h3></li>
+                      <li><h3 class="g-line-height--sm g-font-family--primary">Friendly people and helpful volunteers</h3></li>
+                      <li><h3 class="g-line-height--sm g-font-family--primary">Great options for kids</h3></li>
+                      <li><h3 class="g-line-height--sm g-font-family--primary">No dress code—come as you are!</h3></li>
                   </ul>
               </div>
           </div>
@@ -118,9 +117,8 @@
 
           <div class="container-fluid  g-padding-y-150--xs">
               <header class="text-center" >
-                  <br />
                   <h2 class="uppercase g-font-weight--900">Locations</h2>
-            </header>
+              </header>
               <div class="row no-spacing">
                   <div class="col-md-12 g-padding-t-50--xs">
 
@@ -235,15 +233,17 @@
                   <div class="col-sm-6 col-sm-offset-3" style="margin-bottom:1em">
                       <h2 class="uppercase g-font-weight--900 text-center">Easter Experience</h2>
                       <br />
-                      <p><strong>Blankenbaker Campus • Room FH2</strong></p>
-                      <p>
+                      <h3 class="g-line-height--md g-font-family--primary"><strong>Blankenbaker Campus • Room FH2</strong></h3>
+					  <br />
+                      <h3 class="g-line-height--md g-font-family--primary">
                          <strong>Thursday, March 29 • 7:30-8:30 p.m. <i class="fa fa-american-sign-language-interpreting" aria-hidden="true"></i></strong><br>
                          <strong>Friday, March 30 • 5:30-7:30 p.m.</strong><br>
                          <strong>Saturday, March 31 • 2:00-8:00 p.m.</strong>
-                      </p>
-
-                      <p>Discover the truth, mystery, wonder, and hope surrounding the death and resurrection of Jesus like never before. You’ll walk through an interactive, sensory-driven experience that will take you back to Jesus’ last days on earth and awaken you to the deep beauty of what His sacrifice means for us. Experience the tastes of the Last Supper, drive a nail into the cross, feel the weight of the wooden beam on your shoulder, and reflect on the history-altering moments at the cross and the tomb.</p>
-                      <p><i><i class="fa fa-american-sign-language-interpreting" aria-hidden="true"></i> interpreted for the deaf</i></p>
+                      </h3>
+					  <br />
+                      <h3 class="g-line-height--md g-font-family--primary">Discover the truth, mystery, wonder, and hope surrounding the death and resurrection of Jesus like never before. You’ll walk through an interactive, sensory-driven experience that will take you back to Jesus’ last days on earth and awaken you to the deep beauty of what His sacrifice means for us. Experience the tastes of the Last Supper, drive a nail into the cross, feel the weight of the wooden beam on your shoulder, and reflect on the history-altering moments at the cross and the tomb.</h3>
+					  <br />
+                      <h3 class="g-line-height--md g-font-family--primary"><i><i class="fa fa-american-sign-language-interpreting" aria-hidden="true"></i> interpreted for the deaf</i></h3>
                   </div>
               </div>
           </div>
@@ -255,12 +255,12 @@
                 <div class="col-sm-6 col-sm-offset-3">
                     <h2 class="uppercase g-font-weight--900 text-center g-color--white">Pre-register Your Kids</h2>
                     <br />
-                    <p class="g-color--white">Our Children's Ministry (SE!Kids) provides a safe, fun environment where kids ages birth-fifth grade can make new friends and learn about Jesus while parents attend the worship service in the Sanctuary.</p>
-                    <p class="g-color--white">For your convenience, first-time guests can fill out a short online form that will allow for a quicker check-in when you arrive for services on Easter weekend.</p>
+                    <h3 class="g-line-height--md g-font-family--primary g-color--white">Our Children's Ministry (SE!Kids) provides a safe, fun environment where kids ages birth-fifth grade can make new friends and learn about Jesus while parents attend the worship service in the Sanctuary.</h3>
+                    <h3 class="g-line-height--md g-font-family--primary g-color--white">For your convenience, first-time guests can fill out a short online form that will allow for a quicker check-in when you arrive for services on Easter weekend.</h3>
                     <br />
-                    <p class="text-center">
-                        <a href="https://www.southeastchristian.org/visit/children/register" class="uppercase se-btn se-btn--primary-brd uppercase g-letter-spacing--1 btn-large wow fadeIn" data-wow-delay=".3s" data-wow-duration="1s">Register</a>
-                    </p>
+                    <h3 class="g-line-height--md g-font-family--primary text-center">
+						<a href="https://www.southeastchristian.org/visit/children/register" class="uppercase se-btn se-btn--primary-brd uppercase g-letter-spacing--1 btn-large">Register</a>
+					</h3>
                 </div>
             </div>
         </div>
@@ -275,10 +275,8 @@
     {% endif %}
 
     <section id="map" class="easter-section easter-font">
-
-        <div class="container-fluid g-padding-x-0--xs g-padding-y-150--xs">
-            <header class="text-center"  style="padding: 10px;">
-                <br />
+        <div class="container-fluid g-padding-x-0--xs g-padding-t-120--xs">
+            <header class="text-center">
                 <h2 class="uppercase g-font-weight--900 text-center">Find a Service Near You</h2>
                 <p>Click on each location to see more information and get directions.</p>
             </header>
@@ -288,13 +286,11 @@
                 {% for campus in Campuses %}
                     {% assign publicCampus = campus | Attribute:'Public' %}
                     {% assign slug = campus | Attribute:'Slug' %}
-                    {% if publicCampus == 'Yes' %}
-                        [[ marker location:'{{ campus.Location.Latitude }},{{ campus.Location.Longitude }}' title:'{{ campus.Name }} Campus' icon:'/Themes/SECC2014/Assets/img/Easter2018/map/marker-{{ campus | Attribute:'Slug' }}.png' ]]
+                        [[ marker location:'{{ campus.Location.Latitude }},{{ campus.Location.Longitude }}' title:'{{ campus.Name }} Campus' icon:'/Themes/SECC2019/Assets/img/Easter2019/map/marker-{{ campus | Attribute:'Slug' }}.png' ]]
                             <h3 class="text-center uppercase g-font-weight--800" style="margin: 10px 0px;">{{ campus.Name }}</h3>
                             <p class="text-center"><a style="width: 100%;" class="folio-project uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" onclick="googleCallbackLocations('/easter{{ campus | Attribute:'Slug' | Capitalize }} #campus-easter-info', this)" href="javascript:void(0)">Campus Info</a></p>
                             <p class="text-center"><a style="width: 100%;" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" target="_blank" href="https://www.google.com/maps/dir/Current+Location/{{ campus.Location.Street1 | Replace:' ','+' }}+{{ campus.Location.City | Replace:' ','+' }}+{{ campus.Location.State | Replace:' ','+' }}+{{ campus.Location.PostalCode | Replace:' ','+' }}">Directions</a></p>
                         [[ endmarker ]]
-                    {% endif %}
                 {% endfor %}
 
                  [[ style ]]
@@ -305,21 +301,29 @@
     </section>
 
     <section id="times" class="easter-section easter-font">
-	      {% include '~~/Assets/Lava/Easter2019/EasterTimes.lava' %}
+		<div class="container g-padding-y-150--xs">
+			<div class="row">
+				<div class="col-sm-6 col-sm-offset-3 text-center">
+					<header>
+						<h3 class="g-font-family--primary">During Easter, each of our locations offers a variety of service times to fit your schedule. Below, you can browse all Easter weekend services by date, location, and time.</h3>
+						<br />
+					</header>
+				</div>
+			</div>
+			{% include '~~/Assets/Lava/Easter2019/EasterTimes.lava' %}
+		</div>
 	</section>
 
 
     <section id="serve" class="easter-section easter-font" style="z-index: 1;">
         {[ parallax image:'/Content/Serve/Easter/Easter_Serve-web.jpg' height:'auto' position:'center center' speed:'-25' ]}
-
             <div class="centered g-padding-y-150--xs" style="max-width: inherit;">
-
                 <div class="container">
                     <div class="row">
                         <div class="col-sm-10 col-sm-offset-1 text-center">
                             <img src="/Content/Serve/Easter/Serve-Easter-2019-Logo-Web.svg" class="img-responsive g-width-80-percent--xs g-width-50-percent--md g-margin-x-auto--xs" />
                             <br />
-                            <p class="g-color--white">As thousands of guests visit our campuses this Easter, we want to make their experience as smooth and pleasant as possible, because we want them to encounter the hope of Easter and we want to see them again! You can help. No matter your gifts or experience, we have a spot for you.</p>
+                            <h3 class="g-color--white g-font-family--primary">As thousands of guests visit our campuses this Easter, we want to make their experience as smooth and pleasant as possible, because we want them to encounter the hope of Easter and we want to see them again! You can help. No matter your gifts or experience, we have a spot for you.</h3>
                             <br />
                             <!-- <p class="text-center"><a class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" style="background-color:white;" href="/easter/serve/">Sign Up to Serve</a></p> -->
                             <br />
@@ -330,11 +334,10 @@
                         </div>
         			</div>
                 </div>
-
             </div>
-
         {[ endparallax ]}
     </section>
+
 
     <section id="faq" class="easter-section easter-font">
         <div class="container g-padding-y-150--xs">
@@ -345,245 +348,66 @@
                     <br />
                     <h2 class="uppercase g-font-weight--900 text-center">Frequently Asked Questions</h2>
                     <br />
+					<br />
+					<br />
 				</div>
 			</div>
 			<div class="row">
-					<!-- FAQ Group 1 -->
-	            <div class="col-md-6">
+				{[ faq ]}
 
-	              <!-- FAQ Accordion -->
-	              <div class="panel-group accordions-1" id="faq-accordion-1" role="tablist" aria-multiselectable="true">
+					[[ item title:'Who is speaking? What will the message be like?' ]]
+					Senior Pastor Dave Stone will be teaching at all services (except for the traditional services on Sunday). Dave will teach from the Bible in a way that is easy to understand, relevant to our daily lives, and dedicated to the truth. If you want to listen to previous messages, visit our <a href="https://www.southeastchristian.org/sermons/">Sermons page</a>. Greg Allen, Campus Pastor at Southeast's Crestwood Campus, will be speaking during our traditional services on Sunday.
+					[[ enditem ]]
 
-	                <!-- Item 1 -->
-	                <div class="panel panel-default">
-	                  <div class="panel-heading" role="button" id="faq-1-h-1" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-1" aria-expanded="false" aria-controls="faq-1-collapse-1">
-	                    <h4 class="panel-title">
-	                      <span class="collapsed">
-                              Who is speaking? What will the message be like?
-                          </span>
-	                    </h4>
-	                  </div>
-	                  <div id="faq-1-collapse-1" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-1">
-	                    <div class="panel-body">
-                            <p>Senior Pastor Dave Stone will be teaching at all services (except for the traditional services on Sunday). Dave will teach from the Bible in a way that is easy to understand, relevant to our daily lives, and dedicated to the truth. If you want to listen to previous messages, visit our <a href="https://www.southeastchristian.org/sermons/">Sermons page</a>. Greg Allen, Campus Pastor at Southeast's Crestwood Campus, will be speaking during our traditional services on Sunday.</p>
-                        </div>
-	                  </div>
-	                </div><!-- / .panel -->
+					[[ item title:'Why are there different locations?' ]]
+					We believe bringing the church to the communities where our people live is a great way to reach more people in Kentuckiana with Jesus' love. No matter which campus you visit this Easter weekend, you will hear the same message (live at the Blankenbaker Campus and via high definition video at our other sites) and experience live worship at all locations. Every campus has its own unique atmosphere; but wherever you go, you will be warmly welcomed. Choose what time or location is convenient for you and join us!
+					[[ enditem ]]
 
-	                <!-- Item 2 -->
-	                <div class="panel panel-default">
-	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-2" aria-expanded="false" aria-controls="faq-1-collapse-2">
-	                    <h4 class="panel-title">
-	                      <span class="collapsed">
-                              Why are there different locations?
-                          </span>
-	                    </h4>
-	                  </div>
-	                  <div id="faq-1-collapse-2" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-2">
-	                    <div class="panel-body">
-                            <p>We believe bringing the church to the communities where our people live is a great way to reach more people in Kentuckiana with Jesus' love. No matter which campus you visit this Easter weekend, you will hear the same message (live at the Blankenbaker Campus and via high definition video at our other sites) and experience live worship at all locations. Every campus has its own unique atmosphere; but wherever you go, you will be warmly welcomed. Choose what time or location is convenient for you and join us!</p>
-                        </div>
-	                  </div>
-	                </div><!-- / .panel -->
+					[[ item title:'What options are there for kids during the service?' ]]
+					Our Children's Ministry (SE!Kids) provides a safe, fun environment where kids ages birth-fifth grade can make new friends and learn about Jesus while parents attend the worship service in the Sanctuary. <a href="https://www.southeastchristian.org/connect/children/">Learn more here</a>. Pre-registration for Children's Check-In will be available closer to Easter.
+					[[ enditem ]]
 
-	                <!-- Item 3 -->
-	                <div class="panel panel-default">
-	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-3" aria-expanded="false" aria-controls="faq-1-collapse-3">
-	                    <h4 class="panel-title">
-	                      <span class="collapsed">
-	                          What options are there for kids during the service?
-	                      </span>
-	                    </h4>
-	                  </div>
-	                  <div id="faq-1-collapse-3" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-3">
-	                    <div class="panel-body">
-                            <p>Our Children's Ministry (SE!Kids) provides a safe, fun environment where kids ages birth-fifth grade can make new friends and learn about Jesus while parents attend the worship service in the Sanctuary. <a href="https://www.southeastchristian.org/connect/children/">Learn more here</a>. Pre-registration for Children's Check-In will be available closer to Easter.</p>
-                        </div>
-	                  </div>
-	                </div><!-- / .panel -->
+					[[ item title:'What about middle and high school students?' ]]
+					Students can join their families or friends in the worship services during Easter weekend. There will be no separate student services or activities. Students who attend Southeast regularly will be invited to help serve during certain Easter services.
+					[[ enditem ]]
 
-	                <!-- Item 4 -->
-	                <div class="panel panel-default">
-	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-4" aria-expanded="false" aria-controls="faq-1-collapse-4">
-	                    <h4 class="panel-title">
-	                      <span class="collapsed">
-							  What about middle and high school students?
-						  </span>
-	                    </h4>
-	                  </div>
-	                  <div id="faq-1-collapse-4" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-4">
-	                    <div class="panel-body">
-							<p>Students can join their families or friends in the worship services during Easter weekend. There will be no separate student services or activities. Students who attend Southeast regularly will be invited to help serve during certain Easter services.</p>
-						</div>
-	                  </div>
-	                </div><!-- / .panel -->
+					[[ item title:'What options are there for people with developmental disabilities?' ]]
+					<p>We have programming in our Children's Ministry that is designed to meet the needs of children with special needs from preschool to elementary age. We also offer an Easter Worship Alternative for Teens and Adults with Special Needs. This classroom setting is geared towards teens and adults who prefer a smaller setting. They will learn about the Easter story through teaching, worship, and hands-on activities. All classes are led by our trained volunteers and staff.</p>
+					<p>Special needs classes for all ages are offered at our Blankenbaker Campus. These classes are specifically designed to encourage each individual to connect to an appropriate small group depending on their age and developmental needs. We offer a wide variety of opportunities in both inclusive and self-contained settings. All classes are led by our trained team of volunteers and staff. <a href="/connect/deaf-and-disabilities-ministry/">Learn more here</a>.</p>
+					[[ enditem ]]
 
-	                <!-- Item 5 -->
-	                <div class="panel panel-default">
-	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-5" aria-expanded="false" aria-controls="faq-1-collapse-5">
-	                    <h4 class="panel-title">
-	                      <span class="collapsed">
-							  What options are there for people with developmental disabilities?
-	                      </span>
-	                    </h4>
-	                  </div>
-	                  <div id="faq-1-collapse-5" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-5">
-	                    <div class="panel-body">
-                            <p>We have programming in our Children's Ministry that is designed to meet the needs of children with special needs from preschool to elementary age. We also offer an Easter Worship Alternative for Teens and Adults with Special Needs. This classroom setting is geared towards teens and adults who prefer a smaller setting. They will learn about the Easter story through teaching, worship, and hands-on activities. All classes are led by our trained volunteers and staff.</p>
-                            <p>Special needs classes for all ages are offered at our Blankenbaker Campus. These classes are specifically designed to encourage each individual to connect to an appropriate small group depending on their age and developmental needs. We offer a wide variety of opportunities in both inclusive and self-contained settings. All classes are led by our trained team of volunteers and staff. <a href="/connect/deaf-and-disabilities-ministry/">Learn more here</a>.</p>
-                        </div>
-	                  </div>
-	                </div><!-- / .panel -->
+					[[ item title:'What is the Encounter Service and other services?' ]]
+					<p>Each Thursday, support groups meet at our Blankenbaker Campus to help people experience growth, find hope, and receive help for a range of life situations-from everyday challenges to more severe crises. These groups come together every week for worship. On Thursday, March 29, the Encounter worship service will be centered around Easter, with Senior Pastor Dave Stone speaking. Learn more about our <a href="https://www.southeastchristian.org/connect/care/encounter-groups">Encounter groups here</a>.</p>
+					[[ enditem ]]
 
-	                <!-- Item 6 -->
-	                <div class="panel panel-default">
-	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-1-collapse-6" aria-expanded="false" aria-controls="faq-1-collapse-6">
-	                    <h4 class="panel-title">
-	                      <span class="collapsed">
-							  What is the Encounter Service and other services?
-	                      </span>
-	                    </h4>
-	                  </div>
-	                  <div id="faq-1-collapse-6" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-1-h-6">
-	                    <div class="panel-body">
-							<p>Each Thursday, support groups meet at our Blankenbaker Campus to help people experience growth, find hope, and receive help for a range of life situations-from everyday challenges to more severe crises. These groups come together every week for worship. On Thursday, March 29, the Encounter worship service will be centered around Easter, with Senior Pastor Dave Stone speaking. Learn more about our <a href="https://www.southeastchristian.org/connect/care/encounter-groups">Encounter groups here</a>.</p>
-						</div>
-	                  </div>
-	                </div><!-- / .panel -->
+					[[ item title:'Are there good Friday services this year?' ]]
+					<p>Services on Friday, March 30, will be Easter services rather than Good Friday services. We will celebrate Good Friday on the weekend of March 24/25.</p>
+					[[ enditem ]]
 
-					<!-- Item 1 -->
-	                <div class="panel panel-default">
-	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-2-collapse-1" aria-expanded="false" aria-controls="faq-2-collapse-1">
-	                    <h4 class="panel-title">
-	                      <span class="collapsed">
-							  Are there good Friday services this year?
-	                      </span>
-	                    </h4>
-	                  </div>
-	                  <div id="faq-2-collapse-1" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-1">
-	                    <div class="panel-body">
-							<p>Services on Friday, March 30, will be Easter services rather than Good Friday services. We will celebrate Good Friday on the weekend of March 24/25.</p>
-						</div>
-	                  </div>
-	                </div><!-- / .panel -->
+					[[ item title:'What is the differences between the Traditional Services and other Services?' ]]
+					<p>At the three traditional services on Easter Sunday-7:15 a.m. at our Blankenbaker Campus, 8:00 a.m. at our Indiana Campus and 7:30 a.m. at the Crestwood Campus - we'll sing hymns and hear teaching from Greg Allen, Campus Pastor at Southeast's Crestwood Campus. The other services on Easter weekend will feature more contemporary-style worship songs and teaching from Senior Pastor Dave Stone.</p>
+					[[ enditem ]]
 
-	              </div><!-- / .panel-group .accordion-1 -->
+					[[ item title:'Can anyone come to Southeast?' ]]
+					<p>Yes! We welcome anyone to join us this Easter-and every weekend!</p>
+					[[ enditem ]]
 
-	              <!-- <hr class="mb-sm-50"> -->
-	            </div><!-- / .col-md-6 -->
+					[[ item title:'How much time should I allow for traffic and parking when planning my visit?' ]]
+					<p>We'll have people helping direct traffic and parking. Shuttles will be available at some campuses to take you to the building. While you might plan on adding some extra minutes to your travel time, our many services over Easter weekend allow for more parking and less traffic. If you are bringing children, don't forget to also plan for time to check them into their classes.</p>
+					[[ enditem ]]
 
-				<!-- FAQ Group 2 -->
-	            <div class="col-md-6">
-	              <!-- <div class="faq-group-header ws-s">
-	                <h4 class="mb-30">Questions Group 2</h4>
-	                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sint, blanditiis corrupti ea optio veniam, reiciendis, quidem iste quae.</p>
-	              </div> -->
+					[[ item title:'What will the music be like?' ]]
+					<p>The worship team will lead us in contemporary praise songs that tell what God has done, express our praise and devotion to Him, and allow us to encourage one another in following Christ. You can expect uplifting music that makes it easy for anyone to sing along. If you prefer time-honored hymns, you might enjoy the traditional services at our Blankenbaker, Indiana or our Crestwood Campuses.</p>
+					[[ enditem ]]
 
-	              <!-- FAQ Accordion -->
-	              <div class="panel-group accordions-1" id="faq-accordion-2" role="tablist" aria-multiselectable="true">
+					[[ item title:'What should I wear?' ]]
+					<p>Come as you are! Whether you'd rather dress in a three-piece suit or jeans and a t-shirt, there is no dress code for our worship services-we just want to see you here!</p>
+					[[ enditem ]]
 
-                      <!-- Item 1 -->
-  	                <div class="panel panel-default">
-  	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-carols" aria-expanded="false" aria-controls="faq-carols">
-  	                    <h4 class="panel-title">
-  	                      <span class="collapsed">
-  							  What is the differences between the Traditional Services and other Services?
-  	                      </span>
-  	                    </h4>
-  	                  </div>
-  	                  <div id="faq-carols" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-carols">
-  	                    <div class="panel-body">
-                              <p>At the three traditional services on Easter Sunday-7:15 a.m. at our Blankenbaker Campus, 8:00 a.m. at our Indiana Campus and 7:30 a.m. at the Crestwood Campus - we'll sing hymns and hear teaching from Greg Allen, Campus Pastor at Southeast's Crestwood Campus. The other services on Easter weekend will feature more contemporary-style worship songs and teaching from Senior Pastor Dave Stone.</p>
-                          </div>
-  	                  </div>
-  	                </div><!-- / .panel -->
-
-  	                <!-- Item 2 -->
-  	                <div class="panel panel-default">
-  	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-2-collapse-2" aria-expanded="false" aria-controls="faq-2-collapse-2">
-  	                    <h4 class="panel-title">
-  	                      <span class="collapsed">
-  							  Can anyone come to Southeast?
-  						  </span>
-  	                    </h4>
-  	                  </div>
-  	                  <div id="faq-2-collapse-2" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-2">
-  	                    <div class="panel-body">
-  							<p>Yes! We welcome anyone to join us this Easter-and every weekend!</p>
-  						</div>
-  	                  </div>
-  	                </div><!-- / .panel -->
-
-  	                <!-- Item 3 -->
-  	                <div class="panel panel-default">
-  	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-2-collapse-3" aria-expanded="false" aria-controls="faq-2-collapse-3">
-  	                    <h4 class="panel-title">
-  	                      <span class="collapsed">
-  							  How much time should I allow for traffic and parking when planning my visit?
-  	                      </span>
-  	                    </h4>
-  	                  </div>
-  	                  <div id="faq-2-collapse-3" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-3">
-  	                    <div class="panel-body">
-  							<p>We'll have people helping direct traffic and parking. Shuttles will be available at some campuses to take you to the building. While you might plan on adding some extra minutes to your travel time, our many services over Easter weekend allow for more parking and less traffic. If you are bringing children, don't forget to also plan for time to check them into their classes.</p>
-                          </div>
-  	                  </div>
-  	                </div><!-- / .panel -->
-
-  	                <!-- Item 4 -->
-  	                <div class="panel panel-default">
-  	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-2-collapse-4" aria-expanded="false" aria-controls="faq-2-collapse-4">
-  	                    <h4 class="panel-title">
-  	                      <span class="collapsed">
-  	                        What will the music be like?
-  	                      </span>
-  	                    </h4>
-  	                  </div>
-  	                  <div id="faq-2-collapse-4" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-4">
-  	                    <div class="panel-body">
-                              <p>The worship team will lead us in contemporary praise songs that tell what God has done, express our praise and devotion to Him, and allow us to encourage one another in following Christ. You can expect uplifting music that makes it easy for anyone to sing along. If you prefer time-honored hymns, you might enjoy the traditional services at our Blankenbaker, Indiana or our Crestwood Campuses.</p>
-                          </div>
-  	                  </div>
-  	                </div><!-- / .panel -->
-
-	                <!-- Item 5 -->
-	                <div class="panel panel-default">
-	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-2-collapse-5" aria-expanded="false" aria-controls="faq-2-collapse-5">
-	                    <h4 class="panel-title">
-	                      <span class="collapsed">
-							  What should I wear?
-	                      </span>
-	                    </h4>
-	                  </div>
-	                  <div id="faq-2-collapse-5" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-5">
-	                    <div class="panel-body">
-                            <p>Come as you are! Whether you'd rather dress in a three-piece suit or jeans and a t-shirt, there is no dress code for our worship services-we just want to see you here!</p>
-                        </div>
-	                  </div>
-	                </div><!-- / .panel -->
-
-	                <!-- Item 6 -->
-	                <div class="panel panel-default">
-	                  <div class="panel-heading" role="button" data-toggle="collapse" data-parent="#faq-accordion-1, #faq-accordion-2" href="#faq-2-collapse-6" aria-expanded="false" aria-controls="faq-2-collapse-6">
-	                    <h4 class="panel-title">
-	                      <span class="collapsed">
-                              What if I need help or information while I'm there?
-                          </span>
-	                    </h4>
-	                  </div>
-	                  <div id="faq-2-collapse-6" class="panel-collapse collapse" role="tabpanel" aria-labelledby="faq-2-h-6">
-	                    <div class="panel-body">
-						      <p>Volunteers and staff will be available to help you. Just ask! Look for anyone wearing a yellow badge.</p>
-						</div>
-	                  </div>
-	                </div><!-- / .panel -->
-
-
-	              </div><!-- / .panel-group .accordion-1 -->
-
-	              <!-- <hr> -->
-	            </div><!-- / .col-md-6 -->
-
+					[[ item title:'What if I need help or information while I'm there?' ]]
+					<p>Volunteers and staff will be available to help you. Just ask! Look for anyone wearing a yellow badge.</p>
+					[[ enditem ]]
+				{[ endfaq ]}
             </div>
             <br />
             <br />
@@ -613,10 +437,8 @@ $(document).ready(function() {
 
     // Initialize all functions when the document is ready.
     initLocations(); // Animate Elements
-    initWow(); // Animate Elements
-	initScheduleTable(); // Table for Easter Times
-	//initSecondaryNav(); // Secondary nav while scrolling
-    initServeCampusSelection();
+    initScheduleTable(); // Table for Easter Times
+	initServeCampusSelection();
 
     /* --------------------------------------------------
  	   Load and organize ajax locations for each campuses
@@ -636,7 +458,6 @@ $(document).ready(function() {
 				$("html, body").animate({ scrollTop: $('#ajax').offset().top - 100}, 300);
             }
             $('#ajax').html('');
-
             $('#ajax').show(0).animate({ height:'1200px' }, 500 ,function() {
                 $('#ajax').load(href, function() {
                     $('#ajax').css('height','auto');
@@ -680,8 +501,13 @@ $(document).ready(function() {
 		   $this.before($field);
 
 		   $field.on('click', function () {
-			   if ( !$this.is('.open') ) $this.stop(true, true).slideDown(250).addClass('open');
-			   else $this.stop(true, true).slideUp(150).removeClass('open');
+			   if ( !$this.is('.open') ) {
+				   $this.stop(true, true).slideDown(250).addClass('open');
+				   $field.attr( "aria-expanded", "true" );
+			   } else {
+				   $this.stop(true, true).slideUp(150).removeClass('open');
+				   $field.attr( "aria-expanded", "false" );
+			   }
 		   });
 
 		   $this.on('click', 'a', function () {
@@ -706,6 +532,7 @@ $(document).ready(function() {
 		   $('body').on('click', function (event) {
 			   if ( !$(event.target).closest($field).length && $this.is('.open') ) {
 				   $this.stop(true, true).slideUp(150).removeClass('open');
+				   $field.attr( "aria-expanded", "false" );
 			   }
 		   });
 	   });
