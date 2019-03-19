@@ -2,17 +2,7 @@
 {% if item %}
 
 	{% assign currentDate = 'Now' | Date:'M/d/yyyy' %}
-	{% assign currentMessage = item.ChildItems | First %}
-
-	{% comment %}
-		The Lava Code below checks for the closest sermon message to this day.
-    {% endcomment %}
-	{% for childItem in item.ChildItems %}
-		{% assign currentMessageDays = currentDate | DateDiff:childItem.ChildContentChannelItem.StartDateTime,'d' %}
-		{% if currentMessageDays <= 0 %}
-			{% assign currentMessage = childItem %}
-		{% endif %}
-	{% endfor %}
+	{% assign currentMessage = item.ChildItems | Sort:'Order' | First %}
 
 	{% assign seriesImageGuid = item | Attribute:'SeriesImage','RawValue' %}
 	{% assign currentMessageVimeoID = currentMessage.ChildContentChannelItem | Attribute:'VimeoId' %}
