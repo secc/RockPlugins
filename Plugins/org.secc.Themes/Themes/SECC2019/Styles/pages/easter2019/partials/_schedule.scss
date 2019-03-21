@@ -77,6 +77,9 @@
 .schedule .tab-content .nav-current {
   background-color: #eff1f5;
   border-color: #e9e9e9;
+  &:after {
+      border-color: black;
+  }
 }
 .nav.nav-schedule {
   display: table;
@@ -199,7 +202,7 @@
 }
 .schedule .tab-content .nav.nav-schedule > li {
   display: inline-block;
-  border-width: 0 0 1px;
+  border-width: 0 0 2px;
 }
 .schedule .tab-content .nav.nav-schedule > li:not(.active) {
   border-color: transparent;
@@ -220,6 +223,9 @@
 .schedule .tab-content .nav.nav-schedule > li.active {
   background-color: transparent;
   // background-color: #e6e7ed;
+  a h3 {
+      font-weight: 900;
+  }
 }
 .schedule .tab-content-schedule {
   position: relative;
@@ -608,10 +614,36 @@
   display: none;
   width: auto;
   height: auto;
-  padding: 15px 55px 10px 15px;
+  padding: 15px 55px 15px 15px;
   border-radius: 0;
   z-index: auto;
   cursor: pointer;
+
+  &:after {
+    position: absolute;
+    top: 50%;
+    right: 40px;
+    margin: -8px 0 0;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    content: "";
+    border: solid black;
+    border-width: 0 2px 2px 0;
+    display: inline-block;
+    transform: rotate(-45deg);
+    -webkit-transform: rotate(-45deg);
+    @include transition(all 0.5s);
+
+  }
+  &[aria-expanded="true"] {
+      &:after {
+          -webkit-transform: translateY(-0.1rem) rotate(405deg);
+          -moz-transform: translateY(-0.1rem) rotate(405deg);
+          transform: translateY(-0.1rem) rotate(405deg);
+      }
+  }
+
 }
 .nav-wrapper-schedual .nav-current * {
   max-width: 100%;
@@ -620,18 +652,7 @@
 }
 .nav-wrapper-schedual .nav-current *:last-child {
   margin-bottom: 0;
-}
-.nav-wrapper-schedual .nav-current:after {
-  position: absolute;
-  top: 50%;
-  right: 20px;
-  margin: -5px 0 0;
-  display: inline-block;
-  width: 24px;
-  height: 11px;
-  content: "";
-  background: transparent url("/Content/ExternalSite/arrow_select.png") center no-repeat;
-  border: none;
+  font-weight: 900;
 }
 .nav.nav-tabs {
   -webkit-user-select: none;
@@ -972,9 +993,10 @@
     background-color: $color-3;
     text-transform: uppercase;
     display: block;
-  }
-  #AdventWeeklyDevo .nav-wrapper-schedual .nav-current {
-      background-color: #8b434c;
+    font-weight: 700;
+    &:after {
+        border-color: white;
+    }
   }
   .tabs-vertical {
     overflow: visible;

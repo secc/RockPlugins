@@ -1160,7 +1160,6 @@ namespace org.secc.Connection
                 values = Schedules.Where(s => values.AsGuidList().Contains(s.Guid) ).Select( s => s.Guid.ToString() ).ToArray();
             }
 
-
             var partitionList = new List<Dictionary<string, object>>();
 
             // For each inner node in this partition, build a dictionary that represents it
@@ -1260,7 +1259,10 @@ namespace org.secc.Connection
                 partitionList.Add( inner );
             }
             // Try to sort by order than by string value
-            partitionList = partitionList.OrderBy( a => a["Entity"].GetType().GetProperty( "Order" ) != null ? a["Entity"].GetType().GetProperty( "Order" ).GetValue( a["Entity"], null ) : 0 ).ThenBy( a => a["Entity"].ToString() ).ToList();
+            if ( partition.PartitionType != "Schedule" )
+            {
+                partitionList = partitionList.OrderBy( a => a["Entity"].GetType().GetProperty( "Order" ) != null ? a["Entity"].GetType().GetProperty( "Order" ).GetValue( a["Entity"], null ) : 0 ).ThenBy( a => a["Entity"].ToString() ).ToList();
+            }
             return partitionList;
         }
 

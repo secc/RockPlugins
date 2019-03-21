@@ -23,7 +23,7 @@
 <div class="container g-padding-y-100--md g-padding-x-0--xs">
     {% assign currentDate = 'Now' | Date:'M/d/yyyy' %}
     {% assign sermonSlug = 'Global' | PageParameter:'SermonSlug' %}
-    {% assign currentMessage = item.ChildItems | First %}
+    {% assign currentMessage = item.ChildItems | Sort:'Order' | First %}
 
     {% comment %}
         The Lava Code below checks for the closest sermon message to this day – IF a slug isn't defined.
@@ -31,11 +31,6 @@
     {% for childItem in item.ChildItems %}
         {% if sermonSlug != "" -%}
             {% if sermonSlug == childItem.ChildContentChannelItem.PrimarySlug -%}
-                {% assign currentMessage = childItem %}
-            {% endif -%}
-        {% else -%}
-            {% assign currentMessageDays = currentDate | DateDiff:childItem.ChildContentChannelItem.StartDateTime,'d' %}
-            {% if currentMessageDays <= 0 -%}
                 {% assign currentMessage = childItem %}
             {% endif -%}
         {% endif -%}
