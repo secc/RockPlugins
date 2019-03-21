@@ -22,7 +22,7 @@
             <h6 class="uppercase g-padding-b-20--xs g-font-weight--700">{{ EventItemOccurrence.Campus.Name}} Campus</h6>
     {% endif %}
     {% if EventItemOccurrence.Name != '' %}
-        <h4 class="g-font-family--secondary" style="margin-bottom: 5px;">{{ Event.Name }}</h4>
+        <h5 class="g-font-family--secondary" style="margin-bottom: 5px;">{{ Event.Name }}</h5>
     {% endif %}
 </div><!-- END: caption -->
 {% assign childcare = EventItemOccurrence | Attribute: 'ChildcareAvailable' %}

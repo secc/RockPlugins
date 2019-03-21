@@ -36,7 +36,7 @@
                     </div>
                 </a>
                 <div class="caption g-padding-x-60--xs g-padding-y-60--xs">
-                    <h4 class="g-font-family--secondary g-padding-r-60--xs" style="margin-bottom: 5px;">{{ opportunity.PublicName }}</h4>
+                    <h5 class="g-font-family--secondary g-padding-r-60--xs" style="margin-bottom: 5px;">{{ opportunity.PublicName }}</h5>
                     <div class="readmore_summary">
                         <p>{{opportunity.Summary}}</p>
                         <br />
