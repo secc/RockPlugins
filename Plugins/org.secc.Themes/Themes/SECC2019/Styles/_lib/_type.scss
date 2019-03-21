@@ -31,7 +31,7 @@ $font-size-28:               1.75rem !default;
 $font-size-30:               1.875rem !default;
 $font-size-32:               2rem !default;
 $font-size-34:               2.125rem !default;
-$font-size-36:               2.225rem !default;
+$font-size-36:               2.25rem !default;
 $font-size-38:               2.375rem !default;
 $font-size-40:               2.5rem !default;
 $font-size-42:               2.625rem !default;
@@ -40,7 +40,9 @@ $font-size-46:               2.875rem !default;
 $font-size-48:               3rem !default;
 $font-size-50:               3.125rem !default;
 $font-size-55:               3.4375rem !default;
+$font-size-56:               3.5rem !default;
 $font-size-60:               3.75rem !default;
+$font-size-64:               4rem !default;
 $font-size-65:               4.625rem !default;
 $font-size-70:               4.375rem !default;
 $font-size-75:               4.6875rem !default;
@@ -130,10 +132,10 @@ h6 {
 	}
 }
 
-h1, .h1 { @include font($size: $font-size-80, $weight: normal, $line-height: $headings-line-height); }
-h2, .h2 { @include font($size: $font-size-65, $weight: normal, $line-height: $headings-line-height); }
-h3, .h3 { @include font($size: $font-size-36, $weight: normal, $line-height: 1.4); }
-h4, .h4 { @include font($size: $font-size-30, $weight: normal, $line-height: 1.4); }
+h1, .h1 { @include font($size: $font-size-64, $weight: normal, $line-height: $headings-line-height); }
+h2, .h2 { @include font($size: $font-size-56, $weight: normal, $line-height: $headings-line-height); }
+h3, .h3 { @include font($size: $font-size-44, $weight: normal, $line-height: 1.4); }
+h4, .h4 { @include font($size: $font-size-36, $weight: normal, $line-height: 1.4); }
 h5, .h5 { @include font($size: $font-size-30, $weight: normal, $line-height: 1.4); }
 h6, .h6 { @include font($size: $font-size-20, $weight: normal, $line-height: $headings-line-height); }
 
