@@ -81,7 +81,7 @@
                 {% if eventVimeoID != "" %}
                     <div class="text-center g-padding-b-40--xs">
                         <a href="javascript:void(0)" class="js-modal-video" data-video-id="{{ eventVimeoID }}">
-                            <h4 class="uppercase g-font-weight--600 g-padding-t-10--xs" style="margin-right:-15px;">Play
+                            <h5 class="uppercase g-font-weight--600 g-padding-t-10--xs" style="margin-right:-15px;">Play
                                 <div class="play" style="height:75px;">
                                     <svg version="1.1" id="play" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" height="75px" width="75px"
                                         viewBox="0 0 100 100" enable-background="new 0 0 100 100" xml:space="preserve">
@@ -93,7 +93,7 @@
                                     </svg>
                                 </div>
                                 Video
-                            </h4>
+                            </h5>
                         </a>
                     </div>
                     <script src="/Themes/SECC2019/Scripts/jquery-modal-video.js"></script>

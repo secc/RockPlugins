@@ -112,7 +112,7 @@
                 {[ parallax videourl:'https://vimeo.com/{{ CampusVimeoId }}' image:'https://www.southeastchristian.org/GetImage.ashx?Guid={{ HeroImage.Guid }}' videostarttime:'75' videoendtime:'105' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'80vh' position:'{{ HeroImagePosition }}' speed:'-15' ]}
                     <!-- START: Campus Logo & Video -->
                     <div class="parallax-logo centered" style="padding: 0px; z-index:3; max-width: 100%;">
-                        <h4 class="uppercase g-font-weight--600 g-letter-spacing--3">Welcome To</h4>
+                        <h5 class="uppercase g-font-weight--600 g-letter-spacing--3">Welcome To</h5>
                         <br />
                         <h1 class="g-font-family--secondary g-font-size-150--lg g-font-size-80--xs g-text-shadow--black--soft">{{ campus.Name }}</h1>
                         <br />
@@ -201,7 +201,7 @@
                 </div>
                 <div class="col-sm-12 col-md-6 col-lg-6 g-margin-t-50--xs">
                     <div class="g-ver-center--md g-text-center--xs g-text-left--md g-padding-l-40--md">
-                        <h2 class="g-font-family--secondary">Location</h2>
+                        <h2 class="g-font-size--jumbo-2 g-font-family--secondary">Location</h2>
                         <p class="g-font-weight--400 g-line-height--sm g-margin-b-0--xs">
                             Southeast Christian Church<br />
                             {{ campus.Name }} Campus<br />
@@ -229,7 +229,7 @@
                     <div class="row">
                         <div class="col-md-5">
                             <div class="services g-text-left--xs">
-            					<h2 class="g-font-family--secondary">Worship Service Times</h2>
+            					<h2 class="g-font-size--jumbo-2 g-font-family--secondary">Worship Service Times</h2>
             					<h5 class="service-times">
                                     <strong>
                                     {%assign campusServicesJSON = campus | Attribute:'SiteScheduleInformation' %}
@@ -348,7 +348,7 @@
                 <br />
                 <br />
                 <br />
-                <h4 class="uppercase g-letter-spacing--3">Campus Not Found.</h4>
+                <h5 class="uppercase g-letter-spacing--3">Campus Not Found.</h5>
                 <br />
                 <h3 class="g-font-family--secondary">Please try again by selecting a campus from "Locations".</h3>
                 <br />

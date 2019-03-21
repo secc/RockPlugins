@@ -112,8 +112,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.7/jarallax.js" ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/object-fit-images/3.2.3/ofi.min.js" ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.7/jarallax-video.js" ></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vivus/0.4.4/vivus.min.js" ></script>
+    <link href="/Themes/SECC2019/Assets/vendor/photo_swipe/photoswipe.css?v=4.1.2-1.0.4" />
+    <link href="/Themes/SECC2019/Assets/vendor/photo_swipe/default-skin/default-skin.css?v=4.1.2-1.0.4" />
+    <script src="/Themes/SECC2019/Assets/vendor/photo_swipe/photoswipe.js"></script>
+    <script src="/Themes/SECC2019/Assets/vendor/photo_swipe/photoswipe-ui-default.js"></script>
 
 </head>
 
