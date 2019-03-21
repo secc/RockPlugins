@@ -23,22 +23,5 @@
                 </fieldset>
             </Content>
         </Rock:ModalDialog>
-        <Rock:ModalDialog ID="mdDialog2" runat="server" Title="Add Device" OnSaveClick="mdDialog2_SaveClick">
-            <Content>
-                <fieldset>
-                    <asp:HiddenField ID="hField2" runat="server"></asp:HiddenField>
-                    <Rock:RockTextBox ID="tbdeviceregistration2" runat="server" Label="Device Registration Id" />
-                    <Rock:RockRadioButtonList ID="rblnotifications2" runat="server" Label="Notifications Enabled">
-                        <asp:ListItem Text="True" Value="true"></asp:ListItem>
-                        <asp:ListItem Text="False" Value="false"></asp:ListItem>
-                    </Rock:RockRadioButtonList>
-                    <Rock:RockDropDownList ID="ddldevicetype2" runat="server" Label="Personal Device Type" />
-                    <Rock:RockDropDownList ID="ddlplatform2" runat="server" Label="Platform" />
-                    <Rock:RockTextBox ID="tbdeviceuniqueid2" runat="server" Label="Device Unique Identifier" />
-                    <Rock:RockTextBox ID="tbdeviceversion2" runat="server" Label="Device Version" />
-                    <Rock:RockTextBox ID="tbmaddress2" runat="server" Label="MAC Address" />
-                </fieldset>
-            </Content>
-        </Rock:ModalDialog>
     </ContentTemplate>
 </asp:UpdatePanel>

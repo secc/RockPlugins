@@ -898,13 +898,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
         }
 
-        private bool PersonHasGroupSelected( CheckInPerson checkinPerson )
-        {
-            return checkinPerson.GroupTypes
-                .SelectMany( gt => gt.Groups.Where( g => g.Selected ) )
-                .Any();
-        }
-
         private bool PersonHasSelectedOption( CheckInPerson checkinPerson )
         {
             return checkinPerson.GroupTypes
@@ -937,7 +930,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         /// <param name="checkinPerson">CheckInPerson</param>
         private void EnsureGroupSelected( CheckInPerson checkinPerson )
         {
-            if ( PersonHasGroupSelected( checkinPerson ) )
+            if ( PersonHasSelectedOption( checkinPerson ) )
             {
                 return;
             }

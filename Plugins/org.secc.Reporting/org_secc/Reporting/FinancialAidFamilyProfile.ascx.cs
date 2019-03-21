@@ -77,7 +77,10 @@ namespace RockWeb.Plugins.org_secc.Reporting
                       
             if ( !Page.IsPostBack )
             {
-                BindGrid();
+                if ( !PageParameter("PersonAliasId").IsNullOrWhiteSpace() )
+                {
+                    BindGrid();
+                }
             }
         }
 
@@ -109,7 +112,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
            var discountCodes = registrationRegistrantService.Queryable().Where( rr => rr.PersonAliasId.HasValue && familyAliasIds.Contains( rr.PersonAliasId.Value ) )
                                 .Where( rr => rr.Registration.DiscountCode != null && rr.Registration.DiscountCode != "" )
-                                .ToDictionary( x => x.Registration.DiscountCode, x => x.Registration.DiscountAmount );
+                                .ToDictionary( x => x.Registration.DiscountCode.ToUpper(), x => x.Registration.DiscountAmount );
 
             var qry = workflowService.Queryable().Where( w => workflowTypeIds.Contains( w.WorkflowTypeId.ToString() ) )
                 .GroupJoin( attributeValueService.Queryable().Where( av => attributeIds.Contains( av.AttributeId ) ),
@@ -125,7 +128,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
                     Campus = obj.AttributeValues.Where( av => av.Attribute.Key == "Campus" ).Select( av => CampusCache.Get(av.Value.AsGuid()) ).FirstOrDefault(),
                     ApplicationYear = obj.AttributeValues.Where( av => av.Attribute.Key == "ApplicationYear" ).Select( av => av.Value ).DefaultIfEmpty( attributes.Where( a => a.Key == "ApplicationYear" ).Select( a => a.DefaultValue ).FirstOrDefault() ).FirstOrDefault(),
                     DiscountCode = obj.AttributeValues.Where( av => av.Attribute.Key == "DiscountCode" ).Select( av => av.Value ).FirstOrDefault(),
-                    DiscountAmount = discountCodes[obj.AttributeValues.Where( av => av.Attribute.Key == "DiscountCode" ).Select( av => av.Value ).FirstOrDefault()],
+                    DiscountAmount = discountCodes.ContainsKey( obj.AttributeValues.Where( av => av.Attribute.Key == "DiscountCode" ).Select( av => av.Value.ToUpper() ).FirstOrDefault() ) ?discountCodes[obj.AttributeValues.Where( av => av.Attribute.Key == "DiscountCode" ).Select( av => av.Value.ToUpper() ).FirstOrDefault()]:0,
                     Event = obj.AttributeValues.Where( av => av.Attribute.Key == "EventStudentisAttending" ).Select( av => av.Value ).DefaultIfEmpty( obj.AttributeValues.Where( av => av.Attribute.Key == "EventLeaderisAttending" ).Select( av => av.Value ).FirstOrDefault() ).FirstOrDefault(),
                     Status = obj.Workflow.Status
                 } );
