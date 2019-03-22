@@ -179,6 +179,12 @@
                         <li><a href="#Leadership">Leadership</a></li>
                         <li><a href="#Children">Children</a></li>
                         <li><a href="#Students">Students</a></li>
+                        {% unless campusSlug == "elizabethtown" %}
+                        <li><a href="#LivingWord">Living Word</a></li>
+                        {% endunless %}
+                        {% if campusSlug == "blankenbaker" %}
+                        <li><a href="#SoutheastLibraries">Libraries</a></li>
+                        {% endif %}
                         <li><a href="#Connect">Get Connected</a></li>
                     </ul>
                 </nav>
