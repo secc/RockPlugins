@@ -73,11 +73,13 @@ jQuery(document).ready(function($){
 		event.preventDefault();
 	});
 
-	$('.cd-primary-nav .cd-nav-icons').children('li').children('a').on('click', function(event){
-		closeNav();
-		$('.cd-overlay').removeClass('is-visible');
-		toggleTransparentMenu();
-	});
+	if(window.location.href.indexOf("about") > -1) {
+		$('.singlepage').children('li').children('a').on('click', function(event){
+			closeNav();
+			$('.cd-overlay').removeClass('is-visible');
+			toggleTransparentMenu();
+		});
+    }
 
 	//open submenu
 	$('.has-children').children('a').on('click', function(event){
