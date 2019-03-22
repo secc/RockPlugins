@@ -49,12 +49,12 @@
         </li>
 
         <li class="has-children">
-            <a href="/about" class="arrow">About</a>
+            <a href="/about#AboutIntro" class="arrow">About</a>
 
             <ul class="cd-nav-icons is-hidden">
                 <li class="go-back arrow"><a class="arrow">Menu</a></li>
                 <li class="se-3-column">
-                    <a class="cd-nav-item mission" href="/about">
+                    <a class="cd-nav-item mission" href="/about#About">
                         <h3>Mission</h3>
                     </a>
                 </li>
