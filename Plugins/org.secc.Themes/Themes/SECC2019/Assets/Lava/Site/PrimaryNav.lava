@@ -51,7 +51,7 @@
         <li class="has-children">
             <a href="/about#AboutIntro" class="arrow">About</a>
 
-            <ul class="cd-nav-icons is-hidden">
+            <ul class="cd-nav-icons is-hidden singlepage">
                 <li class="go-back arrow"><a class="arrow">Menu</a></li>
                 <li class="se-3-column">
                     <a class="cd-nav-item mission" href="/about#About">
