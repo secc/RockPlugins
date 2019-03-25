@@ -48,7 +48,7 @@
                     {% else %}
                     <a class="link--hover-underscore" href="{{ DetailPage }}?OpportunityId={{ opportunity.Id }}" role="button">
                     {% endif %}
-                        <h5 class="uppercase g-font-weight--700 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">More Info</h5>
+                        <h5 class="uppercase g-font-weight--700 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">Connect</h5>
                     </a>
                 </div>
             </div>
