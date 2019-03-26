@@ -46,7 +46,9 @@ Note: This requires the WOW animations shortcode, make sure you have included in
 {% endcomment %}
 
 {%- if url == empty -%}
-    {% assign social_url = 'Global' | Page:'Url' | Escape %}
+    {% assign host = 'Global' | Page:'Host' %}
+	{% assign url = 'Global' | Page:'Url' %}
+	{% assign social_url = url | Replace:host, 'www.southeastchristian.org' | Escape %}
 {%- else -%}
     {% assign social_url = url | Escape %}
 {%- endif -%}
@@ -95,7 +97,7 @@ Note: This requires the WOW animations shortcode, make sure you have included in
         {{ '/Themes/SECC2014/Scripts/clipboard/clipboard.js' | AddScriptLink }}
         <div class="socials_item">
             {[ wow animate:'rotateIn' duration:'.5s' delay:'1.1s' ]}
-            <a href="javascript:void(0);" class="social_icons copy-link" data-toggle="tooltip" title="URL Copied" data-clipboard-text="{{ social_url }}" data-original-title="Share via Copy URL">
+            <a href="javascript:void(0);" class="social_icons copy-link" data-toggle="tooltip" title="URL Copied" data-clipboard-text="{{ social_url | UnescapeDataString  }}" data-original-title="Share via Copy URL">
                 <i class="fa fa-link"></i>
             </a>
             {[ endwow ]}
