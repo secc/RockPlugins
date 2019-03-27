@@ -25,22 +25,22 @@
                   <ul class="nav nav-schedule">
                       <li class="active easter_thursday">
                           <a href="#campus1_29" data-toggle="tab">
-                              <h3>THURSDAY<br /><small>04/18/2019</small></h3>
+                              <h5>THURSDAY<br /><small>04/18/2019</small></h5>
                           </a>
                       </li>
                       <li class="easter_friday">
                           <a href="#campus1_30" data-toggle="tab">
-                              <h3>FRIDAY<br /><small>04/19/2019</small></h3>
+                              <h5>FRIDAY<br /><small>04/19/2019</small></h5>
                           </a>
                       </li>
                       <li class="easter_saturday">
                           <a href="#campus1_31" data-toggle="tab">
-                              <h3>SATURDAY<br /><small>04/20/2019</small></h3>
+                              <h5>SATURDAY<br /><small>04/20/2019</small></h5>
                           </a>
                       </li>
                       <li class="easter_sunday">
                           <a href="#campus1_01" data-toggle="tab">
-                              <h3>SUNDAY<br /><small>04/21/2019</small></h3>
+                              <h5>SUNDAY<br /><small>04/21/2019</small></h5>
                           </a>
                       </li>
                   </ul>
@@ -129,22 +129,22 @@
                   <ul class="nav nav-schedule">
                       <li class="active easter_thursday">
                           <a href="#campus2_29" data-toggle="tab">
-                              <h3>THURSDAY<br /><small>04/18/2019</small></h3>
+                              <h5>THURSDAY<br /><small>04/18/2019</small></h5>
                           </a>
                       </li>
                       <li class="easter_friday">
                           <a href="#campus2_30" data-toggle="tab">
-                              <h3>FRIDAY<br /><small>04/19/2019</small></h3>
+                              <h5>FRIDAY<br /><small>04/19/2019</small></h5>
                           </a>
                       </li>
                       <li class="easter_saturday">
                           <a href="#campus2_31" data-toggle="tab">
-                              <h3>SATURDAY<br /><small>04/20/2019</small></h3>
+                              <h5>SATURDAY<br /><small>04/20/2019</small></h5>
                           </a>
                       </li>
                       <li class="easter_sunday">
                           <a href="#campus2_01" data-toggle="tab">
-                              <h3>SUNDAY<br /><small>04/21/2019</small></h3>
+                              <h5>SUNDAY<br /><small>04/21/2019</small></h5>
                           </a>
                       </li>
                   </ul>
@@ -224,22 +224,22 @@
                   <ul class="nav nav-schedule">
                       <li class="active easter_thursday">
                           <a href="#campus3_29" data-toggle="tab">
-                              <h3>THURSDAY<br /><small>04/18/2019</small></h3>
+                              <h5>THURSDAY<br /><small>04/18/2019</small></h5>
                           </a>
                       </li>
                       <li class="easter_friday">
                           <a href="#campus3_30" data-toggle="tab">
-                              <h3>FRIDAY<br /><small>04/19/2019</small></h3>
+                              <h5>FRIDAY<br /><small>04/19/2019</small></h5>
                           </a>
                       </li>
                       <li class="easter_saturday">
                           <a href="#campus3_31" data-toggle="tab">
-                              <h3>SATURDAY<br /><small>04/20/2019</small></h3>
+                              <h5>SATURDAY<br /><small>04/20/2019</small></h5>
                           </a>
                       </li>
                       <li class="easter_sunday">
                           <a href="#campus3_01" data-toggle="tab">
-                              <h3>SUNDAY<br /><small>04/21/2019</small></h3>
+                              <h5>SUNDAY<br /><small>04/21/2019</small></h5>
                           </a>
                       </li>
                   </ul>
@@ -324,22 +324,22 @@
                   <ul class="nav nav-schedule">
                       <li class="active easter_thursday">
                           <a href="#campus4_29" data-toggle="tab">
-                              <h3>THURSDAY<br /><small>04/18/2019</small></h3>
+                              <h5>THURSDAY<br /><small>04/18/2019</small></h5>
                           </a>
                       </li>
                       <li class="easter_friday">
                           <a href="#campus4_30" data-toggle="tab">
-                              <h3>FRIDAY<br /><small>04/19/2019</small></h3>
+                              <h5>FRIDAY<br /><small>04/19/2019</small></h5>
                           </a>
                       </li>
                       <li class="easter_saturday">
                           <a href="#campus4_31" data-toggle="tab">
-                              <h3>SATURDAY<br /><small>04/20/2019</small></h3>
+                              <h5>SATURDAY<br /><small>04/20/2019</small></h5>
                           </a>
                       </li>
                       <li class="easter_sunday">
                           <a href="#campus4_01" data-toggle="tab">
-                              <h3>SUNDAY<br /><small>04/21/2019</small></h3>
+                              <h5>SUNDAY<br /><small>04/21/2019</small></h5>
                           </a>
                       </li>
                   </ul>
@@ -414,22 +414,22 @@
                   <ul class="nav nav-schedule">
                       <li class="active easter_thursday">
                           <a href="#campus5_29" data-toggle="tab">
-                              <h3>THURSDAY<br /><small>04/18/2019</small></h3>
+                              <h5>THURSDAY<br /><small>04/18/2019</small></h5>
                           </a>
                       </li>
                       <li class="easter_friday">
                           <a href="#campus5_30" data-toggle="tab">
-                              <h3>FRIDAY<br /><small>04/19/2019</small></h3>
+                              <h5>FRIDAY<br /><small>04/19/2019</small></h5>
                           </a>
                       </li>
                       <li class="easter_saturday">
                           <a href="#campus5_31" data-toggle="tab">
-                              <h3>SATURDAY<br /><small>04/20/2019</small></h3>
+                              <h5>SATURDAY<br /><small>04/20/2019</small></h5>
                           </a>
                       </li>
                       <li class="easter_sunday">
                           <a href="#campus5_01" data-toggle="tab">
-                              <h3>SUNDAY<br /><small>04/21/2019</small></h3>
+                              <h5>SUNDAY<br /><small>04/21/2019</small></h5>
                           </a>
                       </li>
                   </ul>
@@ -504,22 +504,22 @@
                   <ul class="nav nav-schedule">
                       <li class="active easter_thursday">
                           <a href="#campus6_29" data-toggle="tab">
-                              <h3>THURSDAY<br /><small>04/18/2019</small></h3>
+                              <h5>THURSDAY<br /><small>04/18/2019</small></h5>
                           </a>
                       </li>
                       <li class="easter_friday">
                           <a href="#campus6_30" data-toggle="tab">
-                              <h3>FRIDAY<br /><small>04/19/2019</small></h3>
+                              <h5>FRIDAY<br /><small>04/19/2019</small></h5>
                           </a>
                       </li>
                       <li class="easter_saturday">
                           <a href="#campus6_31" data-toggle="tab">
-                              <h3>SATURDAY<br /><small>04/20/2019</small></h3>
+                              <h5>SATURDAY<br /><small>04/20/2019</small></h5>
                           </a>
                       </li>
                       <li class="easter_sunday">
                           <a href="#campus6_01" data-toggle="tab">
-                              <h3>SUNDAY<br /><small>04/21/2019</small></h3>
+                              <h5>SUNDAY<br /><small>04/21/2019</small></h5>
                           </a>
                       </li>
                   </ul>
@@ -589,22 +589,22 @@
                   <ul class="nav nav-schedule">
                       <li class="active easter_thursday">
                           <a href="#campus7_29" data-toggle="tab">
-                              <h3>THURSDAY<br /><small>04/18/2019</small></h3>
+                              <h5>THURSDAY<br /><small>04/18/2019</small></h5>
                           </a>
                       </li>
                       <li class="easter_friday">
                           <a href="#campus7_30" data-toggle="tab">
-                              <h3>FRIDAY<br /><small>04/19/2019</small></h3>
+                              <h5>FRIDAY<br /><small>04/19/2019</small></h5>
                           </a>
                       </li>
                       <li class="easter_saturday">
                           <a href="#campus7_31" data-toggle="tab">
-                              <h3>SATURDAY<br /><small>04/20/2019</small></h3>
+                              <h5>SATURDAY<br /><small>04/20/2019</small></h5>
                           </a>
                       </li>
                       <li class="easter_sunday">
                           <a href="#campus7_01" data-toggle="tab">
-                              <h3>SUNDAY<br /><small>04/21/2019</small></h3>
+                              <h5>SUNDAY<br /><small>04/21/2019</small></h5>
                           </a>
                       </li>
                   </ul>
