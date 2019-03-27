@@ -228,9 +228,10 @@
 
 
 /*----------------------------------
-  Box Shadow
+  Position
 ------------------------------------*/
 
+.g-position--sticky { position: sticky; }
 .g-position--relative { position: relative; }
 .g-position--absolute { position: absolute; }
 .g-position--overlay {
