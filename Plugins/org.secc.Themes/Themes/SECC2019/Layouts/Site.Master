@@ -118,9 +118,24 @@
     <script src="/Themes/SECC2019/Assets/vendor/photo_swipe/photoswipe.js"></script>
     <script src="/Themes/SECC2019/Assets/vendor/photo_swipe/photoswipe-ui-default.js"></script>
 
+    <!--
+    Start of global snippet: Please do not remove
+    Place this snippet between the <head> and </head> tags on every page of your site.
+    -->
+    <!-- Global site tag (gtag.js) - Google Marketing Platform -->
+    <script async src=""https://www.googletagmanager.com/gtag/js?id=DC-9235428""></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'DC-9235428');
+    </script>
+    <!-- End of global snippet: Please do not remove -->
 </head>
 
 <body runat="server" id="body" class="nav-is-fixed">
+
 
     <div id="DocumentWrapper">
 
