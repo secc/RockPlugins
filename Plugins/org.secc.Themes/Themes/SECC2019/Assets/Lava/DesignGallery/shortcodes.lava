@@ -1,12 +1,19 @@
 <section>
-    <div id="doc-header" class="doc-header text-center g-hor-divider__solid__t--doc-color-1" style="border-width:5px">
+    <div id="doc-header" class="doc-header g-hor-divider__solid__t--doc-color-1" style="border-width:5px">
         <div class="container g-padding-b-50--xs g-padding-t-100--xs">
             <div class="row">
 
-                <div class="col-xs-12 text-center">
-                    <h2 class="doc-title g-color--doc-color-1 g-font-family--secondary">
+                <div class="col-xs-12">
+                    <h2 class="text-center doc-title g-color--doc-color-1 g-font-family--secondary">
                     <span aria-hidden="true" class="fa fa-paper-plane"></span>  Lava Shortcodes</h2>
-                    <h5 class="g-color--black-opacity-lighter"><i class="fa fa-clock"></i> Last updated: March 26th, 2019</h5>
+                    <h5 class=" text-center g-color--black-opacity-lighter">
+                        <i class="fa fa-clock"></i> Last updated: March 29th, 2019<br />
+                        By: Steven Schulte
+                    </h5>
+                    <br />
+                    <div class="g-margin-x-auto--xs">
+                        <p>Lava is used everywhere on the SE website, so by learning Lava and the Lava Shortcodes below, you will benefit from it in many ways! Not only is Lava used on the website, but it can also be used in email templates, communication templates, and a lot of other areas in Rock. In other words, it will make you unstoppable as you work more closely with the SE Website and within the Rock system.</p>
+                    </div>
                 </div>
 
             </div>
@@ -14,7 +21,7 @@
     </div><!--//doc-header-->
     <div class="doc-wrapper">
         <div class="container">
-            <div class="doc-body row g-padding-y-50--xs g-display-flex--lg">
+            <div class="doc-body row g-padding-b-50--xs g-display-flex--lg">
 
                 <div class="doc-sidebar col-md-3 col-12">
                     <div id="doc-nav" class="doc-nav g-position--sticky" style="top:120px">
@@ -24,6 +31,9 @@
                             </li>
                             <li>
                                 <h5><a class="nav-link scrollto" href="#shortcodes">Shortcodes</a></h5>
+                                <ul class="list-unstyled g-padding-l-20--xs">
+                                    <li><h6><a class="nav-link scrollto" href="#heading-1-lava-shortcodes">FAQs</a></h6></li>
+                                </ul>
                             </li>
                         </ul><!--//doc-menu-->
                     </div>
@@ -38,7 +48,7 @@
                             <p>Before we dive into the world of lava shortcodes, you might be wondering what <b><i>Lava</i></b> is. Lava is a templating engine that allows us to leverage the power and flexibility of Rock.</p>
                             <p>Below is a simple line using Lava. It outputs as: <strong>Hello {{ Person.NickName }}!</strong></p>
                             {%- raw -%}
-                                <pre><code class="language-liquid">Hello {{ Person.NickName }}!</code></pre>
+                                <pre><code class="language-markup">Hello {{ Person.NickName }}!</code></pre>
                             {%- endraw -%}
                             <p>Anything within the double curly brace will let Rock know that it's lava, and it will run before the page is loaded.</p>
                             <br />
@@ -51,14 +61,14 @@
                     <article id="shortcodes" class="doc-section g-padding-t-20--xs g-margin-y-0--xs">
                         <h3 class="g-margin-b-10--xs g-hor-divider__solid__b--gray-lightest"><b>Lava Shortcodes</b></h3>
                         <div class="section-block">
-                            <p>Here you will find all of the custom shortcodes we use on our Southeast Website. You can think of Lava Shortcodes as a template that can be used in any HTML blocks; it other words, it is a way to simplify HTML markup.</p>
+                            <p>Here you will find all of the custom shortcodes we use <i>only</i> on our Southeast Website. You can think of Lava Shortcodes as a way to simplify HTML markup; it other words, it is a template that can be used in any HTML blocks. These Lava shortcodes, however, cannot be used within anything inside of Rock - such as emails, communication templates, etc.; they are to be only used within the SE website.</p>
                         </div>
                         <br />
 
                         <div class="col-md-12 g-padding-x-0--xs">
-                          <div class="panel-lava-shortcodes accordions-2" id="faq-accordion-{{wrapperId}}" role="tablist" aria-multiselectable="true">
+                          <div class="panel-lava-shortcodes accordions-2" id="faq-accordion-1" role="tablist" aria-multiselectable="true">
                             <div class="panel panel-default">
-                                <div class="panel-heading collapsed" role="button"  id="heading-1-lava-shortcodes" data-toggle="collapse" data-parent="#faq-accordion-{{wrapperId}}, #faq-accordion-{{wrapperId2}}"
+                                <div class="panel-heading collapsed" role="button"  id="heading-1-lava-shortcodes" data-toggle="collapse" data-parent="#faq-accordion-1"
                                 href="#collapse-1-lava-shortcodes" aria-expanded="false" aria-controls="faq-1-collapse-1">
                                   <style>
                                     #heading-1-lava-shortcodes {
@@ -79,7 +89,7 @@
 <br />
 {%- raw -%}
 <pre>
-<code class="language-liquid">
+<code class="language-markup">
   {[ faq ]}
 
       [[ item title:'Will this work?' ]]
@@ -96,7 +106,7 @@
 {%- endraw -%}
 <br />
 <div class="clearfix">
-    <p>If you copied and pasted the the shortcode above into an HTML block – it will output as below when the page is reloaded:</p>
+    <p>If you copied and paste the the shortcode above into an HTML block – it will output as below when the page is rendered or reloaded/refreshed:</p>
     <br />
     {[ faq ]}
 
@@ -123,12 +133,12 @@
 </div>
 <br />
 <p>
-  So with the same amount of questions as before, but with addtional options - you can configure it to do something liek this too:
+  So with the same amount of questions as before, but with addtional options - you can configure it to do something like this too:
 </p>
 <br />
 {%- raw -%}
 <pre>
-<code class="language-liquid">
+<code class="language-markup">
   {[ faq columns:'1' autoheight:'auto' ]}
 
       [[ item title:'Will this work?' ]]
@@ -174,7 +184,8 @@
 </section>
 
 <style>
-    #doc-menu li.active a {
+    #doc-menu li.active > h5 > a,
+    #doc-menu li.active > h6 > a {
         font-weight: bold;
     }
 </style>
@@ -183,10 +194,9 @@
 var header = document.querySelector('.cd-main-header');
 var spy = new Gumshoe('#doc-menu a', {
     nested: true,
-    reflow: true,
-	offset: function () {
-		return header.getBoundingClientRect().height;
-	}
+    offset: function () {
+        return header.getBoundingClientRect().height;
+    }
 });
 var scroll = new SmoothScroll('a.scrollto', {
     speed: 500, // Integer. How fast to complete the scroll in milliseconds
