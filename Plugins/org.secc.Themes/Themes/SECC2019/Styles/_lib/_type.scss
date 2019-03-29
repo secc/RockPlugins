@@ -129,6 +129,7 @@ h6 {
 
 	small {
 		color: $CopyColor;
+		font-size: 60%;
 	}
 }
 
@@ -140,8 +141,10 @@ h5, .h5 { @include font($size: $font-size-30, $weight: normal, $line-height: 1.4
 h6, .h6 { @include font($size: $font-size-20, $weight: normal, $line-height: $headings-line-height); }
 
 code {
-	background-color: $color-dark;
-	color: $color-white-opacity;
+	background-color: darken($color-dark-light, 70%);
+	color: $color-white;
+	border-radius: .2rem;
+	padding: .1rem .3rem .2rem;
 }
 
 //$font-size-h1;
