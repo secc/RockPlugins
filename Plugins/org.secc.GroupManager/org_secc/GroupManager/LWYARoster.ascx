@@ -137,7 +137,7 @@
     .label {
         margin: 0px 3px;
     }
-    a[id$="_btnRemoveMember"] {
+    div.actions {
         margin-top:-5px;
     }
 </style>
@@ -306,7 +306,10 @@ $(window).load(function() {
                                 <div class="header">
                                     <asp:Label runat="server" Style="font-weight: bold"
                                         Text='<%# Eval("Name") %>' />
-                                    <asp:LinkButton runat="server" ID="btnRemoveMember" CommandArgument='<%# Eval("Id") %>' OnClientClick="return confirmRemove(this, event);" CssClass="btn btn-sm btn-danger pull-right" OnClick="btnRemoveMember_Click"><i class="fa fa-times"></i></asp:LinkButton>
+                                    <div class="pull-right actions">
+                                        <asp:LinkButton ID="btnEmail" runat="server" Text="Email Member" CommandArgument='<%# Eval("Id") %>' OnClick="btnEmail_Click" CssClass="btn btn-sm btn-info"><i class="fa fa-envelope"></i></asp:LinkButton>
+                                        <asp:LinkButton runat="server" ID="btnRemoveMember" CommandArgument='<%# Eval("Id") %>' OnClientClick="return confirmRemove(this, event);" CssClass="btn btn-sm btn-danger" OnClick="btnRemoveMember_Click"><i class="fa fa-times"></i></asp:LinkButton>
+                                    </div>
                                 </div>
                                 <div class="image-teardrop pull-left">
                                     <div class="image-cropper">
