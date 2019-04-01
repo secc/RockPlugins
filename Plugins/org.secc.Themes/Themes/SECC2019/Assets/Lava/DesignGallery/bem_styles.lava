@@ -35,7 +35,7 @@
                                 </ul>
                             </li>
                             <li>
-                                <h5><a class="nav-link scrollto" href="#bem-g-color">Colors</a></h5>
+                                <h5><a class="nav-link scrollto" href="#bem-color">Colors</a></h5>
                                 <ul class="list-unstyled g-padding-l-20--xs">
                                     <li><h6><a class="nav-link scrollto" href="#bem-g-color">g-color</a></h6></li>
                                     <li><h6><a class="nav-link scrollto" href="#bem-g-text-shadow">g-text-shadow</a></h6></li>
@@ -98,75 +98,148 @@
 
                                  <div id="bem-general-e" class="g-padding-t-50--xs">
                                  <h1 class="g-font-family--secondary pull-left g-padding-x-20--xs g-font-weight--900"><u>E</u></h1>
-                                 <p>Next, we want to figure out the <u>E</u>lement we want to change, so for this example, we have the <u>font family</u> (which is an element of the global block).
+                                 <p>Next, we want to figure out the <u>E</u>lement we want to change, so for this example, we have the <u>font family</u> (which is an element of the global block).</p>
 <pre>
 <code class="language-css">
 /* Add on the element you want to change with a single dash in-between. */
 .g-font-family
 </code>
 </pre>
+<p>At this point, you're probably wondering about <u>all</u> of the available elements that could be used instead... not to worry! After learning the <u>M</u>odifier, you will see all of the available elements you can use for the rest of this documentation.</p>
                                  </div>
 
                                  <div id="bem-general-m" class="g-padding-t-50--xs">
                                  <h1 class="g-font-family--secondary pull-left g-padding-x-20--xs g-font-weight--900"><u>M</u></h1>
-                                 <p>Lastly, we want to <u>M</u>odify the <u>E</u>lement with the options that we have. Currently, we have two different options for the font family, and that is either "primary" (which is the default) or "secondary". So in this case, we added the name, "secondary", to the element <code class="g-padding-x-20--xs">g-font-family</code> following with two dashes like this:
+                                 <p>Lastly, we want to <u>M</u>odify the <u>E</u>lement with the options that we have. Currently, we have two different options for the font family, and that is either "primary" (which is the default) or "secondary". To use the "secondary" option, you need to add it onto the name like before - however, with modifiers - you use two dashes instead. So in this case, we added the name, "secondary", to the class <code class="g-padding-x-20--xs">g-font-family</code> following with two dashes like this:
 <pre>
 <code class="language-css">
-/* Add on the element you want to change with a single dash in-between. */
+/* Add on the option you want to use following with double dashes . */
 .g-font-family--secondary
 </code>
 </pre>
-<p>In result, if you add that css class name into any HTML elements with characters, you will get the secondary font family applied to it.</p>
+<p>That's it! In result, if you add that css class name into any HTML elements (with actual words in it), you should get the secondary font family applied to it.</p>
 <h1 class="g-font-family--secondary">Fabulous!</h1>
 <pre><code class="language-markup">&lt;h1 class="g-font-family--secondary"&gt;Fabulous!&lt;/h1&gt;</code></pre>
                                  </div>
 
                                  <div id="bem-general-summary" class="g-padding-t-50--xs">
-                                 <p>For the rest of this documenation, you will see all of options available on the Souteast website using the global BEM methodology, so if you want - you can treat this page as a libray of global CSS classes for your references. You can also use these styles on any <i>Landings pages</i> as well!</p>
+                                 <p>You simply just need to write <code>class="insert_class_here"</code> in the html element, and use the BEM class in between the double quotes. For the rest of this documenation, you will see all of the options available on the Southeast website using the global BEM methodology; just look for the CSS class highlighted in black on the right side of the page, and then add the option/modifier you want to use that is available for that element. You can treat this page as a libray of global CSS classes for your references, and you can also use any of these classes on any Southeast <i>landings pages</i> as well!</p>
                                  </div>
                         </div>
                     </article>
 
-                    <article id="bem-g-color" class="g-padding-x-0--xs g-padding-t-100--xs g-margin-y-0--xs">
-                    <h3 class="g-margin-b-10--xs g-hor-divider__solid__b--gray-lightest">Colors</h3>
-                    <div class="section-block">
-                    <br />
-                    <h4 class="pull-right"><b><code>g-color--*</code></b></h4>
-                    <p>Simply swap out the color name with any of the following options:</p>
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <td>#</td>
-                                    <td>Color</td>
-                                    <td>Color Name</td>
-                                    <td>Full BEM CSS Class</td>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr class="g-bg-color--dark">
-                                    <th class="g-color--white" scope="row">1</th>
-                                    <td class="g-color--white">#FFFFFF</td>
-                                    <td class="g-color--white">primary</td>
-                                    <td class="g-color--white">g-color--primary</td>
-                                </tr>
-                                <tr>
-                                    <th class="g-color--red" scope="row">2</th>
-                                    <td class="g-color--red">#CC0000</td>
-                                    <td class="g-color--red">red</td>
-                                    <td class="g-color--red">g-color--red</td>
-                                </tr>
-                                <tr>
-                                    <th class="g-color--dark-red" scope="row">3</th>
-                                    <td class="g-color--dark-red">#8c0000</td>
-                                    <td class="g-color--dark-red">dark-red</td>
-                                    <td class="g-color--dark-red">g-color--dark-red</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    <article id="bem-color" class="g-padding-x-0--xs g-padding-t-100--xs g-margin-y-0--xs">
+                        <h3 class="g-margin-b-10--xs g-hor-divider__solid__b--gray-lightest">Colors</h3>
+                        <div class="section-block">
+                        <br />
+                        <p>Here are all of the colors available on our website.</p>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <td>#</td>
+                                            <td>Color</td>
+                                            <td>Color Name</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="g-bg-color--dark">
+                                            <th class="g-color--white" scope="row">1</th>
+                                            <td class="g-color--white">#FFFFFF</td>
+                                            <td class="g-color--white">white</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--red" scope="row">2</th>
+                                            <td class="g-color--red">#CC0000</td>
+                                            <td class="g-color--red">red</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--dark-red" scope="row">3</th>
+                                            <td class="g-color--dark-red">#8c0000</td>
+                                            <td class="g-color--dark-red">dark-red</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--gold" scope="row">4</th>
+                                            <td class="g-color--gold">#b99769</td>
+                                            <td class="g-color--gold">gold</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--dark" scope="row">5</th>
+                                            <td class="g-color--dark">#222324</td>
+                                            <td class="g-color--dark">dark</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--dark-light" scope="row">6</th>
+                                            <td class="g-color--dark-light">#242526</td>
+                                            <td class="g-color--dark-light">dark-light</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--heading" scope="row">7</th>
+                                            <td class="g-color--heading">#242424</td>
+                                            <td class="g-color--heading">heading</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--text" scope="row">8</th>
+                                            <td class="g-color--text">#222222</td>
+                                            <td class="g-color--text">text</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--gray-light" scope="row">9</th>
+                                            <td class="g-color--gray-light">#7C7C7C</td>
+                                            <td class="g-color--gray-light">gray-light</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--gray-lighter" scope="row">10</th>
+                                            <td class="g-color--gray-lighter">rgba(#7C7C7C, 0.68)</td>
+                                            <td class="g-color--gray-lighter">gray-lighter</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--gray-lightest" scope="row">11</th>
+                                            <td class="g-color--gray-lightest">rgba(#7C7C7C, 0.18)</td>
+                                            <td class="g-color--gray-lightest">gray-lightest</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--" scope="row">12</th>
+                                            <td class="g-color--black">#000</td>
+                                            <td class="g-color--black">black</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--black-opacity" scope="row">13</th>
+                                            <td class="g-color--black-opacity">rgba(#000,.8)</td>
+                                            <td class="g-color--black-opacity">black-opacity</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--black-opacity-light" scope="row">14</th>
+                                            <td class="g-color--black-opacity-light">rgba(#000,.5)</td>
+                                            <td class="g-color--black-opacity-light">black-opacity-light</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--black-opacity-lighter" scope="row">15</th>
+                                            <td class="g-color--black-opacity-lighter">rgba(#000,.3)</td>
+                                            <td class="g-color--black-opacity-lighter">black-opacity-lighter</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--black-opacity-lightest" scope="row">16</th>
+                                            <td class="g-color--black-opacity-lightest">rgba(#000,.1)</td>
+                                            <td class="g-color--black-opacity-lightest">black-opacity-lightest</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
 
-                    </div>
+                        <article id="bem-g-color" class="g-padding-t-50--xs g-hor-divider__solid__t--gray-lightest">
+                            <h4 class="pull-right g-padding-x-20--xs"><b><code>g-color--[ColorName]</code></b></h4>
+                            <p>To use any of the colors above to simply <u>change the color of text</u> – add on the color name to the color element.</p>
+                            Ex:
+                            <pre><code class="language-markup">&lt;h1 class="g-color--black-opacity-lighter"&gt;Black Color that is lighter than usual&lt;/h1&gt;</code></pre>
+                        </article>
+
+                        <article id="g-text-shadow" class="g-padding-t-50--xs">
+                            <h4 class="pull-right"><b><code>g-text-shadow--[ColorName]</code></b></h4>
+                            <p>To use any of the colors above to simply <u>change the color of text</u> – add on the color name to the color element.</p>
+                        </article>
+
                     </article>
 
                     <article id="bem-sizes" class="g-padding-x-0--xs g-padding-t-20--xs g-margin-y-0--xs">
