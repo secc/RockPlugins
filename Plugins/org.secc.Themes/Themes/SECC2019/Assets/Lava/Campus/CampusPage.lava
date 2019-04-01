@@ -217,6 +217,9 @@
                                 {{ campus.Location.Street1 }}<br />
                                 {{ campus.Location.City }}, {{ campus.Location.State }} {{ campus.Location.PostalCode }}<br />
                             </p>
+                            <p class="g-font-weight--400 g-line-height--sm">
+                                Phone: {{ campus.PhoneNumber }}
+                            </p>
                         </address>
                         <a class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1"
                            target="_blank"
