@@ -8,8 +8,9 @@
         <Rock:Grid runat="server" ID="gGrid">
             <Columns>
                 <Rock:SelectField></Rock:SelectField>
-               
-                <Rock:RockBoundField DataField="FullName" HeaderText="Name"></Rock:RockBoundField>
+                <Rock:PersonField DataField="PrimaryAlias.Person" HeaderText="Name"></Rock:PersonField>
+                <Rock:RockBoundField DataField="Email" HeaderText="Email"></Rock:RockBoundField>
+                <Rock:PhoneNumbersField DataField="PhoneNumbers" HeaderText="Phone Numbers"></Rock:PhoneNumbersField>
             </Columns>
         </Rock:Grid>
     </ContentTemplate>
