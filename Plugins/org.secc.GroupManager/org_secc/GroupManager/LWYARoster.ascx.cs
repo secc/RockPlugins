@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -206,11 +206,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 if ( communication != null )
                 {
-                    AddRecepients( communication, cbSMSSendToParents.Checked, EntityTypeCache.Read( new Guid( Rock.SystemGuid.EntityType.COMMUNICATION_MEDIUM_SMS ) ).Id );
+                    AddRecipients( communication, cbSMSSendToParents.Checked, EntityTypeCache.Get( new Guid( Rock.SystemGuid.EntityType.COMMUNICATION_MEDIUM_SMS ) ).Id );
 
                     communication.CommunicationType = CommunicationType.SMS;
                     communication.SMSMessage = tbMessage.Text;
-                    communication.SMSFromDefinedValueId = DefinedValueCache.Read( CurrentGroup.GetAttributeValue( "TextMessageFrom" ).AsGuid() ).Id;
+                    communication.SMSFromDefinedValueId = DefinedValueCache.Get( CurrentGroup.GetAttributeValue( "TextMessageFrom" ).AsGuid() ).Id;
 
                     communication.Status = CommunicationStatus.Approved;
                     communication.ReviewedDateTime = RockDateTime.Now;
@@ -233,6 +233,14 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         protected void btnEmail_Click( object sender, EventArgs e )
         {
+            gMembers.SelectedKeys.Clear();
+            hfCommunication.Value = null;
+            // If we have a CommandArgument, then we should only select one member.
+            if ( sender is LinkButton && !string.IsNullOrWhiteSpace( ( ( LinkButton ) sender ).CommandArgument ) )
+            {
+                hfCommunication.Value = ( ( LinkButton ) sender ).CommandArgument;
+                gMembers.SelectedKeys.Add( ( ( LinkButton ) sender ).CommandArgument.AsInteger() );
+            }
             tbBody.Text = "";
             tbSubject.Text = "";
 
@@ -255,13 +263,13 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 if ( communication != null )
                 {
-                    AddRecepients( communication, cbEmailSendToParents.Checked, EntityTypeCache.Read( new Guid(Rock.SystemGuid.EntityType.COMMUNICATION_MEDIUM_EMAIL) ).Id );
+                    AddRecipients( communication, cbEmailSendToParents.Checked, EntityTypeCache.Get( new Guid(Rock.SystemGuid.EntityType.COMMUNICATION_MEDIUM_EMAIL) ).Id );
 
                     communication.CommunicationType = CommunicationType.Email;
 
                     communication.Subject = tbSubject.Text;
                     communication.FromName = CurrentPerson.FullName;
-                    communication.FromEmail = GetSafeSender( CurrentPerson.Email );
+                    communication.FromEmail = CurrentPerson.Email;
                     communication.ReplyToEmail = CurrentPerson.Email;
                     communication.Message = tbBody.Text.Replace( "\n", "<br />" );
 
@@ -284,33 +292,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             maSent.Show( "Your message will be sent shortly.", ModalAlertType.Information );
         }
 
-        private string GetSafeSender( string email )
-        {
-            var safeDomains = DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.COMMUNICATION_SAFE_SENDER_DOMAINS.AsGuid() ).DefinedValues.Select( v => v.Value ).ToList();
-            var emailParts = email.Split( new char[] { '@' }, StringSplitOptions.RemoveEmptyEntries );
-            if ( emailParts.Length != 2 || !safeDomains.Contains( emailParts[1], StringComparer.OrdinalIgnoreCase ) )
-            {
-                var safeEmail = GetAttributeValue( "SafeSenderEmail" );
-                var safeEmailParts = safeEmail.Split( new char[] { '@' }, StringSplitOptions.RemoveEmptyEntries );
-                if ( !string.IsNullOrWhiteSpace( safeEmail )
-                    && safeEmailParts.Length == 2 &&
-                    safeDomains.Contains( safeEmailParts[1], StringComparer.OrdinalIgnoreCase ) )
-                {
-
-                    return safeEmail;
-                }
-                else
-                {
-                    return GlobalAttributesCache.Read().GetValue( "OrganizationEmail" );
-                }
-            }
-            if ( !string.IsNullOrWhiteSpace( email ) )
-            {
-                return email;
-            }
-            return GlobalAttributesCache.Read().GetValue( "OrganizationEmail" );
-        }
-
         protected void btnCancel_Click( object sender, EventArgs e )
         {
             cbSMSSendToParents.Checked = false;
@@ -322,13 +303,13 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         }
         protected void cbSMSSendToParents_CheckedChanged( object sender, EventArgs e )
         {
-            //update our recepient display on switch
+            //update our recipient display on switch
             DisplaySMSRecipients();
         }
 
         protected void cbEmailSendToParents_CheckedChanged( object sender, EventArgs e )
         {
-            //update our recepient display on switch
+            //update our recipient display on switch
             DisplayEmailRecipients();
         }
 
@@ -578,8 +559,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         private void DisplaySMSRecipients()
         {
-            var recepients = new StringBuilder();
-            recepients.Append( "<div class=well><h4>Recepients:</h4>" );
+            var recipients = new StringBuilder();
+            recipients.Append( "<div class=well><h4>Recipients:</h4>" );
 
             var sendParents = cbSMSSendToParents.Checked;
             var keys = gMembers.SelectedKeys;
@@ -612,46 +593,46 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 {
                     if ( !addedIds.Contains( member.Id ) )
                     {
-                        //Add person to recepients
+                        //Add person to recipients
                         if ( member.Phones.Where( pn => pn.IsMessagingEnabled && !pn.IsUnlisted ).Count() > 0 )
                         {
-                            recepients.Append( "<span title='Person has textable number'>" + member.Name + "</span> " );
+                            recipients.Append( "<span title='Person has textable number'>" + member.Name + "</span> " );
                         }
                         else
                         {
-                            recepients.Append( "<span title='Person does not have a textable number and will not recieve this message.' style='color:red'>" + member.Name + "</span> " );
+                            recipients.Append( "<span title='Person does not have a textable number and will not recieve this message.' style='color:red'>" + member.Name + "</span> " );
                         }
                         addedIds.Add( member.Id );
                     }
                 }
                 else
                 {
-                    //Add person parents to recepients
+                    //Add person parents to recipients
                     foreach ( Person parent in member.Parents )
                     {
                         if ( !addedIds.Contains( parent.Id ) )
                         {
                             if ( parent.PhoneNumbers.Where( pn => pn.IsMessagingEnabled && !pn.IsUnlisted ).Count() > 0 )
                             {
-                                recepients.Append( "<span title='Person has textable number'>" + parent.FullName + "</span> " );
+                                recipients.Append( "<span title='Person has textable number'>" + parent.FullName + "</span> " );
                             }
                             else
                             {
-                                recepients.Append( "<span title='Person does not have a textable number and will not recieve this message.' style='color:red'>" + parent.FullName + "</span> " );
+                                recipients.Append( "<span title='Person does not have a textable number and will not recieve this message.' style='color:red'>" + parent.FullName + "</span> " );
                             }
                             addedIds.Add( parent.Id );
                         }
                     }
                 }
             }
-            recepients.Append( "</div>" );
-            ltSMSRecipients.Text = recepients.ToString();
+            recipients.Append( "</div>" );
+            ltSMSRecipients.Text = recipients.ToString();
         }
 
         private void DisplayEmailRecipients()
         {
-            var recepients = new StringBuilder();
-            recepients.Append( "<div class=well><h4>Recepients:</h4>" );
+            var recipients = new StringBuilder();
+            recipients.Append( "<div class=well><h4>Recipients:</h4>" );
 
             var sendParents = cbEmailSendToParents.Checked;
 
@@ -663,7 +644,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 keys = new List<object> { hfCommunication.ValueAsInt() };
             }
 
-            //This list is to keep track of recepients so we don't display them twice
+            //This list is to keep track of recipients so we don't display them twice
             List<int> addedIds = new List<int>();
 
             List<GroupMemberData> members = new List<GroupMemberData>();
@@ -691,16 +672,16 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 {
                     if ( !addedIds.Contains( member.Id ) )
                     {
-                        //Add person to recepients
+                        //Add person to recipients
                         //Check is for valid email, active email, not set to do not email
                         if ( !string.IsNullOrWhiteSpace( member.Email ) && member.Email.IsValidEmail() &&
                             member.Person.IsEmailActive && member.Person.EmailPreference != EmailPreference.DoNotEmail )
                         {
-                            recepients.Append( "<span title='Person has a valid email address'>" + member.Name + "</span> " );
+                            recipients.Append( "<span title='Person has a valid email address'>" + member.Name + "</span> " );
                         }
                         else
                         {
-                            recepients.Append( "<span title='Person does not have a valid email address and will not recieve this message.' style='color:red'>" + member.Name + "</span> " );
+                            recipients.Append( "<span title='Person does not have a valid email address and will not recieve this message.' style='color:red'>" + member.Name + "</span> " );
                         }
                         //Save that we are sending a message to this person
                         addedIds.Add( member.Id );
@@ -709,7 +690,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
                 else
                 {
-                    //Add person parents to recepients
+                    //Add person parents to recipients
                     foreach ( Person parent in member.Parents )
                     {
                         if ( !addedIds.Contains( parent.Id ) )
@@ -717,11 +698,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             if ( !string.IsNullOrWhiteSpace( parent.Email ) && parent.Email.IsValidEmail() &&
                             parent.IsEmailActive && parent.EmailPreference != EmailPreference.DoNotEmail )
                             {
-                                recepients.Append( "<span title='Person has a valid email address'>" + parent.FullName + "</span> " );
+                                recipients.Append( "<span title='Person has a valid email address'>" + parent.FullName + "</span> " );
                             }
                             else
                             {
-                                recepients.Append( "<span title='Person does not have a valid email address and will not recieve this message.' style='color:red'>" + parent.FullName + "</span> " );
+                                recipients.Append( "<span title='Person does not have a valid email address and will not recieve this message.' style='color:red'>" + parent.FullName + "</span> " );
                             }
                             addedIds.Add( parent.Id );
                         }
@@ -729,8 +710,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     }
                 }
             }
-            recepients.Append( "</div>" );
-            ltEmailRecipients.Text = recepients.ToString();
+            recipients.Append( "</div>" );
+            ltEmailRecipients.Text = recipients.ToString();
         }
 
         private Rock.Model.Communication UpdateCommunication( RockContext rockContext )
@@ -755,7 +736,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             return communication;
         }
 
-        private void AddRecepients( Communication communication, bool sendParents, int mediumEntityTypeId )
+        private void AddRecipients( Communication communication, bool sendParents, int mediumEntityTypeId )
         {
             //List to keep from sending multiple messages
             List<int> addedIds = new List<int>();
@@ -814,7 +795,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     FilterData();
                     members = memberData;
                 }
-                //For adding the communication recepients from the membership list 
+                //For adding the communication recipients from the membership list 
                 foreach ( var member in members )
                 {
                     member.LoadParents();
@@ -923,12 +904,12 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     person.FirstName = tbFirstName.Text.Trim();
                     person.LastName = tbLastName.Text.Trim();
                     person.SetBirthDate( dpBirthday.SelectedDate );
-                    person.UpdatePhoneNumber( DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).Id,
+                    person.UpdatePhoneNumber( DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).Id,
                         PhoneNumber.DefaultCountryCode(), pnCell.Text, true, false, _rockContext );
                     person.Email = tbEmail.Text.Trim();
                     person.IsEmailActive = true;
                     person.EmailPreference = EmailPreference.EmailAllowed;
-                    person.RecordTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+                    person.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
                     person.ConnectionStatusValueId = _dvcConnectionStatus.Id;
                     person.RecordStatusValueId = _dvcRecordStatus.Id;
                     person.Gender = Gender.Unknown;
@@ -1045,13 +1026,13 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             _defaultGroupRole = CurrentGroup.GroupType.DefaultGroupRole;
 
-            _dvcConnectionStatus = DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() );
+            _dvcConnectionStatus = DefinedValueCache.Get( GetAttributeValue( "ConnectionStatus" ).AsGuid() );
             if ( _dvcConnectionStatus == null )
             {
                 return false;
             }
 
-            _dvcRecordStatus = DefinedValueCache.Read( GetAttributeValue( "RecordStatus" ).AsGuid() );
+            _dvcRecordStatus = DefinedValueCache.Get( GetAttributeValue( "RecordStatus" ).AsGuid() );
             if ( _dvcRecordStatus == null )
             {
                 return false;
