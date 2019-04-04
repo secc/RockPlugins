@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ organization.name }}</title>
+  <meta name="viewport" content="initial-scale = 1.0,maximum-scale = 1.0" />
+  <meta name='title' content='{{ organization.meta_title }}'>
+  <meta name='description' content='{{ organization.meta_description }}'>
+  <meta name='keywords' content='{{ organization.meta_keywords }}'>
+  <!-- Social Sharing -->
+  <meta name='og:title' content='{{ organization.meta_title }}'>
+  <meta name='og:description' content='{{ organization.meta_description }}'>
+  <meta name='og:url' content='{{ organization.platform_url }}'>
+  <meta name='og:image' content='{{ organization.logo_url }}'>
+  <!-- Social Sharing -->
+  <link href='{{ organization.platform_url }}'>
+  <link href='{{ organization.favicon }}' rel='icon' type='image/png'>
+
+  {{ platform_head }}
+  {{ foundation_css }}
+
+  <style type="text/css">
+    {% include 'stylesheet' %}
+  </style>
+
+  <link href='https://www.southeastchristian.org/Themes/SECC2019/Styles/main.css?v=636898626669078068' />
+</head>
+<body>
+  <header class="row full-width">
+    <div class="medium-12 columns nav-margin">
+      <div class="navigation contain-to-grid">
+        <nav class="top-bar" data-topbar role="navigation">
+          <ul class="title-area">
+            <li class="name">
+              <h1 class="brand">
+                  <a href="{{ organization.website_url }}">
+                      <img class="img-respoinsive" src="https://southeastchristian.org/Themes/SECC2019/Assets/img/logos/southeast/SECC_logo_wordmark_black.svg" alt="Logo" onerror="this.style.display='none'" />
+                  </a>
+              </h1>
+            </li>
+             <!-- Remove the class "menu-icon" to get rid of menu icon. Take out "Menu" to just have icon alone -->
+            <li class="toggle-topbar menu-icon"><a href="#"><span>Menu</span></a></li>
+          </ul>
+
+          <section class="top-bar-section">
+            <!-- Right Nav Section -->
+            <ul class="right top-bar-actions">
+              {% if organization.give_link %}
+                <li class="link">
+                  <a id="give" href="{{ organization.give_link }}" target="_blank">{{ 'give' | translate }}</a>
+                </li>
+              {% endif %}
+              {% for link in organization.header_links %}
+                <li class="link">
+                  {{ link }}
+                </li>
+              {% endfor %}
+              <li class="link">
+                {{ component.sign_in }}
+              </li>
+              <li>
+                {{ component.sign_up }}
+              </li>
+              <li class="avatar">{{ component.account }}</li>
+            </ul>
+          </section>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  {{ component.reminder_header }}
+
+  <div class="content">
+    <div class="row full-width prayer-tagline ">
+      <div class="medium-12 columns text-center" role="content">
+      </div>
+    </div>
+    <div class="row full-width relative">
+      <div id="video-content" class="medium-8 columns no-padding-right no-padding-left" role="content">
+        {{ component.video }}
+        {{ component.slides }}
+      </div>
+      <div class="medium-4 columns no-padding-left no-padding-right full-height hide-for-small-only">
+        {% widgets %}
+          {% content_for_tabs %}
+            {% if event.chat_enabled? %}
+              {% tab_content chat %} {{ component.chat }} {% endtab_content %}
+            {% endif %}
+            {% if event.notes_enabled? %}
+              {% tab_content notes %} {{ component.notes }} {% endtab_content %}
+            {% endif %}
+            {% tab_content schedule %} {{ component.schedule }} {% endtab_content %}
+            {% if settings.bible_tab == '1' %}
+              {% tab_content bible %} {{ component.bible }} {% endtab_content %}
+            {% endif %}
+            {% if event.custom_tab_enabled? %}
+              {% tab_content custom-tab %} {{ component.custom_tab }} {% endtab_content %}
+            {% endif %}
+          {% endcontent_for_tabs %}
+          {% tabs %}
+            {% if event.chat_enabled? %}
+              {% tab chat  %} {{ 'chat' | translate }} {% endtab %}
+            {% endif %}
+            {% if event.notes_enabled? %}
+              {% tab notes %} {{ 'notes' | translate }} {% endtab %}
+            {% endif %}
+            {% tab schedule default %} {{ 'schedule' | translate }} {% endtab %}
+            {% if settings.bible_tab == '1' %}
+              {% tab bible %} {{ 'bible' | translate }} {% endtab %}
+            {% endif %}
+            {% if event.custom_tab_enabled? %}
+              {% tab custom-tab %} {{ organization.custom_tab_title }} {% endtab %}
+            {% endif %}
+          {% endtabs %}
+          <a class="more-widgets" href="#" data-behavior="tabs">
+            <i class="co-icon-ellipsis-h"></i>
+          </a>
+        {% endwidgets %}
+
+      </div>
+    </div>
+    <div class="row full-width event-details">
+
+        <div class="conainer">
+          <div class="medium-7 columns">
+            <div>
+              <h2>{{ event.title }} <small class="event_speaker">{{ event.speaker }}</small></h2>
+              <p>{{ event.description }}</p>
+              {{ component.next_service_time }}
+            </div>
+            <div class="share">
+              {% if settings.show_social == '1' %}
+                <h6>{{ 'share' | translate }}</h6>
+                {{ component.share }}
+                {% endif %}
+              {{ component.quality_switch }}
+            </div>
+          </div>
+
+          <div class="medium-5 columns prayer-text text-right hide-for-small-only" role="content">
+            <div class="prayer-box" data-behavior="co-prayer-box">
+              <span>{{ organization.prayer_tagline }}</span>
+              <span class="prayer-button">{{ component.prayer_button }}</span>
+            </div>
+          </div>
+        </div>
+
+    </div>
+  </div>
+
+  <footer class="row full-width">
+    <div class="medium-7 small-12 columns">
+      <ul class="inline-list left">
+        {% for link in organization.footer_links %}
+          <li>{{ link }}</li>
+        {% endfor %}
+        {% if organization.facebook_link %}
+          <li><a href="{{ organization.facebook_link }}" target="blank">{{ 'facebook' | translate }}</a></li>
+        {% endif %}
+        {% if organization.twitter_link %}
+          <li><a href="{{ organization.twitter_link }}" target="blank">{{ 'twitter' | translate }}</a></li>
+        {% endif %}
+        <li class="copyright">{% include 'copyright' %}</li>
+      </ul>
+    </div>
+    <div class="medium-5 small-12 columns text-right">
+      <a class="powered-by" href="http://churchonlineplatform.com" target="_blank">
+        Powered by
+        <img alt="Church Online Platform" height="25" src="{{ 'church_online_platform_logo_horizontal.png' | asset_url }}" width="173">
+      </a>
+    </div>
+  </footer>
+
+  {{ platform_footer }}
+
+  {{ foundation_js }}
+
+  <script type="text/javascript">
+    {% include 'javascript' %}
+  </script>
+  {{ organization.google_analytics_code }}
+</body>
+</html>
