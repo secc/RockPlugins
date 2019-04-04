@@ -107,6 +107,12 @@
   }
 }
 
+/*----------------------------------
+  Jumbo Font Sizes
+------------------------------------*/
+.g-font-size--jumbo-1 { @include font($size: $font-size-80, $weight: normal, $line-height: $headings-line-height); }
+.g-font-size--jumbo-2 { @include font($size: $font-size-65, $weight: normal, $line-height: $headings-line-height); }
+.g-font-size--jumbo-3 { @include font($size: $font-size-48, $weight: normal, $line-height: $headings-line-height); }
 
 /*----------------------------------
   Font Family

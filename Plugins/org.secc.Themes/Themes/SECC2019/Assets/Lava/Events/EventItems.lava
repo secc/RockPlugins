@@ -95,7 +95,7 @@
                             {% endif %}
 
                             {% if eventItemOccurrence.Name != '' %}
-                                <h4 class="g-font-family--secondary g-padding-r-60--xs" style="margin-bottom: 5px;">{{ eventItemOccurrence.Name }}</h4>
+                                <h5 class="g-font-family--secondary g-padding-r-60--xs" style="margin-bottom: 5px;">{{ eventItemOccurrence.Name }}</h5>
                             {% endif %}
 
                             {% if eventItemOccurrence.Summary != '' %}

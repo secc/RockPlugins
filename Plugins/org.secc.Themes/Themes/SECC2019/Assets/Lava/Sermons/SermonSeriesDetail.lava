@@ -53,7 +53,7 @@
 
             <div id="sermonContent" class="col-sm-12 col-lg-4">
                 <br />
-                <h2 class="g-font-family--secondary">{{ currentMessage.ChildContentChannelItem.Title }}</h2>
+                <h2 class="g-font-size--jumbo-2 g-font-family--secondary">{{ currentMessage.ChildContentChannelItem.Title }}</h2>
             	<h5 class="uppercase">by {{ currentMessage.ChildContentChannelItem | Attribute:'Speaker' }} – {{ currentMessage.ChildContentChannelItem.StartDateTime | Date:'MMMM dd, yyyy' }}</h5>
                 <hr />
                 {% if currentMessage.ChildContentChannelItem.Content != empty -%}
@@ -122,7 +122,7 @@
         <div class="row g-padding-b-60--xs">
             <div class="col-md-12 text-center">
                 <br />
-                <h1 class="g-font-family--secondary">{{ item.Title }}</h1>
+                <h1 class="g-font-size--jumbo-1 g-font-family--secondary">{{ item.Title }}</h1>
                 <p class="series-dates">
                     Series Date:
                     <i><strong>
@@ -157,14 +157,14 @@
                             <img src="/GetImage.ashx?Guid={{ videoImageGuid }}" class="img-responsive img-rounded" style="margin: 0 auto">
                         </div>
                         <div class="series-body g-padding-x-40--xs g-padding-y-40--xs">
-                            <h4 class="g-font-family--secondary g-padding-b-20--xs">{{ message.Title }}</h4>
+                            <h5 class="g-font-family--secondary g-padding-b-20--xs">{{ message.Title }}</h5>
                             <h6 class="g-line-height--normal uppercase">
 								{{ message| Attribute: 'Speaker' }} – {{ message.StartDateTime | Date:'MMMM dd, yyyy' }}<br />
                                 {% assign runningMinutes = message | Attribute: 'Duration' | DividedBy:60 | Floor %}
                                 {% assign temp = runningMinutes | Times:60 %}
                                 {% assign runningSeconds = message | Attribute: 'Duration' | Minus:temp %}
                                 Running Time: {{runningMinutes}}:{{runningSeconds}}
-						    </h4>
+						    </h5>
                         </div>
                     </div>
                     </a>
@@ -195,6 +195,6 @@
     </script>
 
 {% else %}
-	<h1>Could not find series.</h1>
+	<h1 class="g-font-size--jumbo-1">Could not find series.</h1>
 {% endif %}
 {% endcache %}

@@ -106,6 +106,88 @@
 	}
 } // .accordions-1
 
+.accordions-2 {
+
+	.panel {
+		border-radius: 0px !important;
+		@include transition(all .3s ease);
+        &:hover {
+			@include transition(all .3s ease);
+		}
+        .panel-heading {
+
+			color: $CopyColor;
+			position: relative;
+            cursor: pointer;
+			padding: 25px 14% 25px 25px;
+			text-align: left;
+
+			&::before {
+			  position: absolute;
+			  top: 54%;
+			  right: 7%;
+			  margin: -10px 0 0;
+			  display: inline-block;
+			  width: 15px;
+			  height: 15px;
+			  content: "";
+			  border: solid $CopyColor;
+			  // border-right-color: rgba(0, 0, 0, 0.35);
+			  border-width: 0 2px 2px 0;
+			  display: inline-block;
+			  padding: 3px;
+			  transform: rotate(-45deg);
+    		  -webkit-transform: rotate(-45deg);
+			  @include transition(all 0.5s);
+			}
+			&[aria-expanded="true"] {
+				&::before {
+					-webkit-transform: translateY(-5px) rotate(405deg);
+    				-moz-transform: translateY(-5px) rotate(405deg);
+    				transform: translateY(-5px) rotate(405deg);
+                }
+			}
+			.panel-title {
+				@extend h4;
+				font-size: 1.1em;
+				text-transform: none !important;
+				color: $CopyColor;
+				a {
+					&:focus {
+						text-decoration: none;
+					}
+				}
+			}
+		} // .panel-heading
+
+		.panel-collapse {
+
+			.panel-body {
+				border: none;
+                border-radius: 0;
+				border-top: 2px solid rgba(239, 239, 239, 1);
+                background-color: $WhiteColor;
+                // background: linear-gradient(to bottom right, rgba(239, 239, 239, 1), rgba(355, 355, 355, 0.7));;
+				padding: 30px;
+				text-align: left;
+
+				p {
+					margin: 0px;
+					color: $CopyColor;
+					a:not(.btn):not(.btn-doors) {
+						color: $CopyColor;
+                        font-weight: bolder;
+					}
+				}
+			} // .panel-body
+		} // .panel-collapse
+	} // .panel
+
+	.panel+.panel {
+		margin-top: 2.7rem;
+	}
+} // .accordions-2
+
 .faq-contact-links {
 	color: rgba($CopyColor, 0.8);
 	font-size: .9em;

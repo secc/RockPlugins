@@ -85,9 +85,9 @@ Accordion shortcode for the public website to be used in faq section
                       }
                 }
                 </style>
-              <h4 class="panel-title g-font-size-30--xs g-font-size-32--md g-font-weight--700 {% if autoheight == 'false' %} g-ver-center--lg {% endif %} g-padding-r-100--xs g-padding-r-150--md">
+              <h5 class="panel-title g-font-size-30--xs g-font-size-32--md g-font-weight--700 {% if autoheight == 'false' %} g-ver-center--lg {% endif %} g-padding-r-100--xs g-padding-r-150--md">
                   {{ item.title }}
-              </h4>
+              </h5>
             </div>
             <div id="collapse{{ forloop.index }}-{{ wrapperId }}" class="panel-collapse collapse" role="tabpanel"
             aria-labelledby="heading{{ forloop.index }}-{{ wrapperId }}" aria-expanded="false" style="height: 0px;">
