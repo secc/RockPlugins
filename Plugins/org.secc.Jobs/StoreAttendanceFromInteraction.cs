@@ -30,7 +30,7 @@ namespace org.secc.Jobs
     [KeyValueListField( "Component Campus Mapping", "A mapping between component and campus (use the campus name).", true, "", "Component Name", "Campus") ]
     [TextField( "Operation", "The interaction operation to use for populating attendance.", false, "Present" )]
     [GroupTypeField( "Group Type", "The group type to use for logging attendance against (The campus, and Location Schedules on on active groups of this type will be used).", true) ]
-    [SlidingDateRangeField( "Date Range", "The date range in which the interactions were made.", true, "Previous|1|Year||" )]
+    [SlidingDateRangeField( "Date Range", "The date range in which the interactions were made.", true, "Last|365|Day||" )]
     [DisallowConcurrentExecution]
     public class StoreAttendanceFromInteraction : IJob
     {
@@ -45,6 +45,7 @@ namespace org.secc.Jobs
             ScheduleService scheduleService = new ScheduleService( rockContext );
             LocationService locationService = new LocationService( rockContext );
             AttendanceService attendanceService = new AttendanceService( rockContext );
+            AttendanceOccurrenceService attendanceOccurrenceService = new AttendanceOccurrenceService( rockContext );
             GroupService groupService = new GroupService( rockContext );
 
             // Load the channel
@@ -97,16 +98,34 @@ namespace org.secc.Jobs
                                         ( operation == null || i.Operation == operation )
                             ).Select( i => i.PersonAliasId ).Distinct();
                             int newAttendance = 0;
-                            foreach ( int personAliasId in peopleAttended )
+
+                            var occurrenceModel = attendanceOccurrenceService.Get( occurrence.Period.StartTime.Value.Date, gl.GroupId, location.Id, schedule.Id );
+
+                            // Make sure we don't already have an attendance Record
+                            var existingAttendees = attendanceOccurrenceService.Queryable().Where( ao => DbFunctions.TruncateTime( ao.OccurrenceDate ) == occurrence.Period.StartTime.Value.Date && ao.ScheduleId == schedule.Id && ao.GroupId == gl.GroupId && ao.LocationId == location.Id ).SelectMany(a => a.Attendees).Where(a => a.DidAttend == true ).Select( a => a.PersonAliasId );
+                            foreach ( int personAliasId in peopleAttended.Except( existingAttendees ) )
                             {
-                                // Make sure we don't already have an attendance Record
-                                if ( !attendanceService.Queryable().Any( a => DbFunctions.TruncateTime( a.StartDateTime ) == occurrence.Period.StartTime.Value.Date && a.Occurrence.ScheduleId == schedule.Id && a.PersonAliasId == personAliasId && a.Occurrence.GroupId == gl.GroupId && a.Occurrence.LocationId == location.Id && a.DidAttend == true ) )
+                                // Check to see if an occurrence exists already
+                                if ( occurrenceModel == null )
                                 {
                                     var attendance = attendanceService.AddOrUpdate( personAliasId, occurrence.Period.StartTime.Value, gl.GroupId, location.Id, schedule.Id, gl.Group.CampusId );
+
                                     attendance.EndDateTime = occurrence.Period?.EndTime?.Value;
                                     attendance.DidAttend = true;
-                                    newAttendance++;
+                                    occurrenceModel = attendance.Occurrence;
                                 }
+                                else
+                                {
+                                    Attendance attendance = new Attendance();
+                                    attendance.PersonAliasId = personAliasId;
+                                    attendance.OccurrenceId = occurrenceModel.Id;
+                                    attendance.StartDateTime = occurrence.Period.StartTime.Value;
+                                    attendance.EndDateTime = occurrence.Period?.EndTime?.Value;
+                                    attendance.DidAttend = true;
+                                    attendanceService.Add( attendance );
+                                }
+
+                                newAttendance++;
                             }
                             if ( newAttendance > 0 )
                             {
