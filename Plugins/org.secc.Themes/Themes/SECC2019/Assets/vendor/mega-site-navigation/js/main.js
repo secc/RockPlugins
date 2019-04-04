@@ -72,6 +72,15 @@ jQuery(document).ready(function($){
 	$('.cd-primary-nav').children('.has-children').children('a').on('click', function(event){
 		event.preventDefault();
 	});
+
+	if(window.location.href.indexOf("about") > -1) {
+		$('.singlepage').children('li').children('a').on('click', function(event){
+			closeNav();
+			$('.cd-overlay').removeClass('is-visible');
+			toggleTransparentMenu();
+		});
+    }
+
 	//open submenu
 	$('.has-children').children('a').on('click', function(event){
 		if( !checkWindowWidth() ) event.preventDefault();

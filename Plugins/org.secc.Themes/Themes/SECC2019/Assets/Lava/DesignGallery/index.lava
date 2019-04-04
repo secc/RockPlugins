@@ -1,0 +1,55 @@
+<div class="page-wrapper">
+    <section class="cards-section">
+        <div class="container g-padding-y-50--xs">
+            <h2 class="g-font-family--secondary text-center">Southeast 2019 Design Gallery!</h2>
+            <br />
+            <div class="g-width-80-percent--xs g-margin-x-auto--xs ">
+                <p>Welcome to the design gallery! As time goes by, you will see this page get updated with templates, shortcodes, HTML, and web design patterns based on your needs.</p>
+            </div><!--//intro-->
+
+            <div class="isotope_wrap g-padding-y-50--xs">
+
+                {% for childPage in Page.Pages %}
+                        <a href="{{ childPage.Id }}" {% if childPage.DisplayDescription != 'true' %} title="{{ childPage.Description }}"{% endif %}>
+                            <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
+                                <div class="clearfix card g-hor-divider__solid__t--doc-color-{{ forloop.index }}" style="border-width:5px">
+                                    <div class="caption g-padding-x-60--xs g-padding-y-60--xs">
+                                        <h2 class="text-center g-color--doc-color-{{ forloop.index }}">{% if childPage.IconCssClass != '' %}<i class="{{ childPage.IconCssClass }}"></i>{% endif %}</h2>
+                                        <h3 class="g-font-family--secondary text-center" style="margin-bottom: 5px;">
+                                            {{ childPage.Title }}
+                                        </h3>
+                                        {% if childPage.DisplayDescription == 'true' %}
+                                        <div>
+                                            <p>{{ childPage.Description }}</p>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                {% endfor %}
+
+            </div>
+
+        </div><!--//container-->
+    </section><!--//cards-section-->
+</div><!--//page-wrapper-->
+
+<script>
+    $(window).load(function() {
+        var isoOptions = {
+            percentPosition: true,
+            itemSelector: '.isotope_item',
+            layoutMode: 'fitRows'
+        };
+
+        // Initialize Connection Opportunities Isotope
+        var $grid = $('.isotope_wrap').isotope(isoOptions);
+        // reveal all items after init
+        var $items = $grid.find('.isotope_item');
+        $grid.imagesLoaded( function() {
+          // init Isotope after all images have loaded
+          $grid.addClass('is-showing-items').isotope(isoOptions);
+        });
+    });
+</script>

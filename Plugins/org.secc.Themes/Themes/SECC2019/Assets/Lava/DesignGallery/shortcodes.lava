@@ -1,0 +1,206 @@
+<section>
+    <div id="doc-header" class="doc-header g-hor-divider__solid__t--doc-color-1" style="border-width:5px">
+        <div class="container g-padding-b-50--xs g-padding-t-100--xs">
+            <div class="row">
+
+                <div class="col-xs-12">
+                    <h2 class="text-center doc-title g-color--doc-color-1 g-font-family--secondary">
+                    <span aria-hidden="true" class="fa fa-paper-plane"></span>  Lava Shortcodes</h2>
+                    <h5 class=" text-center g-color--black-opacity-lighter">
+                        <i class="fa fa-clock"></i> Last updated: March 29th, 2019<br />
+                        By: Steven Schulte
+                    </h5>
+                    <br />
+                    <div class="g-margin-x-auto--xs">
+                        <p>Lava is used everywhere on the SE website, so by learning Lava and the Lava Shortcodes below, you will benefit from it in many ways! Not only is Lava used on the website, but it can also be used in email templates, communication templates, and a lot of other areas in Rock. In other words, it will make you unstoppable as you work more closely with the SE Website and within the Rock system.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div><!--//doc-header-->
+    <div class="doc-wrapper">
+        <div class="container">
+            <div class="doc-body row g-padding-b-50--xs g-display-flex--lg">
+
+                <div class="doc-sidebar col-md-3 col-12">
+                    <div id="doc-nav" class="doc-nav g-position--sticky" style="top:120px">
+                        <ul id="doc-menu" class="doc-menu list-unstyled">
+                            <li>
+                                <h5><a class="nav-link scrollto" href="#general">General</a></h5>
+                            </li>
+                            <li>
+                                <h5><a class="nav-link scrollto" href="#shortcodes">Shortcodes</a></h5>
+                                <ul class="list-unstyled g-padding-l-20--xs">
+                                    <li><h6><a class="nav-link scrollto" href="#heading-1-lava-shortcodes">FAQs</a></h6></li>
+                                </ul>
+                            </li>
+                        </ul><!--//doc-menu-->
+                    </div>
+
+                </div><!--//doc-sidebar-->
+
+                <div class="doc-content col-md-9 col-xs-12">
+
+                    <article id="general" class="doc-section g-padding-t-20--xs g-margin-y-0--xs">
+                        <h3 class="g-margin-b-10--xs g-hor-divider__solid__b--gray-lightest"><b>What is Lava?</b></h3>
+                        <div class="section-block">
+                            <p>Before we dive into the world of lava shortcodes, you might be wondering what <b><i>Lava</i></b> is. Lava is a templating engine that allows us to leverage the power and flexibility of Rock.</p>
+                            <p>Below is a simple line using Lava. It outputs as: <strong>Hello {{ Person.NickName }}!</strong></p>
+                            {%- raw -%}
+                                <pre><code class="language-markup">Hello {{ Person.NickName }}!</code></pre>
+                            {%- endraw -%}
+                            <p>Anything within the double curly brace will let Rock know that it's lava, and it will run before the page is loaded.</p>
+                            <br />
+                            <p>For additional documentation and all that we can use with it – it is highly recommended to checkout the Rock RMS Lava documentation at this link: <a href="https://community.rockrms.com/lava" target="_blank">https://community.rockrms.com/lava</a></p><p>There you will find lots of examples and ways to utilize lava. You may also want to bookmark the link, since once you understand the basics - you will find yourself referencing to it quite a bit.</p>
+                            <br />
+                            <br />
+                        </div>
+                    </article>
+
+                    <article id="shortcodes" class="doc-section g-padding-t-20--xs g-margin-y-0--xs">
+                        <h3 class="g-margin-b-10--xs g-hor-divider__solid__b--gray-lightest"><b>Lava Shortcodes</b></h3>
+                        <div class="section-block">
+                            <p>Here you will find all of the custom shortcodes we use <i>only</i> on our Southeast Website. You can think of Lava Shortcodes as a way to simplify HTML markup; it other words, it is a template that can be used in any HTML blocks. These Lava shortcodes, however, cannot be used within anything inside of Rock - such as emails, communication templates, etc.; they are to be only used within the SE website.</p>
+                        </div>
+                        <br />
+
+                        <div class="col-md-12 g-padding-x-0--xs">
+                          <div class="panel-lava-shortcodes accordions-2" id="faq-accordion-1" role="tablist" aria-multiselectable="true">
+                            <div class="panel panel-default">
+                                <div class="panel-heading collapsed" role="button"  id="heading-1-lava-shortcodes" data-toggle="collapse" data-parent="#faq-accordion-1"
+                                href="#collapse-1-lava-shortcodes" aria-expanded="false" aria-controls="faq-1-collapse-1">
+                                  <style>
+                                    #heading-1-lava-shortcodes {
+                                        min-height: auto;
+                                    }
+                                    </style>
+                                  <h5 class="panel-title g-font-size-30--xs g-font-size-32--md g-font-weight--700 {% if autoheight == 'false' %} g-ver-center--lg {% endif %} g-padding-r-100--xs g-padding-r-150--md">
+                                      FAQ Shortcode<br >
+                                      <p>Our general accordion shortcode to be used within an FAQ section.</p>
+                                  </h5>
+                                </div>
+                                <div id="collapse-1-lava-shortcodes" class="panel-collapse collapse" role="tabpanel"
+                                aria-labelledby="heading-1-lava-shortcodes" aria-expanded="false" style="height: 0px;">
+                                  <div class="panel-body">
+<p>
+  Here is a clean way of displaying multiple questions with answers on a page. The example below shows an accordion with two different questions.
+</p>
+<br />
+{%- raw -%}
+<pre>
+<code class="language-markup">
+  {[ faq ]}
+
+      [[ item title:'Will this work?' ]]
+          It should! This is the body of the first question.
+      [[ enditem ]]
+
+      [[ item title:'Should we use it?' ]]
+          Absolutely! This is the body of the second question.
+      [[ enditem ]]
+
+  {[ endfaq ]}
+</code>
+</pre>
+{%- endraw -%}
+<br />
+<div class="clearfix">
+    <p>If you copied and paste the the shortcode above into an HTML block – it will output as below when the page is rendered or reloaded/refreshed:</p>
+    <br />
+    {[ faq ]}
+
+        [[ item title:'Will this work?' ]]
+            It should! This is the body of the first question.
+        [[ enditem ]]
+
+        [[ item title:'Should we use it?' ]]
+            Absolutely! This is the body of the second question.
+        [[ enditem ]]
+
+    {[ endfaq ]}
+</div>
+<br />
+<div>
+  <p>
+      The "{%- raw -%}{[ faq ]}{%- endraw -%}" block configuration has the following options:
+  </p>
+  <ul>
+      <li><p><strong>columns</strong> - Set the number of columns (from 1-4). <i>Default <b>2</b>.</i><br></li>
+      <li><p><strong>minheight</strong> - Set the minimum height of the question panels. <br /><i>Default <b>110</b> (Increase this if the questions are too long for the default height).</i></p></li>
+      <li><p><strong>autoheight</strong> - Allow question panels to adjust automatically to length of questions using automatic height. <i>The default is <b>false</b>. Set to <b>true</b> to enable.</i><br></li>
+  </ul>
+</div>
+<br />
+<p>
+  So with the same amount of questions as before, but with addtional options - you can configure it to do something like this too:
+</p>
+<br />
+{%- raw -%}
+<pre>
+<code class="language-markup">
+  {[ faq columns:'1' autoheight:'auto' ]}
+
+      [[ item title:'Will this work?' ]]
+          It should! This is the body of the first question.
+      [[ enditem ]]
+
+      [[ item title:'Should we use it? Even though this question may be really, really, really, really, really long!' ]]
+          Absolutely! This is the body of the second question.
+      [[ enditem ]]
+
+  {[ endfaq ]}
+</code>
+</pre>
+{%- endraw -%}
+<br />
+<div class="clearfix">
+    <p>Which will output as:</p>
+    <br />
+    {[ faq columns:'1' autoheight:'auto' ]}
+
+        [[ item title:'Will this work?' ]]
+            It should! This is the body of the first question.
+        [[ enditem ]]
+
+        [[ item title:'Should we use it? Even though this question may be really, really, really, really, really long!' ]]
+            Absolutely! This is the body of the second question.
+        [[ enditem ]]
+
+    {[ endfaq ]}
+</div>
+                                  </div>
+                                </div>
+                              </div>
+                          </div>
+                        </div>
+
+                    </article>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    #doc-menu li.active > h5 > a,
+    #doc-menu li.active > h6 > a {
+        font-weight: bold;
+    }
+</style>
+<script src="/Themes/SECC2019/Scripts/gumshoe/gumshoe.polyfills.min.js" ></script>
+<script>
+var header = document.querySelector('.cd-main-header');
+var spy = new Gumshoe('#doc-menu a', {
+    nested: true,
+    offset: function () {
+        return header.getBoundingClientRect().height;
+    }
+});
+var scroll = new SmoothScroll('a.scrollto', {
+    speed: 500, // Integer. How fast to complete the scroll in milliseconds
+    easing: 'easeInOutCubic', // Easing pattern to use
+    header: '.cd-main-header'
+});
+</script>

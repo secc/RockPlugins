@@ -188,7 +188,7 @@ namespace RockWeb.Blocks.Event
                     var occurrenceList = eventItem.EventItemOccurrences.ToList();
                     occurrenceList.RemoveAll( o => o.GetStartTimes( RockDateTime.Now, RockDateTime.Now.AddYears( 1 ) ).Count() == 0 );
 
-                    //Check for Campus Id Parameter 
+                    //Check for Campus Id Parameter
                     var campusId = PageParameter( "CampusId" ).AsIntegerOrNull();
                     if ( campusId.HasValue )
                     {
@@ -212,7 +212,7 @@ namespace RockWeb.Blocks.Event
                         }
                     }
 
-                    eventItem.EventItemOccurrences = occurrenceList;
+                    eventItem.EventItemOccurrences = occurrenceList.OrderBy(o => o.NextStartDateTime.HasValue ? o.NextStartDateTime : DateTime.Now ).ToList();
 
                     var mergeFields = new Dictionary<string, object>();
                     mergeFields.Add( "RegistrationPage", LinkedPageRoute( "RegistrationPage" ) );

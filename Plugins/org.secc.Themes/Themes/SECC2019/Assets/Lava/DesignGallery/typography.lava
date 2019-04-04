@@ -1,0 +1,127 @@
+<section>
+    <div id="doc-header" class="doc-header g-hor-divider__solid__t--doc-color-2" style="border-width:5px">
+        <div class="container g-padding-b-50--xs g-padding-t-100--xs">
+            <div class="row">
+
+                <div class="col-xs-12">
+                    <h2 class="text-center doc-title g-color--doc-color-2 g-font-family--secondary"><span aria-hidden="true" class="fa fa-book"></span> Default Typography</h2>
+                    <h5 class=" text-center g-color--black-opacity-lighter">
+                        <i class="fa fa-clock"></i> Last updated: March 29th, 2019<br />
+                        By: Steven Schulte
+                    </h5>
+                    <br />
+                    <div class="g-margin-x-auto--xs">
+                        <p>Below is the default Southeast web typography set along with an example of their HTML markup languages. This way if you ever need to figure out what or how the HTML typography set works - you can always reference this page to get what you need. If you want to understand some of the CSS classes used within the HTML elements, then <a href="/page/1826">jump over to this page to learn how the BEM styles are used across the site</a>.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div><!--//doc-header-->
+</section>
+
+<section>
+    <div class="g-hor-divider__solid__b--gray-lightest g-margin-b-50--xs"></div>
+    <h2>
+        Primary Font Family <small>(Proxima Nova)</small>
+    </h2>
+    <pre><code class="language-markup">&lt;h2&gt;Primary Font Family &lt;small&gt;(Proxima Nova)&lt;/small&gt;&lt;/h2&gt;</code></pre>
+    <br />
+    <h2 class="g-font-family--secondary">
+        Secondary Font Family <small>(Tisa Pro)</small>
+    </h2>
+    <pre><code class="language-markup">&lt;h2 class="g-font-family--secondary"&gt;Secondary Font Family &lt;small&gt;(Tisa Pro)&lt;/small&gt;&lt;/h2&gt;</code></pre>
+</section>
+
+<section>
+    <div class="g-hor-divider__solid__b--gray-lightest g-margin-y-50--xs"></div>
+    <div class="row">
+        <div class="col-sm-12 col-md-6">
+            <h1>Header One</h1>
+            <pre><code class="language-markup">&lt;h1&gt;Header One&lt;/h1&gt;</code></pre>
+            <br />
+            <h2>Header Two</h2>
+            <pre><code class="language-markup">&lt;h2&gt;Header Two&lt;/h2&gt;</code></pre>
+            <br />
+            <h3>Header Three</h3>
+            <pre><code class="language-markup">&lt;h3&gt;Header Three&lt;/h3&gt;</code></pre>
+            <br />
+            <h4>Header Four</h4>
+            <pre><code class="language-markup">&lt;h4&gt;Header Four&lt;/h4&gt;</code></pre>
+            <br />
+            <h5>Header Five</h5>
+            <pre><code class="language-markup">&lt;h5&gt;Header Five&lt;/h5&gt;</code></pre>
+            <br />
+            <h6>Header Six</h6>
+            <pre><code class="language-markup">&lt;h6&gt;Header Six&lt;/h6&gt;</code></pre>
+        </div>
+
+        <div class="col-sm-12 col-md-6">
+            <h1 class="g-font-size--jumbo-1">Jumbo One</h1>
+            <pre><code class="language-markup">&lt;h1 class="g-font-size--jumbo-1"&gt;Jumbo One&lt;/h1&gt;</code></pre>
+            <br />
+            <h2 class="g-font-size--jumbo-2">Jumbo Two</h2>
+            <pre><code class="language-markup">&lt;h2 class="g-font-size--jumbo-2"&gt;Jumbo Two&lt;/h2&gt;</code></pre>
+        </div>
+    </div>
+</section>
+
+<div class="g-hor-divider__solid__b--gray-lightest g-margin-y-50--xs">
+</div>
+<div class="row">
+    <div class="col-sm-12 col-md-6">
+        <h3 class="g-font-family--primary">Default weight with <strong>Primary Font Family</strong></h3>
+        <h3 class="g-font-weight--100">Font Weight 100</h3>
+        <pre><code class="language-markup">&lt;h3 class="g-font-weight--100"&gt;Font Weight 100&lt;/h3&gt;</code></pre>
+        <h3 class="g-font-weight--200">Font Weight 200</h3>
+        <pre><code class="language-markup">&lt;h3 class="g-font-weight--200"&gt;Font Weight 200&lt;/h3&gt;</code></pre>
+        <h3 class="g-font-weight--300">Font Weight 300</h3>
+        <pre><code class="language-markup">&lt;h3 class="g-font-weight--300"&gt;Font Weight 300&lt;/h3&gt;</code></pre>
+        <h3 class="g-font-weight--400">Font Weight 400</h3>
+        <pre><code class="language-markup">&lt;h3 class="g-font-weight--400"&gt;Font Weight 400&lt;/h3&gt;</code></pre>
+        <h3 class="g-font-weight--500">Font Weight 500</h3>
+        <pre><code class="language-markup">&lt;h3 class="g-font-weight--500"&gt;Font Weight 500&lt;/h3&gt;</code></pre>
+        <h3 class="g-font-weight--600">Font Weight 600</h3>
+        <pre><code class="language-markup">&lt;h3 class="g-font-weight--600"&gt;Font Weight 600&lt;/h3&gt;</code></pre>
+        <h3 class="g-font-weight--700">Font Weight 700</h3>
+        <pre><code class="language-markup">&lt;h3 class="g-font-weight--700"&gt;Font Weight 700&lt;/h3&gt;</code></pre>
+        <h3 class="g-font-weight--800">Font Weight 800</h3>
+        <pre><code class="language-markup">&lt;h3 class="g-font-weight--800"&gt;Font Weight 800&lt;/h3&gt;</code></pre>
+        <h3 class="g-font-weight--900">Font Weight 900</h3>
+        <pre><code class="language-markup">&lt;h3 class="g-font-weight--900"&gt;Font Weight 900&lt;/h3&gt;</code></pre>
+    </div>
+    <div class="col-sm-12 col-md-6">
+        <h3 class="g-font-family--secondary">Default weight with <strong>Secondary Font Family</strong></h3>
+        <h3 class="g-font-family--secondary g-font-weight--100">Font Weight 100</h3>
+        <pre><code class="language-markup">&lt;h3 class="g-font-family--secondary g-font-weight--100"&gt;Font Weight 100&lt;/h3&gt;</code></pre>
+        <h3 class="g-font-family--secondary g-font-weight--200">Font Weight 200</h3>
+        <pre><code class="language-markup">&lt;h3 class="g-font-family--secondary g-font-weight--200"&gt;Font Weight 200&lt;/h3&gt;</code></pre>
+        <h3 class="g-font-family--secondary g-font-weight--300">Font Weight 300</h3>
+        <pre><code class="language-markup">&lt;h3 class="g-font-family--secondary g-font-weight--300"&gt;Font Weight 300&lt;/h3&gt;</code></pre>
+        <h3 class="g-font-family--secondary g-font-weight--400">Font Weight 400</h3>
+        <pre><code class="language-markup">&lt;h3 class="g-font-family--secondary g-font-weight--400"&gt;Font Weight 400&lt;/h3&gt;</code></pre>
+        <h3 class="g-font-family--secondary g-font-weight--500">Font Weight 500</h3>
+        <pre><code class="language-markup">&lt;h3 class="g-font-family--secondary g-font-weight--500"&gt;Font Weight 500&lt;/h3&gt;</code></pre>
+        <h3 class="g-font-family--secondary g-font-weight--600">Font Weight 600</h3>
+        <pre><code class="language-markup">&lt;h3 class="g-font-family--secondary g-font-weight--600"&gt;Font Weight 600&lt;/h3&gt;</code></pre>
+        <h3 class="g-font-family--secondary g-font-weight--700">Font Weight 700</h3>
+        <pre><code class="language-markup">&lt;h3 class="g-font-family--secondary g-font-weight--700"&gt;Font Weight 700&lt;/h3&gt;</code></pre>
+        <h3 class="g-font-family--secondary g-font-weight--800">Font Weight 800</h3>
+        <pre><code class="language-markup">&lt;h3 class="g-font-family--secondary g-font-weight--800"&gt;Font Weight 800&lt;/h3&gt;</code></pre>
+        <h3 class="g-font-family--secondary g-font-weight--900">Font Weight 900</h3>
+        <pre><code class="language-markup">&lt;h3 class="g-font-family--secondary g-font-weight--900"&gt;Font Weight 900&lt;/h3&gt;</code></pre>
+    </div>
+</div>
+
+<section>
+    <div class="g-hor-divider__solid__b--gray-lightest g-margin-y-50--xs"></div>
+    <p><strong>Paragraph:</strong></p>
+    <pre><code class="language-markup">&lt;p&gt;&lt;strong&gt;Paragraph:&lt;strong&gt;&lt;p&gt;</code></pre>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis risus elit, imperdiet ac eleifend ut, placerat et sem. Integer ac malesuada augue. Sed fermentum, quam blandit condimentum ullamcorper, ligula eros aliquam mauris, lobortis vestibulum risus nulla sed odio. Sed auctor nunc est, eget malesuada metus semper sed. Praesent nec neque tortor. Suspendisse porttitor ultrices libero, dapibus commodo est. Praesent imperdiet dui lacus, a consequat felis porta dapibus. Nam magna sem, blandit ac nibh sit amet, porttitor dignissim nibh. Nulla odio felis, malesuada non condimentum id, dapibus sed odio. Sed condimentum risus in mauris malesuada viverra.</p>
+    <pre><code class="language-markup">&lt;p&gt;Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis risus elit, imperdiet ac eleifend ut, placerat et sem. Integer ac malesuada augue. Sed fermentum, quam blandit condimentum ullamcorper, ligula eros aliquam mauris, lobortis vestibulum risus nulla sed odio. Sed auctor nunc est, eget malesuada metus semper sed. Praesent nec neque tortor. Suspendisse porttitor ultrices libero, dapibus commodo est. Praesent imperdiet dui lacus, a consequat felis porta dapibus. Nam magna sem, blandit ac nibh sit amet, porttitor dignissim nibh. Nulla odio felis, malesuada non condimentum id, dapibus sed odio. Sed condimentum risus in mauris malesuada viverra.&lt;p&gt;</code></pre>
+</section>
+
+Words without any html elements (except a line break):<br/>
+<pre><code class="language-markup">Words without any html elements (except a line break):&lt;br/&gt;</code></pre>
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis risus elit, imperdiet ac eleifend ut, placerat et sem. Integer ac malesuada augue. Sed fermentum, quam blandit condimentum ullamcorper, ligula eros aliquam mauris, lobortis vestibulum risus nulla sed odio. Sed auctor nunc est, eget malesuada metus semper sed. Praesent nec neque tortor. Suspendisse porttitor ultrices libero, dapibus commodo est. Praesent imperdiet dui lacus, a consequat felis porta dapibus. Nam magna sem, blandit ac nibh sit amet, porttitor dignissim nibh. Nulla odio felis, malesuada non condimentum id, dapibus sed odio. Sed condimentum risus in mauris malesuada viverra.
+<pre><code class="language-markup">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis risus elit, imperdiet ac eleifend ut, placerat et sem. Integer ac malesuada augue. Sed fermentum, quam blandit condimentum ullamcorper, ligula eros aliquam mauris, lobortis vestibulum risus nulla sed odio. Sed auctor nunc est, eget malesuada metus semper sed. Praesent nec neque tortor. Suspendisse porttitor ultrices libero, dapibus commodo est. Praesent imperdiet dui lacus, a consequat felis porta dapibus. Nam magna sem, blandit ac nibh sit amet, porttitor dignissim nibh. Nulla odio felis, malesuada non condimentum id, dapibus sed odio. Sed condimentum risus in mauris malesuada viverra.</code></pre>

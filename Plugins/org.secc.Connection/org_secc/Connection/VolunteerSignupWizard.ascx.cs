@@ -1124,7 +1124,7 @@ namespace org.secc.Connection
                 if ( Settings.Partitions.Any( p => p.PartitionType == "Schedule" ) )
                 {
                     var scheduleService = new ScheduleService( new RockContext() );
-                    var scheduleGuidList = Settings.Partitions.Where( p => p.PartitionType == "Schedule" ).SelectMany( p => p.PartitionValue.Trim( ',' ).Split( ',' ).AsGuidList() ).ToArray();
+                    var scheduleGuidList = Settings.Partitions.Where( p => p.PartitionType == "Schedule" && p.PartitionValue != null).SelectMany( p => p.PartitionValue.Trim( ',' ).Split( ',' ).AsGuidList() ).ToArray();
                     Schedules = scheduleService.Queryable().Where(s => scheduleGuidList.Contains( s.Guid ) ).ToList().OrderBy( s => s.GetNextStartDateTime( DateTime.Now ) ).ToList();
                 }
             }
