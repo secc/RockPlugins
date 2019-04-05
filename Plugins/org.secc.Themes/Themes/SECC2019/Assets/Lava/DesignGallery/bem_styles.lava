@@ -57,10 +57,14 @@
                                     <li><h6><a class="nav-link scrollto" href="#bem-g-center">g-center</a></h6></li>
                                     <li><h6><a class="nav-link scrollto" href="#bem-g-ver-center">g-ver-center</a></h6></li>
                                     <li><h6><a class="nav-link scrollto" href="#bem-g-overflow">g-overflow</a></h6></li>
+                                    <li><h6><a class="nav-link scrollto" href="#bem-g-bg-position">g-bg-position</a></h6></li>
+                                    <li><h6><a class="nav-link scrollto" href="#bem-g-bg">g-bg-bg</a></h6></li>
+                                    <li><h6><a class="nav-link scrollto" href="#bem-g-z-index">g-z-index</a></h6></li>
+                                    <li><h6><a class="nav-link scrollto" href="#bem-g-line-height">g-line-height</a></h6></li>
+                                    <li><h6><a class="nav-link scrollto" href="#bem-g-position">g-position</a></h6></li>
+                                    <li><h6><a class="nav-link scrollto" href="#bem-g-box-shadow">g-box-shadow</a></h6></li>
+                                    <li><h6><a class="nav-link scrollto" href="#bem-g-radius">g-radius</a></h6></li>
                                 </ul>
-                            </li>
-                            <li class="g-padding-b-10--xs">
-                                <h5><a class="nav-link scrollto" href="#bem-responsive">Responsive</a></h5>
                             </li>
                             <li class="g-padding-b-10--xs">
                                 <h5><a class="nav-link scrollto" href="#bem-spacing">Spacing</a></h5>
@@ -234,7 +238,7 @@
                             </div>
                         </div>
 
-                        <article id="bem-g-color" class="g-padding-t-50--xs g-hor-divider__solid__t--gray-lightest">
+                        <article id="bem-g-color" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
                             <h4 class="pull-right g-padding-x-20--xs"><b><code>g-color--[ColorName]</code></b></h4>
                             <p>To change the color of text.</p>
                             HTML Example:
@@ -243,7 +247,7 @@
                             <pre><code class="language-css">color: [ColorName] !important;</code></pre>
                         </article>
 
-                        <article id="bem-g-text-shadow" class="g-padding-t-50--xs g-hor-divider__solid__t--gray-lightest">
+                        <article id="bem-g-text-shadow" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
                             <h4 class="pull-right"><b><code>g-text-shadow--[ColorName]</code></b></h4>
                             <p>To add a text shadow.</p>
                             HTML Example:
@@ -258,7 +262,7 @@
                             <pre><code class="language-css">text-shadow: 0px 0px 25px [ColorName] !important;</code></pre>
                         </article>
 
-                        <article id="bem-g-color-hover" class="g-padding-t-50--xs g-hor-divider__solid__t--gray-lightest">
+                        <article id="bem-g-color-hover" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
                             <h4 class="pull-right g-padding-x-20--xs"><b><code>g-color-hover--[ColorName]</code></b></h4>
                             <p>To change the color of text when hovering.</p>
                             HTML Example:
@@ -271,7 +275,7 @@
 </pre>
                         </article>
 
-                        <article id="bem-g-hor-divider" class="g-padding-t-50--xs g-hor-divider__solid__t--gray-lightest">
+                        <article id="bem-g-hor-divider" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
                             <h4 class="pull-right g-padding-x-20--xs"><b><code>g-hor-divider__solid__[t,b]--[ColorName]</code></b></h4>
                             <p>This one is tricky because we're now getting into a lot of different options, but don't worry, you only need to change the color once you know how this works. The purpose of this class is to add a <i>solid</i> horizontal divider to be either on the <i>bottom</i>, or the <i>top</i> of any elements, and then a color of your choice. So <code>g-hor-divider</code> is our element under the global block, and for any child items that depends on the element itself - it is denoted by two underscores following it like <code>g-hor-divider__solid</code>. Since we not only want the horizontal line to be solid (for now, solid is our only option), we can say we want it to be on the bottom of the elemment, so we add another child element like this <code>g-hor-divider__solid__b</code>. For this class, there are two options for positioning it. There is bottom as in "b" or top as in "t" (see examples below). Finally, we have our color name modifier added to it as usual.</p>
                             HTML Example:
@@ -286,7 +290,7 @@
                             <pre><code class="language-css">border-top: 1px solid [ColorName];</code></pre>
                         </article>
 
-                        <article id="bem-g-ver-divider" class="g-padding-t-50--xs g-hor-divider__solid__t--gray-lightest">
+                        <article id="bem-g-ver-divider" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
                             <h4 class="pull-right g-padding-x-20--xs"><b><code>g-ver-divider__solid__[l,r]--[ColorName]</code></b></h4>
                             <p>This is very similar to the horizontal divider - except it's a vertical divider! The purpose of this class is to add a <i>solid</i> vertical divider on either the <i>left</i> side ("l"), or the <i>right</i> side ("r") of any elements (see examples below), and then a color of your choice.</p>
                             HTML Example:
@@ -301,7 +305,7 @@
                             <pre><code class="language-css">border-right: 1px solid [ColorName];</code></pre>
                         </article>
 
-                        <article id="bem-g-bg-color" class="g-padding-t-50--xs g-hor-divider__solid__t--gray-lightest">
+                        <article id="bem-g-bg-color" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
                             <h4 class="pull-right g-padding-x-20--xs"><b><code>g-bg-color--[ColorName]</code></b></h4>
                             <p>To change the color of the background.</p>
                             HTML Example:
@@ -310,7 +314,7 @@
                             <pre><code class="language-css">background-color: [ColorName] !important;</code></pre>
                         </article>
 
-                        <article id="bem-g-bg-parallax-color--black" class="g-padding-t-50--xs g-hor-divider__solid__t--gray-lightest">
+                        <article id="bem-g-bg-parallax-color--black" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
                             <h4 class="pull-right g-padding-x-20--xs"><b><code>g-bg-parallax-color--black--[10 thru 100]</code></b></h4>
                             <p>Here is a css class that was made specifically for any parallax sections. The idea was to add a black overlay on any images or videos with an opacity of 10% through 100% (in increments of 10). Hence, the options are 10,20,30,40,50,60,70,80,90, or 100. We didn't think every color was needed, so there is only a black color for now; this may change in the future.</p>
                             HTML Example:
@@ -333,7 +337,7 @@
                             <p>In this section, you will find all of the BEM CSS classes we use as helpers for the SE website. You probably won't use them as much, but they're here in case you need them.</p>
                         </div>
 
-                        <article id="bem-g-fullheight" class="g-padding-t-50--xs g-hor-divider__solid__t--gray-lightest">
+                        <article id="bem-g-fullheight" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
                             <h4 class="pull-right g-padding-x-20--xs"><b><code>g-fullheight--[xs,sm,md,lg]</code></b></h4>
                             <p>Here, you might notice we are adding a new kind of modifier. If you have messed with any bootstrap frameworks, this should feel familar. The modifer we're using is to decide whether the fullheight css class should be applied on extra small (xs), small (sm), medium (md), or large (lg) screens. If you want it applied on all screens, just set it to extra small and it will be carried out on all larger screens.</p>
                             HTML Example:
@@ -344,7 +348,7 @@
 }</code></pre>
                         </article>
 
-                        <article id="bem-g-center" class="g-padding-t-50--xs g-hor-divider__solid__t--gray-lightest">
+                        <article id="bem-g-center" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
                             <h4 class="pull-right g-padding-x-20--xs"><b><code>g-center--[xs,sm,md,lg]</code></b></h4>
                             <p>This is to set your element in the center of something if needed (absolute). This is usually used on a nested div element within a relative parent box; In other words, to be centered within a box/block.</p>
                             HTML Example:
@@ -356,7 +360,7 @@
 }</code></pre>
                         </article>
 
-                        <article id="bem-g-ver-center" class="g-padding-t-50--xs g-hor-divider__solid__t--gray-lightest">
+                        <article id="bem-g-ver-center" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
                             <h4 class="pull-right g-padding-x-20--xs"><b><code>g-ver-center--[xs,sm,md,lg]</code></b></h4>
                             <p>This is to set your element in the middle (vertically) of something if needed (absolute). This is also usually used in a nested div element within a relative parent box - just without the position of the element horizontally (auto).</p>
                             HTML Example:
@@ -368,22 +372,90 @@
 }</code></pre>
                         </article>
 
-                        <article id="bem-g-overflow" class="g-padding-t-50--xs g-hor-divider__solid__t--gray-lightest">
+                        <article id="bem-g-overflow" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
                             <h4 class="pull-right g-padding-x-20--xs"><b><code>g-overflow--hidden</code></b></h4>
-                            <p>This is to set the overflow to hidden. Right now there's only one option (hidden), but we might add more in the future.</p>
+                            <p>This is to set the overflow to hidden. Currently, there's only one option for this (hidden).</p>
                             HTML Example:
-                            <pre><code class="language-markup">overflow: hidden</code></pre>
+                            <pre><code class="language-markup">&lt;div class="g-overflow--hidden"&gt;This is to make sure overlows are hidden&lt;/div&gt;</code></pre>
+                            CSS/SCSS behind class:
+<pre><code class="language-css">overflow: hidden</code></pre>
                         </article>
 
-                    </article>
+                        <article id="bem-g-bg-position" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                            <h4 class="pull-right g-padding-x-20--xs"><b><code>g-bg-position--center</code></b></h4>
+                            <p>This is to set the backgound of an element to be centered. Currently, there's only one option for this (hidden).</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;div class="g-bg-position--center"&gt;This is to center the background position.&lt;/div&gt;</code></pre>
+                            CSS/SCSS behind class:
+<pre><code class="language-css">background-size: cover !important;
+background-position: center center !important;</code></pre>
+                        </article>
 
-                    <article id="bem-responsive" class="g-padding-x-0--xs g-padding-t-20--xs g-margin-y-0--xs">
-                    <h3 class="g-margin-b-10--xs g-hor-divider__solid__b--gray-lightest"><b>Responsive</b></h3>
-                    <div class="section-block">
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur tincidunt dui nec gravida varius. Ut in lacus ante. Donec gravida sapien sed libero sollicitudin consequat. Vestibulum aliquam, nulla sed consectetur molestie, metus dui ullamcorper urna, sit amet blandit augue nulla a felis. Sed in enim at ipsum scelerisque rutrum at sit amet turpis. Morbi posuere purus id felis tincidunt bibendum. Mauris non tellus semper, tristique purus id, placerat quam. Aenean at varius arcu. Cras quis faucibus sapien. Quisque nulla dolor, consequat in felis id, ultricies vestibulum eros. Pellentesque magna velit, sodales in auctor ac, ultricies vel ante. Aenean faucibus diam sed ipsum faucibus facilisis.</p>
-                        <br />
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur tincidunt dui nec gravida varius. Ut in lacus ante. Donec gravida sapien sed libero sollicitudin consequat. Vestibulum aliquam, nulla sed consectetur molestie, metus dui ullamcorper urna, sit amet blandit augue nulla a felis. Sed in enim at ipsum scelerisque rutrum at sit amet turpis. Morbi posuere purus id felis tincidunt bibendum. Mauris non tellus semper, tristique purus id, placerat quam. Aenean at varius arcu. Cras quis faucibus sapien. Quisque nulla dolor, consequat in felis id, ultricies vestibulum eros. Pellentesque magna velit, sodales in auctor ac, ultricies vel ante. Aenean faucibus diam sed ipsum faucibus facilisis.</p>
-                    </div>
+                        <article id="bem-g-bg" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                            <h4 class="pull-right g-padding-x-20--xs"><b><code>g-bg--fixed</code></b></h4>
+                            <p>This is to set the <i>attachment</i> of the backgound to be fixed. Currently, there's only one option for this (hidden).</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;div class="g-bg--fixed"&gt;Setting the attachement of the background to be fixed.&lt;/div&gt;</code></pre>
+                            CSS/SCSS behind class:
+<pre><code class="language-css">background-attachment: fixed;
+min-height: 100%;</code></pre>
+                        </article>
+
+                        <article id="bem-g-z-index" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                            <h4 class="pull-right g-padding-x-20--xs"><b><code>g-z-index--[1,2]</code></b></h4>
+                            <p>If you need to set the z-index, use this. Currently, there are two option for this: 1, or 2.</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;div class="g-z-index--2"&gt;Setting the z-index of an element to be 2.&lt;/div&gt;</code></pre>
+                            CSS/SCSS behind class:
+<pre><code class="language-css">z-index: [1, or 2];</code></pre>
+                        </article>
+
+                        <article id="bem-g-line-height" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                            <h4 class="pull-right g-padding-x-20--xs"><b><code>g-line-height--[normal,exs,xs,sm,lg]</code></b></h4>
+                            <p>This is to easily change the line height! There are six options available for this. The last option is to simply include the class without any modifiers; this will set the line height to be the default.</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;div class="g-line-height"&gt;Setting the line height to be the default/normal without any modifiers.&lt;/div&gt;</code></pre>
+                            CSS/SCSS behind class:
+<pre><code class="language-css">line-height: 1.4;</code></pre>
+                        </article>
+
+                        <article id="bem-g-position" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                            <h4 class="pull-right g-padding-x-20--xs"><b><code>g-position--[sticky,relative,absolute,overlay]</code></b></h4>
+                            <p>Set the position if needed.</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;div class="g-position--sticky"&gt;Setting the position.&lt;/div&gt;</code></pre>
+                            CSS/SCSS behind class:
+<pre><code class="language-css">position: sticky;</code></pre>
+                        </article>
+
+                        <article id="bem-g-box-shadow" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                            <h4 class="pull-right g-padding-x-20--xs text-right">
+                                <b>
+                                    <code>g-box-shadow__</code><br />
+                                    <code>[primary-v1]</code><br />
+                                    <code>[dark-lightest-v1]</code><br />
+                                    <code>[dark-lightest-v2]</code><br />
+                                    <code>[dark-lightest-v3]</code><br />
+                                    <code>[dark-lightest-v4]</code><br />
+                                    <code>[dark-lightest-v5]</code>
+                                </b>
+                            </h4>
+                            <p>Set the box shadow. The options are set as child items that depends on the element itself, so to use the options -- use two underscores following it - instead of double dashes.</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;div class="g-box-shadow__dark-lightest-v4"&gt;Setting the box shadow.&lt;/div&gt;</code></pre>
+                            CSS/SCSS behind class:
+<pre><code class="language-css">box-shadow: 0 0 2.5rem .3125rem rgba($color-dark, .05);</code></pre>
+                        </article>
+
+                        <article id="bem-g-radius" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                            <h4 class="pull-right g-padding-x-20--xs"><b><code>g-radius--[3,4,10,50,circle]</code></b></h4>
+                            <p>Set the border radius of an element.</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;div class="g-radius--3"&gt;Setting the radius of 3.&lt;/div&gt;</code></pre>
+                            CSS/SCSS behind class:
+<pre><code class="language-css">@include border-radius(.1875rem !important);</code></pre>
+                        </article>
+
                     </article>
 
                     <article id="bem-spacing" class="g-padding-x-0--xs g-padding-t-20--xs g-margin-y-0--xs">
