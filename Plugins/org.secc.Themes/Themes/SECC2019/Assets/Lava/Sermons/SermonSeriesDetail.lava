@@ -63,9 +63,9 @@
                 <hr />
                 {% endif -%}
 				<div class="text-center">
-					{%- assign mediaURL = currentMessage.ChildContentChannelItem | Attribute:'Audio','RawValue' -%}
+					{%- assign mediaURL = currentMessage.ChildContentChannelItem | Attribute:'Audio','Path' | Replace:'~/','' -%}
 					{%- unless mediaURL == empty -%}
-					<a href="https://rock.secc.org/GetFile.ashx/{{ mediaURL }}.mp3?guid={{ mediaURL }}" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" style="margin-top: 5px;">
+					<a href="{{ 'Global' | Attribute:'PublicApplicationRoot' }}{{ mediaURL }}" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" style="margin-top: 5px;">
 						<i class="fa fa-headphones"></i>
 						Audio
 					</a>
