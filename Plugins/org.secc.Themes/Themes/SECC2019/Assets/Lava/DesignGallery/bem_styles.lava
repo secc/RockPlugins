@@ -77,7 +77,7 @@
                                         <li><h6><a class="nav-link scrollto" href="#bem-g-ver-center">g-ver-center</a></h6></li>
                                         <li><h6><a class="nav-link scrollto" href="#bem-g-overflow">g-overflow</a></h6></li>
                                         <li><h6><a class="nav-link scrollto" href="#bem-g-bg-position">g-bg-position</a></h6></li>
-                                        <li><h6><a class="nav-link scrollto" href="#bem-g-bg">g-bg-bg</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-g-bg">g-bg</a></h6></li>
                                         <li><h6><a class="nav-link scrollto" href="#bem-g-z-index">g-z-index</a></h6></li>
                                         <li><h6><a class="nav-link scrollto" href="#bem-g-line-height">g-line-height</a></h6></li>
                                         <li><h6><a class="nav-link scrollto" href="#bem-g-position">g-position</a></h6></li>
@@ -309,7 +309,7 @@
 
                         <article id="bem-g-hor-divider" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
                             <h4 class="pull-right g-padding-x-20--xs"><b><code>g-hor-divider__solid__[t,b]--[ColorName]</code></b></h4>
-                            <p>This one is tricky because we're now getting into a lot of different options, but don't worry, you only need to change the color once you know how this works. The purpose of this class is to add a <i>solid</i> horizontal divider to be either on the <i>bottom</i>, or the <i>top</i> of any elements, and then a color of your choice. So <code>g-hor-divider</code> is our element under the global block, and for any child items that depends on the element itself - it is denoted by two underscores following it like <code>g-hor-divider__solid</code>. Since we not only want the horizontal line to be solid (for now, solid is our only option), we can say we want it to be on the bottom of the elemment, so we add another child element like this <code>g-hor-divider__solid__b</code>. For this class, there are two options for positioning it. There is bottom as in "b" or top as in "t" (see examples below). Finally, we have our color name modifier added to it as usual.</p>
+                            <p>This one is tricky because we're now getting into a few more options, but don't worry, you only need to change the color once you know how this works. The purpose of this class is to add a <i>solid</i> horizontal divider to be either on the <i>bottom</i>, or the <i>top</i> of any elements, and then a color of your choice. So <code>g-hor-divider</code> is our element under the global block, and for any child items that depends on the element itself - it is denoted by two underscores following it like <code>g-hor-divider__solid</code>. Since we not only want the horizontal line to be solid (for now, solid is our only option), we can say we want it to be on the bottom of the elemment, so we add another child element like this <code>g-hor-divider__solid__b</code>. For this class, there are two options for positioning it. There is bottom as in "b" or top as in "t" (see examples below). Finally, we have our color name modifier added to it as usual.</p>
                             HTML Example:
                             <pre><code class="language-markup">&lt;article class="g-hor-divider__solid__b--gray-lightest"&gt;Here's an aritcle element using the solid horizontal line on the BOTTOM with the gray-lightest color.&lt;/article&gt;</code></pre>
                             CSS behind class:
@@ -494,7 +494,7 @@ min-height: 100%;</code></pre>
                     <h3 class="g-margin-b-10--xs g-hor-divider__solid__b--gray-lightest"><b>Spacing</b></h3>
                     <div class="section-block">
                         <br />
-                        <p>Spacers (saved the best for the last)! These css BEM classes are probably used the most out of all the css classes on this page. You'll noticed there's more than just setting the spaces/paddings/margins, but also the position and whether it should stay for all screens, or just certain width.</p>
+                        <p>Spacers (saved the best for the last)! These css BEM classes are probably used the most out of all the css classes on this page. You'll noticed there's more than just setting the spaces/paddings/margins, but also the position and whether it should stay for all screens, or just a certain width.</p>
                     </div>
 
                     <article id="bem-g-container" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
@@ -719,7 +719,7 @@ min-height: 100%;</code></pre>
 
                     <article id="bem-g-height" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
                         <h4 class="pull-right g-padding-x-20--xs"><b><code>g-height-[HeightOption]--[xs,sm,md,lg]</code></b></h4>
-                        <p>This one does two things as well. You set the height (using any of the "HeightOption" number above), and then set it to be only availble on certain screen sizes (xs, sm, md, or lg); like all of the other bootstrap elements, if you want it on all screen sizes - just set it to xs.</p>
+                        <p>This one does two things as well. You set the height (using any of the "HeightOption" numbers above), and then set it to be only availble on certain screen sizes (xs, sm, md, or lg); like all of the other bootstrap elements, if you want it on all screen sizes - just set it to xs.</p>
                         HTML Example:
                         <pre><code class="language-markup">&lt;div class="g-width-auto--sm"&gt;Setting the height of an element to be 'auto' instead of a number&lt;/div&gt;</code></pre>
                         CSS/SCSS behind class:
@@ -747,7 +747,7 @@ min-height: 100%;</code></pre>
 
                     <article id="bem-g-marginpadding-options" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
                         <h4 class="pull-right g-padding-x-20--xs"><b>Margin/Padding Options</b></h4>
-                        <p>Here are all of the Margin/Paddings available for the following two classes below - unless noted.</p>
+                        <p>Here are all of the Margins/Paddings available for the following two classes below - unless noted.</p>
                             <div class="table-responsive">
                                 <table class="table">
                                     <thead>
