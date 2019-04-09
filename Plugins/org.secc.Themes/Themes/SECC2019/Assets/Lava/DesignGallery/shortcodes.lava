@@ -8,7 +8,7 @@
                     <span aria-hidden="true" class="fa fa-paper-plane"></span>  Lava Shortcodes</h2>
                     <h5 class=" text-center g-color--black-opacity-lighter">
                         <i class="fa fa-clock"></i> Last updated: March 29th, 2019<br />
-                        By: Steven Schulte
+                        Authored By: Steven Schulte
                     </h5>
                     <br />
                     <div class="g-margin-x-auto--xs">
@@ -33,6 +33,7 @@
                                 <h5><a class="nav-link scrollto" href="#shortcodes">Shortcodes</a></h5>
                                 <ul class="list-unstyled g-padding-l-20--xs">
                                     <li><h6><a class="nav-link scrollto" href="#heading-1-lava-shortcodes">FAQs</a></h6></li>
+                                    <li><h6><a class="nav-link scrollto" href="#shortcode-share">Social Media Share</a></h6></li>
                                 </ul>
                             </li>
                         </ul><!--//doc-menu-->
