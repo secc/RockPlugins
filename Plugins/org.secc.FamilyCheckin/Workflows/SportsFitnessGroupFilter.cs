@@ -89,7 +89,12 @@ namespace org.secc.FamilyCheckin
                                     if ( person.GroupTypes.SelectMany( gt => gt.Groups ).Count() == 1 )
                                     {
                                         person.ExcludedByFilter = true;
-                                        person.FamilyMember = false;
+                                        //If this person has already checked in
+                                        //Make them a family member so they can be shown in checkin
+                                        if ( IsCheckedIn( person.Person, rockContext ) )
+                                        {
+                                            person.FamilyMember = true;
+                                        }
                                     }
                                     else //otherwise remove it
                                     {
@@ -103,6 +108,17 @@ namespace org.secc.FamilyCheckin
             }
 
             return true;
+        }
+
+        private bool IsCheckedIn( Person person, RockContext rockContext )
+        {
+            AttendanceService attendanceService = new AttendanceService( rockContext );
+            return attendanceService
+                .Queryable()
+                .Where( a => a.PersonAlias.PersonId == person.Id )
+                .Where( a => a.StartDateTime >= Rock.RockDateTime.Today )
+                .OrderByDescending( a => a.StartDateTime )
+                .Any();
         }
     }
 }

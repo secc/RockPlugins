@@ -37,6 +37,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Connection Status", "Connection status for new people." )]
     [GroupRoleField( Rock.SystemGuid.GroupType.GROUPTYPE_KNOWN_RELATIONSHIPS, "Can CheckIn Relationship" )]
     [CustomDropdownListField( "Required Signature Document", "Document that guests must have on file.", "SELECT Id AS [Value], [Name] AS [Text] FROM SignatureDocumentTemplate", true )]
+    [TextField( "Sports And Fitness Note", "Key for a person attribute to store notes." )]
     public partial class ActivitiesCheckin : CheckInBlock
     {
 
@@ -392,7 +393,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                 card.Controls.Add( phNotes );
 
                 Panel pnlCheckbox = new Panel();
-                pnlCheckbox.CssClass = "col-sm-6 col-xs-12";
+                pnlCheckbox.CssClass = "col-sm-6 col-xs-12 text-center";
                 card.Controls.Add( pnlCheckbox );
 
                 var btnCheckbox = new BootstrapButton
@@ -422,6 +423,28 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                 btnCheckbox.Click += ( s, e ) => { SelectPerson( person ); };
                 btnCheckbox.ID = "btn" + person.Person.Id.ToString();
                 pnlCheckbox.Controls.Add( btnCheckbox );
+
+                Literal lLastCheckedIn = new Literal
+                {
+                    Text = GetLastCheckedIn( person )
+                };
+                pnlCheckbox.Controls.Add( lLastCheckedIn );
+
+                BootstrapButton btnEditNote = new BootstrapButton
+                {
+                    Text = "Edit Note",
+                    CssClass = "btn btn-default btn-xs col-md-12"
+                };
+                btnEditNote.Click += ( s, e ) =>
+                {
+                    hfPersonIdNoteEdit.Value = person.Person.Id.ToString();
+                    var personNoteKey = GetAttributeValue( "SportsAndFitnessNote" );
+                    var sfNote = person.Person.GetAttributeValue( personNoteKey );
+                    tbEditNote.Text = sfNote;
+                    mdEditNote.Title = person.Person.FullName;
+                    mdEditNote.Show();
+                };
+                pnlCheckbox.Controls.Add( btnEditNote );
 
                 Panel pnlImage = new Panel();
                 pnlImage.CssClass = "col-sm-6 col-xs-12";
@@ -464,7 +487,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                             {
                                 nbNote.NotificationBoxType = NotificationBoxType.Info;
                             }
-                            nbNote.Text = nbNote.Text = note.Text;
+                            nbNote.Text = nbNote.Text = note.Text.Replace( "\n", "<br>" );
                             phNotes.Controls.Add( nbNote );
                         }
 
@@ -508,6 +531,23 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                     count = 0;
                 }
             }
+        }
+
+        private void BtnEditNote_Click( object sender, EventArgs e )
+        {
+            throw new NotImplementedException();
+        }
+
+        private string GetLastCheckedIn( CheckInPerson person )
+        {
+            AttendanceService attendanceService = new AttendanceService( _rockContext );
+            var attendance = attendanceService
+                .Queryable()
+                .Where( a => a.PersonAlias.PersonId == person.Person.Id )
+                .Where( a => a.StartDateTime >= Rock.RockDateTime.Today )
+                .OrderByDescending( a => a.StartDateTime )
+                .FirstOrDefault();
+            return attendance != null ? "Checked In at: " + attendance.StartDateTime.ToString( "h:mm tt" ) : "Not Checked In";
         }
 
         private void OpenCameraModal( CheckInPerson person )
@@ -665,45 +705,53 @@ __doPostBack('PhotoUpload', JSON.stringify(req))
         private List<Note> GetGroupMemberNotes( CheckInPerson person, Rock.Model.Group group )
         {
             List<Note> notes = new List<Note>();
+
+            var personNoteKey = GetAttributeValue( "SportsAndFitnessNote" );
+            var sfNote = person.Person.GetAttributeValue( personNoteKey );
+
             Rock.Model.Group membershipGroup = GetMembershipGroup( person, group );
-            if ( membershipGroup == null )
+            if ( membershipGroup != null )
             {
-                return notes;
+                var groupMember = new GroupMemberService( _rockContext )
+                    .Queryable()
+                    .Where( gm => gm.PersonId == person.Person.Id && gm.GroupId == membershipGroup.Id )
+                    .FirstOrDefault();
+
+                if ( groupMember != null )
+                {
+                    if ( !string.IsNullOrWhiteSpace( groupMember.Note ) )
+                    {
+                        //remove note from group member and set it to person attribute
+                        sfNote += ( sfNote.IsNotNullOrWhiteSpace() ? ", " : "," ) + groupMember.Note;
+                        groupMember.Note = "";
+                        groupMember.Person.LoadAttributes();
+                        groupMember.Person.SetAttributeValue( personNoteKey, sfNote );
+                        groupMember.Person.SaveAttributeValues();
+                        _rockContext.SaveChangesAsync();
+                    }
+
+                    switch ( GroupMembershipExpired( groupMember ) )
+                    {
+                        case GroupMembershipStatus.Expired:
+                            Note eNote = new Note();
+                            eNote.Text = "Card expired or no longer church member.";
+                            eNote.IsAlert = true;
+                            notes.Add( eNote );
+                            break;
+                        case GroupMembershipStatus.NearExpired:
+                            Note neNote = new Note();
+                            neNote.Text = "Card will expire soon.";
+                            neNote.IsAlert = false;
+                            notes.Add( neNote );
+                            break;
+                    }
+                }
             }
-            var groupMember = new GroupMemberService( _rockContext ).Queryable().Where( gm => gm.PersonId == person.Person.Id && gm.GroupId == membershipGroup.Id ).FirstOrDefault();
-            if ( groupMember == null )
+            notes.Add( new Note()
             {
-                return notes;
-            }
-            if ( !string.IsNullOrWhiteSpace( groupMember.Note ) )
-            {
-                Note note = new Note();
-                note.Text = groupMember.Note;
-                note.IsAlert = true;
-                notes.Add( note );
-            }
-
-            //This line is commented out because sports and fitnes has complained that they
-            //are seeing notes they did not add
-
-            //notes.AddRange( new NoteService( _rockContext ).Get( _noteTypeId, groupMember.Id ).ToList() );
-
-            switch ( GroupMembershipExpired( groupMember ) )
-            {
-                case GroupMembershipStatus.Expired:
-                    Note eNote = new Note();
-                    eNote.Text = "Card expired or no longer church member.";
-                    eNote.IsAlert = true;
-                    notes.Add( eNote );
-                    break;
-                case GroupMembershipStatus.NearExpired:
-                    Note neNote = new Note();
-                    neNote.Text = "Card will expire soon.";
-                    neNote.IsAlert = false;
-                    notes.Add( neNote );
-                    break;
-            }
-
+                Text = sfNote,
+                IsAlert = false
+            } );
             return notes;
         }
 
@@ -901,5 +949,27 @@ __doPostBack('PhotoUpload', JSON.stringify(req))
 
 
 
+
+        protected void mdEditNote_SaveClick( object sender, EventArgs e )
+        {
+            RockContext rockContext = new RockContext();
+            PersonService personService = new PersonService( rockContext );
+            var personId = hfPersonIdNoteEdit.ValueAsInt();
+            var person = personService.Get( personId );
+
+            var personNoteKey = GetAttributeValue( "SportsAndFitnessNote" );
+            person.LoadAttributes();
+            person.SetAttributeValue( personNoteKey, tbEditNote.Text );
+            person.SaveAttributeValues();
+            rockContext.SaveChanges();
+            mdEditNote.Hide();
+
+            var checkinPerson = CurrentCheckInState.CheckIn.Families
+                .SelectMany( f => f.People )
+                .Where( p => p.Person.Id == personId ).FirstOrDefault();
+            checkinPerson.Person.SetAttributeValue( personNoteKey, tbEditNote.Text );
+            SaveState();
+            BuildMemberCards();
+        }
     }
 }

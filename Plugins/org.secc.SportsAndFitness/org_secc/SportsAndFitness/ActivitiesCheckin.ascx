@@ -138,6 +138,13 @@
             </Content>
         </Rock:ModalDialog>
 
+        <Rock:ModalDialog runat="server" ID="mdEditNote" OnSaveClick="mdEditNote_SaveClick" SaveButtonText="Save" CancelLinkVisible="false">
+            <Content>
+                <asp:HiddenField runat="server" id="hfPersonIdNoteEdit" />
+                <Rock:RockTextBox runat="server" ID="tbEditNote" Rows="10" Label="Note" />
+            </Content>
+        </Rock:ModalDialog>
+
 
         <Rock:ModalAlert ID="maError" runat="server" />
         <asp:Panel runat="server" ID="pnlMain">
