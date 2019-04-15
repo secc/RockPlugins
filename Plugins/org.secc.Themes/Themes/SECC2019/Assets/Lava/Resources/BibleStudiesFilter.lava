@@ -23,7 +23,7 @@ $(document).ready(function() {
 });
 
 $( "#loadArticles" ).click(function() {
-  getMoreStories(jQuery);
+  getMoreArticles(jQuery);
 });
 
 // Start at the next set since the first set is already loaded.
@@ -33,7 +33,7 @@ var articlesContinueMakingRequests = true;
 // This determines whether an ajax request is already in the process or not.
 var articlesLoading = false;
 
-function getMoreStories($) {
+function getMoreArticles($) {
 
 	if (articlesContinueMakingRequests == true) {
 		//console.log('articlesContinueMakingRequests === '+articlesContinueMakingRequests);
@@ -61,9 +61,9 @@ function getMoreStories($) {
                }
             },
 			success: function(data) {
-				//console.log(data.Stories);
+				//console.log(data);
 
-				$.each(data.Stories, function(i, story_group){
+				$.each(data.Articles, function(i, story_group){
 					  //console.log(story_group);
 
 					  var $grid = $('.isotope_wrap').isotope({
@@ -130,13 +130,26 @@ function getMoreStories($) {
 
 				articlesOffset += 1;
 				$("#loading-animation").hide();
-				articlesLoading = false; // reset back to false to allow more requests
 
-				//console.log('data.Stories.length === '+data.Stories.length);
-                if (data.Stories.length == 0) {
+				//console.log('data.Articles.length === '+data.Articles.length);
+                if (data.Articles.length == 0) {
 					articlesContinueMakingRequests = false;
-                    $("#loadStories").hide();
+                    $("#loadArticles").hide();
+                } else {
+                    // check to see if the next loop has more stories, if so, leave it. If not, hide button.
+                    $.ajax({
+            			url: 'https://www.southeastchristian.org/Webhooks/Lava.ashx/bible-studies-articles/'+articlesOffset,
+            			async: true,
+            			success: function(data) {
+            				if (data.Articles.length == 0) {
+            					articlesContinueMakingRequests = false;
+                                $("#loadArticles").hide();
+                            }
+            			}
+                    });
                 }
+
+                articlesLoading = false; // reset back to false to allow more requests
 			}
 
 		});
