@@ -39,117 +39,118 @@
 
     <section id="CampusHero">
         <div style="background-color:black">
-            {% unless currentMessageVimeoID == empty %}
+            {% unless HeroImage == empty or HeroImage == null %}
 
-                <script>
+                {% if currentMessageVimeoID != empty or currentMessageVimeoID != null %}
+                    <script>
+                      var tmpCanInitParallax = jarallax.constructor.prototype.canInitParallax;
+                      jarallax.constructor.prototype.canInitParallax = function(callback) {
+                        // Intercept the set call for the video object and manually set the image
+                        var imageHandler = {
+                          set(target, prop, value) {
+                            target[prop] = value;
+                            if (prop == 'video') {
+                                value.videoImage = "https://www.southeastchristian.org/GetImage.ashx?Guid={{ HeroImage.Guid }}";
+                                value.userEventsList['started'][0] = function () {
 
-                  var tmpCanInitParallax = jarallax.constructor.prototype.canInitParallax;
-                  jarallax.constructor.prototype.canInitParallax = function(callback) {
-                    // Intercept the set call for the video object and manually set the image
-                    var imageHandler = {
-                      set(target, prop, value) {
-                        target[prop] = value;
-                        if (prop == 'video') {
-                            value.videoImage = "https://www.southeastchristian.org/GetImage.ashx?Guid={{ HeroImage.Guid }}";
-                            value.userEventsList['started'][0] = function () {
+                                    self.image.$default_item = self.image.$item;
+                                    self.image.$item = self.$video;
 
-                                self.image.$default_item = self.image.$item;
-                                self.image.$item = self.$video;
+                                    // set video width and height
+                                    self.image.width = self.video.videoWidth || 1280;
+                                    self.image.height = self.video.videoHeight || 720;
+                                    self.options.imgWidth = self.image.width;
+                                    self.options.imgHeight = self.image.height;
+                                    self.coverImage();
+                                    self.clipContainer();
+                                    self.onScroll();
 
-                                // set video width and height
-                                self.image.width = self.video.videoWidth || 1280;
-                                self.image.height = self.video.videoHeight || 720;
-                                self.options.imgWidth = self.image.width;
-                                self.options.imgHeight = self.image.height;
-                                self.coverImage();
-                                self.clipContainer();
-                                self.onScroll();
+                                    // hide image
+                                    if (self.image.$default_item) {
+                                        self.css(self.image.$default_item, {
+                                            'transition': 'opacity .25s ease-in-out',
+                                            '-moz-transition': 'opacity .25s ease-in-out',
+                                            '-webkit-transition': 'opacity .25s ease-in-out',
+                                            'opacity': 1,
+                                        });
+                                        setTimeout(function () {
+                                            self.image.$default_item.style.opacity = 0;
+                                        }, 500);
+                                    }
+                                };
+                            }
+                            return true;
+                          }
+                        };
+                        // Use a proxy'ed JS object
+                        var self = new Proxy(this, imageHandler);
+                        self.defaultInitImgResult = true;
+                        self.image.src = "https://www.southeastchristian.org/GetImage.ashx?Guid={{ HeroImage.Guid }}";
 
-                                // hide image
-                                if (self.image.$default_item) {
-                                    self.css(self.image.$default_item, {
-                                        'transition': 'opacity .25s ease-in-out',
-                                        '-moz-transition': 'opacity .25s ease-in-out',
-                                        '-webkit-transition': 'opacity .25s ease-in-out',
-                                        'opacity': 1,
-                                    });
-                                    setTimeout(function () {
-                                        self.image.$default_item.style.opacity = 0;
-                                    }, 500);
-                                }
-                            };
+                        // save default user styles
+                        var curStyle = self.$item.getAttribute('style');
+                        if (curStyle) {
+                            self.$item.setAttribute('data-jarallax-original-styles', curStyle);
                         }
-                        return true;
+
+                        // set new background
+                        self.css(self.$item, {
+                            'background-image': 'url("https://www.southeastchristian.org/GetImage.ashx?Guid={{ HeroImage.Guid }}")',
+                            'background-position': '{{ HeroImagePosition }}',
+                            'background-size': 'cover',
+                            'transition': 'opacity .25s ease-in-out',
+                            '-moz-transition': 'opacity .25s ease-in-out',
+                            '-webkit-transition': 'opacity .25s ease-in-out',
+                            'opacity': 1,
+                        });
+
+                        // Now actually call the method against the proxy object
+                        return tmpCanInitParallax.apply(self);
                       }
-                    };
-                    // Use a proxy'ed JS object
-                    var self = new Proxy(this, imageHandler);
-                    self.defaultInitImgResult = true;
-                    self.image.src = "https://www.southeastchristian.org/GetImage.ashx?Guid={{ HeroImage.Guid }}";
+                    </script>
 
-                    // save default user styles
-                    var curStyle = self.$item.getAttribute('style');
-                    if (curStyle) {
-                        self.$item.setAttribute('data-jarallax-original-styles', curStyle);
-                    }
+                    {[ parallax videourl:'https://vimeo.com/{{ CampusVimeoId }}' image:'https://www.southeastchristian.org/GetImage.ashx?Guid={{ HeroImage.Guid }}' videostarttime:'75' videoendtime:'105' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'80vh' position:'{{ HeroImagePosition }}' speed:'-15' ]}
+                        <!-- START: Campus Logo & Video -->
+                        <div class="parallax-logo centered" style="padding: 0px; z-index:3; max-width: 100%;">
+                            <h5 class="uppercase g-font-weight--600 g-letter-spacing--3">Welcome To</h5>
+                            <br />
+                            <h1 class="g-font-family--secondary g-font-size-150--lg g-font-size-80--xs g-text-shadow--black--soft">{{ campus.Name }}</h1>
+                            <br />
+                            <br />
+                            {% if CampusVimeoId != '' %}
+                                <script src="/Themes/SECC2019/Scripts/jquery-modal-video-se.js"></script>
+                                <script>
+                                $(document).ready(function() {
 
-                    // set new background
-                    self.css(self.$item, {
-                        'background-image': 'url("https://www.southeastchristian.org/GetImage.ashx?Guid={{ HeroImage.Guid }}")',
-                        'background-position': '{{ HeroImagePosition }}',
-                        'background-size': 'cover',
-                        'transition': 'opacity .25s ease-in-out',
-                        '-moz-transition': 'opacity .25s ease-in-out',
-                        '-webkit-transition': 'opacity .25s ease-in-out',
-                        'opacity': 1,
-                    });
+                                    initModalVideo();
 
-                    // Now actually call the method against the proxy object
-                    return tmpCanInitParallax.apply(self);
-                  }
-                </script>
+                                    function initModalVideo(){
+                                        $(".js-modal-video").modalVideo({
+                                            channel: 'vimeo',
+                                            autoplay: true
+                                        });
+                                    }
 
-                {[ parallax videourl:'https://vimeo.com/{{ CampusVimeoId }}' image:'https://www.southeastchristian.org/GetImage.ashx?Guid={{ HeroImage.Guid }}' videostarttime:'75' videoendtime:'105' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'80vh' position:'{{ HeroImagePosition }}' speed:'-15' ]}
-                    <!-- START: Campus Logo & Video -->
-                    <div class="parallax-logo centered" style="padding: 0px; z-index:3; max-width: 100%;">
-                        <h5 class="uppercase g-font-weight--600 g-letter-spacing--3">Welcome To</h5>
-                        <br />
-                        <h1 class="g-font-family--secondary g-font-size-150--lg g-font-size-80--xs g-text-shadow--black--soft">{{ campus.Name }}</h1>
-                        <br />
-                        <br />
-                        {% if CampusVimeoId != null %}
-
-                            <script src="/Themes/SECC2019/Scripts/jquery-modal-video-se.js"></script>
-                            <script>
-                            $(document).ready(function() {
-
-                                initModalVideo();
-
-                                function initModalVideo(){
-                                    $(".js-modal-video").modalVideo({
-                                        channel: 'vimeo',
-										autoplay: true
-                                    });
-                                }
-
-                            });
-                            </script>
-                            <a href="javascript:void(0)" class="js-modal-video" data-video-id="{{ CampusVimeoId }}">
-                                <div class="play">
-                                    <svg version="1.1" id="play" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" height="100px" width="100px"
+                                });
+                                </script>
+                                <a href="javascript:void(0)" class="js-modal-video" data-video-id="{{ CampusVimeoId }}">
+                                    <div class="play">
+                                        <svg version="1.1" id="play" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" height="100px" width="100px"
                                         viewBox="0 0 100 100" enable-background="new 0 0 100 100" xml:space="preserve">
                                         <path class="stroke-solid" fill="none" stroke="white"  d="M49.9,2.5C23.6,2.8,2.1,24.4,2.5,50.4C2.9,76.5,24.7,98,50.3,97.5c26.4-0.6,47.4-21.8,47.2-47.7
                                         C97.3,23.7,75.7,2.3,49.9,2.5" />
                                         <path class="stroke-dotted" fill="none" stroke="white"  d="M49.9,2.5C23.6,2.8,2.1,24.4,2.5,50.4C2.9,76.5,24.7,98,50.3,97.5c26.4-0.6,47.4-21.8,47.2-47.7
                                         C97.3,23.7,75.7,2.3,49.9,2.5" />
                                         <path class="icon" fill="white" d="M38,69c-1,0.5-1.8,0-1.8-1.1V32.1c0-1.1,0.8-1.6,1.8-1.1l34,18c1,0.5,1,1.4,0,1.9L38,69z" />
-                                    </svg>
-                                </div>
-                            </a>
-                        {% endif %}
-                    </div>
+                                        </svg>
+                                    </div>
+                                </a>
+                            {% endif %}
+                        </div>
                     <!-- END: Campus Logo & Videod -->
-                {[ endparallax ]}
+                    {[ endparallax ]}
+                {% endif %}
+
             {% endunless %}
         </div>
         <!-- START: Page Sub-Menu -->
@@ -179,7 +180,7 @@
                         <li><a href="#Leadership">Leadership</a></li>
                         <li><a href="#Children">Children</a></li>
                         <li><a href="#Students">Students</a></li>
-                        {% unless campusSlug == "elizabethtown" %}
+                        {% unless campusSlug == "elizabethtown" or campusSlug == "rivervalley"%}
                         <li><a href="#LivingWord">Living Word</a></li>
                         {% endunless %}
                         {% if campusSlug == "blankenbaker" %}
@@ -217,9 +218,11 @@
                                 {{ campus.Location.Street1 }}<br />
                                 {{ campus.Location.City }}, {{ campus.Location.State }} {{ campus.Location.PostalCode }}<br />
                             </p>
+                            {% if campus.PhoneNumber != '' %}
                             <p class="g-font-weight--400 g-line-height--sm">
                                 Phone: {{ campus.PhoneNumber }}
                             </p>
+                            {%  endif %}
                         </address>
                         <a class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1"
                            target="_blank"
