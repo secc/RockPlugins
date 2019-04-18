@@ -45,6 +45,12 @@
                         <img src="/Themes/SECC2019/Assets/img/SE/Campuses/ET.jpg" class="img-responsive" />
                     </a>
                 </li>
+                <li>
+                    <a class="cd-nav-item" href="/location/rivervalley">
+                        <h3>River Valley</h3>
+                        <img src="/Themes/SECC2019/Assets/img/SE/Campuses/RV.jpg" class="img-responsive" />
+                    </a>
+                </li>
             </ul>
         </li>
 
