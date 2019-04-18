@@ -1,7 +1,40 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="MedicationDispense.ascx.cs" Inherits="RockWeb.Blocks.Reporting.NextGen.MedicationDispense" %>
-
 <asp:UpdatePanel ID="upReport" runat="server">
     <ContentTemplate>
+        <Rock:ModalDialog runat="server" ID="mdNotes">
+            <Content>
+                <asp:HiddenField runat="server" ID="hfPersonId" />
+                <div class="row">
+                    <div class="col-md-12">
+                        <Rock:Grid runat="server" ID="gNotes" ShowActionRow="false" DataKeyNames="Id" AllowPaging="false">
+                            <Columns>
+                                <asp:BoundField DataField="Text" HeaderText="Distribution" HtmlEncode="false" HtmlEncodeFormatString="false" />
+                                <Rock:EditField HeaderText="Edit" ID="btnEdit" OnClick="btnEdit_Click" />
+                                <Rock:DeleteField HeaderText="Remove" ID="btnDelete" OnClick="btnDelete_Click" />
+                            </Columns>
+                        </Rock:Grid>
+                        <Rock:BootstrapButton runat="server" ID="btnAddNote" CssClass="pull-right btn btn-primary"
+                            Text="<i class='fa fa-plus'></i>" OnClick="btnAddNote_Click" />
+                    </div>
+                </div>
+            </Content>
+        </Rock:ModalDialog>
+
+        <Rock:ModalDialog runat="server" ID="mdEdit" OnSaveClick="mdEdit_SaveClick" CancelLinkVisible="false" SaveThenAddButtonText="Cancel"
+            OnSaveThenAddClick="mdEdit_SaveThenAddClick" SaveButtonText="Save">
+            <Content>
+                <div class="row">
+                    <div class="col-md-12">
+                        <asp:HiddenField runat="server" ID="hfNoteId" />
+                        <Rock:RockDropDownList runat="server" ID="ddlMatrixItem" Label="Medication"
+                            DataValueField="Key" DataTextField="Value">
+                        </Rock:RockDropDownList>
+                        <Rock:DateTimePicker runat="server" ID="dtpDateTime" Required="true" Label="Date and Time" />
+                    </div>
+                </div>
+            </Content>
+        </Rock:ModalDialog>
+
         <Rock:NotificationBox runat="server" ID="nbAlert" Dismissable="true" NotificationBoxType="Danger" />
         <div class="panel panel-default">
             <div class="panel-heading">
@@ -23,13 +56,19 @@
                         </asp:Panel>
                     </div>
                     <div class="col-md-3">
-                        <Rock:DatePicker runat="server" ID="dpDate" Label="Day" OnTextChanged="dpDate_TextChanged" AutoPostBack="true" />
+                        <div class="col-md-12" style="padding: 7px 0px 15px 0px">
+                            <Rock:DatePicker runat="server" ID="dpDate" Label="Day" OnTextChanged="dpDate_TextChanged" AutoPostBack="true" />
+                        </div>
+                        <div class="col-md-12">
+                            <Rock:Toggle runat="server" ID="cbHideDistributed" Label="Hide Distributed"
+                                OnText="Yes" OffText="No" OnCheckedChanged="cbHideDistributed_CheckedChanged" AutoPostBack="true" />
+                        </div>
                     </div>
                 </div>
 
             </div>
             <div class="panel-body">
-                <Rock:Grid runat="server" ID="gGrid" TooltipField="History" DataKeyNames="Key" AllowSorting="true">
+                <Rock:Grid runat="server" ID="gGrid" TooltipField="History" DataKeyNames="Key" AllowSorting="true" OnRowSelected="gGrid_RowSelected">
                     <Columns>
                         <asp:BoundField DataField="Person" HeaderText="Person" SortExpression="Person" />
                         <asp:BoundField DataField="Medication" HeaderText="Medication" />

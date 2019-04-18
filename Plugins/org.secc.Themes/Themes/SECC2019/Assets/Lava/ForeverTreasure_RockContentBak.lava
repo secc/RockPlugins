@@ -1,0 +1,193 @@
+<section>
+	<div style="background-color: white; overflow: hidden;">
+        {[ parallax image:'https://southeastchristian.org/Content/Ministries/Children/ForeverTreasures/background_forever_treasures-1.jpg' addclass:'menu-switch' height:'75vh' position:'10% 50%' speed:'-15' ]}
+
+            <div class="parallax-logo centered" style="padding: 0px;">
+               <img class="g-width-500--xs g-width-30-percent--md g-height-auto--xs" src="https://southeastchristian.org/Content/Ministries/Children/ForeverTreasures/forever-treasure-weblogo.png" alt="" width="979" height="979" data-ww="502px" data-hh="502px" data-lazyload="https://southeastchristian.org/Content/Ministries/Children/ForeverTreasures/forever-treasure-weblogo.png" />
+            </div>
+
+            <div class="g-position--absolute" style="bottom:-15px; left: 2%;">
+                {[ wow animate:'bounceInUp' duration:'1s' delay:'0.4s' ]}
+                <img class="hidden-xs hidden-sm g-width-600--xs" src="https://southeastchristian.org/Content/Ministries/Children/ForeverTreasures/boy1.png" alt="" data-lazyload="https://southeastchristian.org/Content/Ministries/Children/ForeverTreasures/boy1.png" />
+                {[ endwow ]}
+            </div>
+
+            <div class="g-position--absolute" style="top:18%; right: 2%;">
+                {[ wow animate:'slideInRight' duration:'1s' delay:'0.8s' ]}
+                <img class="hidden-xs hidden-sm g-width-600--xs g-margin-l-50--xs" src="https://southeastchristian.org/Content/Ministries/Children/ForeverTreasures/girl_flipped.png" alt="" data-lazyload="https://southeastchristian.org/Content/Ministries/Children/ForeverTreasures/girl_flipped.png" />
+                {[ endwow ]}
+            </div>
+
+        {[ endparallax ]}
+	</div>
+</section>
+
+<section class="container">
+    <article class="row g-margin-y-100--xs g-margin-x-40--xs">
+        <div class="col-md-6">
+                <div class="clearfix g-hor-centered-row--xs g-padding-y-40--xs">
+                    <h4>
+                        <img class="g-padding-x-30--xs g-width-150--xs g-width-200--sm g-width-250--md" alt="null" src="https://southeastchristian.org/Content/Ministries/Children/ForeverTreasures/treasurechest1.png">
+                        NOTE TO PARENTS
+                    </h4>
+                </div>
+                <p>
+                    <span style="font-weight: 400">Nowhere in the Bible do we see the role of a gatekeeper to the baptistry. Rather, when people heard the Good News and repented of their sin, they were immediately baptized. With children, however, we have a responsibility to shepherd them carefully. Our hope is that when your kids are ready, in God’s timing, you can use the </span><i><span style="font-weight: 400">Forever Treasure</span></i><span style="font-weight: 400"> process to help guide them in their decision to follow Christ. We suggest not rushing through this process. Take your time and help your kids to dig into God’s Word and begin to really understand what it means to follow Christ.
+                    </span>
+                </p>
+                <br />
+        </div>
+        <div class="col-md-6 text-center g-margin-t-60--md">
+            <h3 class="g-font-family--secondary">Welcome to Forever Treasure!</h3>
+            <br />
+            <div class="welcome-video embed-responsive embed-responsive-16by9" style="margin-top:-13px;">
+				<iframe src="//player.vimeo.com/video/183544351" class="embed-responsive-item" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen=""></iframe>
+			</div>
+        </div>
+    </article>
+</section>
+
+<section class="fluid-container" style="background-color: rgb(0, 147, 165)">
+    <div class="container">
+        <article class="row g-margin-t-100--xs g-margin-x-40--xs">
+            <div class="col-md-12 text-center">
+                    <img src="https://southeastchristian.org/Content/Ministries/Children/ForeverTreasures/at_home_icon.png" class="ultimate-headings-icon-image" alt="null" style="width:65px">
+                    <h2 class="g-font-family--secondary" style="font-weight:normal;color:#ffffff;">Forever Treasure: At Home</h2>
+                    <p class="uvc-sub-heading ult-responsive" data-ultimate-target=".uvc-heading.ultimate-heading-11745cae281510a6f .uvc-sub-heading " data-responsive-json-new="{&quot;font-size&quot;:&quot;desktop:20px;&quot;,&quot;line-height&quot;:&quot;&quot;}" style="font-weight:normal;color:#ffffff;"><span style="font-weight: 400">Before you begin, you will need a </span><i><span style="font-weight: 400">Forever Treasure</span></i><span style="font-weight: 400"> workbook. If you don’t already have one, pick one up at church or <a href="mailto:jbarnett@secc.org" class="g-font-weight--700 g-color--white">send us an email</a>! Before you watch the videos below, you’ll want to begin the </span><i><span style="font-weight: 400">At Home</span></i><span style="font-weight: 400"> portion of the workbook. The workbook will tell you when it’s time to watch each video.</span></p>
+            </div>
+        </article>
+        <div class="row g-margin-y-60--xs g-margin-x-40--xs">
+            <span style="border-top: 2px dotted white; height: 10px; display: block; width: 100%;"></span>
+        </div>
+        <article class="row g-margin-x-40--xs text-center">
+            <h2 class="g-color--white g-font-family--secondary">The Quest Begins</h2>
+            <br />
+            <div class="welcome-video embed-responsive embed-responsive-16by9" style="margin-top:-13px;">
+				<iframe src="//player.vimeo.com/video/182901386" class="embed-responsive-item" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen=""></iframe>
+			</div>
+        </article>
+        <div class="row g-margin-y-60--xs g-margin-x-40--xs">
+            <span style="border-top: 2px dotted white; height: 10px; display: block; width: 100%;"></span>
+        </div>
+        <article class="row g-margin-b-100--xs g-margin-x-40--xs text-center">
+            <h2 class="g-color--white g-font-family--secondary">Discovering God's Treasure</h2>
+            <br />
+            <div class="welcome-video embed-responsive embed-responsive-16by9" style="margin-top:-13px;">
+				<iframe src="//player.vimeo.com/video/182901798" class="embed-responsive-item" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen=""></iframe>
+			</div>
+        </article>
+    </div>
+</section>
+
+<section id="AtChurch" style="background-color:rgb(131, 202, 208);">
+    {[ parallax image:'https://southeastchristian.org/Content/Ministries/Children/ForeverTreasures/boatwater_xl.png' height:'60vh' position:'20% 80%' speed:'-5' ]}
+    {[ endparallax ]}
+</section>
+<section id="AtChurchWater" style="background-color:#74DBDA;">
+    <div class="container g-padding-y-150--md">
+        <div class="row">
+            <div class="col-sm-12 text-center">
+                <img src="https://southeastchristian.org/Content/Ministries/Children/ForeverTreasures/at_church_icon.png" class="ultimate-headings-icon-image" alt="null" style="width:65px">
+                <h2 class="g-color--black g-font-family--secondary">Forever Treasure: At Church</h2>
+                <br />
+                <p class="g-color--black">After you’ve completed the <i>At Home</i> section of the <i>Forever Treasure</i> workbook, it’s time to connect at church!</p>
+                <p class="g-color--black">If you attend the Blankenbaker Campus, <a class="g-font-weight--700 g-color--black" href="https://www.southeastchristian.org/events/forever-treasure">click here</a> to see upcoming class dates.</p>
+                <p class="g-color--black">For the Indiana Campus, contact Lucas Goforth at <a class="g-font-weight--700 g-color--black" href="mailto:lgoforth@secc.org">lgoforth@secc.org</a> or call 812.704.1973.</p>
+                <p class="g-color--black">For the Crestwood Campus, contact <a class="g-font-weight--700 g-color--black" href="mailto:sekidscw@secc.org">sekidscw@secc.org</a> or call 502.873.1097.</p>
+                <p class="g-color--black">For the Southwest Campus, contact Grant Bridgewater at <a class="g-font-weight--700 g-color--black" href="mailto:gbridgewater@secc.org">gbridgewater@secc.org</a> to sign up.</p>
+                <p class="g-color--black">For the Elizabethtown Campus, contact Ryne Able at <a class="g-font-weight--700 g-color--black" href="mailto:etchildrens@secc.org">etchildrens@secc.org</a> to sign up.</p>
+                <p class="g-color--black">For the La Grange Campus, contact Bernie Minnis at <a class="g-font-weight--700 g-color--black" href="mailto:bminnis@secc.org">bminnis@secc.org</a> to sign up.</p>
+                <p class="g-color--black">For the River Valley Campus, contact Jennifer Baumer at <a class="g-font-weight--700 g-color--black" href="mailto:jbaumer@secc.org">jbaumer@secc.org</a> to sign up.</p>
+                <p class="g-color--black">If you don’t attend Southeast Christian Church, talk to a leader at your church about offering a <i>Forever Treasure</i> class.</p></p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="FrequentlyAskedQuestions">
+        <div class="container g-padding-y-150--md">
+            <div class="row">
+                <div class="col-sm-12 text-center">
+                    <br>
+                    <h2>
+                        Frequently Asked Questions
+                    </h2>
+                    <br>
+    			</div>
+    		</div>
+    		<div class="row g-padding-y-20--xs">
+    				{[ faq ]}
+
+    [[ item title:'What is baptism?' ]]
+        <p><span style="font-weight: 400">As followers of Jesus Christ, baptism is an essential step in our relationship with Him. It&nbsp;is an out opportunity to announce that we have chosen to trust in Jesus Christ alone for salvation, turn away from sin to God, and orient our lives toward God and His purpose. Baptism identifies Jesus Christ as our Lord and Savior, and identifies us as children of God who are actively participating in His mission in the world. It is a step of obedience to God in following the example that Jesus set</span><i><span style="font-weight: 400"> (see Acts 2:38; Romans 6:3-4; Galatians 3:27; Matthew 3:13-17, 28:19-20).</span></i></p>
+    [[ enditem ]]
+
+    [[ item title:'How do I know if my child is ready for baptism?' ]]
+        <p><span style="font-weight: 400">Does your child display a genuine TRUST in Christ? Do they believe that Jesus is God’s son, died for their sin, rose from the dead, and today prepares a place for us in Heaven? Has your child recognized their sin and decided to TURN from it, repenting, showing remorse, and making a move toward right living? Has your child decided to TELL Jesus He is first? This is a decision of Lordship, and you should notice your child pursuing a life submitting to the Lord’s leading. In Scripture, when people did these things, they were baptized soon after. </span></p>
+        <br />
+        <p><span style="font-weight: 400">With children, we also like to see some cognitive markers:</span></p>
+        <br />
+        <ul>
+            <li><span>Can your child share what baptism means? Baptism is a way of showing that we trust in Jesus, we have turned away from sin to Him, and want Him to be first in our lives. </span></li>
+            <li><span>Can your child, in their own words, explain the Gospel message? (God created, man sinned, God sent His perfect Son, Jesus died to pay for our sin, we can be forgiven and restored by trusting in and following Jesus, and </span><span>become a part of what God is doing today</span><span>.)</span></li>
+            <li><span>Can your child share why they want to get baptized? Do they want to know, love, obey, and follow Jesus, because He first loved us (1 John 4:19)? Some children want to get baptized only because they have seen a friend or relative get baptized. This is not a reason for baptism.</span></li>
+            <li><span>Has your child consistently asked about baptism or following Jesus, on their own initiative? Do they continue to bring it up over a prolonged period of time, without prompting? This can often be an indicator that God’s Spirit is at work in their lives.</span></li>
+        </ul>
+        <p><span style="font-weight: 400">If you still have questions or are not sure if your child is ready, your church leadership will be happy to talk with you.</span></p>
+    [[ enditem ]]
+
+    [[ item title:'Who can decide if my child is ready for baptism?' ]]
+    <p><span style="font-weight: 400">Each person must take the step of baptism because it is their own personal decision. Children should never be pressured to get baptized if they are not ready. As a parent or trusted leader in the life of a child, you will have the best gauge on their readiness for baptism. They also fall under your spiritual leadership, which means that you must be comfortable with their decision for baptism. Your church leadership is also happy to talk with you and your child about their understanding of baptism.</span></p>
+    [[ enditem ]]
+
+    [[ item title:'Who can baptize my child?' ]]
+    <p><span style="font-weight: 400">Jesus said, “…go and make disciples of all nations, baptizing them in the name of the Father and the Son and the Holy Spirit. Teach these new disciples to obey all the commands I have given you…” </span><i><span style="font-weight: 400">(Matthew 28:19-20 NLT)</span></i><span style="font-weight: 400"> Anyone who is an immersed, active Christ-follower can baptize your child. At Southeast Christian Church, all who baptize will also demonstrate alignment with our church’s beliefs and mission through a signed Statement of Faith. If possible, we often encourage parents to baptize their child so they can play a direct role in this significant, milestone moment.</span></p>
+    [[ enditem ]]
+
+    [[ item title:'How old does my child need to be in order to get baptized?' ]]
+    <p><span style="font-weight: 400">The Bible does not give a set age for baptism, so we do not give a specific “minimum age.” At Southeast Christian Church we wait until a child is 8 years old to publicly baptize them during a worship service. Younger children may be baptized outside of a public worship service. Age 8 is not a Biblical age, but is a helpful guideline for younger children who might be inclined towards baptism without fully grasping its meaning and significance.</span></p>
+    [[ enditem ]]
+
+    [[ item title:'Do we have to go through the forever treasure process?' ]]
+    <p><span style="font-weight: 400">The </span><i><span style="font-weight: 400">Forever Treasure</span></i><span style="font-weight: 400"> process is recommended for children and families who are interested in baptism. The goal of Forever Treasure is to help your child understand core truths that will help build life-long faith. Some families may choose not to go through the process, or go through it after baptism. If you have questions, please contact your church.</span></p>
+    [[ enditem ]]
+
+    [[ item title:'What if I think my child is not ready for baptism?' ]]
+    <p><span style="font-weight: 400">If you think your child needs a better understanding of baptism, it is okay to take more time to help them. Encourage your child that they can continue to grow to know and love God more each and every day. Take time to open the Bible together and pray together. Some children benefit from having a tangible date to look forward to </span><i><span style="font-weight: 400">(“When you turn __ years old we can go through the Forever Treasure journal and talk more about baptism.”)</span></i></p>
+    [[ enditem ]]
+
+    [[ item title:'What if my child was baptized as an infant?' ]]
+    <p><span style="font-weight: 400">We believe that baptism is—at its heart—a personal commitment, a decision that a person makes for himself or herself. In a way, by your child deciding to be baptized now, they are confirming the decision that was made for them when they were born—to raise them to know the Lord. Only now your child is making that decision for themselves.</span></p>
+    [[ enditem ]]
+
+    [[ item title:'Where and when can my child get baptized?' ]]
+    <p><span style="font-weight: 400">Your child can get baptized at any time, at any location. Your church will help coordinate baptisms in the church building.</span></p>
+    [[ enditem ]]
+
+    [[ item title:'Have more questions about baptism?' ]]
+    <p><span style="font-weight: 400"><a href="https://www.southeastchristian.org/beliefs/#baptism">Click here</a> to find a helpful discussion on baptism from Southeast Christian Church pastors Dave Stone and Kyle Idleman, or contact your church directly.</span></p>
+    [[ enditem ]]
+
+    {[ endfaq ]}
+            </div>
+            <br>
+            <br>
+        </div>
+</section>
+
+<section id="Contact" class="container">
+    <article class="row g-margin-b-150--xs g-margin-x-40--xs">
+        <div class="col-md-2">
+            <img alt="null" src="https://southeastchristian.org/Content/Ministries/Children/ForeverTreasures/tree1.png">
+        </div>
+        <div class="col-md-10">
+            <div class="clearfix g-hor-centered-row--xs g-padding-y-60--xs">
+
+                <h4 class="g-font-family--secondary">
+                    Questions? Please email us at <a href="mailto:treasure@southeastkids.com">treasure@southeastkids.com</a> or call Jodi at 502.253.8803.
+                </h4>
+            </div>
+            <br />
+        </div>
+    </article>
+</section>
