@@ -61,7 +61,6 @@ namespace org.secc.Jobs
                 if ( device.MACAddress.IsNotNullOrWhiteSpace() )
                 {
                     RemoveDeviceFromFrontPorch( device, errors );
-                    device.MACAddress = null;
                 }
                 rockContext.SaveChanges();
             }
