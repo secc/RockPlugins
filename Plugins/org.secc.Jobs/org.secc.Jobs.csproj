@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FrontPorchDeviceRemoval.cs" />
+    <Compile Include="RemoveDevicesFromPersons.cs" />
     <Compile Include="SetFirstAttendanceDate.cs" />
     <Compile Include="PushPayDownloadCheckNumbers.cs" />
     <Compile Include="MigrateHistorySummaryDataSECC.cs" />
