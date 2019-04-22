@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -49,6 +49,7 @@ using Rock.Data;
 using Rock.Model;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
+using Rock.Web.Cache;
 
 namespace RockWeb.Plugins.org_secc.PastoralCare
 {
@@ -166,11 +167,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 var qry = tqry.ToList();
 
 
-                List<DefinedValue> facilities = definedValueService.Queryable().Where( dv => dv.DefinedType.Guid == hospitalList || dv.DefinedType.Guid == nursingHomeList ).ToList();
-                facilities.ForEach( h =>
-                {
-                    h.LoadAttributes();
-                } );
+                List<DefinedValueCache> facilities = DefinedTypeCache.All().Where( dv => dv.Guid == hospitalList || dv.Guid == nursingHomeList ).SelectMany(dv => dv.DefinedValues).ToList();
 
                 var newQry = qry.Select( w => new CommunionData
                 {
@@ -245,10 +242,10 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             }
         }
 
-        private Person GetPerson( PersonAliasService personAliasService, IEnumerable<AttributeValue> AttributeValues )
+        private Person GetPerson( PersonAliasService personAliasService, IEnumerable<AttributeValue> attributeValues )
         {
 
-            AttributeValue personAliasAV = AttributeValues.AsQueryable().Where( av => av.AttributeKey == "PersonToVisit" || av.AttributeKey == "HomeboundPerson" ).FirstOrDefault();
+            AttributeValue personAliasAV = attributeValues.AsQueryable().Where( av => av.AttributeKey == "PersonToVisit" || av.AttributeKey == "HomeboundPerson" ).FirstOrDefault();
             if ( personAliasAV != null )
             {
                 PersonAlias pa = personAliasService.Get( personAliasAV.Value.AsGuid() );
@@ -260,14 +257,14 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             return new Person();
         }
 
-        private Location GetLocation( PersonService personService, IEnumerable<AttributeValue> AttributeValues, List<DefinedValue> facilities )
+        private Location GetLocation( PersonService personService, IEnumerable<AttributeValue> attributeValues, List<DefinedValueCache> facilities )
         {
 
-            string locationGuid = AttributeValues.AsQueryable().Where( av => av.AttributeKey == "NursingHome" || av.AttributeKey == "Hospital" ).Select( av => av.Value ).FirstOrDefault();
+            string locationGuid = attributeValues.AsQueryable().Where( av => av.AttributeKey == "NursingHome" || av.AttributeKey == "Hospital" ).Select( av => av.Value ).FirstOrDefault();
 
             if ( locationGuid != null )
             {
-                DefinedValue dv = facilities.Where( h => h.Guid == locationGuid.AsGuid() ).FirstOrDefault();
+                DefinedValueCache dv = facilities.Where( h => h.Guid == locationGuid.AsGuid() ).FirstOrDefault();
                 Location location = new Location();
                 if ( dv != null )
                 {
@@ -279,7 +276,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 return location;
             }
 
-            int? personId = AttributeValues.AsQueryable().Where( av => av.AttributeKey == "HomeboundPerson" || av.AttributeKey == "PersonToVisit" ).Select( av => av.ValueAsPersonId ).FirstOrDefault();
+            int? personId = attributeValues.AsQueryable().Where( av => av.AttributeKey == "HomeboundPerson" || av.AttributeKey == "PersonToVisit" ).Select( av => av.ValueAsPersonId ).FirstOrDefault();
             if ( personId.HasValue )
             {
                 Person p = personService.Get( personId.Value );
@@ -291,14 +288,14 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             return new Location();
         }
 
-        private string GetFacilityNumber( PersonService personService, IEnumerable<AttributeValue> AttributeValues, List<DefinedValue> facilities )
+        private string GetFacilityNumber( PersonService personService, IEnumerable<AttributeValue> attributeValues, List<DefinedValueCache> facilities )
         {
 
-            string facility = AttributeValues.AsQueryable().Where( av => av.AttributeKey == "NursingHome" || av.AttributeKey == "Hospital" ).Select( av => av.Value ).FirstOrDefault();
+            string facility = attributeValues.AsQueryable().Where( av => av.AttributeKey == "NursingHome" || av.AttributeKey == "Hospital" ).Select( av => av.Value ).FirstOrDefault();
 
             if ( facility != null )
             {
-                DefinedValue dv = facilities.Where( h => h.Guid == facility.AsGuid() ).FirstOrDefault();
+                DefinedValueCache dv = facilities.Where( h => h.Guid == facility.AsGuid() ).FirstOrDefault();
                 if (dv != null)
                 {
                     return dv.AttributeValues["Qualifier5"].ValueFormatted;
