@@ -524,11 +524,9 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             Guid nursingHomeAdmissionWorkflow = GetAttributeValue( "NursingHomeResidentWorkflow" ).AsGuid();
             Guid nursingHomeList = GetAttributeValue( "NursingHomeList" ).AsGuid();
 
-            List<DefinedValue> facilities = definedValueService.Queryable().Where( dv => dv.DefinedType.Guid == nursingHomeList ).ToList();
-            facilities.ForEach( h =>
-            {
-                h.LoadAttributes();
-            } );
+            
+            List<DefinedValueCache> facilities = DefinedTypeCache.Get( nursingHomeList ).DefinedValues;
+
 
             int entityTypeId = entityTypeService.Queryable().Where( et => et.Name == typeof( Workflow ).FullName ).FirstOrDefault().Id;
             string status = ( contextEntity != null ? "Completed" : "Active" );
@@ -550,17 +548,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             var wfTmpqry = workflowService.Queryable().AsNoTracking()
                     .Where( w => ( w.WorkflowType.Guid == nursingHomeAdmissionWorkflow ) && ( w.Status == "Active" || w.Status == status ) );
 
-            if ( contextEntity != null )
-            {
-                var personGuid = ( ( Person ) contextEntity ).Aliases.Select( a => a.Guid.ToString() ).ToList();
-                var validWorkflowIds = new AttributeValueService( rockContext ).Queryable()
-                    .Where( av => av.Attribute.Key == "PersonToVisit" && personGuid.Contains( av.Value ) ).Select( av => av.EntityId );
-                wfTmpqry = wfTmpqry.Where( w => validWorkflowIds.Contains( w.Id ) );
-                gReport.Columns[10].Visible = true;
-            }
-
-
-            var visits = workflowActivityService.Queryable()
+            var visitQry = workflowActivityService.Queryable()
                     .Join(
                         attributeValueService.Queryable(),
                         wa => wa.Id,
@@ -568,8 +556,19 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                         ( wa, av ) => new { WorkflowActivity = wa, AttributeValue = av } )
                 .Where( a => activityAttributeIds.Contains( a.AttributeValue.AttributeId ) )
                 .GroupBy( wa => wa.WorkflowActivity )
-                .Select( obj => new { WorkflowActivity = obj.Key, AttributeValues = obj.Select( a => a.AttributeValue ) } )
-                .ToList();
+                .Select( obj => new { WorkflowActivity = obj.Key, AttributeValues = obj.Select( a => a.AttributeValue ) } );
+
+            if ( contextEntity != null )
+            {
+                var personGuid = ( ( Person ) contextEntity ).Aliases.Select( a => a.Guid.ToString() ).ToList();
+                var validWorkflowIds = new AttributeValueService( rockContext ).Queryable()
+                    .Where( av => av.Attribute.Key == "PersonToVisit" && personGuid.Contains( av.Value ) ).Select( av => av.EntityId );
+                wfTmpqry = wfTmpqry.Where( w => validWorkflowIds.Contains( w.Id ) );
+                visitQry = visitQry.Where( w => validWorkflowIds.Contains( w.WorkflowActivity.WorkflowId ) );
+                gReport.Columns[10].Visible = true;
+            }
+
+            var visits = visitQry.ToList();
 
             var workflows = wfTmpqry.Join( 
                     attributeValueService.Queryable(),
@@ -618,7 +617,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 } )(),
                 Address = new Func<string>( () =>
                 {
-                    DefinedValue dv = facilities.Where( h => h.Guid == w.AttributeValues.Where( av => av.AttributeKey == "NursingHome" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).FirstOrDefault();
+                    DefinedValueCache dv = facilities.Where( h => h.Guid == w.AttributeValues.Where( av => av.AttributeKey == "NursingHome" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).FirstOrDefault();
                     if ( dv != null )
                     {
                         return dv.AttributeValues["Qualifier1"].ValueFormatted + " " +
@@ -630,7 +629,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 } )(),
                 PastoralMinister = new Func<string>( () =>
                 {
-                    DefinedValue dv = facilities.Where( h => h.Guid == w.AttributeValues.Where( av => av.AttributeKey == "NursingHome" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).FirstOrDefault();
+                    DefinedValueCache dv = facilities.Where( h => h.Guid == w.AttributeValues.Where( av => av.AttributeKey == "NursingHome" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).FirstOrDefault();
                     if ( dv != null )
                     {
                         return dv.AttributeValues["PastoralMinister"].ValueFormatted;
