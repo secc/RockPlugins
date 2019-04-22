@@ -70,10 +70,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Contracts\Address.cs" />
+    <Compile Include="Contracts\Event.cs" />
+    <Compile Include="Contracts\Participants.cs" />
     <Compile Include="Contracts\Member.cs" />
     <Compile Include="Contracts\PageInfo.cs" />
+    <Compile Include="Contracts\Events.cs" />
     <Compile Include="Contracts\Payments.cs" />
     <Compile Include="HMACAuthenticator.cs" />
+    <Compile Include="ImportData2.cs" />
     <Compile Include="Migrations\002_CreateAccountType.cs" />
     <Compile Include="Migrations\001_CreateAttributes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
