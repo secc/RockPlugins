@@ -77,7 +77,7 @@
     <Compile Include="Contracts\Events.cs" />
     <Compile Include="Contracts\Payments.cs" />
     <Compile Include="HMACAuthenticator.cs" />
-    <Compile Include="ImportData2.cs" />
+    <Compile Include="ImportTrips.cs" />
     <Compile Include="Migrations\002_CreateAccountType.cs" />
     <Compile Include="Migrations\001_CreateAttributes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
