@@ -33,16 +33,16 @@ namespace org.secc.ServiceReef
     [EncryptedTextField("Service Reef API Key", "Key for authenticating to the ServiceReef API", true, "", "ServiceReef API")]
     [EncryptedTextField("Service Reef API Secret", "Secret for authenticating to the ServiceReef API", true, "", "ServiceReef API")]
     [TextField("Service Reef API URL", "Service Reef API URL.", true, "", "ServiceReef API")]
-    [GroupField("Group", "Select the root group to use in this job", true)]
-    [GroupTypeField("Parent Group Type", "Select the parent group type for trips", true)]
-    [GroupTypeField("Group Type", "Select the group type for trips", true)]
-    [DefinedValueField(Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Connection Status", "The connection status to use for newly created people.", true)]
-    [AttributeField(Rock.SystemGuid.EntityType.PERSON, "ServiceReef UserId", "Select the person attribute to be populated with the ServiceReef UserId", required: true, allowMultiple: false)]
-    [AttributeField(Rock.SystemGuid.EntityType.PERSON, "ServiceReef Profile URL", "Select the person attribute to be populated with the ServiceReef Profile URL", required: true, allowMultiple: false)]
-    [SlidingDateRangeField("Date Range", "The range of dates to import.", false, "Previous|2|Day||")]
+    [GroupField("Parent Group", "Select the parent level group to use.  The structure of the missions trips will be created under this group with the Year of the trip as a child and the trips themselves as the grandchild.", true, "", "Group Structure")]
+    [GroupTypeField("Year Group Type", "Select the group type to use for the yearly group level (children).", true, "", "Group Structure")]
+    [GroupTypeField("Trip Group Type", "Select the group type to use for the trip level (grandchildren).", true, "", "Group Structure")]
+    [DefinedValueField(Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Default Connection Status", "The connection status to use for newly created people.", true, category: "Job Settings")]
+    [AttributeField(Rock.SystemGuid.EntityType.PERSON, "ServiceReef UserId", "Select the person attribute to be populated with the ServiceReef UserId", required: true, allowMultiple: false, category: "Person Attributes")]
+    [AttributeField(Rock.SystemGuid.EntityType.PERSON, "ServiceReef Profile URL", "Select the person attribute to be populated with the ServiceReef Profile URL", required: true, allowMultiple: false, category: "Person Attributes")]
+    [SlidingDateRangeField("Date Range", "The range of dates to import.", false, "Previous|2|Day||", category: "Job Settings")]
     [DisallowConcurrentExecution]
 
-    public class ImportData2 : IJob
+    public class ImportTrips : IJob
     {
         /// <summary>Process all trips (events) from Service Reef.</summary>
         /// <param name="message">The message that is returned depending on the result.</param>
@@ -76,13 +76,13 @@ namespace org.secc.ServiceReef
                 String SRApiKey = Encryption.DecryptString(dataMap.GetString("ServiceReefAPIKey"));
                 String SRApiSecret = Encryption.DecryptString(dataMap.GetString("ServiceReefAPISecret"));
                 String SRApiUrl = dataMap.GetString("ServiceReefAPIURL");
-                DefinedValueCache connectionStatus = DefinedValueCache.Get(dataMap.GetString("ConnectionStatus").AsGuid(), dbContext);
+                DefinedValueCache connectionStatus = DefinedValueCache.Get(dataMap.GetString("DefaultConnectionStatus").AsGuid(), dbContext);
                 if (SRApiUrl.Last() != '/')
                     SRApiUrl += "/";
 
-                Group group = groupService.Get(dataMap.GetString("Group").AsGuid());
-                GroupTypeCache parentGroupType = GroupTypeCache.Get(dataMap.Get("ParentGroupType").ToString().AsGuid(), dbContext);
-                GroupTypeCache groupType = GroupTypeCache.Get(dataMap.Get("GroupType").ToString().AsGuid(), dbContext);
+                Group group = groupService.Get(dataMap.GetString("ParentGroup").AsGuid());
+                GroupTypeCache parentGroupType = GroupTypeCache.Get(dataMap.Get("YearGroupType").ToString().AsGuid(), dbContext);
+                GroupTypeCache groupType = GroupTypeCache.Get(dataMap.Get("TripGroupType").ToString().AsGuid(), dbContext);
                 Rock.Model.Attribute attribute = attributeService.Get(dataMap.GetString("ServiceReefUserId").AsGuid());
                 Rock.Model.Attribute attribute2 = attributeService.Get(dataMap.GetString("ServiceReefProfileURL").AsGuid());
                 var entitytype = EntityTypeCache.Get(typeof(Group)).Id;
