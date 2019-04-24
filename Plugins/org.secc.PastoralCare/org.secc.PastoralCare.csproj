@@ -43,13 +43,14 @@
   <ItemGroup />
   <ItemGroup>
     <Compile Include="Migrations\001_Pastoral_DefinedTypes.cs" />
+    <Compile Include="Migrations\006_Pastoral_FixLegacyLava.cs" />
     <Compile Include="Migrations\005_Pastoral_AddVisitCancel.cs" />
     <Compile Include="Migrations\004_Fix_Nursing_Homes.cs" />
     <Compile Include="Migrations\003_Pastoral_Pages.cs" />
     <Compile Include="Migrations\002_Pastoral_WorkflowData.cs" />
   </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.PastoralCare.dll" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"</PostBuildEvent>
+    <PostBuildEvent>xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"
+xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.PastoralCare.dll" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
   </PropertyGroup>
 </Project>
