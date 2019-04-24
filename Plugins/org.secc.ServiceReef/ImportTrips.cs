@@ -86,8 +86,6 @@ namespace org.secc.ServiceReef
                 Rock.Model.Attribute attribute = attributeService.Get(dataMap.GetString("ServiceReefUserId").AsGuid());
                 Rock.Model.Attribute attribute2 = attributeService.Get(dataMap.GetString("ServiceReefProfileURL").AsGuid());
                 var entitytype = EntityTypeCache.Get(typeof(Group)).Id;
-                List<GroupTypeRole> grouptyperoles = groupTypeRoleService.Queryable().OrderBy(r => r.Order).ToList();
-                List<Rock.Model.Attribute> groupattributes = attributeService.Queryable().Where(a => a.EntityTypeId == entitytype).OrderBy(a => a.Order).ToList();
                 
                 // Setup the ServiceReef API Client
                 var client = new RestClient(SRApiUrl);
@@ -121,25 +119,25 @@ namespace org.secc.ServiceReef
 
                         foreach (Contracts.Events.Result result in response.Data.Results)
                         {
-                            List<Group> trips = groupService.Queryable().OrderBy(g => g.Order).ToList();
                             // Process the event
                             Group trip = null;
                             Group trip2 = null;
                             var startdate = result.StartDate;
+                            var parentgroup = string.Format("{0} Mission Trips", startdate.Year);
 
                             if (result.EventId > 0)
                             {
-                                trip = trips.Where(t => t.Name == string.Format("{0} Mission Trips", startdate.Year)).FirstOrDefault();
-                                trip2 = trips.Where(t => t.ForeignId == result.EventId).FirstOrDefault();
+                                trip = groupService.Queryable().Where(t => t.Name == parentgroup).FirstOrDefault();
+                                trip2 = groupService.Queryable().Where(t => t.ForeignId == result.EventId).FirstOrDefault();
                             }
                             Guid guid = Guid.NewGuid();
                             Guid guid2 = Guid.NewGuid();
                             
                             if (trip == null)
                             {
-                                // Create trip parent Groupm
+                                // Create trip parent Group
                                 Group tripPG = new Group();
-                                tripPG.Name = string.Format("{0} Mission Trips", startdate.Year);
+                                tripPG.Name = parentgroup;
                                 tripPG.GroupTypeId = parentGroupType.Id;
                                 tripPG.ParentGroupId = group.Id;
                                 tripPG.IsSystem = false;
@@ -172,9 +170,9 @@ namespace org.secc.ServiceReef
                                 dbContext.SaveChanges();
                                 trip2 = tripG;
                             }
-                            var groupattribute = groupattributes.Where(a => a.Name == "Year").FirstOrDefault();
+                            var groupattribute = attributeService.Queryable().Where(a => a.Name == "Year" && a.EntityTypeId == entitytype).FirstOrDefault();
                             var groupattributeValue = attributeValueService.GetByAttributeIdAndEntityId(groupattribute.Id, trip2.Id);
-                            var groupattribute2 = groupattributes.Where(a => a.Name == "Month").FirstOrDefault();
+                            var groupattribute2 = attributeService.Queryable().Where(a => a.Name == "Month" && a.EntityTypeId == entitytype).FirstOrDefault();
                             var groupattributeValue2 = attributeValueService.GetByAttributeIdAndEntityId(groupattribute2.Id, trip2.Id);
 
                             if (groupattributeValue == null)
@@ -212,7 +210,7 @@ namespace org.secc.ServiceReef
                             {
                                 foreach (Contracts.Event.CategorySimple categorysimple in eventResult.Data.Categories)
                                 {
-                                    groupattribute3 = groupattributes.Where(a => a.Name == categorysimple.Name).FirstOrDefault();
+                                    groupattribute3 = attributeService.Queryable().Where(a => a.Name == categorysimple.Name && a.EntityTypeId == entitytype).FirstOrDefault();
                                     var groupattributeValue3 = attributeValueService.GetByAttributeIdAndEntityId(groupattribute3.Id, trip2.Id);
                                     var option = categorysimple.Options.FirstOrDefault();
 
@@ -472,7 +470,7 @@ namespace org.secc.ServiceReef
                                                 participant.GroupId = trip2.Id;
                                                 participant.IsSystem = false;
                                                 participant.Guid = guid6;
-                                                var grouprole = grouptyperoles.Where(r => r.GroupTypeId == trip2.GroupTypeId).FirstOrDefault().Id;
+                                                var grouprole = groupTypeRoleService.Queryable().Where(r => r.GroupTypeId == trip2.GroupTypeId).FirstOrDefault().Id;
                                                 participant.GroupRoleId = groupType.DefaultGroupRoleId.GetValueOrDefault(grouprole);
 
                                                 if (result2.RegistrationStatus == "Approved")
