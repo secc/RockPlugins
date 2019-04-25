@@ -18,6 +18,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Rock;
+using Rock.Data;
+using Rock.Model;
 using Rock.Plugin;
 using Rock.Web.Cache;
 
@@ -27,9 +29,11 @@ namespace org.secc.PastoralCare.Migrations
     class Pastoral_Pages : Migration
     {
         public override void Up()
-        {        
+        {
+            PageService pageService = new PageService( new RockContext() );
+
             // Page: Pastoral Care
-            if (PageCache.Read( new Guid( "A64D2C30-1205-41D4-B8FA-CCE4FBC47906" ) ) == null ) { 
+            if ( !pageService.Queryable().Any(p => p.Guid == new Guid( "A64D2C30-1205-41D4-B8FA-CCE4FBC47906" ) ) ) { 
                 RockMigrationHelper.AddPage( "5B6DBC42-8B03-4D15-8D92-AAFA28FD8616", "D65F783D-87A9-4CC9-8110-E83466A0EADB","Pastoral Care","","A64D2C30-1205-41D4-B8FA-CCE4FBC47906","fa fa-heartbeat"); // Site:Rock RMS
                 RockMigrationHelper.UpdateBlockType("Page Menu","Renders a page menu based on a root page and liquid template.","~/Blocks/Cms/PageMenu.ascx","CMS","CACB9D1A-A820-4587-986A-D66A69EE9948");
                 RockMigrationHelper.AddBlock("A64D2C30-1205-41D4-B8FA-CCE4FBC47906","","CACB9D1A-A820-4587-986A-D66A69EE9948","Page Menu","Main","","",0,"D1855171-CB5D-42D2-A951-E12E988E1032");   
@@ -43,7 +47,7 @@ namespace org.secc.PastoralCare.Migrations
                 RockMigrationHelper.AddBlockAttributeValue("D1855171-CB5D-42D2-A951-E12E988E1032","0A49DABE-42EE-40E5-9E06-0E6530944865",@""); // Include Page List  
             }
             // Page: Dashboard
-            if ( PageCache.Read( new Guid( "A64D2C30-1205-41D4-B8FA-CCE4FBC47906" ) ) == null )
+            if ( !pageService.Queryable().Any(p => p.Guid == new Guid("FFF16609-1DEA-4B76-9CDC-49277587B470") ) )
             {
                 RockMigrationHelper.AddPage( "A64D2C30-1205-41D4-B8FA-CCE4FBC47906", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Dashboard", "", "FFF16609-1DEA-4B76-9CDC-49277587B470", "fa fa-dashboard" ); // Site:Rock RMS
                 RockMigrationHelper.UpdateBlockType( "Redirect", "Redirects the page to the URL provided.", "~/Blocks/Cms/Redirect.ascx", "CMS", "B97FB779-5D3E-4663-B3B5-3C2C227AE14A" );
@@ -51,7 +55,7 @@ namespace org.secc.PastoralCare.Migrations
                 RockMigrationHelper.AddBlockAttributeValue( "53BDE0F5-F8A0-4706-9027-DDA6C99649CE", "964D33F4-27D0-4715-86BE-D30CEB895044", @"/unknown" ); // Url
             }
             // Page: Hospitalization List
-            if ( PageCache.Read( new Guid( "A64D2C30-1205-41D4-B8FA-CCE4FBC47906" ) ) == null )
+            if ( !pageService.Queryable().Any(p => p.Guid == new Guid("E9B6F39A-276B-4F31-91C4-5EE9FF8AEF20") ) )
             {
                 RockMigrationHelper.AddPage( "FFF16609-1DEA-4B76-9CDC-49277587B470", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Hospitalization List", "", "E9B6F39A-276B-4F31-91C4-5EE9FF8AEF20", "fa fa-dashboard" ); // Site:Rock RMS
                 RockMigrationHelper.UpdateBlockType( "Hospital List", "A summary of all the current hospitalizations that have been reported to Southeast.", "~/Plugins/org_secc/PastoralCare/HospitalList.ascx", "SECC > Pastoral Care", "230AEE8C-A2B7-465C-93BE-A92F23364082" );
@@ -73,7 +77,7 @@ namespace org.secc.PastoralCare.Migrations
 
 
             // Page: Nursing Home List     
-            if ( PageCache.Read( new Guid( "EE90E17C-6AC6-4304-91A6-FCC92406AA0A" ) ) == null )
+            if ( !pageService.Queryable().Any(p => p.Guid == new Guid( "EE90E17C-6AC6-4304-91A6-FCC92406AA0A" ) ) )
             {
                 RockMigrationHelper.AddPage( "FFF16609-1DEA-4B76-9CDC-49277587B470", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Nursing Home List", "", "EE90E17C-6AC6-4304-91A6-FCC92406AA0A", "fa fa-dashboard" ); // Site:Rock RMS
                 RockMigrationHelper.UpdateBlockType( "Nursing Home List", "A summary of all the current nursing home residents that have been reported to Southeast.", "~/Plugins/org_secc/PastoralCare/NursingHomeList.ascx", "SECC > Pastoral Care", "AE9E0F36-3511-4536-966E-172275C94E06" );
@@ -95,7 +99,7 @@ namespace org.secc.PastoralCare.Migrations
             }
 
             // Page: Homebound List     
-            if ( PageCache.Read( new Guid( "43A64916-0DE1-470D-B000-3D2104BB49D0" ) ) == null )
+            if ( !pageService.Queryable().Any(p => p.Guid == new Guid( "43A64916-0DE1-470D-B000-3D2104BB49D0" ) ) )
             {
                 RockMigrationHelper.AddPage( "FFF16609-1DEA-4B76-9CDC-49277587B470", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Homebound List", "", "43A64916-0DE1-470D-B000-3D2104BB49D0", "fa fa-dashboard" ); // Site:Rock RMS
                 RockMigrationHelper.UpdateBlockType( "Homebound List", "A summary of all the current homebound residents that have been reported to Southeast.", "~/Plugins/org_secc/PastoralCare/HomeboundList.ascx", "SECC > Pastoral Care", "A21E269D-F50B-42C6-882A-126F3D29D6B2" );
@@ -115,7 +119,7 @@ namespace org.secc.PastoralCare.Migrations
             }
 
             // Page: Communion List          
-            if ( PageCache.Read( new Guid( "9DC7E3BB-1C07-4964-8DD5-F6F1C25B3375" ) ) == null )
+            if ( !pageService.Queryable().Any(p => p.Guid == new Guid( "9DC7E3BB-1C07-4964-8DD5-F6F1C25B3375" ) ) )
             {
                 RockMigrationHelper.AddPage( "FFF16609-1DEA-4B76-9CDC-49277587B470", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Communion List", "", "9DC7E3BB-1C07-4964-8DD5-F6F1C25B3375", "fa fa-dashboard" ); // Site:Rock RMS
                 RockMigrationHelper.UpdateBlockType( "Communion List", "A list of all the pastoral care patients/residents that have been requested communion.", "~/Plugins/org_secc/PastoralCare/CommunionList.ascx", "SECC > Pastoral Care", "F1991D17-D7A5-46C2-B7D4-C9CC0FAC460E" );
@@ -142,7 +146,7 @@ namespace org.secc.PastoralCare.Migrations
                 RockMigrationHelper.AddBlockAttributeValue( "881C39C5-E362-4DCC-823C-5B2F393BEEFA", "0A49DABE-42EE-40E5-9E06-0E6530944865", @"" ); // Include Page List
             }
             // Page: Add Hospitalization    
-            if ( PageCache.Read( new Guid( "46416DF6-6157-42E3-9330-2BDE8E79DA4C" ) ) == null )
+            if ( !pageService.Queryable().Any(p => p.Guid == new Guid( "46416DF6-6157-42E3-9330-2BDE8E79DA4C" ) ) )
             {
                 RockMigrationHelper.AddPage( "A64D2C30-1205-41D4-B8FA-CCE4FBC47906", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Add Hospitalization", "", "46416DF6-6157-42E3-9330-2BDE8E79DA4C", "fa fa-hospital-o" ); // Site:Rock RMS
                 RockMigrationHelper.AddPageRoute( "46416DF6-6157-42E3-9330-2BDE8E79DA4C", "Pastoral/Hospitalization/{WorkflowId}" );
@@ -153,7 +157,7 @@ namespace org.secc.PastoralCare.Migrations
             }
 
             // Page: Add Nursing Home Resident    
-            if ( PageCache.Read( new Guid( "368DA4E7-E353-49BF-8AFD-862A66AC6878" ) ) == null )
+            if ( !pageService.Queryable().Any(p => p.Guid == new Guid( "368DA4E7-E353-49BF-8AFD-862A66AC6878" ) ) )
             {
                 RockMigrationHelper.AddPage( "A64D2C30-1205-41D4-B8FA-CCE4FBC47906", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Add Nursing Home Resident", "", "368DA4E7-E353-49BF-8AFD-862A66AC6878", "fa fa-wheelchair" ); // Site:Rock RMS
                 RockMigrationHelper.AddPageRoute( "368DA4E7-E353-49BF-8AFD-862A66AC6878", "Pastoral/NursingHome/" );
@@ -164,7 +168,7 @@ namespace org.secc.PastoralCare.Migrations
             }
 
             // Page: Add Homebound Resident          
-            if ( PageCache.Read( new Guid( "F6EBCC3B-208D-472A-A0D1-2051D16DB9FB" ) ) == null )
+            if ( !pageService.Queryable().Any(p => p.Guid == new Guid( "F6EBCC3B-208D-472A-A0D1-2051D16DB9FB" ) ) )
             {
                 RockMigrationHelper.AddPage( "A64D2C30-1205-41D4-B8FA-CCE4FBC47906", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Add Homebound Resident", "", "F6EBCC3B-208D-472A-A0D1-2051D16DB9FB", "fa fa-bed" ); // Site:Rock RMS
                 RockMigrationHelper.AddPageRoute( "F6EBCC3B-208D-472A-A0D1-2051D16DB9FB", "Pastoral/Homebound" );
@@ -175,7 +179,7 @@ namespace org.secc.PastoralCare.Migrations
             }
 
             // Page: Pastoral      
-            if ( PageCache.Read( new Guid( "C3784593-107E-4BE8-92D1-C11F0143724D" ) ) == null )
+            if ( !pageService.Queryable().Any(p => p.Guid == new Guid( "C3784593-107E-4BE8-92D1-C11F0143724D" ) ) )
             {
                 RockMigrationHelper.AddPage( "BF04BB7E-BE3A-4A38-A37C-386B55496303", "F66758C6-3E3D-4598-AF4C-B317047B5987", "Pastoral", "", "C3784593-107E-4BE8-92D1-C11F0143724D", "" ); // Site:Rock RMS
                 RockMigrationHelper.AddPageRoute( "C3784593-107E-4BE8-92D1-C11F0143724D", "Person/{PersonId}/Pastoral" );
@@ -191,7 +195,7 @@ namespace org.secc.PastoralCare.Migrations
             }
 
             // Page: New Family
-            if ( PageCache.Read( new Guid( "7A0E0BC4-3658-4FDA-A7F6-137D8A367AFC" ) ) == null )
+            if ( !pageService.Queryable().Any(p => p.Guid == new Guid( "7A0E0BC4-3658-4FDA-A7F6-137D8A367AFC" ) ) )
             {
                 RockMigrationHelper.AddPage( "A64D2C30-1205-41D4-B8FA-CCE4FBC47906", "7CFA101B-2D20-4523-9EC5-3F30502797A5", "New Family", "", "7A0E0BC4-3658-4FDA-A7F6-137D8A367AFC", "" ); // Site:Rock RMS
                 RockMigrationHelper.AddPageRoute( "7A0E0BC4-3658-4FDA-A7F6-137D8A367AFC", "Pastoral/NewFamily" );

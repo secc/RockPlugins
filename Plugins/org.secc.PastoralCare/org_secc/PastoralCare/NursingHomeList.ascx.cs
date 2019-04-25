@@ -476,7 +476,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
 
                     // Find the summary activity and activate it.
                     WorkflowActivityType workflowActivityType = workflow.WorkflowType.ActivityTypes.Where( at => at.Name.Contains( "Summary" ) ).FirstOrDefault();
-                    WorkflowActivity workflowActivity = WorkflowActivity.Activate( workflowActivityType, workflow, rockContext );
+                    WorkflowActivity workflowActivity = WorkflowActivity.Activate( WorkflowActivityTypeCache.Get(workflowActivityType.Id, rockContext), workflow, rockContext );
 
                 }
                 rockContext.SaveChanges();
@@ -630,9 +630,9 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 PastoralMinister = new Func<string>( () =>
                 {
                     DefinedValueCache dv = facilities.Where( h => h.Guid == w.AttributeValues.Where( av => av.AttributeKey == "NursingHome" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).FirstOrDefault();
-                    if ( dv != null )
+                    if ( dv != null && (dv.AttributeValues.ContainsKey( "PastoralMinister" ) || dv.AttributeValues.ContainsKey( "Qualifier6" ) ) )
                     {
-                        return dv.AttributeValues["PastoralMinister"].ValueFormatted;
+                        return dv.AttributeValues.ContainsKey("PastoralMinister")?dv.AttributeValues["PastoralMinister"].ValueFormatted:dv.AttributeValues["Qualifier6"].ValueFormatted;
                     }
                     return "";
                 } )(),
