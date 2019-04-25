@@ -21,6 +21,14 @@ namespace org.secc.SermonFeed.Rest
         [System.Web.Http.Route( "api/sermonfeed/{slug}/" )]
         public IHttpActionResult GetSpeakerSeries( string slug = "", string speaker = "", int offset = 0 )
         {
+            var cacheKey = string.Format( "api/sermonfeed/{0}/{1}/{2}", slug, speaker, offset );
+            var output = RockCache.Get( cacheKey ) as List<SermonSeries>;
+            if ( output != null )
+            {
+                return Json( output );
+            }
+
+
             string imageLocation = GlobalAttributesCache.Get().GetValue( "PublicApplicationRoot" ).EnsureTrailingForwardslash() + "GetImage.ashx?Guid=";
             string audioLocation = GlobalAttributesCache.Get().GetValue( "PublicApplicationRoot" ).EnsureTrailingForwardslash() + "GetFile.ashx?Guid=";
             RockContext rockContext = new RockContext();
@@ -48,7 +56,7 @@ namespace org.secc.SermonFeed.Rest
                 .Take( 12 )
                 .ToList();
 
-            var output = new List<SermonSeries>();
+            output = new List<SermonSeries>();
 
             foreach ( var seriesItem in sermonSeriesList )
             {
@@ -100,6 +108,8 @@ namespace org.secc.SermonFeed.Rest
                         } );
                 }
             }
+            RockCache.AddOrUpdate( cacheKey, null, output, RockDateTime.Now.AddHours( 1 ) );
+
             return Json( output );
         }
 
