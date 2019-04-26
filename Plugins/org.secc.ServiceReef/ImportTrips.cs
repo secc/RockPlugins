@@ -211,7 +211,7 @@ namespace org.secc.ServiceReef
                                 foreach (Contracts.Event.CategorySimple categorysimple in eventResult.Data.Categories)
                                 {
                                     groupattribute3 = attributeService.Queryable().Where(a => a.Name == categorysimple.Name && a.EntityTypeId == entitytype).FirstOrDefault();
-                                    if (groupattribute3 == null)
+                                    if (groupattribute3 != null)
                                     {
                                         var groupattributeValue3 = attributeValueService.GetByAttributeIdAndEntityId(groupattribute3.Id, trip2.Id);
                                         var option = categorysimple.Options.FirstOrDefault();
