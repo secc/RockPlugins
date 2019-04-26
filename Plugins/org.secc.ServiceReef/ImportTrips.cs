@@ -128,7 +128,7 @@ namespace org.secc.ServiceReef
                             if (result.EventId > 0)
                             {
                                 trip = groupService.Queryable().Where(t => t.Name == parentgroup).FirstOrDefault();
-                                trip2 = groupService.Queryable().Where(t => t.ForeignId == result.EventId).FirstOrDefault();
+                                trip2 = groupService.Queryable().Where(t => t.ForeignId == result.EventId && t.GroupTypeId == groupType.Id).FirstOrDefault();
                             }
                             Guid guid = Guid.NewGuid();
                             Guid guid2 = Guid.NewGuid();
@@ -170,68 +170,32 @@ namespace org.secc.ServiceReef
                                 dbContext.SaveChanges();
                                 trip2 = tripG;
                             }
-                            var groupattribute = attributeService.Queryable().Where(a => a.Name == "Year" && a.EntityTypeId == entitytype).FirstOrDefault();
-                            var groupattributeValue = attributeValueService.GetByAttributeIdAndEntityId(groupattribute.Id, trip2.Id);
-                            var groupattribute2 = attributeService.Queryable().Where(a => a.Name == "Month" && a.EntityTypeId == entitytype).FirstOrDefault();
-                            var groupattributeValue2 = attributeValueService.GetByAttributeIdAndEntityId(groupattribute2.Id, trip2.Id);
-
-                            if (groupattributeValue == null)
-                            {
-                                groupattributeValue = new AttributeValue
-                                {
-                                    AttributeId = groupattribute.Id,
-                                    EntityId = trip2.Id
-                                };
-                                attributeValueService.Add(groupattributeValue);
-                            }
-
-                            if (groupattributeValue2 == null)
-                            {
-                                groupattributeValue2 = new AttributeValue
-                                {
-                                    AttributeId = groupattribute2.Id,
-                                    EntityId = trip2.Id
-                                };
-                                attributeValueService.Add(groupattributeValue2);
-                            }
+                            trip2.LoadAttributes();
 
                             if (startdate != DateTime.MinValue)
-                            {
-                                groupattributeValue.Value = startdate.Year.ToString();
-                                groupattributeValue2.Value = startdate.ToString("MMMM");
+                            {                               
+                                trip2.SetAttributeValue("Year", startdate.Year.ToString());
+                                trip2.SetAttributeValue("Month", startdate.ToString("MMMM"));
+                                trip2.SaveAttributeValues();
                             }
                             dbContext.SaveChanges();
                             var eventRequest = new RestRequest("v1/events/{eventId}", Method.GET);
                             eventRequest.AddUrlSegment("eventId", result.EventId.ToString());
                             var eventResult = client.Execute<Contracts.Event>(eventRequest);
-                            Rock.Model.Attribute groupattribute3 = null;
 
                             if (eventResult.Data != null && eventResult.Data.Categories.Count > 0)
                             {
                                 foreach (Contracts.Event.CategorySimple categorysimple in eventResult.Data.Categories)
                                 {
-                                    groupattribute3 = attributeService.Queryable().Where(a => a.Name == categorysimple.Name && a.EntityTypeId == entitytype).FirstOrDefault();
-                                    if (groupattribute3 != null)
+                                    var option = categorysimple.Options.FirstOrDefault();
+
+                                    if (option != null)
                                     {
-                                        var groupattributeValue3 = attributeValueService.GetByAttributeIdAndEntityId(groupattribute3.Id, trip2.Id);
-                                        var option = categorysimple.Options.FirstOrDefault();
-
-                                        if (groupattributeValue3 == null)
-                                        {
-                                            groupattributeValue3 = new AttributeValue
-                                            {
-                                                AttributeId = groupattribute3.Id,
-                                                EntityId = trip2.Id
-                                            };
-                                            attributeValueService.Add(groupattributeValue3);
-                                        }
-
-                                        if (option != null)
-                                            groupattributeValue3.Value = option.Name;
-
-                                        dbContext.SaveChanges();
+                                        trip2.SetAttributeValue(categorysimple.Name.Replace(" ", ""), option.Name);
+                                        trip2.SaveAttributeValues();
                                     }
                                 }
+                                dbContext.SaveChanges();
                             }
                             var amount = 1;
                             var handled = 0;
@@ -433,35 +397,18 @@ namespace org.secc.ServiceReef
                                             Guid guid5 = Guid.NewGuid();
                                             var userid = result2.UserId;
                                             var profileurl = result2.ProfileUrl;
-                                            var personattributeValue = attributeValueService.GetByAttributeIdAndEntityId(attribute.Id, person.Id);
-                                            var personattributeValue2 = attributeValueService.GetByAttributeIdAndEntityId(attribute2.Id, person.Id);
-
-                                            if (personattributeValue == null)
-                                            {
-                                                personattributeValue = new AttributeValue
-                                                {
-                                                    AttributeId = attribute.Id,
-                                                    EntityId = person.Id
-                                                };
-                                                attributeValueService.Add(personattributeValue);
-                                            }
-
-                                            if (personattributeValue2 == null)
-                                            {
-                                                personattributeValue2 = new AttributeValue
-                                                {
-                                                    AttributeId = attribute2.Id,
-                                                    EntityId = person.Id
-                                                };
-                                                attributeValueService.Add(personattributeValue2);
-                                            }
+                                            person.LoadAttributes();
 
                                             if (userid > 0)
-                                                personattributeValue.Value = result2.UserId.ToString();
-                                           
-                                            if (!String.IsNullOrEmpty(profileurl))
-                                                personattributeValue2.Value = result2.ProfileUrl;
+                                            {
+                                                person.SetAttributeValue(attribute.Key, result2.UserId.ToString());                                                
+                                            }
 
+                                            if (!String.IsNullOrEmpty(profileurl))
+                                            {
+                                                person.SetAttributeValue(attribute2.Key, result2.ProfileUrl);
+                                            }
+                                            person.SaveAttributeValues();
                                             dbContext.SaveChanges();
                                             var member = groupService.GroupHasMember(trip2.Guid, person.Id);
 
