@@ -211,23 +211,26 @@ namespace org.secc.ServiceReef
                                 foreach (Contracts.Event.CategorySimple categorysimple in eventResult.Data.Categories)
                                 {
                                     groupattribute3 = attributeService.Queryable().Where(a => a.Name == categorysimple.Name && a.EntityTypeId == entitytype).FirstOrDefault();
-                                    var groupattributeValue3 = attributeValueService.GetByAttributeIdAndEntityId(groupattribute3.Id, trip2.Id);
-                                    var option = categorysimple.Options.FirstOrDefault();
-
-                                    if (groupattributeValue3 == null)
+                                    if (groupattribute3 == null)
                                     {
-                                        groupattributeValue3 = new AttributeValue
-                                        {
-                                            AttributeId = groupattribute3.Id,
-                                            EntityId = trip2.Id
-                                        };
-                                        attributeValueService.Add(groupattributeValue3);
-                                    }
+                                        var groupattributeValue3 = attributeValueService.GetByAttributeIdAndEntityId(groupattribute3.Id, trip2.Id);
+                                        var option = categorysimple.Options.FirstOrDefault();
 
-                                    if (option != null)
-                                        groupattributeValue3.Value = option.Name;
-                                    
-                                    dbContext.SaveChanges();
+                                        if (groupattributeValue3 == null)
+                                        {
+                                            groupattributeValue3 = new AttributeValue
+                                            {
+                                                AttributeId = groupattribute3.Id,
+                                                EntityId = trip2.Id
+                                            };
+                                            attributeValueService.Add(groupattributeValue3);
+                                        }
+
+                                        if (option != null)
+                                            groupattributeValue3.Value = option.Name;
+
+                                        dbContext.SaveChanges();
+                                    }
                                 }
                             }
                             var amount = 1;
