@@ -387,17 +387,27 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             UserLoginService loginService = new UserLoginService( new RockContext() );
             Filter.Add("UserName", string.Join(",",loginService.GetByPersonId(CurrentPerson.Id).Select(l => l.UserName)));
             CurrentPerson.LoadAttributes();
+            bool skipLocation = false;
             if ( MinistryAreaAttributeIDSetting != null)
             {
-                var ministryValue = DefinedValueCache.Read( CurrentPerson.AttributeValues[AttributeCache.Read( MinistryAreaAttributeIDSetting ).Key].Value );
-                if (ministryValue != null) {
+                var ministryValue = DefinedValueCache.Get( CurrentPerson.AttributeValues[AttributeCache.Get( MinistryAreaAttributeIDSetting ).Key].Value );
+                if (ministryValue != null ) {
                     Filter.Add("MyMinistryID", ministryValue.Id.ToString());
+                }
+
+                // If the current person is in the security group, skip the location lookup
+                var groupGuid = ministryValue.GetAttributeValue( "ChurchWidePurchasingSecurityGroup" ).AsGuidOrNull();
+                if ( groupGuid.HasValue )
+                {
+                    GroupService groupService = new GroupService( new RockContext() );
+                    Group group = groupService.Get( groupGuid.Value );
+                    skipLocation = group.Members.Where( gm => gm.PersonId == CurrentPerson.Id ).Any();
                 }
             }
 
-            if ( MinistryLocationAttributeIDSetting != null)
+            if ( MinistryLocationAttributeIDSetting != null && !skipLocation )
             {
-                var locationValue = DefinedValueCache.Read( CurrentPerson.AttributeValues[AttributeCache.Read( MinistryLocationAttributeIDSetting ).Key].Value );
+                var locationValue = DefinedValueCache.Get( CurrentPerson.AttributeValues[AttributeCache.Get( MinistryLocationAttributeIDSetting ).Key].Value );
 
                 if ( locationValue != null)
                 {

@@ -41,6 +41,7 @@ namespace org.secc.ServiceReef.Contracts
         public Address Address { get; set; }
         public object BackgroundCheckDate { get; set; }
         public string ProfileUrl { get; set; }
+        public string PassportSex { get; set; }
 
         public class Trip
         {

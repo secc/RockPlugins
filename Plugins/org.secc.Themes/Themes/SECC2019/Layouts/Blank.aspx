@@ -11,7 +11,8 @@
     <script src="<%# ResolveRockUrl("~/Scripts/jquery-3.3.1.min.js", true) %>"></script>
     <script src="<%# ResolveRockUrl("~/Scripts/jquery-migrate-3.0.1.min.js" ) %>"></script>
 
-    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/bootstrap.css", true) %>" />
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/layout.css", true) %>" />
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/main.css", true) %>" />
     <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/theme.css", true) %>" />
     <link rel="stylesheet" href="<%# ResolveRockUrl("~/Styles/developer.css", true) %>" />
 
