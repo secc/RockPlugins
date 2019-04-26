@@ -90,13 +90,13 @@ namespace org.secc.ServiceReef
 
                 // Setup some lookups
                 DefinedTypeCache creditCards = DefinedTypeCache.Read(Rock.SystemGuid.DefinedType.FINANCIAL_CREDIT_CARD_TYPE.AsGuid(), dbContext);
-                DefinedTypeCache tenderType = DefinedTypeCache.Read(Rock.SystemGuid.DefinedType.FINANCIAL_CURRENCY_TYPE.AsGuid(), dbContext);
+                DefinedTypeCache tenderType = DefinedTypeCache.Get(Rock.SystemGuid.DefinedType.FINANCIAL_CURRENCY_TYPE.AsGuid(), dbContext);
                 FinancialAccount specialFund = accountService.Get(dataMap.GetString("Account").AsGuid());
                 FinancialGateway gateway = financialGatewayService.Get(dataMap.GetString("FinancialGateway").AsGuid());
                 List<FinancialAccount> trips = financialAccountService.Queryable().Where(fa => fa.ParentAccountId == specialFund.Id).OrderBy(fa => fa.Order).ToList();
 
                 // Get the trips
-                DefinedValueCache serviceReefAccountType = DefinedValueCache.Read(dataMap.Get("ServiceReefAccountType").ToString().AsGuid());
+                DefinedValueCache serviceReefAccountType = DefinedValueCache.Get(dataMap.Get("ServiceReefAccountType").ToString().AsGuid());
 
                 // Setup the ServiceReef API Client
                 var client = new RestClient(SRApiUrl);
