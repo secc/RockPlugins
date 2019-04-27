@@ -2580,6 +2580,11 @@ namespace RockWeb.Plugins.org_secc.Event
 
                     if ( person == null )
                     {
+                        if ( string.IsNullOrWhiteSpace( firstName ) && string.IsNullOrWhiteSpace( lastName ) )
+                        {
+                            throw new Exception( "Empty person record encountered during registration." );
+                        }
+
                         // If a match was not found, create a new person
                         person = new Person();
                         person.FirstName = firstName;
