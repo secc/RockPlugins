@@ -113,9 +113,9 @@
                     </a>
                 </li>
                 <li class="se-4-column">
-                    <div class="cd-nav-item live-stream disabled">
+                    <a href="/southeast-online" class="cd-nav-item live-stream coming-soon">
                         <h3>Live Stream<br /><small>coming soon!</small></h3>
-                    </div>
+                    </a>
                 </li>
             </ul>
         </li>
