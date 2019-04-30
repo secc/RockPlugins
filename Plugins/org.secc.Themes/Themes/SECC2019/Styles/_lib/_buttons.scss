@@ -55,6 +55,20 @@
 	$hvr-brd-color: $color-dark);
 }
 
+.se-btn--tag {
+	@include btn-style(
+	$color: $color-dark,
+	$padding: 0.25rem 1rem,
+	$bg: lighten($LightGreyColor, 40%),
+	$brd-width: .4rem,
+	$brd-style: solid,
+	$brd-color: transparent,
+	$brd-radius: 0.1rem,
+	$hvr-bg: lighten($LightGreyColor, 20%),
+	$hvr-color: $color-dark,
+	$hvr-brd-color: transparent);
+}
+
 /* ---- 2.1 Defualt Buttons ---- */
 .btn {
 	/*@include btn-style(
