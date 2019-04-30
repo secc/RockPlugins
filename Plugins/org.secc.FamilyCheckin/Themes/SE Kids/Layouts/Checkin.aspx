@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" MasterPageFile="Checkin-Site.Master" AutoEventWireup="true" Inherits="Rock.Web.UI.RockPage" %>
+﻿<%@ Page Language="C#" MasterPageFile="Checkin-Site.Master" AutoEventWireup="true" Inherits="Rock.Web.UI.RockPage" EnableEventValidation="false" %>
 
 <asp:Content ID="ctMain" ContentPlaceHolderID="main" runat="server">
     		
