@@ -191,7 +191,7 @@ namespace org.secc.ServiceReef
 
                                     if (option != null)
                                     {
-                                        trip2.SetAttributeValue(categorysimple.Name.Replace(" ", ""), option.Name);
+                                        trip2.SetAttributeValue(categorysimple.Name.RemoveAllNonAlphaNumericCharacters(), option.Name);
                                         trip2.SaveAttributeValues();
                                     }
                                 }
