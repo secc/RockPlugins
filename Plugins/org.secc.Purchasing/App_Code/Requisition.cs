@@ -777,29 +777,43 @@ namespace org.secc.Purchasing
 
                         var query2 = Query;
                         
-                            if ( filter.ContainsKey( "MyLocationID" ) && int.TryParse( filter["MyLocationID"], out MyLocationID ) )
-                            {
-                                query2 = query2.Where( q => q.LocationLUID == MyLocationID );
-                            }
+                        if ( filter.ContainsKey( "MyLocationID" ) && int.TryParse( filter["MyLocationID"], out MyLocationID ) )
+                        {
+                            query2 = query2.Where( q => q.LocationLUID == MyLocationID );
+                        }
+                        var ids = ListItems.Select(li => li.RequisitionID).ToList<int>();
+                        ids.Sort();
+                        int nSize = 2000;
+                        int max = 0;
+                        while (ids.Any())
+                        {
+                            // The logic in this section splits the contains into chunks of 2000 to avoid a SQL parameter limit of 2100
+                            var currentIds = ids.Take(nSize).ToList();
+                            ids = ids.Skip(nSize).ToList();
+                            // Shift the previous max to min for each iteration
+                            int min = max;
+                            // At the end, take the max integer
+                            max = !ids.Any()?int.MaxValue:currentIds.Max();
+                            ListItems.AddRange(query2.Where(r => !currentIds.Contains(r.RequisitionId) && min <= r.RequisitionId && r.RequisitionId < max)
+                                                            .Select(q => new RequisitionListItem
+                                                            {
+                                                                RequisitionID = q.RequisitionId,
+                                                                Title = q.Title,
+                                                                RequesterID = q.RequesterId,
+                                                                RequesterLastFirst = q.RequesterLastFirst,
+                                                                Status = q.Status,
+                                                                RequisitionType = q.TypeName,
+                                                                ItemCount = q.ItemCount,
+                                                                NoteCount = q.NoteCount,
+                                                                AttachmentCount = q.AttachmentCount,
+                                                                DateCreated = q.DateCreated,
+                                                                DateSubmitted = q.DateSubmitted,
+                                                                IsExpedited = q.IsExpedited,
+                                                                IsApproved = q.IsApproved,
+                                                                IsAccepted = q.IsAccepted
+                                                            }));
+                        }
 
-                            ListItems.AddRange( query2.Where( r => !ListItems.Select( li => li.RequisitionID ).Contains( r.RequisitionId ) )
-                                                         .Select( q => new RequisitionListItem
-                                                         {
-                                                             RequisitionID = q.RequisitionId,
-                                                             Title = q.Title,
-                                                             RequesterID = q.RequesterId,
-                                                             RequesterLastFirst = q.RequesterLastFirst,
-                                                             Status = q.Status,
-                                                             RequisitionType = q.TypeName,
-                                                             ItemCount = q.ItemCount,
-                                                             NoteCount = q.NoteCount,
-                                                             AttachmentCount = q.AttachmentCount,
-                                                             DateCreated = q.DateCreated,
-                                                             DateSubmitted = q.DateSubmitted,
-                                                             IsExpedited = q.IsExpedited,
-                                                             IsApproved = q.IsApproved,
-                                                             IsAccepted = q.IsAccepted
-                                                         } ) );
                     }
                 }
 
