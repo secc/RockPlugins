@@ -5,9 +5,10 @@ body {
   font-weight: 600;
 }
 a {
-  color: $primary_color;
+  color: #FFFFFF;
+  font-weight: 700;
   &:hover {
-    color: darken($primary_color, 10%)
+    color: rgba(255,255,255, 10%)
   }
 }
 h1,h2,h3,h4,h5,h6 {
@@ -17,6 +18,40 @@ h1,h2,h3,h4,h5,h6 {
   top: 4px;
   left: 2px;
 }
+
+.co-button {
+    background: #f9c521;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 8px 14px;
+    line-height: 1;
+    text-align: center;
+    border-radius: 2px;
+    color: #000000;
+    text-decoration: none;
+    border: none;
+    font-size: 0.8rem;
+
+    &:hover {
+        background: #f9c521;
+        color: #000000;
+    }
+}
+
+.top-bar-section ul li>a.button:hover, .top-bar-section ul li>a.button:focus {
+    background-color: white;
+    color: #000000;
+}
+
+.co-notify-notice {
+    box-shadow: inset 10px 0px 0 0px #f9c521;
+}
+.side-menu ul.account .co-sign-up-button {
+    background-color: #f9c521;
+    color: #000000;
+    border-radius: 2px;
+}
+
 .more-widgets {
   position: absolute;
   bottom: 0;
@@ -258,6 +293,15 @@ header {
   line-height: 45px;
   background: rgba(0, 0, 0, 0);
 }
+.co-modal {
+    a {
+      color: #000;
+      font-weight: 700;
+      &:hover {
+        color: rgba(0,0,0, 10%)
+      }
+    }
+}
 .co-modal-settings input[type=text] {
   width: 62%;
 }
@@ -473,10 +517,10 @@ footer ul li a:hover {
 }
 .co-popover {
   margin: 0px;
-  background-color: #1d1d1f;
+  background-color: #4D4C4C;
 }
 .co-popover-content li:hover {
-    color: #494a4e;
+    color: #000000;
 }
 .co-component-header>div:hover, .co-component-header>div:hover a {
     color: #FFFFFF;
