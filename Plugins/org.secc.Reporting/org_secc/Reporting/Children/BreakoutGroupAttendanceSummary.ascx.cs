@@ -94,7 +94,7 @@ namespace RockWeb.Blocks.Reporting.Children
                     .ToList();
 
             var attendanceQry = new AttendanceService( rockContext ).Queryable();
-            attendanceQry = attendanceQry.Where( a => a.Occurrence.SundayDate != null && scheduleIds.Contains( a.Occurrence.ScheduleId ?? 0 ) );
+            attendanceQry = attendanceQry.Where( a => a.DidAttend == true && a.Occurrence.SundayDate != null && scheduleIds.Contains( a.Occurrence.ScheduleId ?? 0 ) );
             var upper = drpRange.UpperValue;
             var lower = drpRange.LowerValue;
             if ( upper != null )
