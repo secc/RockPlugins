@@ -19,6 +19,68 @@ h1,h2,h3,h4,h5,h6 {
   left: 2px;
 }
 
+/*** White Version Chat ***
+.co-chat-content {
+    background-color: #FFFFFF;
+    color: #000000;
+}
+.co-message-main {
+    background: #FFFFFF;
+    color: #000000;
+}
+.co-message {
+    // border-bottom: 1px solid #000000;
+}
+.co-component-header {
+    color: #000000 !important;
+    padding: 0px;
+    border-bottom: 1px solid #4D4C4C;
+}
+****/
+
+.co-chat-content {
+    background-color: #1d1d1f;
+}
+.co-message-main {
+    background: #1d1d1f;
+}
+.co-message {
+    position: relative;
+    border-bottom: 1px solid #000000;
+}
+.co-message-host {
+    background: #f9c521;
+    color: black;
+    font-weight: 600;
+}
+.co-chat-box-input:focus, .co-nickname-box-input:focus {
+    outline: 0;
+    box-shadow: inset 8px 0 0 #f9c521;
+}
+.co-chat-box button {
+    background-color: #f9c521;
+    color: #000000;
+}
+.co-chat-overlay.co-chat-new {
+    background: #1d1d1f;
+    background-position: bottom left;
+    background-repeat: no-repeat;
+}
+.co-chat-overlay-message .co-chat-helper-text {
+    color: #FFFFFF;
+}
+.co-chat-container {
+    background-color: #1d1d1f;
+}
+.co-component-header a {
+    color: #fff;
+    text-decoration: none;
+}
+.redactor_toolbar.co-component-header a {
+    color: #000;
+    text-decoration: none;
+}
+
 .co-button {
     background: #f9c521;
     text-transform: uppercase;
