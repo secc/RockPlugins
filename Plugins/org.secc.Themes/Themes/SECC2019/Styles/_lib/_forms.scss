@@ -154,3 +154,39 @@ input.error {
 	font-size: .8em;
 
 }
+
+.registration-entry div[id$=pnlCostAndFees] {
+    border: 1px solid #999;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.registrationentry-summary .fee-table {
+    margin: 0px;
+}
+
+.registration-entry .registration-heading {
+    background-color: #f1f1f1;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+.registration-entry .progress {
+    background-image: none;
+    background-color: white;
+    margin: 10px 0px;
+    border-radius: 0px;
+    height: 10px;
+}
+.registration-entry .progress-bar {
+    background-image: none;
+}
+.registration-entry .well {
+    background-image: none;
+    box-shadow: none;
+}
+.registration-entry input[id$=tbDiscountCode] {
+    height: 39px;
+}
+.registration-entry a[id$=lbDiscountApply] {
+    margin-top: 0px !important;
+}
