@@ -110,20 +110,24 @@
                         <div class="event-items col-xs-4 {% if campus | Attribute: 'Slug' != 'Yes' %}col-xs-offset-2{% endif %} g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter {% if childCareIsAvailable != 'Yes' %}col-xs-offset-2{% endif %}">
                              <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
                              <h6>
-                                 {% assign eventItemDatesIsHidden = eventItemOccurrence.AttEventDatesHide %}
-                                 {% unless eventItemDatesIsHidden == 'Yes' %}
-								 {% assign useOnlyScheduleText = eventItemOccurrence.AttUseOnlyScheduleText %}
-                                 {% if useOnlyScheduleText == 'Yes' %}
-                                       {{eventItemOccurrence.AttScheduleText }}
+                                 {% if eventItem.Id == 357 %}
+                                    Various Times
                                  {% else %}
-                                       {{ eventItemOccurrence.Date | Date: 'ddd, MMM dd'}}
-                                 {% endif %}
-                                 {% endunless %}
-                                 <br />
-                                 {% if numOccurrences > 1 and multiCampus == true %}
-                                         <small class="uppercase g-padding-b-20--xs g-font-weight--700">Multiple Dates</small>
-                                 {% elseif numOccurrences > 1 or scheduledNumDates > 1 %}
-                                         <small class="uppercase g-padding-b-20--xs g-font-weight--700">Recurring Event</small>
+                                     {% assign eventItemDatesIsHidden = eventItemOccurrence.AttEventDatesHide %}
+                                     {% unless eventItemDatesIsHidden == 'Yes' %}
+    								 {% assign useOnlyScheduleText = eventItemOccurrence.AttUseOnlyScheduleText %}
+                                     {% if useOnlyScheduleText == 'Yes' %}
+                                           {{eventItemOccurrence.AttScheduleText }}
+                                     {% else %}
+                                           {{ eventItemOccurrence.Date | Date: 'ddd, MMM dd'}}
+                                     {% endif %}
+                                     {% endunless %}
+                                     <br />
+                                     {% if numOccurrences > 1 and multiCampus == true %}
+                                             <small class="uppercase g-padding-b-20--xs g-font-weight--700">Multiple Dates</small>
+                                     {% elseif numOccurrences > 1 or scheduledNumDates > 1 %}
+                                             <small class="uppercase g-padding-b-20--xs g-font-weight--700">Recurring Event</small>
+                                     {% endif %}
                                  {% endif %}
                              </h6>
                         </div>
@@ -131,13 +135,17 @@
                         <div class="event-items g-padding-x-10--xs col-xs-4 {% if childCareIsAvailable == 'Yes' %}g-ver-divider__solid__r--gray-lighter{% endif %}">
                              <div class="event-icon --location"><!-- Marker / Location SVG Image --></div>
                              <h6>
-                                 {% if eventItemOccurrence.EventItemOccurrence.Location != '' %}
-                                 {{ eventItemOccurrence.EventItemOccurrence.Location }}
+                                 {% if eventItem.Id == 357 %}
+                                    Blankenbaker Campus
                                  {% else %}
-                                     {% if numOccurrences > 1 and multiCampus == true %}
-                                         Multiple <br />Campuses
+                                     {% if eventItemOccurrence.EventItemOccurrence.Location != '' %}
+                                     {{ eventItemOccurrence.EventItemOccurrence.Location }}
                                      {% else %}
-                                         {{eventItemOccurrence.EventItemOccurrence.Campus.Name}} <br />Campus
+                                         {% if numOccurrences > 1 and multiCampus == true %}
+                                             Multiple <br />Campuses
+                                         {% else %}
+                                             {{eventItemOccurrence.EventItemOccurrence.Campus.Name}} <br />Campus
+                                         {% endif %}
                                      {% endif %}
                                  {% endif %}
                              </h6>
