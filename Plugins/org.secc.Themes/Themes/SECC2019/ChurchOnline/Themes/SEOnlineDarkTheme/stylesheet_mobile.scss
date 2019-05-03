@@ -1,11 +1,172 @@
-header, section.widget_nav {
-    background-color: #313234;
+header {
+    padding: 10px;
+    border-bottom: 5px solid #F9C621;
+}
+body, header, section.widget_nav {
+    background-color: #000000;
+}
+.menu-overlay {
+    background-color: rgba(0, 0, 0, 0.85);
+    i {
+        color: #FFFFFF;
+    }
+}
+.co-modal {
+    width: 95%;
+    margin: 10px auto;
+    a {
+      color: #000;
+      font-weight: 700;
+      &:hover {
+        color: rgba(0,0,0, 10%)
+      }
+    }
+}
+.side-menu {
+    background-color: #1d1d1f;
+}
+.co-account-dropdown {
+    background-color: #1d1d1f;
 }
 .co-video {
     background-repeat: no-repeat;
     background-position: top center;
-    background-image: url(https://chop-v3-media.s3.amazonaws.com/medias/images/000/095/420/original/SE_ONLONE_BG2_2x.jpg?1554316811);
+    background-image: url(https://chop-v3-media.s3.amazonaws.com/medias/images/000/096/894/original/SE_ONLINE_BG-Yellow1.jpg?1556733331);
     background-size: cover;
     background-color: #404040;
     overflow: hidden;
+}
+.co-button {
+    background: #f9c521;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 8px 14px;
+    line-height: 1;
+    text-align: center;
+    border-radius: 2px;
+    color: #000000;
+    text-decoration: none;
+    border: none;
+    font-size: 0.8rem;
+
+    &:hover {
+        background: #f9c521;
+        color: #000000;
+    }
+}
+a {
+  color: #FFFFFF;
+  font-weight: 700;
+  &:hover {
+    color: rgba(255,255,255, 10%)
+  }
+}
+.co-notify-notice {
+    box-shadow: inset 10px 0px 0 0px #f9c521;
+}
+.side-menu ul.account .co-sign-up-button {
+    background-color: #f9c521;
+    color: #000000;
+    border-radius: 2px;
+}
+#countdown-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(77, 76, 76, 0.9);
+    z-index: 1;
+    text-align: center;
+    padding: 18px 0px;
+    color: #FFFFFF;
+
+    button {
+        display: inline-block;
+        background-color: #f9c521;
+        color: #000000;
+        border-width: 4px;
+        border-style: solid;
+        border-color: transparent;
+        border-radius: 0.1rem;
+        font-size: 1rem;
+        /* line-height: 36px; */
+        padding: 8px 2rem;
+        margin: 20px 10px 0px 0px;
+        vertical-align: top;
+        text-transform: uppercase;
+        font-weight: 700;
+
+        &:hover {
+            background-color: #FFFFFF;
+            border-color: none;
+            color: #000000;
+        }
+        i {
+            margin-right: 8px;
+            display: none;
+        }
+    }
+}
+.co-header-countdown-close {
+    color: #FFFFFF;
+}
+.request-private-chat button {
+    display: inline-block;
+    background-color: #f9c521;
+    color: #000000;
+    border-width: 4px;
+    border-style: solid;
+    border-color: transparent;
+    border-radius: 0.1rem;
+    font-size: 1rem;
+    /* line-height: 36px; */
+    padding: 8px 2rem;
+    margin: 20px 10px 0px 0px;
+    vertical-align: top;
+    text-transform: uppercase;
+    font-weight: 700;
+
+    &:hover {
+        background-color: #FFFFFF;
+        border-color: none;
+        color: #000000;
+    }
+    i {
+        margin-right: 8px;
+        display: none;
+    }
+}
+
+section.widgets {
+    background-color: #1d1d1f;
+}
+.co-tabs-content {
+    background-color: #1d1d1f;
+    color: #FFFFFF;
+}
+.co-chat {
+    background-color: #1d1d1f;
+    color: #FFFFFF;
+}
+.co-chat-overlay {
+    background-color: #1d1d1f;
+}
+.co-chat-overlay-message {
+    color: #FFFFFF;
+}
+.co-schedule-content {
+    background-color: #1d1d1f;
+    a {
+        color: #FFFFFF;
+        text-decoration: none;
+    }
+}
+.co-phone-schedule-content .co-scrollable {
+    background-color: #4d4c4c;
+    color: #FFFFFF;
+}
+.co-event-day .co-event-day-header {
+    color: #FFFFFF;
+    width: 16%;
+    float: left;
 }
