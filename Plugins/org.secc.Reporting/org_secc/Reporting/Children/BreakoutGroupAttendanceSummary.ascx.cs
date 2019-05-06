@@ -27,6 +27,7 @@ using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
+using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
@@ -39,6 +40,7 @@ namespace RockWeb.Blocks.Reporting.Children
     [Category( "SECC > Reporting > Children" )]
     [Description( "A filterable and sortable list of breakout groups." )]
     [GroupField( "Breakout Parent Group", "Parent group of group types" )]
+    [GroupTypeField( "Check-in Group Type", "The group type to use for selecting the checkin group (grade).")]
     [TextField( "Schedule IDs", "Coma separated list of the Ids of schedules." )]
     public partial class BreakoutGroupAttendanceSummary : RockBlock
     {
@@ -49,7 +51,20 @@ namespace RockWeb.Blocks.Reporting.Children
         /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         protected override void OnLoad( EventArgs e )
         {
+            if (!IsPostBack)
+            {
+                GroupService groupService = new GroupService( new RockContext() );
 
+                var groupTypeGuid = GetAttributeValue( "Check-inGroupType" ).AsGuidOrNull();
+                if (groupTypeGuid.HasValue)
+                {
+                    int groupTypeId = GroupTypeCache.Get( groupTypeGuid.Value ).Id;
+                    var groups = groupService.Queryable().Where( g => g.GroupTypeId == groupTypeId ).ToList().Select( g => new ListItem( g.Name, g.Id.ToString() ) ).ToList();
+                    groups.Insert( 0, new ListItem( String.Empty, String.Empty ) );
+                    rddlCheckinGroup.DataSource = groups;
+                    rddlCheckinGroup.DataBind();
+                }
+            }
         }
 
         protected void btnGenerate_Click( object sender, EventArgs e )
@@ -59,24 +74,12 @@ namespace RockWeb.Blocks.Reporting.Children
             var gQry = new GroupService( rockContext ).Queryable().Where( g => g.IsActive && !g.IsArchived && g.ParentGroup.Guid == parentGroupGuid );
             var gmQry = gQry.SelectMany( g => g.Members.Where( gm => gm.GroupMemberStatus == GroupMemberStatus.Active ) );
 
-            var personQry = new PersonService( rockContext ).Queryable().Where( p => p.GraduationYear != null );
-
-            if ( gpGrade.SelectedGradeValue != null )
-            {
-                var grade = Person.GraduationYearFromGradeOffset( gpGrade.SelectedGradeValue.Value.AsInteger() );
-                personQry = personQry.Where( p => p.GraduationYear == grade );
-            }
-
-            var membersQry = gmQry.Join( personQry,
-                gm => new { PersonId = gm.PersonId },
-                p => new { PersonId = p.Id },
-                ( gm, p ) => new { GroupId = gm.GroupId, PersonId = p.Id }
-                );
+            // Get all members of every breakout group
+            var membersQry = gmQry.Select( gm => new { GroupId = gm.GroupId, PersonId = gm.PersonId } );
 
             //get all the breakout groups where we have members
             var breakoutGroups = gQry.ToList()
-                .Where( g => membersQry.Select( gm => gm.GroupId )
-                 .Contains( g.Id ) )
+                .Where( g => g.Members.Any(gm => gm.GroupMemberStatus == GroupMemberStatus.Active ) )
                 .OrderBy( g => g.Schedule.Id )
                 .ThenBy( g => g.Name )
                 .ToList();
@@ -94,7 +97,13 @@ namespace RockWeb.Blocks.Reporting.Children
                     .ToList();
 
             var attendanceQry = new AttendanceService( rockContext ).Queryable();
-            attendanceQry = attendanceQry.Where( a => a.Occurrence.SundayDate != null && scheduleIds.Contains( a.Occurrence.ScheduleId ?? 0 ) );
+            attendanceQry = attendanceQry.Where( a => a.DidAttend == true && a.Occurrence.SundayDate != null && scheduleIds.Contains( a.Occurrence.ScheduleId ?? 0 ) );
+            if ( !string.IsNullOrWhiteSpace( rddlCheckinGroup.SelectedValue ) )
+            {
+                int groupId = rddlCheckinGroup.SelectedValue.AsInteger();
+                attendanceQry = attendanceQry.Where( a => a.Occurrence.GroupId == groupId );
+            }
+
             var upper = drpRange.UpperValue;
             var lower = drpRange.LowerValue;
             if ( upper != null )
@@ -167,23 +176,14 @@ namespace RockWeb.Blocks.Reporting.Children
             }
 
             var sundays = attendanceQry
-                            .DistinctBy( a => a.Occurrence.SundayDate )
                             .Select( a => a.Occurrence.SundayDate )
+                            .Distinct()
                             .OrderBy( a => a )
                             .ToList();
 
             var attendance = attendanceQry
-                .Join(
-                    personQry,
-                    a => new { PersonId = a.PersonAlias.PersonId },
-                    p => new { PersonId = p.Id },
-                    ( a, p ) => new
-                    {
-                        PersonId = p.Id,
-                        ScheduleId = a.Occurrence.ScheduleId,
-                        SundayDate = a.Occurrence.SundayDate
-                    }
-                    ).ToList();
+                .Select( a => new { PersonId = a.PersonAlias.PersonId, ScheduleId = a.Occurrence.ScheduleId, SundayDate = a.Occurrence.SundayDate } )
+                .ToList().Distinct();
 
             var allMemberIds = membersQry.Select( m => m.PersonId ).ToList();
 
@@ -232,6 +232,7 @@ namespace RockWeb.Blocks.Reporting.Children
                          && a.ScheduleId == schedule.Id
                          && !allMemberIds.Contains( a.PersonId )
                         ).Count();
+
                     nonMemberTotal += nonMembers;
                     SetExcelValue( worksheets[1].Cells[rowCounter1, 3], nonMembers );
 

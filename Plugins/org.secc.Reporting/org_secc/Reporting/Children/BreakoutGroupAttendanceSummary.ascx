@@ -4,7 +4,7 @@
     <ContentTemplate>
         <div class="row">
             <div class="col-sm-4">
-                <Rock:GradePicker runat="server" ID="gpGrade" Label="Grades" />
+                <Rock:RockDropDownList runat="server" ID="rddlCheckinGroup" Label="Check-in Group" DataValueField="Value" DataTextField="Text"></Rock:RockDropDownList>
             </div>
             <div class="col-sm-4">
                 <Rock:DateRangePicker runat="server" ID="drpRange" Label="Attendance Range" />
