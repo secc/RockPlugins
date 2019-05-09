@@ -4123,6 +4123,10 @@ namespace RockWeb.Plugins.org_secc.Event
             pnlSuccess.Visible = CurrentPanel == PanelIndex.PanelSuccess;
 
             lSummaryAndPaymentTitle.Text = ( CurrentPanel == PanelIndex.PanelSummary && RegistrationTemplate != null ) ? "Review " + RegistrationTemplate.RegistrationTerm : "Payment Method";
+            if (pnlCostAndFees.Visible == true)
+            {
+                lSummaryAndPaymentTitle.Text = RegistrationTemplate.RegistrationTerm + " Payment";
+            }
             lPaymentInfoTitle.Text = CurrentPanel == PanelIndex.PanelSummary ? "<h4>Payment Method</h4>" : string.Empty;
         }
 

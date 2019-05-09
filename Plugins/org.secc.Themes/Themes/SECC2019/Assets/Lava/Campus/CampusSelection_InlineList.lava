@@ -1,0 +1,77 @@
+<section id="Campuses">
+    {[ wow animate:'fadeIn' duration:'.8s' ]}
+    <ul class="list-inline clearfix g-padding-t-0--xs g-padding-b-150--xs g-padding-x-150--md text-center g-margin-x-auto--xs">
+
+        <li>
+            <div class="g-padding-b-60--xs">
+                <a class="text-center" href="/location/blankenbaker">
+                    <img src="/Themes/SECC2019/Assets/img/SE/Campuses/920.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
+                    <br />
+                    <h5 class="g-font-weight--700">Blankenbaker</h5>
+                </a>
+            </div>
+        </li>
+
+        <li>
+            <div class="g-padding-b-60--xs">
+                <a class="text-center" href="/location/indiana">
+                    <img src="/Themes/SECC2019/Assets/img/SE/Campuses/IN.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
+                    <br />
+                    <h5 class="g-font-weight--700">Indiana</h5>
+                </a>
+            </div>
+        </li>
+
+        <li>
+            <div class="g-padding-b-60--xs">
+                <a class="text-center" href="/location/crestwood">
+                    <img src="/Themes/SECC2019/Assets/img/SE/Campuses/CW.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
+                    <br />
+                    <h5 class="g-font-weight--700">Crestwood</h5>
+                </a>
+            </div>
+        </li>
+
+        <li>
+            <div class="g-padding-b-60--xs">
+                <a class="text-center" href="/location/southwest">
+                    <img src="/Themes/SECC2019/Assets/img/SE/Campuses/SW.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
+                    <br />
+                    <h5 class="g-font-weight--700">Southwest</h5>
+                </a>
+            </div>
+        </li>
+
+        <li>
+            <div class="g-padding-b-60--xs">
+                <a class="text-center" href="/location/lagrange">
+                    <img src="/Themes/SECC2019/Assets/img/SE/Campuses/LA.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
+                    <br />
+                    <h5 class="g-font-weight--700">La Grange</h5>
+                </a>
+            </div>
+        </li>
+
+        <li>
+            <div class="g-padding-b-60--xs">
+                <a class="text-center" href="/location/elizabethtown">
+                    <img src="/Themes/SECC2019/Assets/img/SE/Campuses/ET.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
+                    <br />
+                    <h5 class="g-font-weight--700">Elizabethtown</h5>
+                </a>
+            </div>
+        </li>
+
+        <li>
+            <div class="g-padding-b-60--xs">
+                <a class="text-center" href="/location/rivervalley">
+                    <img src="/Themes/SECC2019/Assets/img/SE/Campuses/RV.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
+                    <br />
+                    <h5 class="g-font-weight--700">River Valley</h5>
+                </a>
+            </div>
+        </li>
+
+    </ul>
+    {[ endwow ]}
+</section>
