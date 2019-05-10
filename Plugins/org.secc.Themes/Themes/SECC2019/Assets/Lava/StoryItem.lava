@@ -1,6 +1,6 @@
 {% assign storySlug = 'Global' | PageParameter:'Slug'  %}
 
-{% cache key:'story-content-{{storySlug}}' duration:'3600' %}
+{% cache key:'story-content-{{storySlug}}' duration:'3600' twopass:'true' %}
 
 {% assign storySlug = 'Global' | PageParameter:'Slug'  %}
 {% contentchannelitemslug where:'Slug == "{{storySlug}}"' %}
@@ -15,6 +15,9 @@
 {% assign ImageGuid = item | Attribute:'Image','RawValue' %}
 {% assign AuthorObject = item | Attribute:'Author','Object' %}
 {% assign PostLayout = item | Attribute:'PostLayout','RawValue' %}
+
+{% assign sc = '{{" ' | Append:item.Title | Append:' | Southeast Christian Church' | Append:'" | SetPageTitle }}' %}
+{{sc}}
 
 {% assign Author = AuthorObject | Attribute:'Person','Object' %}
 {% assign AuthorImageGuid = AuthorObject | Attribute:'BioImage','RawValue' %}
