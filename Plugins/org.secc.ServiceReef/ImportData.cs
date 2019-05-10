@@ -275,7 +275,10 @@ namespace org.secc.ServiceReef
                                             person = new Person();
                                             person.FirstName = result.FirstName.Trim();
                                             person.LastName = result.LastName.Trim();
-                                            person.Email = result.Email.Trim();
+                                            if ( result.Email.IsValidEmail() )
+                                            {
+                                                person.Email = result.Email.Trim();
+                                            }
                                             person.RecordTypeValueId = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid()).Id;
                                             person.ConnectionStatusValueId = connectionStatus.Id;
                                             person.RecordStatusValueId = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid()).Id;
@@ -289,6 +292,7 @@ namespace org.secc.ServiceReef
                                                 City = result.Address.City,
                                                 State = result.Address.State,
                                                 PostalCode = result.Address.Zip,
+                                                Country = result.Address.Country
                                             };
                                             family.CampusId = CampusCache.All().FirstOrDefault().Id;
                                             family.GroupLocations.Add(location);
