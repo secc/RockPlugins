@@ -35,6 +35,16 @@
             </Content>
         </Rock:ModalDialog>
 
+        <Rock:ModalDialog runat="server" ID="mdCustomNotes" Title="Custom Notes">
+            <Content>
+                <asp:HiddenField runat="server" ID="hfCustomNotesPersonId" />
+                <asp:Literal ID="ltCustomNotes" runat="server" />
+                <br />
+                <Rock:RockTextBox ID="tbCustomNotes" runat="server" TextMode="MultiLine" Rows="10" Label="Add Note"></Rock:RockTextBox>
+                <Rock:BootstrapButton runat="server" ID="btnCustomNotes" Text="Add Note" CssClass="btn btn-primary" OnClick="btnCustomNotes_Click" />
+            </Content>
+        </Rock:ModalDialog>
+
         <Rock:NotificationBox runat="server" ID="nbAlert" Dismissable="true" NotificationBoxType="Danger" />
         <div class="panel panel-default">
             <div class="panel-heading">
@@ -76,6 +86,7 @@
                         <asp:BoundField DataField="Schedule" HeaderText="Schedule" />
                         <Rock:BoolField DataField="Distributed" HeaderText="Distributed" ExcelExportBehavior="NeverInclude" />
                         <Rock:LinkButtonField Text="Distribute" CssClass="btn btn-default confirm" OnClick="Distribute_Click" ExcelExportBehavior="NeverInclude" />
+                        <Rock:LinkButtonField Text="<i class='fa fa-sticky-note'></i>" CssClass="btn btn-default" OnClick="Note_Click" ExcelExportBehavior="NeverInclude" />
                     </Columns>
                 </Rock:Grid>
             </div>
