@@ -11,7 +11,7 @@
        {% unless personGuid != null %}
 	   {% assign host = 'Global' | Page:'Host' %}
 	   {% assign url = 'Global' | Page:'Url' %}
-       <li><a class="cd-nav-login" href="/login?returnurl={{ url | Replace:host, 'www.southeastchristian.org' }}" title="Login">Login<span></span></a></li>
+       <li><a class="cd-nav-login" href="/login?returnurl={{ url | Replace:host, '' | Replace:'http://','' | Replace:'https://','' }}" title="Login">Login<span></span></a></li>
        {% endunless %}
        <li><a class="cd-nav-trigger" href="#cd-primary-nav">Menu<span></span></a></li>
    </ul> <!-- cd-header-buttons -->
