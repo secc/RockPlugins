@@ -656,6 +656,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 .Where( n => n.EntityId == personId )
                 .Where( n => n.NoteTypeId == noteType.Id )
                 .Where( n => n.CreatedDateTime >= today && n.CreatedDateTime < tomorrow )
+                .Where( n => n.ForeignId != null )
                 .ToList();
 
             gNotes.DataSource = notes;
