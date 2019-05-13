@@ -324,7 +324,10 @@ namespace org.secc.ServiceReef
                                                     person = new Person();
                                                     person.FirstName = result2.FirstName.Trim();
                                                     person.LastName = result2.LastName.Trim();
-                                                    person.Email = email;
+                                                    if ( email.IsValidEmail() )
+                                                    {
+                                                        person.Email = email;
+                                                    }
                                                     person.RecordTypeValueId = DefinedValueCache.Get(Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid()).Id;
                                                     person.ConnectionStatusValueId = connectionStatus.Id;
                                                     person.RecordStatusValueId = DefinedValueCache.Get(Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid()).Id;
@@ -385,6 +388,7 @@ namespace org.secc.ServiceReef
                                                         City = result2.Address.City,
                                                         State = result2.Address.State,
                                                         PostalCode = result2.Address.Zip,
+                                                        Country = result2.Address.Country
                                                     };
                                                     location.IsMappedLocation = true;
                                                     family.CampusId = CampusCache.All().FirstOrDefault().Id;

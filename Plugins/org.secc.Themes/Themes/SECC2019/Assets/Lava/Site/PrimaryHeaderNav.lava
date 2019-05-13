@@ -6,17 +6,16 @@
            <img class="img-respoinsive default-logo g-width-275--xs g-width-350--sm" src="/Themes/SECC2019/Assets/img/logos/southeast/SECC_logo_wordmark_black.svg" alt="Logo">
            <img class="img-respoinsive inverse g-width-275--xs g-width-350--sm" src="/Themes/SECC2019/Assets/img/logos/southeast/SECC_logo_wordmark_white.svg" alt="Logo">
        </a>
-
        <ul class="cd-header-buttons">
            <li><a class="cd-search-trigger" href="#cd-search" title="Search">Search<span></span></a></li>
            {% assign personGuid = CurrentPerson.Guid %}
            {% unless personGuid != null %}
     	   {% assign host = 'Global' | Page:'Host' %}
     	   {% assign url = 'Global' | Page:'Url' %}
-           <li><a class="cd-nav-login" href="/login?returnurl={{ url | Replace:host, 'www.southeastchristian.org' }}" title="Login">Login<span></span></a></li>
+           <li><a class="cd-nav-login" href="/login?returnurl={{ url | Replace:host, '' | Replace:'http://','' | Replace:'https://','' }}" title="Login">Login<span></span></a></li>
            {% endunless %}
            <li><a class="cd-nav-trigger" href="#cd-primary-nav">Menu<span></span></a></li>
        </ul> <!-- cd-header-buttons -->
-    </div>
+   </div>
 </header>
 <!--========== END HEADER ==========-->

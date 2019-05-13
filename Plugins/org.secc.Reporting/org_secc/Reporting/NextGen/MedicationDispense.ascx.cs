@@ -292,6 +292,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 .Where( n => n.NoteTypeId == noteType.Id )
                 .Where( n => personIds.Contains( n.EntityId ?? 0 ) )
                 .Where( h => h.CreatedDateTime >= firstDay && h.CreatedDateTime < nextday )
+                .Where( h => h.ForeignId != null )
                 .ToList();
 
             foreach ( var member in members )
@@ -454,7 +455,10 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 if ( hasFilter )
                 {
                     item.GroupMember.LoadAttributes();
-                    SetExcelValue( worksheet.Cells[rowCounter, 5], item.GroupMember.GetAttributeValue( filterAttribute ) );
+                    if ( item.GroupMember != null )
+                    {
+                        SetExcelValue( worksheet.Cells[rowCounter, 5], item.GroupMember.GetAttributeValue( filterAttribute ) );
+                    }
                 }
                 rowCounter++;
             }
@@ -652,6 +656,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 .Where( n => n.EntityId == personId )
                 .Where( n => n.NoteTypeId == noteType.Id )
                 .Where( n => n.CreatedDateTime >= today && n.CreatedDateTime < tomorrow )
+                .Where( n => n.ForeignId != null )
                 .ToList();
 
             gNotes.DataSource = notes;
@@ -769,5 +774,60 @@ namespace RockWeb.Blocks.Reporting.NextGen
             mdNotes.Show();
         }
 
+
+        protected void Note_Click( object sender, RowEventArgs e )
+        {
+            var keys = ( ( string ) e.RowKeyValue ).SplitDelimitedValues();
+            var personId = keys[0].AsInteger();
+            hfCustomNotesPersonId.Value = personId.ToString();
+            UpdateCustomNotes( personId );
+
+            mdCustomNotes.Show();
+        }
+
+        private void UpdateCustomNotes( int personId )
+        {
+            RockContext rockContext = new RockContext();
+            NoteService noteService = new NoteService( rockContext );
+            PersonService personService = new PersonService( rockContext );
+            var person = personService.Get( personId );
+            mdCustomNotes.Title = Rock.RockDateTime.Today.ToString( "MMM dd" ) + "Custom Notes for " + person.FullName;
+            var noteType = NoteTypeCache.Get( GetAttributeValue( "NoteType" ).AsGuid() );
+
+            var today = Rock.RockDateTime.Today;
+            var tomorrow = today.AddDays( 1 );
+
+            var notes = noteService.Queryable()
+                .Where( n => n.NoteTypeId == noteType.Id )
+                .Where( n => n.EntityId == personId )
+                .Where( n => n.ForeignId == null )
+                .Where( n => n.CreatedDateTime >= today && n.CreatedDateTime < tomorrow )
+                .ToList();
+
+            tbCustomNotes.Text = "";
+            ltCustomNotes.Text = "";
+
+            foreach ( var note in notes )
+            {
+                ltCustomNotes.Text += "<b>" + note.CreatedDateTime.Value.ToString( "hh:mm tt" ) + ":</b> " + note.Text + "<br>";
+            }
+        }
+
+        protected void btnCustomNotes_Click( object sender, EventArgs e )
+        {
+            RockContext rockContext = new RockContext();
+            NoteService noteService = new NoteService( rockContext );
+            var noteType = NoteTypeCache.Get( GetAttributeValue( "NoteType" ).AsGuid() );
+
+            Note note = new Note()
+            {
+                NoteTypeId = noteType.Id,
+                Text = tbCustomNotes.Text,
+                EntityId = hfCustomNotesPersonId.ValueAsInt()
+            };
+            noteService.Add( note );
+            rockContext.SaveChanges();
+            UpdateCustomNotes( hfCustomNotesPersonId.ValueAsInt() );
+        }
     }
 }
