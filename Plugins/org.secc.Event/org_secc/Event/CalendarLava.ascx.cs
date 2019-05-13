@@ -456,8 +456,9 @@ namespace RockWeb.Blocks.Event
                         AttChildcareAvailable = occurrenceDates.EventItemOccurrenceAttributeValues.Where( av => av.AttributeKey == "ChildcareAvailable" ).Select( av => av.Value ).FirstOrDefault(),
                         AttScheduleText = occurrenceDates.EventItemOccurrenceAttributeValues.Where( av => av.AttributeKey == "ScheduleText" ).Select( av => av.Value ).FirstOrDefault(),
                         AttUseOnlyScheduleText = occurrenceDates.EventItemOccurrenceAttributeValues.Where( av => av.AttributeKey == "UseOnlyScheduleText" ).Select( av => av.Value ).FirstOrDefault(),
+                        CustomDateText = occurrenceDates.EventCalendarItemAttributeValues.Where( av => av.AttributeKey == "CustomDateText" ).Select( av => av.Value ).FirstOrDefault(),
+                        CustomLocationText =  occurrenceDates.EventCalendarItemAttributeValues.Where( av => av.AttributeKey == "CustomLocationText" ).Select( av => av.Value ).FirstOrDefault(),
                     } );
-
             }
         }
 
@@ -723,7 +724,7 @@ private void ShowError( string heading, string message )
     "LocationDescription", "Description", "Summary", "OccurrenceNote", "DetailPage",
     "Priority", "URLSlugs", "PrimaryMinistryImageGuid", "PrimaryMinstryTitle", "ImageHeaderText", "ImageHeaderTextSmall",
     "EventDatesHide", "AttUseOnlyScheduleText", "AttScheduleText", "AttChildcareAvailable", "EventItem", "EventItemPhotoId",
-    "ICalendarContent" )]
+    "ICalendarContent", "CustomDateText", "CustomLocationText" )]
 public class EventOccurrenceSummary
 {
     public EventItemOccurrence EventItemOccurrence { get; set; }
@@ -751,7 +752,10 @@ public class EventOccurrenceSummary
     public string AttUseOnlyScheduleText { get; set; }
     public string AttScheduleText { get; set; }
     public string AttChildcareAvailable { get; set; }
-}
+    public string CustomDateText { get; set; }
+    public string CustomLocationText { get; set; }
+
+        }
 
 /// <summary>
 /// A class to store the event item occurrences dates
