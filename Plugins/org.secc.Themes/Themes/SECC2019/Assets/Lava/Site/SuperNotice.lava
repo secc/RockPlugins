@@ -1,0 +1,227 @@
+<style type="text/css">
+  #churchonline_counter { overflow: auto; width: auto; padding: 10px; display: none; }
+  #churchonline_counter .description, #churchonline_counter .time li .label { font-size: 0.8em; }
+  #churchonline_counter .time { list-style: none; padding: 0; margin: 10px 0 0 0; display: inline-block; }
+  #churchonline_counter .time li { float: left; padding: 0 10px; text-align: center; border-right:2px solid #707070;}
+  #churchonline_counter .time li:first-child { border-left:2px solid #707070;  border-right:2px solid #707070; }
+  #churchonline_counter .time li span { font-size: 1.2em; color: black}
+  #churchonline_counter .live { display: none; font-weight: bold; }
+  #superNoticeHeader {
+      height: 0px; /* initially */
+      padding: 0px;
+      color: #000000;
+      background-color: #FFFFFF;
+      border-bottom: 1px solid #707070;
+      -moz-transition: height 0.2s ease-in-out 0.2s;
+      -webkit-transition: height 0.2s ease-in-out 0.2s;
+      -o-transition: height 0.2s ease-in-out 0.2s;
+      transition: height 0.2s ease-in-out 0.2s;
+      width: 100%;
+      z-index: 0;
+      overflow: hidden;
+  }
+  body {
+      -moz-transition: padding 0.2s ease-in-out 0.2s;
+      -webkit-transition: padding 0.2s ease-in-out 0.2s;
+      -o-transition: padding 0.2s ease-in-out 0.2s;
+      transition: padding 0.2s ease-in-out 0.2s;
+  }
+  #superNoticeHeader.active {
+      height: 110px;
+      /* padding: 10px; */
+  }
+</style>
+<!-- <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script> -->
+<script type="text/javascript">
+  jQuery(function() {
+    var days, goLive, hours, intervalId, minutes, seconds;
+
+    // Your churchonline.org url
+    var churchUrl = "https://southeastchristian.churchonline.org"
+
+    goLive = function() {
+      $("#churchonline_counter .time").hide();
+      $("#churchonline_counter .live").show();
+    };
+    loadCountdown = function(data){
+      var seconds_till;
+      $("#churchonline_counter").show();
+      if (data.response.item.isLive) {
+        return goLive();
+      } else {
+        // Parse ISO 8601 date string
+        date = data.response.item.eventStartTime.match(/^(\d{4})-0?(\d+)-0?(\d+)[T ]0?(\d+):0?(\d+):0?(\d+)Z$/)
+        dateString = date[2] + "/" + date[3] + "/" + date[1] + " " + date[4] + ":" + date[5] + ":" + date[6] + " +0000"
+        seconds_till = ((new Date(dateString)) - (new Date())) / 1000;
+        days = Math.floor(seconds_till / 86400);
+        hours = Math.floor((seconds_till % 86400) / 3600);
+        minutes = Math.floor((seconds_till % 3600) / 60);
+        seconds = Math.floor(seconds_till % 60);
+        return intervalId = setInterval(function() {
+          if (--seconds < 0) {
+            seconds = 59;
+            if (--minutes < 0) {
+              minutes = 59;
+              if (--hours < 0) {
+                hours = 23;
+                if (--days < 0) {
+                  days = 0;
+                }
+              }
+            }
+          }
+          $("#churchonline_counter .days").html((days.toString().length < 2) ? "0" + days : days);
+          $("#churchonline_counter .hours").html((hours.toString().length < 2 ? "0" + hours : hours));
+          $("#churchonline_counter .minutes").html((minutes.toString().length < 2 ? "0" + minutes : minutes));
+          $("#churchonline_counter .seconds").html((seconds.toString().length < 2 ? "0" + seconds : seconds));
+          if (seconds === 0 && minutes === 0 && hours === 0 && days === 0) {
+            goLive();
+            return clearInterval(intervalId);
+          }
+        }, 1000);
+      }
+    }
+    days = void 0;
+    hours = void 0;
+    minutes = void 0;
+    seconds = void 0;
+    intervalId = void 0;
+    eventUrl = churchUrl + "/api/v1/events/current"
+    msie = /msie/.test(navigator.userAgent.toLowerCase())
+    if (msie && window.XDomainRequest) {
+        var xdr = new XDomainRequest();
+        xdr.open("get", eventUrl);
+        xdr.onload = function() {
+          loadCountdown(jQuery.parseJSON(xdr.responseText))
+        };
+        xdr.send();
+    } else {
+      $.ajax({
+        url: eventUrl,
+        dataType: "json",
+        crossDomain: true,
+        success: function(data) {
+          loadCountdown(data);
+        },
+        error: function(xhr, ajaxOptions, thrownError) {
+          return console.log(thrownError);
+        }
+      });
+    }
+  });
+</script>
+
+
+<div id="superNoticeHeader">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <div id="churchonline_counter">
+                  <div class="live uppercase">Live Now</div>
+                  <span class="g-display-inline-block--xs" style="vertical-align: top;margin-top: 34px;padding-right: 10px;">
+                      <a href="https://southeastchristian.churchonline.org" class="cd-nav-item live-stream coming-soon">
+                        <h5 class="uppercase g-color--black g-font-weight--700" style="vertical-align:middle">Next Streaming Event</h5>
+                      </a>
+                  </span>
+                  <ul class="time">
+                    <li><h3 class="g-font-weight--700"><span class="days">00</span></h3> <span class="label uppercase">days</span></li>
+                    <li><h3 class="g-font-weight--700"><span class="hours">00</span></h3> <span class="label uppercase">hrs</span></li>
+                    <li><h3 class="g-font-weight--700"><span class="minutes">00</span></h3> <span class="label uppercase">mins</span></li>
+                    <li><h3 class="g-font-weight--700"><span class="seconds">00</span></h3> <span class="label uppercase">secs</span></li>
+                  </ul>
+                  <span class="g-display-inline-block--xs" style="vertical-align: top;margin-top: 17px;padding-left: 10px;">
+                      <a href="https://southeastchristian.churchonline.org" class="uppercase se-btn se-btn--dark-brd g-letter-spacing--1">
+				            <strong>SE ONLINE</strong>
+				      </a>
+                  </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% comment %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.countdown/2.2.0/jquery.countdown.min.js" type="text/javascript"></script>
+{% assign currentDate = 'Now' | Date:'yyyyMMddHHmm' | AsDouble %}
+
+<a href="https://www.southeastchristian.org/events/third-day-farewell-tour/" style="color: white;">
+    <h4>THIRD DAY FAREWELL TOUR <br />
+        <small style="color: orange;">
+
+        {% assign releaseRegistration = '201911071200' | AsDouble %}
+        {% if releaseRegistration <= currentDate %}
+             TICKETS AVAILABLE FOR SALE!
+        {% else %}
+            TICKETS AVAILABLE IN <div id="clock" style="display: inline-block;"></div>
+        {% endif %}
+
+        <span style="color:white; white-space: nowrap;">(CLICK HERE)</span>
+        </small>
+    </h4>
+</a>
+
+<script>
+    $('#clock').countdown("2019/11/07 12:00:00", function(event) {
+      var totalHours = event.offset.totalDays * 24 + event.offset.hours;
+      $(this).html(event.strftime(totalHours + ' HR %M MIN %S SEC'));
+    });
+</script>
+{% endcomment %}
+
+
+<script>
+$( document ).ready(function() {
+
+    // on load
+    var $body = $( "body" );
+    var $alert = $( "#superNoticeHeader" );
+    if ($alert) {
+        setTimeout(function() {
+            //do something special
+            $alert.addClass('active');
+            $body.css('padding-top','110px');
+        }, 1000);
+    }
+
+    // Hide Header on on scroll down
+    var didScroll;
+    var lastScrollTop = 0;
+    var delta = 5;
+    var navbarHeight = $alert.outerHeight();
+
+    $(window).scroll(function(event){
+        didScroll = true;
+    });
+
+    setInterval(function() {
+        if (didScroll) {
+            hasScrolled();
+            didScroll = false;
+        }
+    }, 250);
+
+    function hasScrolled() {
+        var st = $(this).scrollTop();
+
+        // Make sure they scroll more than delta
+        if(Math.abs(lastScrollTop - st) <= delta)
+            return;
+
+        // If they scrolled down and are past the navbar, add class .nav-up.
+        // This is necessary so you never see what is "behind" the navbar.
+        if (st > lastScrollTop && st > navbarHeight){
+            // Scroll Down
+            $alert.removeClass('active');
+        } else {
+            // Scroll Up
+            if(st <= 220) {
+                $alert.addClass('active');
+            }
+        }
+
+        lastScrollTop = st;
+    }
+
+});
+</script>
