@@ -1,152 +1,98 @@
-{% assign tagname = 'Global' | PageParameter:'tag_name'  %}
+{% assign storySlug = 'Global' | PageParameter:'Slug'  %}
 
-<style>
-    .hide {
-        display: none;
-    }
-</style>
+{% cache key:'story-content-{{storySlug}}' duration:'3600' %}
 
-<script>
-$(document).ready(function() {
-    getMoreStories(jQuery);
+{% assign storySlug = 'Global' | PageParameter:'Slug'  %}
+{% contentchannelitemslug where:'Slug == "{{storySlug}}"' %}
+   {% for slug in contentchannelitemslugItems %}
+		{% assign item = slug.ContentChannelItem %}
+		{% break %}
+   {% endfor %}
+{% endcontentchannelitemslug %}
 
-    // Initialize Isotope
-    var $grid = $('.isotope_wrap').isotope({
-        // options
-        percentPosition: true,
-        itemSelector: '.isotope_item',
-        layoutMode: 'fitRows'
-    });
 
-    // reveal all items after init
-    var $items = $grid.find('.isotope_item');
-    $grid.imagesLoaded().progress( function() {
-      $grid.removeClass('hide-on-load').addClass('is-showing-items').isotope('layout');
-    });
-    $grid.isotope( 'revealItemElements', $items );
-});
+{% assign ImageFile = item | Attribute:'Image', 'FileName' %}
+{% assign ImageGuid = item | Attribute:'Image','RawValue' %}
+{% assign AuthorObject = item | Attribute:'Author','Object' %}
+{% assign PostLayout = item | Attribute:'PostLayout','RawValue' %}
 
-$( "#loadStories" ).click(function() {
-  getMoreStories(jQuery);
-});
+{% assign Author = AuthorObject | Attribute:'Person','Object' %}
+{% assign AuthorImageGuid = AuthorObject | Attribute:'BioImage','RawValue' %}
 
-// Set sermon series to start at the next set since the first set is already loaded.
-var storiesOffset = 1;
-// This dertimines whether the API requests should continue or stop.
-var storiesContinueMakingRequests = true;
-// This determines whether an ajax request is already in the process or not.
-var storiesLoading = false;
-// load 6 to show
-var take = 6;
+{[ wow animate:'fadeIn' ]}
+<article class="post_item {{ PostLayout }}">
+	{% comment %}
+    {% taglist %}
+    {{ item | Debug }}
+    {{ tag | Debug }}
 
-function getMoreStories($) {
+		********************************************************************************************
+		********************************************************************************************
+		********* THIS IF CONDITION IS ONLY FOR A LAYOUT THAT IS MEANT FOR EMBEDED VIDEOS! *********
+		********************************************************************************************
+		********************************************************************************************
+	{% endcomment %}
+	{% if PostLayout contains "post_video"%}
+		<div class="post_content" itemprop="reviewBody">
+			<h3 itemprop="itemReviewed" class="post_title entry-title g-font-family--secondary" style="text-transform: inherit;">{{ item.Title }}</h3>
+			<br />
+			{{ item.Content }}
+		</div>
+		<hr />
+		<div class="text-center">
+			<p class="uppercase"><i class="fa fa-share-alt"></i> <strong>Share</strong> this Story:
+			{[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx/{{- ImageFile -}}?Guid={{- ImageGuid -}}' ]}
+		</div>
+        <hr />
+        <div class="text-left">
+            {% taggeditem where:'EntityGuid == "{{item.Guid}}"' %}
+               {% for tag in taggeditemItems %}
+                    <a href="/stories/tag/{{ tag.Tag.Name }}" class="se-btn se-btn--tag g-margin-b-10--xs g-margin-r-5--xs">
+                        {{ tag.Tag.Name }}
+                    </a>
+               {% endfor %}
+            {% endtaggeditem %}
+        </div>
+	{% else %}
+	{% comment %}
+		********************************************************************************************
+		********************************************************************************************
+		************************* ELSE THIS LAYOUT IS USED FOR ANY CONTENT *************************
+		********************************************************************************************
+		********************************************************************************************
+	{% endcomment %}
+		<div class="post_featured">
 
-	if (storiesContinueMakingRequests == true) {
-		$("#loading-animation").show();
-	}
+			{[ photoswipe imgsrc:'/GetImage.ashx?Guid={{ ImageGuid }}' imgtitle:'{{ item.Title }}' ]}
+				<img src="/GetImage.ashx?Guid={{ ImageGuid }}" class="img-responsive" itemprop="thumbnail" alt="{{ item.Title }}">
+			{[ endphotoswipe ]}
+			<br />
+			<hr />
+			<div class="text-center">
+				<p class="uppercase"><i class="fa fa-share-alt"></i> <strong>Share</strong> this Story:
+				{[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx/{{- ImageFile -}}?Guid={{- ImageGuid -}}' ]}
+			</div>
+			<hr />
+            <div class="text-left">
+                {% taggeditem where:'EntityGuid == "{{item.Guid}}"' %}
+                   {% for tag in taggeditemItems %}
+                        <a href="/stories/tag/{{ tag.Tag.Name }}" class="se-btn se-btn--tag g-margin-b-10--xs g-margin-r-5--xs">
+                            {{ tag.Tag.Name }}
+                        </a>
+                   {% endfor %}
+                {% endtaggeditem %}
+            </div>
+            <br />
+        	<br />
+		</div>
+		<div class="post_content" itemprop="reviewBody">
+			<h3 itemprop="itemReviewed" class="post_title entry-title g-font-family--secondary" style="text-transform: inherit;">{{ item.Title }}</h3>
+			<br />
+			{{ item.Content }}
+		</div>
+   {% endif %}
 
-	// check and see if another request is being loaded
-	if (storiesLoading == false) {
-		$.ajax( {
-			url: 'https://rockstaging.secc.org/api/ChannelItems/35/{{ tagname }}?take='+take+'&page='+storiesOffset+'&orderby=StartDateTime&reverse=true',
-			async: true,
-			beforeSend: function(data) {
-				storiesLoading = true; // start ajax loading process
-			},
-			error: function(jqXHR,error, errorThrown) {
-			   console.log('AJAX ERROR: ');
-               if (jqXHR.status&&jqXHR.status==400){
-                   console.log(jqXHR.responseText);
-               } else {
-				   console.log('URL Request: '+ 'https://rockstaging.secc.org/api/ChannelItems/35/{{ tagname }}?take='+take+'&page='+storiesOffset+'&orderby=StartDateTime&reverse=true');
-                   console.log("jqXHR:");
-				   console.log(jqXHR);
-				   console.log("error:"+error);
-				   console.log("errorThrown:"+errorThrown);
-               }
-            },
-			success: function(data) {
-				//console.log(data);
-                var $grid = $('.isotope_wrap').isotope({
-                    // options
-                    percentPosition: true,
-                    itemSelector: '.isotope_item',
-                    layoutMode: 'fitRows'
-                });
+</article>
+{[ endwow ]}
 
-                $.each(data, function(i, story_group){
-                      var $elem = $('<div></div>', {
-                        "class": "isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar"
-                        }).append(
-                            $('<article/>', {
-                                "class": 'post_item_story g-margin-y-0--xs card'
-                            }).html(function() {
-                                var image_box = "<div class=\"post_featured_story\"> \
-                                                    <div class=\"post_thumb_story\" data-image=\"/GetImage.ashx?Guid="+ story_group.Attributes.Image +"\" data-title=\""+ story_group.Title +"\"> \
-                                                        <a class=\"hover_icon hover_icon_link\" href=\"/stories/test/"+ story_group.Slug +"\"> \
-                                                            <img class=\"img-responsive\" alt=\""+ story_group.Title +"\" src=\"/GetImage.ashx?Guid="+ story_group.Attributes.Image +"\" style=\"margin: 0 auto\"> \
-                                                        </a> \
-                                                    </div> \
-                                                </div>";
-                                    image_box += "<div class=\"massonry_border g-height-150--xs g-padding-x-20--xs g-padding-y-20--xs\"> \
-                                                    <h4 class=\"g-font-family--secondary\"> \
-                                                        <a class=\"g-letter-spacing--1\" href=\"/stories/test/"+ story_group.Slug +"\">"+ story_group.Title +"</a> \
-                                                    </h4> \
-                                                </div>";
-                                return image_box;
-                            })
-                        );
-
-                      $grid.isotope()
-                      .append( $elem )
-                      .isotope( 'appended', $elem )
-                      .isotope('layout');
-
-				});
-
-                // reveal all items after init
-                var $items = $grid.find('.isotope_new_item');
-                $grid.imagesLoaded().progress( function() {
-                $grid.removeClass('hide-on-load').addClass('is-showing-items').isotope('layout');
-                });
-                $grid.isotope( 'revealItemElements', $items );
-
-                $('.isotope_new_item').removeClass('isotope_new_item');
-
-				storiesOffset += 1;
-				$("#loading-animation").hide();
-				storiesLoading = false; // reset back to false to allow more requests
-
-                if (data.length == 0 || data.length == undefined) {
-                    storiesContinueMakingRequests = false;
-                    $("#loadStories").hide();
-                }
-			}
-
-		});
-
-	}
-}
-</script>
-
-<div class="container g-padding-y-100--xs g-padding-x-150--lg">
-    <div class="g-padding-l-50--lg">
-    <h5 class="uppercase g-color--gray-light">tagged in</h5>
-    <h2>{{ tagname }}</h2>
-    </div>
-</div>
-
-<!-- show all content channel items that has the tag -->
-<div class="container g-padding-b-50--xs g-padding-x-150--lg">
-    <div class="isotope_wrap">
-	</div>
-    <div class="text-center">
-        <img id="loading-animation" src="/Content/ExternalSite/WebImages/loading.gif" />
-    </div>
-</div>
-
-<div class="text-center g-padding-b-100--xs">
-    <a class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" id="loadStories" onclick="getMoreStories(jQuery);">
-        Load More <i class="fa fa-chevron-down"></i>
-    </a>
-</div>
+{% endcache %}
