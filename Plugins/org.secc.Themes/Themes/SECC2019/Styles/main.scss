@@ -4,7 +4,12 @@
 @import 'bootstrap';
 @import 'bootstrap/theme';
 @import '_lib/bootstrap-overrides';
-@import 'fontawesome/font-awesome';
+@import 'fontawesome/fontawesome';
+@import 'fontawesome/solid';
+@import 'fontawesome/light';
+@import 'fontawesome/regular';
+@import 'fontawesome/brands';
+@import 'fontawesome/v4-shims';
 
 // Gui
 @import '_lib/isotope';
