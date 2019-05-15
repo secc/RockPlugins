@@ -110,7 +110,7 @@
                 {% endif %}
 
                 <div class="text-center g-padding-b-20--xs">
-                    {[ socialshare facebooktitle:'{{ Event.Name }}' emailsubject:'{{ Event.Name | Escape }}' url:'{{ 'Global' | Page:'Url' }}' facebookimage:'https://{{- 'Global' | Page:'Host' -}}{{ eventPhoto }}' facebooksummary:'{{ Event.Description | StripHtml }}' ]}
+                    {[ socialshare facebooktitle:'{{ Event.Name }}' emailsubject:'{{ Event.Name | Escape }}' facebookimage:'https://{{- 'Global' | Page:'Host' -}}{{ eventPhoto }}' facebooksummary:'{{ Event.Description | StripHtml }}' ]}
                 </div>
 
             </div><!-- END: col-md-4 -->
