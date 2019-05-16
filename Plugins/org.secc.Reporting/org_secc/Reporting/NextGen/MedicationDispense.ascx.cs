@@ -308,6 +308,10 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 foreach ( var medicine in medicines )
                 {
                     var scheduleAtt = medicine.FirstOrDefault( m => m.Attribute.Key == "Schedule" );
+                    if ( scheduleAtt == null || scheduleAtt.AttributeValue.Value == null )
+                    {
+                        continue;
+                    }
                     var schedules = scheduleAtt.AttributeValue.Value.SplitDelimitedValues();
                     foreach ( var schedule in schedules )
                     {
