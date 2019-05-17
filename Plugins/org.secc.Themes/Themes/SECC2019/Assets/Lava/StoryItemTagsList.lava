@@ -48,7 +48,7 @@ function getMoreStories($) {
 	// check and see if another request is being loaded
 	if (storiesLoading == false) {
 		$.ajax( {
-			url: 'https://rockstaging.secc.org/api/ChannelItems/35/{{ tagname }}?take='+take+'&page='+storiesOffset+'&orderby=StartDateTime&reverse=true',
+			url: '/api/ChannelItems/35/{{ tagname }}?take='+take+'&page='+storiesOffset+'&orderby=StartDateTime&reverse=true',
 			async: true,
 			beforeSend: function(data) {
 				storiesLoading = true; // start ajax loading process
@@ -58,7 +58,7 @@ function getMoreStories($) {
                if (jqXHR.status&&jqXHR.status==400){
                    console.log(jqXHR.responseText);
                } else {
-				   console.log('URL Request: '+ 'https://rockstaging.secc.org/api/ChannelItems/35/{{ tagname }}?take='+take+'&page='+storiesOffset+'&orderby=StartDateTime&reverse=true');
+				   console.log('URL Request: '+ '/api/ChannelItems/35/{{ tagname }}?take='+take+'&page='+storiesOffset+'&orderby=StartDateTime&reverse=true');
                    console.log("jqXHR:");
 				   console.log(jqXHR);
 				   console.log("error:"+error);
@@ -83,14 +83,14 @@ function getMoreStories($) {
                             }).html(function() {
                                 var image_box = "<div class=\"post_featured_story\"> \
                                                     <div class=\"post_thumb_story\" data-image=\"/GetImage.ashx?Guid="+ story_group.Attributes.Image +"\" data-title=\""+ story_group.Title +"\"> \
-                                                        <a class=\"hover_icon hover_icon_link\" href=\"/stories/test/"+ story_group.Slug +"\"> \
+                                                        <a class=\"hover_icon hover_icon_link\" href=\"/stories/"+ story_group.Slug +"\"> \
                                                             <img class=\"img-responsive\" alt=\""+ story_group.Title +"\" src=\"/GetImage.ashx?Guid="+ story_group.Attributes.Image +"\" style=\"margin: 0 auto\"> \
                                                         </a> \
                                                     </div> \
                                                 </div>";
                                     image_box += "<div class=\"massonry_border g-height-150--xs g-padding-x-20--xs g-padding-y-20--xs\"> \
                                                     <h4 class=\"g-font-family--secondary\"> \
-                                                        <a class=\"g-letter-spacing--1\" href=\"/stories/test/"+ story_group.Slug +"\">"+ story_group.Title +"</a> \
+                                                        <a class=\"g-letter-spacing--1\" href=\"/stories/"+ story_group.Slug +"\">"+ story_group.Title +"</a> \
                                                     </h4> \
                                                 </div>";
                                 return image_box;
