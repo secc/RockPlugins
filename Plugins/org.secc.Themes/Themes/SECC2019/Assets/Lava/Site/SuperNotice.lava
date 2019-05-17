@@ -2,8 +2,8 @@
   #churchonline_counter { overflow: auto; width: auto; padding: 10px; display: none; }
   #churchonline_counter .description, #churchonline_counter .time li .label { font-size: 0.8em; }
   #churchonline_counter .time { list-style: none; padding: 0; margin: 10px 0 0 0; display: inline-block; }
-  #churchonline_counter .time li { float: left; padding: 0 10px; text-align: center; border-right:2px solid #707070;}
-  #churchonline_counter .time li:first-child { border-left:2px solid #707070;  border-right:2px solid #707070; }
+  #churchonline_counter .time li { float: left; padding: 0 10px; text-align: center;}
+  #churchonline_counter .time li:first-child { border-right:2px solid #707070; }
   #churchonline_counter .time li span { font-size: 1.2em; color: black}
   #churchonline_counter .live { display: none; font-weight: bold; }
   #superNoticeHeader {
@@ -11,7 +11,6 @@
       padding: 0px;
       color: #000000;
       background-color: #FFFFFF;
-      border-bottom: 1px solid #707070;
       -moz-transition: height 0.2s ease-in-out 0.2s;
       -webkit-transition: height 0.2s ease-in-out 0.2s;
       -o-transition: height 0.2s ease-in-out 0.2s;
@@ -26,10 +25,18 @@
       -o-transition: padding 0.2s ease-in-out 0.2s;
       transition: padding 0.2s ease-in-out 0.2s;
   }
+  #cd-search {
+      -moz-transition: top 0.2s ease-in-out 0.2s;
+      -webkit-transition: top 0.2s ease-in-out 0.2s;
+      -o-transition: top 0.2s ease-in-out 0.2s;
+      transition: top 0.2s ease-in-out 0.2s;
+  }
   #superNoticeHeader.active {
       height: 110px;
-      /* padding: 10px; */
+      border-bottom: 1px solid rgba(0, 0, 0, 0.16);
   }
+  .cd-main-header < #superNoticeHeader.active { height: 190px; }
+
 </style>
 <!-- <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script> -->
 <script type="text/javascript">
@@ -70,8 +77,6 @@
               }
             }
           }
-          $("#churchonline_counter .days").html((days.toString().length < 2) ? "0" + days : days);
-          $("#churchonline_counter .hours").html((hours.toString().length < 2 ? "0" + hours : hours));
           $("#churchonline_counter .minutes").html((minutes.toString().length < 2 ? "0" + minutes : minutes));
           $("#churchonline_counter .seconds").html((seconds.toString().length < 2 ? "0" + seconds : seconds));
           if (seconds === 0 && minutes === 0 && hours === 0 && days === 0) {
@@ -124,14 +129,12 @@
                       </a>
                   </span>
                   <ul class="time">
-                    <li><h3 class="g-font-weight--700"><span class="days">00</span></h3> <span class="label uppercase">days</span></li>
-                    <li><h3 class="g-font-weight--700"><span class="hours">00</span></h3> <span class="label uppercase">hrs</span></li>
-                    <li><h3 class="g-font-weight--700"><span class="minutes">00</span></h3> <span class="label uppercase">mins</span></li>
-                    <li><h3 class="g-font-weight--700"><span class="seconds">00</span></h3> <span class="label uppercase">secs</span></li>
+                    <li><h3 class="g-font-weight--700"><span class="minutes">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">mins</span></li>
+                    <li><h3 class="g-font-weight--700"><span class="seconds">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">secs</span></li>
                   </ul>
                   <span class="g-display-inline-block--xs" style="vertical-align: top;margin-top: 17px;padding-left: 10px;">
                       <a href="https://southeastchristian.churchonline.org" class="uppercase se-btn se-btn--dark-brd g-letter-spacing--1">
-				            <strong>SE ONLINE</strong>
+				            <strong>WATCH NOW</strong>
 				      </a>
                   </span>
                 </div>
@@ -176,6 +179,36 @@ $( document ).ready(function() {
     // on load
     var $body = $( "body" );
     var $alert = $( "#superNoticeHeader" );
+    var $menu = $('.cd-main-header');
+    var $searchbar = $('#cd-search');
+
+    (function( func ) {
+        $.fn.addClass = function() { // replace the existing function on $.fn
+            func.apply( this, arguments ); // invoke the original function
+            this.trigger('classChanged'); // trigger the custom event
+            console.log('add classChanged');
+            return this; // retain jQuery chainability
+        }
+    })($.fn.addClass); // pass the original function as an argument
+
+    (function( func ) {
+        $.fn.removeClass = function() {
+            func.apply( this, arguments );
+            this.trigger('classChanged');
+            console.log('remove classChanged');
+            return this;
+        }
+    })($.fn.removeClass);
+
+    $alert.on('classChanged', function(){
+        if( $alert.hasClass( "active" ) )
+        {
+            $('#cd-search').css('top', '190px');
+        } else {
+            $('#cd-search').css('top', '');
+        }
+    });
+
     if ($alert) {
         setTimeout(function() {
             //do something special
@@ -184,44 +217,30 @@ $( document ).ready(function() {
         }, 1000);
     }
 
-    // Hide Header on on scroll down
-    var didScroll;
-    var lastScrollTop = 0;
-    var delta = 5;
-    var navbarHeight = $alert.outerHeight();
+    function getDivHeight(divClass) {
+	  var divHeight = "";
+	  if (divClass != "") {
+	  	 divHeight = $(divClass).height();
+	  } else {
+	  	 divHeight = null;
+	  }
+	  return divHeight;
+	}
 
-    $(window).scroll(function(event){
-        didScroll = true;
+    $(window).scroll(function() {
+		var height = getDivHeight('.menu-switch');
+		if (height == null) {
+	    	height = $('.page-banner').height();
+		}
+		var scrollTop = $(window).scrollTop();
+
+		if (scrollTop >= height - 80) {
+            $alert.removeClass('active');
+		} else {
+            $alert.addClass('active');
+		}
     });
 
-    setInterval(function() {
-        if (didScroll) {
-            hasScrolled();
-            didScroll = false;
-        }
-    }, 250);
-
-    function hasScrolled() {
-        var st = $(this).scrollTop();
-
-        // Make sure they scroll more than delta
-        if(Math.abs(lastScrollTop - st) <= delta)
-            return;
-
-        // If they scrolled down and are past the navbar, add class .nav-up.
-        // This is necessary so you never see what is "behind" the navbar.
-        if (st > lastScrollTop && st > navbarHeight){
-            // Scroll Down
-            $alert.removeClass('active');
-        } else {
-            // Scroll Up
-            if(st <= 220) {
-                $alert.addClass('active');
-            }
-        }
-
-        lastScrollTop = st;
-    }
 
 });
 </script>

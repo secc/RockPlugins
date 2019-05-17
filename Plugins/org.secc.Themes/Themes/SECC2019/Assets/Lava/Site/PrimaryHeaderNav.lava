@@ -1,5 +1,5 @@
 <!--========== HEADER ==========-->
-<header class="cd-main-header transparent-menu-enabled transparent-header" style="height: auto;">
+<header class="cd-main-header transparent-menu-enabled transparent-header">
    {% include '/Themes/SECC2019/Assets/Lava/Site/SuperNotice.lava' %}
    <div class="g-position--relative">
        <a class="cd-logo" href="/home">
