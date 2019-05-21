@@ -201,13 +201,15 @@ jQuery(document).ready(function($){
 
 	$(window).scroll(function() {
 		var menu = $('.cd-main-header');
+		var alertheight = getDivHeight('#superNoticeHeader');
+		if (alertheight == null) {alertheight = 0;}
 		var height = getDivHeight('.menu-switch');
 		if (height == null) {
 	    	height = $('.page-banner').height();
 		}
 		var scrollTop = $(window).scrollTop();
 
-		if (scrollTop >= height - 80) {
+		if (scrollTop >= (height + alertheight) - 80) {
 			menu.addClass('scrolled-in');
 		} else {
 			menu.removeClass('scrolled-in');
