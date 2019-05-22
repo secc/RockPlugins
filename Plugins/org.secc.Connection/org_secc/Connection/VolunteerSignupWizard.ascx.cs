@@ -77,7 +77,7 @@ namespace org.secc.Connection
 				 to ""Single"" or ""Multiple"" which configures the output style to allow for either a single signup or
 				 multiple roles/attributes at once.
 
-                 With this layout, you can also add and set the lava variable ""partitionDescriptionShow"" to ""True"" and it will show the decription of each partition at the top.
+                 With this layout, you can also add and set the lava variable ""partitionDescriptionShow"" to ""True"" and it will show the description of each partition at the top.
 
     This is setup to encourage you to copy existing lava templates if you make modifications rather than modifying the
     default ones which come with the Signup Wizard plugin.
