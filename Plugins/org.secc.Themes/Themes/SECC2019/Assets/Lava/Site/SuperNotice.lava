@@ -1,9 +1,10 @@
 <style type="text/css">
   #churchonline_counter { overflow: auto; width: auto; }
-  #churchonline_counter .description, #churchonline_counter .time li .label { font-size: 0.8em; }
+  #churchonline_counter .description, #churchonline_counter .time li .label { font-size: 0.6em; }
   #churchonline_counter .time { list-style: none; padding: 0; margin: 10px 0 0 0; display: inline-block; }
-  #churchonline_counter .time li { float: left; padding: 0 10px; text-align: center;}
-  #churchonline_counter .time li:first-child { border-right:2px solid #707070; }
+  #churchonline_counter .time li { float: left; padding: 0 10px 0 0; text-align: center;}
+  #churchonline_counter .time li:first-child { padding: 0 10px 0 15px; }
+  #churchonline_counter .time li:last-child { padding: 0 15px 0 0; }
   #churchonline_counter .time li span { font-size: 1.2em; color: black}
   #churchonline_counter .live { display: none; font-weight: bold; }
   #superNoticeHeader {
@@ -43,6 +44,7 @@
                       </a>
                   </span>
                   <ul class="time">
+                    <li><h3 class="g-font-weight--700"><span class="hours">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">hours</span></li>
                     <li><h3 class="g-font-weight--700"><span class="minutes">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">mins</span></li>
                     <li><h3 class="g-font-weight--700"><span class="seconds">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">secs</span></li>
                   </ul>
@@ -81,16 +83,30 @@
             var alertheight = getDivHeight('#superNoticeHeader');
             var menuheight = getDivHeight('.cd-main-header');
             var scrollTop = $(window).scrollTop();
-            $menu.css('top', alertheight);
-            $menu.css('position', 'absolute');
-            $searchbar.css('top', ((menuheight + alertheight) - scrollTop) );
-            $main.css('margin-top','0px');
 
-            // if menu is not transparent, then set some styles related to the alerts bar
-            if( !$menu.hasClass('transparent-menu-enabled') ) {
-                $alert.css('margin-bottom', menuheight);
-                $alert.css('border-bottom','2px solid #f1f1f1');
-                $menu.css('box-shadow','0px -2px 0px 0px rgba(0, 0, 0, 0.1)');
+            if (scrollTop > alertheight) {
+                // if the alert bar IS NOT visible
+                $menu.css('top', '');
+                $menu.css('position', '');
+                $searchbar.css('top', '');
+                if( !$menu.hasClass('transparent-menu-enabled') ) {
+                    $menu.css('box-shadow','');
+                    $menu.css('border-top','');
+                    $alert.css('border-bottom','');
+                }
+            } else {
+                // if the alert bar IS visible
+                $menu.css('top', alertheight);
+                $menu.css('position', 'absolute');
+                $searchbar.css('top', ((menuheight + alertheight) - scrollTop) );
+                $main.css('margin-top','0px');
+
+                // if menu is not transparent, then set some styles related to the alerts bar
+                if( !$menu.hasClass('transparent-menu-enabled') ) {
+                    $alert.css('margin-bottom', menuheight);
+                    $alert.css('border-bottom','2px solid #f1f1f1');
+                    $menu.css('box-shadow','0px -2px 0px 0px rgba(0, 0, 0, 0.1)');
+                }
             }
         };
 
@@ -176,6 +192,7 @@
                 }
               }
             }
+            $("#churchonline_counter .hours").html((minutes.toString().length < 2 ? "0" + hours : hours));
             $("#churchonline_counter .minutes").html((minutes.toString().length < 2 ? "0" + minutes : minutes));
             $("#churchonline_counter .seconds").html((seconds.toString().length < 2 ? "0" + seconds : seconds));
             if (seconds === 0 && minutes === 0 && hours === 0 && days === 0) {
