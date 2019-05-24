@@ -86,7 +86,7 @@ namespace RockWeb.Plugins.org_secc.CMS
                 {
                     return;
                 }
-                var contentChannelItems = contentChannel.Items.OrderBy( i => i.Priority ).ToList();
+                var contentChannelItems = contentChannel.Items.OrderBy( i => i.Order ).ToList();
                 List<ContentChannelItem> mergeItems = new List<ContentChannelItem>();
                 var scheduleKey = GetAttributeValue( "TimerAttributeKey" );
                 foreach ( var item in contentChannelItems )
@@ -129,7 +129,10 @@ namespace RockWeb.Plugins.org_secc.CMS
                 mergefields.Add( "ContentChannelItems", mergeItems );
                 lava = lava.ResolveMergeFields( mergefields, CurrentPerson, GetAttributeValue( "EnabledLavaCommands" ) );
                 ltOutput.Text = lava;
-                RockCache.AddOrUpdate( "TimedContentChannel_" + this.BlockId.ToString(), "", lava, Rock.RockDateTime.Now.AddSeconds( cacheLength ) );
+                if ( cacheLength > 5 ) //the time could be low enough to throw an error
+                {
+                    RockCache.AddOrUpdate( "TimedContentChannel_" + this.BlockId.ToString(), "", lava, Rock.RockDateTime.Now.AddSeconds( cacheLength ) );
+                }
             }
         }
 
