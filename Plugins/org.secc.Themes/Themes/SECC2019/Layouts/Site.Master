@@ -25,10 +25,18 @@
 
         if ( !showalert )
         {
-            var script = @"$(document).ready(function() {
-  $('.cd-main-header').removeClass('transparent-menu-enabled').removeClass('transparent-header');
-    $('.cd-main-content').removeClass('transparent-content');
-});";
+            var script = @"
+            var $alert = $('#superNoticeHeader');
+            var $menu = $('.cd-main-header');
+            if ($alert) {
+                $alert.css('margin-bottom', $menu.height());
+                $alert.css('border-bottom','2px solid #f1f1f1');
+                $menu.css('box-shadow','0px 2px 0px 0px rgba(0, 0, 0, 0.1)');
+            }
+            $(document).ready(function() {
+              $menu.removeClass('transparent-menu-enabled').removeClass('transparent-header');
+                $('.cd-main-content').removeClass('transparent-content');
+            });";
             ScriptManager.RegisterStartupScript( this.Page, this.GetType(), "transparentMenu", script, true );
         }
                 if (facebookOG)
