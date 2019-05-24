@@ -82,6 +82,10 @@ namespace RockWeb.Plugins.org_secc.CMS
 
                 var contentChannelGuid = GetAttributeValue( "ContentChannel" ).AsGuid();
                 var contentChannel = contentChannelService.Get( contentChannelGuid );
+                if ( contentChannel == null )
+                {
+                    return;
+                }
                 var contentChannelItems = contentChannel.Items.OrderBy( i => i.Priority ).ToList();
                 List<ContentChannelItem> mergeItems = new List<ContentChannelItem>();
                 var scheduleKey = GetAttributeValue( "TimerAttributeKey" );
