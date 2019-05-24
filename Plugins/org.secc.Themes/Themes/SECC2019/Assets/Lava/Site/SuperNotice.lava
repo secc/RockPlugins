@@ -1,12 +1,12 @@
 <style type="text/css">
-  #churchonline_counter { overflow: auto; width: auto; }
+  #churchonline_counter { overflow: auto; width: auto; height: 100%; }
   #churchonline_counter .description, #churchonline_counter .time li .label { font-size: 0.6em; }
   #churchonline_counter .time { list-style: none; padding: 0; margin: 10px 0 0 0; display: inline-block; }
   #churchonline_counter .time li { float: left; padding: 0 10px 0 0; text-align: center;}
   #churchonline_counter .time li:first-child { padding: 0 10px 0 15px; }
   #churchonline_counter .time li:last-child { padding: 0 15px 0 0; }
   #churchonline_counter .time li span { font-size: 1.2em; color: black}
-  #churchonline_counter .live { display: none; font-weight: bold; }
+  #churchonline_counter .live { display: none }
   #superNoticeHeader {
       padding: 0px;
       color: #000000;
@@ -37,10 +37,10 @@
         <div class="row">
             <div class="col-md-12 text-center g-padding-y-10--md g-padding-x-50--xs g-padding-b-25--xs g-padding-b-0--sm">
                 <div id="churchonline_counter">
-                  <div class="live uppercase">Live Now</div>
-                  <span class="g-display-inline-block--xs g-margin-t-45--xs" style="vertical-align: top;">
+                  <span class="g-display-inline-block--xs g-margin-t-45--xs g-padding-x-15--xs" style="vertical-align: top;">
                       <a href="https://southeastchristian.churchonline.org" class="cd-nav-item live-stream coming-soon">
-                        <h5 class="uppercase g-color--black g-font-weight--700" style="vertical-align:middle">Next Streaming Event</h5>
+                        <h5 class="notlive uppercase g-color--black g-font-weight--700" style="vertical-align:middle">Next Streaming Event</h5>
+                        <h5 class="live uppercase g-color--black g-font-weight--700" style="vertical-align:middle">Live Streaming Now</h5>
                       </a>
                   </span>
                   <ul class="time">
@@ -48,7 +48,7 @@
                     <li><h3 class="g-font-weight--700"><span class="minutes">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">mins</span></li>
                     <li><h3 class="g-font-weight--700"><span class="seconds">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">secs</span></li>
                   </ul>
-                  <span class="g-display-inline-block--xs" style="vertical-align: top;margin-top: 17px;">
+                  <span class="g-display-inline-block--xs g-padding-x-15--xs g-margin-y-25--xs" style="vertical-align: top;">
                       <a href="https://southeastchristian.churchonline.org" class="uppercase se-btn se-btn--dark-brd g-letter-spacing--1">
 				            <strong>WATCH NOW</strong>
 				      </a>
@@ -104,7 +104,7 @@
                 $main.css('margin-top','0px');
                 // if menu is not transparent, then set some styles related to the alerts bar
                 if( !$menu.hasClass('transparent-menu-enabled') ) {
-                    $alert.css('margin-bottom', menuheight);
+                    // $alert.css('margin-bottom', menuheight);
                     $menu.css('box-shadow','0px -2px 0px 0px rgba(0, 0, 0, 0.1)');
                     $alert.css('border-bottom','2px solid #f1f1f1');
                 }
@@ -134,10 +134,10 @@
                 $menu.css('position', '');
                 $searchbar.css('top', '');
                 $searchbar.css('position', '');
-                $alert.css('border-bottom','');
                 if( !$menu.hasClass('transparent-menu-enabled') ) {
                     $menu.css('box-shadow','');
                     $menu.css('border-top','');
+                    $alert.css('border-bottom','');
                 }
             } else {
                 // if the alert bar IS visible
@@ -145,9 +145,9 @@
                 $menu.css('position', 'absolute');
                 $searchbar.css('top', (menuheight + alertheight) );
                 $searchbar.css('position', 'absolute');
-                $alert.css('border-bottom','2px solid #f1f1f1');
                 if( !$menu.hasClass('transparent-menu-enabled') ) {
                     $menu.css('box-shadow','0px -2px 0px 0px rgba(0, 0, 0, 0.1)');
+                    $alert.css('border-bottom','2px solid #f1f1f1');
                 }
             }
         });
@@ -156,80 +156,81 @@
 
     // Sets the next streaming countdown
     jQuery(function() {
-      var days, goLive, hours, intervalId, minutes, seconds;
+    var days, goLive, hours, intervalId, minutes, seconds;
 
-      // Your churchonline.org url
-      var churchUrl = "https://southeastchristian.churchonline.org"
+    // Your churchonline.org url
+    var churchUrl = "https://southeastchristian.churchonline.org"
 
-      goLive = function() {
-        $("#churchonline_counter .time").hide();
-        $("#churchonline_counter .live").show();
-      };
-      loadCountdown = function(data){
-        var seconds_till;
-        $("#churchonline_counter").show();
-        if (data.response.item.isLive) {
-          return goLive();
-        } else {
-          // Parse ISO 8601 date string
-          date = data.response.item.eventStartTime.match(/^(\d{4})-0?(\d+)-0?(\d+)[T ]0?(\d+):0?(\d+):0?(\d+)Z$/)
-          dateString = date[2] + "/" + date[3] + "/" + date[1] + " " + date[4] + ":" + date[5] + ":" + date[6] + " +0000"
-          seconds_till = ((new Date(dateString)) - (new Date())) / 1000;
-          days = Math.floor(seconds_till / 86400);
-          hours = Math.floor((seconds_till % 86400) / 3600);
-          minutes = Math.floor((seconds_till % 3600) / 60);
-          seconds = Math.floor(seconds_till % 60);
-          return intervalId = setInterval(function() {
-            if (--seconds < 0) {
-              seconds = 59;
-              if (--minutes < 0) {
-                minutes = 59;
-                if (--hours < 0) {
-                  hours = 23;
-                  if (--days < 0) {
-                    days = 0;
-                  }
+    goLive = function() {
+      $("#churchonline_counter .notlive").hide();
+      $("#churchonline_counter .live").show();
+    };
+    loadCountdown = function(data){
+      var seconds_till;
+      $("#churchonline_counter").show();
+      if (data.response.item.isLive) {
+        return goLive();
+      } else {
+        // Parse ISO 8601 date string
+        date = data.response.item.eventStartTime.match(/^(\d{4})-0?(\d+)-0?(\d+)[T ]0?(\d+):0?(\d+):0?(\d+)Z$/)
+        dateString = date[2] + "/" + date[3] + "/" + date[1] + " " + date[4] + ":" + date[5] + ":" + date[6] + " +0000"
+        seconds_till = ((new Date(dateString)) - (new Date())) / 1000;
+        days = Math.floor(seconds_till / 86400);
+        hours = Math.floor((seconds_till % 86400) / 3600);
+        minutes = Math.floor((seconds_till % 3600) / 60);
+        seconds = Math.floor(seconds_till % 60);
+        return intervalId = setInterval(function() {
+          if (--seconds < 0) {
+            seconds = 59;
+            if (--minutes < 0) {
+              minutes = 59;
+              if (--hours < 0) {
+                hours = 23;
+                if (--days < 0) {
+                  days = 0;
                 }
               }
             }
-            $("#churchonline_counter .hours").html((minutes.toString().length < 2 ? "0" + hours : hours));
-            $("#churchonline_counter .minutes").html((minutes.toString().length < 2 ? "0" + minutes : minutes));
-            $("#churchonline_counter .seconds").html((seconds.toString().length < 2 ? "0" + seconds : seconds));
-            if (seconds === 0 && minutes === 0 && hours === 0 && days === 0) {
-              goLive();
-              return clearInterval(intervalId);
-            }
-          }, 1000);
-        }
-      }
-      days = void 0;
-      hours = void 0;
-      minutes = void 0;
-      seconds = void 0;
-      intervalId = void 0;
-      eventUrl = churchUrl + "/api/v1/events/current"
-      msie = /msie/.test(navigator.userAgent.toLowerCase())
-      if (msie && window.XDomainRequest) {
-          var xdr = new XDomainRequest();
-          xdr.open("get", eventUrl);
-          xdr.onload = function() {
-            loadCountdown(jQuery.parseJSON(xdr.responseText))
-          };
-          xdr.send();
-      } else {
-        $.ajax({
-          url: eventUrl,
-          dataType: "json",
-          crossDomain: true,
-          success: function(data) {
-            loadCountdown(data);
-          },
-          error: function(xhr, ajaxOptions, thrownError) {
-            return console.log(thrownError);
           }
-        });
+          $("#churchonline_counter .days").html((days.toString().length < 2) ? "0" + days : days);
+          $("#churchonline_counter .hours").html((hours.toString().length < 2 ? "0" + hours : hours));
+          $("#churchonline_counter .minutes").html((minutes.toString().length < 2 ? "0" + minutes : minutes));
+          $("#churchonline_counter .seconds").html((seconds.toString().length < 2 ? "0" + seconds : seconds));
+          if (seconds === 0 && minutes === 0 && hours === 0 && days === 0) {
+            goLive();
+            return clearInterval(intervalId);
+          }
+        }, 1000);
       }
-    });
+    }
+    days = void 0;
+    hours = void 0;
+    minutes = void 0;
+    seconds = void 0;
+    intervalId = void 0;
+    eventUrl = churchUrl + "/api/v1/events/current"
+    msie = /msie/.test(navigator.userAgent.toLowerCase())
+    if (msie && window.XDomainRequest) {
+        var xdr = new XDomainRequest();
+        xdr.open("get", eventUrl);
+        xdr.onload = function() {
+          loadCountdown(jQuery.parseJSON(xdr.responseText))
+        };
+        xdr.send();
+    } else {
+      $.ajax({
+        url: eventUrl,
+        dataType: "json",
+        crossDomain: true,
+        success: function(data) {
+          loadCountdown(data);
+        },
+        error: function(xhr, ajaxOptions, thrownError) {
+          return console.log(thrownError);
+        }
+      });
+    }
+  });
 
 </script>
 
