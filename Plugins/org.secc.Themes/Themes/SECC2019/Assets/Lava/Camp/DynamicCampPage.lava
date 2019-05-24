@@ -3,6 +3,7 @@
     {% assign pageGuid = page.Guid %}
 {% endpage %}
 
+{% assign campusObj = '' %}
 {% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
 {% assign pageParamCampus = 'Global' | PageParameter:'Campus' %}
 {% if pageParamCampusId == empty and pageParamCampus != empty and pageParamCampus != null and pageParamCampus != 'allCampuses' %}
@@ -14,16 +15,16 @@
                 {% comment %}
                     ** Assigning the Campus Object for all the info.
                 {% endcomment %}
-                {% assign pageParamCampus = campus %}
+                {% assign campusObj = campus %}
             {% endif %}
         {% endfor %}
     {% endcampus %}
 {% endif %}
 
-{% assign campus = pageParamCampus %}
+{% assign campus = campusObj %}
 
-{% if pageParamCampus.Name != null and pageParamCampus.Name != '' %}
-    {% cache key:'{{ pageParamCampus.Name }}-dynamic-camp-{{ pageID }}' duration:'3600' tags:'2019CampusCampPage' twopass:'true' %}
+{% if campus.Name != null and campus.Name != '' %}
+    {% cache key:'{{ campus.Name }}-dynamic-camp-{{ pageID }}' duration:'3600' tags:'2019CampusCampPage' twopass:'true' %}
 
     {% assign pageID = 'Global' | Page:'Id' %}
     {% page id:'{{ pageID }}' %}
@@ -75,6 +76,18 @@
         </div>
     {% endcache %}
 
+{% elseif pageParamCampus == 'leader-under-18' %}
+    {% if CurrentPersonCanEdit %}
+        <p class="alert alert-warning">If you could not edit you would be redirected to: <a href="https://www.southeastchristian.org/camp/mix-leader-under-18">https://www.southeastchristian.org/camp/mix-leader-under-18</a>.</p>
+    {% else %}
+        {{ 'https://www.southeastchristian.org/camp/mix-leader-under-18' | PageRedirect }}
+    {% endif %}
+{% elseif pageParamCampus == 'leader-over-18' %}
+    {% if CurrentPersonCanEdit %}
+        <p class="alert alert-warning">If you could not edit you would be redirected to: <a href="https://www.southeastchristian.org/camp/mix-leader-over-18">https://www.southeastchristian.org/camp/mix-leader-over-18</a>.</p>
+    {% else %}
+        {{ 'https://www.southeastchristian.org/camp/mix-leader-over-18' | PageRedirect }}
+    {% endif %}
 {% else %}
     <section class="g-margin-t-100--xs">
         <div class="clearfix g-padding-t-0--xs g-padding-x-150--md">
