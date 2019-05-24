@@ -72,14 +72,14 @@
         // intial stuff
         if ($alert) {
             // sets the position initially - on page load
-            positionMenus();
+            initAlert();
         }
         $( window ).resize(function() {
             // sets the positions - if window/screen is resized
-            positionMenus();
+            initAlert();
         });
 
-        function positionMenus() {
+        function initAlert() {
             var alertheight = getDivHeight('#superNoticeHeader');
             var menuheight = getDivHeight('.cd-main-header');
             var scrollTop = $(window).scrollTop();
@@ -89,6 +89,7 @@
                 $menu.css('top', '');
                 $menu.css('position', '');
                 $searchbar.css('top', '');
+                $searchbar.css('position', '');
                 if( !$menu.hasClass('transparent-menu-enabled') ) {
                     $menu.css('box-shadow','');
                     $menu.css('border-top','');
@@ -98,7 +99,8 @@
                 // if the alert bar IS visible
                 $menu.css('top', alertheight);
                 $menu.css('position', 'absolute');
-                $searchbar.css('top', ((menuheight + alertheight) - scrollTop) );
+                $searchbar.css('top', (menuheight + alertheight) );
+                $searchbar.css('position', 'absolute');
                 $main.css('margin-top','0px');
                 // if menu is not transparent, then set some styles related to the alerts bar
                 if( !$menu.hasClass('transparent-menu-enabled') ) {
@@ -107,7 +109,7 @@
                     $alert.css('border-bottom','2px solid #f1f1f1');
                 }
             }
-        };
+        }
 
         // this function returns the height of an element, otherwise null
         function getDivHeight(divClass) {
@@ -124,9 +126,6 @@
         $(window).scroll(function() {
             var alertheight = getDivHeight('#superNoticeHeader');
             var menuheight = getDivHeight('.cd-main-header');
-            if (alertheight == null) {
-              /*height = $('.page-banner').height();*/
-            }
             var scrollTop = $(window).scrollTop();
 
             if (scrollTop > alertheight) {
@@ -134,6 +133,7 @@
                 $menu.css('top', '');
                 $menu.css('position', '');
                 $searchbar.css('top', '');
+                $searchbar.css('position', '');
                 $alert.css('border-bottom','');
                 if( !$menu.hasClass('transparent-menu-enabled') ) {
                     $menu.css('box-shadow','');
@@ -143,7 +143,8 @@
                 // if the alert bar IS visible
                 $menu.css('top', alertheight);
                 $menu.css('position', 'absolute');
-                $searchbar.css('top', ((menuheight + alertheight) - scrollTop) );
+                $searchbar.css('top', (menuheight + alertheight) );
+                $searchbar.css('position', 'absolute');
                 $alert.css('border-bottom','2px solid #f1f1f1');
                 if( !$menu.hasClass('transparent-menu-enabled') ) {
                     $menu.css('box-shadow','0px -2px 0px 0px rgba(0, 0, 0, 0.1)');
