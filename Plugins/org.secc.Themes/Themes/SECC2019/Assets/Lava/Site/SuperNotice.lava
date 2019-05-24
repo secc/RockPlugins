@@ -2,7 +2,7 @@
   .cd-main-header { display: none }
   #churchonline_counter { overflow: auto; width: auto; height: 100%; }
   #churchonline_counter .description, #churchonline_counter .time li .label { font-size: 0.6em; }
-  #churchonline_counter .time { list-style: none; padding: 0; margin: 10px 0 0 0; display: inline-block; }
+  #churchonline_counter .time { list-style: none; margin: 10px 0 0 0; display: inline-block; }
   #churchonline_counter .time li { float: left; padding: 0 10px 0 0; text-align: center;}
   #churchonline_counter .time li:first-child { padding: 0 10px 0 15px; }
   #churchonline_counter .time li:last-child { padding: 0 15px 0 0; }
@@ -29,7 +29,7 @@
             {%- if alert_template == 1 -%}
                 <div class="container-fluid g-hor-divider__solid__b--gray-lightest" style="border-width: 2px;">
                     <div class="row">
-                        <div class="col-md-12 text-center g-padding-y-10--md g-padding-x-50--xs g-padding-b-25--xs g-padding-b-0--sm">
+                        <div class="col-md-12 text-center g-padding-y-10--md g-padding-x-50--xs g-padding-b-45--xs g-padding-b-0--sm">
                             <div id="churchonline_counter">
                               <span class="g-display-inline-block--xs g-margin-t-45--xs g-padding-x-15--xs" style="vertical-align: top;">
                                   <a href="https://southeastchristian.churchonline.org" class="cd-nav-item live-stream coming-soon">
@@ -37,12 +37,12 @@
                                     <h5 class="live uppercase g-color--black g-font-weight--700" style="vertical-align:middle">Live Streaming Now</h5>
                                   </a>
                               </span>
-                              <ul class="time">
+                              <ul class="time g-padding-x-50--xs g-padding-x-0--sm">
                                 <li><h3 class="g-font-weight--700"><span class="hours">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">hours</span></li>
                                 <li><h3 class="g-font-weight--700"><span class="minutes">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">mins</span></li>
                                 <li><h3 class="g-font-weight--700"><span class="seconds">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">secs</span></li>
                               </ul>
-                              <span class="g-display-inline-block--xs g-padding-x-15--xs g-margin-y-25--xs" style="vertical-align: top;">
+                              <span class="g-display-inline-block--xs g-padding-x-50--xs g-padding-x-15--sm g-margin-t-0--xs g-margin-y-25--sm" style="vertical-align: top;">
                                   <a href="https://southeastchristian.churchonline.org" class="uppercase se-btn se-btn--dark-brd g-letter-spacing--1">
                                         <strong>WATCH NOW</strong>
                                   </a>
