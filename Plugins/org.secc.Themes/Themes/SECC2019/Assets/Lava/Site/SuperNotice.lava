@@ -100,12 +100,11 @@
                 $menu.css('position', 'absolute');
                 $searchbar.css('top', ((menuheight + alertheight) - scrollTop) );
                 $main.css('margin-top','0px');
-
                 // if menu is not transparent, then set some styles related to the alerts bar
                 if( !$menu.hasClass('transparent-menu-enabled') ) {
                     $alert.css('margin-bottom', menuheight);
-                    $alert.css('border-bottom','2px solid #f1f1f1');
                     $menu.css('box-shadow','0px -2px 0px 0px rgba(0, 0, 0, 0.1)');
+                    $alert.css('border-bottom','2px solid #f1f1f1');
                 }
             }
         };
@@ -135,19 +134,19 @@
                 $menu.css('top', '');
                 $menu.css('position', '');
                 $searchbar.css('top', '');
+                $alert.css('border-bottom','');
                 if( !$menu.hasClass('transparent-menu-enabled') ) {
                     $menu.css('box-shadow','');
                     $menu.css('border-top','');
-                    $alert.css('border-bottom','');
                 }
             } else {
                 // if the alert bar IS visible
                 $menu.css('top', alertheight);
                 $menu.css('position', 'absolute');
                 $searchbar.css('top', ((menuheight + alertheight) - scrollTop) );
+                $alert.css('border-bottom','2px solid #f1f1f1');
                 if( !$menu.hasClass('transparent-menu-enabled') ) {
                     $menu.css('box-shadow','0px -2px 0px 0px rgba(0, 0, 0, 0.1)');
-                    $alert.css('border-bottom','2px solid #f1f1f1');
                 }
             }
         });
