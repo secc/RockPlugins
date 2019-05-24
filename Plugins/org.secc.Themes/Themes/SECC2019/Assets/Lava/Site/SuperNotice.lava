@@ -1,5 +1,6 @@
 <style type="text/css">
   .cd-main-header { display: none }
+  #churchonline_counter_container { display: none; }
   #churchonline_counter { overflow: auto; width: auto; height: 100%; }
   #churchonline_counter .description, #churchonline_counter .time li .label { font-size: 0.6em; }
   #churchonline_counter .time { list-style: none; margin: 10px 0 0 0; display: inline-block; }
@@ -27,7 +28,7 @@
         {%- for item in ContentChannelItems -%}
             {%- assign alert_template = item | Attribute:'AlertTemplate','RawValue' -%}
             {%- if alert_template == 1 -%}
-                <div class="container-fluid g-hor-divider__solid__b--gray-lightest" style="border-width: 2px;">
+                <div id="churchonline_counter_container" class="container-fluid g-hor-divider__solid__b--gray-lightest" style="border-width: 2px;">
                     <div class="row">
                         <div class="col-md-12 text-center g-padding-y-10--md g-padding-x-50--xs g-padding-b-45--xs g-padding-b-0--sm">
                             <div id="churchonline_counter">
@@ -156,10 +157,6 @@
             }
         });
 
-    });
-
-    // Sets the next streaming countdown
-    jQuery(function() {
     var days, goLive, hours, intervalId, minutes, seconds;
 
     // Your churchonline.org url
@@ -171,7 +168,6 @@
     };
     loadCountdown = function(data){
       var seconds_till;
-      $("#churchonline_counter").show();
       if (data.response.item.isLive) {
         return goLive();
       } else {
@@ -204,6 +200,8 @@
             goLive();
             return clearInterval(intervalId);
           }
+          $("#churchonline_counter_container").show();
+          initAlert();
         }, 1000);
       }
     }
