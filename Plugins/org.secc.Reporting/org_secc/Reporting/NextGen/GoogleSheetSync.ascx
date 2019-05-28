@@ -32,4 +32,7 @@
             </Content>
         </Rock:ModalDialog>
     </ContentTemplate>
+    <Triggers>
+        <asp:PostBackTrigger ControlID="btnRunSync" />
+    </Triggers>
 </asp:UpdatePanel>
