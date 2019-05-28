@@ -164,11 +164,6 @@ $Textures: (
 	)
 );
 
-
-/*Define the path to use for font awesome fonts */
-// $fa-font-path:        "/_/asdf/fonts/fontawesome";
-
-
 @function campus_color($CampusName) {
 	@return map_get(map_get($Campuses, $CampusName), "color");
 }
@@ -188,7 +183,7 @@ $Textures: (
 }
 
 /*Define the path to use for font awesome fonts */
-$fa-font-path:        "../Assets/fonts";
+$fa-font-path:        "../../../../Assets/Fonts/FontAwesome";
 
 /* MIXINS
    ====== */
