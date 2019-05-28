@@ -141,8 +141,8 @@
 				</div> -->
 				<div class="event-info-top mix">
 					<div class="col-sm-7 col-md-5 col-lg-6">
-						<h4>MIX</h4>
-						<p>Middle School<br />
+						<h4 class="g-color--white">MIX</h4>
+						<p class="g-color--white">Middle School<br />
 						   Country Lake Christian Retreat</p>
 					</div>
 					<div class="col-sm-5 col-md-7 col-lg-6">
@@ -160,8 +160,8 @@
 				<img src="/Themes/SECC2014/Assets/img/Camps/BibleBeach-color.jpg" class="img-responsive">
 				<div class="event-info-top biblenbeach">
 					<div class="col-sm-12">
-						<h4>BIBLE &amp; BEACH</h4>
-						<p>High School<br />
+						<h4 class="g-color--white">BIBLE &amp; BEACH</h4>
+						<p class="g-color--white">High School<br />
 						   June 8-13<br />
 					   	   Fort Walton Beach, Florida<br /></p>
 					</div>
@@ -174,8 +174,8 @@
 				<img src="/Themes/SECC2014/Assets/img/Camps/SEKidsYellow.jpg" alt="Celebrate Christmas Together" class="img-responsive">
 				<div class="event-info-bottom sekids">
 					<div class="col-sm-6 col-md-5 col-lg-5">
-						<h4>SE!KIDS SUMMER CAMP</h4>
-						<p>Elementary School<br />
+						<h4 class="g-color--white">SE!KIDS SUMMER CAMP</h4>
+						<p class="g-color--white">Elementary School<br />
 						   Country Lake Christian Retreat</p>
 					</div>
 					<div class="col-sm-6 col-md-7 col-lg-7">
@@ -192,8 +192,8 @@
 				<img src="/Themes/SECC2014/Assets/img/Camps/CampFreedom-color.jpg" alt="Celebrate Christmas Together" class="img-responsive">
 				<div class="event-info-bottom freedom">
 					<div class="col-sm-12">
-						<h4>CAMP FREEDOM</h4>
-						<p>Campers with Developmental Disabilities<br />
+						<h4 class="g-color--white">CAMP FREEDOM</h4>
+						<p class="g-color--white">Campers with Developmental Disabilities<br />
 						   July 26-28 • Country Lake Christian Retreat</p>
 					</div>
 				</div>

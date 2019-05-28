@@ -25,23 +25,27 @@ $utils-colors: (
 	white-opacity-light:  	(color: rgba($WhiteColor,.5)),
 	white-opacity-lighter:	(color: rgba($WhiteColor,.3)),
 	white-opacity-lightest:	(color: rgba($WhiteColor,.1)),
-	doc-color-1:  		(color: #40babd),
-	doc-color-2:    	(color: #75c181),
-	doc-color-3:      	(color: #f77b6b),
-	doc-color-4: 		(color: #58bbee),
-	doc-color-5: 		(color: #F88C30),
-	doc-color-6: 		(color: #EA5395),
-	doc-color-7: 		(color: #8A40A7),
-		2019-easter-purple: 	(color: #804470),
-		2019-easter-920: 		(color: #804470),
-		2019-easter-CW: 		(color: #D75546),
-		2019-easter-EZ: 		(color: #F2AB4B),
-		2019-easter-IN: 		(color: #286A69),
-		2019-easter-LA: 		(color: #09AABA),
-		2019-easter-RV: 		(color: #3B9D8C),
-		2019-easter-SW: 		(color: #1C2045),
-		2019-easter-tan: 		(color: #FFE9CB),
-		2019-easter-red: 		(color: #DD5C3A),
+	camp-mix: 				(color: #F58557),
+	camp-bb: 				(color: #36cae8),
+	camp-freedom: 			(color: #78ead3),
+	camp-sekids: 			(color: #FEC359),
+	doc-color-1:  			(color: #40babd),
+	doc-color-2:    		(color: #75c181),
+	doc-color-3:      		(color: #f77b6b),
+	doc-color-4: 			(color: #58bbee),
+	doc-color-5: 			(color: #F88C30),
+	doc-color-6: 			(color: #EA5395),
+	doc-color-7: 			(color: #8A40A7),
+	2019-easter-purple: 	(color: #804470),
+	2019-easter-920: 		(color: #804470),
+	2019-easter-CW: 		(color: #D75546),
+	2019-easter-EZ: 		(color: #F2AB4B),
+	2019-easter-IN: 		(color: #286A69),
+	2019-easter-LA: 		(color: #09AABA),
+	2019-easter-RV: 		(color: #3B9D8C),
+	2019-easter-SW: 		(color: #1C2045),
+	2019-easter-tan: 		(color: #FFE9CB),
+	2019-easter-red: 		(color: #DD5C3A),
 );
 
 //Some alternate colors used for Nav Items, highlights, and callouts
@@ -135,14 +139,18 @@ $utils-colors: (
 // 	}
 // }
 
-/* Parallax Background Color with only the black color */
+/* Parallax Background Color */
 @for $i from 1 through 10 {
-  .g-bg-parallax-color--black--#{$i * 10} {
-	@include gradient-horizontal-after(
-		$direction: 145deg,
-		$start-color: rgba($BlackColor, ($i * 10 / 100)),
-		$end-color: rgba($BlackColor, ($i * 10 / 100)),
-		$start-percent: 100%
-	);
-  }
+
+	@each $color-name, $color in $utils-colors {
+		.g-bg-parallax-color--#{$color-name}--#{$i * 10} {
+			@include gradient-horizontal-after(
+	  	  		$direction: 145deg,
+	  	  		$start-color: rgba(map-get($color, color), ($i * 10 / 100)),
+	  	  		$end-color: rgba(map-get($color, color), ($i * 10 / 100)),
+	  	  		$start-percent: 100%
+	  	  	);
+		}
+	}
+
 }

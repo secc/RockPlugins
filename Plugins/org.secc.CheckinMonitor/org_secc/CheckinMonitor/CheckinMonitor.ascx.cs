@@ -888,7 +888,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                          a.StartDateTime >= Rock.RockDateTime.Today
                         && a.PersonAliasId == attendanceRecord.PersonAliasId
                         && a.Occurrence.ScheduleId == attendanceRecord.Occurrence.ScheduleId
-                        && a.EndDateTime == null ).ToList();
+                        && a.EndDateTime == null
+                        && a.Id != newRecord.Id )
+                        .ToList();
 
                     foreach ( var record in currentRecords )
                     {

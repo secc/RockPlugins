@@ -629,7 +629,7 @@ namespace RockWeb.Plugins.org_secc.Cms
                                         }
                                     }
                                 }
-                                person.SaveAttributeValues();
+                                person.SaveAttributeValues( rockContext );
 
                                 // save family information
                                 if ( pnlAddress.Visible )
@@ -717,7 +717,7 @@ namespace RockWeb.Plugins.org_secc.Cms
 
                                             familyGroup.LoadAttributes();
                                             Rock.Attribute.Helper.GetEditValues( phFamilyAttributes, familyGroup );
-                                            familyGroup.SaveAttributeValues();
+                                            familyGroup.SaveAttributeValues( rockContext );
                                         }
                                     }
                                 }

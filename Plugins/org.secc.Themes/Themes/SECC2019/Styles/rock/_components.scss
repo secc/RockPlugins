@@ -254,7 +254,7 @@
       cursor: default;
     }
   }
-  
+
   .numberincrement-down {
     border-radius: $border-radius-base 0 0 $border-radius-base;
   }
@@ -2272,7 +2272,7 @@ ul.list-group-panel, .panel-collapse {
 
   &:before {
     font-family: FontAwesome;
-    content: $fa-var-star-o;
+    content: $fa-var-star;
   }
 
   &.following {
