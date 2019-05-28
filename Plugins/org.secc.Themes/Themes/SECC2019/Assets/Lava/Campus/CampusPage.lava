@@ -273,15 +273,20 @@
                                 </h5>
                                 <br />
 
-                                <h5>
-                                <strong>Student Ministries</strong><br />
                                 {%-assign campusServicesJSON = campus | Attribute:'SiteScheduleInformation' -%}
                                 {%-assign interpreted = false -%}
                                 {%- if campusServicesJSON != "" -%}
                                     {% assign campusServices = campusServicesJSON | FromJSON %}
+
+                                    {%- if campusServices.msm != null &&  campusServices.hsm != null -%}
+                                    <h5>
+                                        <strong>Student Ministries</strong><br />
+                                    {%- endif -%}
+
+                                    {%- if campusServices.msm != null -%}
                                     Middle School (MSM)
                                     <br />
-                                    {% for serviceDay in campusServices.msm %}
+                                        {% for serviceDay in campusServices.msm %}
                                             <span class="service-day">{{serviceDay.day}}s &bull;</span>
                                             {% assign timesCount = serviceDay.times | Size %}
                                             {% assign serviceLocation = serviceDay.location %}
@@ -300,6 +305,8 @@
                 							</span>
                                             <br />
                                         {%- endfor -%}
+                                    {%- endif -%}
+
                                 {%- endif -%}
 								{%- assign slug = campus | Attribute: 'slug' -%}
                                 {%- if slug == 'indiana' -%}
@@ -312,6 +319,8 @@
                                 {%assign interpreted = false %}
                                 {% if campusServicesJSON != "" %}
                                     {% assign campusServices = campusServicesJSON | FromJSON %}
+
+                                    {%- if campusServices.hsm != null -%}
                                     High School Ministry (HSM)
                                     <br/>
                                             {% for serviceDay in campusServices.hsm %}
@@ -334,6 +343,7 @@
                 							</span>
                                             <br />
                                         {% endfor %}
+                                    {%- endif -%}
                                 {% endif %}
                             </h5>
             				</div>
