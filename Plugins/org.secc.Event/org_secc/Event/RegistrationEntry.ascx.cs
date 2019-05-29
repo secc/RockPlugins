@@ -40,6 +40,7 @@ using Rock.Web;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
+using org.secc.PersonMatch;
 
 namespace RockWeb.Plugins.org_secc.Event
 {
@@ -707,14 +708,14 @@ namespace RockWeb.Plugins.org_secc.Event
             if ( registrationInstanceId.HasValue )
             {
                 registrationInstanceName = new RegistrationInstanceService( new RockContext() ).GetSelect( registrationInstanceId.Value, a => a.Name );
-                
+
             }
             else if ( !string.IsNullOrWhiteSpace( registrationSlug ) )
             {
                 // Use the registration Slug if we don't have an instance id
                 var dateTime = RockDateTime.Now;
                 registrationInstanceName = new EventItemOccurrenceGroupMapService( new RockContext() )
-                    .Queryable( )
+                    .Queryable()
                     .Where( l =>
                         l.UrlSlug == registrationSlug &&
                         l.RegistrationInstance != null &&
@@ -723,7 +724,7 @@ namespace RockWeb.Plugins.org_secc.Event
                         l.RegistrationInstance.RegistrationTemplate.IsActive &&
                         ( !l.RegistrationInstance.StartDateTime.HasValue || l.RegistrationInstance.StartDateTime <= dateTime ) &&
                         ( !l.RegistrationInstance.EndDateTime.HasValue || l.RegistrationInstance.EndDateTime > dateTime ) )
-                    .Select(ei => ei.RegistrationInstance.Name)
+                    .Select( ei => ei.RegistrationInstance.Name )
                     .FirstOrDefault();
             }
 
@@ -1022,7 +1023,7 @@ namespace RockWeb.Plugins.org_secc.Event
             CurrentFormIndex = 0;
 
             // Create registrants based on the number selected
-            if (numHowMany.Value > 0)
+            if ( numHowMany.Value > 0 )
             {
                 SetRegistrantState( numHowMany.Value );
             }
@@ -1985,7 +1986,7 @@ namespace RockWeb.Plugins.org_secc.Event
         private List<string> ValidateSummary()
         {
             var validationErrors = new List<string>();
-            
+
             var autoDiscounts = RegistrationTemplate.Discounts.Where( d => d.AutoApplyDiscount ).Select( d => d.Code ).ToList();
             if ( ( RegistrationState.DiscountCode ?? string.Empty ) != tbDiscountCode.Text && !autoDiscounts.Contains( RegistrationState.DiscountCode ) )
             {
@@ -2410,7 +2411,11 @@ namespace RockWeb.Plugins.org_secc.Event
                 else
                 {
                     // otherwise look for one and one-only match by name/email
-                    registrar = personService.FindPerson( registration.FirstName, registration.LastName, registration.ConfirmationEmail, true );
+                    var possibleRegistrars = personService.GetByMatch( registration.FirstName, registration.LastName, null, email: registration.ConfirmationEmail );
+                    if ( possibleRegistrars.Count() == 1 )
+                    {
+                        registrar = possibleRegistrars.FirstOrDefault();
+                    }
                     if ( registrar != null )
                     {
                         registration.PersonAliasId = registrar.PrimaryAliasId;
@@ -2510,6 +2515,12 @@ namespace RockWeb.Plugins.org_secc.Event
                     string firstName = registrantInfo.GetFirstName( RegistrationTemplate );
                     string lastName = registrantInfo.GetLastName( RegistrationTemplate );
                     string email = registrantInfo.GetEmail( RegistrationTemplate );
+                    object dateOfBirthObj = registrantInfo.GetPersonFieldValue( RegistrationTemplate, RegistrationPersonFieldType.Birthdate );
+                    DateTime? dateOfBirth = null;
+                    if ( dateOfBirthObj != null && dateOfBirthObj is DateTime? )
+                    {
+                        dateOfBirth = dateOfBirthObj as DateTime?;
+                    }
 
                     if ( registrantInfo.Id > 0 )
                     {
@@ -2542,7 +2553,11 @@ namespace RockWeb.Plugins.org_secc.Event
                     if ( person == null )
                     {
                         // Try to find a matching person based on name and email address
-                        person = personService.FindPerson( firstName, lastName, email, true );
+                        var possiblePersons = personService.GetByMatch( firstName, lastName, dateOfBirth, email: email );
+                        if ( possiblePersons.Count() == 1 )
+                        {
+                            person = possiblePersons.FirstOrDefault();
+                        }
 
                         // Try to find a matching person based on name within same family as registrar
                         if ( person == null && registrar != null && registrantInfo.FamilyGuid == RegistrationState.FamilyGuid )
@@ -2625,7 +2640,7 @@ namespace RockWeb.Plugins.org_secc.Event
                                 case RegistrationPersonFieldType.Campus:
                                     campusId = fieldValue.ToString().AsIntegerOrNull();
                                     break;
-                                
+
                                 case RegistrationPersonFieldType.MiddleName:
                                     string middleName = fieldValue.ToString().Trim();
                                     History.EvaluateChange( personChanges, "Middle Name", person.MiddleName, middleName );
@@ -4123,7 +4138,7 @@ namespace RockWeb.Plugins.org_secc.Event
             pnlSuccess.Visible = CurrentPanel == PanelIndex.PanelSuccess;
 
             lSummaryAndPaymentTitle.Text = ( CurrentPanel == PanelIndex.PanelSummary && RegistrationTemplate != null ) ? "Review " + RegistrationTemplate.RegistrationTerm : "Payment Method";
-            if (pnlCostAndFees.Visible == true)
+            if ( pnlCostAndFees.Visible == true )
             {
                 lSummaryAndPaymentTitle.Text = RegistrationTemplate.RegistrationTerm + " Payment";
             }
@@ -4747,7 +4762,7 @@ namespace RockWeb.Plugins.org_secc.Event
                     var tbLastName = phRegistrantControls.FindControl( "tbLastName" ) as RockTextBox;
                     string lastName = tbLastName != null ? tbLastName.Text : null;
                     return string.IsNullOrWhiteSpace( lastName ) ? null : lastName;
-                
+
                 case RegistrationPersonFieldType.MiddleName:
                     var tbMiddleName = phRegistrantControls.FindControl( "tbMiddleName" ) as RockTextBox;
                     string middleName = tbMiddleName != null ? tbMiddleName.Text : null;
@@ -5559,7 +5574,7 @@ namespace RockWeb.Plugins.org_secc.Event
                 if ( !String.IsNullOrWhiteSpace( GetAttributeValue( "DiscountCodeWorkflow" ) ) )
                 {
                     var workflowType = WorkflowTypeCache.Get( GetAttributeValue( "DiscountCodeWorkflow" ).AsGuid() );
-                    var workflow = Rock.Model.Workflow.Activate( workflowType, RegistrationState.FirstName + " " + RegistrationState.LastName + " - Discount Code"  );
+                    var workflow = Rock.Model.Workflow.Activate( workflowType, RegistrationState.FirstName + " " + RegistrationState.LastName + " - Discount Code" );
 
                     Dictionary<string, object> entityDictionary = new Dictionary<string, object>();
                     entityDictionary.Add( "RegistrationInstance", RegistrationInstanceState );
@@ -5572,7 +5587,7 @@ namespace RockWeb.Plugins.org_secc.Event
 
                     tbDiscountCode.Text = RegistrationState.DiscountCode;
 
-                    foreach (string error in workflowErrors)
+                    foreach ( string error in workflowErrors )
                     {
                         nbDiscountCode.NotificationBoxType = NotificationBoxType.Warning;
                         nbDiscountCode.Text += string.Format( "{0}<br />", error );
