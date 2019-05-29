@@ -116,7 +116,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 {
                     foreach ( var document in member.AdultDocuments )
                     {
-                        if ( document.AssignedToPersonAliasId == document.AppliesToPersonAliasId )
+                        if ( document.SignedByPersonAliasId == document.AppliesToPersonAliasId )
                         {
                             signatureMember.HasValidDocument = true;
                         }
@@ -127,7 +127,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 {
                     foreach ( var document in member.MinorDocuments )
                     {
-                        if ( document.AssignedToPersonAliasId != document.AppliesToPersonAliasId )
+                        if ( document.SignedByPersonAliasId != document.AppliesToPersonAliasId )
                         {
                             signatureMember.HasValidDocument = true;
                         }
