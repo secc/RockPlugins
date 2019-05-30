@@ -1,0 +1,120 @@
+<style type="text/css">
+  #seonline_counter_container { display: none; }
+  #seonline_counter { overflow: auto; width: auto; height: 100%; }
+  #seonline_counter .description, #seonline_counter .time li .label { font-size: 0.6em; }
+  #seonline_counter .time { list-style: none; margin: 10px 0 0 0; display: inline-block; }
+  #seonline_counter .time li { float: left; padding: 0 10px 0 0; text-align: center;}
+  #seonline_counter .time li:first-child { padding: 0 10px 0 15px; }
+  #seonline_counter .time li:last-child { padding: 0 15px 0 0; }
+  #seonline_counter .time li span { font-size: 1.2em; color: black}
+  #seonline_counter .live { display: none }
+</style>
+
+<div id="seonline_counter_container" class="container-fluid g-hor-divider__solid__b--gray-lightest" style="border-width: 2px;">
+    <div class="row">
+        <div class="col-md-12 text-center g-padding-y-10--md g-padding-x-50--xs g-padding-b-45--xs g-padding-b-0--sm">
+            <div id="seonline_counter">
+              <span class="g-display-inline-block--xs g-margin-t-45--xs g-padding-x-15--xs" style="vertical-align: top;">
+                  <a href="https://southeastchristian.churchonline.org" class="cd-nav-item live-stream coming-soon">
+                    <h5 class="notlive uppercase g-color--black g-font-weight--700" style="vertical-align:middle">Next Streaming Event</h5>
+                    <h5 class="live uppercase g-color--black g-font-weight--700" style="vertical-align:middle">Live Streaming Now</h5>
+                  </a>
+              </span>
+              <ul class="time g-padding-x-50--xs g-padding-x-0--sm">
+                <li><h3 class="g-font-weight--700"><span class="SEdays">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">days</span></li>
+                <li><h3 class="g-font-weight--700"><span class="SEhours">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">hours</span></li>
+                <li><h3 class="g-font-weight--700"><span class="SEminutes">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">mins</span></li>
+                <li><h3 class="g-font-weight--700"><span class="SEseconds">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">secs</span></li>
+              </ul>
+              <!--<span class="g-display-inline-block--xs g-padding-x-50--xs g-padding-x-15--sm g-margin-t-0--xs g-margin-y-25--sm" style="vertical-align: top;">-->
+              <!--    <a href="https://southeastchristian.churchonline.org" class="uppercase se-btn se-btn--dark-brd g-letter-spacing--1">-->
+              <!--          <strong>WATCH NOW</strong>-->
+              <!--    </a>-->
+              <!--</span>-->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    $(document).ready(function(){
+
+    var SEdays, goSELive, SEhours, SEintervalId, SEminutes, SEseconds;
+
+    // Your churchonline.org url
+    var churchUrl = "https://southeastchristian.churchonline.org"
+
+    goSELive = function() {
+      $("#seonline_counter .notlive").hide();
+      $("#seonline_counter .live").show();
+    };
+    loadSECountdown = function(data){
+      var SEseconds_till;
+      if (data.response.item.isLive) {
+        return goSELive();
+      } else {
+        // Parse ISO 8601 date string
+        date = data.response.item.eventStartTime.match(/^(\d{4})-0?(\d+)-0?(\d+)[T ]0?(\d+):0?(\d+):0?(\d+)Z$/)
+        dateString = date[2] + "/" + date[3] + "/" + date[1] + " " + date[4] + ":" + date[5] + ":" + date[6] + " +0000"
+        SEseconds_till = ((new Date(dateString)) - (new Date())) / 1000;
+        SEdays = Math.floor(SEseconds_till / 86400);
+        SEhours = Math.floor((SEseconds_till % 86400) / 3600);
+        SEminutes = Math.floor((SEseconds_till % 3600) / 60);
+        SEseconds = Math.floor(SEseconds_till % 60);
+        return SEintervalId = setInterval(function() {
+          if (--SEseconds < 0) {
+            SEseconds = 59;
+            if (--SEminutes < 0) {
+              SEminutes = 59;
+              if (--SEhours < 0) {
+                SEhours = 23;
+                if (--SEdays < 0) {
+                  SEdays = 0;
+                }
+              }
+            }
+          }
+          $("#seonline_counter .SEdays").html((SEdays.toString().length < 2) ? "0" + SEdays : SEdays);
+          $("#seonline_counter .SEhours").html((SEhours.toString().length < 2 ? "0" + SEhours : SEhours));
+          $("#seonline_counter .SEminutes").html((SEminutes.toString().length < 2 ? "0" + SEminutes : SEminutes));
+          $("#seonline_counter .SEseconds").html((SEseconds.toString().length < 2 ? "0" + SEseconds : SEseconds));
+          if (SEseconds === 0 && SEminutes === 0 && SEhours === 0 && SEdays === 0) {
+            goSELive();
+            return clearInterval(SEintervalId);
+          }
+          $("#seonline_counter_container").show();
+          initAlert();
+        }, 1000);
+      }
+    }
+    SEdays = void 0;
+    SEhours = void 0;
+    SEminutes = void 0;
+    SEseconds = void 0;
+    SEintervalId = void 0;
+    eventUrl = churchUrl + "/api/v1/events/current"
+    msie = /msie/.test(navigator.userAgent.toLowerCase())
+    if (msie && window.XDomainRequest) {
+        var xdr = new XDomainRequest();
+        xdr.open("get", eventUrl);
+        xdr.onload = function() {
+          loadSECountdown(jQuery.parseJSON(xdr.responseText))
+        };
+        xdr.send();
+    } else {
+      $.ajax({
+        url: eventUrl,
+        dataType: "json",
+        crossDomain: true,
+        success: function(data) {
+          loadSECountdown(data);
+        },
+        error: function(xhr, ajaxOptions, thrownError) {
+          return console.log(thrownError);
+        }
+      });
+    }
+  });
+
+</script>
