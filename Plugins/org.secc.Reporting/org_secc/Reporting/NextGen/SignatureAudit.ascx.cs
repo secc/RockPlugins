@@ -74,14 +74,17 @@ namespace RockWeb.Blocks.Reporting.NextGen
             var groupId = gpGroup.SelectedValueAsId() ?? 0;
             var minorDocumentTemplateIds = cblMinorDocuments.SelectedValuesAsInt;
             var adultDocumentTemplateIds = cblAdultDocuments.SelectedValuesAsInt;
-            var members = groupMemberService.Queryable().Where( gm => gm.GroupId == groupId )
+            var members = groupMemberService.Queryable()
+                .Where( gm => gm.GroupId == groupId && gm.GroupMemberStatus == GroupMemberStatus.Active )
                 .Select( gm => new
                 {
                     Person = gm.Person,
                     MinorDocuments = documentQry.Where( d =>
+                        d.SignedByPersonAliasId != null  &&
                         minorDocumentTemplateIds.Contains( d.SignatureDocumentTemplateId ) &&
                         gm.Person.Aliases.Select( pa => pa.Id ).Contains( d.AppliesToPersonAliasId ?? 0 ) ).ToList(),
                     AdultDocuments = documentQry.Where( d =>
+                        d.SignedByPersonAliasId != null &&
                         minorDocumentTemplateIds.Contains( d.SignatureDocumentTemplateId ) &&
                         gm.Person.Aliases.Select( pa => pa.Id ).Contains( d.AppliesToPersonAliasId ?? 0 ) ).ToList()
                 } )
@@ -120,12 +123,16 @@ namespace RockWeb.Blocks.Reporting.NextGen
                         {
                             signatureMember.HasValidDocument = true;
                         }
+                        else
+                        {
+                            signatureMember.WarningText += " Adult has document signed by another person.";
+                        }
                     }
                 }
                 //Minors
                 else if ( person.Age < 18 )
                 {
-                    foreach ( var document in member.MinorDocuments )
+                    foreach ( var document in member.MinorDocuments)
                     {
                         if ( document.SignedByPersonAliasId != document.AppliesToPersonAliasId )
                         {
