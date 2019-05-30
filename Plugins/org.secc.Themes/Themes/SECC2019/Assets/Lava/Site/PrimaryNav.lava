@@ -113,8 +113,8 @@
                     </a>
                 </li>
                 <li class="se-4-column">
-                    <a href="/southeast-online" class="cd-nav-item live-stream coming-soon">
-                        <h3>Live Stream<br /><small>coming soon!</small></h3>
+                    <a class="cd-nav-item live-stream" href="/southeast-online">
+                        <h3>Live Stream</h3>
                     </a>
                 </li>
             </ul>
