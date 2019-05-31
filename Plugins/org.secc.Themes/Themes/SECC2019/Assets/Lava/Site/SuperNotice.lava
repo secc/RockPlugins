@@ -33,7 +33,7 @@
                         <div class="col-md-12 text-center g-padding-y-10--md g-padding-x-50--xs g-padding-b-45--xs g-padding-b-0--sm">
                             <div id="churchonline_counter">
                               <span class="g-display-inline-block--xs g-margin-t-45--xs g-padding-x-15--xs" style="vertical-align: top;">
-                                  <a href="https://southeastchristian.churchonline.org" class="cd-nav-item live-stream coming-soon">
+                                  <a href="https://online.southeastchristian.org" class="cd-nav-item live-stream coming-soon">
                                     <h5 class="notlive uppercase g-color--black g-font-weight--700" style="vertical-align:middle">Next Streaming Event</h5>
                                     <h5 class="live uppercase g-color--black g-font-weight--700" style="vertical-align:middle">Live Streaming Now</h5>
                                   </a>
@@ -44,8 +44,8 @@
                                 <li><h3 class="g-font-weight--700"><span class="seconds">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">secs</span></li>
                               </ul>
                               <span class="g-display-inline-block--xs g-padding-x-50--xs g-padding-x-15--sm g-margin-t-0--xs g-margin-y-25--sm" style="vertical-align: top;">
-                                  <a href="https://southeastchristian.churchonline.org" class="uppercase se-btn se-btn--dark-brd g-letter-spacing--1">
-                                        <strong>WATCH NOW</strong>
+                                  <a href="https://online.southeastchristian.org" class="uppercase se-btn se-btn--dark-brd g-letter-spacing--1">
+                                        <strong>WATCH HERE</strong>
                                   </a>
                               </span>
                             </div>
@@ -160,7 +160,7 @@
     var days, goLive, hours, intervalId, minutes, seconds;
 
     // Your churchonline.org url
-    var churchUrl = "https://southeastchristian.churchonline.org"
+    var churchUrl = "https://online.southeastchristian.org"
 
     goLive = function() {
       $("#churchonline_counter .notlive").hide();
