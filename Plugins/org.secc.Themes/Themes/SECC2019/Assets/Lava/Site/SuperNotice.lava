@@ -160,11 +160,14 @@
     var days, goLive, hours, intervalId, minutes, seconds;
 
     // Your churchonline.org url
-    var churchUrl = "https://online.southeastchristian.org"
+    var churchUrl = "https://southeastchristian.churchonline.org"
 
     goLive = function() {
+      $("#churchonline_counter_container").show();
+      $("#churchonline_counter .time").hide();
       $("#churchonline_counter .notlive").hide();
       $("#churchonline_counter .live").show();
+      initAlert();
     };
     loadCountdown = function(data){
       var seconds_till;
