@@ -235,7 +235,7 @@
                                 <Rock:RockRadioButtonList ID="rblNewPersonGender" runat="server" Label="Gender" RepeatDirection="Horizontal" />
                             </div>
                             <div class="col-xs-12 col-sm-6">
-                                <Rock:DatePicker ID="dpNewPersonBirthDate" runat="server" Label="Birthdate" />
+                                <Rock:BirthdayPicker ID="dpNewPersonBirthDate" runat="server" Label="Birthdate" Required="true" RequireYear="true" />
                             </div>
                             <div class="col-xs-12 col-sm-6">
                                 <Rock:GradePicker ID="ddlGradePicker" runat="server" Label="Grade" UseAbbreviation="true" UseGradeOffsetAsValue="true" />
@@ -263,13 +263,13 @@
                                     <Rock:RockTextBox CssClass="col-sm-6" runat="server" ID="tbEditLast" Label="Last Name" />
                                 </asp:Panel>
 
-                                <div class="col-xs-12 col-sm-4">
-                                    <Rock:DatePicker ID="dpEditBirthDate" runat="server" Label="Birthdate" />
+                                <div class="col-xs-12 col-sm-5">
+                                    <Rock:BirthdayPicker ID="dpEditBirthDate" runat="server" Label="Birthdate" Required="true" RequireYear="true" />
                                 </div>
                                 <div class="col-xs-12 col-sm-4">
                                     <Rock:GradePicker ID="gpEditGrade" runat="server" Label="Grade" UseAbbreviation="true" UseGradeOffsetAsValue="true" />
                                 </div>
-                                <div class="col-xs-12 col-sm-4">
+                                <div class="col-xs-12 col-sm-3">
                                     <Rock:YearPicker runat="server" ID="ypEditGraduation" Label="Graduation"></Rock:YearPicker>
                                 </div>
 

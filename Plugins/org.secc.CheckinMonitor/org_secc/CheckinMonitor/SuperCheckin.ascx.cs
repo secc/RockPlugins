@@ -56,6 +56,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     {
 
         private RockContext _rockContext;
+        private List<int> _approvedPeopleIds;
 
         protected override void OnInit( EventArgs e )
         {
@@ -161,19 +162,48 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             DisplayFamilyMemberMenu();
         }
 
-        private void DisplayFamilyMemberMenu()
+        private List<int> GetApprovedIds()
         {
-            nbChange.Visible = false;
             var approvedPeopleGuid = GetAttributeValue( "ApprovedPeople" ).AsGuid();
             var approvedPeople = new DataViewService( _rockContext ).Get( approvedPeopleGuid );
 
             if ( approvedPeople == null )
             {
                 maWarning.Show( "Approved people block setting not found.", ModalAlertType.Alert );
-                return;
+                return null;
             }
-            var errorMessages = new List<string>();
-            var approvedPeopleQry = approvedPeople.GetQuery( null, 30, out errorMessages );
+
+            if ( approvedPeople.PersistedScheduleIntervalMinutes.HasValue && approvedPeople.PersistedLastRefreshDateTime.HasValue )
+            {
+                //Get record from persisted.
+                return _rockContext.DataViewPersistedValues
+                    .Where( a => a.DataViewId == approvedPeople.Id )
+                    .Select( a => a.EntityId )
+                    .ToList();
+
+            }
+            else
+            {
+                var errorMessages = new List<string>();
+                var approvedPeopleQry = approvedPeople.GetQuery( null, 30, out errorMessages );
+                return approvedPeopleQry.Select( e => e.Id ).ToList();
+            }
+        }
+
+        private bool IsApproved( Person person )
+        {
+            if ( _approvedPeopleIds == null )
+            {
+                _approvedPeopleIds = GetApprovedIds();
+            }
+
+            return _approvedPeopleIds.Contains( person.Id );
+        }
+
+        private void DisplayFamilyMemberMenu()
+        {
+            nbChange.Visible = false;
+
 
             phFamilyMembers.Controls.Clear();
 
@@ -189,7 +219,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 btnMember.CssClass = "btn btn-default btn-block btn-lg";
                 var name = new StringBuilder();
                 //Can work with kids
-                if ( approvedPeopleQry.Where( dv => dv.Id == checkinPerson.Person.Id ).Any() )
+                if ( IsApproved( checkinPerson.Person ) )
                 {
                     name.Append( "<i class='fa fa-thumbs-o-up'></i> " );
                 }
@@ -269,18 +299,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                 if ( !GetAttributeValue( "AllowNonApproved" ).AsBoolean() )
                 {
-                    var approvedPeopleGuid = GetAttributeValue( "ApprovedPeople" ).AsGuid();
-                    var approvedPeople = new DataViewService( _rockContext ).Get( approvedPeopleGuid );
-
-                    if ( approvedPeople == null )
-                    {
-                        maWarning.Show( "Approved people block setting not found.", ModalAlertType.Alert );
-                        return;
-                    }
-                    var errorMessages = new List<string>();
-                    var approvedPeopleQry = approvedPeople.GetQuery( null, 30, out errorMessages );
-
-                    if ( checkinPerson.Person.Age > 12 && !approvedPeopleQry.Where( dv => dv.Id == checkinPerson.Person.Id ).Any() )
+                    if ( !checkinPerson.Person.BirthDate.HasValue || ( checkinPerson.Person.Age > 12 && !IsApproved( checkinPerson.Person ) ) )
                     {
                         btnCheckin.Visible = false;
                     }
@@ -569,7 +588,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             tbNewPersonFirstName.Text = "";
             tbNewPersonLastName.Text = "";
-            dpNewPersonBirthDate.Text = "";
+            dpNewPersonBirthDate.SelectedDate = null;
             ypNewGraduation.Text = "";
 
             rblNewPersonGender.Items.Clear();
@@ -596,7 +615,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         {
             if ( string.IsNullOrWhiteSpace( tbNewPersonFirstName.Text )
                 || string.IsNullOrWhiteSpace( tbNewPersonLastName.Text )
-                || string.IsNullOrWhiteSpace( dpNewPersonBirthDate.Text ) )
+                || dpNewPersonBirthDate.SelectedDate == null )
             {
                 maWarning.Show( "First Name, Last Name, and Birthdate are required.", ModalAlertType.Alert );
                 return;
@@ -611,7 +630,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 person.Gender = rblNewPersonGender.SelectedValueAsEnum<Gender>();
             }
-            person.SetBirthDate( dpNewPersonBirthDate.Text.AsDateTime() );
+            person.SetBirthDate( dpNewPersonBirthDate.SelectedDate );
             if ( ypNewGraduation.SelectedYear.HasValue )
             {
                 person.GraduationYear = ypNewGraduation.SelectedYear.Value;
@@ -769,7 +788,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 }
             }
 
-            person.SetBirthDate( dpEditBirthDate.Text.AsDateTime() );
+            person.SetBirthDate( dpEditBirthDate.SelectedDate );
 
             if ( ypEditGraduation.SelectedYear.HasValue )
             {
