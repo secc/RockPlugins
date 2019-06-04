@@ -38,10 +38,10 @@
         <managingEditor>web@secc.org</managingEditor>
         <ttl>{{ Channel.TimeToLive }}</ttl>
         <lastBuildDate>{{ 'Now' | Date:'ddd, dd MMM yyyy HH:mm:00' }} {{ timezone }}</lastBuildDate>
-        <itunes:new-feed-url>https://www.southeastchristian.org/GetChannelFeed.ashx/sermonfeed.rss?ChannelId=44&TemplateId=23425&Count=1000000&Campus={{ campusObj.Slug }}</itunes:new-feed-url>
+        <itunes:new-feed-url>https://www.southeastchristian.org/GetChannelFeed.ashx/HSMSermonPodcast.rss?ChannelId=44&amp;TemplateId=23425&amp;Count=1000000&amp;Campus={{ campusObj.Slug }}</itunes:new-feed-url>
         <itunes:subtitle>The audio podcast of Southeast Christian Church</itunes:subtitle>
         <itunes:author>Southeast Christian Church, Louisville, KY</itunes:author>
-        <itunes:summary>Connecting people to Jesus and one another. The weekly audio podcast of Southeast Christian Church in Louisville Kentucky. Featuring Senior Minister Dave Stone and Teaching Minister Kyle Idleman.</itunes:summary>
+        <itunes:summary>Connecting people to Jesus and one another. The SE{% if campusObj %} {{ campusObj.ShortCode | Upcase }} {% else %} All Campuses {% endif %}{{ ministry | Upcase }} audio podcast of Southeast Christian Church in Louisville Kentucky.</itunes:summary>
         <itunes:owner><itunes:name>Southeast Christian Church</itunes:name><itunes:email>web@secc.org</itunes:email></itunes:owner>
         <itunes:keywords>Southeast Christian Church, {{ ministry | Upcase }}, Louisville Kentucky</itunes:keywords>
         <itunes:image href="{{ imageURL }}"/>
