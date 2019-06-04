@@ -38,10 +38,7 @@
 {% endif %}
 
 <div class="text-center">
-	<a class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" id="loadArticles" onclick="getMoreArticles(jQuery);">
-        Show More Articles <i class="fa fa-chevron-down"></i>
-    </a>
-    <br />
+	<br />
     <br />
     <br />
     <img id="loading-animation" src="/Content/ExternalSite/WebImages/loading.gif" />
