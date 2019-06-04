@@ -6,10 +6,10 @@
                 <Rock:DatePicker runat="server" ID="dpEndDate" Label="Last Date Of Event" Required="true" />
                 <Rock:GroupPicker runat="server" ID="gpGroup" Label="Group To Audit" Required="true" />
                 <Rock:PanelWidget runat="server" Title="Minor Signature Documents">
-                    <Rock:RockCheckBoxList runat="server" ID="cblMinorDocuments" Label="Required Documents" DataTextField="Name" DataValueField="Id" Required="true" />
+                    <Rock:RockCheckBoxList runat="server" ID="cblMinorDocuments" Label="Required Documents" DataTextField="Name" DataValueField="Id" />
                 </Rock:PanelWidget>
                 <Rock:PanelWidget runat="server" Title="Adult Signature Documents">
-                    <Rock:RockCheckBoxList runat="server" ID="cblAdultDocuments" Label="Required Documents" DataTextField="Name" DataValueField="Id" Required="true" />
+                    <Rock:RockCheckBoxList runat="server" ID="cblAdultDocuments" Label="Required Documents" DataTextField="Name" DataValueField="Id" />
                 </Rock:PanelWidget>
             </Content>
         </Rock:ModalDialog>

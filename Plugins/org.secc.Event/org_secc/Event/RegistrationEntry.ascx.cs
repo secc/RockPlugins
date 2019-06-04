@@ -37,6 +37,7 @@ using Rock.Web;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
+using org.secc.PersonMatch;
 
 namespace RockWeb.Plugins.org_secc.Event
 {
@@ -2390,8 +2391,12 @@ namespace RockWeb.Plugins.org_secc.Event
                 else
                 {
                     // otherwise look for one and one-only match by name/email
-                    registrar = personService.FindPerson( registration.FirstName, registration.LastName, registration.ConfirmationEmail, true );
-                    if (registrar != null)
+                    var possibleRegistrars = personService.GetByMatch( registration.FirstName, registration.LastName, null, email: registration.ConfirmationEmail );
+                    if ( possibleRegistrars.Count() == 1 )
+                    {
+                        registrar = possibleRegistrars.FirstOrDefault();
+                    }
+                    if ( registrar != null )
                     {
                         registration.PersonAliasId = registrar.PrimaryAliasId;
                     }
@@ -2490,6 +2495,12 @@ namespace RockWeb.Plugins.org_secc.Event
                     string firstName = registrantInfo.GetFirstName( RegistrationTemplate );
                     string lastName = registrantInfo.GetLastName( RegistrationTemplate );
                     string email = registrantInfo.GetEmail( RegistrationTemplate );
+                    object dateOfBirthObj = registrantInfo.GetPersonFieldValue( RegistrationTemplate, RegistrationPersonFieldType.Birthdate );
+                    DateTime? dateOfBirth = null;
+                    if ( dateOfBirthObj != null && dateOfBirthObj is DateTime? )
+                    {
+                        dateOfBirth = dateOfBirthObj as DateTime?;
+                    }
 
                     if (registrantInfo.Id > 0)
                     {
@@ -2522,7 +2533,11 @@ namespace RockWeb.Plugins.org_secc.Event
                     if (person == null)
                     {
                         // Try to find a matching person based on name and email address
-                        person = personService.FindPerson( firstName, lastName, email, true );
+                        var possiblePersons = personService.GetByMatch( firstName, lastName, dateOfBirth, email: email );
+                        if ( possiblePersons.Count() == 1 )
+                        {
+                            person = possiblePersons.FirstOrDefault();
+                        }
 
                         // Try to find a matching person based on name within same family as registrar
                         if (person == null && registrar != null && registrantInfo.FamilyGuid == RegistrationState.FamilyGuid)
@@ -5562,7 +5577,7 @@ namespace RockWeb.Plugins.org_secc.Event
 
                     tbDiscountCode.Text = RegistrationState.DiscountCode;
 
-                    foreach (string error in workflowErrors)
+                    foreach ( string error in workflowErrors )
                     {
                         nbDiscountCode.NotificationBoxType = NotificationBoxType.Warning;
                         nbDiscountCode.Text += string.Format( "{0}<br />", error );

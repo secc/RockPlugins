@@ -28,12 +28,12 @@
         {%- for item in ContentChannelItems -%}
             {%- assign alert_template = item | Attribute:'AlertTemplate','RawValue' -%}
             {%- if alert_template == 1 -%}
-                <div id="churchonline_counter_container" class="container-fluid g-hor-divider__solid__b--gray-lightest" style="border-width: 2px;">
+                <div id="churchonline_counter_container" class="alertBar container-fluid g-hor-divider__solid__b--gray-lightest" style="border-width: 2px;">
                     <div class="row">
                         <div class="col-md-12 text-center g-padding-y-10--md g-padding-x-50--xs g-padding-b-45--xs g-padding-b-0--sm">
                             <div id="churchonline_counter">
                               <span class="g-display-inline-block--xs g-margin-t-45--xs g-padding-x-15--xs" style="vertical-align: top;">
-                                  <a href="https://southeastchristian.churchonline.org" class="cd-nav-item live-stream coming-soon">
+                                  <a href="https://online.southeastchristian.org" class="cd-nav-item live-stream coming-soon">
                                     <h5 class="notlive uppercase g-color--black g-font-weight--700" style="vertical-align:middle">Next Streaming Event</h5>
                                     <h5 class="live uppercase g-color--black g-font-weight--700" style="vertical-align:middle">Live Streaming Now</h5>
                                   </a>
@@ -44,8 +44,8 @@
                                 <li><h3 class="g-font-weight--700"><span class="seconds">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">secs</span></li>
                               </ul>
                               <span class="g-display-inline-block--xs g-padding-x-50--xs g-padding-x-15--sm g-margin-t-0--xs g-margin-y-25--sm" style="vertical-align: top;">
-                                  <a href="https://southeastchristian.churchonline.org" class="uppercase se-btn se-btn--dark-brd g-letter-spacing--1">
-                                        <strong>WATCH NOW</strong>
+                                  <a href="https://online.southeastchristian.org" class="uppercase se-btn se-btn--dark-brd g-letter-spacing--1">
+                                        <strong>WATCH HERE</strong>
                                   </a>
                               </span>
                             </div>
@@ -55,7 +55,7 @@
             {%- elseif alert_template == 2 -%}
                 {{- item.Content -}}
             {%- else -%}
-                <div class="container-fluid">
+                <div class="alertBar container-fluid">
                     <div class="row g-bg-color--gray-lightest g-padding-y-50--xs">
                         <div class="col-md-12 text-center g-padding-y-10--md g-padding-x-10--xs">
                             {{- item.Content -}}
@@ -77,14 +77,19 @@
         var $searchbar = $('#cd-search');
 
         // intial stuff
-        if ($alert) {
+        if ($('.alertBar').length) {
             // sets the position initially - on page load
             initAlert();
+        } else {
+            $menu.fadeIn( "fast" );
         }
+
         $( window ).resize(function() {
             // sets the positions - if window/screen is resized
             initAlert();
         });
+
+        $menu.fadeIn( "fast" );
 
         function initAlert() {
             var alertheight = getDivHeight('#superNoticeHeader');
@@ -97,7 +102,7 @@
                 $menu.css('position', '');
                 $searchbar.css('top', '');
                 $searchbar.css('position', '');
-                if( !$menu.hasClass('transparent-menu-enabled') ) {
+                if( $('header.transparent-menu-enabled').length) {
                     $menu.css('box-shadow','');
                     $menu.css('border-top','');
                     $alert.css('border-bottom','');
@@ -108,7 +113,15 @@
                 $menu.css('position', 'absolute');
                 $searchbar.css('top', (menuheight + alertheight) );
                 $searchbar.css('position', 'absolute');
-                $main.css('margin-top','0px');
+                if($('header.transparent-menu-enabled').length) {
+                    console.log('yes, menu is transparent')
+                } else {
+                    console.log('no, menu is not transparent')
+                    $main.css('margin-top','0px');
+                    $menu.css('box-shadow','0px 2px 0px 0px rgba(0, 0, 0, 0.1)');
+                    $alert.css('border-bottom','2px solid #f1f1f1');
+                    $('#zone-main').css('margin-top', menuheight);
+                }
             }
             // show nav bar after all the alert bar settings is set
             $menu.fadeIn( "fast" );
@@ -127,113 +140,119 @@
 
         // sets the position of everything on/after scrolling
         $(window).scroll(function() {
-            var alertheight = getDivHeight('#superNoticeHeader');
-            var menuheight = getDivHeight('.cd-main-header');
-            var scrollTop = $(window).scrollTop();
+            if ($('.alertBar').length) {
+                var alertheight = getDivHeight('#superNoticeHeader');
+                var menuheight = getDivHeight('.cd-main-header');
+                var scrollTop = $(window).scrollTop();
 
-            if (scrollTop > alertheight) {
-                // if the alert bar IS NOT visible
-                $menu.css('top', '');
-                $menu.css('position', '');
-                $searchbar.css('top', '');
-                $searchbar.css('position', '');
-                $menu.css('box-shadow','');
-                if( !$menu.hasClass('transparent-menu-enabled') ) {
+                if (scrollTop > alertheight) {
+                    // if the alert bar IS NOT visible
+                    $menu.css('top', '');
+                    $menu.css('position', '');
+                    $searchbar.css('top', '');
+                    $searchbar.css('position', '');
                     $menu.css('box-shadow','');
-                    $menu.css('border-top','');
-                    $alert.css('border-bottom','');
-                }
-            } else {
-                // if the alert bar IS visible
-                $menu.css('top', alertheight);
-                $menu.css('position', 'absolute');
-                $searchbar.css('top', (menuheight + alertheight) );
-                $searchbar.css('position', 'absolute');
-                $menu.css('box-shadow','none');
-                if( !$menu.hasClass('transparent-menu-enabled') ) {
-                    $menu.css('box-shadow','0px 2px 0px 0px rgba(0, 0, 0, 0.1)');
-                    $alert.css('border-bottom','2px solid #f1f1f1');
+                    if( !$menu.hasClass('transparent-menu-enabled') ) {
+                        $menu.css('box-shadow','');
+                        $menu.css('border-top','');
+                        $alert.css('border-bottom','');
+                    }
+                } else {
+                    // if the alert bar IS visible
+                    $menu.css('top', alertheight);
+                    $menu.css('position', 'absolute');
+                    $searchbar.css('top', (menuheight + alertheight) );
+                    $searchbar.css('position', 'absolute');
+                    $menu.css('box-shadow','none');
+                    if( !$menu.hasClass('transparent-menu-enabled') ) {
+                        $menu.css('box-shadow','0px 2px 0px 0px rgba(0, 0, 0, 0.1)');
+                        $alert.css('border-bottom','2px solid #f1f1f1');
+                    }
                 }
             }
         });
 
-    var days, goLive, hours, intervalId, minutes, seconds;
+        if ($('#churchonline_counter_container').length) {
 
-    // Your churchonline.org url
-    var churchUrl = "https://southeastchristian.churchonline.org"
+            var days, goLive, hours, intervalId, minutes, seconds;
+            // Your churchonline.org url
+            var churchUrl = "https://southeastchristian.churchonline.org"
 
-    goLive = function() {
-      $("#churchonline_counter .notlive").hide();
-      $("#churchonline_counter .live").show();
-    };
-    loadCountdown = function(data){
-      var seconds_till;
-      if (data.response.item.isLive) {
-        return goLive();
-      } else {
-        // Parse ISO 8601 date string
-        date = data.response.item.eventStartTime.match(/^(\d{4})-0?(\d+)-0?(\d+)[T ]0?(\d+):0?(\d+):0?(\d+)Z$/)
-        dateString = date[2] + "/" + date[3] + "/" + date[1] + " " + date[4] + ":" + date[5] + ":" + date[6] + " +0000"
-        seconds_till = ((new Date(dateString)) - (new Date())) / 1000;
-        days = Math.floor(seconds_till / 86400);
-        hours = Math.floor((seconds_till % 86400) / 3600);
-        minutes = Math.floor((seconds_till % 3600) / 60);
-        seconds = Math.floor(seconds_till % 60);
-        return intervalId = setInterval(function() {
-          if (--seconds < 0) {
-            seconds = 59;
-            if (--minutes < 0) {
-              minutes = 59;
-              if (--hours < 0) {
-                hours = 23;
-                if (--days < 0) {
-                  days = 0;
-                }
+            goLive = function() {
+              $("#churchonline_counter_container").show();
+              $("#churchonline_counter .time").hide();
+              $("#churchonline_counter .notlive").hide();
+              $("#churchonline_counter .live").show();
+              initAlert();
+            };
+            loadCountdown = function(data){
+              var seconds_till;
+              if (data.response.item.isLive) {
+                return goLive();
+              } else {
+                // Parse ISO 8601 date string
+                date = data.response.item.eventStartTime.match(/^(\d{4})-0?(\d+)-0?(\d+)[T ]0?(\d+):0?(\d+):0?(\d+)Z$/)
+                dateString = date[2] + "/" + date[3] + "/" + date[1] + " " + date[4] + ":" + date[5] + ":" + date[6] + " +0000"
+                seconds_till = ((new Date(dateString)) - (new Date())) / 1000;
+                days = Math.floor(seconds_till / 86400);
+                hours = Math.floor((seconds_till % 86400) / 3600);
+                minutes = Math.floor((seconds_till % 3600) / 60);
+                seconds = Math.floor(seconds_till % 60);
+                return intervalId = setInterval(function() {
+                  if (--seconds < 0) {
+                    seconds = 59;
+                    if (--minutes < 0) {
+                      minutes = 59;
+                      if (--hours < 0) {
+                        hours = 23;
+                        if (--days < 0) {
+                          days = 0;
+                        }
+                      }
+                    }
+                  }
+                  $("#churchonline_counter .days").html((days.toString().length < 2) ? "0" + days : days);
+                  $("#churchonline_counter .hours").html((hours.toString().length < 2 ? "0" + hours : hours));
+                  $("#churchonline_counter .minutes").html((minutes.toString().length < 2 ? "0" + minutes : minutes));
+                  $("#churchonline_counter .seconds").html((seconds.toString().length < 2 ? "0" + seconds : seconds));
+                  if (seconds === 0 && minutes === 0 && hours === 0 && days === 0) {
+                    goLive();
+                    return clearInterval(intervalId);
+                  }
+                  $("#churchonline_counter_container").show();
+                  initAlert();
+                }, 1000);
               }
             }
-          }
-          $("#churchonline_counter .days").html((days.toString().length < 2) ? "0" + days : days);
-          $("#churchonline_counter .hours").html((hours.toString().length < 2 ? "0" + hours : hours));
-          $("#churchonline_counter .minutes").html((minutes.toString().length < 2 ? "0" + minutes : minutes));
-          $("#churchonline_counter .seconds").html((seconds.toString().length < 2 ? "0" + seconds : seconds));
-          if (seconds === 0 && minutes === 0 && hours === 0 && days === 0) {
-            goLive();
-            return clearInterval(intervalId);
-          }
-          $("#churchonline_counter_container").show();
-          initAlert();
-        }, 1000);
-      }
-    }
-    days = void 0;
-    hours = void 0;
-    minutes = void 0;
-    seconds = void 0;
-    intervalId = void 0;
-    eventUrl = churchUrl + "/api/v1/events/current"
-    msie = /msie/.test(navigator.userAgent.toLowerCase())
-    if (msie && window.XDomainRequest) {
-        var xdr = new XDomainRequest();
-        xdr.open("get", eventUrl);
-        xdr.onload = function() {
-          loadCountdown(jQuery.parseJSON(xdr.responseText))
-        };
-        xdr.send();
-    } else {
-      $.ajax({
-        url: eventUrl,
-        dataType: "json",
-        crossDomain: true,
-        success: function(data) {
-          loadCountdown(data);
-        },
-        error: function(xhr, ajaxOptions, thrownError) {
-          return console.log(thrownError);
+            days = void 0;
+            hours = void 0;
+            minutes = void 0;
+            seconds = void 0;
+            intervalId = void 0;
+            eventUrl = churchUrl + "/api/v1/events/current"
+            msie = /msie/.test(navigator.userAgent.toLowerCase())
+            if (msie && window.XDomainRequest) {
+                var xdr = new XDomainRequest();
+                xdr.open("get", eventUrl);
+                xdr.onload = function() {
+                  loadCountdown(jQuery.parseJSON(xdr.responseText))
+                };
+                xdr.send();
+            } else {
+              $.ajax({
+                url: eventUrl,
+                dataType: "json",
+                crossDomain: true,
+                success: function(data) {
+                  loadCountdown(data);
+                },
+                error: function(xhr, ajaxOptions, thrownError) {
+                  return console.log(thrownError);
+                }
+              });
+            }
         }
-      });
-    }
-  });
-
+    });
 </script>
 
 {% comment %}

@@ -15,7 +15,7 @@
 
 <section class="container">
     <div class="row g-padding-y-50--xs g-padding-x-50--xs">
-        <div class="col-md-8">
+        <div class="col-md-12">
             {{ Opportunity.Description }}
         </div>
     </div>

@@ -1,0 +1,123 @@
+{%- assign requestQuery = Request.Query -%}
+{%- assign isValidCampus = requestQuery | RegExMatch:'(Campus)=+(\w+)' -%}
+{%- if isValidCampus -%}
+    {%- assign campusValue = requestQuery | RegExMatchValue:'(Campus)=+(\w+)' -%}
+    {%- unless campusValue[2] == null or campusValue[2] == '' or campusValue[2] == empty -%}
+        {%- assign pageParamCampus = campusValue[2] -%}
+    {%- endunless -%}
+{%- endif -%}
+{%- if pageParamCampus != null and pageParamCampus != empty -%}
+    {%- campus where:'Public == true' -%}
+        {%- for campus in campusItems -%}
+            {%- assign campusSlug = campus | Attribute: 'Slug' -%}
+            {%- if campus.Name == pageParamCampus or campusSlug == pageParamCampus -%}
+                {%- assign campusObj = campus -%}
+            {%- endif -%}
+        {%- endfor -%}
+    {%- endcampus -%}
+{%- endif -%}
+{%- assign ministry = "hsm" -%}
+{%- assign cacheKey = "" -%}
+{%- if campusObj -%}
+   {%- assign cacheKey = "SEHSMPODCAST-" | Plus:campusObj.ShortCode | Upcase | Plus:"-" | Plus:ministry | Upcase -%}
+{%- else -%}
+   {%- assign cacheKey = "SEHSMPODCAST-ALL-" | Plus:ministry | Upcase -%}
+{%- endif -%}
+{%- cache key:'{{ cacheKey }}' duration:'3600' tags:'SEHSMPodcast' -%}
+<?xml version="1.0"?>
+{%- assign timezone = 'Now' | Date:'zzz' | Replace:':','' -%}
+{%- assign imageURL = 'https://www.southeastchristian.org/content/podcasts/hsm_podcast_avatar.jpg' -%}
+<rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:secc="http://www.secc.org/dtds/sermons-1.0.dtd" version="2.0">
+    <channel>
+        <title>SE{% if campusObj %} {{ campusObj.ShortCode | Upcase }} {% else %} All Campuses {% endif %}{{ ministry | Upcase }}</title>
+        <description>Connecting people to Jesus and one another. The weekly audio podcast of {{ ministry | Upcase }} Southeast Christian Church in Louisville Kentucky.</description>
+        <link>https://www.southeastchristian.org/ministries/high-school</link>
+        <copyright> Copyright {{ 'Now' | Date: 'yyyy' }} Southeast Christian Church, Inc. All rights reserved.</copyright>
+        <language>en-us</language>
+        <webmaster>rockhelp@secc.org</webmaster>
+        <managingEditor>web@secc.org</managingEditor>
+        <ttl>{{ Channel.TimeToLive }}</ttl>
+        <lastBuildDate>{{ 'Now' | Date:'ddd, dd MMM yyyy HH:mm:00' }} {{ timezone }}</lastBuildDate>
+        <itunes:new-feed-url>https://www.southeastchristian.org/GetChannelFeed.ashx/HSMSermonPodcast.rss?ChannelId=44&amp;TemplateId=23425&amp;Count=1000000&amp;Campus={{ campusObj.Slug }}</itunes:new-feed-url>
+        <itunes:subtitle>The audio podcast of Southeast Christian Church</itunes:subtitle>
+        <itunes:author>Southeast Christian Church, Louisville, KY</itunes:author>
+        <itunes:summary>Connecting people to Jesus and one another. The SE{% if campusObj %} {{ campusObj.ShortCode | Upcase }} {% else %} All Campuses {% endif %}{{ ministry | Upcase }} audio podcast of Southeast Christian Church in Louisville Kentucky.</itunes:summary>
+        <itunes:owner><itunes:name>Southeast Christian Church</itunes:name><itunes:email>web@secc.org</itunes:email></itunes:owner>
+        <itunes:keywords>Southeast Christian Church, {{ ministry | Upcase }}, Louisville Kentucky</itunes:keywords>
+        <itunes:image href="{{ imageURL }}"/>
+        <itunes:explicit>No</itunes:explicit>
+        <image>
+            <url>
+                {{ imageURL }}
+            </url>
+            <title>SE{% if campusObj %} {{ campusObj.ShortCode | Upcase }} {% else %} All Campuses {% endif %}{{ ministry | Upcase }} Louisville Kentucky</title>
+            <link>http://www.southeastchristian.org</link>
+            <description/>
+            <width>3000</width>
+            <height>3000</height>
+        </image>
+        <itunes:category text="Religion &amp; Spirituality">
+            <itunes:category text="Christianity"></itunes:category>
+        </itunes:category>
+        {%- for item in Items -%}
+        {%- assign itemCampus = item | Attribute:'Campus' -%}
+        {%- assign mediaURL = item | Attribute:'Audio','Path' | Replace:'~/','' -%}
+        {%- assign mediaGuid = item | Attribute:'Audio','RawValue' -%}
+        {%- assign parent = item | Property:'ParentItems' | First  | Property:'ContentChannelItem' -%}
+        {%- assign expireDays = 'Now' | DateDiff: parent.ExpireDateTime, 'd' -%}
+        {%- assign size = item | Attribute:'AudioFileSize' -%}
+        {%- assign duration = item | Attribute:'Duration' -%}
+        {%- assign summary = item.Content | StripHTML | Escape -%}
+        {%- assign speaker = item | Attribute:'Speaker' | Escape -%}
+        {%- assign pubdate = item.StartDateTime | Date:'ddd, dd MMM yyyy 11:00:00' -%}
+        {%- assign vimeoId = item | Attribute:'VimeoId' -%}
+        {%- if campusObj.Name -%}
+            {%- comment -%}
+                ** Shows only if the item belongs to the campus specified in the parameter **
+            {%- endcomment -%}
+            {%- if itemCampus == campusObj.Name -%}
+            <item>
+                <title>{{ parent.Title | Escape }}: {{ item.Title | Escape }}</title>
+                <secc:title>{{ item.Title | Escape }}</secc:title>
+                <description>{{ summary }} Speaker: {{ speaker }}</description>
+                <link>{{ 'Global' | Attribute:'PublicApplicationRoot' }}{{ mediaURL }}</link>
+                <enclosure url="{{ 'Global' | Attribute:'PublicApplicationRoot' }}{{ mediaURL }}" length="{{ size }}" type="audio/mpeg"></enclosure>
+                <guid>{{ mediaGuid }}</guid>
+                <pubDate>{{ pubdate }} EST</pubDate>
+                <copyright>{{ pubdate | Date:'yyyy' }}</copyright>
+                <itunes:subtitle>{{ summary }}</itunes:subtitle>
+                <itunes:summary>{{ summary }} Speaker: {{ speaker }}</itunes:summary>
+                <itunes:duration>{{ duration }}</itunes:duration>
+                <itunes:keywords>sermon</itunes:keywords>
+                <itunes:author>{{ speaker }}</itunes:author>
+                <itunes:image href="{{ imageURL }}"></itunes:image>
+                <itunes:explicit>No</itunes:explicit>
+                <secc:vimeo>{{ vimeoId }}</secc:vimeo>
+                <secc:series>{{ parent.Title | Escape }}</secc:series>
+            </item>
+            {%- endif -%}
+        {%- else -%}
+            <item>
+                <title>{{ parent.Title | Escape }}: {{ item.Title | Escape }}</title>
+                <secc:title>{{ item.Title | Escape }}</secc:title>
+                <description>{{ summary }} Speaker: {{ speaker }}</description>
+                <link>{{ 'Global' | Attribute:'PublicApplicationRoot' }}{{ mediaURL }}</link>
+                <enclosure url="{{ 'Global' | Attribute:'PublicApplicationRoot' }}{{ mediaURL }}" length="{{ size }}" type="audio/mpeg"></enclosure>
+                <guid>{{ mediaGuid }}</guid>
+                <pubDate>{{ pubdate }} EST</pubDate>
+                <copyright>{{ pubdate | Date:'yyyy' }}</copyright>
+                <itunes:subtitle>{{ summary }}</itunes:subtitle>
+                <itunes:summary>{{ summary }} Speaker: {{ speaker }}</itunes:summary>
+                <itunes:duration>{{ duration }}</itunes:duration>
+                <itunes:keywords>sermon</itunes:keywords>
+                <itunes:author>{{ speaker }}</itunes:author>
+                <itunes:image href="{{ imageURL }}"></itunes:image>
+                <itunes:explicit>No</itunes:explicit>
+                <secc:vimeo>{{ vimeoId }}</secc:vimeo>
+                <secc:series>{{ parent.Title | Escape }}</secc:series>
+            </item>
+        {%- endif -%}
+        {%- endfor -%}
+    </channel>
+</rss>
+{%- endcache -%}

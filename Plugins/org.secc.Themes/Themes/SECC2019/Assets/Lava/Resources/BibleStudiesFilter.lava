@@ -6,6 +6,18 @@
 
 <script>
 $(document).ready(function() {
+    getMoreArticles(jQuery);
+
+    window.onscroll = function(e) {
+        var pageHeight=document.documentElement.offsetHeight,
+        windowHeight=window.innerHeight,
+        scrollPosition=window.scrollY || window.pageYOffset || document.body.scrollTop + (document.documentElement && document.documentElement.scrollTop || 0);
+
+        if (pageHeight - document.getElementById("SiteFooter").offsetHeight <= windowHeight+scrollPosition) {
+            getMoreArticles(jQuery);
+        }
+    };
+
     // Initialize Isotope
     var $grid = $('.isotope_wrap').isotope({
         // options
@@ -20,10 +32,6 @@ $(document).ready(function() {
       $grid.removeClass('hide-on-load').addClass('is-showing-items').isotope('layout');
     });
     $grid.isotope( 'revealItemElements', $items );
-});
-
-$( "#loadArticles" ).click(function() {
-  getMoreArticles(jQuery);
 });
 
 // Start at the next set since the first set is already loaded.
