@@ -112,6 +112,7 @@ namespace org.secc.Jobs
 
                                     attendance.EndDateTime = occurrence.Period?.EndTime?.Value;
                                     attendance.DidAttend = true;
+                                    attendance.CampusId = gl.Group.CampusId;
                                     occurrenceModel = attendance.Occurrence;
                                 }
                                 else
@@ -122,6 +123,7 @@ namespace org.secc.Jobs
                                     attendance.StartDateTime = occurrence.Period.StartTime.Value;
                                     attendance.EndDateTime = occurrence.Period?.EndTime?.Value;
                                     attendance.DidAttend = true;
+                                    attendance.CampusId = gl.Group.CampusId;
                                     attendanceService.Add( attendance );
                                 }
 
