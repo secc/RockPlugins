@@ -1,0 +1,51 @@
+<div class="container">
+    <div class="row">
+        <article class="col-sm-10 col-sm-offset-1 g-padding-b-150--xs">
+            <h1 class="text-center g-font-family--secondary">Employment Opportunities</h1>
+            <br />
+            <div class="jobb-list">
+            {[ faq columns:'1' ]}
+                {% webrequest url:'https://southeast.applicantstack.com/feed/jobs' responsecontenttype:'XML'  %}
+                    {%- capture dates -%}
+                        {%- for item in results.Openings.Job -%}
+                            {{item.DatePosted | AsDateTime | Date:'yyyyMMddHHmmss'}}--{{item.DatePosted}}{%- if forloop.last != true -%}|{%- endif -%}
+                        {%- endfor -%}
+                    {%- endcapture -%}
+                    {% assign datesSorted = dates | Split:'|' | Sort:'' %}
+                    {% for dateStr in datesSorted reversed %}
+                        {%- assign dateSearch = dateStr | Split:'--' | Last -%}
+                        {%- assign jobsByDate = results.Openings.Job | Where:'DatePosted', dateSearch %}
+                        {% for item in jobsByDate %}
+                            {%- if item.Type != "Internship" -%}
+                                [[ item title:'{{ item.Title }}' ]]
+                                <div class="jobbbby">
+                                    {% comment %}
+                                    <header>
+                                        <div class="ministry">{{ item.Department }}</div>
+                                        <h3 class="job-title g-font-weight--700">{{ item.Title }}</h3>
+                                        <div class="hours">{{ item.Type }}</div>
+                                        {% if item.Location == 'Blankenbaker Campus' %}
+                                            <div class="location uppercase text">{{ item.Location }}</div>
+                                        {% elseif item.Location == 'Crestwood Campus' %}
+                                             <div class="location uppercase text">{{ item.Location }}</div>
+                                        {% else %}
+                                             <div class="location uppercase text">{{ item.Location }}</div>
+                                        {% endif %}
+                                    </header>
+                                    {% endcomment %}
+                                    <div class="description g-font-family--primary">{{ item.DescriptionHtm | Replace:'<font','<div' | Replace:'</font','</div' | Replace:'font-family:','' }}</div>
+                                    <hr />
+                                    <div class="buttons">
+                    						<a href={{ item.DetailLink }} target="JobDetail" class="apply-link uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 pull-right">Apply Now</a>
+                    				</div>
+                                </div>
+                                [[ enditem ]]
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                {% endwebrequest %}
+                {[ endfaq ]}
+            </div>
+        </article>
+    </div>
+</div>

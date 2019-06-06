@@ -1,5 +1,6 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="RegistrationEntry.ascx.cs" Inherits="RockWeb.Plugins.org_secc.Event.RegistrationEntry" %>
-
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="RegistrationEntry.ascx.cs" Inherits="RockWeb.Plugins.org_secc.Event.RegistrationEntry" ValidateRequestMode="Disabled" %>
+<%@ Register Src="SignNow.ascx" TagName="SignNow" TagPrefix="secc" %>
+<secc:SignNow runat="server" ID="SignNow" EnableViewState="true" />
 <style>
     iframe {
         width: 100%;
@@ -10,7 +11,6 @@
 </style>
 <asp:UpdatePanel ID="upnlContent" runat="server">
 <ContentTemplate>
-
     <asp:HiddenField ID="hfTriggerScroll" runat="server" Value="" />
     <asp:HiddenField ID="hfAllowNavigate" runat="server" Value="" />
 
@@ -81,7 +81,7 @@
         
             <asp:Panel ID="pnlFamilyMembers" runat="server" Visible="false" CssClass="row" >
                 <div class="col-md-6">
-                    <Rock:RockDropDownList ID="ddlFamilyMembers" runat="server" Label="Family Member" AutoPostBack="true" OnSelectedIndexChanged="ddlFamilyMembers_SelectedIndexChanged" />
+                    <Rock:RockDropDownList ID="ddlFamilyMembers" runat="server" Label="Family Member to Register" AutoPostBack="true" OnSelectedIndexChanged="ddlFamilyMembers_SelectedIndexChanged" />
                 </div>
             </asp:Panel>
 
@@ -101,7 +101,7 @@
             <asp:HiddenField ID="hfRegistrantGuid" runat="server" ClientIDMode="Static" />
 
             <iframe id="iframeRequiredDocument" frameborder="0" runat="server" Visible="false" ClientIDMode="Static"></iframe>
-            <asp:LinkButton id="lbRequiredDocument" runat="server" Visible="false" OnClientClick="var win = window.open($('input[id$=hfRequiredDocumentLinkUrl]').val(), '_blank');win.focus(); return false;" Text="Open Document" CssClass="btn btn-default pull-right"></asp:LinkButton>
+            <a id="lbRequiredDocument" runat="server" Visible="false" class="btn btn-default pull-right">Sign Document</a>
  
             <span style="display:none" >
                 <asp:LinkButton ID="lbRequiredDocumentNext" runat="server" Text="Required Document Return" OnClick="lbRequiredDocumentNext_Click" CausesValidation="false" ></asp:LinkButton>

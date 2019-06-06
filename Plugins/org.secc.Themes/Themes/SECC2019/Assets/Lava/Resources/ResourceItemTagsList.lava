@@ -148,7 +148,7 @@ function getMoreStories($) {
 </div>
 
 <!-- show all content channel items that has the tag -->
-<div class="container g-padding-b-50--xs g-padding-x-150--lg">
+<div class="container g-padding-b-150--xs g-padding-x-150--lg">
     <div class="isotope_wrap">
 	</div>
     <div class="text-center">
