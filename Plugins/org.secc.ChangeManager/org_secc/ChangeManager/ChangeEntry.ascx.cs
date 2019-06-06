@@ -222,18 +222,9 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                             }
                             else
                             {
-                                if ( phoneNumber.Number != PhoneNumber.CleanNumber( pnbPhone.Number ) )
-                                {
-                                    var changeRecord = new ChangeRecord
-                                    {
-                                        RelatedEntityTypeId = EntityTypeCache.Get( typeof( PhoneNumber ) ).Id,
-                                        RelatedEntityId = phoneNumber.Id,
-                                        OldValue = phoneNumber.Number,
-                                        NewValue = PhoneNumber.CleanNumber( pnbPhone.Number ),
-                                        Property = "Number"
-                                    };
-                                    changeRequest.ChangeRecords.Add( changeRecord );
-                                }
+                                EvaluatePropertyChange( changeRequest, phoneNumber, "Number", PhoneNumber.CleanNumber( pnbPhone.Number ), true );
+                                EvaluatePropertyChange( changeRequest, phoneNumber, "IsMessagingEnabled", ( !smsSelected && cbSms.Checked ), true );
+                                EvaluatePropertyChange( changeRequest, phoneNumber, "IsUnlisted", cbUnlisted.Checked, true );
                             }
                         }
                     }
@@ -245,8 +236,6 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 rblEmailPreference.SelectedValueAsEnum<EmailPreference>() );
             EvaluatePropertyChange( changeRequest, person, "CommunicationPreference",
                 rblCommunicationPreference.SelectedValueAsEnum<CommunicationType>() );
-
-
 
 
             var birthday = bpBirthday.SelectedDate;
@@ -459,6 +448,10 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             {
                 prop.SetValue( entity, newValue.AsInteger() );
             }
+            else if ( prop.PropertyType == typeof( bool ) )
+            {
+                prop.SetValue( entity, newValue.AsBoolean() );
+            }
         }
 
         private IEntity GetEntity( int entityTypeId, int entityId, RockContext dbContext )
@@ -515,7 +508,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             }
         }
 
-        private void EvaluatePropertyChange( ChangeRequest changeRequest, object item, string property, IEntityCache newValue )
+        private void EvaluatePropertyChange( ChangeRequest changeRequest, object item, string property, IEntityCache newValue, bool isRelated = false )
         {
             var oldValue = item.GetPropertyValue( property );
             if ( oldValue == null && newValue == null )
@@ -533,11 +526,20 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                     IsRejected = false,
                     Property = property
                 };
+
+                if ( isRelated && item is IEntity )
+                {
+                    var entity = ( IEntity ) item;
+
+                    changeRecord.RelatedEntityId = entity.Id;
+                    changeRecord.RelatedEntityTypeId = EntityTypeCache.Get( entity.GetType() ).Id;
+                }
+
                 changeRequest.ChangeRecords.Add( changeRecord );
             };
         }
 
-        private void EvaluatePropertyChange( ChangeRequest changeRequest, object item, string property, IEntity newValue )
+        private void EvaluatePropertyChange( ChangeRequest changeRequest, object item, string property, IEntity newValue, bool isRelated = false )
         {
             var oldValue = item.GetPropertyValue( property );
             if ( oldValue == null && newValue == null )
@@ -555,12 +557,21 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                     IsRejected = false,
                     Property = property
                 };
+
+                if ( isRelated && item is IEntity )
+                {
+                    var entity = ( IEntity ) item;
+
+                    changeRecord.RelatedEntityId = entity.Id;
+                    changeRecord.RelatedEntityTypeId = EntityTypeCache.Get( entity.GetType() ).Id;
+                }
+
                 changeRequest.ChangeRecords.Add( changeRecord );
             };
         }
 
 
-        private void EvaluatePropertyChange( ChangeRequest changeRequest, object item, string property, string newValue )
+        private void EvaluatePropertyChange( ChangeRequest changeRequest, object item, string property, string newValue, bool isRelated = false )
         {
             var oldValue = item.GetPropertyValue( property );
 
@@ -579,11 +590,20 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                     IsRejected = false,
                     Property = property
                 };
+
+                if ( isRelated && item is IEntity )
+                {
+                    var entity = ( IEntity ) item;
+
+                    changeRecord.RelatedEntityId = entity.Id;
+                    changeRecord.RelatedEntityTypeId = EntityTypeCache.Get( entity.GetType() ).Id;
+                }
+
                 changeRequest.ChangeRecords.Add( changeRecord );
             };
         }
 
-        private void EvaluatePropertyChange( ChangeRequest changeRequest, object item, string property, int? newValue )
+        private void EvaluatePropertyChange( ChangeRequest changeRequest, object item, string property, int? newValue, bool isRelated = false )
         {
             var oldValue = item.GetPropertyValue( property );
 
@@ -602,11 +622,47 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                     IsRejected = false,
                     Property = property
                 };
+
+                if ( isRelated && item is IEntity )
+                {
+                    var entity = ( IEntity ) item;
+
+                    changeRecord.RelatedEntityId = entity.Id;
+                    changeRecord.RelatedEntityTypeId = EntityTypeCache.Get( entity.GetType() ).Id;
+                }
+
                 changeRequest.ChangeRecords.Add( changeRecord );
             };
         }
 
-        private void EvaluatePropertyChange( ChangeRequest changeRequest, object item, string property, Enum newValue )
+        private void EvaluatePropertyChange( ChangeRequest changeRequest, object item, string property, bool newValue, bool isRelated = false )
+        {
+            var oldValue = item.GetPropertyValue( property );
+
+            if ( !( oldValue is bool ) || ( bool ) oldValue != newValue )
+            {
+                var changeRecord = new ChangeRecord()
+                {
+                    OldValue = oldValue.ToStringSafe(),
+                    NewValue = newValue.ToStringSafe(),
+                    IsAttribute = false,
+                    IsRejected = false,
+                    Property = property
+                };
+
+                if ( isRelated && item is IEntity )
+                {
+                    var entity = ( IEntity ) item;
+
+                    changeRecord.RelatedEntityId = entity.Id;
+                    changeRecord.RelatedEntityTypeId = EntityTypeCache.Get( entity.GetType() ).Id;
+                }
+
+                changeRequest.ChangeRecords.Add( changeRecord );
+            };
+        }
+
+        private void EvaluatePropertyChange( ChangeRequest changeRequest, object item, string property, Enum newValue, bool isRelated = false )
         {
             var oldValue = item.GetPropertyValue( property );
 
@@ -625,11 +681,20 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                     IsRejected = false,
                     Property = property
                 };
+
+                if ( isRelated && item is IEntity )
+                {
+                    var entity = ( IEntity ) item;
+
+                    changeRecord.RelatedEntityId = entity.Id;
+                    changeRecord.RelatedEntityTypeId = EntityTypeCache.Get( entity.GetType() ).Id;
+                }
+
                 changeRequest.ChangeRecords.Add( changeRecord );
             };
         }
 
-        private void EvaluatePropertyChange( ChangeRequest changeRequest, object item, string property, DateTime? newValue )
+        private void EvaluatePropertyChange( ChangeRequest changeRequest, object item, string property, DateTime? newValue, bool isRelated = false )
         {
             var oldValue = item.GetPropertyValue( property );
 
@@ -648,6 +713,15 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                     IsRejected = false,
                     Property = property
                 };
+
+                if ( isRelated && item is IEntity )
+                {
+                    var entity = ( IEntity ) item;
+
+                    changeRecord.RelatedEntityId = entity.Id;
+                    changeRecord.RelatedEntityTypeId = EntityTypeCache.Get( entity.GetType() ).Id;
+                }
+
                 changeRequest.ChangeRecords.Add( changeRecord );
             };
         }
