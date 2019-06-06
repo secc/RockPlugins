@@ -12,8 +12,6 @@
 // limitations under the License.
 // </copyright>
 //
-namespace org.secc.FamilyCheckin.Model
-{
     using System;
     using System.Linq;
     using System.Collections.Generic;
@@ -24,6 +22,9 @@ namespace org.secc.FamilyCheckin.Model
     using System.Runtime.Serialization;
     using Rock.Model;
     using Rock;
+namespace org.secc.FamilyCheckin.Model
+{
+
     [Table( "_org_secc_FamilyCheckin_KioskType" )]
     [DataContract]
     public partial class KioskType : Rock.Data.Model<KioskType>, Rock.Security.ISecured, Rock.Data.IRockEntity
