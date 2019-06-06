@@ -29,6 +29,7 @@ using System.Reflection;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 using System.Dynamic;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.ChangeManager
 {
@@ -177,11 +178,75 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             EvaluatePropertyChange( changeRequest, person, "LastName", tbLastName.Text );
 
 
+            //Evaluate PhoneNumbers
+            var phoneNumberTypeIds = new List<int>();
+            bool smsSelected = false;
+            foreach ( RepeaterItem item in rContactInfo.Items )
+            {
+                HiddenField hfPhoneType = item.FindControl( "hfPhoneType" ) as HiddenField;
+                PhoneNumberBox pnbPhone = item.FindControl( "pnbPhone" ) as PhoneNumberBox;
+                CheckBox cbUnlisted = item.FindControl( "cbUnlisted" ) as CheckBox;
+                CheckBox cbSms = item.FindControl( "cbSms" ) as CheckBox;
+
+                if ( hfPhoneType != null &&
+                    pnbPhone != null &&
+                    cbSms != null &&
+                    cbUnlisted != null )
+                {
+                    if ( !string.IsNullOrWhiteSpace( PhoneNumber.CleanNumber( pnbPhone.Number ) ) )
+                    {
+                        int phoneNumberTypeId;
+                        if ( int.TryParse( hfPhoneType.Value, out phoneNumberTypeId ) )
+                        {
+                            var phoneNumber = person.PhoneNumbers.FirstOrDefault( n => n.NumberTypeValueId == phoneNumberTypeId );
+                            string oldPhoneNumber = string.Empty;
+                            if ( phoneNumber == null )
+                            {
+                                phoneNumber = new PhoneNumber
+                                {
+                                    PersonId = person.Id,
+                                    NumberTypeValueId = phoneNumberTypeId,
+                                    CountryCode = PhoneNumber.CleanNumber( pnbPhone.CountryCode ),
+                                    IsMessagingEnabled = !smsSelected && cbSms.Checked,
+                                    Number = PhoneNumber.CleanNumber( pnbPhone.Number )
+                                };
+
+                                var phoneChange = new ChangeRecord
+                                {
+                                    RelatedEntityTypeId = EntityTypeCache.Get( typeof( PhoneNumber ) ).Id,
+                                    RelatedEntityId = 0,
+                                    OldValue = "",
+                                    NewValue = phoneNumber.ToJson(),
+                                };
+                                changeRequest.ChangeRecords.Add( phoneChange );
+                            }
+                            else
+                            {
+                                if ( phoneNumber.Number != PhoneNumber.CleanNumber( pnbPhone.Number ) )
+                                {
+                                    var changeRecord = new ChangeRecord
+                                    {
+                                        RelatedEntityTypeId = EntityTypeCache.Get( typeof( PhoneNumber ) ).Id,
+                                        RelatedEntityId = phoneNumber.Id,
+                                        OldValue = phoneNumber.Number,
+                                        NewValue = PhoneNumber.CleanNumber( pnbPhone.Number ),
+                                        Property = "Number"
+                                    };
+                                    changeRequest.ChangeRecords.Add( changeRecord );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             EvaluatePropertyChange( changeRequest, person, "Email", person.Email );
             EvaluatePropertyChange( changeRequest, person, "EmailPreference",
                 rblEmailPreference.SelectedValueAsEnum<EmailPreference>() );
             EvaluatePropertyChange( changeRequest, person, "CommunicationPreference",
                 rblCommunicationPreference.SelectedValueAsEnum<CommunicationType>() );
+
+
 
 
             var birthday = bpBirthday.SelectedDate;
@@ -342,6 +407,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                         changeRecord.WasApplied = true;
                     }
                     rockContext.SaveChanges();
+                    dbContextTransaction.Commit();
                 }
                 catch ( Exception e )
                 {
