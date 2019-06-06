@@ -17,26 +17,19 @@
     protected override void OnInit( EventArgs e )
     {
         base.OnInit( e );
-//Check to see if we should remove menu transparency
+        //Check to see if we should remove menu transparency
         var page = PageCache.Get( ( ( RockPage ) Page ).PageId );
-        var showalert = page.GetAttributeValue( "TransparentMenu" ).AsBoolean();
+        var showTransparentMenu = page.GetAttributeValue( "TransparentMenu" ).AsBoolean();
         var facebookOG = page.GetAttributeValue("UseFaceBookOG").AsBoolean();
         var facebookOGImage = page.GetAttributeValue("FacebookOGImage");
 
-        if ( !showalert )
+        if ( !showTransparentMenu )
         {
             var script = @"
-            var $alert = $('#superNoticeHeader');
-            var $menu = $('.cd-main-header');
-            if ($alert) {
-                $alert.css('margin-bottom', $menu.height());
-                $alert.css('border-bottom','2px solid #f1f1f1');
-                $menu.css('box-shadow','0px 2px 0px 0px rgba(0, 0, 0, 0.1)');
-            }
-            $(document).ready(function() {
-              $menu.removeClass('transparent-menu-enabled').removeClass('transparent-header');
+                var $menu = $('.cd-main-header');
+                $menu.removeClass('transparent-menu-enabled').removeClass('transparent-header');
                 $('.cd-main-content').removeClass('transparent-content');
-            });";
+            ";
             ScriptManager.RegisterStartupScript( this.Page, this.GetType(), "transparentMenu", script, true );
         }
                 if (facebookOG)
