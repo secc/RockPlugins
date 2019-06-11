@@ -607,6 +607,14 @@ namespace RockWeb.Blocks.Reporting.NextGen
             };
             noteService.Add( history );
             rockContext.SaveChanges();
+
+            //for clicking distribute after the fact
+            if ( dpDate.SelectedDate.HasValue && dpDate.SelectedDate.Value.Date != Rock.RockDateTime.Today )
+            {
+                history.CreatedDateTime = dpDate.SelectedDate.Value;
+                rockContext.SaveChanges();
+            }
+
             BindGrid();
         }
 
