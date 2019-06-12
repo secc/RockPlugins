@@ -38,7 +38,7 @@
         <managingEditor>web@secc.org</managingEditor>
         <ttl>{{ Channel.TimeToLive }}</ttl>
         <lastBuildDate>{{ 'Now' | Date:'ddd, dd MMM yyyy HH:mm:00' }} {{ timezone }}</lastBuildDate>
-        <itunes:new-feed-url>https://www.southeastchristian.org/GetChannelFeed.ashx/HSMSermonPodcast.rss?ChannelId=44&amp;TemplateId=23425&amp;Count=1000000&amp;Campus={{ campusObj.Slug }}</itunes:new-feed-url>
+        <itunes:new-feed-url>https://www.southeastchristian.org/GetChannelFeed.ashx/HSMSermonPodcast.rss?ChannelId=44&amp;TemplateId=23425&amp;Count=1000000&amp;Campus={{ campusObj | Attribute: 'Slug' }}</itunes:new-feed-url>
         <itunes:subtitle>The audio podcast of Southeast Christian Church</itunes:subtitle>
         <itunes:author>Southeast Christian Church, Louisville, KY</itunes:author>
         <itunes:summary>Connecting people to Jesus and one another. The SE{% if campusObj %} {{ campusObj.ShortCode | Upcase }} {% else %} All Campuses {% endif %}{{ ministry | Upcase }} audio podcast of Southeast Christian Church in Louisville Kentucky.</itunes:summary>
