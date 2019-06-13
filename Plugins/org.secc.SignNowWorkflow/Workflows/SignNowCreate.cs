@@ -60,7 +60,9 @@ namespace org.secc.SignNowWorkflow
             BinaryFile renderedPDF = binaryfileService.Get( documentGuid );
 
             // Save the file to a temporary place
-            string tempFile = Path.GetTempPath() + renderedPDF.FileName;
+            string tempDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(tempDirectory);
+            string tempFile = tempDirectory + Path.DirectorySeparatorChar + renderedPDF.FileName;
 
             // Open a FileStream to write to the file:
             using ( Stream fileStream = File.OpenWrite( tempFile ) )
@@ -78,10 +80,14 @@ namespace org.secc.SignNowWorkflow
             }
             JObject result = SignNowSDK.Document.Create( token, tempFile, true );
             string documentId = result.Value<string>( "id" );
-            if ( documentId.Length == 0 )
+            if ( string.IsNullOrWhiteSpace( documentId ) )
             {
-                throw new Exception( "SignNow Document Creation Error: " + result.ToString() );
+                errorMessages.Add( "SignNow Document Creation Error: " + result.ToString() );
+                return false;
             }
+            // Clean up the temporary directory
+            Directory.Delete(tempDirectory, true);
+
             SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "SignNowDocumentId" ).AsGuid(), documentId );
 
             var signerEmail = "guest_signer_" + Guid.NewGuid().ToString() + "@no.reply";
@@ -124,7 +130,6 @@ namespace org.secc.SignNowWorkflow
 
             SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "SignNowInviteLink" ).AsGuid(), signNowInviteLink );
             SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "SignNowDocumentId" ).AsGuid(), documentId );
-
             return true;
         }
     }
