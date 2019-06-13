@@ -115,9 +115,11 @@ namespace org.secc.SignNowWorkflow
                 userAccessToken );
             var mergeFields = GetMergeFields( action );
             var redirectUri = GetAttributeValue( action, "RedirectUri" ).ResolveMergeFields(mergeFields);
+            redirectUri += string.Format("{0}document_id={1}", redirectUri.Contains("?") ? "&" : "?", documentId);
+
             if ( !string.IsNullOrWhiteSpace( redirectUri ) )
             {
-                signNowInviteLink += "&redirect_uri=" + redirectUri;
+                signNowInviteLink += "&redirect_uri=" + HttpUtility.UrlEncode( redirectUri );
             }
 
             SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "SignNowInviteLink" ).AsGuid(), signNowInviteLink );
