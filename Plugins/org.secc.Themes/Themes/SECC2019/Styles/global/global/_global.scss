@@ -119,6 +119,7 @@
 ------------------------------------*/
 
 .g-font-family--primary { @include font($family: $font-family-primary !important); }
+.g-font-family--primary-condensed { @include font($family: $font-family-primary-condensed !important); }
 .g-font-family--secondary { @include font($family: $font-family-secondary !important); }
 .g-font-family--playfair { @include font($family: $font-family-playfair !important); }
 

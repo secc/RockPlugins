@@ -92,6 +92,21 @@ $font-size-150:  						 9.375rem !default;
 @include font-face('ProximaNova', "ProximaNova-Black", $location: $fa-proximanova-path, $weight:900);
 @include font-face('ProximaNova', "ProximaNova-BlackIt", $location: $fa-proximanova-path, $weight:900, $style:italic);
 
+@include font-face('ProximaNovaCond', "ProximaNovaCond-Regular", $location: $fa-proximanovacond-path, $weight:normal);
+@include font-face('ProximaNovaCond', "ProximaNovaCond-RegularIt", $location: $fa-proximanovacond-path, $weight:normal, $style:italic);
+@include font-face('ProximaNovaCond', "ProximaNovaCond-Thin", $location: $fa-proximanovacond-path, $weight:100);
+@include font-face('ProximaNovaCond', "ProximaNovaCond-ThinIt", $location: $fa-proximanovacond-path, $weight:100, $style:italic);
+@include font-face('ProximaNovaCond', "ProximaNovaCond-Light", $location: $fa-proximanovacond-path, $weight:200);
+@include font-face('ProximaNovaCond', "ProximaNovaCond-LightIt", $location: $fa-proximanovacond-path, $weight:200, $style:italic);
+@include font-face('ProximaNovaCond', "ProximaNovaCond-Semibold", $location: $fa-proximanovacond-path, $weight:600);
+@include font-face('ProximaNovaCond', "ProximaNovaCond-SemiboldIt", $location: $fa-proximanovacond-path, $weight:600, $style:italic);
+@include font-face('ProximaNovaCond', "ProximaNovaCond-Bold", $location: $fa-proximanovacond-path, $weight:700);
+@include font-face('ProximaNovaCond', "ProximaNovaCond-BoldIt", $location: $fa-proximanovacond-path, $weight:700, $style:italic);
+@include font-face('ProximaNovaCond', "ProximaNovaCond-Extrabld", $location: $fa-proximanovacond-path, $weight:800);
+@include font-face('ProximaNovaCond', "ProximaNovaCond-ExtrabldIt", $location: $fa-proximanovacond-path, $weight:800, $style:italic);
+@include font-face('ProximaNovaCond', "ProximaNovaCond-Black", $location: $fa-proximanovacond-path, $weight:900);
+@include font-face('ProximaNovaCond', "ProximaNovaCond-BlackIt", $location: $fa-proximanovacond-path, $weight:900, $style:italic);
+
 // Forms
 $cursor-disabled:           not-allowed !default;
 

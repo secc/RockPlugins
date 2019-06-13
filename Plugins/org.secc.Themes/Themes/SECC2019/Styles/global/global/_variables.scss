@@ -17,9 +17,10 @@ $link-hover-decoration:     none !default;
 // //
 // // Font, line-height, and color for body text, headings, and more.
 
-$font-family-primary:			$Proxima 			!default; // Default Font Tisa Pro
-$font-family-secondary:			$TisaPro 			!default; // Proxima Nova
-$font-family-playfair:			$Proxima-SemiBold 	!default; // Proxima Semi-bold
+$font-family-primary:			  $Proxima 			!default; // Default Font Tisa Pro
+$font-family-primary-condensed:   $ProximaCond 		!default; // Proxima Nova Condensed
+$font-family-secondary:			  $TisaPro 			!default; //
+$font-family-playfair:			  $Proxima-SemiBold !default; // Proxima Semi-bold
 
 $line-height:                1.6 !default;
 
