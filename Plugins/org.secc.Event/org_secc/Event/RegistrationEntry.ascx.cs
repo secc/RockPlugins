@@ -690,12 +690,35 @@ namespace RockWeb.Plugins.org_secc.Event
         {
             var breadCrumbs = new List<BreadCrumb>();
 
+            string registrationSlug = PageParameter( SLUG_PARAM_NAME );
             int? registrationInstanceId = PageParameter( REGISTRATION_INSTANCE_ID_PARAM_NAME ).AsIntegerOrNull();
 
+            string registrationInstanceName = null;
             if (registrationInstanceId.HasValue)
             {
-                var registrationInstanceName = new RegistrationInstanceService( new RockContext() ).GetSelect( registrationInstanceId.Value, a => a.Name );
+                registrationInstanceName = new RegistrationInstanceService( new RockContext() ).GetSelect( registrationInstanceId.Value, a => a.Name );
 
+            }
+            else if (!string.IsNullOrWhiteSpace( registrationSlug ))
+            {
+                // Use the registration Slug if we don't have an instance id
+                var dateTime = RockDateTime.Now;
+                registrationInstanceName = new EventItemOccurrenceGroupMapService( new RockContext() )
+                    .Queryable()
+                    .Where( l =>
+                        l.UrlSlug == registrationSlug &&
+                        l.RegistrationInstance != null &&
+                        l.RegistrationInstance.IsActive &&
+                        l.RegistrationInstance.RegistrationTemplate != null &&
+                        l.RegistrationInstance.RegistrationTemplate.IsActive &&
+                        (!l.RegistrationInstance.StartDateTime.HasValue || l.RegistrationInstance.StartDateTime <= dateTime) &&
+                        (!l.RegistrationInstance.EndDateTime.HasValue || l.RegistrationInstance.EndDateTime > dateTime) )
+                    .Select( ei => ei.RegistrationInstance.Name )
+                    .FirstOrDefault();
+            }
+
+            if (!string.IsNullOrWhiteSpace( registrationInstanceName ))
+            {
                 RockPage.Title = registrationInstanceName;
                 breadCrumbs.Add( new BreadCrumb( registrationInstanceName, pageReference ) );
                 return breadCrumbs;
