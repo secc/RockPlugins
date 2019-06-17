@@ -121,10 +121,10 @@ namespace org.secc.SignNowWorkflow
                 userAccessToken );
             var mergeFields = GetMergeFields( action );
             var redirectUri = GetAttributeValue( action, "RedirectUri" ).ResolveMergeFields(mergeFields);
-            redirectUri += string.Format("{0}document_id={1}", redirectUri.Contains("?") ? "&" : "?", documentId);
 
             if ( !string.IsNullOrWhiteSpace( redirectUri ) )
             {
+                redirectUri += string.Format("{0}document_id={1}", redirectUri.Contains("?") ? "&" : "?", documentId);
                 signNowInviteLink += "&redirect_uri=" + HttpUtility.UrlEncode( redirectUri );
             }
 
