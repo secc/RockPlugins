@@ -1,22 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
 using System.Text;
 using System.Web;
-using System.Web.Compilation;
-using System.Web.Security;
 using System.Web.UI;
-using System.Web.UI.HtmlControls;
-using System.Web.UI.WebControls;
-using Newtonsoft.Json;
-using Rock;
 using Rock.Model;
-using Rock.Web.Cache;
-using Rock.Web.UI;
 
-namespace RockWeb.Plugins.org_secc.Event {
+namespace RockWeb.Plugins.org_secc.Event
+{
 
     public partial class SignNow : System.Web.UI.UserControl
     {
@@ -50,7 +40,7 @@ namespace RockWeb.Plugins.org_secc.Event {
                 qs.Remove( "registration_key" );
                 qs.Remove( "document_id" );
                 // Put the URL back together again
-                var newUri = string.Format( "{0}{1}{2}", Request.Url.GetLeftPart(UriPartial.Path ), qs.Count>0?"?":"", qs.ToString() );
+                var newUri = string.Format( "{0}{1}{2}", Request.Url.AbsolutePath, qs.Count>0?"?":"", qs.ToString() );
 
                 // Clear the response and build a new HTML payload with an automatic postback
                 Response.Clear();
