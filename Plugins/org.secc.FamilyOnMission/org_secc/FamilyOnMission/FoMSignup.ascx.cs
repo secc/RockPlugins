@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -171,14 +171,15 @@ namespace RockWeb.Plugins.org_secc.FamilyOnMission
                     panel.Controls.Add( new Literal()
                     {
                         Text = string.Format( "" +
-                        "<div class='content-panel'>" +
-                        "<div class='track'><img src='{7}'> <b>{8}</b></div>" +
-                        "<h2>{0}</h2>" +
+                        "<div class='content-panel clearfix'>" +
+                        "<a href='{3}?GroupId={4}' class='btn btn-primary'>Sign Up</a>" +
+                        "<h3 style='margin-bottom: 15px; margin-top: 0px; color: black;'>{0}</h3>" +
                         "<b>{6} - {1}</b>" +
                         "<br>{2}<br><br>" +
-                        "<div class='spots'><span>{5}</span> Spot(s) remaining</div>" +
-                        "<a href='{3}?GroupId={4}' class='btn btn-primary'>Sign Up</a></div>" +
-                        "<div class='fom-spacer'></div>",
+                        "<div class='track'><img src='{7}'> <b>{8}</b></div>" +
+                        "<div class='spots'><span>{5}</span><br/> Spot(s) remaining</div>" +
+                        "<div class='fom-spacer'></div>" +
+                        "</div>",
                         item.Name,
                         item.GroupLocations.FirstOrDefault() != null ? item.GroupLocations.FirstOrDefault().Location.Name : "TBD",
                         item.Description,
