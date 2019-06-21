@@ -1,9 +1,5 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="FoMSignup.ascx.cs" Inherits="RockWeb.Plugins.org_secc.FamilyOnMission.FoMSignup" %>
 <style>
-    .time-panel h1 {
-        text-shadow: 1px 1px 3px #8C8C8C;
-    }
-
     .set-panel {
         background-color: #FCFAF8;
     }
@@ -18,7 +14,7 @@
     }
 
     .content-panel {
-        margin: 0px 10px 7px 10px;
+        margin: 15px;
     }
 
     .class-panel .label {
@@ -30,48 +26,48 @@
     }
 
     .class-panel {
-        background: #fff !important;
-        box-shadow: 4px 5px 5px #888888 !important;
+        background-color: #fff !important;
+        box-shadow: none !important;
         border-radius: 5px !important;
-        margin: 0px !important;
-        padding-bottom: 35px;
+        margin-bottom: 32px;
+        border: 1px solid #e6e6e6;
+        padding: 0px;
     }
-
     .content-panel .btn.btn-primary {
         float: right;
+        margin-left: 10px;
+        margin-bottom: 10px;
     }
 
     .track {
         height: 30px;
-        background-color: #dbd5cb;
+        background-color: white;
         display: inline-block;
-        border-radius: 4px 4px;
-        padding: 3px 7px 5px 7px;
-        color: #7d7d7d;
-        text-shadow: 1px 1px 3px white;
-        float: right;
-        margin-top: 6px;
+        padding: 4px 8px;
+        color: black;
+        border-left: 5px solid #e6e6e6;
+        text-transform: uppercase;
     }
 
-        .track img {
-            height: 20px;
-            margin-right: 5px;
-        }
+    .track img {
+        height: 20px;
+        margin-right: 5px;
+    }
 
     .spots {
-        height: 30px;
         text-align: center;
         display: inline-block;
         color: #7d7d7d;
         text-shadow: 1px 1px 3px white;
-        float: left;
+        float: right;
         line-height: 13px;
-        margin: 10px 10px 10px 10px;
+        font-size: 0.8em;
+        margin-top: -5px;        
     }
 
-        .spots span {
-            font-size: 2em;
-        }
+    .spots span {
+        font-size: 2em;
+    }
 </style>
 <asp:UpdatePanel runat="server">
     <ContentTemplate>
