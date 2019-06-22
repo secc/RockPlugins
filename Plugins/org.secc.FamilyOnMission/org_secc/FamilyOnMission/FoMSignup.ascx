@@ -30,7 +30,7 @@
         box-shadow: none !important;
         border-radius: 5px !important;
         margin-bottom: 32px;
-        border: 1px solid #e6e6e6;
+        border: 3px solid #e6e6e6;
         padding: 0px;
     }
     .content-panel .btn.btn-primary {
