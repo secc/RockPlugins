@@ -126,10 +126,11 @@ namespace RockWeb.Plugins.org_secc.FamilyOnMission
 
                         panel.Controls.Add( new Literal()
                         {
-                            Text = string.Format( "<div class='content-panel'>" +
-                            "<div class='track'><img src='{4}'> {5}</div>" +
-                            "<h2>{0}</h2><b>{3} - {1}</b>" +
-                            "<br>{2}</div>",
+                            Text = string.Format( "<div class='content-panel clearfix'>" +
+                            "<h3 style='margin-bottom: 15px; margin-top: 0px; color: black;'>{0}</h2><b>{3} - {1}</b>" +
+                            "<br>{2}<br><br>" +
+                            "<div class='track'><img src='{4}'> <b>{5}</b></div>" +
+                            "</div>",
                             memberGroup.Name,
                             memberGroup.GroupLocations.FirstOrDefault() != null ? memberGroup.GroupLocations.FirstOrDefault().Location.Name : "TBD",
                             memberGroup.Description,
