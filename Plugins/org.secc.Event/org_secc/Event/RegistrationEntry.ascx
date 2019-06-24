@@ -1,6 +1,5 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="RegistrationEntry.ascx.cs" Inherits="RockWeb.Plugins.org_secc.Event.RegistrationEntry" ValidateRequestMode="Disabled" %>
 <%@ Register Src="SignNow.ascx" TagName="SignNow" TagPrefix="secc" %>
-<secc:SignNow runat="server" ID="SignNow" EnableViewState="true" />
 <style>
     iframe {
         width: 100%;
@@ -95,6 +94,7 @@
         </asp:Panel>
 
         <asp:Panel id="pnlDigitalSignature" runat="server" visible="false">
+            <secc:SignNow runat="server" ID="SignNow" EnableViewState="true" />
             <Rock:NotificationBox ID="nbDigitalSignature" runat="server" NotificationBoxType="Info"></Rock:NotificationBox>
             <asp:HiddenField ID="hfRequiredDocumentLinkUrl" runat="server" />
             <asp:HiddenField ID="hfRequiredDocumentQueryString" runat="server" />
