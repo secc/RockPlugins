@@ -1,0 +1,213 @@
+<style>
+.readmore_dates {
+   transition: height 100ms;
+   overflow: hidden;
+   display: none;
+}
+.isotope_item {
+    z-index: 1;
+}
+</style>
+
+<div class="container g-padding-t-150--xs g-padding-b-50--xs">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-8 col-md-offset-2" >
+            <h3 class="g-font-weight--600">Find a Group</h3>
+            <p class="g-font-weight--400 g-line-height--sm">Find a group that interests you by selecting a location and/or date.</p>
+            <div class="g-display-block--xs">
+                <div id="filtersDemo" class="button-group filter-button-group g-padding-x-50--xs g-display-inline-block--xs g-width-600--xs">
+                  <a class="button se-btn se-btn--tag uppercase" data-filter="Sunday">S</a>
+                  <a class="button se-btn se-btn--tag uppercase" data-filter="Monday">M</a>
+                  <a class="button se-btn se-btn--tag uppercase" data-filter="Tuesday">T</a>
+                  <a class="button se-btn se-btn--tag uppercase" data-filter="Wednesday">W</a>
+                  <a class="button se-btn se-btn--tag uppercase" data-filter="Thursday">T</a>
+                  <a class="button se-btn se-btn--tag uppercase" data-filter="Friday">F</a>
+                  <a class="button se-btn se-btn--tag uppercase" data-filter="Saturday">S</a>
+                </div>
+                <div class="g-width-600--xs g-padding-x-50--xs g-display-inline-block--xs">
+                    <select class="select2-campuses" name="campus">
+                        <option value="allCampuses" data-shortcode="SE" data-campus="*" {% if selectedCampus == null %} selected="selected"{% endif %}>All Locations</option>
+                        {% for campus in Campuses %}
+                            {% assign publicCampus = campus | Attribute:'Public' %}
+                            {% if publicCampus == 'Yes' %}
+                                <option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campus.Name | Downcase | Replace:" ",""}}"{% if selectedCampus.Id > 0 and selectedCampus.Id == campus.Id %} selected="selected"{% endif %}>
+                                    {{ campus.Name }}
+                                </option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="container g-padding-y-50--xs">
+    <div class="isotope_wrap g-margin-b-80--xs">
+        {% for group in Groups %}
+            {% if group.IsActive and group.IsPublic %}
+
+                {% assign groupUrl = group.Campus | Attribute:'Slug' %}
+                {% assign groupLocations = group.GroupLocations %}
+                {% assign childcare = group | Attribute: 'OpentoChildren' %}
+
+                <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar {{ group.Schedule.WeeklyDayOfWeek }}" data-group-filter="{{ group.Campus.Slug }} {{ group.Schedule.WeeklyDayOfWeek }}">
+                    <div class="clearfix card g-margin-b-20--xs" >
+
+                        <div class="caption g-margin-b-40--xs g-padding-x-60--xs g-padding-t-60--xs">
+                            <h6 class="uppercase g-padding-b-5--xs g-font-weight--700">{{ group.Campus.Name }}</h6>
+                            <h5 class="g-font-family--secondary" style="margin-bottom: 5px;">{{ group.Name }}</h5>
+                            {% if group.Description != '' %}
+                            <div class="readmore_dates">
+                                {{group.Description}}
+                                <br />
+                            </div>
+                            {% endif %}
+                        </div>
+
+
+                        <div class="g-margin-b-20--xs" style="display: inline-block; width: 100%;">
+
+                            <div class="event-items col-xs-4 g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter {% if childcare != 'Yes' %}col-xs-offset-2{% endif %}">
+                                <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
+                                <div>
+                                    <ul class="list-unstyled" style="margin: 0;">
+                                        <li style="vertical-align: middle;">
+                                            <h6>{{ group.Schedule.WeeklyDayOfWeek }}<br />
+                                                {{  group.Schedule.WeeklyTimeOfDay | Date:'@ h:mm tt' }}</h6>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="event-items col-xs-4 g-padding-x-10--xs {% if childcare == 'Yes' %}g-ver-divider__solid__r--gray-lighter{% endif %}">
+                                 <div class="event-icon --location">
+                                    {% assign locationsCt = groupLocations | Size %}
+                                    {% if locationsCt > 1 %}
+                                    <span style="
+                                        background-color: black;
+                                        border-radius: 100%;
+                                        width: 15px;
+                                        height: 15px;
+                                        display: block;
+                                        position: absolute;
+                                        top: 0;
+                                        right: 4px;
+                                        color: white;
+                                        font-weight: 800;
+                                        font-size: 1rem;
+                                    ">{{ groupLocations | Size }}</span>
+                                    {% endif%}
+                                 </div>
+
+                                {% if locationsCt > 1 %}
+                                     <h6>This group has multiple locations. Contact for more information.</h6>
+                                {% else %}
+                                    {% for groupLocation in groupLocations %}
+                                    <h6>{{ groupLocation.Location.Street1 }}</h6>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <!-- ChildCare -->
+                            {% if childcare == 'Yes' %}
+                            <div class="event-items col-xs-4 g-padding-x-10--xs">
+                                <div class="event-icon --teddy-bear"><!-- Teddy Bear SVG Image --></div>
+                                <h6>Open to<br> Children</h6>
+                            </div>
+                            {% endif %}
+
+                        </div>
+
+
+
+                    </div>
+                </div>
+
+            {% endif %}
+        {%endfor%}
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Readmore.js/2.2.0/readmore.min.js"></script>
+<script>
+
+    // Initialize Isotope
+    var $grid = $('.isotope_wrap').isotope({
+      itemSelector: '.isotope_item',
+      percentPosition: true,
+      layoutMode: 'fitRows'
+    });
+
+    if (Modernizr.mq('only all and (max-width: 720px)')) {
+        // don't use isotope or readmore on mobile - it's heavy on JS (breaks old iphones)
+        $('.isotope_wrap').addClass('is-showing-items');
+    } else {
+        var isoOptions = {
+            itemSelector: '.isotope_item',
+            percentPosition: true,
+            layoutMode: 'fitRows'
+        };
+
+        $grid.imagesLoaded( function() {
+            // Re-Initialize ReadmoreJS
+            $('.readmore_dates').readmore({
+                speed: 200,
+                lessLink: '<a class="pull-right uppercase" style="padding: 2rem;width: 100%;text-align: right;"><span class="se-carat se-carat--up"></span></a>',
+                moreLink: '<a class="pull-right" style="display: inline-block;padding: 2rem;position: relative;height: 7rem;width: 100%;margin-top: -6rem;"><span class="pull-right se-carat se-carat--down" style="margin-top: 2rem;"></span></a>',
+                embedCSS: false,
+                collapsedHeight: 0,
+                beforeToggle: function(tr, el, ex) {
+                    $(el).show();
+                },
+                afterToggle: function(trigger, element, expanded) {
+                    $('.isotope_wrap').isotope(isoOptions); // re-initialize
+                }
+            });
+            // init Isotope after all images have loaded
+            $grid.addClass('is-showing-items').isotope(isoOptions);
+        });
+    }
+
+    // bind filter button click`
+    $filtersDemo = $('#filtersDemo').on( 'click', '.button', function(e) {
+      // prevent from submiting default form actionn
+      e.preventDefault();
+      var $this = $( this );
+      var filterValue = $this.attr('data-filter');
+      runFilters(filterValue);
+    });
+
+    $('.select2-campuses').select2({
+      placeholder: 'Location'
+    });
+    $('.select2-campuses').on('select2:select', function (e) {
+        // prevent from submiting default form actionn
+        e.preventDefault();
+        // pull in lava ID
+        var data = e.params.data;
+        runFilters($(data.element).data('campus'));
+    });
+
+    var filters_selected = "";
+    function runFilters(data_filter) {
+        if (~filters_selected.indexOf(data_filter)) {
+            // skip since it exists
+            filters_selected.replace(data_filter,'');
+            console.log('it exists');
+        } else {
+            filters_selected += " " + data_filter;
+            console.log('adding filter');
+        }
+        console.log('Filtering: ' + filters_selected);
+        // use filterFn if matches value
+        $grid.isotope({
+          itemSelector: '.isotope_item',
+          percentPosition: true,
+          layoutMode: 'fitRows',
+          filter: 'div[data-group-filter*="blankenbaker"][data-group-filter*="Sunday"]'
+        });
+    }
+
+</script>
