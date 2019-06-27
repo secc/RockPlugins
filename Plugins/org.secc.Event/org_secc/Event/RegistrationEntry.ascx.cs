@@ -597,9 +597,6 @@ namespace RockWeb.Plugins.org_secc.Event
             rblRegistrarFamilyOptions.Label = "You are in the same " + GetAttributeValue( "FamilyTerm" ) + " as";
             pnlFamilyMembers.Style[HtmlTextWriterStyle.Display] = pnlFamilyMembers.Visible && RegistrationTemplate.RegistrantsSameFamily == RegistrantsSameFamily.Yes ? "block" : "none";
 
-            SignNow.CurrentRegistrantIndex = CurrentRegistrantIndex;
-            SignNow.RegistrationState = RegistrationState;
-
             if (!Page.IsPostBack)
             {
                 if (CurrentPerson != null && CurrentPerson.IsBusiness())
@@ -690,12 +687,35 @@ namespace RockWeb.Plugins.org_secc.Event
         {
             var breadCrumbs = new List<BreadCrumb>();
 
+            string registrationSlug = PageParameter( SLUG_PARAM_NAME );
             int? registrationInstanceId = PageParameter( REGISTRATION_INSTANCE_ID_PARAM_NAME ).AsIntegerOrNull();
 
+            string registrationInstanceName = null;
             if (registrationInstanceId.HasValue)
             {
-                var registrationInstanceName = new RegistrationInstanceService( new RockContext() ).GetSelect( registrationInstanceId.Value, a => a.Name );
+                registrationInstanceName = new RegistrationInstanceService( new RockContext() ).GetSelect( registrationInstanceId.Value, a => a.Name );
 
+            }
+            else if (!string.IsNullOrWhiteSpace( registrationSlug ))
+            {
+                // Use the registration Slug if we don't have an instance id
+                var dateTime = RockDateTime.Now;
+                registrationInstanceName = new EventItemOccurrenceGroupMapService( new RockContext() )
+                    .Queryable()
+                    .Where( l =>
+                        l.UrlSlug == registrationSlug &&
+                        l.RegistrationInstance != null &&
+                        l.RegistrationInstance.IsActive &&
+                        l.RegistrationInstance.RegistrationTemplate != null &&
+                        l.RegistrationInstance.RegistrationTemplate.IsActive &&
+                        (!l.RegistrationInstance.StartDateTime.HasValue || l.RegistrationInstance.StartDateTime <= dateTime) &&
+                        (!l.RegistrationInstance.EndDateTime.HasValue || l.RegistrationInstance.EndDateTime > dateTime) )
+                    .Select( ei => ei.RegistrationInstance.Name )
+                    .FirstOrDefault();
+            }
+
+            if (!string.IsNullOrWhiteSpace( registrationInstanceName ))
+            {
                 RockPage.Title = registrationInstanceName;
                 breadCrumbs.Add( new BreadCrumb( registrationInstanceName, pageReference ) );
                 return breadCrumbs;
@@ -3827,50 +3847,13 @@ namespace RockWeb.Plugins.org_secc.Event
                         return;
                     }
                     else if (SignInline && CurrentFormIndex >= FormCount )
-                    { 
-                        string registrantName = RegistrantTerm;
-                        if (RegistrationState != null && RegistrationState.RegistrantCount > CurrentRegistrantIndex)
+                    {
+                        if (SignNow.Load( CurrentRegistrantIndex, RegistrationState, RegistrationInstanceState ))
                         {
-                            registrantName = registrant.GetFirstName( RegistrationTemplate );
-                        }
-
-                        nbDigitalSignature.Heading = "Signature Required";
-                        nbDigitalSignature.Text = string.Format(
-                            "This {0} requires that you sign a {1} for each registrant, please click the button below and then follow the prompts to digitally sign this document for {2}.  This will open the signing request within our digital signature provider's website.  When you have successfully signed this document, you will be returned to this page which will automatically proceed to the next step of your registration.",
-                            RegistrationTemplate.RegistrationTerm,
-                            RegistrationTemplate.RequiredSignatureDocumentTemplate.Name,
-                            registrantName );
-
-                        var errors = new List<string>();
-                        string inviteLink = DigitalSignatureComponent.GetInviteLink( RegistrationTemplate.RequiredSignatureDocumentTemplate.ProviderTemplateKey, out errors );
-                        if (!string.IsNullOrWhiteSpace( inviteLink ))
-                        {
-                            var key = Guid.NewGuid();
-
-                            string returnUrl = GlobalAttributesCache.Get().GetValue( "PublicApplicationRoot" ).EnsureTrailingForwardslash() +
-                                ResolveRockUrl( Request.RawUrl ).TrimStart( '/' );
-                            // We need to make sure if someone click's back that we don't end up with extra parameters
-                            var uri = new Uri( returnUrl );
-                            var qs = HttpUtility.ParseQueryString( uri.Query );
-                            qs.Set( "registration_key", key.ToString() );
-                            qs.Remove( "document_id" );
-                            // Put the URL back together again
-                            var uriBuilder = new UriBuilder( uri );
-                            uriBuilder.Query = qs.ToString();
-
-                            // Snap off a copy of the viewstate and set the button URL
-                            SignNow.RegistrationKey = key.ToString();
-
-                            lbRequiredDocument.HRef = string.Format( "{0}?redirect_uri={1}", inviteLink, uriBuilder.ToString().UrlEncode() );
-                            lbRequiredDocument.Visible = true;
-                            hfRegistrantGuid.Value = RegistrationState.Registrants[CurrentRegistrantIndex].Guid.ToString();
-                        }
-                        else
-                        {
-                            ShowError( "Digital Signature Error", string.Format( "An Error Occurred Trying to Get Document Link... <ul><li>{0}</li></ul>", errors.AsDelimited( "</li><li>" ) ) );
+                            ShowRegistrant( true, true );
+                            hfTriggerScroll.Value = "true";
                             return;
                         }
-
                         pnlRegistrantFields.Visible = false;
                         pnlDigitalSignature.Visible = true;
                         lbRegistrantNext.Visible = false;
@@ -4582,6 +4565,12 @@ namespace RockWeb.Plugins.org_secc.Event
         private static void CreatePersonField( RegistrationTemplateFormField field, bool setValue, object fieldValue, bool familyMemberSelected, string validationGroup, Control parentControl )
         {
             Control personFieldControl = field.GetPersonControl( setValue, fieldValue, familyMemberSelected, validationGroup );
+
+            if ( personFieldControl is BirthdayPicker )
+            {
+                var dpBirthdate = ( BirthdayPicker ) personFieldControl;
+                dpBirthdate.RequireYear = true;
+            }
 
             if (personFieldControl != null)
             {
