@@ -4566,6 +4566,12 @@ namespace RockWeb.Plugins.org_secc.Event
         {
             Control personFieldControl = field.GetPersonControl( setValue, fieldValue, familyMemberSelected, validationGroup );
 
+            if ( personFieldControl is BirthdayPicker )
+            {
+                var dpBirthdate = ( BirthdayPicker ) personFieldControl;
+                dpBirthdate.RequireYear = true;
+            }
+
             if (personFieldControl != null)
             {
                 if (!string.IsNullOrWhiteSpace( field.PreText ))
