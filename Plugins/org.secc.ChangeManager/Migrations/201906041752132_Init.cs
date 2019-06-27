@@ -20,8 +20,9 @@ namespace org.secc.ChangeManager.Migrations
                     RelatedEntityId = c.Int(),
                     OldValue = c.String(),
                     NewValue = c.String(),
-                    IsAttribute = c.Boolean( nullable: false ),
+                    Action = c.Int( nullable: false ),
                     Property = c.String(),
+                    Comment = c.String(),
                     CreatedDateTime = c.DateTime(),
                     ModifiedDateTime = c.DateTime(),
                     CreatedByPersonAliasId = c.Int(),
@@ -50,6 +51,7 @@ namespace org.secc.ChangeManager.Migrations
                 c => new
                 {
                     Id = c.Int( nullable: false, identity: true ),
+                    Name = c.String(),
                     EntityTypeId = c.Int( nullable: false ),
                     EntityId = c.Int( nullable: false ),
                     RequestorAliasId = c.Int( nullable: false ),

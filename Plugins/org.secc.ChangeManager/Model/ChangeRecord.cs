@@ -3,10 +3,14 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using Rock;
+using Rock.Data;
 using Rock.Model;
+using Rock.Web.Cache;
 
 namespace org.secc.ChangeManager.Model
 {
@@ -14,6 +18,8 @@ namespace org.secc.ChangeManager.Model
     [DataContract]
     public class ChangeRecord : Rock.Data.Model<ChangeRecord>, Rock.Security.ISecured, Rock.Data.IRockEntity
     {
+        #region Properties
+
         [Index]
         [DataMember]
         public int ChangeRequestId { get; set; }
@@ -45,10 +51,15 @@ namespace org.secc.ChangeManager.Model
         public string NewValue { get; set; }
 
         [DataMember]
-        public bool IsAttribute { get; set; }
+        public ChangeRecordAction Action { get; set; }
 
         [DataMember]
         public string Property { get; set; }
+
+        [DataMember]
+        public string Comment { get; set; }
+
+        #endregion
     }
 
     public partial class ChangeRecordConfiguration : EntityTypeConfiguration<ChangeRecord>
@@ -58,5 +69,12 @@ namespace org.secc.ChangeManager.Model
             this.HasOptional<EntityType>( s => s.RelatedEntityType ).WithMany().WillCascadeOnDelete( false );
             this.HasEntitySetName( "ChangeRecord" );
         }
+    }
+
+    public enum ChangeRecordAction
+    {
+        Update = 0,
+        Create = 1,
+        Delete = 2
     }
 }
