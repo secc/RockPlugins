@@ -61,11 +61,13 @@
       <DependentUpon>201906041752132_Init.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Model\BasicEntity.cs" />
     <Compile Include="Model\ChangeRequestService.cs" />
     <Compile Include="Model\ChangeRequest.cs" />
     <Compile Include="Model\ChangeRecord.cs" />
     <Compile Include="Model\ChangeRecordService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utilities\PropertyChangeEvaluators.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -86,5 +88,6 @@
       <DependentUpon>201906041752132_Init.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

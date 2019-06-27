@@ -37,8 +37,6 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
     [Description( "View requests" )]
     public partial class ChangeRequestDetail : Rock.Web.UI.RockBlock
     {
-
-
         /// <summary>
         /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
         /// </summary>
@@ -47,543 +45,214 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
         {
             if ( !Page.IsPostBack )
             {
-                Person person = GetPerson();
-                if ( person == null )
-                {
-                    throw new Exception( "A person is needed." );
-                }
-                BindDropDown();
-                DisplayForm( person );
+                BindGrid();
             }
         }
 
-        private void BindDropDown()
+        private void BindGrid()
         {
-            ddlTitle.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_TITLE.AsGuid() ), true );
-            ddlGender.BindToEnum<Gender>( true );
-            ddlMaritalStatus.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_MARITAL_STATUS.AsGuid() ), true );
+            var changeId = hfChangeId.ValueAsInt();
+            if ( changeId == 0 )
+            {
+                changeId = PageParameter( "ChangeRequest" ).AsInteger();
+                hfChangeId.SetValue( changeId );
+            }
+            RockContext rockContext = new RockContext();
+            ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
+            ChangeRequest changeRequest = changeRequestService.Get( changeId );
+            lName.Text = changeRequest.Name;
+            var changeRecords = changeRequest.ChangeRecords.ToList();
+
+            var entity = ChangeRequest.GetEntity( changeRequest.EntityTypeId, changeRequest.EntityId, rockContext );
+
+            foreach ( var changeRecord in changeRecords )
+            {
+                FormatValues( changeRequest.EntityTypeId, entity, changeRecord, rockContext );
+            }
+
+            gRecords.DataSource = changeRecords;
+            gRecords.DataBind();
         }
 
-        private void DisplayForm( Person person )
+        private void FormatValues( int entityTypeId, IEntity targetEntity, ChangeRecord changeRecord, RockContext rockContext )
         {
-            ddlTitle.SetValue( person.TitleValueId );
-            iuPhoto.BinaryFileId = person.PhotoId;
-            tbNickName.Text = person.NickName;
-            tbFirstName.Text = person.FirstName;
-            tbLastName.Text = person.LastName;
-
-            //PhoneNumber
-            var mobilePhoneType = DefinedValueCache.Get( new Guid( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE ) );
-
-            var phoneNumbers = new List<PhoneNumber>();
-            var phoneNumberTypes = DefinedTypeCache.Get( new Guid( Rock.SystemGuid.DefinedType.PERSON_PHONE_TYPE ) );
-            if ( phoneNumberTypes.DefinedValues.Any() )
+            //Enums
+            if ( changeRecord.Property.IsNotNullOrWhiteSpace() )
             {
-                foreach ( var phoneNumberType in phoneNumberTypes.DefinedValues )
+                PropertyInfo enumProp = targetEntity.GetType().GetProperty( changeRecord.Property, BindingFlags.Public | BindingFlags.Instance );
+                if ( enumProp.PropertyType.IsEnum )
                 {
-                    var phoneNumber = person.PhoneNumbers.FirstOrDefault( n => n.NumberTypeValueId == phoneNumberType.Id );
-                    if ( phoneNumber == null )
-                    {
-                        var numberType = new DefinedValue();
-                        numberType.Id = phoneNumberType.Id;
-                        numberType.Value = phoneNumberType.Value;
+                    enumProp.PropertyType.GetEnumUnderlyingType();
+                    changeRecord.NewValue = System.Enum.GetName( enumProp.PropertyType, changeRecord.NewValue.AsInteger() ).SplitCase();
+                    changeRecord.OldValue = System.Enum.GetName( enumProp.PropertyType, changeRecord.OldValue.AsInteger() ).SplitCase();
+                }
+            }
 
-                        phoneNumber = new PhoneNumber { NumberTypeValueId = numberType.Id, NumberTypeValue = numberType };
-                        phoneNumber.IsMessagingEnabled = mobilePhoneType != null && phoneNumberType.Id == mobilePhoneType.Id;
+            //Format new value
+            var newObject = changeRecord.NewValue.FromJsonOrNull<BasicEntity>();
+            if ( newObject != null )
+            {
+                if ( changeRecord.RelatedEntityId.HasValue
+                    && changeRecord.RelatedEntityId.Value != 0
+                    && changeRecord.RelatedEntityTypeId.HasValue )
+                {
+                    entityTypeId = changeRecord.RelatedEntityTypeId.Value;
+                    if ( changeRecord.Action == ChangeRecordAction.Create )
+                    {
+                        targetEntity = ChangeRequest.CreateNewEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.NewValue, rockContext, false );
                     }
                     else
                     {
-                        // Update number format, just in case it wasn't saved correctly
-                        phoneNumber.NumberFormatted = PhoneNumber.FormattedNumber( phoneNumber.CountryCode, phoneNumber.Number );
+                        targetEntity = ChangeRequest.GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext );
                     }
-
-                    phoneNumbers.Add( phoneNumber );
-                }
-            }
-            rContactInfo.DataSource = phoneNumbers;
-            rContactInfo.DataBind();
-
-
-            //email
-            tbEmail.Text = person.Email;
-            cbIsEmailActive.Checked = person.IsEmailActive;
-
-            rblEmailPreference.SetValue( person.EmailPreference.ConvertToString( false ) );
-            rblCommunicationPreference.SetValue( person.CommunicationPreference == CommunicationType.SMS ? "2" : "1" );
-
-            //demographics
-            bpBirthday.SelectedDate = person.BirthDate;
-            ddlGender.SetValue( person.Gender.ConvertToInt() );
-            ddlMaritalStatus.SetValue( person.MaritalStatusValueId );
-            dpAnniversaryDate.SelectedDate = person.AnniversaryDate;
-
-            if ( !person.HasGraduated ?? false )
-            {
-                int gradeOffset = person.GradeOffset.Value;
-                var maxGradeOffset = ddlGradePicker.MaxGradeOffset;
-
-                // keep trying until we find a Grade that has a gradeOffset that that includes the Person's gradeOffset (for example, there might be combined grades)
-                while ( !ddlGradePicker.Items.OfType<ListItem>().Any( a => a.Value.AsInteger() == gradeOffset ) && gradeOffset <= maxGradeOffset )
-                {
-                    gradeOffset++;
                 }
 
-                ddlGradePicker.SetValue( gradeOffset );
-            }
-            else
-            {
-                ddlGradePicker.SelectedIndex = 0;
-                ypGraduation.SelectedYear = person.GraduationYear;
-            }
-
-            ScriptManager.RegisterStartupScript( ddlGradePicker, ddlGradePicker.GetType(), "grade-selection-" + BlockId.ToString(), ddlGradePicker.GetJavascriptForYearPicker( ypGraduation ), true );
-
-            //Family Info
-            var location = person.GetHomeLocation();
-            acAddress.SetValues( location );
-            ddlCampus.SetValue( person.GetCampus() );
-
-        }
-
-        private Person GetPerson()
-        {
-            var personId = hfPersonId.ValueAsInt();
-            if ( personId == 0 )
-            {
-                personId = PageParameter( "PersonId" ).AsInteger();
-                hfPersonId.SetValue( personId );
-            }
-            RockContext rockContext = new RockContext();
-            PersonService personService = new PersonService( rockContext );
-            return personService.Get( personId );
-        }
-
-        protected void btnSave_Click( object sender, EventArgs e )
-        {
-            RockContext rockContext = new RockContext();
-            var person = GetPerson();
-            var personAliasEntityType = EntityTypeCache.Get( typeof( PersonAlias ) );
-            var changeRequest = new ChangeRequest
-            {
-                EntityTypeId = personAliasEntityType.Id,
-                EntityId = person.PrimaryAliasId ?? 0,
-                RequestorAliasId = CurrentPersonAliasId ?? 0
-            };
-
-            EvaluatePropertyChange( changeRequest, person, "PhotoId", iuPhoto.BinaryFileId );
-            EvaluatePropertyChange( changeRequest, person, "TitleValue", DefinedValueCache.Get( ddlTitle.SelectedValueAsInt() ?? 0 ) );
-            EvaluatePropertyChange( changeRequest, person, "FirstName", tbFirstName.Text );
-            EvaluatePropertyChange( changeRequest, person, "NickName", tbNickName.Text );
-            EvaluatePropertyChange( changeRequest, person, "LastName", tbLastName.Text );
-
-
-            EvaluatePropertyChange( changeRequest, person, "Email", person.Email );
-            EvaluatePropertyChange( changeRequest, person, "EmailPreference",
-                rblEmailPreference.SelectedValueAsEnum<EmailPreference>() );
-            EvaluatePropertyChange( changeRequest, person, "CommunicationPreference",
-                rblCommunicationPreference.SelectedValueAsEnum<CommunicationType>() );
-
-
-            var birthday = bpBirthday.SelectedDate;
-            if ( birthday.HasValue )
-            {
-                EvaluatePropertyChange( changeRequest, person, "BirthMonth", birthday.Value.Month );
-                EvaluatePropertyChange( changeRequest, person, "BirthDay", birthday.Value.Day );
-                if ( birthday.Value.Year != DateTime.MinValue.Year )
+                if ( changeRecord.Property.IsNullOrWhiteSpace() )
                 {
-                    EvaluatePropertyChange( changeRequest, person, "BirthYear", birthday.Value.Year );
+                    changeRecord.NewValue = targetEntity.ToString();
                 }
                 else
                 {
-                    int? year = null;
-                    EvaluatePropertyChange( changeRequest, person, "BirthYear", year );
-                }
-            }
 
-            EvaluatePropertyChange( changeRequest, person, "Gender", ddlGender.SelectedValueAsEnum<Gender>() );
-            EvaluatePropertyChange( changeRequest, person, "MaritalStatusValue", DefinedValueCache.Get( ddlMaritalStatus.SelectedValueAsInt() ?? 0 ) );
-            EvaluatePropertyChange( changeRequest, person, "AnniversaryDate", dpAnniversaryDate.SelectedDate );
-            EvaluatePropertyChange( changeRequest, person, "GraduationYear", ypGraduation.SelectedYear );
+                    PropertyInfo prop = targetEntity.GetType().GetProperty( changeRecord.Property, BindingFlags.Public | BindingFlags.Instance );
 
-            if ( changeRequest.ChangeRecords.Any() )
-            {
-                ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
-                changeRequestService.Add( changeRequest );
-                rockContext.SaveChanges();
-                CompleteChanges( changeRequest, rockContext );
-            }
-
-            var groupEntity = EntityTypeCache.Get( typeof( Group ) );
-            var groupLocationEntity = EntityTypeCache.Get( typeof( GroupLocation ) );
-            var family = person.GetFamily();
-
-            var familyChangeRequest = new ChangeRequest()
-            {
-                EntityTypeId = groupEntity.Id,
-                EntityId = family.Id,
-                RequestorAliasId = CurrentPersonAliasId ?? 0
-            };
-
-            EvaluatePropertyChange( familyChangeRequest, family, "Campus", CampusCache.Get( ddlCampus.SelectedValueAsInt() ?? 0 ) );
-
-            var currentLocation = person.GetHomeLocation();
-            Location location = new Location
-            {
-                Street1 = acAddress.Street1,
-                Street2 = acAddress.Street2,
-                City = acAddress.City,
-                State = acAddress.State,
-                PostalCode = acAddress.PostalCode
-            };
-
-            if ( currentLocation.Street1 != location.Street1 || currentLocation.PostalCode != location.PostalCode )
-            {
-
-                LocationService locationService = new LocationService( rockContext );
-                locationService.Add( location );
-                rockContext.SaveChanges();
-
-                var previousLocationType = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_PREVIOUS.AsGuid() );
-                var homeLocationType = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() );
-
-                GroupLocation groupLocation = new GroupLocation
-                {
-                    CreatedByPersonAliasId = CurrentPersonAliasId,
-                    ModifiedByPersonAliasId = CurrentPersonAliasId,
-                    GroupId = family.Id,
-                    LocationId = location.Id,
-                    GroupLocationTypeValueId = homeLocationType.Id
-                };
-
-                ChangeRecord locationChangeRecord = new ChangeRecord
-                {
-                    RelatedEntityTypeId = EntityTypeCache.Get( typeof( GroupLocation ) ).Id,
-                    RelatedEntityId = 0,
-                    OldValue = "",
-                    NewValue = groupLocation.ToJson(),
-                    IsRejected = false,
-                    WasApplied = false
-                };
-                familyChangeRequest.ChangeRecords.Add( locationChangeRecord );
-                var homelocations = family.GroupLocations.Where( gl => gl.GroupLocationTypeValueId == homeLocationType.Id );
-                foreach ( var homelocation in homelocations )
-                {
-                    ChangeRecord prevHome = new ChangeRecord
+                    if ( prop.PropertyType.GetInterfaces().Any( i => i.IsInterface && i.GetInterfaces().Contains( typeof( IEntity ) ) ) )
                     {
-                        RelatedEntityTypeId = EntityTypeCache.Get( typeof( GroupLocation ) ).Id,
-                        RelatedEntityId = homelocation.Id,
-                        OldValue = homeLocationType.ToJson(),
-                        NewValue = previousLocationType.ToJson(),
-                        Property = "GroupLocationTypeValue",
-                        IsRejected = false,
-                        WasApplied = false
-                    };
-                    familyChangeRequest.ChangeRecords.Add( prevHome );
-                }
-            }
+                        var entityTypeCache = EntityTypeCache.Get( prop.PropertyType );
 
-            if ( changeRequest.ChangeRecords.Any() )
-            {
-                ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
-                changeRequestService.Add( familyChangeRequest );
-                rockContext.SaveChanges();
-                CompleteChanges( familyChangeRequest, rockContext );
-            }
-        }
-
-        public void CompleteChanges( ChangeRequest changeRequest, RockContext rockContext )
-        {
-            using ( var dbContextTransaction = rockContext.Database.BeginTransaction() )
-            {
-                try
-                {
-                    IEntity entity = GetEntity( changeRequest.EntityTypeId, changeRequest.EntityId, rockContext );
-
-                    foreach ( var changeRecord in changeRequest.ChangeRecords.Where( r => r.WasApplied != true && r.IsRejected == false ) )
-                    {
-                        var targetEntity = entity;
-                        if ( changeRecord.RelatedEntityTypeId.HasValue )
+                        var entityType = entityTypeCache.GetEntityType();
+                        var dyn = changeRecord.NewValue.FromJsonOrNull<Dictionary<string, object>>();
+                        var entity = ( ( IEntity ) Activator.CreateInstance( entityType ) );
+                        foreach ( var key in dyn.Keys )
                         {
-                            if ( changeRecord.RelatedEntityId.HasValue && changeRecord.RelatedEntityId != 0 )
+                            var eleProp = entity.GetType().GetProperty( key );
+                            if ( eleProp != null )
                             {
-                                //existing entity
-                                targetEntity = GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext );
-                            }
-                            else
-                            {
-                                //new entity
-                                targetEntity = CreateNewEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.NewValue, rockContext );
-                                changeRecord.RelatedEntityId = targetEntity.Id;
+                                ChangeRequest.SetProperty( entity, eleProp, dyn[key].ToStringSafe() );
                             }
                         }
-                        if ( changeRecord.Property.IsNotNullOrWhiteSpace() )
-                        {
-                            PropertyInfo prop = targetEntity.GetType().GetProperty( changeRecord.Property, BindingFlags.Public | BindingFlags.Instance );
-
-                            if ( prop.PropertyType.GetInterfaces().Any( i => i.IsInterface && i.GetInterfaces().Contains( typeof( IEntity ) ) ) )
-                            {
-                                PropertyInfo propId = targetEntity.GetType().GetProperty( changeRecord.Property + "Id", BindingFlags.Public | BindingFlags.Instance );
-                                var newObject = changeRecord.NewValue.FromJsonOrNull<BasicEntity>();
-                                prop.SetValue( targetEntity, null, null );
-                                if ( newObject != null )
-                                {
-                                    propId.SetValue( targetEntity, newObject.Id );
-                                }
-                                else
-                                {
-                                    propId.SetValue( targetEntity, null, null );
-                                }
-                            }
-                            else
-                            {
-                                SetProperty( targetEntity, prop, changeRecord.NewValue );
-                            }
-                        }
-                        changeRecord.WasApplied = true;
+                        changeRecord.NewValue = entity.ToString();
                     }
-                    rockContext.SaveChanges();
-                }
-                catch ( Exception e )
-                {
-                    dbContextTransaction.Rollback();
-                    throw new Exception( "Exception occured durring saving changes.", e );
                 }
             }
-        }
 
-        private IEntity CreateNewEntity( int relatedEntityTypeId, string newValue, RockContext dbContext )
-        {
-            var entityTypeCache = EntityTypeCache.Get( relatedEntityTypeId );
-            var entityType = entityTypeCache.GetEntityType();
-            var dyn = newValue.FromJsonOrNull<Dictionary<string, object>>();
-            var entity = ( ( IEntity ) Activator.CreateInstance( entityType ) );
-            foreach ( var key in dyn.Keys )
+            //Format old Value
+            var oldObject = changeRecord.OldValue.FromJsonOrNull<BasicEntity>();
+            if ( oldObject != null )
             {
-                var prop = entity.GetType().GetProperty( key );
-                SetProperty( entity, prop, dyn[key].ToStringSafe() );
-            }
-
-            var entityService = Reflection.GetServiceForEntityType( entityType, dbContext );
-            MethodInfo addMethodInfo = entityService.GetType().GetMethod( "Add" );
-            object[] parametersArray = new object[] { entity };
-            addMethodInfo.Invoke( entityService, parametersArray );
-            dbContext.SaveChanges();
-            return entity;
-        }
-
-        private void SetProperty( IEntity entity, PropertyInfo prop, string newValue )
-        {
-            if ( prop.PropertyType == typeof( string ) )
-            {
-                prop.SetValue( entity, newValue, null );
-            }
-            else if ( prop.PropertyType == typeof( int? ) )
-            {
-                prop.SetValue( entity, newValue.AsIntegerOrNull(), null );
-            }
-            else if ( ( prop.PropertyType == typeof( int ) ) )
-            {
-                prop.SetValue( entity, newValue.AsInteger(), null );
-            }
-            else if ( prop.PropertyType == typeof( DateTime? ) )
-            {
-                prop.SetValue( entity, newValue.AsDateTime(), null );
-            }
-            else if ( prop.PropertyType.IsEnum )
-            {
-                prop.SetValue( entity, newValue.AsInteger() );
-            }
-        }
-
-        private IEntity GetEntity( int entityTypeId, int entityId, RockContext dbContext )
-        {
-            var entityTypeCache = EntityTypeCache.Get( entityTypeId );
-            var entityType = entityTypeCache.GetEntityType();
-            var entityService = Reflection.GetServiceForEntityType( entityType, dbContext );
-            MethodInfo queryableMethodInfo = entityService.GetType().GetMethod( "Queryable", new Type[] { } );
-            IQueryable<IEntity> entityQuery = queryableMethodInfo.Invoke( entityService, null ) as IQueryable<IEntity>;
-            var entity = entityQuery.Where( x => x.Id == entityId ).FirstOrDefault();
-
-            if ( entity.TypeName == "Rock.Model.PersonAlias" )
-            {
-                //The entity is person alias switch to person
-                entity = ( ( PersonAlias ) entity ).Person;
-            }
-
-            return entity;
-        }
-
-        public class BasicEntity : IEntity
-        {
-            public int Id { get; set; }
-
-
-            public Guid Guid { get; set; }
-            public int? ForeignId { get; set; }
-            public Guid? ForeignGuid { get; set; }
-            public string ForeignKey { get; set; }
-
-            public int TypeId { get { return 0; } }
-
-            public string TypeName { get { return "BasicEntity"; } }
-
-            public string EncryptedKey { get { return ""; } }
-
-            public string ContextKey { get { return ""; } }
-
-
-            public List<ValidationResult> ValidationResults { get { return new List<ValidationResult>(); } }
-
-            public bool IsValid { get { return true; } }
-
-            public Dictionary<string, object> AdditionalLavaFields { get; set; }
-
-            public IEntity Clone()
-            {
-                return this;
-            }
-
-            public Dictionary<string, object> ToDictionary()
-            {
-                return new Dictionary<string, object>();
-            }
-        }
-
-        private void EvaluatePropertyChange( ChangeRequest changeRequest, object item, string property, IEntityCache newValue )
-        {
-            var oldValue = item.GetPropertyValue( property );
-            if ( oldValue == null && newValue == null )
-            {
-                return;
-            }
-
-            if ( !( oldValue is IEntity ) || ( ( IEntity ) oldValue ).Id != newValue.Id )
-            {
-                var changeRecord = new ChangeRecord()
+                if ( changeRecord.RelatedEntityId.HasValue
+                    && changeRecord.RelatedEntityId.Value != 0
+                    && changeRecord.RelatedEntityTypeId.HasValue )
                 {
-                    OldValue = oldValue.ToJson(),
-                    NewValue = newValue.ToJson(),
-                    IsAttribute = false,
-                    IsRejected = false,
-                    Property = property
-                };
-                changeRequest.ChangeRecords.Add( changeRecord );
-            };
-        }
+                    entityTypeId = changeRecord.RelatedEntityTypeId.Value;
+                    if ( changeRecord.Action == ChangeRecordAction.Delete )
+                    {
+                        targetEntity = ChangeRequest.CreateNewEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.OldValue, rockContext, false );
+                    }
+                    else
+                    {
+                        targetEntity = ChangeRequest.GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext );
+                    }
+                }
 
-        private void EvaluatePropertyChange( ChangeRequest changeRequest, object item, string property, IEntity newValue )
-        {
-            var oldValue = item.GetPropertyValue( property );
-            if ( oldValue == null && newValue == null )
-            {
-                return;
+                if ( changeRecord.Property.IsNullOrWhiteSpace() )
+                {
+                    changeRecord.OldValue = targetEntity.ToString();
+                }
+                else
+                {
+                    PropertyInfo prop = targetEntity.GetType().GetProperty( changeRecord.Property, BindingFlags.Public | BindingFlags.Instance );
+
+                    if ( prop.PropertyType.GetInterfaces().Any( i => i.IsInterface && i.GetInterfaces().Contains( typeof( IEntity ) ) ) )
+                    {
+                        var entityTypeCache = EntityTypeCache.Get( prop.PropertyType );
+
+                        var entityType = entityTypeCache.GetEntityType();
+                        var dyn = changeRecord.OldValue.FromJsonOrNull<Dictionary<string, object>>();
+                        var entity = ( ( IEntity ) Activator.CreateInstance( entityType ) );
+                        foreach ( var key in dyn.Keys )
+                        {
+                            var eleProp = entity.GetType().GetProperty( key );
+                            if ( eleProp != null )
+                            {
+                                ChangeRequest.SetProperty( entity, eleProp, dyn[key].ToStringSafe() );
+                            }
+                        }
+                        changeRecord.OldValue = entity.ToString();
+                    }
+
+                    else if ( prop.PropertyType.IsEnum )
+                    {
+                        changeRecord.NewValue = prop.GetValue( targetEntity ).ToString();
+                    }
+                }
             }
 
-            if ( !( oldValue is IEntity ) || ( ( IEntity ) oldValue ).Id != newValue.Id )
+            //Special Dispensation for the photo.
+            if ( changeRecord.Property == "PhotoId" )
             {
-                var changeRecord = new ChangeRecord()
+                if ( changeRecord.NewValue.AsInteger() != 0 )
                 {
-                    OldValue = oldValue.ToJson(),
-                    NewValue = newValue.ToJson(),
-                    IsAttribute = false,
-                    IsRejected = false,
-                    Property = property
-                };
-                changeRequest.ChangeRecords.Add( changeRecord );
-            };
+                    changeRecord.NewValue = string.Format( "<a href='/GetImage.ashx?id={0}' target='_blank'><img src='/GetImage.ashx?id={0}' height=50></a>",
+                        changeRecord.NewValue );
+                }
+                if ( changeRecord.OldValue.AsInteger() != 0 )
+                {
+                    changeRecord.OldValue = string.Format( "<a href='/GetImage.ashx?id={0}' target='_blank'><img src='/GetImage.ashx?id={0}' height=50></a>",
+                        changeRecord.OldValue );
+                }
+            }
+            else
+            {
+                //Format Property Name
+
+                if ( changeRecord.RelatedEntityType != null )
+                {
+                    changeRecord.Property = changeRecord.RelatedEntityType.Name.Split( '.' ).Last() + ": " + changeRecord.Property.SplitCase();
+                }
+                else
+                {
+                    changeRecord.Property = changeRecord.Property.SplitCase();
+                }
+                if ( changeRecord.Comment.IsNotNullOrWhiteSpace() )
+                {
+                    changeRecord.Property += "<br>(" + changeRecord.Comment + ")";
+                }
+            }
         }
 
-
-        private void EvaluatePropertyChange( ChangeRequest changeRequest, object item, string property, string newValue )
+        protected void gRecords_CheckedChanged( object sender, Rock.Web.UI.Controls.RowEventArgs e )
         {
-            var oldValue = item.GetPropertyValue( property );
-
-            if ( oldValue.ToStringSafe().IsNullOrWhiteSpace() && newValue.IsNullOrWhiteSpace() )
+            RockContext rockContext = new RockContext();
+            ChangeRecordService changeRecordService = new ChangeRecordService( rockContext );
+            var changeRecord = changeRecordService.Get( e.RowKeyId );
+            if ( changeRecord != null )
             {
-                return;
-            }
-
-            if ( !( oldValue is string ) || ( string ) oldValue != newValue )
-            {
-                var changeRecord = new ChangeRecord()
+                if ( changeRecord.IsRejected )
                 {
-                    OldValue = oldValue.ToStringSafe(),
-                    NewValue = newValue,
-                    IsAttribute = false,
-                    IsRejected = false,
-                    Property = property
-                };
-                changeRequest.ChangeRecords.Add( changeRecord );
-            };
+                    changeRecord.IsRejected = false;
+                }
+                else
+                {
+                    changeRecord.IsRejected = true;
+                }
+            }
+            rockContext.SaveChanges();
+            BindGrid();
         }
 
-        private void EvaluatePropertyChange( ChangeRequest changeRequest, object item, string property, int? newValue )
+        protected void btnComplete_Click( object sender, EventArgs e )
         {
-            var oldValue = item.GetPropertyValue( property );
+            RockContext rockContext = new RockContext();
+            ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
+            var changeRequest = changeRequestService.Get( hfChangeId.ValueAsInt() );
 
-            if ( oldValue == null && newValue == null )
-            {
-                return;
-            }
+            changeRequest.CompleteChanges( rockContext );
 
-            if ( !( oldValue is int? ) || ( int? ) oldValue != newValue )
-            {
-                var changeRecord = new ChangeRecord()
-                {
-                    OldValue = oldValue.ToStringSafe(),
-                    NewValue = newValue.ToStringSafe(),
-                    IsAttribute = false,
-                    IsRejected = false,
-                    Property = property
-                };
-                changeRequest.ChangeRecords.Add( changeRecord );
-            };
-        }
-
-        private void EvaluatePropertyChange( ChangeRequest changeRequest, object item, string property, Enum newValue )
-        {
-            var oldValue = item.GetPropertyValue( property );
-
-            if ( oldValue == null && newValue == null )
-            {
-                return;
-            }
-
-            if ( !( oldValue is Enum ) || !newValue.Equals( ( Enum ) oldValue ) )
-            {
-                var changeRecord = new ChangeRecord()
-                {
-                    OldValue = ( ( Enum ) oldValue ).ConvertToInt().ToString(),
-                    NewValue = newValue.ConvertToInt().ToString(),
-                    IsAttribute = false,
-                    IsRejected = false,
-                    Property = property
-                };
-                changeRequest.ChangeRecords.Add( changeRecord );
-            };
-        }
-
-        private void EvaluatePropertyChange( ChangeRequest changeRequest, object item, string property, DateTime? newValue )
-        {
-            var oldValue = item.GetPropertyValue( property );
-
-            if ( oldValue == null && newValue == null )
-            {
-                return;
-            }
-
-            if ( !( oldValue is DateTime? ) || ( DateTime? ) oldValue != newValue )
-            {
-                var changeRecord = new ChangeRecord()
-                {
-                    OldValue = ( ( DateTime? ) oldValue ).ToStringSafe(),
-                    NewValue = newValue.ToStringSafe(),
-                    IsAttribute = false,
-                    IsRejected = false,
-                    Property = property
-                };
-                changeRequest.ChangeRecords.Add( changeRecord );
-            };
+            changeRequest.IsComplete = true;
+            changeRequest.ApproverAliasId = CurrentPersonAliasId ?? 0;
+            rockContext.SaveChanges();
+            NavigateToParentPage();
         }
     }
 }
