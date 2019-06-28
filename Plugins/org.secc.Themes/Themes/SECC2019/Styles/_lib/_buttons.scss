@@ -67,6 +67,11 @@
 	$hvr-bg: lighten($LightGreyColor, 20%),
 	$hvr-color: $color-dark,
 	$hvr-brd-color: transparent);
+
+	&.active {
+		color: $color-primary;
+		background-color: $color-dark;
+	}
 }
 
 /* ---- 2.1 Defualt Buttons ---- */

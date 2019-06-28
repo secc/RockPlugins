@@ -15,7 +15,7 @@
             <h3 class="g-font-weight--600">Find a Group</h3>
             <p class="g-font-weight--400 g-line-height--sm">Find a group that interests you by selecting a location and/or date.</p>
             <div class="g-display-block--xs">
-                <div id="filtersDemo" class="button-group filter-button-group g-padding-x-50--xs g-display-inline-block--xs g-width-600--xs">
+                <div id="filtersDemo" class="button-group filter-button-group g-padding-x-10--xs g-display-inline-block--xs g-width-550--xs">
                   <a class="button se-btn se-btn--tag uppercase" data-filter="Sunday">S</a>
                   <a class="button se-btn se-btn--tag uppercase" data-filter="Monday">M</a>
                   <a class="button se-btn se-btn--tag uppercase" data-filter="Tuesday">T</a>
@@ -26,7 +26,7 @@
                 </div>
                 <div class="g-width-600--xs g-padding-x-50--xs g-display-inline-block--xs">
                     <select class="select2-campuses" name="campus">
-                        <option value="allCampuses" data-shortcode="SE" data-campus="*" {% if selectedCampus == null %} selected="selected"{% endif %}>All Locations</option>
+                        <option value="allCampuses" data-shortcode="SE" data-campus="" {% if selectedCampus == null %} selected="selected"{% endif %}>All Locations</option>
                         {% for campus in Campuses %}
                             {% assign publicCampus = campus | Attribute:'Public' %}
                             {% if publicCampus == 'Yes' %}
@@ -133,6 +133,18 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Readmore.js/2.2.0/readmore.min.js"></script>
 <script>
 
+    //remove the last comma and any whitespace after it
+    function removeLastComma(str) {
+        console.log('IN removeLastComma');
+        console.log('str = '+str)
+        var lastChar = str.slice(-1);
+        if(lastChar == ',') {
+           str = str.slice(0, -1);
+        }
+        console.log('returning: '+str)
+        return str;
+    }
+
     // Initialize Isotope
     var $grid = $('.isotope_wrap').isotope({
       itemSelector: '.isotope_item',
@@ -170,43 +182,80 @@
         });
     }
 
-    // bind filter button click`
+    // bind filter button click
     $filtersDemo = $('#filtersDemo').on( 'click', '.button', function(e) {
-      // prevent from submiting default form actionn
       e.preventDefault();
+
       var $this = $( this );
       var filterValue = $this.attr('data-filter');
+      $this.toggleClass('active');
       runFilters(filterValue);
     });
 
+    var campusSelected = '';
     $('.select2-campuses').select2({
       placeholder: 'Location'
     });
     $('.select2-campuses').on('select2:select', function (e) {
-        // prevent from submiting default form actionn
         e.preventDefault();
-        // pull in lava ID
         var data = e.params.data;
-        runFilters($(data.element).data('campus'));
+        campusSelected = $(data.element).data('campus');
+        runFilters();
     });
 
-    var filters_selected = "";
+    var filters_selected = [];
     function runFilters(data_filter) {
+
+        // toggle filter selections
         if (~filters_selected.indexOf(data_filter)) {
-            // skip since it exists
-            filters_selected.replace(data_filter,'');
-            console.log('it exists');
+            // remove from array
+            filters_selected.splice($.inArray(data_filter, filters_selected),1);
         } else {
-            filters_selected += " " + data_filter;
-            console.log('adding filter');
+            // add to array
+            if (data_filter != '' && data_filter != undefined) {
+                filters_selected.push(data_filter);
+            }
         }
-        console.log('Filtering: ' + filters_selected);
-        // use filterFn if matches value
+
+        var filters_selected_size = filters_selected.length;
+        var filterSelectors = "div"
+
+        // if week days are selected
+        if (filters_selected_size != 0) {
+            // make string of selectors with array
+
+            console.log('filters_selected_size is '+ filters_selected_size);
+            var loopIndex = 1
+            filters_selected.forEach(function(item, index, array) {
+                // show just campus groups if campus selected - otherwise just day(s)
+                if (campusSelected != '') {
+                    filterSelectors += '[data-group-filter*="'+campusSelected+'"]'
+                }
+                if (item != undefined) {
+                    filterSelectors += '[data-group-filter*="'+item+'"]'
+                }
+                // no comma on the first, and no comma on the last
+                if (array.length > 1 && loopIndex != array.length) {
+                    filterSelectors += ','
+                }
+                loopIndex++;
+            });
+
+        } else if (campusSelected != '') {
+            // show just a campus filter if selected
+            filterSelectors += '[data-group-filter*="'+campusSelected+'"]';
+        } else {
+            // do nothing
+        }
+
+        // filterSelectors = removeLastComma(filterSelectors);
+        console.log(filterSelectors);
+
         $grid.isotope({
           itemSelector: '.isotope_item',
           percentPosition: true,
           layoutMode: 'fitRows',
-          filter: 'div[data-group-filter*="blankenbaker"][data-group-filter*="Sunday"]'
+          filter: filterSelectors
         });
     }
 
