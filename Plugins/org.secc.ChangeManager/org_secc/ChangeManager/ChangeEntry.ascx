@@ -117,9 +117,15 @@
                     <Rock:BootstrapButton runat="server" ID="btnSave" Text="Save" CssClass="btn btn-primary pull-right" OnClick="btnSave_Click" />
             </asp:Panel>
             <asp:Panel runat="server" ID="pnlNoPerson" Visible="false" CssClass="row">
-                <div class="col-md-10" style="margin-left:10px">
-                <Rock:PersonPicker runat="server" ID="pPerson" Label="Person" OnSelectPerson="pPerson_SelectPerson" />
+                <div class="col-md-10" style="margin-left: 10px">
+                    <Rock:PersonPicker runat="server" ID="pPerson" Label="Person" OnSelectPerson="pPerson_SelectPerson" />
                 </div>
+            </asp:Panel>
+            <asp:Panel runat="server" ID="pnlDone" CssClass="text-center" Visible="false">
+                <h3>Success!</h3>
+                Your changes have been submitted. Pending review, they will be applied.
+                <br />
+                <Rock:BootstrapButton runat="server" Text="Done" ID="btnDone" OnClick="btnDone_Click" CssClass="btn btn-primary" />
             </asp:Panel>
         </div>
     </ContentTemplate>

@@ -31,12 +31,16 @@ using System.ComponentModel.DataAnnotations;
 using System.Dynamic;
 using Rock.Web.UI.Controls;
 using org.secc.ChangeManager.Utilities;
+using Rock.Attribute;
 
 namespace RockWeb.Plugins.org_secc.ChangeManager
 {
     [DisplayName( "Change Entry" )]
     [Category( "SECC > CRM" )]
     [Description( "Allows people to enter changes which can later be reviewed." )]
+
+    [BooleanField( "Apply On Submit", "Should the changed be applied as soon as they are submitted?", true, key: "AutoApply" )]
+    [WorkflowTypeField( "Workflow", "Workflow to run after a change request is made." )]
     public partial class ChangeEntry : Rock.Web.UI.RockBlock
     {
         /// <summary>
@@ -266,10 +270,12 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
                 changeRequestService.Add( changeRequest );
                 rockContext.SaveChanges();
-                if ( this.IsUserAuthorized( "Edit" ) )
+                if ( GetAttributeValue( "AutoApply" ).AsBoolean() )
                 {
                     changeRequest.CompleteChanges( rockContext );
                 }
+
+                changeRequest.LaunchWorkflow( GetAttributeValue( "Workflow" ).AsGuidOrNull() );
             }
 
             var groupEntity = EntityTypeCache.Get( typeof( Group ) );
@@ -395,12 +401,25 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
                 changeRequestService.Add( familyChangeRequest );
                 rockContext.SaveChanges();
-                if ( this.IsUserAuthorized( "Edit" ) )
+                if ( GetAttributeValue( "AutoApply" ).AsBoolean() )
                 {
                     familyChangeRequest.CompleteChanges( rockContext );
                 }
+                familyChangeRequest.LaunchWorkflow( GetAttributeValue( "Workflow" ).AsGuidOrNull() );
             }
 
+
+
+            if ( GetAttributeValue( "AutoApply" ).AsBoolean() )
+            {
+                NavigateToPerson();
+            }
+            else
+            {
+                pnlMain.Visible = false;
+                pnlNoPerson.Visible = false;
+                pnlDone.Visible = true;
+            }
         }
 
         protected void pPerson_SelectPerson( object sender, EventArgs e )
@@ -410,6 +429,16 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             {
                 NavigateToCurrentPage( new Dictionary<string, string> { { "PersonId", personId.Value.ToString() } } );
             }
+        }
+
+        protected void btnDone_Click( object sender, EventArgs e )
+        {
+            NavigateToPerson();
+        }
+
+        private void NavigateToPerson()
+        {
+            Response.Redirect( "/Person/" + GetPerson().Id.ToString() );
         }
     }
 }

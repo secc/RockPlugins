@@ -57,6 +57,8 @@ namespace org.secc.ChangeManager.Migrations
                     RequestorAliasId = c.Int( nullable: false ),
                     ApproverAliasId = c.Int( nullable: false ),
                     IsComplete = c.Boolean( nullable: false ),
+                    RequestorComment = c.String(),
+                    ApproverComment = c.String(),
                     CreatedDateTime = c.DateTime(),
                     ModifiedDateTime = c.DateTime(),
                     CreatedByPersonAliasId = c.Int(),
