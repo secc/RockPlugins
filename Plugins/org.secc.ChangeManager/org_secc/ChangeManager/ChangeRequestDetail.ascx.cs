@@ -29,12 +29,15 @@ using System.Reflection;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 using System.Dynamic;
+using Rock.Attribute;
 
 namespace RockWeb.Plugins.org_secc.ChangeManager
 {
     [DisplayName( "Change Request Detail" )]
     [Category( "SECC > CRM" )]
     [Description( "View requests" )]
+
+    [WorkflowTypeField( "Workflow", "Workflow to run after completing request." )]
     public partial class ChangeRequestDetail : Rock.Web.UI.RockBlock
     {
         /// <summary>
@@ -60,7 +63,8 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             RockContext rockContext = new RockContext();
             ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
             ChangeRequest changeRequest = changeRequestService.Get( changeId );
-            lName.Text = changeRequest.Name;
+            lName.Text = string.Format( "<h3 class=panel-title'>{0}</h3> Requested by: <a href='/Person/{1}' target='_blank'>{2}</a>",
+                changeRequest.Name, changeRequest.RequestorAlias.PersonId, changeRequest.RequestorAlias.Person.FullName );
             var changeRecords = changeRequest.ChangeRecords.ToList();
 
             var entity = ChangeRequest.GetEntity( changeRequest.EntityTypeId, changeRequest.EntityId, rockContext );
@@ -72,6 +76,8 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
             gRecords.DataSource = changeRecords;
             gRecords.DataBind();
+
+            tbComment.Text = changeRequest.ApproverComment;
         }
 
         private void FormatValues( int entityTypeId, IEntity targetEntity, ChangeRecord changeRecord, RockContext rockContext )
@@ -246,12 +252,13 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             RockContext rockContext = new RockContext();
             ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
             var changeRequest = changeRequestService.Get( hfChangeId.ValueAsInt() );
-
+            changeRequest.ApproverComment = tbComment.Text;
             changeRequest.CompleteChanges( rockContext );
 
             changeRequest.IsComplete = true;
             changeRequest.ApproverAliasId = CurrentPersonAliasId ?? 0;
             rockContext.SaveChanges();
+            changeRequest.LaunchWorkflow( GetAttributeValue( "Workflow" ).AsGuidOrNull() );
             NavigateToParentPage();
         }
     }

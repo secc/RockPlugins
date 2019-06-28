@@ -41,13 +41,23 @@ namespace org.secc.ChangeManager.Model
         [DataMember]
         public int RequestorAliasId { get; set; }
 
+        public virtual PersonAlias RequestorAlias { get; set; }
+
         [Index]
         [DataMember]
         public int ApproverAliasId { get; set; }
 
+        public virtual PersonAlias ApproverAlias { get; set; }
+
         [Index]
         [DataMember]
         public bool IsComplete { get; set; }
+
+        [DataMember]
+        public string RequestorComment { get; set; }
+
+        [DataMember]
+        public string ApproverComment { get; set; }
 
         public virtual ICollection<ChangeRecord> ChangeRecords
         {
