@@ -143,7 +143,6 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 ddlGradePicker.SelectedIndex = 0;
                 ypGraduation.SelectedYear = person.GraduationYear;
             }
-
             ScriptManager.RegisterStartupScript( ddlGradePicker, ddlGradePicker.GetType(), "grade-selection-" + BlockId.ToString(), ddlGradePicker.GetJavascriptForYearPicker( ypGraduation ), true );
 
             //Family Info
