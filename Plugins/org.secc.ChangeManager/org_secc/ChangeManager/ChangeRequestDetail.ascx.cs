@@ -82,11 +82,27 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
         private void FormatValues( int entityTypeId, IEntity targetEntity, ChangeRecord changeRecord, RockContext rockContext )
         {
+            //Get the target Entity
+            if ( changeRecord.RelatedEntityId.HasValue
+                    && changeRecord.RelatedEntityId.Value != 0
+                    && changeRecord.RelatedEntityTypeId.HasValue )
+            {
+                entityTypeId = changeRecord.RelatedEntityTypeId.Value;
+                if ( changeRecord.Action == ChangeRecordAction.Create )
+                {
+                    targetEntity = ChangeRequest.CreateNewEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.NewValue, rockContext, false );
+                }
+                else
+                {
+                    targetEntity = ChangeRequest.GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext );
+                }
+            }
+
             //Enums
             if ( changeRecord.Property.IsNotNullOrWhiteSpace() )
             {
                 PropertyInfo enumProp = targetEntity.GetType().GetProperty( changeRecord.Property, BindingFlags.Public | BindingFlags.Instance );
-                if ( enumProp.PropertyType.IsEnum )
+                if ( enumProp.PropertyType != null && enumProp.PropertyType.IsEnum )
                 {
                     enumProp.PropertyType.GetEnumUnderlyingType();
                     changeRecord.NewValue = System.Enum.GetName( enumProp.PropertyType, changeRecord.NewValue.AsInteger() ).SplitCase();
@@ -98,28 +114,12 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             var newObject = changeRecord.NewValue.FromJsonOrNull<BasicEntity>();
             if ( newObject != null )
             {
-                if ( changeRecord.RelatedEntityId.HasValue
-                    && changeRecord.RelatedEntityId.Value != 0
-                    && changeRecord.RelatedEntityTypeId.HasValue )
-                {
-                    entityTypeId = changeRecord.RelatedEntityTypeId.Value;
-                    if ( changeRecord.Action == ChangeRecordAction.Create )
-                    {
-                        targetEntity = ChangeRequest.CreateNewEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.NewValue, rockContext, false );
-                    }
-                    else
-                    {
-                        targetEntity = ChangeRequest.GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext );
-                    }
-                }
-
                 if ( changeRecord.Property.IsNullOrWhiteSpace() )
                 {
                     changeRecord.NewValue = targetEntity.ToString();
                 }
                 else
                 {
-
                     PropertyInfo prop = targetEntity.GetType().GetProperty( changeRecord.Property, BindingFlags.Public | BindingFlags.Instance );
 
                     if ( prop.PropertyType.GetInterfaces().Any( i => i.IsInterface && i.GetInterfaces().Contains( typeof( IEntity ) ) ) )
@@ -146,21 +146,6 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             var oldObject = changeRecord.OldValue.FromJsonOrNull<BasicEntity>();
             if ( oldObject != null )
             {
-                if ( changeRecord.RelatedEntityId.HasValue
-                    && changeRecord.RelatedEntityId.Value != 0
-                    && changeRecord.RelatedEntityTypeId.HasValue )
-                {
-                    entityTypeId = changeRecord.RelatedEntityTypeId.Value;
-                    if ( changeRecord.Action == ChangeRecordAction.Delete )
-                    {
-                        targetEntity = ChangeRequest.CreateNewEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.OldValue, rockContext, false );
-                    }
-                    else
-                    {
-                        targetEntity = ChangeRequest.GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext );
-                    }
-                }
-
                 if ( changeRecord.Property.IsNullOrWhiteSpace() )
                 {
                     changeRecord.OldValue = targetEntity.ToString();

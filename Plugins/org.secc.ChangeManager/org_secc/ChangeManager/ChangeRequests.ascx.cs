@@ -40,6 +40,16 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
     [LinkedPage( "Details Page", "Page which contains the details of the change request." )]
     public partial class ChangeRequests : Rock.Web.UI.RockBlock
     {
+        protected override void OnInit( EventArgs e )
+        {
+            base.OnInit( e );
+            gRequests.GridRebind += gRequests_GridRebind;
+        }
+
+        private void gRequests_GridRebind( object sender, Rock.Web.UI.Controls.GridRebindEventArgs e )
+        {
+            BindGrid();
+        }
 
 
         /// <summary>
@@ -50,14 +60,47 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
         {
             if ( !Page.IsPostBack )
             {
-                RockContext rockContext = new RockContext();
-                ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
-                var changeRequests = changeRequestService.Queryable().OrderByDescending( c => c.CreatedDateTime );
-                gRequests.SetLinqDataSource( changeRequests );
-                gRequests.DataBind();
+                var rockContext = new RockContext();
+                var entityTypes = new EntityTypeService( rockContext ).GetEntities()
+                    .OrderBy( t => t.FriendlyName )
+                    .ToList();
+
+                pEntityType.IncludeGlobalOption = false;
+                pEntityType.EntityTypes = entityTypes;
+
+                cbShowComplete.Checked = GetBlockUserPreference( "ShowComplete" ).AsBoolean();
+                pEntityType.SelectedValue = GetBlockUserPreference( "EntityType" );
+
+                BindGrid();
             }
         }
 
+        private void BindGrid()
+        {
+            RockContext rockContext = new RockContext();
+            ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
+            var changeRequests = changeRequestService.Queryable();
+            if ( !cbShowComplete.Checked )
+            {
+                changeRequests = changeRequests.Where( c => !c.IsComplete );
+            }
+            if ( pEntityType.SelectedEntityTypeId.HasValue && pEntityType.SelectedEntityTypeId.Value != 0 )
+            {
+                int entityTypeId = pEntityType.SelectedEntityTypeId.Value;
+
+                //Special case for Person/Person Alias
+                if ( entityTypeId == EntityTypeCache.Get( typeof( Person ) ).Id )
+                {
+                    entityTypeId = EntityTypeCache.Get( typeof( PersonAlias ) ).Id;
+                }
+
+                changeRequests = changeRequests.Where( c => c.EntityTypeId == entityTypeId );
+            }
+
+            changeRequests = changeRequests.OrderBy( c => c.IsComplete ).ThenByDescending( c => c.CreatedDateTime );
+            gRequests.SetLinqDataSource( changeRequests );
+            gRequests.DataBind();
+        }
 
         protected void gRequests_RowSelected( object sender, Rock.Web.UI.Controls.RowEventArgs e )
         {
@@ -74,6 +117,13 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                     e.Row.Cells[1].Text = "Person";
                 }
             }
+        }
+
+        protected void fRequests_ApplyFilterClick( object sender, EventArgs e )
+        {
+            SetBlockUserPreference( "ShowComplete", cbShowComplete.Checked.ToString() );
+            SetBlockUserPreference( "EntityType", pEntityType.SelectedValue );
+            BindGrid();
         }
     }
 }
