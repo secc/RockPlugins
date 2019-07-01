@@ -126,6 +126,11 @@ namespace org.secc.Trak1.BackgroundCheck
                 //Get required fields from workflow
                 var packageList = GetPackageList();
                 var packageName = workflow.GetAttributeValue( requestTypeAttribute.Key );
+                // If this is a defined value, fetch the value
+                if (requestTypeAttribute.FieldType.Guid.ToString().ToUpper() == Rock.SystemGuid.FieldType.DEFINED_VALUE)
+                {
+                    packageName = DefinedValueCache.Get(packageName).Value;
+                }
                 var package = packageList.Where( p => p.PackageName == packageName ).FirstOrDefault();
                 if ( package == null )
                 {
