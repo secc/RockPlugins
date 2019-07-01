@@ -1,0 +1,51 @@
+<div id="wrapper">
+
+	<div class="centered-wrapper">
+		<div class="page-title-subtitle">
+            <h2>Sermons</h2>
+         </div>
+	</div>
+
+    <div class="centered-wrapper">
+    	<section class="percent-page no-sidebar">
+    		<article id="page-245" class="begin-content">
+    			<section id="series-list" class="flex-list">
+
+                    <a class="list-item" href="#">
+                    	<div class="sermon-series">
+                    		<img class="sermons-img" src="#" rel="prettyPhoto" />
+                    		<div class="sermons-title">Series Title</div>
+                    		<div class="sermons-description">Series Description</div>
+                    		<div class="sermons-count">Sermons Count</div>
+                    	</div>
+                    </a>
+                    
+    			</section>
+    			<footer class="list-footer">
+    				<a class="button" id="loadSermons" onclick="getMoreSermons(jQuery);">Show More Sermons</a>
+    				<img id="loading-animation" src="http://kyleidleman.com/wp-content/themes/kyleidleman/_/img/loading.gif">
+    			</footer>
+    		</article>
+    	</section>
+    </div>
+
+	<footer id="footer">
+		<div class="centered-wrapper"></div>
+		<div id="bottomfooter">
+			<div class="centered-wrapper">
+				<div class="percent-two-third">
+					<p>©&nbsp;2019 - Kyle Idleman. All Rights Reserved</p>
+				</div>
+
+				<div class="percent-one-third column-last">
+					<ul id="social">
+						<li><a href="https://www.facebook.com/kyleidleman/" title="facebook" class="facebook" target="_blank"><i class="fa fa-facebook"></i></a></li>
+                        <li><a href="https://twitter.com/KyleIdleman" title="twitter" class="twitter" target="_blank"><i class="fa fa-twitter"></i></a></li>
+                    </ul>
+				</div><!--end percent-one-third-->
+			</div><!--end centered-wrapper-->
+		</div><!--end bottomfooter-->
+		<a href="#" class="totop" style="bottom: -10px;"><i class="fa fa-angle-double-up"></i></a>
+	</footer><!--end footer-->
+
+</div>
