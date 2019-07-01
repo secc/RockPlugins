@@ -44,6 +44,7 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml.Linq" />
@@ -54,7 +55,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\GroupManagerContext.cs" />
+    <Compile Include="Data\GroupManagerService.cs" />
     <Compile Include="Exceptions\NonExistantFilter.cs" />
+    <Compile Include="Migrations\201907011232595_Init.cs" />
+    <Compile Include="Migrations\201907011232595_Init.Designer.cs">
+      <DependentUpon>201907011232595_Init.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Model\PublishGroupService.cs" />
+    <Compile Include="Model\PublishGroup.cs" />
     <Compile Include="UI\GroupManagerBlock.cs">
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
@@ -69,6 +79,11 @@
       <Project>{00edcb8d-ef33-459c-ad62-02876bd24dff}</Project>
       <Name>DotLiquid</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\201907011232595_Init.resx">
+      <DependentUpon>201907011232595_Init.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
