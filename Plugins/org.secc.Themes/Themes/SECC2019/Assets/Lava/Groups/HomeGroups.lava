@@ -133,18 +133,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Readmore.js/2.2.0/readmore.min.js"></script>
 <script>
 
-    //remove the last comma and any whitespace after it
-    function removeLastComma(str) {
-        console.log('IN removeLastComma');
-        console.log('str = '+str)
-        var lastChar = str.slice(-1);
-        if(lastChar == ',') {
-           str = str.slice(0, -1);
-        }
-        console.log('returning: '+str)
-        return str;
-    }
-
     // Initialize Isotope
     var $grid = $('.isotope_wrap').isotope({
       itemSelector: '.isotope_item',
@@ -244,11 +232,8 @@
         } else if (campusSelected != '') {
             // show just a campus filter if selected
             filterSelectors += '[data-group-filter*="'+campusSelected+'"]';
-        } else {
-            // do nothing
         }
 
-        // filterSelectors = removeLastComma(filterSelectors);
         console.log(filterSelectors);
 
         $grid.isotope({
