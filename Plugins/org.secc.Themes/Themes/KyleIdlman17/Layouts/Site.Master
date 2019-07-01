@@ -1,0 +1,107 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" Inherits="Rock.Web.UI.RockMasterPage" %>
+<%@ Import Namespace="System.Web.Optimization" %>
+<!DOCTYPE html>
+
+<script runat="server">
+
+    // keep code below to call base class init method
+
+    /// <summary>
+    /// Raises the <see cref="E:System.Web.UI.Control.Init" /> event.
+    /// </summary>
+    /// <param name="e">An <see cref="T:System.EventArgs" /> object that contains the event data.</param>
+    protected override void OnInit( EventArgs e )
+    {
+        base.OnInit( e );
+    }
+
+</script>
+
+<html class="no-js">
+<head runat="server">
+
+    <meta charset="utf-8">
+    <title></title>
+
+    <script src="<%# System.Web.Optimization.Scripts.Url("~/Scripts/Bundles/RockJQueryLatest" ) %>"></script>
+
+    <!-- Set the viewport width to device width for mobile -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <asp:ContentPlaceHolder ID="css" runat="server" />
+
+	<!-- Included CSS Files -->
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/bootstrap.css", true) %>"/>
+	<link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/theme.css", true) %>"/>
+
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/patti/style.css", true) %>"/>
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/patti/kyle-custom.css", true) %>"/>
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/patti/fluid.css", true) %>"/>
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/patti/animate.css", true) %>"/>
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/patti/audioplayer.css", true) %>"/>
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/patti/extend-composer.css", true) %>"/>
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/patti/owl.carousel.css", true) %>"/>
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/patti/prettyPhoto.css", true) %>"/>
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/patti/responsive.css", true) %>"/>
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/patti/superfish.css", true) %>"/>
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/patti/tipsy.css", true) %>"/>
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/patti/color-schemes/orange.css", true) %>"/>
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/sermons.css", true) %>"/>
+
+    <script src="<%# ResolveRockUrl("~/Scripts/modernizr.js" ) %>" ></script>
+
+
+    <script type='text/javascript'>
+    /* <![CDATA[ */
+    var dt_handler = {"curlink":"","scrolloffset":"0","hashtag":""};
+    var dt_loader = {"bcolor":""};
+    var dt_styles = {"header_bg":"255,255,255","header_scroll_opacity":"90","default_color":"#ffffff","logo_width":"100","logo_height":"35","init_pt":"55","init_pb":"25","scroll_pt":"15","scroll_pb":"15","scrolling_effect":"1","mainlogosrc":"","alternativelogosrc":"","alternativelogo":"0","svglogo":""};
+    /* ]]> */
+    </script>
+    <script src="<%# ResolveRockUrl("~~/Scripts/patti/jquery.lazyload.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~~/Scripts/patti/hoverIntent.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~~/Scripts/patti/scripts-bottom.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~~/Scripts/patti/jquery.isotope.min.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~~/Scripts/patti/scripts-top.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~~/Scripts/patti/jquery.nav.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~~/Scripts/patti/custom/custom-responsive-nav.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~~/Scripts/patti/jquery.queryloader2.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~~/Scripts/patti/custom/custom-loader.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~~/Scripts/patti/custom/custom-isotope-portfolio.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~~/Scripts/patti/custom/custom-isotope-blog.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~~/Scripts/patti/custom/custom-nav.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~~/Scripts/patti/custom/custom-navscroll.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~~/Scripts/patti/custom/custom-social.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~~/Scripts/patti/custom/custom.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~~/Scripts/sermons.js" ) %>" ></script>
+
+    <asp:ContentPlaceHolder ID="head" runat="server"></asp:ContentPlaceHolder>
+
+</head>
+<body runat="server" id="body">
+
+    <form id="form1" runat="server">
+
+        <div class="container-fluid">
+            <asp:ContentPlaceHolder ID="feature" runat="server"></asp:ContentPlaceHolder>
+
+            <asp:ContentPlaceHolder ID="main" runat="server"></asp:ContentPlaceHolder>
+
+            <%-- controls for scriptmanager and update panel --%>
+            <asp:ScriptManager ID="sManager" runat="server"/>
+            <asp:UpdateProgress id="updateProgress" runat="server" DisplayAfter="800">
+    		        <ProgressTemplate>
+    		            <div class="updateprogress-status">
+                            <div class="spinner">
+                              <div class="rect1"></div><div class="rect2"></div><div class="rect3"></div><div class="rect4"></div><div class="rect5"></div>
+                            </div>
+                        </div>
+                        <div class="updateprogress-bg modal-backdrop"></div>
+    		        </ProgressTemplate>
+            </asp:UpdateProgress>
+        </div>
+    </form>
+
+</body>
+
+</html>
