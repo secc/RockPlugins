@@ -10,6 +10,7 @@
                 <Rock:RockBoundField HeaderText="Entity Name" DataField="Name" />
                 <Rock:RockBoundField HeaderText="Entity Type" DataField="EntityType.Name" />
                 <Rock:RockBoundField HeaderText="Requestor" DataField="CreatedByPersonAlias.Person.FullName" />
+                <Rock:DateTimeField HeaderText="Requested" DataField="CreatedDateTime" />
                 <Rock:BoolField HeaderText="Complete" DataField="IsComplete" />
             </Columns>
         </Rock:Grid>

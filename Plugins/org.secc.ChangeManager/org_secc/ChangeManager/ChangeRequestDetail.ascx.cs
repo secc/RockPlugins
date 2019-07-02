@@ -88,13 +88,18 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                     && changeRecord.RelatedEntityTypeId.HasValue )
             {
                 entityTypeId = changeRecord.RelatedEntityTypeId.Value;
-                if ( changeRecord.Action == ChangeRecordAction.Create )
+
+                switch ( changeRecord.Action )
                 {
-                    targetEntity = ChangeRequest.CreateNewEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.NewValue, rockContext, false );
-                }
-                else
-                {
-                    targetEntity = ChangeRequest.GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext );
+                    case ChangeRecordAction.Create:
+                        targetEntity = ChangeRequest.CreateNewEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.NewValue, rockContext, false );
+                        break;
+                    case ChangeRecordAction.Delete:
+                        targetEntity = ChangeRequest.CreateNewEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.OldValue, rockContext, false );
+                        break;
+                    default:
+                        targetEntity = ChangeRequest.GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext );
+                        break;
                 }
             }
 
@@ -137,7 +142,10 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                                 ChangeRequest.SetProperty( entity, eleProp, dyn[key].ToStringSafe() );
                             }
                         }
-                        changeRecord.NewValue = entity.ToString();
+                        if ( entity != null )
+                        {
+                            changeRecord.NewValue = entity.ToString();
+                        }
                     }
                 }
             }
@@ -169,12 +177,10 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                                 ChangeRequest.SetProperty( entity, eleProp, dyn[key].ToStringSafe() );
                             }
                         }
-                        changeRecord.OldValue = entity.ToString();
-                    }
-
-                    else if ( prop.PropertyType.IsEnum )
-                    {
-                        changeRecord.NewValue = prop.GetValue( targetEntity ).ToString();
+                        if ( entity != null )
+                        {
+                            changeRecord.OldValue = entity.ToString();
+                        }
                     }
                 }
             }
