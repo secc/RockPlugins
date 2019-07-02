@@ -20,12 +20,12 @@ namespace org.secc.ChangeManager.Utilities
                 return null;
             }
 
-            if ( !( oldValue is IEntity ) || ( ( IEntity ) oldValue ).Id != newValue.Id )
+            if ( !( oldValue is IEntity ) || newValue == null || ( ( IEntity ) oldValue ).Id != newValue.Id )
             {
                 var changeRecord = new ChangeRecord()
                 {
-                    OldValue = oldValue.ToJson(),
-                    NewValue = newValue.ToJson(),
+                    OldValue = oldValue == null ? "" : oldValue.ToJson(),
+                    NewValue = newValue == null ? "" : newValue.ToJson(),
                     Action = ChangeRecordAction.Update,
                     IsRejected = false,
                     WasApplied = false,
