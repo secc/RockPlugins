@@ -1,0 +1,34 @@
+<section id="DocumentListAccordion">
+  <div class="container g-padding-y-50--xs g-padding-x-40--xs">
+    <div class="row g-padding-t-75--md">
+			<div class="col-md-10 col-md-offset-1">
+					
+					
+				  <div class="panel-accordion-documents accordion-events" id="event-accordion-accordion-docs" role="tablist" aria-multiselectable="true">
+				  {%- for item in Items -%}
+				        <div class="panel panel-default">
+				            <div class="panel-heading collapsed" role="button"  id="heading{{ forloop.index }}-accordion-docs" data-toggle="collapse" data-parent="#event-accordion-accordion-docs"
+				            href="#collapse{{ forloop.index }}-accordion-docs" aria-expanded="false" aria-controls="collapse{{ forloop.index }}-accordion-docs">
+				              <div class="panel-title g-font-size-30--xs g-font-size-32--md g-font-weight--700 g-display-flex--sm" style="align-items: center">
+				                <h5 class="g-display-inline-block--sm g-font-size-40--xs g-font-size-60--md g-font-family--secondary g-font-weight--400 g-margin-l-40--xs">{{ item.Title }}</h5>
+				              </div>
+				            </div>
+				            <div id="collapse{{ forloop.index }}-accordion-docs" class="panel-collapse collapse" role="tabpanel"
+				            aria-labelledby="heading{{ forloop.index }}-accordion-docs" aria-expanded="false" style="height: 0px;">
+				              <div class="panel-body">
+					              <div class="row">
+						              <div class="col-md-8 col-md-offset-2">
+							              {{ item.Content }}
+						              </div>
+					              </div>
+				              </div>
+				            </div>
+				          </div>
+				  {%- endfor -%}
+				  </div>
+
+
+			</div>
+    </div>
+  </div>
+</section>
