@@ -1,0 +1,80 @@
+<div class="container g-padding-t-50--xs g-padding-t-100--sm">
+	<div class="row">
+        <div class="col-md-8 col-md-offset-2 g-padding-b-40--xs">
+            <div id="player">
+            {% assign firstItem = Items | First %}
+            {[ vimeo id:'{{firstItem.VimeoID}}' ]}
+            </div>
+            <div id="video-swiper" class="swiper-container">
+                <div class="swiper-wrapper">
+                {% for post in Items %}
+                  {% capture thumbnailUrl %}
+                    {% execute import:'RestSharp,Newtonsoft.Json,Newtonsoft.Json.Linq' %}
+                    
+                        var client = new RestClient("https://api.vimeo.com/videos/{{post | Attribute:'VimeoID'}}?fields=pictures.sizes");
+                        var request = new RestRequest(Method.GET);
+                        request.AddHeader("cache-control", "no-cache");
+                        request.AddHeader("Authorization", "Bearer 74eb87a4a0059c0cea83ef46a106882a");
+                        IRestResponse response = client.Execute(request);
+
+                        JObject o = JObject.Parse(response.Content);
+
+												return (string)o["pictures"]["sizes"][2]["link"];
+
+                    {% endexecute %}
+                  {% endcapture %}
+                    <div class="swiper-slide" style="background-image: url('{{ thumbnailUrl | Trim }}')">
+                        <a href="{{LinkedPages.DetailPage}}?ItemID={{item.Id}}" class="episode-button">
+                            <div class="slide_content">
+                                <h2>{{ post.Title }}</h2>
+                                <p>{{ post.Content|StripHtml|Truncate:142 }}</p>
+                            </div>
+                        </a>
+                    </div>
+                {% endfor %}
+                </div>
+                <div class="video-swiper-button-prev swiper-nav-button swiper-button-prev"></div>
+                <div class="video-swiper-button-next swiper-nav-button swiper-button-next"></div>
+            </div>
+        </div>
+    </div>
+	<div class="row">
+        <div class="col-md-12">
+        <hr />
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" type="text/css" href="/Themes/SECC2019Portal/Styles/swiper/swiper.min.css" />
+<script type="text/javascript" src="/Themes/SECC2019Portal/Scripts/swiper/swiper.min.js"></script>
+<!-- Initialize Swiper -->
+<script type="text/javascript">
+  var swiper = new Swiper('#video-swiper', {
+    slidesPerView: 3,
+    //centeredSlides: true,
+    loop: true,
+    watchSlidesProgress: true,
+    watchSlidesVisibility: true,
+    paginationClickable: true,
+    navigation: {
+        nextEl: '.video-swiper-button-next',
+        prevEl: '.video-swiper-button-prev',
+    },
+    //scrollbar: '.swiper-scrollbar',
+    spaceBetween: 5,
+    hashnav: true,
+    hashnavWatchState: true,
+    //loop: true,
+    // Responsive breakpoints
+    breakpoints: {
+      // when window width is <= 424px
+      424: {
+        slidesPerView: 1,
+      },
+      // when window width is <= 767px
+      767: {
+        slidesPerView: 2,
+      }
+    }
+  });
+</script>

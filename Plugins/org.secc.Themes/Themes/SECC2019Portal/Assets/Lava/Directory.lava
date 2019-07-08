@@ -1,0 +1,96 @@
+<section id="Leadership">
+	<div class="container g-padding-y-75--xs">
+		<div class="row">
+			<div class="col-xs-12">
+				<div class="filters form-inline text-center">
+				{% definedvalue where:'DefinedTypeId == 187' sort:'Value' %}
+					<select class="form-control filters-select" data-filter-group="location" name="Location">
+						<option value="">Location</option>
+	        {% for definedValueItem in definedvalueItems %}
+						<option value=".{{ definedValueItem.Value | ToCssClass }}">{{ definedValueItem.Value }}</option>
+					{% endfor %}
+					</select>
+				{% enddefinedvalue %}
+				{% definedvalue where:'DefinedTypeId == 112' sort:'Value' %}
+					<select class="form-control filters-select" data-filter-group="department" name="Department">
+						<option value="">Department</option>
+	        {% for definedValueItem in definedvalueItems %}
+						<option value=".{{ definedValueItem.Value | ToCssClass }}">{{ definedValueItem.Value }}</option>
+					{% endfor %}
+					</select>
+				{% enddefinedvalue %}
+				</div>
+				<div class="isotope_wrap row">
+				{%- person dataview:'485' sort:'LastName'  -%}
+				  {%- for person in personItems -%}
+					{%- assign photo = person.PhotoUrl -%}
+					<div class='isotope_item text-center {{ person | Attribute:'SECCMinistryArea' | ToCssClass }} {{ person | Attribute:'Arena-7-14031' | ToCssClass }} col-xs-12 col-sm-6 col-md-3'>
+						{% if photo != "" %}
+						<img class="img-responsive img-circle" src="{{ photo }}" style="margin: 30px auto; width: 100%; max-width: 27rem;">
+						{% endif %}
+						<h4 class="g-line-height--xs"><strong>{{ person.FullName }}</strong></h4>
+						<p><small>{{ person | Attribute:'Position' }}</small></p>
+						<ul class="list-inline list-unstyled">
+							{% for phone in person.PhoneNumbers %}
+							{% if phone.NumberTypeValue.Value == "Work" %}
+							<li><a href="tel:{{ phone.NumberFormatted }}"><i class="fa fa-phone" aria-label="Phone"></i></a></li>
+							{% endif %}
+							{% endfor %}
+							<li><a href="mailto:{{ person.Email }}"><i class="fa fa-envelope" aria-label="Email"></i></a></li>
+						</ul>
+					</div>
+				  {%- endfor -%}
+				{%- endperson -%}
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<script>
+$(document).ready(function() {
+
+	// flatten object by concatting values
+	function concatValues( obj ) {
+	  var value = '';
+	  for ( var prop in obj ) {
+	    value += obj[ prop ];
+	  }
+	  return value;
+	}
+    
+	var isoOptions = {
+		itemSelector: '.isotope_item',
+		percentPosition: true,
+		layoutMode: 'fitRows'
+	};
+
+  // Re-Initialize Isotope
+  var $grid = $('.isotope_wrap').isotope(isoOptions);
+
+  // reveal all items after init
+  var $items = $grid.find('.isotope_item');
+  $grid.imagesLoaded().progress( function() {
+    $grid.addClass('is-showing-items').isotope('layout');
+  });
+  $grid.isotope( 'revealItemElements', $items );
+
+	// store filter for each selector
+	var filters = {};
+
+	// bind filter on select change
+	$('.filters-select').on( 'change', function() {
+
+	  var $this = $(this);
+	  // get group key
+	  var filterGroup = $this.attr('data-filter-group');
+	  // set filter for group
+	  filters[ filterGroup ] = this.value;
+	  // combine filters
+	  var filterValue = concatValues( filters );
+		//window.console.log(filterValue);
+	  $grid.isotope({ filter: filterValue });
+	});
+
+});
+</script>
