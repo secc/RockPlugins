@@ -1,0 +1,144 @@
+<style>
+.hide {
+  display: none;
+}
+</style>
+
+<script>
+$(document).ready(function() {
+    // Initialize Isotope
+    var $grid = $('.isotope_wrap').isotope({
+        // options
+        percentPosition: true,
+        itemSelector: '.isotope_item',
+        layoutMode: 'fitRows'
+    });
+
+    // reveal all items after init
+    var $items = $grid.find('.isotope_item');
+    $grid.imagesLoaded().progress( function() {
+      $grid.removeClass('hide-on-load').addClass('is-showing-items').isotope('layout');
+    });
+    $grid.isotope( 'revealItemElements', $items );
+});
+
+$( "#loadMore" ).click(function() {
+  getMoreItems(jQuery);
+});
+
+// Skip first X items
+var itemsOffset = 0;
+// This determines whether the API requests should continue or stop.
+var itemsContinueMakingRequests = true;
+// This determines whether an ajax request is already in the process or not.
+var itemsLoading = false;
+
+function getMoreItems($) {
+
+	if (itemsContinueMakingRequests == true) {
+		//console.log('itemsContinueMakingRequests === '+itemsContinueMakingRequests);
+		$("#loading-animation").show();
+	}
+
+	// check and see if another request is being loaded
+	if (itemsLoading == false) {
+		$.ajax( {
+			url: 'https://www.southeastchristian.org/Webhooks/Lava.ashx/secc-items/'+itemsOffset,
+			async: true,
+			beforeSend: function(data) {
+				itemsLoading = true; // start ajax loading process
+			},
+			error: function(jqXHR,error, errorThrown) {
+				console.log('AJAX ERROR: ');
+				if(jqXHR.status&&jqXHR.status==400){
+				   console.log(jqXHR.responseText);
+				}else{
+					console.log('URL Request: '+ 'https://www.southeastchristian.org/Webhooks/Lava.ashx/secc-items/'+itemsOffset);
+					console.log("jqXHR:");
+					console.log(jqXHR);
+					console.log("error:"+error);
+					console.log("errorThrown:"+errorThrown);
+				}
+			},
+			success: function(data) {
+				//console.log(data.Items);
+				$.each(data.Items, function(i, item_group){
+					  //console.log(item_group);
+					  var $grid = $('.isotope_wrap').isotope({
+		          // options
+		          percentPosition: true,
+		          itemSelector: '.isotope_item',
+		          layoutMode: 'fitRows'
+			      });
+
+					  var itemsInGroup = item_group.length,
+					    sermonsStartDate = new Date(item_group.Date),
+						  locale = "en-us",
+					    s_day = sermonsStartDate.getDate(),
+						  s_month = sermonsStartDate.toLocaleString(locale, { month: "long" }),
+					    s_year = sermonsStartDate.getFullYear();
+
+                    var $elem = $('<div></div>', {
+                                "class": "isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar"
+                                }).append(
+                                    $('<article/>', {
+                                        "class": 'post_item_item g-margin-y-0--xs card'
+                                    }).html(function() {
+                                        var image_box = "<div class=\"post_featured_item\"> \
+                                                            <div class=\"post_thumb_item\" data-image=\""+ item_group.Image +"\" data-title=\""+ item_group.Name +"\"> \
+                                                                <a class=\"hover_icon hover_icon_link\" href=\"/items/"+ item_group.Slug +"\"> \
+                                                                    <img class=\"img-responsive\" alt=\""+ item_group.Name +"\" src=\""+ item_group.Image +"\" style=\"margin: 0 auto\"> \
+                                                                </a> \
+                                                            </div> \
+                                                        </div>";
+                                            image_box += "<div class=\"massonry_border g-height-150--xs g-padding-x-20--xs g-padding-y-20--xs\"> \
+                                                            <h4 class=\"g-font-family--secondary\"> \
+                                                                <a class=\"g-letter-spacing--1\" href=\"/items/"+ item_group.Slug +"\">"+ item_group.Name +"</a> \
+                                                            </h4> \
+                                                        </div>";
+                                        return image_box;
+                                    })
+                                );
+
+					  $grid.isotope()
+		  				  .append( $elem )
+		  				  .isotope( 'appended', $elem )
+		  				  .isotope('layout');
+
+
+				});
+
+                // Re-Initialize Isotope
+                var $grid = $('.isotope_wrap').isotope({
+                    // options
+                    percentPosition: true,
+                    itemSelector: '.isotope_item',
+                    layoutMode: 'fitRows'
+                });
+
+                // reveal all items after init
+                var $items = $grid.find('.isotope_new_item');
+                $grid.imagesLoaded().progress( function() {
+                $grid.removeClass('hide-on-load').addClass('is-showing-items').isotope('layout');
+                });
+                $grid.isotope( 'revealItemElements', $items );
+
+                $('.isotope_new_item').removeClass('isotope_new_item');
+
+				itemsOffset += 1;
+				$("#loading-animation").hide();
+				itemsLoading = false; // reset back to false to allow more requests
+
+				//console.log('data.Items.length === '+data.Items.length);
+                if (data.Items.length == 0) {
+					itemsContinueMakingRequests = false;
+                    $("#loadItems").hide();
+                }
+			}
+
+		});
+
+	}
+}
+
+</script>

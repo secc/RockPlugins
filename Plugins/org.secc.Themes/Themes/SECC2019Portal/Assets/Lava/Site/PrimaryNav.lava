@@ -1,0 +1,75 @@
+<nav class="cd-nav">
+  {% assign personGuid = CurrentPerson.Guid %}
+  <ul id="cd-primary-nav" class="cd-primary-nav is-fixed {% unless personGuid != null %}logged-in{% endunless %}">
+	{% if Page.DisplayChildPages == 'true' and Page.Pages != empty %}
+  	{% for childPage in Page.Pages %}
+			{% assign hasGrandchildren = "" %}
+			{% if childPage.DisplayChildPages == 'true' and childPage.Pages != empty %}
+				{% for grandChildPage in childPage.Pages %}
+						{% if grandChildPage.DisplayChildPages == 'true' and grandChildPage.Pages != empty %}
+							{% assign hasGrandchildren = "has-grandchildren" %}
+						{% endif %}
+				{% endfor %}
+			{% endif %}
+    	<li class="{% if childPage.DisplayChildPages == 'true' and childPage.Pages != empty %}has-children{% endif%}{% if childPage.Current == 'true' %} active{% endif%}">
+				<a class="{% if childPage.DisplayChildPages == 'true' and childPage.Pages != empty %}arrow{% endif%}" href="{{ childPage.Url }}">{{ childPage.Title }}</a>
+				{% if childPage.DisplayChildPages == 'true' and childPage.Pages != empty %}
+				  <ul class="cd-nav-icons is-hidden">
+              <li class="go-back arrow"><a class="arrow">Menu</a></li>
+						{% for grandChildPage in childPage.Pages %}
+              <li class="se-3-column{% unless forloop.last %} border-right{% endunless %}">
+                  <a class="cd-nav-item {{ grandChildPage.IconCssClass }}" href="{{ grandChildPage.Url }}">
+                    <h3>{{ grandChildPage.Title }}</h3>
+                  </a>
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif%}
+      </li>
+    {% endfor %}
+  {% endif %}
+
+  {% if CurrentPerson.Guid %}
+		{[ portalnews ]}
+    <li class="has-children" id="GroupManager">
+        <a href="#MyAccount" class="arrow"><i class="fa fa-user"></i><span class="mega-menu-hide g-padding-l-20--xs">My Account</span></a>
+        <ul class="cd-nav-list include-see-all is-hidden">
+            <li class="go-back"><a class="arrow">Menu</a></li>
+            <li class="see-all"><a href="/MyAccount">See My Account</a></li>
+            <li class="border-right">
+                <a class="cd-nav-item" href="/MyEvents">
+                    <h3>My Events</h3>
+                </a>
+            </li>
+
+            <li class="border-right">
+                <a class="cd-nav-item" href="/my-classes">
+                    <h3>My Classes</h3>
+                </a>
+            </li>
+
+            <li class="border-right">
+                <a class="cd-nav-item" href="https://pushpay.com/g/southeastchristian/manageaccount">
+                    <h3>My Giving</h3>
+                </a>
+            </li>
+
+            <li>
+                <a class="cd-nav-item" href="/home?logout=true">
+                    <!-- <h3>Logout |{{CurrentPerson.Guid}}|</h3> -->
+                    <h3>Logout</h3>
+                </a>
+            </li>
+
+        </ul>
+    </li>
+  {% endif %}
+
+  {% unless personGuid != null %}
+    <li class="MobileGroupManager">
+        <a href="/login">{{CurrentPerson}}Login to Your Account</a>
+    </li>
+  {% endunless %}
+
+  </ul> <!-- primary-nav -->
+</nav> <!-- cd-nav -->

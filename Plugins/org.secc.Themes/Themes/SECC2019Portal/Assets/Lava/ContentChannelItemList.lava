@@ -1,0 +1,45 @@
+<style>
+	#loading-animation {
+		display: none;
+	}
+</style>
+
+{% assign itemCount = Items | Size %}
+{% if itemCount > 0 %}
+<div id="item-results" class="container g-padding-y-20--xs g-padding-x-20--xs">
+
+    <div class="isotope_wrap">
+        {% for item in Items %}
+        {% assign ImageGuid = item | Attribute:'Image','RawValue' %}
+		<div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
+
+
+            <article class="post_item_item g-margin-y-0--xs card">
+
+                <div class="post_featured_item">
+                    <div class="post_thumb_item" data-image="/GetImage.ashx?Guid={{ ImageGuid }}" data-title="{{ item.Title }}">
+    					<a class="hover_icon hover_icon_link" href="{{ 'Global' | Page:'Root' }}/items/{{ item.PrimarySlug }}">
+                            <img class="img-responsive" alt="{{ item.Title }}" src="/GetImage.ashx?Guid={{ ImageGuid }}" style="margin: 0 auto">
+                        </a>
+                    </div>
+                </div>
+                <div class="massonry_border g-height-150--xs g-padding-x-20--xs g-padding-y-20--xs">
+						<h4 class="g-font-family--secondary"><a class="g-letter-spacing--1" href="{{ 'Global' | Page:'Root' }}/items/{{ item.PrimarySlug }}">{{ item.Title }}</a></h4>
+    			</div>
+            </article>
+        </div>
+
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="text-center">
+	<a class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" id="loadMore" onclick="getMoreItems(jQuery);">
+        Show More Items <i class="fa fa-chevron-down"></i>
+    </a>
+    <br />
+    <br />
+    <br />
+    <img id="loading-animation" src="/Content/ExternalSite/WebImages/loading.gif" />
+</div>
