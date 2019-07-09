@@ -60,6 +60,9 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
     [Category( "SECC > Pastoral Care" )]
     [Description( "A summary of all the current homebound residents that have been reported to Pastoral Care." )]
     [WorkflowTypeField( "Homebound Person Workflow" )]
+    [BooleanField("Show Communion", "if true, the field will be shown by default", true)]
+    [BooleanField("Show Notify Congregation", "if true, the field will be shown by default", true)]
+
     public partial class HomeboundList : RockBlock
     {
         #region Control Methods
@@ -82,6 +85,11 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
 
             if ( !Page.IsPostBack )
             {
+                if (!Convert.ToBoolean(GetAttributeValue("ShowCommunion")))
+                    gReport.Columns[10].Visible = false;
+                if (!Convert.ToBoolean(GetAttributeValue("ShowNotifyCongregation")))
+                    gReport.Columns[11].Visible = false;
+
                 BindGrid();
             }
             gReport.Actions.ShowAdd = true;
@@ -229,6 +237,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                     EndDate = w.AttributeValues.Where( av => av.AttributeKey == "EndDate" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                     Status = w.Workflow.Status,
                     Communion = w.AttributeValues.Where( av => av.AttributeKey == "Communion" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
+                    NotifyCongregation = w.AttributeValues.Where(av => av.AttributeKey == "NotifyCongregation").Select(av => av.ValueFormatted).FirstOrDefault(),
                     Actions = ""
                 } ).OrderBy( w => w.Name ).ToList().AsQueryable();
 

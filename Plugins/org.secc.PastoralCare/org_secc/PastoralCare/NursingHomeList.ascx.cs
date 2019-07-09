@@ -59,6 +59,9 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
     [Description( "A summary of all the current nursing home residents that have been reported to Pastoral Care." )]
     [WorkflowTypeField( "Nursing Home Resident Workflow" )]
     [DefinedTypeField( "Nursing Home List" )]
+    [BooleanField("Show Communion", "if true, the field will be shown by default", true)]
+    [BooleanField("Show Notify Congregation", "if true, the field will be shown by default", true)]
+
     public partial class NursingHomeList : RockBlock
     {
         #region Control Methods
@@ -81,6 +84,11 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
 
             if ( !Page.IsPostBack )
             {
+                if (!Convert.ToBoolean(GetAttributeValue("ShowCommunion")))
+                    gReport.Columns[12].Visible = false;
+                if (!Convert.ToBoolean(GetAttributeValue("ShowNotifyCongregation")))
+                    gReport.Columns[13].Visible = false;
+
                 BindGrid();
             }
             gReport.Actions.ShowAdd = true;
@@ -653,6 +661,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 DischargeDate = w.AttributeValues.Where( av => av.AttributeKey == "DischargeDate" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                 Status = w.Workflow.Status,
                 Communion = w.AttributeValues.Where( av => av.AttributeKey == "Communion" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
+                NotifyCongregation = w.AttributeValues.Where(av => av.AttributeKey == "NotifyCongregation").Select(av => av.ValueFormatted).FirstOrDefault(),
                 Actions = ""
             } ).ToList().AsQueryable().OrderBy( p => p.NursingHome ).ThenBy( p => p.Person.FullName );
             return newQry;
@@ -681,6 +690,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             public string DischargeDate { get; set; }
             public string Status { get; set; }
             public string Communion { get; set; }
+                        public string NotifyCongregation { get; set; }
             public string Actions { get; set; }
         }
         #endregion

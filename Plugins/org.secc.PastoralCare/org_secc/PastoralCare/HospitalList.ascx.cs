@@ -57,6 +57,8 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
     [Category( "SECC > Pastoral Care" )]
     [Description( "A summary of all the current hospitalizations that have been reported to Pastoral Care." )]
     [WorkflowTypeField( "Hospital Admission Workflow" )]
+    [BooleanField("Show Communion", "if true, the field will be shown by default", true)]
+    [BooleanField("Show Notify Congregation", "if true, the field will be shown by default", true)]
 
     public partial class HospitalList : RockBlock
     {
@@ -80,6 +82,11 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
 
             if ( !Page.IsPostBack )
             {
+                if (!Convert.ToBoolean(GetAttributeValue("ShowCommunion")))
+                    gReport.Columns[12].Visible = false;           
+                if (!Convert.ToBoolean(GetAttributeValue("ShowNotifyCongregation")))
+                    gReport.Columns[13].Visible = false;
+
                 BindGrid();
             }
             gReport.Actions.ShowAdd = true;
@@ -619,7 +626,9 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 DischargeDate = w.AttributeValues.Where( av => av.AttributeKey == "DischargeDate" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                 Status = w.Workflow.Status,
                 Communion = w.AttributeValues.Where( av => av.AttributeKey == "Communion" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
+                NotifyCongregation = w.AttributeValues.Where(av => av.AttributeKey == "NotifyCongregation").Select(av => av.ValueFormatted).FirstOrDefault(),
                 Actions = ""
+
             } ).ToList().AsQueryable().OrderBy( p => p.Hospital ).ThenBy( p => p.PersonToVisit.LastName );
 
             return newQry;
@@ -646,6 +655,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             public string DischargeDate { get; set; }
             public string Status { get; set; }
             public string Communion { get; set; }
+            public string NotifyCongregation { get; set; }
             public string Actions { get; set; }
         }
     }

@@ -48,6 +48,8 @@
     <Compile Include="Migrations\004_Fix_Nursing_Homes.cs" />
     <Compile Include="Migrations\003_Pastoral_Pages.cs" />
     <Compile Include="Migrations\002_Pastoral_WorkflowData.cs" />
+    <Compile Include="Migrations\006_Pastoral_ShowNameInVisit.cs" />
+    <Compile Include="Migrations\007_Pastoral_NotifyCongregation.cs" />
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"
