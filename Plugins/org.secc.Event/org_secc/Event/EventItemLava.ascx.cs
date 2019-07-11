@@ -213,7 +213,7 @@ namespace RockWeb.Blocks.Event
                     if ( !string.IsNullOrEmpty( campusStr ) )
                     {
                         //check if there's a campus with this name.
-                        var campus = CampusCache.All().Where( c => c.Name.ToLower() == campusStr.ToLower() ).FirstOrDefault();
+                        var campus = CampusCache.All().Where( c => c.Name.ToLower().RemoveSpaces() == campusStr.ToLower().RemoveSpaces() ).FirstOrDefault();
                         if ( campus != null )
                         {
                             occurrenceList.RemoveAll( o => o.CampusId != null && o.CampusId != campus.Id );
