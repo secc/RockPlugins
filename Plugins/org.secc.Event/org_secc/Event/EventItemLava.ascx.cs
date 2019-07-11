@@ -218,6 +218,15 @@ namespace RockWeb.Blocks.Event
                         {
                             occurrenceList.RemoveAll( o => o.CampusId != null && o.CampusId != campus.Id );
                         }
+                        else
+                        {
+                            // check one more time to see if there's a campus slug that matches
+                            campus = CampusCache.All().Where( c => c.AttributeValues["Slug"].ToString() == campusStr.ToLower() ).FirstOrDefault();
+                            if ( campus != null )
+                            {
+                                occurrenceList.RemoveAll( o => o.CampusId != null && o.CampusId != campus.Id );
+                            }
+                        }
                     }
 
                     eventItem.EventItemOccurrences = occurrenceList.OrderBy(o => o.NextStartDateTime.HasValue ? o.NextStartDateTime : DateTime.Now ).ToList();
