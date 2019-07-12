@@ -408,7 +408,7 @@ namespace RockWeb.Blocks.Event
                     EventItemOccurrenceAttributeValues = o.EventItemOccurrenceAttributeValues,
                     Date = schedules.ContainsKey( o.EventItemOccurrence.Schedule.Id ) ? schedules[o.EventItemOccurrence.Schedule.Id].AsDateTime() ?? new DateTime() : new DateTime()
                 } )
-                .Where( d => d.Date > RockDateTime.Now )
+                .Where( d => d.Date >= RockDateTime.Today )
                 .ToList();
 
             var priorityAttributeKey = GetAttributeValue( "PriorityAttributeKey" );
@@ -522,7 +522,7 @@ private bool SetFilterControls()
     pnlCalendar.Visible = GetAttributeValue( "ShowSmallCalendar" ).AsBoolean();
 
     // Get the first/last dates based on today's date and the viewmode setting
-    var today = RockDateTime.Now;
+    var today = RockDateTime.Today;
     FilterStartDate = today;
     FilterEndDate = today;
     if ( ViewMode == "Week" )
