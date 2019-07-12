@@ -8,45 +8,49 @@ namespace org.secc.GroupManager.Migrations
         public override void Up()
         {
             CreateTable(
-                "dbo._org_secc_GroupManager_PublishGroup",
-                c => new
-                {
-                    Id = c.Int( nullable: false, identity: true ),
-                    GroupId = c.Int( nullable: false ),
-                    StartDateTime = c.DateTime( nullable: false ),
-                    EndDateTime = c.DateTime( nullable: false ),
-                    RequestorAliasId = c.Int( nullable: false ),
-                    ContactPersonAliasId = c.Int( nullable: false ),
-                    ImageId = c.Int(),
-                    ContactEmail = c.String(),
-                    ContactPhoneNumber = c.String(),
-                    ConfirmationFromName = c.String(),
-                    ConfirmationEmail = c.String(),
-                    ConfirmationSubject = c.String(),
-                    ConfirmationBody = c.String(),
-                    CreatedDateTime = c.DateTime(),
-                    ModifiedDateTime = c.DateTime(),
-                    CreatedByPersonAliasId = c.Int(),
-                    ModifiedByPersonAliasId = c.Int(),
-                    Guid = c.Guid( nullable: false ),
-                    ForeignId = c.Int(),
-                    ForeignGuid = c.Guid(),
-                    ForeignKey = c.String( maxLength: 100 ),
-                } )
-                .PrimaryKey( t => t.Id )
-                .ForeignKey( "dbo.PersonAlias", t => t.ContactPersonAliasId, cascadeDelete: true )
-                .ForeignKey( "dbo.PersonAlias", t => t.CreatedByPersonAliasId )
-                .ForeignKey( "dbo.Group", t => t.GroupId, cascadeDelete: true )
-                .ForeignKey( "dbo.PersonAlias", t => t.ModifiedByPersonAliasId )
-                .ForeignKey( "dbo.PersonAlias", t => t.RequestorAliasId, cascadeDelete: true )
-                .Index( t => t.GroupId )
-                .Index( t => t.StartDateTime )
-                .Index( t => t.EndDateTime )
-                .Index( t => t.RequestorAliasId )
-                .Index( t => t.ContactPersonAliasId )
-                .Index( t => t.CreatedByPersonAliasId )
-                .Index( t => t.ModifiedByPersonAliasId )
-                .Index( t => t.Guid, unique: true );
+                            "dbo._org_secc_GroupManager_PublishGroup",
+                            c => new
+                            {
+                                Id = c.Int( nullable: false, identity: true ),
+                                GroupId = c.Int( nullable: false ),
+                                Description = c.String(),
+                                ImageId = c.Int( nullable: false ),
+                                StartDateTime = c.DateTime( nullable: false ),
+                                EndDateTime = c.DateTime( nullable: false ),
+                                RequestorAliasId = c.Int( nullable: false ),
+                                ContactPersonAliasId = c.Int( nullable: false ),
+                                ContactEmail = c.String(),
+                                ContactPhoneNumber = c.String(),
+                                ConfirmationFromName = c.String(),
+                                ConfirmationEmail = c.String(),
+                                ConfirmationSubject = c.String(),
+                                ConfirmationBody = c.String(),
+                                PublishGroupStatus = c.Int( nullable: false ),
+                                CreatedDateTime = c.DateTime(),
+                                ModifiedDateTime = c.DateTime(),
+                                CreatedByPersonAliasId = c.Int(),
+                                ModifiedByPersonAliasId = c.Int(),
+                                Guid = c.Guid( nullable: false ),
+                                ForeignId = c.Int(),
+                                ForeignGuid = c.Guid(),
+                                ForeignKey = c.String( maxLength: 100 ),
+                            } )
+                            .PrimaryKey( t => t.Id )
+                            .ForeignKey( "dbo.PersonAlias", t => t.ContactPersonAliasId )
+                            .ForeignKey( "dbo.PersonAlias", t => t.CreatedByPersonAliasId )
+                            .ForeignKey( "dbo.Group", t => t.GroupId, cascadeDelete: true )
+                            .ForeignKey( "dbo.BinaryFile", t => t.ImageId, cascadeDelete: true )
+                            .ForeignKey( "dbo.PersonAlias", t => t.ModifiedByPersonAliasId )
+                            .ForeignKey( "dbo.PersonAlias", t => t.RequestorAliasId )
+                            .Index( t => t.GroupId )
+                            .Index( t => t.ImageId )
+                            .Index( t => t.StartDateTime )
+                            .Index( t => t.EndDateTime )
+                            .Index( t => t.RequestorAliasId )
+                            .Index( t => t.ContactPersonAliasId )
+                            .Index( t => t.CreatedByPersonAliasId )
+                            .Index( t => t.ModifiedByPersonAliasId )
+                            .Index( t => t.Guid, unique: true );
 
             CreateTable(
                 "dbo._org_secc_GroupManager_PublishGroupAudienceValue",
