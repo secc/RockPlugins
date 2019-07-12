@@ -1,0 +1,119 @@
+  <section id="NewsFeed" class="g-bg-color--gray-lightest">
+    <div class="container g-padding-y-150--xs g-padding-x-40--xs">
+    	<div class="row">
+            <div class="col-sm-12">
+                <h2 class="g-font-size-40--sm g-font-weight--600 g-font-family--primary g-margin-b-0--xs text-uppercase">News Feed</h2> 
+            </div>
+        </div>
+    	<div class="row g-padding-t-40--md">
+            <div class="col-md-5 g-padding-b-40--xs">
+            {% for item in Items %}
+            {% if forloop.first %}
+              <article class="newsfeed-article g-margin-t-0--xs">
+              {% assign itemVimeoId = item | Attribute:'VimeoId' %}
+              {% if itemVimeoId != "" %}{[ vimeo id:'{{itemVimeoId}}' ]}{% endif %}
+	              <header class="newsfeed-article_header">
+	                <h3 class="g-font-size--jumbo-1 g-font-family--secondary g-margin-b-10--xs">{{ item.Title }}</h3>
+	                <p class="newsfeed-article_date-time text-uppercase g-font-size-28--sm">{{ item.StartDateTime | Date:'dddd, MMM dd, yyyy | h:mm tt' }}</p>
+	              </header>
+	              <section class="newsfeed-article_content g-margin-t-40--xs g-margin-b-40--xs">
+		              {{ item.Content }}
+	              </section>
+	              {% assign itemAuthor = item | Attribute:'Author','Object' %}
+	              {% assign itemAuthorTitle =  item | Attribute:'AuthorTitle' %}
+	              {% if itemAuthor.FullName and itemAuthor.FullName != empty %}
+	              <footer class="newsfeed-article_footer">
+		              <table class="newsfeed-article_author">
+		              {% if itemAuthor.PhotoId %}
+			              <td>
+			              	<img src="/GetImage.ashx?id={{ itemAuthor.PhotoId }}&height=100&width=100" class="img-responsive img-circle g-margin-r-20--xs" style="max-width: 100px">
+			              </td>
+			          {% endif %}
+			              <td valign="middle" class="newsfeed-article_author-details">
+				              <strong class="g-display-block--xs">{% if itemAuthor.NickName and itemAuthor.NickName != empty %}{{ itemAuthor.NickName }}{% else %}{{ itemAuthor.FirstName }}{% endif %} {{ itemAuthor.LastName }}</strong>
+				              {% if itemAuthorTitle != "" %}<span class="g-display-block--xs">{{ itemAuthorTitle }}</span>{% endif %}
+			              </td>
+		              </table>
+	              </footer>
+	              {% endif %}
+              </article>
+            </div>
+            <div class="col-md-4 g-padding-b-40--xs">
+             <div class="g-border-r-1--md g-padding-r-30--md g-padding-r-125--lg">
+	             <div id="news-swiper" class="swiper-container">
+                <div class="swiper-wrapper">
+
+              {% else %}
+                <article class="newsfeed-article g-margin-t-0--xs  g-margin-b-20--xs">
+	              <header class="newsfeed-article_header">
+	                <h3 class="g-font-size-40--sm g-font-weight--600 g-font-family--secondary g-margin-b-10--xs">{{ item.Title }}</h3>
+	                <p class="newsfeed-article_date-time text-uppercase g-font-size-28--sm">{{ item.StartDateTime | Date:'dddd, MMM dd, yyyy | h:mm tt' }}</p>
+	              </header>
+	              <section class="newsfeed-article_content g-margin-b-40--xs">
+		            <p>{{ item.Content | StripHtml | Truncate:120 }}</p>
+		            <p><a href="{{LinkedPages.DetailPage}}?ItemID={{item.Id}}" class="text-uppercase g-font-weight--600">Read More</a></p>
+		            <hr />
+	              </section>
+	            </article>
+              {% endif %}
+              {% endfor %}
+
+                </div>
+                <div class="news-swiper-button-prev swiper-nav-button swiper-button-prev"></div>
+                <div class="news-swiper-button-next swiper-nav-button swiper-button-next"></div>
+            </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="">
+                <h2 class="g-font-size-40--sm g-font-weight--600 g-font-family--secondary g-margin-b-20--xs">Quick Links</h2> 
+                <ul class="list-unstyled">
+                {% definedvalue where:'DefinedTypeId == {{quickLinksDefinedTypeId}}' sort:'Order' %}
+                  {% for value in definedvalueItems %}
+                	<li><a href="{{ value | Attribute:'LinkUrl','RawValue' }}" target="{{ value | Attribute:'LinkTarget' }}" class="se-btn se-btn--light-portal g-letter-spacing--1 uppercase g-margin-b-10--xs btn-block">{{ value.Value }}</a></li>
+                  {% endfor %}
+                {% enddefinedvalue %}
+                </ul>
+              </div>
+            </div>
+        </div>
+		</div>
+  </section>
+  
+  <link rel="stylesheet" type="text/css" href="/Themes/SECC2019Portal/Styles/swiper/swiper.min.css" />
+	<script type="text/javascript" src="/Themes/SECC2019Portal/Scripts/swiper/swiper.min.js"></script>
+	<!-- Initialize Swiper -->
+	<script type="text/javascript">
+	  var swiper = new Swiper('#news-swiper', {
+	    slideClass: 'newsfeed-article',
+	    slidesPerView: 2,
+	    direction: 'vertical',
+	    //centeredSlides: true,
+	    watchSlidesProgress: true,
+	    watchSlidesVisibility: true,
+	    paginationClickable: true,
+	    navigation: {
+	        nextEl: '.news-swiper-button-next',
+	        prevEl: '.news-swiper-button-prev',
+	    },
+	    //scrollbar: '.swiper-scrollbar',
+	    spaceBetween: 0,
+	    hashnav: false,
+	    hashnavWatchState: true,
+	    height: 555,
+	    //loop: true,
+	    // Responsive breakpoints
+/*
+	    breakpoints: {
+	      // when window width is <= 424px
+	      424: {
+	        slidesPerView: 1,
+	      },
+	      // when window width is <= 767px
+	      767: {
+	        slidesPerView: 2,
+	      }
+	    }
+*/
+	  });
+	</script>

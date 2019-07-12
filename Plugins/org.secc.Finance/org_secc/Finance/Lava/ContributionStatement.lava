@@ -3,7 +3,7 @@
 {{ pageTitle | SetPageTitle }}
 <div style="min-width: 1024px">
 	<div class="row">
-		<div class="col-xs-9">
+		<div class="col-xs-8">
 			<h1>{{ StatementStartDate | Date:'yyyy' }} Annual Giving Statement</h1>
 			
 			<hr style="opacity: .5;" />
@@ -21,7 +21,7 @@
 			{% endif %}
 			{{ City }}, {{ State }} {{ PostalCode }}
 		</div>
-		<div class="col-xs-3">
+		<div class="col-xs-4">
 			<div class="row">
 				<div class="col-xs-12 text-center">
 					<div class="clearfix" style="margin-top: 20px">
@@ -36,7 +36,7 @@
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-xs-9">
+		<div class="col-xs-8">
 			{% for transaction in TransactionDetails %}
 				{% if forloop.first %}
 				<h4 class="margin-t-md margin-b-md" style="border-bottom: 2px solid black;">Tax-Deductible contributions for {{ StatementStartDate | Date:'MMM d' }} - {{ StatementEndDate | Date:'MMM d, yyyy' }}</h4>
@@ -65,7 +65,7 @@
 							{% endfor %}
 							{{ transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Value }} #{{ checkNumber }}
 						{% elseif transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid == '928a2e04-c77b-4282-888f-ec549cee026a' %}
-							●●●● ●●●● ●●●● {{ transaction.Transaction.FinancialPaymentDetail.AccountNumberMasked | Right:4 }}
+							&#9679;&#9679;&#9679;&#9679; &#9679;&#9679;&#9679;&#9679; &#9679;&#9679;&#9679;&#9679; {{ transaction.Transaction.FinancialPaymentDetail.AccountNumberMasked | Right:4 }}
 						{% elseif transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid == 'dabee8fd-aedf-43e1-8547-4c97fa14d9b6' %}
 							{{ transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Value }} - {{ transaction.Transaction.FinancialPaymentDetail.AccountNumberMasked | Split:' ' | Index:1 }}
 						{% else %}
@@ -109,15 +109,19 @@
 				{% endif %}
 			{% endfor %}
 		</div>
-		<div class="col-xs-3">
+		<div class="col-xs-4">
 			<h4 class="margin-t-md margin-b-md" style="border-bottom: 2px solid black;">Giving Summary</h4>
 
 			{% for accountsummary in AccountSummary %}
 				<div class="row">
-					<div class="col-xs-8"><strong>{{ accountsummary.AccountName }}</strong></div>
-					<div class="col-xs-4 text-right"><strong>{{ accountsummary.Total | FormatAsCurrency  }}</strong></div>
+					<div class="col-xs-12">
+						<div class="pull-left"><strong>{{ accountsummary.AccountName }}</strong></div>
+						<div class="pull-right"><strong>{{ accountsummary.Total | FormatAsCurrency  }}</strong></div>
+					</div>
 				</div>
-				<br />
+				{% if forloop.last %}
+					<br />
+				{% endif %}
 			 {% endfor %}
 			 <div style="border: 1px solid black; text-align: center">
 				<h1>{{total | FormatAsCurrency }}</h1>
@@ -155,7 +159,10 @@
 				<div class="col-xs-12 padding-t-md">
 					<div class="progress">
 					  <div class="progress-bar" role="progressbar" aria-valuenow="{{ pledge.PercentComplete }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ pledge.PercentComplete }}%;">
+					  {% if pledge.PercentComplete == 0 %}<div style="color:black; padding-left: 5px;">{{ pledge.PercentComplete }}%</div>
+					  {% else %}
 						{{ pledge.PercentComplete }}%
+					  {% endif %}
 					  </div>
 					</div>
 				</div>
@@ -168,7 +175,7 @@
 
 	<hr style="opacity: .5;" />
 	<p class="text-center">
-		Thank you for your continued support of the {{ 'Global' | Attribute:'OrganizationName' }}. If you have any questions about your statement,
-		email giving@secc.org or call 502-253-8707.
+		Thank you for your continued support of the {{ 'Global' | Attribute:'OrganizationName' }}. <br />
+		If you have any questions about your statement, email giving@secc.org or call 502-253-8707.
 	</p>
 </div>

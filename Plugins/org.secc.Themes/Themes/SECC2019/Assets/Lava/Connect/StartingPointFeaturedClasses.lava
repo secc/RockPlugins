@@ -1,0 +1,124 @@
+{% comment %} Grab the campus parameter to display the campus name via lava {% endcomment %}
+{% assign campusParam = 'Global' | PageParameter:'Campus' | EscapeDataString | Replace:'%20','' %}
+{% if campusParam != empty and campusParam != null %}
+    {% campus where:'Public == true' %}
+        {% for campusItem in campusItems %}
+            {% assign campusSlug = campusItem | Attribute: 'Slug' %}
+            {% if campusItem.Name == campusParam or campusSlug == campusParam %}
+                {% comment %} Assigning the Campus Object for all the info. {% endcomment %}
+                {% assign campusObj = campusItem %}
+            {% endif %}
+        {% endfor %}
+    {% endcampus %}
+{% endif %}
+
+{% comment %} Show only the feature class if a campus parameter exists {% endcomment %}
+<div class="container g-padding-x-50--xs">
+{% if campusParam != '' and campusObj != null %}
+
+    <div class="row g-padding-b-60--xs">
+        {% comment %}
+            Count the amount of occurences there are for this campus.
+            If it's zero, then we're going to hide this section.
+        {% endcomment %}
+        {% assign uniqueCampusOccurences = 0 %}
+        {% for EventItemOccurrence in Event.EventItemOccurrences %}
+            {% assign campus_slug = EventItemOccurrence.Campus | Attribute:'Slug' %}
+            {% assign campusObjSlug = campusObj | Attribute: 'Slug' %}
+            {% if campus_slug == campusObjSlug %}
+                {% assign uniqueCampusOccurences = uniqueCampusOccurences | Plus:1 %}
+            {% endif %}
+        {% endfor %}
+
+        {% comment %} Show the upcoming class if it actually exists {% endcomment %}
+        {% if uniqueCampusOccurences > 0 %}
+        <div class="col-md-7 col-md-push-5 g-padding-y-60--xs">
+            <h2 class="g-font-family--secondary g-padding-b-20--xs">{{ campusObj.Name }} Campus</h2>
+            <p>If you're new to faith, just checking things out, or coming back to church after some time away, Starting Point is a great first step to get connected and find out more about Southeast.</p>
+        </div>
+        <div class="col-md-5 col-md-pull-7 g-padding-y-60--lg">
+            {% assign campuses_list = '' %}
+            {% for EventItemOccurrence in Event.EventItemOccurrences %}
+            {% assign campus_slug = EventItemOccurrence.Campus | Attribute:'Slug' %}
+            {% if campuses_list contains campus_slug %}
+            {% comment %} Display only the first occurence of each campus - so skip this {% endcomment %}
+            {% else %}
+            {% assign campuses_list = campuses_list | Append:',' | Append:campus_slug %}
+            <div class="event-calendar">
+                <div class="clearfix card g-margin-b-20--xs" >
+                    {% include '~~/Assets/Lava/Events/EventItemOccurrence.lava' %}
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+{% else %}
+
+    {% comment %} Show them all {% endcomment %}
+    <div class="row">
+        <div class="col-md-12 text-center g-padding-y-60--xs">
+            <h2 class="g-font-family--secondary g-padding-b-20--xs">Choose a class from your campus below</h2>
+            <p>If you're new to faith, just checking things out, or coming back to church after some time away, Starting Point is a great first step to get connected and find out more about Southeast.</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="isotope_wrap g-margin-b-80--xs">
+            {% assign campuses = '' %}
+            {% for EventItemOccurrence in Event.EventItemOccurrences %}
+                {% assign campus_slug = EventItemOccurrence.Campus | Attribute:'Slug' %}
+                {% if campuses contains campus_slug %}
+                    {% comment %} Display only the first occurence of each campus - so skip this {% endcomment %}
+                {% else %}
+                    {% assign campuses = campuses | Append:',' | Append:campus_slug %}
+                    <div class="isotope_item col-xs-12 col-md-6 col-lg-4 {{campus_slug}}_filter event-calendar">
+                        <div class="clearfix card g-margin-b-20--xs" >
+                            {% include '~~/Assets/Lava/Events/EventItemOccurrence.lava' %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Readmore.js/2.2.0/readmore.min.js"></script>
+    <script>
+        // isotop options and wrapper
+        var $grid = $('.isotope_wrap');
+        var isoOptions = {
+            percentPosition: true,
+            itemSelector: '.isotope_item'
+        };
+
+        $(window).load(function() {
+            // executes when complete page is fully loaded, including all frames, objects and images
+            $('.readmore_dates').readmore({
+                speed: 100,
+                lessLink: '<a href="#" style="top:8px; position:relative;"><h6 class="g-display-inline-block--xs">Show Less Dates<span class="se-carat se-carat--up"></span></h6></a>',
+                moreLink: '<a href="#" style="position:relative;top: -5px; position:relative;"><h6 class="g-display-inline-block--xs">Show All Dates<span class="se-carat se-carat--down"></span></h6></a>',
+                collapsedHeight: 0,
+                beforeToggle: function(tr, el, ex) {
+                    $(el).show();
+                },
+                afterToggle: function(trigger, element, expanded) {
+                    $grid.isotope(isoOptions); // re-initialize
+                }
+            });
+            // Initialize Isotope
+            var $grid = $('.isotope_wrap').isotope({
+                // options
+                percentPosition: true,
+                itemSelector: '.isotope_item',
+                layoutMode: 'fitRows'
+            });
+            // reveal all items after init
+            var $items = $grid.find('.isotope_item');
+            $grid.addClass('is-showing-items')
+            .isotope( 'revealItemElements', $items );
+        });
+    </script>
+
+{% endif %}
+</div>

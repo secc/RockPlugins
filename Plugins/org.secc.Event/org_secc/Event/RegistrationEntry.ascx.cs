@@ -1357,7 +1357,7 @@ namespace RockWeb.Plugins.org_secc.Event
         {
             if (RegistrationState != null)
             {
-                RegistrationState.Registrants.ForEach( r => r.DiscountApplies = false );
+                RegistrationState.Registrants.ForEach( r => r.DiscountApplies = true );
 
                 RegistrationTemplateDiscount discount = null;
                 bool validDiscount = true;
@@ -5488,6 +5488,7 @@ namespace RockWeb.Plugins.org_secc.Event
 
                 foreach (var discount in discounts)
                 {
+                    RegistrationState.Registrants.ForEach( r => r.DiscountApplies = true );
                     bool validDiscount = true;
 
                     if (validDiscount && discount.MinRegistrants.HasValue && RegistrationState.RegistrantCount < discount.MinRegistrants.Value)
@@ -5529,7 +5530,6 @@ namespace RockWeb.Plugins.org_secc.Event
 
                     if (validDiscount && discount.MaxRegistrants.HasValue)
                     {
-                        RegistrationState.Registrants.ForEach( r => r.DiscountApplies = false );
                         for (int i = 0; i < RegistrationState.Registrants.Count; i++)
                         {
                             RegistrationState.Registrants[i].DiscountApplies = i < discount.MaxRegistrants.Value;
