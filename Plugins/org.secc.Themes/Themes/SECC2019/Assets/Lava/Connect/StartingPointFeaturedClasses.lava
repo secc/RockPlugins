@@ -33,7 +33,7 @@
         {% comment %} Show the upcoming class if it actually exists {% endcomment %}
         {% if uniqueCampusOccurences > 0 %}
         <div class="col-md-7 col-md-push-5 g-padding-y-60--xs">
-            <h2 class="g-font-family--secondary">Starting Point at the {{ campusObj.Name }} Campus</h2>
+            <h2 class="g-font-family--secondary g-padding-b-20--xs">{{ campusObj.Name }} Campus</h2>
             <p>If you're new to faith, just checking things out, or coming back to church after some time away, Starting Point is a great first step to get connected and find out more about Southeast.</p>
         </div>
         <div class="col-md-5 col-md-pull-7 g-padding-y-60--lg">
@@ -60,7 +60,7 @@
     {% comment %} Show them all {% endcomment %}
     <div class="row">
         <div class="col-md-12 text-center g-padding-y-60--xs">
-            <h2 class="g-font-family--secondary">Choose a class from your campus below</h2>
+            <h2 class="g-font-family--secondary g-padding-b-20--xs">Choose a class from your campus below</h2>
             <p>If you're new to faith, just checking things out, or coming back to church after some time away, Starting Point is a great first step to get connected and find out more about Southeast.</p>
         </div>
     </div>
@@ -119,6 +119,6 @@
             .isotope( 'revealItemElements', $items );
         });
     </script>
-    
+
 {% endif %}
 </div>
