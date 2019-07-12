@@ -21,10 +21,9 @@ namespace org.secc.GroupManager.Model
     {
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="KioskService"/> class.
+        /// Initializes a new instance of the <see cref="PublishGroup"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
         public PublishGroupService( RockContext context ) : base( context ) { }
-
     }
 }

@@ -20,18 +20,22 @@ using System.Data.Entity.ModelConfiguration;
 using System.Runtime.Serialization;
 using Rock.Data;
 using Rock.Model;
+using Rock.Security;
 
 namespace org.secc.GroupManager.Model
 {
     [Table( "_org_secc_GroupManager_PublishGroup" )]
     [DataContract]
-    public class PublishGroup : Model<PublishGroup>
+    public class PublishGroup : Model<PublishGroup>, ISecured, IRockEntity
     {
         [Index]
         [DataMember]
         public int GroupId { get; set; }
 
         public virtual Group Group { get; set; }
+
+        [DataMember]
+        public string Description { get; set; }
 
         [DataMember]
         public int ImageId { get; set; }
@@ -79,6 +83,16 @@ namespace org.secc.GroupManager.Model
 
         [DataMember]
         public string ConfirmationBody { get; set; }
+
+        [DataMember]
+        public PublishGroupStatus PublishGroupStatus { get; set; }
+    }
+
+    public enum PublishGroupStatus
+    {
+        Pending = 0,
+        Approved = 1,
+        Denied = 2
     }
 
     public partial class PublishGroupConfiguration : EntityTypeConfiguration<PublishGroup>
@@ -86,6 +100,9 @@ namespace org.secc.GroupManager.Model
         public PublishGroupConfiguration()
         {
             this.HasMany( pg => pg.AudienceValues ).WithMany().Map( pg => { pg.MapLeftKey( "PublishGroupdId" ); pg.MapRightKey( "DefinedValueId" ); pg.ToTable( "_org_secc_GroupManager_PublishGroupAudienceValue" ); } );
+            this.HasRequired(pg => pg.ContactPersonAlias).WithMany().HasForeignKey( d => d.ContactPersonAliasId ).WillCascadeOnDelete( false );
+            this.HasRequired( pg => pg.RequestorAlias ).WithMany().HasForeignKey( d => d.RequestorAliasId ).WillCascadeOnDelete( false );
+            this.HasEntitySetName( "PublishGroups" );
         }
     }
 }
