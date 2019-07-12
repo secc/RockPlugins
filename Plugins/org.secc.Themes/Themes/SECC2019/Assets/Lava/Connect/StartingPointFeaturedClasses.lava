@@ -24,8 +24,7 @@
         {% assign uniqueCampusOccurences = 0 %}
         {% for EventItemOccurrence in Event.EventItemOccurrences %}
             {% assign campus_slug = EventItemOccurrence.Campus | Attribute:'Slug' %}
-            {% assign campusObjSlug = campusObj | Attribute: 'Slug' %}
-            {% if campus_slug == campusObjSlug %}
+            {% if campus_slug == campusParam %}
                 {% assign uniqueCampusOccurences = uniqueCampusOccurences | Plus:1 %}
             {% endif %}
         {% endfor %}
