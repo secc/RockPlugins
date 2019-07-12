@@ -122,7 +122,6 @@ namespace RockWeb.Blocks.Event
 
         private void DisplayDetails()
         {
-            int eventItemId = 0;
             RockContext rockContext = new RockContext();
 
             EventItemService eventItemService = new EventItemService( rockContext );
@@ -131,14 +130,10 @@ namespace RockWeb.Blocks.Event
 
             // get the eventItem id if the event item is set via block attribute
             var eventItemAttGuid = GetAttributeValue( "EventItem" ).AsGuid();
-            int eventItemAttId = qry.Where( i => i.Guid == eventItemAttGuid ).Select( i => i.Id ).FirstOrDefault();
-            if ( eventItemAttId > 0 )
-            {
-                eventItemId = eventItemAttId;
-            }
+            int eventItemId = qry.Where( i => i.Guid == eventItemAttGuid ).Select( i => i.Id ).FirstOrDefault();
 
             // get the eventItem id if the event item block attribute isn't set
-            if ( !string.IsNullOrWhiteSpace( PageParameter( "EventItemId" ) ) && eventItemAttId > 0 )
+            if ( eventItemId == 0 &&  !string.IsNullOrWhiteSpace( PageParameter( "EventItemId" ) ) )
             {
                 eventItemId = Convert.ToInt32( PageParameter( "EventItemId" ) );
             }
