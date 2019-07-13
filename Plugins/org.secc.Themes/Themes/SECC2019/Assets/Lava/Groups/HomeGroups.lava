@@ -15,7 +15,7 @@
             <h3 class="g-font-weight--600">Find a Group</h3>
             <p class="g-font-weight--400 g-line-height--sm">Find a group that interests you by selecting a location and/or date.</p>
             <div class="g-display-block--xs">
-                <div id="filtersDemo" class="button-group filter-button-group g-padding-x-10--xs g-display-inline-block--xs g-width-550--xs">
+                <div id="daysOfTheWeek" class="button-group filter-button-group g-padding-x-10--xs g-display-inline-block--xs g-width-550--xs">
                   <a class="button se-btn se-btn--tag uppercase" data-filter="Sunday">S</a>
                   <a class="button se-btn se-btn--tag uppercase" data-filter="Monday">M</a>
                   <a class="button se-btn se-btn--tag uppercase" data-filter="Tuesday">T</a>
@@ -52,7 +52,7 @@
                 {% assign groupLocations = group.GroupLocations %}
                 {% assign childcare = group | Attribute: 'OpentoChildren' %}
 
-                <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar {{ group.Schedule.WeeklyDayOfWeek }}" data-group-filter="{{ group.Campus.Slug }} {{ group.Schedule.WeeklyDayOfWeek }}">
+                <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar" data-campus="{{ group.Campus.Slug }}" data-day="{{ group.Schedule.WeeklyDayOfWeek }}" data-zipcodes="">
                     <div class="clearfix card g-margin-b-20--xs" >
 
                         <div class="caption g-margin-b-40--xs g-padding-x-60--xs g-padding-t-60--xs">
@@ -133,15 +133,14 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Readmore.js/2.2.0/readmore.min.js"></script>
 <script>
 
-    // Initialize Isotope
+    // Initialize Isotope/Groups
     var $grid = $('.isotope_wrap').isotope({
       itemSelector: '.isotope_item',
       percentPosition: true,
       layoutMode: 'fitRows'
     });
-
     if (Modernizr.mq('only all and (max-width: 720px)')) {
-        // don't use isotope or readmore on mobile - it's heavy on JS (breaks old iphones)
+        // Not using isotope or readmore on mobile - it's heavy on JS (breaks old iphones)
         $('.isotope_wrap').addClass('is-showing-items');
     } else {
         var isoOptions = {
@@ -149,37 +148,36 @@
             percentPosition: true,
             layoutMode: 'fitRows'
         };
-
-        $grid.imagesLoaded( function() {
-            // Re-Initialize ReadmoreJS
-            $('.readmore_dates').readmore({
-                speed: 200,
-                lessLink: '<a class="pull-right uppercase" style="padding: 2rem;width: 100%;text-align: right;"><span class="se-carat se-carat--up"></span></a>',
-                moreLink: '<a class="pull-right" style="display: inline-block;padding: 2rem;position: relative;height: 7rem;width: 100%;margin-top: -6rem;"><span class="pull-right se-carat se-carat--down" style="margin-top: 2rem;"></span></a>',
-                embedCSS: false,
-                collapsedHeight: 0,
-                beforeToggle: function(tr, el, ex) {
-                    $(el).show();
-                },
-                afterToggle: function(trigger, element, expanded) {
-                    $('.isotope_wrap').isotope(isoOptions); // re-initialize
-                }
-            });
-            // init Isotope after all images have loaded
-            $grid.addClass('is-showing-items').isotope(isoOptions);
+        // initialize ReadmoreJS
+        $('.readmore_dates').readmore({
+            speed: 200,
+            lessLink: '<a class="pull-right uppercase" style="padding: 2rem;width: 100%;text-align: right;"><span class="se-carat se-carat--up"></span></a>',
+            moreLink: '<a class="pull-right" style="display: inline-block;padding: 2rem;position: relative;height: 7rem;width: 100%;margin-top: -6rem;"><span class="pull-right se-carat se-carat--down" style="margin-top: 2rem;"></span></a>',
+            embedCSS: false,
+            collapsedHeight: 0,
+            beforeToggle: function(tr, el, ex) {
+                $(el).show();
+            },
+            afterToggle: function(trigger, element, expanded) {
+                $('.isotope_wrap').isotope(isoOptions); // re-initialize
+            }
         });
+        // init Isotope
+        $grid.addClass('is-showing-items').isotope(isoOptions);
     }
 
-    // bind filter button click
-    $filtersDemo = $('#filtersDemo').on( 'click', '.button', function(e) {
+    // bind to buttons related to the day of the week
+    $daysOfTheWeek = $('#daysOfTheWeek').on( 'click', '.button', function(e) {
       e.preventDefault();
 
       var $this = $( this );
       var filterValue = $this.attr('data-filter');
       $this.toggleClass('active');
-      runFilters(filterValue);
+      buildDaysFilters(filterValue);
+      runFilters();
     });
 
+    // bind to campus dropdown selection
     var campusSelected = '';
     $('.select2-campuses').select2({
       placeholder: 'Location'
@@ -188,60 +186,92 @@
         e.preventDefault();
         var data = e.params.data;
         campusSelected = $(data.element).data('campus');
+        buildCampusFilters(campusSelected);
         runFilters();
     });
 
-    var filters_selected = [];
-    function runFilters(data_filter) {
-
-        // toggle filter selections
-        if (~filters_selected.indexOf(data_filter)) {
-            // remove from array
-            filters_selected.splice($.inArray(data_filter, filters_selected),1);
-        } else {
-            // add to array
-            if (data_filter != '' && data_filter != undefined) {
-                filters_selected.push(data_filter);
-            }
+    // handling campuses selected
+    var campus_filters_selected = [];
+    function buildCampusFilters(campus) {
+        // reset campus array, campuses are only selected one at a time
+        campus_filters_selected = [];
+        // add to array
+        if (campus != '' && campus != undefined) {
+            campus_filters_selected.push(campus);
         }
-
-        var filters_selected_size = filters_selected.length;
-        var filterSelectors = "div"
-
-        // if week days are selected
-        if (filters_selected_size != 0) {
-            // make string of selectors with array
-
-            console.log('filters_selected_size is '+ filters_selected_size);
-            var loopIndex = 1
-            filters_selected.forEach(function(item, index, array) {
-                // show just campus groups if campus selected - otherwise just day(s)
-                if (campusSelected != '') {
-                    filterSelectors += '[data-group-filter*="'+campusSelected+'"]'
-                }
-                if (item != undefined) {
-                    filterSelectors += '[data-group-filter*="'+item+'"]'
-                }
-                // no comma on the first, and no comma on the last
-                if (array.length > 1 && loopIndex != array.length) {
-                    filterSelectors += ','
-                }
-                loopIndex++;
-            });
-
-        } else if (campusSelected != '') {
-            // show just a campus filter if selected
-            filterSelectors += '[data-group-filter*="'+campusSelected+'"]';
-        }
-
-        console.log(filterSelectors);
-
-        $grid.isotope({
-          itemSelector: '.isotope_item',
-          percentPosition: true,
-          layoutMode: 'fitRows',
-          filter: filterSelectors
-        });
+        console.log(campus_filters_selected);
     }
 
+    // handling days selected
+    var days_selected = [];
+    function buildDaysFilters(day) {
+        if (~days_selected.indexOf(day)) {
+            // remove from array (toggling)
+            days_selected.splice($.inArray(day, days_selected),1);
+        } else {
+            // add to array
+            if (day != '' && day != undefined) {
+                days_selected.push(day);
+            }
+        }
+        console.log(days_selected);
+     }
+
+     function runFilters() {
+         var filterSelectors = 'div';
+
+         // if week days are selected
+         if (days_selected.length != 0) {
+             filterSelectors += filterStringify(days_selected, 'day');
+             filterSelectors += ',';
+         }
+
+         if (filterSelectors == 'div') {
+             // add only campus if there's nothing else selected
+             if (campus_filters_selected.length != 0) {
+                 filterSelectors += filterStringify(campus_filters_selected, 'campus');
+                 filterSelectors += ',';
+             }
+         }
+
+         // remove the very last comma.
+         var lastChar = filterSelectors.slice(-1);
+         if(lastChar == ',') {
+           filterSelectors = filterSelectors.slice(0, -1);
+         }
+
+         console.log('filters: '+filterSelectors);
+
+         $grid.isotope({
+           itemSelector: '.isotope_item',
+           percentPosition: true,
+           layoutMode: 'fitRows',
+           filter: filterSelectors
+         });
+     }
+
+     function filterStringify(arrayList, selector) {
+         varstr = '';
+         if (arrayList.length != 0) {
+             // make string of selectors
+             var loopIndex = 1
+             arrayList.forEach(function(item, index, array) {
+
+                 // show campus groups with filters if campus is selected - otherwise just fitler items(s)
+                 if (campus_filters_selected.length != 0 && selector != 'campus') {
+                     varstr += '[data-campus*="'+campus_filters_selected[0]+'"]'
+                 }
+
+                 if (item != '' && item != undefined) {
+                     varstr += '[data-'+selector+'*="'+item+'"]'
+                 }
+                 // no comma on the first, and no comma on the last
+                 if (arrayList.length > 1 && loopIndex != arrayList.length) {
+                     varstr += ','
+                 }
+                 loopIndex++;
+             });
+         }
+         return varstr;
+     }
 </script>
