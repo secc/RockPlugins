@@ -168,6 +168,8 @@ namespace RockWeb.Plugins.GroupManager
             if ( IsUserAuthorized( Rock.Security.Authorization.EDIT ) )
             {
                 publishGroup.PublishGroupStatus = PublishGroupStatus.Approved;
+                publishGroup.Group.IsActive = true;
+                publishGroup.Group.IsPublic = true;
                 //remove all other publish groups for this computer
                 publishGroupService.DeleteRange( publishGroupService.Queryable().Where( pg => pg.GroupId == publishGroup.GroupId && pg.Id != publishGroup.Id ) );
             }
