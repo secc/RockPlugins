@@ -14,7 +14,7 @@ namespace org.secc.GroupManager.Migrations
                                 Id = c.Int( nullable: false, identity: true ),
                                 GroupId = c.Int( nullable: false ),
                                 Description = c.String(),
-                                ImageId = c.Int( nullable: false ),
+                                ImageId = c.Int( nullable: true ),
                                 StartDateTime = c.DateTime( nullable: false ),
                                 EndDateTime = c.DateTime( nullable: false ),
                                 RequestorAliasId = c.Int( nullable: false ),
@@ -38,7 +38,7 @@ namespace org.secc.GroupManager.Migrations
                             .PrimaryKey( t => t.Id )
                             .ForeignKey( "dbo.PersonAlias", t => t.ContactPersonAliasId )
                             .ForeignKey( "dbo.PersonAlias", t => t.CreatedByPersonAliasId )
-                            .ForeignKey( "dbo.Group", t => t.GroupId, cascadeDelete: true )
+                            .ForeignKey( "dbo.Group", t => t.GroupId )
                             .ForeignKey( "dbo.BinaryFile", t => t.ImageId, cascadeDelete: true )
                             .ForeignKey( "dbo.PersonAlias", t => t.ModifiedByPersonAliasId )
                             .ForeignKey( "dbo.PersonAlias", t => t.RequestorAliasId )

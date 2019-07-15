@@ -38,7 +38,7 @@ namespace org.secc.GroupManager.Model
         public string Description { get; set; }
 
         [DataMember]
-        public int ImageId { get; set; }
+        public int? ImageId { get; set; }
         public BinaryFile Image { get; set; }
 
         [Index]
@@ -64,7 +64,7 @@ namespace org.secc.GroupManager.Model
         [Index]
         [DataMember]
         public int ContactPersonAliasId { get; set; }
-        public PersonAlias ContactPersonAlias { get; set; }
+        public virtual PersonAlias ContactPersonAlias { get; set; }
 
         [DataMember]
         public string ContactEmail { get; set; }
@@ -100,8 +100,6 @@ namespace org.secc.GroupManager.Model
         public PublishGroupConfiguration()
         {
             this.HasMany( pg => pg.AudienceValues ).WithMany().Map( pg => { pg.MapLeftKey( "PublishGroupdId" ); pg.MapRightKey( "DefinedValueId" ); pg.ToTable( "_org_secc_GroupManager_PublishGroupAudienceValue" ); } );
-            this.HasRequired(pg => pg.ContactPersonAlias).WithMany().HasForeignKey( d => d.ContactPersonAliasId ).WillCascadeOnDelete( false );
-            this.HasRequired( pg => pg.RequestorAlias ).WithMany().HasForeignKey( d => d.RequestorAliasId ).WillCascadeOnDelete( false );
             this.HasEntitySetName( "PublishGroups" );
         }
     }
