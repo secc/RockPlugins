@@ -26,7 +26,7 @@
                 </div>
                 <div class="g-width-600--xs g-padding-x-50--xs g-display-inline-block--xs">
                     <select class="select2-campuses" name="campus">
-                        <option value="allCampuses" data-shortcode="SE" data-campus="" {% if selectedCampus == null %} selected="selected"{% endif %}>All Locations</option>
+                        <option value="allCampuses" data-shortcode="SE" data-campus="" {% if selectedCampus == null %} selected="selected"{% endif %}>All Campuses</option>
                         {% for campus in Campuses %}
                             {% assign publicCampus = campus | Attribute:'Public' %}
                             {% if publicCampus == 'Yes' %}
@@ -37,7 +37,24 @@
                         {% endfor %}
                     </select>
                 </div>
+
+                <div class="g-width-600--xs g-padding-x-50--xs g-display-inline-block--xs">
+                    <select class="select2-categories js-example-basic-multiple" name="categories[]" multiple="multiple">
+                    <option value="allMinistries">Categories</option>
+
+                    {% definedvalue where:'DefinedTypeId==16' %}
+                        {% assign definedvalueItemsSorted = definedvalueItems | Sort: 'Order' %}
+                        {% for definedValue in definedvalueItemsSorted %}
+                            {% if definedValue != '' %}
+                                <option data-category="{{ definedValue }}" value="{{ definedValue.Id }}">{{ definedValue.Value | Capitalize }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    {% enddefinedvalue %}
+
+                    </select>
+                </div>
             </div>
+
         </div>
     </div>
 </div>
@@ -50,9 +67,11 @@
 
                 {% assign groupUrl = group.Campus | Attribute:'Slug' %}
                 {% assign groupLocations = group.GroupLocations %}
-                {% assign childcare = group | Attribute: 'OpentoChildren' %}
+                {% assign otc = group | Attribute: 'OpentoChildren' %}
+                {% assign handicapAcc = group | Attribute: 'HandicappedAccessible' %}
+                {% assign neightborhoodName = group | Attribute: 'NeighborhoodName' %}
 
-                <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar" data-campus="{{ group.Campus.Slug }}" data-day="{{ group.Schedule.WeeklyDayOfWeek }}" data-zipcodes="">
+                <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar" data-campus="{{ group.Campus.Slug }}" data-day="{{ group.Schedule.WeeklyDayOfWeek }}" data-handicap-accessible="{{ handicapAcc | Downcase }}" data-open-to-children="{{ otc | Downcase }}">
                     <div class="clearfix card g-margin-b-20--xs" >
 
                         <div class="caption g-margin-b-40--xs g-padding-x-60--xs g-padding-t-60--xs">
@@ -69,7 +88,7 @@
 
                         <div class="g-margin-b-20--xs" style="display: inline-block; width: 100%;">
 
-                            <div class="event-items col-xs-4 g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter {% if childcare != 'Yes' %}col-xs-offset-2{% endif %}">
+                            <div class="event-items col-xs-4 g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter {% if otc != 'Yes' %}col-xs-offset-2{% endif %}">
                                 <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
                                 <div>
                                     <ul class="list-unstyled" style="margin: 0;">
@@ -81,10 +100,36 @@
                                 </div>
                             </div>
 
-                            <div class="event-items col-xs-4 g-padding-x-10--xs {% if childcare == 'Yes' %}g-ver-divider__solid__r--gray-lighter{% endif %}">
-                                 <div class="event-icon --location">
-                                    {% assign locationsCt = groupLocations | Size %}
-                                    {% if locationsCt > 1 %}
+                            {%- assign meetingType = '' -%}
+                            {%- assign meetingLocations = 0 -%}
+                            {%- assign groupZipCode = ''-%}
+                            {%- for groupLocation in groupLocations -%}
+                                {%- case groupLocation.GroupLocationTypeValueId -%}
+                                    {%- when '209' -%}
+                                    {% comment %} 209 == Meeting Location {% endcomment %}
+                                        {% assign groupZipCode = groupLocation.Location.PostalCode %}
+                                        {% assign meetingLocations = meetingLocations | Plus:1 %}
+                                        {% assign meetingType = groupLocation.GroupLocationTypeValueId %}
+                                    {%- when '19' and meetingType == '' -%}
+                                    {% comment %} 19 == Home {% endcomment %}
+                                        {% assign groupZipCode = groupLocation.Location.PostalCode %}
+                                        {% assign meetingLocations = meetingLocations | Plus:1 %}
+                                        {% assign meetingType = groupLocation.GroupLocationTypeValueId %}
+                                    {%- when null and meetingType == '' -%}
+                                    {% comment %} undefined {% endcomment %}
+                                        {% assign groupZipCode = groupLocation.Location.PostalCode %}
+                                        {% assign meetingLocations = meetingLocations | Plus:1 %}
+                                        {% assign meetingType = groupLocation.GroupLocationTypeValueId %}
+                                    {%- else -%}
+                                        {% comment %} skipping any other group types
+                                        since we don't know what they are, or it's
+                                        a geographic area {% endcomment %}
+                                {%- endcase -%}
+                            {%- endfor -%}
+
+                            <div class="event-items col-xs-4 g-padding-x-10--xs {% if otc == 'Yes' %}g-ver-divider__solid__r--gray-lighter{% endif %}">
+                                 <div class="event-icon --location" {% if handicapAcc == 'Yes'%}style="left:-12px;"{% endif%}>
+                                    {% if meetingLocations > 1 %}
                                     <span style="
                                         background-color: black;
                                         border-radius: 100%;
@@ -97,21 +142,44 @@
                                         color: white;
                                         font-weight: 800;
                                         font-size: 1rem;
-                                    ">{{ groupLocations | Size }}</span>
+                                    ">{{ meetingLocations }}</span>
+                                    {% endif%}
+
+                                    {% if handicapAcc == 'Yes'%}
+                                    <span style="
+                                        border-radius: 20px;
+                                        width: 24px;
+                                        height: 24px;
+                                        display: block;
+                                        position: absolute;
+                                        bottom: 4px;
+                                        right: -20px;
+                                        color: #FFFFFF;
+                                        font-weight: 800;
+                                        font-size: 1.2rem;
+                                        vertical-align: middle;
+                                        padding-top: 3px;
+                                        background-color: #000000;
+                                    ">
+                                    <i class="fas fa-wheelchair"></i>
+                                    </span>
                                     {% endif%}
                                  </div>
 
-                                {% if locationsCt > 1 %}
-                                     <h6>This group has multiple locations. Contact for more information.</h6>
-                                {% else %}
-                                    {% for groupLocation in groupLocations %}
-                                    <h6>{{ groupLocation.Location.Street1 }}</h6>
-                                    {% endfor %}
-                                {% endif %}
+                                <h6>
+                                    {% if meetingLocations > 1 %}
+                                         This group has multiple locations. Contact for more information.
+                                    {% elseif meetingLocations == 1 %}
+                                        {% if neightborhoodName != 'none'%}{{ neightborhoodName }}<br />{% endif %}
+                                        {% if groupZipCode != ''%}{{ groupZipCode | Truncate:5,'' }}{% endif%}
+                                    {% else %}
+                                        A location has not been definted yet. Contact for more information.
+                                    {% endif %}
+                                </h6>
                             </div>
 
-                            <!-- ChildCare -->
-                            {% if childcare == 'Yes' %}
+                            <!-- otc -->
+                            {% if otc == 'Yes' %}
                             <div class="event-items col-xs-4 g-padding-x-10--xs">
                                 <div class="event-icon --teddy-bear"><!-- Teddy Bear SVG Image --></div>
                                 <h6>Open to<br> Children</h6>
@@ -188,6 +256,19 @@
         campusSelected = $(data.element).data('campus');
         buildCampusFilters(campusSelected);
         runFilters();
+    });
+
+    // bind to campus dropdown selection
+    var categorySelected = '';
+    $('.select2-categories').select2({
+      placeholder: 'Category'
+    });
+    $('.select2-categories').on('select2:select', function (e) {
+        e.preventDefault();
+        var data = e.params.data;
+        categoriesSelected = $(data.element).data('Categories');
+        //buildCampusFilters(campusSelected);
+        //runFilters();
     });
 
     // handling campuses selected
