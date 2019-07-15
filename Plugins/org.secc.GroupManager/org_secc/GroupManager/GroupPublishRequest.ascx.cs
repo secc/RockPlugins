@@ -19,6 +19,7 @@ using System.ComponentModel;
 using System.Linq;
 using org.secc.GroupManager.Model;
 using Rock;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
@@ -30,9 +31,11 @@ namespace RockWeb.Plugins.GroupManager
     [Category( "SECC > Groups" )]
     [Description( "Block for camp leaders to see their group." )]
 
+    [WorkflowTypeField( "Request Workflow", "Workflow to use to use if a new request has been made." )]
+    [WorkflowTypeField( "Complete Workflow", "Workflow to use once the request has been approved or denied." )]
+
     public partial class GroupPublishRequest : RockBlock
     {
-        public PublishGroup PublishGroup { get; set; }
 
         /// <summary>
         /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
@@ -42,11 +45,11 @@ namespace RockWeb.Plugins.GroupManager
         {
             if ( !Page.IsPostBack )
             {
-                GetPublishGroup();
-                if ( PublishGroup != null )
+                var publishGroup = GetPublishGroup();
+                if ( publishGroup != null )
                 {
                     pnlEdit.Visible = true;
-                    DisplayForm();
+                    DisplayForm( publishGroup );
                 }
                 else
                 {
@@ -55,38 +58,43 @@ namespace RockWeb.Plugins.GroupManager
             }
         }
 
-        private void DisplayForm()
+        private void DisplayForm( PublishGroup publishGroup )
         {
-            ddlAudience.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.MARKETING_CAMPAIGN_AUDIENCE_TYPE.AsGuid() ) );
-            ltGroupName.Text = PublishGroup.Group.Name;
-            tbDescription.Text = PublishGroup.Description.IsNotNullOrWhiteSpace() ? PublishGroup.Description : PublishGroup.Group.Description;
-
-            drPublishDates.UpperValue = PublishGroup.StartDateTime;
-            drPublishDates.LowerValue = PublishGroup.EndDateTime;
-            if ( PublishGroup.ContactPersonAlias != null )
+            if ( IsUserAuthorized( Rock.Security.Authorization.EDIT ) )
             {
-                pContactPerson.SetValue( PublishGroup.ContactPersonAlias.Person );
+                iGroupImage.Required = true;
             }
-            tbContactEmail.Text = PublishGroup.ContactEmail;
-            tbContactPhoneNumber.Text = PublishGroup.ContactPhoneNumber;
-            tbConfirmationFromName.Text = PublishGroup.ConfirmationFromName;
-            tbConfirmationFromEmail.Text = PublishGroup.ConfirmationEmail;
-            tbConfirmationSubject.Text = PublishGroup.ConfirmationSubject;
-            ceConfirmationBody.Text = PublishGroup.ConfirmationBody;
 
-            ddlAudience.SetValues( PublishGroup.AudienceValues.Select( i => i.ToString() ) );
+            ddlAudience.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.MARKETING_CAMPAIGN_AUDIENCE_TYPE.AsGuid() ) );
+            ltGroupName.Text = publishGroup.Group.Name;
+            tbDescription.Text = publishGroup.Description.IsNotNullOrWhiteSpace() ? publishGroup.Description : publishGroup.Group.Description;
+            iGroupImage.BinaryFileId = publishGroup.ImageId;
+            drPublishDates.UpperValue = publishGroup.StartDateTime;
+            drPublishDates.LowerValue = publishGroup.EndDateTime;
+            if ( publishGroup.ContactPersonAlias != null )
+            {
+                pContactPerson.SetValue( publishGroup.ContactPersonAlias.Person );
+            }
+            tbContactEmail.Text = publishGroup.ContactEmail;
+            tbContactPhoneNumber.Text = publishGroup.ContactPhoneNumber;
+            tbConfirmationFromName.Text = publishGroup.ConfirmationFromName;
+            tbConfirmationFromEmail.Text = publishGroup.ConfirmationEmail;
+            tbConfirmationSubject.Text = publishGroup.ConfirmationSubject;
+            ceConfirmationBody.Text = publishGroup.ConfirmationBody;
+
+            ddlAudience.SetValues( publishGroup.AudienceValues.Select( i => i.Id.ToString() ) );
         }
 
-        private void GetPublishGroup( RockContext rockContext = null )
+        private PublishGroup GetPublishGroup( RockContext rockContext = null, PublishGroupService publishGroupService = null )
         {
             rockContext = rockContext ?? new RockContext();
-            PublishGroupService publishGroupService = new PublishGroupService( rockContext );
+            publishGroupService = publishGroupService ?? new PublishGroupService( rockContext );
             if ( PageParameter( "PublishGroupId" ).IsNotNullOrWhiteSpace() )
             {
-                PublishGroup = publishGroupService.Get( PageParameter( "PublishGroupId" ).AsInteger() );
-                if ( PublishGroup != null )
+                var publishGroup = publishGroupService.Get( PageParameter( "PublishGroupId" ).AsInteger() );
+                if ( publishGroup != null )
                 {
-                    return;
+                    return publishGroup;
                 }
             }
 
@@ -97,24 +105,25 @@ namespace RockWeb.Plugins.GroupManager
                 var group = groupService.Get( groupId );
                 if ( group != null )
                 {
-                    PublishGroup = publishGroupService.Queryable()
+                    var publishGroup = publishGroupService.Queryable()
                     .Where( pg => pg.GroupId == groupId )
                     .ToList()
                     .LastOrDefault();
 
-                    if ( PublishGroup != null )
+                    if ( publishGroup != null )
                     {
-                        return;
+                        return publishGroup;
                     }
 
-                    PublishGroup = new PublishGroup
+                    return new PublishGroup
                     {
                         PublishGroupStatus = PublishGroupStatus.Pending,
                         Group = group,
-                        RequestorAlias = CurrentPersonAlias
+                        RequestorAliasId = CurrentPersonAliasId.Value
                     };
                 }
             }
+            return null;
         }
 
         protected void gpGroup_SelectItem( object sender, EventArgs e )
@@ -124,34 +133,57 @@ namespace RockWeb.Plugins.GroupManager
 
         protected void btnSave_Click( object sender, EventArgs e )
         {
-
             RockContext rockContext = new RockContext();
-            GetPublishGroup( rockContext );
             PublishGroupService publishGroupService = new PublishGroupService( rockContext );
+            var publishGroup = GetPublishGroup( rockContext, publishGroupService );
 
-            if ( PublishGroup.PublishGroupStatus == PublishGroupStatus.Approved )
+            if ( publishGroup.PublishGroupStatus == PublishGroupStatus.Approved )
             {
-                PublishGroup = ( PublishGroup ) PublishGroup.Clone();
-                PublishGroup.Guid = Guid.NewGuid();
-                PublishGroup.Id = 0;
-                publishGroupService.Add( PublishGroup );
+                publishGroup = ( PublishGroup ) publishGroup.Clone();
+                publishGroup.Guid = Guid.NewGuid();
+                publishGroup.Id = 0;
+                publishGroupService.Add( publishGroup );
             }
 
-            PublishGroup.PublishGroupStatus = PublishGroupStatus.Pending;
-            PublishGroup.Description = tbDescription.Text;
-            PublishGroup.StartDateTime = drPublishDates.UpperValue.Value;
-            PublishGroup.EndDateTime = drPublishDates.LowerValue.Value;
-            PublishGroup.AudienceValues = GetSelectedAudiences( rockContext );
-            PublishGroup.ContactPersonAliasId = pContactPerson.PersonAliasId.Value;
-            PublishGroup.RequestorAliasId = CurrentPersonAliasId.Value;
-            PublishGroup.ContactEmail = tbContactEmail.Text;
-            PublishGroup.ContactPhoneNumber = tbContactPhoneNumber.Text;
-            PublishGroup.ConfirmationFromName = tbConfirmationFromName.Text;
-            PublishGroup.ConfirmationEmail = tbConfirmationFromEmail.Text;
-            PublishGroup.ConfirmationSubject = tbConfirmationSubject.Text;
-            PublishGroup.ConfirmationBody = ceConfirmationBody.Text;
+            publishGroup.ImageId = iGroupImage.BinaryFileId;
+            publishGroup.PublishGroupStatus = PublishGroupStatus.Pending;
+            publishGroup.Description = tbDescription.Text;
+            publishGroup.StartDateTime = drPublishDates.UpperValue.Value;
+            publishGroup.EndDateTime = drPublishDates.LowerValue.Value;
+            publishGroup.AudienceValues = GetSelectedAudiences( rockContext );
+            publishGroup.ContactPersonAliasId = pContactPerson.PersonAliasId.Value;
+            publishGroup.RequestorAliasId = CurrentPersonAliasId.Value;
+            publishGroup.ContactEmail = tbContactEmail.Text;
+            publishGroup.ContactPhoneNumber = tbContactPhoneNumber.Text;
+            publishGroup.ConfirmationFromName = tbConfirmationFromName.Text;
+            publishGroup.ConfirmationEmail = tbConfirmationFromEmail.Text;
+            publishGroup.ConfirmationSubject = tbConfirmationSubject.Text;
+            publishGroup.ConfirmationBody = ceConfirmationBody.Text;
+
+            if ( publishGroup.Id == 0 )
+            {
+                publishGroupService.Add( publishGroup );
+            }
+
+            if ( IsUserAuthorized( Rock.Security.Authorization.EDIT ) )
+            {
+                publishGroup.PublishGroupStatus = PublishGroupStatus.Approved;
+                //remove all other publish groups for this computer
+                publishGroupService.DeleteRange( publishGroupService.Queryable().Where( pg => pg.GroupId == publishGroup.GroupId && pg.Id != publishGroup.Id ) );
+            }
 
             rockContext.SaveChanges();
+
+            if ( IsUserAuthorized( Rock.Security.Authorization.EDIT ) )
+            {
+                publishGroup.LaunchWorkflow( GetAttributeValue( "CompleteWorkflow" ).AsGuidOrNull() );
+            }
+            else
+            {
+                publishGroup.LaunchWorkflow( GetAttributeValue( "RequestWorkflow" ).AsGuidOrNull() );
+            }
+
+            NavigateToParentPage();
         }
 
         private ICollection<DefinedValue> GetSelectedAudiences( RockContext rockContext )

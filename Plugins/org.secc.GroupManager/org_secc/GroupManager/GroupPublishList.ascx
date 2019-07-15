@@ -2,10 +2,10 @@
 
 <asp:UpdatePanel runat="server">
     <ContentTemplate>
-        <Rock:Grid runat="server" ID="gGroups">
+        <Rock:Grid runat="server" ID="gGroups" OnRowSelected="gGroups_RowSelected" DataKeyNames="Id">
             <Columns>
                 <Rock:RockBoundField HeaderText="Group" DataField="Group.Name" />
-                <Rock:PersonField HeaderText="Requestor" DataField="ContactPersonAlias.Person.FullName" />
+                <Rock:PersonField HeaderText="Contact Person" DataField="ContactPersonAlias.Person.FullName" />
                 <Rock:DateField HeaderText="Start Date" DataField="StartDateTime" />
                 <Rock:DateField HeaderText="End Date" DataField="EndDateTime" />
                 <Rock:EnumField HeaderText="Status" DataField="PublishGroupStatus" />

@@ -35,9 +35,10 @@ namespace RockWeb.Plugins.GroupManager
     [Category( "SECC > Groups" )]
     [Description( "List of publish groups" )]
 
+    [LinkedPage( "Publish Group Detail Page" )]
+
     public partial class GroupPublishList : RockBlock
     {
-
         /// <summary>
         /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
         /// </summarysni>
@@ -56,6 +57,12 @@ namespace RockWeb.Plugins.GroupManager
             PublishGroupService publishGroupService = new PublishGroupService( rockContext );
             gGroups.DataSource = publishGroupService.Queryable().ToList();
             gGroups.DataBind();
+        }
+
+        protected void gGroups_RowSelected( object sender, Rock.Web.UI.Controls.RowEventArgs e )
+        {
+            NavigateToLinkedPage( "PublishGroupDetailPage", new Dictionary<string, string> { { "PublishGroupId", e.RowKeyValue.ToString() } } );
+
         }
     }
 }
