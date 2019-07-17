@@ -20,7 +20,7 @@
 
   .select2-search--dropdown {
     .select2-search__field {
-      border: 1px solid rgba(239, 239, 239, 0.5);
+      border: 3px solid rgba(239, 239, 239, 0.5);
     }
     .select2-search__field:focus {
       outline: 0px;
@@ -95,8 +95,7 @@
   }
 
   .select2-results__option--highlighted[aria-selected] {
-    background-color: #c4c4c4;
-    color: white;
+    background-color: #e5e4e4;
   }
 
   .select2-results__group {
