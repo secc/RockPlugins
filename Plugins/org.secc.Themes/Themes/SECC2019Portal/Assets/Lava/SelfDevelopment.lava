@@ -60,7 +60,7 @@
 	                    
 	                {% endif %}
 	            {% endfor %}
-	        {% enddefinedvalue %}
+	        {% endcontentchannelitem %}
 	        </div>
         </div>
     </div>	
