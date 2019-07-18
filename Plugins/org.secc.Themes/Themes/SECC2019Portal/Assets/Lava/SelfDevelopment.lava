@@ -29,7 +29,7 @@
         <div class="row g-padding-b-150--xs">
 	        <div class="col-xs-12">
 		        <div class="block-grid block-grid-xs-2 block-grid-sm-3">
-								{% contentchannelitem where:'Id == 54 && DevelopmentType == {{typeName}}' %}
+								{% contentchannelitem where:'ContentChannelId == 54 && DevelopmentType == {{typeName}}' %}
 	                {% for Item in contentchannelitemItems %}
 	                {% assign DevelopmentType = Item | Attribute:"DevelopmentType" %}
 	                
@@ -37,11 +37,15 @@
 	                  	
 	                  {%- assign colPos = forloop.index0 | Modulo:3 | Plus:1 -%}
 										{%- assign rowPos = forloop.index | DividedBy:3 | Ceiling -%}
-
+                    {%- assign trainingLink = Item | Attribute:"TrainingLink","RawValue" %}
 										<div class='block-grid-item event-calendar' style="-ms-grid-row:{{rowPos}};-ms-grid-column:{{colPos}};">
 											<article class="g-margin-x-40--xs g-margin-x-20--md card course-image-overlay{% if trainingTaken == true %}-taken{% endif %}">
 	                    	<div>
+                        {% if trainingLink != "" %}
 	                        <a class="hover_icon hover_icon_link" href="{{Item | Attribute:"TrainingLink","RawValue"}}">
+                        {% else %}
+	                        <a class="hover_icon hover_icon_link" href="{{ LinkedPages.DetailPage }}?ItemId={{Item.Id}}">                        
+                        {% endif %}
 	                            <img class="img-responsive g-width-100-percent--xs" alt="{{ Item.Value }}" src="/GetImage.ashx?guid={{Item | Attribute:'Image','RawValue'}}&w=568&h=420&mode=crop&scale=both" style="margin: 0 auto">
 	                        </a>
 		                    </div>
@@ -49,8 +53,12 @@
 				                <div class="g-margin-x-30--xs g-margin-x-0--md">
 				                    <div class="clearfix">
 				                        <div class="g-padding-x-60--xs g-padding-y-80--xs text-center">
-				                            <h3 class="g-font-weight--700">{{ Item.Value }}</h3>
-																		<div class="truncate">{{ Item.Description }}</div>
+  				                        {% if trainingLink != "" %}
+				                            <a class="link--hover-underscore" href="{{Item | Attribute:"TrainingLink","RawValue"}}">
+				                          {% else %}
+				                            <a class="link--hover-underscore" href="{{ LinkedPages.DetailPage }}?ItemId={{Item.Id}}">
+				                          {% endif %}
+  				                          <h5 class="uppercase g-font-weight--500 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">{{ Item.Title }}</h5></a>
 				                        </div>
 				                    </div>
 				                </div>
