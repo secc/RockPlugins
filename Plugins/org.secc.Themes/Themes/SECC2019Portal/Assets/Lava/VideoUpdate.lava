@@ -24,7 +24,7 @@
                     {% endexecute %}
                   {% endcapture %}
                     <div class="swiper-slide" style="background-image: url('{{ thumbnailUrl | Trim }}')">
-                        <a href="{{LinkedPages.DetailPage}}?ItemID={{item.Id}}" class="episode-button">
+                        <a href="{{LinkedPages.DetailPage}}?ItemID={{post.Id}}" class="episode-button">
                             <div class="slide_content">
                                 <h2>{{ post.Title }}</h2>
                                 <p>{{ post.Content|StripHtml|Truncate:142 }}</p>
