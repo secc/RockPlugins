@@ -1,0 +1,23 @@
+{% attribute id:'81913' %}
+  {% for aq in attribute.AttributeQualifiers %}
+    {% if aq.Key == "values" %}
+      {% assign documentCategory = aq.Value | Split:',' %}
+    {% endif %}
+  {% endfor %}
+{% endattribute %}
+
+{[ faq ]}
+{% for category in documentCategory %}
+  [[ item title:'{{ category }}' ]]
+  <ul>
+{% assign ctgyName = category | Trim %}
+{% for Item in Items %}
+{% assign documentCategory = Item | Attribute:"Category" %}
+{% if documentCategory == {{ctgyName}} %}
+  <li>{{ Item.Title }} - {{ Item | Attribute:"File" }}</li>
+{% endif %}
+{% endfor %}
+  </ul>
+  [[ enditem ]]
+{% endfor %}
+{[ endfaq ]}
