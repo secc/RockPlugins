@@ -70,6 +70,18 @@ namespace org.secc.GroupManager.Model
         public string ContactEmail { get; set; }
 
         [DataMember]
+        public bool RequiresRegistration { get; set; } = false;
+
+        [DataMember]
+        public string RegistrationLink { get; set; }
+
+        [DataMember]
+        public bool ChildcareAvailable { get; set; } = false;
+
+        [DataMember]
+        public string ChildcareRegistrationLink { get; set; }
+
+        [DataMember]
         public string ContactPhoneNumber { get; set; }
 
         [DataMember]

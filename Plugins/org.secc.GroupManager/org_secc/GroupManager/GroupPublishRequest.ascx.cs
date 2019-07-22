@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Web.UI;
 using org.secc.GroupManager.Model;
 using Rock;
 using Rock.Attribute;
@@ -71,6 +72,10 @@ namespace RockWeb.Plugins.GroupManager
             iGroupImage.BinaryFileId = publishGroup.ImageId;
             drPublishDates.UpperValue = publishGroup.StartDateTime;
             drPublishDates.LowerValue = publishGroup.EndDateTime;
+            cbRequiresRegistration.Checked = publishGroup.RequiresRegistration;
+            tbRegistrationLink.Text = publishGroup.RegistrationLink;
+            cbChildcareAvailable.Checked = publishGroup.ChildcareAvailable;
+            tbChildcareRegistrationLink.Text = publishGroup.ChildcareRegistrationLink;
             if ( publishGroup.ContactPersonAlias != null )
             {
                 pContactPerson.SetValue( publishGroup.ContactPersonAlias.Person );
@@ -150,6 +155,10 @@ namespace RockWeb.Plugins.GroupManager
             publishGroup.Description = tbDescription.Text;
             publishGroup.StartDateTime = drPublishDates.UpperValue.Value;
             publishGroup.EndDateTime = drPublishDates.LowerValue.Value;
+            publishGroup.RequiresRegistration = cbRequiresRegistration.Checked;
+            publishGroup.RegistrationLink = cbRequiresRegistration.Checked ? tbRegistrationLink.Text : "";
+            publishGroup.ChildcareAvailable = cbChildcareAvailable.Checked;
+            publishGroup.ChildcareRegistrationLink = cbChildcareAvailable.Checked ? tbChildcareRegistrationLink.Text : "";
             publishGroup.AudienceValues = GetSelectedAudiences( rockContext );
             publishGroup.ContactPersonAliasId = pContactPerson.PersonAliasId.Value;
             publishGroup.RequestorAliasId = CurrentPersonAliasId.Value;
@@ -184,7 +193,6 @@ namespace RockWeb.Plugins.GroupManager
             {
                 publishGroup.LaunchWorkflow( GetAttributeValue( "RequestWorkflow" ).AsGuidOrNull() );
             }
-
             NavigateToParentPage();
         }
 
