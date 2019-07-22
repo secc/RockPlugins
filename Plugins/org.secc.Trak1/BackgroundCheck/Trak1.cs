@@ -198,7 +198,6 @@ namespace org.secc.Trak1.BackgroundCheck
                     FirstName = person.FirstName,
                     MiddleName = person.MiddleName,
                     LastName = person.LastName,
-                    Email = person.Email,
                     DateOfBirth = ( person.BirthDate ?? new DateTime() ).ToString( "yyyy-MM-dd" ),
                     Address1 = homeLocation.Street1,
                     Address2 = homeLocation.Street2,
