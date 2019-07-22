@@ -39,7 +39,7 @@
         groupPublishInit();
     });
 
-        </script>
+</script>
 <asp:UpdatePanel runat="server">
     <ContentTemplate>
         <asp:Panel runat="server" ID="pnlEdit" Visible="false">
@@ -98,6 +98,11 @@
                     <Rock:RockTextBox runat="server" ID="tbConfirmationSubject" Label="Confirmation Email Subject" Required="true" />
                     <Rock:HtmlEditor runat="server" ID="ceConfirmationBody" Label="Confirmation Email Body" Height="400" Required="true" />
 
+                    <asp:Panel runat="server" ID="pnlAttributes" Visible="false">
+                        <h3>Attributes</h3>
+                        <hr />
+                        <Rock:DynamicPlaceholder ID="phAttributeEdits" runat="server" />
+                    </asp:Panel>
                     <Rock:BootstrapButton runat="server" ID="btnSave" Text="Publish" CssClass="btn btn-primary" OnClick="btnSave_Click" />
                 </div>
             </div>

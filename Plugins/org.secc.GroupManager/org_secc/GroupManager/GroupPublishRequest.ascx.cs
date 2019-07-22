@@ -37,6 +37,18 @@ namespace RockWeb.Plugins.GroupManager
 
     public partial class GroupPublishRequest : RockBlock
     {
+        private PublishGroup publishGroup;
+
+        protected override void OnInit( EventArgs e )
+        {
+            base.OnInit( e );
+            publishGroup = GetPublishGroup();
+            if ( publishGroup != null )
+            {
+                publishGroup.LoadAttributes();
+                Rock.Attribute.Helper.AddEditControls( publishGroup, phAttributeEdits, false );
+            }
+        }
 
         /// <summary>
         /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
@@ -46,9 +58,9 @@ namespace RockWeb.Plugins.GroupManager
         {
             if ( !Page.IsPostBack )
             {
-                var publishGroup = GetPublishGroup();
                 if ( publishGroup != null )
                 {
+                    publishGroup.LoadAttributes();
                     pnlEdit.Visible = true;
                     DisplayForm( publishGroup );
                 }
@@ -88,6 +100,13 @@ namespace RockWeb.Plugins.GroupManager
             ceConfirmationBody.Text = publishGroup.ConfirmationBody;
 
             ddlAudience.SetValues( publishGroup.AudienceValues.Select( i => i.Id.ToString() ) );
+
+            if ( publishGroup.Attributes.Any() )
+            {
+                pnlAttributes.Visible = true;
+                phAttributeEdits.Controls.Clear();
+                Rock.Attribute.Helper.AddEditControls( publishGroup, phAttributeEdits, true );
+            }
         }
 
         private PublishGroup GetPublishGroup( RockContext rockContext = null, PublishGroupService publishGroupService = null )
@@ -140,7 +159,7 @@ namespace RockWeb.Plugins.GroupManager
         {
             RockContext rockContext = new RockContext();
             PublishGroupService publishGroupService = new PublishGroupService( rockContext );
-            var publishGroup = GetPublishGroup( rockContext, publishGroupService );
+            publishGroup = GetPublishGroup( rockContext, publishGroupService );
 
             if ( publishGroup.PublishGroupStatus == PublishGroupStatus.Approved )
             {
@@ -181,9 +200,17 @@ namespace RockWeb.Plugins.GroupManager
                 publishGroup.Group.IsPublic = true;
                 //remove all other publish groups for this computer
                 publishGroupService.DeleteRange( publishGroupService.Queryable().Where( pg => pg.GroupId == publishGroup.GroupId && pg.Id != publishGroup.Id ) );
-            }
+            };
 
             rockContext.SaveChanges();
+
+            publishGroup.LoadAttributes( rockContext );
+
+            if ( publishGroup.Attributes.Any() )
+            {
+                Rock.Attribute.Helper.GetEditValues( phAttributeEdits, publishGroup );
+                publishGroup.SaveAttributeValues( rockContext );
+            }
 
             if ( IsUserAuthorized( Rock.Security.Authorization.EDIT ) )
             {
@@ -205,6 +232,7 @@ namespace RockWeb.Plugins.GroupManager
 
         protected void pRequestor_SelectPerson( object sender, EventArgs e )
         {
+
             if ( !pContactPerson.PersonId.HasValue )
             {
                 return;
@@ -217,7 +245,10 @@ namespace RockWeb.Plugins.GroupManager
             if ( tbContactPhoneNumber.Text.IsNullOrWhiteSpace() )
             {
                 var number = person.GetPhoneNumber( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() );
-                tbContactPhoneNumber.Text = number.NumberFormatted;
+                if ( number != null )
+                {
+                    tbContactPhoneNumber.Text = number.NumberFormatted;
+                }
             }
             if ( tbConfirmationFromEmail.Text.IsNullOrWhiteSpace() )
             {
