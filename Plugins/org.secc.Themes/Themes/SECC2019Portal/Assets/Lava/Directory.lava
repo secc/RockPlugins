@@ -26,7 +26,7 @@
 					{%- assign photo = person.PhotoId -%}
 					<div class='isotope_item text-center {{ person | Attribute:'SECCMinistryArea' | ToCssClass }} {{ person | Attribute:'Arena-7-14031' | ToCssClass }} col-xs-12 col-sm-6 col-md-3'>
 						{% if person.PhotoId %}
-						<img class="img-responsive img-circle" src="/GetImage.ashx?id={{ photo }}&width=300&height=300&mode=crop" style="margin: 30px auto; width: 100%; max-width: 27rem;">
+						<img class="img-responsive img-circle" src="/GetImage.ashx?id={{ photo }}&width=300&height=300&mode=crop&scale=both" style="margin: 30px auto; width: 100%; max-width: 27rem;">
 						{% else %}
 						<img class="img-responsive img-circle" src="{{ person.PhotoUrl }}" style="margin: 30px auto; width: 100%; max-width: 27rem;">
 						{% endif %}
