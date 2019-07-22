@@ -14,7 +14,7 @@
 {% for Item in Items %}
 {% assign documentCategory = Item | Attribute:"Category" %}
 {% if documentCategory == {{ctgyName}} %}
-  <li>{{ Item.Title }} - {{ Item | Attribute:"File" }}</li>
+  <li class="g-font-size-30--xs g-margin-b-10--xs">{{ Item.Title }} - <a href="/GetFile.ashx?guid={{ Item | Attribute:"File","RawValue" }}" title="{{ Item.Title }}" class="btn btn-xs btn-default">Download</a></li>
 {% endif %}
 {% endfor %}
   </ul>
