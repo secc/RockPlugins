@@ -13,6 +13,80 @@
 		{% break %}
 	{% endif %}
 {% endfor %}
+<style>
+	.se-dropdown {
+		border: 2px solid black;
+		cursor: pointer;
+		padding: 5px 70px 5px 15px;
+		display: block;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		overflow: hidden;
+		color: black;
+		line-height: 28px;
+		text-transform: uppercase;
+		font-weight: 600;
+		box-sizing: border-box;
+		display: inline-block;
+		margin: 0;
+		position: relative;
+		vertical-align: middle;
+		margin-top: 5px;
+		min-width: 170px;
+		width: 100%;
+		z-index: 10;
+	}
+
+
+	.se-dropdown .arrow {
+		height: auto;
+		position: absolute;
+		top: 19px;
+		right: 15px;
+		width: 20px;
+	}
+	.se-dropdown .arrow b {
+		border-color: white;
+		border-style: none;
+		border-width: 0px;
+		height: 0;
+		position: absolute;
+		width: 0;
+	}
+	.se-dropdown .arrow b:before {
+		width: 10px;
+		height: 10px;
+		content: "";
+		border: solid #000000;
+		border-width: 0 2px 2px 0;
+		display: inline-block;
+		position: absolute;
+		top: 55%;
+		left: 50%;
+		transition: all 0.4s ease;
+		transform: translate(-50%, -50%) rotate(45deg);
+		-webkit-transform: translate(-50%, -50%) rotate(45deg);
+	}
+	.se-dropdown + div {
+		box-shadow:0px 0px 5px 1px rgba(0, 0, 0, 0.15);
+		padding: 15px;
+		display: none;
+		position: absolute;
+		background-color: #FFFFFF;
+		overflow: visible;
+		box-sizing: border-box;
+		z-index: 1051;
+	}
+	.se-dropdown[aria-expanded="true"] + div {
+		display: block;
+	}
+	.se-dropdown[aria-expanded="true"] .arrow b:before {
+		transform: translate(-50%, -50%) rotate(-135deg);
+		-webkit-transform: translate(-50%, -50%) rotate(-135deg);
+		top: 3px;
+	}
+</style>
+
 
 <div class="container">
     <div class="row">
@@ -20,7 +94,7 @@
             <div class="filterbox">
 
                 <div class="row">
-                    <div class="col-xs-12 col-md-6">
+                    <div class="col-xs-12 col-md-3">
                         <h3 class="g-font-weight--600">Find a Group</h3>
                         <p class="g-font-weight--400 g-line-height--sm">Find a group that interests you by selecting a campus and/or ministry. Click on the image to see more details or to register.</p>
                         <br />
@@ -40,7 +114,22 @@
 
                         </select>
                     </div>
-
+					<div class="col-xs-12 col-md-3 g-padding-y-40--md" >
+						<span class="se-dropdown" data-toggle="dropdown-content" data-reveal="daysOfTheWeek" aria-expanded="false" data-control="#groupFilters">
+							Meets On
+							<span class="arrow" role="presentation"><b role="presentation"></b></span>
+						</span>
+						<div id="daysOfTheWeek" class="button-group filter-button-group g-padding-x-10--xs g-display-inline-block--xs g-margin-t-10--xs">
+							<p>Select a day of the week:</p>
+							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Sunday" data-toggle="tooltip" data-placement="bottom" title="Sunday">S</a>
+							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Monday" data-toggle="tooltip" data-placement="bottom" title="Monday">M</a>
+							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Tuesday" data-toggle="tooltip" data-placement="bottom" title="Tuesday">T</a>
+							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Wednesday" data-toggle="tooltip" data-placement="bottom" title="Wednesday">W</a>
+							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Thursday" data-toggle="tooltip" data-placement="bottom" title="Thursday">T</a>
+							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Friday" data-toggle="tooltip" data-placement="bottom" title="Friday">F</a>
+							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Saturday" data-toggle="tooltip" data-placement="bottom" title="Sunday">S</a>
+						</div>
+					</div>
                     <div class="col-xs-12 col-md-3 g-padding-y-20--xs g-padding-y-40--sm" >
                         <select class="select2-ministries" name="minitry">
                         <option value="allMinistries">All Ministries</option>
@@ -126,7 +215,38 @@ $(document).ready(function() {
         var data = e.params.data;
         runMinistryFilters(data);
     });
+	
+	//make days of week clicky
+		$('[data-toggle="dropdown-content"]').click(function(e) {
+			e.preventDefault();
+			var $this = $( this );
+			var toggleId = $this.attr('data-reveal');
+			toggleOneFilterAtATime($this);
+		});
 
+		function toggleOneFilterAtATime($selected) {
+			// close all of the others - before opening this
+			$('[data-control="#groupFilters"]').not($selected).attr('aria-expanded','false');
+			$('#select2-campuses').select2('close');
+			$selected.attr('aria-expanded', function (i, attr) {
+				return attr == 'true' ? 'false' : 'true'
+			});
+		}
+
+	
+
+	$daysOfTheWeek = $('#daysOfTheWeek').on( 'click', '.button', function(e) {
+		  e.preventDefault();
+		  var $this = $( this );
+		  var filterValue = $this.attr('data-filter');
+		  $this.toggleClass('active');
+		  buildDaysFilters(filterValue);
+		  runFilters();
+		});
+
+		
+		
+	
 	// hide descriptions
 	$('.readmore_dates').readmore({
 		speed: 200,
@@ -165,6 +285,96 @@ $(document).ready(function() {
     });
 });
 
+// handling days selected
+		var days_selected = [];
+		function buildDaysFilters(day) {
+			if (~days_selected.indexOf(day)) {
+				// remove from array (toggling)
+				days_selected.splice($.inArray(day, days_selected),1);
+			} else {
+				// add to array
+				if (day != '' && day != undefined) {
+					days_selected.push(day);
+				}
+			}
+			console.log(days_selected);
+		 }
+
+		 function runFilters() {
+			 var filterSelectors = 'div';
+
+			 // if days are selected
+			 if (days_selected.length != 0) {
+				 filterSelectors += filterStringify(days_selected, 'day');
+				 filterSelectors += ',';
+			 }
+
+			
+
+			 // remove the very last comma.
+			 var lastChar = filterSelectors.slice(-1);
+			 if(lastChar == ',') {
+			   filterSelectors = filterSelectors.slice(0, -1);
+			 }
+
+			 console.log('filters: '+filterSelectors);
+			 	var isoOptions = {
+		itemSelector: '.isotope_item',
+		percentPosition: true,
+		layoutMode: 'fitRows'
+	};
+			var $grid = $('.isotope_wrap').isotope(isoOptions);
+			 $grid.isotope({
+			   itemSelector: '.isotope_item',
+			   percentPosition: true,
+			   layoutMode: 'fitRows',
+			   filter: filterSelectors
+			 });
+		 }
+
+		 function filterStringify(arrayList, selector) {
+			 varstr = '';
+			 if (arrayList.length != 0) {
+				 // make string of selectors
+				 var loopIndex = 1
+				 arrayList.forEach(function(item, index, array) {
+					 // if week days are selected
+					 if (days_selected.length != 0) {
+						 var dayLoopIndex = 1
+						 days_selected.forEach(function(day_item, index, array) {
+							 // show campus groups with filters if campus is selected - otherwise just fitler items(s)
+							 
+							 if (day_item != '' && item != undefined) {
+								 varstr += '[data-day*="'+day_item+'"]'
+							 }
+							 if (item != '' && item != undefined) {
+								 varstr += '[data-'+selector+'*="'+item+'"]'
+							 }
+							 // no comma on the first, and no comma on the last
+							 if (days_selected.length > 1 && dayLoopIndex != days_selected.length) {
+								 varstr += ','
+							 }
+							 dayLoopIndex++;
+						 });
+					 } else {
+						 // show campus groups with filters if campus is selected - otherwise just fitler items(s)
+						 
+
+						 if (item != '' && item != undefined) {
+							 varstr += '[data-'+selector+'*="'+item+'"]'
+						 }
+					 }
+					 // no comma on the first, and no comma on the last
+					 if (arrayList.length > 1 && loopIndex != arrayList.length) {
+						 varstr += ','
+					 }
+
+					 loopIndex++;
+				 });
+			 }
+			 return varstr;
+		 }
+		 
 
 ///////////////////////////////////////////////////
 ////////////// Listen for Back Clicks /////////////
@@ -249,6 +459,7 @@ function processPageLoad(pnlContent_ID, params) {
         var pnlContent_ID = pnlContent.attr("id");
         // Once loaded, fire the Javascript function from the list
 		InitLoadedRequest(); // an Ajax pageLoad method that will call your jquery method
+		runFilters();
         pnlContent.slideDown(400, function() {
 
 		});
