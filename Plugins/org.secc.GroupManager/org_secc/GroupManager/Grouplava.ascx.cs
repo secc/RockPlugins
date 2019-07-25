@@ -75,22 +75,20 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         protected void ShowGroups()
         {
             var groupTypeGuid = GetAttributeValue( "GroupType" ).AsGuid();
-            var qry = new GroupTypeService( new RockContext() )
+            var groups = new GroupTypeService( new RockContext() )
                 .Queryable()
                 .Where( gt => gt.Guid == groupTypeGuid )
-                .SelectMany( gt => gt.Groups );
-            var mergeFields = LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
-
-            // grab a group
-            var groups = qry
+                .SelectMany( gt => gt.Groups )
                 .Where( g => g.IsActive && g.IsPublic && !g.IsArchived )
-                .Where( g => g.Members.Count < g.GroupCapacity )
+                .Where( g =>
+                    g.GroupCapacity == null
+                    || g.GroupCapacity == 0
+                    || g.Members.Where( m => m.GroupMemberStatus == GroupMemberStatus.Active ).Count() < g.GroupCapacity )
                 .ToList();
 
-            if ( groups != null )
-            {
-                mergeFields.Add( "Groups", groups );
-            }
+
+            var mergeFields = LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
+            mergeFields.Add( "Groups", groups );
 
             lOutput.Text = GetAttributeValue( "LavaTemplate" ).ResolveMergeFields( mergeFields );
         }
