@@ -127,7 +127,7 @@
 							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Wednesday" data-toggle="tooltip" data-placement="bottom" title="Wednesday">W</a>
 							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Thursday" data-toggle="tooltip" data-placement="bottom" title="Thursday">T</a>
 							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Friday" data-toggle="tooltip" data-placement="bottom" title="Friday">F</a>
-							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Saturday" data-toggle="tooltip" data-placement="bottom" title="Sunday">S</a>
+							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Saturday" data-toggle="tooltip" data-placement="bottom" title="Saturday">S</a>
 						</div>
 					</div>
                     <div class="col-xs-12 col-md-3 g-padding-y-20--xs g-padding-y-40--sm" >
