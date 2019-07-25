@@ -91,7 +91,7 @@
       <Project>{ADD1EDD0-A4CB-4E82-B6AD-6AD1D556DEAE}</Project>
       <Name>Rock.Rest</Name>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\org.secc.Mapping\org.secc.Mapping.csproj">
+    <ProjectReference Include="..\org.secc.Mapping\org.secc.Mapping.csproj">
       <Project>{749eb2a1-5240-4a1f-a0a1-110ea282ff7e}</Project>
       <Name>org.secc.Mapping</Name>
     </ProjectReference>
