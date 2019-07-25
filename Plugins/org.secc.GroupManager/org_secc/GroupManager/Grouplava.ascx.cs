@@ -68,28 +68,27 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             if ( !Page.IsPostBack )
             {
-                BindGrid();
+                ShowGroups();
             }
         }
 
-        protected void BindGrid()
+        protected void ShowGroups()
         {
             var groupTypeGuid = GetAttributeValue( "GroupType" ).AsGuid();
-            var qry = new GroupTypeService( new RockContext() )
+            var groups = new GroupTypeService( new RockContext() )
                 .Queryable()
                 .Where( gt => gt.Guid == groupTypeGuid )
-                .SelectMany( gt => gt.Groups );
+                .SelectMany( gt => gt.Groups )
+                .Where( g => g.IsActive && g.IsPublic && !g.IsArchived )
+                .Where( g =>
+                    g.GroupCapacity == null
+                    || g.GroupCapacity == 0
+                    || g.Members.Where( m => m.GroupMemberStatus == GroupMemberStatus.Active ).Count() < g.GroupCapacity )
+                .ToList();
+
+
             var mergeFields = LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
-
-            
-
-            // grab a group
-            var groups = qry.ToList();
-
-            if ( groups != null )
-            {
-                mergeFields.Add( "Groups", groups );
-            }
+            mergeFields.Add( "Groups", groups );
 
             lOutput.Text = GetAttributeValue( "LavaTemplate" ).ResolveMergeFields( mergeFields );
         }
@@ -107,7 +106,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void Block_BlockUpdated( object sender, EventArgs e )
         {
-            BindGrid();
+            ShowGroups();
         }
 
         #endregion
