@@ -14,10 +14,10 @@
         <div class="col-xs-12 col-sm-12 col-md-8 col-md-offset-2" >
             <h3 class="g-font-weight--600">Find a Group</h3>
             <p class="g-font-weight--400 g-line-height--sm">Find a group that interests you by selecting a location, date and/or ministry. Click on the image to see more details or to register.</p>
-            <div class="g-display-block--xs">
+            <div id="groupFilters" class="g-display-block--xs">
 
                 <div class="g-display-inline-block--xs">
-                    <select class="select2-campuses g-width-400--xs" name="campus">
+                    <select class="select2-campuses g-width-400--xs" name="campus" data-control="#groupFilters">
                         <option value="allCampuses" data-shortcode="SE" data-campus="" {% if selectedCampus == null %} selected="selected"{% endif %}>All Locations</option>
                         {% for campus in Campuses %}
                             {% assign publicCampus = campus | Attribute:'Public' %}
@@ -48,9 +48,9 @@
                     margin: 0;
                     position: relative;
                     vertical-align: middle;
-                    margin-bottom: 10px;
+                    margin-top: 5px;
                     min-width: 170px;
-                    top: 7px;
+                    z-index: 10;
                 }
                 .se-dropdown .arrow {
                     height: auto;
@@ -81,6 +81,19 @@
                     transform: translate(-50%, -50%) rotate(45deg);
                     -webkit-transform: translate(-50%, -50%) rotate(45deg);
                 }
+                .se-dropdown + div {
+                    box-shadow:0px 0px 5px 1px rgba(0, 0, 0, 0.15);
+                    padding: 15px;
+                    display: none;
+                    position: absolute;
+                    background-color: #FFFFFF;
+                    overflow: visible;
+                    box-sizing: border-box;
+                    z-index: 1051;
+                }
+                .se-dropdown[aria-expanded="true"] + div {
+                    display: block;
+                }
                 .se-dropdown[aria-expanded="true"] .arrow b:before {
                     transform: translate(-50%, -50%) rotate(-135deg);
                     -webkit-transform: translate(-50%, -50%) rotate(-135deg);
@@ -88,22 +101,11 @@
                 }
                 </style>
                 <div class="g-display-inline-block--xs">
-                    <span class="se-dropdown" data-toggle="dropdown-content" data-reveal="daysOfTheWeek" aria-expanded="false">
+                    <span class="se-dropdown" data-toggle="dropdown-content" data-reveal="daysOfTheWeek" aria-expanded="false" data-control="#groupFilters">
                         Meets On
                         <span class="arrow" role="presentation"><b role="presentation"></b></span>
                     </span>
-                    <div id="daysOfTheWeek" class="button-group filter-button-group g-padding-x-10--xs g-display-inline-block--xs g-margin-t-10--xs"
-                    style="
-                        box-shadow:0px 0px 5px 1px rgba(0, 0, 0, 0.15);
-                        padding: 15px;
-                        display: none;
-                        position: absolute;
-                        background-color: #FFFFFF;
-                        overflow: visible;
-                        box-sizing: border-box;
-                        z-index: 1051;
-                    "
-                    >
+                    <div id="daysOfTheWeek" class="button-group filter-button-group g-padding-x-10--xs g-display-inline-block--xs g-margin-t-10--xs">
                         <p>Select a day of the week:</p>
                         <a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Sunday" data-toggle="tooltip" data-placement="bottom" title="Sunday">S</a>
                         <a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Monday" data-toggle="tooltip" data-placement="bottom" title="Monday">M</a>
@@ -116,35 +118,55 @@
                 </div>
 
                 <div class="g-display-inline-block--xs">
-                    <span class="se-dropdown" data-toggle="dropdown-content" data-reveal="categorySelected" aria-expanded="false">
+                    <span class="se-dropdown" data-toggle="dropdown-content" data-reveal="typeSelected" aria-expanded="false" data-control="#groupFilters">
                         Type
                         <span class="arrow" role="presentation"><b role="presentation"></b></span>
                     </span>
-                    <div id="categorySelected" class="button-group filter-button-group g-padding-x-10--xs g-display-inline-block--xs g-margin-t-10--xs"
-                    style="
-                        box-shadow:0px 0px 5px 1px rgba(0, 0, 0, 0.15);
-                        padding: 15px;
-                        display: none;
-                        position: absolute;
-                        background-color: #FFFFFF;
-                        overflow: visible;
-                        box-sizing: border-box;
-                        z-index: 1051;
-                    ">
+                    <div id="typeSelected" class="button-group filter-button-group g-padding-x-10--xs g-display-inline-block--xs g-margin-t-10--xs">
                       <p>Select categories of your interests:</p>
-                      {% definedvalue where:'DefinedTypeId==52' %}
-                          {% assign definedvalueItemsSorted = definedvalueItems | Sort: 'Order' %}
-                          {% for definedValue in definedvalueItemsSorted %}
-                              {% if definedValue != '' %}
-                                  <a class="button se-btn se-btn--tag no-transitions uppercase g-margin-y-5--xs g-margin-x-5--xs" data-category="{{ definedValue.Id }}">{{ definedValue.Value | Capitalize }}</a>
-                            {% endif %}
-                          {% endfor %}
-                      {% enddefinedvalue %}
+                      {%- definedvalue where:'DefinedTypeId==52' -%}
+                          {%- assign definedvalueItemsSorted = definedvalueItems | Sort: 'Order' -%}
+                          {%- for definedValue in definedvalueItemsSorted -%}
+                              {%- if definedValue != '' -%}
+                                  <a class="button se-btn se-btn--tag no-transitions uppercase g-margin-y-5--xs g-margin-x-5--xs" data-type="{{ definedValue.Id }}">{{ definedValue.Value | Capitalize }}</a>
+                            {%- endif -%}
+                          {%- endfor -%}
+                      {%- enddefinedvalue -%}
                     </div>
                 </div>
 
-            </div>
+                <div class="g-display-inline-block--xs">
+                    <select class="select2-zipcode g-width-400--xs" name="zipcode" data-control="#groupFilters">
+                        <option></option>
+                        {%- for group in Groups -%}
+                            {% if group.IsActive and group.IsPublic -%}
+                                {%- assign groupLocations = group.GroupLocations -%}
+                                    {%- assign groupZipCode = ''-%}
+                                    {%- for groupLocation in groupLocations -%}
+                                        {%- case groupLocation.GroupLocationTypeValueId -%}
+                                            {%- when '209' -%}
+                                            {% comment %} 209 == Meeting Location {% endcomment %}
+                                                {% assign groupZipCode = groupLocation.Location.PostalCode %}
+                                            {%- when '19' and meetingType == '' -%}
+                                            {% comment %} 19 == Home {% endcomment %}
+                                                {% assign groupZipCode = groupLocation.Location.PostalCode %}
+                                            {%- when null and meetingType == '' -%}
+                                            {% comment %} undefined {% endcomment %}
+                                                {% assign groupZipCode = groupLocation.Location.PostalCode %}
+                                            {%- else -%}
+                                                {% comment %} skipping any other group types
+                                                since we don't know what they are, or it's
+                                                a geographic area {% endcomment %}
+                                        {%- endcase -%}
+                                    {%- endfor -%}
+                                    {%- assign groupZipCode = groupZipCode | Truncate:5,'' -%}
+                                    {%- if groupZipCode != null and groupZipCode != '' and groupZipCode != empty -%}<option value="{{ groupZipCode }}" data-zipcode="{{ groupZipCode }}">{{ groupZipCode }}</option>{%- endif-%}
+                            {%- endif -%}
+                        {%- endfor -%}
+                    </select>
+                </div>
 
+            </div>
         </div>
     </div>
 </div>
@@ -160,9 +182,41 @@
                 {% assign otc = group | Attribute: 'OpentoChildren' %}
                 {% assign handicapAcc = group | Attribute: 'HandicappedAccessible' %}
                 {% assign neightborhoodName = group | Attribute: 'NeighborhoodName' %}
-                {% assign groupTypes = group | Attribute: 'SmallGroupTopic' %}
+                {% comment %}
+                    explain what is happening with groupTypes
+                {% endcomment %}
+                {% assign groupTypes = group | Attribute: 'SmallGroupTopic','Object' %}
 
-                <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar" data-campus="{{ group.Campus.Slug }}" data-day="{{ group.Schedule.WeeklyDayOfWeek }}" data-handicap-accessible="{{ handicapAcc | Downcase }}" data-open-to-children="{{ otc | Downcase }}" data-type="{{ groupTypes | Downcase }}">
+                {%- assign meetingType = '' -%}
+                {%- assign meetingLocations = 0 -%}
+                {%- for groupLocation in groupLocations -%}
+                    {%- case groupLocation.GroupLocationTypeValueId -%}
+                        {%- when '209' -%}
+                        {% comment %} 209 == Meeting Location {% endcomment %}
+                            {% assign meetingLocations = meetingLocations | Plus:1 %}
+                            {% assign meetingType = groupLocation.GroupLocationTypeValueId %}
+                        {%- when '19' and meetingType == '' -%}
+                        {% comment %} 19 == Home {% endcomment %}
+                            {% assign meetingLocations = meetingLocations | Plus:1 %}
+                            {% assign meetingType = groupLocation.GroupLocationTypeValueId %}
+                        {%- when null and meetingType == '' -%}
+                        {% comment %} undefined {% endcomment %}
+                            {% assign meetingLocations = meetingLocations | Plus:1 %}
+                            {% assign meetingType = groupLocation.GroupLocationTypeValueId %}
+                        {%- else -%}
+                            {% comment %} skipping any other group types
+                            since we don't know what they are, or it's
+                            a geographic area {% endcomment %}
+                    {%- endcase -%}
+                {%- endfor -%}
+
+                <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar"
+                     data-campus="{{ group.Campus.Slug }}"
+                     data-day="{{ group.Schedule.WeeklyDayOfWeek }}"
+                     data-handicap-accessible="{{ handicapAcc | Downcase }}"
+                     data-open-to-children="{{ otc | Downcase }}"
+                     data-type="{%- for groupType in groupTypes -%}{%- if forloop.first -%}{%- else -%},{%- endif -%}{{ groupType.Id }} {%- endfor -%}{{ groupTypes.Id }}"
+                     data-zipcode="{{ groupZipCode | Truncate:5,'' }}">
                     <div class="clearfix card g-margin-b-20--xs" >
 
                         <div class="caption g-margin-b-40--xs g-padding-x-60--xs g-padding-t-60--xs">
@@ -175,7 +229,6 @@
                             </div>
                             {% endif %}
                         </div>
-
 
                         <div class="g-margin-b-20--xs" style="display: inline-block; width: 100%;">
 
@@ -190,33 +243,6 @@
                                     </ul>
                                 </div>
                             </div>
-
-                            {%- assign meetingType = '' -%}
-                            {%- assign meetingLocations = 0 -%}
-                            {%- assign groupZipCode = ''-%}
-                            {%- for groupLocation in groupLocations -%}
-                                {%- case groupLocation.GroupLocationTypeValueId -%}
-                                    {%- when '209' -%}
-                                    {% comment %} 209 == Meeting Location {% endcomment %}
-                                        {% assign groupZipCode = groupLocation.Location.PostalCode %}
-                                        {% assign meetingLocations = meetingLocations | Plus:1 %}
-                                        {% assign meetingType = groupLocation.GroupLocationTypeValueId %}
-                                    {%- when '19' and meetingType == '' -%}
-                                    {% comment %} 19 == Home {% endcomment %}
-                                        {% assign groupZipCode = groupLocation.Location.PostalCode %}
-                                        {% assign meetingLocations = meetingLocations | Plus:1 %}
-                                        {% assign meetingType = groupLocation.GroupLocationTypeValueId %}
-                                    {%- when null and meetingType == '' -%}
-                                    {% comment %} undefined {% endcomment %}
-                                        {% assign groupZipCode = groupLocation.Location.PostalCode %}
-                                        {% assign meetingLocations = meetingLocations | Plus:1 %}
-                                        {% assign meetingType = groupLocation.GroupLocationTypeValueId %}
-                                    {%- else -%}
-                                        {% comment %} skipping any other group types
-                                        since we don't know what they are, or it's
-                                        a geographic area {% endcomment %}
-                                {%- endcase -%}
-                            {%- endfor -%}
 
                             <div class="event-items col-xs-4 g-padding-x-10--xs {% if otc == 'Yes' %}g-ver-divider__solid__r--gray-lighter{% endif %}" style="overflow:visible;">
                                  <div class="event-icon --location" {% if handicapAcc == 'Yes'%}style="left:-12px;"{% endif%}>
@@ -300,12 +326,17 @@
         e.preventDefault();
         var $this = $( this );
         var toggleId = $this.attr('data-reveal');
-        $this.attr('aria-expanded', function (i, attr) {
+        toggleOneFilterAtATime($this);
+    });
+
+    function toggleOneFilterAtATime($selected) {
+        // close all of the others - before opening this
+        $('[data-control="#groupFilters"]').not($selected).attr('aria-expanded','false');
+        $('#select2-campuses').select2('close');
+        $selected.attr('aria-expanded', function (i, attr) {
             return attr == 'true' ? 'false' : 'true'
         });
-        var $toggleContentDiv = $('#'+toggleId);
-        $toggleContentDiv.toggle();
-    });
+    }
 
     // Initialize Isotope/Groups
     var $grid = $('.isotope_wrap').isotope({
@@ -364,12 +395,29 @@
         runFilters();
     });
 
-    // bind to buttons related to the day of the week
-    $categorySelected = $('#categorySelected').on( 'click', '.button', function(e) {
-      e.preventDefault();
+    // remove duplicates of zipcodes before binding
+    $(".select2-zipcode option").val(function(idx, val) {
+      $(this).siblings('[value="'+ val +'"]').remove();
+      return val;
+    });
+    var areacodeSelected = '';
+    $('.select2-zipcode').select2({
+       placeholder: "Area Code",
+       allowClear: true
+    });
+    $('.select2-zipCode').on('select2:select', function (e) {
+        e.preventDefault();
+        var data = e.params.data;
+        areacodeSelected = $(data.element).data('zipcode');
+        // buildCampusFilters(campusSelected);
+        // runFilters();
+    });
 
+    // bind to buttons related to the day of the week
+    $typeSelected = $('#typeSelected').on( 'click', '.button', function(e) {
+      e.preventDefault();
       var $this = $( this );
-      var filterValue = $this.attr('data-category');
+      var filterValue = $this.attr('data-type');
       $this.toggleClass('active');
       buildTypeFilters(filterValue);
       runFilters();
@@ -377,7 +425,7 @@
 
     // handling types selected
     var types_selected = [];
-    function buildDaysFilters(type) {
+    function buildTypeFilters(type) {
         if (~types_selected.indexOf(type)) {
             // remove from array (toggling)
             types_selected.splice($.inArray(type, types_selected),1);
@@ -420,13 +468,13 @@
      function runFilters() {
          var filterSelectors = 'div';
 
-         // if week days are selected
+         // if days are selected
          if (days_selected.length != 0) {
              filterSelectors += filterStringify(days_selected, 'day');
              filterSelectors += ',';
          }
 
-         // if week days are selected
+         // if types are selected
          if (types_selected.length != 0) {
              filterSelectors += filterStringify(types_selected, 'type');
              filterSelectors += ',';
@@ -436,9 +484,8 @@
              // add only campus if there's nothing else selected
              if (campus_filters_selected.length != 0) {
                  filterSelectors += filterStringify(campus_filters_selected, 'campus');
-                 filterSelectors += ',';
-             }
-         }
+            }
+        }
 
          // remove the very last comma.
          var lastChar = filterSelectors.slice(-1);
@@ -462,19 +509,41 @@
              // make string of selectors
              var loopIndex = 1
              arrayList.forEach(function(item, index, array) {
+                 // if week days are selected
+                 if (days_selected.length != 0) {
+                     var dayLoopIndex = 1
+                     days_selected.forEach(function(day_item, index, array) {
+                         // show campus groups with filters if campus is selected - otherwise just fitler items(s)
+                         if (campus_filters_selected.length != 0 && selector != 'campus') {
+                             varstr += '[data-campus*="'+campus_filters_selected[0]+'"]'
+                         }
+                         if (day_item != '' && item != undefined) {
+                             varstr += '[data-day*="'+day_item+'"]'
+                         }
+                         if (item != '' && item != undefined) {
+                             varstr += '[data-'+selector+'*="'+item+'"]'
+                         }
+                         // no comma on the first, and no comma on the last
+                         if (days_selected.length > 1 && dayLoopIndex != days_selected.length) {
+                             varstr += ','
+                         }
+                         dayLoopIndex++;
+                     });
+                 } else {
+                     // show campus groups with filters if campus is selected - otherwise just fitler items(s)
+                     if (campus_filters_selected.length != 0 && selector != 'campus') {
+                         varstr += '[data-campus*="'+campus_filters_selected[0]+'"]'
+                     }
 
-                 // show campus groups with filters if campus is selected - otherwise just fitler items(s)
-                 if (campus_filters_selected.length != 0 && selector != 'campus') {
-                     varstr += '[data-campus*="'+campus_filters_selected[0]+'"]'
-                 }
-
-                 if (item != '' && item != undefined) {
-                     varstr += '[data-'+selector+'*="'+item+'"]'
+                     if (item != '' && item != undefined) {
+                         varstr += '[data-'+selector+'*="'+item+'"]'
+                     }
                  }
                  // no comma on the first, and no comma on the last
                  if (arrayList.length > 1 && loopIndex != arrayList.length) {
                      varstr += ','
                  }
+
                  loopIndex++;
              });
          }
