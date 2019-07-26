@@ -22,7 +22,7 @@
                         {% for campus in Campuses %}
                             {% assign publicCampus = campus | Attribute:'Public' %}
                             {% if publicCampus == 'Yes' %}
-                                <option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campus.Name | Downcase | Replace:" ",""}}"{% if selectedCampus.Id > 0 and selectedCampus.Id == campus.Id %} selected="selected"{% endif %}>
+                                <option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campus.ShortCode }}">
                                     {{ campus.Name }}
                                 </option>
                             {% endif %}
@@ -230,7 +230,7 @@
 
                 <div class="homegroup isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar"
                      data-groupid="{{group.Id}}"
-                     data-campus="{{ group.Campus.Slug }}"
+                     data-campus="{{ group.Campus.ShortCode }}"
                      data-day="{{ group.Schedule.WeeklyDayOfWeek }}"
                      data-handicap-accessible="{{ handicapAcc | Downcase }}"
                      data-open-to-children="{{ otc | Downcase }}"
@@ -335,7 +335,7 @@
                             {% endif %}
 
                             <div class="text-center col-xs-12 g-margin-t-40--xs g-hor-divider__solid__t--gray-lighter">
-                                <a href="/groups/registration?GroupId={{ group.Id }}" class="eventCardLink link--hover-underscore">
+                                <a href="/groups/homegroups/registration/{{ group.Id }}" class="eventCardLink link--hover-underscore">
                                     <h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">Register</h6>
                                 </a>
                             </div>
@@ -471,6 +471,7 @@
         if (campus != '' && campus != undefined) {
             campus_filters_selected.push(campus);
         }
+        console.debug(campus_filters_selected);
     }
 
     // handling days selected
@@ -517,6 +518,7 @@
                 }
              });
          }
+         console.log(filterArray.join(','));
          return filterArray.join(',');
      }
 
