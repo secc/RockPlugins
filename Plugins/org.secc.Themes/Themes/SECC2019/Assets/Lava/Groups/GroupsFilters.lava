@@ -215,7 +215,7 @@ $(document).ready(function() {
         var data = e.params.data;
         runMinistryFilters(data);
     });
-	
+
 	//make days of week clicky
 		$('[data-toggle="dropdown-content"]').click(function(e) {
 			e.preventDefault();
@@ -233,7 +233,7 @@ $(document).ready(function() {
 			});
 		}
 
-	
+
 
 	$daysOfTheWeek = $('#daysOfTheWeek').on( 'click', '.button', function(e) {
 		  e.preventDefault();
@@ -244,9 +244,9 @@ $(document).ready(function() {
 		  runFilters();
 		});
 
-		
-		
-	
+
+
+
 	// hide descriptions
 	$('.readmore_dates').readmore({
 		speed: 200,
@@ -309,7 +309,7 @@ $(document).ready(function() {
 				 filterSelectors += ',';
 			 }
 
-			
+
 
 			 // remove the very last comma.
 			 var lastChar = filterSelectors.slice(-1);
@@ -343,7 +343,7 @@ $(document).ready(function() {
 						 var dayLoopIndex = 1
 						 days_selected.forEach(function(day_item, index, array) {
 							 // show campus groups with filters if campus is selected - otherwise just fitler items(s)
-							 
+
 							 if (day_item != '' && item != undefined) {
 								 varstr += '[data-day*="'+day_item+'"]'
 							 }
@@ -358,7 +358,7 @@ $(document).ready(function() {
 						 });
 					 } else {
 						 // show campus groups with filters if campus is selected - otherwise just fitler items(s)
-						 
+
 
 						 if (item != '' && item != undefined) {
 							 varstr += '[data-'+selector+'*="'+item+'"]'
@@ -374,7 +374,7 @@ $(document).ready(function() {
 			 }
 			 return varstr;
 		 }
-		 
+
 
 ///////////////////////////////////////////////////
 ////////////// Listen for Back Clicks /////////////
@@ -484,14 +484,15 @@ function updatePath(key, value) {    baseUrl = [location.protocol, '//', locatio
     parts = location.pathname.split('/');
     // Set some defaults;
     parts[1] = 'groups';
-    parts[2] = parts[2]||'southeast';
-    parts[3] = parts[3]||'all';
+	parts[2] = 'oncampus';
+    parts[3] = parts[3]||'southeast';
+    parts[4] = parts[4]||'all';
     // Set default part one of Groups
     if (key == 'campus') {
-        parts[2] = value||'southeast';
+        parts[3] = value||'southeast';
     }
     if (key == 'ministry') {
-        parts[3] = value||'all';
+        parts[4] = value||'all';
     }
     window.history.pushState({}, '', baseUrl + parts.join('/'));
     console.log("key: " + key);
@@ -499,7 +500,7 @@ function updatePath(key, value) {    baseUrl = [location.protocol, '//', locatio
                     console.log( "parts:" + parts );
                     return parts.join( '/' );
                 }
-                
+
 
 var parseQueryString = function() {
 
