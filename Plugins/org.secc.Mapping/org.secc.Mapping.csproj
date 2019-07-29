@@ -42,6 +42,7 @@
       <HintPath>$(SolutionDir)\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
@@ -62,7 +63,9 @@
     <Compile Include="Model\LocationDistanceStore.cs" />
     <Compile Include="Model\LocationDistanceStoreService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utilities\CampusUtilities.cs" />
     <Compile Include="Utilities\GroupUtilities.cs" />
+    <Compile Include="Workflow\ClosestCampusAction.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
