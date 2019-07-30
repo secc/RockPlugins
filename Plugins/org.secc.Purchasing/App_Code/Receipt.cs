@@ -20,6 +20,7 @@ using System.Xml.Serialization;
 
 using org.secc.Purchasing.DataLayer;
 using Rock.Model;
+using Rock.Web.Cache;
 
 namespace org.secc.Purchasing
     
@@ -29,7 +30,7 @@ namespace org.secc.Purchasing
         #region Fields
         private static Guid ShippingCarrierLTGuid = new Guid("3B0AD7B4-845B-4726-8E89-6C2DCD25DF12");
         private Person mReceievedBy;
-        private DefinedValue mShippingCarrier;
+        private DefinedValueCache mShippingCarrier;
         private Person mCreatedBy;
         private Person mModifiedBy;
         private PurchaseOrder mPurchaseOrder;
@@ -49,12 +50,12 @@ namespace org.secc.Purchasing
         public bool Active { get; set; }
 
         [XmlIgnore]
-        public DefinedValue ShippingCarrier
+        public DefinedValueCache ShippingCarrier
         {
             get
             {
                 if ((mShippingCarrier == null || mShippingCarrier.Id != CarrierLUID))
-                    mShippingCarrier = definedValueService.Get(CarrierLUID);
+                    mShippingCarrier = DefinedValueCache.Get(CarrierLUID);
                 return mShippingCarrier;
             }
         }
@@ -142,11 +143,11 @@ namespace org.secc.Purchasing
 
         #region Public
 
-        public static List<DefinedValue> GetShippingCarriers(bool activeOnly)
+        public static List<DefinedValueCache> GetShippingCarriers(bool activeOnly)
         {
-            List<DefinedValue> ShippingCarriers = definedTypeService.Get(ShippingCarrierLTGuid).DefinedValues.ToList();
+            List<DefinedValueCache> ShippingCarriers = DefinedTypeCache.Get(ShippingCarrierLTGuid).DefinedValues.ToList();
             if (activeOnly)
-                ShippingCarriers.RemoveAll(l => l.IsValid == false);
+                ShippingCarriers.RemoveAll(l => l.IsActive == false);
 
             return ShippingCarriers;
         }

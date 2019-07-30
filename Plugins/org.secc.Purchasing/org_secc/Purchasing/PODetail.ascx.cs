@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -29,6 +29,7 @@ using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 using Rock.Model;
 using org.secc.PDF;
+using Rock.Web.Cache;
 
 namespace RockWeb.Plugins.org_secc.Purchasing
 {
@@ -55,7 +56,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         #region Fields
         protected PurchaseOrder mPurchaseOrder;
         private PersonAliasService personAliasService;
-        private DefinedValueService definedValueService;
         private CampusService campusService;
         private AttributeService attributeService;
         private Rock.Data.RockContext rockContext;
@@ -208,7 +208,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             rockContext = new Rock.Data.RockContext();
             personAliasService = new PersonAliasService(rockContext);
-            definedValueService = new DefinedValueService(rockContext);
             campusService = new CampusService(rockContext);
             attributeService = new AttributeService(rockContext);
 
@@ -509,7 +508,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if ( UserCanEdit )
             {
                 if ( CurrentPurchaseOrder != null && CurrentPurchaseOrder.PurchaseOrderID > 0 && CurrentPurchaseOrder.Active
-                    && CurrentPurchaseOrder.Status.Order < definedValueService.Get( PurchaseOrder.PurchaseOrderStatusPartiallyReceived ).Order )
+                    && CurrentPurchaseOrder.Status.Order < DefinedValueCache.Get( PurchaseOrder.PurchaseOrderStatusPartiallyReceived ).Order )
                 {
                     canCancel = true;
                 }
@@ -1246,7 +1245,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 return;
             }
 
-            if (CurrentPurchaseOrder.Status.Order < definedValueService.Get(PurchaseOrder.PurchaseOrderStatusReceived).Order)
+            if (CurrentPurchaseOrder.Status.Order < DefinedValueCache.Get(PurchaseOrder.PurchaseOrderStatusReceived).Order)
             {
                 SetSummaryError("Can not mark as billed - order has not been fully received.");
                 return;
@@ -1264,7 +1263,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void RemoveItemFromPO(int poItemID)
         {
-            CurrentPurchaseOrder.Status.LoadAttributes();
             if (poItemID > 0 && !CurrentPurchaseOrder.Status.GetAttributeValue("IsClosed").AsBoolean())
             {
                 if (CurrentPurchaseOrder.RemoveItem(poItemID, CurrentUser.UserName))
