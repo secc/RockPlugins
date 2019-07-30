@@ -59,8 +59,12 @@ namespace org.secc.Trak1.Workflow.Action
                     var backgroundCheck = backgroundCheckService.Queryable().Where( b => b.WorkflowId == action.Activity.Workflow.Id ).FirstOrDefault();
                     if ( backgroundCheck == null )
                     {
-                        errorMessages.Add( "No valid background check exists for this workflow" );
-                        return false;
+                        //If for some reason a background check entity isn't available
+                        //Add a log and set the report Status To Error.
+                        //This allows the workflow to handle issues gracefully
+                        action.AddLogEntry( "No valid background check exists for this workflow", true );
+                        SetWorkflowAttributeValue( action, GetAttributeValue( action, "ReportStatus" ).AsGuid(), "Error" );
+                        return true;
                     }
                     var transactionId = backgroundCheck.RequestId;
 
