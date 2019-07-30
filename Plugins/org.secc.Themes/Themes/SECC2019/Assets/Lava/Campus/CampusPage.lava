@@ -281,6 +281,9 @@
                                     {%- if campusServices.msm != null &&  campusServices.hsm != null -%}
                                     <h5>
                                         <strong>Student Ministries</strong><br />
+                                        {%- if campusSlug == 'rivervalley' -%}
+                    						Weekly programming launches Sep. 8th<br /><br />
+                    					{%- endif -%}
                                     {%- endif -%}
 
                                     {%- if campusServices.msm != null -%}
@@ -308,7 +311,7 @@
                                     {%- endif -%}
 
                                 {%- endif -%}
-								{%- assign slug = campus | Attribute: 'slug' -%}
+                                {%-assign slug = campus | Attribute: 'slug'-%}
                                 {%- if slug == 'indiana' -%}
             						(in the back of the building)
             					{%- endif -%}
