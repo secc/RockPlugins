@@ -80,6 +80,22 @@
             </Content>
         </Rock:ModalDialog>
 
+        <Rock:ModalDialog runat="server" Title="Please Log-in To Reprint" ID="mdLogin" CancelLinkVisible="false">
+            <Content>
+                <div class="row clearfix">
+                    <div class="col-md-4"></div>
+                    <div class="col-md-4">
+                        <Rock:NotificationBox runat="server" ID="nbLogin" NotificationBoxType="Validation" Visible="false" />
+                        <Rock:RockTextBox runat="server" ID="tbUsername" Label="Username" />
+                        <Rock:RockTextBox runat="server" ID="tbPassword" TextMode="Password" Label="Password"/>
+                        <Rock:BootstrapButton runat="server" ID="btnLoginPrint" CssClass="btn btn-primary" Text="Print" OnClick="btnLoginPrint_Click" />
+                        <Rock:BootstrapButton runat="server" ID="btnLoginCancel" CssClass="btn btn-default" Text="Cancel" OnClick="btnLoginCancel_Click" />
+                    </div>
+                    <div class="col-md-4"></div>
+                </div>
+            </Content>
+        </Rock:ModalDialog>
+
         <Rock:NotificationBox runat="server" NotificationBoxType="Warning" ID="nbChange" Visible="false">
             Changes have been saved. If birthday or grade have been changed, the check-in information on this page may not
             be accurate. To update check-in information reload page. 
