@@ -29,10 +29,10 @@ namespace org.secc.Purchasing
     {
 
         #region Fields
-        private DefinedValue mStatus = null;
+        private DefinedValueCache mStatus = null;
         private Person mRequester = null;
-        private DefinedValue mMinistry = null;
-        private DefinedValue mLocation = null;
+        private DefinedValueCache mMinistry = null;
+        private DefinedValueCache mLocation = null;
         //private Person mMinistryApprover = null;
         private Person mCreatedByPerson = null;
         private Person mModifiedByPerson = null;
@@ -97,13 +97,13 @@ namespace org.secc.Purchasing
         }
 
         [XmlIgnore]
-        public  DefinedValue Status
+        public DefinedValueCache Status
         {
             get
             {
                 if ( ( mStatus == null && StatusLUID > 0 ) || ( mStatus != null && mStatus.Id != StatusLUID ) )
                 {
-                    mStatus = definedValueService.Get( StatusLUID );
+                    mStatus = DefinedValueCache.Get( StatusLUID );
                 }
                 return mStatus;
             }
@@ -128,13 +128,13 @@ namespace org.secc.Purchasing
         }
 
         [XmlIgnore]
-        public DefinedValue Ministry
+        public DefinedValueCache Ministry
         {
             get
             {
                 if ( ( mMinistry == null && MinistryLUID > 0 ) || ( mMinistry != null && mMinistry.Id != MinistryLUID ) )
                 {
-                    mMinistry = definedValueService.Get( MinistryLUID );
+                    mMinistry = DefinedValueCache.Get( MinistryLUID );
                 }
 
                 return mMinistry;
@@ -142,13 +142,13 @@ namespace org.secc.Purchasing
         }
 
         [XmlIgnore]
-        public DefinedValue Location
+        public DefinedValueCache Location
         {
             get
             {
                 if((mLocation == null && LocationLUID > 0) || (mLocation != null && mLocation.Id != LocationLUID))
                 {
-                    mLocation = definedValueService.Get(LocationLUID);
+                    mLocation = DefinedValueCache.Get(LocationLUID);
                 }
 
                 return mLocation;
@@ -336,7 +336,7 @@ namespace org.secc.Purchasing
                 throw new RequisitionException( "Status Guid is not valid." );
             }
 
-            DefinedValue newStatus = definedValueService.Get( statusGuid );
+            DefinedValueCache newStatus = DefinedValueCache.Get( statusGuid );
 
             if ( newStatus.Id <= 0 )
             {
@@ -1320,7 +1320,7 @@ namespace org.secc.Purchasing
             }
             else
             {
-                DefinedValue ministryLookup = definedValueService.Get( MinistryLUID );
+                DefinedValueCache ministryLookup = DefinedValueCache.Get( MinistryLUID );
 
                 if ( ministryLookup == null || ministryLookup.Id <= 0 )
                 {
@@ -1338,7 +1338,7 @@ namespace org.secc.Purchasing
                 }
             }
 
-            if (StatusLUID != definedValueService.Get(new Guid(LOOKUP_STATUS_NEW_GUID)).Id && StatusLUID != definedValueService.Get(new Guid(LOOKUP_STATUS_CANCELLED_GUID)).Id)
+            if (StatusLUID != DefinedValueCache.Get(new Guid(LOOKUP_STATUS_NEW_GUID)).Id && StatusLUID != DefinedValueCache.Get(new Guid(LOOKUP_STATUS_CANCELLED_GUID)).Id)
             {
                 if ( GLCompanyId == null || GLFundId == null || GLDepartmentId == null || GLAccountId == null )
                 {

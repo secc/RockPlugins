@@ -72,6 +72,12 @@
 		color: $color-primary;
 		background-color: $color-dark;
 	}
+
+	&.no-transitions {
+	  transition-duration: none !important;
+	  transition-property: none !important;
+	  transition-timing-function: none !important;
+	}
 }
 
 /* ---- 2.1 Defualt Buttons ---- */

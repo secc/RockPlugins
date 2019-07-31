@@ -38,6 +38,7 @@ namespace RockWeb.Blocks.Event
     [Category( "SECC > Event" )]
     [Description( "Renders a particular calendar event item using Lava." )]
     [LinkedPage( "Registration Page", "Registration page for events", order: 1 )]
+    [EventItemField( "EventItem", "", required: false)]
     [CodeEditorField( "Lava Template", "Lava template to use to display the list of events.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 400, true, @"{% include '~~/Assets/Lava/CalendarItem.lava' %}", "", 2 )]
     [BooleanField( "Set Page Title", "Determines if the block should set the page title with the calendar item name.", false, order: 3 )]
     [AttributeField( "E37FB26F-03F6-48DA-8E96-F412616F5EE4", "URL Slug Attribute", "The attribute on the calendar item which contains the URL Slug.", false, order: 4 )]
@@ -121,16 +122,18 @@ namespace RockWeb.Blocks.Event
 
         private void DisplayDetails()
         {
-            int eventItemId = 0;
             RockContext rockContext = new RockContext();
 
             EventItemService eventItemService = new EventItemService( rockContext );
             var qry = eventItemService
                 .Queryable();
 
+            // get the eventItem id if the event item is set via block attribute
+            var eventItemAttGuid = GetAttributeValue( "EventItem" ).AsGuid();
+            int eventItemId = qry.Where( i => i.Guid == eventItemAttGuid ).Select( i => i.Id ).FirstOrDefault();
 
-            // get the eventItem id
-            if ( !string.IsNullOrWhiteSpace( PageParameter( "EventItemId" ) ) )
+            // get the eventItem id if the event item block attribute isn't set
+            if ( eventItemId == 0 &&  !string.IsNullOrWhiteSpace( PageParameter( "EventItemId" ) ) )
             {
                 eventItemId = Convert.ToInt32( PageParameter( "EventItemId" ) );
             }
@@ -205,10 +208,19 @@ namespace RockWeb.Blocks.Event
                     if ( !string.IsNullOrEmpty( campusStr ) )
                     {
                         //check if there's a campus with this name.
-                        var campus = CampusCache.All().Where( c => c.Name.ToLower() == campusStr.ToLower() ).FirstOrDefault();
+                        var campus = CampusCache.All().Where( c => c.Name.ToLower().RemoveSpaces() == campusStr.ToLower().RemoveSpaces() ).FirstOrDefault();
                         if ( campus != null )
                         {
                             occurrenceList.RemoveAll( o => o.CampusId != null && o.CampusId != campus.Id );
+                        }
+                        else
+                        {
+                            // check one more time to see if there's a campus slug that matches
+                            campus = CampusCache.All().Where( c => c.AttributeValues["Slug"].ToString() == campusStr.ToLower() ).FirstOrDefault();
+                            if ( campus != null )
+                            {
+                                occurrenceList.RemoveAll( o => o.CampusId != null && o.CampusId != campus.Id );
+                            }
                         }
                     }
 
