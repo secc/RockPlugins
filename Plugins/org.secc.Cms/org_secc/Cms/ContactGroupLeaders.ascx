@@ -22,12 +22,8 @@
 			</div>		
             
         </asp:Panel>
-
-      
-       
         
          <asp:Literal ID="lResponse" runat="server" Visible="false" />
-        <asp:Literal ID="lDebug" runat="server" />
  
     </ContentTemplate>
     <Triggers>
