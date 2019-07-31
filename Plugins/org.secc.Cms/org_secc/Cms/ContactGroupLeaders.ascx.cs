@@ -39,17 +39,11 @@ namespace RockWeb.Plugins.org_secc.Cms
     /// Block  where home group leaders can be reached from their home group displayed on the home group page.  (Home Group Web Project).
     /// </summary>
     [DisplayName( "Contact Group Leaders" )]
-    [Category( "CMS" )]
+    [Category( "SECC > CMS" )]
     [Description( "Options to contact home group leaders." )]
-    [GroupField( "Default Leader Group", "A pre-configured group (all leaders will be emailed)", true, "", "", 0, "LeaderGroup" )]
-    [GroupField( "Group Via Guid", "A group via group guid passed through the query string (all leaders will be emailed)", false, "", "", 1, "GroupViaGuid" )]
-    [PersonField( "Default Recipient ", "A pre-configured person", true, "", "", 2, "DefaultRecipient" )]
-    [PersonField( "Recipient Via Guid", "Recipient person via person guid passed through the query", false, "", "", 3, "Recipient Via Guid" )]
-    [TextField( "Recipient Email(s)", "Email addresses (comma delimited) to send the contents to.", false, "", "", 0, "RecipientEmail" )]
-    [TextField( "Subject", "The subject line for the email. <span class='tip tip-lava'></span>", true, "", "", 3 )]
-    [TextField( "From Email", "The email address to use for the from. <span class='tip tip-lava'></span>", true, "", "", 4 )]
-    [TextField( "From Name", "The name to use for the from address. <span class='tip tip-lava'></span>", true, "", "", 5 )]
-    [CodeEditorField( "HTML Form", "The HTML for the form the user will complete. <span class='tip tip-lava'></span>", CodeEditorMode.Lava, CodeEditorTheme.Rock, 400, false,"", "", 6 )]
+    [GroupField( "Default Contact Group", "A pre-configured group (all leaders will be emailed)", false, "", "", 0, "LeaderGroup" )]
+    [PersonField( "Default Recipient ", "A pre-configured person", false, "", "", 2, "DefaultRecipient" )]
+    [TextField( "Subject", "The subject line for the email. <span class='tip tip-lava'></span>", true, "New Message For Your Group", "", 3 )]
     [CodeEditorField( "Message Body", "The email message body. <span class='tip tip-lava'></span>", CodeEditorMode.Lava, CodeEditorTheme.Rock, 400, false, "", "", 7 )]
     [CodeEditorField( "Response Message", "The message the user will see when they submit the form if no response page if provided. Lava merge fields are available for you to use in your message.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 200, false, @"<div class=""alert alert-info"">
     Thank you for your interest in this group!
@@ -57,13 +51,8 @@ namespace RockWeb.Plugins.org_secc.Cms
     [TextField( "Submit Button Text", "The text to display for the submit button.", true, "Submit", "", 10 )]
     [TextField( "Submit Button Wrap CSS Class", "CSS class to add to the div wrapping the button.", false, "", "", 11, key: "SubmitButtonWrapCssClass" )]
     [TextField( "Submit Button CSS Class", "The CSS class add to the submit button.", false, "btn btn-primary", "", 12, key: "SubmitButtonCssClass" )]
-    [BooleanField( "Enable Debug", "Shows the fields available to merge in lava.", false, "", 13 )]
     [BooleanField( "Save Communication History", "Should a record of this communication be saved to the recipient's profile", false, "", 14 )]
     [LavaCommandsField( "Enabled Lava Commands", "The Lava commands that should be enabled for this HTML block.", false, order: 15 )]
-    
- 
-
-
     public partial class ContactGroupLeaders : Rock.Web.UI.RockBlock
     {
 
@@ -75,12 +64,6 @@ namespace RockWeb.Plugins.org_secc.Cms
             // this event gets fired after block settings are updated. it's nice to repaint the screen if these settings would alter it
             this.BlockUpdated += Block_BlockUpdated;
             this.AddConfigurationUpdateTrigger( upnlContent );
-
-            pnlContactGroupLeaders.Visible = this.ContextEntity<Rock.Model.Person>() == null;
-
-            RockContext rockContext = new RockContext();
-
- 
         }
 
         /// <summary>
@@ -93,50 +76,8 @@ namespace RockWeb.Plugins.org_secc.Cms
 
             if ( !Page.IsPostBack )
             {
-                    if ( CurrentPerson != null )
-                    {
-                        tbFirstName.Text = CurrentPerson.NickName;
-                        tbLastName.Text = CurrentPerson.LastName;
-                        tbEmail.Text = CurrentPerson.Email;
-                    
-                }
-
-                int? groupId = this.PageParameter( "GroupId" ).AsIntegerOrNull();
-                GetGroupLeaders( groupId);
-                if ( groupId.HasValue )
-                {
-                    string groupName = GetGroupName( groupId );
-                }
                 ShowForm();
-                pnlContactGroupLeaders.Visible = true;
-     
-                if ( !string.IsNullOrWhiteSpace( GetAttributeValue( "SubmitButtonText" ) ) )
-                {
-                    btnSubmit.Text = GetAttributeValue( "SubmitButtonText" );
-                }
-
-                if ( !string.IsNullOrWhiteSpace( GetAttributeValue( "SubmitButtonWrapCssClass" ) ) )
-                {
-                    divButtonWrap.Attributes.Add( "class", GetAttributeValue( "SubmitButtonWrapCssClass" ) );
-                }
-
-                if ( !string.IsNullOrWhiteSpace( GetAttributeValue( "SubmitButtonCssClass" ) ) )
-                {
-                    btnSubmit.CssClass = GetAttributeValue( "SubmitButtonCssClass" );
-                }
-
-                if ( string.IsNullOrWhiteSpace( GetAttributeValue( "RecipientEmail" ) ) )
-                {
-                    lError.Text = "<div class='alert alert-warning'>A recipient has not been provided for this form.</div>";
-                }
-
-                if ( string.IsNullOrWhiteSpace( GetAttributeValue( "Subject" ) ) )
-                {
-                    lError.Text += "<div class='alert alert-warning'>A subject has not been provided for this form.</div>";
-                }
             }
-
-           
         }
 
         #endregion
@@ -169,9 +110,8 @@ namespace RockWeb.Plugins.org_secc.Cms
             else
             {
                 pnlContactGroupLeaders.Visible = true;
-                cpCaptcha.Visible = cpCaptcha.IsAvailable;
             }
-           
+
         }
 
         #endregion
@@ -182,8 +122,33 @@ namespace RockWeb.Plugins.org_secc.Cms
         /// </summary>
         private void ShowForm()
         {
+            //Preload form
+            if ( CurrentPerson != null )
+            {
+                tbFirstName.Text = CurrentPerson.NickName;
+                tbLastName.Text = CurrentPerson.LastName;
+                tbEmail.Text = CurrentPerson.Email;
+            }
+
+            //Style Submit Button
+            if ( !string.IsNullOrWhiteSpace( GetAttributeValue( "SubmitButtonText" ) ) )
+            {
+                btnSubmit.Text = GetAttributeValue( "SubmitButtonText" );
+            }
+
+            if ( !string.IsNullOrWhiteSpace( GetAttributeValue( "SubmitButtonWrapCssClass" ) ) )
+            {
+                divButtonWrap.Attributes.Add( "class", GetAttributeValue( "SubmitButtonWrapCssClass" ) );
+            }
+
+            if ( !string.IsNullOrWhiteSpace( GetAttributeValue( "SubmitButtonCssClass" ) ) )
+            {
+                btnSubmit.CssClass = GetAttributeValue( "SubmitButtonCssClass" );
+            }
+
+            //Show captcha is available - you need to add two keys to global attributes to enable
             cpCaptcha.Visible = cpCaptcha.IsAvailable;
-           
+
         }
 
         /// <summary>
@@ -192,97 +157,92 @@ namespace RockWeb.Plugins.org_secc.Cms
         private bool SendEmail()
         {
             var rockContext = new RockContext();
-            var serverVarList = Context.Request.ServerVariables;
-            var personService = new PersonService( rockContext );
+            var personAliasService = new PersonAliasService( rockContext );
             var groupService = new GroupService( rockContext );
-            Person person = null;
             Group group = null;
-            int? groupId = null;
-            bool isValid = cpCaptcha.IsResponseValid();
+
+            List<Person> recipients = new List<Person>();
 
             // get person from url
-            if ( this.PageParameter( "PersonGuid" ) != null && !string.IsNullOrWhiteSpace( this.PageParameter( "PersonGuid" ) ) )
+            if ( PageParameter( "PersonGuid" ).IsNotNullOrWhiteSpace() )
             {
                 Guid? personGuid = this.PageParameter( "PersonGuid" ).AsGuidOrNull();
-
                 if ( personGuid.HasValue )
                 {
-                    person = personService.Get( personGuid.Value );
-                    SetAttributeValue( "RecipientEmail", person.Email );
+                    var person = personAliasService.Get( personGuid.Value );
+                    if ( person != null )
+                    {
+                        recipients.Add( person.Person );
+                    }
                 }
             }
 
-            // get group id from url
-            if ( this.PageParameter( "GroupGuid" ) != null && !string.IsNullOrWhiteSpace( this.PageParameter( "GroupGuid" ) ) )
-            { 
+            // get group members from url
+            if ( PageParameter( "GroupGuid" ).IsNotNullOrWhiteSpace() )
+            {
                 Guid? groupGuid = PageParameter( "GroupGuid" ).AsGuidOrNull();
-            
+
                 if ( groupGuid.HasValue )
                 {
-                    group = groupService.Queryable().Where( g => g.Guid == groupGuid.Value ).FirstOrDefault();
-                    groupId = group.Id;
-              
+                    group = groupService.Get( groupGuid.Value );
+                    recipients.AddRange( GetGroupLeaders( group ) );
+
                 }
             }
-            if ( this.PageParameter( "GroupId" ) != null && !string.IsNullOrWhiteSpace( this.PageParameter( "GroupId" ) ) )
+
+            if ( !recipients.Any() )
             {
-                
-                    groupId = this.PageParameter( "GroupId" ).AsIntegerOrNull();
-                
-            }
-            
-            
-                string groupName = GetGroupName( groupId );
-            
-
-
-
-            if ( isValid )
+                Guid defaultRecipient = this.GetAttributeValue( "DefaultRecipient" ).AsGuid();
+                var defaultPerson = personAliasService.Get( defaultRecipient );
+                if ( defaultPerson != null )
                 {
+                    recipients.Add( defaultPerson.Person );
+                }
+            }
+
+            if ( !recipients.Any() )
+            {
+                Guid defaultGroupGuid = GetAttributeValue( "LeaderGroup" ).AsGuid();
+                var defaultGroup = groupService.Get( defaultGroupGuid );
+                recipients.AddRange( GetGroupLeaders( defaultGroup ) );
+            }
+
+            if ( !cpCaptcha.IsAvailable || cpCaptcha.IsResponseValid() )
+            {
                 var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
-                mergeFields.Add( "NickName",tbFirstName.Text );
-                mergeFields.Add( "LastName",tbLastName.Text );
+                mergeFields.Add( "NickName", tbFirstName.Text );
+                mergeFields.Add( "LastName", tbLastName.Text );
                 mergeFields.Add( "Email", tbEmail.Text );
-                mergeFields.Add( "GroupName", groupName );
-                mergeFields.Add( "Message",tbMessage.Text );
+                mergeFields.Add( "Group", group );
+                mergeFields.Add( "Message", tbMessage.Text );
                 mergeFields.Add( "FromEmail", tbEmail.Text );
                 mergeFields.Add( "FromName", tbFirstName.Text + " " + tbLastName.Text );
-               
-                
+
                 var message = new RockEmailMessage();
                 message.EnabledLavaCommands = GetAttributeValue( "EnabledLavaCommands" );
 
-                
-
-
                 // send email
-                foreach ( string recipient in GetAttributeValue( "RecipientEmail" ).Split( ',' ).ToList() )
-                    {
-                        message.AddRecipient( new RecipientData( recipient, mergeFields ) );
-                    }
+                foreach ( var recipient in recipients )
+                {
+                    message.AddRecipient( new RecipientData( new CommunicationRecipient { PersonAlias = recipient.PrimaryAlias }, mergeFields ) );
+                }
 
-                    message.FromEmail = GetAttributeValue( "FromEmail" ).ResolveMergeFields( mergeFields );
-                    message.FromName = GetAttributeValue( "FromName" ).ResolveMergeFields( mergeFields );
-                    message.Subject = GetAttributeValue( "Subject" );
-                    message.Message = GetAttributeValue( "MessageBody").ResolveMergeFields(mergeFields);
-                    message.AppRoot = ResolveRockUrl( "~/" );
-                    message.ThemeRoot = ResolveRockUrl( "~~/" );
-                    message.CreateCommunicationRecord = GetAttributeValue( "SaveCommunicationHistory" ).AsBoolean();
-                    message.Send();
-                
+                message.FromEmail = tbEmail.Text;
+                message.FromName = tbFirstName.Text + " " + tbLastName.Text;
+                message.Subject = GetAttributeValue( "Subject" );
+                message.Message = GetAttributeValue( "MessageBody" );
+                message.AppRoot = ResolveRockUrl( "~/" );
+                message.ThemeRoot = ResolveRockUrl( "~~/" );
+                message.CreateCommunicationRecord = GetAttributeValue( "SaveCommunicationHistory" ).AsBoolean();
+                message.Send();
+
                 // set response
-    
+
                 // display response message
                 lResponse.Visible = true;
                 pnlContactGroupLeaders.Visible = false;
                 lResponse.Text = GetAttributeValue( "ResponseMessage" ).ResolveMergeFields( mergeFields, GetAttributeValue( "EnabledLavaCommands" ) );
                 return true;
-                // show debug info
-                if ( GetAttributeValue( "EnableDebug" ).AsBoolean() && IsUserAuthorized( Authorization.EDIT ) )
-                {
-                    lDebug.Visible = true;
- 
-                }
             }
             else
             {
@@ -290,64 +250,22 @@ namespace RockWeb.Plugins.org_secc.Cms
                 pnlContactGroupLeaders.Visible = true;
                 lResponse.Text = "<div class='alert alert-danger'>You appear to be a computer. Check the box above and then click Submit.</div>";
                 return false;
-             
             }
         }
 
 
-        public void GetGroupLeaders( int? groupId )
+        public List<Person> GetGroupLeaders( Group group )
         {
-             var rockContext = new RockContext();
-    
-                var groupMemberList = new GroupMemberService( rockContext ).Queryable()
-                    .Where( m =>
-                            m.GroupId == groupId &&
-                            m.GroupMemberStatus == GroupMemberStatus.Active &&
-                            m.GroupRole.IsLeader == true &&
-                            m.Person.Email != null &&
-                            m.Person.Email != "" )
-                        .Select( m => m.Person.Email )
-                        .ToList();
-            if ( groupMemberList.Count != 0 )
+            if ( group != null )
             {
-                string leaderList = string.Join( ",", groupMemberList );
-                SetAttributeValue( "RecipientEmail", leaderList );
+
+                return group.Members
+                     .Where( gm => gm.GroupMemberStatus == GroupMemberStatus.Active && gm.GroupRole.IsLeader == true )
+                     .Select( gm => gm.Person )
+                     .ToList();
             }
-            else
-            {
-                Guid? defaultRecipient = this.GetAttributeValue( "DefaultRecipient" ).AsGuidOrNull();
-                Person person = NewMethod( rockContext ).Queryable()
-                    .Where( a => a.Guid.Equals( defaultRecipient.Value ) )
-                    .Select( a => a.Person )
-                    .FirstOrDefault();
-                if ( person != null && !string.IsNullOrWhiteSpace( person.Email ) )
-                {
-                    SetAttributeValue( "RecipientEmail", person.Email );
-
-                }
-
-            }
-
+            return new List<Person>();
         }
-
-        public string GetGroupName( int? groupId )
-        {
-            if ( groupId != null )
-            {
-                var rockContext = new RockContext();
-                var groupName = new GroupService( rockContext ).GetSelect( groupId.Value, a => a.Name );
-                return groupName;
-            }
-            return " ";    
-           
-        }
-
-        private static PersonAliasService NewMethod( RockContext rockContext )
-        {
-            return new PersonAliasService( rockContext );
-        }
-
- 
         #endregion
     }
 }
