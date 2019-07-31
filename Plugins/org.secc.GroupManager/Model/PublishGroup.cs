@@ -17,7 +17,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
-using System.Linq;
 using System.Runtime.Serialization;
 using Rock.Data;
 using Rock.Model;
@@ -41,6 +40,7 @@ namespace org.secc.GroupManager.Model
 
         [DataMember]
         public int? ImageId { get; set; }
+
         [LavaInclude]
         public BinaryFile Image { get; set; }
 
@@ -63,11 +63,14 @@ namespace org.secc.GroupManager.Model
         [Index]
         [DataMember]
         public int RequestorAliasId { get; set; }
+
+        [LavaInclude]
         public virtual PersonAlias RequestorAlias { get; set; }
 
         [Index]
         [DataMember]
         public int ContactPersonAliasId { get; set; }
+
         [LavaInclude]
         public virtual PersonAlias ContactPersonAlias { get; set; }
 
@@ -103,37 +106,6 @@ namespace org.secc.GroupManager.Model
 
         [DataMember]
         public PublishGroupStatus PublishGroupStatus { get; set; }
-
-        [NotMapped]
-        public bool IsActive { get => WasActive( Rock.RockDateTime.Now ); }
-
-        [LavaInclude]
-        public bool WasActive( DateTime dateTime )
-        {
-
-            return StartDateTime < dateTime && EndDateTime > dateTime;
-        }
-
-        [LavaInclude]
-        public bool IsFull
-        {
-            get
-            {
-
-                if ( Group.GroupType.GroupCapacityRule == GroupCapacityRule.None
-                    || !Group.GroupCapacity.HasValue )
-                {
-                    return false;
-                }
-                else
-                {
-                    return Group.GroupCapacity < Group.ActiveMembers().Count();
-                }
-            }
-        }
-
-        [LavaInclude]
-        public bool IsNotFull { get => !IsFull; }
     }
 
     public enum PublishGroupStatus
