@@ -21,6 +21,7 @@ using org.secc.Purchasing.DataLayer;
 using Rock.Model;
 using Rock;
 using System.Data.SqlClient;
+using Rock.Web.Cache;
 
 namespace org.secc.Purchasing
 {
@@ -44,8 +45,8 @@ namespace org.secc.Purchasing
         private Vendor mVendor;
         private Person mCreatedBy;
         private Person mModifiedBy;
-        private DefinedValue mPurchaseOrderType;
-        private DefinedValue mStatus;
+        private DefinedValueCache mPurchaseOrderType;
+        private DefinedValueCache mStatus;
         private Person mOrderedBy;
         private PaymentMethod mDefaultPaymentMethod;
 
@@ -112,23 +113,23 @@ namespace org.secc.Purchasing
         }
 
         [XmlIgnore]
-        public DefinedValue PurchaseOrderType
+        public DefinedValueCache PurchaseOrderType
         {
             get
             {
                 if ((mPurchaseOrderType == null || mPurchaseOrderType.Id != PurchaseOrderTypeLUID) && PurchaseOrderTypeLUID > 0)
-                    mPurchaseOrderType = definedValueService.Get(PurchaseOrderTypeLUID);
+                    mPurchaseOrderType = DefinedValueCache.Get(PurchaseOrderTypeLUID);
                 return mPurchaseOrderType;
             }
         }
 
         [XmlIgnore]
-        public DefinedValue Status
+        public DefinedValueCache Status
         {
             get
             {
                 if ((mStatus == null || mStatus.Id != StatusLUID) && StatusLUID > 0)
-                    mStatus = definedValueService.Get(StatusLUID);
+                    mStatus = DefinedValueCache.Get(StatusLUID);
 
                 return mStatus;
             }
@@ -261,68 +262,68 @@ namespace org.secc.Purchasing
 
         #region Public
 
-        public static List<DefinedValue> GetPurchaseOrderStatuses(bool activeOnly)
+        public static List<DefinedValueCache> GetPurchaseOrderStatuses(bool activeOnly)
         {
-            List<DefinedValue> StatusList = new List<DefinedValue>();
+            List<DefinedValueCache> StatusList = new List<DefinedValueCache>();
 
             if (activeOnly)
-                StatusList.AddRange(definedTypeService.Get(PurchaseOrderStatusGuid).DefinedValues.Where(l => l.IsValid));
+                StatusList.AddRange(DefinedTypeCache.Get(PurchaseOrderStatusGuid).DefinedValues.Where(l => l.IsActive));
             else
-                StatusList.AddRange(definedTypeService.Get(PurchaseOrderStatusGuid).DefinedValues);
+                StatusList.AddRange(DefinedTypeCache.Get(PurchaseOrderStatusGuid).DefinedValues);
 
             return StatusList;
         }
 
-        public static List<DefinedValue> GetPurchaseOrderTypes(bool activeOnly)
+        public static List<DefinedValueCache> GetPurchaseOrderTypes(bool activeOnly)
         {
-            List<DefinedValue> POTypes = new List<DefinedValue>();
+            List<DefinedValueCache> POTypes = new List<DefinedValueCache>();
 
             if (activeOnly)
-                POTypes.AddRange(definedTypeService.Get(PurchaseOrderTypeGuid).DefinedValues.Where(l => l.IsValid));
+                POTypes.AddRange(DefinedTypeCache.Get(PurchaseOrderTypeGuid).DefinedValues.Where(l => l.IsActive));
             else
-                POTypes.AddRange(definedTypeService.Get(PurchaseOrderTypeGuid).DefinedValues);
+                POTypes.AddRange( DefinedTypeCache.Get(PurchaseOrderTypeGuid).DefinedValues);
 
             return POTypes;
         }
 
         public static int PurchaseOrderOrderedStatusLUID()
         {
-            return definedValueService.Get(PurchaseOrderStatusOrderedGuid).Id;
+            return DefinedValueCache.Get(PurchaseOrderStatusOrderedGuid).Id;
         }
 
         public static int PurchaseOrderStatusPartiallyReceivedLUID()
         {
-            return definedValueService.Get(PurchaseOrderStatusPartiallyReceived).Id;
+            return DefinedValueCache.Get(PurchaseOrderStatusPartiallyReceived).Id;
         }
 
         public static int PurchaseOrderStatusReceivedLUID()
         {
-            return definedValueService.Get(PurchaseOrderStatusReceived).Id;
+            return DefinedValueCache.Get(PurchaseOrderStatusReceived).Id;
         }
 
         public static int PurchaseOrderStatusBilledLUID()
         {
-            return definedValueService.Get(PurchaseOrderStatusBilled).Id;
+            return DefinedValueCache.Get(PurchaseOrderStatusBilled).Id;
         }
 
         public static int PurchaseOrderStatusClosedLUID()
         {
-            return definedValueService.Get(PurchaseOrderStatusClosed).Id;
+            return DefinedValueCache.Get(PurchaseOrderStatusClosed).Id;
         }
 
         public static int PurchaseOrderStatusReopenedLUID()
         {
-            return definedValueService.Get(PurchaseOrderStatusReopened).Id;
+            return DefinedValueCache.Get(PurchaseOrderStatusReopened).Id;
         }
 
         public static int PurchaseOrderStatusOpenLUID()
         {
-            return definedValueService.Get(PurchaseOrderStatusOpen).Id;
+            return DefinedValueCache.Get(PurchaseOrderStatusOpen).Id;
         }
 
         public static int PurchaseOrderStatusCancelledLUID()
         {
-            return definedValueService.Get(PurchaseOrderStatusCancelled).Id;
+            return DefinedValueCache.Get(PurchaseOrderStatusCancelled).Id;
         }
 
         public static List<PurchaseOrderListItem> GetPurchaseOrderList(Dictionary<string,string> filter)
@@ -698,7 +699,7 @@ namespace org.secc.Purchasing
             {
                 Dictionary<string, string> cancelErrors = new Dictionary<string, string>();
 
-                if ( Status.Order >= definedValueService.Get( PurchaseOrderStatusPartiallyReceived ).Order )
+                if ( Status.Order >= DefinedValueCache.Get( PurchaseOrderStatusPartiallyReceived ).Order )
                 {
                     cancelErrors.Add( "Status", "A purchase order can only be canceled before any items are received." );
                 }

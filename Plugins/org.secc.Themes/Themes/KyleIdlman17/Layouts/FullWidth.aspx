@@ -30,24 +30,12 @@
             </div>
         </div>
 
-        <div class="row">
+		<div class="row">
             <div class="col-md-12">
-                <Rock:Zone Name="Section A" runat="server" />
+                <Rock:Zone Name="Footer" runat="server" />
             </div>
         </div>
-
-        <div class="row">
-            <div class="col-md-4">
-                <Rock:Zone Name="Section B" runat="server" />
-            </div>
-            <div class="col-md-4">
-                <Rock:Zone Name="Section C" runat="server" />
-            </div>
-            <div class="col-md-4">
-                <Rock:Zone Name="Section D" runat="server" />
-            </div>
-        </div>
-
+		
         <!-- End Content Area -->
 
 	</main>
