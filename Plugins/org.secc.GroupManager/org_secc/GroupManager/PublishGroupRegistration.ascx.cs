@@ -32,6 +32,7 @@ using Rock.Web;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
+using org.secc.PersonMatch;
 
 namespace RockWeb.Plugins.org_secc.GroupManager
 {
@@ -211,536 +212,557 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 // Check to see if this is a new person
                 if ( person == null )
                 {
-                    // If so, create the person and family record for the new person
-                    person = new Person();
-                    person.FirstName = tbFirstName.Text.Trim();
-                    person.LastName = tbLastName.Text.Trim();
-                    person.Email = tbEmail.Text.Trim();
-                    person.IsEmailActive = true;
-                    person.EmailPreference = EmailPreference.EmailAllowed;
-                    person.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
-                    person.ConnectionStatusValueId = _dvcConnectionStatus.Id;
-                    person.RecordStatusValueId = _dvcRecordStatus.Id;
-                    person.Gender = Gender.Unknown;
-
-                    family = PersonService.SaveNewPerson( person, rockContext, _publishGroup.Group.CampusId, false );
-                }
-                else
-                {
-                    // updating current existing person
-                    person.Email = tbEmail.Text;
-
-                    // Get the current person's families
-                    var families = person.GetFamilies( rockContext );
-
-                    // If address can being entered, look for first family with a home location
-                    if ( !IsSimple )
+                    var people = personService.GetByMatch(
+                                            tbFirstName.Text.Trim(),
+                                            tbLastName.Text.Trim(),
+                                            null,
+                                            tbEmail.Text.Trim(),
+                                            pnCell.Text.Trim(),
+                                            acAddress.Street1,
+                                            acAddress.PostalCode );
+                    if ( people.Count() == 1 &&
+                         // Make sure their email matches.  If it doesn't, we need to go ahead and create a new person to be matched later.
+                         ( string.IsNullOrWhiteSpace( tbEmail.Text.Trim() ) ||
+                         ( people.First().Email != null &&
+                         tbEmail.Text.ToLower().Trim() == people.First().Email.ToLower().Trim() ) )
+                       )
                     {
-                        foreach ( var aFamily in families )
+                        person = people.First();
+                    }
+                    else
+                    {
+
+                        // If so, create the person and family record for the new person
+                        person = new Person();
+                        person.FirstName = tbFirstName.Text.Trim();
+                        person.LastName = tbLastName.Text.Trim();
+                        person.Email = tbEmail.Text.Trim();
+                        person.IsEmailActive = true;
+                        person.EmailPreference = EmailPreference.EmailAllowed;
+                        person.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+                        person.ConnectionStatusValueId = _dvcConnectionStatus.Id;
+                        person.RecordStatusValueId = _dvcRecordStatus.Id;
+                        person.Gender = Gender.Unknown;
+
+                        family = PersonService.SaveNewPerson( person, rockContext, _publishGroup.Group.CampusId, false );
+                    }
+                    }
+                    else
+                    {
+                        // updating current existing person
+                        person.Email = tbEmail.Text;
+
+                        // Get the current person's families
+                        var families = person.GetFamilies( rockContext );
+
+                        // If address can being entered, look for first family with a home location
+                        if ( !IsSimple )
                         {
-                            homeLocation = aFamily.GroupLocations
-                                .Where( l =>
-                                    l.GroupLocationTypeValueId == _homeAddressType.Id &&
-                                    l.IsMappedLocation )
-                                .FirstOrDefault();
-                            if ( homeLocation != null )
+                            foreach ( var aFamily in families )
                             {
-                                family = aFamily;
-                                break;
+                                homeLocation = aFamily.GroupLocations
+                                    .Where( l =>
+                                        l.GroupLocationTypeValueId == _homeAddressType.Id &&
+                                        l.IsMappedLocation )
+                                    .FirstOrDefault();
+                                if ( homeLocation != null )
+                                {
+                                    family = aFamily;
+                                    break;
+                                }
                             }
+                        }
+
+                        // If a family wasn't found with a home location, use the person's first family
+                        if ( family == null )
+                        {
+                            family = families.FirstOrDefault();
                         }
                     }
 
-                    // If a family wasn't found with a home location, use the person's first family
-                    if ( family == null )
+                    // If using a 'Full' view, save the phone numbers and address
+                    if ( !IsSimple )
                     {
-                        family = families.FirstOrDefault();
-                    }
-                }
-
-                // If using a 'Full' view, save the phone numbers and address
-                if ( !IsSimple )
-                {
-                    if ( !isMatch || !string.IsNullOrWhiteSpace( pnHome.Number ) )
-                    {
-                        SetPhoneNumber( rockContext, person, pnHome, null, Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME.AsGuid() );
-                    }
-                    if ( !isMatch || !string.IsNullOrWhiteSpace( pnCell.Number ) )
-                    {
-                        SetPhoneNumber( rockContext, person, pnCell, cbSms, Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() );
-                    }
-
-                    if ( !isMatch || !string.IsNullOrWhiteSpace( acAddress.Street1 ) )
-                    {
-                        string oldLocation = homeLocation != null ? homeLocation.Location.ToString() : string.Empty;
-                        string newLocation = string.Empty;
-
-                        var location = new LocationService( rockContext ).Get( acAddress.Street1, acAddress.Street2, acAddress.City, acAddress.State, acAddress.PostalCode, acAddress.Country );
-                        if ( location != null )
+                        if ( !isMatch || !string.IsNullOrWhiteSpace( pnHome.Number ) )
                         {
-                            if ( homeLocation == null )
+                            SetPhoneNumber( rockContext, person, pnHome, null, Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME.AsGuid() );
+                        }
+                        if ( !isMatch || !string.IsNullOrWhiteSpace( pnCell.Number ) )
+                        {
+                            SetPhoneNumber( rockContext, person, pnCell, cbSms, Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() );
+                        }
+
+                        if ( !isMatch || !string.IsNullOrWhiteSpace( acAddress.Street1 ) )
+                        {
+                            string oldLocation = homeLocation != null ? homeLocation.Location.ToString() : string.Empty;
+                            string newLocation = string.Empty;
+
+                            var location = new LocationService( rockContext ).Get( acAddress.Street1, acAddress.Street2, acAddress.City, acAddress.State, acAddress.PostalCode, acAddress.Country );
+                            if ( location != null )
                             {
-                                homeLocation = new GroupLocation();
-                                homeLocation.GroupLocationTypeValueId = _homeAddressType.Id;
-                                family.GroupLocations.Add( homeLocation );
+                                if ( homeLocation == null )
+                                {
+                                    homeLocation = new GroupLocation();
+                                    homeLocation.GroupLocationTypeValueId = _homeAddressType.Id;
+                                    family.GroupLocations.Add( homeLocation );
+                                }
+                                else
+                                {
+                                    oldLocation = homeLocation.Location.ToString();
+                                }
+
+                                homeLocation.Location = location;
+                                newLocation = location.ToString();
                             }
                             else
                             {
-                                oldLocation = homeLocation.Location.ToString();
-                            }
-
-                            homeLocation.Location = location;
-                            newLocation = location.ToString();
-                        }
-                        else
-                        {
-                            if ( homeLocation != null )
-                            {
-                                homeLocation.Location = null;
-                                family.GroupLocations.Remove( homeLocation );
-                                new GroupLocationService( rockContext ).Delete( homeLocation );
-                            }
-                        }
-                    }
-
-                    // Check for the spouse
-                    if ( IsFullWithSpouse && tbSpouseFirstName.Text.IsNotNullOrWhiteSpace() && tbSpouseLastName.Text.IsNotNullOrWhiteSpace() )
-                    {
-                        spouse = person.GetSpouse( rockContext );
-                        bool isSpouseMatch = true;
-
-                        if ( spouse == null ||
-                            !tbSpouseFirstName.Text.Trim().Equals( spouse.FirstName.Trim(), StringComparison.OrdinalIgnoreCase ) ||
-                            !tbSpouseLastName.Text.Trim().Equals( spouse.LastName.Trim(), StringComparison.OrdinalIgnoreCase ) )
-                        {
-                            spouse = new Person();
-                            isSpouseMatch = false;
-
-                            spouse.FirstName = tbSpouseFirstName.Text.FixCase();
-                            spouse.LastName = tbSpouseLastName.Text.FixCase();
-
-                            spouse.ConnectionStatusValueId = _dvcConnectionStatus.Id;
-                            spouse.RecordStatusValueId = _dvcRecordStatus.Id;
-                            spouse.Gender = Gender.Unknown;
-
-                            spouse.IsEmailActive = true;
-                            spouse.EmailPreference = EmailPreference.EmailAllowed;
-
-                            var groupMember = new GroupMember();
-                            groupMember.GroupRoleId = _adultRole.Id;
-                            groupMember.Person = spouse;
-
-                            family.Members.Add( groupMember );
-
-                            spouse.MaritalStatusValueId = _married.Id;
-                            person.MaritalStatusValueId = _married.Id;
-                        }
-
-                        spouse.Email = tbSpouseEmail.Text;
-
-                        if ( !isSpouseMatch || !string.IsNullOrWhiteSpace( pnHome.Number ) )
-                        {
-                            SetPhoneNumber( rockContext, spouse, pnHome, null, Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME.AsGuid() );
-                        }
-
-                        if ( !isSpouseMatch || !string.IsNullOrWhiteSpace( pnSpouseCell.Number ) )
-                        {
-                            SetPhoneNumber( rockContext, spouse, pnSpouseCell, cbSpouseSms, Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() );
-                        }
-                    }
-                }
-
-                // Save the person/spouse and change history 
-                rockContext.SaveChanges();
-
-                // Check to see if a workflow should be launched for each person
-                WorkflowTypeCache workflowType = null;
-                Guid? workflowTypeGuid = GetAttributeValue( "Workflow" ).AsGuidOrNull();
-                if ( workflowTypeGuid.HasValue )
-                {
-                    workflowType = WorkflowTypeCache.Get( workflowTypeGuid.Value );
-                }
-
-                // Save the registrations ( and launch workflows )
-                var newGroupMembers = new List<GroupMember>();
-                AddPersonToGroup( rockContext, person, workflowType, newGroupMembers );
-                AddPersonToGroup( rockContext, spouse, workflowType, newGroupMembers );
-
-                // Show the results
-                pnlView.Visible = false;
-                pnlResult.Visible = true;
-
-                // Show lava content
-                var mergeFields = new Dictionary<string, object>();
-                mergeFields.Add( "PublishGroup", _publishGroup );
-                mergeFields.Add( "Group", _publishGroup.Group );
-                mergeFields.Add( "GroupMembers", newGroupMembers );
-
-                string template = GetAttributeValue( "ResultLavaTemplate" );
-                lResult.Text = template.ResolveMergeFields( mergeFields );
-
-                SendConfirmation( person );
-                SendConfirmation( spouse );
-
-                // Will only redirect if a value is specifed
-                NavigateToLinkedPage( "ResultPage" );
-            }
-        }
-
-        private void SendConfirmation( Person person )
-        {
-            if ( person == null )
-            {
-                return;
-            }
-
-            var mergeObjects = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
-            mergeObjects["Person"] = person;
-            mergeObjects["PublishGroup"] = _publishGroup;
-            mergeObjects["Group"] = _publishGroup.Group;
-
-            var message = new RockEmailMessage();
-            message.FromEmail = _publishGroup.ConfirmationEmail;
-            message.FromName = _publishGroup.ConfirmationFromName;
-            message.Subject = _publishGroup.ConfirmationSubject;
-            message.Message = _publishGroup.ConfirmationBody;
-            message.AddRecipient( new RecipientData( new CommunicationRecipient() { PersonAlias = person.PrimaryAlias }, mergeObjects ) );
-            message.Send();
-        }
-
-        #endregion
-
-        #region Internal Methods
-
-        /// <summary>
-        /// Shows the details.
-        /// </summary>
-        private void ShowDetails()
-        {
-            _rockContext = _rockContext ?? new RockContext();
-
-            if ( _publishGroup != null )
-            {
-                // Show lava content
-                var mergeFields = new Dictionary<string, object>();
-                mergeFields.Add( "PublishGroup", _publishGroup );
-                mergeFields.Add( "Group", _publishGroup.Group );
-
-                string template = GetAttributeValue( "LavaTemplate" );
-                lLavaOverview.Text = template.ResolveMergeFields( mergeFields );
-
-                // Set visibility based on selected mode
-                if ( IsFullWithSpouse )
-                {
-                    pnlCol1.RemoveCssClass( "col-md-12" ).AddCssClass( "col-md-6" );
-                }
-                else
-                {
-                    pnlCol1.RemoveCssClass( "col-md-6" ).AddCssClass( "col-md-12" );
-                }
-                pnlCol2.Visible = IsFullWithSpouse;
-
-                tbEmail.Required = GetAttributeValue( REQUIRE_EMAIL_KEY ).AsBoolean();
-                pnCell.Required = GetAttributeValue( REQUIRE_MOBILE_KEY ).AsBoolean();
-
-                pnlHomePhone.Visible = !IsSimple;
-                pnlCellPhone.Visible = !IsSimple;
-                acAddress.Visible = !IsSimple;
-
-                string phoneLabel = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE ).Value;
-                phoneLabel = phoneLabel.Trim().EndsWith( "Phone" ) ? phoneLabel : phoneLabel + " Phone";
-                pnCell.Label = phoneLabel;
-                pnSpouseCell.Label = "Spouse " + phoneLabel;
-
-                if ( CurrentPersonId.HasValue && _autoFill )
-                {
-                    var personService = new PersonService( _rockContext );
-                    Person person = personService
-                        .Queryable( "PhoneNumbers.NumberTypeValue" ).AsNoTracking()
-                        .FirstOrDefault( p => p.Id == CurrentPersonId.Value );
-
-                    tbFirstName.Text = CurrentPerson.FirstName;
-                    tbLastName.Text = CurrentPerson.LastName;
-                    tbEmail.Text = CurrentPerson.Email;
-
-                    if ( !IsSimple )
-                    {
-                        Guid homePhoneType = Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME.AsGuid();
-                        var homePhone = person.PhoneNumbers
-                            .FirstOrDefault( n => n.NumberTypeValue.Guid.Equals( homePhoneType ) );
-                        if ( homePhone != null )
-                        {
-                            pnHome.Text = homePhone.Number;
-                        }
-
-                        Guid cellPhoneType = Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid();
-                        var cellPhone = person.PhoneNumbers
-                            .FirstOrDefault( n => n.NumberTypeValue.Guid.Equals( cellPhoneType ) );
-                        if ( cellPhone != null )
-                        {
-                            pnCell.Text = cellPhone.Number;
-                            cbSms.Checked = cellPhone.IsMessagingEnabled;
-                        }
-
-                        var homeAddress = person.GetHomeLocation();
-                        if ( homeAddress != null )
-                        {
-                            acAddress.SetValues( homeAddress );
-                        }
-
-                        if ( IsFullWithSpouse )
-                        {
-                            var spouse = person.GetSpouse( _rockContext );
-                            if ( spouse != null )
-                            {
-                                tbSpouseFirstName.Text = spouse.FirstName;
-                                tbSpouseLastName.Text = spouse.LastName;
-                                tbSpouseEmail.Text = spouse.Email;
-
-                                var spouseCellPhone = spouse.PhoneNumbers
-                                    .FirstOrDefault( n => n.NumberTypeValue.Guid.Equals( cellPhoneType ) );
-                                if ( spouseCellPhone != null )
+                                if ( homeLocation != null )
                                 {
-                                    pnSpouseCell.Text = spouseCellPhone.Number;
-                                    cbSpouseSms.Checked = spouseCellPhone.IsMessagingEnabled;
+                                    homeLocation.Location = null;
+                                    family.GroupLocations.Remove( homeLocation );
+                                    new GroupLocationService( rockContext ).Delete( homeLocation );
+                                }
+                            }
+                        }
+
+                        // Check for the spouse
+                        if ( IsFullWithSpouse && tbSpouseFirstName.Text.IsNotNullOrWhiteSpace() && tbSpouseLastName.Text.IsNotNullOrWhiteSpace() )
+                        {
+                            spouse = person.GetSpouse( rockContext );
+                            bool isSpouseMatch = true;
+
+                            if ( spouse == null ||
+                                !tbSpouseFirstName.Text.Trim().Equals( spouse.FirstName.Trim(), StringComparison.OrdinalIgnoreCase ) ||
+                                !tbSpouseLastName.Text.Trim().Equals( spouse.LastName.Trim(), StringComparison.OrdinalIgnoreCase ) )
+                            {
+                                spouse = new Person();
+                                isSpouseMatch = false;
+
+                                spouse.FirstName = tbSpouseFirstName.Text.FixCase();
+                                spouse.LastName = tbSpouseLastName.Text.FixCase();
+
+                                spouse.ConnectionStatusValueId = _dvcConnectionStatus.Id;
+                                spouse.RecordStatusValueId = _dvcRecordStatus.Id;
+                                spouse.Gender = Gender.Unknown;
+
+                                spouse.IsEmailActive = true;
+                                spouse.EmailPreference = EmailPreference.EmailAllowed;
+
+                                var groupMember = new GroupMember();
+                                groupMember.GroupRoleId = _adultRole.Id;
+                                groupMember.Person = spouse;
+
+                                family.Members.Add( groupMember );
+
+                                spouse.MaritalStatusValueId = _married.Id;
+                                person.MaritalStatusValueId = _married.Id;
+                            }
+
+                            spouse.Email = tbSpouseEmail.Text;
+
+                            if ( !isSpouseMatch || !string.IsNullOrWhiteSpace( pnHome.Number ) )
+                            {
+                                SetPhoneNumber( rockContext, spouse, pnHome, null, Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME.AsGuid() );
+                            }
+
+                            if ( !isSpouseMatch || !string.IsNullOrWhiteSpace( pnSpouseCell.Number ) )
+                            {
+                                SetPhoneNumber( rockContext, spouse, pnSpouseCell, cbSpouseSms, Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() );
+                            }
+                        }
+                    }
+
+                    // Save the person/spouse and change history 
+                    rockContext.SaveChanges();
+
+                    // Check to see if a workflow should be launched for each person
+                    WorkflowTypeCache workflowType = null;
+                    Guid? workflowTypeGuid = GetAttributeValue( "Workflow" ).AsGuidOrNull();
+                    if ( workflowTypeGuid.HasValue )
+                    {
+                        workflowType = WorkflowTypeCache.Get( workflowTypeGuid.Value );
+                    }
+
+                    // Save the registrations ( and launch workflows )
+                    var newGroupMembers = new List<GroupMember>();
+                    AddPersonToGroup( rockContext, person, workflowType, newGroupMembers );
+                    AddPersonToGroup( rockContext, spouse, workflowType, newGroupMembers );
+
+                    // Show the results
+                    pnlView.Visible = false;
+                    pnlResult.Visible = true;
+
+                    // Show lava content
+                    var mergeFields = new Dictionary<string, object>();
+                    mergeFields.Add( "PublishGroup", _publishGroup );
+                    mergeFields.Add( "Group", _publishGroup.Group );
+                    mergeFields.Add( "GroupMembers", newGroupMembers );
+
+                    string template = GetAttributeValue( "ResultLavaTemplate" );
+                    lResult.Text = template.ResolveMergeFields( mergeFields );
+
+                    SendConfirmation( person );
+                    SendConfirmation( spouse );
+
+                    // Will only redirect if a value is specifed
+                    NavigateToLinkedPage( "ResultPage" );
+                }
+            }
+
+            private void SendConfirmation( Person person )
+            {
+                if ( person == null )
+                {
+                    return;
+                }
+
+                var mergeObjects = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
+                mergeObjects["Person"] = person;
+                mergeObjects["PublishGroup"] = _publishGroup;
+                mergeObjects["Group"] = _publishGroup.Group;
+
+                var message = new RockEmailMessage();
+                message.FromEmail = _publishGroup.ConfirmationEmail;
+                message.FromName = _publishGroup.ConfirmationFromName;
+                message.Subject = _publishGroup.ConfirmationSubject;
+                message.Message = _publishGroup.ConfirmationBody;
+                message.AddRecipient( new RecipientData( new CommunicationRecipient() { PersonAlias = person.PrimaryAlias }, mergeObjects ) );
+                message.Send();
+            }
+
+            #endregion
+
+            #region Internal Methods
+
+            /// <summary>
+            /// Shows the details.
+            /// </summary>
+            private void ShowDetails()
+            {
+                _rockContext = _rockContext ?? new RockContext();
+
+                if ( _publishGroup != null )
+                {
+                    // Show lava content
+                    var mergeFields = new Dictionary<string, object>();
+                    mergeFields.Add( "PublishGroup", _publishGroup );
+                    mergeFields.Add( "Group", _publishGroup.Group );
+
+                    string template = GetAttributeValue( "LavaTemplate" );
+                    lLavaOverview.Text = template.ResolveMergeFields( mergeFields );
+
+                    // Set visibility based on selected mode
+                    if ( IsFullWithSpouse )
+                    {
+                        pnlCol1.RemoveCssClass( "col-md-12" ).AddCssClass( "col-md-6" );
+                    }
+                    else
+                    {
+                        pnlCol1.RemoveCssClass( "col-md-6" ).AddCssClass( "col-md-12" );
+                    }
+                    pnlCol2.Visible = IsFullWithSpouse;
+
+                    tbEmail.Required = GetAttributeValue( REQUIRE_EMAIL_KEY ).AsBoolean();
+                    pnCell.Required = GetAttributeValue( REQUIRE_MOBILE_KEY ).AsBoolean();
+
+                    pnlHomePhone.Visible = !IsSimple;
+                    pnlCellPhone.Visible = !IsSimple;
+                    acAddress.Visible = !IsSimple;
+
+                    string phoneLabel = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE ).Value;
+                    phoneLabel = phoneLabel.Trim().EndsWith( "Phone" ) ? phoneLabel : phoneLabel + " Phone";
+                    pnCell.Label = phoneLabel;
+                    pnSpouseCell.Label = "Spouse " + phoneLabel;
+
+                    if ( CurrentPersonId.HasValue && _autoFill )
+                    {
+                        var personService = new PersonService( _rockContext );
+                        Person person = personService
+                            .Queryable( "PhoneNumbers.NumberTypeValue" ).AsNoTracking()
+                            .FirstOrDefault( p => p.Id == CurrentPersonId.Value );
+
+                        tbFirstName.Text = CurrentPerson.FirstName;
+                        tbLastName.Text = CurrentPerson.LastName;
+                        tbEmail.Text = CurrentPerson.Email;
+
+                        if ( !IsSimple )
+                        {
+                            Guid homePhoneType = Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME.AsGuid();
+                            var homePhone = person.PhoneNumbers
+                                .FirstOrDefault( n => n.NumberTypeValue.Guid.Equals( homePhoneType ) );
+                            if ( homePhone != null )
+                            {
+                                pnHome.Text = homePhone.Number;
+                            }
+
+                            Guid cellPhoneType = Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid();
+                            var cellPhone = person.PhoneNumbers
+                                .FirstOrDefault( n => n.NumberTypeValue.Guid.Equals( cellPhoneType ) );
+                            if ( cellPhone != null )
+                            {
+                                pnCell.Text = cellPhone.Number;
+                                cbSms.Checked = cellPhone.IsMessagingEnabled;
+                            }
+
+                            var homeAddress = person.GetHomeLocation();
+                            if ( homeAddress != null )
+                            {
+                                acAddress.SetValues( homeAddress );
+                            }
+
+                            if ( IsFullWithSpouse )
+                            {
+                                var spouse = person.GetSpouse( _rockContext );
+                                if ( spouse != null )
+                                {
+                                    tbSpouseFirstName.Text = spouse.FirstName;
+                                    tbSpouseLastName.Text = spouse.LastName;
+                                    tbSpouseEmail.Text = spouse.Email;
+
+                                    var spouseCellPhone = spouse.PhoneNumbers
+                                        .FirstOrDefault( n => n.NumberTypeValue.Guid.Equals( cellPhoneType ) );
+                                    if ( spouseCellPhone != null )
+                                    {
+                                        pnSpouseCell.Text = spouseCellPhone.Number;
+                                        cbSpouseSms.Checked = spouseCellPhone.IsMessagingEnabled;
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                if ( GetAttributeValue( "PreventOvercapacityRegistrations" ).AsBoolean() )
-                {
-                    int openGroupSpots = 2;
-                    int openRoleSpots = 2;
-
-                    // If the group has a GroupCapacity, check how far we are from hitting that.
-                    if ( _publishGroup.Group.GroupCapacity.HasValue )
+                    if ( GetAttributeValue( "PreventOvercapacityRegistrations" ).AsBoolean() )
                     {
-                        openGroupSpots = _publishGroup.Group.GroupCapacity.Value - _publishGroup.Group.ActiveMembers().Count();
-                    }
+                        int openGroupSpots = 2;
+                        int openRoleSpots = 2;
 
-                    // When someone registers for a group on the front-end website, they automatically get added with the group's default
-                    // GroupTypeRole. If that role exists and has a MaxCount, check how far we are from hitting that.
-                    if ( _defaultGroupRole != null && _defaultGroupRole.MaxCount.HasValue )
-                    {
-                        openRoleSpots = _defaultGroupRole.MaxCount.Value - _publishGroup.Group.Members
-                            .Where( m => m.GroupRoleId == _defaultGroupRole.Id && m.GroupMemberStatus == GroupMemberStatus.Active )
-                            .Count();
-                    }
+                        // If the group has a GroupCapacity, check how far we are from hitting that.
+                        if ( _publishGroup.Group.GroupCapacity.HasValue )
+                        {
+                            openGroupSpots = _publishGroup.Group.GroupCapacity.Value - _publishGroup.Group.ActiveMembers().Count();
+                        }
 
-                    // Between the group's GroupCapacity and DefaultGroupRole.MaxCount, grab the one we're closest to hitting, and how close we are to
-                    // hitting it.
-                    int openSpots = Math.Min( openGroupSpots, openRoleSpots );
+                        // When someone registers for a group on the front-end website, they automatically get added with the group's default
+                        // GroupTypeRole. If that role exists and has a MaxCount, check how far we are from hitting that.
+                        if ( _defaultGroupRole != null && _defaultGroupRole.MaxCount.HasValue )
+                        {
+                            openRoleSpots = _defaultGroupRole.MaxCount.Value - _publishGroup.Group.Members
+                                .Where( m => m.GroupRoleId == _defaultGroupRole.Id && m.GroupMemberStatus == GroupMemberStatus.Active )
+                                .Count();
+                        }
 
-                    // If there's only one spot open, disable the spouse fields and display a warning message.
-                    if ( openSpots == 1 )
-                    {
-                        tbSpouseFirstName.Enabled = false;
-                        tbSpouseLastName.Enabled = false;
-                        pnSpouseCell.Enabled = false;
-                        cbSpouseSms.Enabled = false;
-                        tbSpouseEmail.Enabled = false;
-                        nbWarning.Text = "This group is near its capacity. Only one individual can register.";
-                        nbWarning.Visible = true;
-                    }
+                        // Between the group's GroupCapacity and DefaultGroupRole.MaxCount, grab the one we're closest to hitting, and how close we are to
+                        // hitting it.
+                        int openSpots = Math.Min( openGroupSpots, openRoleSpots );
 
-                    // If no spots are open, display a message that says so.
-                    if ( openSpots <= 0 )
-                    {
-                        nbNotice.Text = "This group is at or exceeds capacity.";
-                        nbNotice.Visible = true;
-                        pnlView.Visible = false;
+                        // If there's only one spot open, disable the spouse fields and display a warning message.
+                        if ( openSpots == 1 )
+                        {
+                            tbSpouseFirstName.Enabled = false;
+                            tbSpouseLastName.Enabled = false;
+                            pnSpouseCell.Enabled = false;
+                            cbSpouseSms.Enabled = false;
+                            tbSpouseEmail.Enabled = false;
+                            nbWarning.Text = "This group is near its capacity. Only one individual can register.";
+                            nbWarning.Visible = true;
+                        }
+
+                        // If no spots are open, display a message that says so.
+                        if ( openSpots <= 0 )
+                        {
+                            nbNotice.Text = "This group is at or exceeds capacity.";
+                            nbNotice.Visible = true;
+                            pnlView.Visible = false;
+                        }
                     }
                 }
             }
-        }
 
-        /// <summary>
-        /// Adds the person to group.
-        /// </summary>
-        /// <param name="rockContext">The rock context.</param>
-        /// <param name="person">The person.</param>
-        /// <param name="workflowType">Type of the workflow.</param>
-        /// <param name="groupMembers">The group members.</param>
-        private void AddPersonToGroup( RockContext rockContext, Person person, WorkflowTypeCache workflowType, List<GroupMember> groupMembers )
-        {
-            if ( person != null )
+            /// <summary>
+            /// Adds the person to group.
+            /// </summary>
+            /// <param name="rockContext">The rock context.</param>
+            /// <param name="person">The person.</param>
+            /// <param name="workflowType">Type of the workflow.</param>
+            /// <param name="groupMembers">The group members.</param>
+            private void AddPersonToGroup( RockContext rockContext, Person person, WorkflowTypeCache workflowType, List<GroupMember> groupMembers )
             {
-                GroupMember groupMember = null;
-                if ( !_publishGroup.Group.Members
-                    .Any( m =>
-                        m.PersonId == person.Id &&
-                        m.GroupRoleId == _defaultGroupRole.Id ) )
+                if ( person != null )
                 {
-                    var groupMemberService = new GroupMemberService( rockContext );
-                    groupMember = new GroupMember();
-                    groupMember.PersonId = person.Id;
-                    groupMember.GroupRoleId = _defaultGroupRole.Id;
-                    groupMember.GroupMemberStatus = ( GroupMemberStatus ) GetAttributeValue( "GroupMemberStatus" ).AsInteger();
-                    groupMember.GroupId = _publishGroup.Group.Id;
-                    groupMemberService.Add( groupMember );
-                    rockContext.SaveChanges();
-                }
-                else
-                {
-                    GroupMemberStatus status = ( GroupMemberStatus ) GetAttributeValue( "GroupMemberStatus" ).AsInteger();
-                    groupMember = _publishGroup.Group.Members.Where( m =>
-                       m.PersonId == person.Id &&
-                       m.GroupRoleId == _defaultGroupRole.Id ).FirstOrDefault();
-                    if ( groupMember.GroupMemberStatus != status )
+                    GroupMember groupMember = null;
+                    if ( !_publishGroup.Group.Members
+                        .Any( m =>
+                            m.PersonId == person.Id &&
+                            m.GroupRoleId == _defaultGroupRole.Id ) )
                     {
                         var groupMemberService = new GroupMemberService( rockContext );
-
-                        // reload this group member in the current context
-                        groupMember = groupMemberService.Get( groupMember.Id );
-                        groupMember.GroupMemberStatus = status;
+                        groupMember = new GroupMember();
+                        groupMember.PersonId = person.Id;
+                        groupMember.GroupRoleId = _defaultGroupRole.Id;
+                        groupMember.GroupMemberStatus = ( GroupMemberStatus ) GetAttributeValue( "GroupMemberStatus" ).AsInteger();
+                        groupMember.GroupId = _publishGroup.Group.Id;
+                        groupMemberService.Add( groupMember );
                         rockContext.SaveChanges();
                     }
-
-                }
-
-                if ( groupMember != null && workflowType != null && ( workflowType.IsActive ?? true ) )
-                {
-                    try
+                    else
                     {
-                        List<string> workflowErrors;
-                        var workflow = Workflow.Activate( workflowType, person.FullName );
-                        new WorkflowService( rockContext ).Process( workflow, groupMember, out workflowErrors );
+                        GroupMemberStatus status = ( GroupMemberStatus ) GetAttributeValue( "GroupMemberStatus" ).AsInteger();
+                        groupMember = _publishGroup.Group.Members.Where( m =>
+                           m.PersonId == person.Id &&
+                           m.GroupRoleId == _defaultGroupRole.Id ).FirstOrDefault();
+                        if ( groupMember.GroupMemberStatus != status )
+                        {
+                            var groupMemberService = new GroupMemberService( rockContext );
+
+                            // reload this group member in the current context
+                            groupMember = groupMemberService.Get( groupMember.Id );
+                            groupMember.GroupMemberStatus = status;
+                            rockContext.SaveChanges();
+                        }
+
                     }
-                    catch ( Exception ex )
+
+                    if ( groupMember != null && workflowType != null && ( workflowType.IsActive ?? true ) )
                     {
-                        ExceptionLogService.LogException( ex, this.Context );
+                        try
+                        {
+                            List<string> workflowErrors;
+                            var workflow = Workflow.Activate( workflowType, person.FullName );
+                            new WorkflowService( rockContext ).Process( workflow, groupMember, out workflowErrors );
+                        }
+                        catch ( Exception ex )
+                        {
+                            ExceptionLogService.LogException( ex, this.Context );
+                        }
                     }
                 }
             }
+
+            /// <summary>
+            /// Checks the settings.  If false is returned, it's expected that the caller will make
+            /// the nbNotice visible to inform the user of the "settings" error.
+            /// </summary>
+            /// <returns>true if settings are valid; false otherwise</returns>
+            private bool CheckSettings()
+            {
+                _rockContext = _rockContext ?? new RockContext();
+
+                _mode = GetAttributeValue( "Mode" );
+
+                _autoFill = GetAttributeValue( "AutoFillForm" ).AsBoolean();
+
+                string registerButtonText = GetAttributeValue( "RegisterButtonAltText" );
+                if ( string.IsNullOrWhiteSpace( registerButtonText ) )
+                {
+                    registerButtonText = "Register";
+                }
+                btnRegister.Text = registerButtonText;
+
+                var publishGroupService = new PublishGroupService( _rockContext );
+
+                if ( _publishGroup == null )
+                {
+                    var publishGroupGuid = PageParameter( "PublishGroup" ).AsGuidOrNull();
+                    if ( publishGroupGuid.HasValue )
+                    {
+                        _publishGroup = publishGroupService.Get( publishGroupGuid.Value );
+                    }
+                }
+
+                if ( _publishGroup == null )
+                {
+                    nbNotice.Heading = "Unknown Group";
+                    nbNotice.Text = "<p>This page requires a valid group identifying parameter and there was not one provided.</p>";
+                    return false;
+                }
+
+                _defaultGroupRole = _publishGroup.Group.GroupType.DefaultGroupRole;
+
+
+                _dvcConnectionStatus = DefinedValueCache.Get( GetAttributeValue( "ConnectionStatus" ).AsGuid() );
+                if ( _dvcConnectionStatus == null )
+                {
+                    nbNotice.Heading = "Invalid Connection Status";
+                    nbNotice.Text = "<p>The selected Connection Status setting does not exist.</p>";
+                    return false;
+                }
+
+                _dvcRecordStatus = DefinedValueCache.Get( GetAttributeValue( "RecordStatus" ).AsGuid() );
+                if ( _dvcRecordStatus == null )
+                {
+                    nbNotice.Heading = "Invalid Record Status";
+                    nbNotice.Text = "<p>The selected Record Status setting does not exist.</p>";
+                    return false;
+                }
+
+                _married = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_MARITAL_STATUS_MARRIED.AsGuid() );
+                _homeAddressType = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() );
+                _familyType = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid() );
+                _adultRole = _familyType.Roles.FirstOrDefault( r => r.Guid.Equals( Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() ) );
+
+                if ( _married == null || _homeAddressType == null || _familyType == null || _adultRole == null )
+                {
+                    nbNotice.Heading = "Missing System Value";
+                    nbNotice.Text = "<p>There is a missing or invalid system value. Check the settings for Marital Status of 'Married', Location Type of 'Home', Group Type of 'Family', and Family Group Role of 'Adult'.</p>";
+                    return false;
+                }
+
+                return true;
+            }
+
+            /// <summary>
+            /// Sets the phone number.
+            /// </summary>
+            /// <param name="rockContext">The rock context.</param>
+            /// <param name="person">The person.</param>
+            /// <param name="pnbNumber">The PNB number.</param>
+            /// <param name="cbSms">The cb SMS.</param>
+            /// <param name="phoneTypeGuid">The phone type unique identifier.</param>
+            private void SetPhoneNumber( RockContext rockContext, Person person, PhoneNumberBox pnbNumber, RockCheckBox cbSms, Guid phoneTypeGuid )
+            {
+                var phoneType = DefinedValueCache.Get( phoneTypeGuid );
+                if ( phoneType != null )
+                {
+                    var phoneNumber = person.PhoneNumbers.FirstOrDefault( n => n.NumberTypeValueId == phoneType.Id );
+                    string oldPhoneNumber = string.Empty;
+                    if ( phoneNumber == null )
+                    {
+                        phoneNumber = new PhoneNumber { NumberTypeValueId = phoneType.Id };
+                    }
+                    else
+                    {
+                        oldPhoneNumber = phoneNumber.NumberFormattedWithCountryCode;
+                    }
+
+                    phoneNumber.CountryCode = PhoneNumber.CleanNumber( pnbNumber.CountryCode );
+                    phoneNumber.Number = PhoneNumber.CleanNumber( pnbNumber.Number );
+
+                    if ( string.IsNullOrWhiteSpace( phoneNumber.Number ) )
+                    {
+                        if ( phoneNumber.Id > 0 )
+                        {
+                            new PhoneNumberService( rockContext ).Delete( phoneNumber );
+                            person.PhoneNumbers.Remove( phoneNumber );
+                        }
+                    }
+                    else
+                    {
+                        if ( phoneNumber.Id <= 0 )
+                        {
+                            person.PhoneNumbers.Add( phoneNumber );
+                        }
+                        if ( cbSms != null && cbSms.Checked )
+                        {
+                            phoneNumber.IsMessagingEnabled = true;
+                            person.PhoneNumbers
+                                .Where( n => n.NumberTypeValueId != phoneType.Id )
+                                .ToList()
+                                .ForEach( n => n.IsMessagingEnabled = false );
+                        }
+                    }
+                }
+            }
+
+            #endregion
         }
-
-        /// <summary>
-        /// Checks the settings.  If false is returned, it's expected that the caller will make
-        /// the nbNotice visible to inform the user of the "settings" error.
-        /// </summary>
-        /// <returns>true if settings are valid; false otherwise</returns>
-        private bool CheckSettings()
-        {
-            _rockContext = _rockContext ?? new RockContext();
-
-            _mode = GetAttributeValue( "Mode" );
-
-            _autoFill = GetAttributeValue( "AutoFillForm" ).AsBoolean();
-
-            string registerButtonText = GetAttributeValue( "RegisterButtonAltText" );
-            if ( string.IsNullOrWhiteSpace( registerButtonText ) )
-            {
-                registerButtonText = "Register";
-            }
-            btnRegister.Text = registerButtonText;
-
-            var publishGroupService = new PublishGroupService( _rockContext );
-
-            if ( _publishGroup == null )
-            {
-                var publishGroupGuid = PageParameter( "PublishGroup" ).AsGuidOrNull();
-                if ( publishGroupGuid.HasValue )
-                {
-                    _publishGroup = publishGroupService.Get( publishGroupGuid.Value );
-                }
-            }
-
-            if ( _publishGroup == null )
-            {
-                nbNotice.Heading = "Unknown Group";
-                nbNotice.Text = "<p>This page requires a valid group identifying parameter and there was not one provided.</p>";
-                return false;
-            }
-
-            _defaultGroupRole = _publishGroup.Group.GroupType.DefaultGroupRole;
-
-
-            _dvcConnectionStatus = DefinedValueCache.Get( GetAttributeValue( "ConnectionStatus" ).AsGuid() );
-            if ( _dvcConnectionStatus == null )
-            {
-                nbNotice.Heading = "Invalid Connection Status";
-                nbNotice.Text = "<p>The selected Connection Status setting does not exist.</p>";
-                return false;
-            }
-
-            _dvcRecordStatus = DefinedValueCache.Get( GetAttributeValue( "RecordStatus" ).AsGuid() );
-            if ( _dvcRecordStatus == null )
-            {
-                nbNotice.Heading = "Invalid Record Status";
-                nbNotice.Text = "<p>The selected Record Status setting does not exist.</p>";
-                return false;
-            }
-
-            _married = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_MARITAL_STATUS_MARRIED.AsGuid() );
-            _homeAddressType = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() );
-            _familyType = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid() );
-            _adultRole = _familyType.Roles.FirstOrDefault( r => r.Guid.Equals( Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() ) );
-
-            if ( _married == null || _homeAddressType == null || _familyType == null || _adultRole == null )
-            {
-                nbNotice.Heading = "Missing System Value";
-                nbNotice.Text = "<p>There is a missing or invalid system value. Check the settings for Marital Status of 'Married', Location Type of 'Home', Group Type of 'Family', and Family Group Role of 'Adult'.</p>";
-                return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Sets the phone number.
-        /// </summary>
-        /// <param name="rockContext">The rock context.</param>
-        /// <param name="person">The person.</param>
-        /// <param name="pnbNumber">The PNB number.</param>
-        /// <param name="cbSms">The cb SMS.</param>
-        /// <param name="phoneTypeGuid">The phone type unique identifier.</param>
-        private void SetPhoneNumber( RockContext rockContext, Person person, PhoneNumberBox pnbNumber, RockCheckBox cbSms, Guid phoneTypeGuid )
-        {
-            var phoneType = DefinedValueCache.Get( phoneTypeGuid );
-            if ( phoneType != null )
-            {
-                var phoneNumber = person.PhoneNumbers.FirstOrDefault( n => n.NumberTypeValueId == phoneType.Id );
-                string oldPhoneNumber = string.Empty;
-                if ( phoneNumber == null )
-                {
-                    phoneNumber = new PhoneNumber { NumberTypeValueId = phoneType.Id };
-                }
-                else
-                {
-                    oldPhoneNumber = phoneNumber.NumberFormattedWithCountryCode;
-                }
-
-                phoneNumber.CountryCode = PhoneNumber.CleanNumber( pnbNumber.CountryCode );
-                phoneNumber.Number = PhoneNumber.CleanNumber( pnbNumber.Number );
-
-                if ( string.IsNullOrWhiteSpace( phoneNumber.Number ) )
-                {
-                    if ( phoneNumber.Id > 0 )
-                    {
-                        new PhoneNumberService( rockContext ).Delete( phoneNumber );
-                        person.PhoneNumbers.Remove( phoneNumber );
-                    }
-                }
-                else
-                {
-                    if ( phoneNumber.Id <= 0 )
-                    {
-                        person.PhoneNumbers.Add( phoneNumber );
-                    }
-                    if ( cbSms != null && cbSms.Checked )
-                    {
-                        phoneNumber.IsMessagingEnabled = true;
-                        person.PhoneNumbers
-                            .Where( n => n.NumberTypeValueId != phoneType.Id )
-                            .ToList()
-                            .ForEach( n => n.IsMessagingEnabled = false );
-                    }
-                }
-            }
-        }
-
-        #endregion
     }
-}
