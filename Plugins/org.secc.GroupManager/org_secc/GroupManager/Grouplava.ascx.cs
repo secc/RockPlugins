@@ -74,18 +74,43 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         protected void ShowGroups()
         {
+            RockContext rockContext = new RockContext();
             var groupTypeGuid = GetAttributeValue( "GroupType" ).AsGuid();
-            var groups = new GroupTypeService( new RockContext() )
+            var groupTypeId = new GroupTypeService( rockContext ).Get( groupTypeGuid ).Id;
+            var groupTypeIdString = groupTypeId.ToString();
+            var groupEntityTypeId = EntityTypeCache.Get( typeof( Group ) ).Id;
+            var groupAttributesQry = new AttributeService( rockContext ).Queryable()
+                .Where( a => a.EntityTypeId == groupEntityTypeId )
+                .Where( a => a.EntityTypeQualifierValue == groupTypeIdString )
+                .Where( a => a.EntityTypeQualifierColumn == "GroupTypeId" );
+            var groupAttributesValueQry = new AttributeValueService( rockContext ).Queryable()
+                .Join( groupAttributesQry,
+                av => av.AttributeId,
+                a => a.Id,
+                ( av, a ) => av );
+
+            var items = new GroupService( rockContext )
                 .Queryable()
-                .Where( gt => gt.Guid == groupTypeGuid )
-                .SelectMany( gt => gt.Groups )
+                .Where( g => g.GroupTypeId == groupTypeId )
                 .Where( g => g.IsActive && g.IsPublic && !g.IsArchived )
                 .Where( g =>
                     g.GroupCapacity == null
                     || g.GroupCapacity == 0
                     || g.Members.Where( m => m.GroupMemberStatus == GroupMemberStatus.Active ).Count() < g.GroupCapacity )
+                .GroupJoin( groupAttributesValueQry,
+                g => g.Id,
+                av => av.EntityId,
+                ( g, av ) => new { g, av }
+                )
                 .ToList();
 
+            var groups = new List<Group>();
+            foreach ( var item in items )
+            {
+                item.g.AttributeValues = item.av.ToDictionary( av => av.AttributeKey, av => new AttributeValueCache( av ) );
+                item.g.Attributes = item.av.ToDictionary( av => av.AttributeKey, av => AttributeCache.Get( av.AttributeId ) );
+                groups.Add( item.g );
+            }
 
             var mergeFields = LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
             mergeFields.Add( "Groups", groups );
