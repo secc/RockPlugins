@@ -42,7 +42,7 @@
 </script>
 <asp:UpdatePanel runat="server">
     <ContentTemplate>
-        <asp:Panel runat="server" ID="pnlEdit" Visible="false">
+        <asp:Panel runat="server" ID="pnlEdit" Visible="true">
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title">Publish:
@@ -97,7 +97,6 @@
                     <Rock:EmailBox runat="server" ID="tbConfirmationFromEmail" Label="Confirmation From Email" Required="true" />
                     <Rock:RockTextBox runat="server" ID="tbConfirmationSubject" Label="Confirmation Email Subject" Required="true" />
                     <Rock:HtmlEditor runat="server" ID="ceConfirmationBody" Label="Confirmation Email Body" Height="400" Required="true" />
-
                     <asp:Panel runat="server" ID="pnlAttributes" Visible="false">
                         <h3>Attributes</h3>
                         <hr />
