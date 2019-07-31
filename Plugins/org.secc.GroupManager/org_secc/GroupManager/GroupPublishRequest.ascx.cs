@@ -163,9 +163,11 @@ namespace RockWeb.Plugins.GroupManager
 
             if ( publishGroup.PublishGroupStatus == PublishGroupStatus.Approved )
             {
+                var tempGroup = publishGroup.Group;
                 publishGroup = ( PublishGroup ) publishGroup.Clone();
                 publishGroup.Guid = Guid.NewGuid();
                 publishGroup.Id = 0;
+                publishGroup.Group = tempGroup;
                 publishGroupService.Add( publishGroup );
             }
 
