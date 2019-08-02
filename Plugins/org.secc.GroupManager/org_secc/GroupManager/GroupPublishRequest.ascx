@@ -15,10 +15,10 @@
         console.log("Toggle!");
         setTimeout(function () {
             if ($('[id*="_cbRequiresRegistration_hfChecked"]').val().toLowerCase() == "true") {
-                $('#divRegistrationLink').show();
+                $('.registrationInformation').show();
             }
             else {
-                $('#divRegistrationLink').hide();
+                $('.registrationInformation').hide();
             }
             if ($('[id*="_cbChildcareAvailable_hfChecked"]').val().toLowerCase() == "true") {
                 $('#divChildcareRegistrationLink').show();
@@ -70,16 +70,18 @@
                     <hr />
                     <div class="row">
                         <div class="col-md-2">
-                            <Rock:Toggle runat="server" ID="cbRequiresRegistration" OnCssClass="btn-primary" OffCssClass="btn-default"
+                            <Rock:Toggle runat="server" ID="cbRequiresRegistration" OnCssClass="btn-primary" OffCssClass="btn-warning"
                                 OnText="Yes" OffText="No" Label="Requires Registration" />
                         </div>
-                        <div class="col-md-10" id="divRegistrationLink">
+                        <div class="col-md-10 registrationInformation">
                             <Rock:UrlLinkBox runat="server" ID="tbRegistrationLink" Label="External Registration Link (Optional)" Help="If you are using an external registration, please enter the url here. If left blank, a registration will automatically be generated for you." />
                         </div>
-                    </div>
-                    <div class="row">
+                        <div class="col-md-12 registrationInformation">
+                            <Rock:Toggle runat="server" ID="cbAllowSpouseRegistration" OnCssClass="btn-primary" OffCssClass="btn-warning"
+                                OnText="Yes" OffText="No" Label="Allow spouse to register at the same time?" />
+                        </div>
                         <div class="col-md-2">
-                            <Rock:Toggle runat="server" ID="cbChildcareAvailable" OnCssClass="btn-primary" OffCssClass="btn-default"
+                            <Rock:Toggle runat="server" ID="cbChildcareAvailable" OnCssClass="btn-primary" OffCssClass="btn-warning"
                                 OnText="Yes" OffText="No" Label="Childcare Available" />
                         </div>
                         <div class="col-md-10" id="divChildcareRegistrationLink">
