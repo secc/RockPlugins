@@ -108,6 +108,9 @@ namespace org.secc.GroupManager.Model
         [DataMember]
         public PublishGroupStatus PublishGroupStatus { get; set; }
 
+        [DataMember]
+        public bool AllowSpouseRegistration { get; set; }
+
         [NotMapped]
         public bool IsActive { get => WasActive( Rock.RockDateTime.Now ); }
 
