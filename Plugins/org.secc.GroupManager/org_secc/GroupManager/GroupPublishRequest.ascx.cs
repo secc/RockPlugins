@@ -66,6 +66,7 @@ namespace RockWeb.Plugins.GroupManager
                 }
                 else
                 {
+                    pnlEdit.Visible = false;
                     pnlSelectGroup.Visible = true;
                 }
             }
@@ -86,6 +87,7 @@ namespace RockWeb.Plugins.GroupManager
             drPublishDates.LowerValue = publishGroup.EndDateTime;
             cbRequiresRegistration.Checked = publishGroup.RequiresRegistration;
             tbRegistrationLink.Text = publishGroup.RegistrationLink;
+            cbAllowSpouseRegistration.Checked = publishGroup.AllowSpouseRegistration;
             cbChildcareAvailable.Checked = publishGroup.ChildcareAvailable;
             tbChildcareRegistrationLink.Text = publishGroup.ChildcareRegistrationLink;
             if ( publishGroup.ContactPersonAlias != null )
@@ -178,6 +180,7 @@ namespace RockWeb.Plugins.GroupManager
             publishGroup.EndDateTime = drPublishDates.LowerValue.Value;
             publishGroup.RequiresRegistration = cbRequiresRegistration.Checked;
             publishGroup.RegistrationLink = cbRequiresRegistration.Checked ? tbRegistrationLink.Text : "";
+            publishGroup.AllowSpouseRegistration = cbAllowSpouseRegistration.Checked;
             publishGroup.ChildcareAvailable = cbChildcareAvailable.Checked;
             publishGroup.ChildcareRegistrationLink = cbChildcareAvailable.Checked ? tbChildcareRegistrationLink.Text : "";
             publishGroup.AudienceValues = GetSelectedAudiences( rockContext );
