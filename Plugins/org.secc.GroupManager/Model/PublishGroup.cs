@@ -41,6 +41,7 @@ namespace org.secc.GroupManager.Model
 
         [DataMember]
         public int? ImageId { get; set; }
+
         [LavaInclude]
         public BinaryFile Image { get; set; }
 
@@ -63,11 +64,14 @@ namespace org.secc.GroupManager.Model
         [Index]
         [DataMember]
         public int RequestorAliasId { get; set; }
+
+        [LavaInclude]
         public virtual PersonAlias RequestorAlias { get; set; }
 
         [Index]
         [DataMember]
         public int ContactPersonAliasId { get; set; }
+
         [LavaInclude]
         public virtual PersonAlias ContactPersonAlias { get; set; }
 
@@ -104,6 +108,9 @@ namespace org.secc.GroupManager.Model
         [DataMember]
         public PublishGroupStatus PublishGroupStatus { get; set; }
 
+        [DataMember]
+        public bool AllowSpouseRegistration { get; set; }
+
         [NotMapped]
         public bool IsActive { get => WasActive( Rock.RockDateTime.Now ); }
 
@@ -121,7 +128,7 @@ namespace org.secc.GroupManager.Model
             {
 
                 if ( Group.GroupType.GroupCapacityRule == GroupCapacityRule.None
-                    || !Group.GroupCapacity.HasValue )
+                   || !Group.GroupCapacity.HasValue )
                 {
                     return false;
                 }
