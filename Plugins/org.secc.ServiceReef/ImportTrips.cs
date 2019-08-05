@@ -242,7 +242,18 @@ namespace org.secc.ServiceReef
                                             }
 
                                             // 2. If we didn't get a person match via their Alias Id
-                                            //    then just use the standard person match logic
+                                            //    then use their ServiceReef UserId attribute
+                                            if (person == null && attribute != null)
+                                            {
+                                                var personIds = attributeValueService.Queryable().Where(av => av.AttributeId == attribute.Id && av.Value == result2.UserId.ToString()).Select(av => av.EntityId);
+                                                if (personIds.Count() == 1)
+                                                {
+                                                    person = personService.Get( personIds.FirstOrDefault().Value );
+                                                }
+                                            }
+
+                                            // 3. If we STILL don't have a person match then
+                                            //    just use the standard person match/create logic
                                             if (person == null)
                                             {
                                                 String street1 = null;
@@ -473,7 +484,7 @@ namespace org.secc.ServiceReef
             {
                 throw new Exception(warnings);
             }
-            context.Result = "Successfully imported " + processed + "trips.";
+            context.Result = "Successfully imported " + processed + " trips.";
         }
     }
 }
