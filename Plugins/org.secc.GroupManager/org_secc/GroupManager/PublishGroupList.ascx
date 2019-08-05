@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="GroupPublishList.ascx.cs" Inherits="RockWeb.Plugins.GroupManager.GroupPublishList" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="PublishGroupList.ascx.cs" Inherits="RockWeb.Plugins.GroupManager.PublishGroupList" %>
 
 <asp:UpdatePanel runat="server">
     <ContentTemplate>

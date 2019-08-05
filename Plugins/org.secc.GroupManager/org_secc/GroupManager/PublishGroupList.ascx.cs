@@ -27,13 +27,13 @@ using Rock.Web.UI;
 
 namespace RockWeb.Plugins.GroupManager
 {
-    [DisplayName( "Group Publish List" )]
+    [DisplayName( "Publish Group List" )]
     [Category( "SECC > Groups" )]
     [Description( "List of publish groups" )]
 
     [LinkedPage( "Publish Group Detail Page" )]
 
-    public partial class GroupPublishList : RockBlock
+    public partial class PublishGroupList : RockBlock
     {
         /// <summary>
         /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.

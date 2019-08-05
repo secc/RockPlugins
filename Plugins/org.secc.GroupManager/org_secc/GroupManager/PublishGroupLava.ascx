@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="GroupsPublishedLava.ascx.cs" Inherits="RockWeb.Plugins.org_secc.GroupManager.GroupLava" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="PublishGroupLava.ascx.cs" Inherits="RockWeb.Plugins.org_secc.GroupManager.PublishGroupLava" %>
 
 <asp:UpdatePanel ID="upnlContent" runat="server">
     <Triggers>

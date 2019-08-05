@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="GroupPublishRequest.ascx.cs" Inherits="RockWeb.Plugins.GroupManager.GroupPublishRequest" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="PublishGroupRequest.ascx.cs" Inherits="RockWeb.Plugins.GroupManager.PublishGroupRequest" %>
 <script>
 
     function groupPublishInit() {
