@@ -34,10 +34,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     /// </summary>
     [DisplayName( "Publish Groups Lava" )]
     [Category( "SECC > Groups" )]
-    [Description( "Block to output published groups in lava." )]
+    [Description( "Block to output publish groups in lava." )]
     [CodeEditorField( "Lava Template", "Lava to display all published groups", CodeEditorMode.Lava )]
 
-    public partial class GroupLava : Rock.Web.UI.RockBlock
+    public partial class PublishGroupLava : Rock.Web.UI.RockBlock
     {
         #region Base Control Methods
 

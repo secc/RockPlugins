@@ -28,14 +28,14 @@ using Rock.Web.UI;
 
 namespace RockWeb.Plugins.GroupManager
 {
-    [DisplayName( "Group Publish Request" )]
+    [DisplayName( "Publish Group Request" )]
     [Category( "SECC > Groups" )]
     [Description( "Block for camp leaders to see their group." )]
 
     [WorkflowTypeField( "Request Workflow", "Workflow to use to use if a new request has been made." )]
     [WorkflowTypeField( "Complete Workflow", "Workflow to use once the request has been approved or denied." )]
 
-    public partial class GroupPublishRequest : RockBlock
+    public partial class PublishGroupRequest : RockBlock
     {
         private PublishGroup publishGroup;
 
