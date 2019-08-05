@@ -1,11 +1,10 @@
 ﻿// <copyright>
-// Copyright by the Spark Development Network
+// Copyright Southeast Christian Church
+
 //
-// Licensed under the Rock Community License (the "License");
+// Licensed under the  Southeast Christian Church License (the "License");
 // you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.rockrms.com/license
+// A copy of the License shoud be included with this file.
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,11 +14,9 @@
 // </copyright>
 //
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Web.UI;
 using System.Web.UI.WebControls;
 using org.secc.GroupManager.Model;
 using Rock;
@@ -28,7 +25,6 @@ using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 using Rock.Attribute;
-using Rock.Security;
 using Rock.Lava;
 
 namespace RockWeb.Plugins.org_secc.GroupManager
@@ -36,23 +32,13 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     /// <summary>
     /// Block for people to find a home group that matches their filters.
     /// </summary>
-    [DisplayName( "Groups Published Lava" )]
+    [DisplayName( "Publish Groups Lava" )]
     [Category( "SECC > Groups" )]
     [Description( "Block to output published groups in lava." )]
     [CodeEditorField( "Lava Template", "Lava to display all published groups", CodeEditorMode.Lava )]
 
     public partial class GroupLava : Rock.Web.UI.RockBlock
     {
-        #region Fields
-
-        // used for private variables
-
-        #endregion
-
-        #region Properties
-            
-        #endregion
-
         #region Base Control Methods
 
         /// <summary>
@@ -62,12 +48,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
-            
+
             if ( SetFilters() )
             {
                 BindData();
             }
-
         }
 
         protected void BindData()
@@ -75,24 +60,48 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             List<int> campusIds = cblCampus.Items.OfType<ListItem>().Where( l => l.Selected ).Select( a => a.Value.AsInteger() ).ToList();
             List<int> categories = cblCategory.Items.OfType<ListItem>().Where( l => l.Selected ).Select( a => a.Value.AsInteger() ).ToList();
 
-            // initialize services
+            // Initialize services
             var rockContext = new RockContext();
             var publishGroupService = new PublishGroupService( rockContext );
-            
+            var attributeService = new AttributeService( rockContext );
+            var attributeValueService = new AttributeValueService( rockContext );
+
+            //Get the entity types
+            var publishGroupEntityTypeId = EntityTypeCache.Get( typeof( PublishGroup ) ).Id;
+            var groupEntityTypeId = EntityTypeCache.Get( typeof( Group ) ).Id;
+
+            //Attribute Queryables
+            var publishGroupAttributeQry = attributeService.Queryable()
+                .Where( a => a.EntityTypeId == publishGroupEntityTypeId )
+                .Select( a => a.Id );
+
+            var groupAttributeQry = attributeService.Queryable()
+               .Where( a => a.EntityTypeId == groupEntityTypeId )
+               .Select( a => a.Id );
+
+            //Attribute Value Queryables
+            var publishGroupAttributeValueQry = attributeValueService.Queryable()
+                .Where( av => publishGroupAttributeQry.Contains( av.AttributeId ) );
+
+            var groupAttributeValueQry = attributeValueService.Queryable()
+               .Where( av => groupAttributeQry.Contains( av.AttributeId ) );
+
+
             var qry = publishGroupService
-                .Queryable("Group")
-                .Where( pg =>
-                        pg.PublishGroupStatus == PublishGroupStatus.Approved );
-
-            // Grab groups
-
+                .Queryable( "Group" )
+                .Where( pg => pg.PublishGroupStatus == PublishGroupStatus.Approved ) //Approved
+                .Where( pg => pg.StartDateTime <= Rock.RockDateTime.Today && pg.EndDateTime >= Rock.RockDateTime.Today ) //Active
+                .Where( pg => pg.Group.GroupType.GroupCapacityRule == GroupCapacityRule.None
+                              || pg.Group.GroupCapacity == null || pg.Group.GroupCapacity == 0
+                              || pg.Group.Members.Count() < pg.Group.GroupCapacity ); // Not full
+            
 
             // Filter by campus
             if ( campusIds.Any() )
             {
                 qry = qry
                     .Where( pg =>
-                        !pg.Group.CampusId.HasValue ||    // All
+                        !pg.Group.CampusId.HasValue || // All
                         campusIds.Contains( pg.Group.CampusId.Value ) );
             }
 
@@ -104,16 +113,33 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                         .Any( dv => categories.Contains( dv.Id ) ) );
             }
 
+            //Group join in attributes
+            var mixedQry = qry
+                .GroupJoin( publishGroupAttributeValueQry,
+                    pg => pg.Id,
+                    av => av.EntityId,
+                    ( pg, av ) => new { pg, av } )
+                .GroupJoin( groupAttributeValueQry,
+                    pg => pg.pg.GroupId,
+                    av => av.EntityId,
+                    ( pg, av ) => new { PublishGroup = pg.pg, PublishGroupAttributes = pg.av, GroupAttributes = av } );
+
+            //Add in the attributes in the proper format
+            var publishGroups = new List<PublishGroup>();
+
+            foreach ( var item in mixedQry.ToList() )
+            {
+                var publishGroup = item.PublishGroup;
+                publishGroup.AttributeValues = item.PublishGroupAttributes.ToDictionary( av => av.AttributeKey, av => new AttributeValueCache( av ) );
+                publishGroup.Attributes = item.PublishGroupAttributes.ToDictionary( av => av.AttributeKey, av => AttributeCache.Get( av.AttributeId ) );
+                publishGroup.Group.AttributeValues = item.GroupAttributes.ToDictionary( av => av.AttributeKey, av => new AttributeValueCache( av ) );
+                publishGroup.Group.Attributes = item.GroupAttributes.ToDictionary( av => av.AttributeKey, av => AttributeCache.Get( av.AttributeId ) );
+                publishGroups.Add( publishGroup );
+            }
+
             // Output mergefields.
             var mergeFields = LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
-
-            // grab all groups
-            var groups = qry.ToList();
-
-            if ( groups != null )
-            {
-                mergeFields.Add( "PublishedGroups", groups );
-            }
+            mergeFields.Add( "PublishGroups", publishGroups );
 
             lOutput.Text = GetAttributeValue( "LavaTemplate" ).ResolveMergeFields( mergeFields );
         }
@@ -193,9 +219,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
 
             // Setup Category Filter
-
-            //cblCategory.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.MARKETING_CAMPAIGN_AUDIENCE_TYPE.AsGuid() ) );
-
             var selectedCategoryGuids = GetAttributeValue( "FilterCategories" ).SplitDelimitedValues( true ).AsGuidList();
             rcwCategory.Visible = selectedCategoryGuids.Any() && GetAttributeValue( "CategoryFilterDisplayMode" ).AsInteger() > 1;
             var definedType = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.MARKETING_CAMPAIGN_AUDIENCE_TYPE.AsGuid() );
@@ -237,14 +260,12 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             }
 
-
             // Set filter visibility
             bool showFilter = ( rcwCampus.Visible || rcwCategory.Visible );
             pnlFilters.Visible = false; // hide for now... otherwise it should be managed by the block ^^^
-            
+
             return true;
         }
-
-            #endregion
-        }
+        #endregion
+    }
 }
