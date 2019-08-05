@@ -83,8 +83,8 @@ namespace RockWeb.Plugins.GroupManager
             ltGroupName.Text = publishGroup.Group.Name;
             tbDescription.Text = publishGroup.Description.IsNotNullOrWhiteSpace() ? publishGroup.Description : publishGroup.Group.Description;
             iGroupImage.BinaryFileId = publishGroup.ImageId;
-            drPublishDates.UpperValue = publishGroup.StartDateTime;
-            drPublishDates.LowerValue = publishGroup.EndDateTime;
+            drPublishDates.UpperValue = publishGroup.EndDateTime;
+            drPublishDates.LowerValue = publishGroup.StartDateTime;
             cbRequiresRegistration.Checked = publishGroup.RequiresRegistration;
             tbRegistrationLink.Text = publishGroup.RegistrationLink;
             cbAllowSpouseRegistration.Checked = publishGroup.AllowSpouseRegistration;
@@ -176,8 +176,8 @@ namespace RockWeb.Plugins.GroupManager
             publishGroup.ImageId = iGroupImage.BinaryFileId;
             publishGroup.PublishGroupStatus = PublishGroupStatus.Pending;
             publishGroup.Description = tbDescription.Text;
-            publishGroup.StartDateTime = drPublishDates.UpperValue.Value;
-            publishGroup.EndDateTime = drPublishDates.LowerValue.Value;
+            publishGroup.EndDateTime = drPublishDates.UpperValue.Value;
+            publishGroup.StartDateTime = drPublishDates.LowerValue.Value;
             publishGroup.RequiresRegistration = cbRequiresRegistration.Checked;
             publishGroup.RegistrationLink = cbRequiresRegistration.Checked ? tbRegistrationLink.Text : "";
             publishGroup.AllowSpouseRegistration = cbAllowSpouseRegistration.Checked;

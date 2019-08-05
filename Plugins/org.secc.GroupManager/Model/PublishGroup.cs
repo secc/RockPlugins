@@ -112,13 +112,13 @@ namespace org.secc.GroupManager.Model
         public bool AllowSpouseRegistration { get; set; }
 
         [NotMapped]
-        public bool IsActive { get => WasActive( Rock.RockDateTime.Now ); }
+        public bool IsActive { get => WasActive( Rock.RockDateTime.Today ); }
 
         [LavaInclude]
         public bool WasActive( DateTime dateTime )
         {
 
-            return StartDateTime < dateTime && EndDateTime > dateTime;
+            return StartDateTime <= dateTime && EndDateTime >= dateTime;
         }
 
         [LavaInclude]
