@@ -15,20 +15,14 @@ using System;
 using System.ComponentModel;
 using Rock;
 using Rock.Model;
-using Rock.Security;
 using System.Web.UI;
 using Rock.Web.Cache;
-using Rock.Web.UI;
-using System.Web;
 using Rock.Data;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.UI.WebControls;
 using org.secc.ChangeManager.Model;
 using System.Reflection;
-using Newtonsoft.Json;
-using System.ComponentModel.DataAnnotations;
-using System.Dynamic;
 using Rock.Attribute;
 
 namespace RockWeb.Plugins.org_secc.ChangeManager
@@ -63,8 +57,41 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             RockContext rockContext = new RockContext();
             ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
             ChangeRequest changeRequest = changeRequestService.Get( changeId );
-            lName.Text = string.Format( "<h3 class=panel-title'>{0}</h3> Requested by: <a href='/Person/{1}' target='_blank'>{2}</a>",
-                changeRequest.Name, changeRequest.RequestorAlias.PersonId, changeRequest.RequestorAlias.Person.FullName );
+
+            if ( !IsUserAuthorized( Rock.Security.Authorization.EDIT )
+                && ( CurrentPerson == null || !CurrentPerson.Aliases.Select( a => a.Id ).Contains( changeRequest.RequestorAliasId ) ) )
+            {
+                this.Visible = false;
+                return;
+            }
+            var link = "";
+            if ( changeRequest.EntityTypeId == EntityTypeCache.Get( typeof( PersonAlias ) ).Id )
+            {
+                PersonAliasService personAliasService = new PersonAliasService( rockContext );
+                var personAlias = personAliasService.Get( changeRequest.EntityId );
+                if ( personAlias != null )
+                {
+                    link = string.Format( "<a href='/Person/{0}' target='_blank' class='btn btn-default btn-sm'><i class='fa fa-user'></i></a>", personAlias.Person.Id );
+                }
+            }
+
+            lName.Text = string.Format( @"
+<h1 class='panel-title'>{0} {1}</h1>
+<div class='panel-labels'>
+    <span class='label label-default'>
+        Requested by: <a href='/Person/{2}' target='_blank'>{3}</a>
+    </span>
+    <span class='label label-{4}'>
+        {5}
+    </span>
+</div>",
+                link,
+                changeRequest.Name,
+                changeRequest.RequestorAlias.PersonId,
+                changeRequest.RequestorAlias.Person.FullName,
+                changeRequest.IsComplete ? "primary" : "success",
+                changeRequest.IsComplete ? "Complete" : "Active" );
+
             var changeRecords = changeRequest.ChangeRecords.ToList();
 
             var entity = ChangeRequest.GetEntity( changeRequest.EntityTypeId, changeRequest.EntityId, rockContext );
@@ -74,10 +101,35 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 FormatValues( changeRequest.EntityTypeId, entity, changeRecord, rockContext );
             }
 
-            gRecords.DataSource = changeRecords;
-            gRecords.DataBind();
+            if ( changeRecords.Any() )
+            {
+                gRecords.DataSource = changeRecords;
+                gRecords.DataBind();
+            }
+            else
+            {
+                gRecords.Visible = false;
+            }
 
-            tbComment.Text = changeRequest.ApproverComment;
+            if ( changeRequest.RequestorComment.IsNotNullOrWhiteSpace() )
+            {
+                ltRequestComments.Visible = true;
+                ltRequestComments.Text = changeRequest.RequestorComment;
+            }
+
+            ltApproverComment.Text = changeRequest.ApproverComment;
+            tbApproverComment.Text = changeRequest.ApproverComment;
+
+            if ( !IsUserAuthorized( Rock.Security.Authorization.EDIT ) )
+            {
+                btnComplete.Visible = false;
+                tbApproverComment.Visible = false;
+                ltApproverComment.Visible = true;
+                ( ( DataControlField ) gRecords.Columns
+               .Cast<DataControlField>()
+               .Where( fld => ( fld.HeaderText == "Is Rejected" ) )
+               .SingleOrDefault() ).Visible = false;
+            }
         }
 
         private void FormatValues( int entityTypeId, IEntity targetEntity, ChangeRecord changeRecord, RockContext rockContext )
@@ -220,21 +272,25 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
         protected void gRecords_CheckedChanged( object sender, Rock.Web.UI.Controls.RowEventArgs e )
         {
-            RockContext rockContext = new RockContext();
-            ChangeRecordService changeRecordService = new ChangeRecordService( rockContext );
-            var changeRecord = changeRecordService.Get( e.RowKeyId );
-            if ( changeRecord != null )
+            //Only change value if user edit
+            if ( IsUserAuthorized( Rock.Security.Authorization.EDIT ) )
             {
-                if ( changeRecord.IsRejected )
+                RockContext rockContext = new RockContext();
+                ChangeRecordService changeRecordService = new ChangeRecordService( rockContext );
+                var changeRecord = changeRecordService.Get( e.RowKeyId );
+                if ( changeRecord != null )
                 {
-                    changeRecord.IsRejected = false;
+                    if ( changeRecord.IsRejected )
+                    {
+                        changeRecord.IsRejected = false;
+                    }
+                    else
+                    {
+                        changeRecord.IsRejected = true;
+                    }
                 }
-                else
-                {
-                    changeRecord.IsRejected = true;
-                }
+                rockContext.SaveChanges();
             }
-            rockContext.SaveChanges();
             BindGrid();
         }
 
@@ -243,7 +299,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             RockContext rockContext = new RockContext();
             ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
             var changeRequest = changeRequestService.Get( hfChangeId.ValueAsInt() );
-            changeRequest.ApproverComment = tbComment.Text;
+            changeRequest.ApproverComment = tbApproverComment.Text;
             changeRequest.CompleteChanges( rockContext );
 
             changeRequest.IsComplete = true;
