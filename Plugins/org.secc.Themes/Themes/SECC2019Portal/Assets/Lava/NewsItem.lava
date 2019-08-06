@@ -15,6 +15,7 @@
                 <hr />
                 {{ Item.Content }}
                 <hr />
+                {{ Item | Attribute:'AudioFile' }}
             </div>
         </div>
     </div>
