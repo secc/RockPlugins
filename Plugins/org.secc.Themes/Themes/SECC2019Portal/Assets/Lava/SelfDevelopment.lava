@@ -29,8 +29,7 @@
         <div class="row g-padding-b-150--xs">
 	        <div class="col-xs-12">
 		        <div class="block-grid block-grid-xs-2 block-grid-sm-3">
-								{% contentchannelitem where:'ContentChannelId == 54 && DevelopmentType == {{typeName}}' %}
-	                {% for Item in contentchannelitemItems %}
+	                {% for Item in Items %}
 	                {% assign DevelopmentType = Item | Attribute:"DevelopmentType" %}
 	                
 	                {% if DevelopmentType == {{typeName}} %}
@@ -68,7 +67,6 @@
 	                    
 	                {% endif %}
 	            {% endfor %}
-	        {% endcontentchannelitem %}
 	        </div>
         </div>
     </div>	

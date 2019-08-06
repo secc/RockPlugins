@@ -72,15 +72,16 @@ hr.g-border-b-2--xs {
 			  right:0%;
 			  top:1%;
 			  content: attr(data-count);
-			  font-size:30%;
+			  font-size:50%;
 			  padding:.6em;
 			  border-radius:999px;
-			  line-height:.75em;
+			  line-height:1em;
 			  color: white;
 			  background:rgba(255,0,0,1);
 			  text-align:center;
-			  min-width:2em;
-			  font-weight:bold;
+			  width:2em;
+			  height: 2em;
+			  font-weight:100;
 			}
 		}
 		.dropdown-menu {
