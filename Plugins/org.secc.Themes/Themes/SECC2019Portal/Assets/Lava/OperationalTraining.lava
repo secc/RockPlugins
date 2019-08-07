@@ -29,7 +29,7 @@
         </div>
         <div class="row g-padding-b-150--xs">
 	        <div class="col-xs-12">
-		        <div class="block-grid block-grid-xs-2 block-grid-sm-3">
+		        <div class="block-grid block-grid-xs-1 block-grid-sm-3">
 								{% definedvalue where:'DefinedTypeId == 257 && TrainingType == {{typeName}}' %}
 	                {% for definedValueItem in definedvalueItems %}
 	                {% assign trainingType = definedValueItem | Attribute:"TrainingType" %}
@@ -118,7 +118,7 @@
 '         </div>
 '         <div class="row g-padding-b-150--xs">
 ' 	        <div class="col-xs-12">
-' 		        <div class="block-grid block-grid-xs-2 block-grid-sm-3">
+' 		        <div class="block-grid block-grid-xs-1 block-grid-sm-3">
 ' 	
 ' 	        {% definedvalue where:'DefinedTypeId == 257 && TrainingType == "Onboarding"' %}
 ' 	            {% for definedValueItem in definedvalueItems %}
