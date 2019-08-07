@@ -50,6 +50,11 @@ hr.g-border-b-2--xs {
 		}
 	}
 }
+#directory {
+  .isotope_wrap .isotope_item {
+    opacity: 1;
+  }
+}
 #zone-primarysitenavigation .page-menu {
 	height: auto;
 }
