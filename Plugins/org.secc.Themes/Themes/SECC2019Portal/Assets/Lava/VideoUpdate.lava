@@ -1,9 +1,9 @@
 <div class="container g-padding-t-50--xs g-padding-t-100--sm">
 	<div class="row">
         <div class="col-md-8 col-md-offset-2 g-padding-b-40--xs">
-            <div id="player">
+            <div id="player" class="g-padding-x-65--lg">
             {% assign firstItem = Items | First %}
-            {[ vimeo id:'{{firstItem.VimeoID}}' ]}
+            {[ vimeo id:'{{firstItem | Attribute:'VimeoID'}}' ]}
             </div>
             <div id="video-swiper" class="swiper-container">
                 <div class="swiper-wrapper">
@@ -14,7 +14,7 @@
                         var client = new RestClient("https://api.vimeo.com/videos/{{post | Attribute:'VimeoID'}}?fields=pictures.sizes");
                         var request = new RestRequest(Method.GET);
                         request.AddHeader("cache-control", "no-cache");
-                        request.AddHeader("Authorization", "Bearer 74eb87a4a0059c0cea83ef46a106882a");
+                        request.AddHeader("Authorization", "Bearer 70a6c809b1994228bc8ce0559cbd9646");
                         IRestResponse response = client.Execute(request);
 
                         JObject o = JObject.Parse(response.Content);
@@ -52,7 +52,7 @@
   var swiper = new Swiper('#video-swiper', {
     slidesPerView: 3,
     //centeredSlides: true,
-    loop: true,
+    //loop: true,
     watchSlidesProgress: true,
     watchSlidesVisibility: true,
     paginationClickable: true,

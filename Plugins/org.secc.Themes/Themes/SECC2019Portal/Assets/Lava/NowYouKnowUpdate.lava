@@ -6,7 +6,7 @@
                 {% for item in Items %}
                 <article class="portal-article block-grid-item">
 	                <div class="{% unless forloop.last %}g-border-r-1--sm g-padding-r-40--sm g-margin-r-40--sm{% endunless %}">
-					    <p><strong>{{ item.Title }}</strong>
+					    <p><strong class="g-display-block--xs">{{ item.Title }}</strong>
 					    {{ item.Content | StripHtml }}</p>
 					</div>
                 </article>
