@@ -1,4 +1,4 @@
-<div class="container g-padding-y-100--md g-padding-x-0--xs">
+<div class="container g-padding-y-50--xs g-padding-y-100--sm g-padding-x-0--xs">
     <div class="series-detail container">
         <div id="seriesHead" class="row">
 	        {% assign vID = Item | Attribute:'VimeoID' | Trim %}
@@ -15,6 +15,7 @@
                 <hr />
                 {{ Item.Content }}
                 <hr />
+                {{ Item | Attribute:'AudioFile' }}
             </div>
         </div>
     </div>

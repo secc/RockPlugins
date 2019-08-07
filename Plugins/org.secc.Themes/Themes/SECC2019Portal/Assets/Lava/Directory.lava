@@ -1,5 +1,5 @@
-<section id="Leadership">
-	<div class="container g-padding-y-75--xs">
+<section id="directory">
+	<div class="container g-padding-y-50--xs g-padding-y-100--sm">
 		<div class="row">
 			<div class="col-xs-12">
 				<div class="filters form-inline text-center">
@@ -21,7 +21,7 @@
 				{% enddefinedvalue %}
 				</div>
 				<div class="isotope_wrap row">
-				{%- person dataview:'485' sort:'LastName'  -%}
+				{%- person dataview:'2456' sort:'LastName'  -%}
 				  {%- for person in personItems -%}
 					{%- assign photo = person.PhotoId -%}
 					<div class='isotope_item text-center {{ person | Attribute:'SECCMinistryArea' | ToCssClass }} {{ person | Attribute:'Arena-7-14031' | ToCssClass }} col-xs-12 col-sm-6 col-md-3'>
@@ -64,6 +64,7 @@ $(document).ready(function() {
 	var isoOptions = {
 		itemSelector: '.isotope_item',
 		percentPosition: true,
+		filter:'.initial-show',
 		layoutMode: 'fitRows'
 	};
 
@@ -71,11 +72,11 @@ $(document).ready(function() {
   var $grid = $('.isotope_wrap').isotope(isoOptions);
 
   // reveal all items after init
-  var $items = $grid.find('.isotope_item');
-  $grid.imagesLoaded().progress( function() {
-    $grid.addClass('is-showing-items').isotope('layout');
-  });
-  $grid.isotope( 'revealItemElements', $items );
+//  var $items = $grid.find('.isotope_item');
+//  $grid.imagesLoaded().progress( function() {
+//    $grid.addClass('is-showing-items').isotope('layout');
+//  });
+//  $grid.isotope( 'revealItemElements', $items );
 
 	// store filter for each selector
 	var filters = {};
