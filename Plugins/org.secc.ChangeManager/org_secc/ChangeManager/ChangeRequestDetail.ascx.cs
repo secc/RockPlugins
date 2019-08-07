@@ -58,6 +58,11 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
             ChangeRequest changeRequest = changeRequestService.Get( changeId );
 
+            if ( changeRequest == null )
+            {
+                return;
+            }
+
             if ( !IsUserAuthorized( Rock.Security.Authorization.EDIT )
                 && ( CurrentPerson == null || !CurrentPerson.Aliases.Select( a => a.Id ).Contains( changeRequest.RequestorAliasId ) ) )
             {
