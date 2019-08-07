@@ -41,12 +41,14 @@ namespace org.secc.ChangeManager.Model
         [DataMember]
         public int RequestorAliasId { get; set; }
 
+        [LavaInclude]
         public virtual PersonAlias RequestorAlias { get; set; }
 
         [Index]
         [DataMember]
         public int ApproverAliasId { get; set; }
 
+        [LavaInclude]
         public virtual PersonAlias ApproverAlias { get; set; }
 
         [Index]
@@ -59,6 +61,7 @@ namespace org.secc.ChangeManager.Model
         [DataMember]
         public string ApproverComment { get; set; }
 
+        [LavaInclude]
         public virtual ICollection<ChangeRecord> ChangeRecords
         {
             get { return _changeRecords ?? ( _changeRecords = new Collection<ChangeRecord>() ); }
