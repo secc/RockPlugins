@@ -1064,7 +1064,7 @@ main {
 				/* set here number of columns - use width percentage */
 				// @include column(.22);
 				// margin: 0 4% 40px 0;
-				@include column(.14285);
+				@include column(.125);
 
 				&:last-child {
 					/* This gives some space for the "See All" button */
