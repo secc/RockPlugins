@@ -80,11 +80,16 @@ namespace RockWeb.Plugins.GroupManager
             }
 
             ddlAudience.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.MARKETING_CAMPAIGN_AUDIENCE_TYPE.AsGuid() ) );
+            ddlDayOfWeek.BindToEnum<DayOfWeek>( true );
             ltGroupName.Text = publishGroup.Group.Name;
             tbDescription.Text = publishGroup.Description.IsNotNullOrWhiteSpace() ? publishGroup.Description : publishGroup.Group.Description;
             iGroupImage.BinaryFileId = publishGroup.ImageId;
             drPublishDates.UpperValue = publishGroup.EndDateTime;
             drPublishDates.LowerValue = publishGroup.StartDateTime;
+            ddlDayOfWeek.SelectedValue = publishGroup.WeeklyDayOfWeek != null ? ( ( int ) publishGroup.WeeklyDayOfWeek ).ToString() : "";
+            tTimeOfDay.SelectedTime = publishGroup.WeeklyTimeOfDay;
+            dpStartDate.SelectedDate = publishGroup.StartDate;
+            tbLocationName.Text = publishGroup.MeetingLocation;
             cbRequiresRegistration.Checked = publishGroup.RequiresRegistration;
             tbRegistrationLink.Text = publishGroup.RegistrationLink;
             cbAllowSpouseRegistration.Checked = publishGroup.AllowSpouseRegistration;
@@ -141,12 +146,25 @@ namespace RockWeb.Plugins.GroupManager
                         return publishGroup;
                     }
 
-                    return new PublishGroup
+                    publishGroup = new PublishGroup
                     {
                         PublishGroupStatus = PublishGroupStatus.Pending,
                         Group = group,
                         RequestorAliasId = CurrentPersonAliasId.Value
                     };
+
+                    if ( group.Schedule != null )
+                    {
+                        publishGroup.WeeklyDayOfWeek = group.Schedule.WeeklyDayOfWeek;
+                        publishGroup.WeeklyTimeOfDay = group.Schedule.WeeklyTimeOfDay;
+                    }
+
+                    if ( group.GroupLocations.Any() )
+                    {
+                        publishGroup.MeetingLocation = group.GroupLocations.FirstOrDefault().Location.Name;
+                    }
+
+                    return publishGroup;
                 }
             }
             return null;
@@ -178,6 +196,10 @@ namespace RockWeb.Plugins.GroupManager
             publishGroup.Description = tbDescription.Text;
             publishGroup.EndDateTime = drPublishDates.UpperValue.Value;
             publishGroup.StartDateTime = drPublishDates.LowerValue.Value;
+            publishGroup.WeeklyDayOfWeek = ddlDayOfWeek.SelectedValueAsEnumOrNull<DayOfWeek>();
+            publishGroup.WeeklyTimeOfDay = tTimeOfDay.SelectedTime;
+            publishGroup.StartDate = dpStartDate.SelectedDate;
+            publishGroup.MeetingLocation = tbLocationName.Text;
             publishGroup.RequiresRegistration = cbRequiresRegistration.Checked;
             publishGroup.RegistrationLink = cbRequiresRegistration.Checked ? tbRegistrationLink.Text : "";
             publishGroup.AllowSpouseRegistration = cbAllowSpouseRegistration.Checked;

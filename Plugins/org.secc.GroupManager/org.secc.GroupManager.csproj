@@ -38,8 +38,8 @@
       <HintPath>$(SolutionDir)\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\Newtonsoft.Json.6.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -64,6 +64,7 @@
     <Compile Include="Data\GroupManagerContext.cs" />
     <Compile Include="Data\GroupManagerService.cs" />
     <Compile Include="Exceptions\NonExistantFilter.cs" />
+    <Compile Include="Migrations\201908090000000_MeetingDetails.cs" />
     <Compile Include="Migrations\201908020000000_SpouseRegistration.cs" />
     <Compile Include="Migrations\201907011232595_Init.cs" />
     <Compile Include="Migrations\Configuration.cs" />

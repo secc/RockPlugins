@@ -66,6 +66,20 @@
                             <Rock:DefinedValuesPickerEnhanced runat="server" EnhanceForLongLists="true" ID="ddlAudience" Label="Audience" />
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-md-2">
+                            <Rock:RockDropDownList runat="server" ID="ddlDayOfWeek" Label="Meeting Day Of Week" />
+                        </div>
+                        <div class="col-md-2">
+                            <Rock:TimePicker runat="server" ID="tTimeOfDay" Label="Meeting Time of Day" />
+                        </div>
+                        <div class="col-md-2">
+                            <Rock:DatePicker runat="server" ID="dpStartDate" Label="Starts On" />
+                        </div>
+                        <div class="col-md-6">
+                            <Rock:RockTextBox runat="server" ID="tbLocationName" Label="Location Name" ValidateRequestMode="Disabled" />
+                        </div>
+                    </div>
                     <h3>Registration Information</h3>
                     <hr />
                     <div class="row">
