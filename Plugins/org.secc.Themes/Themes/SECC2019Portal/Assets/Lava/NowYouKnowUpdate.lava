@@ -1,0 +1,17 @@
+    <div class="container g-padding-b-150--xs">
+    	<div class="row g-padding-t-20--xs">
+            <div class="col-md-12">
+                <h2 class="g-font-size--jumbo-1 g-font-family--secondary g-margin-b-20--xs">Now You Know</h2>
+                <div class="block-grid block-grid-xs-1 block-grid-sm-2 block-grid-md-4 nopad">
+                {% for item in Items %}
+                <article class="portal-article block-grid-item">
+	                <div class="{% unless forloop.last %}g-border-r-1--sm g-padding-r-40--sm g-margin-r-40--sm{% endunless %}">
+					    <p><strong class="g-display-block--xs">{{ item.Title }}</strong>
+					    {{ item.Content | StripHtml }}</p>
+					</div>
+                </article>
+                {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>

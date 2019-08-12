@@ -1,0 +1,18 @@
+<!--========== HEADER ==========-->
+<header class="cd-main-header transparent-menu-enabled transparent-header">
+   <a class="cd-logo" href="/home">
+       <img class="img-responsive default-logo g-width-275--xs g-width-350--sm" src="/Themes/SECC2019Portal/Assets/img/OnePoint/SE_One_Point_black.svg" alt="One Point">
+   </a>
+   <ul class="cd-header-buttons">
+      {[ portalnews displayClass:'g-display-block--xs g-display-none--lg' ]}
+		  <li><a class="cd-search-trigger" href="#cd-search" title="Search">Search<span></span></a></li>
+		   {% assign personGuid = CurrentPerson.Guid %}
+		   {% unless personGuid != null %}
+				{% assign host = 'Global' | Page:'Host' %}
+				{% assign url = 'Global' | Page:'Url' %}
+      <li><a class="cd-nav-login" href="/login?returnurl={{ url | Replace:host, '' | Replace:'http://','' | Replace:'https://','' }}" title="Login">Login<span></span></a></li>
+       {% endunless %}
+      <li><a class="cd-nav-trigger" href="#cd-primary-nav">Menu<span></span></a></li>
+   </ul> <!-- cd-header-buttons -->
+</header>
+<!--========== END HEADER ==========-->

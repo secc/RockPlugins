@@ -1,0 +1,189 @@
+<style>
+    thead { display: table-header-group }
+    tfoot { display: table-row-group }
+    tr { page-break-inside: avoid }
+</style>
+{% assign total = 0 %}
+{% capture pageTitle %}{{ 'Global' | Attribute:'OrganizationName' }} | Contribution Statement{%endcapture%}
+{% assign StatementEndMonthDay = StatementEndDate | Date:'MMdd' %}
+{{ pageTitle | SetPageTitle }}
+<div style="min-width: 1024px">
+	<div class="row">
+		<div class="col-xs-8">
+			<h1>{{ StatementStartDate | Date:'yyyy' }} {% if StatementEndMonthDay == '1231' %}Annual{% else %}Year-to-date{% endif %} Giving Statement</h1>
+			
+			<hr style="opacity: .5;" />
+
+			<strong>Period</strong>: &nbsp;{{ StatementStartDate | Date:'MMM d' }} - {{ StatementEndDate | Date:'MMM d, yyyy' }}<br />
+			<strong>Issued</strong>: &nbsp;{{ 'Now' | Date:'MMM d, yyyy h:mm tt' }}<br />
+			<strong>Version</strong>: 1
+			<br />
+			<br />
+			
+			<strong>{{ Salutation | Upcase }}</strong><br />
+			{{ StreetAddress1 | Upcase  }} <br />
+			{% if StreetAddress2 != '' %}
+				{{ StreetAddress2 | Upcase  }} <br />
+			{% endif %}
+			{{ City | Upcase  }}, {{ State | Upcase  }} {{ PostalCode }}
+            <br />
+            <br />
+		</div>
+		<div class="col-xs-4">
+			<div class="row">
+				<div class="col-xs-12 text-center">
+					<div class="clearfix" style="margin-top: 20px">
+						<img src="{{ 'Global' | Attribute:'PublicApplicationRoot' }}/Plugins/org_secc/Finance/Lava/SEC_logo_line_black.png" width="100px" />
+					</div>
+					<strong>{{ 'Global' | Attribute:'OrganizationName' }}</strong><br />
+					{{ 'Global' | Attribute:'OrganizationAddress','Street1' }}<br />
+					{{ 'Global' | Attribute:'OrganizationAddress','City' }}, {{ 'Global' | Attribute:'OrganizationAddress','State' }} {{ 'Global' | Attribute:'OrganizationAddress','PostalCode' }}<br />
+					{{ 'Global' | Attribute:'OrganizationWebsite' }}
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-8">
+			{% for transaction in TransactionDetails reversed %}
+				{% if forloop.first %}
+				<h4 class="margin-t-md margin-b-md" style="border-bottom: 2px solid black;">Giving for {{ StatementStartDate | Date:'MMM d' }} - {{ StatementEndDate | Date:'MMM d, yyyy' }}</h4>
+			
+			
+				<table class="table table-bordered table-striped table-condensed">
+					<thead>
+						<tr>
+							<th>Date</th>
+							<th>Method</th>
+							<th>Fund</th>
+							<th align="right">Amount</th>
+						</tr>
+					</thead>
+				{% endif %}
+					<tr>
+						<td>{{ transaction.Transaction.TransactionDateTime | Date:'M/d/yyyy' }}</td>
+						<td>
+						{% if transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid == '8b086a19-405a-451f-8d44-174e92d6b402' %}
+							{% assign checkNumber = transaction.Transaction.TransactionCode %}
+							{% for av in transaction.Transaction.AttributeValues  %}
+								{% if av.AttributeKey == 'CheckNumber' and av.Value != '' and av.Value != empty %}
+									{% assign checkNumber = av.Value %}
+									{% break %}
+								{% endif %}
+							{% endfor %}
+							{{ transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Value }} #{{ checkNumber }}
+						{% elseif transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid == '928a2e04-c77b-4282-888f-ec549cee026a' %}
+							&#9679;&#9679;&#9679;&#9679; &#9679;&#9679;&#9679;&#9679; &#9679;&#9679;&#9679;&#9679; {{ transaction.Transaction.FinancialPaymentDetail.AccountNumberMasked | Right:4 }}
+						{% elseif transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid == 'dabee8fd-aedf-43e1-8547-4c97fa14d9b6' %}
+							{{ transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Value }} - {{ transaction.Transaction.FinancialPaymentDetail.AccountNumberMasked | Split:' ' | Index:1 }}
+						{% else %}
+							{{ transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Value }} 
+						{% endif %}</td>
+						<td>{{ transaction.Account.Name }}</td>
+						<td align="right">{{ transaction.Amount | FormatAsCurrency  }}</td>
+					</tr>
+					{% assign total = total | Plus:transaction.Amount %}
+
+				{% if forloop.last %}
+					<tfoot>
+						<tr>
+							<th colspan="3" class="text-right">Total contributions:</th>
+							<th class="text-right">{{total| FormatAsCurrency }}</th>
+						</tr>
+					</tfoot>
+				</table>
+				{% endif %}
+			{% endfor %}
+			
+			{% for transaction in ExcludedTransactionDetails %}
+				{% if forloop.first %}
+				<h4 class="margin-t-md margin-b-md" style="border-bottom: 2px solid black;">Non Cash gifts for {{ StatementStartDate | Date:'MMM d' }} - {{ StatementEndDate | Date:'MMM d, yyyy' }}</h4>
+			
+			
+				<table class="table table-bordered table-striped table-condensed">
+					<tr>
+						<th>Date</th>
+						<th>Description</th>
+						<th>Fund</th>
+					</tr>
+				{% endif %}
+					<tr>
+						<td>{{ transaction.Transaction.TransactionDateTime | Date:'M/d/yyyy' }}</td>
+						<td>{{ transaction.Transaction.Summary }}</td>
+						<td>{{ transaction.Account.Name }}</td>
+					</tr>
+				{% if forloop.last %}
+				</table>
+				{% endif %}
+			{% endfor %}
+		</div>
+		<div class="col-xs-4">
+			<h4 class="margin-t-md margin-b-md" style="border-bottom: 2px solid black;">Giving Summary</h4>
+
+			{% for accountsummary in AccountSummary %}
+				<div class="row">
+					<div class="col-xs-12">
+						<div class="pull-left"><strong>{{ accountsummary.AccountName }}</strong></div>
+						<div class="pull-right"><strong>{{ accountsummary.Total | FormatAsCurrency  }}</strong></div>
+					</div>
+				</div>
+				{% if forloop.last %}
+					<br />
+				{% endif %}
+			 {% endfor %}
+			 <div style="border: 1px solid black; text-align: center">
+				<h1>{{total | FormatAsCurrency }}</h1>
+				Total Giving
+			 </div>
+			 <br />
+			 <small><em>No goods or services were given in exchange for the listed contributions other than intangible religious benefits.</em></small>
+			 
+	{% assign pledgeCount = Pledges | Size %}
+
+	{% if pledgeCount > 0 %}
+		<h4 class="margin-t-md margin-b-md" style="border-bottom: 2px solid black;">Pledge Summary</h4>
+	 
+		{% for pledge in Pledges %}
+			<div class="row">
+				<div class="col-xs-12">
+					<strong>{{ pledge.AccountName }}</strong>
+					<div class="row">
+						<div class="col-xs-6 text-right">
+							Pledged:
+						</div>
+						<div class="col-xs-6 text-right">
+							{{ pledge.AmountPledged | FormatAsCurrency }}
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-xs-6 text-right">
+							Given:
+						</div>
+						<div class="col-xs-6 text-right">
+							{{ pledge.AmountGiven | FormatAsCurrency }}
+						</div>
+					</div>
+				</div>
+				<div class="col-xs-12 padding-t-md">
+					<div class="progress">
+					  <div class="progress-bar" role="progressbar" aria-valuenow="{{ pledge.PercentComplete }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ pledge.PercentComplete }}%;">
+					  {% if pledge.PercentComplete == 0 %}<div style="color:black; padding-left: 5px;">{{ pledge.PercentComplete }}%</div>
+					  {% else %}
+						{{ pledge.PercentComplete }}%
+					  {% endif %}
+					  </div>
+					</div>
+				</div>
+			</div>
+		{% endfor %}
+	{% endif %}
+		</div>
+	</div>
+
+
+	<hr style="opacity: .5;" />
+	<p class="text-center">
+		Thank you for your continued support of {{ 'Global' | Attribute:'OrganizationName' }}. If you have any questions about your statement, please <br />
+        email giving@secc.org or call the donation hotline at 502-253-8707. Please include your name, address, telephone number and a detailed message.
+	</p>
+</div>

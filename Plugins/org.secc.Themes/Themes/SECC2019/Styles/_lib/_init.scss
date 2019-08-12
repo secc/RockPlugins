@@ -27,7 +27,7 @@
 $PrimaryCopyFont: 			"Helvetica Neue", Helvetica, Arial, sans-serif;
 $SerifFont: 				"minion-pro", Georgia, "Times New Roman", serif;
 
-/* Define the path to use for TisaPro fonts */
+/* Define the path to use for ProximaNova fonts */
 $fa-proximanova-path:  			"/Themes/SECC2019/Assets/fonts/proxima-nova/";
 $Proxima: 					join(("ProximaNova", "proxima-nova"), $PrimaryCopyFont, comma);
 $Proxima-Thin: 				join(("ProximaNova", "proxima-nova"), $PrimaryCopyFont, comma);
@@ -36,6 +36,16 @@ $Proxima-SemiBold: 			join(("ProximaNova", "proxima-nova"), $PrimaryCopyFont, co
 $Proxima-Bold: 				join(("ProximaNova", "proxima-nova"), $PrimaryCopyFont, comma);
 $Proxima-ExtraBold: 		join(("ProximaNova", "proxima-nova"), $PrimaryCopyFont, comma);
 $Proxima-Black: 			join(("ProximaNova", "proxima-nova"), $PrimaryCopyFont, comma);
+
+/* Define the path to use for ProximaNovaCondensed fonts */
+$fa-proximanovacond-path:  			"/Themes/SECC2019/Assets/fonts/proxima-nova-condensed/";
+$ProximaCond: 					join(("ProximaNovaCond", "proxima-nova-condensed"), $PrimaryCopyFont, comma);
+$ProximaCond-Thin: 				join(("ProximaNovaCond", "proxima-nova-condensed"), $PrimaryCopyFont, comma);
+$ProximaCond-Light: 			join(("ProximaNovaCond", "proxima-nova-condensed"), $PrimaryCopyFont, comma);
+$ProximaCond-SemiBold: 			join(("ProximaNovaCond", "proxima-nova-condensed"), $PrimaryCopyFont, comma);
+$ProximaCond-Bold: 				join(("ProximaNovaCond", "proxima-nova-condensed"), $PrimaryCopyFont, comma);
+$ProximaCond-ExtraBold: 		join(("ProximaNovaCond", "proxima-nova-condensed"), $PrimaryCopyFont, comma);
+$ProximaCond-Black: 			join(("ProximaNovaCond", "proxima-nova-condensed"), $PrimaryCopyFont, comma);
 
 /* Define the path to use for TisaPro fonts */
 $fa-tisapro-path:  			"/Themes/SECC2019/Assets/fonts/tisa-pro/";
@@ -164,11 +174,6 @@ $Textures: (
 	)
 );
 
-
-/*Define the path to use for font awesome fonts */
-// $fa-font-path:        "/_/asdf/fonts/fontawesome";
-
-
 @function campus_color($CampusName) {
 	@return map_get(map_get($Campuses, $CampusName), "color");
 }
@@ -188,7 +193,7 @@ $Textures: (
 }
 
 /*Define the path to use for font awesome fonts */
-$fa-font-path:        "../Assets/fonts";
+$fa-font-path:        "../../../../Assets/Fonts/FontAwesome";
 
 /* MIXINS
    ====== */

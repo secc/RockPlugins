@@ -1,0 +1,46 @@
+<section>
+  <div class="row">
+    <div class="col-md-10 col-md-offset-1">
+      <div class="panel-accordion-events accordion-events" id="event-accordion-accordion-events" role="tablist" aria-multiselectable="true">
+      {%- for eventOccurrenceSummary in EventOccurrenceSummaries -%}
+          {%- assign eventName = eventOccurrenceSummary.Name -%}
+          {%- assign eventSummary = eventOccurrenceSummary.Description -%}
+            <div class="panel panel-default">
+                <div class="panel-heading collapsed" role="button"  id="heading{{ forloop.index }}-accordion-events" data-toggle="collapse" data-parent="#event-accordion-accordion-events"
+                href="#collapse{{ forloop.index }}-accordion-events" aria-expanded="false" aria-controls="collapse{{ forloop.index }}-accordion-events">
+                  <div class="panel-title g-font-size-30--xs g-font-size-32--md g-font-weight--700 g-display-flex--sm" style="align-items: center">
+            				<table class="g-margin-b-10--xs g-border-r-1--sm">
+    		              <tr>
+    			              <td valign="middle" class="calendar-icon"><img src="/Themes/SECC2019/Assets/img/events/Events.svg" aria-role="presentation" width="90" height="60" /></td>
+    			              <td valign="middle" class="g-padding-r-20--sm">
+    		                  <span class="g-display-block--xs g-font-size-20--xs g-font-family--primary g-font-weight--400 g-line-height--sm">{{ eventOccurrenceSummary.DateTime | Date: 'dddd'  }}</span>
+    		                  <span class="g-display-block--xs g-font-size-44--xs g-font-family--primary g-font-weight--400 g-line-height--sm" style="white-space: nowrap">{{ eventOccurrenceSummary.DateTime | Date: 'MMM dd'  }}</span>
+    			              </td>
+    		              </tr>
+    	              </table>
+                    <h5 class="g-display-inline-block--sm g-font-size-40--xs g-font-size-60--md g-font-family--secondary g-font-weight--400 g-margin-l-40--xs">{{ eventName }}</h5>
+                  </div>
+                </div>
+                <div id="collapse{{ forloop.index }}-accordion-events" class="panel-collapse collapse" role="tabpanel"
+                aria-labelledby="heading{{ forloop.index }}-accordion-events" aria-expanded="false" style="height: 0px;">
+                  <div class="panel-body">
+    	              <div class="row">
+    		              <div class="col-md-8 col-md-offset-2">
+    			              <h3 class="g-font-weight--700">Event Details</h3>
+    			              <p><strong>Time:</strong> {{ eventOccurrenceSummary.DateTime | Date: 'hh:mm a'  }}</p>
+    			              <p><strong>Location:</strong> {{ eventOccurrenceSummary.Location }}</p>
+    			              <div class="g-margin-t-30--sm g-margin-t-20--xs">
+    			                <p>{{ eventSummary }}</p>
+    			                <p class="g-margin-t-40--xs"><a href="" onclick="return ics_click_{{ eventOccurrenceSummary.EventItemOccurrence.Id }}()" title="Add to Calendar" data-original-title="Add to Calendar" class="btn uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1">Add to Calendar</a></p>
+    			              </div>
+    		              </div>
+    	              </div>
+                  </div>
+                </div>
+              </div>
+    					<script>function ics_click_{{ eventOccurrenceSummary.EventItemOccurrence.Id }}() { text = `{{ eventOccurrenceSummary.EventItemOccurrence.Schedule.iCalendarContent }}`.replace('END:VEVENT', 'SUMMARY: {{ eventOccurrenceSummary.Name | Escape }}\r\nLOCATION: {{ eventOccurrenceSummary.Location | Escape }}\r\nEND:VEVENT'); var element = document.createElement('a'); element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); element.setAttribute('download', '{{ eventOccurrenceSummary.Name | ToCssClass }}.ics'); element.style.display = 'none'; document.body.appendChild(element); element.click(); document.body.removeChild(element); }</script>
+      {%- endfor -%}
+      </div>
+    </div>
+  </div>
+</section>

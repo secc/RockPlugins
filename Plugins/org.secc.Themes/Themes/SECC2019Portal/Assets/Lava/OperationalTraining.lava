@@ -1,0 +1,191 @@
+{% assign trainingHistory = CurrentPerson | Attribute:'EmployeeTraining', 'Object' %}
+<div class="page-menu g-bg-color--white" style="height: auto">
+    <div class="container-fluid text-center" style="padding: 0;">
+        <nav class="page-nav text-center"  style="height: auto">
+            <ul class="list-inline">
+              {% attribute id:'64657' %}
+                {% for aq in attribute.AttributeQualifiers %}
+                  {% if aq.Key == "values" %}
+                    {% assign trainingTypes = aq.Value | Split:',' %}
+                  {% endif %}
+                {% endfor %}
+              {% endattribute %}
+              {% for type in trainingTypes %}
+                <li><a class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" href="#{{ type | ToCssClass | Trim }}">{{ type | Trim }}</a></li>
+              {% endfor %}
+            </ul>
+        </nav>
+    </div>
+</div>
+{% for type in trainingTypes %}
+{% assign typeName = type | Trim %}
+{% assign typeSlug = type | ToCssClass | Trim %}
+<section id="{{typeSlug}}" class="{% cycle 'class':'g-bg-color--gray-lightest','' %}">
+    <div class="container">
+        <div class="row g-padding-t-150--xs">
+            <div class="col-xs-12 g-padding-b-40--xs text-center">
+                <h1 class="g-font-size--jumbo-1 g-font-family--secondary">{{typeName}} Training</h1>
+            </div>
+        </div>
+        <div class="row g-padding-b-150--xs">
+	        <div class="col-xs-12">
+		        <div class="block-grid block-grid-xs-1 block-grid-sm-3">
+								{% definedvalue where:'DefinedTypeId == 257 && TrainingType == {{typeName}}' %}
+	                {% for definedValueItem in definedvalueItems %}
+	                {% assign trainingType = definedValueItem | Attribute:"TrainingType" %}
+	                {% assign trainingTaken = false | AsBoolean%}
+	                
+	                {% assign trainingNeeded = true | AsBoolean %}
+	                {% assign currentDate = 'Now' | Date:'M/d/yyyy' %}
+	                {% for training in trainingHistory.AttributeMatrixItems %}
+	                    {% assign trainingID = training | Attribute:'TrainingID' %}
+	                    {% assign trainingTaken = false | AsBoolean%}
+	                    {% if trainingID == definedValueItem.Id %}
+	                        {% assign trainingTaken = true | AsBoolean%}
+	                        {% assign trainingDate = training | Attribute:'Trainingdatecompleted' %}
+	                        {% assign daysSinceCompleted = trainingDate | DateDiff:currentDate,'d' %}
+	                        {% break %}
+	                    {% endif %}
+	                {% endfor %}
+	                {% if trainingTaken == true and daysSinceCompleted < 365 %}
+	                    {% assign trainingNeeded = false | AsBoolean %}
+	                {% endif %}
+	                
+	                {% comment %} Ministry Safe is handled here {% endcomment %}
+	                {% if definedValueItem.Id == 21517 %}
+	                    {% assign trainingDate = CurrentPerson | Attribute:'SexualAbuseTrainingCompleted' %}
+	                    
+	                    {% assign trainingTaken = true | AsBoolean%}
+	                    {% assign daysSinceCompleted = trainingDate | DateDiff:currentDate,'d' %}
+	                    
+	                    {% if trainingTaken == true and daysSinceCompleted < 730 %}
+	                        {% assign trainingNeeded = false | AsBoolean %}
+	                    {% endif %}
+	                {% endif %}
+	                
+	                {% if trainingType == {{typeName}} %}
+	                  	
+	                  {%- assign colPos = forloop.index0 | Modulo:3 | Plus:1 -%}
+										{%- assign rowPos = forloop.index | DividedBy:3 | Ceiling -%}
+
+										<div class='block-grid-item event-calendar' style="-ms-grid-row:{{rowPos}};-ms-grid-column:{{colPos}};">
+											<article class="g-margin-x-40--xs g-margin-x-20--md card course-image-overlay{% if trainingTaken == true %}-taken{% endif %}">
+	                    	<div>
+	                        <a class="hover_icon hover_icon_link" href="{{definedValueItem | Attribute:"TrainingLink","RawValue"}}">
+	                            <img class="img-responsive g-width-100-percent--xs" alt="{{ definedValueItem.Value }}" src="/GetImage.ashx?guid={{definedValueItem | Attribute:'Image','RawValue'}}&w=568&h=420&mode=crop&scale=both" style="margin: 0 auto">
+	                        </a>
+		                    </div>
+	
+				                <div class="g-margin-x-30--xs g-margin-x-0--md">
+				                    <div class="clearfix">
+				                        <div class="g-padding-x-60--xs g-padding-y-80--xs text-center">
+				                            <h3 class="g-font-weight--700">{{ definedValueItem.Value }}</h3>
+																		<div class="truncate">{{ definedValueItem.Description }}</div>
+				                        </div>
+				                        <div class="col-xs-12 g-hor-divider__solid__t--gray-lightest text-center">
+				                            {% if trainingNeeded == true %}
+				                            <a href="{{definedValueItem | Attribute:"TrainingLink","RawValue"}}" class='link--hover-underscore'>
+				                                <h5 class="uppercase g-font-weight--500 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">Start Course</h5>
+				                            </a>
+				                            {% else %}
+				                            <span class="course-completed">Course Completed<br><span class="training-date">{{trainingDate}}<br />
+				                            <a href="{{definedValueItem | Attribute:"TrainingLink","RawValue"}}" class='link--hover-underscore'>
+				                                <h5 class="uppercase g-font-weight--500 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">Review</h5>
+				                            </a>
+				                            {% endif %}
+				                        </div>
+				                    </div>
+				                </div>
+	
+		                	</article>
+		            		</div>
+	                    
+	                {% endif %}
+	            {% endfor %}
+	        {% enddefinedvalue %}
+	        </div>
+        </div>
+    </div>	
+</section>
+{% endfor %}
+{% comment %}
+' <section id="onboarding" class="g-bg-color--gray-lightest">
+'     <div class="container">
+'         <div class="row g-padding-t-150--xs">
+'             <div class="col-md-offset-1 col-md-10 g-padding-b-40--xs text-center">
+'                 <h1 class="g-font-size--jumbo-1 g-font-family--secondary">Onboarding Training</h1>
+'             </div>
+'         </div>
+'         <div class="row g-padding-b-150--xs">
+' 	        <div class="col-xs-12">
+' 		        <div class="block-grid block-grid-xs-1 block-grid-sm-3">
+' 	
+' 	        {% definedvalue where:'DefinedTypeId == 257 && TrainingType == "Onboarding"' %}
+' 	            {% for definedValueItem in definedvalueItems %}
+' 	                {{ definedValueItem | Attribute:"TrainingID" }}
+' 	                {% assign trainingTaken = false | AsBoolean%}
+' 	                
+' 	                {% for training in trainingHistory.AttributeMatrixItems %}
+' 	                    {% assign trainingID = training | Attribute:'TrainingID' %}
+' 	                    {% assign trainingTaken = false | AsBoolean%}
+' 	                    {% if trainingID == definedValueItem.Id %}
+' 	                        {% assign trainingTaken = true | AsBoolean%}
+' 	                        {% assign trainingDate = training | Attribute:'Trainingdatecompleted' %}
+' 	                        {% break %}
+' 	                    {% endif %}
+' 	                {% endfor %}
+' 	                
+' 	                {% assign trainingType = definedValueItem | Attribute:"TrainingType" %}
+' 	                {% if trainingType == "Onboarding" %}
+' 	
+' 	                  {%- assign colPos = forloop.index0 | Modulo:3 | Plus:1 -%}
+' 										{%- assign rowPos = forloop.index | DividedBy:3 | Ceiling -%}
+' 
+' 										<div class='block-grid-item event-calendar' style="-ms-grid-row:{{rowPos}};-ms-grid-column:{{colPos}};">
+' 											<article class="g-margin-x-40--xs g-margin-x-20--md card course-image-overlay{% if trainingTaken == true %}-taken{% endif %}">
+' 	                    	<div>
+' 	                        <a class="hover_icon hover_icon_link" href="{{definedValueItem | Attribute:"TrainingLink","RawValue"}}">
+' 	                            <img class="img-responsive g-width-100-percent--xs" alt="{{ definedValueItem.Value }}" src="/GetImage.ashx?guid={{definedValueItem | Attribute:'Image','RawValue'}}&w=568&h=420&mode=crop&scale=both" style="margin: 0 auto">
+' 	                        </a>
+' 		                    </div>
+' 	
+' 				                <div class="g-margin-x-30--xs g-margin-x-0--md">
+' 				                    <div class="clearfix">
+' 				                        <div class="g-padding-x-60--xs g-padding-y-80--xs text-center">
+' 				                            <h3 class="g-font-weight--700">{{ definedValueItem.Value }}</h3>
+' 																		<div class="truncate">{{ definedValueItem.Description }}</div>
+' 				                        </div>
+' 				                        <div class="col-xs-12 g-hor-divider__solid__t--gray-lightest text-center">
+' 				                            {% if trainingNeeded == true %}
+' 				                            <a href="{{definedValueItem | Attribute:"TrainingLink","RawValue"}}" class='link--hover-underscore'>
+' 				                                <h5 class="uppercase g-font-weight--500 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">Start Course</h5>
+' 				                            </a>
+' 				                            {% else %}
+' 				                            <span class="course-completed">Course Completed<br><span class="training-date">{{trainingDate}}<br />
+' 				                            <a href="{{definedValueItem | Attribute:"TrainingLink","RawValue"}}" class='link--hover-underscore'>
+' 				                                <h5 class="uppercase g-font-weight--500 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">Review</h5>
+' 				                            </a>
+' 				                            {% endif %}
+' 				                        </div>
+' 				                    </div>
+' 				                </div>
+' 	
+' 		                	</article>
+' 		            		</div>
+' 
+'                 {% endif %}
+'             {% endfor %}
+' 					{% enddefinedvalue %}
+' 					</div>
+'         </div>
+'     </div>	
+' </section>
+{% endcomment %}
+<script>
+	// Initialize SmoothScroll
+	var scroll = new SmoothScroll('a[href*="#"]', {
+	    speed: 500, // Integer. How fast to complete the scroll in milliseconds
+	    easing: 'easeInOutCubic', // Easing pattern to use
+	    header: '.cd-main-header'
+	});
+</script>

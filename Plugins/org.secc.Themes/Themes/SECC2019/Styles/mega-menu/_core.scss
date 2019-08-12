@@ -655,6 +655,30 @@ main {
 			}
 		}
 
+		&.coming-soon {
+			line-height: 25px;
+			h3 {
+				color: $color-4;
+			    margin-top: 5px;
+				@include MQ(L) {
+					margin-top: 0;
+				}
+				small {
+					clear: both;
+					display: block;
+					text-transform: uppercase;
+					// padding-left: 5px;
+					line-height: 0.7rem;
+				    font-size: 1.1rem;
+					color: $color-4;
+					font-weight: 600;
+				}
+			}
+			&:before  {
+				fill: $color-4;
+			}
+		}
+
 		&.mission::before {
 			background-image: url('../Assets/img/SE/Mission.svg');
 		}
@@ -700,7 +724,7 @@ main {
 		}
 
 		&.live-stream::before {
-			background-image: url('../Assets/img/SE/Live-Stream-Grey.svg');
+			background-image: url('../Assets/img/SE/Live-Stream.svg');
 		}
 
 		&.starting-point::before {
@@ -1040,7 +1064,7 @@ main {
 				/* set here number of columns - use width percentage */
 				// @include column(.22);
 				// margin: 0 4% 40px 0;
-				@include column(.16666);
+				@include column(.125);
 
 				&:last-child {
 					/* This gives some space for the "See All" button */
@@ -1103,6 +1127,25 @@ main {
 					}
 					&:before  {
 						fill: $color-3;
+					}
+				}
+
+				.coming-soon {
+					h3 {
+						color: $color-4;
+						small {
+							clear: both;
+							display: block;
+							text-transform: uppercase;
+							padding-left: 5px;
+							line-height: 0.9rem;
+						    font-size: 1.1rem;
+							color: $color-4;
+							font-weight: 600;
+						}
+					}
+					&:before  {
+						fill: $color-4;
 					}
 				}
 

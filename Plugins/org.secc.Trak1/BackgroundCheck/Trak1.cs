@@ -126,6 +126,11 @@ namespace org.secc.Trak1.BackgroundCheck
                 //Get required fields from workflow
                 var packageList = GetPackageList();
                 var packageName = workflow.GetAttributeValue( requestTypeAttribute.Key );
+                // If this is a defined value, fetch the value
+                if (requestTypeAttribute.FieldType.Guid.ToString().ToUpper() == Rock.SystemGuid.FieldType.DEFINED_VALUE)
+                {
+                    packageName = DefinedValueCache.Get(packageName).Value;
+                }
                 var package = packageList.Where( p => p.PackageName == packageName ).FirstOrDefault();
                 if ( package == null )
                 {
@@ -165,7 +170,27 @@ namespace org.secc.Trak1.BackgroundCheck
                     }
                 }
 
-                var homeLocation = person.GetHomeLocation();
+                Location homeLocation = null;
+
+                var homeAddressDv = DefinedValueCache.Get(Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME);
+                foreach (var family in person.GetFamilies(rockContext))
+                {
+                    var loc = family.GroupLocations
+                        .Where(l =>
+                            l.GroupLocationTypeValueId == homeAddressDv.Id )
+                        .Select(l => l.Location)
+                        .FirstOrDefault();
+                    if (loc != null)
+                    {
+                        homeLocation = loc;
+                    }
+                }
+
+                if (homeLocation == null)
+                {
+                    errorMessages.Add("A valid home location to submit a Trak-1 background check.");
+                    return false;
+                }
 
                 var applicant = new Trak1Applicant
                 {
@@ -173,7 +198,6 @@ namespace org.secc.Trak1.BackgroundCheck
                     FirstName = person.FirstName,
                     MiddleName = person.MiddleName,
                     LastName = person.LastName,
-                    Email = person.Email,
                     DateOfBirth = ( person.BirthDate ?? new DateTime() ).ToString( "yyyy-MM-dd" ),
                     Address1 = homeLocation.Street1,
                     Address2 = homeLocation.Street2,

@@ -1,0 +1,59 @@
+<header id="header" class="solid-header" style="padding-top: 55px; padding-bottom: 25px; background: rgb(255, 255, 255); box-shadow: none;">
+    <div class="centered-wrapper">
+        <div class="percent-one-fourth no-fullscreen-menu">
+            <div class="logo">
+                <a href="http://kyleidleman.com" title="kyleidleman.com" rel="home">kyle idleman</a>
+            </div><!--end logo-->
+        </div><!--end one-fourth-->
+        <a class="nav-btn "><i class="fa fa-bars"></i></a>
+        <div class="percent-three-fourth column-last">
+            <div id="regular-navigation">
+                <div class="flags_language_selector "></div>
+            </div>
+            <nav id="navigation" class="light-header desktop" style="overflow: visible;">
+                <div class="menu-main-container">
+                    <ul id="mainnav" class="sf-menu" style="padding-top: 10px;">
+                        <li id="menu-item-237" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-237" style="overflow: visible;">
+                            <a href="http://kyleidleman.com/#about" class="external"><span>about</span></a>
+                        </li>
+                        <!-- current-menu-item highlighted-state current_page_item -->
+                        <li id="menu-item-250" class="menu-item menu-item-type-post_type menu-item-object-page page_item page-item-245 menu-item-250" style="overflow: visible;">
+                            <a href="http://kyleidleman.com/sermons/" aria-current="page"><span>sermons</span></a>
+                        </li>
+                        <li id="menu-item-339" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-has-children menu-item-339" style="overflow: visible;">
+                            <a href="http://kyleidleman.com/#books" class="external sf-with-ul">
+                                <span>titles</span>
+                            </a>
+                            <ul class="sub-menu" style="display: none;">
+                                <li id="menu-item-592" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-592" style="overflow: visible;">
+                                    <a href="http://kyleidleman.com/titles/dont-give-up/" class="external" style="background: rgb(255, 255, 255);">Don’t Give Up</a>
+                                </li>
+                                <li id="menu-item-559" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-559" style="overflow: visible;">
+                                    <a href="https://www.graceisgreaterbook.com/" class="external" style="background: rgb(255, 255, 255);">Grace Is Greater</a>
+                                </li>
+                                <li id="menu-item-333" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-333" style="overflow: visible;">
+                                    <a href="http://kyleidleman.com/titles/the-end-of-me/" class="external" style="background: rgb(255, 255, 255);">the end of me</a>
+                                </li>
+                                <li id="menu-item-335" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-335" style="overflow: visible;">
+                                    <a href="http://kyleidleman.com/titles/aha/" class="external" style="background: rgb(255, 255, 255);">AHA</a>
+                                </li>
+                                <li id="menu-item-336" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-336" style="overflow: visible;">
+                                    <a href="http://kyleidleman.com/titles/gods-at-war/" class="external" style="background: rgb(255, 255, 255);">gods at war</a>
+                                </li>
+                                <li id="menu-item-334" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-334" style="overflow: visible;">
+                                    <a href="http://kyleidleman.com/titles/not-a-fan/" class="external" style="background: rgb(255, 255, 255);">not a fan.</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li id="menu-item-242" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-242" style="overflow: visible;">
+                            <a href="http://kyleidleman.com/#connect" class="external">
+                                <span>connect</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav><!--end navigation-->
+        </div><!--end three-fourth-->
+        <div class="clear"></div>
+    </div><!--end centered-wrapper-->
+</header>

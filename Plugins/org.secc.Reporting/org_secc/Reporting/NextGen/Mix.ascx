@@ -66,6 +66,7 @@
                         <Rock:BoolField DataField="RegistrantData.OTCMeds" HeaderText="OTC Meds" SortExpression="RegistrantData.OTCMeds"></Rock:BoolField>
                         <Rock:RockBoundField DataField="RegistrantData.SpecialNotes" HeaderText="Special Notes" SortExpression="RegistrantData.SpecialNotes"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="GroupMemberData.Dorm" HeaderText="Dorm" SortExpression="GroupMemberData.Dorm"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="GroupMemberData.Room" HeaderText="Room" SortExpression="GroupMemberData.Room"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="GroupMemberData.Bus" HeaderText="Bus" SortExpression="GroupMemberData.Bus"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="GroupMemberData.Departure" HeaderText="Departure" SortExpression="GroupMemberData.Departure"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="GroupMemberData.Group" HeaderText="MIX Group" SortExpression="GroupMemberData.Group"></Rock:RockBoundField>

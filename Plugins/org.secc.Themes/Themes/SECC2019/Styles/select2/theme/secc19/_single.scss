@@ -1,16 +1,17 @@
 .select2-selection--single {
   background-color: transparent;
-  border: 1px solid rgba($LightGrayColor, 1);
+  border: 2px solid $BlackColor;
   border-radius: 0px;
   &:focus {
       outline: none;
   }
 
   .select2-selection__rendered {
-    color: $LightGrayColor;
+    color: $BlackColor;
     line-height: 28px;
-    // text-transform: uppercase;
+    text-transform: uppercase;
     font-weight: 600;
+    // text-align: center;
 
     &:focus {
         outline: none;
@@ -50,17 +51,31 @@
         width: 10px;
         height: 10px;
         content: "";
-        border: solid $LightGrayColor;
+        border: solid $BlackColor;
         border-width: 0 2px 2px 0;
         display: inline-block;
         position: absolute;
         top: 55%;
         left: 50%;
+        transition: all 0.4s ease;
         transform: translate(-50%, -50%) rotate(45deg);
         -webkit-transform: translate(-50%, -50%) rotate(45deg);
       }
 
     }
+  }
+
+  &[aria-expanded="true"]{
+      .select2-selection__arrow {
+        b {
+          @include before {
+            transform: translate(-50%, -50%) rotate(-135deg);
+            -webkit-transform: translate(-50%, -50%) rotate(-135deg);
+            top: 3px;
+          }
+
+        }
+      }
   }
 }
 

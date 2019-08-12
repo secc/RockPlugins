@@ -6,10 +6,10 @@
 @import 'partials/animations';
 @import 'partials/schedule';
 // @import 'partials/verticalnav';
-@import 'partials/secondarynav';
+// @import 'partials/secondarynav';
 @import 'partials/mapplic_extras';
 @import 'partials/intro_section';
-@import 'partials/accordions';
+// @import 'partials/accordions';
 @import 'partials/social';
 @import 'partials/animate-round-popup';
 @import 'partials/modal-video';
@@ -19,12 +19,18 @@
 
 .easter-font {
     // normal font style for Easter
-    h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6, p {
-        font-family: $easter-font !important;
+    h1, h2, h3, h4:not(.panel-title), h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+        font-family: $easter-font;
+        color: #3E3E3E;
     }
+    p { color: #707070;}
 }
 
 .check input:checked + .icon-box {
     animation: keyframes(animOn) 0.8s 1 forwards;
     background: #804470 !important;
+}
+
+.gm-style .gm-style-iw-c {
+    border-radius: 0px !important;
 }

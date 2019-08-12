@@ -1,0 +1,216 @@
+{% assign publishGroupCount = PublishGroups | Size %}
+
+{% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
+{% assign pageParamCampus = 'Global' | PageParameter:'Campus' %}
+{% if pageParamCampusId == empty and pageParamCampus != empty and pageParamCampus != null and pageParamCampus != 'allCampuses' %}
+    {% assign pageParamCampus = 'Global' | PageParameter:'campus' %}
+    {% campus where:'Public == true' %}
+        {% for campus in campusItems %}
+            {% assign campusSlug = campus | Attribute: 'Slug' %}
+            {% if campus.Name == pageParamCampus or campusSlug == pageParamCampus %}
+                {% assign pageParamCampusId = campus.Id %}
+            {% endif %}
+        {% endfor %}
+    {% endcampus %}
+{% endif %}
+
+<style>
+.readmore_dates {
+   transition: height 100ms;
+   overflow: hidden;
+   display: none;
+}
+</style>
+
+<div class="container">
+
+    {% if publishGroupCount == 0 %}
+    <div class="row">
+        <div class="col-xs-12 text-center">
+            <div style="border: 1px solid rgba(32, 30, 29, 0.50); padding: 20px; border-radius: 5px;">
+                <p style="margin: 0px;">There are no groups for this ministy at this time. Please try another campus or ministry.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="isotope_wrap">
+        {% for publishGroup in PublishGroups %}
+		{% assign registrationLink = '/new-groups/details/' | Append:publishGroup.Id %}
+		{% assign contactLink = '/new-groups/contact/' | Append:publishGroup.Id %}
+    		<div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar" data-day="{{ publishGroup.Group.Schedule.WeeklyDayOfWeek}}">
+                <div class="clearfix card">
+					<div class="img-hover">
+						<img src="/GetImage.ashx?id={{ publishGroup.ImageId }}&w=720" class="event-image img-responsive" onerror="this.style.display='none'">
+					</div>
+                    <div class="caption g-padding-x-30--xs g-padding-t-30--xs g-margin-b-40--xs">
+					<h5 class="g-font-family--secondary g-padding-r-60--xs" style="margin-bottom: 5px;">
+						{{ publishGroup.Group.Name}}
+					</h5>
+                        <h6 class="uppercase g-padding-b-20--xs g-font-weight--700">
+							{{ publishGroup.Group.Campus.Name }}
+						</h6>
+                        <div class="readmore_dates" style="overflow-y: inherit">
+							<div style='height:auto;'>
+								{{ publishGroup.Description }}
+                                <br />
+							</div>
+                        </div>
+                    </div>
+						{% assign offset = 0 %}
+						{% if publishGroup.WeeklyDayOfWeek == null or publishGroup.WeeklyDayOfWeek == empty %}
+							{% assign offset = offset | Plus: 2 %}
+						{% endif %}
+						{% if publishGroup.MeetingLocation == null or publishGroup.MeetingLocation == empty %}
+							{% assign offset = offset | Plus: 2 %}
+						{% endif %}
+						{% if publishGroup.ChildcareAvailable != true %}
+							{% assign offset = offset | Plus: 2 %}
+						{% endif %}
+						
+						{% if publishGroup.WeeklyDayOfWeek != null and publishGroup.WeeklyDayOfWeek != empty %}
+							<div class="event-items col-xs-4 {% if publishGroup.MeetingLocation != null and publishGroup.MeetingLocation != empty  %} g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter{% endif %} col-xs-offset-{{offset}}">
+								 <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
+								 <h6>
+									{{ publishGroup.WeeklyDayOfWeek }}s {{ publishGroup.WeeklyTimeOfDay | Date:'h:mm tt' }}
+									{% if publishGroup.StartDate and publishGroup.StartDate != empty %}
+									<br>
+									Starting: {{ publishGroup.StartDate | Date:'MMM d'}}
+									{% endif %}
+								 </h6>
+							</div>
+							{% assign offset = 0 %}
+						{% endif %}
+						
+						
+						{% if publishGroup.MeetingLocation != null and publishGroup.MeetingLocation != empty%}
+							<div class="event-items g-padding-x-10--xs col-xs-4 {% if publishGroup.ChildcareAvailable == true %}g-ver-divider__solid__r--gray-lighter{% endif %}  col-xs-offset-{{offset}}">
+								 <div class="event-icon --location"><!-- Marker / Location SVG Image --></div>
+								 <h6>
+									{{ publishGroup.MeetingLocation }}
+								 </h6>
+							</div>
+							{% assign offset = 0 %}
+						{% endif %}
+					
+						<!-- ChildCare -->
+						{% if publishGroup.ChildcareAvailable == true %}
+						<div class="event-items col-xs-4 g-padding-x-10--xs col-xs-offset-{{offset}}">
+							<div class="event-icon --teddy-bear"><!-- Teddy Bear SVG Image --></div>
+							<h6>Childcare<br> Available</h6>
+						</div>
+						{% endif %}
+
+						
+						<div class="text-center col-xs-12 g-margin-t-40--xs g-hor-divider__solid__t--gray-lighter">
+							{% if publishGroup.RequiresRegistration == true %}
+								<div class="col-md-6">
+									<a href="{{ contactLink }}" class='eventCardLink link--hover-underscore'>
+										<h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">
+											Contact
+										</h6>
+									</a>
+								</div>
+								<div class="col-md-6">
+									<a href="{{ registrationLink }}" class='eventCardLink link--hover-underscore'>
+										<h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">
+											Register&nbsp;Now
+										</h6>
+									</a>
+								</div>
+							{% else %}
+								<a href="{{ contactLink }}" class='eventCardLink link--hover-underscore'>
+									<h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">
+										Contact
+									</h6>
+								</a>
+							{% endif %}
+							
+						</div>
+						
+					
+                    </div>
+                </div><!-- END: isotope_item -->
+        {% endfor %}
+
+    </div><!-- END: isotope_wrap -->
+
+</div><!-- END: bootstrap container -->
+
+{% comment %}
+**********************************************************************************
+****** The code below will need to be included if this file isn't included *******
+******  anywhere else (such as 'FeaturedEvents.lava' or 'AllEvents.lava')  *******
+**********************************************************************************
+<script>
+$(window).load(function() {
+
+    // executes when complete page is fully loaded, including all frames, objects and images
+    // $('.readmore_dates').readmore({
+    //     speed: 100,
+    //     lessLink: '<a href="#" style="top:8px; position:relative;">close <span class="se-carat se-carat--up"></span></a>',
+    //     moreLink: '<a href="#" style="left: 14%;position:relative;top: -5px; position:relative;">open <span class="se-carat se-carat--down"></span></a>',
+    //     embedCSS: false,
+    //     collapsedHeight: 0,
+    //     beforeToggle: function(tr, el, ex) {
+    //         $(el).show();
+    //     },
+    //     afterToggle: function(trigger, element, expanded) {
+    //         $container.isotope(isoOptions); // re-initialize
+    //     }
+    // });
+
+    // Initialize Isotope
+    // var $grid = $('.isotope_wrap').isotope({
+    //     // options
+    //     percentPosition: true,
+    //     itemSelector: '.isotope_item',
+    //     layoutMode: 'fitRows'
+    // });
+    // reveal all items after init
+    // var $items = $grid.find('.isotope_item');
+    // $grid.addClass('is-showing-items')
+    // .isotope( 'revealItemElements', $items );
+});
+</script>
+{% endcomment %}
+
+
+<script type="text/javascript">
+    // This function gets called when a pageLoad() function is called from the Filters
+    function InitLoadedRequest(visstring, elem, msg)
+    {
+        // Re-Initialize Isotope
+        var $grid = $('.isotope_wrap').isotope({
+          itemSelector: '.isotope_item',
+          percentPosition: true,
+          layoutMode: 'fitRows'
+        });
+
+        var isoOptions = {
+    		itemSelector: '.isotope_item',
+    		percentPosition: true,
+    		layoutMode: 'fitRows'
+    	};
+
+        $grid.imagesLoaded( function() {
+            // Re-Initialize ReadmoreJS
+            $('.readmore_dates').readmore({
+                speed: 200,
+                lessLink: '<a href="#" class="pull-right uppercase" style="padding: 2rem;width: 100%;text-align: right;"><span class="se-carat se-carat--up"></span></a>',
+        		moreLink: '<a href="#" class="pull-right" style="display: inline-block;padding: 2rem;position: relative;height: 7rem;width: 100%;margin-top: -6rem;"><span class="pull-right se-carat se-carat--down" style="margin-top: 2rem;"></span></a>',
+        		embedCSS: false,
+                collapsedHeight: 0,
+                beforeToggle: function(tr, el, ex) {
+                    $(el).show();
+                },
+                afterToggle: function(trigger, element, expanded) {
+					$('.isotope_wrap').isotope(isoOptions); // re-initialize
+					
+                }
+            });
+            // init Isotope after all images have loaded
+            $grid.addClass('is-showing-items').isotope(isoOptions);
+        });
+    }
+</script>
