@@ -111,6 +111,18 @@ namespace org.secc.GroupManager.Model
         [DataMember]
         public bool AllowSpouseRegistration { get; set; }
 
+        [DataMember]
+        public DayOfWeek? WeeklyDayOfWeek { get; set; }
+
+        [DataMember]
+        public TimeSpan? WeeklyTimeOfDay { get; set; }
+
+        [DataMember]
+        public DateTime? StartDate { get; set; }
+
+        [DataMember]
+        public string MeetingLocation { get; set; }
+
         [NotMapped]
         public bool IsActive { get => WasActive( Rock.RockDateTime.Today ); }
 
