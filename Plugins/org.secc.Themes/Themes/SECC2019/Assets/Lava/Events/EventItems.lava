@@ -85,7 +85,7 @@
                         </a>
 
                         {% assign scheduledDates = eventItemOccurrence.ICalendarContent | Split: 'RRULE' %}
-                        {% assign scheduledNumDates = scheduledDates | Size %}
+                        {% assign scheduledNumDates = scheduledDates | Size %} 
                         <div class="caption g-padding-x-30--xs g-padding-t-30--xs g-margin-b-40--xs">
 
                             {% if numOccurrences > 1 and multiCampus == true %}
@@ -95,7 +95,7 @@
                             {% endif %}
 
                             {% if eventItemOccurrence.Name != '' %}
-                                <h4 class="g-font-family--secondary g-padding-r-60--xs" style="margin-bottom: 5px;">{{ eventItemOccurrence.Name }}</h4>
+                                <h5 class="g-font-family--secondary g-padding-r-60--xs" style="margin-bottom: 5px;">{{ eventItemOccurrence.Name }}</h5>
                             {% endif %}
 
                             {% if eventItemOccurrence.Summary != '' %}
@@ -110,37 +110,45 @@
                         <div class="event-items col-xs-4 {% if campus | Attribute: 'Slug' != 'Yes' %}col-xs-offset-2{% endif %} g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter {% if childCareIsAvailable != 'Yes' %}col-xs-offset-2{% endif %}">
                              <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
                              <h6>
-                                 {% assign eventItemDatesIsHidden = eventItemOccurrence.AttEventDatesHide %}
-                                 {% unless eventItemDatesIsHidden == 'Yes' %}
-								 {% assign useOnlyScheduleText = eventItemOccurrence.AttUseOnlyScheduleText %}
-                                 {% if useOnlyScheduleText == 'Yes' %}
-                                       {{eventItemOccurrence.AttScheduleText }}
-                                 {% else %}
-                                       {{ eventItemOccurrence.Date | Date: 'ddd, MMM dd'}}
-                                 {% endif %}
-                                 {% endunless %}
-                                 <br />
-                                 {% if numOccurrences > 1 and multiCampus == true %}
-                                         <small class="uppercase g-padding-b-20--xs g-font-weight--700">Multiple Dates</small>
-                                 {% elseif numOccurrences > 1 or scheduledNumDates > 1 %}
-                                         <small class="uppercase g-padding-b-20--xs g-font-weight--700">Recurring Event</small>
-                                 {% endif %}
+                                 {% if eventItemOccurrence.CustomDateText != null && eventItemOccurrence.CustomDateText != '' -%}
+                                    {{ eventItemOccurrence.CustomDateText }}
+                                 {% else -%}
+                                    {% assign eventItemDatesIsHidden = eventItemOccurrence.AttEventDatesHide %}
+                                    {% unless eventItemDatesIsHidden == 'Yes' %}
+                                        {% assign useOnlyScheduleText = eventItemOccurrence.AttUseOnlyScheduleText %}
+                                        {% if useOnlyScheduleText == 'Yes' %}
+                                            {{eventItemOccurrence.AttScheduleText }}
+                                        {% else %}
+                                            {{ eventItemOccurrence.Date | Date: 'ddd, MMM dd'}}
+                                        {% endif %}
+                                    {% endunless %}
+                                    <br />
+                                    {% if numOccurrences > 1 and multiCampus == true %}
+                                        <small class="uppercase g-padding-b-20--xs g-font-weight--700">Multiple Dates</small>
+                                    {% elseif numOccurrences > 1 or scheduledNumDates > 1 %}
+                                        <small class="uppercase g-padding-b-20--xs g-font-weight--700">Recurring Event</small>
+                                    {% endif %}
+                                 {% endif -%}
                              </h6>
                         </div>
 
                         <div class="event-items g-padding-x-10--xs col-xs-4 {% if childCareIsAvailable == 'Yes' %}g-ver-divider__solid__r--gray-lighter{% endif %}">
                              <div class="event-icon --location"><!-- Marker / Location SVG Image --></div>
                              <h6>
-                                 {% if eventItemOccurrence.EventItemOccurrence.Location != '' %}
-                                 {{ eventItemOccurrence.EventItemOccurrence.Location }}
+                                 {% if eventItemOccurrence.CustomLocationText != null && eventItemOccurrence.CustomLocationText != '' -%}
+                                    {{ eventItemOccurrence.CustomLocationText}}
                                  {% else %}
-                                     {% if numOccurrences > 1 and multiCampus == true %}
-                                         Multiple <br />Campuses
-                                     {% else %}
-                                         {{eventItemOccurrence.EventItemOccurrence.Campus.Name}} <br />Campus
-                                     {% endif %}
+                                     {% if eventItemOccurrence.EventItemOccurrence.Location != '' %}
+                                        {{ eventItemOccurrence.EventItemOccurrence.Location }}
+                                    {% else %}
+                                        {% if numOccurrences > 1 and multiCampus == true %}
+                                            Multiple <br />Campuses
+                                        {% else %}
+                                            {{eventItemOccurrence.EventItemOccurrence.Campus.Name}} <br />Campus
+                                        {% endif %}
+                                    {% endif %}
                                  {% endif %}
-                             </h6>
+                             </h6> 
                         </div>
 
                         <!-- ChildCare -->
@@ -156,7 +164,6 @@
                                 <h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">More Info</h6>
                             </a>
                         </div>
-
                     </div>
                 </div><!-- END: isotope_item -->
                 {% comment %} **** Only need the first occurance, so break away. **** {% endcomment %}

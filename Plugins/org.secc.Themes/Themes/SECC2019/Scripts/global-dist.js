@@ -801,8 +801,9 @@ function modalMutationObserver()
 
 	// Callback function to execute when mutations are observed
 	var callback = function(mutationsList, observer) {
-		for(var mutation of mutationsList) {
-			if (mutation.type == 'childList') {
+		for(var z = 0; z < mutationsList.length; z++) {
+			var mutation = mutationsList[z];
+			if (mutation && mutation.type == 'childList') {
 				for(var j=0; j<mutation.addedNodes.length; ++j) {
 					if (mutation.target != undefined) {
 						// was a child added with class of modal-open

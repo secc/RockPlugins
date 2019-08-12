@@ -1,11 +1,12 @@
 // Font
-@mixin font($size: null, $style: null, $weight: null, $variant: null, $family: null, $line-height: null) {
+@mixin font($size: null, $style: null, $weight: null, $variant: null, $family: null, $line-height: null, $stretch: null) {
   font-size: $size;
   font-style: $style;
   font-weight: $weight;
   font-variant: $variant;
   font-family: $family;
   line-height: $line-height;
+  font-stretch: $stretch;
 }
 
 // @font-face {

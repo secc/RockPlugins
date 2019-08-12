@@ -1,0 +1,22 @@
+<div class="container g-padding-y-50--xs g-padding-y-100--sm g-padding-x-0--xs">
+    <div class="series-detail container">
+        <div id="seriesHead" class="row">
+	        {% assign vID = Item | Attribute:'VimeoID' | Trim %}
+          {% if vID != "" %}
+            <div id="sermonVideo" class="col-sm-12 col-lg-8 g-padding-x-0--xs g-padding-x-60--lg">
+                {[ vimeo id:'{{vID}}' ]}
+		    		</div>
+            <div id="sermonContent" class="col-sm-12 col-lg-4">
+	        {% else %}
+            <div id="sermonContent" class="col-sm-12">
+          {% endif %}
+                <h2 class="g-font-size--jumbo-2 g-font-family--secondary g-margin-y-20--xs g-margin-t-0--sm">{{ Item.Title }}</h2>
+								<h5 class="uppercase">{{ Item.StartDateTime | Date:'MMMM dd, yyyy'}}</h5>
+                <hr />
+                {{ Item.Content }}
+                <hr />
+                {{ Item | Attribute:'AudioFile' }}
+            </div>
+        </div>
+    </div>
+</div>

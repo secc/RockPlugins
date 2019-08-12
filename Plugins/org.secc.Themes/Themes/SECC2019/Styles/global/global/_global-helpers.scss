@@ -206,12 +206,12 @@
   Line Height
 ------------------------------------*/
 
-.g-line-height--normal { line-height: normal; }
-.g-line-height--exs { line-height: .7; }
-.g-line-height--xs { line-height: 1; }
-.g-line-height--sm { line-height: 1.2; }
-.g-line-height { line-height: 1.4; }
-.g-line-height--lg { line-height: 1.6; }
+.g-line-height--normal { line-height: normal !important; }
+.g-line-height--exs { line-height: .7 !important; }
+.g-line-height--xs { line-height: 1 !important; }
+.g-line-height--sm { line-height: 1.2 !important; }
+.g-line-height { line-height: 1.4 !important; }
+.g-line-height--lg { line-height: 1.6 !important; }
 
 
 /*----------------------------------
@@ -228,9 +228,10 @@
 
 
 /*----------------------------------
-  Box Shadow
+  Position
 ------------------------------------*/
 
+.g-position--sticky { position: sticky; }
 .g-position--relative { position: relative; }
 .g-position--absolute { position: absolute; }
 .g-position--overlay {

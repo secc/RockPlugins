@@ -1,0 +1,66 @@
+<!-- Email Container: End (Starts in Header) -->
+</div>
+</div>
+
+<noscript id="lava-fields">
+{% comment %}  Lava Fields: Code-Generated from Template Editor {% endcomment %}
+{% assign footerBanner = 'https://www.southeastchristian.org/Content/EmailTemplates/generic_footer.jpg' %}
+{% assign footerBannerTitle = 'Southeast General Footer' %}
+{% assign footerAddressTitle = 'SOUTHEAST CHRISTIAN CHURCH' %}
+</noscript>
+
+<!-- Email Footer : BEGIN -->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" width="100%" style="max-width: 680px; font-family: sans-serif; color: #888888; line-height:18px;">
+    <tbody>
+        <tr>
+           <td bgcolor="#f1f1f1" align="center" style="text-align: center !important;">
+               <img src="{{ footerBanner }}" alt="{{ footerBannerTitle }}" title="{{ footerBannerTitle }}" width="600" height="" border="0" align="center" style="width: 100%; max-width: 600px; height: auto; background: #f1f1f1; font-family: sans-serif; font-size: 15px; color: #555555; margin: auto;" class="g-img">
+           </td>
+        </tr>
+        <tr>
+           <td style="padding: 20px 10px;width: 100%;font-size: 12px; font-family: sans-serif; line-height:18px; text-align: center; color: #888888;" class="x-gmail-data-detectors">
+               <a href="{{ 'Global' | Attribute:'OrganizationWebsite' }}" style="color: #888888; text-decoration: none;"><nobr>southeastchristian.org</nobr></a>
+               <br><br>
+               <strong style="font-weight: bold !important;">{{ footerAddressTitle }}</strong>
+               <br>{{ footerAddress1 }}<br>{{ footerAddress2 }}
+           </td>
+        </tr>
+    </tbody>
+</table>
+<!-- Email Footer : END -->
+
+<!--[if mso]>
+</td>
+</tr>
+</table>
+<![endif]-->
+
+
+<div style="max-width: 600px; margin: auto; text-align: center !important;" class="email-container">
+   <!--[if mso]>
+   <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" align="center">
+   <tr>
+   <td>
+   <![endif]-->
+
+   <!-- Email Footer : BEGIN -->
+   <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" width="100%" style="max-width: 680px; font-family: sans-serif; color: #888888; line-height:18px; text-align: center !important;">
+       <tbody>
+
+       <tr>
+           <td style="padding: 15px 10px;width: 100%;font-size: 12px; font-family: sans-serif; line-height:18px; text-align: center !important; color: #888888;" class="x-gmail-data-detectors">
+               <unsubscribe style="color:#888888; text-decoration:underline; text-align: center !important;">
+                   <!-- recommend privacy - terms - unsubscribe here -->[[ UnsubscribeOption ]]
+               </unsubscribe>
+           </td>
+       </tr>
+   </tbody></table>
+   <!-- Email Footer : END -->
+
+   <!--[if mso]>
+   </td>
+   </tr>
+   </table>
+   <![endif]-->
+</div>
+</center>

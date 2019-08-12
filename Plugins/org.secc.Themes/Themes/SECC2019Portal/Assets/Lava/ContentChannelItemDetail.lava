@@ -1,0 +1,98 @@
+{% assign itemSlug = 'Global' | PageParameter:'Slug'  %}
+
+{% cache key:'item-content-{{itemSlug}}' duration:'3600' twopass:'true' %}
+
+{% assign itemSlug = 'Global' | PageParameter:'Slug'  %}
+{% contentchannelitemslug where:'Slug == "{{itemSlug}}"' %}
+   {% for slug in contentchannelitemslugItems %}
+		{% assign item = slug.ContentChannelItem %}
+		{% break %}
+   {% endfor %}
+{% endcontentchannelitemslug %}
+
+
+{% assign ImageFile = item | Attribute:'Image', 'FileName' %}
+{% assign ImageGuid = item | Attribute:'Image','RawValue' %}
+{% assign AuthorObject = item | Attribute:'Author','Object' %}
+{% assign PostLayout = item | Attribute:'PostLayout','RawValue' %}
+
+{% assign sc = '{{" ' | Append:item.Title | Append:' | Southeast Christian Church' | Append:'" | SetPageTitle }}' %}
+{{sc}}
+
+{% assign Author = AuthorObject | Attribute:'Person','Object' %}
+{% assign AuthorImageGuid = AuthorObject | Attribute:'BioImage','RawValue' %}
+
+{[ wow animate:'fadeIn' ]}
+<article class="post_item {{ PostLayout }}">
+
+	{% comment %}
+		********************************************************************************************
+		********************************************************************************************
+		********* THIS IF CONDITION IS ONLY FOR A LAYOUT THAT IS MEANT FOR EMBEDED VIDEOS! *********
+		********************************************************************************************
+		********************************************************************************************
+	{% endcomment %}
+	{% if PostLayout contains "post_video"%}
+		<div class="post_content" itemprop="reviewBody">
+			<h3 itemprop="itemReviewed" class="post_title entry-title g-font-family--secondary" style="text-transform: inherit;">{{ item.Title }}</h3>
+			<br />
+			{{ item.Content }}
+		</div>
+		<hr />
+		<div class="text-center">
+			<p class="uppercase"><i class="fa fa-share-alt"></i> <strong>Share</strong> this Story:
+			{[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx/{{- ImageFile -}}?Guid={{- ImageGuid -}}' ]}
+		</div>
+        <hr />
+        <div class="text-left">
+            {% taggeditem where:'EntityGuid == "{{item.Guid}}"' %}
+               {% for tag in taggeditemItems %}
+                    <a href="/stories/tag/{{ tag.Tag.Name }}" class="se-btn se-btn--tag g-margin-b-10--xs g-margin-r-5--xs">
+                        {{ tag.Tag.Name }}
+                    </a>
+               {% endfor %}
+            {% endtaggeditem %}
+        </div>
+	{% else %}
+	{% comment %}
+		********************************************************************************************
+		********************************************************************************************
+		************************* ELSE THIS LAYOUT IS USED FOR ANY CONTENT *************************
+		********************************************************************************************
+		********************************************************************************************
+	{% endcomment %}
+		<div class="post_featured">
+
+			{[ photoswipe imgsrc:'/GetImage.ashx?Guid={{ ImageGuid }}' imgtitle:'{{ item.Title }}' ]}
+				<img src="/GetImage.ashx?Guid={{ ImageGuid }}" class="img-responsive" itemprop="thumbnail" alt="{{ item.Title }}">
+			{[ endphotoswipe ]}
+			<br />
+			<hr />
+			<div class="text-center">
+				<p class="uppercase"><i class="fa fa-share-alt"></i> <strong>Share</strong> this Story:
+				{[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx/{{- ImageFile -}}?Guid={{- ImageGuid -}}' ]}
+			</div>
+            <hr />
+            <div class="text-left">
+                {% taggeditem where:'EntityGuid == "{{item.Guid}}"' %}
+                   {% for tag in taggeditemItems %}
+                        <a href="/stories/tag/{{ tag.Tag.Name }}" class="se-btn se-btn--tag g-margin-b-10--xs g-margin-r-5--xs">
+                            {{ tag.Tag.Name }}
+                        </a>
+                   {% endfor %}
+                {% endtaggeditem %}
+            </div>
+            <br />
+        	<br />
+		</div>
+		<div class="post_content" itemprop="reviewBody">
+			<h3 itemprop="itemReviewed" class="post_title entry-title g-font-family--secondary" style="text-transform: inherit;">{{ item.Title }}</h3>
+			<br />
+			{{ item.Content }}
+		</div>
+   {% endif %}
+
+</article>
+{[ endwow ]}
+
+{% endcache %}

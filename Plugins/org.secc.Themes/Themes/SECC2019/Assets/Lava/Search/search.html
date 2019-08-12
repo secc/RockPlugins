@@ -1,5 +1,7 @@
+<html>
 <head>
 	<link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019/Styles/main.css"/>
+	<link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.9.0/css/all.css" integrity="sha384-vlOMx0hKjUCl4WzuhIhSNZSm2yQCaf0mOU1hEDK/iztH3gU4v5NMmJln9273A6Jz" crossorigin="anonymous">
 
 	<style>
     	h1.section-header {
@@ -13,7 +15,6 @@
     	    text-transform: none;
     	    color: #383735;
     	}
-
     	#InlineSearch{
     		font-size:1.5em;
     		width:50%;
@@ -33,11 +34,13 @@
     		#InlineSearch {
     			width:100%
     		}
-
 			.gs-title {
 			    white-space: normal !important;
 			}
 			.gsc-url-top {
+				white-space: normal !important;
+			}
+			.gsc-control-cse .gsc-table-result {
 				white-space: normal !important;
 			}
 			.gsc-result .gs-title {
@@ -51,22 +54,9 @@
 			    padding: 0px !important;
 			    width: auto;
 			}
-    	}
-
-    	.glyphicon {
-    	    font-size: .8em;
-    	}
-
-    	.glyphicon {
-    	    position: relative;
-    	    top: 1px;
-    	    display: inline-block;
-    	    font-family: 'Glyphicons Halflings';
-    	    font-style: normal;
-    	    font-weight: 400;
-    	    line-height: 1;
-    	    -webkit-font-smoothing: antialiased;
-    	    -moz-osx-font-smoothing: grayscale;
+			.gs-visibleUrl {
+				word-break: break-word !important;
+			}
     	}
 	</style>
 </head>
@@ -79,7 +69,7 @@
 
 			<form method="GET" id="InlineSearch">
 				<input type="text" id="googleQuery" name="q" value="" class="g-padding-y-10--xs g-padding-x-10--xs g-margin-r-20--xs" />
-				<button onclick="$('#InlineSearch').submit();" class="uppercase se-btn se-btn--dark-brd"><span class="glyphicon glyphicon-search"></span></button>
+				<button onclick="$('#InlineSearch').submit();" class="uppercase se-btn se-btn--dark-brd"><i class="fas fa-search"></i></button>
 			</form>
 
 			<gcse:searchresults-only></gcse:searchresults-only>
@@ -129,4 +119,3 @@
         }
 	</script>
 </body>
-</html>

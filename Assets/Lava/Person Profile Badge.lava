@@ -1,0 +1,59 @@
+{% assign count = 0 %}
+{% assign trips = "" %}
+{% assign participate = "false" %}
+{% assign groupMembers = Person | Groups: '191','All' %}
+{% for groupMember in groupMembers %}
+    {% if Person.Id == {{groupMember.PersonId}} %}
+        {% assign participate = "true" %}
+        {% assign count = count | Plus:1 %}
+        {% assign trips = trips | Append:{{groupMember.Group.Name}} %}
+        {% assign status = groupMember.Group | Attribute: 'TripStatus' %}
+        {% if status != "Cancelled" %}
+            {% assign month = groupMember.Group | Attribute: 'Month' %}
+            {% assign year = groupMember.Group | Attribute: 'Year' %}
+            {% if month != empty and year != empty %}
+                {% assign trips = trips | Append:" - " %}
+                    {% assign trips = trips | Append:{{month}} %}
+                    {% assign trips = trips | Append:" " %} 
+                    {% assign trips = trips | Append:{{year}} %}
+            {% endif %}  
+        {% else %}
+            {% assign count = count | Minus:1 %}
+            {% assign trips = trips | Append:" - " %} 
+            {% assign trips = trips | Append:"Cancelled" %}
+        {% endif %}
+        {% assign trips = trips | Append:"</br>" %}
+    {% endif %}
+{% endfor %}
+<style>
+    .tooltip-inner {
+        max-width: 300px;
+        width: 300px;
+    }
+    .badge-missionstrips .fa-layers-counter {
+    	background: black;
+    	right: 5px;
+    	font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol;
+    	/* min-width: 1.6em; */
+    	line-height: 0.855;
+    	border-radius: 1.5em;
+    	font-size: .3em;
+    	width: 1.5em;
+    	height: 1.5em;
+    	display: inline-block;
+    	padding-top: .2em;
+    	margin-left: -2em;
+    }
+</style>
+{% if participate == "true" %}
+    {% assign url = Person | Attribute: 'ServiceReefProfileURL','RawValue' | Replace:'www.servicereef.com','secc.servicereef.com' %}{% assign urlSize = url | Size %}
+    <div class = "badge badge-missionstrips" data-toggle = "tooltip" data-original-title = "{{trips}}">
+        {% if urlSize > 0 %}<a href="{{url}}">{% endif %}
+            <i class="badge-icon fa fa-globe-americas" style="color:#23a5c5">
+                <span class="fa-layers-counter">
+                    {{count}}
+                </span>
+            </i>
+        {% if urlSize > 0 %}</a>{% endif %}
+    </div>
+{% endif %}

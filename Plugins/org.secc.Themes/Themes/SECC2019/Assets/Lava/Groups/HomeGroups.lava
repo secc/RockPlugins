@@ -1,0 +1,617 @@
+<style>
+.readmore_dates {
+   transition: height 100ms;
+   overflow: hidden;
+   display: none;
+}
+.isotope_item {
+    z-index: 1;
+}
+</style>
+
+<div class="container g-padding-t-150--xs g-padding-b-50--xs">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-10 col-md-offset-1" >
+            <h3 class="g-font-weight--600">Find a Group</h3>
+            <p class="g-font-weight--400 g-line-height--sm">Find a group that interests you by selecting a location, date and/or ministry. Click on the image to see more details or to register.</p>
+            <div id="groupFilters" class="g-display-block--xs">
+
+                <div class="g-display-inline-block--xs col-xs-12 col-md-3 g-padding-x-5--xs">
+                    <select class="select2-campuses" name="campus" data-control="#groupFilters">
+                        <option value="allCampuses" data-shortcode="SE" data-campus="" {% if selectedCampus == null %} selected="selected"{% endif %}>All Locations</option>
+                        {% for campus in Campuses %}
+                            {% assign publicCampus = campus | Attribute:'Public' %}
+                            {% if publicCampus == 'Yes' %}
+                                <option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campus.ShortCode }}">
+                                    {{ campus.Name }}
+                                </option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <style>
+                .se-dropdown {
+                    border: 2px solid black;
+                    cursor: pointer;
+                    padding: 5px 70px 5px 15px;
+                    display: block;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                    color: black;
+                    line-height: 28px;
+                    text-transform: uppercase;
+                    font-weight: 600;
+                    box-sizing: border-box;
+                    display: inline-block;
+                    margin: 0;
+                    position: relative;
+                    vertical-align: middle;
+                    margin-top: 5px;
+                    min-width: 170px;
+                    z-index: 10;
+                    width: 100%;
+                }
+                .se-dropdown .arrow {
+                    height: auto;
+                    position: absolute;
+                    top: 19px;
+                    right: 15px;
+                    width: 20px;
+                }
+                .se-dropdown .arrow b {
+                    border-color: white;
+                    border-style: none;
+                    border-width: 0px;
+                    height: 0;
+                    position: absolute;
+                    width: 0;
+                }
+                .se-dropdown .arrow b:before {
+                    width: 10px;
+                    height: 10px;
+                    content: "";
+                    border: solid #000000;
+                    border-width: 0 2px 2px 0;
+                    display: inline-block;
+                    position: absolute;
+                    top: 55%;
+                    left: 50%;
+                    transition: all 0.4s ease;
+                    transform: translate(-50%, -50%) rotate(45deg);
+                    -webkit-transform: translate(-50%, -50%) rotate(45deg);
+                }
+                .se-dropdown + div {
+                    box-shadow:0px 0px 5px 1px rgba(0, 0, 0, 0.15);
+                    padding: 15px;
+                    display: none;
+                    position: absolute;
+                    background-color: #FFFFFF;
+                    overflow: visible;
+                    box-sizing: border-box;
+                    z-index: 1051;
+                    margin-bottom: 20px;
+                }
+                .se-dropdown[aria-expanded="true"] + div {
+                    display: block;
+                }
+                .se-dropdown[aria-expanded="true"] .arrow b:before {
+                    transform: translate(-50%, -50%) rotate(-135deg);
+                    -webkit-transform: translate(-50%, -50%) rotate(-135deg);
+                    top: 3px;
+                }
+
+                .se-input {
+                    background-color: white;
+                    border: 2px solid black;
+                    padding: 5px 70px 5px 15px;
+                    display: block;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                    color: black;
+                    line-height: 28px;
+                    text-transform: uppercase;
+                    font-weight: 600;
+                    box-sizing: border-box;
+                    display: inline-block;
+                    margin: 0;
+                    position: relative;
+                    vertical-align: middle;
+                    margin-top: 5px;
+                    min-width: 170px;
+                    z-index: 10;
+                }
+                .se-zipcode-loading {
+                    position: absolute;
+                    right: 25px;
+                    top: 18px;
+                    z-index: 30;
+                }
+                @media (max-width:991px)
+                {
+                    .se-dropdown + div {
+                        position: relative;
+                    }
+                }
+                </style>
+                <div class="g-display-inline-block--xs col-xs-12 col-md-3 g-padding-x-5--xs" tabindex="0" style="outline: none;">
+                    <!-- <span class="se-dropdown" data-toggle="dropdown-content" data-reveal="daysOfTheWeek" aria-expanded="false" data-control="#groupFilters" tabindex="0"> -->
+                    <span class="se-dropdown" data-toggle="dropdown-content" data-reveal="daysOfTheWeek" aria-expanded="false" data-control="#groupFilters">
+                        Meets On
+                        <span class="arrow" role="presentation"><b role="presentation"></b></span>
+                    </span>
+                    <div id="daysOfTheWeek" class="button-group filter-button-group g-padding-x-10--xs g-display-inline-block--xs g-margin-t-10--xs">
+                        <p>Select a day of the week:</p>
+                        <div class="g-width-500--xs text-center">
+                            <a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Sunday" data-toggle="tooltip" data-placement="bottom" title="Sunday">S</a>
+                            <a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Monday" data-toggle="tooltip" data-placement="bottom" title="Monday">M</a>
+                            <a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Tuesday" data-toggle="tooltip" data-placement="bottom" title="Tuesday">T</a>
+                            <a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Wednesday" data-toggle="tooltip" data-placement="bottom" title="Wednesday">W</a>
+                            <a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Thursday" data-toggle="tooltip" data-placement="bottom" title="Thursday">T</a>
+                            <a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Friday" data-toggle="tooltip" data-placement="bottom" title="Friday">F</a>
+                            <a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Saturday" data-toggle="tooltip" data-placement="bottom" title="Saturday">S</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="g-display-inline-block--xs col-xs-12 col-md-3 g-padding-x-5--xs" tabindex="0" style="outline: none;">
+                    <span class="se-dropdown" data-toggle="dropdown-content" data-reveal="typeSelected" aria-expanded="false" data-control="#groupFilters">
+                        Type
+                        <span class="arrow" role="presentation"><b role="presentation"></b></span>
+                    </span>
+                    <div id="typeSelected" class="button-group filter-button-group g-padding-x-10--xs g-display-inline-block--xs g-margin-t-10--xs">
+                      <p>Select categories of your interests:</p>
+                      {%- definedvalue where:'DefinedTypeId==52' -%}
+                          {%- assign definedvalueItemsSorted = definedvalueItems | Sort: 'Order' -%}
+                          {%- for definedValue in definedvalueItemsSorted -%}
+                              {%- if definedValue != '' -%}
+                                  <a class="button se-btn se-btn--tag no-transitions uppercase g-margin-y-5--xs g-margin-x-5--xs" data-type="{{ definedValue.Id }}">{{ definedValue.Value | Capitalize }}</a>
+                            {%- endif -%}
+                          {%- endfor -%}
+                      {%- enddefinedvalue -%}
+                    </div>
+                </div>
+
+                <div class="g-display-inline-block--xs col-xs-12 col-md-3 g-padding-x-5--xs">
+                    <input id="se-zipcode" class="g-width-100-percent--xs se-input" placeholder="Zipcode" type="number" pattern="\d*" />
+                    <i class="fas fa-circle-notch fa-spin se-zipcode-loading hidden"></i>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="container g-padding-y-50--xs">
+    <div class="isotope_wrap g-margin-b-80--xs">
+        {% for group in Groups %}
+            {% if group.IsActive and group.IsPublic %}
+
+                {% assign groupUrl = group.Campus | Attribute:'Slug' %}
+                {% assign groupLocations = group.GroupLocations %}
+                {% assign otc = group | Attribute: 'OpentoChildren' %}
+                {% assign handicapAcc = group | Attribute: 'HandicappedAccessible' %}
+                {% assign neightborhoodName = group | Attribute: 'NeighborhoodName' %}
+                {% comment %}
+                    explain what is happening with groupTypes
+                {% endcomment %}
+                {% assign groupTypes = group | Attribute: 'SmallGroupTopic','Object' %}
+
+                {%- assign meetingType = '' -%}
+                {%- assign meetingLocations = 0 -%}
+                {%- assign groupZipCode = '' -%}
+
+                {%- for groupLocation in groupLocations -%}
+                    {%- case groupLocation.GroupLocationTypeValueId -%}
+                        {%- when '209' -%}
+                        {% comment %} 209 == Meeting Location {% endcomment %}
+                            {% assign groupZipCode = groupLocation.Location.PostalCode %}
+                            {% assign meetingLocations = meetingLocations | Plus:1 %}
+                            {% assign meetingType = groupLocation.GroupLocationTypeValueId %}
+                        {%- when '19' and meetingType == '' -%}
+                        {% comment %} 19 == Home {% endcomment %}
+                            {% assign groupZipCode = groupLocation.Location.PostalCode %}
+                            {% assign meetingLocations = meetingLocations | Plus:1 %}
+                            {% assign meetingType = groupLocation.GroupLocationTypeValueId %}
+                        {%- when null and meetingType == '' -%}
+                        {% comment %} undefined {% endcomment %}
+                            {% assign groupZipCode = groupLocation.Location.PostalCode %}
+                            {% assign meetingLocations = meetingLocations | Plus:1 %}
+                            {% assign meetingType = groupLocation.GroupLocationTypeValueId %}
+                        {%- else -%}
+                            {% comment %} skipping any other group types
+                            since we don't know what they are, or it's
+                            a geographic area {% endcomment %}
+                    {%- endcase -%}
+                {%- endfor -%}
+
+                <div class="homegroup isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar"
+                     data-groupid="{{group.Id}}"
+                     data-campus="{{ group.Campus.ShortCode }}"
+                     data-day="{{ group.Schedule.WeeklyDayOfWeek }}"
+                     data-handicap-accessible="{{ handicapAcc | Downcase }}"
+                     data-open-to-children="{{ otc | Downcase }}"
+                     data-type="{%- for groupType in groupTypes -%}{%- if forloop.first -%}{%- else -%},{%- endif -%}{{ groupType.Id }} {%- endfor -%}{{ groupTypes.Id }}"
+                     data-zipcode="{{ groupZipCode | Truncate:5,'' }}">
+                    <div class="clearfix card g-margin-b-20--xs g-padding-t-60--xs" >
+
+                        <div class="caption g-margin-b-40--xs g-padding-x-60--xs">
+                            <div class="distance-container hidden">
+                                <h6 class="uppercase g-padding-b-5--xs g-font-weight--700 g-width-100-percent--xs">
+                                    Distance: <span class="distance"></span> miles
+                                </h6>
+                                <hr class="g-hor-divider__solid__t--gray-lighter" />
+                            </div>
+                            <h6 class="uppercase g-padding-b-5--xs g-font-weight--700 g-width-100-percent--xs">
+                                {{ group.Campus.Name }}
+                            </h6>
+                            <h5 class="g-font-family--secondary" style="margin-bottom: 5px;">{{ group.Name }}</h5>
+                            {% if group.Description != '' %}
+                            <div class="readmore_dates">
+                                {{group.Description}}
+                                <br />
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div>
+
+                            <div class="event-items col-xs-4 g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter {% if otc != 'Yes' %}col-xs-offset-2{% endif %}">
+                                <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
+                                <div>
+                                    <ul class="list-unstyled" style="margin: 0;">
+                                        <li style="vertical-align: middle;">
+                                            {% if group.Schedule.WeeklyDayOfWeek != null and group.Schedule.WeeklyDayOfWeek != "" %}
+                                            <h6>{{ group.Schedule.WeeklyDayOfWeek }}<br />
+                                                {{  group.Schedule.WeeklyTimeOfDay | Date:'@ h:mm tt' }}</h6>
+                                            {% else %}
+                                            <h6>Contact for details.</h6>
+                                            {% endif %}
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="event-items col-xs-4 g-padding-x-10--xs {% if otc == 'Yes' %}g-ver-divider__solid__r--gray-lighter{% endif %}" style="overflow:visible;">
+                                 <div class="event-icon --location" {% if handicapAcc == 'Yes'%}style="left:-12px;"{% endif%}>
+                                    {% if meetingLocations > 1 %}
+                                    <span style="
+                                        background-color: black;
+                                        border-radius: 100%;
+                                        width: 15px;
+                                        height: 15px;
+                                        display: block;
+                                        position: absolute;
+                                        top: 0;
+                                        right: 4px;
+                                        color: white;
+                                        font-weight: 800;
+                                        font-size: 1rem;
+                                    ">{{ meetingLocations }}</span>
+                                    {% endif%}
+
+                                    {% if handicapAcc == 'Yes'%}
+                                    <span style="
+                                        border-radius: 20px;
+                                        width: 24px;
+                                        height: 24px;
+                                        display: block;
+                                        position: absolute;
+                                        bottom: 4px;
+                                        right: -20px;
+                                        color: #FFFFFF;
+                                        font-weight: 800;
+                                        font-size: 1.2rem;
+                                        vertical-align: middle;
+                                        padding-top: 3px;
+                                        background-color: #000000;
+                                    " data-toggle="tooltip" data-placement="right" title="Handicap Accessible">
+                                    <i class="fas fa-wheelchair"></i>
+                                    </span>
+                                    {% endif%}
+                                 </div>
+
+                                <h6>
+                                    {% if meetingLocations > 1 %}
+                                         This group has multiple locations. Contact for details.
+                                    {% elseif meetingLocations == 1 %}
+                                        {% if neightborhoodName != 'none'%}{{ neightborhoodName }}<br />{% endif %}
+                                        {% if groupZipCode != ''%}{{ groupZipCode | Truncate:5,'' }}{% endif%}
+                                    {% else %}
+                                        A location has not been set yet. Contact for details.
+                                    {% endif %}
+                                </h6>
+                            </div>
+
+                            <!-- otc -->
+                            {% if otc == 'Yes' %}
+                            <div class="event-items col-xs-4 g-padding-x-10--xs">
+                                <div class="event-icon --teddy-bear"><!-- Teddy Bear SVG Image --></div>
+                                <h6>Open to<br> Children</h6>
+                            </div>
+                            {% endif %}
+
+                            <div class="text-center col-xs-12 g-margin-t-40--xs g-hor-divider__solid__t--gray-lighter">
+                                <a href="/groups/homegroups/registration/{{ group.Id }}" class="eventCardLink link--hover-underscore">
+                                    <h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">Register</h6>
+                                </a>
+                            </div>
+                        </div>
+
+
+
+                    </div>
+                </div>
+
+            {% endif %}
+        {%endfor%}
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Readmore.js/2.2.0/readmore.min.js"></script>
+<script>
+
+    $('[data-toggle="tooltip"]').tooltip();
+
+    function toggleDropdown($selected) {
+        // close all of the others - before opening this
+        $('[data-control="#groupFilters"]').not($selected).attr('aria-expanded','false');
+        //$('.select2-selection').select2('close');
+        $selected.attr('aria-expanded', function (i, attr) {
+            return attr == 'true' ? 'false' : 'true'
+        });
+    }
+
+    /* When the user clicks on the button,
+    toggle between hiding and showing the dropdown content */
+    $('[data-toggle="dropdown-content"]').mousedown(function(e) {
+        e.preventDefault();
+        var $this = $( this );
+        $this.parent().focus();
+        toggleDropdown($this);
+    });
+
+    $('[data-control="#groupFilters"]').parent().focusout(function(e) {
+        e.preventDefault();
+        var $this = $( this );
+        // var toggleId = $this.children("[data-toggle="dropdown-content"]").attr('data-reveal');
+        $this.children("[data-toggle='dropdown-content']").attr('aria-expanded', 'false');
+    });
+
+    // Initialize Isotope/Groups
+    var $grid = $('.isotope_wrap').isotope({
+      itemSelector: '.isotope_item',
+      percentPosition: true,
+      layoutMode: 'fitRows'
+    });
+    if (Modernizr.mq('only all and (max-width: 720px)')) {
+        // Not using isotope or readmore on mobile - it's heavy on JS (breaks old iphones)
+        $('.isotope_wrap').addClass('is-showing-items');
+    } else {
+        var isoOptions = {
+            itemSelector: '.isotope_item',
+            percentPosition: true,
+            layoutMode: 'fitRows'
+        };
+        // initialize ReadmoreJS
+        $('.readmore_dates').readmore({
+            speed: 200,
+            lessLink: '<a class="pull-right uppercase" style="padding: 2rem;width: 100%;text-align: right;"><span class="se-carat se-carat--up"></span></a>',
+            moreLink: '<a class="pull-right" style="display: inline-block;padding: 2rem;position: relative;height: 7rem;width: 100%;margin-top: -6rem;"><span class="pull-right se-carat se-carat--down" style="margin-top: 2rem;"></span></a>',
+            embedCSS: false,
+            collapsedHeight: 0,
+            beforeToggle: function(tr, el, ex) {
+                $(el).show();
+            },
+            afterToggle: function(trigger, element, expanded) {
+                $('.isotope_wrap').isotope(isoOptions); // re-initialize
+            }
+        });
+        // init Isotope
+        $grid.addClass('is-showing-items').isotope(isoOptions);
+    }
+
+    // bind to buttons related to the day of the week
+    $daysOfTheWeek = $('#daysOfTheWeek').on( 'click', '.button', function(e) {
+      e.preventDefault();
+
+      var $this = $( this );
+      var filterValue = $this.attr('data-filter');
+      $this.toggleClass('active');
+      buildDaysFilters(filterValue);
+      reapplyIso();
+    });
+
+    // bind to campus dropdown selection
+    var campusSelected = '';
+    $('.select2-campuses').select2({
+      placeholder: 'All Locations'
+    });
+    $('.select2-campuses').on('select2:select', function (e) {
+        e.preventDefault();
+        var data = e.params.data;
+        campusSelected = $(data.element).data('campus');
+        buildCampusFilters(campusSelected);
+        reapplyIso();
+    });
+
+    // bind to buttons related to the day of the week
+    $typeSelected = $('#typeSelected').on( 'click', '.button', function(e) {
+      e.preventDefault();
+      var $this = $( this );
+      var filterValue = $this.attr('data-type');
+      $this.toggleClass('active');
+      buildTypeFilters(filterValue);
+      reapplyIso();
+    });
+
+    // handling types selected
+    var types_selected = [];
+    function buildTypeFilters(type) {
+        if (~types_selected.indexOf(type)) {
+            // remove from array (toggling)
+            types_selected.splice($.inArray(type, types_selected),1);
+        } else {
+            // add to array
+            if (type != '' && type != undefined) {
+                types_selected.push(type);
+            }
+        }
+    }
+
+    // handling campuses selected
+    var campus_filters_selected = [];
+    function buildCampusFilters(campus) {
+        // reset campus array, campuses are only selected one at a time
+        campus_filters_selected = [];
+        // add to array
+        if (campus != '' && campus != undefined) {
+            campus_filters_selected.push(campus);
+        }
+        console.debug(campus_filters_selected);
+    }
+
+    // handling days selected
+    var days_selected = [];
+    function buildDaysFilters(day) {
+        if (~days_selected.indexOf(day)) {
+            // remove from array (toggling)
+            days_selected.splice($.inArray(day, days_selected),1);
+        } else {
+            // add to array
+            if (day != '' && day != undefined) {
+                days_selected.push(day);
+            }
+        }
+     }
+
+     function runFilters() {
+         var filterSelectors = [];
+         // if days are selected
+         if (days_selected.length != 0) {
+             filterSelectors.push(createFilters(days_selected, 'data-day'));
+         }
+         // if types are selected
+         if (types_selected.length != 0) {
+             filterSelectors.push(createFilters(types_selected, 'data-type'));
+         }
+         // if campus are selected
+         if (campus_filters_selected.length != 0) {
+             filterSelectors.push(createFilters(campus_filters_selected, 'data-campus'));
+         }
+         var filterArray = [];
+         if (filterSelectors.length!=0){
+             filterSelectors.forEach(function(filterSet, index, array) {
+                if (index==0) {
+                    filterArray = filterSet;
+                } else {
+                    var tempArray = [];
+                    filterArray.forEach(function(primaryFilter) {
+                        filterSet.forEach(function(secondaryFilter) {
+                            tempArray.push(primaryFilter+secondaryFilter);
+                        });
+                    });
+                    filterArray = tempArray;
+                }
+             });
+         }
+         console.log(filterArray.join(','));
+         return filterArray.join(',');
+     }
+
+     function reapplyIso() {
+         $grid.isotope({
+           itemSelector: '.isotope_item',
+           percentPosition: true,
+           layoutMode: 'fitRows',
+           filter: runFilters()
+         });
+     }
+
+     function createFilters(arrayList, selector) {
+         var output = [];
+         if (arrayList.length != 0) {
+             // make string of selectors
+             arrayList.forEach(function(item, index, array) {
+                 output.push('['+selector+'*="'+item+'"]');
+             });
+         }
+         return output;
+     }
+
+
+     //This is for the zipcode :)
+    $input = $('.se-input')
+
+    $input.keydown( function (e) {
+        if (e.keyCode == 13) {
+            e.preventDefault();
+        }
+    });
+
+    $input.keyup(function(){
+        var zipcode = $input.val();
+        var $homegroup = $('.homegroup');
+        if (zipcode.length==5){
+            $('.se-zipcode-loading').removeClass('hidden');
+            $.getJSON(
+            "/api/groupmanager/homegroups/60/"+zipcode,
+            function(data){
+                if (zipcode.length!=5){
+                    $('.se-zipcode-loading').addClass('hidden');
+                    return
+                }
+                $homegroup.attr("data-distance",Number.MAX_VALUE);
+                $.each( data, function( key, val ){
+                    $("div[data-groupid='"+key+"']").attr("data-distance",val);
+                });
+                $homegroup.trigger('datachange');
+            });
+        } else {
+            $homegroup.find('div.distance-container').each(function(){
+               $(this).addClass("hidden");
+            });
+            $grid.isotope();
+        }
+     });
+
+     // Restricts input for the given textbox to the given inputFilter.
+     function setInputFilter(textbox, inputFilter) {
+      ["input", "keydown", "keyup", "mousedown", "mouseup", "select", "contextmenu", "drop"].forEach(function(event) {
+        textbox.addEventListener(event, function() {
+          if (inputFilter(this.value)) {
+            this.oldValue = this.value;
+            this.oldSelectionStart = this.selectionStart;
+            this.oldSelectionEnd = this.selectionEnd;
+          }
+        });
+      });
+     }
+
+     // Restrict input to digits
+     setInputFilter(document.getElementById("se-zipcode"), function(value) {
+         return /^\d*$/.test(value);
+     });
+
+     $('.homegroup').on('datachange', function(e, key){
+         var $this = $( this );
+         var distanceVal = $this.attr('data-distance');
+         if (distanceVal != undefined && distanceVal != '' && distanceVal != Number.MAX_VALUE) {
+             $this.find('span.distance').html(distanceVal);
+             if($this.find('div.distance-container').hasClass("hidden")){
+                $this.find('div.distance-container').removeClass('hidden');
+             }
+         }
+         $grid.isotope('updateSortData').isotope({
+             getSortData: {
+                 distance: '[data-distance] parseFloat',
+             },
+             sortBy: [ 'distance' ]
+         });
+         $('.se-zipcode-loading').addClass('hidden');
+     });
+
+</script>

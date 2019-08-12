@@ -171,7 +171,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
             }
         }
 
-        private List<MedicalItem> GetMedicalItems()
+        private List<MedicalItem> GetMedicalItems( bool overrideHideDistributed = false )
         {
             RockContext rockContext = new RockContext();
             GroupService groupService = new GroupService( rockContext );
@@ -198,8 +198,6 @@ namespace RockWeb.Blocks.Reporting.NextGen
             var groupMembers = groups.SelectMany( g => g.Members );
 
             AttributeService attributeService = new AttributeService( rockContext );
-
-
 
             List<int> attributeIds = attributeService.Queryable()
                 .Where( a =>
@@ -294,6 +292,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 .Where( n => n.NoteTypeId == noteType.Id )
                 .Where( n => personIds.Contains( n.EntityId ?? 0 ) )
                 .Where( h => h.CreatedDateTime >= firstDay && h.CreatedDateTime < nextday )
+                .Where( h => h.ForeignId != null )
                 .ToList();
 
             foreach ( var member in members )
@@ -309,6 +308,10 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 foreach ( var medicine in medicines )
                 {
                     var scheduleAtt = medicine.FirstOrDefault( m => m.Attribute.Key == "Schedule" );
+                    if ( scheduleAtt == null || scheduleAtt.AttributeValue.Value == null )
+                    {
+                        continue;
+                    }
                     var schedules = scheduleAtt.AttributeValue.Value.SplitDelimitedValues();
                     foreach ( var schedule in schedules )
                     {
@@ -324,7 +327,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                             GroupMemberId = member.Key.Id,
                             //GroupMember = member.FirstOrDefault().Person,
                             PersonId = member.Key.Id,
-                            FilterAttribute = member.FirstOrDefault().FilterValue
+                            FilterAttribute = member.FirstOrDefault().FilterValue,
                         };
 
                         if ( !string.IsNullOrWhiteSpace( schedule ) )
@@ -358,10 +361,15 @@ namespace RockWeb.Blocks.Reporting.NextGen
                             medicalItem.Distributed = true;
                             medicalItem.History = string.Join( "<br>", notes.Select( n => n.Text ) );
                         }
-                        medicalItems.Add( medicalItem );
 
+                        medicalItems.Add( medicalItem );
                     }
                 }
+                if ( overrideHideDistributed == false && cbHideDistributed.Checked == true )
+                {
+                    medicalItems = medicalItems.Where( i => i.Distributed == false ).ToList();
+                }
+
             }
 
             SortProperty sortProperty = gGrid.SortProperty;
@@ -451,7 +459,10 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 if ( hasFilter )
                 {
                     item.GroupMember.LoadAttributes();
-                    SetExcelValue( worksheet.Cells[rowCounter, 5], item.GroupMember.GetAttributeValue( filterAttribute ) );
+                    if ( item.GroupMember != null )
+                    {
+                        SetExcelValue( worksheet.Cells[rowCounter, 5], item.GroupMember.GetAttributeValue( filterAttribute ) );
+                    }
                 }
                 rowCounter++;
             }
@@ -596,6 +607,14 @@ namespace RockWeb.Blocks.Reporting.NextGen
             };
             noteService.Add( history );
             rockContext.SaveChanges();
+
+            //for clicking distribute after the fact
+            if ( dpDate.SelectedDate.HasValue && dpDate.SelectedDate.Value.Date != Rock.RockDateTime.Today )
+            {
+                history.CreatedDateTime = dpDate.SelectedDate.Value;
+                rockContext.SaveChanges();
+            }
+
             BindGrid();
         }
 
@@ -622,6 +641,205 @@ namespace RockWeb.Blocks.Reporting.NextGen
         protected void cpCampus_SelectedIndexChanged( object sender, EventArgs e )
         {
             BindGrid();
+        }
+
+        protected void cbHideDistributed_CheckedChanged( object sender, EventArgs e )
+        {
+            BindGrid();
+        }
+
+        protected void gGrid_RowSelected( object sender, RowEventArgs e )
+        {
+            var keys = ( ( string ) e.RowKeyValue ).SplitDelimitedValues();
+            var personId = keys[0].AsInteger();
+            ShowNotesModal( personId );
+        }
+
+        private void ShowNotesModal( int personId )
+        {
+            RockContext rockContext = new RockContext();
+            NoteService noteService = new NoteService( rockContext );
+
+            var noteType = NoteTypeCache.Get( GetAttributeValue( "NoteType" ).AsGuid() );
+            var today = dpDate.SelectedDate.Value;
+            var tomorrow = today.AddDays( 1 );
+
+            var notes = noteService.Queryable()
+                .Where( n => n.EntityId == personId )
+                .Where( n => n.NoteTypeId == noteType.Id )
+                .Where( n => n.CreatedDateTime >= today && n.CreatedDateTime < tomorrow )
+                .Where( n => n.ForeignId != null )
+                .ToList();
+
+            gNotes.DataSource = notes;
+            gNotes.DataBind();
+
+            hfPersonId.Value = personId.ToString();
+
+            mdNotes.Show();
+        }
+
+        protected void btnEdit_Click( object sender, RowEventArgs e )
+        {
+            var noteId = e.RowKeyId;
+            hfNoteId.Value = noteId.ToString();
+            ShowEditModal();
+        }
+
+        protected void btnDelete_Click( object sender, RowEventArgs e )
+        {
+            var noteId = e.RowKeyId;
+            RockContext rockContext = new RockContext();
+            NoteService noteService = new NoteService( rockContext );
+
+            var note = noteService.Get( noteId );
+            var personId = note.EntityId;
+            noteService.Delete( note );
+            rockContext.SaveChanges();
+
+            ShowNotesModal( personId.Value );
+        }
+
+        protected void btnAddNote_Click( object sender, EventArgs e )
+        {
+            hfNoteId.Value = "";
+            ShowEditModal();
+        }
+
+        private void ShowEditModal()
+        {
+            var personId = hfPersonId.ValueAsInt();
+            var noteId = hfNoteId.ValueAsInt();
+            RockContext rockContext = new RockContext();
+            NoteService noteService = new NoteService( rockContext );
+            var note = noteService.Get( noteId );
+            if ( note == null )
+            {
+                note = new Note();
+                note.CreatedDateTime = dpDate.SelectedDate;
+            }
+
+            var key = string.Format( "{0}|{1}|{2}", note.EntityId, note.ForeignId, note.ForeignGuid );
+
+            var items = GetMedicalItems( true ).Where( i => i.PersonId == personId )
+                .ToDictionary( i => i.Key, i => i.Medication + " @ " + i.Schedule );
+            ddlMatrixItem.DataSource = items;
+            ddlMatrixItem.DataBind();
+
+            if ( items.ContainsKey( key ) )
+            {
+                ddlMatrixItem.SelectedValue = key;
+            }
+
+            dtpDateTime.SelectedDateTime = note.CreatedDateTime;
+
+            mdEdit.Show();
+        }
+
+        protected void mdEdit_SaveClick( object sender, EventArgs e )
+        {
+            RockContext rockContext = new RockContext();
+            NoteService noteService = new NoteService( rockContext );
+            var keys = ( ddlMatrixItem.SelectedValue ).SplitDelimitedValues();
+            var personId = keys[0].AsInteger();
+            var matrixId = keys[1].AsInteger();
+            var scheduleGuid = keys[2].AsGuid();
+
+            AttributeMatrixItemService attributeMatrixItemService = new AttributeMatrixItemService( rockContext );
+            var matrix = attributeMatrixItemService.Get( matrixId );
+            matrix.LoadAttributes();
+            var noteType = NoteTypeCache.Get( GetAttributeValue( "NoteType" ).AsGuid() );
+
+
+            var noteId = hfNoteId.ValueAsInt();
+            var note = noteService.Get( noteId );
+            if ( note == null )
+            {
+                note = new Note
+                {
+                    NoteTypeId = noteType.Id,
+                    EntityId = personId,
+                    ForeignId = matrixId,
+                    ForeignGuid = scheduleGuid,
+                    Caption = "Medication Distributed"
+                };
+                noteService.Add( note );
+            }
+
+            note.Text = string.Format(
+                "<span class=\"field-name\">{0}</span> was distributed at <span class=\"field-name\">{1}</span>",
+                matrix.GetAttributeValue( "Medication" ),
+                dtpDateTime.SelectedDateTime.Value );
+
+            note.CreatedDateTime = dtpDateTime.SelectedDateTime.Value;
+
+            rockContext.SaveChanges( true );
+
+            mdEdit.Hide();
+            ShowNotesModal( hfPersonId.ValueAsInt() );
+        }
+
+        protected void mdEdit_SaveThenAddClick( object sender, EventArgs e )
+        {
+            //Hijacking to be cancel button
+            mdEdit.Hide();
+            mdNotes.Show();
+        }
+
+
+        protected void Note_Click( object sender, RowEventArgs e )
+        {
+            var keys = ( ( string ) e.RowKeyValue ).SplitDelimitedValues();
+            var personId = keys[0].AsInteger();
+            hfCustomNotesPersonId.Value = personId.ToString();
+            UpdateCustomNotes( personId );
+
+            mdCustomNotes.Show();
+        }
+
+        private void UpdateCustomNotes( int personId )
+        {
+            RockContext rockContext = new RockContext();
+            NoteService noteService = new NoteService( rockContext );
+            PersonService personService = new PersonService( rockContext );
+            var person = personService.Get( personId );
+            mdCustomNotes.Title = Rock.RockDateTime.Today.ToString( "MMM dd" ) + "Custom Notes for " + person.FullName;
+            var noteType = NoteTypeCache.Get( GetAttributeValue( "NoteType" ).AsGuid() );
+
+            var today = Rock.RockDateTime.Today;
+            var tomorrow = today.AddDays( 1 );
+
+            var notes = noteService.Queryable()
+                .Where( n => n.NoteTypeId == noteType.Id )
+                .Where( n => n.EntityId == personId )
+                .Where( n => n.ForeignId == null )
+                .Where( n => n.CreatedDateTime >= today && n.CreatedDateTime < tomorrow )
+                .ToList();
+
+            tbCustomNotes.Text = "";
+            ltCustomNotes.Text = "";
+
+            foreach ( var note in notes )
+            {
+                ltCustomNotes.Text += "<b>" + note.CreatedDateTime.Value.ToString( "hh:mm tt" ) + ":</b> " + note.Text + "<br>";
+            }
+        }
+
+        protected void btnCustomNotes_Click( object sender, EventArgs e )
+        {
+            RockContext rockContext = new RockContext();
+            NoteService noteService = new NoteService( rockContext );
+            var noteType = NoteTypeCache.Get( GetAttributeValue( "NoteType" ).AsGuid() );
+
+            Note note = new Note()
+            {
+                NoteTypeId = noteType.Id,
+                Text = tbCustomNotes.Text,
+                EntityId = hfCustomNotesPersonId.ValueAsInt()
+            };
+            noteService.Add( note );
+            rockContext.SaveChanges();
+            UpdateCustomNotes( hfCustomNotesPersonId.ValueAsInt() );
         }
     }
 }

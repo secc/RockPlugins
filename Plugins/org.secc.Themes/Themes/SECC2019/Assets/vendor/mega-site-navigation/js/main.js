@@ -72,6 +72,15 @@ jQuery(document).ready(function($){
 	$('.cd-primary-nav').children('.has-children').children('a').on('click', function(event){
 		event.preventDefault();
 	});
+
+	if(window.location.href.indexOf("about") > -1) {
+		$('.singlepage').children('li').children('a').on('click', function(event){
+			closeNav();
+			$('.cd-overlay').removeClass('is-visible');
+			toggleTransparentMenu();
+		});
+    }
+
 	//open submenu
 	$('.has-children').children('a').on('click', function(event){
 		if( !checkWindowWidth() ) event.preventDefault();
@@ -191,18 +200,28 @@ jQuery(document).ready(function($){
 	}
 
 	$(window).scroll(function() {
-		var menu = $('.cd-main-header');
+		var menus = document.getElementsByClassName('cd-main-header');
+		var alertheight = getDivHeight('#superNoticeHeader');
+		if (alertheight == null) {alertheight = 0;}
 		var height = getDivHeight('.menu-switch');
 		if (height == null) {
 	    	height = $('.page-banner').height();
 		}
 		var scrollTop = $(window).scrollTop();
 
-		if (scrollTop >= height - 80) {
-			menu.addClass('scrolled-in');
-		} else {
-			menu.removeClass('scrolled-in');
+		for (var i = 0; i < menus.length; i++) {
+			if (scrollTop >= (height + alertheight) - 80) {
+    			// menus[i].addClass('scrolled-in');
+				// menus[i].className += " scrolled-in";
+				if(menus[i].className.indexOf('scrolled-in') === -1) menus[i].className += ' scrolled-in';
+    		} else {
+    			// menus[i].removeClass('scrolled-in');
+				// menus[i].className = menus[i].className.replace(/\sscrolled-in(\s|$)/, '');
+				menus[i].classList.remove("scrolled-in");
+    		}
 		}
+
+
 		toggleTransparentMenu();
 	});
 

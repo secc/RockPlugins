@@ -1,0 +1,665 @@
+{% assign currentDate = 'Now' | Date:'yyyyMMddHHmm' | AsDouble %}
+
+<link rel="stylesheet" href="/Themes/SECC2019/Styles/pages/easter2019/base.css" />
+<script src="https://use.typekit.net/osx6gkw.js"></script>
+<script>try{Typekit.load({ async: true });}catch(e){}</script>
+
+<section>
+	<div class="g-bg-color--gray-lightest">
+    {[ parallax addclass:'menu-switch' image:'/Content/Home/Easter_Horizontal-1920.jpg' height:'75vh' position:'center center' speed:'-15' ]}
+        <div class="parallax-logo centered" style="max-width: inherit;padding: 0px;">
+            <img src="/Content/Serve/Easter/Easter-2019-Logo-Web.svg" class="img-responsive g-width-80-percent--xs g-width-60-percent--md g-width-40-percent--lg g-margin-x-auto--xs" />
+        </div>
+    {[ endparallax ]}
+    </div>
+    <div class="page-menu" style="background-color: #FAFBF9;">
+    	<div class="container-fluid text-center" style="padding: 0;">
+    		<nav class="page-nav text-center" style="padding-top:2.5rem">
+    			<ul class="list-inline" style="color: #399B8C;">
+    				<li>
+                        <a href="#about" class="g-color--2019-easter-IN">
+                            <span><i class="fa fa-users fa-2x"></i></span><br />
+                            <b>About</b>
+                        </a>
+                    </li>
+    				<li>
+                        <a href="#locations" class="g-color--2019-easter-IN">
+                            <span><i class="fa fa-map fa-2x"></i></span><br />
+                            <b>Locations</b>
+                        </a>
+                    </li>
+    				<li>
+                        <a href="#easter-experience" class="g-color--2019-easter-IN">
+                            <span><i class="fa fa-music fa-2x"></i></span><br />
+                            <b>Experience</b>
+                        </a>
+                    </li>
+    				<li>
+                        <a href="#preregister-kids" class="g-color--2019-easter-IN">
+                            <span><i class="fa fa-pencil fa-2x"></i></span><br />
+                            <b>Pre-Register Kids</b>
+                        </a>
+                    </li>
+    				<li>
+                        <a href="#map" class="g-color--2019-easter-IN">
+                            <span><i class="fa fa-map-marker fa-2x"></i></span><br />
+                            <b>&nbsp;Map&nbsp;</b>
+                        </a>
+                    </li>
+    				<li>
+                        <a href="#times" class="g-color--2019-easter-IN">
+                            <span><i class="fa fa-clock-o fa-2x"></i></span><br />
+                            <b>&nbsp;Times&nbsp;</b>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#serve" class="g-color--2019-easter-IN">
+        					<span><i class="fa fa-user fa-2x"></i></span><br />
+                            <b>&nbsp;Serve&nbsp;</b>
+        				</a>
+                    </li>
+                    <li>
+                        <a href="#faq" class="g-color--2019-easter-IN">
+                            <span><i class="fa fa-question-circle fa-2x"></i></span><br />
+                            <b>&nbsp;FAQ&nbsp;</b>
+                        </a>
+                    </li>
+    			</ul>
+    		</nav>
+    	</div>
+    </div>
+    <script>
+    var scroll = new SmoothScroll('div.page-menu a[href*="#"]', {
+        speed: 500, // Integer. How fast to complete the scroll in milliseconds
+        easing: 'easeInOutCubic', // Easing pattern to use
+        header: '.cd-main-header'
+    });
+    </script>
+</section>
+
+<main>
+
+    <section id="about" class="easter-section easter-font">
+        <div class="container g-padding-b-150--xs g-padding-t-20--xs">
+
+			<div class="row section">
+              <header class="sec-heading text-center">
+                  <h2 class="uppercase g-font-weight--900">Easter at Southeast</h2>
+              </header>
+              <br />
+              <div class="col-md-offset-2 col-md-4">
+                  <h3 class="g-line-height--md g-font-family--primary">There's not another day like it on the calendar-a day of hope, joy, and love that brings people together.</h3>
+				  <br />
+                  <h3 class="g-line-height--md g-font-family--primary">This day is for all of us. So, let's share it. Let's celebrate <i>Easter at Southeast</i>!</h3>
+				  <br />
+				  <h3 class="g-line-height--md g-font-family--primary">Our doors are open wide-and no matter where you are, wherever you're coming from, you're welcome here.</h3>
+                  <br />
+                  <br />
+              </div>
+              <div class="col-md-4 biggerText" style="text-align: left;">
+                  <h3 class="g-font-weight--900">What to Expect</h3>
+                  <ul>
+                      <li><h3 class="g-line-height--sm g-font-family--primary">Biblical, relevant teaching from Dave Stone (all services except for the traditional services on Sunday morning)</h3></li>
+                      <li><h3 class="g-line-height--sm g-font-family--primary">Worship</h3></li>
+                      <li><h3 class="g-line-height--sm g-font-family--primary">Multiple locations and service times<br> to fit your schedule</h3></li>
+                      <li><h3 class="g-line-height--sm g-font-family--primary">Friendly people and helpful volunteers</h3></li>
+                      <li><h3 class="g-line-height--sm g-font-family--primary">Great options for kids</h3></li>
+                      <li><h3 class="g-line-height--sm g-font-family--primary">No dress code—come as you are!</h3></li>
+                  </ul>
+              </div>
+          </div>
+        </div>
+    </section>
+
+    <!-- ========== Locations ========== -->
+      <section id="locations" class="easter-section section easter-font g-bg-color--2019-easter-tan" style="padding-bottom:0px;">
+
+
+          <div class="container-fluid  g-padding-y-150--xs">
+              <header class="text-center" >
+                  <h2 class="uppercase g-font-weight--900">Locations</h2>
+              </header>
+              <div class="row no-spacing">
+                  <div class="col-md-12 g-padding-t-50--xs">
+
+                      <div id="ajax"></div>
+
+                      <div class="portfolio-grid g-padding-t-100--xs">
+                          <ul class="list-inline text-center g-margin-x-auto--xs">
+
+
+                                  <li class="">
+                                      <div class="portfolio-thumb">
+                                          <a id="blankenbaker" class="folio-project" href="/easterBlankenbaker #campus-easter-info">
+                                            <div class="box text-center">
+                                            <h4 class="uppercase g-font-weight--800">
+                                                Blankenbaker<br>
+                                            </h4>
+                                            <img src="/Themes/SECC2019/Assets/img/SE/Campuses/920.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
+                                            </div>
+                                          </a>
+                                      </div>
+                                  </li>
+
+                                  <li class="" >
+                                      <div class="portfolio-thumb">
+                                          <a id="indiana" class="folio-project" href="/easterIndiana #campus-easter-info">
+                                            <div class="box text-center">
+                                            <h4 class="uppercase g-font-weight--800">
+                                                Indiana<br>
+                                            </h4>
+                                            <img src="/Themes/SECC2019/Assets/img/SE/Campuses/IN.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
+                                            </div>
+                                          </a>
+                                      </div>
+                                  </li>
+
+                                  <li class="" >
+                                      <div class="portfolio-thumb">
+                                          <a id="crestwood" class="folio-project" href="/easterCrestwood #campus-easter-info">
+                                            <div class="box text-center">
+                                            <h4 class="uppercase g-font-weight--800">
+                                                Crestwood<br>
+                                            </h4>
+                                            <img src="/Themes/SECC2019/Assets/img/SE/Campuses/CW.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
+                                            </div>
+                                          </a>
+                                      </div>
+                                  </li>
+
+
+                                  <li class="" >
+                                      <div class="portfolio-thumb">
+                                          <a id="southwest" class="folio-project" href="/easterSouthwest #campus-easter-info">
+                                            <div class="box text-center">
+                                            <h4 class="uppercase g-font-weight--800">
+                                                Southwest<br>
+                                            </h4>
+                                            <img src="/Themes/SECC2019/Assets/img/SE/Campuses/SW.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
+                                            </div>
+                                          </a>
+                                      </div>
+                                  </li>
+
+                                  <li class="" >
+                                      <div class="portfolio-thumb">
+                                          <a id="lagrange" class="folio-project" href="/easterLaGrange #campus-easter-info">
+                                            <div class="box text-center">
+                                            <h4 class="uppercase g-font-weight--800">
+                                                La Grange<br>
+                                            </h4>
+                                            <img src="/Themes/SECC2019/Assets/img/SE/Campuses/LA.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
+                                            </div>
+                                          </a>
+                                      </div>
+                                  </li>
+
+                                  <li class="" >
+                                      <div class="portfolio-thumb">
+                                          <a id="elizabethtown" class="folio-project" href="/easterElizabethtown #campus-easter-info">
+                                            <div class="box text-center">
+                                            <h4 class="uppercase g-font-weight--800">
+                                                Elizabethtown<br>
+                                            </h4>
+                                            <img src="/Themes/SECC2019/Assets/img/SE/Campuses/ET.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
+                                            </div>
+                                          </a>
+                                      </div>
+                                  </li>
+
+                                  <li class="" >
+                                      <div class="portfolio-thumb">
+                                          <a id="rivervalley" class="folio-project" href="/easterRiverValley #campus-easter-info">
+                                            <div class="box text-center">
+                                            <h4 class="uppercase g-font-weight--800">
+                                                River Valley<br>
+                                            </h4>
+                                            <img src="/Themes/SECC2019/Assets/img/SE/Campuses/RV.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
+                                            </div>
+                                          </a>
+                                      </div>
+                                  </li>
+
+                          </ul> <!-- End #folio -->
+                      </div> <!-- End .portfolio-grid -->
+                  </div> <!-- End .jt_col -->
+              </div> <!-- End .jt_row -->
+          </div> <!-- End .container -->
+      </section>
+
+      <section id="easter-experience" class="easter-section easter-font">
+          <div class="container-fluid g-padding-y-150--xs">
+              <div class="row no-spacing">
+                  <div class="col-sm-6 col-sm-offset-3" style="margin-bottom:1em">
+                      <h2 class="uppercase g-font-weight--900 text-center">Easter Experience</h2>
+                      <br />
+                      <h3 class="g-line-height--md g-font-family--primary"><strong>Blankenbaker Campus • Room FH2</strong></h3>
+					  <br />
+                      <h3 class="g-line-height--md g-font-family--primary">
+                         <strong>Thursday, March 29 • 7:30-8:30 p.m. <i class="fa fa-american-sign-language-interpreting" aria-hidden="true"></i></strong><br>
+                         <strong>Friday, March 30 • 5:30-7:30 p.m.</strong><br>
+                         <strong>Saturday, March 31 • 2:00-8:00 p.m.</strong>
+                      </h3>
+					  <br />
+                      <h3 class="g-line-height--md g-font-family--primary">Discover the truth, mystery, wonder, and hope surrounding the death and resurrection of Jesus like never before. You’ll walk through an interactive, sensory-driven experience that will take you back to Jesus’ last days on earth and awaken you to the deep beauty of what His sacrifice means for us. Experience the tastes of the Last Supper, drive a nail into the cross, feel the weight of the wooden beam on your shoulder, and reflect on the history-altering moments at the cross and the tomb.</h3>
+					  <br />
+                      <h3 class="g-line-height--md g-font-family--primary"><i><i class="fa fa-american-sign-language-interpreting" aria-hidden="true"></i> interpreted for the deaf</i></h3>
+                  </div>
+              </div>
+          </div>
+      </section>
+
+    <section id="preregister-kids" class="easter-section easter-font g-bg-color--2019-easter-red">
+        <div class="container-fluid g-padding-y-150--xs">
+            <div class="row">
+                <div class="col-sm-6 col-sm-offset-3">
+                    <h2 class="uppercase g-font-weight--900 text-center g-color--white">Pre-register Your Kids</h2>
+                    <br />
+                    <h3 class="g-line-height--md g-font-family--primary g-color--white">Our Children's Ministry (SE!Kids) provides a safe, fun environment where kids ages birth-fifth grade can make new friends and learn about Jesus while parents attend the worship service in the Sanctuary.</h3>
+                    <h3 class="g-line-height--md g-font-family--primary g-color--white">For your convenience, first-time guests can fill out a short online form that will allow for a quicker check-in when you arrive for services on Easter weekend.</h3>
+                    <br />
+                    <h3 class="g-line-height--md g-font-family--primary text-center">
+						<a href="https://www.southeastchristian.org/visit/children/register" class="uppercase se-btn se-btn--primary-brd uppercase g-letter-spacing--1 btn-large">Register</a>
+					</h3>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {% if showEasterDevotionals <= currentDate %}
+    {% comment %}
+    <section id="devotional" class="easter-section easter-font">
+      {% include '~~/Assets/Lava/Easter2018/LentSeries.lava' %}
+    </section>
+    {% endcomment %}
+    {% endif %}
+
+    <section id="map" class="easter-section easter-font">
+        <div class="container-fluid g-padding-x-0--xs g-padding-t-120--xs">
+            <header class="text-center">
+                <h2 class="uppercase g-font-weight--900 text-center">Find a Service Near You</h2>
+                <p>Click on each location to see more information and get directions.</p>
+            </header>
+            <br />
+            <br />
+            {[ googlemap showfullscreen:'false' markerannimation:'drop' ]}
+                {% for campus in Campuses %}
+                    {% assign publicCampus = campus | Attribute:'Public' %}
+                    {% assign slug = campus | Attribute:'Slug' %}
+                        [[ marker location:'{{ campus.Location.Latitude }},{{ campus.Location.Longitude }}' title:'{{ campus.Name }} Campus' icon:'/Themes/SECC2019/Assets/img/Easter2019/map/marker-{{ campus | Attribute:'Slug' }}.png' ]]
+                            <h3 class="text-center uppercase g-font-weight--800" style="margin: 10px 0px;">{{ campus.Name }}</h3>
+                            <p class="text-center"><a style="width: 100%;" class="folio-project uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" onclick="googleCallbackLocations('/easter{{ campus | Attribute:'Slug' | Capitalize }} #campus-easter-info', this)" href="javascript:void(0)">Campus Info</a></p>
+                            <p class="text-center"><a style="width: 100%;" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" target="_blank" href="https://www.google.com/maps/dir/Current+Location/{{ campus.Location.Street1 | Replace:' ','+' }}+{{ campus.Location.City | Replace:' ','+' }}+{{ campus.Location.State | Replace:' ','+' }}+{{ campus.Location.PostalCode | Replace:' ','+' }}">Directions</a></p>
+                        [[ endmarker ]]
+                {% endfor %}
+
+                 [[ style ]]
+                    [{"featureType":"water","elementType":"geometry","stylers":[{"color":"#a0d6d1"},{"lightness":17}]},{"featureType":"landscape","elementType":"geometry","stylers":[{"color":"#ffffff"},{"lightness":20}]},{"featureType":"road.highway","elementType":"geometry.fill","stylers":[{"color":"#dedede"},{"lightness":17}]},{"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"color":"#dedede"},{"lightness":29},{"weight":0.2}]},{"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#dedede"},{"lightness":18}]},{"featureType":"road.local","elementType":"geometry","stylers":[{"color":"#ffffff"},{"lightness":16}]},{"featureType":"poi","elementType":"geometry","stylers":[{"color":"#f1f1f1"},{"lightness":21}]},{"elementType":"labels.text.stroke","stylers":[{"visibility":"on"},{"color":"#ffffff"},{"lightness":16}]},{"elementType":"labels.text.fill","stylers":[{"saturation":36},{"color":"#333333"},{"lightness":40}]},{"elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"transit","elementType":"geometry","stylers":[{"color":"#f2f2f2"},{"lightness":19}]},{"featureType":"administrative","elementType":"geometry.fill","stylers":[{"color":"#fefefe"},{"lightness":20}]},{"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"color":"#fefefe"},{"lightness":17},{"weight":1.2}]}]
+                 [[ endstyle]]
+            {[ endgooglemap ]}
+        </div>
+    </section>
+
+    <section id="times" class="easter-section easter-font">
+		<div class="container g-padding-y-150--xs">
+			<div class="row">
+				<div class="col-sm-6 col-sm-offset-3 text-center">
+					<header>
+						<h3 class="g-font-family--primary">During Easter, each of our locations offers a variety of service times to fit your schedule. Below, you can browse all Easter weekend services by date, location, and time.</h3>
+						<br />
+					</header>
+				</div>
+			</div>
+			{% include '~~/Assets/Lava/Easter2019/EasterTimes.lava' %}
+		</div>
+	</section>
+
+
+    <section id="serve" class="easter-section easter-font" style="z-index: 1;">
+        {[ parallax image:'/Content/Serve/Easter/Easter_Serve-web.jpg' height:'auto' position:'center center' speed:'-25' ]}
+            <div class="centered g-padding-y-150--xs" style="max-width: inherit;">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-sm-10 col-sm-offset-1 text-center">
+                            <img src="/Content/Serve/Easter/Serve-Easter-2019-Logo-Web.svg" class="img-responsive g-width-80-percent--xs g-width-50-percent--md g-margin-x-auto--xs" />
+                            <br />
+                            <h3 class="g-color--white g-font-family--primary">As thousands of guests visit our campuses this Easter, we want to make their experience as smooth and pleasant as possible, because we want them to encounter the hope of Easter and we want to see them again! You can help. No matter your gifts or experience, we have a spot for you.</h3>
+                            <br />
+                            <!-- <p class="text-center"><a class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" style="background-color:white;" href="/easter/serve/">Sign Up to Serve</a></p> -->
+                            <br />
+                            <a href="/serve/easter" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1 g-padding-x-150--xs">
+                                <strong>Serve At Easter</strong>
+                            </a>
+                            <br />
+                        </div>
+        			</div>
+                </div>
+            </div>
+        {[ endparallax ]}
+    </section>
+
+
+    <section id="faq" class="easter-section easter-font">
+        <div class="container g-padding-y-150--xs">
+            <div class="row">
+                <div class="col-sm-12 text-center">
+                    <br />
+                    <br />
+                    <br />
+                    <h2 class="uppercase g-font-weight--900 text-center">Frequently Asked Questions</h2>
+                    <br />
+					<br />
+					<br />
+				</div>
+			</div>
+			<div class="row">
+				{[ faq ]}
+
+					[[ item title:'Who is speaking? What will the message be like?' ]]
+					Senior Pastor Dave Stone will be teaching at all services (except for the traditional services on Sunday). Dave will teach from the Bible in a way that is easy to understand, relevant to our daily lives, and dedicated to the truth. If you want to listen to previous messages, visit our <a href="https://www.southeastchristian.org/sermons/">Sermons page</a>. Greg Allen, Campus Pastor at Southeast's Crestwood Campus, will be speaking during our traditional services on Sunday.
+					[[ enditem ]]
+
+					[[ item title:'Why are there different locations?' ]]
+					We believe bringing the church to the communities where our people live is a great way to reach more people in Kentuckiana with Jesus' love. No matter which campus you visit this Easter weekend, you will hear the same message (live at the Blankenbaker Campus and via high definition video at our other sites) and experience live worship at all locations. Every campus has its own unique atmosphere; but wherever you go, you will be warmly welcomed. Choose what time or location is convenient for you and join us!
+					[[ enditem ]]
+
+					[[ item title:'What options are there for kids during the service?' ]]
+					Our Children's Ministry (SE!Kids) provides a safe, fun environment where kids ages birth-fifth grade can make new friends and learn about Jesus while parents attend the worship service in the Sanctuary. <a href="https://www.southeastchristian.org/connect/children/">Learn more here</a>. Pre-registration for Children's Check-In will be available closer to Easter.
+					[[ enditem ]]
+
+					[[ item title:'What about middle and high school students?' ]]
+					Students can join their families or friends in the worship services during Easter weekend. There will be no separate student services or activities. Students who attend Southeast regularly will be invited to help serve during certain Easter services.
+					[[ enditem ]]
+
+					[[ item title:'What options are there for people with developmental disabilities?' ]]
+					<p>We have programming in our Children's Ministry that is designed to meet the needs of children with special needs from preschool to elementary age. We also offer an Easter Worship Alternative for Teens and Adults with Special Needs. This classroom setting is geared towards teens and adults who prefer a smaller setting. They will learn about the Easter story through teaching, worship, and hands-on activities. All classes are led by our trained volunteers and staff.</p>
+					<p>Special needs classes for all ages are offered at our Blankenbaker Campus. These classes are specifically designed to encourage each individual to connect to an appropriate small group depending on their age and developmental needs. We offer a wide variety of opportunities in both inclusive and self-contained settings. All classes are led by our trained team of volunteers and staff. <a href="/connect/deaf-and-disabilities-ministry/">Learn more here</a>.</p>
+					[[ enditem ]]
+
+					[[ item title:'What is the Encounter Service and other services?' ]]
+					<p>Each Thursday, support groups meet at our Blankenbaker Campus to help people experience growth, find hope, and receive help for a range of life situations-from everyday challenges to more severe crises. These groups come together every week for worship. On Thursday, March 29, the Encounter worship service will be centered around Easter, with Senior Pastor Dave Stone speaking. Learn more about our <a href="https://www.southeastchristian.org/connect/care/encounter-groups">Encounter groups here</a>.</p>
+					[[ enditem ]]
+
+					[[ item title:'Are there good Friday services this year?' ]]
+					<p>Services on Friday, March 30, will be Easter services rather than Good Friday services. We will celebrate Good Friday on the weekend of March 24/25.</p>
+					[[ enditem ]]
+
+					[[ item title:'What is the differences between the Traditional Services and other Services?' ]]
+					<p>At the three traditional services on Easter Sunday-7:15 a.m. at our Blankenbaker Campus, 8:00 a.m. at our Indiana Campus and 7:30 a.m. at the Crestwood Campus - we'll sing hymns and hear teaching from Greg Allen, Campus Pastor at Southeast's Crestwood Campus. The other services on Easter weekend will feature more contemporary-style worship songs and teaching from Senior Pastor Dave Stone.</p>
+					[[ enditem ]]
+
+					[[ item title:'Can anyone come to Southeast?' ]]
+					<p>Yes! We welcome anyone to join us this Easter-and every weekend!</p>
+					[[ enditem ]]
+
+					[[ item title:'How much time should I allow for traffic and parking when planning my visit?' ]]
+					<p>We'll have people helping direct traffic and parking. Shuttles will be available at some campuses to take you to the building. While you might plan on adding some extra minutes to your travel time, our many services over Easter weekend allow for more parking and less traffic. If you are bringing children, don't forget to also plan for time to check them into their classes.</p>
+					[[ enditem ]]
+
+					[[ item title:'What will the music be like?' ]]
+					<p>The worship team will lead us in contemporary praise songs that tell what God has done, express our praise and devotion to Him, and allow us to encourage one another in following Christ. You can expect uplifting music that makes it easy for anyone to sing along. If you prefer time-honored hymns, you might enjoy the traditional services at our Blankenbaker, Indiana or our Crestwood Campuses.</p>
+					[[ enditem ]]
+
+					[[ item title:'What should I wear?' ]]
+					<p>Come as you are! Whether you'd rather dress in a three-piece suit or jeans and a t-shirt, there is no dress code for our worship services-we just want to see you here!</p>
+					[[ enditem ]]
+
+					[[ item title:'What if I need help or information while I'm there?' ]]
+					<p>Volunteers and staff will be available to help you. Just ask! Look for anyone wearing a yellow badge.</p>
+					[[ enditem ]]
+				{[ endfaq ]}
+            </div>
+            <br />
+            <br />
+        </div>
+    </section>
+
+</main>
+
+<script>
+/* --------------------------------------------------
+	Initialization
+-------------------------------------------------- */
+$(document).ready(function() {
+
+    $.ajaxSetup ({
+	    // Disable caching of AJAX responses
+	    cache: false
+	});
+
+    $('.panel-collapse').on('show.bs.collapse', function () {
+       $(this).siblings('.panel-heading').addClass('active');
+     });
+
+     $('.panel-collapse').on('hide.bs.collapse', function () {
+       $(this).siblings('.panel-heading').removeClass('active');
+     });
+
+    // Initialize all functions when the document is ready.
+    initLocations(); // Animate Elements
+    initScheduleTable(); // Table for Easter Times
+	initServeCampusSelection();
+
+    /* --------------------------------------------------
+ 	   Load and organize ajax locations for each campuses
+    -------------------------------------------------- */
+    function initLocations(){
+        var $container = $('#folio');
+        $container.isotope({
+            itemSelector: '.folio-item'
+        });
+
+
+        $('.folio-project').on('click', function(event) {
+            event.preventDefault();
+            var href = $(this).attr('href');
+            if ($('#ajax').is(':visible')) {
+                $('#ajax').css({ display:'block' }).animate({ height:'0' }).slideUp(300);
+				$("html, body").animate({ scrollTop: $('#ajax').offset().top - 100}, 300);
+            }
+            $('#ajax').html('');
+            $('#ajax').show(0).animate({ height:'1200px' }, 500 ,function() {
+                $('#ajax').load(href, function() {
+                    $('#ajax').css('height','auto');
+                    $("html, body").animate({ scrollTop: $('#ajax').offset().top - 100}, 300);
+                });
+            });
+        });
+    }
+
+    /* --------------------------------------------------
+ 	   Animate Elements on Load
+    -------------------------------------------------- */
+    function initWow(){
+
+       wow = new WOW(
+    	  {
+    		 boxClass:     'wow',      // default
+    		 animateClass: 'animated', // default
+    		 offset:       0,          // default
+    		 mobile:       false,       // changed default for mobile
+    		 live:         true        // default
+    	  }
+       );
+       wow.init();
+
+    } // initNavbar
+
+    /* --------------------------------------------------
+	   Schedule Table
+    -------------------------------------------------- */
+    function initScheduleTable() {
+
+	   $('.nav-schedule').each(function () {
+
+		   var $this = $(this),
+			   $active = $this.find('li.active > a'),
+			   $field = $('<span class="nav-current arrow">' + $active.html() + '</span>');
+
+		   $this.wrapAll('<div class="nav-wrapper-schedual"></div>')
+
+		   $this.before($field);
+
+		   $field.on('click', function () {
+			   if ( !$this.is('.open') ) {
+				   $this.stop(true, true).slideDown(250).addClass('open');
+				   $field.attr( "aria-expanded", "true" );
+			   } else {
+				   $this.stop(true, true).slideUp(150).removeClass('open');
+				   $field.attr( "aria-expanded", "false" );
+			   }
+		   });
+
+		   $this.on('click', 'a', function () {
+			   $field.html($(this).html());
+		   });
+
+		   $('.nav-schedule > li > a').click( function() {
+			   var idDay = $(this).parent().parent().parent().parent().attr("id");
+			   if(typeof idDay != 'undefined') {
+				   var varDayNumber = idDay.slice(-1); //Outputs: day number
+				   $('.nav-wrapper-schedual > ul.nav-schedule > li.active').removeClass('active');
+				   $('.tab-content-schedule > div.active').removeClass('active');
+
+				   var campus = $(this).parent().attr("class");
+				   $('.tab-pane > .nav-wrapper-schedual > .nav-current').html($(this).html());
+				   $('.tab-content-schedule > div.'+campus).addClass('active');
+				   $( '#easterdays li:nth-child('+varDayNumber+')' ).addClass('active');
+				   $('.nav-wrapper-schedual > ul.nav-schedule > li.'+campus).addClass('active');
+			   }
+		   });
+
+		   $('body').on('click', function (event) {
+			   if ( !$(event.target).closest($field).length && $this.is('.open') ) {
+				   $this.stop(true, true).slideUp(150).removeClass('open');
+				   $field.attr( "aria-expanded", "false" );
+			   }
+		   });
+	   });
+
+    } // initScheduleTable
+
+    /* --------------------------------------------------
+    	Initializing Secondary Navigation (Section Hotlinks)
+    -------------------------------------------------- */
+    function initSecondaryNav() {
+
+        var secondaryNav = $('.cd-secondary-nav'),
+            secondaryNavTopPosition = secondaryNav.offset().top,
+            // taglineOffesetTop = $('#cd-intro-tagline').offset().top + $('#cd-intro-tagline').height() + parseInt($('#cd-intro-tagline').css('paddingTop').replace('px', '')),
+            contentSections = $('.easter-section');
+
+        $(window).on('scroll', function(){
+            //on desktop - assign a position fixed to logo and action button and move them outside the viewport
+            // ( $(window).scrollTop() > secondaryNavTopPosition ) ? $('#cd-logo').addClass('is-hidden') : $('#cd-logo').removeClass('is-hidden');
+
+            //on desktop - fix secondary navigation on scrolling
+            if($(window).scrollTop() > secondaryNavTopPosition ) {
+                //fix secondary navigation
+                secondaryNav.addClass('is-fixed');
+                //push the .cd-main-content giving it a top-margin
+                $('.cd-main-content').addClass('has-top-margin');
+                //on Firefox CSS transition/animation fails when parent element changes position attribute
+                //so we to change secondary navigation childrens attributes after having changed its position value
+                setTimeout(function() {
+                    secondaryNav.addClass('animate-children');
+                    $('#cd-logo').addClass('slide-in');
+                    $('.cd-btn').addClass('slide-in');
+                }, 50);
+            } else {
+                secondaryNav.removeClass('is-fixed');
+                $('.cd-main-content').removeClass('has-top-margin');
+                setTimeout(function() {
+                    secondaryNav.removeClass('animate-children');
+                    $('#cd-logo').removeClass('slide-in');
+                    $('.cd-btn').removeClass('slide-in');
+                }, 50);
+            }
+
+            //on desktop - update the active link in the secondary fixed navigation
+            updateSecondaryNavigation();
+        });
+
+        function updateSecondaryNavigation() {
+            contentSections.each(function(){
+                var actual = $(this),
+                    actualHeight = actual.height() + parseInt(actual.css('paddingTop').replace('px', '')) + parseInt(actual.css('paddingBottom').replace('px', '')),
+                    actualAnchor = secondaryNav.find('a[href="#'+actual.attr('id')+'"]');
+                if ( ( actual.offset().top - secondaryNav.height() <= $(window).scrollTop() ) && ( actual.offset().top +  actualHeight - secondaryNav.height() > $(window).scrollTop() ) ) {
+                    actualAnchor.addClass('active');
+                }else {
+                    actualAnchor.removeClass('active');
+                }
+            });
+        }
+
+        //on mobile - open/close secondary navigation clicking/tapping the .cd-secondary-nav-trigger
+        $('.cd-secondary-nav-trigger').on('click', function(event){
+            event.preventDefault();
+            $(this).toggleClass('menu-is-open');
+            secondaryNav.find('ul').toggleClass('is-visible');
+        });
+
+        //smooth scrolling when clicking on the secondary navigation items
+        secondaryNav.find('ul a').on('click', function(event){
+            event.preventDefault();
+            var target= $(this.hash);
+            $('body,html').animate({
+                'scrollTop': target.offset().top - secondaryNav.height() + 1
+                }, 400
+            );
+            //on mobile - close secondary navigation
+            $('.cd-secondary-nav-trigger').removeClass('menu-is-open');
+            secondaryNav.find('ul').removeClass('is-visible');
+        });
+
+    } // initSecondaryNav
+
+    function initServeCampusSelection() {
+        //mobile - open lateral menu clicking on the menu icon
+       	$('.swoosh-menu-open').on('click', function(event){
+       		if( $('.round-select-overlay-js').hasClass('is-visible') ) {
+       			$('.round-select-overlay-js').removeClass('is-visible');
+       		} else {
+       			$('.round-select-overlay-js').addClass('is-visible');
+       		}
+       	});
+
+       if($('input[name=swoosh-menu-open-serve]').is(':checked')) {
+           $('.round-select-overlay-js').addClass('is-visible');
+       }
+       	$('.round-select-overlay-js').on('click', function(){
+               if($('input[name=swoosh-menu-open-serve]').is(':checked')) {
+                   $('input[name=swoosh-menu-open-serve]').trigger('click');
+               }
+       	});
+    }
+
+}); // $(document).ready();
+
+$(document).ajaxComplete(function() {
+    "use strict";
+    $(".close-project").click(function(e) {
+        $('#ajax').slideUp('slow');
+		$("html, body").animate({ scrollTop: $('#ajax').offset().top - 100}, 300);
+        e.preventDefault();
+    });
+}); // End ajax complete
+
+function googleCallbackLocations(target, el){
+    var href = target;
+    if ($('#ajax').is(':visible')) {
+        $('#ajax').css({ display:'block' }).animate({ height:'0' }).slideUp(300);
+        $("html, body").animate({ scrollTop: $('#ajax').offset().top - 100}, 300);
+    }
+    $('#ajax').html('');
+    console.log(href);
+    $('#ajax').show(0).animate({ height:'1200px' }, 500 ,function() {
+        $('#ajax').load(href, function() {
+            $('#ajax').css('height','auto');
+            $("html, body").animate({ scrollTop: $('#ajax').offset().top - 100}, 300);
+        });
+    });
+}
+
+</script>

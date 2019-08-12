@@ -21,6 +21,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Web.UI;
+using System.Web.UI.WebControls;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -36,50 +37,25 @@ namespace RockWeb.Plugins.org_secc.Administration
     [Description( "Shows a list of all person devices." )]
     [LinkedPage( "Interactions Page", "The interactions associated with a specific personal device." )]
     [CodeEditorField( "Lava Template", "Lava template to use to display content", CodeEditorMode.Lava, CodeEditorTheme.Rock, 400, true, @"
-<div class=""panel panel-block"">       
-    <div class=""panel-heading"">
-        <h4 class=""panel-title"">
-            <div class=""panel-panel-title""><i class=""fa fa-mobile""></i> {{ Person.FullName }}</div>
-        </h4>
-    <a class=""pull-right btn btn-xs btn-primary"" href=""#"" onclick=""Rock.dialogs.confirm('Are you sure you want to add a Device?', function (result) { if (result ) setTimeout(function() { {{ Person.Guid | Postback:'AddDevice' }} }, 1) })""><i class=""fa fa-plus""></i></a>
-</div>
-    <div class=""panel-body"">
-        <div class=""row display-flex"">
-            {% for item in PersonalDevices %}
-                <div class=""col-md-3 col-sm-4"">                  
-                    <div class=""well margin-b-xs rollover-container"">                        
-                        <a class=""pull-right rollover-item btn btn-xs btn-danger"" href=""#"" onclick=""Rock.dialogs.confirm('Are you sure you want to delete this Device?', function (result) { if (result ) setTimeout(function() { {{ item.PersonalDevice.Id | Postback:'DeleteDevice' }} }, 1) })""><i class=""fa fa-times""></i></a>
-                        <a class=""pull-right rollover-item btn btn-xs btn-danger"" href=""#"" onclick=""setTimeout(function() { {{ item.PersonalDevice.Id | Postback:'EditDevice' }} }, 1)""><i class=""fa fa-edit""></i></a>                     
-                        <div style=""min-height: 120px;"">
-                            <h3 class=""margin-v-none"">
-                                {% if item.DeviceIconCssClass != '' %}
-                                    <i class=""fa {{ item.DeviceIconCssClass }}""></i>
-                                {% endif %}
-                                {% if item.PersonalDevice.NotificationsEnabled == true %}
-                                    <i class=""fa fa-comment-o""></i>
-                                {% endif %}
-                            </h3>
-                            <dl>
-                                {% if item.PlatformValue != '' %}<dt>{{ item.PlatformValue }} {{ item.PersonalDevice.DeviceVersion }}</dt>{% endif %}
-                                {% if item.PersonalDevice.CreatedDateTime != null %}<dt>Discovered</dt><dd>{{ item.PersonalDevice.CreatedDateTime }}</dd>{% endif %}                              
-                                {% if item.PersonalDevice.MACAddress != '' and item.PersonalDevice.MACAddress != null %}<dt>MAC Address</dt><dd>{{ item.PersonalDevice.MACAddress }}</dd>{% endif %}
-                                {% assign archivedMacAddress = item.PersonalDevice | Attribute:'ArchivedMACAddress' %}
-                                {% if archivedMacAddress != '' and archivedMacAddress != null %}<dt>Archived MAC Address</dt><dd>{{ archivedMacAddress }}</dd>{% endif %}
-                            </dl>
-                        </div>
-                        {% if LinkUrl != '' %}
-                            <a href=""{{ LinkUrl | Replace:'[Id]',item.PersonalDevice.Id }}"" class=""btn btn-default btn-xs""> Interactions</a>
-                        {% endif %}
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-    </div>
+<div style=""min-height: 120px;"">
+    <h3 class=""margin-v-none"">
+        {% if item.DeviceIconCssClass != '' %}
+            <i class=""fa {{ item.DeviceIconCssClass }}""></i>
+        {% endif %}
+        {% if item.PersonalDevice.NotificationsEnabled == true %}
+            <i class=""fa fa-comment-o""></i>
+        {% endif %}
+    </h3>
+    <dl>
+        {% if item.PlatformValue != '' %}<dt>{{ item.PlatformValue }} {{ item.PersonalDevice.DeviceVersion }}</dt>{% endif %}
+        {% if item.PersonalDevice.CreatedDateTime != null %}<dt>Discovered</dt><dd>{{ item.PersonalDevice.CreatedDateTime }}</dd>{% endif %}                              
+        {% if item.PersonalDevice.MACAddress != '' and item.PersonalDevice.MACAddress != null %}<dt>MAC Address</dt><dd>{{ item.PersonalDevice.MACAddress }}</dd>{% endif %}
+        {% assign archivedMacAddress = item.PersonalDevice | Attribute:'ArchivedMACAddress' %}
+        {% if archivedMacAddress != '' and archivedMacAddress != null %}<dt>Archived MAC Address</dt><dd>{{ archivedMacAddress }}</dd>{% endif %}
+    </dl>
 </div>
 ", "", 2, "LavaTemplate" )]
     [BooleanField( "Remove Device", "if true, the specific personal device will be removed from front porch", true )]
-    //  [TextField( "Host", "The host for the frontporch instance we want to connect to", required: false )]
-    //  [TextField( "API Authorization Token", "The token used for deleting the device", required: false )]
     [ContextAware( typeof( Person ) )]
 
     public partial class PersonalDevices : RockBlock
@@ -87,6 +63,8 @@ namespace RockWeb.Plugins.org_secc.Administration
         #region Fields
 
         private Person _person = null;
+        private readonly string fpAuthenticationHeader = string.Format( "authorization-token:{0}", GlobalAttributesCache.Value( "FrontporchAPIToken" ) );
+        private readonly string fpHost = GlobalAttributesCache.Value( "FrontporchHost" );
 
         #endregion
 
@@ -120,14 +98,50 @@ namespace RockWeb.Plugins.org_secc.Administration
         /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         protected override void OnLoad( EventArgs e )
         {
-            RouteAction();
+            if ( _person == null )
+            {
+                this.Visible = false;
+                return;
+            }
+
             if ( !Page.IsPostBack )
             {
-                LoadContent();
+                lPanelHeader.Text = _person.FullName;
+                BindRepeater();
             }
             base.OnLoad( e );
         }
 
+        private void BindRepeater()
+        {
+            RockContext rockContext = new RockContext();
+
+            var personalDeviceService = new PersonalDeviceService( rockContext );
+            var personalDevices = personalDeviceService.Queryable().Where( a => a.PersonAlias != null && a.PersonAlias.PersonId == _person.Id );
+
+            var items = personalDevices.Select( a => new PersonalDeviceItem
+            {
+                PersonalDevice = a
+            } ).ToList();
+
+            foreach ( var item in items )
+            {
+                if ( item.PersonalDevice.PersonalDeviceTypeValueId.HasValue )
+                {
+                    var value = DefinedValueCache.Get( item.PersonalDevice.PersonalDeviceTypeValueId.Value );
+                    item.DeviceIconCssClass = value.GetAttributeValue( "IconCssClass" );
+                }
+
+                if ( item.PersonalDevice.PlatformValueId.HasValue )
+                {
+                    item.PlatformValue = DefinedValueCache.Get( item.PersonalDevice.PlatformValueId.Value ).Value;
+
+                }
+            }
+
+            rDevices.DataSource = items;
+            rDevices.DataBind();
+        }
         #endregion
 
         #region Events
@@ -141,326 +155,118 @@ namespace RockWeb.Plugins.org_secc.Administration
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void Block_BlockUpdated( object sender, EventArgs e )
         {
-            RouteAction();
-            LoadContent();
+            BindRepeater();
         }
 
-        protected void mdDialog_SaveClick( object sender, EventArgs e )
+        protected void mdEdit_SaveClick( object sender, EventArgs e )
         {
-            if ( mdDialog.Title == "Edit Device" )
+            var rockContext = new RockContext();
+            var personalDeviceService = new PersonalDeviceService( rockContext );
+            var personalDevice = personalDeviceService.Get( hfDeviceId.ValueAsInt() );
+
+            if ( personalDevice == null )
             {
-                var rockContext = new RockContext();
-                var personalDeviceService = new PersonalDeviceService( rockContext );
-                var personalDevice = personalDeviceService.Get( hField.ValueAsInt() );
-                if ( tbalias.Text != "" )
+                personalDevice = new PersonalDevice
                 {
-                    personalDevice.PersonAliasId = int.Parse( tbalias.Text );
-                }
-
-                if ( tbdeviceregistration.Text != "" )
-                {
-                    personalDevice.DeviceRegistrationId = tbdeviceregistration.Text;
-                }
-
-                if ( rblnotifications.SelectedValue.AsBoolean() == true )
-                {
-                    personalDevice.NotificationsEnabled = true;
-                }
-                else
-                {
-                    personalDevice.NotificationsEnabled = false;
-                }
-
-                personalDevice.PersonalDeviceTypeValueId = ddldevicetype.SelectedValueAsInt();
-                personalDevice.PlatformValueId = ddlplatform.SelectedValueAsInt();
-                if ( tbdeviceuniqueid.Text != "" )
-                {
-                    personalDevice.DeviceUniqueIdentifier = tbdeviceuniqueid.Text;
-                }
-
-                if ( tbdeviceversion.Text != "" )
-                {
-                    personalDevice.DeviceVersion = tbdeviceversion.Text;
-                }
-
-                if ( tbmaddress.Text != "" )
-                {
-                    var authToken = GlobalAttributesCache.Value( "APIAuthorizationToken" );
-                    var hostAddr = GlobalAttributesCache.Value( "Host" );
-                    var authentication = string.Format( "authorization-token:{0}", authToken );
-                    var url = string.Format( "https://{0}/api/user/delete?mac={1}", hostAddr, personalDevice.MACAddress );
-                    personalDevice.MACAddress = tbmaddress.Text;
-
-                    if ( authToken.IsNotNullOrWhiteSpace() && hostAddr.IsNotNullOrWhiteSpace() )
-                    {
-                        HttpWebRequest request = ( HttpWebRequest ) WebRequest.Create( url );
-                        request.Headers.Add( authentication );
-                        try
-                        {
-                            HttpWebResponse response = ( HttpWebResponse ) request.GetResponse();
-                            Stream resStream = response.GetResponseStream();
-                            StreamReader reader = new StreamReader( resStream );
-                            string text = reader.ReadToEnd();
-                            if ( text == "OK" )
-                            {
-                                Literal1.Text = string.Format( "<div class='alert alert-success'>{0}", text );
-                            }
-                        }
-                        catch
-                        {
-                            Literal1.Text = "<div class='alert alert-warning'>Unknown";
-                        }
-                    }
-                }
-                rockContext.SaveChanges();
-                mdDialog.Hide();
-                LoadContent();
-            }
-            if ( mdDialog.Title == "Add Device" )
-            {
-                var rockContext = new RockContext();
-                var personaliasservice = new PersonAliasService( rockContext );
-                var personalias = personaliasservice.GetByAliasGuid( hField.Value.AsGuid() );
-                var notificationsenabled = true;
-                if ( rblnotifications.SelectedValue.AsBoolean() == true )
-                {
-                    notificationsenabled = true;
-                }
-                else
-                {
-                    notificationsenabled = false;
-                }
-
-                Guid guid = Guid.NewGuid();
-                PersonalDevice p = new PersonalDevice
-                {
-                    PersonAliasId = personalias.Id,
-                    DeviceRegistrationId = tbdeviceregistration.Text,
-                    NotificationsEnabled = notificationsenabled,
-                    Guid = guid,
-                    PersonalDeviceTypeValueId = ddldevicetype.SelectedValueAsInt(),
-                    PlatformValueId = ddlplatform.SelectedValueAsInt(),
-                    DeviceUniqueIdentifier = tbdeviceuniqueid.Text,
-                    DeviceVersion = tbdeviceversion.Text,
-                    MACAddress = tbmaddress.Text
+                    Guid = Guid.NewGuid()
                 };
-                var personalDeviceService = new PersonalDeviceService( rockContext );
-                personalDeviceService.Add( p );
-                var authToken = GlobalAttributesCache.Value( "APIAuthorizationToken" );
-                var hostAddr = GlobalAttributesCache.Value( "Host" );
-                var authentication = string.Format( "authorization-token:{0}", authToken );
-                var url = string.Format( "https://{0}/api/user/add?mac={1}&fpid={2}", hostAddr, tbmaddress.Text, personalias.Id );
-                if ( authToken.IsNotNullOrWhiteSpace() && hostAddr.IsNotNullOrWhiteSpace() )
-                {
-                    HttpWebRequest request = ( HttpWebRequest ) WebRequest.Create( url );
-                    request.Headers.Add( authentication );
-                    try
-                    {
-                        HttpWebResponse response = ( HttpWebResponse ) request.GetResponse();
-                        Stream resStream = response.GetResponseStream();
-                        StreamReader reader = new StreamReader( resStream );
-                        string text = reader.ReadToEnd();
-                        if ( text == "OK" )
-                        {
-                            Literal1.Text = string.Format( "<div class='alert alert-success'>{0}", text );
-                        }
-
-                    }
-                    catch
-                    {
-                        Literal1.Text = "<div class='alert alert-warning'>Unknown";
-                    }
-                }
-                rockContext.SaveChanges();
-                mdDialog.Hide();
-                LoadContent();
-
+                personalDeviceService.Add( personalDevice );
             }
+
+            personalDevice.PersonAliasId = ppPerson.PersonAliasId;
+
+            personalDevice.NotificationsEnabled = rblnotifications.SelectedValue.AsBoolean();
+
+            personalDevice.PersonalDeviceTypeValueId = ddldevicetype.SelectedValueAsInt();
+            personalDevice.PlatformValueId = ddlplatform.SelectedValueAsInt();
+            personalDevice.DeviceUniqueIdentifier = tbdeviceuniqueid.Text;
+            personalDevice.DeviceVersion = tbdeviceversion.Text;
+
+            var previousMACAddress = personalDevice.MACAddress != null ? personalDevice.MACAddress.ToLower() : "";
+            personalDevice.MACAddress = tbmaddress.Text.RemoveAllNonAlphaNumericCharacters().ToLower();
+
+            if ( personalDevice.MACAddress != previousMACAddress )
+            {
+                UpdateMAC( personalDevice.MACAddress, previousMACAddress );
+            }
+
+            rockContext.SaveChanges();
+            mdEdit.Hide();
+            BindRepeater();
         }
 
 
+        protected void btnInteraction_Command( object sender, CommandEventArgs e )
+        {
+            NavigateToLinkedPage( "InteractionsPage", new Dictionary<string, string> { { "personalDeviceId", ( string ) e.CommandArgument } } );
+        }
 
+        protected void rDevices_ItemDataBound( object sender, System.Web.UI.WebControls.RepeaterItemEventArgs e )
+        {
+            var item = e.Item.DataItem as PersonalDeviceItem;
+            var ltLava = e.Item.FindControl( "ltLava" ) as Literal;
+            var lava = GetAttributeValue( "LavaTemplate" );
+            var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
+            mergeFields.Add( "Person", _person );
+            mergeFields.Add( "Item", item );
+            //covering for some lazy lava
+            mergeFields.Add( "item", item );
+            ltLava.Text = lava.ResolveMergeFields( mergeFields );
+
+            //If there is no MAC to remove hide this button
+            var btnInactivateDevice = e.Item.FindControl( "btnInactivateDevice" ) as LinkButton;
+            if ( item.PersonalDevice.MACAddress.IsNullOrWhiteSpace() )
+            {
+                btnInactivateDevice.Visible = false;
+            }
+        }
+
+        protected void lbAddDevice_Click( object sender, EventArgs e )
+        {
+            EditDevice( 0 );
+        }
+
+        protected void btnEditDevice_Command( object sender, CommandEventArgs e )
+        {
+            EditDevice( ( ( string ) e.CommandArgument ).AsInteger() );
+        }
+
+        protected void btnInactivateDevice_Command( object sender, CommandEventArgs e )
+        {
+            RockContext rockContext = new RockContext();
+            PersonalDeviceService personalDeviceService = new PersonalDeviceService( rockContext );
+            var personalDeviceId = ( ( string ) e.CommandArgument ).AsInteger();
+            var personalDevice = personalDeviceService.Get( personalDeviceId );
+            if ( personalDevice != null )
+            {
+                RemoveDeviceFromFP( personalDevice.MACAddress );
+                RemoveDeviceMAC( personalDevice, rockContext );
+            }
+            BindRepeater();
+        }
         #endregion
 
         #region Methods
-
-        protected void LoadContent()
-        {
-            if ( _person != null )
-            {
-                var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
-                mergeFields.Add( "Person", _person );
-
-                RockContext rockContext = new RockContext();
-
-                var personalDeviceService = new PersonalDeviceService( rockContext );
-                var personalDevices = personalDeviceService.Queryable().Where( a => a.PersonAlias != null && a.PersonAlias.PersonId == _person.Id );
-
-                var items = personalDevices.Select( a => new PersonalDeviceItem
-                {
-                    PersonalDevice = a
-                } ).ToList();
-
-                foreach ( var item in items )
-                {
-                    if ( item.PersonalDevice.PersonalDeviceTypeValueId.HasValue )
-                    {
-                        var value = DefinedValueCache.Get( item.PersonalDevice.PersonalDeviceTypeValueId.Value );
-                        item.DeviceIconCssClass = value.GetAttributeValue( "IconCssClass" );
-                    }
-
-                    if ( item.PersonalDevice.PlatformValueId.HasValue )
-                    {
-                        item.PlatformValue = DefinedValueCache.Get( item.PersonalDevice.PlatformValueId.Value ).Value;
-
-                    }
-                }
-
-                mergeFields.Add( "PersonalDevices", items );
-
-                var queryParams = new Dictionary<string, string>();
-                queryParams.Add( "personalDeviceId", "_PersonDeviceIdParam_" );
-                string url = LinkedPageUrl( "InteractionsPage", queryParams );
-                if ( !string.IsNullOrWhiteSpace( url ) )
-                {
-                    url = url.Replace( "_PersonDeviceIdParam_", "[Id]" );
-                }
-
-                mergeFields.Add( "LinkUrl", url );
-
-
-                string template = GetAttributeValue( "LavaTemplate" );
-                lContent.Text = template.ResolveMergeFields( mergeFields ).ResolveClientIds( upnlContent.ClientID );
-            }
-            else
-            {
-                lContent.Text = string.Format( "<div class='alert alert-warning'>No Person is selected." );
-            }
-        }
-
-        /// <summary>
-        /// Route the request to the correct panel
-        /// </summary>
-        private void RouteAction()
-        {
-            int personalDeviceId = 0;
-            string aliaspersonguid = null;
-            var sm = ScriptManager.GetCurrent( Page );
-
-            if ( Request.Form["__EVENTARGUMENT"] != null )
-            {
-                string[] eventArgs = Request.Form["__EVENTARGUMENT"].Split( '^' );
-                string action = eventArgs[0];
-
-                if ( eventArgs.Length == 2 )
-                {
-                    string parameters = eventArgs[1];
-                    int argument = 0;
-                    int.TryParse( parameters, out argument );
-
-                    switch ( action )
-                    {
-                        case "AddDevice":
-                            aliaspersonguid = parameters;
-                            AddDevice( aliaspersonguid );
-                            break;
-                        case "DeleteDevice":
-                            personalDeviceId = int.Parse( parameters );
-                            DeleteDevice( personalDeviceId );
-                            break;
-                        case "EditDevice":
-                            personalDeviceId = int.Parse( parameters );
-                            EditDevice( personalDeviceId );
-                            break;
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Deletes the personal device.
-        /// </summary>
-        /// <param name="personalDeviceId">The personal device identifier.</param>
-        private void DeleteDevice( int personalDeviceId )
-        {
-            var rockContext = new RockContext();
-            var interactionService = new InteractionService( rockContext );
-            var personalDeviceService = new PersonalDeviceService( rockContext );
-            var personalDevice = personalDeviceService.Get( personalDeviceId );
-
-            if ( personalDevice != null )
-            {
-                if ( Convert.ToBoolean( GetAttributeValue( "RemoveDevice" ) ) )
-                {
-                    // Check to see if a mac address exists, if so, delete from front Porch
-                    var macaddress = personalDevice.MACAddress;
-
-                    if ( macaddress != null )
-                    {
-                        var authToken = GlobalAttributesCache.Value( "APIAuthorizationToken" );
-                        var hostAddr = GlobalAttributesCache.Value( "Host" );
-                        var authentication = string.Format( "authorization-token:{0}", authToken );
-                        var url = string.Format( "https://{0}/api/user/delete?mac={1}", hostAddr, personalDevice.MACAddress );
-                        if ( authToken.IsNotNullOrWhiteSpace() && hostAddr.IsNotNullOrWhiteSpace() )
-                        {
-                            HttpWebRequest request = ( HttpWebRequest ) WebRequest.Create( url );
-                            request.Headers.Add( authentication );
-                            try
-                            {
-                                HttpWebResponse response = ( HttpWebResponse ) request.GetResponse();
-                                Stream resStream = response.GetResponseStream();
-                                StreamReader reader = new StreamReader( resStream );
-                                string text = reader.ReadToEnd();
-                                if ( text == "OK" )
-                                {
-                                    Literal1.Text = string.Format( "<div class='alert alert-success'>{0}", text );
-                                }
-                            }
-                            catch
-                            {
-                                Literal1.Text = "<div class='alert alert-warning'>Unknown";
-                            }
-                        }
-                    }
-                }
-                /*var interactions = interactionService.Queryable( "PersonalDevice" )
-                    .Where( a => a.PersonalDeviceId == personalDeviceId )
-                    .ToList();
-
-                if ( interactions.Count > 0 )
-                {
-                foreach ( var interaction in interactions )
-                {
-                interaction.PersonalDevice = null;
-                }
-                }
-                personalDeviceService.Delete( personalDevice );*/
-
-                if ( personalDevice.MACAddress != null )
-                {
-                    
-                    personalDevice.LoadAttributes();
-                    if ( personalDevice.Attributes.ContainsKey( "ArchivedMACAddress" ) )
-                    {
-                        personalDevice.SetAttributeValue( "ArchivedMACAddress", personalDevice.MACAddress );
-                    }
-                    personalDevice.MACAddress = null;
-                    personalDevice.SaveAttributeValues( rockContext );
-                    rockContext.SaveChanges();
-                    
-                }
-
-                
-            }
-            LoadContent();
-        }
 
         private void EditDevice( int personalDeviceId )
         {
             var rockContext = new RockContext();
             var personalDeviceService = new PersonalDeviceService( rockContext );
             var personalDevice = personalDeviceService.Get( personalDeviceId );
-            tbalias.Text = personalDevice.PersonAliasId.ToString();
+
+            if ( personalDevice == null )
+            {
+                personalDevice = new PersonalDevice();
+                mdEdit.Title = "Add Device";
+                //default to the current context person
+                ppPerson.SetValue( _person );
+            }
+            else
+            {
+                mdEdit.Title = "Edit Device";
+                ppPerson.SetValue( personalDevice.PersonAlias.Person );
+            }
+
             tbdeviceregistration.Text = personalDevice.DeviceRegistrationId;
             var notifications = personalDevice.NotificationsEnabled;
             if ( notifications )
@@ -479,25 +285,87 @@ namespace RockWeb.Plugins.org_secc.Administration
             tbdeviceuniqueid.Text = personalDevice.DeviceUniqueIdentifier;
             tbdeviceversion.Text = personalDevice.DeviceVersion;
             tbmaddress.Text = personalDevice.MACAddress;
-            hField.SetValue( personalDeviceId );
-            mdDialog.Title = "Edit Device";
-            mdDialog.Show();
+            hfDeviceId.SetValue( personalDeviceId );
+            mdEdit.Show();
         }
 
-        private void AddDevice( string aliaspersonguid )
+        private void UpdateMAC( string newMAC, string oldMAC )
         {
-            var rockContext = new RockContext();
-            var personalDevice = new PersonalDevice();
-            rblnotifications.ClearSelection();
-            tbdeviceversion.Text = "";
-            rblnotifications.SetValue( "false" );
-            tbmaddress.Text = "";
-            ddldevicetype.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSONAL_DEVICE_TYPE ), true );
-            ddlplatform.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSONAL_DEVICE_PLATFORM ), true );
-            hField.Value = aliaspersonguid;
-            mdDialog.Title = "Add Device";
-            mdDialog.Show();
+            RemoveDeviceFromFP( oldMAC ); //Remove the previous device from FP
+            AddDeviceToFP( newMAC );
+
+            //Remove mac address from any previous devices in our system
+            RockContext rockContext = new RockContext(); //new rockcontext so we can save freely
+            PersonalDeviceService personalDeviceService = new PersonalDeviceService( rockContext );
+            var personalDevices = personalDeviceService
+                .Queryable()
+                .Where( d => d.MACAddress == newMAC )
+                .ToList();
+
+            foreach ( var device in personalDevices )
+            {
+                RemoveDeviceMAC( device, rockContext );
+            }
         }
+
+        private void RemoveDeviceMAC( PersonalDevice device, RockContext rockContext )
+        {
+            device.LoadAttributes();
+            //Archive the mac address
+            device.SetAttributeValue( "ArchivedMACAddress", device.MACAddress );
+            device.MACAddress = "";
+            device.SaveAttributeValues();
+            rockContext.SaveChanges();
+        }
+
+        private bool RemoveDeviceFromFP( string macAddress )
+        {
+            //Remove previously held MAC from FP 
+            if ( macAddress.IsNotNullOrWhiteSpace() )
+            {
+                var url = string.Format( "https://{0}/api/user/delete?mac={1}", fpHost, macAddress );
+                HttpWebRequest request = ( HttpWebRequest ) WebRequest.Create( url );
+                request.Headers.Add( fpAuthenticationHeader );
+                try
+                {
+                    HttpWebResponse response = ( HttpWebResponse ) request.GetResponse();
+                    if ( response.StatusCode != HttpStatusCode.OK )
+                    {
+                        return false;
+                    }
+                }
+                catch ( Exception e )
+                {
+                    LogException( e );
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private bool AddDeviceToFP( string macAddress )
+        {
+            var url = string.Format( "https://{0}/api/user/add?mac={1}&fpid={2}", fpHost, macAddress, ppPerson.PersonAliasId );
+
+            HttpWebRequest request = ( HttpWebRequest ) WebRequest.Create( url );
+            request.Headers.Add( fpAuthenticationHeader );
+            try
+            {
+                HttpWebResponse response = ( HttpWebResponse ) request.GetResponse();
+                Stream resStream = response.GetResponseStream();
+                if ( response.StatusCode != HttpStatusCode.OK )
+                {
+                    return false;
+                }
+            }
+            catch ( Exception e )
+            {
+                LogException( e );
+                return false;
+            }
+            return true;
+        }
+
 
         #endregion
 
@@ -533,7 +401,8 @@ namespace RockWeb.Plugins.org_secc.Administration
             /// </value>
             public string PlatformValue { get; set; }
         }
-    }
-    #endregion
 
+        #endregion
+
+    }
 }

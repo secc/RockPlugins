@@ -1,4 +1,7 @@
 //Set the page title bar, and the page menu
+/*
+Don't remove this CSS. It it used as the 'sub-menu' accross the whole website.
+*/
 .page-menu {
     background: rgba($LightGreyColor, .18);
     position: relative;
@@ -79,7 +82,7 @@
 
     @include non-phones {
         .page-nav li {
-            padding-left: 6rem;
+            padding-left: 4rem;
         }
     }
 }

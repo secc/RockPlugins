@@ -45,16 +45,28 @@
                         <img src="/Themes/SECC2019/Assets/img/SE/Campuses/ET.jpg" class="img-responsive" />
                     </a>
                 </li>
+                <li>
+                    <a class="cd-nav-item" href="/location/rivervalley">
+                        <h3>River Valley</h3>
+                        <img src="/Themes/SECC2019/Assets/img/SE/Campuses/RV.jpg" class="img-responsive" />
+                    </a>
+                </li>
+				<li>
+					<a class="cd-nav-item" href="/location/chapelinthewoods">
+					  <h3>Chapel in the Woods</h3>
+					  <img src="/Themes/SECC2019/Assets/img/SE/Campuses/CITW.jpg" class="img-responsive" />
+					</a>
+				</li>
             </ul>
         </li>
 
         <li class="has-children">
-            <a href="/about" class="arrow">About</a>
+            <a href="/about#AboutIntro" class="arrow">About</a>
 
-            <ul class="cd-nav-icons is-hidden">
+            <ul class="cd-nav-icons is-hidden singlepage">
                 <li class="go-back arrow"><a class="arrow">Menu</a></li>
                 <li class="se-3-column">
-                    <a class="cd-nav-item mission" href="/about">
+                    <a class="cd-nav-item mission" href="/about#About">
                         <h3>Mission</h3>
                     </a>
                 </li>
@@ -107,9 +119,9 @@
                     </a>
                 </li>
                 <li class="se-4-column">
-                    <div class="cd-nav-item live-stream disabled">
-                        <h3>Live Stream<br /><small>coming soon!</small></h3>
-                    </div>
+                    <a class="cd-nav-item live-stream" href="/southeast-online">
+                        <h3>Live Stream</h3>
+                    </a>
                 </li>
             </ul>
         </li>
@@ -185,7 +197,7 @@
                         <a href="/ministries/generous-living">Generous Living</a>
                     </li>
                     <li>
-                        <a href="/ministries/foster-and-adoption">Foster & Adoption</a>
+                        <a href="/ministries/foster-and-adoption">Foster Care & Adoption </a>
                     </li>
                     <li>
                         <a href="/ministries/deaf-and-disabilities-ministry">Deaf & Disabilities</a>
@@ -217,101 +229,11 @@
                         <a href="/ministries/sports-fitness">Sports & Fitness</a>
                     </li>
                     <li>
-                        <a href="https://www.awakenworship.org/" target="_blank">Awaken Worship</a>
+                        <a href="/ministries/awaken-worship">Awaken Worship</a>
                     </li>
                 </div>
             </ul>
         </li>
-
-        {% comment %}
-        <li class="has-children">
-            <a href="#Ministries" class="arrow">Ministries</a>
-
-            <ul class="cd-nav-list is-hidden">
-                <li class="go-back arrow"><a class="arrow">Menu</a></li>
-                <li class="border-right">
-                    <a class="cd-nav-item" href="/ministries/men">
-                        <h3>Men</h3>
-                    </a>
-                </li>
-                <li class="border-right">
-                    <a class="cd-nav-item" href="/ministries/children">
-                        <h3>Children</h3>
-                    </a>
-                </li>
-                <li class="border-right">
-                    <a class="cd-nav-item" href="/ministries/seniors">
-                        <h3>Seniors</h3>
-                    </a>
-                </li>
-                <li>
-                    <a class="cd-nav-item" href="/ministries/deaf-and-disabilities-ministry">
-                        <h3>Deaf & Disabilities</h3>
-                    </a>
-                </li>
-                <li class="border-right">
-                    <a class="cd-nav-item" href="/ministries/women">
-                        <h3>Women</h3>
-                    </a>
-                </li>
-                <li class="border-right">
-                    <a class="cd-nav-item" href="#college-age">
-                        <h3>College Age</h3>
-                    </a>
-                </li>
-                <li class="border-right">
-                    <a class="cd-nav-item" href="/ministries/missions">
-                        <h3>Missions</h3>
-                    </a>
-                </li>
-                <li>
-                    <a class="cd-nav-item" href="/ministries/care">
-                        <h3>Care</h3>
-                    </a>
-                </li>
-                <li class="border-right">
-                    <a class="cd-nav-item" href="/ministries/family">
-                        <h3>Family</h3>
-                    </a>
-                </li>
-                <li class="border-right">
-                    <a class="cd-nav-item" href="#highschool">
-                        <h3>High School</h3>
-                    </a>
-                </li>
-                <li class="border-right">
-                    <a class="cd-nav-item" href="/ministries/generous-living">
-                        <h3>Generous Living</h3>
-                    </a>
-                </li>
-                <li>
-                    <a class="cd-nav-item" href="/ministries/sports-fitness">
-                        <h3>Sports & Fitness</h3>
-                    </a>
-                </li>
-                <li class="border-right">
-                    <a class="cd-nav-item" href="/ministries/single">
-                        <h3>Single</h3>
-                    </a>
-                </li>
-                <li class="border-right">
-                    <a class="cd-nav-item" href="#middleschool">
-                        <h3>Middle School</h3>
-                    </a>
-                </li>
-                <li class="border-right">
-                    <a class="cd-nav-item" href="#foster-and-adoption">
-                        <h3>Foster & Adoption</h3>
-                    </a>
-                </li>
-                <li>
-                    <a class="cd-nav-item" target=="_blank" href="https://www.awakenworship.org/">
-                        <h3>Awaken Worship</h3>
-                    </a>
-                </li>
-            </ul>
-        </li>
-        {% endcomment %}
 
         <li><a href="/give">Give</a></li>
 

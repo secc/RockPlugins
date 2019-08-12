@@ -23,7 +23,7 @@
 <div class="container g-padding-y-100--md g-padding-x-0--xs">
     {% assign currentDate = 'Now' | Date:'M/d/yyyy' %}
     {% assign sermonSlug = 'Global' | PageParameter:'SermonSlug' %}
-    {% assign currentMessage = item.ChildItems | First %}
+    {% assign currentMessage = item.ChildItems | Sort:'Order' | First %}
 
     {% comment %}
         The Lava Code below checks for the closest sermon message to this day – IF a slug isn't defined.
@@ -31,11 +31,6 @@
     {% for childItem in item.ChildItems %}
         {% if sermonSlug != "" -%}
             {% if sermonSlug == childItem.ChildContentChannelItem.PrimarySlug -%}
-                {% assign currentMessage = childItem %}
-            {% endif -%}
-        {% else -%}
-            {% assign currentMessageDays = currentDate | DateDiff:childItem.ChildContentChannelItem.StartDateTime,'d' %}
-            {% if currentMessageDays <= 0 -%}
                 {% assign currentMessage = childItem %}
             {% endif -%}
         {% endif -%}
@@ -58,7 +53,7 @@
 
             <div id="sermonContent" class="col-sm-12 col-lg-4">
                 <br />
-                <h2 class="g-font-family--secondary">{{ currentMessage.ChildContentChannelItem.Title }}</h2>
+                <h2 class="g-font-size--jumbo-2 g-font-family--secondary">{{ currentMessage.ChildContentChannelItem.Title }}</h2>
             	<h5 class="uppercase">by {{ currentMessage.ChildContentChannelItem | Attribute:'Speaker' }} – {{ currentMessage.ChildContentChannelItem.StartDateTime | Date:'MMMM dd, yyyy' }}</h5>
                 <hr />
                 {% if currentMessage.ChildContentChannelItem.Content != empty -%}
@@ -68,9 +63,9 @@
                 <hr />
                 {% endif -%}
 				<div class="text-center">
-					{%- assign mediaURL = currentMessage.ChildContentChannelItem | Attribute:'Audio','RawValue' -%}
+					{%- assign mediaURL = currentMessage.ChildContentChannelItem | Attribute:'Audio','Path' | Replace:'~/','' -%}
 					{%- unless mediaURL == empty -%}
-					<a href="https://rock.secc.org/GetFile.ashx/{{ mediaURL }}.mp3?guid={{ mediaURL }}" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" style="margin-top: 5px;">
+					<a href="{{ 'Global' | Attribute:'PublicApplicationRoot' }}{{ mediaURL }}" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" style="margin-top: 5px;">
 						<i class="fa fa-headphones"></i>
 						Audio
 					</a>
@@ -127,7 +122,7 @@
         <div class="row g-padding-b-60--xs">
             <div class="col-md-12 text-center">
                 <br />
-                <h1 class="g-font-family--secondary">{{ item.Title }}</h1>
+                <h1 class="g-font-size--jumbo-1 g-font-family--secondary">{{ item.Title }}</h1>
                 <p class="series-dates">
                     Series Date:
                     <i><strong>
@@ -162,14 +157,14 @@
                             <img src="/GetImage.ashx?Guid={{ videoImageGuid }}" class="img-responsive img-rounded" style="margin: 0 auto">
                         </div>
                         <div class="series-body g-padding-x-40--xs g-padding-y-40--xs">
-                            <h4 class="g-font-family--secondary g-padding-b-20--xs">{{ message.Title }}</h4>
+                            <h5 class="g-font-family--secondary g-padding-b-20--xs">{{ message.Title }}</h5>
                             <h6 class="g-line-height--normal uppercase">
 								{{ message| Attribute: 'Speaker' }} – {{ message.StartDateTime | Date:'MMMM dd, yyyy' }}<br />
                                 {% assign runningMinutes = message | Attribute: 'Duration' | DividedBy:60 | Floor %}
                                 {% assign temp = runningMinutes | Times:60 %}
                                 {% assign runningSeconds = message | Attribute: 'Duration' | Minus:temp %}
                                 Running Time: {{runningMinutes}}:{{runningSeconds}}
-						    </h4>
+						    </h5>
                         </div>
                     </div>
                     </a>
@@ -200,6 +195,6 @@
     </script>
 
 {% else %}
-	<h1>Could not find series.</h1>
+	<h1 class="g-font-size--jumbo-1">Could not find series.</h1>
 {% endif %}
 {% endcache %}

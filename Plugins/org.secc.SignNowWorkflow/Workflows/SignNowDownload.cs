@@ -90,7 +90,7 @@ namespace org.secc.SignNowWorkflow
                     // Update the file type if necessary
                     Guid binaryFileTypeGuid = Guid.Empty;
 
-                    var destinationAttribute = AttributeCache.Read(GetActionAttributeValue(action, "Document").AsGuid(), rockContext);
+                    var destinationAttribute = AttributeCache.Get(GetActionAttributeValue(action, "Document").AsGuid(), rockContext);
                     var binaryFileTypeQualifier = destinationAttribute.QualifierValues["binaryFileType"];
                     if (!String.IsNullOrWhiteSpace(binaryFileTypeQualifier.Value))
                     {

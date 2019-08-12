@@ -1,0 +1,1006 @@
+<style>
+ .se-carat {
+     vertical-align: middle;
+     top: -2px;
+ }
+ .doc-expandable-header[data-expanded="true"] .se-carat {
+     -webkit-transform: translateY(-0.1rem) rotate(405deg);
+     -moz-transform: translateY(-0.1rem) rotate(405deg);
+     transform: translateY(-0.1rem) rotate(405deg);
+ }
+</style>
+<section>
+    <div id="doc-header" class="doc-header g-hor-divider__solid__t--doc-color-3" style="border-width:5px">
+        <div class="container g-padding-b-50--xs g-padding-t-100--xs">
+            <div class="row">
+
+                <div class="col-xs-12">
+                    <h2 class="text-center doc-title g-color--doc-color-3 g-font-family--secondary">
+                    <span aria-hidden="true" class="fa fa-star"></span> BEM Styles</h2>
+                    <h5 class=" text-center g-color--black-opacity-lighter">
+                        <i class="fa fa-clock"></i> Last updated: April 8th, 2019<br />
+                        Authored By: Steven Schulte
+                    </h5>
+
+                    <br />
+                    <div class="g-margin-x-auto--xs">
+                        <p>Within our Southeast website, we are moving in the direction of using BEM styles everywhere. By learning BEM and most of the CSS classes below, you will be able to design or edit most of the HTML within any Rock HTML blocks.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div><!--//doc-header-->
+    <div class="doc-wrapper">
+        <div class="container">
+            <div class="doc-body row g-padding-b-50--xs g-display-flex--lg">
+
+                <div class="doc-sidebar col-md-3 col-12">
+                    <div id="doc-nav" class="doc-nav g-position--sticky" style="top:120px">
+                        <ul id="doc-menu" class="doc-menu list-unstyled">
+                            <li class="doc-expandable">
+                                <h5 class="doc-expandable-header"><a class="nav-link scrollto" href="#bem-general">Introduction <span class="se-carat se-carat--right"></span></a></h5>
+                                <div class="doc-expandable-content text-left g-padding-l-20--xs g-overflow--hidden" data-collapsed="true" style="height: 0;">
+                                    <ul class="list-unstyled g-padding-l-20--xs">
+                                        <li><h6><a class="nav-link scrollto" href="#bem-general">What is BEM?</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-general-b"><u>B</u>locks</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-general-e"><u>E</u>lements</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-general-m"><u>M</u>odifier</a></h6></li>
+                                    </ul>
+                                </div>
+                            </li>
+                            <li>
+                                <h5><a class="nav-link scrollto" href="#bem-styles">SCSS Files</a></h5>
+                            </li>
+                            <li class="doc-expandable">
+                                <h5 class="doc-expandable-header"><a class="nav-link scrollto" href="#bem-color">Colors <span class="se-carat se-carat--right"></span></a></h5>
+                                <div class="doc-expandable-content text-left g-padding-l-20--xs g-overflow--hidden" data-collapsed="true" style="height: 0;">
+                                    <ul class="list-unstyled g-padding-l-20--xs">
+                                        <li><h6><a class="nav-link scrollto" href="#bem-color">Site Colors</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-g-color">g-color</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-g-text-shadow">g-text-shadow</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-g-color-hover">g-color-hover</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-g-hor-divider">g-hor-divider</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-g-ver-divider">g-ver-divider</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-g-bg-color">g-bg-color</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-g-bg-parallax-color--black">g-bg-parallax-color--black</a></h6></li>
+                                    </ul>
+                                </div>
+                            </li>
+                            <li class="doc-expandable">
+                                <h5 class="doc-expandable-header"><a class="nav-link scrollto" href="#bem-helpers">Helpers <span class="se-carat se-carat--right"></span></a></h5>
+                                <div class="doc-expandable-content text-left g-padding-l-20--xs g-overflow--hidden" data-collapsed="true" style="height: 0;">
+                                    <ul class="list-unstyled g-padding-l-20--xs">
+                                        <li><h6><a class="nav-link scrollto" href="#bem-helpers">Site Helpers</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-g-fullheight">g-fullheight</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-g-center">g-center</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-g-ver-center">g-ver-center</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-g-overflow">g-overflow</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-g-bg-position">g-bg-position</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-g-bg">g-bg</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-g-z-index">g-z-index</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-g-line-height">g-line-height</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-g-position">g-position</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-g-box-shadow">g-box-shadow</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-g-radius">g-radius</a></h6></li>
+                                    </ul>
+                                </div>
+                            </li>
+                            <li class="doc-expandable">
+                                <h5 class="doc-expandable-header"><a class="nav-link scrollto" href="#bem-spacing">Spacers <span class="se-carat se-carat--right"></span></a></h5>
+                                <div class="doc-expandable-content text-left g-padding-l-20--xs g-overflow--hidden" data-collapsed="true" style="height: 0;">
+                                    <ul class="list-unstyled g-padding-l-20--xs">
+                                        <li><h6><a class="nav-link scrollto" href="#bem-spacing">Site Spacers</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-g-container">g-container</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-g-widthheight-options">Width/Height Options</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-g-width">g-width</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-g-height">g-height</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-g-marginpadding-options">Margin/Padding Options</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-g-margin">g-margin</a></h6></li>
+                                        <li><h6><a class="nav-link scrollto" href="#bem-g-padding">g-padding</a></h6></li>
+                                    </ul>
+                                </div>
+                            </li>
+                        </ul><!--//doc-menu-->
+                    </div>
+
+                </div><!--//doc-sidebar-->
+
+                <div class="doc-content col-md-9 col-xs-12">
+
+                    <article id="bem-general" class="doc-section g-padding-t-50--xs g-margin-y-0--xs">
+                        <h3 class="g-margin-b-10--xs g-hor-divider__solid__b--gray-lightest"><b>What is BEM?</b></h3>
+                        <div class="section-block">
+                             <p>BEM is a methodology that is widely known by developers to benefit from the advantages of more structured CSS and UI. Hence, BEM is an abbreviation of <strong>Block</strong>, <strong>Element</strong>, and <strong>Modifier</strong>. CSS Tricks has an excellent article about the BEM methodology, and how the naming convention is used. You can <a href="https://css-tricks.com/bem-101/" target="_blank">check out the article at this link</a>, and then come back here when you're done with it.</p>
+                             <p>The main thing you need to know is that BEM is simply just a set of css classes we can use for any HTML elements. Like the following example:</p>
+                             <pre><code class="language-markup">&lt;h1 class="g-font-family--secondary"&gt;Fabulous!&lt;/h1&gt;</code></pre>
+                             <p>As you can see, we are using the secondary font family above into an <code>h1</code> element. This may seem a little odd at first, but the CSS class itself is broken down for you below:</p>
+
+                             <div id="bem-general-b" class="g-padding-t-50--xs">
+                             <h1 class="g-font-family--secondary pull-left g-padding-x-20--xs g-font-weight--900"><u>B</u></h1>
+                             <p>With mostly everything on the website, we will be using <code class="g-padding-x-20--xs">g</code> as in "global" to represent the <u>B</u>lock within the BEM methodology. For instance:</p>
+
+<pre>
+<code class="language-css">
+/* Most of our BEM css classes will start out like this */
+.g-
+</code>
+</pre>
+
+                                 <p>By using <code class="g-padding-x-20--xs">g</code> as our block, we can then set our elements as in colors, background colors, paddings, margins, font sizes, font families and so forth.
+                                 <p>Currently, we do not have CSS naming conventions for other blocks using BEM such as accordions, navigations, cards, callouts, etc., but we we have the global block, and as we continue to develop this site - the hope is that we will eventually convert everything into BEM.</p>
+                                 </div>
+
+                                 <div id="bem-general-e" class="g-padding-t-50--xs">
+                                 <h1 class="g-font-family--secondary pull-left g-padding-x-20--xs g-font-weight--900"><u>E</u></h1>
+                                 <p>Next, we want to figure out the <u>E</u>lement we want to change, so for this example, we have the <u>font family</u> (which is an element of the global block).</p>
+<pre>
+<code class="language-css">
+/* Add on the element you want to change with a single dash in-between. */
+.g-font-family
+</code>
+</pre>
+<p>At this point, you're probably wondering about <u>all</u> of the available elements that could be used instead... not to worry! After learning the <u>M</u>odifier, you will see all of the available elements you can use for the rest of this documentation.</p>
+                                 </div>
+
+                                 <div id="bem-general-m" class="g-padding-t-50--xs">
+                                 <h1 class="g-font-family--secondary pull-left g-padding-x-20--xs g-font-weight--900"><u>M</u></h1>
+                                 <p>Lastly, we want to <u>M</u>odify the <u>E</u>lement with the options that we have. Currently, we have two different options for the font family, and that is either "primary" (which is the default) or "secondary". To use the "secondary" option, you need to add it onto the name like before - however, with modifiers - you use two dashes instead. So in this case, we added the name, "secondary", to the class <code class="g-padding-x-20--xs">g-font-family</code> following with two dashes like this:
+<pre>
+<code class="language-css">
+/* Add on the option you want to use following with double dashes . */
+.g-font-family--secondary
+</code>
+</pre>
+<p>That's it! In result, if you add that css class name into any HTML elements (with actual words in it), you should get the secondary font family applied to it.</p>
+<h1 class="g-font-family--secondary">Fabulous!</h1>
+<pre><code class="language-markup">&lt;h1 class="g-font-family--secondary"&gt;Fabulous!&lt;/h1&gt;</code></pre>
+                                 </div>
+
+                                 <div id="bem-general-summary" class="g-padding-t-50--xs">
+                                 <p>You simply just need to write <code>class="insert_class_here"</code> in the html element, and use the BEM class in between the double quotes. For the rest of this documenation, you will see all of the options available on the Southeast website using the global BEM methodology; just look for the CSS class highlighted in black on the right side of the page, and then add the option/modifier you want to use that is available for that element. You can treat this page as a libray of global CSS classes for your references, and you can also use any of these classes on any Southeast <i>landings pages</i> as well!</p>
+                                 </div>
+                        </div>
+                    </article>
+
+                    <article id="bem-styles" class="doc-section g-padding-t-20--xs g-margin-y-0--xs">
+                        <h3 class="g-margin-b-10--xs g-hor-divider__solid__b--gray-lightest"><b>Global BEM Styles - Theme Files</b></h3>
+                        <div class="section-block">
+                            Most of you won't need this, but for developer's references, you can find all of the Global BEM CSS classes below (and more) under <code>/Themes/SECC2019/Styles/global/_global.scss</code>.
+                        </div>
+                    </article>
+
+                    <article id="bem-color" class="g-padding-x-0--xs g-padding-t-100--xs g-margin-y-0--xs">
+                        <h3 class="g-margin-b-10--xs g-hor-divider__solid__b--gray-lightest">Colors</h3>
+                        <div class="section-block">
+                        <br />
+                        <p>Here are all of the colors available on our website.</p>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <td>#</td>
+                                            <td>Color</td>
+                                            <td>Color Name</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="g-bg-color--dark">
+                                            <th class="g-color--white" scope="row">1</th>
+                                            <td class="g-color--white">#FFFFFF</td>
+                                            <td class="g-color--white">white</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--red" scope="row">2</th>
+                                            <td class="g-color--red">#CC0000</td>
+                                            <td class="g-color--red">red</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--dark-red" scope="row">3</th>
+                                            <td class="g-color--dark-red">#8c0000</td>
+                                            <td class="g-color--dark-red">dark-red</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--gold" scope="row">4</th>
+                                            <td class="g-color--gold">#b99769</td>
+                                            <td class="g-color--gold">gold</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--dark" scope="row">5</th>
+                                            <td class="g-color--dark">#222324</td>
+                                            <td class="g-color--dark">dark</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--dark-light" scope="row">6</th>
+                                            <td class="g-color--dark-light">#242526</td>
+                                            <td class="g-color--dark-light">dark-light</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--heading" scope="row">7</th>
+                                            <td class="g-color--heading">#242424</td>
+                                            <td class="g-color--heading">heading</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--text" scope="row">8</th>
+                                            <td class="g-color--text">#222222</td>
+                                            <td class="g-color--text">text</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--gray-light" scope="row">9</th>
+                                            <td class="g-color--gray-light">#7C7C7C</td>
+                                            <td class="g-color--gray-light">gray-light</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--gray-lighter" scope="row">10</th>
+                                            <td class="g-color--gray-lighter">rgba(#7C7C7C, 0.68)</td>
+                                            <td class="g-color--gray-lighter">gray-lighter</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--gray-lightest" scope="row">11</th>
+                                            <td class="g-color--gray-lightest">rgba(#7C7C7C, 0.18)</td>
+                                            <td class="g-color--gray-lightest">gray-lightest</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--" scope="row">12</th>
+                                            <td class="g-color--black">#000</td>
+                                            <td class="g-color--black">black</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--black-opacity" scope="row">13</th>
+                                            <td class="g-color--black-opacity">rgba(#000,.8)</td>
+                                            <td class="g-color--black-opacity">black-opacity</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--black-opacity-light" scope="row">14</th>
+                                            <td class="g-color--black-opacity-light">rgba(#000,.5)</td>
+                                            <td class="g-color--black-opacity-light">black-opacity-light</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--black-opacity-lighter" scope="row">15</th>
+                                            <td class="g-color--black-opacity-lighter">rgba(#000,.3)</td>
+                                            <td class="g-color--black-opacity-lighter">black-opacity-lighter</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="g-color--black-opacity-lightest" scope="row">16</th>
+                                            <td class="g-color--black-opacity-lightest">rgba(#000,.1)</td>
+                                            <td class="g-color--black-opacity-lightest">black-opacity-lightest</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <article id="bem-g-color" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                            <h4 class="pull-right g-padding-x-20--xs"><b><code>g-color--[ColorName]</code></b></h4>
+                            <p>To change the color of text.</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;h1 class="g-color--black-opacity-lighter"&gt;Using the black-opacity-lighter color.&lt;/h1&gt;</code></pre>
+                            CSS behind class:
+                            <pre><code class="language-css">color: [ColorName] !important;</code></pre>
+                        </article>
+
+                        <article id="bem-g-text-shadow" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                            <h4 class="pull-right"><b><code>g-text-shadow--[ColorName]</code></b></h4>
+                            <p>To add a text shadow.</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;h1 class="g-text-shadow--gray-light"&gt;Using the gray-light color as the text shadow.&lt;/h1&gt;</code></pre>
+                            CSS behind class:
+                            <pre><code class="language-css">text-shadow: -1px 1px 1px [ColorName] !important;</code></pre>
+                            <br />
+                            <h4 class="pull-right"><b><code>g-text-shadow--[ColorName]--soft</code></b></h4>
+                            <p>To use a <u>softer text shadow than before</u> – add onto the color name with another double dash to give it another modifier as "soft".</p>
+                            <pre><code class="language-markup">&lt;h1 class="g-text-shadow--gray-light--soft"&gt;Using the gray-light color as the text shadow with a softer text shadow.&lt;/h1&gt;</code></pre>
+                            CSS behind class:
+                            <pre><code class="language-css">text-shadow: 0px 0px 25px [ColorName] !important;</code></pre>
+                        </article>
+
+                        <article id="bem-g-color-hover" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                            <h4 class="pull-right g-padding-x-20--xs"><b><code>g-color-hover--[ColorName]</code></b></h4>
+                            <p>To change the color of text when hovering.</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;a class="g-color--red"&gt;Using the red color on hover.&lt;/a&gt;</code></pre>
+                            CSS behind class:
+<pre>
+<code class="language-css">@include hover {
+	color: [ColorName] !important;
+}</code>
+</pre>
+                        </article>
+
+                        <article id="bem-g-hor-divider" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                            <h4 class="pull-right g-padding-x-20--xs"><b><code>g-hor-divider__solid__[t,b]--[ColorName]</code></b></h4>
+                            <p>This one is tricky because we're now getting into a few more options, but don't worry, you only need to change the color once you know how this works. The purpose of this class is to add a <i>solid</i> horizontal divider to be either on the <i>bottom</i>, or the <i>top</i> of any elements, and then a color of your choice. So <code>g-hor-divider</code> is our element under the global block, and for any child items that depends on the element itself - it is denoted by two underscores following it like <code>g-hor-divider__solid</code>. Since we not only want the horizontal line to be solid (for now, solid is our only option), we can say we want it to be on the bottom of the elemment, so we add another child element like this <code>g-hor-divider__solid__b</code>. For this class, there are two options for positioning it. There is bottom as in "b" or top as in "t" (see examples below). Finally, we have our color name modifier added to it as usual.</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;article class="g-hor-divider__solid__b--gray-lightest"&gt;Here's an aritcle element using the solid horizontal line on the BOTTOM with the gray-lightest color.&lt;/article&gt;</code></pre>
+                            CSS behind class:
+                            <pre><code class="language-css">border-bottom: 1px solid [ColorName];</code></pre>
+                            <br />
+                            <p>To position the horizontal line on the top instead, just change the child element to be "t" instead of "b".</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;article class="g-hor-divider__solid__t--gray-lightest"&gt;Here's an aritcle element using the solid horizontal line on the TOP with the gray-lightest color.&lt;/article&gt;</code></pre>
+                            CSS behind class:
+                            <pre><code class="language-css">border-top: 1px solid [ColorName];</code></pre>
+                        </article>
+
+                        <article id="bem-g-ver-divider" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                            <h4 class="pull-right g-padding-x-20--xs"><b><code>g-ver-divider__solid__[l,r]--[ColorName]</code></b></h4>
+                            <p>This is very similar to the horizontal divider - except it's a vertical divider! The purpose of this class is to add a <i>solid</i> vertical divider on either the <i>left</i> side ("l"), or the <i>right</i> side ("r") of any elements (see examples below), and then a color of your choice.</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;article class="g-ver-divider__solid__l--gray-lightest"&gt;Here's an aritcle element using the solid horizontal line on the LEFT with the gray-lightest color.&lt;/article&gt;</code></pre>
+                            CSS behind class:
+                            <pre><code class="language-css">border-left: 1px solid [ColorName];</code></pre>
+                            <br />
+                            <p>To position the vertical line on the right instead, just change the child element to be "r" instead of "l".</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;article class="g-ver-divider__solid__r--gray-lightest"&gt;Here's an aritcle element using the solid horizontal line on the RIGHT with the gray-lightest color.&lt;/article&gt;</code></pre>
+                            CSS behind class:
+                            <pre><code class="language-css">border-right: 1px solid [ColorName];</code></pre>
+                        </article>
+
+                        <article id="bem-g-bg-color" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                            <h4 class="pull-right g-padding-x-20--xs"><b><code>g-bg-color--[ColorName]</code></b></h4>
+                            <p>To change the color of the background.</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;section class="g-bg-color--gray-light"&gt;Here is a section with a gray-light background. &lt;/section&gt;</code></pre>
+                            CSS behind class:
+                            <pre><code class="language-css">background-color: [ColorName] !important;</code></pre>
+                        </article>
+
+                        <article id="bem-g-bg-parallax-color--black" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                            <h4 class="pull-right g-padding-x-20--xs"><b><code>g-bg-parallax-color--black--[10 thru 100]</code></b></h4>
+                            <p>Here is a css class that was made specifically for any parallax sections. The idea was to add a black overlay on any images or videos with an opacity of 10% through 100% (in increments of 10). Hence, the options are 10,20,30,40,50,60,70,80,90, or 100. We didn't think every color was needed, so there is only a black color for now; this may change in the future.</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;section class="g-bg-parallax-color--black--90"&gt;Here is a section with a black overlay of 90% visiblity (super dark). &lt;/section&gt;</code></pre>
+                            CSS/SCSS behind class:
+<pre><code class="language-css">@include gradient-horizontal-after(
+    $direction: 145deg,
+    $start-color: rgba($BlackColor, ($i * 10 / 100)),
+    $end-color: rgba($BlackColor, ($i * 10 / 100)),
+    $start-percent: 100%
+);</code></pre>
+                        </article>
+
+                    </article>
+
+                    <article id="bem-helpers" class="g-padding-x-0--xs g-padding-t-100--xs g-margin-y-0--xs">
+                        <h3 class="g-margin-b-10--xs g-hor-divider__solid__b--gray-lightest"><b>Helpers</b></h3>
+                        <div class="section-block">
+                            <br />
+                            <p>In this section, you will find all of the BEM CSS classes we use as helpers for the SE website. You probably won't use them as much, but they're here in case you need them.</p>
+                        </div>
+
+                        <article id="bem-g-fullheight" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                            <h4 class="pull-right g-padding-x-20--xs"><b><code>g-fullheight--[xs,sm,md,lg]</code></b></h4>
+                            <p>Here, you might notice we are adding a new kind of modifier. If you have messed with any bootstrap frameworks, this should feel familar. The modifer we're using is to decide whether the fullheight css class should be applied on extra small (xs), small (sm), medium (md), or large (lg) screens. If you want it applied on all screens, just set it to extra small and it will be carried out on all larger screens.</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;div class="g-fullheight--lg"&gt;Applying the fullheight css class on large screens on a div.&lt;/div&gt;</code></pre>
+                            CSS/SCSS behind class:
+<pre><code class="language-css">media-breakpoint-up(lg) {
+    .g-fullheight--lg { height: 100vh; }
+}</code></pre>
+                        </article>
+
+                        <article id="bem-g-center" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                            <h4 class="pull-right g-padding-x-20--xs"><b><code>g-center--[xs,sm,md,lg]</code></b></h4>
+                            <p>This is to set your element in the center of something if needed (absolute). This is usually used on a nested div element within a relative parent box; In other words, to be centered within a box/block.</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;div class="g-center--lg"&gt;Applying the center css class on large screens on a div.&lt;/div&gt;</code></pre>
+                            CSS/SCSS behind class:
+<pre><code class="language-css">.g-center--lg {
+    @include position(absolute, $top: 50%, $left: 50%, $right: auto);
+    @include translate3d(-50%,-50%,0);
+}</code></pre>
+                        </article>
+
+                        <article id="bem-g-ver-center" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                            <h4 class="pull-right g-padding-x-20--xs"><b><code>g-ver-center--[xs,sm,md,lg]</code></b></h4>
+                            <p>This is to set your element in the middle (vertically) of something if needed (absolute). This is also usually used in a nested div element within a relative parent box - just without the position of the element horizontally (auto).</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;div class="g-ver-center--lg"&gt;Applying the vertical center css class on large screens on a div.&lt;/div&gt;</code></pre>
+                            CSS/SCSS behind class:
+<pre><code class="language-css">.g-ver-center--lg {
+    @include position(absolute, $top: 50%, $left: auto, $right: auto);
+    @include translate3d(0,-50%,0);
+}</code></pre>
+                        </article>
+
+                        <article id="bem-g-overflow" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                            <h4 class="pull-right g-padding-x-20--xs"><b><code>g-overflow--hidden</code></b></h4>
+                            <p>This is to set the overflow to hidden.</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;div class="g-overflow--hidden"&gt;This is to make sure overlows are hidden&lt;/div&gt;</code></pre>
+                            CSS/SCSS behind class:
+<pre><code class="language-css">overflow: hidden</code></pre>
+                        </article>
+
+                        <article id="bem-g-bg-position" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                            <h4 class="pull-right g-padding-x-20--xs"><b><code>g-bg-position--center</code></b></h4>
+                            <p>This is to set the backgound position of an element to be centered.</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;div class="g-bg-position--center"&gt;This is to center the background position.&lt;/div&gt;</code></pre>
+                            CSS/SCSS behind class:
+<pre><code class="language-css">background-size: cover !important;
+background-position: center center !important;</code></pre>
+                        </article>
+
+                        <article id="bem-g-bg" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                            <h4 class="pull-right g-padding-x-20--xs"><b><code>g-bg--fixed</code></b></h4>
+                            <p>This is to set the <i>attachment</i> of the backgound to be fixed.</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;div class="g-bg--fixed"&gt;Setting the attachement of the background to be fixed.&lt;/div&gt;</code></pre>
+                            CSS/SCSS behind class:
+<pre><code class="language-css">background-attachment: fixed;
+min-height: 100%;</code></pre>
+                        </article>
+
+                        <article id="bem-g-z-index" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                            <h4 class="pull-right g-padding-x-20--xs"><b><code>g-z-index--[1,2]</code></b></h4>
+                            <p>If you need to set the z-index, use this. Currently, there are two option for this: 1, or 2.</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;div class="g-z-index--2"&gt;Setting the z-index of an element to be 2.&lt;/div&gt;</code></pre>
+                            CSS/SCSS behind class:
+<pre><code class="language-css">z-index: [1, or 2];</code></pre>
+                        </article>
+
+                        <article id="bem-g-line-height" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                            <h4 class="pull-right g-padding-x-20--xs"><b><code>g-line-height--[normal,exs,xs,sm,lg]</code></b></h4>
+                            <p>This is to easily change the line height! There are six options available for this. The last option is to simply include the class without any modifiers; this will set the line height to be the default.</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;div class="g-line-height"&gt;Setting the line height to be the default/normal without any modifiers.&lt;/div&gt;</code></pre>
+                            CSS/SCSS behind class:
+<pre><code class="language-css">line-height: 1.4;</code></pre>
+                        </article>
+
+                        <article id="bem-g-position" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                            <h4 class="pull-right g-padding-x-20--xs"><b><code>g-position--[sticky,relative,absolute,overlay]</code></b></h4>
+                            <p>Set the position if needed.</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;div class="g-position--sticky"&gt;Setting the position.&lt;/div&gt;</code></pre>
+                            CSS/SCSS behind class:
+<pre><code class="language-css">position: sticky;</code></pre>
+                        </article>
+
+                        <article id="bem-g-box-shadow" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                            <h4 class="pull-right g-padding-x-20--xs text-right">
+                                <b>
+                                    <code>g-box-shadow__</code><br />
+                                    <code>[primary-v1]</code><br />
+                                    <code>[dark-lightest-v1]</code><br />
+                                    <code>[dark-lightest-v2]</code><br />
+                                    <code>[dark-lightest-v3]</code><br />
+                                    <code>[dark-lightest-v4]</code><br />
+                                    <code>[dark-lightest-v5]</code>
+                                </b>
+                            </h4>
+                            <p>Set the box shadow. The options are set as child items that depends on the element itself, so to use the options -- use two underscores following it - instead of double dashes.</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;div class="g-box-shadow__dark-lightest-v4"&gt;Setting the box shadow.&lt;/div&gt;</code></pre>
+                            CSS/SCSS behind class:
+<pre><code class="language-css">box-shadow: 0 0 2.5rem .3125rem rgba($color-dark, .05);</code></pre>
+                        </article>
+
+                        <article id="bem-g-radius" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                            <h4 class="pull-right g-padding-x-20--xs"><b><code>g-radius--[3,4,10,50,circle]</code></b></h4>
+                            <p>Set the border radius of an element.</p>
+                            HTML Example:
+                            <pre><code class="language-markup">&lt;div class="g-radius--3"&gt;Setting the radius of 3.&lt;/div&gt;</code></pre>
+                            CSS/SCSS behind class:
+<pre><code class="language-css">@include border-radius(.1875rem !important);</code></pre>
+                        </article>
+
+                    </article>
+
+                    <article id="bem-spacing" class="g-padding-x-0--xs g-padding-t-20--xs g-margin-y-0--xs">
+                    <h3 class="g-margin-b-10--xs g-hor-divider__solid__b--gray-lightest"><b>Spacing</b></h3>
+                    <div class="section-block">
+                        <br />
+                        <p>Spacers (saved the best for the last)! These css BEM classes are probably used the most out of all the css classes on this page. You'll noticed there's more than just setting the spaces/paddings/margins, but also the position and whether it should stay for all screens, or just a certain width.</p>
+                    </div>
+
+                    <article id="bem-g-container" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                        <h4 class="pull-right g-padding-x-20--xs"><b><code>g-container--[sm,md]</code></b></h4>
+                        <p>Set the bootstrap container to be smaller than the normal - if needed. As of now, there's either small (sm), or medium (md).</p>
+                        HTML Example:
+                        <pre><code class="language-markup">&lt;div class="g-container--sm"&gt;Setting a small container&lt;/div&gt;</code></pre>
+                        CSS/SCSS behind class:
+                        <pre><code class="language-css">/* Small container */
+.g-container--sm {
+    padding-right: .9375rem;
+    padding-left: .9375rem;
+    margin-right: auto;
+    margin-left: auto;
+}
+.g-container--sm:before, .g-container--sm:after {
+    content: " ";
+    display: table;
+}
+.g-container--sm:after {
+    clear: both;
+}
+@media (min-width: 48em) {
+.g-container--sm {
+    width: 750px; }
+}</code></pre>
+                    </article>
+
+                    <article id="bem-g-widthheight-options" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                        <h4 class="pull-right g-padding-x-20--xs"><b>Width/Height Options</b></h4>
+                        <p>Here are all of the sizes/lengths available as the "Width" and the "Height" for the following two classes below.</p>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <td>[Width/Height Options]</td>
+                                            <td>Width CSS Output</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>auto</td>
+                                            <td>auto</td>
+                                        </tr>
+                                        <tr>
+                                            <td>10-percent</td>
+                                            <td>10%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>20-percent</td>
+                                            <td>20%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>30-percent</td>
+                                            <td>30%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>40-percent</td>
+                                            <td>40%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>50-percent</td>
+                                            <td>50%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>60-percent</td>
+                                            <td>60%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>70-percent</td>
+                                            <td>70%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>80-percent</td>
+                                            <td>80%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>90-percent</td>
+                                            <td>90%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>100-percent</td>
+                                            <td>100%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>5</td>
+                                            <td>0.3125rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>10</td>
+                                            <td>0.625rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>15</td>
+                                            <td>0.9375rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>20</td>
+                                            <td>1.25rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>25</td>
+                                            <td>1.5625rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>30</td>
+                                            <td>1.875rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>35</td>
+                                            <td>2.1875rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>40</td>
+                                            <td>2.5rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>45</td>
+                                            <td>2.8125rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>50</td>
+                                            <td>3.125rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>60</td>
+                                            <td>3.75rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>70</td>
+                                            <td>4.375rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>80</td>
+                                            <td>5rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>90</td>
+                                            <td>5.625rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>100</td>
+                                            <td>6.25rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>150</td>
+                                            <td>9.375rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>200</td>
+                                            <td>12.5rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>250</td>
+                                            <td>15.625rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>300</td>
+                                            <td>18.75rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>350</td>
+                                            <td>21.875rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>400</td>
+                                            <td>25rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>450</td>
+                                            <td>28.125rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>500</td>
+                                            <td>31.25rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>550</td>
+                                            <td>34.375rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>600</td>
+                                            <td>37.5rem</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                    </article>
+
+                    <article id="bem-g-width" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                        <h4 class="pull-right g-padding-x-20--xs"><b><code>g-width-[WidthOption]--[xs,sm,md,lg]</code></b></h4>
+                        <p>This one does two things. You set the width (using any of the "WidthOption" numbers above), and then set it to be only availble on certain screen sizes (xs, sm, md, or lg); Also, like all of the other bootstrap elements, if you want it on all screen sizes - just set it to xs.</p>
+                        HTML Example:
+                        <pre><code class="language-markup">&lt;div class="g-width-10--sm"&gt;Setting the width of an element to be 10 pixels wide&lt;/div&gt;</code></pre>
+                        CSS/SCSS behind class:
+<pre><code class="language-css">.g-width-auto--xs { width: auto; }
+
+@for $i from 1 through 10 {
+  .g-width-#{$i * 10}-percent--xs {
+    width: ($i * 10%);
+  }
+}
+
+@for $i from 1 through 10 {
+  .g-width-#{$i * 5}--xs {
+    width: ($i * .3125rem);
+  }
+}
+
+@for $i from 6 through 10 {
+  .g-width-#{$i * 10}--xs {
+    width: ($i * .625rem);
+  }
+}
+
+@for $i from 3 through 12 {
+  .g-width-#{$i * 50}--xs {
+    width: ($i * 3.125rem);
+  }
+}</code></pre>
+                    </article>
+
+                    <article id="bem-g-height" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                        <h4 class="pull-right g-padding-x-20--xs"><b><code>g-height-[HeightOption]--[xs,sm,md,lg]</code></b></h4>
+                        <p>This one does two things as well. You set the height (using any of the "HeightOption" numbers above), and then set it to be only availble on certain screen sizes (xs, sm, md, or lg); like all of the other bootstrap elements, if you want it on all screen sizes - just set it to xs.</p>
+                        HTML Example:
+                        <pre><code class="language-markup">&lt;div class="g-width-auto--sm"&gt;Setting the height of an element to be 'auto' instead of a number&lt;/div&gt;</code></pre>
+                        CSS/SCSS behind class:
+<pre><code class="language-css">.g-height-auto--xs { height: auto; }
+.g-height-100-percent--xs { height: 100%; }
+
+@for $i from 1 through 10 {
+  .g-height-#{$i * 5}--xs {
+    height: ($i * .3125rem);
+  }
+}
+
+@for $i from 6 through 10 {
+  .g-height-#{$i * 10}--xs {
+    height: ($i * .625rem);
+  }
+}
+
+@for $i from 3 through 12 {
+  .g-height-#{$i * 50}--xs {
+    height: ($i * 3.125rem);
+  }
+}</code></pre>
+                    </article>
+
+                    <article id="bem-g-marginpadding-options" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                        <h4 class="pull-right g-padding-x-20--xs"><b>Margin/Padding Options</b></h4>
+                        <p>Here are all of the Margins/Paddings available for the following two classes below - unless noted.</p>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <td>[Margin/Padding Options]</td>
+                                            <td>CSS Output</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>0</td>
+                                            <td>0rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>2* margins only</td>
+                                            <td>.125rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>4* margins only</td>
+                                            <td>.25rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>5</td>
+                                            <td>0.3125rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>10</td>
+                                            <td>0.625rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>15</td>
+                                            <td>0.9375rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>20</td>
+                                            <td>1.25rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>25</td>
+                                            <td>1.5625rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>30</td>
+                                            <td>1.875rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>35</td>
+                                            <td>2.1875rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>40</td>
+                                            <td>2.5rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>45</td>
+                                            <td>2.8125rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>50</td>
+                                            <td>3.125rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>55</td>
+                                            <td>3.4375rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>60</td>
+                                            <td>3.75rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>65</td>
+                                            <td>4.0625rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>70</td>
+                                            <td>4.375rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>75</td>
+                                            <td>4.6875rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>80</td>
+                                            <td>5rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>85</td>
+                                            <td>5.3125rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>90</td>
+                                            <td>5.625rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>95</td>
+                                            <td>5.9375rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>100</td>
+                                            <td>6.25rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>105</td>
+                                            <td>6.5625rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>110</td>
+                                            <td>6.875rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>115</td>
+                                            <td>7.1875rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>120</td>
+                                            <td>7.5rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>125</td>
+                                            <td>7.8125rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>130</td>
+                                            <td>8.125rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>135</td>
+                                            <td>8.4375rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>140</td>
+                                            <td>8.75rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>145</td>
+                                            <td>9.0625rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>150</td>
+                                            <td>9.375rem</td>
+                                        </tr>
+                                        <tr>
+                                            <td>250* margins only</td>
+                                            <td>15.625rem</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                    </article>
+
+                    <article id="bem-g-margin" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                        <h4 class="pull-right g-padding-x-20--xs"><b><code>g-margin-[t,r,b,l]-[MarginOption]--[xs,sm,md,lg]</code></b></h4>
+                        <p>This one does three things! You set the position of where you want your margin ("t" = top, "r" = right, "b" = bottom, or "l" = left), then set your margin option (use the numbers table above to find what you need), and then set it to be only availble on certain screen sizes (xs, sm, md, or lg).</p>
+                        HTML Example:
+                        <pre><code class="language-markup">&lt;div class="g-margin-b-50--xs"&gt;Setting the margin of the bottom of this element for all screen sizes&lt;/div&gt;</code></pre>
+                        CSS/SCSS behind class:
+<pre><code class="language-css">.g-margin-b-50--xs {
+  margin-bottom: 3.125rem; }</code></pre>
+                    </article>
+
+                    <article id="bem-g-padding" class="g-padding-t-150--xs g-hor-divider__solid__t--gray-lightest">
+                        <h4 class="pull-right g-padding-x-20--xs"><b><code>g-padding-[t,r,b,l]-[PaddingOption]--[xs,sm,md,lg]</code></b></h4>
+                        <p>This one does three things as well (just like margin, really)! You set the position of where you want your padding ("t" = top, "r" = right, "b" = bottom, or "l" = left), then set your padding option (use the numbers table above to find what you need), and then set it to be only availble on certain screen sizes (xs, sm, md, or lg).</p>
+                        HTML Example:
+                        <pre><code class="language-markup">&lt;div class="g-padding-t-50--md"&gt;Setting the padding of the top of this element for only tablet screen sizes&lt;/div&gt;</code></pre>
+                        CSS/SCSS behind class:
+<pre><code class="language-css">.g-padding-t-50--md {
+  padding-top: 3.125rem; }</code></pre>
+                    </article>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    #doc-menu li.active > h5 > a,
+    #doc-menu li.active > h6 > a {
+        font-weight: bold;
+    }
+</style>
+<script src="/Themes/SECC2019/Scripts/gumshoe/gumshoe.polyfills.min.js" ></script>
+<script>
+    function collapseSection(element) {
+      // get the height of the element's inner content, regardless of its actual size
+      var sectionHeight = element.scrollHeight;
+      // temporarily disable all css transitions
+      var elementTransition = element.style.transition;
+      element.style.transition = '';
+      // on the next frame (as soon as the previous style change has taken effect),
+      // explicitly set the element's height to its current pixel height, so we
+      // aren't transitioning out of 'auto'
+      requestAnimationFrame(function() {
+        element.style.height = sectionHeight + 'px';
+        element.style.transition = elementTransition;
+        // on the next frame (as soon as the previous style change has taken effect),
+        // have the element transition to height: 0
+        requestAnimationFrame(function() {
+          element.style.height = 0 + 'px';
+        });
+      });
+      // mark the section as "currently collapsed"
+      element.setAttribute('data-collapsed', 'true');
+    }
+
+    function expandSection(element) {
+      // get the height of the element's inner content, regardless of its actual size
+      var sectionHeight = element.scrollHeight;
+      // have the element transition to the height of its inner content
+      element.style.height = sectionHeight + 'px';
+      // when the next css transition finishes (which should be the one we just triggered)
+      element.addEventListener('transitionend', function(e) {
+        // remove this event listener so it only gets triggered once
+        element.removeEventListener('transitionend', arguments.callee);
+        // remove "height" from the element's inline styles, so it can return to its initial value
+        element.style.height = null;
+      });
+      // mark the section as "currently not collapsed"
+      element.setAttribute('data-collapsed', 'false');
+    }
+
+    $('.doc-expandable-header').on( "click", function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+
+        if (this) {
+            var section = this.parentNode.querySelector('.doc-expandable-content')
+        }
+        if (section) {
+            var isCollapsed = section.getAttribute('data-collapsed') === 'true';
+        }
+
+        if(isCollapsed) {
+            expandSection(section);
+            this.setAttribute('data-expanded', 'true');
+            section.setAttribute('data-collapsed', 'false');
+        } else {
+            collapseSection(section);
+            this.setAttribute('data-expanded', 'false');
+        }
+    });
+
+    var header = document.querySelector('.cd-main-header');
+    var spy = new Gumshoe('#doc-menu a', {
+        nested: true,
+        offset: function () {
+            return header.getBoundingClientRect().height;
+        }
+    });
+    var scroll = new SmoothScroll('a.scrollto', {
+        speed: 500, // Integer. How fast to complete the scroll in milliseconds
+        easing: 'easeInOutCubic', // Easing pattern to use
+        header: '.cd-main-header'
+    });
+</script>

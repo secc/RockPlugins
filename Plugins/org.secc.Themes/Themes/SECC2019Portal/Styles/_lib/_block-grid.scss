@@ -1,0 +1,56 @@
+// # Block Grid using CSS Grid //
+// # Example Usage
+//
+// To produce a grid of 2 items per row on an extra-small screen, and 3 items
+// per row on a small screen:
+//
+//     <div class="block-grid-xs-2 block-grid-sm-3">
+//         <div class="block-grid-item">
+//             ...
+//         </div>
+//     </div>
+.block-grid,
+[class*="block-grid-"] {
+  display: grid;
+  margin: 0 0 12px;
+  padding: 0;
+  grid-gap: 12px;
+  min-height: 0;  /* NEW */
+  min-width: 0;   /* NEW; needed for Firefox */
+  @media (min-width: $screen-md) {
+	  margin: 0 0 $grid-gutter-width;
+  		grid-gap: $grid-gutter-width;
+  }
+  .block-grid-item {
+    display: inline;
+    margin: 0;  
+    padding: 0;
+    height: auto;
+    width: 100%;
+    list-style: none;  // for those who like to use `li` elements as block-grid-items
+	  min-width: 0;      /* NEW; needed for Firefox */
+  }
+  &.nopad {
+	  grid-gap:0;
+	  margin: 0;
+  }
+}
+
+@mixin block-grid ($per-row) {
+	grid-template-columns: repeat($per-row, 1fr);
+}
+
+// Recursive loop that produces rules for block grids of @per-row many items
+// per row down to 1 many items per row.
+@mixin block-grids($size, $per-row: $grid-columns) {
+	@if $per-row > 0 {
+  	.block-grid-#{$size}-#{$per-row} { @include block-grid($per-row); }
+		@include block-grids($size, ($per-row - 1));
+	}
+}
+
+@include block-grids(xs);
+@media (min-width: $screen-sm-min) { @include block-grids(sm) }
+@media (min-width: $screen-md-min) { @include block-grids(md) }
+@media (min-width: $screen-lg-min) { @include block-grids(lg) }
+

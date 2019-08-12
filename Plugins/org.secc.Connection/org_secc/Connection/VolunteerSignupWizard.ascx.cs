@@ -68,20 +68,23 @@ namespace org.secc.Connection
 {%- comment -%}
     Select from one of the following templates that come prebuilt for you with the Signup Wizard and set the
     output variable below to the appropriate value
-    
+
     Genius     - This will output as a structured table similar to other signup systems out there
     CardPage   - This will output as a single page with panels containing cards.  This is probably best
                  for outputting 1-2 partitions
     CardWizard - This is good for fairly complex signups with 2-4 partitions (Campus, DefinedType, Role, Schedule).
-                 It will output and behave in a left-to-right animated set of cards.  The CardWizardMode can be set 
-				 to ""Single"" or ""Multiple"" which configures the output style to allow for either a single signup or 
+                 It will output and behave in a left-to-right animated set of cards.  The CardWizardMode can be set
+				 to ""Single"" or ""Multiple"" which configures the output style to allow for either a single signup or
 				 multiple roles/attributes at once.
+
+                 With this layout, you can also add and set the lava variable ""partitionDescriptionShow"" to ""True"" and it will show the description of each partition at the top.
 
     This is setup to encourage you to copy existing lava templates if you make modifications rather than modifying the
     default ones which come with the Signup Wizard plugin.
 {%- endcomment -%}
 
 {%- assign output = ""Genius"" -%}
+{%- assign partitionDescriptionShow = ""False"" -%}
 
 {% if output == ""Genius"" %}
 {% include '~/Plugins/org_secc/Connection/VolunteerGenius.lava' %}
@@ -661,7 +664,7 @@ namespace org.secc.Connection
             // Build list of groups
             var groups = new List<Group>();
 
-            // First add any groups specifically configured for the opportunity 
+            // First add any groups specifically configured for the opportunity
             var opportunityGroupIds = opportunity.ConnectionOpportunityGroups.Select( o => o.Id ).ToList();
             if ( opportunityGroupIds.Any() )
             {
@@ -1124,8 +1127,8 @@ namespace org.secc.Connection
                 if ( Settings.Partitions.Any( p => p.PartitionType == "Schedule" ) )
                 {
                     var scheduleService = new ScheduleService( new RockContext() );
-                    var scheduleGuidList = Settings.Partitions.Where( p => p.PartitionType == "Schedule" ).SelectMany( p => p.PartitionValue.Trim( ',' ).Split( ',' ).AsGuidList() ).ToArray();
-                    Schedules = scheduleService.Queryable().Where(s => scheduleGuidList.Contains( s.Guid ) ).ToList().OrderBy( s => s.GetNextStartDateTime( DateTime.Now ) ).ToList();
+                    var scheduleGuidList = Settings.Partitions.Where( p => p.PartitionType == "Schedule" && p.PartitionValue != null).SelectMany( p => p.PartitionValue.Trim( ',' ).Split( ',' ).AsGuidList() ).ToArray();
+                    Schedules = scheduleService.Queryable().Where(s => scheduleGuidList.Contains( s.Guid ) ).ToList().OrderBy( s => s.GetNextStartDateTime( DateTime.Now)??s.GetFirstStartDateTime() ).ToList();
                 }
             }
             if ( GroupTypeRoles == null )
@@ -1150,7 +1153,7 @@ namespace org.secc.Connection
                 }
                 else
                 {
-                    // Use every Defined Value 
+                    // Use every Defined Value
                     values = DefinedTypeCache.Get( partition.PartitionValue.AsGuid() ).DefinedValues.Select( dv => dv.Guid.ToString() ).ToArray();
                 }
             }
@@ -1159,7 +1162,6 @@ namespace org.secc.Connection
             {
                 values = Schedules.Where(s => values.AsGuidList().Contains(s.Guid) ).Select( s => s.Guid.ToString() ).ToArray();
             }
-
 
             var partitionList = new List<Dictionary<string, object>>();
 
@@ -1260,7 +1262,10 @@ namespace org.secc.Connection
                 partitionList.Add( inner );
             }
             // Try to sort by order than by string value
-            partitionList = partitionList.OrderBy( a => a["Entity"].GetType().GetProperty( "Order" ) != null ? a["Entity"].GetType().GetProperty( "Order" ).GetValue( a["Entity"], null ) : 0 ).ThenBy( a => a["Entity"].ToString() ).ToList();
+            if ( partition.PartitionType != "Schedule" )
+            {
+                partitionList = partitionList.OrderBy( a => a["Entity"].GetType().GetProperty( "Order" ) != null ? a["Entity"].GetType().GetProperty( "Order" ).GetValue( a["Entity"], null ) : 0 ).ThenBy( a => a["Entity"].ToString() ).ToList();
+            }
             return partitionList;
         }
 

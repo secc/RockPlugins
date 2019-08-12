@@ -17,18 +17,19 @@
     protected override void OnInit( EventArgs e )
     {
         base.OnInit( e );
-//Check to see if we should remove menu transparency
+        //Check to see if we should remove menu transparency
         var page = PageCache.Get( ( ( RockPage ) Page ).PageId );
-        var showalert = page.GetAttributeValue( "TransparentMenu" ).AsBoolean();
+        var showTransparentMenu = page.GetAttributeValue( "TransparentMenu" ).AsBoolean();
         var facebookOG = page.GetAttributeValue("UseFaceBookOG").AsBoolean();
         var facebookOGImage = page.GetAttributeValue("FacebookOGImage");
 
-        if ( !showalert )
+        if ( !showTransparentMenu )
         {
-            var script = @"$(document).ready(function() {
-  $('.cd-main-header').removeClass('transparent-menu-enabled').removeClass('transparent-header');
-    $('.cd-main-content').removeClass('transparent-content');
-});";
+            var script = @"
+                var $menu = $('.cd-main-header');
+                $menu.removeClass('transparent-menu-enabled').removeClass('transparent-header');
+                $('.cd-main-content').removeClass('transparent-content');
+            ";
             ScriptManager.RegisterStartupScript( this.Page, this.GetType(), "transparentMenu", script, true );
         }
                 if (facebookOG)
@@ -109,15 +110,49 @@
     <script src="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/js/jquery.mobile.custom.min.js", true) %>"></script>
     <script src="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/js/main.js", true) %>"></script>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.3/jarallax.js" ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.7/jarallax.js" ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/object-fit-images/3.2.3/ofi.min.js" ></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.3/jarallax-video.js" ></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.7/jarallax-video.js" ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vivus/0.4.4/vivus.min.js" ></script>
+    <link href="/Themes/SECC2019/Assets/vendor/photo_swipe/photoswipe.css?v=4.1.2-1.0.4" />
+    <link href="/Themes/SECC2019/Assets/vendor/photo_swipe/default-skin/default-skin.css?v=4.1.2-1.0.4" />
+    <script src="/Themes/SECC2019/Assets/vendor/photo_swipe/photoswipe.js"></script>
+    <script src="/Themes/SECC2019/Assets/vendor/photo_swipe/photoswipe-ui-default.js"></script>
 
+    <!--
+    Start of global snippet: Please do not remove
+    Place this snippet between the <head> and </head> tags on every page of your site.
+    -->
+    <!-- Global site tag (gtag.js) - Google Marketing Platform -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=DC-9235428"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'DC-9235428');
+    </script>
+    <!-- End of global snippet: Please do not remove -->
+
+    <!--
+    Event snippet for HTV - WLKY - Southeast Christian Church - Easter - Retargeting Pixel - 03/27/2019 on : Please do not remove.
+    Place this snippet on pages with events you‚Äôre tracking.
+    Creation date: 03/27/2019
+    -->
+    <script>
+      gtag('event', 'conversion', {
+        'allow_custom_scripts': true,
+        'send_to': 'DC-9235428/invmedia/htv-w0+standard'
+      });
+    </script>
+    <noscript>
+    <img src="https://ad.doubleclick.net/ddm/activity/src=9235428;type=invmedia;cat=htv-w0;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;npa=;ord=1?" width="1" height="1" alt=""/>
+    </noscript>
+    <!-- End of event snippet: Please do not remove -->
 </head>
 
 <body runat="server" id="body" class="nav-is-fixed">
+
 
     <div id="DocumentWrapper">
 

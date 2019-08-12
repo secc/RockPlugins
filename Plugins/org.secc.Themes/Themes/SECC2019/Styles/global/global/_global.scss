@@ -107,12 +107,19 @@
   }
 }
 
+/*----------------------------------
+  Jumbo Font Sizes
+------------------------------------*/
+.g-font-size--jumbo-1 { @include font($size: $font-size-80, $weight: normal, $line-height: $headings-line-height); }
+.g-font-size--jumbo-2 { @include font($size: $font-size-65, $weight: normal, $line-height: $headings-line-height); }
+.g-font-size--jumbo-3 { @include font($size: $font-size-48, $weight: normal, $line-height: $headings-line-height); }
 
 /*----------------------------------
   Font Family
 ------------------------------------*/
 
 .g-font-family--primary { @include font($family: $font-family-primary !important); }
+.g-font-family--primary-condensed { @include font($family: $font-family-primary-condensed !important); }
 .g-font-family--secondary { @include font($family: $font-family-secondary !important); }
 .g-font-family--playfair { @include font($family: $font-family-playfair !important); }
 
@@ -139,6 +146,19 @@
 .g-letter-spacing--2 { letter-spacing: .125rem; }
 .g-letter-spacing--3 { letter-spacing: .1875rem; }
 
+/*----------------------------------
+  Font Stretching - Condensed/Expanded
+------------------------------------*/
+
+.g-font-stretch--ultra-condensed { @include font($stretch: ultra-condensed); }
+.g-font-stretch--extra-condensed { @include font($stretch: extra-condensed); }
+.g-font-stretch--condensed { @include font($stretch: condensed); }
+.g-font-stretch--semi-condensed { @include font($stretch: semi-condensed); }
+.g-font-stretch--normal { @include font($stretch: normal); }
+.g-font-stretch--semi-expanded { @include font($stretch: semi-expanded); }
+.g-font-stretch--expanded { @include font($stretch: expanded); }
+.g-font-stretch--extra-expanded { @include font($stretch: extra-expanded); }
+.g-font-stretch--ultra-expanded { @include font($stretch: ultra-expanded); }
 
 /*----------------------------------
   Display

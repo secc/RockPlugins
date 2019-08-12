@@ -1,0 +1,551 @@
+{% comment %}
+    ******* Filtering System for Calendar *****
+{% endcomment %}
+
+{% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
+{% assign campusIdSize = pageParamCampusId | Size %}
+{% assign pageParamCampus = 'Global' | PageParameter:'campus' | Downcase | Replace:"-","" %}
+{% assign selectedCampus = null %}
+{% for campus in Campuses %}
+	{% assign campusName = campus.Name | Downcase | Replace:" ",""  %}
+	{% if campus.Id == pageParamCampusId or campusName == pageParamCampus %}
+		{% assign selectedCampus = campus %}
+		{% break %}
+	{% endif %}
+{% endfor %}
+<style>
+	.se-dropdown {
+		border: 2px solid black;
+		cursor: pointer;
+		padding: 5px 70px 5px 15px;
+		display: block;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		overflow: hidden;
+		color: black;
+		line-height: 28px;
+		text-transform: uppercase;
+		font-weight: 600;
+		box-sizing: border-box;
+		display: inline-block;
+		margin: 0;
+		position: relative;
+		vertical-align: middle;
+		margin-top: 5px;
+		min-width: 170px;
+		width: 100%;
+		z-index: 10;
+	}
+
+
+	.se-dropdown .arrow {
+		height: auto;
+		position: absolute;
+		top: 19px;
+		right: 15px;
+		width: 20px;
+	}
+	.se-dropdown .arrow b {
+		border-color: white;
+		border-style: none;
+		border-width: 0px;
+		height: 0;
+		position: absolute;
+		width: 0;
+	}
+	.se-dropdown .arrow b:before {
+		width: 10px;
+		height: 10px;
+		content: "";
+		border: solid #000000;
+		border-width: 0 2px 2px 0;
+		display: inline-block;
+		position: absolute;
+		top: 55%;
+		left: 50%;
+		transition: all 0.4s ease;
+		transform: translate(-50%, -50%) rotate(45deg);
+		-webkit-transform: translate(-50%, -50%) rotate(45deg);
+	}
+	.se-dropdown + div {
+		box-shadow:0px 0px 5px 1px rgba(0, 0, 0, 0.15);
+		padding: 15px;
+		display: none;
+		position: absolute;
+		background-color: #FFFFFF;
+		overflow: visible;
+		box-sizing: border-box;
+		z-index: 1051;
+	}
+	.se-dropdown[aria-expanded="true"] + div {
+		display: block;
+	}
+	.se-dropdown[aria-expanded="true"] .arrow b:before {
+		transform: translate(-50%, -50%) rotate(-135deg);
+		-webkit-transform: translate(-50%, -50%) rotate(-135deg);
+		top: 3px;
+	}
+</style>
+
+
+<div class="container">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-10 col-md-offset-1">
+            <div class="filterbox">
+                <div class="row">
+                    <div class="col-xs-12 col-md-12">
+                        <h3 class="g-font-weight--600">Find a Group</h3>
+                        <p class="g-font-weight--400 g-line-height--sm">Find a group that interests you by selecting a campus and/or ministry. Click on the image to see more details or to register.</p>
+                        <br />
+                    </div>
+                    <div class="col-xs-12 col-md-4 g-padding-y-40--md" >
+                        <select class="select2-campuses" name="campus">
+                        <option value="allCampuses" data-shortcode="SE" {% if selectedCampus == null %} selected="selected"{% endif %}>All Locations</option>
+                        {% for campus in Campuses %}
+                        	{% assign publicCampus = campus | Attribute:'Public' %}
+                        	{% if publicCampus == 'Yes' %}
+                                <option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campus.Name | Downcase | Replace:" ",""}}"{% if selectedCampus.Id > 0 and selectedCampus.Id == campus.Id %} selected="selected"{% endif %}>
+                                    {{ campus.Name }}
+                                </option>
+                        	{% endif %}
+                        {% endfor %}
+                        </select>
+                    </div>
+					<div class="col-xs-12 col-md-4 g-padding-y-40--md" tabindex="0" >
+						<span class="se-dropdown" data-toggle="dropdown-content" data-reveal="daysOfTheWeek" aria-expanded="false" data-control="#groupFilters">
+							Meets On<span class="g-font-weight--100" id="dayOfTheWeekText"></span>
+							<span class="arrow" role="presentation"><b role="presentation"></b></span>
+						</span>
+						<div id="daysOfTheWeek" class="button-group filter-button-group g-padding-x-10--xs g-display-inline-block--xs g-margin-t-10--xs">
+							<p>Select a day of the week:</p>
+							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Sunday" data-toggle="tooltip" data-placement="bottom" title="Sunday">S</a>
+							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Monday" data-toggle="tooltip" data-placement="bottom" title="Monday">M</a>
+							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Tuesday" data-toggle="tooltip" data-placement="bottom" title="Tuesday">T</a>
+							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Wednesday" data-toggle="tooltip" data-placement="bottom" title="Wednesday">W</a>
+							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Thursday" data-toggle="tooltip" data-placement="bottom" title="Thursday">T</a>
+							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Friday" data-toggle="tooltip" data-placement="bottom" title="Friday">F</a>
+							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Saturday" data-toggle="tooltip" data-placement="bottom" title="Saturday">S</a>
+						</div>
+					</div>
+                    <div class="col-xs-12 col-md-4 g-padding-y-20--xs g-padding-y-40--sm" >
+                        <select class="select2-ministries" name="minitry">
+                        <option value="allMinistries">All Ministries</option>
+
+						{% assign ministrySlug = 'Global' | PageParameter:'ministry' | Downcase  %}
+                        {% definedvalue where:'DefinedTypeId==16' %}
+                            {% assign definedvalueItemsSorted = definedvalueItems | Sort: 'Order' %}
+                            {% for definedValue in definedvalueItemsSorted %}
+                                {% assign publicFilter = definedValue | Attribute:'PublicFilter' %}
+                                {% if publicFilter == "Yes" %}
+									{% assign urlSlug = definedValue | Attribute:'URLSlug' %}
+									<option value="{{ definedValue.Id }}" data-ministry="{{urlSlug}}" {% if urlSlug == ministrySlug %} selected="selected"{% endif %}>{{ definedValue.Value | Capitalize }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        {% enddefinedvalue %}
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.hide {
+    display: none;
+}
+</style>
+
+{% comment %}
+<div id="filter_selected" class="container-fluid">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12">
+            <div id="campus_selected" class="row" style="background-color:#201e1d;">
+                <div class="col-xs-12">
+                    <h2 class="section-header" style="margin: 30px 0px; color: white;">
+                        <span>Events @ {{selectedCampus.Name | Default: "All Campuses" }}</span>
+                    </h2>
+                </div>
+            </div>
+            <div id="ministry_selected" class="row hide event-list-background">
+                <div class="col-xs-12">
+                    <h2 class="section-header" style="margin: 30px 0px;">
+                        <span></span>
+                    </h2>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endcomment %}
+
+<script src="/Themes/SECC2019/Scripts/readmore.min.js"></script>
+
+<script>
+$(document).ready(function() {
+
+    loadQueryStringParam();
+
+    ///////////////////////////////////////////////////
+    /////////////// Initialize Select2 ////////////////
+    ///////////////////////////////////////////////////
+
+    $('.select2-campuses').select2({
+      placeholder: 'Location'
+    });
+    $('.select2-campuses').on('select2:select', function (e) {
+        // prevent from submiting default form actionn
+        e.preventDefault();
+        // pull in lava ID
+        var data = e.params.data;
+        runCampusFilters(data);
+    });
+    $('.select2-ministries').select2({
+      placeholder: 'Ministry'
+    });
+    $('.select2-ministries').on('select2:select', function (e) {
+        // prevent from submiting default form action
+        e.preventDefault();
+        // pull in lava ID
+        var data = e.params.data;
+        runMinistryFilters(data);
+    });
+	
+	//make days of week clicky
+		$('[data-toggle="dropdown-content"]').click(function(e) {
+			e.preventDefault();
+			var $this = $( this );
+			var toggleId = $this.attr('data-reveal');
+			toggleOneFilterAtATime($this);
+		});
+
+		function toggleOneFilterAtATime($selected) {
+			// close all of the others - before opening this
+			$('[data-control="#groupFilters"]').not($selected).attr('aria-expanded','false');
+			$('#select2-campuses').select2('close');
+			$selected.attr('aria-expanded', function (i, attr) {
+				return attr == 'true' ? 'false' : 'true'
+			});
+		}
+
+	
+
+	$daysOfTheWeek = $('#daysOfTheWeek').on( 'click', '.button', function(e) {
+		  e.preventDefault();
+		  var $this = $( this );
+		  var filterValue = $this.attr('data-filter');
+		  $this.toggleClass('active');
+		  buildDaysFilters(filterValue);
+		  runFilters();
+		});
+
+		
+		
+	
+	// hide descriptions
+	$('.readmore_dates').readmore({
+		speed: 200,
+		lessLink: '<a href="#" class="pull-right uppercase" style="padding: 2rem;width: 100%;text-align: right;"><span class="se-carat se-carat--up"></span></a>',
+		moreLink: '<a href="#" class="pull-right" style="display: inline-block;padding: 2rem;position: relative;height: 7rem;width: 100%;margin-top: -6rem;"><span class="pull-right se-carat se-carat--down" style="margin-top: 2rem;"></span></a>',
+		embedCSS: false,
+		collapsedHeight: 0,
+		beforeToggle: function(tr, el, ex) {
+			$(el).show();
+		},
+		afterToggle: function(trigger, element, expanded) {
+			$('.isotope_wrap').isotope(isoOptions); // re-initialize
+		}
+	});
+
+	var isoOptions = {
+		itemSelector: '.isotope_item',
+		percentPosition: true,
+		layoutMode: 'fitRows'
+	};
+
+    // Re-Initialize Isotope
+    var $grid = $('.isotope_wrap').isotope(isoOptions);
+
+    // reveal all items after init
+    var $items = $grid.find('.isotope_item');
+    $grid.imagesLoaded().progress( function() {
+      $grid.addClass('is-showing-items').isotope('layout');
+    });
+    $grid.isotope( 'revealItemElements', $items );
+
+    // re-init jarallax
+    jarallax(document.querySelectorAll('.jarallax'), {
+        disableParallax: /iPad|iPhone|iPod|Android/,
+        disableVideo: /iPad|iPhone|iPod|Android/
+    });
+});
+
+//Close meets on window on blur
+    $('[data-control="#groupFilters"]').parent().focusout(function(e) {
+        e.preventDefault();
+        var $this = $( this );
+        // var toggleId = $this.children("[data-toggle="dropdown-content"]").attr('data-reveal');
+        $this.children("[data-toggle='dropdown-content']").attr('aria-expanded', 'false');
+    });
+
+
+// handling days selected
+		var days_selected = [];
+		function buildDaysFilters(day) {
+			if (~days_selected.indexOf(day)) {
+				// remove from array (toggling)
+				days_selected.splice($.inArray(day, days_selected),1);
+			} else {
+				// add to array
+				if (day != '' && day != undefined) {
+					days_selected.push(day);
+				}
+			}
+			if (days_selected.length > 0){
+				$('#dayOfTheWeekText').html( ' ' + days_selected.join(', ') );
+			}
+			else{
+			$('#dayOfTheWeekText').html( '' );
+			}
+			console.log(days_selected);
+		 }
+
+		 function runFilters() {
+			 var filterSelectors = 'div';
+
+			 // if days are selected
+			 if (days_selected.length != 0) {
+				 filterSelectors += filterStringify(days_selected, 'day');
+				 filterSelectors += ',';
+			 }
+
+			
+
+			 // remove the very last comma.
+			 var lastChar = filterSelectors.slice(-1);
+			 if(lastChar == ',') {
+			   filterSelectors = filterSelectors.slice(0, -1);
+			 }
+
+			 console.log('filters: '+filterSelectors);
+			 	var isoOptions = {
+		itemSelector: '.isotope_item',
+		percentPosition: true,
+		layoutMode: 'fitRows'
+	};
+			var $grid = $('.isotope_wrap').isotope(isoOptions);
+			 $grid.isotope({
+			   itemSelector: '.isotope_item',
+			   percentPosition: true,
+			   layoutMode: 'fitRows',
+			   filter: filterSelectors
+			 });
+		 }
+
+		 function filterStringify(arrayList, selector) {
+			 varstr = '';
+			 if (arrayList.length != 0) {
+				 // make string of selectors
+				 var loopIndex = 1
+				 arrayList.forEach(function(item, index, array) {
+					 // if week days are selected
+					 if (days_selected.length != 0) {
+						 var dayLoopIndex = 1
+						 days_selected.forEach(function(day_item, index, array) {
+							 // show campus groups with filters if campus is selected - otherwise just fitler items(s)
+							 
+							 if (day_item != '' && item != undefined) {
+								 varstr += '[data-day*="'+day_item+'"]'
+							 }
+							 if (item != '' && item != undefined) {
+								 varstr += '[data-'+selector+'*="'+item+'"]'
+							 }
+							 // no comma on the first, and no comma on the last
+							 if (days_selected.length > 1 && dayLoopIndex != days_selected.length) {
+								 varstr += ','
+							 }
+							 dayLoopIndex++;
+						 });
+					 } else {
+						 // show campus groups with filters if campus is selected - otherwise just fitler items(s)
+						 
+
+						 if (item != '' && item != undefined) {
+							 varstr += '[data-'+selector+'*="'+item+'"]'
+						 }
+					 }
+					 // no comma on the first, and no comma on the last
+					 if (arrayList.length > 1 && loopIndex != arrayList.length) {
+						 varstr += ','
+					 }
+
+					 loopIndex++;
+				 });
+			 }
+			 return varstr;
+		 }
+		 
+
+///////////////////////////////////////////////////
+////////////// Listen for Back Clicks /////////////
+///////////////////////////////////////////////////
+window.onpopstate = function(event) {
+  // back to the same page without the filters
+  window.location.replace(window.location.protocol + "//" + window.location.host + window.location.pathname);
+
+  // OPTIONAL - back to previous filter/result
+  // var url_string = window.location.href;
+  // var url = new URL(url_string);
+  // var c = url.searchParams.get("campusId");
+  // // console.log(c);
+  // runCampusFilters(c);
+};
+
+
+///////////////////////////////////////////////////
+////////////// Run Campus Selection ///////////////
+///////////////////////////////////////////////////
+function runCampusFilters(campus_selected) {
+    // grab id to filter results
+    var pnlContent = $('#event-results').find("div[id*='_upnlContent']");
+    var pnlContent_ID = pnlContent.attr("id");
+    pnlContent.slideUp();
+    // $grid.isotope('destroy');
+
+    // push a new URL state with filter parameter
+    var newPath = updatePath('campus',$(campus_selected.element).data('campus'));
+
+    // update form action url
+    $('#form1').attr('action', newPath);
+
+    // do AJAX postback through .NET
+    processPageLoad(pnlContent_ID, '');
+
+    // console.log(data);
+    //$('#campus_selected').find('.section-header span').html('Events @ ' + campus_selected.text);
+    //$('#campus_selected').removeClass('hide');
+}
+
+///////////////////////////////////////////////////
+////////////// Run Ministry Selection ///////////////
+///////////////////////////////////////////////////
+function runMinistryFilters(ministry_selected) {
+    // grab id to filter results
+    var pnlContent = $('#event-results').find("div[id*='_upnlContent']");
+    var pnlContent_ID = pnlContent.attr("id");
+    pnlContent.slideUp();
+    // $grid.isotope('destroy');
+
+    // push a new URL state with filter parameter
+    var newPath = updatePath('ministry',$(ministry_selected.element).data('ministry'));
+
+    // update form action url
+    $('#form1').attr('action', newPath);
+
+    // do AJAX postback through .NET
+    processPageLoad(pnlContent_ID, '');
+
+    // console.log(ministry_selected);
+    //$('#ministry_selected').find('.section-header span').html(ministry_selected.text + ' Ministry');
+    //$('#ministry_selected').removeClass('hide');
+}
+
+function processPageLoad(pnlContent_ID, params) {
+    // do AJAX postback through .NET
+    setTimeout(function () {
+		__doPostBack(pnlContent_ID, '');
+	}, 1);
+    ///////////////////////////////////////////////////
+    ////////////// Process Post Back //////////////////
+    ///////////////////////////////////////////////////
+    var prm = Sys.WebForms.PageRequestManager.getInstance();
+    //Raised before processing of an asynchronous postback starts and the postback request is sent to the server.
+    prm.add_beginRequest(BeginRequestHandler);
+    // Raised after an asynchronous postback is finished and control has been returned to the browser.
+    prm.add_endRequest(pageLoad);
+    // Listen for PostBack
+    function pageLoad() {
+        var pnlContent = $('#event-results').find("div[id*='_upnlContent']");
+        var pnlContent_ID = pnlContent.attr("id");
+        // Once loaded, fire the Javascript function from the list
+		InitLoadedRequest(); // an Ajax pageLoad method that will call your jquery method
+		runFilters();
+        pnlContent.slideDown(400, function() {
+
+		});
+        // $('html, body').animate({scrollTop: ($('#filter_selected').offset().top)}, 400);
+        // $('html, body').scrollspy({ target: '#filter_selected' });
+        /*var scroll = new SmoothScroll();
+        var anchor = document.querySelector( '#filter_selected' );
+        scroll.animateScroll( anchor );*/
+
+    }
+    // Run JS while waiting on PostBack
+    function BeginRequestHandler(sender, args) {
+        // hide current state
+        // hide Blocks that aren't needed when filtered
+        $('.hide-on-filter').slideUp();
+        // destropy any previous iso before postback
+        // $('.isotope_wrap').isotope('destroy');
+    }
+}
+
+function updatePath(key, value) {    baseUrl = [location.protocol, '//', location.host].join('');
+    parts = location.pathname.split('/');
+    // Set some defaults;
+    parts[1] = 'new-groups';
+    parts[2] = parts[2]||'southeast';
+    parts[3] = parts[3]||'all';
+    // Set default part one of Groups
+    if (key == 'campus') {
+        parts[2] = value||'southeast';
+    }
+    if (key == 'ministry') {
+        parts[3] = value||'all';
+    }
+    window.history.pushState({}, '', baseUrl + parts.join('/'));
+    console.log("key: " + key);
+    console.log( "value:" + value );
+                    console.log( "parts:" + parts );
+                    return parts.join( '/' );
+                }
+                
+
+var parseQueryString = function() {
+
+    var str = window.location.search;
+    var objURL = {};
+
+    str.replace(
+        new RegExp( "([^?=&]+)(=([^&]*))?", "g" ),
+        function( $0, $1, $2, $3, $4 ){
+            objURL[ $1 ] = $3;
+        }
+    );
+    return objURL;
+};
+
+function loadQueryStringParam() {
+    //Example how to use it:
+    var params = parseQueryString();
+    if (params) {
+
+        // preselect options from Select2 dropdowns
+        $("select.select2-campuses option[value='"+params["campusId"]+"']").attr("selected","selected");
+        $("select.select2-ministries option[value='"+params["categoryID"]+"']").attr("selected","selected");
+
+        // set HTML to indicate the selected ministries and/or campuses
+        if (params["campusId"]) {
+            $('#campus_selected').find('.section-header span').html('Events @ ' + $( "select.select2-campuses option:selected" ).text() );
+            $('#campus_selected').removeClass('hide');
+        }
+
+        if (params["categoryID"]) {
+            $('#ministry_selected').find('.section-header span').html( $( "select.select2-ministries option:selected" ).text() + ' Ministry');
+            $('#ministry_selected').removeClass('hide');
+        }
+    }
+
+}
+</script>

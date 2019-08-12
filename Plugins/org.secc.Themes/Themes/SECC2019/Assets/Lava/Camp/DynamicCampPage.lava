@@ -1,0 +1,177 @@
+{% assign pageID = 'Global' | Page:'Id' %}
+{% page id:'{{ pageID }}' %}
+    {% assign pageGuid = page.Guid %}
+{% endpage %}
+
+{% assign campusObj = '' %}
+{% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
+{% assign pageParamCampus = 'Global' | PageParameter:'Campus' %}
+{% if pageParamCampusId == empty and pageParamCampus != empty and pageParamCampus != null and pageParamCampus != 'allCampuses' %}
+    {% assign pageParamCampus = 'Global' | PageParameter:'campus' %}
+    {% campus where:'Public == true' %}
+        {% for campus in campusItems %}
+            {% assign campusSlug = campus | Attribute: 'Slug' %}
+            {% if campus.Name == pageParamCampus or campusSlug == pageParamCampus %}
+                {% comment %}
+                    ** Assigning the Campus Object for all the info.
+                {% endcomment %}
+                {% assign campusObj = campus %}
+            {% endif %}
+        {% endfor %}
+    {% endcampus %}
+{% endif %}
+
+{% assign campus = campusObj %}
+
+{% if campus.Name != null and campus.Name != '' %}
+    {% cache key:'{{ campus.Name }}-dynamic-camp-{{ pageID }}' duration:'3600' tags:'2019CampusCampPage' twopass:'true' %}
+
+    {% assign pageID = 'Global' | Page:'Id' %}
+    {% page id:'{{ pageID }}' %}
+        {% assign pageGuid = page.Guid %}
+    {% endpage %}
+
+    {% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
+    {% assign pageParamCampus = 'Global' | PageParameter:'Campus' %}
+    {% if pageParamCampusId == empty and pageParamCampus != empty and pageParamCampus != null and pageParamCampus != 'allCampuses' %}
+        {% assign pageParamCampus = 'Global' | PageParameter:'campus' %}
+        {% campus where:'Public == true' %}
+            {% for campus in campusItems %}
+                {% assign campusSlug = campus | Attribute: 'Slug' %}
+                {% if campus.Name == pageParamCampus or campusSlug == pageParamCampus %}
+                    {% comment %}
+                        ** Assigning the Campus Object for all the info.
+                    {% endcomment %}
+                    {% assign pageParamCampus = campus %}
+                {% endif %}
+            {% endfor %}
+        {% endcampus %}
+    {% endif %}
+
+    {% assign campus = pageParamCampus %}
+
+       <div class="page-menu g-bg-color--camp-mix">
+            <div class="container-fluid text-center" style="padding: 0;">
+                <nav class="page-nav text-center">
+                    <ul class="list-inline">
+                        <li class="g-color--white uppercase g-font-weight--700">{{ pageParamCampus.Name }}</li>
+                </nav>
+            </div>
+        </div>
+        <div class="container g-padding-y-100--xs">
+            {% assign itemCount = 0 %}
+            {% contentchannelitem where:'ContentChannelId == 46' sort:'Order' %}
+                {% for item in contentchannelitemItems %}
+                    {% assign campus_item = item | Attribute:'Campuses' %}
+                    {% if campus_item contains pageParamCampus.Name %}
+                        {% assign pageReference = item | Attribute:'Page','RawValue' %}
+                        {% assign itemCampus = item | Attribute:'Campuses' %}
+                        {% if pageGuid == pageReference %}
+                            {{ item.Content }}
+                            {% assign itemCount = itemCount | Plus:1 %}
+                        {% endif%}
+                    {% endif %}
+                {% endfor %}
+            {% endcontentchannelitem %}
+        </div>
+    {% endcache %}
+
+{% elseif pageParamCampus == 'leader-under-18' %}
+    {% if CurrentPersonCanEdit %}
+        <p class="alert alert-warning">If you could not edit you would be redirected to: <a href="https://www.southeastchristian.org/camp/mix-leader-under-18">https://www.southeastchristian.org/camp/mix-leader-under-18</a>.</p>
+    {% else %}
+        {{ 'https://www.southeastchristian.org/camp/mix-leader-under-18' | PageRedirect }}
+    {% endif %}
+{% elseif pageParamCampus == 'leader-over-18' %}
+    {% if CurrentPersonCanEdit %}
+        <p class="alert alert-warning">If you could not edit you would be redirected to: <a href="https://www.southeastchristian.org/camp/mix-leader-over-18">https://www.southeastchristian.org/camp/mix-leader-over-18</a>.</p>
+    {% else %}
+        {{ 'https://www.southeastchristian.org/camp/mix-leader-over-18' | PageRedirect }}
+    {% endif %}
+{% else %}
+    <section class="g-margin-t-100--xs">
+        <div class="clearfix g-padding-t-0--xs g-padding-x-150--md">
+            <div class="row">
+                <div class="col-xs-12">
+                    <h3 class="text-center">Please select a campus for more info:</h3><br /><p></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="g-padding-t-50--xs">
+        <ul class="list-inline clearfix g-padding-t-0--xs g-padding-b-150--xs g-padding-x-150--md text-center g-margin-x-auto--xs">
+
+            <li>
+                <div class="g-padding-b-60--xs">
+                    <a class="text-center" href="/camp/mix/blankenbaker">
+                        <img src="/Themes/SECC2019/Assets/img/SE/Campuses/920.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
+                        <br />
+                        <h5 class="g-font-weight--700">Blankenbaker</h5>
+                    </a>
+                </div>
+            </li>
+
+            <li>
+                <div class="g-padding-b-60--xs">
+                    <a class="text-center" href="/camp/mix/indiana">
+                        <img src="/Themes/SECC2019/Assets/img/SE/Campuses/IN.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
+                        <br />
+                        <h5 class="g-font-weight--700">Indiana</h5>
+                    </a>
+                </div>
+            </li>
+
+            <li>
+                <div class="g-padding-b-60--xs">
+                    <a class="text-center" href="/camp/mix/crestwood">
+                        <img src="/Themes/SECC2019/Assets/img/SE/Campuses/CW.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
+                        <br />
+                        <h5 class="g-font-weight--700">Crestwood</h5>
+                    </a>
+                </div>
+            </li>
+
+            <li>
+                <div class="g-padding-b-60--xs">
+                    <a class="text-center" href="/camp/mix/southwest">
+                        <img src="/Themes/SECC2019/Assets/img/SE/Campuses/SW.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
+                        <br />
+                        <h5 class="g-font-weight--700">Southwest</h5>
+                    </a>
+                </div>
+            </li>
+
+            <li>
+                <div class="g-padding-b-60--xs">
+                    <a class="text-center" href="/camp/mix/lagrange">
+                        <img src="/Themes/SECC2019/Assets/img/SE/Campuses/LA.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
+                        <br />
+                        <h5 class="g-font-weight--700">La Grange</h5>
+                    </a>
+                </div>
+            </li>
+
+            <li>
+                <div class="g-padding-b-60--xs">
+                    <a class="text-center" href="/camp/mix/elizabethtown">
+                        <img src="/Themes/SECC2019/Assets/img/SE/Campuses/ET.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
+                        <br />
+                        <h5 class="g-font-weight--700">Elizabethtown</h5>
+                    </a>
+                </div>
+            </li>
+
+            <li>
+                <div class="g-padding-b-60--xs">
+                    <a class="text-center" href="/camp/mix/rivervalley">
+                        <img src="/Themes/SECC2019/Assets/img/SE/Campuses/RV.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
+                        <br />
+                        <h5 class="g-font-weight--700">River Valley</h5>
+                    </a>
+                </div>
+            </li>
+
+        </ul>
+    </section>
+{% endif %}

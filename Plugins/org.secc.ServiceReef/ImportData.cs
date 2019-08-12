@@ -90,13 +90,13 @@ namespace org.secc.ServiceReef
 
                 // Setup some lookups
                 DefinedTypeCache creditCards = DefinedTypeCache.Read(Rock.SystemGuid.DefinedType.FINANCIAL_CREDIT_CARD_TYPE.AsGuid(), dbContext);
-                DefinedTypeCache tenderType = DefinedTypeCache.Read(Rock.SystemGuid.DefinedType.FINANCIAL_CURRENCY_TYPE.AsGuid(), dbContext);
+                DefinedTypeCache tenderType = DefinedTypeCache.Get(Rock.SystemGuid.DefinedType.FINANCIAL_CURRENCY_TYPE.AsGuid(), dbContext);
                 FinancialAccount specialFund = accountService.Get(dataMap.GetString("Account").AsGuid());
                 FinancialGateway gateway = financialGatewayService.Get(dataMap.GetString("FinancialGateway").AsGuid());
                 List<FinancialAccount> trips = financialAccountService.Queryable().Where(fa => fa.ParentAccountId == specialFund.Id).OrderBy(fa => fa.Order).ToList();
 
                 // Get the trips
-                DefinedValueCache serviceReefAccountType = DefinedValueCache.Read(dataMap.Get("ServiceReefAccountType").ToString().AsGuid());
+                DefinedValueCache serviceReefAccountType = DefinedValueCache.Get(dataMap.Get("ServiceReefAccountType").ToString().AsGuid());
 
                 // Setup the ServiceReef API Client
                 var client = new RestClient(SRApiUrl);
@@ -275,7 +275,10 @@ namespace org.secc.ServiceReef
                                             person = new Person();
                                             person.FirstName = result.FirstName.Trim();
                                             person.LastName = result.LastName.Trim();
-                                            person.Email = result.Email.Trim();
+                                            if ( result.Email.IsValidEmail() )
+                                            {
+                                                person.Email = result.Email.Trim();
+                                            }
                                             person.RecordTypeValueId = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid()).Id;
                                             person.ConnectionStatusValueId = connectionStatus.Id;
                                             person.RecordStatusValueId = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid()).Id;
@@ -289,6 +292,7 @@ namespace org.secc.ServiceReef
                                                 City = result.Address.City,
                                                 State = result.Address.State,
                                                 PostalCode = result.Address.Zip,
+                                                Country = result.Address.Country
                                             };
                                             family.CampusId = CampusCache.All().FirstOrDefault().Id;
                                             family.GroupLocations.Add(location);

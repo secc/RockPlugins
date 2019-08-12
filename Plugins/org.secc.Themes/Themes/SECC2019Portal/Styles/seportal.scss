@@ -1,0 +1,470 @@
+/*** SECC2019Portal will be a child theme of SECC2019, thus will inherit a bunch of styles ***/
+@import '_layout';
+@import '_main';
+
+@import '_lib/_block-grid';
+
+//SECC2019Portal custom styles
+hr.g-border-b-2--xs {
+	border-top-width: 2px;
+}
+@media #{$sm} {
+	.g-border-r-1--sm {
+		border-right-style: solid;
+		border-right-color: #eeeeee;
+		border-right-width: 1px;
+	}
+	.g-border-r-2--sm {
+		border-right-style: solid;
+		border-right-color: #eeeeee;
+		border-right-width: 2px;
+	}
+	section.g-bg-color--gray-lightest {
+		.g-border-r-1--sm,
+		.g-border-r-2--sm {
+			border-color: #b5b5b5;
+		}
+		hr {
+			border-color: #b5b5b5;			
+		}
+	}
+}
+@media #{$md} {
+	.g-border-r-1--md {
+		border-right-style: solid;
+		border-right-color: #eeeeee;
+		border-right-width: 1px;
+	}
+	.g-border-r-2--md {
+		border-right-style: solid;
+		border-right-color: #eeeeee;
+		border-right-width: 2px;
+	}
+	section.g-bg-color--gray-lightest {
+		.g-border-r-1--md,
+		.g-border-r-2--md {
+			border-color: #b5b5b5;
+		}
+		hr {
+			border-color: #b5b5b5;			
+		}
+	}
+}
+#directory {
+  .isotope_wrap .isotope_item {
+    opacity: 1;
+  }
+}
+#zone-primarysitenavigation .page-menu {
+	height: auto;
+}
+.cd-primary-nav {
+	.cd-nav-icons .cd-nav-item {
+		&.operational-training::before {
+			background-image: url('/Themes/SECC2019Portal/Assets/img/OnePoint/Operational_icon.svg');
+		}
+		&.family-on-mission::before {
+			background-image: url('/Themes/SECC2019Portal/Assets/img/OnePoint/Family_On_Mission_icon.svg');
+		}
+		&.self-guided-study::before {
+			background-image: url('/Themes/SECC2019Portal/Assets/img/OnePoint/Self_Guided_icon.svg');
+		}
+	}
+	.dropdown {
+		.dropdown-toggle {
+			.has-badge[data-count]:after{
+			  position:absolute;
+			  right:0%;
+			  top:1%;
+			  content: attr(data-count);
+			  font-size:50%;
+			  padding:.6em;
+			  border-radius:999px;
+			  line-height:1em;
+			  color: white;
+			  background:rgba(255,0,0,1);
+			  text-align:center;
+			  width:2em;
+			  height: 2em;
+			  font-weight:400;
+			}
+		}
+		.dropdown-menu {
+			top: 100%;
+	    background: white;
+	    right: 0;
+	    left: auto;
+	    position: absolute;
+	    height: 200px;
+	    overflow: scroll;
+	    margin:0;
+		}
+	}
+}
+.page-title .page-icon {
+	display: inline-block;
+	vertical-align: middle;
+	margin-right: 10px;
+	i {
+		display: inline-block;
+		width: 55px;
+    height: 55px;
+    background-size: contain;
+    background-repeat: no-repeat;
+		&.operational-training {
+			background-image: url('/Themes/SECC2019Portal/Assets/img/OnePoint/Operational_icon.svg');
+		}
+		&.family-on-mission {
+			background-image: url('/Themes/SECC2019Portal/Assets/img/OnePoint/Family_On_Mission_icon.svg');
+		}
+		&.self-guided-study {
+			background-image: url('/Themes/SECC2019Portal/Assets/img/OnePoint/Self_Guided_icon.svg');
+		}
+  }
+}
+.pager {
+	position: relative;
+	.previous, .next {
+		a {
+			border:none;
+			position: relative;
+		}
+		.arrow {
+			width:45px;
+			height:45px;
+			position: relative;
+			display: block;
+			&::before {
+			  position: absolute;
+			  top: 50%;
+			  margin: -10px 0 0;
+			  width: 20px;
+			  height: 20px;
+			  content: "";
+			  border: solid $CopyColor;
+			  // border-right-color: rgba(0, 0, 0, 0.35);
+			  border-width: 0 2px 2px 0;
+			  display: inline-block;
+			  padding: 3px;
+			  transform: rotate(-45deg);
+			  @include transition(all 0.5s);
+			}
+		}
+	}	
+	.disabled {
+		.arrow {
+			&::before {
+				border-color: $gray-lighter;
+			}
+		}
+	}
+	.next {
+		.arrow {
+			&::before {
+			  left: 10px;
+			}
+		}
+	}
+	.previous {
+		.arrow {
+			&::before {
+				right: 10px;
+			  border-width: 2px 0 0 2px;
+      }
+		}
+	}
+}
+.se-btn--light-portal {
+	@include btn-style(
+	$color: $color-dark,
+	$padding: 1rem,
+	$bg: $WhiteColor,
+	$brd-width: .4rem,
+	$brd-style: solid,
+	$brd-color: transparent,
+	$brd-radius: 0.1rem,
+	$hvr-bg: lighten($LightGreyColor, 40%),
+	$hvr-color: $color-dark,
+	$hvr-brd-color: transparent);
+}
+
+.accordion-events {
+	.panel {
+		border: none;
+        border-radius: 0px !important;
+        @include transition(all .3s ease);
+		// box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+		-webkit-box-shadow: 0px 0px 15px 1px rgba(0, 0, 0, 0.15);
+        box-shadow: 0px 0px 15px 1px rgba(0, 0, 0, 0.15);
+
+        &:hover {
+            // background-color: rgba(239,239,239, 0.5);
+            // -webkit-box-shadow: 0 22px 43px rgba(355, 355, 355, 0.15);
+            // box-shadow: 0 22px 43px rgba(355, 355, 355, 0.15);
+			-webkit-box-shadow: 0 22px 133px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 22px 133px rgba(0, 0, 0, 0.15);
+            transform: translateY(-10px);
+
+            transform: translateY(-5px);
+            @include transition(all .3s ease);
+        }
+        @media (max-width: 768px) {
+            // background-color: rgba(239,239,239, 0.5);
+            // -webkit-box-shadow: 0 3px 12px 2px hsla(0,0%,78%,1);
+            // box-shadow: 0 3px 12px 2px hsla(0,0%,78%,.5);
+        }
+		.panel-heading {
+
+			color: $CopyColor;
+			border-color: rgba($LightGreyColor, 0.17);
+			background-color: $WhiteColor;
+			position: relative;
+            cursor: pointer;
+			padding: 25px 14% 25px 25px;
+			text-align: left;
+
+			&::before {
+			  position: absolute;
+			  top: 54%;
+			  right: 7%;
+			  margin: -10px 0 0;
+			  display: inline-block;
+			  width: 15px;
+			  height: 15px;
+			  content: "";
+			  border: solid $CopyColor;
+			  // border-right-color: rgba(0, 0, 0, 0.35);
+			  border-width: 0 2px 2px 0;
+			  display: inline-block;
+			  padding: 3px;
+			  transform: rotate(-45deg);
+    		  -webkit-transform: rotate(-45deg);
+			  @include transition(all 0.5s);
+			}
+			&[aria-expanded="true"] {
+				&::before {
+					-webkit-transform: translateY(-5px) rotate(405deg);
+    				-moz-transform: translateY(-5px) rotate(405deg);
+    				transform: translateY(-5px) rotate(405deg);
+                }
+			}
+			.panel-title {
+				@extend h4;
+				font-size: 1.1em;
+				text-transform: none !important;
+				color: $CopyColor;
+				a {
+					&:focus {
+						text-decoration: none;
+					}
+				}
+			}
+		} // .panel-heading
+
+		.panel-collapse {
+
+			.panel-body {
+				border: none;
+                border-radius: 0;
+				border-top: 2px solid rgba(239, 239, 239, 1);
+                background-color: $WhiteColor;
+                // background: linear-gradient(to bottom right, rgba(239, 239, 239, 1), rgba(355, 355, 355, 0.7));;
+				padding: 30px 50px;
+				text-align: left;
+
+			} // .panel-body
+		} // .panel-collapse
+	} // .panel
+
+	.panel+.panel {
+		margin-top: 2.7rem;
+	}
+}
+#news-swiper {
+	height: 555px;
+	&.swiper-container {
+		.swiper-nav-button {
+		  background-size: auto 50%;
+		  background-image:url('../Assets/img/OnePoint/arrow-down.svg');
+		  width: 100%;
+	    background-color: rgba(0,0,0,0.75);
+	    margin:0;
+		  &.swiper-button-prev {
+		    top: 0;
+		    left: 0;
+		    right: 0;
+		    bottom: auto;
+		    position: absolute;
+		    width: 100%;
+		    height: 30px;
+				transform: scaleY(-1);
+		  }
+		  &.swiper-button-next {
+		    top: auto;
+		    left: 0;
+		    right: 0;
+		    bottom: 0;
+		    position: absolute;
+		    width: 100%;
+		    height: 30px;
+		  }
+		  &.swiper-button-disabled {
+		    display: none;
+		  }
+		  &:hover {
+		    background-color: rgba(0,0,0,1);
+		  }
+		}	  
+	}
+}
+#video-swiper {
+	&.swiper-container {
+	  padding: 20px 40px;
+	  margin: 0;
+	  display: block;
+
+		.swiper-pagination {
+		  top: 100%;
+		  z-index: 1;
+		}
+		.swiper-pagination-bullet-active {
+		  background: #0080BB;
+		}
+		.swiper-nav-button {
+		  //background-color: rgba(0,0,0, 0.5);
+		  color: #fff;
+		  font-size: 75px;
+		  height: auto;
+		  width: 35px;
+		  margin-top: 0;
+		  top: 20px;
+		  bottom: 20px;
+		  z-index: 10;
+		  background-size: 50%;
+		  background-image:url('../Assets/img/OnePoint/arrow-right.svg');
+		  &.swiper-button-prev {
+		    left: 0;
+		    right: auto;
+				transform: scaleX(-1);
+		  }
+		  &.swiper-button-next {
+		    right: 0;
+		    left: auto;
+		  }
+		  &.swiper-button-disabled {
+		    display: none;
+		  }
+		  &:hover {
+		    background-color: rgba(0,0,0, 0.75);
+		  }
+		}	  
+	  .swiper-wrapper {
+	    height: auto;
+	    z-index: 5;
+	    .swiper-slide {
+	      display: block;
+	      width: 35%;
+	      float: left;
+	      text-align: left;
+	      font-size: 18px;
+	      height: auto;
+	      background-color: gray;
+	      background-size: cover;
+	      background-position: center center;
+	      color: #fff;
+	      position: relative;
+	      transition: all 200ms ease-in-out;
+	      z-index: 1;
+	      margin-right: 5px;
+	      a {
+	        display: block;
+	        position: relative;
+	        &:before {
+	          display: block;
+	          content: "";
+	          width: 100%;
+	          padding-top: 56.25%;
+	          position: relative;
+	          z-index: 99;
+	        }
+	        &:after {
+	          position: absolute;
+	          content: "";
+	          top: 0;
+	          left: 0;
+	          right: 0;
+	          bottom: 0;
+	          background: rgba(0, 0, 0, 0.8);
+	        }
+	        .slide_content {
+	          position: absolute;
+	          top: auto;
+	          right: 0;
+	          bottom: 0;
+	          left: 0;
+	          padding: 24px;
+	          z-index: 10;
+	          h2 {
+	            font-size: 20px;
+	            color: #fff;
+	            font-weight: 900;
+	            margin: 0;
+	          }
+	          p {
+	            color: #fff;
+	            margin: 0;
+	            font-size: 16px;
+	            display: none;
+	          }
+	        }
+	      }
+	      &.swiper-slide-visible a:after {
+	          /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#000000+0,000000+100&0+0,0.8+100 */
+	          background: -moz-linear-gradient(top, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
+	          /* FF3.6-15 */
+	          background: -webkit-linear-gradient(top, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
+	          /* Chrome10-25,Safari5.1-6 */
+	          background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
+	          /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+	          filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00000000', endColorstr='#cc000000',GradientType=0 );
+	          /* IE6-9 */
+	      }
+	      &:hover {
+	        //transform: scale(1.1);
+	        z-index: 999;
+			    margin: -10px 0;
+          width: calc(100% + 20px) !important;
+          @include media-breakpoint-up(sm){
+          	width: calc(50% + 20px) !important;
+          }
+          @include media-breakpoint-up(md){
+          	width: calc(35% + 20px) !important;
+          }
+	      }
+	      &.open {
+	        transform: scale(1.1);
+	        z-index: 999;
+	        a:before {
+	          background-color: rgba(255, 255, 255, 0.05);
+	        }
+	        &:after {
+	          top: 100%;
+	          left: 50%;
+	          border: solid transparent;
+	          content: " ";
+	          height: 0;
+	          width: 0;
+	          position: absolute;
+	          pointer-events: none;
+	          border-color: transparent;
+	          border-bottom-color: #000;
+	          border-width: 15px 13px;
+	          margin-left: -15px;
+	          margin-top: -3px;
+	          z-index: 999;
+	        }
+	      }
+	    }
+	  }
+	}
+}

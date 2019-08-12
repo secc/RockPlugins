@@ -21,7 +21,7 @@ using System.Xml.Serialization;
 using Rock;
 using org.secc.Purchasing.DataLayer;
 using Rock.Model;
-
+using Rock.Web.Cache;
 
 namespace org.secc.Purchasing
 {
@@ -29,10 +29,10 @@ namespace org.secc.Purchasing
     {
         #region Fields
         private Person mApprover;
-        private DefinedValue mApprovalStatus;
+        private DefinedValueCache mApprovalStatus;
         private Person mCreatedBy;
         private Person mModifiedBy;
-        private DefinedValue mApprovalType;
+        private DefinedValueCache mApprovalType;
         private List<Note> mNotes;
         
 
@@ -102,12 +102,12 @@ namespace org.secc.Purchasing
         }
         
         [XmlIgnore]
-        public DefinedValue ApprovalStatus
+        public DefinedValueCache ApprovalStatus
         {
             get
             {
                 if ((mApprovalStatus == null || mApprovalStatus.Id != ApprovalStatusLUID) && ApprovalStatusLUID > 0)
-                    mApprovalStatus = definedValueService.Get(ApprovalStatusLUID);
+                    mApprovalStatus = DefinedValueCache.Get(ApprovalStatusLUID);
                 return mApprovalStatus;
             }
         }
@@ -126,13 +126,13 @@ namespace org.secc.Purchasing
             }
         }
 
-        public DefinedValue ApprovalType
+        public DefinedValueCache ApprovalType
         {
             get
             {
                 if ( ( mApprovalType == null && ApprovalTypeLUID > 0 ) || ( mApprovalType != null && mApprovalType.Id != ApprovalTypeLUID ) )
                 {
-                    mApprovalType = definedValueService.Get(ApprovalTypeLUID);
+                    mApprovalType = DefinedValueCache.Get(ApprovalTypeLUID);
                 }
 
                 return mApprovalType;
@@ -160,12 +160,12 @@ namespace org.secc.Purchasing
         }
 
 
-        private static List<DefinedValue> GetApprovalStatus(bool activeOnly)
+        private static List<DefinedValueCache> GetApprovalStatus(bool activeOnly)
         {
-            List<DefinedValue> Statuses = definedTypeService.Get(ApprovalStatusGUID).DefinedValues.ToList();
+            List<DefinedValueCache> Statuses = DefinedTypeCache.Get(ApprovalStatusGUID).DefinedValues.ToList();
 
             if (activeOnly)
-                Statuses.RemoveAll(s => s.IsValid != activeOnly);
+                Statuses.RemoveAll(s => s.IsActive != activeOnly);
 
             return Statuses;
         }
@@ -236,47 +236,47 @@ namespace org.secc.Purchasing
 
         public static int ApprovedStatusLUID()
         {
-            return definedValueService.Get(ApprovedStatusGUID).Id;
+            return DefinedValueCache.Get(ApprovedStatusGUID).Id;
         }
 
         public static int ApprovedAndForwardLUID()
         {
-            return definedValueService.Get(ApprovedAndForwardedGUID).Id;
+            return DefinedValueCache.Get(ApprovedAndForwardedGUID).Id;
         }
 
         public static int NotApprovedStatusLUID()
         {
-            return definedValueService.Get(NotApprovedStatusGUID).Id;
+            return DefinedValueCache.Get(NotApprovedStatusGUID).Id;
         }
 
         public static int NotSubmittedStatusLUID()
         {
-            return definedValueService.Get(NotSubmittedGUID).Id;
+            return DefinedValueCache.Get(NotSubmittedGUID).Id;
         }
 
         public static int PendingApprovalStatusLUID()
         {
-            return definedValueService.Get(PendingApprovalStatusGUID).Id;
+            return DefinedValueCache.Get(PendingApprovalStatusGUID).Id;
         }
 
         public static int RequisitionApprovalTypeLUID()
         {
-            return definedValueService.Get(RequisitionApprovalTypeGUID).Id;
+            return DefinedValueCache.Get(RequisitionApprovalTypeGUID).Id;
         }
 
         public static int MinistryApprovalTypeLUID()
         {
-            return definedValueService.Get(MinistryApprovalTypeGUID).Id;
+            return DefinedValueCache.Get(MinistryApprovalTypeGUID).Id;
         }
 
         public static int FinanceApprovalTypeLUID()
         {
-            return definedValueService.Get(FinanceApprovalTypeGUID).Id;
+            return DefinedValueCache.Get(FinanceApprovalTypeGUID).Id;
         }
 
         public static int LeadTeamApprovalTypeLUID()
         {
-            return definedValueService.Get( LeadTeamApprovalTypeGUID ).Id;
+            return DefinedValueCache.Get( LeadTeamApprovalTypeGUID ).Id;
         }
 
 

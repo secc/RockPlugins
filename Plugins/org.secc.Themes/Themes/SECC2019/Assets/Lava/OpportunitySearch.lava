@@ -36,7 +36,7 @@
                     </div>
                 </a>
                 <div class="caption g-padding-x-60--xs g-padding-y-60--xs">
-                    <h4 class="g-font-family--secondary g-padding-r-60--xs" style="margin-bottom: 5px;">{{ opportunity.PublicName }}</h4>
+                    <h5 class="g-font-family--secondary g-padding-r-60--xs" style="margin-bottom: 5px;">{{ opportunity.PublicName }}</h5>
                     <div class="readmore_summary">
                         <p>{{opportunity.Summary}}</p>
                         <br />
@@ -48,7 +48,7 @@
                     {% else %}
                     <a class="link--hover-underscore" href="{{ DetailPage }}?OpportunityId={{ opportunity.Id }}" role="button">
                     {% endif %}
-                        <h5 class="uppercase g-font-weight--700 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">More Info</h5>
+                        <h5 class="uppercase g-font-weight--700 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">Connect</h5>
                     </a>
                 </div>
             </div>
