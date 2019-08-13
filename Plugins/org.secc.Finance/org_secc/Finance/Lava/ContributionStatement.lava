@@ -1,10 +1,16 @@
+<style>
+    thead { display: table-header-group }
+    tfoot { display: table-row-group }
+    tr { page-break-inside: avoid }
+</style>
 {% assign total = 0 %}
 {% capture pageTitle %}{{ 'Global' | Attribute:'OrganizationName' }} | Contribution Statement{%endcapture%}
+{% assign StatementEndMonthDay = StatementEndDate | Date:'MMdd' %}
 {{ pageTitle | SetPageTitle }}
 <div style="min-width: 1024px">
 	<div class="row">
-		<div class="col-xs-9">
-			<h1>{{ StatementStartDate | Date:'yyyy' }} Annual Giving Statement</h1>
+		<div class="col-xs-8">
+			<h1>{{ StatementStartDate | Date:'yyyy' }} {% if StatementEndMonthDay == '1231' %}Annual{% else %}Year-to-date{% endif %} Giving Statement</h1>
 			
 			<hr style="opacity: .5;" />
 
@@ -14,18 +20,20 @@
 			<br />
 			<br />
 			
-			<strong>{{ Salutation }}</strong><br />
-			{{ StreetAddress1 }} <br />
+			<strong>{{ Salutation | Upcase }}</strong><br />
+			{{ StreetAddress1 | Upcase  }} <br />
 			{% if StreetAddress2 != '' %}
-				{{ StreetAddress2 }} <br />
+				{{ StreetAddress2 | Upcase  }} <br />
 			{% endif %}
-			{{ City }}, {{ State }} {{ PostalCode }}
+			{{ City | Upcase  }}, {{ State | Upcase  }} {{ PostalCode }}
+            <br />
+            <br />
 		</div>
-		<div class="col-xs-3">
+		<div class="col-xs-4">
 			<div class="row">
 				<div class="col-xs-12 text-center">
 					<div class="clearfix" style="margin-top: 20px">
-						<img src="{{ 'Global' | Attribute:'PublicApplicationRoot' }}/{{ 'Global' | Attribute:'EmailHeaderLogo' }}" width="100px" />
+						<img src="{{ 'Global' | Attribute:'PublicApplicationRoot' }}/Plugins/org_secc/Finance/Lava/SEC_logo_line_black.png" width="100px" />
 					</div>
 					<strong>{{ 'Global' | Attribute:'OrganizationName' }}</strong><br />
 					{{ 'Global' | Attribute:'OrganizationAddress','Street1' }}<br />
@@ -36,10 +44,10 @@
 		</div>
 	</div>
 	<div class="row">
-		<div class="col-xs-9">
-			{% for transaction in TransactionDetails %}
+		<div class="col-xs-8">
+			{% for transaction in TransactionDetails reversed %}
 				{% if forloop.first %}
-				<h4 class="margin-t-md margin-b-md" style="border-bottom: 2px solid black;">Tax-Deductible contributions for {{ StatementStartDate | Date:'MMM d' }} - {{ StatementEndDate | Date:'MMM d, yyyy' }}</h4>
+				<h4 class="margin-t-md margin-b-md" style="border-bottom: 2px solid black;">Giving for {{ StatementStartDate | Date:'MMM d' }} - {{ StatementEndDate | Date:'MMM d, yyyy' }}</h4>
 			
 			
 				<table class="table table-bordered table-striped table-condensed">
@@ -65,7 +73,7 @@
 							{% endfor %}
 							{{ transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Value }} #{{ checkNumber }}
 						{% elseif transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid == '928a2e04-c77b-4282-888f-ec549cee026a' %}
-							●●●● ●●●● ●●●● {{ transaction.Transaction.FinancialPaymentDetail.AccountNumberMasked | Right:4 }}
+							&#9679;&#9679;&#9679;&#9679; &#9679;&#9679;&#9679;&#9679; &#9679;&#9679;&#9679;&#9679; {{ transaction.Transaction.FinancialPaymentDetail.AccountNumberMasked | Right:4 }}
 						{% elseif transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid == 'dabee8fd-aedf-43e1-8547-4c97fa14d9b6' %}
 							{{ transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Value }} - {{ transaction.Transaction.FinancialPaymentDetail.AccountNumberMasked | Split:' ' | Index:1 }}
 						{% else %}
@@ -79,7 +87,7 @@
 				{% if forloop.last %}
 					<tfoot>
 						<tr>
-							<th colspan="3" class="text-right">Total cash/cc/ach/check contributions:</th>
+							<th colspan="3" class="text-right">Total contributions:</th>
 							<th class="text-right">{{total| FormatAsCurrency }}</th>
 						</tr>
 					</tfoot>
@@ -89,7 +97,7 @@
 			
 			{% for transaction in ExcludedTransactionDetails %}
 				{% if forloop.first %}
-				<h4 class="margin-t-md margin-b-md" style="border-bottom: 2px solid black;">Non Cash contributions for {{ StatementStartDate | Date:'MMM d' }} - {{ StatementEndDate | Date:'MMM d, yyyy' }}</h4>
+				<h4 class="margin-t-md margin-b-md" style="border-bottom: 2px solid black;">Non Cash gifts for {{ StatementStartDate | Date:'MMM d' }} - {{ StatementEndDate | Date:'MMM d, yyyy' }}</h4>
 			
 			
 				<table class="table table-bordered table-striped table-condensed">
@@ -109,19 +117,23 @@
 				{% endif %}
 			{% endfor %}
 		</div>
-		<div class="col-xs-3">
+		<div class="col-xs-4">
 			<h4 class="margin-t-md margin-b-md" style="border-bottom: 2px solid black;">Giving Summary</h4>
 
 			{% for accountsummary in AccountSummary %}
 				<div class="row">
-					<div class="col-xs-8"><strong>{{ accountsummary.AccountName }}</strong></div>
-					<div class="col-xs-4 text-right"><strong>{{ accountsummary.Total | FormatAsCurrency  }}</strong></div>
+					<div class="col-xs-12">
+						<div class="pull-left"><strong>{{ accountsummary.AccountName }}</strong></div>
+						<div class="pull-right"><strong>{{ accountsummary.Total | FormatAsCurrency  }}</strong></div>
+					</div>
 				</div>
-				<br />
+				{% if forloop.last %}
+					<br />
+				{% endif %}
 			 {% endfor %}
 			 <div style="border: 1px solid black; text-align: center">
 				<h1>{{total | FormatAsCurrency }}</h1>
-				Total tax-deductible
+				Total Giving
 			 </div>
 			 <br />
 			 <small><em>No goods or services were given in exchange for the listed contributions other than intangible religious benefits.</em></small>
@@ -155,7 +167,10 @@
 				<div class="col-xs-12 padding-t-md">
 					<div class="progress">
 					  <div class="progress-bar" role="progressbar" aria-valuenow="{{ pledge.PercentComplete }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ pledge.PercentComplete }}%;">
+					  {% if pledge.PercentComplete == 0 %}<div style="color:black; padding-left: 5px;">{{ pledge.PercentComplete }}%</div>
+					  {% else %}
 						{{ pledge.PercentComplete }}%
+					  {% endif %}
 					  </div>
 					</div>
 				</div>
@@ -168,7 +183,7 @@
 
 	<hr style="opacity: .5;" />
 	<p class="text-center">
-		Thank you for your continued support of the {{ 'Global' | Attribute:'OrganizationName' }}. If you have any questions about your statement,
-		email giving@secc.org or call 502-253-8707.
+		Thank you for your continued support of {{ 'Global' | Attribute:'OrganizationName' }}. If you have any questions about your statement, please <br />
+        email giving@secc.org or call the donation hotline at 502-253-8707. Please include your name, address, telephone number and a detailed message.
 	</p>
 </div>

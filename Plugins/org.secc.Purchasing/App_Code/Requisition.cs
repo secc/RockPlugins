@@ -21,6 +21,7 @@ using org.secc.Purchasing.DataLayer;
 
 using Rock;
 using Rock.Model;
+using Rock.Web.Cache;
 
 namespace org.secc.Purchasing
 {
@@ -28,8 +29,8 @@ namespace org.secc.Purchasing
     public class Requisition : PurchasingBase
     {
         #region Fields
-        private DefinedValue mRequisitionType;
-        private DefinedValue mState;
+        private DefinedValueCache mRequisitionType;
+        private DefinedValueCache mState;
         private Person mCreatedBy;
         private Person mModifiedBy;
         private Person mRequester;
@@ -39,8 +40,8 @@ namespace org.secc.Purchasing
         private List<Note> mNotes;
         private List<Attachment> mAttachments;
         private List<PaymentCharge> mCharges;
-        private DefinedValue mMinistry;
-        private DefinedValue mLocation;
+        private DefinedValueCache mMinistry;
+        private DefinedValueCache mLocation;
         private CapitalRequest mCapitalRequest;
         private Person mAssignedTo;
 
@@ -128,12 +129,12 @@ namespace org.secc.Purchasing
         }
 
         [XmlIgnore]
-        public DefinedValue RequisitionType
+        public DefinedValueCache RequisitionType
         {
             get
             {
                 if ((mRequisitionType == null || mRequisitionType.Id != RequisitionTypeLUID) && RequisitionTypeLUID > 0)
-                    mRequisitionType = definedValueService.Get(RequisitionTypeLUID);
+                    mRequisitionType = DefinedValueCache.Get(RequisitionTypeLUID);
 
                 return mRequisitionType;
             }
@@ -148,13 +149,13 @@ namespace org.secc.Purchasing
         }
 
         [XmlIgnore]
-        public DefinedValue Status
+        public DefinedValueCache Status
         {
             get
             {
                 if((mState == null || mState.Id != StatusLUID) && StatusLUID > 0)
                 {
-                    mState = definedValueService.Get(StatusLUID);
+                    mState = DefinedValueCache.Get(StatusLUID);
                 }
 
                 return mState;
@@ -264,13 +265,13 @@ namespace org.secc.Purchasing
         }
 
         [XmlIgnore]
-        public DefinedValue Ministry
+        public DefinedValueCache Ministry
         {
             get
             {
                 if ((mMinistry == null || mMinistry.Id != MinistryLUID) && MinistryLUID > 0)
                 {
-                    mMinistry = definedValueService.Get(MinistryLUID);
+                    mMinistry = DefinedValueCache.Get(MinistryLUID);
                 }
 
                 return mMinistry;
@@ -286,13 +287,13 @@ namespace org.secc.Purchasing
         }
 
         [XmlIgnore]
-        public DefinedValue Location
+        public DefinedValueCache Location
         {
             get
             {
                 if (mLocation == null || mLocation.Id != LocationLUID && LocationLUID > 0)
                 {
-                    mLocation = definedValueService.Get( LocationLUID );
+                    mLocation = DefinedValueCache.Get( LocationLUID );
                 }
 
                 return mLocation;
@@ -362,23 +363,23 @@ namespace org.secc.Purchasing
             Load(data);
         }
 
-        public static List<DefinedValue> GetStatuses(bool isActive)
+        public static List<DefinedValueCache> GetStatuses(bool isActive)
         {
-            List<DefinedValue> StatusList = definedTypeService.Get(StatusTypeGUID).DefinedValues.OrderBy(x => x.Order).ToList();
+            List<DefinedValueCache> StatusList = DefinedTypeCache.Get(StatusTypeGUID).DefinedValues.OrderBy(x => x.Order).ToList();
 
             if(isActive)
-                StatusList.RemoveAll(x => x.IsValid == false);
+                StatusList.RemoveAll(x => x.IsActive == false);
 
             return StatusList;
 
         }
 
-        public static List<DefinedValue> GetRequisitionTypes(bool isActive)
+        public static List<DefinedValueCache> GetRequisitionTypes(bool isActive)
         {
-            List<DefinedValue> RequisitionTypes = definedTypeService.Get(RequisitionTypeGUID).DefinedValues.OrderBy(x => x.Order).ToList();
+            List<DefinedValueCache> RequisitionTypes = DefinedTypeCache.Get(RequisitionTypeGUID).DefinedValues.OrderBy(x => x.Order).ToList();
 
             if (isActive)
-                RequisitionTypes.RemoveAll(x => x.IsValid == false);
+                RequisitionTypes.RemoveAll(x => x.IsActive == false);
 
             return RequisitionTypes;
         }
@@ -969,102 +970,102 @@ namespace org.secc.Purchasing
         
         public static int DraftLUID()
         {
-            return definedValueService.Get(DraftStatusGuid).Id;
+            return DefinedValueCache.Get(DraftStatusGuid).Id;
         }
 
         public static int SubmittedToPurchasingLUID()
         {
-            return definedValueService.Get(SubmittedToPurchasingGuid).Id;
+            return DefinedValueCache.Get(SubmittedToPurchasingGuid).Id;
         }
 
         public static int PendingApprovalLUID()
         {
-            return definedValueService.Get(PendingApprovalStatusGuid).Id;
+            return DefinedValueCache.Get(PendingApprovalStatusGuid).Id;
         }
 
         public static int ApprovedLUID()
         {
-            return definedValueService.Get(ApprovedStatusGuid).Id;
+            return DefinedValueCache.Get(ApprovedStatusGuid).Id;
         }
 
         public static int ReturnedToRequesterLUID()
         {
-            return definedValueService.Get(ReturnedToRequesterStatusGuid).Id;
+            return DefinedValueCache.Get(ReturnedToRequesterStatusGuid).Id;
         }
 
         public static int AcceptedByPurchasingLUID()
         {
-            return definedValueService.Get(AcceptedByPurchasingGuid).Id;
+            return DefinedValueCache.Get(AcceptedByPurchasingGuid).Id;
         }
 
         public static int OrderedByPurchasingLUID()
         {
-            return definedValueService.Get(OrderedByPurchasingGuid).Id;
+            return DefinedValueCache.Get(OrderedByPurchasingGuid).Id;
         }
 
         public static int PartiallyReceivedLUID()
         {
-            return definedValueService.Get(PartiallyReceivedGuid).Id;
+            return DefinedValueCache.Get(PartiallyReceivedGuid).Id;
         }
 
         public static int PartiallyOrderedLUID()
         {
-            return definedValueService.Get(PartiallyOrderedGuid).Id;
+            return DefinedValueCache.Get(PartiallyOrderedGuid).Id;
         }
 
         public static int ReceievedLUID()
         {
-            return definedValueService.Get(ReceivedGuid).Id;
+            return DefinedValueCache.Get(ReceivedGuid).Id;
         }
 
         public static int BilledLUID()
         {
-            return definedValueService.Get(BilledGuid).Id;
+            return DefinedValueCache.Get(BilledGuid).Id;
         }
 
         public static int ReopenedLUID()
         {
-            return definedValueService.Get(ReopenedGuid).Id;
+            return DefinedValueCache.Get(ReopenedGuid).Id;
         }
 
         public static int ClosedLUID()
         {
-            return definedValueService.Get(ClosedGuid).Id;
+            return DefinedValueCache.Get(ClosedGuid).Id;
         }
 
         public static int CancelledLUID()
         {
-            return definedValueService.Get(CancelledGuid).Id;
+            return DefinedValueCache.Get(CancelledGuid).Id;
         }
 
         public static int PurchaseReqTypeLUID()
         {
-            return definedValueService.Get(PurchaseReqTypeGuid).Id;
+            return DefinedValueCache.Get(PurchaseReqTypeGuid).Id;
         }
 
         public static int BidRequestReqTypeLUID()
         {
-            return definedValueService.Get(BidRequestReqTypeGuid).Id;
+            return DefinedValueCache.Get(BidRequestReqTypeGuid).Id;
         }
 
         public static int BlanketReqTypeLUID()
         {
-            return definedValueService.Get(BlanketReqTypeGuid).Id;
+            return DefinedValueCache.Get(BlanketReqTypeGuid).Id;
         }
 
         public static int CapitalReqTypeLUID()
         {
-            return definedValueService.Get(CapitalReqTypeGuid).Id;
+            return DefinedValueCache.Get(CapitalReqTypeGuid).Id;
         }
 
         public static int PORequestReqTypeLUID()
         {
-            return definedValueService.Get(PORequestReqTypeGuid).Id;
+            return DefinedValueCache.Get(PORequestReqTypeGuid).Id;
         }
 
         public static int TravelReqTypeLUID()
         {
-            return definedValueService.Get(TravelReqTypeGuid).Id;
+            return DefinedValueCache.Get(TravelReqTypeGuid).Id;
         }
 
         public void Cancel(string uid)
@@ -1585,10 +1586,8 @@ namespace org.secc.Purchasing
             if (TempStatusLUID > 0)
             {
                 StatusLUID = TempStatusLUID;
-                DefinedValue status = definedValueService.Get( TempStatusLUID );
-                status.LoadAttributes();
+                DefinedValueCache status = DefinedValueCache.Get( TempStatusLUID );
                 IsOpen = !( status.GetAttributeValue("IsClosed").AsBoolean());
-
             }
 
             if (HasChanged())

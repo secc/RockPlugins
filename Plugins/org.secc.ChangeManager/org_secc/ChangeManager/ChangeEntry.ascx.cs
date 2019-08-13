@@ -137,6 +137,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 }
 
                 ddlGradePicker.SetValue( gradeOffset );
+                ypGraduation.SelectedYear = person.GraduationYear;
             }
             else
             {
@@ -264,19 +265,6 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             changeRequest.EvaluatePropertyChange( person, "AnniversaryDate", dpAnniversaryDate.SelectedDate );
             changeRequest.EvaluatePropertyChange( person, "GraduationYear", ypGraduation.SelectedYear );
 
-            if ( changeRequest.ChangeRecords.Any() )
-            {
-                ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
-                changeRequestService.Add( changeRequest );
-                rockContext.SaveChanges();
-                if ( GetAttributeValue( "AutoApply" ).AsBoolean() )
-                {
-                    changeRequest.CompleteChanges( rockContext );
-                }
-
-                changeRequest.LaunchWorkflow( GetAttributeValue( "Workflow" ).AsGuidOrNull() );
-            }
-
             var groupEntity = EntityTypeCache.Get( typeof( Group ) );
             var groupLocationEntity = EntityTypeCache.Get( typeof( GroupLocation ) );
             var family = person.GetFamily();
@@ -395,8 +383,24 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
             }
 
+            if ( changeRequest.ChangeRecords.Any()
+                || ( !familyChangeRequest.ChangeRecords.Any() && tbComments.Text.IsNotNullOrWhiteSpace() ) )
+            {
+                changeRequest.RequestorComment = tbComments.Text;
+                ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
+                changeRequestService.Add( changeRequest );
+                rockContext.SaveChanges();
+                if ( GetAttributeValue( "AutoApply" ).AsBoolean() )
+                {
+                    changeRequest.CompleteChanges( rockContext );
+                }
+
+                changeRequest.LaunchWorkflow( GetAttributeValue( "Workflow" ).AsGuidOrNull() );
+            }
+
             if ( familyChangeRequest.ChangeRecords.Any() )
             {
+                familyChangeRequest.RequestorComment = tbComments.Text;
                 ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
                 changeRequestService.Add( familyChangeRequest );
                 rockContext.SaveChanges();

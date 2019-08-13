@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -74,7 +74,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         bool? mUserCanEditItem;
         private int mItemCount = 0;
         Rock.Data.RockContext rockContext = new Rock.Data.RockContext();
-        DefinedValueService definedValueService = null;
         SystemEmailService systemEmailService = null;
         PersonAliasService personAliasService = null;
         UserLoginService userLoginService = null;
@@ -557,8 +556,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         protected override void OnInit(EventArgs e)
         {
-            
-            definedValueService = new DefinedValueService(rockContext);
             systemEmailService = new SystemEmailService(rockContext);
             personAliasService = new PersonAliasService(rockContext);
             userLoginService = new UserLoginService(rockContext);
@@ -1466,7 +1463,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         private void LoadRequisitionTypes()
         {
             ddlType.Items.Clear();
-            List<DefinedValue> Types = Requisition.GetRequisitionTypes(true);
+            List<DefinedValueCache> Types = Requisition.GetRequisitionTypes(true);
             ddlType.DataTextField = "Value";
             ddlType.DataValueField = "Id";
             ddlType.DataSource = Types;
@@ -1607,8 +1604,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if ( reqTypeLUID > 0 )
             {
 
-                var typeLU = definedValueService.Get(reqTypeLUID);
-                typeLU.LoadAttributes();
+                var typeLU = DefinedValueCache.Get(reqTypeLUID);
                 if ( typeLU != null && typeLU.AttributeValues["CERRequired"].Value.AsBoolean() )
                 {
                     cerVisibility = true;
@@ -1758,7 +1754,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
                 if (MinistryAttribute.Value != null )
                 {
-                    CurrentRequisition.MinistryLUID = DefinedValueCache.Read( MinistryAttribute.Value.Value.AsGuid() ).Id;
+                    CurrentRequisition.MinistryLUID = DefinedValueCache.Get( MinistryAttribute.Value.Value.AsGuid() ).Id;
                 }
             }
 
@@ -1768,7 +1764,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
                 if (LocationAttribute.Value != null )
                 {
-                    CurrentRequisition.LocationLUID = DefinedValueCache.Read( LocationAttribute.Value.Value.AsGuid() ).Id;
+                    CurrentRequisition.LocationLUID = DefinedValueCache.Get( LocationAttribute.Value.Value.AsGuid() ).Id;
                 }
             }
 
@@ -2183,9 +2179,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             CurrentPerson.LoadAttributes();
             
             String avc = CurrentPerson.GetAttributeValue(MinistryLocationAttribute.Key);
-            DefinedValue ministryLocation = definedValueService.Get(avc.AsGuid());
+            DefinedValueCache ministryLocation = DefinedValueCache.Get(avc.AsGuid());
             if (ministryLocation != null) {
-                ministryLocation.LoadAttributes();
                 companyID = ministryLocation.GetAttributeValue("CompanyCode").AsInteger();
             }
 
@@ -2376,7 +2371,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     CurrentRequisition.IsApproved = true;
                 }
 
-                DefinedValue definedValue = definedValueService.Get(Requisition.ApprovedLUID());
+                DefinedValueCache definedValue = DefinedValueCache.Get(Requisition.ApprovedLUID());
                 if (CurrentRequisition.Status.Order < definedValue.Order)
                 {
                     if ( CurrentRequisition.IsApproved )
@@ -3474,9 +3469,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             CurrentPerson.LoadAttributes();
             Guid? definedValueGuid = CurrentPerson.GetAttributeValue(MinistryAreaAttribute.Key).AsGuidOrNull();
             if (definedValueGuid.HasValue) {
-                filter.Add("MinistryId", definedValueService.Get(definedValueGuid.Value).Id.ToString());
+                filter.Add("MinistryId", DefinedValueCache.Get(definedValueGuid.Value).Id.ToString());
             }
-            DefinedValue openStatus = definedValueService.Get(new Guid(CapitalRequest.LOOKUP_STATUS_OPEN_GUID));
+            DefinedValueCache openStatus = DefinedValueCache.Get(new Guid(CapitalRequest.LOOKUP_STATUS_OPEN_GUID));
             filter.Add( "StatusLUID", openStatus.Id.ToString() );
             filter.Add( "Show_Me", true.ToString() );
             filter.Add( "Show_Ministry", true.ToString() );

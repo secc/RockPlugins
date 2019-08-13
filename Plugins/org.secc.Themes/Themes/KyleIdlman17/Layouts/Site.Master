@@ -82,7 +82,7 @@
 
     <form id="form1" runat="server">
 
-        <div class="container-fluid">
+        <div class="container-fluid" style="background-color: white;">
             <asp:ContentPlaceHolder ID="feature" runat="server"></asp:ContentPlaceHolder>
 
             <asp:ContentPlaceHolder ID="main" runat="server"></asp:ContentPlaceHolder>

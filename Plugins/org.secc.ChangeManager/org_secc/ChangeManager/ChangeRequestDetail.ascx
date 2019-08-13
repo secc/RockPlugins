@@ -1,7 +1,7 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="ChangeRequestDetail.ascx.cs" Inherits="RockWeb.Plugins.org_secc.ChangeManager.ChangeRequestDetail" %>
 <asp:UpdatePanel runat="server" ID="upContent">
     <ContentTemplate>
-        <div class="panel panel-default">
+        <div class="panel panel-block">
             <div class="panel-heading">
                 <asp:Literal runat="server" ID="lName" />
             </div>
@@ -19,7 +19,10 @@
                         </Columns>
                     </Rock:Grid>
                     <br />
-                    <Rock:RockTextBox runat="server" Label="Comments" ID="tbComment" Height="300" TextMode="MultiLine" />
+                    <Rock:RockLiteral runat="server" ID="ltRequestComments" Label="Request Comments" Visible="false" />
+                    <br />
+                    <Rock:RockLiteral runat="server" ID="ltApproverComment" Label="Approver Comments" Visible="false" />
+                    <Rock:RockTextBox runat="server" Label="Comments" ID="tbApproverComment" Height="300" TextMode="MultiLine" />
                     <br />
                     <Rock:BootstrapButton runat="server" ID="btnComplete" CssClass="btn btn-primary pull-right" Text="Update Items and Complete Request" OnClick="btnComplete_Click" />
                 </div>

@@ -42,6 +42,6 @@
 <script>
 // onload call first round of sermon series
 $( document ).ready(function() {
-	getMoreSermons();
+	getMoreSermons(jQuery);
 });
 </script>

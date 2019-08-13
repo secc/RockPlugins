@@ -50,7 +50,7 @@
                           set(target, prop, value) {
                             target[prop] = value;
                             if (prop == 'video') {
-                                value.videoImage = "https://www.southeastchristian.org/GetImage.ashx?Guid={{ HeroImage.Guid }}";
+                                value.videoImage = "/GetImage.ashx?Guid={{ HeroImage.Guid }}";
                                 value.userEventsList['started'][0] = function () {
 
                                     self.image.$default_item = self.image.$item;
@@ -85,7 +85,7 @@
                         // Use a proxy'ed JS object
                         var self = new Proxy(this, imageHandler);
                         self.defaultInitImgResult = true;
-                        self.image.src = "https://www.southeastchristian.org/GetImage.ashx?Guid={{ HeroImage.Guid }}";
+                        self.image.src = "/GetImage.ashx?Guid={{ HeroImage.Guid }}";
 
                         // save default user styles
                         var curStyle = self.$item.getAttribute('style');
@@ -95,7 +95,7 @@
 
                         // set new background
                         self.css(self.$item, {
-                            'background-image': 'url("https://www.southeastchristian.org/GetImage.ashx?Guid={{ HeroImage.Guid }}")',
+                            'background-image': 'url("/GetImage.ashx?Guid={{ HeroImage.Guid }}")',
                             'background-position': '{{ HeroImagePosition }}',
                             'background-size': 'cover',
                             'transition': 'opacity .25s ease-in-out',
@@ -109,7 +109,7 @@
                       }
                     </script>
 
-                    {[ parallax videourl:'https://vimeo.com/{{ CampusVimeoId }}' image:'https://www.southeastchristian.org/GetImage.ashx?Guid={{ HeroImage.Guid }}' videostarttime:'75' videoendtime:'105' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'80vh' position:'{{ HeroImagePosition }}' speed:'-15' ]}
+                    {[ parallax videourl:'https://vimeo.com/{{ CampusVimeoId }}' image:'/GetImage.ashx?Guid={{ HeroImage.Guid }}' videostarttime:'75' videoendtime:'105' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'80vh' position:'{{ HeroImagePosition }}' speed:'-15' ]}
                         <!-- START: Campus Logo & Video -->
                         <div class="parallax-logo centered" style="padding: 0px; z-index:3; max-width: 100%;">
                             <h5 class="uppercase g-font-weight--600 g-letter-spacing--3">Welcome To</h5>
@@ -176,17 +176,21 @@
                 <nav class="page-nav text-center">
                     <ul class="list-inline">
                         <li><a href="#Location">Location</a></li>
-                        <li><a href="#WorshipTimes">Worship Times</a></li>
-                        <li><a href="#Leadership">Leadership</a></li>
-                        <li><a href="#Children">Children</a></li>
-                        <li><a href="#Students">Students</a></li>
-                        {% unless campusSlug == "elizabethtown" or campusSlug == "rivervalley"%}
-                        <li><a href="#LivingWord">Living Word</a></li>
+                        {% unless campusSlug == "chapelinthewoods" %}
+                            <li><a href="#WorshipTimes">Worship Times</a></li>
                         {% endunless %}
-                        {% if campusSlug == "blankenbaker" %}
-                        <li><a href="#SoutheastLibraries">Libraries</a></li>
-                        {% endif %}
-                        <li><a href="#Connect">Get Connected</a></li>
+                        <li><a href="#Leadership">Leadership</a></li>
+                        {% unless campusSlug == "chapelinthewoods" %}
+                            <li><a href="#Children">Children</a></li>
+                            <li><a href="#Students">Students</a></li>
+                            {% unless campusSlug == "elizabethtown" or campusSlug == "rivervalley"%}
+                            <li><a href="#LivingWord">Living Word</a></li>
+                            {% endunless %}
+                            {% if campusSlug == "blankenbaker" %}
+                            <li><a href="#SoutheastLibraries">Libraries</a></li>
+                            {% endif %}
+                            <li><a href="#Connect">Get Connected</a></li>
+                        {% endunless %}
                     </ul>
                 </nav>
             </div>
@@ -281,6 +285,9 @@
                                     {%- if campusServices.msm != null &&  campusServices.hsm != null -%}
                                     <h5>
                                         <strong>Student Ministries</strong><br />
+                                        {%- if campusSlug == 'rivervalley' -%}
+                    						Weekly programming launches Sep. 8th<br /><br />
+                    					{%- endif -%}
                                     {%- endif -%}
 
                                     {%- if campusServices.msm != null -%}
@@ -308,7 +315,7 @@
                                     {%- endif -%}
 
                                 {%- endif -%}
-								{%- assign slug = campus | Attribute: 'slug' -%}
+                                {%-assign slug = campus | Attribute: 'slug'-%}
                                 {%- if slug == 'indiana' -%}
             						(in the back of the building)
             					{%- endif -%}
