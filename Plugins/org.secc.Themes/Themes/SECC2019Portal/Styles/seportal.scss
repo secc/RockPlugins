@@ -70,8 +70,12 @@ hr.g-border-b-2--xs {
 			background-image: url('/Themes/SECC2019Portal/Assets/img/OnePoint/Self_Guided_icon.svg');
 		}
 	}
+}
+.cd-header-buttons {
 	.dropdown {
+  	float: left;
 		.dropdown-toggle {
+  		padding: 9px;
 			.has-badge[data-count]:after{
 			  position:absolute;
 			  right:0%;
@@ -90,14 +94,18 @@ hr.g-border-b-2--xs {
 			}
 		}
 		.dropdown-menu {
-			top: 100%;
-	    background: white;
-	    right: 0;
-	    left: auto;
-	    position: absolute;
-	    height: 200px;
-	    overflow: scroll;
-	    margin:0;
+  		min-width: 210px;
+  		li {
+    		display: block;
+    		border-top: solid 1px #eeeeee;
+    		&:first-child {
+      		border-top: none;
+    		}
+    		a {
+      		padding: 5px 20px;
+      		white-space: normal;
+    		}
+  		}
 		}
 	}
 }
