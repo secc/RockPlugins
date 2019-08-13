@@ -4,11 +4,12 @@
     <ContentTemplate>
 
         <Rock:NotificationBox runat="server" ID="nbAlert" Dismissable="true" NotificationBoxType="Danger" />
-        <Rock:Grid runat="server" ID="gGrid" ShowActionRow="false" DataKeyNames="Id" RowItemText="Student">
+        <Rock:Grid runat="server" ID="gGrid" ShowActionRow="false" DataKeyNames="Id" RowItemText="Student"
+            ShowFooter="false" ShowActionsInHeader="false" AllowPaging="false" AllowSorting="false">
             <Columns>
                 <Rock:RockBoundField DataField="Name" HeaderText="Person" />
-                <Rock:RockBoundField DataField="Group" HeaderText="Camp" />
-                <Rock:RockBoundField DataField="Medications" HeaderText="Medications" HtmlEncode="false" />
+                <Rock:RockBoundField DataField="Group" ColumnPriority="Desktop" HeaderText="Camp" />
+                <Rock:RockBoundField DataField="Medications" HeaderText="Medications" ColumnPriority="Desktop" HtmlEncode="false" />
                 <Rock:LinkButtonField OnClick="SelectMember_Click" Text="Update Medications" />
             </Columns>
         </Rock:Grid>
