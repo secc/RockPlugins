@@ -15,20 +15,13 @@ using System;
 using System.ComponentModel;
 using Rock;
 using Rock.Model;
-using Rock.Security;
 using System.Web.UI;
 using Rock.Web.Cache;
-using Rock.Web.UI;
-using System.Web;
 using Rock.Data;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.UI.WebControls;
 using org.secc.ChangeManager.Model;
-using System.Reflection;
-using Newtonsoft.Json;
-using System.ComponentModel.DataAnnotations;
-using System.Dynamic;
 using Rock.Attribute;
 
 namespace RockWeb.Plugins.org_secc.ChangeManager
@@ -80,6 +73,13 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             RockContext rockContext = new RockContext();
             ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
             var changeRequests = changeRequestService.Queryable();
+
+            if ( !IsUserAuthorized( Rock.Security.Authorization.EDIT ) )
+            {
+                var currentPersonAliasIds = CurrentPerson.Aliases.Select( a => a.Id );
+                changeRequests = changeRequests.Where( cr => currentPersonAliasIds.Contains( cr.RequestorAliasId ) );
+            }
+
             if ( !cbShowComplete.Checked )
             {
                 changeRequests = changeRequests.Where( c => !c.IsComplete );

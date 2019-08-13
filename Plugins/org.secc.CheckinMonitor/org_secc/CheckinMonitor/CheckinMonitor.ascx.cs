@@ -866,21 +866,20 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                 if ( groupId != 0 && locationId != 0 )
                 {
-                    var newRecord = attendanceService.AddOrUpdate(
-                        attendanceRecord.PersonAliasId,
-                        attendanceRecord.StartDateTime,
-                        groupId,
-                        locationId,
-                        attendanceRecord.Occurrence.ScheduleId,
-                        attendanceRecord.CampusId,
-                        attendanceRecord.DeviceId,
-                        null,
-                        "MOVED IN OZ",
-                        null,
-                        attendanceRecord.AttendanceCodeId,
-                        null );
+                    AttendanceOccurrence occurrence = GetOccurrence( _rockContext, attendanceRecord.StartDateTime, groupId, locationId, attendanceRecord.Occurrence.ScheduleId );
 
-                    newRecord.DidAttend = attendanceRecord.DidAttend;
+                    var newRecord = new Attendance
+                    {
+                        Occurrence = occurrence,
+                        OccurrenceId = occurrence.Id,
+                        PersonAliasId = attendanceRecord.PersonAliasId,
+                        StartDateTime = RockDateTime.Now,
+                        DidAttend = attendanceRecord.DidAttend,
+                        CampusId = attendanceRecord.CampusId,
+                        DeviceId = CurrentKioskId,
+                        SearchValue = "MOVED IN OZ",
+                        AttendanceCodeId = attendanceRecord.AttendanceCodeId,
+                    };
 
                     //Close all other attendance records for this person today at this schedule
                     var currentRecords = attendanceService.Queryable()
@@ -905,6 +904,35 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             CheckInCountCache.Flush();
             BindTable();
             RebuildModal();
+        }
+
+        private AttendanceOccurrence GetOccurrence( RockContext rockContext, DateTime startDateTime, int? groupId, int? locationId, int? scheduleId )
+        {
+            var occurrenceService = new AttendanceOccurrenceService( rockContext );
+            var occurrence = occurrenceService.Get( startDateTime.Date, groupId, locationId, scheduleId );
+
+            if ( occurrence == null )
+            {
+                // If occurrence does not yet exists, use a new context and create it
+                using ( var newContext = new RockContext() )
+                {
+                    occurrence = new AttendanceOccurrence
+                    {
+                        OccurrenceDate = startDateTime.Date,
+                        GroupId = groupId,
+                        LocationId = locationId,
+                        ScheduleId = scheduleId,
+                    };
+
+                    var newOccurrenceService = new AttendanceOccurrenceService( newContext );
+                    newOccurrenceService.Add( occurrence );
+                    newContext.SaveChanges();
+
+                    // Query for the new occurrence using original context.
+                    occurrence = occurrenceService.Get( occurrence.Id );
+                }
+            }
+            return occurrence;
         }
 
         protected void ddlSchedules_SelectedIndexChanged( object sender, EventArgs e )

@@ -70,7 +70,7 @@
                     {% endif %}
                     {% assign eventLinkURL = eventLinkURL | Append:"campusId=" | Append: pageParamCampusId %}
                 {% endif %}
-                <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
+                <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar" data-day="{{ eventItemOccurrence.Date | Date: 'dddd'}}">
                     <div class="clearfix card">
                         <a href="{{ eventLinkURL }}" class='eventCardLink'>
                             {% if eventItemOccurrence.EventItemPhotoId != null and eventItemOccurrence.EventItemPhotoId != 0 %}

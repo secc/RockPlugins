@@ -1,0 +1,234 @@
+<meta charset="utf-8"> <!-- utf-8 works for most cases -->
+<meta name="viewport" content="width=device-width"> <!-- Forcing initial-scale shouldn't be necessary -->
+<meta http-equiv="X-UA-Compatible" content="IE=edge"> <!-- Use the latest (edge) version of IE rendering engine -->
+<meta name="x-apple-disable-message-reformatting">  <!-- Disable auto-scale in iOS 10 Mail entirely -->
+<title></title> <!-- The title tag shows in email notifications, like Android 4.4. -->
+
+<!-- Web Font / @font-face : BEGIN -->
+<!-- NOTE: If web fonts are not required, lines 10 - 27 can be safely removed. -->
+
+<!-- Desktop Outlook chokes on web font references and defaults to Times New Roman, so we force a safe fallback font. -->
+<!--[if mso]>
+    <style>
+        * {
+            font-family: sans-serif !important;
+        }
+    </style>
+<![endif]-->
+
+<!-- All other clients get the webfont reference; some will render the font and others will silently fail to the fallbacks. More on that here: http://stylecampaign.com/blog/2015/02/webfont-support-in-email/ -->
+<!--[if !mso]><!-->
+<!-- insert web font reference, eg: <link href='https://fonts.googleapis.com/css?family=Roboto:400,700' rel='stylesheet' type='text/css'> -->
+<!--<![endif]-->
+
+<!-- Web Font / @font-face : END -->
+
+<noscript id="lava-fields">
+    {% comment %}  Lava Fields: Code-Generated from Template Editor {% endcomment %}
+    {% assign headerBanner = 'https://www.southeastchristian.org/Content/EmailTemplates/SE_generic_header.jpg' %}
+    {% assign headerBannerTitle = 'Southeast Christian Church' %}
+</noscript>
+
+<!-- CSS Reset : BEGIN -->
+<style>
+    /* What it does: Remove spaces around the email design added by some email clients. */
+    /* Beware: It can remove the padding / margin and add a background color to the compose a reply window. */
+    html,
+    body {
+        margin: 0 auto !important;
+        padding: 0 !important;
+        height: 100% !important;
+        width: 100% !important;
+        background: #f1f1f1;
+    }
+
+    /* What it does: Stops email clients resizing small text. */
+    * {
+        -ms-text-size-adjust: 100%;
+        -webkit-text-size-adjust: 100%;
+    }
+
+    /* What it does: Centers email on Android 4.4 */
+    div[style*="margin: 16px 0"] {
+        margin: 0 !important;
+    }
+
+    /* What it does: Stops Outlook from adding extra spacing to tables. */
+    table,
+    td {
+        mso-table-lspace: 0pt !important;
+        mso-table-rspace: 0pt !important;
+    }
+
+    /* What it does: Fixes webkit padding issue. Fix for Yahoo mail table alignment bug. Applies table-layout to the first 2 tables then removes for anything nested deeper. */
+    table {
+        border-spacing: 0 !important;
+        border-collapse: collapse !important;
+        table-layout: fixed !important;
+        margin: 0 auto !important;
+    }
+    table table table {
+        table-layout: auto;
+    }
+
+    /* What it does: Uses a better rendering method when resizing images in IE. */
+    img {
+        -ms-interpolation-mode:bicubic;
+    }
+
+    /* What it does: A work-around for email clients meddling in triggered links. */
+    *[x-apple-data-detectors],  /* iOS */
+    .x-gmail-data-detectors,    /* Gmail */
+    .x-gmail-data-detectors *,
+    .aBn {
+        border-bottom: 0 !important;
+        cursor: default !important;
+        color: inherit !important;
+        text-decoration: none !important;
+        font-size: inherit !important;
+        font-family: inherit !important;
+        font-weight: inherit !important;
+        line-height: inherit !important;
+    }
+
+    /* What it does: Prevents Gmail from displaying an download button on large, non-linked images. */
+    .a6S {
+        display: none !important;
+        opacity: 0.01 !important;
+    }
+    /* If the above doesn't work, add a .g-img class to any image in question. */
+    img.g-img + div {
+        display: none !important;
+    }
+
+    /* What it does: Prevents underlining the button text in Windows 10 */
+    .button-link {
+        text-decoration: none !important;
+    }
+
+    /* What it does: Removes right gutter in Gmail iOS app: https://github.com/TedGoas/Cerberus/issues/89  */
+    /* Create one of these media queries for each additional viewport size you'd like to fix */
+    /* Thanks to Eric Lepetit (@ericlepetitsf) for help troubleshooting */
+    @media only screen and (min-device-width: 375px) and (max-device-width: 413px) { /* iPhone 6 and 6+ */
+        .email-container {
+            min-width: 375px !important;
+        }
+    }
+</style>
+<!-- CSS Reset : END -->
+
+<!-- Progressive Enhancements : BEGIN -->
+<style>
+    /* What it does: Hover styles for buttons */
+    .button-td,
+    .button-a {
+        transition: all 100ms ease-in;
+    }
+    .button-td:hover,
+    .button-a:hover {
+        background: #555555 !important;
+        border-color: #555555 !important;
+    }
+
+    /* Media Queries */
+    @media screen and (max-width: 600px) {
+        /* What it does: Adjust typography on small screens to improve readability */
+        h2.church-header {
+            font-size: 14px !important;
+            line-height: 20px !important;
+            margin-left: 10px !important;
+        }
+        h2.campus-header {
+            font-size: 20px !important;
+            line-height: 20px !important;
+            float: left !important;
+            margin-left: 10px !important;
+            /*margin-top: -10px !important;*/
+        }
+
+        .footer-logo {
+            width: 20% !important;
+        }
+        .footer-copy {
+            width: 80% !important;
+        }
+        .email-container p {
+            font-size: 17px !important;
+            line-height: 22px !important;
+        }
+    }
+</style>
+<!-- Progressive Enhancements : END -->
+
+<!-- What it does: Makes background images in 72ppi Outlook render at correct size. -->
+<!--[if gte mso 9]>
+<xml>
+    <o:OfficeDocumentSettings>
+        <o:AllowPNG></o:AllowPNG>
+        <o:PixelsPerInch>96</o:PixelsPerInch>
+    </o:OfficeDocumentSettings>
+</xml>
+<![endif]-->
+
+<center style="width: 100%; background: #f1f1f1; text-align: left;">
+
+<!-- Visually Hidden Preheader Text : BEGIN -->
+<div style="display: none; font-size: 1px; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all; font-family: sans-serif;">
+</div>
+<!-- Visually Hidden Preheader Text : END -->
+
+<!-- Full Bleed Background Section : BEGIN -->
+<table role="presentation" bgcolor="#f1f1f1" cellspacing="0" cellpadding="0" border="0" align="center" width="100%">
+    <tbody><tr>
+        <td valign="top" align="center">
+            <div style="max-width: 600px; margin: auto;" class="email-container">
+
+                <!--[if mso]>
+                <table role="presentation" border="0" cellspacing="0" cellpadding="0" align="center" width="600" style="width: 600px;">
+                <tr>
+                <td align="center" valign="top" width="600" style="width: 600px;">
+                <![endif]-->
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center" width="100%" style="max-width:660px;">
+                    <tbody><tr>
+                        <td align="center" valign="top" style="font-size:0; padding: 10px 0 0 0;">
+
+                            <div style="display:inline-block; margin: 0 -2px; max-width:100%; min-width:320px; vertical-align:middle;" class="stack-column">
+                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                    <tbody>
+                                        <tr>
+                                            <td bgcolor="#f1f1f1" align="center" style="text-align: center !important;">
+                                                <img data-instructions="Provide a PNG with a transparent background." src="{{ headerBanner }}" alt="{{ headerBannerTitle }}" title="{{ headerBannerTitle }}" width="600" height="" border="0" align="center" style="width: 100%; max-width: 600px; height: auto; background: #f1f1f1; font-family: sans-serif; font-size: 15px; color: #555555; margin: auto;" class="g-img">
+                                            </td>
+                                        </tr>
+                                </tbody>
+                            </table>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody></table>
+                <!--[if mso]>
+                </td>
+                </tr>
+                </table>
+                <![endif]-->
+            </div>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<!-- Full Bleed Background Section : END -->
+
+<!--
+    Set the email width. Defined in two places:
+    1. max-width for all clients except Desktop Windows Outlook, allowing the email to squish on narrow but never go wider than 600px.
+    2. MSO tags for Desktop Windows Outlook enforce a 600px width.
+-->
+<div style="width: 100%; font-size: 12px; font-family: sans-serif; line-height:18px; color: #000000; max-width: 600px; margin: auto; background-color:#ffffff;" class="email-container">
+<!--[if mso]>
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" align="center">
+<tr>
+<td>
+<![endif]-->
+
+<div style="padding: 15px 10px;">
+    <!-- Email Container: Start (Ends in Footer) -->

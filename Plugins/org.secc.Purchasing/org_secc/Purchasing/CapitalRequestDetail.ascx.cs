@@ -60,7 +60,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         #region Fields
         private CapitalRequest mCapitalRequest = null;
         private bool? mUserCanEdit = null;
-        DefinedValueService definedValueService = new DefinedValueService(new Rock.Data.RockContext());
         #endregion
 
         #region Module Settings
@@ -994,7 +993,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             if ( LocationLookupTypeSetting.HasValue )
             {
-                ddlSCCLocation.DataSource = definedValueService.GetByDefinedTypeGuid( LocationLookupTypeSetting.Value )
+                ddlSCCLocation.DataSource = DefinedTypeCache.Get( LocationLookupTypeSetting.Value )
+                                                    .DefinedValues
                                                     .OrderBy(l => l.Order)
                                                     .Select( l => new { l.Id, l.Value } )
                                                     .ToList();
@@ -1011,7 +1011,11 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             ddlRequestingMinistry.Items.Clear();
 
-            ddlRequestingMinistry.DataSource = definedValueService.GetByDefinedTypeGuid(MinistryAreaLookupTypeSetting).Select(l => new { l.Id, l.Value }).OrderBy(l => l.Value).ToList();
+            ddlRequestingMinistry.DataSource = DefinedTypeCache.Get(MinistryAreaLookupTypeSetting)
+                .DefinedValues
+                .Select(l => new { l.Id, l.Value })
+                .OrderBy(l => l.Value)
+                .ToList();
             ddlRequestingMinistry.DataValueField = "Id";
             ddlRequestingMinistry.DataTextField = "Value";
             ddlRequestingMinistry.DataBind();
@@ -1124,7 +1128,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if(CurrentCapitalRequest != null)
             {
 
-                DefinedValue MinistryApprovalLU = definedValueService.GetByGuid(new Guid(CapitalRequest.LOOKUP_STATUS_PENDING_MINISTRY_APPROVAL_GUID));
+                DefinedValueCache MinistryApprovalLU = DefinedValueCache.Get(CapitalRequest.LOOKUP_STATUS_PENDING_MINISTRY_APPROVAL_GUID);
                 approverCanBeSet = CurrentCapitalRequest.Status.Order < MinistryApprovalLU.Order;
             }
             
@@ -1406,7 +1410,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
             catch ( RequisitionException rEx )
             {
-                if ( CurrentCapitalRequest.StatusLUID == definedValueService.GetByGuid(new Guid( CapitalRequest.LOOKUP_STATUS_PENDING_FINANCE_APPROVAL_GUID )).Id)
+                if ( CurrentCapitalRequest.StatusLUID == DefinedValueCache.Get( CapitalRequest.LOOKUP_STATUS_PENDING_FINANCE_APPROVAL_GUID ).Id)
                 {
                     CurrentCapitalRequest.ChangeStatus( CapitalRequest.LOOKUP_STATUS_PENDING_MINISTRY_APPROVAL_GUID, CurrentUser.UserName );
                 }
@@ -1445,8 +1449,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
             catch ( RequisitionException rEx )
             {
-                if ( CurrentCapitalRequest.StatusLUID == 
-                definedValueService.GetByGuid(new Guid( CapitalRequest.LOOKUP_STATUS_PENDING_MINISTRY_APPROVAL_GUID )).Id)
+                if ( CurrentCapitalRequest.StatusLUID ==
+                DefinedValueCache.Get( CapitalRequest.LOOKUP_STATUS_PENDING_MINISTRY_APPROVAL_GUID ).Id)
                 {
                     CurrentCapitalRequest.ChangeStatus( CapitalRequest.LOOKUP_STATUS_NEW_GUID, CurrentUser.UserName );
                 }
@@ -1521,7 +1525,11 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
 
 
-            lStatusEdit.Text = definedValueService.GetByDefinedTypeGuid(new Guid(CapitalRequest.STATUS_LOOKUP_TYPE_GUID)).OrderBy(l => l.Order).FirstOrDefault().Value;
+            lStatusEdit.Text = DefinedTypeCache.Get(new Guid(CapitalRequest.STATUS_LOOKUP_TYPE_GUID))
+                .DefinedValues
+                .OrderBy(l => l.Order)
+                .FirstOrDefault()
+                .Value;
             lDateRequestedEdit.Text = DateTime.Now.ToShortDateString();
             hfDateRequestedEdit.Value = DateTime.Now.ToShortDateString();
             txtItemLocation.Text = null;
@@ -1538,7 +1546,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             lOngoingCosts.Text = "&nbsp;";
             lRequester.Text = CurrentPerson.FullName;
             if (GetCurrentUsersMinistryArea() > 0) {
-                lRequestingMinistry.Text = definedValueService.Get(GetCurrentUsersMinistryArea()).Value;
+                lRequestingMinistry.Text = DefinedValueCache.Get(GetCurrentUsersMinistryArea()).Value;
             }
 
             if ( LocationLookupTypeSetting.HasValue )
@@ -1546,7 +1554,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 if (GetCurrentUsersLocation() > 0)
                 {
                     pnlSCCLocationView.Visible = true;
-                    lSCCLocation.Text = definedValueService.Get(GetCurrentUsersLocation()).Value;
+                    lSCCLocation.Text = DefinedValueCache.Get(GetCurrentUsersLocation()).Value;
                 }
             }
             else
@@ -1556,7 +1564,11 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
 
             
-            lStatus.Text = definedValueService.GetByDefinedTypeGuid( new Guid( CapitalRequest.STATUS_LOOKUP_TYPE_GUID ) ).OrderBy( l => l.Order ).FirstOrDefault().Value;
+            lStatus.Text = DefinedTypeCache.Get( new Guid( CapitalRequest.STATUS_LOOKUP_TYPE_GUID ) )
+                .DefinedValues
+                .OrderBy( l => l.Order )
+                .FirstOrDefault()
+                .Value;
             lDateRequested.Text = DateTime.Now.ToShortDateString();
             lItemLocation.Text = "&nbsp;";
             lInServiceDate.Text = "&nbsp;";
@@ -1906,7 +1918,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 return false;
             }
 
-            if(CurrentCapitalRequest.StatusLUID != definedValueService.Get(new Guid(CapitalRequest.LOOKUP_STATUS_OPEN_GUID)).Id)
+            if(CurrentCapitalRequest.StatusLUID != DefinedValueCache.Get(new Guid(CapitalRequest.LOOKUP_STATUS_OPEN_GUID)).Id)
             {
                 return false;
             }
@@ -2032,8 +2044,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 return false;
             }
 
-            int openStatusLUID = definedValueService.Get( new Guid( CapitalRequest.LOOKUP_STATUS_OPEN_GUID ) ).Id;
-            CurrentCapitalRequest.Requisitions.ForEach(r => r.Status.LoadAttributes());
+            int openStatusLUID = DefinedValueCache.Get( CapitalRequest.LOOKUP_STATUS_OPEN_GUID ).Id;
             int openRequisitionCount = CurrentCapitalRequest.Requisitions
                                         .Where( r => r.Active )
                                         .Where(r => !r.Status.AttributeValues["IsClosed"].Value.AsBoolean())
@@ -2072,7 +2083,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 return (bool)mUserCanEdit;
             }
 
-            var pendingMinistryApprovalStatus = definedValueService.Get( new Guid( CapitalRequest.LOOKUP_STATUS_PENDING_MINISTRY_APPROVAL_GUID ) );
+            var pendingMinistryApprovalStatus = DefinedValueCache.Get(  CapitalRequest.LOOKUP_STATUS_PENDING_MINISTRY_APPROVAL_GUID  );
 
             //User is Creator and request hasn't been sent for approval and is not closed
             if (CurrentPerson.PrimaryAliasId == CurrentCapitalRequest.RequesterId || CurrentPerson.PrimaryAliasId == CurrentCapitalRequest.CreatedByPerson.PrimaryAliasId)
@@ -2104,7 +2115,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 return false;
             }
 
-            DefinedValue closedStatus = definedValueService.Get( new Guid( CapitalRequest.LOOKUP_STATUS_CLOSED_GUID ) );
+            DefinedValueCache closedStatus = DefinedValueCache.Get(  CapitalRequest.LOOKUP_STATUS_CLOSED_GUID );
 
             if ( CurrentCapitalRequest.StatusLUID != closedStatus.Id )
             {
@@ -2171,7 +2182,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 return false;
             }
 
-            if ( UserCanEditSummary() && CurrentCapitalRequest.Status.Order < definedValueService.Get( new Guid( CapitalRequest.LOOKUP_STATUS_PENDING_MINISTRY_APPROVAL_GUID ) ).Order )
+            if ( UserCanEditSummary() && CurrentCapitalRequest.Status.Order < DefinedValueCache.Get(  CapitalRequest.LOOKUP_STATUS_PENDING_MINISTRY_APPROVAL_GUID  ).Order )
             {
                 return true;
             }
@@ -2234,7 +2245,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
 
 
-            DefinedValue FinanceStatus = definedValueService.Get(new Guid(CapitalRequest.LOOKUP_STATUS_PENDING_FINANCE_APPROVAL_GUID));
+            DefinedValueCache FinanceStatus = DefinedValueCache.Get( CapitalRequest.LOOKUP_STATUS_PENDING_FINANCE_APPROVAL_GUID );
             if ( CurrentCapitalRequest.Status.Order > FinanceStatus.Order )
             {
                 return false;
@@ -2301,7 +2312,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             CurrentCapitalRequest.AddApprovalRequest( test.Id, CurrentUser.UserName, approvalTypeId );
 
             // If this is already in a pending status, go ahead and immediately send the approval out.
-            if ( CurrentCapitalRequest.Status.Order >= definedValueService.Get( new Guid( CapitalRequest.LOOKUP_STATUS_PENDING_MINISTRY_APPROVAL_GUID ) ).Order )
+            if ( CurrentCapitalRequest.Status.Order >= DefinedValueCache.Get( CapitalRequest.LOOKUP_STATUS_PENDING_MINISTRY_APPROVAL_GUID ).Order )
             {
                 RequestApproval();
             }

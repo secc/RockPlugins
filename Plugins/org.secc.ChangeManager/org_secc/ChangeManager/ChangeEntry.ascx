@@ -26,7 +26,7 @@
                     <div class="row">
                         <div class="col-md-6">
                             <h3>Communication Information</h3>
-                            <div style="border: solid 1px black">
+                            <div style="border-top: solid 1px black">
                                 <br />
                                 <asp:Repeater ID="rContactInfo" runat="server">
                                     <ItemTemplate>
@@ -75,7 +75,7 @@
                         </div>
                         <div class="col-md-6">
                             <h3>Demographic Information</h3>
-                            <div style="border: solid 1px black; padding: 20px">
+                            <div style="border-top: solid 1px black; padding: 20px">
                                 <div class="row">
                                     <div class="col-md-8">
                                         <Rock:BirthdayPicker runat="server" ID="bpBirthday" Label="Birth Date" />
@@ -100,7 +100,7 @@
                         </div>
                     </div>
                     <h3>Any changes to the below information will be applied to the entire family.</h3>
-                    <div style="border: solid 1px black; padding: 20px">
+                    <div style="border-top: solid 1px black; padding: 20px">
                         <div class="row">
                             <div class="col-md-6">
                                 <Rock:AddressControl runat="server" ID="acAddress" Label="Address" />
@@ -109,6 +109,14 @@
                                 <Rock:CampusPicker runat="server" ID="ddlCampus" Label="Campus" />
                                 <Rock:PersonPicker runat="server" ID="pAddPerson" Label="Add a Person to this Family" />
                                 <Rock:RockCheckBox runat="server" ID="cbRemovePerson" Text="Remove this person from other families?" />
+                            </div>
+                        </div>
+                    </div>
+                    <h3>Additional Comments or Requests</h3>
+                    <div style="border-top: solid 1px black; padding: 20px">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <Rock:RockTextBox runat="server" ID="tbComments" Label="(Optional)" TextMode="MultiLine" Height="200" />
                             </div>
                         </div>
                     </div>

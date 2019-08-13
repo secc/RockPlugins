@@ -26,6 +26,7 @@ using Rock.Model;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 using org.secc.Purchasing.DataLayer;
+using Rock.Web.Cache;
 
 namespace RockWeb.Plugins.org_secc.Purchasing
 {
@@ -341,14 +342,13 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             dgSearchResults.DataBind();
         }
 
-        private List<DefinedValue> GetMinistryAreas()
+        private List<DefinedValueCache> GetMinistryAreas()
         {
-            List<DefinedValue> MinistryAreas = new List<DefinedValue>();
-            DefinedValueService definedValueService = new DefinedValueService(new Rock.Data.RockContext());
+
             AttributeService attributeService = new AttributeService(new Rock.Data.RockContext());
             Rock.Model.Attribute ministryArea = attributeService.Get(MinistryAreaAttributeGuid.Value);
 
-            return definedValueService.GetByDefinedTypeId(ministryArea.AttributeQualifiers.Where(aq => aq.Key == "definedtype").Select(aq => aq.Value).FirstOrDefault().AsInteger()).ToList();
+            return DefinedTypeCache.Get(ministryArea.AttributeQualifiers.Where(aq => aq.Key == "definedtype").Select(aq => aq.Value).FirstOrDefault().AsInteger()).DefinedValues.ToList();
         }
 
         private string GetSelectedStaffPersonIDs()

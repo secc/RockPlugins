@@ -45,7 +45,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
     public partial class CapitalRequestList : RockBlock
     {
         private string PersonSettingKey = "CapitalRequestList";
-        private DefinedTypeService definedTypeService = new DefinedTypeService( new Rock.Data.RockContext() );
         #region Module Settings
 
 
@@ -309,9 +308,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         private void LoadStatusList()
         {
             cblStatus.Items.Clear();
-            var statusLookups = definedTypeService.Get( new Guid( CapitalRequest.STATUS_LOOKUP_TYPE_GUID ) );
+            var statusLookups = DefinedTypeCache.Get( new Guid( CapitalRequest.STATUS_LOOKUP_TYPE_GUID ) );
 
-            cblStatus.DataSource = statusLookups.DefinedValues.Where( l => l.IsValid ).OrderBy( l => l.Order );
+            cblStatus.DataSource = statusLookups.DefinedValues.Where( l => l.IsActive ).OrderBy( l => l.Order );
             cblStatus.DataValueField = "Id";
             cblStatus.DataTextField = "Value";
             cblStatus.DataBind();
@@ -368,8 +367,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             if ( LocationLookupTypeIdSetting.HasValue )
             {
-                ddlSCCLocation.DataSource = definedTypeService.Get( LocationLookupTypeIdSetting.Value ).DefinedValues
-                                                .Where( l => l.IsValid )
+                ddlSCCLocation.DataSource = DefinedTypeCache.Get( LocationLookupTypeIdSetting.Value ).DefinedValues
+                                                .Where( l => l.IsActive )
                                                 .Select( l => new { l.Id, l.Value } )
                                                 .OrderBy( l => l.Value );
                 ddlSCCLocation.DataValueField = "Id";
@@ -387,8 +386,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             if ( String.IsNullOrEmpty( GetAttributeValue( "MinistryAreaLookupType" ) ) )
                 return;
-            var ministries = definedTypeService.Get( GetAttributeValue( "MinistryAreaLookupType" ).AsGuid() ).DefinedValues
-                                .Where( l => l.IsValid )
+            var ministries = DefinedTypeCache.Get( GetAttributeValue( "MinistryAreaLookupType" ).AsGuid() ).DefinedValues
+                                .Where( l => l.IsActive  )
                                 .OrderBy( l => l.Value );
 
             ddlMinistry.DataSource = ministries;

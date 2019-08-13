@@ -68,28 +68,52 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             if ( !Page.IsPostBack )
             {
-                BindGrid();
+                ShowGroups();
             }
         }
 
-        protected void BindGrid()
+        protected void ShowGroups()
         {
+            RockContext rockContext = new RockContext();
             var groupTypeGuid = GetAttributeValue( "GroupType" ).AsGuid();
-            var qry = new GroupTypeService( new RockContext() )
+            var groupTypeId = new GroupTypeService( rockContext ).Get( groupTypeGuid ).Id;
+            var groupTypeIdString = groupTypeId.ToString();
+            var groupEntityTypeId = EntityTypeCache.Get( typeof( Group ) ).Id;
+            var groupAttributesQry = new AttributeService( rockContext ).Queryable()
+                .Where( a => a.EntityTypeId == groupEntityTypeId )
+                .Where( a => a.EntityTypeQualifierValue == groupTypeIdString )
+                .Where( a => a.EntityTypeQualifierColumn == "GroupTypeId" );
+            var groupAttributesValueQry = new AttributeValueService( rockContext ).Queryable()
+                .Join( groupAttributesQry,
+                av => av.AttributeId,
+                a => a.Id,
+                ( av, a ) => av );
+
+            var items = new GroupService( rockContext )
                 .Queryable()
-                .Where( gt => gt.Guid == groupTypeGuid )
-                .SelectMany( gt => gt.Groups );
-            var mergeFields = LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
+                .Where( g => g.GroupTypeId == groupTypeId )
+                .Where( g => g.IsActive && g.IsPublic && !g.IsArchived )
+                .Where( g =>
+                    g.GroupCapacity == null
+                    || g.GroupCapacity == 0
+                    || g.Members.Where( m => m.GroupMemberStatus == GroupMemberStatus.Active ).Count() < g.GroupCapacity )
+                .GroupJoin( groupAttributesValueQry,
+                g => g.Id,
+                av => av.EntityId,
+                ( g, av ) => new { g, av }
+                )
+                .ToList();
 
-            
-
-            // grab a group
-            var groups = qry.ToList();
-
-            if ( groups != null )
+            var groups = new List<Group>();
+            foreach ( var item in items )
             {
-                mergeFields.Add( "Groups", groups );
+                item.g.AttributeValues = item.av.ToDictionary( av => av.AttributeKey, av => new AttributeValueCache( av ) );
+                item.g.Attributes = item.av.ToDictionary( av => av.AttributeKey, av => AttributeCache.Get( av.AttributeId ) );
+                groups.Add( item.g );
             }
+
+            var mergeFields = LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
+            mergeFields.Add( "Groups", groups );
 
             lOutput.Text = GetAttributeValue( "LavaTemplate" ).ResolveMergeFields( mergeFields );
         }
@@ -107,7 +131,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void Block_BlockUpdated( object sender, EventArgs e )
         {
-            BindGrid();
+            ShowGroups();
         }
 
         #endregion

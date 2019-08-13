@@ -1,0 +1,80 @@
+{% assign slug = 'Global' | PageParameter:'sermonSlug' %}
+{% contentchannelitemslug where:'Slug=="{{slug}}"' -%}
+	{% for itemSlug in contentchannelitemslugItems -%}
+		{% assign item = itemSlug.ContentChannelItem %}
+		{% break %}
+	{% endfor -%}
+{% endcontentchannelitemslug -%}
+
+{% assign currentDate = 'Now' | Date:'M/d/yyyy' %}
+{% assign currentMessage = item.ChildItems | Sort:'Order' | First %}
+
+{% comment %}
+	The Lava Code below checks for the closest sermon message to this day – IF a slug isn't defined.
+{% endcomment %}
+{% for childItem in item.ChildItems %}
+	{% if slug != "" -%}
+		{% if slug == childItem.ChildContentChannelItem.PrimarySlug -%}
+			{% assign currentMessage = childItem %}
+		{% endif -%}
+	{% endif -%}
+{% endfor %}
+
+{% assign seriesImageGuid = item | Attribute:'SeriesImage','RawValue' %}
+{% assign currentMessageVideoId = currentMessage.ChildContentChannelItem | Attribute:'VimeoId' %}
+
+<div class="centered-wrapper" style="padding-top: 5px">
+	<section class="percent-page no-sidebar">
+		<header id="sermon-header" class="page-title-subtitle">
+			<h1 class="portfolio-title float-left">{{ currentMessage.ChildContentChannelItem.Title }}</h1>
+			<div class="section-tagline float-left series-details">from the series <u>{{ SermonSeries }}</u></div>
+		</header>
+		<section id="sermon-detail">
+
+			<div id="video-container">
+				<div class="sermon-wrapper">
+					{%- unless currentMessageVideoId == empty -%}
+					<iframe class="sermon-video" width="500" height="281" src="https://player.vimeo.com/video/{{ currentMessageVideoId }}?title=0&byline=0&portrait=0" frameborder="0" allowfullscreen=""></iframe>
+					{%- endunless -%}
+				</div>
+			</div>
+
+			<aside id="sermon-info float-right">
+				<h3>Sermon Description</h3>
+				{%- if currentMessage.ChildContentChannelItem.Content != empty -%}
+                <p class="sermon-description">
+                    {{ currentMessage.ChildContentChannelItem.Content }}
+                </p>
+                {%- endif -%}
+
+				<p></p>
+
+				<p class="sermon-date">{{ currentMessage.ChildContentChannelItem.StartDateTime | Date:'MMMM dd, yyyy' }}</p>
+
+				<!-- <p>
+					<a href="https://www.southeastchristian.org/GetFile.ashx?Guid=5ca7e061-c7b0-43f3-8432-b1958b1e3435">
+						<i class="fa fa-download"></i>&nbsp; Sermon Audio
+					</a>
+					<br>
+					<br>
+					<a href="http://phobos.apple.com/WebObjects/MZStore.woa/wa/viewPodcast?id=287341044">
+						iTunes Podcast</a> | <a href="http://itunes.apple.com/us/podcast/southeast-tv/id562300790">TV iTunes Podcast
+					</a>
+				</p> -->
+
+				<!-- <h2>More from this series</h2>
+
+				<ul id="more-sermons" class="customlist">
+					<li>
+						<i class="fa fa-caret-right"></i>
+						<a href="http://kyleidleman.com/sermons/nothing-can-stop-it/nothing-can-stop-it-1">Playground Or Battleground</a>
+					</li>
+					<li>
+						<i class="fa fa-caret-right"></i>
+						<a href="http://kyleidleman.com/sermons/nothing-can-stop-it/from-not-for">From, Not For</a>
+					</li>
+				</ul> -->
+			</aside>
+		</section>
+	</section>
+</div>
