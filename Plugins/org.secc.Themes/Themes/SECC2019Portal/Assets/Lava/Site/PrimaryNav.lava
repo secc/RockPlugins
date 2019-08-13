@@ -30,38 +30,8 @@
   {% endif %}
 
   {% if CurrentPerson.Guid %}
-		{[ portalnews ]}
-    <li class="has-children" id="GroupManager">
-        <a href="#MyAccount" class="arrow"><i class="fa fa-user"></i><span class="mega-menu-hide g-padding-l-20--xs">My Account</span></a>
-        <ul class="cd-nav-list include-see-all is-hidden">
-            <li class="go-back"><a class="arrow">Menu</a></li>
-            <li class="see-all"><a href="/MyAccount">See My Account</a></li>
-            <li class="border-right">
-                <a class="cd-nav-item" href="/MyEvents">
-                    <h3>My Events</h3>
-                </a>
-            </li>
-
-            <li class="border-right">
-                <a class="cd-nav-item" href="/my-classes">
-                    <h3>My Classes</h3>
-                </a>
-            </li>
-
-            <li class="border-right">
-                <a class="cd-nav-item" href="https://pushpay.com/g/southeastchristian/manageaccount">
-                    <h3>My Giving</h3>
-                </a>
-            </li>
-
-            <li>
-                <a class="cd-nav-item" href="/home?logout=true">
-                    <!-- <h3>Logout |{{CurrentPerson.Guid}}|</h3> -->
-                    <h3>Logout</h3>
-                </a>
-            </li>
-
-        </ul>
+    <li id="GroupManager">
+        <a href="/MyAccount" class="arrow"><i class="fa fa-user"></i><span class="mega-menu-hide g-padding-l-20--xs">My Account</span></a>
     </li>
   {% endif %}
 
