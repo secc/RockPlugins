@@ -1,5 +1,4 @@
 <nav class="cd-nav">
-  {% assign personGuid = CurrentPerson.Guid %}
   <ul id="cd-primary-nav" class="cd-primary-nav is-fixed {% unless personGuid != null %}logged-in{% endunless %}">
 	{% if Page.DisplayChildPages == 'true' and Page.Pages != empty %}
   	{% for childPage in Page.Pages %}
@@ -28,18 +27,5 @@
       </li>
     {% endfor %}
   {% endif %}
-
-  {% if CurrentPerson.Guid %}
-    <li id="GroupManager">
-        <a href="/MyAccount" class="arrow"><i class="fa fa-user"></i><span class="mega-menu-hide g-padding-l-20--xs">My Account</span></a>
-    </li>
-  {% endif %}
-
-  {% unless personGuid != null %}
-    <li class="MobileGroupManager">
-        <a href="/login">{{CurrentPerson}}Login to Your Account</a>
-    </li>
-  {% endunless %}
-
   </ul> <!-- primary-nav -->
 </nav> <!-- cd-nav -->
