@@ -72,8 +72,14 @@ hr.g-border-b-2--xs {
 	}
 }
 .cd-header-buttons {
+  > li {
+    float:left;
+    a.cd-nav-logout {
+      padding: 9px;
+      font-size: 21px;
+    }
+  }
 	.dropdown {
-  	float: left;
 		.dropdown-toggle {
   		padding: 9px;
 			.has-badge[data-count]:after{
