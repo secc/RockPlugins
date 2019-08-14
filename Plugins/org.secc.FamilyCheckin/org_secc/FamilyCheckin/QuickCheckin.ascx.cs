@@ -900,10 +900,12 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private bool PersonHasSelectedOption( CheckInPerson checkinPerson )
         {
+            var selectedSchedules = ( List<int> ) Session["SelectedSchedules"];
+
             return checkinPerson.GroupTypes
                 .SelectMany( gt => gt.Groups.Where( g => g.Selected ) )
                 .SelectMany( g => g.Locations.Where( l => l.Selected ) )
-                .SelectMany( l => l.Schedules.Where( s => s.Selected ) )
+                .SelectMany( l => l.Schedules.Where( s => s.Selected && selectedSchedules.Contains( s.Schedule.Id ) ) )
                 .Any();
         }
 
