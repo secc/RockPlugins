@@ -5,7 +5,7 @@
 
         <Rock:NotificationBox runat="server" ID="nbAlert" Dismissable="true" NotificationBoxType="Danger" />
         <Rock:Grid runat="server" ID="gGrid" ShowActionRow="false" DataKeyNames="Id" RowItemText="Student"
-            ShowFooter="false" ShowActionsInHeader="false" AllowPaging="false" AllowSorting="false">
+            ShowFooter="false" ShowActionsInHeader="false" AllowPaging="false" AllowSorting="false" OnRowSelected="gGrid_RowSelected">
             <Columns>
                 <Rock:RockBoundField DataField="Name" HeaderText="Person" />
                 <Rock:RockBoundField DataField="Group" ColumnPriority="Desktop" HeaderText="Camp" />
