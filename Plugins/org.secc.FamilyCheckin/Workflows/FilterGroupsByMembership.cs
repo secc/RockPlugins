@@ -82,7 +82,8 @@ namespace org.secc.FamilyCheckin
                             if ( groupGuid != null )
                             {
                                 if ( !groupMemberService.GetByGroupGuid( groupGuid ?? new Guid() )
-                                    .Where( gm => gm.PersonId == person.Person.Id && gm.GroupMemberStatus == GroupMemberStatus.Active ).Any() )
+                                    .Where( gm => gm.PersonId == person.Person.Id
+                                    && (gm.GroupMemberStatus == GroupMemberStatus.Active || !checkInState.CheckInType.PreventInactivePeople ) ).Any() )
                                 {
                                     if ( remove )
                                     {
