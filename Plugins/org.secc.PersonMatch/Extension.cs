@@ -32,7 +32,12 @@ namespace org.secc.PersonMatch
         public static IEnumerable<Person> GetByMatch(this PersonService personService, String firstName, String lastName, DateTime? birthDate, String email = null, String phone = null, String street1 = null, String postalCode = null)      {
             using ( Rock.Data.RockContext context = new Rock.Data.RockContext() )
             {
-                
+                //FirstName LastName and DOB are required. If not return an empty list.
+                if (firstName.IsNullOrWhiteSpace() || lastName.IsNullOrWhiteSpace() || !birthDate.HasValue )
+                {
+                    return new List<Person>();
+                }
+
                 LocationService locationService = new LocationService( context );
                 AttributeValueService attributeValueService = new AttributeValueService( context );
                 List<AttributeValue> attributeValues = attributeValueService.GetByAttributeId( AttributeCache.Read( GOES_BY_ATTRIBUTE.AsGuid() ).Id ).ToList();
