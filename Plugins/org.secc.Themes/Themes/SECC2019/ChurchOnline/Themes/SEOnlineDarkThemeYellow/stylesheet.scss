@@ -5,7 +5,7 @@ body {
   font-weight: 600;
 }
 a {
-  color: #FFFFF0;
+  color: #FFFFFF;
   font-weight: 700;
   &:hover {
     color: rgba(255,255,255, 10%)
@@ -53,16 +53,16 @@ h1,h2,h3,h4,h5,h6 {
     border-bottom: 1px solid #000000;
 }
 .co-message-host {
-    background: #ffffff;
+    background: #f9c521;
     color: black;
     font-weight: 600;
 }
 .co-chat-box-input:focus, .co-nickname-box-input:focus {
     outline: 0;
-    box-shadow: inset 8px 0 0 #ffffff;
+    box-shadow: inset 8px 0 0 #f9c521;
 }
 .co-chat-box button {
-    background-color: #ffffff;
+    background-color: #f9c521;
     color: #000000;
 }
 .co-chat-overlay.co-chat-new {
@@ -86,7 +86,7 @@ h1,h2,h3,h4,h5,h6 {
 }
 
 .co-button {
-    background: #cccccc;
+    background: #f9c521;
     text-transform: uppercase;
     font-weight: 600;
     padding: 8px 14px;
@@ -99,7 +99,7 @@ h1,h2,h3,h4,h5,h6 {
     font-size: 0.8rem;
 
     &:hover {
-        background: #ffffff;
+        background: #f9c521;
         color: #000000;
     }
 }
@@ -110,10 +110,10 @@ h1,h2,h3,h4,h5,h6 {
 }
 
 .co-notify-notice {
-    box-shadow: inset 10px 0px 0 0px #ffffff;
+    box-shadow: inset 10px 0px 0 0px #f9c521;
 }
 .side-menu ul.account .co-sign-up-button {
-    background-color: #ffffff;
+    background-color: #f9c521;
     color: #000000;
     border-radius: 2px;
 }
@@ -176,7 +176,7 @@ header {
   // box-shadow: 1px -5px 20px 0px rgba(0, 0, 0, 0.5);
   padding: 15px 0;
   position: relative;
-  border-bottom: 5px solid #ffffff;
+  border-bottom: 5px solid #F9C621;
 }
 
 .navigation .top-bar {
@@ -274,7 +274,7 @@ header {
 }
 .co-live-prayer {
     display: inline-block;
-    background-color: #ffffff;
+    background-color: #f9c521;
     color: #000000;
     border-width: 4px;
     border-style: solid;
@@ -651,7 +651,7 @@ textarea:focus {
 
   button {
     display: inline-block;
-    background-color: #ffffff;
+    background-color: #f9c521;
     color: #000000;
     border-width: 4px;
     border-style: solid;

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ organization.name }}</title>
+  <meta name="viewport" content="initial-scale = 1.0,maximum-scale = 1.0" />
+  <meta name='title' content='{{ organization.meta_title }}'>
+  <meta name='description' content='{{ organization.meta_description }}'>
+  <meta name='keywords' content='{{ organization.meta_keywords }}'>
+  <!-- Social Sharing -->
+  <meta name='og:title' content='{{ organization.meta_title }}'>
+  <meta name='og:description' content='{{ organization.meta_description }}'>
+  <meta name='og:url' content='{{ organization.platform_url }}'>
+  <meta name='og:image' content='https://chop-v3-media.s3.amazonaws.com/medias/images/000/095/420/original/SE_ONLONE_BG2_2x.jpg?1554316811'>
+  <!-- Social Sharing -->
+  <link href='{{ organization.platform_url }}'>
+  <link href='{{ organization.favicon }}' rel='icon' type='image/png'>
+
+  {{ platform_head }}
+  {{ foundation_css }}
+
+  <style type="text/css">
+    {% include 'stylesheet' %}
+  </style>
+
+  <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-Bx4pytHkyTDy3aJKjGkGoHPt3tvv6zlwwjc3iqN7ktaiEMLDPqLSZYts2OjKcBx1" crossorigin="anonymous">
+</head>
+<body>
+  <header class="row full-width">
+    <div class="medium-12 columns nav-margin">
+      <div class="navigation contain-to-grid">
+        <nav class="top-bar" data-topbar role="navigation">
+          <ul class="title-area">
+            <li class="name">
+              <h1 class="brand g-padding-x-40--md">
+                  <a href="https://southeastchristian.churchonline.org">
+                      <img class="img-respoinsive" src="https://southeastchristian.org/Content/ExternalSite/SE_Online_Logo.svg" alt="Logo" onerror="this.style.display='none'" />
+                  </a>
+              </h1>
+            </li>
+             <!-- Remove the class "menu-icon" to get rid of menu icon. Take out "Menu" to just have icon alone -->
+            <li class="toggle-topbar menu-icon"><a href="#"><span>Menu</span></a></li>
+          </ul>
+
+          <section class="top-bar-section">
+            <!-- Right Nav Section -->
+            <ul class="right top-bar-actions">
+              {% if organization.give_link %}
+                <li class="link">
+                  <a id="give" href="{{ organization.give_link }}" target="_blank">{{ 'give' | translate }}</a>
+                </li>
+              {% endif %}
+              {% for link in organization.header_links %}
+                <li class="link">
+                  {{ link }}
+                </li>
+              {% endfor %}
+              <li class="link">
+                {{ component.sign_in }}
+              </li>
+              <li>
+                {{ component.sign_up }}
+              </li>
+              <li class="avatar">{{ component.account }}</li>
+            </ul>
+          </section>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  {{ component.reminder_header }}
+
+  <div class="content">
+    <div class="row full-width prayer-tagline ">
+      <div class="medium-12 columns text-center" role="content">
+      </div>
+    </div>
+    <div class="row full-width relative">
+      <div id="video-content" class="medium-8 columns no-padding-right no-padding-left" role="content">
+        {{ component.video }}
+        {{ component.slides }}
+      </div>
+      <div class="medium-4 columns no-padding-left no-padding-right full-height hide-for-small-only g-z-index--1">
+        {% widgets %}
+          {% content_for_tabs %}
+            {% if event.chat_enabled? %}
+              {% tab_content chat %} {{ component.chat }} {% endtab_content %}
+            {% endif %}
+            {% if event.notes_enabled? %}
+              {% tab_content notes %} {{ component.notes }} {% endtab_content %}
+            {% endif %}
+            {% tab_content schedule %} {{ component.schedule }} {% endtab_content %}
+            {% if settings.bible_tab == '1' %}
+              {% tab_content bible %} {{ component.bible }} {% endtab_content %}
+            {% endif %}
+            {% if event.custom_tab_enabled? %}
+              {% tab_content custom-tab %} {{ component.custom_tab }} {% endtab_content %}
+            {% endif %}
+          {% endcontent_for_tabs %}
+          {% tabs %}
+            {% if event.chat_enabled? %}
+              {% tab chat  %} {{ 'chat' | translate }} {% endtab %}
+            {% endif %}
+            {% if event.notes_enabled? %}
+              {% tab notes %} {{ 'notes' | translate }} {% endtab %}
+            {% endif %}
+            {% tab schedule default %} {{ 'schedule' | translate }} {% endtab %}
+            {% if settings.bible_tab == '1' %}
+              {% tab bible %} {{ 'bible' | translate }} {% endtab %}
+            {% endif %}
+            {% if event.custom_tab_enabled? %}
+              {% tab custom-tab %} {{ organization.custom_tab_title }} {% endtab %}
+            {% endif %}
+          {% endtabs %}
+          <a class="more-widgets" href="#" data-behavior="tabs">
+            <i class="co-icon-ellipsis-h"></i>
+          </a>
+        {% endwidgets %}
+
+      </div>
+    </div>
+    <div class="row full-width event-details g-padding-x-40--md">
+          <div class="medium-7 columns">
+            <div>
+              <h2 class="g-font-family--secondary">{{ event.title }} <small class="event_speaker g-font-family--primary">{{ event.speaker }}</small></h2>
+              <p class="g-font-weight--700">{{ event.description }}</p>
+              {{ component.next_service_time }}
+            </div>
+            <div class="share">
+
+                <p class="g-margin-y-0--xs g-padding-t-30--xs"><i class="fa fa-share-alt"></i> Share this Sermon:</p>
+                <div class="socials socials_type_icons socials_shape_round">
+                    <script>function fbs_click() { u = "{{ organization.platform_url }}"; t = document.title; window.open('http://www.facebook.com/sharer.php?u=' + encodeURIComponent(u) + '&t=' + encodeURIComponent(t), 'sharer', 'toolbar=0,status=0,width=626,height=436'); return false; }</script>
+                    <div class="socials_item facebook">
+                        <a href="http://www.facebook.com/share.php?u={{ organization.platform_url }}" onclick="return fbs_click()" target="_blank" class="social_icons social-facebook" data-original-title="Share via Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                    </div>
+                    <div class="socials_item">
+                        <a href="http://twitter.com/home?status={{ organization.platform_url }}" target="_blank" class="social_icons social-twitter" data-original-title="Share via Twitter">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                    </div>
+                    <div class="socials_item">
+                        <a href="mailto:?Subject={{ emailsubject | Escape }}&Body={{ emailbody | Escape }}%0D%0A%0D%0A{{ organization.platform_url }}" class="social_icons" data-original-title="Share via Email">
+                            <i class="fas fa-envelope"></i>
+                        </a>
+                    </div>
+                </div>
+
+              {{ component.quality_switch }}
+            </div>
+          </div>
+
+          <div class="medium-5 columns prayer-text" role="content">
+            <div class="prayer-box hide-for-small-only text-right" data-behavior="co-prayer-box">
+              <span>{{ organization.prayer_tagline }}</span>
+              <span class="prayer-button">{{ component.prayer_button }}</span>
+            </div>
+            <br />
+            <br />
+            <div class="g-text-center--xs g-text-center--sm g-text-right--md">
+                <a href="{{ organization.website_url }}">
+                    <img class="img-respoinsive g-width-250--xs" src="https://southeastchristian.org/Themes/SECC2019/Assets/img/logos/southeast/SECC_logo_wordmark_white.svg" alt="Logo" onerror="this.style.display='none'" />
+                </a>
+            </div>
+          </div>
+    </div>
+  </div>
+
+  {{ platform_footer }}
+
+  {{ foundation_js }}
+
+  <script type="text/javascript">
+    {% include 'javascript' %}
+  </script>
+  {{ organization.google_analytics_code }}
+</body>
+</html>
