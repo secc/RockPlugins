@@ -25,6 +25,7 @@ using System.Collections.Generic;
 using Rock.CheckIn;
 using Rock.Attribute;
 using org.secc.FamilyCheckin.Utilities;
+using Rock.Web.Cache;
 
 namespace RockWeb.Plugins.org_secc.CheckinMonitor
 {
@@ -34,9 +35,17 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [DefinedTypeField( "Deactivated Defined Type", "Check-in monitor needs a place to save deactivated checkin configurations." )]
     [TextField( "Room Ratio Attribute Key", "Attribute key for room ratios", true, "RoomRatio" )]
     [DataViewField( "Approved People", "Data view which contains the members who may check-in.", entityTypeName: "Rock.Model.Person" )]
+    [BinaryFileField( Rock.SystemGuid.BinaryFiletype.CHECKIN_LABEL, "Location Label", "Label to use to for printing a location label." )]
+
     public partial class CheckinMonitor : CheckInBlock
     {
         KioskCountUtility kioskCountUtility;
+
+        protected override void OnInit( EventArgs e )
+        {
+            base.OnInit( e );
+            RockPage.AddScriptLink( "~/Scripts/CheckinClient/ZebraPrint.js" );
+        }
 
         /// <summary>
         /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
@@ -1292,12 +1301,85 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             mdConfirmClose.Show();
         }
 
+        protected void btnLocationPrint_Click( object sender, EventArgs e )
+        {
+            RockContext rockContext = new RockContext();
+            var labelGuid = GetAttributeValue( "LocationLabel" ).AsGuid();
+            BinaryFileService binaryFileService = new BinaryFileService( rockContext );
+            var label = binaryFileService.Get( labelGuid );
+            if ( label == null )
+            {
+                return;
+            }
+
+            label.LoadAttributes( rockContext );
+
+            var locationId = hfLocationId.ValueAsInt();
+            LocationService locationService = new LocationService( rockContext );
+            var location = locationService.Get( locationId );
+            if ( location == null )
+            {
+                return;
+            }
+            var lavaMergeObjects = new Dictionary<string, object>() { { "Location", location } };
+            var mergeFields = new Dictionary<string, string>();
+
+            var labelMergeFields = label.GetAttributeValue( "MergeCodes" ).ToKeyValuePairList();
+            foreach ( var field in labelMergeFields )
+            {
+                mergeFields[field.Key] = DefinedValueCache.Get( ( ( string ) field.Value ).AsInteger() ).GetAttributeValue( "MergeField" );
+            }
+
+            foreach ( var key in mergeFields.Keys.ToList() )
+            {
+                mergeFields[key] = mergeFields[key].ResolveMergeFields( lavaMergeObjects );
+            }
+
+            var printLabel = new CheckInLabel
+            {
+                FileGuid = label.Guid,
+                LabelFile = string.Format( label.Url ),
+                MergeFields = mergeFields
+            };
+            var script = AddLabelScript( new List<CheckInLabel> { printLabel }.ToJson() );
+            ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "addLabelScript", script, true );
+        }
+
+        private string AddLabelScript( string jsonObject )
+        {
+            string script = string.Format( @"
+            var labelData = {0};
+		    function printLabels() {{
+		        ZebraPrintPlugin.printTags(
+            	    JSON.stringify(labelData),
+            	    function(result) {{
+			        }},
+			        function(error) {{
+				        // error is an array where:
+				        // error[0] is the error message
+				        // error[1] determines if a re-print is possible (in the case where the JSON is good, but the printer was not connected)
+			            console.log('An error occurred: ' + error[0]);
+                        navigator.notification.alert(
+                            'An error occurred while printing the labels.' + error[0],  // message
+                            alertDismissed,         // callback
+                            'Error',            // title
+                            'Ok'                  // buttonName
+                        );
+			        }}
+                );
+	        }}
+try{{
+            printLabels();
+}} catch(e){{}}
+            ", jsonObject );
+            return script;
+        }
+
         enum CloseScope
         {
             Children,
             Volunteer,
             All
         }
-
     }
 }
