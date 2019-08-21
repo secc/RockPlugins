@@ -38,7 +38,7 @@
         {% for publishGroup in PublishGroups %}
 		{% assign registrationLink = '/new-groups/details/' | Append:publishGroup.Id %}
 		{% assign contactLink = '/new-groups/contact/' | Append:publishGroup.Id %}
-    		<div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar" data-day="{{ publishGroup.Group.Schedule.WeeklyDayOfWeek}}">
+    		<div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar" data-day="{{ publishGroup.WeeklyDayOfWeek}}">
                 <div class="clearfix card">
 					<div class="img-hover">
 						<img src="/GetImage.ashx?id={{ publishGroup.ImageId }}&w=720" class="event-image img-responsive" onerror="this.style.display='none'">
