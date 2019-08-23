@@ -1,23 +1,25 @@
   <section id="NewsFeed" class="g-bg-color--gray-lightest">
-    <div class="container g-padding-y-150--xs g-padding-x-40--xs">
+    <div class="container g-padding-y-50--xs g-padding-y-150--sm g-padding-x-40--xs">
     	<div class="row">
             <div class="col-sm-12">
                 <h2 class="g-font-size-40--sm g-font-weight--600 g-font-family--primary g-margin-b-0--xs text-uppercase">News Feed</h2> 
             </div>
         </div>
     	<div class="row g-padding-t-40--md">
-            <div class="col-md-5 g-padding-b-40--xs">
+        <div class="col-md-5 g-padding-b-40--xs">
             {% for item in Items %}
             {% if forloop.first %}
-              <article class="newsfeed-article g-margin-t-0--xs">
+              <article class="newsfeed-article g-margin-t-0--xs g-padding-r-30--md g-padding-r-125--lg">
               {% assign itemVimeoId = item | Attribute:'VimeoId' %}
               {% if itemVimeoId != "" %}{[ vimeo id:'{{itemVimeoId}}' ]}{% endif %}
 	              <header class="newsfeed-article_header">
-	                <h3 class="g-font-size--jumbo-1 g-font-family--secondary g-margin-b-10--xs">{{ item.Title }}</h3>
-	                <p class="newsfeed-article_date-time text-uppercase g-font-size-28--sm">{{ item.StartDateTime | Date:'dddd, MMM dd, yyyy | h:mm tt' }}</p>
+	                <h3 class="g-font-size--jumbo-2 g-font-family--secondary g-margin-b-10--xs">{{ item.StartDateTime | Date:'MMMM d, yyyy' }}</h3>
+	                <p class="newsfeed-article_date-time text-uppercase g-font-size-28--sm">{{ item.StartDateTime | Date:'h:mm tt' }}</p>
 	              </header>
 	              <section class="newsfeed-article_content g-margin-t-40--xs g-margin-b-40--xs">
-		              {{ item.Content }}
+  	              <h4>{{ item.Title }}</h4>
+		              {{ item.Content | StripHtml | Truncate:300 }}</p>
+                  <p><a href="{{LinkedPages.DetailPage}}?ItemID={{item.Id}}" class="text-uppercase g-font-weight--600">Read More</a></p>
 	              </section>
 	              {% assign itemAuthor = item | Attribute:'Author','Object' %}
 	              {% assign itemAuthorTitle =  item | Attribute:'AuthorTitle' %}
@@ -46,10 +48,10 @@
               {% else %}
                 <article class="newsfeed-article g-margin-t-0--xs  g-margin-b-20--xs">
 	              <header class="newsfeed-article_header">
-	                <h3 class="g-font-size-40--sm g-font-weight--600 g-font-family--secondary g-margin-b-10--xs">{{ item.Title }}</h3>
-	                <p class="newsfeed-article_date-time text-uppercase g-font-size-28--sm">{{ item.StartDateTime | Date:'dddd, MMM dd, yyyy | h:mm tt' }}</p>
+	                <h3 class="g-font-size-40--sm g-font-weight--600 g-font-family--secondary g-margin-b-10--xs">{{ item.StartDateTime | Date:'MMMM d, yyyy' }}</h3>
 	              </header>
 	              <section class="newsfeed-article_content g-margin-b-40--xs">
+	              <div><strong>{{ item.Title }}</strong></div>
 		            <p>{{ item.Content | StripHtml | Truncate:120 }}</p>
 		            <p><a href="{{LinkedPages.DetailPage}}?ItemID={{item.Id}}" class="text-uppercase g-font-weight--600">Read More</a></p>
 		            <hr />
@@ -65,8 +67,8 @@
               </div>
             </div>
             <div class="col-md-3">
-              <div class="">
-                <h2 class="g-font-size-40--sm g-font-weight--600 g-font-family--secondary g-margin-b-20--xs">Quick Links</h2> 
+              <div class="g-padding-l-20--md g-padding-l-65--lg">
+                <h2 class="g-font-size-40--sm g-font-weight--600 g-font-family--secondary g-margin-b-40--xs">Quick Links</h2> 
                 <ul class="list-unstyled">
                 {% definedvalue where:'DefinedTypeId == {{quickLinksDefinedTypeId}}' sort:'Order' %}
                   {% for value in definedvalueItems %}
@@ -86,7 +88,8 @@
 	<script type="text/javascript">
 	  var swiper = new Swiper('#news-swiper', {
 	    slideClass: 'newsfeed-article',
-	    slidesPerView: 2,
+      slidesPerView: 'auto',
+      spaceBetween: 20,
 	    direction: 'vertical',
 	    //centeredSlides: true,
 	    watchSlidesProgress: true,
@@ -97,7 +100,6 @@
 	        prevEl: '.news-swiper-button-prev',
 	    },
 	    //scrollbar: '.swiper-scrollbar',
-	    spaceBetween: 0,
 	    hashnav: false,
 	    hashnavWatchState: true,
 	    height: 555,
