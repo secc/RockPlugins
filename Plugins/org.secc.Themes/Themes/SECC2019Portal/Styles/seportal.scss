@@ -205,38 +205,25 @@ hr.g-border-b-2--xs {
 .accordion-events {
 	.panel {
 		border: none;
-        border-radius: 0px !important;
-        @include transition(all .3s ease);
-		// box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+    border-radius: 0px !important;
+    @include transition(all .3s ease);
 		-webkit-box-shadow: 0px 0px 15px 1px rgba(0, 0, 0, 0.15);
-        box-shadow: 0px 0px 15px 1px rgba(0, 0, 0, 0.15);
-
-        &:hover {
-            // background-color: rgba(239,239,239, 0.5);
-            // -webkit-box-shadow: 0 22px 43px rgba(355, 355, 355, 0.15);
-            // box-shadow: 0 22px 43px rgba(355, 355, 355, 0.15);
+    box-shadow: 0px 0px 15px 1px rgba(0, 0, 0, 0.15);
+    &:hover {
 			-webkit-box-shadow: 0 22px 133px rgba(0, 0, 0, 0.15);
-            box-shadow: 0 22px 133px rgba(0, 0, 0, 0.15);
-            transform: translateY(-10px);
-
-            transform: translateY(-5px);
-            @include transition(all .3s ease);
-        }
-        @media (max-width: 768px) {
-            // background-color: rgba(239,239,239, 0.5);
-            // -webkit-box-shadow: 0 3px 12px 2px hsla(0,0%,78%,1);
-            // box-shadow: 0 3px 12px 2px hsla(0,0%,78%,.5);
-        }
+      box-shadow: 0 22px 133px rgba(0, 0, 0, 0.15);
+      transform: translateY(-10px);
+      transform: translateY(-5px);
+      @include transition(all .3s ease);
+    }
 		.panel-heading {
-
 			color: $CopyColor;
 			border-color: rgba($LightGreyColor, 0.17);
 			background-color: $WhiteColor;
 			position: relative;
-            cursor: pointer;
+      cursor: pointer;
 			padding: 25px 14% 25px 25px;
 			text-align: left;
-
 			&::before {
 			  position: absolute;
 			  top: 54%;
@@ -247,20 +234,19 @@ hr.g-border-b-2--xs {
 			  height: 15px;
 			  content: "";
 			  border: solid $CopyColor;
-			  // border-right-color: rgba(0, 0, 0, 0.35);
 			  border-width: 0 2px 2px 0;
 			  display: inline-block;
 			  padding: 3px;
 			  transform: rotate(-45deg);
-    		  -webkit-transform: rotate(-45deg);
+    		-webkit-transform: rotate(-45deg);
 			  @include transition(all 0.5s);
 			}
 			&[aria-expanded="true"] {
 				&::before {
 					-webkit-transform: translateY(-5px) rotate(405deg);
-    				-moz-transform: translateY(-5px) rotate(405deg);
-    				transform: translateY(-5px) rotate(405deg);
-                }
+          -moz-transform: translateY(-5px) rotate(405deg);
+          transform: translateY(-5px) rotate(405deg);
+        }
 			}
 			.panel-title {
 				@extend h4;
@@ -301,8 +287,8 @@ hr.g-border-b-2--xs {
 		  background-size: auto 50%;
 		  background-image:url('../Assets/img/OnePoint/arrow-down.svg');
 		  width: 100%;
-	    background-color: rgba(0,0,0,0.75);
-	    margin:0;
+      background-color: rgba(132, 132, 132, 0.6);
+      margin:0;
 		  &.swiper-button-prev {
 		    top: 0;
 		    left: 0;
@@ -332,18 +318,16 @@ hr.g-border-b-2--xs {
 	}
 }
 #video-swiper {
+  @media #{$md} {
+    height: 421px;
+  }
 	&.swiper-container {
 	  padding: 20px 40px;
 	  margin: 0;
 	  display: block;
-
-		.swiper-pagination {
-		  top: 100%;
-		  z-index: 1;
-		}
-		.swiper-pagination-bullet-active {
-		  background: #0080BB;
-		}
+    @media #{$md} {
+      padding: 0;
+    }
 		.swiper-nav-button {
 		  //background-color: rgba(0,0,0, 0.5);
 		  color: #fff;
@@ -371,17 +355,49 @@ hr.g-border-b-2--xs {
 		  &:hover {
 		    background-color: rgba(0,0,0, 0.75);
 		  }
-		}	  
+		}
+    @media #{$md} {
+  		.swiper-nav-button {
+  		  background-size: auto 50%;
+  		  background-image:url('../Assets/img/OnePoint/arrow-down.svg');
+  		  width: 100%;
+        background-color: rgba(132, 132, 132, 0.6);
+        margin:0;
+  		  &.swiper-button-prev {
+  		    top: 0;
+  		    left: 0;
+  		    right: 0;
+  		    bottom: auto;
+  		    position: absolute;
+  		    width: 100%;
+  		    height: 30px;
+  				transform: scaleY(-1);
+  		  }
+  		  &.swiper-button-next {
+  		    top: auto;
+  		    left: 0;
+  		    right: 0;
+  		    bottom: 0;
+  		    position: absolute;
+  		    width: 100%;
+  		    height: 30px;
+  		  }
+  		  &.swiper-button-disabled {
+  		    display: none;
+  		  }
+  		  &:hover {
+  		    background-color: rgba(0,0,0,1);
+  		  }
+  		}
+    }
 	  .swiper-wrapper {
 	    height: auto;
 	    z-index: 5;
 	    .swiper-slide {
-	      display: block;
-	      width: 35%;
-	      float: left;
+	      //display: block;
 	      text-align: left;
 	      font-size: 18px;
-	      height: auto;
+	      //height: auto;
 	      background-color: gray;
 	      background-size: cover;
 	      background-position: center center;
@@ -389,7 +405,14 @@ hr.g-border-b-2--xs {
 	      position: relative;
 	      transition: all 200ms ease-in-out;
 	      z-index: 1;
-	      margin-right: 5px;
+	      @media #{$sm} {
+  	      //width: 35%;
+          //float: left;
+	      }
+	      @media #{$md} {
+  	      //width: 100%;
+  	      //float: none;
+        }
 	      a {
 	        display: block;
 	        position: relative;
@@ -449,10 +472,10 @@ hr.g-border-b-2--xs {
 			    margin: -10px 0;
           width: calc(100% + 20px) !important;
           @include media-breakpoint-up(sm){
-          	width: calc(50% + 20px) !important;
+          	width: calc(35% + 20px) !important;
           }
           @include media-breakpoint-up(md){
-          	width: calc(35% + 20px) !important;
+          	width: calc(100% + 20px) !important;
           }
 	      }
 	      &.open {
