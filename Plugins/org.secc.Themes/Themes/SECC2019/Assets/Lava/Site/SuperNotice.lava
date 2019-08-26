@@ -39,6 +39,7 @@
                                   </a>
                               </span>
                               <ul class="time g-padding-x-50--xs g-padding-x-0--sm">
+                                <li><h3 class="g-font-weight--700"><span class="days">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">days</span></li>
                                 <li><h3 class="g-font-weight--700"><span class="hours">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">hours</span></li>
                                 <li><h3 class="g-font-weight--700"><span class="minutes">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">mins</span></li>
                                 <li><h3 class="g-font-weight--700"><span class="seconds">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">secs</span></li>
