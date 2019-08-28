@@ -3910,7 +3910,7 @@ namespace RockWeb.Plugins.org_secc.Event
                         ddlFamilyMembers.Items.Clear();
                         var preselectFamilyMember = RegistrationTemplate.RegistrantsSameFamily == RegistrantsSameFamily.Yes;
 
-                        if (CurrentFormIndex == 0 && RegistrationState != null && RegistrationTemplate.ShowCurrentFamilyMembers)
+                        if ( CurrentFormIndex == 0 && RegistrationState != null && RegistrationState.RegistrantCount > CurrentRegistrantIndex )
                         {
                             if (registrant.Id <= 0 &&
                                 CurrentFormIndex == 0 &&
