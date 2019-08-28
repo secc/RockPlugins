@@ -200,45 +200,42 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                     cbSms != null &&
                     cbUnlisted != null )
                 {
-                    if ( !string.IsNullOrWhiteSpace( PhoneNumber.CleanNumber( pnbPhone.Number ) ) )
-                    {
-                        int phoneNumberTypeId;
-                        if ( int.TryParse( hfPhoneType.Value, out phoneNumberTypeId ) )
-                        {
-                            var phoneNumber = person.PhoneNumbers.FirstOrDefault( n => n.NumberTypeValueId == phoneNumberTypeId );
-                            string oldPhoneNumber = string.Empty;
-                            if ( phoneNumber == null )
-                            {
-                                phoneNumber = new PhoneNumber
-                                {
-                                    PersonId = person.Id,
-                                    NumberTypeValueId = phoneNumberTypeId,
-                                    CountryCode = PhoneNumber.CleanNumber( pnbPhone.CountryCode ),
-                                    IsMessagingEnabled = !smsSelected && cbSms.Checked,
-                                    Number = PhoneNumber.CleanNumber( pnbPhone.Number )
-                                };
 
-                                var phoneChange = new ChangeRecord
-                                {
-                                    RelatedEntityTypeId = EntityTypeCache.Get( typeof( PhoneNumber ) ).Id,
-                                    RelatedEntityId = 0,
-                                    OldValue = "",
-                                    NewValue = phoneNumber.ToJson(),
-                                };
-                                changeRequest.ChangeRecords.Add( phoneChange );
-                            }
-                            else
+                    int phoneNumberTypeId;
+                    if ( int.TryParse( hfPhoneType.Value, out phoneNumberTypeId ) )
+                    {
+                        var phoneNumber = person.PhoneNumbers.FirstOrDefault( n => n.NumberTypeValueId == phoneNumberTypeId );
+                        string oldPhoneNumber = string.Empty;
+                        if ( phoneNumber == null && pnbPhone.Number.IsNotNullOrWhiteSpace() ) //Add number
+                        {
+                            phoneNumber = new PhoneNumber
                             {
-                                changeRequest.EvaluatePropertyChange( phoneNumber, "Number", PhoneNumber.CleanNumber( pnbPhone.Number ), true );
-                                changeRequest.EvaluatePropertyChange( phoneNumber, "IsMessagingEnabled", ( !smsSelected && cbSms.Checked ), true );
-                                changeRequest.EvaluatePropertyChange( phoneNumber, "IsUnlisted", cbUnlisted.Checked, true );
-                            }
+                                PersonId = person.Id,
+                                NumberTypeValueId = phoneNumberTypeId,
+                                CountryCode = PhoneNumber.CleanNumber( pnbPhone.CountryCode ),
+                                IsMessagingEnabled = !smsSelected && cbSms.Checked,
+                                Number = PhoneNumber.CleanNumber( pnbPhone.Number )
+                            };
+                            var phoneComment = string.Format( "{0}: {1}.", DefinedValueCache.Get( phoneNumberTypeId).Value, pnbPhone.Number );
+                            changeRequest.AddEntity( phoneNumber, rockContext, true, phoneComment );
+                        }
+                        else if ( phoneNumber != null && pnbPhone.Text.IsNullOrWhiteSpace() ) // delete number
+                        {
+                            var phoneComment = string.Format( "{0}: {1}.", phoneNumber.NumberTypeValue.Value, phoneNumber.NumberFormatted );
+                            changeRequest.DeleteEntity( phoneNumber, true, phoneComment );
+                        }
+                        else if ( phoneNumber != null && pnbPhone.Text.IsNotNullOrWhiteSpace() ) // update number
+                        {
+                            changeRequest.EvaluatePropertyChange( phoneNumber, "Number", PhoneNumber.CleanNumber( pnbPhone.Number ), true );
+                            changeRequest.EvaluatePropertyChange( phoneNumber, "IsMessagingEnabled", ( !smsSelected && cbSms.Checked ), true );
+                            changeRequest.EvaluatePropertyChange( phoneNumber, "IsUnlisted", cbUnlisted.Checked, true );
                         }
                     }
+
                 }
             }
 
-            changeRequest.EvaluatePropertyChange( person, "Email", person.Email );
+            changeRequest.EvaluatePropertyChange( person, "Email", tbEmail.Text );
             changeRequest.EvaluatePropertyChange( person, "IsEmailActive", cbIsEmailActive.Checked );
             changeRequest.EvaluatePropertyChange( person, "EmailPreference", rblEmailPreference.SelectedValueAsEnum<EmailPreference>() );
             changeRequest.EvaluatePropertyChange( person, "CommunicationPreference", rblCommunicationPreference.SelectedValueAsEnum<CommunicationType>() );
