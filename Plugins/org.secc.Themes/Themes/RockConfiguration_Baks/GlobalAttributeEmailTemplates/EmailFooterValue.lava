@@ -1,14 +1,18 @@
 <!-- Email Container: End (Starts in Header) -->
 </div>
+<!--[if mso]>
+</td></tr></table>
+<![endif]-->
 </div>
-
 <noscript id="lava-fields">
 {% comment %}  Lava Fields: Code-Generated from Template Editor {% endcomment %}
 {% assign footerBanner = 'https://www.southeastchristian.org/Content/EmailTemplates/generic_footer.jpg' %}
 {% assign footerBannerTitle = 'Southeast General Footer' %}
 {% assign footerAddressTitle = 'SOUTHEAST CHRISTIAN CHURCH' %}
 </noscript>
-
+<!--[if mso]>
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" align="center" style="border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;padding:0; margin:0;"><tr><td>
+<![endif]-->
 <!-- Email Footer : BEGIN -->
 <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" width="100%" style="max-width: 680px; font-family: sans-serif; color: #888888; line-height:18px;">
     <tbody>
@@ -28,21 +32,10 @@
     </tbody>
 </table>
 <!-- Email Footer : END -->
-
 <!--[if mso]>
-</td>
-</tr>
-</table>
+</td></tr></table>
 <![endif]-->
-
-
 <div style="max-width: 600px; margin: auto; text-align: center !important;" class="email-container">
-   <!--[if mso]>
-   <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" align="center">
-   <tr>
-   <td>
-   <![endif]-->
-
    <!-- Email Footer : BEGIN -->
    <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" width="100%" style="max-width: 680px; font-family: sans-serif; color: #888888; line-height:18px; text-align: center !important;">
        <tbody>
@@ -56,11 +49,5 @@
        </tr>
    </tbody></table>
    <!-- Email Footer : END -->
-
-   <!--[if mso]>
-   </td>
-   </tr>
-   </table>
-   <![endif]-->
 </div>
 </center>
