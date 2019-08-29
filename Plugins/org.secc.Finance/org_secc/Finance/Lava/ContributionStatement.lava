@@ -4,9 +4,7 @@
     tr { page-break-inside: avoid }
 </style>
 {% assign total = 0 %}
-{% capture pageTitle %}{{ 'Global' | Attribute:'OrganizationName' }} | Contribution Statement{%endcapture%}
 {% assign StatementEndMonthDay = StatementEndDate | Date:'MMdd' %}
-{{ pageTitle | SetPageTitle }}
 <div style="min-width: 1024px">
 	<div class="row">
 		<div class="col-xs-8">
