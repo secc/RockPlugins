@@ -229,6 +229,17 @@ namespace RockWeb.Plugins.GroupManager
                 publishGroupService.DeleteRange( publishGroupService.Queryable().Where( pg => pg.GroupId == publishGroup.GroupId && pg.Id != publishGroup.Id ) );
             };
 
+            //Set the binary file to not be temporary
+            if ( publishGroup.ImageId.HasValue )
+            {
+                BinaryFileService binaryFileService = new BinaryFileService( rockContext );
+                var binaryFile = binaryFileService.Get( publishGroup.ImageId.Value );
+                if (binaryFile != null )
+                {
+                    binaryFile.IsTemporary = false;
+                }
+            }
+
             rockContext.SaveChanges();
 
             publishGroup.LoadAttributes( rockContext );
