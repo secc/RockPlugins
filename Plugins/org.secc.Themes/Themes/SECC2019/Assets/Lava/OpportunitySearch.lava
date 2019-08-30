@@ -4,57 +4,53 @@
    overflow: hidden;
    display: none;
 }
+.se-carat {
+    left: -2.5rem;
+}
 </style>
 
-{% assign opportunityCount = Opportunities | Size %}
-{% if opportunityCount == 0 %}
-  <div class="panel panel-default margin-t-md">
-    <div class="margin-all-md"> There are no opportunities that match the criteria</div>
-  </div>
-  <br />
-{% endif %}
-
-
-{% assign OpportunitiesSorted = Opportunities | SortByAttribute:'WebsiteOrder' %}
 <div class="isotope_wrap">
-    {% for opportunity in OpportunitiesSorted %}
+{% contentchannelitem where:'ContentChannelId == 56' sort:'Order' %}
+    {% for item in contentchannelitemItems %}
 
-        {% assign opportunityString = opportunity.Id | ToString %}
-        {% assign opportunityId = "|" | Append: opportunityString | Append: "|" %}
+        {% assign servingImageGuid = item | Attribute:'ServingImage','RawValue' %}
+        {% assign description = item | Attribute:'Description' %}
+        {% assign opportunityIds = item | Attribute:'OpportunityTypes','RawValue' %}
 
-        {% if (approvedIds contains opportunityId) %}
-        <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
+        <div class="isotope_item col-xs-12 col-sm-6 col-md-6 col-lg-4 event-calendar">
             <div class="clearfix card">
 
-                {% if DetailPage contains "?" %}
-                <a href="{{ DetailPage }}&OpportunityId={{ opportunity.Id }}" class='eventCardLink'>
-                {% else %}
-                <a href="{{ DetailPage }}?OpportunityId={{ opportunity.Id }}" class='eventCardLink'>
-                {% endif %}
-                    <div class="img-hover">
-                        <img src="/GetImage.ashx?id={{ opportunity.PhotoId }}&w=720&h=480&mode=crop&maxwidth=720&scale=both" class="event-image img-responsive" onerror="this.style.display='none'">
-                    </div>
-                </a>
-                <div class="caption g-padding-x-60--xs g-padding-y-60--xs">
-                    <h5 class="g-font-family--secondary g-padding-r-60--xs" style="margin-bottom: 5px;">{{ opportunity.PublicName }}</h5>
-                    <div class="readmore_summary">
-                        <p>{{opportunity.Summary}}</p>
-                        <br />
-                    </div>
+                <div class="img-hover">
+                    <img src="/GetImage.ashx?Guid={{ servingImageGuid }}" class="event-image img-responsive" onerror="this.style.display='none'">
                 </div>
-                <div class="text-center col-xs-12 g-margin-t-0--xs g-hor-divider__solid__t--gray-lighter">
-                    {% if DetailPage contains "?" %}
-                    <a class="link--hover-underscore" href="{{ DetailPage }}&OpportunityId={{ opportunity.Id }}" role="button">
-                    {% else %}
-                    <a class="link--hover-underscore" href="{{ DetailPage }}?OpportunityId={{ opportunity.Id }}" role="button">
-                    {% endif %}
-                        <h5 class="uppercase g-font-weight--700 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">Connect</h5>
-                    </a>
+                <div class="caption g-padding-y-40--xs">
+                    <div class="g-padding-x-40--xs">
+                        <h5 class="g-font-family--secondary g-padding-r-60--xs">{{ item.Title }}</h5>
+                    </div>
+                    <div class="readmore_summary">
+                        <div class="g-padding-x-40--xs g-padding-b-20--xs">
+                            <p>{{ item.Content }}</p>
+                        </div>
+                        {% connectionopportunity ids:'{{opportunityIds}}' sort:'Order' %}
+                            {% for opportunity in connectionopportunityItems %}
+
+                                <div class="text-center col-xs-12 g-margin-t-0--xs g-hor-divider__solid__t--gray-lighter {% if forloop.last %}g-hor-divider__solid__b--gray-lighter{% endif %}">
+                                    <a class="link--hover-underscore" href="{{ DetailPage }}?OpportunityId={{ opportunity.Id }}" role="button">
+                                        <h6 class="uppercase g-font-weight--700 g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">
+                                            {{ opportunity.Name }}
+                                        </h6>
+                                    </a>
+                                </div>
+
+                            {% endfor %}
+                        {% endconnectionopportunity %}
+                    </div>
                 </div>
             </div>
         </div>
-        {% endif %}
+
     {% endfor %}
+{% endcontentchannelitem %}
 </div>
 
 <script src="/Themes/SECC2019/Scripts/readmore.min.js"></script>
@@ -78,14 +74,19 @@
                 speed: 200,
                 lessLink: '<a class="pull-right uppercase" style="padding: 2rem;width: 100%;text-align: right;"><span class="se-carat se-carat--up"></span></a>',
                 moreLink: '<a class="pull-right" style="display: inline-block;padding: 2rem;position: relative;height: 7rem;width: 100%;margin-top: -6rem;"><span class="pull-right se-carat se-carat--down" style="margin-top: 2rem;"></span></a>',
-                embedCSS: false,
                 heightMargin: 32,
                 collapsedHeight: 0,
+                embedCSS: true,
+                blockCSS: 'display: contents; width: 100%;',
                 beforeToggle: function(tr, el, ex) {
                   $(el).show();
                 },
-                afterToggle: function(trigger, element, expanded) {
-                  $('.isotope_wrap').isotope(isoOptions); // re-initialize
+                afterToggle: function( trigger, element, expanded ) {
+                    if ( expanded ) {
+                        element.css( "height", "" );
+                        element.css( "height", element.height() + "px" );
+                    }
+                    $('.isotope_wrap').isotope(isoOptions); // re-initialize
                 }
             });
           // init Isotope after all images have loaded
