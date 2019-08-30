@@ -31,8 +31,9 @@
                         <div class="g-padding-x-40--xs g-padding-b-20--xs">
                             <p>{{ item.Content }}</p>
                         </div>
-                        {% connectionopportunity ids:'{{opportunityIds}}' sort:'Order' %}
-                            {% for opportunity in connectionopportunityItems %}
+                        {% connectionopportunity ids:'{{opportunityIds}}' %}
+                            {% assign COIs = connectionopportunityItems | SortByAttribute:'WebsiteOrder','asc' %}
+                            {% for opportunity in COIs %}
 
                                 <div class="text-center col-xs-12 g-margin-t-0--xs g-hor-divider__solid__t--gray-lighter {% if forloop.last %}g-hor-divider__solid__b--gray-lighter{% endif %}">
                                     <a class="link--hover-underscore" href="{{ DetailPage }}?OpportunityId={{ opportunity.Id }}" role="button">
