@@ -111,7 +111,7 @@ namespace RockWeb.Blocks.Reporting.Children
 
             List<BreakoutGroupMember> data = new List<BreakoutGroupMember>();
 
-            BindFilter( groupType.Groups, schedules );
+            BindFilter( groupType.Groups.Where( g => g.IsActive && g.IsArchived == false ).ToList(), schedules );
 
             List<BreakoutGroupMember> breakoutGroupMembers = GetBreakoutGroupMembers();
 
