@@ -63,6 +63,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 return;
             }
 
+            CurrentCheckInState.CheckinTypeId = CurrentCheckinTypeId;
 
             var locationLinkAtributeGuid = GetAttributeValue( "LocationLinkAttribute" ).AsGuid();
             if ( locationLinkAtributeGuid != Guid.Empty )
