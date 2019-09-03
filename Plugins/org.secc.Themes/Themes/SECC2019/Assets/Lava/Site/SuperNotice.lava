@@ -115,12 +115,13 @@
                 $searchbar.css('top', (menuheight + alertheight) );
                 $searchbar.css('position', 'absolute');
                 if($('header.transparent-menu-enabled').length) {
-                    console.log('yes, menu is transparent')
+                    // console.log('yes, menu is transparent')
                 } else {
-                    console.log('no, menu is not transparent')
+                    // console.log('no, menu is not transparent')
                     $main.css('margin-top','0px');
                     $menu.css('box-shadow','0px 2px 0px 0px rgba(0, 0, 0, 0.1)');
                     $alert.css('border-bottom','2px solid #f1f1f1');
+                    $alert.css('margin-bottom', menuheight); // accounts for menu not overlapping body elements
                     $('#zone-main').css('margin-top', menuheight);
                 }
             }
