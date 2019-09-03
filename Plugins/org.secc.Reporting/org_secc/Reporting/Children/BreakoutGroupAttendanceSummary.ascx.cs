@@ -160,7 +160,13 @@ namespace RockWeb.Blocks.Reporting.Children
             foreach ( var group in breakoutGroups )
             {
                 group.LoadAttributes();
-                var name = string.Format( "{0} {1}", group.Schedule.GetCalenderEvent().DTStart.Value.TimeOfDay.ToTimeString(), group.GetAttributeValue( "Letter" ) );
+                var scheduleName = "Unknown";
+                if ( group.Schedule != null && group.Schedule.GetCalendarEvent() != null &&
+                     group.Schedule.GetCalendarEvent().DTStart != null && group.Schedule.GetCalendarEvent().DTStart.Value != null &&
+                     group.Schedule.GetCalendarEvent().DTStart.Value.TimeOfDay != null ) {
+                     scheduleName = group.Schedule.GetCalendarEvent().DTStart.Value.TimeOfDay.ToTimeString();
+                }
+                var name = string.Format( "{0} {1}", scheduleName, group.GetAttributeValue( "Letter" ) );
                 columns0.Add( name );
                 columns1.Add( name );
             }
@@ -180,6 +186,13 @@ namespace RockWeb.Blocks.Reporting.Children
                             .Distinct()
                             .OrderBy( a => a )
                             .ToList();
+
+            if ( sundays.Count == 0 )
+            {
+                nbError.Text = "No attendance records were found for the selected group and Sunday dates.";
+                nbError.Visible = true;
+                return;
+            }
 
             var attendance = attendanceQry
                 .Select( a => new { PersonId = a.PersonAlias.PersonId, ScheduleId = a.Occurrence.ScheduleId, SundayDate = a.Occurrence.SundayDate } )
