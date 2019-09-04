@@ -17,21 +17,21 @@
       z-index: 0;
       position: relative;
       height: auto;
-      margin-bottom: 70px;
-      border-bottom: 2px solid #f1f1f1;
+      /*margin-bottom: 70px;
+      border-bottom: 2px solid #f1f1f1;*/
       -moz-transition: height 0.2s ease-in-out 0.2s;
       -webkit-transition: height 0.2s ease-in-out 0.2s;
       -o-transition: height 0.2s ease-in-out 0.2s;
       transition: height 0.2s ease-in-out 0.2s;
   }
   #superNoticeHeader:empty {
-      margin-bottom: 0px !important;
+      /*margin-bottom: 0px !important;
       border-bottom: 0px !important;
-      background-color: red !important;
+      background-color: red !important;*/
   }
   @media only screen and (min-width: 1200px) {
     #superNoticeHeader {
-        margin-bottom: 80px;
+        /*margin-bottom: 80px;*/
     }
   }
 </style>
@@ -86,12 +86,10 @@
                 if($('header.transparent-menu-enabled').length) {
                     // console.log('yes, menu is transparent')
                 } else {
-                    // console.log('no, menu is not transparent')
-                    $main.css('margin-top','0px');
-                    $menu.css('box-shadow','0px 2px 0px 0px rgba(0, 0, 0, 0.1)');
-                    $alert.css('border-bottom','2px solid #f1f1f1');
                     // accounts for menu not overlapping body elements
-                    document.getElementById("superNoticeHeader").style.marginBottom = menuheight+"px";
+                    document.getElementById("superNoticeHeader").style.top = '-'+menuheight+'px';
+                    document.getElementById("superNoticeHeader").style.borderBottom = '2px solid #f1f1f1';
+                    $menu.css('box-shadow','0px 2px 0px 0px rgba(0, 0, 0, 0.1)');
                 }
             }
             // show nav bar after all the alert bar settings is set
@@ -135,11 +133,11 @@
                     $searchbar.css('top', (menuheight + alertheight) );
                     $searchbar.css('position', 'absolute');
                     $menu.css('box-shadow','none');
-                    if( !$menu.hasClass('transparent-menu-enabled') ) {
+                    if($('header.transparent-menu-enabled').length) {
+                        // console.log('yes, menu is transparent')
+                    } else {
                         $menu.css('box-shadow','0px 2px 0px 0px rgba(0, 0, 0, 0.1)');
                         $alert.css('border-bottom','2px solid #f1f1f1');
-                        // accounts for menu not overlapping body elements
-                        document.getElementById("superNoticeHeader").style.marginBottom = menuheight+"px";
                     }
                 }
             }
