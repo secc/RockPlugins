@@ -4,15 +4,14 @@
      <img class="img-responsive default-logo g-width-275--xs g-width-350--sm" src="/Themes/SECC2019Portal/Assets/img/OnePoint/SE_One_Point_black.svg" alt="One Point">
   </a>
   <ul class="cd-header-buttons">
-    
     {[ portalnews ]}
-
   {% assign personGuid = CurrentPerson.Guid %}
 
   {% if CurrentPerson.Guid %}
     <li id="LogOut">
         <a href="/?logout=true" class="cd-nav-logout" title="Log Out"><i class="fas fa-sign-out"></i><span class="sr-only">Log Out</span></a>
     </li>
+	<li><a class="cd-search-trigger" href="#cd-search" title="Search">Search<span></span></a></li>
   {% endif %}
 
   {% unless personGuid != null %}
