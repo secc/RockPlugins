@@ -106,7 +106,7 @@
     <!-- Include Mega Menu Assets -->
 		<script src="<%# ResolveRockUrl("~/Themes/SECC2019/Assets/Vendor/mega-site-navigation/js/modernizr.js" ) %>" ></script>
     <script src="<%# ResolveRockUrl("~/Themes/SECC2019/Assets/Vendor/mega-site-navigation/js/jquery.mobile.custom.min.js", true) %>"></script>
-    <script src="<%# ResolveRockUrl("~/Themes/SECC2019/Assets/Vendor/mega-site-navigation/js/main.js", true) %>"></script>
+    <script src="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/js/main.js", true) %>"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.7/jarallax.js" ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/object-fit-images/3.2.3/ofi.min.js" ></script>
