@@ -19,7 +19,7 @@
 	              <section class="newsfeed-article_content g-margin-t-40--xs g-margin-b-40--xs">
   	              <h4>{{ item.Title }}</h4>
 		              {{ item.Content | StripHtml | Truncate:300 }}</p>
-                  <p><a href="{{LinkedPages.DetailPage}}?ItemID={{item.Id}}" class="text-uppercase g-font-weight--600">Read More</a></p>
+                  <p><a href="{{LinkedPages.DetailPage}}/{{item.Id}}" class="text-uppercase g-font-weight--600">Read More</a></p>
 	              </section>
 	              {% assign itemAuthor = item | Attribute:'Author','Object' %}
 	              {% assign itemAuthorTitle =  item | Attribute:'AuthorTitle' %}
@@ -53,7 +53,7 @@
 	              <section class="newsfeed-article_content g-margin-b-40--xs">
 	              <div><strong>{{ item.Title }}</strong></div>
 		            <p>{{ item.Content | StripHtml | Truncate:120 }}</p>
-		            <p><a href="{{LinkedPages.DetailPage}}?ItemID={{item.Id}}" class="text-uppercase g-font-weight--600">Read More</a></p>
+		            <p><a href="{{LinkedPages.DetailPage}}/{{item.Id}}" class="text-uppercase g-font-weight--600">Read More</a></p>
 		            <hr />
 	              </section>
 	            </article>
