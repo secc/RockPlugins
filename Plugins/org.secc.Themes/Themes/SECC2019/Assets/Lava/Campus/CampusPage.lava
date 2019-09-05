@@ -176,9 +176,7 @@
                 <nav class="page-nav text-center">
                     <ul class="list-inline">
                         <li><a href="#Location">Location</a></li>
-                        {% unless campusSlug == "chapelinthewoods" %}
-                            <li><a href="#WorshipTimes">Worship Times</a></li>
-                        {% endunless %}
+                        <li><a href="#WorshipTimes">Worship Times</a></li>
                         <li><a href="#Leadership">Leadership</a></li>
                         {% unless campusSlug == "chapelinthewoods" %}
                             <li><a href="#Children">Children</a></li>
@@ -272,8 +270,10 @@
                                 {%- endif -%}
                                 <br /><br />
                                 <h5>
+                                {% unless campusSlug == "chapelinthewoods" %}
                                 <strong>Children's Ministry</strong><br />
                             	<span>Children’s Ministry Programs are available during all worship services for birth through fifth grade</span>
+                                {% endunless %}
                                 </h5>
                                 <br />
 
