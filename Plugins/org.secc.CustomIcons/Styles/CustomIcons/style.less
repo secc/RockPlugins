@@ -1,101 +1,105 @@
 @import "variables";
 
 @font-face {
-    font-family: 'CustomIcons';
-    src: url('@{icomoon-font-path}/CustomIcons.eot?lcffmb');
-    src: url('@{icomoon-font-path}/CustomIcons.eot?lcffmb#iefix') format('embedded-opentype'), url('@{icomoon-font-path}/CustomIcons.ttf?lcffmb') format('truetype'), url('@{icomoon-font-path}/CustomIcons.woff?lcffmb') format('woff'), url('@{icomoon-font-path}/CustomIcons.svg?lcffmb#CustomIcons') format('svg');
-    font-weight: normal;
-    font-style: normal;
+  font-family: '@{icomoon-font-family}';
+  src:  url('@{icomoon-font-path}/@{icomoon-font-family}.eot?hhvrrz');
+  src:  url('@{icomoon-font-path}/@{icomoon-font-family}.eot?hhvrrz#iefix') format('embedded-opentype'),
+    url('@{icomoon-font-path}/@{icomoon-font-family}.ttf?hhvrrz') format('truetype'),
+    url('@{icomoon-font-path}/@{icomoon-font-family}.woff?hhvrrz') format('woff'),
+    url('@{icomoon-font-path}/@{icomoon-font-family}.svg?hhvrrz#@{icomoon-font-family}') format('svg');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
 }
 
 .se {
-    /* use !important to prevent issues with browser extensions that change fonts */
-    font-family: 'CustomIcons' !important;
-    speak: none;
-    font-style: normal;
-    font-weight: normal;
-    font-variant: normal;
-    text-transform: none;
-    line-height: 1;
-    /* Better Font Rendering =========== */
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: '@{icomoon-font-family}' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
 
-.se-rock {
-    &:before {
-        content: @se-rock;
-    }
-}
-
-.se-kids {
-    &:before {
-        content: @se-kids;
-    }
-}
-
-.se-c920 {
-    &:before {
-        content: @se-c920;
-    }
-}
-
-.se-bb {
-    &:before {
-        content: @se-bb;
-    }
-}
-
-.se-cw {
-    &:before {
-        content: @se-cw;
-    }
-}
-
-.se-et {
-    &:before {
-        content: @se-et;
-    }
-}
-
-.se-hsm {
-    &:before {
-        content: @se-hsm;
-    }
-}
-
-.se-in {
-    &:before {
-        content: @se-in;
-    }
-}
-
-.se-la {
-    &:before {
-        content: @se-la;
-    }
-}
-
-.se-lwya {
-    &:before {
-        content: @se-lwya;
-    }
-}
-
-.se-msm {
-    &:before {
-        content: @se-msm;
-    }
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .se-se {
-    &:before {
-        content: @se-se;
-    }
+  &:before {
+    content: @se-se; 
+  }
+}
+.se-bb {
+  &:before {
+    content: @se-bb; 
+  }
+}
+.se-ciw {
+  &:before {
+    content: @se-ciw; 
+  }
+}
+.se-cw {
+  &:before {
+    content: @se-cw; 
+  }
+}
+.se-et {
+  &:before {
+    content: @se-et; 
+  }
+}
+.se-in {
+  &:before {
+    content: @se-in; 
+  }
+}
+.se-la {
+  &:before {
+    content: @se-la; 
+  }
+}
+.se-c920 {
+  &:before {
+    content: @se-c920; 
+  }
+}
+.se-rv {
+  &:before {
+    content: @se-rv; 
+  }
+}
+.se-sw {
+  &:before {
+    content: @se-sw; 
+  }
+}
+.se-hsm {
+  &:before {
+    content: @se-hsm; 
+  }
+}
+.se-lwya {
+  &:before {
+    content: @se-lwya; 
+  }
+}
+.se-msm {
+  &:before {
+    content: @se-msm; 
+  }
+}
+.se-kids {
+  &:before {
+    content: @se-kids; 
+  }
+}
+.se-rock {
+  &:before {
+    content: @se-rock; 
+  }
 }
 
-.se-sw {
-    &:before {
-        content: @se-sw;
-    }
-}
