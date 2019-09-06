@@ -72,23 +72,31 @@ namespace org.secc.FamilyCheckin.Model
         }
         private ICollection<GroupType> _groupTypes;
 
-        public bool IsOpen()
+        public bool IsOpen( DateTime? dateTime = null )
         {
-            return this.Schedules.Where( s => s.WasScheduleActive( RockDateTime.Now ) ).Any();
+            if ( !dateTime.HasValue )
+            {
+                dateTime = RockDateTime.Now;
+            }
+            return this.Schedules.Where( s => s.WasScheduleActive( dateTime.Value ) ).Any();
         }
 
         [DataMember]
         public string Message { get; set; }
 
-        public DateTime? GetNextOpen()
+        public DateTime? GetNextOpen( DateTime? dateTime = null )
         {
             var now = RockDateTime.Now;
-            var tomorrow = RockDateTime.Today.AddDays( 1 );
+            if ( dateTime.HasValue )
+            {
+                now = dateTime.Value;
+            }
+            var tomorrow = now.Date.AddDays( 1 );
             var times = this.Schedules
                 .Where( s => s.GetScheduledStartTimes( now, tomorrow ).FirstOrDefault() > now )
-                .OrderBy( t => t.GetNextStartDateTime( RockDateTime.Now ) )
+                .OrderBy( t => t.GetNextStartDateTime( now ) )
                 .FirstOrDefault();
-            return times != null ? times.GetNextStartDateTime( RockDateTime.Now ) : ( DateTime? ) null;
+            return times != null ? times.GetNextStartDateTime( now ) : ( DateTime? ) null;
         }
 
     }

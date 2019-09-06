@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -27,6 +27,7 @@ using System.Web.UI;
 using org.secc.FamilyCheckin.Model;
 using org.secc.FamilyCheckin.Exceptions;
 using Rock.Data;
+using Rock.Model;
 
 namespace RockWeb.Plugins.org_secc.FamilyCheckin
 {
@@ -172,10 +173,17 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 return;
             }
 
-
-            if ( !KioskType.IsOpen() )
+            if ( CurrentCheckInState.Kiosk.DebugDateTime.HasValue )
             {
-                DateTime? activeAt = KioskType.GetNextOpen();
+                lTime.Visible = true;
+                lTime.Text = CurrentCheckInState.Kiosk.DebugDateTime.Value.ToString();
+            }
+
+            var currentDateTime = CurrentCheckInState.Kiosk.DebugDateTime.HasValue ? CurrentCheckInState.Kiosk.DebugDateTime.Value : RockDateTime.Now;
+
+            if ( !KioskType.IsOpen( currentDateTime ) )
+            {
+                DateTime? activeAt = KioskType.GetNextOpen( currentDateTime);
                 if ( activeAt == null )
                 {
                     pnlNotActive.Visible = true;
@@ -183,31 +191,45 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 }
                 else
                 {
-                    lblActiveWhen.Text = ( activeAt ?? RockDateTime.Today.AddDays( 1 ) ).ToString( "o" );
+                    lblActiveWhen.Text = ( activeAt ?? currentDateTime.Date.AddDays( 1 ) ).ToString( "o" );
                     pnlNotActiveYet.Visible = true;
                     HideSign();
                 }
                 ScriptManager.RegisterStartupScript( Page, Page.GetType(), "Set Kiosk Active", "kioskActive=false;", true );
             }
-            else if ( CurrentCheckInState.Kiosk.FilteredGroupTypes( CurrentCheckInState.ConfiguredGroupTypes ).Count == 0 )
-            {
-                pnlNotActive.Visible = true;
-                HideSign();
-                ScriptManager.RegisterStartupScript( Page, Page.GetType(), "Set Kiosk Active", "kioskActive=false;", true );
-            }
-            else if ( !CurrentCheckInState.Kiosk.HasLocations( CurrentCheckInState.ConfiguredGroupTypes ) )
-            {
-                DateTime activeAt = CurrentCheckInState.Kiosk.FilteredGroupTypes( CurrentCheckInState.ConfiguredGroupTypes ).Select( g => g.NextActiveTime ).Min();
-                lblActiveWhen.Text = activeAt.ToString( "o" );
-                pnlNotActiveYet.Visible = true;
-                HideSign();
-                ScriptManager.RegisterStartupScript( Page, Page.GetType(), "Set Kiosk Active", "kioskActive=false;", true );
-            }
             else
             {
-                pnlActive.Visible = true;
-                ShowWelcomeSign();
-                ScriptManager.RegisterStartupScript( Page, Page.GetType(), "Set Kiosk Active", "kioskActive=true;", true );
+                var schedules = KioskType.GroupTypes
+                    .SelectMany( gt => gt.Groups )
+                    .SelectMany( g => g.GroupLocations )
+                    .SelectMany( gl => gl.Schedules )
+                    .DistinctBy( s => s.Id )
+                    .ToList();
+
+                if ( schedules.Where( s => s.WasCheckInActive( currentDateTime ) ).Any() )
+                {
+                    pnlActive.Visible = true;
+                    ShowWelcomeSign();
+                    ScriptManager.RegisterStartupScript( Page, Page.GetType(), "Set Kiosk Active", "kioskActive=true;", true );
+                }
+                else if ( schedules.Where( s => s.GetNextCheckInStartTime( currentDateTime ).HasValue ).Any() )
+                {
+                    DateTime activeAt = schedules
+                        .Select( s => s.GetNextCheckInStartTime( currentDateTime ) )
+                        .Where( a => a.HasValue
+                        ).Min( a => a.Value );
+                    lblActiveWhen.Text = activeAt.ToString( "o" );
+                    pnlNotActiveYet.Visible = true;
+                    HideSign();
+                    ScriptManager.RegisterStartupScript( Page, Page.GetType(), "Set Kiosk Active", "kioskActive=false;", true );
+                }
+                else
+                {
+                    pnlNotActive.Visible = true;
+                    HideSign();
+                    ScriptManager.RegisterStartupScript( Page, Page.GetType(), "Set Kiosk Active", "kioskActive=false;", true );
+                }
+
             }
         }
 
@@ -272,7 +294,7 @@ if ($ActiveWhen.text() != '')
     }});
 }}
 
-", this.Page.ClientScript.GetPostBackEventReference( lbRefresh, "" ), KioskType.Id);
+", this.Page.ClientScript.GetPostBackEventReference( lbRefresh, "" ), KioskType.Id );
             ScriptManager.RegisterStartupScript( Page, Page.GetType(), "RefreshScript", script, true );
         }
     }
