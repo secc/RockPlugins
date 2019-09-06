@@ -242,7 +242,7 @@
 
 <asp:UpdatePanel ID="upContent" runat="server" CssClass="">
     <ContentTemplate>
-
+        <asp:Literal Visible="false" ID="lTime" runat="server" />
 
 
         <asp:PlaceHolder ID="phScript" runat="server"></asp:PlaceHolder>

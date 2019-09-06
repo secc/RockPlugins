@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Net;
+using System.Web.Security;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using org.secc.FamilyCheckin.Model;
@@ -47,7 +48,19 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 }
                 else
                 {
-                    if ( CurrentUser != null && CurrentUser.IsAuthenticated && !string.IsNullOrWhiteSpace( PageParameter( "KioskName" ) ) )
+                    if ( CurrentUser == null && ( PageParameter( "KioskName" ).IsNotNullOrWhiteSpace() || PageParameter( "datetime" ).IsNotNullOrWhiteSpace() ) )
+                    {
+                        var site = RockPage.Layout.Site;
+                        if ( site.LoginPageId.HasValue )
+                        {
+                            site.RedirectToLoginPage( true );
+                        }
+                        else
+                        {
+                            FormsAuthentication.RedirectToLoginPage();
+                        }
+                    }
+                    else if ( PageParameter( "KioskName" ).IsNotNullOrWhiteSpace() )
                     {
                         SetKiosk( PageParameter( "KioskName" ) );
                     }
@@ -64,7 +77,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     return;
                 }
 
-                    if ( Request["__EVENTTARGET"] == "ClientName" )
+                if ( Request["__EVENTTARGET"] == "ClientName" )
                 {
                     //Use Kiosk given client name
                     SetKiosk( Request["__EVENTARGUMENT"] );
@@ -134,10 +147,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 {
                     device = new Device();
                     device.DeviceTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.DEVICE_TYPE_CHECKIN_KIOSK ).Id;
+                    device.Name = kiosk.Name;
                     deviceService.Add( device );
                 }
 
-                device.Name = kiosk.Name;
+                device.LoadAttributes();
                 device.IPAddress = kiosk.IPAddress;
                 device.Locations.Clear();
                 foreach ( var loc in kiosk.KioskType.Locations.ToList() )
@@ -148,6 +162,17 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 device.PrintToOverride = kiosk.PrintToOverride;
                 device.PrinterDeviceId = kiosk.PrinterDeviceId;
                 rockContext.SaveChanges();
+
+                if ( PageParameter( "DateTime" ).AsDateTime().HasValue )
+                {
+                    device.SetAttributeValue( "core_device_DebugDateTime", PageParameter( "datetime" ) );
+                }
+                else
+                {
+                    device.SetAttributeValue( "core_device_DebugDateTime", "" );
+                }
+                device.SaveAttributeValues( rockContext );
+
                 CurrentKioskId = device.Id;
                 CurrentGroupTypeIds = kiosk.KioskType.GroupTypes.Select( gt => gt.Id ).ToList();
 
