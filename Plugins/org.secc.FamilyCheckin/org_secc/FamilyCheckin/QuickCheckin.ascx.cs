@@ -372,6 +372,26 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         }
 
         /// <summary>
+        /// Draws the checkin areas for each schedule
+        /// </summary>
+        /// <param name="person"></param>
+        /// <param name="hgcRow"></param>
+        private void DisplayPersonCheckinAreas( CheckInPerson checkInPerson, Panel hgcRow )
+        {
+            List<CheckInSchedule> personSchedules = GetCheckinSchedules( checkInPerson );
+
+            foreach ( var schedule in personSchedules )
+            {
+                Panel hgcAreaRow = new Panel();
+                hgcRow.Controls.Add( hgcAreaRow );
+                hgcAreaRow.ID = checkInPerson.Person.Id.ToString() + schedule.Schedule.Id.ToString();
+
+                hgcRow.AddCssClass( "row col-xs-12" );
+                DisplayPersonSchedule( checkInPerson, schedule, hgcAreaRow );
+            }
+        }
+
+        /// <summary>
         /// Draws the person entry if they have no available options.
         /// </summary>
         /// <param name="person"></param>
@@ -974,26 +994,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             return false;
         }
 
-        /// <summary>
-        /// Draws the checkin areas for each schedule
-        /// </summary>
-        /// <param name="person"></param>
-        /// <param name="hgcRow"></param>
-        private void DisplayPersonCheckinAreas( CheckInPerson checkInPerson, Panel hgcRow )
-        {
-            List<CheckInSchedule> personSchedules = GetCheckinSchedules( checkInPerson );
-
-            foreach ( var schedule in personSchedules )
-            {
-                Panel hgcAreaRow = new Panel();
-                hgcRow.Controls.Add( hgcAreaRow );
-                hgcAreaRow.ID = checkInPerson.Person.Id.ToString() + schedule.Schedule.Id.ToString();
-
-                hgcRow.AddCssClass( "row col-xs-12" );
-                DisplayPersonSchedule( checkInPerson, schedule, hgcAreaRow );
-            }
-        }
-
         private List<CheckInSchedule> GetCheckinSchedules( CheckInPerson checkInPerson )
         {
             var selectedSchedules = ( List<int> ) Session["SelectedSchedules"];
@@ -1206,8 +1206,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             SaveState();
         }
 
-
-
         private bool PersonHasSelectedOption( CheckInPerson checkinPerson )
         {
             var selectedSchedules = ( List<int> ) Session["SelectedSchedules"];
@@ -1270,7 +1268,10 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
                     if ( isVounteer )
                     { //volunteers need to select their position
-                        ShowRoomChangeModal( checkinPerson, checkinSchedule );
+                        if ( !PersonHasSelectedOption( checkinPerson ) )
+                        {
+                            ShowRoomChangeModal( checkinPerson, checkinSchedule );
+                        }
                         return;
                     }
                     else
