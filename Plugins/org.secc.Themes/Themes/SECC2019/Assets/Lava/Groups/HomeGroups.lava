@@ -138,8 +138,8 @@
                 </style>
                 <div class="g-display-inline-block--xs col-xs-12 col-md-3 g-padding-x-5--xs" tabindex="0" style="outline: none;">
                     <!-- <span class="se-dropdown" data-toggle="dropdown-content" data-reveal="daysOfTheWeek" aria-expanded="false" data-control="#groupFilters" tabindex="0"> -->
-                    <span class="se-dropdown" data-toggle="dropdown-content" data-reveal="daysOfTheWeek" aria-expanded="false" data-control="#groupFilters">
-                        Meets On
+                    <span id="MeetsOnFilter" class="se-dropdown" data-toggle="dropdown-content" data-reveal="daysOfTheWeek" aria-expanded="false" data-control="#groupFilters">
+                        Meets On <span class="count"></span>
                         <span class="arrow" role="presentation"><b role="presentation"></b></span>
                     </span>
                     <div id="daysOfTheWeek" class="button-group filter-button-group g-padding-x-10--xs g-display-inline-block--xs g-margin-t-10--xs">
@@ -157,8 +157,8 @@
                 </div>
 
                 <div class="g-display-inline-block--xs col-xs-12 col-md-3 g-padding-x-5--xs" tabindex="0" style="outline: none;">
-                    <span class="se-dropdown" data-toggle="dropdown-content" data-reveal="typeSelected" aria-expanded="false" data-control="#groupFilters">
-                        Type
+                    <span id="GroupTypeFilter"class="se-dropdown" data-toggle="dropdown-content" data-reveal="typeSelected" aria-expanded="false" data-control="#groupFilters">
+                        Type <span class="count"></span>
                         <span class="arrow" role="presentation"><b role="presentation"></b></span>
                     </span>
                     <div id="typeSelected" class="button-group filter-button-group g-padding-x-10--xs g-display-inline-block--xs g-margin-t-10--xs">
@@ -403,9 +403,13 @@
             embedCSS: false,
             collapsedHeight: 0,
             beforeToggle: function(tr, el, ex) {
-                $(el).show();
+              $(el).show();
             },
-            afterToggle: function(trigger, element, expanded) {
+            afterToggle: function( trigger, element, expanded ) {
+                if ( expanded ) {
+                    element.css( "height", "" );
+                    element.css( "height", element.height() + "px" );
+                }
                 $('.isotope_wrap').isotope(isoOptions); // re-initialize
             }
         });
@@ -533,12 +537,27 @@
      }
 
      function reapplyIso() {
+         updateFilterCounts()
          $grid.isotope({
            itemSelector: '.isotope_item',
            percentPosition: true,
            layoutMode: 'fitRows',
            filter: runFilters()
          });
+     }
+
+     function updateFilterCounts() {
+         // handling selected filters
+         if(days_selected.length) {
+             $("span#MeetsOnFilter span.count").html("("+days_selected.length+")");
+         } else {
+             $("span#MeetsOnFilter span.count").html("");
+         }
+         if(types_selected.length) {
+             $("span#GroupTypeFilter span.count").html("("+types_selected.length+")");
+         } else {
+             $("span#GroupTypeFilter span.count").html("");
+         }
      }
 
      function createFilters(arrayList, selector) {
