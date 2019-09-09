@@ -335,9 +335,16 @@
                             {% endif %}
 
                             <div class="text-center col-xs-12 g-margin-t-40--xs g-hor-divider__solid__t--gray-lighter">
+							<div class="col-md-6">
+                                <a href="/groups/homegroups/contact/{{ group.Guid }}" class="eventCardLink link--hover-underscore">
+                                    <h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">Contact</h6>
+                                </a>
+								</div>
+								<div class="col-md-6">
                                 <a href="/groups/homegroups/registration/{{ group.Id }}" class="eventCardLink link--hover-underscore">
                                     <h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">Register</h6>
                                 </a>
+								</div>
                             </div>
                         </div>
 
@@ -387,16 +394,8 @@
       percentPosition: true,
       layoutMode: 'fitRows'
     });
-    if (Modernizr.mq('only all and (max-width: 720px)')) {
-        // Not using isotope or readmore on mobile - it's heavy on JS (breaks old iphones)
-        $('.isotope_wrap').addClass('is-showing-items');
-    } else {
-        var isoOptions = {
-            itemSelector: '.isotope_item',
-            percentPosition: true,
-            layoutMode: 'fitRows'
-        };
-        // initialize ReadmoreJS
+
+	// initialize ReadmoreJS
         $('.readmore_dates').readmore({
             speed: 200,
             lessLink: '<a class="pull-right uppercase" style="padding: 2rem;width: 100%;text-align: right;"><span class="se-carat se-carat--up"></span></a>',
@@ -410,6 +409,17 @@
                 $('.isotope_wrap').isotope(isoOptions); // re-initialize
             }
         });
+
+    if (Modernizr.mq('only all and (max-width: 720px)')) {
+        // Not using isotope or readmore on mobile - it's heavy on JS (breaks old iphones)
+        $('.isotope_wrap').addClass('is-showing-items');
+    } else {
+        var isoOptions = {
+            itemSelector: '.isotope_item',
+            percentPosition: true,
+            layoutMode: 'fitRows'
+        };
+
         // init Isotope
         $grid.addClass('is-showing-items').isotope(isoOptions);
     }
