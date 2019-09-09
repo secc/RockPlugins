@@ -1,3 +1,19 @@
+{% comment %}
+    ******* Filtering System for Campuses via Groups *****
+{% endcomment %}
+
+{% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
+{% assign campusIdSize = pageParamCampusId | Size %}
+{% assign pageParamCampus = 'Global' | PageParameter:'campus' | Downcase | Replace:"-","" %}
+{% assign selectedCampus = null %}
+{% for campus in Campuses %}
+	{% assign campusName = campus.Name | Downcase | Replace:" ",""  %}
+	{% if campus.Id == pageParamCampusId or campusName == pageParamCampus %}
+		{% assign selectedCampus = campus %}
+		{% break %}
+	{% endif %}
+{% endfor %}
+
 <style>
 .readmore_dates {
    transition: height 100ms;
@@ -22,7 +38,7 @@
                         {% for campus in Campuses %}
                             {% assign publicCampus = campus | Attribute:'Public' %}
                             {% if publicCampus == 'Yes' %}
-                                <option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campus.ShortCode }}">
+                                <option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campus.Name | Downcase | Replace:" ",""}}"{% if selectedCampus.Id > 0 and selectedCampus.Id == campus.Id %} selected="selected"{% endif %}>
                                     {{ campus.Name }}
                                 </option>
                             {% endif %}
@@ -230,7 +246,7 @@
 
                 <div class="homegroup isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar"
                      data-groupid="{{group.Id}}"
-                     data-campus="{{ group.Campus.ShortCode }}"
+                     data-campus="{{ group.Campus.Name | Downcase | Replace:" ",""}}"
                      data-day="{{ group.Schedule.WeeklyDayOfWeek }}"
                      data-handicap-accessible="{{ handicapAcc | Downcase }}"
                      data-open-to-children="{{ otc | Downcase }}"
@@ -360,7 +376,6 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Readmore.js/2.2.0/readmore.min.js"></script>
 <script>
-
     $('[data-toggle="tooltip"]').tooltip();
 
     function toggleDropdown($selected) {
@@ -485,8 +500,15 @@
         if (campus != '' && campus != undefined) {
             campus_filters_selected.push(campus);
         }
-        console.debug(campus_filters_selected);
+        // push a new URL state with filter parameter
+        var newPath = updatePath('campus',campus);
+        // console.debug(campus_filters_selected);
     }
+    {% if selectedCampus.Id > 0 %}
+    // this initializes the campus selection based on the URL params
+    buildCampusFilters('{{ selectedCampus.Name | Downcase | Replace:" ",""}}');
+    {% endif %}
+
 
     // handling days selected
     var days_selected = [];
@@ -532,7 +554,7 @@
                 }
              });
          }
-         console.log(filterArray.join(','));
+         // console.log(filterArray.join(','));
          return filterArray.join(',');
      }
 
@@ -642,5 +664,85 @@
          });
          $('.se-zipcode-loading').addClass('hidden');
      });
+
+     loadQueryStringParam();
+
+     ///////////////////////////////////////////////////
+     ///////////////// URL Filtering ///////////////////
+     ///////////////////////////////////////////////////
+     function parseQueryString() {
+         var str = window.location.search;
+         var objURL = {};
+         str.replace(
+             new RegExp( "([^?=&]+)(=([^&]*))?", "g" ),
+             function( $0, $1, $2, $3, $4 ){
+                 objURL[ $1 ] = $3;
+             }
+         );
+         // console.log(objURL);
+         return objURL;
+     };
+
+     function loadQueryStringParam() {
+         var params = parseQueryString();
+         // console.log(params);
+         if (params) {
+
+             // preselect options
+             if(params["meet"]) {
+                 var types = params["meet"].split(',');
+                 for (i = 0; i < types.length; i++) {
+                     $('#daysOfTheWeek').find('[data-filter='+types[i]+']').filter(function () {
+                        buildDaysFilters(types[i]);
+                        return $(this).toggleClass('active');
+                     });
+                 }
+             }
+             if(params["type"]) {
+             }
+             if(params["zipcode"]) {
+
+             }
+             updateFilterCounts();
+             reapplyIso();
+         }
+
+     }
+
+     function updatePath(key, value) {
+         var baseUrl = [location.protocol, '//', location.host].join('');
+         var parts = location.pathname.split('/');
+         var urlParams = new URLSearchParams(window.location.search);
+
+         // Set some defaults;
+         parts[1] = 'devhome-groups';
+         parts[2] = parts[2]||'southeast';
+         // parts[3] = parts[3]||'all';
+         // Set default part one of Groups
+         if (key == 'campus') {
+             parts[2] = value||'southeast';
+         }
+         window.history.pushState({}, '', baseUrl + parts.join('/') + "?" + decodeURIComponent(urlParams.toString()));
+         // console.log( "key: " + key);
+         // console.log( "value:" + value );
+         // console.log( "parts:" + parts );
+         return parts.join( '/' ) + "?" + decodeURIComponent(urlParams.toString());
+     }
+
+     ///////////////////////////////////////////////////
+     ////////////// Listen for Back Clicks /////////////
+     ///////////////////////////////////////////////////
+     window.onpopstate = function(event) {
+       // back to the same page without the filters
+       //window.location.replace(window.location.protocol + "//" + window.location.host + window.location.pathname);
+
+       // OPTIONAL - back to previous filter/result
+       // var url_string = window.location.href;
+       // var url = new URL(url_string);
+       // var c = url.searchParams.get("campusId");
+       // // console.log(c);
+       // runCampusFilters(c);
+     };
+
 
 </script>
