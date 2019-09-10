@@ -146,10 +146,9 @@
 						   Country Lake Christian Retreat</p>
 					</div>
 					<div class="col-sm-5 col-md-7 col-lg-6">
-						Blankenbaker • June 10-14<br />
-						Crestwood, La Grange, River Valley • June 14-18 <br />
-						Indiana, Southwest, <br />
-						Elizabethtown • June 18-22 <br />
+						June 4-7 • Blankenbaker<br />
+						June 8-11 • Southwest, LaGrange, ETown, River Valley<br />
+						June 12-15 • Crestwood and Indiana <br />
 					</div>
 				</div>
 			</a>
@@ -159,12 +158,16 @@
 			<a href="/camp/bibleandbeach">
 				<img src="/Themes/SECC2014/Assets/img/Camps/BibleBeach-color.jpg" class="img-responsive">
 				<div class="event-info-top biblenbeach">
-					<div class="col-sm-12">
+					<div class="col-sm-7 col-md-5 col-lg-6">
 						<h4 class="g-color--white">BIBLE &amp; BEACH</h4>
 						<p class="g-color--white">High School<br />
-						   June 8-13<br />
-					   	   Fort Walton Beach, Florida<br /></p>
+						   Fort Walton Beach, Florida</p>
 					</div>
+					<div class="col-sm-5 col-md-7 col-lg-6">
+						June 12-17 • Blankenbaker and Southwest<br />
+						June 16-21 • Indiana, Crestwood, LaGrange, ETown, River Valley<br />
+					</div>
+
 				</div>
 			</a>
 		</div>
@@ -173,15 +176,15 @@
 			<a href="/camp/sekids-summer-camp">
 				<img src="/Themes/SECC2014/Assets/img/Camps/SEKidsYellow.jpg" alt="Celebrate Christmas Together" class="img-responsive">
 				<div class="event-info-bottom sekids">
-					<div class="col-sm-6 col-md-5 col-lg-5">
+					<div class="col-sm-7 col-md-5 col-lg-6">
 						<h4 class="g-color--white">SE!KIDS SUMMER CAMP</h4>
 						<p class="g-color--white">Elementary School<br />
 						   Country Lake Christian Retreat</p>
 					</div>
-					<div class="col-sm-6 col-md-7 col-lg-7">
-						1<sup>st</sup> - 2<sup>nd</sup> Grade Camp • All Campuses • July 16-17<br />
-						3<sup>rd</sup> - 5<sup>th</sup> Grade Camp 1 • Indiana, Crestwood, Southwest, La Grange, Elizabethtown, and River Valley • July 18-21<br />
-						3<sup>rd</sup> - 5<sup>th</sup> Grade Camp 2 • Blankenbaker • July 22-25<br />
+					<div class="col-sm-5 col-md-7 col-lg-6">
+						1<sup>st</sup> - 2<sup>nd</sup> Grade Camp: July 7-8 – All Campuses<br />
+						3<sup>rd</sup> - 5<sup>th</sup> Grade Camp: July 9-12 – Indiana, Crestwood, La Grange, and River Valley<br />
+						3<sup>rd</sup> - 5<sup>th</sup> Grade Camp: July 13-16 – Blankenbaker and Elizabethtown<br />
 					</div>
 				</div>
 			</a>
@@ -194,7 +197,7 @@
 					<div class="col-sm-12">
 						<h4 class="g-color--white">CAMP FREEDOM</h4>
 						<p class="g-color--white">Campers with Developmental Disabilities<br />
-						   July 26-28 • Country Lake Christian Retreat</p>
+						   July 17-19 • Country Lake Christian Retreat</p>
 					</div>
 				</div>
 			</a>
