@@ -821,8 +821,8 @@
 		 }
 
          // Set some defaults;
-         parts[1] = 'devhome-groups';
-         parts[2] = parts[2]||'southeast';
+         parts[1] = 'homegroups';
+         parts[2] = parts[2]||'all';
          // parts[3] = parts[3]||'all';
          // Set default part one of Groups
 
@@ -830,7 +830,7 @@
          if (campus_filters_selected.length != 0) {
              parts[2] = campus_filters_selected[0];
          } else {
-			 parts[2] = 'southeast';
+			 parts[2] = 'all';
 		 }
 
          window.history.pushState({}, '', baseUrl + parts.join('/') + "?" + decodeURIComponent(urlParams.toString()));
