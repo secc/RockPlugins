@@ -9,6 +9,7 @@ using Rock.Security;
 using Rock.Web.Cache;
 using System.Linq;
 using org.secc.PersonMatch;
+using System.Text.RegularExpressions;
 
 namespace RockWeb.Plugins.org_secc.Event
 {
@@ -55,26 +56,51 @@ namespace RockWeb.Plugins.org_secc.Event
             string documentId = Request.QueryString["document_id"];
             string registrationKey = Request.QueryString["registration_key"];
 
-            if (!IsPostBack && !string.IsNullOrEmpty( documentId ) && !string.IsNullOrEmpty( registrationKey ) && Session[registrationKey] != null)
+            if ( !IsPostBack && !string.IsNullOrEmpty( registrationKey ) && Session[registrationKey] != null )
             {
+                //Sometimes on iOS SignNow does not return a document id.
+                //Why?
+                //I don't know.
+                //The saving grace here is that the document id is in the referer url and we can parse that to get the data!
+                if ( string.IsNullOrEmpty( documentId ) )
+                {
+                    //Without a referer this doesn't work
+                    if ( Request.UrlReferrer == null )
+                    {
+                        return;
+                    }
+
+                    //Hexideximal string after "document/"
+                    Regex rgx = new Regex( "(?<=document\\/)[0-9a-f]*" );
+
+                    var documentMatch = rgx.Match( Request.UrlReferrer.ToString() );
+                    if ( documentMatch.Captures.Count > 0 )
+                    {
+                        documentId = documentMatch.Value;
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
                 // We need to strip the extra parameters
                 var qs = HttpUtility.ParseQueryString( Request.Url.Query );
                 qs.Remove( "registration_key" );
                 qs.Remove( "document_id" );
                 // Put the URL back together again
-                var newUri = string.Format( "{0}{1}{2}", Request.Url.AbsolutePath, qs.Count>0?"?":"", qs.ToString() );
+                var newUri = string.Format( "{0}{1}{2}", Request.Url.AbsolutePath, qs.Count > 0 ? "?" : "", qs.ToString() );
 
                 // Clear the response and build a new HTML payload with an automatic postback
                 Response.Clear();
-                
+
                 StringBuilder sb = new StringBuilder();
                 sb.Append( "<html>" );
                 sb.AppendFormat( @"<body onload='document.forms[""form""].submit()'>" );
                 sb.AppendFormat( "<form name='form' method='post' action='" + newUri + "'>" );
 
                 // Loop through the viewstate params and re-instate them
-                Dictionary<string, string> state = (Dictionary<string, string>)Session[registrationKey];
-                foreach (var stateEntry in state)
+                Dictionary<string, string> state = ( Dictionary<string, string> ) Session[registrationKey];
+                foreach ( var stateEntry in state )
                 {
                     sb.AppendFormat( "<input type=\"hidden\" name=\"" + stateEntry.Key + "\" id=\"" + stateEntry.Value + "\" value=\"" + stateEntry.Value + "\">" );
                 }
@@ -105,7 +131,7 @@ namespace RockWeb.Plugins.org_secc.Event
             string documentId = Request.QueryString["document_id"];
             string registrationKey = Request.QueryString["registration_key"];
 
-            if( IsPostBack && RegistrationState != null && !string.IsNullOrEmpty( documentId ) && !string.IsNullOrEmpty( registrationKey ) && Session[registrationKey] != null)
+            if ( IsPostBack && RegistrationState != null && !string.IsNullOrEmpty( documentId ) && !string.IsNullOrEmpty( registrationKey ) && Session[registrationKey] != null )
             {
                 Session[registrationKey] = null;
             }
@@ -127,14 +153,14 @@ namespace RockWeb.Plugins.org_secc.Event
             RegistrationInstanceState = registrationInstanceState;
 
             var provider = DigitalSignatureContainer.GetComponent( RegistrationInstanceState.RegistrationTemplate.RequiredSignatureDocumentTemplate.ProviderEntityType.Name );
-            if (provider != null && provider.IsActive)
+            if ( provider != null && provider.IsActive )
             {
                 DigitalSignatureComponent = provider;
             }
             var registrant = RegistrationState.Registrants[CurrentRegistrantIndex];
 
             string firstName = RegistrationInstanceState.RegistrationTemplate.RegistrantTerm;
-            if (RegistrationState != null && RegistrationState.RegistrantCount > CurrentRegistrantIndex)
+            if ( RegistrationState != null && RegistrationState.RegistrantCount > CurrentRegistrantIndex )
             {
                 firstName = registrant.GetFirstName( RegistrationInstanceState.RegistrationTemplate );
                 string lastName = registrant.GetLastName( RegistrationInstanceState.RegistrationTemplate );
@@ -142,7 +168,7 @@ namespace RockWeb.Plugins.org_secc.Event
 
                 object dateOfBirthObj = registrant.GetPersonFieldValue( RegistrationInstanceState.RegistrationTemplate, RegistrationPersonFieldType.Birthdate );
                 DateTime? dateOfBirth = null;
-                if (dateOfBirthObj != null && dateOfBirthObj is DateTime?)
+                if ( dateOfBirthObj != null && dateOfBirthObj is DateTime? )
                 {
                     dateOfBirth = dateOfBirthObj as DateTime?;
                 }
@@ -151,7 +177,7 @@ namespace RockWeb.Plugins.org_secc.Event
                 var rockContext = new Rock.Data.RockContext();
                 PersonService personService = new PersonService( rockContext );
                 var possiblePersons = personService.GetByMatch( firstName, lastName, dateOfBirth, email: email );
-                if (possiblePersons.Count() == 1)
+                if ( possiblePersons.Count() == 1 )
                 {
                     var person = possiblePersons.First();
                     var personAliasIds = person.Aliases.Select( pa => pa.Id ).ToList();
@@ -161,7 +187,7 @@ namespace RockWeb.Plugins.org_secc.Event
                         sd.SignatureDocumentTemplateId == RegistrationInstanceState.RegistrationTemplate.RequiredSignatureDocumentTemplate.Id &&
                         sd.Status == SignatureDocumentStatus.Signed
                         ).OrderBy( sd => sd.CreatedDateTime );
-                    if (validSignatureDocuments.Any())
+                    if ( validSignatureDocuments.Any() )
                     {
                         registrant.SignatureDocumentId = validSignatureDocuments.First().Id;
                         registrant.SignatureDocumentKey = validSignatureDocuments.First().DocumentKey;
@@ -181,7 +207,7 @@ namespace RockWeb.Plugins.org_secc.Event
 
             var errors = new List<string>();
             string inviteLink = DigitalSignatureComponent.GetInviteLink( RegistrationInstanceState.RegistrationTemplate.RequiredSignatureDocumentTemplate.ProviderTemplateKey, out errors );
-            if (!string.IsNullOrWhiteSpace( inviteLink ))
+            if ( !string.IsNullOrWhiteSpace( inviteLink ) )
             {
                 var key = Guid.NewGuid();
 
@@ -219,7 +245,7 @@ namespace RockWeb.Plugins.org_secc.Event
                 var fields = ScriptManager.GetCurrent( Page ).GetRegisteredHiddenFields();
                 Dictionary<string, string> state = new Dictionary<string, string>();
 
-                foreach (var field in fields)
+                foreach ( var field in fields )
                 {
                     state.Add( field.Name, field.InitialValue );
                 }
@@ -232,7 +258,7 @@ namespace RockWeb.Plugins.org_secc.Event
         protected void btnRequiredDocument_Click( object sender, EventArgs e )
         {
 
-            if (!String.IsNullOrWhiteSpace( hfRegistrantKey.Value ))
+            if ( !String.IsNullOrWhiteSpace( hfRegistrantKey.Value ) )
             {
                 RedirectFlag = true;
             }
