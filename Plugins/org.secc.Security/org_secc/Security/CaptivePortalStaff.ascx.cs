@@ -58,13 +58,8 @@ namespace RockWeb.Plugins.org_secc.Security
         description: "SECC frontPorchThe <span class='tip tip-lava'></span>.",
         defaultValue: "http://secc.frontporch.cloud/captivePortal",
         order: 3 )]
-    [TextField(
-        name: "FPpostbackUrl",
-        description: "The postback URL <span class='tip tip-lava'></span>.",
-        defaultValue: "fppostback=https://MacBook.frontporch.cloud/captivePortal",
-        order: 4 )]
-    [CustomDropdownListField( "Redirect When", "When the redirect will occur.", "1^Always,2^When On Provided Network,3^When NOT On Provided Network", true, "1", order: 5 )]
-    [TextField( "Network", "The network to compare to in the format of '192.168.0.0/24'. See http://www.ipaddressguide.com/cidr for assistance in calculating CIDR addresses.", false, "", order: 6 )]
+    [CustomDropdownListField( "Redirect When", "When the redirect will occur.", "1^Always,2^When On Provided Network,3^When NOT On Provided Network", true, "1", order: 4 )]
+    [TextField( "Network", "The network to compare to in the format of '192.168.0.0/24'. See http://www.ipaddressguide.com/cidr for assistance in calculating CIDR addresses.", false, "", order: 5 )]
     [BooleanField( "TestingEnabled", "Set to true for test network", false, "", 7 )]
 
     #endregion Block Settings
@@ -138,9 +133,6 @@ namespace RockWeb.Plugins.org_secc.Security
 
             int redirectOption = GetAttributeValue( "RedirectWhen" ).AsInteger();
 
-
-
-
             // if always redirect 
             if ( redirectOption == 1 )
             {
@@ -177,37 +169,22 @@ namespace RockWeb.Plugins.org_secc.Security
         }
         protected string CreateRedirectUrl()
         {
+
             string seccFPurl = GetAttributeValue( "SeccFPUrl" );
-            string fpid = "?fpid=" + hfPersonAliasId.Value;
             string networkSSID = GetAttributeValue( "NetworkSSID" );
-            string hashPrefix = "Southeast SPD";
             string hashAttr = Encryption.DecryptString( GetAttributeValue( "SECCSecure" ) );
-            string hash = ComputeSha256Hash( hashPrefix + "-" + hfPersonAliasId.Value + "-" + hashAttr );
-            string fpPostBack = GetAttributeValue( "FPpostbackUrl" );
-            string testing = GetAttributeValue( "TestingEnabled" );
-            string clientMac = "client_mac=" + hfMacAddress.Value;
-
-
-            var fpPbBuild = new UriBuilder( fpPostBack );
-            fpPbBuild.Port = -1;
-
-
-
 
             var builder = new UriBuilder( seccFPurl );
             builder.Port = -1;
             var query = HttpUtility.ParseQueryString( builder.Query );
             query["fpid"] = hfPersonAliasId.Value;
             query["secureNetworkSSID"] = networkSSID;
-            query["secureNetworkHash"] = hash;
-            query["frontporch"] = "check";
-            query["fpPostBack"] = fpPbBuild.ToString();
-            query["client_mac"] = hfMacAddress.Value;
+            query["secureNetworkHash"] = ComputeSha256Hash( networkSSID + "-" + hfPersonAliasId.Value + "-" + hashAttr );
             if ( GetAttributeValue( "TestingEnabled" ).AsBoolean() )
             {
                 query["test"] = "true";
             }
-            builder.Query = query.ToString();
+            builder.Query = string.Format( "{0}&{1}", query.ToString(), Request.QueryString);
             string url = builder.ToString();
 
             return url.ToString();
@@ -218,6 +195,31 @@ namespace RockWeb.Plugins.org_secc.Security
         {
             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, CurrentPerson );
             string resolvedUrl = url.ResolveMergeFields( mergeFields );
+
+            // create or get device
+            if ( hfMacAddress.Value.IsNotNullOrWhiteSpace() )
+            {
+                string macAddress = hfMacAddress.Value;
+                PersonalDeviceService personalDeviceService = new PersonalDeviceService( new RockContext() );
+                PersonalDevice personalDevice = null;
+
+                bool isAnExistingDevice = DoesPersonalDeviceExist( macAddress );
+                if (isAnExistingDevice)
+                {
+                    personalDevice = VerifyDeviceInfo( macAddress );
+                }
+                else
+                {
+                    personalDevice = CreateDevice( macAddress );
+                    CreateDeviceCookie( macAddress );
+                }
+
+                // Time to link this device to the person.
+                if (personalDevice.PersonAliasId != CurrentPersonAliasId && CurrentPersonAliasId.HasValue)
+                {
+                    RockPage.LinkPersonAliasToDevice( CurrentPersonAliasId.Value, macAddress );
+                }
+            }
 
             if ( IsUserAuthorized( Rock.Security.Authorization.ADMINISTRATE ) )
             {
@@ -267,5 +269,153 @@ namespace RockWeb.Plugins.org_secc.Security
             }
         }
 
+
+        /// <summary>
+        /// Doeses a personal device exist for the provided MAC address
+        /// </summary>
+        /// <param name="macAddress">The mac address.</param>
+        /// <returns></returns>
+        private bool DoesPersonalDeviceExist( string macAddress )
+        {
+            PersonalDeviceService personalDeviceService = new PersonalDeviceService( new RockContext() );
+            return personalDeviceService.GetByMACAddress( macAddress ) == null ? false : true;
+        }
+
+
+
+        /// <summary>
+        /// Creates the device if new.
+        /// </summary>
+        /// <returns>Returns true if the device was created, false it already existed</returns>
+        private PersonalDevice CreateDevice( string macAddress )
+        {
+            UAParser.ClientInfo client = UAParser.Parser.GetDefault().Parse( Request.UserAgent );
+
+            RockContext rockContext = new RockContext();
+            PersonalDeviceService personalDeviceService = new PersonalDeviceService( rockContext );
+
+            PersonalDevice personalDevice = new PersonalDevice();
+            personalDevice.MACAddress = macAddress;
+
+            personalDevice.PersonalDeviceTypeValueId = GetDeviceTypeValueId();
+            personalDevice.PlatformValueId = GetDevicePlatformValueId( client );
+            personalDevice.DeviceVersion = GetDeviceOsVersion( client );
+
+            personalDeviceService.Add( personalDevice );
+            rockContext.SaveChanges();
+
+            return personalDevice;
+        }
+
+        /// <summary>
+        /// Gets the current device platform info and updates the obj if needed.
+        /// </summary>
+        /// <param name="personalDevice">The personal device.</param>
+        private PersonalDevice VerifyDeviceInfo( string macAddress )
+        {
+            UAParser.ClientInfo client = UAParser.Parser.GetDefault().Parse( Request.UserAgent );
+
+            RockContext rockContext = new RockContext();
+            PersonalDeviceService personalDeviceService = new PersonalDeviceService( rockContext );
+
+            PersonalDevice personalDevice = personalDeviceService.GetByMACAddress( macAddress );
+            personalDevice.PersonalDeviceTypeValueId = GetDeviceTypeValueId();
+            personalDevice.PlatformValueId = GetDevicePlatformValueId( client );
+            personalDevice.DeviceVersion = GetDeviceOsVersion( client );
+
+            rockContext.SaveChanges();
+
+            return personalDevice;
+        }
+
+        /// <summary>
+        /// Uses the Request information to determine if the device is mobile or not
+        /// </summary>
+        /// <returns>DevinedValueId for "Mobile" or "Computer", Mobile includes Tablet. Null if there is a data issue and the DefinedType is missing</returns>
+        private int? GetDeviceTypeValueId()
+        {
+            // Get the device type Mobile or Computer
+            DefinedTypeCache definedTypeCache = DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSONAL_DEVICE_TYPE.AsGuid() );
+            DefinedValueCache definedValueCache = null;
+
+            var clientType = InteractionDeviceType.GetClientType( Request.UserAgent );
+            clientType = clientType == "Mobile" || clientType == "Tablet" ? "Mobile" : "Computer";
+
+            if (definedTypeCache != null)
+            {
+                definedValueCache = definedTypeCache.DefinedValues.FirstOrDefault( v => v.Value == clientType );
+
+                if (definedValueCache == null)
+                {
+                    definedValueCache = DefinedValueCache.Read( "828ADECE-EFE7-49DF-BA8C-B3F132509A95" );
+                }
+
+                return definedValueCache.Id;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Parses ClientInfo to find the OS family
+        /// </summary>
+        /// <param name="client">The client.</param>
+        /// <returns>DefinedValueId for the found OS. Uses "Other" if the OS is not in DefinedValue. Null if there is a data issue and the DefinedType is missing</returns>
+        private int? GetDevicePlatformValueId( UAParser.ClientInfo client )
+        {
+            // get the OS
+            string platform = client.OS.Family.Split( ' ' ).First();
+
+            DefinedTypeCache definedTypeCache = DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSONAL_DEVICE_PLATFORM.AsGuid() );
+            DefinedValueCache definedValueCache = null;
+            if (definedTypeCache != null)
+            {
+                definedValueCache = definedTypeCache.DefinedValues.FirstOrDefault( v => v.Value == platform );
+
+                if (definedValueCache == null)
+                {
+                    definedValueCache = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSONAL_DEVICE_PLATFORM_OTHER.AsGuid() );
+                }
+
+                return definedValueCache.Id;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Parses ClientInfo and gets the device os version. If it cannot be determined returns the OS family string without the platform
+        /// </summary>
+        /// <param name="client">The client.</param>
+        /// <returns></returns>
+        private string GetDeviceOsVersion( UAParser.ClientInfo client )
+        {
+            if (client.OS.Major == null)
+            {
+                string platform = client.OS.Family.Split( ' ' ).First();
+                return client.OS.Family.Replace( platform, string.Empty ).Trim();
+            }
+
+            return string.Format(
+                "{0}.{1}.{2}.{3}",
+                client.OS.Major ?? "0",
+                client.OS.Minor ?? "0",
+                client.OS.Patch ?? "0",
+                client.OS.PatchMinor ?? "0" );
+        }
+
+        /// <summary>
+        /// Creates the device cookie if it does not exist.
+        /// </summary>
+        private void CreateDeviceCookie( string macAddress )
+        {
+            if (Request.Cookies["rock_wifi"] == null)
+            {
+                HttpCookie httpcookie = new HttpCookie( "rock_wifi" );
+                httpcookie.Expires = DateTime.MaxValue;
+                httpcookie.Values.Add( "ROCK_PERSONALDEVICE_ADDRESS", macAddress );
+                Response.Cookies.Add( httpcookie );
+            }
+        }
     }
 }
