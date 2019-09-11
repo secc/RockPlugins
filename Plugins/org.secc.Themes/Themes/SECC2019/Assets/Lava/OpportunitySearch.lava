@@ -195,6 +195,11 @@
                     <i class="fas fa-circle-notch fa-spin se-zipcode-loading hidden"></i>
                 </div>
 
+				<div class="g-font-size-20--xs g-display-inline-block--xs col-xs-12 g-padding-x-5--xs g-padding-t-10--xs text-right uppercase g-font-weight--600">
+					<label for="se-handicap" class="g-font-size-20--xs g-font-weight--600 g-display-inline-block--xs g-padding-r-10--xs">Handicap Accessibility</label><input id="se-handicap" class="" type="checkbox" /><br />
+					<label for="se-otc" class="g-font-size-20--xs g-font-weight--600 g-display-inline-block--xs g-padding-r-10--xs">Open to Children</label><input id="se-otc" class="" type="checkbox" />
+                </div>
+
             </div>
         </div>
     </div>
@@ -454,6 +459,18 @@
       reapplyIso();
     });
 
+	$('#se-handicap:checkbox').change(function(e) {
+		e.preventDefault();
+        buildHandicapFilter();
+        reapplyIso();
+	});
+
+	$('#se-otc:checkbox').change(function(e) {
+		e.preventDefault();
+        buildOTCFilter();
+        reapplyIso();
+	});
+
     // bind to campus dropdown selection
     var campusSelected = '';
     $('.select2-campuses').select2({
@@ -507,7 +524,6 @@
     buildCampusFilters('{{ selectedCampus.Name | Downcase | Replace:" ",""}}');
     {% endif %}
 
-
     // handling days selected
     var days_selected = [];
     function buildDaysFilters(day) {
@@ -520,6 +536,30 @@
                 days_selected.push(day);
             }
         }
+     }
+
+	 // handling handicap selection
+     var handicap_selected = [];
+ 	 function buildHandicapFilter() {
+         // reset campus array, campuses are only selected one at a time
+         handicap_selected = [];
+ 		var checkbox = document.getElementById('se-handicap').checked ? 'yes' : 'no';
+         // add to array
+         if (checkbox != undefined && checkbox == 'yes') {
+             handicap_selected.push(checkbox);
+         }
+     }
+
+	 // handling open-to-children (otc) selection
+     var otc_selected = [];
+ 	 function buildOTCFilter() {
+         // reset campus array, campuses are only selected one at a time
+         otc_selected = [];
+ 		var checkbox = document.getElementById('se-otc').checked ? 'yes' : 'no';
+         // add to array
+         if (checkbox != undefined && checkbox == 'yes') {
+             otc_selected.push(checkbox);
+         }
      }
 
      function runFilters() {
@@ -535,6 +575,14 @@
          // if campus are selected
          if (campus_filters_selected.length != 0) {
              filterSelectors.push(createFilters(campus_filters_selected, 'data-campus'));
+         }
+		 // if handicap is selected
+         if (handicap_selected.length != 0) {
+             filterSelectors.push(createFilters(handicap_selected, 'data-handicap-accessible'));
+         }
+		 // if otc is selected
+         if (otc_selected.length != 0) {
+             filterSelectors.push(createFilters(otc_selected, 'data-open-to-children'));
          }
          var filterArray = [];
          if (filterSelectors.length!=0){
@@ -716,6 +764,20 @@
                  var zipcode = $zipcode_input.val(types[0]); // sets input value
                  $zipcode_input.keyup();
              }
+			 if(params["handicap"]) {
+                 var types = params["handicap"].split(',');
+				 if (types[0] = 'yes') {
+					 document.getElementById("se-handicap").checked = true;
+					 buildHandicapFilter();
+				 }
+             }
+			 if(params["otc"]) {
+                 var types = params["otc"].split(',');
+				 if (types[0] = 'yes') {
+					 document.getElementById("se-otc").checked = true;
+					 buildOTCFilter();
+				 }
+             }
              updateFilterCounts();
              reapplyIso();
          }
@@ -743,6 +805,14 @@
 		 if (typeof $zipcode_input !== 'undefined' && $zipcode_input.val()) {
 			 // $zipcode_input
 		 	urlParams = urlParams + '&zipcode=' + $zipcode_input.val();
+		 }
+		 // add handicap
+		 if (handicap_selected && handicap_selected.length) {
+			 urlParams = urlParams + '&handicap=' + handicap_selected.join(',');
+		 }
+		 // add otc
+		 if (otc_selected && otc_selected.length) {
+			 urlParams = urlParams + '&otc=' + otc_selected.join(',');
 		 }
 
          // Set some defaults;
