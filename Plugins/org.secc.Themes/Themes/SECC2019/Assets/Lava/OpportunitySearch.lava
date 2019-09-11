@@ -493,15 +493,13 @@
 
     // handling campuses selected
     var campus_filters_selected = [];
-    function buildCampusFilters(campus) {
+	function buildCampusFilters(campus) {
         // reset campus array, campuses are only selected one at a time
         campus_filters_selected = [];
         // add to array
         if (campus != '' && campus != undefined) {
             campus_filters_selected.push(campus);
         }
-        // push a new URL state with filter parameter
-        var newPath = updatePath('campus',campus);
         // console.debug(campus_filters_selected);
     }
     {% if selectedCampus.Id > 0 %}
@@ -566,6 +564,7 @@
            layoutMode: 'fitRows',
            filter: runFilters()
          });
+		 var newPath = updatePath();
      }
 
      function updateFilterCounts() {
@@ -620,13 +619,17 @@
                     $("div[data-groupid='"+key+"']").attr("data-distance",val);
                 });
                 $homegroup.trigger('datachange');
-            });
+				// update path with zipcode
+				var newPath = updatePath();
+			});
         } else {
             $homegroup.find('div.distance-container').each(function(){
                $(this).addClass("hidden");
             });
             $grid.isotope();
         }
+		// update path with zipcode
+		var newPath = updatePath();
      });
 
      // Restricts input for the given textbox to the given inputFilter.
@@ -687,6 +690,7 @@
          var params = parseQueryString();
          // console.log(params);
          if (params) {
+			 // campus is preselected with Lava
 
              // preselect options
              if(params["meet"]) {
@@ -718,19 +722,42 @@
 
      }
 
-     function updatePath(key, value) {
+     function updatePath() {
          var baseUrl = [location.protocol, '//', location.host].join('');
          var parts = location.pathname.split('/');
-         var urlParams = new URLSearchParams(window.location.search);
+         //var urlParams = new URLSearchParams(window.location.search);
+
+		 // build urlParams
+		 var urlParams = '';
+		 // campus is already taken care of.
+
+		 // add day of the week meetings
+		 if (days_selected && days_selected.length) {
+			 urlParams = urlParams + 'meet=' + days_selected.join(',');
+		 }
+		 // add group types
+		 if (types_selected && types_selected.length) {
+			 urlParams = urlParams + '&type=' + types_selected.join(',');
+		 }
+		 // add zipcode
+		 if (typeof $zipcode_input !== 'undefined' && $zipcode_input.val()) {
+			 // $zipcode_input
+		 	urlParams = urlParams + '&zipcode=' + $zipcode_input.val();
+		 }
 
          // Set some defaults;
          parts[1] = 'devhome-groups';
          parts[2] = parts[2]||'southeast';
          // parts[3] = parts[3]||'all';
          // Set default part one of Groups
-         if (key == 'campus') {
-             parts[2] = value||'southeast';
-         }
+
+		 // if campus is preselected
+         if (campus_filters_selected.length != 0) {
+             parts[2] = campus_filters_selected[0];
+         } else {
+			 parts[2] = 'southeast';
+		 }
+
          window.history.pushState({}, '', baseUrl + parts.join('/') + "?" + decodeURIComponent(urlParams.toString()));
          // console.log( "key: " + key);
          // console.log( "value:" + value );
