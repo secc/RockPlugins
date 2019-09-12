@@ -1246,7 +1246,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             foreach ( var checkinSchedule in checkinSchedules )
             {
                 var checkinGroupTypes = GetGroupTypes( checkinPerson, checkinSchedule );
-                var checkinGroupType = checkinGroupTypes.FirstOrDefault();
+                var checkinGroupType = checkinGroupTypes.OrderByDescending( gt => gt.Selected ).FirstOrDefault();
                 if ( checkinGroupTypes.Where( gt => gt.PreSelected ).Any() )
                 {
                     checkinGroupType = checkinGroupTypes.Where( gt => gt.PreSelected ).FirstOrDefault();
