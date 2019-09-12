@@ -1246,10 +1246,23 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             foreach ( var checkinSchedule in checkinSchedules )
             {
                 var checkinGroupTypes = GetGroupTypes( checkinPerson, checkinSchedule );
-                var checkinGroupType = checkinGroupTypes.OrderByDescending( gt => gt.Selected ).FirstOrDefault();
-                if ( checkinGroupTypes.Where( gt => gt.PreSelected ).Any() )
+
+                var scheduleAlreadySelected = checkinGroupTypes
+                    .SelectMany( gt => gt.Groups )
+                    .SelectMany( g => g.Locations )
+                    .SelectMany( l => l.Schedules )
+                    .Where( s => s.Schedule.Id == checkinSchedule.Schedule.Id && s.Selected )
+                    .Any();
+
+                if ( scheduleAlreadySelected )
                 {
-                    checkinGroupType = checkinGroupTypes.Where( gt => gt.PreSelected ).FirstOrDefault();
+                    continue;
+                }
+
+                var checkinGroupType = checkinGroupTypes.OrderByDescending( gt => gt.Selected ).FirstOrDefault();
+                if ( checkinGroupTypes.Where( gt => gt.PreSelected || gt.Selected ).Any() )
+                {
+                    checkinGroupType = checkinGroupTypes.Where( gt => gt.PreSelected || gt.Selected ).FirstOrDefault();
                 }
                 if ( checkinGroupType != null )
                 {
@@ -1277,10 +1290,9 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     else
                     { //Children get automatically selected with the emptiest class
                         var checkinGroup = checkinGroups.FirstOrDefault();
-                        if ( checkinGroups.Where( g => g.PreSelected ).Any() )
+                        if ( checkinGroups.Where( g => g.PreSelected || g.Selected ).Any() )
                         {
-                            checkinGroup = checkinGroups.Where( g => g.PreSelected ).FirstOrDefault();
-
+                            checkinGroup = checkinGroups.Where( g => g.PreSelected || g.Selected ).FirstOrDefault();
                         }
 
                         foreach ( var group in checkinGroups )
@@ -1296,6 +1308,12 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                         {
                             var checkinLocations = GetLocations( checkinPerson, checkinSchedule, checkinGroupType, checkinGroup );
                             var checkinLocation = checkinLocations.OrderBy( l => kioskCountUtility.GetLocationScheduleCount( l.Location.Id, checkinSchedule.Schedule.Id ).ChildCount ).FirstOrDefault();
+
+                            if ( checkinLocations.Where( l => l.PreSelected || l.Selected ).Any() )
+                            {
+                                checkinLocation = checkinLocations.Where( l => l.PreSelected || l.Selected ).FirstOrDefault();
+                            }
+
                             if ( checkinLocation != null )
                             {
                                 var locationSchedule = checkinLocation.Schedules.Where( s => s.Schedule.Id == checkinSchedule.Schedule.Id ).FirstOrDefault();
