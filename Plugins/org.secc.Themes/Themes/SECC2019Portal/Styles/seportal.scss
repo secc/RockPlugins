@@ -1,8 +1,41 @@
 /*** SECC2019Portal will be a child theme of SECC2019, thus will inherit a bunch of styles ***/
-@import '_layout';
-@import '_main';
+//@import '_layout';
+//@import '_main';
 
-@import '_lib/_block-grid';
+//@import '_lib/_block-grid';
+@import "../../SECC2019/Styles/_lib/_init";
+@import '../../SECC2019/Styles/_mixins';
+// Media queries
+// Example usage:
+// $media $sm {
+//   body {
+//     background: red;
+//   }
+// }
+// Grid breakpoints
+//
+// Define the minimum and maximum dimensions at which your layout will change,
+// adapting to different screen sizes, for use in media queries.
+
+$grid-breakpoints: (
+	// Extra small screen / phone
+	xs: 0,
+	// Small screen / phone
+	sm: 34em,
+	// Medium screen / tablet
+	md: 48em,
+	// Large screen / desktop
+	lg: 62em,
+	// Extra large screen / wide desktop
+	xl: 75em
+) !default;
+
+$xs: unquote("(min-width: #{$screen-xs-min})");
+$sm: unquote("(min-width: #{$screen-sm-min})");
+$md: unquote("(min-width: #{$screen-md-min})");
+$lg: unquote("(min-width: #{$screen-lg-min})");
+$sm-only: unquote("(min-width: #{$screen-sm}) and (max-width: #{$screen-sm-max})");
+$md-only: unquote("(min-width: #{$screen-md}) and (max-width: #{$screen-md-max})");
 
 //SECC2019Portal custom styles
 hr.g-border-b-2--xs {
@@ -474,7 +507,7 @@ hr.g-border-b-2--xs {
           @include media-breakpoint-up(sm){
           	width: calc(35% + 20px) !important;
           }
-          @include media-breakpoint-up(md){
+          @include media-breakpoint-up(lg){
           	width: calc(100% + 20px) !important;
           }
 	      }
