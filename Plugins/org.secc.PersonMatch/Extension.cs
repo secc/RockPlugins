@@ -29,19 +29,23 @@ namespace org.secc.PersonMatch
     {
         const string DIMINUTIVE_NAMES = "3E2D2BEE-01BE-4D1E-8634-01932718AEA3";
         const string GOES_BY_ATTRIBUTE = "C31FDA8A-8CAB-4A1C-B96D-275415B5BB1C";
-        public static IEnumerable<Person> GetByMatch(this PersonService personService, String firstName, String lastName, DateTime? birthDate, String email = null, String phone = null, String street1 = null, String postalCode = null)      {
-            using ( Rock.Data.RockContext context = new Rock.Data.RockContext() )
+        public static IEnumerable<Person> GetByMatch(this PersonService personService, String firstName, String lastName, DateTime? birthDate, String email = null, String phone = null, String street1 = null, String postalCode = null) {
+            using (Rock.Data.RockContext context = new Rock.Data.RockContext())
             {
-                //FirstName LastName and DOB are required. If not return an empty list.
-                if (firstName.IsNullOrWhiteSpace() || lastName.IsNullOrWhiteSpace() || !birthDate.HasValue )
+                //FirstName LastName and (DOB or email or phone or street address) are required. If not return an empty list.
+                if (firstName.IsNullOrWhiteSpace() || lastName.IsNullOrWhiteSpace() ||
+                    (!birthDate.HasValue && 
+                        string.IsNullOrWhiteSpace(email) &&
+                        string.IsNullOrWhiteSpace(phone) &&
+                        string.IsNullOrWhiteSpace( street1 ) ) )
                 {
                     return new List<Person>();
                 }
 
                 LocationService locationService = new LocationService( context );
                 AttributeValueService attributeValueService = new AttributeValueService( context );
-                List<AttributeValue> attributeValues = attributeValueService.GetByAttributeId( AttributeCache.Read( GOES_BY_ATTRIBUTE.AsGuid() ).Id ).ToList();
-                var diminutiveName = DefinedTypeCache.Read( DIMINUTIVE_NAMES.AsGuid() );
+                List<AttributeValue> attributeValues = attributeValueService.GetByAttributeId( AttributeCache.Get( GOES_BY_ATTRIBUTE.AsGuid() ).Id ).ToList();
+                var diminutiveName = DefinedTypeCache.Get( DIMINUTIVE_NAMES.AsGuid() );
 
                 firstName = firstName ?? string.Empty;
                 lastName = lastName ?? string.Empty;
@@ -63,22 +67,20 @@ namespace org.secc.PersonMatch
                         fastQuery = fastQuery.Where( p => p.Email.ToLower() == email );
                     }
                     persons = fastQuery.ToList();
-                }
-                // We have an exact match.  Just be done.
-                if ( persons.Count == 1 )
-                {
-                    return persons;
+
+                    // We have an exact match.  Just be done.
+                    if ( persons.Count == 1 )
+                    {
+                        return persons;
+                    }
                 }
 
-                // Go ahead and do this more leniant search if we don't have an exact match already
-                if (persons.Count != 1)
-                {
-                    persons = personService.Queryable(false, false)
-                        .Where(p =>
-                           p.LastName == lastName &&
-                           ( p.BirthDate == null || p.BirthDate.Value == birthDate.Value ))
-                        .ToList();
-                }
+                // Go ahead and do this more leniant search if we get this far
+                persons = personService.Queryable(false, false)
+                    .Where(p =>
+                        p.LastName == lastName &&
+                        ( !birthDate.HasValue || p.BirthDate == null || (birthDate.HasValue && p.BirthDate.Value == birthDate.Value ) ) )
+                    .ToList();
 
                 // Check the address if it was passed
                 Location location = new Location();
@@ -92,10 +94,10 @@ namespace org.secc.PersonMatch
                 foreach (Person person in persons)
                 {
                     // Check to see if the phone exists anywhere in the family
-                    Boolean phoneExists = person.GetFamilies().Where(f => f.Members.Where(m => m.Person.PhoneNumbers.Where(pn => pn.Number == phone).Any()).Any()).Any();
+                    Boolean phoneExists = !string.IsNullOrWhiteSpace(phone) && person.GetFamilies().Where(f => f.Members.Where(m => m.Person.PhoneNumbers.Where(pn => pn.Number == phone).Any()).Any()).Any();
 
                     // Check to see if the email exists anywhere in the family
-                    Boolean emailExists = person.GetFamilies().Where(f => f.Members.Where(m => m.Person.Email == email).Any()).Any();
+                    Boolean emailExists = !string.IsNullOrWhiteSpace(email) && person.GetFamilies().Where(f => f.Members.Where(m => m.Person.Email == email).Any()).Any();
 
                     Boolean addressMatches = false;
                     // Check the address if it was passed
