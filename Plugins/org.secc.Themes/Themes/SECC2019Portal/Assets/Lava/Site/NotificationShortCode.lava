@@ -1,0 +1,128 @@
+<style>
+.cd-header-buttons .dropdown.open .dropdown-menu li a {
+    padding: 10px 20px;
+}
+.cd-header-buttons .dropdown .dropdown-menu {
+    display: none;
+}
+.cd-header-buttons .dropdown.open .dropdown-menu {
+    display: block;
+}
+.open > .dropdown-menu {
+    padding-bottom: 0px;
+    display: block;
+}
+.cd-header-buttons .dropdown .dropdown-toggle .has-cleared[data-count]:after {
+    background: #3cb2f6 !important;
+}
+</style>
+
+{% if CurrentPerson.Guid %}
+    {% assign itemId = 'Global' | PageParameter:'ItemID' %}
+    {% if itemId == empty %}
+    {% assign itemId = 'Global' | PageParameter:'slug' %}
+    {% endif %}
+    {% if itemId != empty %}
+    {% contentchannelitem id:'{{itemId}}' %}
+        {% if contentchannelitem %}
+            {{ CurrentPerson | SetUserPreference: contentchannelitem.Guid, '1'}}
+        {% endif %}
+    {% endcontentchannelitem %}
+{% endif %}
+
+{% sql return:'items' %}
+select Id, Title,  StartDateTime
+from ContentChannelItem
+where ContentChannelId in (51, 53)
+AND CreatedDateTime >= COALESCE(
+	(SELECT top 1 cast(av.Value as datetime)
+		FROM [EntityType] et
+		JOIN Attribute a on a.EntityTypeId = et.Id
+		JOIN AttributeValue av on av.AttributeId = a.Id
+			WHERE et.[Name] = 'Rock.Model.Person.Value'
+			AND a.[Key] = 'one-point-clear-date'
+			AND av.EntityId = {{CurrentPerson.Id}}
+			order by av.id desc),
+	    DateAdd(mm,-6,GETDATE()))
+AND StartDateTime <= GETDATE()
+AND Status = 2
+AND CAST(Guid as varchar(max)) not in (
+		SELECT [KEY]
+		FROM [EntityType] et
+		JOIN Attribute a on a.EntityTypeId = et.Id
+		JOIN AttributeValue av on av.AttributeId = a.Id
+		JOIN ContentChannelItem cci on CAST( cci.Guid as varchar(max)) = a.[Key]
+		WHERE et.[Name] = 'Rock.Model.Person.Value'
+		AND av.EntityId = {{CurrentPerson.Id}}
+		AND cci.ContentChannelId in (51, 53)
+		AND av.[Value] = '1'
+		and cci.CreatedDateTime >= DateAdd(mm,-6,GETDATE())
+	)
+ORDER BY StartDateTime desc
+{% endsql %}
+
+{% assign count = items | Size %}
+
+{% if count > 0 %}
+	<li class="dropdown">
+		<a href="javascript:return false;" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+			<span class="fa-stack has-badge" data-count="{{count}}">
+			    <i class="fas fa-bell fa-stack-1x"></i><span class="sr-only">{{count}} Unread Items</span>
+			</span>
+		</a>
+		<ul class="dropdown-menu dropdown-menu-right">
+		<li class="g-padding-x-20--xs g-padding-t-5--xs g-padding-b-10--xs"><b>Activity</b></li>
+		{% for item in items %}
+			<li>
+				<a href="/news/{{item.Id}}">
+					{{item.Title}}<br />
+					<small>{{ item.StartDateTime | DaysSince }} days ago</small>
+				</a>
+			</li>
+		{% endfor %}
+        <li class="text-center">
+            <a href="" id="clearNotifications" title="Clear All Notifications" class="g-padding-x-20--xs g-padding-y-15--xs">
+                <b><i class="fas fa-bell-slash"></i> Clear All Notifications</b>
+            </a>
+        </li>
+		</ul>
+	</li>
+{% else %}
+    <style>
+    .cd-header-buttons .dropdown .dropdown-toggle .has-badge[data-count]:after {
+        background: #3cb2f6 !important;
+    }
+    </style>
+    <li class="dropdown">
+		<a href="javascript:return false;" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+			<span class="fa-stack has-badge" data-count="{{count}}">
+			    <i class="fas fa-bell fa-stack-1x"></i><span class="sr-only">{{count}} Unread Items</span>
+			</span>
+		</a>
+		<ul class="dropdown-menu dropdown-menu-right">
+		    <li class="g-padding-x-20--xs g-padding-t-5--xs g-padding-b-10--xs"><b>Activity</b></li>
+		    <li class="g-padding-y-15--xs g-padding-x-10--xs text-center">
+				You are all caught up!
+			</li>
+		</ul>
+	</li>
+{% endif %}
+{% endif %}
+
+<script>
+$('#clearNotifications').click(function(event) {
+    event.preventDefault();
+
+    $.ajax({
+      url: "https://onepoint.secc.org/webhooks/Lava.ashx/onepoint/vieweditem/clearall",
+    }).done(function() {
+      $( "ul.cd-header-buttons li.dropdown a.dropdown-toggle span.has-badge" ).attr('data-count','0');
+      $( "ul.cd-header-buttons li.dropdown a.dropdown-toggle span.fa-stack span.sr-only" ).html('0 Unread Items');
+      $( "ul.cd-header-buttons li.dropdown a.dropdown-toggle span.has-badge" ).addClass( "has-cleared" );
+      $('.dropdown ul.dropdown-menu li:not(:first-child)').remove();
+      $('.dropdown ul.dropdown-menu').append('<li class="g-padding-y-15--xs g-padding-x-10--xs text-center">Great! You are now all caught up!</li>');
+    });
+
+    return false;
+});
+</script>
