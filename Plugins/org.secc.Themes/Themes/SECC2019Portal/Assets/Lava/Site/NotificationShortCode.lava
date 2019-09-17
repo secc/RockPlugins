@@ -64,7 +64,7 @@ ORDER BY StartDateTime desc
 {% assign count = items | Size %}
 
 {% if count > 0 %}
-	<li class="dropdown">
+	<li class="dropdown no-index noindex">
 		<a href="javascript:return false;" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
 			<span class="fa-stack has-badge" data-count="{{count}}">
 			    <i class="fas fa-bell fa-stack-1x"></i><span class="sr-only">{{count}} Unread Items</span>
@@ -93,7 +93,7 @@ ORDER BY StartDateTime desc
         background: #3cb2f6 !important;
     }
     </style>
-    <li class="dropdown">
+    <li class="dropdown no-index noindex">
 		<a href="javascript:return false;" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
 			<span class="fa-stack has-badge" data-count="{{count}}">
 			    <i class="fas fa-bell fa-stack-1x"></i><span class="sr-only">{{count}} Unread Items</span>
