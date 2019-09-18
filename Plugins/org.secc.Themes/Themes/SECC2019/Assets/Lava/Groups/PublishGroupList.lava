@@ -37,7 +37,7 @@
     <div class="isotope_wrap">
         {% for publishGroup in PublishGroups %}
 		{% assign registrationLink = '/new-groups/details/' | Append:publishGroup.Id %}
-		{% assign contactLink = '/new-groups/contact/' | Append:publishGroup.Guid %}
+		{% assign contactLink = '/new-groups/group/contact/' | Append:publishGroup.Guid %}
     		<div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar" data-day="{{ publishGroup.WeeklyDayOfWeek}}">
                 <div class="clearfix card">
 					<div class="img-hover">
@@ -67,7 +67,7 @@
 						{% if publishGroup.ChildcareAvailable != true %}
 							{% assign offset = offset | Plus: 2 %}
 						{% endif %}
-						
+
 						{% if publishGroup.WeeklyDayOfWeek != null and publishGroup.WeeklyDayOfWeek != empty %}
 							<div class="event-items col-xs-4 {% if publishGroup.MeetingLocation != null and publishGroup.MeetingLocation != empty  %} g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter{% endif %} col-xs-offset-{{offset}}">
 								 <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
@@ -81,8 +81,8 @@
 							</div>
 							{% assign offset = 0 %}
 						{% endif %}
-						
-						
+
+
 						{% if publishGroup.MeetingLocation != null and publishGroup.MeetingLocation != empty%}
 							<div class="event-items g-padding-x-10--xs col-xs-4 {% if publishGroup.ChildcareAvailable == true %}g-ver-divider__solid__r--gray-lighter{% endif %}  col-xs-offset-{{offset}}">
 								 <div class="event-icon --location"><!-- Marker / Location SVG Image --></div>
@@ -92,7 +92,7 @@
 							</div>
 							{% assign offset = 0 %}
 						{% endif %}
-					
+
 						<!-- ChildCare -->
 						{% if publishGroup.ChildcareAvailable == true %}
 						<div class="event-items col-xs-4 g-padding-x-10--xs col-xs-offset-{{offset}}">
@@ -101,7 +101,7 @@
 						</div>
 						{% endif %}
 
-						
+
 						<div class="text-center col-xs-12 g-margin-t-40--xs g-hor-divider__solid__t--gray-lighter">
 							{% if publishGroup.RequiresRegistration == true %}
 								<div class="col-md-6">
@@ -125,10 +125,10 @@
 									</h6>
 								</a>
 							{% endif %}
-							
+
 						</div>
-						
-					
+
+
                     </div>
                 </div><!-- END: isotope_item -->
         {% endfor %}
@@ -206,7 +206,7 @@ $(window).load(function() {
                 },
                 afterToggle: function(trigger, element, expanded) {
 					$('.isotope_wrap').isotope(isoOptions); // re-initialize
-					
+
                 }
             });
             // init Isotope after all images have loaded
