@@ -37,7 +37,7 @@
     <div class="isotope_wrap">
         {% for publishGroup in PublishGroups %}
 		{% assign registrationLink = '/new-groups/details/' | Append:publishGroup.Id %}
-		{% assign contactLink = '/new-groups/contact/' | Append:publishGroup.Id %}
+		{% assign contactLink = '/new-groups/contact/' | Append:publishGroup.Guid %}
     		<div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar" data-day="{{ publishGroup.WeeklyDayOfWeek}}">
                 <div class="clearfix card">
 					<div class="img-hover">
