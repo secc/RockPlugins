@@ -58,7 +58,7 @@ hr.g-border-b-2--xs {
 			border-color: #b5b5b5;
 		}
 		hr {
-			border-color: #b5b5b5;			
+			border-color: #b5b5b5;
 		}
 	}
 }
@@ -79,7 +79,7 @@ hr.g-border-b-2--xs {
 			border-color: #b5b5b5;
 		}
 		hr {
-			border-color: #b5b5b5;			
+			border-color: #b5b5b5;
 		}
 	}
 }
@@ -90,6 +90,9 @@ hr.g-border-b-2--xs {
 }
 #zone-primarysitenavigation .page-menu {
 	height: auto;
+}
+#main_secPageTitle {
+	padding: 0px !important;
 }
 .cd-primary-nav {
 	.cd-nav-icons .cd-nav-item {
@@ -102,6 +105,10 @@ hr.g-border-b-2--xs {
 		&.self-guided-study::before {
 			background-image: url('/Themes/SECC2019Portal/Assets/img/OnePoint/Self_Guided_icon.svg');
 		}
+	}
+
+	> li {
+		// margin-left: 1em;
 	}
 }
 .cd-header-buttons {
@@ -132,19 +139,24 @@ hr.g-border-b-2--xs {
 			  font-weight:400;
 			}
 		}
-		.dropdown-menu {
-  		min-width: 210px;
-  		li {
-    		display: block;
-    		border-top: solid 1px #eeeeee;
-    		&:first-child {
-      		border-top: none;
-    		}
-    		a {
-      		padding: 5px 20px;
-      		white-space: normal;
-    		}
-  		}
+		&.open .dropdown-menu {
+	  		min-width: 210px;
+			@media only screen and (min-width: 600px) {
+			  min-width: 300px;
+			}
+			@include transition(all 0.5s);
+
+	  		li {
+	    		display: block;
+	    		border-top: solid 1px #eeeeee;
+	    		&:first-child {
+	      		border-top: none;
+	    		}
+	    		a {
+	      		padding: 5px 20px;
+	      		white-space: normal;
+	    		}
+	  		}
 		}
 	}
 }
@@ -197,7 +209,7 @@ hr.g-border-b-2--xs {
 			  @include transition(all 0.5s);
 			}
 		}
-	}	
+	}
 	.disabled {
 		.arrow {
 			&::before {
@@ -347,7 +359,7 @@ hr.g-border-b-2--xs {
 		  &:hover {
 		    background-color: rgba(0,0,0,1);
 		  }
-		}	  
+		}
 	}
 }
 #video-swiper {

@@ -31,8 +31,10 @@
     			              <p><strong>Location:</strong> {{ eventOccurrenceSummary.Location }}</p>
     			              <div class="g-margin-t-30--sm g-margin-t-20--xs">
     			                <p>{{ eventSummary }}</p>
+                                {% comment %}
     			                <p class="g-margin-t-40--xs"><a href="" onclick="return ics_click_{{ eventOccurrenceSummary.EventItemOccurrence.Id }}()" title="Add to Calendar" data-original-title="Add to Calendar" class="btn uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1">Add to Calendar</a></p>
-    			              </div>
+                                {% endcomment %}
+                              </div>
     		              </div>
     	              </div>
                   </div>
