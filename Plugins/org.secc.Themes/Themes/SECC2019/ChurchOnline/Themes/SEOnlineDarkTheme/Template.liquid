@@ -122,7 +122,7 @@
     </div>
     <div class="row full-width event-details g-padding-x-40--md">
           <div class="medium-7 columns">
-            <div>
+            <div style="display:none;">
               <h2 class="g-font-family--secondary">{{ event.title }} <small class="event_speaker g-font-family--primary">{{ event.speaker }}</small></h2>
               <p class="g-font-weight--700">{{ event.description }}</p>
               {{ component.next_service_time }}
@@ -160,7 +160,7 @@
             </div>
             <br />
             <br />
-            <div class="g-text-center--xs g-text-center--sm g-text-right--md">
+            <div class="g-padding-b-20--xs g-text-center--xs g-text-center--sm g-text-right--md">
                 <a href="{{ organization.website_url }}">
                     <img class="img-respoinsive g-width-250--xs" src="https://southeastchristian.org/Themes/SECC2019/Assets/img/logos/southeast/SECC_logo_wordmark_white.svg" alt="Logo" onerror="this.style.display='none'" />
                 </a>
