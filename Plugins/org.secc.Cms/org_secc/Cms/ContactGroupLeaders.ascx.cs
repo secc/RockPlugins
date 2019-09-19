@@ -32,6 +32,7 @@ using Rock.Security;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 using Group = Rock.Model.Group;
+using org.secc.GroupManager.Model;
 
 namespace RockWeb.Plugins.org_secc.Cms
 {
@@ -159,9 +160,12 @@ namespace RockWeb.Plugins.org_secc.Cms
             var rockContext = new RockContext();
             var personAliasService = new PersonAliasService( rockContext );
             var groupService = new GroupService( rockContext );
+            var publishGroupService = new PublishGroupService( rockContext );
             Group group = null;
+            PublishGroup publishGroup = null;
 
             List<Person> recipients = new List<Person>();
+            var contactEmail = "";
 
             // get person from url
             if ( PageParameter( "PersonGuid" ).IsNotNullOrWhiteSpace() )
@@ -187,6 +191,18 @@ namespace RockWeb.Plugins.org_secc.Cms
                     group = groupService.Get( groupGuid.Value );
                     recipients.AddRange( GetGroupLeaders( group ) );
 
+                }
+            }
+
+            // get group members from url
+            if ( PageParameter( "PublishGroupGuid" ).IsNotNullOrWhiteSpace() )
+            {
+                Guid? publishGroupGuid = PageParameter( "PublishGroupGuid" ).AsGuidOrNull();
+
+                if ( publishGroupGuid.HasValue )
+                {
+                    publishGroup = publishGroupService.Get( publishGroupGuid.Value );
+                    contactEmail = publishGroup.ContactEmail;
                 }
             }
 
@@ -222,9 +238,14 @@ namespace RockWeb.Plugins.org_secc.Cms
                 message.EnabledLavaCommands = GetAttributeValue( "EnabledLavaCommands" );
 
                 // send email
-                foreach ( var recipient in recipients )
+                if ( contactEmail != null)
                 {
-                    message.AddRecipient( new RecipientData( new CommunicationRecipient { PersonAlias = recipient.PrimaryAlias }, mergeFields ) );
+                    message.AddRecipient( new RecipientData( contactEmail, mergeFields ) );
+                } else {
+                    foreach ( var recipient in recipients )
+                    {
+                        message.AddRecipient( new RecipientData( new CommunicationRecipient { PersonAlias = recipient.PrimaryAlias }, mergeFields ) );
+                    }
                 }
 
                 message.FromEmail = tbEmail.Text;
