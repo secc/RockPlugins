@@ -69,9 +69,6 @@ namespace org.secc.PDF
                 if ( destinationAttribute != null )
                 {
 
-                    BinaryFileService binaryFileService = new BinaryFileService( rockContext );
-                    binaryFileService.Add( pdfBinary );
-                    rockContext.SaveChanges();
 
                     // Update the file type if necessary
                     Guid binaryFileTypeGuid = Guid.Empty;
@@ -85,6 +82,10 @@ namespace org.secc.PDF
                             pdfBinary.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( binaryFileTypeGuid ).Id;
                         }
                     }
+
+                    BinaryFileService binaryFileService = new BinaryFileService(rockContext);
+                    binaryFileService.Add(pdfBinary);
+                    rockContext.SaveChanges();
 
                     // Now store the attribute
                     if ( destinationAttribute.EntityTypeId == new Workflow().TypeId )
