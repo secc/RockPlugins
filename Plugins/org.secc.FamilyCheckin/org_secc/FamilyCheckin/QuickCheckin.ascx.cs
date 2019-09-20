@@ -1248,10 +1248,9 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 var checkinGroupTypes = GetGroupTypes( checkinPerson, checkinSchedule );
 
                 var scheduleAlreadySelected = checkinGroupTypes
-                    .SelectMany( gt => gt.Groups )
-                    .SelectMany( g => g.Locations )
-                    .SelectMany( l => l.Schedules )
-                    .Where( s => s.Schedule.Id == checkinSchedule.Schedule.Id && s.Selected )
+                    .SelectMany( gt => gt.Groups.Where( g => g.Selected ) )
+                    .SelectMany( g => g.Locations.Where( l => l.Selected ) )
+                    .SelectMany( l => l.Schedules.Where( s => s.Schedule.Id == checkinSchedule.Schedule.Id && s.Selected ) )
                     .Any();
 
                 if ( scheduleAlreadySelected )
