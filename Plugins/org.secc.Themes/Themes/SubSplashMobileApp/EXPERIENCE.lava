@@ -1,0 +1,53 @@
+{
+	"header": {
+		"title": "Experience",
+		"style": "featured",
+		"items": [{
+			"title": "Experience",
+			"images": [{
+				"width": 500,
+				"url": "https://www.southeastchristian.org/GetImage.ashx?Guid=50c2e524-ddac-40dc-9024-1e9b965f77d1"
+			}]
+		}]
+	},
+	"displayOptions": {
+		"style": "rows",
+		"contentWidthRatio": 0.9,
+		"itemDisplayOptions": {
+			"indicatorAspectRatio": 1,
+			"indicatorShadowEnabled": true,
+			"maxWidth": 640,
+			"textPosition": "below"
+		}
+	},
+	"items": [
+		{
+			"title": "Music",
+			"actions":[{
+				"handler":"list",
+				"url": ""
+			}]
+		},
+		{
+			"title": "Stories",
+			"actions":[{
+				"handler":"list",
+				"url": ""
+			}]
+		},
+		{
+			"title": "Bible",
+			"actions":[{
+				"handler":"list",
+				"url": ""
+			}]
+		},
+		{
+			"title": "Social Media Links",
+			"actions":[{
+				"handler":"list",
+				"url": ""
+			}]
+		}
+	]
+}
