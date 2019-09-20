@@ -1,0 +1,49 @@
+{
+	"header": {
+		"title": "Home"
+	},
+	"displayOptions":{
+		"style":"stacked",
+	    "contentWidthRatio":1.0,
+	    "itemDisplayOptions":{
+	        "indicatorAspectRatio":2.76,
+	        "indicatorShadowEnabled": true,
+	        "maxWidth":1400,
+	        "textPosition":"overlay"
+	    }
+	},
+	"items": [
+		{%- contentchannelitem where:'ContentChannelId == 57' sort:'Order' -%}
+			{%- for item in contentchannelitemItems -%}
+			{%- assign title = item.Title -%}
+			{%- assign subtitle = item | Attribute:'Subtitle' -%}
+			{%- assign visible = item | Attribute:'Visible' -%}
+			{%- assign schedule = item | Attribute:'Schedule' -%}
+			{%- assign imageGuid = item | Attribute:'Image','RawValue' -%}
+			{%- assign imageWidth = item | Attribute:'ImageWidth' -%}
+			{%- assign handler = item | Attribute:'Handler' -%}
+			{%- assign url = item | Attribute:'Url','RawValue' -%}
+			{%- if visible == "True" -%}
+			{
+				"images":[{
+					"width": {{-imageWidth-}},
+					"url":"https://www.southeastchristian.org/GetImage.ashx?Guid={{ imageGuid }}"
+				}],
+				"title": "{{-title-}}",
+				"subtitle": "{{-subtitle-}}",
+				"actions":[{
+					"handler":"{{ handler }}",
+					{%- if handler == "browser" or handler == "externalBrowser" -%}
+					"type":"navigation",
+					"showBrowserControls": false,
+					"contentUrl":"{{- url -}}"
+					{%- else -%}
+					"url": "{{- url -}}"
+					{%- endif -%}
+				}]
+			}{%- if forloop.last -%}{%- else -%},{%- endif -%}
+			{%- endif %}
+			{%- endfor %}
+		{%- endcontentchannelitem %}
+	]
+}

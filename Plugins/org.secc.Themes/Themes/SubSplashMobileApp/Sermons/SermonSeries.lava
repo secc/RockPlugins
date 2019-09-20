@@ -1,0 +1,48 @@
+{%- cache key:'subsplash-sermons-series-{{series}}' duration:'3600' -%}
+{%- contentchannelitem where:'ContentChannelId == 24 && Id == {{series}}' sort:'StartDateTime desc'  -%}
+{%- for series in contentchannelitemItems -%}
+{
+	"header": {
+		"title": "{{series.Title | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
+		"style": "featured",
+		"items": [{
+			"images":[
+    			{ "width":520, "url":"https://rock.secc.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&width=720"},
+    			{ "width":1080, "url":"https://rock.secc.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&width=1080"},
+    			{ "width":1280, "url":"https://rock.secc.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&width=1280"},
+    			{ "width":1920, "url":"https://rock.secc.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&width=1920"}
+		    ]
+		}]
+	},
+	"displayOptions": {
+		"style": "rows",
+		"contentWidthRatio": 0.9,
+		"itemDisplayOptions": {
+			"indicatorAspectRatio": 1,
+			"indicatorShadowEnabled": true,
+			"maxWidth": 640,
+			"textPosition": "below"
+		}
+    },
+    "items": [
+        {%- for seriesChild in series.ChildItems reversed -%}
+        {%- assign sermon = seriesChild.ChildContentChannelItem -%}
+        {% unless forloop.first %},{% endunless %}
+        {
+            "images":[
+			    { "url":"https://rock.secc.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=110" }
+            ],
+			"position": "{{forloop.index}}",
+			"title": "{{sermon.Title | Replace:'"','\"'}}",
+			"subtitle": "{{ sermon.Content | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
+			"actions": [{
+				"handler": "detail",
+				"url": "https://rock.secc.org/webhooks/Lava.ashx/subsplash/sermon/{{sermon.Id}}"
+			}]
+		}
+        {%- endfor -%}
+    ]
+}
+{%- endfor -%}
+{% endcontentchannelitem -%}
+{%- endcache -%}
