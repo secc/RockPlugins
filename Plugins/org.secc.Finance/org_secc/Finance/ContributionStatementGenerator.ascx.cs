@@ -134,7 +134,7 @@ namespace RockWeb.Plugins.org_secc.Finance
 
         protected void btnContinue_Click( object sender, EventArgs e )
         {
-            lAlert.Text = "Total " + GetSelectedGivingUnits().Count() + " Giving Units Included";
+            lAlert.Text = "Total " + GetSelectedGivingUnitsCount() + " Giving Units Included";
 
             drpStatementDate.LowerValue = GetBlockUserPreference( "LastGiftDateRangeFilterLower" ).AsDateTime();
             drpStatementDate.UpperValue = GetBlockUserPreference( "LastGiftDateRangeFilterUpper" ).AsDateTime();
@@ -145,13 +145,17 @@ namespace RockWeb.Plugins.org_secc.Finance
 
         protected void btnGenerate_Click( object sender, EventArgs e )
         {
-            var reviewDataView = GetAttributeValue( "DefaultReviewDataView" ).AsGuid();
+            var reviewDataView = GetAttributeValue( "DefaultReviewDataView" ).AsGuidOrNull();
             var statementGeneratorWorkflow = GetAttributeValue( "StatementGeneratorWorkflow" ).AsGuid();
 
             foreach ( GivingGroup givingGroup in GetSelectedGivingUnits() )
             {
                 // Setup the attribute values
                 var workflowAttributeValues = new Dictionary<string, string>();
+                if ( reviewDataView.HasValue )
+                {
+                    workflowAttributeValues.Add( "ReviewDataView", reviewDataView.ToString() );
+                }
                 workflowAttributeValues.Add( "Version", tbVersion.Text );
                 workflowAttributeValues.Add( "StatementDateRange", drpStatementDate.LowerValue.Value.ToString( "s" ) + "," + drpStatementDate.UpperValue.Value.ToString( "s" ) );
                 workflowAttributeValues.Add( "GivingId", givingGroup.GivingId );
@@ -224,9 +228,17 @@ namespace RockWeb.Plugins.org_secc.Finance
             if (gdGivingUnits.SelectedKeys.Count > 0)
             {
                 var selectedKeys = gdGivingUnits.SelectedKeys.Select( k => k.ToString() ).ToList();
-                return GetGivingGroups().Where( gg => selectedKeys.Contains( gg.GivingId ) );
+                return GetGivingGroups().ToList().Where( gg => selectedKeys.Contains( gg.GivingId ) ).AsQueryable();
             }
             return GetGivingGroups();
+        }
+        private int GetSelectedGivingUnitsCount()
+        {
+            if (gdGivingUnits.SelectedKeys.Count > 0)
+            {
+                return gdGivingUnits.SelectedKeys.Count;
+            }
+            return GetGivingGroups().Count();
         }
         #endregion
 
