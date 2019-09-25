@@ -94,7 +94,7 @@
 						{% assign itemChildItems = item.ChildItems | Sort:'Order' %}
 						{% for messages in itemChildItems %}
 							{% assign message = messages.ChildContentChannelItem %}
-							{% if message.Speaker contains "Idleman" %}
+							{% if message.Speaker contains "Idleman" and message.Id != currentMessage.ChildContentChannelItem.Id  %}
 								<li>
 									<i class="fa fa-caret-right"></i>
 									<a href="/kyle-sermons/{{ item.PrimarySlug }}/{{ message.PrimarySlug }}">{{ message.Title }}</a>
