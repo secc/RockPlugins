@@ -21,8 +21,8 @@
 			{%- assign schedule = item | Attribute:'Schedule' -%}
 			{%- assign imageGuid = item | Attribute:'Image','RawValue' -%}
 			{%- assign imageWidth = item | Attribute:'ImageWidth' -%}
-			{%- assign handler = item | Attribute:'Handler' -%}
-			{%- assign url = item | Attribute:'Url','RawValue' -%}
+			{%- assign actionJson = item | Attribute:'ActionJson' -%}
+
 			{%- if visible == "True" -%}
 			{
 				"images":[{
@@ -30,17 +30,12 @@
 					"url":"https://www.southeastchristian.org/GetImage.ashx?Guid={{ imageGuid }}"
 				}],
 				"title": "{{-title-}}",
-				"subtitle": "{{-subtitle-}}",
-				"actions":[{
-					"handler":"{{ handler }}",
-					{%- if handler == "browser" or handler == "externalBrowser" -%}
-					"type":"navigation",
-					"showBrowserControls": false,
-					"contentUrl":"{{- url -}}"
-					{%- else -%}
-					"url": "{{- url -}}"
-					{%- endif -%}
+				"subtitle": "{{-subtitle-}}"
+				{%- if actionJson != "" -%}
+				,"actions":[{
+					{{-actionJson-}}
 				}]
+				{%- endif -%}
 			}{%- if forloop.last -%}{%- else -%},{%- endif -%}
 			{%- endif %}
 			{%- endfor %}

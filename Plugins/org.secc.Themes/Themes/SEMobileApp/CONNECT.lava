@@ -45,7 +45,7 @@
 			"title": "Man Challenge",
 			"subtitle": "Man Challenge is an opportunity for men to be equipped and encouraged as we open God's Word together. We offer both a teaching time and a small group time.",
 			"actions":[{
-				"handler":"list",
+				"handler":"moredetail",
 				"url": ""
 			}]
 		},
