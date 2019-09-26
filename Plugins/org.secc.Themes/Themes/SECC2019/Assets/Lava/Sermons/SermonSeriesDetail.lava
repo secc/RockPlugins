@@ -148,7 +148,7 @@
 			{% for messages in itemChildItems %}
                 {% assign message = messages.ChildContentChannelItem %}
                 {% assign videoImageGuid = message | Attribute:'Image','RawValue' %}
-                {% if message.ContentChannelId != "57" %}
+                {% if message.ContentChannelId == "23" %}
                 <div class="isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load">
 
                     <a class="series-link" href="/sermons/{{ item.PrimarySlug }}/{{ message.PrimarySlug }}">
