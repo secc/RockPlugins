@@ -141,13 +141,14 @@
             </div>
         {% endunless %}
         </div>
-        <div class="messages isotope_wrap series-list">
-            {% assign itemChildItems = item.ChildItems | Sort:'Order' %}
 
+        {% assign resourcesCount = 0 %}
+        {% assign itemChildItems = item.ChildItems | Sort:'Order' %}
+        <div class="messages isotope_wrap series-list g-margin-b-150--xs">
 			{% for messages in itemChildItems %}
                 {% assign message = messages.ChildContentChannelItem %}
                 {% assign videoImageGuid = message | Attribute:'Image','RawValue' %}
-
+                {% if message.ContentChannelId != "57" %}
                 <div class="isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load">
 
                     <a class="series-link" href="/sermons/{{ item.PrimarySlug }}/{{ message.PrimarySlug }}">
@@ -164,14 +165,60 @@
                                 {% assign temp = runningMinutes | Times:60 %}
                                 {% assign runningSeconds = message | Attribute: 'Duration' | Minus:temp %}
                                 Running Time: {{runningMinutes}}:{{runningSeconds}}
-						    </h5>
+						    </h6>
                         </div>
                     </div>
                     </a>
                 </div>
-
+                {% else %}
+                {% assign resourcesCount = resourcesCount | Plus:1 %}
+                {% endif %}
             {% endfor %}
         </div>
+
+        {% if resourcesCount != 0 %}
+        <div class="row g-padding-y-60--xs">
+            <div class="col-md-12 text-center">
+                <h1 class="g-font-size--jumbo-1 g-font-family--secondary">Series Resources</h1>
+            </div>
+        </div>
+        <div class="messages isotope_wrap series-list">
+            {% for messages in itemChildItems %}
+                {% assign resource = messages.ChildContentChannelItem %}
+                {% assign resourceMediaFile = resource | Attribute:'ResourceFile','Object' %}
+                {% if resource.ContentChannelId == "57" %}
+                    <div class="isotope_item
+                        hide-on-load
+                        event-calendar
+                        col-md-4
+                        col-sm-6
+                        col-xs-12
+                        g-margin-b-0--xs
+                        ">
+                            <div class="
+                                g-bg-color--gray-lighter
+                                g-margin-b-50--md
+                                g-margin-x-25--md
+                                g-margin-b-30--xs
+                                g-margin-x-15--xs
+                                g-padding-y-100--md
+                                g-padding-x-100--md
+                                g-padding-y-50--xs
+                                g-padding-x-50--xs
+                                text-center
+                                ">
+                                <h4 class="g-font-weight--700 g-color--white">{{ resource.Title }}</h4>
+                                <br />
+                                <a href="/GetFile.ashx?guid={{ resourceMediaFile.Guid }}" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1" download="download">
+            			            <strong>Download</strong>
+            			        </a>
+                            </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
 </div>
 
 	<script>
