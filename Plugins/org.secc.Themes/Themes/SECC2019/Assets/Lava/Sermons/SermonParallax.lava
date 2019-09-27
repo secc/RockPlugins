@@ -1,3 +1,7 @@
+{% contentchannelitem where:'ContentChannelId == 24 && Status == 2' sort:'StartDateTime desc' %}
+{% assign Items = contentchannelitemItems %}
+{% endcontentchannelitem %}
+
 {% assign item = Items | First %}
 {% if item %}
 
