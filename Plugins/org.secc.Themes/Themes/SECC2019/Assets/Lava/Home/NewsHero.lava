@@ -72,24 +72,22 @@
           }
         </script>
         <div style="background-color:black">
-            {% unless currentMessageVimeoID == empty %}
 
-                {[ parallax videourl:'https://vimeo.com/357603792' image:'/Content/Main_homepage.jpg'  videostarttime:'0' videoendtime:'19' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'100vh' position:'bottom center' speed:'-15' ]}
-                    <!-- START: Ministry Logo & Video -->
-                    <div class="parallax-logo centered" style="max-width: inherit;padding: 0px;">
-                        <h1 class="g-font-family--secondary g-font-size-130--lg g-font-size-80--xs g-text-shadow--black--soft" style="text-shadow: none;">Streaming Now</h1>
-                        <br />
-                        <h4 class="uppercase g-letter-spacing--3">Watch today's sermon at SE Online</h4>
-                        <br />
-                        <br />
-                        <a href="/online" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
-                            <strong>Watch Here</strong>
-                        </a>
-                    </div>
-                    <!-- END: Ministry Logo & Videod -->
-                {[ endparallax ]}
+            {[ parallax videourl:'https://vimeo.com/357603792' image:'/Content/Main_homepage.jpg'  videostarttime:'0' videoendtime:'19' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'100vh' position:'bottom center' speed:'-15' ]}
+                <!-- START: Ministry Logo & Video -->
+                <div class="parallax-logo centered" style="max-width: inherit;padding: 0px;">
+                    <h1 class="g-font-family--secondary g-font-size-130--lg g-font-size-80--xs g-text-shadow--black--soft" style="text-shadow: none;">Streaming Now</h1>
+                    <br />
+                    <h4 class="uppercase g-letter-spacing--3">Watch today's sermon at SE Online</h4>
+                    <br />
+                    <br />
+                    <a href="/online" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
+                        <strong>Watch Here</strong>
+                    </a>
+                </div>
+                <!-- END: Ministry Logo & Videod -->
+            {[ endparallax ]}
 
-            {% endunless %}
         </div>
     </section>
 
@@ -108,8 +106,9 @@
     		The Lava Code below checks for the closest sermon message to this day.
         {% endcomment %}
     	{% for childItem in item.ChildItems %}
+            {% assign message = childItem.ChildContentChannelItem %}
     		{% assign currentMessageDays = currentDate | DateDiff:childItem.ChildContentChannelItem.StartDateTime,'d' %}
-    		{% if currentMessageDays <= 0 %}
+    		{% if currentMessageDays <= 0 and message.ContentChannelId == "23" %}
     			{% assign currentMessage = childItem %}
     		{% endif %}
     	{% endfor %}
