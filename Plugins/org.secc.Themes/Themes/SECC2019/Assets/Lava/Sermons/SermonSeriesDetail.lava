@@ -186,7 +186,7 @@
             {% for messages in itemChildItems %}
                 {% assign resource = messages.ChildContentChannelItem %}
                 {% assign resourceMediaFile = resource | Attribute:'ResourceFile','Object' %}
-                {% if resource.ContentChannelId == "57" %}
+                {% if resource.ContentChannelId == "58" %}
                     <div class="isotope_item
                         hide-on-load
                         event-calendar
