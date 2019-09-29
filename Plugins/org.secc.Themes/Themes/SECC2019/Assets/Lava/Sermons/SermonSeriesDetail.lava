@@ -209,7 +209,7 @@
                                 ">
                                 <h4 class="g-font-weight--700 g-color--white">{{ resource.Title }}</h4>
                                 <br />
-                                <a href="/GetFile.ashx?guid={{ resourceMediaFile.Guid }}" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1" download="download">
+                                <a href="/GetFile.ashx?guid={{ resourceMediaFile.Guid }}" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1" download>
             			            <strong>Download</strong>
             			        </a>
                             </div>
