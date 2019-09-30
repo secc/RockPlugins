@@ -68,6 +68,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
         private void BindDropDown()
         {
             ddlTitle.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_TITLE.AsGuid() ), true );
+            ddlSuffix.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ), true );
             ddlGender.BindToEnum<Gender>( true );
             ddlMaritalStatus.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_MARITAL_STATUS.AsGuid() ), true );
         }
@@ -78,7 +79,22 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             iuPhoto.BinaryFileId = person.PhotoId;
             tbNickName.Text = person.NickName;
             tbFirstName.Text = person.FirstName;
+            tbMiddleName.Text = person.MiddleName;
             tbLastName.Text = person.LastName;
+            ddlSuffix.SetValue( person.SuffixValueId );
+
+            var families = person.GetFamilies();
+
+            //If there is more than one family don't show family role
+            if ( families.Count() > 1 )
+            {
+                ddlFamilyRole.Visible = false;
+            }
+            else
+            {
+                ddlFamilyRole.SelectedValue = person.GetFamilyRole().Guid == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() ? "A" : "C";
+            }
+
 
             //PhoneNumber
             var mobilePhoneType = DefinedValueCache.Get( new Guid( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE ) );
@@ -182,8 +198,30 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             changeRequest.EvaluatePropertyChange( person, "TitleValue", DefinedValueCache.Get( ddlTitle.SelectedValueAsInt() ?? 0 ) );
             changeRequest.EvaluatePropertyChange( person, "FirstName", tbFirstName.Text );
             changeRequest.EvaluatePropertyChange( person, "NickName", tbNickName.Text );
+            changeRequest.EvaluatePropertyChange( person, "MiddleName", tbMiddleName.Text );
             changeRequest.EvaluatePropertyChange( person, "LastName", tbLastName.Text );
+            changeRequest.EvaluatePropertyChange( person, "SuffixValue", DefinedValueCache.Get( ddlSuffix.SelectedValueAsInt() ?? 0 ) );
 
+            var families = person.GetFamilies();
+
+            if ( families.Count() == 1 )
+            {
+                var groupMember = person.PrimaryFamily.Members.Where( gm => gm.PersonId == person.Id ).FirstOrDefault();
+                if ( groupMember != null )
+                {
+                    GroupTypeRole groupTypeRole;
+                    GroupTypeRoleService groupTypeRoleService = new GroupTypeRoleService( rockContext );
+                    if (ddlFamilyRole.SelectedValue == "A" )
+                    {
+                        groupTypeRole = groupTypeRoleService.Get( Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() );
+                    }
+                    else
+                    {
+                        groupTypeRole = groupTypeRoleService.Get( Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_CHILD.AsGuid() );
+                    }
+                    changeRequest.EvaluatePropertyChange( groupMember, "GroupRole", groupTypeRole, true );
+                }
+            }
 
             //Evaluate PhoneNumbers
             var phoneNumberTypeIds = new List<int>();
@@ -216,7 +254,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                                 IsMessagingEnabled = !smsSelected && cbSms.Checked,
                                 Number = PhoneNumber.CleanNumber( pnbPhone.Number )
                             };
-                            var phoneComment = string.Format( "{0}: {1}.", DefinedValueCache.Get( phoneNumberTypeId).Value, pnbPhone.Number );
+                            var phoneComment = string.Format( "{0}: {1}.", DefinedValueCache.Get( phoneNumberTypeId ).Value, pnbPhone.Number );
                             changeRequest.AddEntity( phoneNumber, rockContext, true, phoneComment );
                         }
                         else if ( phoneNumber != null && pnbPhone.Text.IsNullOrWhiteSpace() ) // delete number
