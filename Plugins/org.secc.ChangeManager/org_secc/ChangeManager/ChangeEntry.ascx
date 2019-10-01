@@ -10,16 +10,25 @@
                     <asp:HiddenField runat="server" ID="hfPersonId" />
                     <div class="row">
                         <div class="col-md-2">
-                            <Rock:ImageUploader ID="iuPhoto" runat="server" />
+                            <div class="col-md-12">
+                                <Rock:ImageUploader ID="iuPhoto" runat="server" />
+                                <br />
+                                <Rock:RockDropDownList runat="server" ID="ddlFamilyRole" Label="Family Role">
+                                    <asp:ListItem Text="Adult" Value="A" />
+                                    <asp:ListItem Text="Child" Value="C" />
+                                </Rock:RockDropDownList>
+                            </div>
                         </div>
                         <div class="col-md-10">
                             <div class="col-md-6">
                                 <Rock:RockDropDownList runat="server" ID="ddlTitle" Label="Title" SourceTypeName="Rock.Model.Person" PropertyName="Title" />
                                 <Rock:DataTextBox runat="server" ID="tbFirstName" SourceTypeName="Rock.Model.Person" PropertyName="FirstName" />
+                                <Rock:DataTextBox runat="server" ID="tbLastName" SourceTypeName="Rock.Model.Person" PropertyName="LastName" />
                             </div>
                             <div class="col-md-6">
                                 <Rock:DataTextBox runat="server" ID="tbNickName" SourceTypeName="Rock.Model.Person" PropertyName="NickName" />
-                                <Rock:DataTextBox runat="server" ID="tbLastName" SourceTypeName="Rock.Model.Person" PropertyName="LastName" />
+                                <Rock:DataTextBox runat="server" ID="tbMiddleName" SourceTypeName="Rock.Model.Person" PropertyName="MiddleName" />
+                                <Rock:RockDropDownList runat="server" ID="ddlSuffix" Label="Suffix" SourceTypeName="Rock.Model.Person" PropertyName="Suffix" />
                             </div>
                         </div>
                     </div>
