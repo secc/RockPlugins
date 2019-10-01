@@ -1,0 +1,133 @@
+{% comment %}
+Eventually we will need to convert the inline css below into BEM CSS.
+{% endcomment %}
+<style>
+    .giving-min-height {
+        min-height: 400px;
+    }
+    .card:hover {
+     transform: translateY(0px) !important;
+     -webkit-box-shadow: 0 11px 66px rgba(0, 0, 0, 0.15) !important;
+     box-shadow: 0 11px 66px rgba(0, 0, 0, 0.15) !important;
+    }
+    .link--hover-grey-bg {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+        transition: background .2s ease;
+        -webkit-transition: background .2s ease;
+    }
+    .link--hover-grey-bg:hover {
+        background: rgba(124, 124, 124, 0.18);
+    }
+</style>
+
+<section id="MyGiving">
+    <div class="container g-padding-t-100--xs g-padding-b-150--xs">
+
+        <div class="row">
+            <div class="col-lg-12 clearfix text-center">
+                <h1 class="g-font-size--jumbo-1 g-font-family--secondary">My Giving</h1>
+                <br>
+                <br>
+    		</div>
+        </div>
+
+		<div class="row">
+		    <div class="col-md-6 event-calendar">
+		        <div class="clearfix card g-margin-x-40--xs g-margin-x-20--md giving-min-height">
+                    <div class="g-padding-x-60--xs g-padding-t-80--xs g-padding-b-20--xs">
+                        <h3 class="g-font-weight--700">Giving Statements</h3>
+                        <br />
+                        <a href="#" class="link--hover-grey-bg" download>
+                            <p class="g-margin-b-0--xs g-padding-y-15--xs g-padding-x-20--xs g-font-weight--600">
+                            2019 YTD Statement <span class="pull-right"><i class="far fa-download"></i></span>
+                            </p>
+                        </a>
+                        <a href="#" class="link--hover-grey-bg" download>
+                            <p class="g-margin-b-0--xs g-padding-y-15--xs g-padding-x-20--xs g-font-weight--600">
+                             2018 Statement <span class="pull-right"><i class="far fa-download"></i></span>
+                            </p>
+                        </a>
+                        <a href="#" class="link--hover-grey-bg" download>
+                            <p class="g-margin-b-0--xs g-padding-y-15--xs g-padding-x-20--xs g-font-weight--600">
+                            2017 Statement <span class="pull-right"><i class="far fa-download"></i></span>
+                            </p>
+                        </a>
+                        <a href="#" class="link--hover-grey-bg" download>
+                            <p class="g-margin-b-0--xs g-padding-y-15--xs g-padding-x-20--xs g-font-weight--600">
+                            2016 Statement <span class="pull-right"><i class="far fa-download"></i></span>
+                            </p>
+                        </a>
+                    </div>
+
+                    <div class="g-padding-x-60--xs g-padding-y-5--xs">
+                        <a href="#">
+                            <h6 class="g-margin-b-0--xs g-padding-y-15--xs g-padding-x-20--xs g-font-weight--400 text-uppercase g-display-inline-block--xs pull-right">
+                                More Statements
+                                <span class="pull-right se-carat se-carat--right g-display-inline-block--xs" style="
+                                    display: inline-block;
+                                    top: 0;
+                                    border-width: 0px 1px 1px 0px;
+                                    ">
+                                </span>
+                            </h6>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 event-calendar">
+                <div class="clearfix card g-margin-x-40--xs g-margin-x-20--md giving-min-height">
+                    <div class="g-padding-x-60--xs g-padding-y-80--xs">
+                        <h3 class="g-font-weight--700">Give Now</h3>
+                        <br />
+                        <p>Give a single gift, or schedule recurring giving using your bank account, debit or credit card.</p>
+                        <br />
+                        <br />
+                        <a class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 g-margin-x-20--xs g-margin-b-20--xs" href="https://pushpay.com/pay/southeastchristian">
+                            <strong>Give Now</strong>
+                        </a>
+                        <a class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 g-margin-x-20--xs g-margin-b-20--xs" href="https://pushpay.com/pay/southeastchristian/recurring">
+                            <strong>Recurring Giving</strong>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+		    <div class="col-md-6 event-calendar">
+		        <div class="clearfix card g-margin-x-40--xs g-margin-x-20--md giving-min-height">
+                    <div class="g-padding-x-60--xs g-padding-y-80--xs">
+                        <h3 class="g-font-weight--700">Manage Giving</h3>
+                        <br />
+                        <p>Want to edit your giving? Need to update a payment method? Login to your Pushpay account to make changes or update your giving.</p>
+                        <br />
+                        <a class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" href="https://pushpay.com/g/southeastchristian/manageaccount">
+                            <strong>Manage Giving</strong>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 event-calendar">
+                <div class="clearfix card g-margin-x-40--xs g-margin-x-20--md giving-min-height">
+                    <div class="g-padding-x-60--xs g-padding-y-80--xs">
+                        <h3 class="g-font-weight--700">Questions & Help</h3>
+                        <br />
+                        <p>For questions about giving to Southeast Christian Church, checkout our FAQ's.</p>
+                        <br />
+                        <p>If you still have questions, concerns or need help please contact our Contributions Team at 502.253.8707 or <a href="mailto:giving@secc.org">giving@secc.org</a></p>
+                        <br />
+                        <a class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 g-padding-x-20--xs g-margin-x-20--xs" href="/give#Questions">
+                            <strong>FAQ</strong>
+                        </a>
+                        <a class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 g-padding-x-20--xs g-margin-x-20--xs" href="/give#Contact">
+                            <strong>CONTACT</strong>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
