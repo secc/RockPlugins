@@ -66,6 +66,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Workflows\ReferenceValidation.cs" />
     <Compile Include="Workflows\MinistrySafeRequest.cs" />
     <Compile Include="Workflows\MinistrySafeUpdate.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
