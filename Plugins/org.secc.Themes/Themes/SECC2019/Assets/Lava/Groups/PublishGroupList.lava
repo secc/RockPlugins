@@ -32,23 +32,19 @@
 
 <div class="container">
 
-    {% if publishGroupCount == 0 %}
-    <div class="row">
-        <div class="col-xs-12 text-center">
-            <div style="border: 1px solid rgba(32, 30, 29, 0.50); padding: 20px; border-radius: 5px;">
-                <p style="margin: 0px;">There are no groups for this ministy at this time. Please try another campus or ministry.</p>
-            </div>
-        </div>
-    </div>
+    {% if filterByMinistry != null %}
+        {% assign filterByMinistry = '---' | Append:filterByMinistry | Append:'---' %}
+        {% assign ministyCount = 0 %}
     {% endif %}
 
     <div class="isotope_wrap">
         {% for publishGroup in PublishGroups %}
 
         {% if filterByMinistry != null %}
-            {% assign audienceValues = publishGroup.AudienceValues | Map:'Value' | Join:'---' | Downcase %}
+            {% assign audienceValues = publishGroup.AudienceValues | Map:'Value' | Join:'---' | Prepend:'---' | Append:'---' | Downcase %}
             {% if audienceValues contains filterByMinistry %}
                 {% assign ministryIsContained = true %}
+                {% assign ministyCount = ministyCount | Plus:1 %}
             {% else %}
                 {% assign ministryIsContained = false %}
             {% endif %}
@@ -65,7 +61,7 @@
                     <div class="caption g-padding-x-30--xs g-padding-t-30--xs g-margin-b-40--xs">
 					<h5 class="g-font-family--secondary g-padding-r-60--xs" style="margin-bottom: 5px;">
 						{{ publishGroup.Group.Name}}
-					</h5>
+                    </h5>
                         <h6 class="uppercase g-padding-b-20--xs g-font-weight--700">
 							{{ publishGroup.Group.Campus.Name }}
 						</h6>
@@ -154,6 +150,16 @@
         {% endfor %}
 
     </div><!-- END: isotope_wrap -->
+
+    {% if publishGroupCount == 0 or ministyCount == 0 %}
+    <div class="row">
+        <div class="col-xs-12 text-center">
+            <div style="border: 1px solid rgba(32, 30, 29, 0.50); padding: 20px; border-radius: 5px;">
+                <p style="margin: 0px;">There are no groups for this ministy at this time. Please try another campus or ministry.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
 </div><!-- END: bootstrap container -->
 
