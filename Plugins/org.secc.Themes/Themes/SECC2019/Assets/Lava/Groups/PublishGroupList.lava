@@ -1,3 +1,11 @@
+{% comment %}
+*****************************************************************************
+****** There needs to be a lava variable defined if this block is to  *******
+****** be used on a minstry's page. Otherwise ignore it.              *******
+*****************************************************************************
+{% assign filterByMinistry = 'Men' | Downcase %}
+{% endcomment %}
+
 {% assign publishGroupCount = PublishGroups | Size %}
 
 {% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
@@ -36,8 +44,19 @@
 
     <div class="isotope_wrap">
         {% for publishGroup in PublishGroups %}
-		{% assign registrationLink = '/groups/oncampus/details/' | Append:publishGroup.Guid %}
-		{% assign contactLink = '/groups/oncampus/contact/' | Append:publishGroup.Guid %}
+
+        {% if filterByMinistry != null %}
+            {% assign audienceValues = publishGroup.AudienceValues | Map:'Value' | Join:'---' | Downcase %}
+            {% if audienceValues contains filterByMinistry %}
+                {% assign ministryIsContained = true %}
+            {% else %}
+                {% assign ministryIsContained = false %}
+            {% endif %}
+        {% endif %}
+
+        {% if filterByMinistry == null or ministryIsContained == true %}
+    		{% assign registrationLink = '/groups/oncampus/details/' | Append:publishGroup.Guid %}
+    		{% assign contactLink = '/groups/oncampus/contact/' | Append:publishGroup.Guid %}
     		<div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar" data-day="{{ publishGroup.WeeklyDayOfWeek}}">
                 <div class="clearfix card">
 					<div class="img-hover">
@@ -131,6 +150,7 @@
 
                     </div>
                 </div><!-- END: isotope_item -->
+        {% endif %}
         {% endfor %}
 
     </div><!-- END: isotope_wrap -->
