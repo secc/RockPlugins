@@ -1,6 +1,6 @@
 header {
     padding: 10px;
-    border-bottom: 5px solid #F9C621;
+    border-bottom: 5px solid #ffffff;
 }
 body, header, section.widget_nav {
     background-color: #000000;
@@ -31,13 +31,13 @@ body, header, section.widget_nav {
 .co-video {
     background-repeat: no-repeat;
     background-position: top center;
-    background-image: url(https://chop-v3-media.s3.amazonaws.com/medias/images/000/096/894/original/SE_ONLINE_BG-Yellow1.jpg?1556733331);
+    background-image: url(https://chop-v3-media.s3.amazonaws.com/medias/images/000/101/373/original/SE-Online-Mockup11.jpg?1567170148);
     background-size: cover;
     background-color: #404040;
     overflow: hidden;
 }
 .co-button {
-    background: #f9c521;
+    background: #ffffff;
     text-transform: uppercase;
     font-weight: 600;
     padding: 8px 14px;
@@ -50,7 +50,7 @@ body, header, section.widget_nav {
     font-size: 0.8rem;
 
     &:hover {
-        background: #f9c521;
+        background: #ffffff;
         color: #000000;
     }
 }
@@ -92,25 +92,25 @@ a {
     border-bottom: 1px solid #000000;
 }
 .co-message-host {
-    background: #f9c521;
+    background: #ffffff;
     color: black;
     font-weight: 600;
 }
 
 .co-notify-notice {
-    box-shadow: inset 10px 0px 0 0px #f9c521;
+    box-shadow: inset 10px 0px 0 0px #ffffff;
 }
 .side-menu ul.account .co-sign-up-button {
-    background-color: #f9c521;
+    background-color: #ffffff;
     color: #000000;
     border-radius: 2px;
 }
 .co-chat-box-input:focus, .co-nickname-box-input:focus {
     outline: 0;
-    box-shadow: inset 8px 0 0 #f9c521;
+    box-shadow: inset 8px 0 0 #ffffff;
 }
 .co-chat-box button {
-    background-color: #f9c521;
+    background-color: #ffffff;
     color: #000000;
 }
 .co-chat-overlay.co-chat-new {
@@ -147,7 +147,7 @@ a {
 
     button {
         display: inline-block;
-        background-color: #f9c521;
+        background-color: #ffffff;
         color: #000000;
         border-width: 4px;
         border-style: solid;
@@ -177,7 +177,7 @@ a {
 }
 .request-private-chat button {
     display: inline-block;
-    background-color: #f9c521;
+    background-color: #ffffff;
     color: #000000;
     border-width: 4px;
     border-style: solid;

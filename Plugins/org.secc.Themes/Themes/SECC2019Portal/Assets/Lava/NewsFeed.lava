@@ -1,4 +1,4 @@
-  <section id="NewsFeed" class="g-bg-color--gray-lightest">
+   <section id="NewsFeed" class="g-bg-color--gray-lightest">
     <div class="container g-padding-y-50--xs g-padding-y-150--sm g-padding-x-40--xs">
     	<div class="row">
             <div class="col-sm-12">
@@ -9,7 +9,7 @@
         <div class="col-md-5 g-padding-b-40--xs">
             {% for item in Items %}
             {% if forloop.first %}
-              <article class="newsfeed-article g-margin-t-0--xs g-padding-r-30--md g-padding-r-125--lg">
+              <article id="itemRead" data-itemid="{{item.Id}}" class="newsfeed-article g-margin-t-0--xs g-padding-r-30--md g-padding-r-125--lg">
               {% assign itemVimeoId = item | Attribute:'VimeoId' %}
               {% if itemVimeoId != "" %}{[ vimeo id:'{{itemVimeoId}}' ]}{% endif %}
 	              <header class="newsfeed-article_header">
@@ -19,7 +19,7 @@
 	              <section class="newsfeed-article_content g-margin-t-40--xs g-margin-b-40--xs">
   	              <h4>{{ item.Title }}</h4>
 		              {{ item.Content | StripHtml | Truncate:300 }}</p>
-                  <p><a href="{{LinkedPages.DetailPage}}?ItemID={{item.Id}}" class="text-uppercase g-font-weight--600">Read More</a></p>
+                  <p><a href="{{LinkedPages.DetailPage}}/{{item.Id}}" class="text-uppercase g-font-weight--600">Read More</a></p>
 	              </section>
 	              {% assign itemAuthor = item | Attribute:'Author','Object' %}
 	              {% assign itemAuthorTitle =  item | Attribute:'AuthorTitle' %}
@@ -53,7 +53,7 @@
 	              <section class="newsfeed-article_content g-margin-b-40--xs">
 	              <div><strong>{{ item.Title }}</strong></div>
 		            <p>{{ item.Content | StripHtml | Truncate:120 }}</p>
-		            <p><a href="{{LinkedPages.DetailPage}}?ItemID={{item.Id}}" class="text-uppercase g-font-weight--600">Read More</a></p>
+		            <p><a href="{{LinkedPages.DetailPage}}/{{item.Id}}" class="text-uppercase g-font-weight--600">Read More</a></p>
 		            <hr />
 	              </section>
 	            </article>
@@ -118,4 +118,14 @@
 	    }
 */
 	  });
+	  
+		var didScroll=false;
+		$(document).on('scroll', function() {
+			if( !didScroll &&
+			$(this).scrollTop()>=$('#itemRead').position().top) {
+				didScroll=true;
+				var itemId = ($('#itemRead').attr('data-itemid'));
+				$.post( "/Webhooks/Lava.ashx/onepoint/vieweditem/" + itemId, function( data ) {});
+			}
+		})
 	</script>

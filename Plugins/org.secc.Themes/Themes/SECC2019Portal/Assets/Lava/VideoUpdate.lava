@@ -26,7 +26,7 @@
               {% endexecute %}
             {% endcapture %}
               <div class="swiper-slide" style="background-image: url('{{ thumbnailUrl | Trim }}')">
-                  <a href="{{LinkedPages.DetailPage}}?ItemID={{post.Id}}" class="episode-button">
+                  <a href="{{LinkedPages.DetailPage}}/{{post.Id}}" class="episode-button">
                       <div class="slide_content">
                           <h2>{{ post.Title }}</h2>
                           <p>{{ post.Content|StripHtml|Truncate:142 }}</p>
@@ -44,6 +44,7 @@
 
 <link rel="stylesheet" type="text/css" href="/Themes/SECC2019Portal/Styles/swiper/swiper.min.css" />
 <script type="text/javascript" src="/Themes/SECC2019Portal/Scripts/swiper/swiper.min.js"></script>
+<script src="https://player.vimeo.com/api/player.js"></script>
 <!-- Initialize Swiper -->
 <script type="text/javascript">
   var swiper = new Swiper('#video-swiper', {
@@ -79,5 +80,12 @@
         spaceBetween: 5,
       }
     }
+  });
+  
+  var iframe = document.querySelector('iframe');
+  var player = new Vimeo.Player(iframe);
+
+  player.on('play', function() {
+	$.post( "/Webhooks/Lava.ashx/onepoint/vieweditem/{{firstItem.Id}}", function( data ) {});
   });
 </script>

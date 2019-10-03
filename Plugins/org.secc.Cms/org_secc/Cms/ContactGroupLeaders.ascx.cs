@@ -32,6 +32,7 @@ using Rock.Security;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 using Group = Rock.Model.Group;
+using org.secc.GroupManager.Model;
 
 namespace RockWeb.Plugins.org_secc.Cms
 {
@@ -159,9 +160,12 @@ namespace RockWeb.Plugins.org_secc.Cms
             var rockContext = new RockContext();
             var personAliasService = new PersonAliasService( rockContext );
             var groupService = new GroupService( rockContext );
+            var publishGroupService = new PublishGroupService( rockContext );
             Group group = null;
+            PublishGroup publishGroup = null;
+            var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
 
-            List<Person> recipients = new List<Person>();
+            List<RecipientData> recipients = new List<RecipientData>();
 
             // get person from url
             if ( PageParameter( "PersonGuid" ).IsNotNullOrWhiteSpace() )
@@ -169,10 +173,10 @@ namespace RockWeb.Plugins.org_secc.Cms
                 Guid? personGuid = this.PageParameter( "PersonGuid" ).AsGuidOrNull();
                 if ( personGuid.HasValue )
                 {
-                    var person = personAliasService.Get( personGuid.Value );
-                    if ( person != null )
+                    var personAlias = personAliasService.Get( personGuid.Value );
+                    if ( personAlias != null )
                     {
-                        recipients.Add( person.Person );
+                        recipients.Add( new RecipientData( new CommunicationRecipient { PersonAlias = personAlias }, mergeFields ) );
                     }
                 }
             }
@@ -185,8 +189,28 @@ namespace RockWeb.Plugins.org_secc.Cms
                 if ( groupGuid.HasValue )
                 {
                     group = groupService.Get( groupGuid.Value );
-                    recipients.AddRange( GetGroupLeaders( group ) );
 
+                    var leaders = GetGroupLeaders( group );
+                    foreach ( var leader in leaders )
+                    {
+                        recipients.Add( new RecipientData( new CommunicationRecipient { PersonAlias = leader.PrimaryAlias }, mergeFields ) );
+
+                    }
+                }
+            }
+
+            // get group members from url
+            if ( PageParameter( "PublishGroupGuid" ).IsNotNullOrWhiteSpace() )
+            {
+                Guid? publishGroupGuid = PageParameter( "PublishGroupGuid" ).AsGuidOrNull();
+
+                if ( publishGroupGuid.HasValue )
+                {
+                    publishGroup = publishGroupService.Get( publishGroupGuid.Value );
+                    if ( publishGroup != null )
+                    {
+                        recipients.Add( new RecipientData( publishGroup.ContactEmail, mergeFields ) );
+                    }
                 }
             }
 
@@ -196,7 +220,7 @@ namespace RockWeb.Plugins.org_secc.Cms
                 var defaultPerson = personAliasService.Get( defaultRecipient );
                 if ( defaultPerson != null )
                 {
-                    recipients.Add( defaultPerson.Person );
+                    recipients.Add( new RecipientData( new CommunicationRecipient { PersonAlias = defaultPerson }, mergeFields ) );
                 }
             }
 
@@ -204,15 +228,19 @@ namespace RockWeb.Plugins.org_secc.Cms
             {
                 Guid defaultGroupGuid = GetAttributeValue( "LeaderGroup" ).AsGuid();
                 var defaultGroup = groupService.Get( defaultGroupGuid );
-                recipients.AddRange( GetGroupLeaders( defaultGroup ) );
+                var leaders = GetGroupLeaders( defaultGroup );
+                foreach ( var leader in leaders )
+                {
+                    recipients.Add( new RecipientData( new CommunicationRecipient { PersonAlias = leader.PrimaryAlias }, mergeFields ) );
+                }
             }
 
             if ( !cpCaptcha.IsAvailable || cpCaptcha.IsResponseValid() )
             {
-                var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
                 mergeFields.Add( "NickName", tbFirstName.Text );
                 mergeFields.Add( "LastName", tbLastName.Text );
                 mergeFields.Add( "Email", tbEmail.Text );
+                mergeFields.Add( "PublishGroup", publishGroup );
                 mergeFields.Add( "Group", group );
                 mergeFields.Add( "Message", tbMessage.Text );
                 mergeFields.Add( "FromEmail", tbEmail.Text );
@@ -224,7 +252,7 @@ namespace RockWeb.Plugins.org_secc.Cms
                 // send email
                 foreach ( var recipient in recipients )
                 {
-                    message.AddRecipient( new RecipientData( new CommunicationRecipient { PersonAlias = recipient.PrimaryAlias }, mergeFields ) );
+                    message.AddRecipient( recipient );
                 }
 
                 message.FromEmail = tbEmail.Text;

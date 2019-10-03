@@ -1,0 +1,48 @@
+{%- cache key:'subsplash-sermons-{{page}}' duration:'3600' -%}
+{
+	"header": {
+		"title": "Media",
+		"style": "featured",
+		"items": [{
+			"title": "Sermons",
+			"images": [{
+				"width": 500,
+				"url": "https://rock.secc.org/Content/SEApp/SermonsKyle.jpg"
+			}]
+		}]
+	},
+	"displayOptions": {
+		"style": "rows",
+		"contentWidthRatio": 0.9,
+		"itemDisplayOptions": {
+			"indicatorAspectRatio": 1,
+			"indicatorShadowEnabled": true,
+			"maxWidth": 640,
+			"textPosition": "below"
+		}
+	},
+{%- if page != empty -%}
+    {%- assign pageNumber = page -%}
+{%- endif -%}
+{%- assign offset = pageNumber | Minus:1 | Times: 120 -%}
+{%- contentchannelitem where:'ContentChannelId == 24' sort:'StartDateTime desc' offset:'{{offset}}' limit:'120'  -%}
+	"items": [
+        {%- for item in contentchannelitemItems -%}
+        {% unless forloop.first %},{% endunless %}
+        {
+            "images":[
+			    { "url":"https://rock.secc.org/GetImage.ashx/{{item | Attribute:'Image', 'RawValue'}}.jpg?guid={{item | Attribute:'Image', 'RawValue'}}&width=110" }
+		    ],
+			"position": "{{forloop.index}}",
+			"title": "{{item.Title | Replace:'"','\"'}}",
+			"subtitle": "{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
+			"actions": [{
+				"handler": "list",
+				"url": "https://rock.secc.org/webhooks/Lava.ashx/subsplash/sermons/series/{{item.Id}}"
+			}]
+		}
+        {%- endfor -%}
+    ]
+{% endcontentchannelitem -%}
+}
+{%- endcache -%}

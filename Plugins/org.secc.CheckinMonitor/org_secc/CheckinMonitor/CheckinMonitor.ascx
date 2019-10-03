@@ -95,6 +95,8 @@
             <Content>
                 <h1>
                     <asp:Literal ID="ltLocationName" runat="server" />
+                    <Rock:BootstrapButton runat="server" ID="btnLocationPrint" OnClick="btnLocationPrint_Click"
+                        Text="<i class='fa fa-print'></i>" CssClass="btn btn-sm btn-default" />
                 </h1>
                 <asp:HiddenField ID="hfLocationId" runat="server" />
                 <Rock:RockTextBox ID="tbRatio" runat="server" Label="Number of kids for every adult" Help="The number of kids per adult allowed."></Rock:RockTextBox>

@@ -4,10 +4,15 @@
 
 	<Rock:Zone Name="Feature" runat="server" />
 
+	<style>
+	#PageTitleContainer h1:empty {
+		padding: 0px !important;
+	}
+	</style>
 	<div class="container-fluid g-padding-x-0--xs">
-		<div class="g-padding-x-20--xs g-padding-y-20--xs">
+		<div id="PageTitleContainer">
 			<!-- Page Title -->
-			<Rock:PageIcon ID="PageIcon" runat="server" /> <h1><Rock:PageTitle ID="PageTitle" runat="server" /></h1>
+			<Rock:PageIcon ID="PageIcon" runat="server" /> <h1 class="g-padding-x-40--xs g-padding-y-40--xs g-padding-x-100--sm g-padding-y-100--sm g-bg-color--dark g-color--white"><Rock:PageTitle ID="PageTitle" runat="server" /></h1>
 		</div>
 		<!-- Breadcrumbs -->
 		<Rock:PageBreadCrumbs ID="PageBreadCrumbs" runat="server" />

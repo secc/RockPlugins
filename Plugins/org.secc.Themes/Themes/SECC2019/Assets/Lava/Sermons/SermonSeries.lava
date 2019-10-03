@@ -101,7 +101,14 @@
 							{% endif -%}
 							<h6 class="g-line-height--normal">
 								{% assign lastSermon = item.ChildItems | Last %}
-								{% assign sermonsCount = item.ChildItems | Size %}
+								{% assign sermonsCount = 0 %}
+								{% assign itemChildItems = item.ChildItems | Sort:'Order' %}
+								{%- for messages in itemChildItems -%}
+									{% assign message = messages.ChildContentChannelItem %}
+									{% if message.ContentChannelId == "23" %}
+										{%- assign sermonsCount = sermonsCount | Plus:1 -%}
+									{%- endif -%}
+								{%- endfor -%}
 								{% if sermonsCount > 1 -%}
 								{{ item.StartDateTime | Date:'MMM dd, yyyy' }} - {{ lastSermon.ChildContentChannelItem.StartDateTime | Date:'MMM dd, yyyy' }}
 								{% else -%}

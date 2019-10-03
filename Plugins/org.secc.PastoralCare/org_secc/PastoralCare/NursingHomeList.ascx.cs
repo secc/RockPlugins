@@ -59,6 +59,8 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
     [Description( "A summary of all the current nursing home residents that have been reported to Pastoral Care." )]
     [WorkflowTypeField( "Nursing Home Resident Workflow" )]
     [DefinedTypeField( "Nursing Home List" )]
+
+    [GroupField( "Volunteer Group", "Group to use for list of Volunteers on the Excel export. If omitted, volunteers will not be displayed.", false, "", "", 0 )]
     public partial class NursingHomeList : RockBlock
     {
         #region Control Methods
@@ -76,6 +78,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 ShowMessage( "Block not configured. Please configure to use.", "Configuration Error", "panel panel-danger" );
                 return;
             }
+
 
             gReport.GridRebind += gReport_GridRebind;
 
@@ -151,7 +154,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
 
         private void GenerateExcel( object sender, EventArgs e )
         {
-            using (RockContext rockContext = new RockContext())
+            using ( RockContext rockContext = new RockContext() )
             {
                 var newQry = GetQuery( rockContext );
 
@@ -220,7 +223,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 foreach ( var nursigngHome in nursingHomes )
                 {
 
-                    //Hospital header
+                    //Nursing Home header
                     var nursingHomeInfo = newQry
                         .Where( q => q.NursingHome == nursigngHome )
                         .FirstOrDefault();
@@ -268,6 +271,21 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                         r.Style.Fill.BackgroundColor.SetColor( Color.FromArgb( 34, 41, 55 ) );
                     }
                     rowCounter++;
+            
+                    if ( nursingHomeInfo.Volunteers.IsNotNullOrWhiteSpace() )
+                    {
+                        worksheet.Cells[rowCounter, 1].Value = "Volunteers: " + nursingHomeInfo.Volunteers;
+                        using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 15] )
+                        {
+                            r.Merge = true;
+                            r.Style.Font.SetFromFont( new Font( "Calibri", 15, FontStyle.Regular ) );
+                            r.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+                            r.Style.Font.Color.SetColor( Color.White );
+                            r.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                            r.Style.Fill.BackgroundColor.SetColor( Color.FromArgb( 34, 41, 55 ) );
+                        }
+                        rowCounter++;
+                    }
 
                     //Person header
                     worksheet.Cells[rowCounter, 1].Value = "Name";
@@ -311,7 +329,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
 
                     //Resident info
                     var residents = newQry.Where( q => q.NursingHome == nursigngHome );
-                    foreach ( var resident in  residents)
+                    foreach ( var resident in residents )
                     {
                         SetExcelValue( worksheet.Cells[rowCounter, 1], resident.Person.FullName );
                         using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 2] )
@@ -476,7 +494,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
 
                     // Find the summary activity and activate it.
                     WorkflowActivityType workflowActivityType = workflow.WorkflowType.ActivityTypes.Where( at => at.Name.Contains( "Summary" ) ).FirstOrDefault();
-                    WorkflowActivity workflowActivity = WorkflowActivity.Activate( WorkflowActivityTypeCache.Get(workflowActivityType.Id, rockContext), workflow, rockContext );
+                    WorkflowActivity workflowActivity = WorkflowActivity.Activate( WorkflowActivityTypeCache.Get( workflowActivityType.Id, rockContext ), workflow, rockContext );
 
                 }
                 rockContext.SaveChanges();
@@ -509,7 +527,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             }
         }
 
-        public IQueryable<NursingHomeRow> GetQuery( RockContext rockContext)
+        public IQueryable<NursingHomeRow> GetQuery( RockContext rockContext )
         {
             var contextEntity = this.ContextEntity();
 
@@ -520,17 +538,78 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             var personAliasService = new PersonAliasService( rockContext );
             var definedValueService = new DefinedValueService( rockContext );
             var entityTypeService = new EntityTypeService( rockContext );
+            var groupMemberService = new GroupMemberService( rockContext );
+            var groupService = new GroupService( rockContext );
 
             Guid nursingHomeAdmissionWorkflow = GetAttributeValue( "NursingHomeResidentWorkflow" ).AsGuid();
             Guid nursingHomeList = GetAttributeValue( "NursingHomeList" ).AsGuid();
+            Guid volunteerGroup = GetAttributeValue( "VolunteerGroup" ).AsGuid();
+            Group groupId = new Group();
 
-            
             List<DefinedValueCache> facilities = DefinedTypeCache.Get( nursingHomeList ).DefinedValues;
+            Dictionary<Guid, string> volunteerList = new Dictionary<Guid, string>();
+            groupId = groupService.GetByGuid( volunteerGroup );
 
+            var groupMemberEntityTypeId = EntityTypeCache.Get( typeof( GroupMember ) ).Id;
 
+            var groupMemberAttributeQry = attributeService.Queryable()
+                .Where( a => a.EntityTypeId == groupMemberEntityTypeId )
+                .Select( a => a.Id );
+
+            var groupMemberAttributeValueQry = attributeValueService.Queryable()
+               .Where( av => groupMemberAttributeQry.Contains( av.AttributeId ) );
+
+            if ( groupId.IsNotNull() )
+            {
+                var groupMemberList = groupMemberService.Queryable()
+                   .Where( a => a.GroupId == groupId.Id && a.GroupMemberStatus == GroupMemberStatus.Active )
+                   .GroupJoin( groupMemberAttributeValueQry,
+                        gm => gm.Id,
+                        av => av.EntityId,
+                        ( gm, av ) => new { GroupMember = gm, GroupMemberAttributeValues = av } )
+                     .ToList();
+
+                var groupMembers = new List<GroupMember>();
+
+                foreach ( var set in groupMemberList )
+                {
+                    var groupMember = set.GroupMember;
+
+                    groupMember.Attributes = set.GroupMemberAttributeValues
+                        .ToDictionary( av => av.AttributeKey, av => AttributeCache.Get( av.AttributeId ) );
+
+                    groupMember.AttributeValues = set.GroupMemberAttributeValues
+                        .ToDictionary( av => av.AttributeKey, av => new AttributeValueCache( av ) );
+
+                    groupMembers.Add( groupMember );
+                }
+
+                foreach ( var nursingHome in facilities )
+                {
+                    foreach ( var groupMember in groupMembers )
+                    {
+                        if ( groupMember.GetAttributeValue( "NursingHomes" ).IsNotNullOrWhiteSpace() )
+                        {
+                            //if ( groupMember.GetAttributeValue( "NursingHomes" ).AsGuid() == nursingHome.Guid )
+                            if ( groupMember.GetAttributeValue( "NursingHomes" ).ToLower().Contains( nursingHome.Guid.ToString().ToLower() ) )
+                            {
+                                if ( volunteerList.ContainsKey( nursingHome.Guid ) )
+                                {
+                                }
+                                else
+                                {
+                                    volunteerList.Add( nursingHome.Guid, groupMember.EntityStringValue );
+                                }
+                            }
+                        }
+                    }
+
+                }
+
+            }
             int entityTypeId = entityTypeService.Queryable().Where( et => et.Name == typeof( Workflow ).FullName ).FirstOrDefault().Id;
             string status = ( contextEntity != null ? "Completed" : "Active" );
-            
+
             var workflowType = new WorkflowTypeService( rockContext ).Get( nursingHomeAdmissionWorkflow );
             var workflowTypeIdAsString = workflowType.Id.ToString();
 
@@ -570,7 +649,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
 
             var visits = visitQry.ToList();
 
-            var workflows = wfTmpqry.Join( 
+            var workflows = wfTmpqry.Join(
                     attributeValueService.Queryable(),
                     obj => obj.Id,
                     av => av.EntityId.Value,
@@ -591,7 +670,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                     personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).Person.IsDeceased :
                     false ) ).ToList();
             }
-            
+
             var newQry = qry.Select( w => new NursingHomeRow
             {
                 Id = w.Workflow.Id,
@@ -630,24 +709,37 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 PastoralMinister = new Func<string>( () =>
                 {
                     DefinedValueCache dv = facilities.Where( h => h.Guid == w.AttributeValues.Where( av => av.AttributeKey == "NursingHome" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).FirstOrDefault();
-                    if ( dv != null && (dv.AttributeValues.ContainsKey( "PastoralMinister" ) || dv.AttributeValues.ContainsKey( "Qualifier6" ) ) )
+                    if ( dv != null && ( dv.AttributeValues.ContainsKey( "PastoralMinister" ) || dv.AttributeValues.ContainsKey( "Qualifier6" ) ) )
                     {
-                        return dv.AttributeValues.ContainsKey("PastoralMinister")?dv.AttributeValues["PastoralMinister"].ValueFormatted:dv.AttributeValues["Qualifier6"].ValueFormatted;
+                        return dv.AttributeValues.ContainsKey( "PastoralMinister" ) ? dv.AttributeValues["PastoralMinister"].ValueFormatted : dv.AttributeValues["Qualifier6"].ValueFormatted;
                     }
                     return "";
+                } )(),
+                Volunteers = new Func<string>( () =>
+                {
+                    String vList = "";
+                    if ( volunteerList.TryGetValue( w.AttributeValues.Where( av => av.AttributeKey == "NursingHome" ).Select( av => av.Value ).FirstOrDefault().AsGuid(), out vList ) )
+                    {
+                        return vList;
+                    }
+                    else
+                    {
+                        return "";
+                    }
                 } )(),
                 Room = w.AttributeValues.Where( av => av.AttributeKey == "Room" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                 AdmitDate = w.AttributeValues.Where( av => av.AttributeKey == "AdmitDate" ).Select( av => av.ValueAsDateTime ).FirstOrDefault(),
                 Description = w.AttributeValues.Where( av => av.AttributeKey == "VisitationRequestDescription" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                 Visits = w.VisitationActivities.Where( a => a.AttributeValues != null && a.AttributeValues.Where( av => av.AttributeKey == "VisitDate" && !string.IsNullOrWhiteSpace( av.Value ) ).Any() ).Count(),
-                LastVisitor = new Func<string>( () => {
-                    var visitor = w.VisitationActivities.Where( a => a.AttributeValues != null && a.AttributeValues.Where( av => av.AttributeKey == "VisitDate" && !string.IsNullOrWhiteSpace( av.Value ) ).Any() ).Select( va => va.AttributeValues.Where( av => av.AttributeKey == "Visitor" ).LastOrDefault() ).LastOrDefault();
-                    if (visitor != null)
-                    {
-                        return visitor.ValueFormatted;
-                    }
-                    return "N/A";
-                } )(),
+                LastVisitor = new Func<string>( () =>
+                 {
+                     var visitor = w.VisitationActivities.Where( a => a.AttributeValues != null && a.AttributeValues.Where( av => av.AttributeKey == "VisitDate" && !string.IsNullOrWhiteSpace( av.Value ) ).Any() ).Select( va => va.AttributeValues.Where( av => av.AttributeKey == "Visitor" ).LastOrDefault() ).LastOrDefault();
+                     if ( visitor != null )
+                     {
+                         return visitor.ValueFormatted;
+                     }
+                     return "N/A";
+                 } )(),
                 LastVisitDate = w.VisitationActivities.Where( a => a.AttributeValues != null && a.AttributeValues.Where( av => av.AttributeKey == "VisitDate" && !string.IsNullOrWhiteSpace( av.Value ) ).Any() ).Select( va => va.AttributeValues.Where( av => av.AttributeKey == "VisitDate" ).LastOrDefault() ).Select( av => av == null ? "N/A" : av.ValueFormatted ).DefaultIfEmpty( "N/A" ).LastOrDefault(),
                 LastVisitNotes = w.VisitationActivities.Where( a => a.AttributeValues != null && a.AttributeValues.Where( av => av.AttributeKey == "VisitDate" && !string.IsNullOrWhiteSpace( av.Value ) ).Any() ).Select( va => va.AttributeValues.Where( av => av.AttributeKey == "VisitNote" ).LastOrDefault() ).Select( av => av == null ? "N/A" : av.ValueFormatted ).DefaultIfEmpty( "N/A" ).LastOrDefault(),
                 DischargeDate = w.AttributeValues.Where( av => av.AttributeKey == "DischargeDate" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
@@ -668,6 +760,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             public string Address { get; set; }
             public string PhoneNumber { get; set; }
             public string PastoralMinister { get; set; }
+            public string Volunteers { get; set; }
             public string NotifiedBy { get; set; }
             public Person Person { get; set; }
             public int? Age { get; set; }

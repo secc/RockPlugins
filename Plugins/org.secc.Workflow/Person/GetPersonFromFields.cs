@@ -113,8 +113,7 @@ namespace org.secc.Workflow.Person.Action
                     ( string.IsNullOrWhiteSpace( email ) &&
                         string.IsNullOrWhiteSpace( phone ) &&
                         !dateofBirth.HasValue &&
-                        address == null &&
-                        string.IsNullOrWhiteSpace( address.Street1 ) )
+                        ( address == null || address != null && string.IsNullOrWhiteSpace( address.Street1 ) ) )
                     )
                 {
                     errorMessages.Add( "First Name, Last Name, and one of Email, Phone, DoB, or Address Street are required. One or more of these values was not provided!" );

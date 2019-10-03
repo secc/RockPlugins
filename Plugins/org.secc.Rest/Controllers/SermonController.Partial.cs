@@ -14,6 +14,7 @@ namespace org.secc.SermonFeed.Rest
     public partial class SermonController : ApiControllerBase
     {
         const int CONTENT_CHANNEL = 24;
+        const int SERMON_CONTENT_CHANNEL = 23;
         const int SPEAKER_ATTRIBUTE = 30285;
 
         [HttpGet]
@@ -83,7 +84,7 @@ namespace org.secc.SermonFeed.Rest
                 output.Add( sermonSeries );
 
                 //add sermons to series
-                foreach ( var sermonItem in seriesItem.ChildItems.Select( s => s.ChildContentChannelItem ) )
+                foreach ( var sermonItem in seriesItem.ChildItems.Where(s => s.ChildContentChannelItem.ContentChannelId == SERMON_CONTENT_CHANNEL).Select( s => s.ChildContentChannelItem ) )
                 {
                     sermonItem.LoadAttributes();
                     if ( sermonItem.GetAttributeValue( "Speaker" ).ToLower() != speaker.ToLower() )

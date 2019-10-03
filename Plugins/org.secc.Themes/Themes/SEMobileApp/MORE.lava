@@ -1,0 +1,51 @@
+{
+	"header": {
+		"title": "More",
+		"style": "featured",
+		"items": [{
+			"title": "More",
+			"images": [{
+				"width": 500,
+				"url": "https://www.southeastchristian.org/Content/About/IMG_3954.jpg"
+			}],
+			"actions": [{
+				"handler": "list",
+				"url": "https://rock.secc.org/webhooks/Lava.ashx/subsplash/connect",
+				"authProviderId": "ccaf1fb2-03e0-4093-8f97-f8f60f125ddc"
+			}]
+		}]
+	},
+	"displayOptions": {
+		"style": "rows",
+		"contentWidthRatio": 0.9,
+		"itemDisplayOptions": {
+			"indicatorAspectRatio": 1,
+			"indicatorShadowEnabled": true,
+			"maxWidth": 640,
+			"textPosition": "below"
+		}
+	},
+	"items": [
+		{
+			"title": "Campus Addresses",
+			"actions":[{
+				"handler":"list",
+				"url": ""
+			}]
+		},
+		{
+			"title": "Maps",
+			"actions":[{
+				"handler":"list",
+				"url": ""
+			}]
+		},
+		{
+			"title": "Schedules",
+			"actions":[{
+				"handler":"list",
+				"url": ""
+			}]
+		}
+	]
+}
