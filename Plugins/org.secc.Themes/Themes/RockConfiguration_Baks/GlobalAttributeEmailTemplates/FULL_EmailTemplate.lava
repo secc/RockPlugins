@@ -3,32 +3,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge"> <!-- Use the latest (edge) version of IE rendering engine -->
 <meta name="x-apple-disable-message-reformatting">  <!-- Disable auto-scale in iOS 10 Mail entirely -->
 <title></title> <!-- The title tag shows in email notifications, like Android 4.4. -->
-
-<!-- Web Font / @font-face : BEGIN -->
-<!-- NOTE: If web fonts are not required, lines 10 - 27 can be safely removed. -->
-
-<!-- Desktop Outlook chokes on web font references and defaults to Times New Roman, so we force a safe fallback font. -->
-<!--[if mso]>
-    <style>
-        * {
-            font-family: sans-serif !important;
-        }
-    </style>
-<![endif]-->
-
-<!-- All other clients get the webfont reference; some will render the font and others will silently fail to the fallbacks. More on that here: http://stylecampaign.com/blog/2015/02/webfont-support-in-email/ -->
-<!--[if !mso]><!-->
-<!-- insert web font reference, eg: <link href='https://fonts.googleapis.com/css?family=Roboto:400,700' rel='stylesheet' type='text/css'> -->
-<!--<![endif]-->
-
-<!-- Web Font / @font-face : END -->
-
 <noscript id="lava-fields">
     {% comment %}  Lava Fields: Code-Generated from Template Editor {% endcomment %}
     {% assign headerBanner = 'https://www.southeastchristian.org/Content/EmailTemplates/SE_generic_header.jpg' %}
     {% assign headerBannerTitle = 'Southeast Christian Church' %}
 </noscript>
-
 <!-- CSS Reset : BEGIN -->
 <style>
     /* What it does: Remove spaces around the email design added by some email clients. */
@@ -41,7 +20,6 @@
         width: 100% !important;
         background: #f1f1f1;
     }
-
     /* What it does: Stops email clients resizing small text. */
     * {
         -ms-text-size-adjust: 100%;
@@ -116,7 +94,6 @@
     }
 </style>
 <!-- CSS Reset : END -->
-
 <!-- Progressive Enhancements : BEGIN -->
 <style>
     /* What it does: Hover styles for buttons */
@@ -159,7 +136,6 @@
     }
 </style>
 <!-- Progressive Enhancements : END -->
-
 <!-- What it does: Makes background images in 72ppi Outlook render at correct size. -->
 <!--[if gte mso 9]>
 <xml>
@@ -169,35 +145,31 @@
     </o:OfficeDocumentSettings>
 </xml>
 <![endif]-->
-
 <center style="width: 100%; background: #f1f1f1; text-align: left;">
-
 <!-- Visually Hidden Preheader Text : BEGIN -->
 <div style="display: none; font-size: 1px; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all; font-family: sans-serif;">
 </div>
 <!-- Visually Hidden Preheader Text : END -->
-
 <!-- Full Bleed Background Section : BEGIN -->
 <table role="presentation" bgcolor="#f1f1f1" cellspacing="0" cellpadding="0" border="0" align="center" width="100%">
-    <tbody><tr>
-        <td valign="top" align="center">
+    <tbody style="padding: 0px;" cellspacing="0" cellpadding="0" border="0">
+        <tr style="padding: 0px;" cellspacing="0" cellpadding="0" border="0">
+        <td valign="top" align="center" style="padding: 0px;" cellspacing="0" cellpadding="0" border="0">
             <div style="max-width: 600px; margin: auto;" class="email-container">
-
                 <!--[if mso]>
-                <table role="presentation" border="0" cellspacing="0" cellpadding="0" align="center" width="600" style="width: 600px;">
-                <tr>
-                <td align="center" valign="top" width="600" style="width: 600px;">
+                <table role="presentation" border="0" cellspacing="0" cellpadding="0" align="center" width="600" style="width: 600px;"><tr><td align="center" valign="top" width="600" style="width: 600px;">
                 <![endif]-->
                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center" width="100%" style="max-width:660px;">
-                    <tbody><tr>
+                    <tbody style="padding: 0px;" cellspacing="0" cellpadding="0" border="0">
+                        <tr style="padding: 0px;" cellspacing="0" cellpadding="0" border="0">
                         <td align="center" valign="top" style="font-size:0; padding: 10px 0 0 0;">
 
                             <div style="display:inline-block; margin: 0 -2px; max-width:100%; min-width:320px; vertical-align:middle;" class="stack-column">
                                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                                    <tbody>
-                                        <tr>
+                                    <tbody style="padding: 0px;" cellspacing="0" cellpadding="0" border="0">
+                                        <tr style="padding: 0px;" cellspacing="0" cellpadding="0" border="0">
                                             <td bgcolor="#f1f1f1" align="center" style="text-align: center !important;">
-                                                <img data-instructions="Provide a PNG with a transparent background." src="{{ headerBanner }}" alt="{{ headerBannerTitle }}" title="{{ headerBannerTitle }}" width="600" height="" border="0" align="center" style="width: 100%; max-width: 600px; height: auto; background: #f1f1f1; font-family: sans-serif; font-size: 15px; color: #555555; margin: auto;" class="g-img">
+                                                <img src="{{ headerBanner }}" alt="{{ headerBannerTitle }}" title="{{ headerBannerTitle }}" width="600" height="" border="0" align="center" style="width: 100%; max-width: 600px; height: auto; background: #f1f1f1; font-family: sans-serif; font-size: 15px; color: #555555; margin: auto;" class="g-img">
                                             </td>
                                         </tr>
                                 </tbody>
@@ -207,30 +179,20 @@
                     </tr>
                 </tbody></table>
                 <!--[if mso]>
-                </td>
-                </tr>
-                </table>
+                </td></tr></table>
                 <![endif]-->
             </div>
         </td>
     </tr>
     </tbody>
 </table>
-<!-- Full Bleed Background Section : END -->
-
-<!--
-    Set the email width. Defined in two places:
-    1. max-width for all clients except Desktop Windows Outlook, allowing the email to squish on narrow but never go wider than 600px.
-    2. MSO tags for Desktop Windows Outlook enforce a 600px width.
--->
-<div style="width: 100%; font-size: 12px; font-family: sans-serif; line-height:18px; color: #000000; max-width: 600px; margin: auto; background-color:#ffffff;" class="email-container">
+<div style="width: 100%; font-size: 12px; font-family: sans-serif; line-height:18px; color: #000000; max-width: 600px; margin: auto; background-color:#ffffff; padding: 0px;" class="email-container" cellspacing="0" cellpadding="0" border="0">
 <!--[if mso]>
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" align="center">
-<tr>
-<td>
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" align="center" style="border-collapse: collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; font-size: 12px; font-family: sans-serif; line-height:18px; color: #000000; max-width: 600px; background-color:#ffffff; border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;padding:0; margin:0;">
+<tr cellspacing="0" cellpadding="0" border="0" style="padding: 0px; border-collapse: collapse;">
+<td style="padding: 15px 10px; border-collapse: collapse;" cellspacing="0" cellpadding="0" border="0">
 <![endif]-->
-
-<div style="padding: 15px 10px;">
+<div style="padding: 15px 10px;" cellspacing="0" cellpadding="0" border="0">
 <!-- Email Container: Start (Ends in Footer) -->
 
 
@@ -240,15 +202,19 @@
 
 <!-- Email Container: End (Starts in Header) -->
 </div>
+<!--[if mso]>
+</td></tr></table>
+<![endif]-->
 </div>
-
 <noscript id="lava-fields">
 {% comment %}  Lava Fields: Code-Generated from Template Editor {% endcomment %}
 {% assign footerBanner = 'https://www.southeastchristian.org/Content/EmailTemplates/generic_footer.jpg' %}
 {% assign footerBannerTitle = 'Southeast General Footer' %}
 {% assign footerAddressTitle = 'SOUTHEAST CHRISTIAN CHURCH' %}
 </noscript>
-
+<!--[if mso]>
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" align="center" style="border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;padding:0; margin:0;"><tr><td>
+<![endif]-->
 <!-- Email Footer : BEGIN -->
 <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" width="100%" style="max-width: 680px; font-family: sans-serif; color: #888888; line-height:18px;">
     <tbody>
@@ -268,21 +234,10 @@
     </tbody>
 </table>
 <!-- Email Footer : END -->
-
 <!--[if mso]>
-</td>
-</tr>
-</table>
+</td></tr></table>
 <![endif]-->
-
-
 <div style="max-width: 600px; margin: auto; text-align: center !important;" class="email-container">
-   <!--[if mso]>
-   <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" align="center">
-   <tr>
-   <td>
-   <![endif]-->
-
    <!-- Email Footer : BEGIN -->
    <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" width="100%" style="max-width: 680px; font-family: sans-serif; color: #888888; line-height:18px; text-align: center !important;">
        <tbody>
@@ -296,11 +251,5 @@
        </tr>
    </tbody></table>
    <!-- Email Footer : END -->
-
-   <!--[if mso]>
-   </td>
-   </tr>
-   </table>
-   <![endif]-->
 </div>
 </center>

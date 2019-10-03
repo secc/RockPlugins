@@ -396,7 +396,19 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             int id = hfMemberId.Value.AsInteger();
             if ( id > 0 )
             {
-                deactivateMember( id );
+                _rockContext = new RockContext();
+             
+                int? groupTypeId = new GroupService( _rockContext ).Get( id ).GroupTypeId;
+                var groupTypeCache = GroupTypeCache.Get( groupTypeId.Value );
+                if ( groupTypeCache.EnableGroupHistory == true )
+                    
+                {
+                    archiveMember( id );
+                }
+                else
+                {
+                    deactivateMember( id );
+                }
             }
             mdMember.Hide();
             hfMemberId.Value = null;
@@ -435,6 +447,38 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 _rockContext.SaveChanges();
             }
         }
+
+
+        private void archiveMember( int id )
+        {
+
+            
+            //Do not archive the last active leader.
+            if ( memberData.Where( m => m.IsLeader && m.Status == GroupMemberStatus.Active ).Count() == 1
+                && memberData.Where( m => m.Person.Id == id && m.IsLeader ).Any() )
+            {
+                return;
+            }
+
+            //Select multiple group members because someone can be a member of
+            //a group more than once as long as their role is different
+            var groupMembers = CurrentGroup.Members.Where( m => m.Person.Id == id );
+            if ( groupMembers.Any() )
+            {
+                foreach ( var groupMember in groupMembers )
+                {
+                    var gm = new GroupMemberService( _rockContext ).Get( groupMember.Id );
+                    if ( gm != null )
+                    {
+                        gm.IsArchived = true;
+                        gm.ArchivedByPersonAliasId = CurrentPersonAliasId;
+                        gm.ArchivedDateTime = RockDateTime.Now;
+                    }
+                }
+                _rockContext.SaveChanges();
+            }
+        }
+
 
         private void activateMember( int id )
         {
@@ -1070,7 +1114,19 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             int id = int.Parse( ( ( LinkButton ) sender ).CommandArgument );
             if ( id > 0 )
             {
-                deactivateMember( id );
+                _rockContext = new RockContext();
+
+                int? groupTypeId = new GroupService( _rockContext ).Get( CurrentGroup.Id ).GroupTypeId;
+                var groupTypeCache = GroupTypeCache.Get( groupTypeId.Value );
+                if ( groupTypeCache.EnableGroupHistory == true )
+
+                {
+                    archiveMember( id );
+                }
+                else
+                {
+                    deactivateMember( id );
+                }
             }
             Response.Redirect( Request.RawUrl );
         }

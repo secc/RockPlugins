@@ -43,9 +43,6 @@ namespace RockWeb.Blocks.Reporting.NextGen
             base.OnInit( e );
         }
 
-
-
-
         protected override void OnLoad( EventArgs e )
         {
             nbAlert.Visible = false;
@@ -152,13 +149,25 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
         protected void SelectMember_Click( object sender, Rock.Web.UI.Controls.RowEventArgs e )
         {
+            var personAliasGuid = ( ( Guid ) e.RowKeyValue ).ToString();
+            NavigateToWorkflow( personAliasGuid );
+         
+        }
+
+        protected void gGrid_RowSelected( object sender, Rock.Web.UI.Controls.RowEventArgs e )
+        {
+            var personAliasGuid = ( ( Guid ) e.RowKeyValue ).ToString();
+            NavigateToWorkflow( personAliasGuid );
+        }
+
+        private void NavigateToWorkflow( string personAliasGuid )
+        {
             RockContext rockContext = new RockContext();
             WorkflowTypeService workflowTypeService = new WorkflowTypeService( rockContext );
-            var personAliasGuid = ( ( Guid ) e.RowKeyValue ).ToString();
             var workflowGuid = GetAttributeValue( "EditWorkflow" );
             var workflowId = workflowTypeService.Get( workflowGuid.AsGuid() ).Id.ToString();
             NavigateToLinkedPage( "WorkflowPage", new Dictionary<string, string> { { "WorkflowTypeId", workflowId }, { "PersonGuid", personAliasGuid } } );
-        }
+        }      
 
         class GridData
         {

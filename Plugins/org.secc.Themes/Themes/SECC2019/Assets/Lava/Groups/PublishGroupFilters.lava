@@ -494,15 +494,16 @@ function processPageLoad(pnlContent_ID, params) {
 function updatePath(key, value) {    baseUrl = [location.protocol, '//', location.host].join('');
     parts = location.pathname.split('/');
     // Set some defaults;
-    parts[1] = 'new-groups';
-    parts[2] = parts[2]||'southeast';
-    parts[3] = parts[3]||'all';
+    parts[1] = 'groups';
+	parts[2] = 'oncampus';
+    parts[3] = parts[3]||'southeast';
+    parts[4] = parts[4]||'all';
     // Set default part one of Groups
     if (key == 'campus') {
-        parts[2] = value||'southeast';
+        parts[3] = value||'southeast';
     }
     if (key == 'ministry') {
-        parts[3] = value||'all';
+        parts[4] = value||'all';
     }
     window.history.pushState({}, '', baseUrl + parts.join('/'));
     console.log("key: " + key);

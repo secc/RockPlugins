@@ -2516,10 +2516,34 @@ namespace RockWeb.Plugins.org_secc.Event
                     string lastName = registrantInfo.GetLastName( RegistrationTemplate );
                     string email = registrantInfo.GetEmail( RegistrationTemplate );
                     object dateOfBirthObj = registrantInfo.GetPersonFieldValue( RegistrationTemplate, RegistrationPersonFieldType.Birthdate );
+                    object mobilePhoneObj = registrantInfo.GetPersonFieldValue( RegistrationTemplate, RegistrationPersonFieldType.MobilePhone );
+                    object homePhoneObj = registrantInfo.GetPersonFieldValue( RegistrationTemplate, RegistrationPersonFieldType.HomePhone );
+                    object addressObj = registrantInfo.GetPersonFieldValue( RegistrationTemplate, RegistrationPersonFieldType.Address );
                     DateTime? dateOfBirth = null;
+                    string phone = null;
+                    string street1 = null;
+                    string postalCode = null;
+
+
                     if ( dateOfBirthObj != null && dateOfBirthObj is DateTime? )
                     {
                         dateOfBirth = dateOfBirthObj as DateTime?;
+                    }
+
+                    if ( mobilePhoneObj != null && mobilePhoneObj is PhoneNumber  )
+                    {
+                        phone = ( ( PhoneNumber ) mobilePhoneObj ).Number;
+                    }
+                    else if (homePhoneObj != null && homePhoneObj is PhoneNumber )
+                    {
+                        phone = ( ( PhoneNumber ) homePhoneObj ).Number;
+                    }
+
+                    if (addressObj!=null && addressObj is Location )
+                    {
+                        var address = addressObj as Location;
+                        street1 = address.Street1;
+                        postalCode = address.PostalCode;
                     }
 
                     if (registrantInfo.Id > 0)
@@ -2552,11 +2576,30 @@ namespace RockWeb.Plugins.org_secc.Event
 
                     if (person == null)
                     {
-                        // Try to find a matching person based on name and email address
-                        var possiblePersons = personService.GetByMatch( firstName, lastName, dateOfBirth, email: email );
-                        if ( possiblePersons.Count() == 1 )
+                        if ( dateOfBirth.HasValue )
                         {
-                            person = possiblePersons.FirstOrDefault();
+                            // Try to find a matching person based on name and email address
+                            var possiblePersons = personService.GetByMatch(
+                                firstName,
+                                lastName,
+                                dateOfBirth,
+                                email,
+                                phone,
+                                street1,
+                                postalCode
+                                );
+                            if ( possiblePersons.Count() == 1 )
+                            {
+                                person = possiblePersons.FirstOrDefault();
+                            }
+                        }
+                        else
+                        {
+                            var possiblePersons = personService.FindPersons( firstName, lastName, email );
+                            if ( possiblePersons.Count() == 1 )
+                            {
+                                person = possiblePersons.FirstOrDefault();
+                            }
                         }
 
                         // Try to find a matching person based on name within same family as registrar
@@ -3867,7 +3910,7 @@ namespace RockWeb.Plugins.org_secc.Event
                         ddlFamilyMembers.Items.Clear();
                         var preselectFamilyMember = RegistrationTemplate.RegistrantsSameFamily == RegistrantsSameFamily.Yes;
 
-                        if (CurrentFormIndex == 0 && RegistrationState != null && RegistrationTemplate.ShowCurrentFamilyMembers)
+                        if ( CurrentFormIndex == 0 && RegistrationState != null && RegistrationState.RegistrantCount > CurrentRegistrantIndex )
                         {
                             if (registrant.Id <= 0 &&
                                 CurrentFormIndex == 0 &&

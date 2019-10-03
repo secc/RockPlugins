@@ -1,0 +1,43 @@
+	{
+		"header": {
+			"title": "Prayer",
+			"style": "featured",
+			"items": [{
+				"title": "Prayer",
+				"images": [{
+					"width": 500,
+					"url": "https://www.southeastchristian.org/Content/SubSplash/prayer.jpg"
+				}]
+			}]
+		},
+		"title":"Prayer",
+		"body": "Our vision is to be a praying church who reaches out and challenges everyone to follow Jesus completely.\n\nSoutheast values and encourages the practice of prayer. You can always find someone to pray with you on weekends at any of our campuses. We also have dedicated prayer rooms for use throughout the week at varying times and locations.\n\nTo have someone pray with you over the phone, you can call our 12-hour prayer line.\n\n12-hour prayer line\n502.253.8485\nMonday–Friday\n9:00 a.m.–9:00 p.m.\n\nYou can also fill out this form below and someone at Southeast will pray for you!",
+		"itemGroups":[
+			{
+				"position":1,
+				"items":[
+					{
+						"title":"Call Prayer Line now",
+						"actions":[{
+							"handler":"phone",
+							"type":"navigation",
+							"number":"5022538485"
+						}]
+					}
+				]
+			},
+			{
+				"position":1,
+				"items":[
+					{
+						"title":"Contact Form",
+						"actions":[{
+							"handler":"browser",
+							"style":"internal",
+							"contentUrl":"https://www.southeastchristian.org/prayer"
+						}]
+					}
+				]
+			}
+		]
+	}

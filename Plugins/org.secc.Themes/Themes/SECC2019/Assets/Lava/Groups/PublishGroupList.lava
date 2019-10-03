@@ -1,3 +1,11 @@
+{% comment %}
+*****************************************************************************
+****** There needs to be a lava variable defined if this block is to  *******
+****** be used on a minstry's page. Otherwise ignore it.              *******
+*****************************************************************************
+{% assign filterByMinistry = 'Men' | Downcase %}
+{% endcomment %}
+
 {% assign publishGroupCount = PublishGroups | Size %}
 
 {% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
@@ -24,21 +32,28 @@
 
 <div class="container">
 
-    {% if publishGroupCount == 0 %}
-    <div class="row">
-        <div class="col-xs-12 text-center">
-            <div style="border: 1px solid rgba(32, 30, 29, 0.50); padding: 20px; border-radius: 5px;">
-                <p style="margin: 0px;">There are no groups for this ministy at this time. Please try another campus or ministry.</p>
-            </div>
-        </div>
-    </div>
+    {% if filterByMinistry != null %}
+        {% assign filterByMinistry = '---' | Append:filterByMinistry | Append:'---' %}
+        {% assign ministyCount = 0 %}
     {% endif %}
 
     <div class="isotope_wrap">
         {% for publishGroup in PublishGroups %}
-		{% assign registrationLink = '/new-groups/details/' | Append:publishGroup.Id %}
-		{% assign contactLink = '/new-groups/contact/' | Append:publishGroup.Id %}
-    		<div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar" data-day="{{ publishGroup.Group.Schedule.WeeklyDayOfWeek}}">
+
+        {% if filterByMinistry != null %}
+            {% assign audienceValues = publishGroup.AudienceValues | Map:'Value' | Join:'---' | Prepend:'---' | Append:'---' | Downcase %}
+            {% if audienceValues contains filterByMinistry %}
+                {% assign ministryIsContained = true %}
+                {% assign ministyCount = ministyCount | Plus:1 %}
+            {% else %}
+                {% assign ministryIsContained = false %}
+            {% endif %}
+        {% endif %}
+
+        {% if filterByMinistry == null or ministryIsContained == true %}
+    		{% assign registrationLink = '/groups/oncampus/details/' | Append:publishGroup.Guid %}
+    		{% assign contactLink = '/groups/oncampus/contact/' | Append:publishGroup.Guid %}
+    		<div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar" data-day="{{ publishGroup.WeeklyDayOfWeek}}">
                 <div class="clearfix card">
 					<div class="img-hover">
 						<img src="/GetImage.ashx?id={{ publishGroup.ImageId }}&w=720" class="event-image img-responsive" onerror="this.style.display='none'">
@@ -46,7 +61,7 @@
                     <div class="caption g-padding-x-30--xs g-padding-t-30--xs g-margin-b-40--xs">
 					<h5 class="g-font-family--secondary g-padding-r-60--xs" style="margin-bottom: 5px;">
 						{{ publishGroup.Group.Name}}
-					</h5>
+                    </h5>
                         <h6 class="uppercase g-padding-b-20--xs g-font-weight--700">
 							{{ publishGroup.Group.Campus.Name }}
 						</h6>
@@ -67,7 +82,7 @@
 						{% if publishGroup.ChildcareAvailable != true %}
 							{% assign offset = offset | Plus: 2 %}
 						{% endif %}
-						
+
 						{% if publishGroup.WeeklyDayOfWeek != null and publishGroup.WeeklyDayOfWeek != empty %}
 							<div class="event-items col-xs-4 {% if publishGroup.MeetingLocation != null and publishGroup.MeetingLocation != empty  %} g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter{% endif %} col-xs-offset-{{offset}}">
 								 <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
@@ -81,8 +96,8 @@
 							</div>
 							{% assign offset = 0 %}
 						{% endif %}
-						
-						
+
+
 						{% if publishGroup.MeetingLocation != null and publishGroup.MeetingLocation != empty%}
 							<div class="event-items g-padding-x-10--xs col-xs-4 {% if publishGroup.ChildcareAvailable == true %}g-ver-divider__solid__r--gray-lighter{% endif %}  col-xs-offset-{{offset}}">
 								 <div class="event-icon --location"><!-- Marker / Location SVG Image --></div>
@@ -92,7 +107,7 @@
 							</div>
 							{% assign offset = 0 %}
 						{% endif %}
-					
+
 						<!-- ChildCare -->
 						{% if publishGroup.ChildcareAvailable == true %}
 						<div class="event-items col-xs-4 g-padding-x-10--xs col-xs-offset-{{offset}}">
@@ -101,7 +116,7 @@
 						</div>
 						{% endif %}
 
-						
+
 						<div class="text-center col-xs-12 g-margin-t-40--xs g-hor-divider__solid__t--gray-lighter">
 							{% if publishGroup.RequiresRegistration == true %}
 								<div class="col-md-6">
@@ -125,15 +140,26 @@
 									</h6>
 								</a>
 							{% endif %}
-							
+
 						</div>
-						
-					
+
+
                     </div>
                 </div><!-- END: isotope_item -->
+        {% endif %}
         {% endfor %}
 
     </div><!-- END: isotope_wrap -->
+
+    {% if publishGroupCount == 0 or ministyCount == 0 %}
+    <div class="row">
+        <div class="col-xs-12 text-center">
+            <div style="border: 1px solid rgba(32, 30, 29, 0.50); padding: 20px; border-radius: 5px;">
+                <p style="margin: 0px;">There are no groups for this ministy at this time. Please try another campus or ministry.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
 </div><!-- END: bootstrap container -->
 
@@ -206,7 +232,7 @@ $(window).load(function() {
                 },
                 afterToggle: function(trigger, element, expanded) {
 					$('.isotope_wrap').isotope(isoOptions); // re-initialize
-					
+
                 }
             });
             // init Isotope after all images have loaded

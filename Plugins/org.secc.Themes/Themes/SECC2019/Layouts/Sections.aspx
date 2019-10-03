@@ -5,10 +5,16 @@
 
 	<Rock:Zone Name="Feature" runat="server" />
 
-  <!-- Start Content Area -->
-
-	  <!-- Page Title -->
-    <Rock:PageIcon ID="PageIcon" runat="server" /> <h1><Rock:PageTitle ID="PageTitle" runat="server" /></h1>
+    <!-- Start Content Area -->
+	<style>
+	  #PageTitleContainer h1:empty {
+		  padding: 0px !important;
+	  }
+	</style>
+	<!-- Page Title -->
+	<div id="PageTitleContainer">
+	    <Rock:PageIcon ID="PageIcon" runat="server" /> <h1 class="g-padding-x-40--xs g-padding-y-40--xs g-padding-x-100--sm g-padding-y-100--sm g-bg-color--dark g-color--white"><Rock:PageTitle ID="PageTitle" runat="server" /></h1>
+	</div>
 
     <!-- Breadcrumbs -->
     <Rock:PageBreadCrumbs ID="PageBreadCrumbs" runat="server" />

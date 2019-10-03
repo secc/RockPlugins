@@ -29,7 +29,7 @@
 							      {%- assign eventSummary = eventItemOccurrence.Description -%}
 
 							      {%- assign eventStartDiff = 'Now' | DateDiff: eventItemOccurrence.DateTime, 'm' -%}
-							      
+
 										{%- if eventStartDiff > 0 -%}
 							        <div class="panel panel-default">
 							            <div class="panel-heading collapsed" role="button"  id="heading{{ forloop.index }}-accordion-events" data-toggle="collapse" data-parent="#event-accordion-accordion-events"
@@ -57,8 +57,10 @@
 										              <p><strong>Location:</strong> {{ eventItemOccurrence.Location }}</p>
 										              <div class="g-margin-t-30--sm g-margin-t-20--xs">
 										                <p>{{ eventSummary }}</p>
+                                                        {% comment %}
 										                <p class="g-margin-t-40--xs"><a href="" onclick="return ics_click_{{ eventItemOccurrence.EventItemOccurrence.Id }}()" title="Add to Calendar" data-original-title="Add to Calendar" class="btn uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1">Add to Calendar</a></p>
-										              </div>
+                                                        {% endcomment %}
+                                                      </div>
 									              </div>
 								              </div>
 							              </div>
@@ -68,7 +70,7 @@
 										{%- endif -%}
 							  {%- endfor -%}
 							  </div>
-							</div>  
+							</div>
 
             </div>
         </div>

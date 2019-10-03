@@ -1,0 +1,38 @@
+$color-1: #FFFFFF;
+$color-2: #707070;
+$color-3: #ADADAD;
+$color-4: #000000;
+$color-5: #231F20;
+$color-6: #7C7C7C;
+
+// fonts
+$PrimaryCopyFont: "Helvetica Neue", Helvetica, Arial, sans-serif;
+$Proxima: join(("ProximaNova", "proxima-nova"), $PrimaryCopyFont, comma);
+$Proxima-Thin: join(("ProximaNova", "proxima-nova"), $PrimaryCopyFont, comma);
+$Proxima-Light: join(("ProximaNova", "proxima-nova"), $PrimaryCopyFont, comma);
+$Proxima-SemiBold: join(("ProximaNova", "proxima-nova"), $PrimaryCopyFont, comma);
+$Proxima-Bold: join(("ProximaNova", "proxima-nova"), $PrimaryCopyFont, comma);
+$Proxima-ExtraBold: join(("ProximaNova", "proxima-nova"), $PrimaryCopyFont, comma);
+$Proxima-Black: join(("ProximaNova", "proxima-nova"), $PrimaryCopyFont, comma);
+
+$primary-font: $Proxima-Bold;
+
+// header size
+
+$header-height-S: 70px;
+$header-height-L: 80px;
+
+// Navigation size
+
+$nav-width-S: 260px;
+
+// Search size
+
+$search-height-S: 80px;
+$search-height-L: 120px;
+
+// z-index
+
+$below-content: 1;
+$content: 2;
+$above-content: 3;

@@ -24,6 +24,7 @@ using Rock.Data;
 using Rock.Model;
 using Rock.Workflow.Action.CheckIn;
 using Rock.Attribute;
+using Rock.Web.UI;
 
 namespace org.secc.FamilyCheckin
 {
@@ -51,7 +52,8 @@ namespace org.secc.FamilyCheckin
             var checkInState = GetCheckInState( entity, out errorMessages );
             if ( checkInState != null )
             {
-                var sundayList = GetSundayList( action );
+                var currentDateTime = checkInState.Kiosk.DebugDateTime.HasValue ? checkInState.Kiosk.DebugDateTime.Value : RockDateTime.Now;
+                var sundayList = GetSundayList( action, currentDateTime );
                 PersonAliasService personAliasService = new PersonAliasService( rockContext );
                 AttendanceService attendanceService = new AttendanceService( rockContext );
                 var family = checkInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault();
@@ -103,7 +105,7 @@ namespace org.secc.FamilyCheckin
                             .SelectMany( _gt => _gt.Groups )
                             .SelectMany( _g => _g.Locations )
                             .SelectMany( _l => _l.Schedules )
-                            .Where( _s => !_s.ExcludedByFilter && _s.Schedule.WasCheckInActive( RockDateTime.Now ) )
+                            .Where( _s => !_s.ExcludedByFilter && _s.Schedule.WasCheckInActive( currentDateTime ) )
                             .Select( _s => _s.Schedule.Id )
                             .Distinct()
                             .ToList();
@@ -172,7 +174,7 @@ namespace org.secc.FamilyCheckin
             return false;
         }
 
-        private List<DateTime> GetSundayList( WorkflowAction action )
+        private List<DateTime> GetSundayList( WorkflowAction action, DateTime currentDateTime )
         {
             List<DateTime> sundayList = new List<DateTime>();
             var depth = GetActionAttributeValue( action, "WeekHistory" ).AsInteger();

@@ -51,7 +51,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [BooleanField( "Allow NonApproved Adults", "Should adults who are not in the approved person list be allowed to checkin?", false, key: "AllowNonApproved" )]
     [DataViewField( "Security Role Dataview", "Data view which people who are in a security role. It will not allow adding PINs for people in this group.", entityTypeName: "Rock.Model.Person", required: false )]
     [TextField( "Data Error URL", "Example: WorkflowEntry/12?PersonId={0}", false )]
-
+    [SecurityRoleField( "Reprint Tag Security Group", "Group to allow reprinting of tags.", key: "SecurityGroup", defaultSecurityRoleGroupGuid: Rock.SystemGuid.Group.GROUP_STAFF_MEMBERS )]
     public partial class SuperCheckin : CheckInBlock
     {
 
@@ -1248,6 +1248,14 @@ try{{
 
         protected void btnPrint_Click( object sender, EventArgs e )
         {
+            nbLogin.Visible = false;
+            tbUsername.Text = "";
+            tbPassword.Text = "";
+            mdLogin.Show();
+        }
+
+        private void ReprintAggregateTag()
+        {
             if ( !GetAttributeValue( "AllowReprint" ).AsBoolean() )
             {
                 return;
@@ -1451,6 +1459,65 @@ try{{
                 _rockContext.SaveChanges();
             }
             mdAddPhone.Hide();
+        }
+
+        protected void btnLoginCancel_Click( object sender, EventArgs e )
+        {
+            tbUsername.Text = "";
+            tbPassword.Text = "";
+            mdLogin.Hide();
+        }
+
+        protected void btnLoginPrint_Click( object sender, EventArgs e )
+        {
+            var rockContext = new RockContext();
+            var userLoginService = new UserLoginService( rockContext );
+            var userLogin = userLoginService.GetByUserName( tbUsername.Text );
+            if ( userLogin != null && userLogin.EntityType != null )
+            {
+                var component = AuthenticationContainer.GetComponent( userLogin.EntityType.Name );
+                if ( component != null && component.IsActive && !component.RequiresRemoteAuthentication )
+                {
+                    if ( component.Authenticate( userLogin, tbPassword.Text ) )
+                    {
+                        var person = userLogin.Person;
+                        if ( AuthorizedToReprint( person ) )
+                        {
+                            tbUsername.Text = "";
+                            tbPassword.Text = "";
+                            ReprintAggregateTag();
+                            mdLogin.Hide();
+                            return;
+                        }
+                        else
+                        {
+                            nbLogin.Visible = true;
+                            nbLogin.Text = "Unauthorized to reprint";
+                        }
+                    }
+                    else
+                    {
+                        nbLogin.Visible = true;
+                        nbLogin.Text = "Incorrect Username Or Password";
+                    }
+                }
+            }
+        }
+
+        private bool AuthorizedToReprint( Person person )
+        {
+            RockContext rockContext = new RockContext();
+            GroupService groupService = new GroupService( rockContext );
+            GroupMemberService groupMemberService = new GroupMemberService( rockContext );
+            var group = groupService.Get( GetAttributeValue( "SecurityGroup" ).AsGuid() );
+            if ( group != null )
+            {
+                return groupMemberService
+                    .GetByGroupIdAndPersonId( group.Id, person.Id )
+                    .Where( gm => gm.GroupMemberStatus == GroupMemberStatus.Active )
+                    .Any();
+            }
+            return false;
         }
     }
     public class FamilyLabel

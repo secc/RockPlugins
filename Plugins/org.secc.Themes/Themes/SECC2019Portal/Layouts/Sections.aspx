@@ -33,16 +33,9 @@
 
 	<Rock:Zone Name="Feature" runat="server" />
 
-  <!-- Start Content Area -->
-  <section id="secPageTitle" class="page-title g-bg-color--gray-lightest" runat="server">
-    <div class="container">
-    	<div class="row g-padding-y-50--xl">
-        <div class="col-xs-12">
-          <h1 class="g-font-size--jumbo-1 g-font-family--secondary"><Rock:PageIcon ID="PageIcon" runat="server" /><Rock:PageTitle ID="PageTitle" runat="server" /></h1>
-        </div>
-    	</div>
-		</div>
-  </section>
+    <!-- Start Content Area -->
+    <section id="secPageTitle" class="page-title" runat="server">
+    </section>
 
     <!-- Breadcrumbs -->
     <Rock:PageBreadCrumbs ID="PageBreadCrumbs" runat="server" />

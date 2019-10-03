@@ -1,119 +1,222 @@
-{% assign item = Items | First %}
-{% if item %}
-	{% assign currentDate = 'Now' | Date:'M/d/yyyy' %}
-	{% assign currentMessage = item.ChildItems | First %}
-	{% comment %}
-		The Lava Code below checks for the closest sermon message to this day.
+{% assign currentDay = 'Now' | Date:'dddd' | Downcase %}
+
+{% if currentDay == "sunday" %}
+    {% comment %}
+        This shows on Sundays
     {% endcomment %}
-	{% for childItem in item.ChildItems %}
-		{% assign currentMessageDays = currentDate | DateDiff:childItem.ChildContentChannelItem.StartDateTime,'d' %}
-		{% if currentMessageDays <= 0 %}
-			{% assign currentMessage = childItem %}
-		{% endif %}
-	{% endfor %}
-	{% assign seriesImageGuid = item | Attribute:'SeriesImage','RawValue' %}
-	{% assign currentMessageVimeoID = currentMessage.ChildContentChannelItem | Attribute:'VimeoId' %}
     <section id="">
-		<script>
-		  var tmpCanInitParallax = jarallax.constructor.prototype.canInitParallax;
-		  jarallax.constructor.prototype.canInitParallax = function(callback) {
-		    // Intercept the set call for the video object and manually set the image
-		    var imageHandler = {
-		      set(target, prop, value) {
-		        target[prop] = value;
-		        if (prop == 'video') {
-		            value.videoImage = "/Content/Main_homepage.jpg";
-		            value.userEventsList['started'][0] = function () {
+        <script>
+          var tmpCanInitParallax = jarallax.constructor.prototype.canInitParallax;
+          jarallax.constructor.prototype.canInitParallax = function(callback) {
+            // Intercept the set call for the video object and manually set the image
+            var imageHandler = {
+              set(target, prop, value) {
+                target[prop] = value;
+                if (prop == 'video') {
+                    value.videoImage = "/Content/Main_homepage.jpg";
+                    value.userEventsList['started'][0] = function () {
 
-		                self.image.$default_item = self.image.$item;
-		                self.image.$item = self.$video;
+                        self.image.$default_item = self.image.$item;
+                        self.image.$item = self.$video;
 
-		                // set video width and height
-		                self.image.width = self.video.videoWidth || 1280;
-		                self.image.height = self.video.videoHeight || 720;
-		                self.options.imgWidth = self.image.width;
-		                self.options.imgHeight = self.image.height;
-		                self.coverImage();
-		                self.clipContainer();
-		                self.onScroll();
+                        // set video width and height
+                        self.image.width = self.video.videoWidth || 1280;
+                        self.image.height = self.video.videoHeight || 720;
+                        self.options.imgWidth = self.image.width;
+                        self.options.imgHeight = self.image.height;
+                        self.coverImage();
+                        self.clipContainer();
+                        self.onScroll();
 
-		                // hide image
-		                if (self.image.$default_item) {
-		                    self.css(self.image.$default_item, {
-		                        'transition': 'opacity .25s ease-in-out',
-		                        '-moz-transition': 'opacity .25s ease-in-out',
-		                        '-webkit-transition': 'opacity .25s ease-in-out',
-		                        'opacity': 1,
-		                    });
-		                    setTimeout(function () {
-		                        self.image.$default_item.style.opacity = 0;
-		                    }, 500);
-		                }
-		            };
-		        }
-		        return true;
-		      }
-		    };
-		    // Use a proxy'ed JS object
-		    var self = new Proxy(this, imageHandler);
-		    self.defaultInitImgResult = true;
-		    self.image.src = "/Content/Main_homepage.jpg";
+                        // hide image
+                        if (self.image.$default_item) {
+                            self.css(self.image.$default_item, {
+                                'transition': 'opacity .25s ease-in-out',
+                                '-moz-transition': 'opacity .25s ease-in-out',
+                                '-webkit-transition': 'opacity .25s ease-in-out',
+                                'opacity': 1,
+                            });
+                            setTimeout(function () {
+                                self.image.$default_item.style.opacity = 0;
+                            }, 500);
+                        }
+                    };
+                }
+                return true;
+              }
+            };
+            // Use a proxy'ed JS object
+            var self = new Proxy(this, imageHandler);
+            self.defaultInitImgResult = true;
+            self.image.src = "/Content/Main_homepage.jpg";
 
-		    // save default user styles
-		    var curStyle = self.$item.getAttribute('style');
-		    if (curStyle) {
-		        self.$item.setAttribute('data-jarallax-original-styles', curStyle);
-		    }
+            // save default user styles
+            var curStyle = self.$item.getAttribute('style');
+            if (curStyle) {
+                self.$item.setAttribute('data-jarallax-original-styles', curStyle);
+            }
 
-		    // set new background
-		    self.css(self.$item, {
-		        'background-image': 'url("/Content/Main_homepage.jpg")',
-		        'background-position': 'center',
-		        'background-size': 'cover',
-		        'transition': 'opacity .25s ease-in-out',
-		        '-moz-transition': 'opacity .25s ease-in-out',
-		        '-webkit-transition': 'opacity .25s ease-in-out',
-		        'opacity': 1,
-		    });
+            // set new background
+            self.css(self.$item, {
+                'background-image': 'url("/Content/Main_homepage.jpg")',
+                'background-position': 'center',
+                'background-size': 'cover',
+                'transition': 'opacity .25s ease-in-out',
+                '-moz-transition': 'opacity .25s ease-in-out',
+                '-webkit-transition': 'opacity .25s ease-in-out',
+                'opacity': 1,
+            });
 
-		    // Now actually call the method against the proxy object
-		    return tmpCanInitParallax.apply(self);
-		  }
-		</script>
-    	<div style="background-color:black">
-            {% unless currentMessageVimeoID == empty %}
+            // Now actually call the method against the proxy object
+            return tmpCanInitParallax.apply(self);
+          }
+        </script>
+        <div style="background-color:black">
 
-                {[ parallax videourl:'https://vimeo.com/318802665' image:'/Content/Main_homepage.jpg'  videostarttime:'0' videoendtime:'19' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'100vh' position:'bottom center' speed:'-15' ]}
-					<!-- START: Ministry Logo & Video -->
-                    <div class="parallax-logo centered" style="max-width: inherit;padding: 0px;">
-                        <h4 class="uppercase g-letter-spacing--3">Latest Sermon</h4>
-						<hr class="g-width-80--xs">
-                        <h1 class="g-font-family--secondary g-font-size-130--lg g-font-size-80--xs g-text-shadow--black--soft" style="text-shadow: none;">{{ item.Title }}</h1>
-						<br />
-						<h4 class="uppercase g-letter-spacing--3">{{ currentMessage.ChildContentChannelItem.Title }}</h4>
-                        <br />
-                        <br />
-						<a href="/sermons/{{ item | Attribute: 'Slug' }}" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
-				            <strong>Watch Sermons</strong>
-				        </a>
-                    </div>
-                    <!-- END: Ministry Logo & Videod -->
-                {[ endparallax ]}
+            {[ parallax videourl:'https://vimeo.com/357603792' image:'/Content/Main_homepage.jpg'  videostarttime:'0' videoendtime:'19' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'100vh' position:'bottom center' speed:'-15' ]}
+                <!-- START: Ministry Logo & Video -->
+                <div class="parallax-logo centered" style="max-width: inherit;padding: 0px;">
+                    <h1 class="g-font-family--secondary g-font-size-130--lg g-font-size-80--xs g-text-shadow--black--soft" style="text-shadow: none;">Streaming Now</h1>
+                    <br />
+                    <h4 class="uppercase g-letter-spacing--3">Watch today's sermon at SE Online</h4>
+                    <br />
+                    <br />
+                    <a href="/online" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
+                        <strong>Watch Here</strong>
+                    </a>
+                </div>
+                <!-- END: Ministry Logo & Videod -->
+            {[ endparallax ]}
 
-            {% endunless %}
-    	</div>
+        </div>
     </section>
+
 {% else %}
-	{[ parallax image:'https://www.southeastchristian.org/Content/Main_homepage.jpg' zindex:'0' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'100vh' position:'bottom center' speed:'-15' ]}
-	    <div class="parallax-logo centered" style="padding: 0px; z-index:3">
-	        <h4 class="uppercase g-letter-spacing--3">Connecting people to Jesus and one another</h4>
-	        <!-- <br /> -->
-	        <!-- <h1 class="g-font-family--secondary g-font-size-150--lg g-font-size-80--xs g-text-shadow--black--soft">See Latest Sermon</h1> -->
-	        <br />
-	        <br />
-	        <a href="/sermons" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
-	            <strong>Watch Sermon</strong>
-	        </a>
-	    </div>
-	{[ endparallax ]}
+
+    {% comment %}
+        This shows from Mon thru Sat - with a Sermon Message if avail.
+    {% endcomment %}
+    {% contentchannelitem where:'ContentChannelId == 24 && Status == 2' sort:'StartDateTime desc' limit:'1' %}
+    {% assign item = contentchannelitem %}
+    {% endcontentchannelitem %}
+    {% if item %}
+    	{% assign currentDate = 'Now' | Date:'M/d/yyyy' %}
+    	{% assign currentMessage = item.ChildItems | First %}
+    	{% comment %}
+    		The Lava Code below checks for the closest sermon message to this day.
+        {% endcomment %}
+    	{% for childItem in item.ChildItems %}
+            {% assign message = childItem.ChildContentChannelItem %}
+    		{% assign currentMessageDays = currentDate | DateDiff:childItem.ChildContentChannelItem.StartDateTime,'d' %}
+    		{% if currentMessageDays <= 0 and message.ContentChannelId == "23" %}
+    			{% assign currentMessage = childItem %}
+    		{% endif %}
+    	{% endfor %}
+    	{% assign seriesImageGuid = item | Attribute:'SeriesImage','RawValue' %}
+    	{% assign currentMessageVimeoID = currentMessage.ChildContentChannelItem | Attribute:'VimeoId' %}
+        <section id="">
+    		<script>
+    		  var tmpCanInitParallax = jarallax.constructor.prototype.canInitParallax;
+    		  jarallax.constructor.prototype.canInitParallax = function(callback) {
+    		    // Intercept the set call for the video object and manually set the image
+    		    var imageHandler = {
+    		      set(target, prop, value) {
+    		        target[prop] = value;
+    		        if (prop == 'video') {
+    		            value.videoImage = "/Content/Main_homepage.jpg";
+    		            value.userEventsList['started'][0] = function () {
+
+    		                self.image.$default_item = self.image.$item;
+    		                self.image.$item = self.$video;
+
+    		                // set video width and height
+    		                self.image.width = self.video.videoWidth || 1280;
+    		                self.image.height = self.video.videoHeight || 720;
+    		                self.options.imgWidth = self.image.width;
+    		                self.options.imgHeight = self.image.height;
+    		                self.coverImage();
+    		                self.clipContainer();
+    		                self.onScroll();
+
+    		                // hide image
+    		                if (self.image.$default_item) {
+    		                    self.css(self.image.$default_item, {
+    		                        'transition': 'opacity .25s ease-in-out',
+    		                        '-moz-transition': 'opacity .25s ease-in-out',
+    		                        '-webkit-transition': 'opacity .25s ease-in-out',
+    		                        'opacity': 1,
+    		                    });
+    		                    setTimeout(function () {
+    		                        self.image.$default_item.style.opacity = 0;
+    		                    }, 500);
+    		                }
+    		            };
+    		        }
+    		        return true;
+    		      }
+    		    };
+    		    // Use a proxy'ed JS object
+    		    var self = new Proxy(this, imageHandler);
+    		    self.defaultInitImgResult = true;
+    		    self.image.src = "/Content/Main_homepage.jpg";
+
+    		    // save default user styles
+    		    var curStyle = self.$item.getAttribute('style');
+    		    if (curStyle) {
+    		        self.$item.setAttribute('data-jarallax-original-styles', curStyle);
+    		    }
+
+    		    // set new background
+    		    self.css(self.$item, {
+    		        'background-image': 'url("/Content/Main_homepage.jpg")',
+    		        'background-position': 'center',
+    		        'background-size': 'cover',
+    		        'transition': 'opacity .25s ease-in-out',
+    		        '-moz-transition': 'opacity .25s ease-in-out',
+    		        '-webkit-transition': 'opacity .25s ease-in-out',
+    		        'opacity': 1,
+    		    });
+
+    		    // Now actually call the method against the proxy object
+    		    return tmpCanInitParallax.apply(self);
+    		  }
+    		</script>
+        	<div style="background-color:black">
+                {% unless currentMessageVimeoID == empty %}
+
+                    {[ parallax videourl:'https://vimeo.com/318802665' image:'/Content/Main_homepage.jpg'  videostarttime:'0' videoendtime:'19' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'100vh' position:'bottom center' speed:'-15' ]}
+    					<!-- START: Ministry Logo & Video -->
+                        <div class="parallax-logo centered" style="max-width: inherit;padding: 0px;">
+                            <h4 class="uppercase g-letter-spacing--3">Latest Sermon</h4>
+    						<hr class="g-width-80--xs">
+                            <h1 class="g-font-family--secondary g-font-size-130--lg g-font-size-80--xs g-text-shadow--black--soft" style="text-shadow: none;">{{ item.Title }}</h1>
+    						<br />
+    						<h4 class="uppercase g-letter-spacing--3">{{ currentMessage.ChildContentChannelItem.Title }}</h4>
+                            <br />
+                            <br />
+    						<a href="/sermons/{{ item | Attribute: 'Slug' }}" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
+    				            <strong>Watch Sermons</strong>
+    				        </a>
+                        </div>
+                        <!-- END: Ministry Logo & Videod -->
+                    {[ endparallax ]}
+
+                {% endunless %}
+        	</div>
+        </section>
+    {% else %}
+    	{[ parallax image:'https://www.southeastchristian.org/Content/Main_homepage.jpg' zindex:'0' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'100vh' position:'bottom center' speed:'-15' ]}
+    	    <div class="parallax-logo centered" style="padding: 0px; z-index:3">
+    	        <h4 class="uppercase g-letter-spacing--3">Connecting people to Jesus and one another</h4>
+    	        <!-- <br /> -->
+    	        <!-- <h1 class="g-font-family--secondary g-font-size-150--lg g-font-size-80--xs g-text-shadow--black--soft">See Latest Sermon</h1> -->
+    	        <br />
+    	        <br />
+    	        <a href="/sermons" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
+    	            <strong>Watch Sermon</strong>
+    	        </a>
+    	    </div>
+    	{[ endparallax ]}
+    {% endif %}
+
 {% endif %}

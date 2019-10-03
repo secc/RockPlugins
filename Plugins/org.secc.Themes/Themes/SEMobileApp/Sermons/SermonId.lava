@@ -1,0 +1,36 @@
+{%- cache key:'subsplash-sermon-{{id}}' duration:'3600' -%}
+{%- contentchannelitem where:'ContentChannelId == 23 && Id == {{id}}' sort:'StartDateTime desc'  -%}
+{%- for sermon in contentchannelitemItems -%}
+{
+	"header": {
+		"title": "{{sermon.Title | Replace:'"','\"'}}"
+	},
+	"media": [
+	    {
+    		"url":"{{sermon | Attribute:'VimeoDownloadUrl'}}",
+            "format":"mp4",
+    		"downloadable":false,
+    		"images":[
+    			{ "width":520, "url":"https://rock.secc.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=720"},
+    			{ "width":1080, "url":"https://rock.secc.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1080"},
+    			{ "width":1280, "url":"https://rock.secc.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1280"},
+    			{ "width":1920, "url":"https://rock.secc.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1920"}
+    		]
+        },
+		{
+			"url":"https://rock.secc.org/GetFile.ashx/{{message.ChildContentChannelItem | Attribute:'Audio', 'RawValue'}}.mp3?guid={{sermon | Attribute:'Audio', 'RawValue'}}",
+			"format":"mp3",
+			"downloadable":"true",
+    		"images":[
+    			{ "width":520, "url":"https://rock.secc.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=720"},
+    			{ "width":1080, "url":"https://rock.secc.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1080"},
+    			{ "width":1280, "url":"https://rock.secc.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1280"},
+    			{ "width":1920, "url":"https://rock.secc.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1920"}
+    		]
+		}],
+	"title": "{{sermon.Title | Replace:'"','\"'}}",
+	"body":"{{ sermon.Content | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}"
+}
+{%- endfor -%}
+{% endcontentchannelitem -%}
+{%- endcache -%}

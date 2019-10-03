@@ -51,7 +51,10 @@ namespace RockWeb.Plugins.GroupManager
         {
             RockContext rockContext = new RockContext();
             PublishGroupService publishGroupService = new PublishGroupService( rockContext );
-            gGroups.DataSource = publishGroupService.Queryable().ToList();
+            gGroups.DataSource = publishGroupService.Queryable()
+                .OrderBy(p => p.PublishGroupStatus)
+                .ThenByDescending(p => p.StartDateTime)
+                .ToList();
             gGroups.DataBind();
         }
 

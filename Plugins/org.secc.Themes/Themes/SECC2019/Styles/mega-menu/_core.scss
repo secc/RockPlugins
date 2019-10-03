@@ -184,14 +184,14 @@ Main components
 }
 
 main {
- 	margin-top: $header-height-S;
+ 	top: $header-height-S;
 	 &.transparent-content {
-		 margin-top: 0 !important;
+		 top: 0 !important;
 	 }
 	 @include MQ(L) {
-	 	margin-top: $header-height-L;
+	 	top: $header-height-L;
 		&.transparent-content {
-	   	 margin-top: 0 !important;;
+	   	 top: 0 !important;;
 	    }
 	 }
 }
