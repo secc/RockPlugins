@@ -35,7 +35,7 @@ namespace org.secc.FamilyCheckin
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Filter Groups By Membership" )]
     [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Group Membership Group Attribute", "Select the attribute used to filter membership group.", true, false, "6f1ff463-e857-4755-b0b7-461e8c183789", order: 2 )]
-    [CustomDropdownListField( "Check Requirements", "How should group member reqirements be checked?", "0^Don\'t Check,1^Check Required Only,2^ Check Required and Warning", true,"0", order: 4 )]
+    [CustomDropdownListField( "Check Requirements", "How should group member reqirements be checked?", "0^Don\'t Check,1^Check Required Only,2^ Check Required and Warning", true, "0", order: 4 )]
     [BooleanField( "Remove", "Select 'Yes' if groups should be be removed.  Select 'No' if they should just be marked as excluded.", true, order: 5 )]
     public class FilterGroupsByMembership : CheckInActionComponent
     {
@@ -80,11 +80,18 @@ namespace org.secc.FamilyCheckin
                         foreach ( var group in groupType.Groups.ToList() )
                         {
                             var groupGuid = group.Group.GetAttributeValue( groupIdAttributeKey ).AsGuidOrNull();
-                            if ( groupGuid != null )
+                            if ( groupGuid.HasValue )
                             {
-                                var groupmembers = groupMemberService.GetByGroupGuid( groupGuid ?? new Guid() )
+                                bool allowInactive = false;
+
+                                if ( checkInState.CheckInType != null )
+                                {
+                                    allowInactive = !checkInState.CheckInType.PreventInactivePeople;
+                                }
+
+                                var groupmembers = groupMemberService.GetByGroupGuid( groupGuid.Value )
                                     .Where( gm => gm.PersonId == person.Person.Id
-                                    && ( gm.GroupMemberStatus == GroupMemberStatus.Active || !checkInState.CheckInType.PreventInactivePeople ) );
+                                    && ( gm.GroupMemberStatus == GroupMemberStatus.Active || allowInactive ) );
 
                                 var state = GetAttributeValue( action, "CheckRequirements" );
 
@@ -94,14 +101,14 @@ namespace org.secc.FamilyCheckin
                                         break;
                                     case "1":
                                         groupmembers = groupmembers.Where(
-                                            gm => !gm.GroupMemberRequirements.Where( 
+                                            gm => !gm.GroupMemberRequirements.Where(
                                                 r => r.RequirementFailDateTime != null )
                                             .Any()
                                             );
                                         break;
                                     case "2":
-                                        groupmembers = groupmembers.Where( 
-                                            gm => !gm.GroupMemberRequirements.Where( 
+                                        groupmembers = groupmembers.Where(
+                                            gm => !gm.GroupMemberRequirements.Where(
                                                 r => r.RequirementFailDateTime != null || r.RequirementWarningDateTime != null )
                                             .Any() );
                                         break;
