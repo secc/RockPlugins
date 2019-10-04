@@ -160,7 +160,17 @@ namespace org.secc.FamilyCheckin
                 {
                     foreach ( var person in personService.GetByFullName( checkInState.CheckIn.SearchValue, false ).AsNoTracking() )
                     {
-                        foreach ( var group in person.Members.Where( m => m.Group.GroupTypeId == familyGroupTypeId ).Select( m => m.Group ).ToList() )
+                        if ( person == null || person.Members == null )
+                        {
+                            continue;
+                        }
+
+                        var familyGroups = person.Members
+                            .Where( m => m != null && m.Group != null && m.Group.GroupTypeId == familyGroupTypeId )
+                            .Select( m => m.Group )
+                            .ToList();
+
+                        foreach ( var group in familyGroups )
                         {
                             var family = checkInState.CheckIn.Families.Where( f => f.Group.Id == group.Id ).FirstOrDefault();
                             if ( family == null )
