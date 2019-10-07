@@ -54,7 +54,6 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Workflows\SignNowCreate.cs" />
-    <Compile Include="Workflows\SignNowLanding.cs" />
     <Compile Include="Workflows\SignNowDownload.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -85,7 +84,6 @@
     </PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"
-xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.SignNowWorkflow.*" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
+    <PostBuildEvent>xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.SignNowWorkflow.*" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
   </PropertyGroup>
 </Project>
