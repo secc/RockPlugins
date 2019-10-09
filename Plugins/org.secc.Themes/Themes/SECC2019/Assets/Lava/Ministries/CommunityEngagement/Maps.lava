@@ -1,0 +1,297 @@
+<style>
+    .google-maps {
+        position: relative;
+        top: 0;
+        left: 0;
+        height: 0;
+        overflow: hidden;
+        height: 600px !important;
+        width: 100% !important;
+    }
+    .page_content_wrap {
+        padding: 0px;
+        height: 0px;
+        border-bottom: 0.0625rem solid rgba(34, 35, 36, 0.1);
+        background-color: rgb(34, 35, 36);
+        margin: 0px;
+        width: 100%;
+    }
+    .iw_title {
+        font-size: 1.5rem;
+        font-weight: bolder;
+    }
+    .iw_subTitle {
+        font-size: 1.2rem;
+        font-weight: bolder;
+    }
+	.map-overlay{
+		background-color: rgba(255,255,255,0.5);
+		position: absolute;
+		top: 0px;
+		left: 0px;
+		height: 600px;
+		overflow: auto
+	}
+	.layer-label {
+		font-size: 1.4em;
+	}
+	.layer-selector {
+		padding:0px 20px;
+		float:left
+	}
+    #LWYAmap ul {
+        list-style: inherit;
+        line-height: 1.6;
+        padding-left: 2.5em;
+    }
+
+	@media(max-width:767px){
+		.map-overlay{
+			background-color: rgba(255,255,255,0.8);
+			position: relative;
+			top: auto;
+			left: auto;
+			height: auto;
+			overflow: auto;
+			float: none;
+		}
+	}
+
+</style>
+
+<div class="row clearfix">
+    <div class="col-sm-4 col-md-3 hidden-xs">
+        <p class="g-padding-x-50--xs g-padding-y-50--xs g-color--copy">Select an option to the right to see where people in our communities are loving where they are.</p>
+    </div>
+
+    <div class="col-xs-12 col-sm-8 col-md-9 g-padding-x-50--xs g-padding-y-50--xs g-color--copy" style="background-color: #eee;">
+        <div class="layer-selector">
+            <div class="g-padding-y-20--xs">
+                <div class="check">
+                    <input id="campuses" type="checkbox" checked="true" class="map-checkbox" />
+                    <label for="campuses">
+                      <div class="icon-box"><i class="fa fa-check"></i></div>
+                      <span class="layer-label">&nbsp;Our Campuses</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="layer-selector">
+            <div class="g-padding-y-20--xs" style="float:left">
+                <div class="check">
+                    <input id="partners" type="checkbox" class="map-checkbox" />
+                    <label for="partners">
+                      <div class="icon-box"><i class="fa fa-check"></i></div>
+                      <span class="layer-label">&nbsp;Ministry Partners</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="layer-selector">
+            <div class="g-padding-y-20--xs">
+                <div class="check">
+                    <input id="residential" type="checkbox" class="map-checkbox" />
+                    <label for="residential">
+                      <div class="icon-box"><i class="fa fa-check"></i></div>
+                      <span class="layer-label">&nbsp;Residential Community<br />&nbsp;Leaders</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="layer-selector">
+            <div class="g-padding-y-20--xs">
+                <div class="check">
+                    <input id="nonresidential" type="checkbox" class="map-checkbox" />
+                    <label for="nonresidential">
+                      <div class="icon-box"><i class="fa fa-check"></i></div>
+                      <span class="layer-label">&nbsp;Nonresidential Community<br />&nbsp;Leaders</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row clearfix">
+    <div class="col-md-12 clearfix" style="position: relative;">
+    	{%comment%}
+    	<div style="background-color: rgba(255,255,255,0.1); position: absolute; top: 0px; left: 0px; height: 600px; width:100%" onclick="$(this).height('0px');"></div>
+    	{%endcomment%}
+        <div class="map-overlay col-xs-12 col-sm-4 col-md-3" style="z-index:100">
+            <div class="g-padding-x-50--xs g-padding-y-50--xs" id="map-data">
+    			<div class="campuses-content">
+    				<h3 class="g-padding-b-10--xs g-font-weight--600">Our Campuses</h4>
+    				<p>Southeast Christian Church is one church with multiple locations, or campuses. Select a campus on the map to see its exact address and service times. </p>
+    				<br />
+    				<p>Our mission as a church is connecting people to Jesus and one another. Each of our campuses serves as a hub for these connections to take place through worship services; groups, classes, and events; and other opportunities. </p>
+    				<br />
+    			</div>
+    			<div class="partners-content" style="display: none;">
+    				<h3 class="g-padding-b-10--xs g-font-weight--600">Ministry Partners</h4>
+    				<p>Ministry Partners are other churches and organizations we partner with in loving where we are. We believe in working together as the body of Christ to make the Gospel known in our communities. </p>
+    				<br />
+    			</div>
+
+    			<div class="residential-content" style="display: none;">
+    				<h3 class="g-padding-b-10--xs g-font-weight--600">Residential Community Leaders</h4>
+    				<p>Residential Community Leaders are individuals who are committed to being a Gospel presence where they live. They are connected to a Community Pastor and are intentionally sharing the Gospel within their residential neighborhood.</p>
+    				<br />
+    				<p>Residential Community Leaders might be engaged by opening their home to a neighborhood group, regularly prayer walking their neighborhoods, throwing block parties to get to know their neighbors, or a variety of other outreach opportunities.</p>
+    				<br />
+    			</div>
+
+    			<div class="nonresidential-content" style="display: none;">
+    				<h3 class="g-padding-b-10--xs g-font-weight--600">Nonresidential Community Leaders</h4>
+    				<p>Nonresidential Community Leaders are individuals who are committed to taking the Gospel to a place outside of their residential neighborhood—where they work and go.</p>
+    				<br />
+    				<p>Nonresidential Community Leaders might be engaged by loving where they are at their schools, workplaces, teams, gyms, and other places where they interact with people on a regular basis. </p>
+    			</div>
+            </div>
+        </div>
+        <div id="CampusMaps" class="google-maps"></div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function() {
+        map = createMap("CampusMaps");
+        var campusMarkers = [];
+       // a new Info Window is created
+       infoWindow = new google.maps.InfoWindow({
+			pixelOffset: new google.maps.Size(-30, 0)
+		});
+        {%- for campus in Campuses  -%}
+          {%- campus id:'{{campus.Id}}' -%}
+                {%- capture serviceTimes -%}
+                  {%-assign campusServicesJSON = campus | Attribute:'SiteScheduleInformation' -%}
+        			{%- if campusServicesJSON != "" -%}
+        				{%- assign campusServices = campusServicesJSON | FromJSON -%}
+        				{%- for serviceDay in campusServices.adult -%}
+        					{{serviceDay.day}}:&nbsp;{%- assign timesCount = serviceDay.times | Size -%} {%- for times in serviceDay.times -%} {{times.time}}{% if (forloop.rindex0 == 0 %}<br />{% break %}{% elseif (forloop.rindex0 == 1 and timesCount > 2) %} &amp;{% else %},{% endif %}{%- endfor -%}
+        				{%- endfor -%}
+        			{%- endif -%}
+    		    {%- endcapture -%}
+			  var marker{{campus.Slug}} = new google.maps.Marker({
+                position: new google.maps.LatLng({{ campus.Location.Latitude }},{{ campus.Location.Longitude }}),
+                icon: {
+                    url: "{{campus | Attribute:'MapIcon' }}",
+                    // This marker is 20 pixels wide by 32 pixels high.
+                    size: new google.maps.Size(100, 100),
+                },
+                map: map
+              });
+			  campusMarkers[campusMarkers.length] = marker{{campus.Slug}};
+
+               // This event expects a click on a marker
+               // When this event is fired the Info Window content is created
+               // and the Info Window is opened.
+               google.maps.event.addListener(marker{{campus.Slug}}, 'click', function() {
+
+                  // stop animation if there is one (should be)...
+                  if (marker{{campus.Slug}}.getAnimation() != null) {
+                    marker{{campus.Slug}}.setAnimation(null);
+                  }
+
+                  // Creating the content to be inserted in the infowindow
+                  var iwContent = '<div id="iw_container">' +
+                     '<div class="iw_title">{{campus.Name}}</div>' +
+                     '<div class="iw_content">{{ campus.Location.Street1 }}<br />' +
+                     '{{ campus.Location.City }}, {{ campus.Location.State }} {{ campus.Location.PostalCode }}<br />' +
+                     '{{ campus.PhoneNumber }}<br /><br />' +
+                     '</div>' +
+                     '<div class="iw_subTitle">Service Times</div>' +
+                     '<div class="iw_content">{{serviceTimes}}</div><br />' +
+                     '</div>';
+
+                  // including content to the Info Window.
+                  infoWindow.setContent(iwContent);
+
+                  // opening the Info Window in the current map and at the current marker location.
+                  infoWindow.open(map, marker{{campus.Slug}});
+               });
+          {%- endcampus -%}
+        {%- endfor -%}
+
+        // create kmlLayer object from URL
+		var layers = {};
+        layers['residential'] =  new google.maps.KmlLayer({
+          url: "https://www.lovewhereuare.org/Content/LWYA/Residential-20171002.kmz",
+          suppressInfoWindows: true,
+		  preserveViewport: true,
+          map: null
+        });
+        layers['nonresidential'] = new google.maps.KmlLayer({
+          url: "https://www.lovewhereuare.org/Content/LWYA/Nonresidential-20171002-1.kmz",
+          suppressInfoWindows: true,
+		  preserveViewport: true,
+          map: null
+        });
+        layers['partners'] = new google.maps.KmlLayer({
+          url: "https://www.lovewhereuare.org/Content/LWYA/Partners-20171002.kmz",
+          suppressInfoWindows: true,
+		  preserveViewport: true,
+          map: null
+        });
+
+		$.each(layers, function( index, kmlLayer ) {
+			(function(currentMap){
+				kmlLayer.addListener('click', function(kmlEvent) {
+				var text = kmlEvent.featureData.description;
+				var lines = text.split(/<br\s*\/?>/i);
+				var values = {};
+				jQuery.each(lines, function() {
+					kvp = this.split(/:(.+)/);
+					if (kvp.length > 1) {
+						values[kvp[0]] = kvp[1].trim();
+					}
+				});
+				var title = "";
+				if(values.hasOwnProperty('Place of Ministry')){
+				  var content = '<div id="iw_container">' +
+					 '<div class="iw_subTitle">'+values['Place of Ministry']+'</div>' +
+					 'First Name: ' + kmlEvent.featureData.name + '<br />' +
+					 'Community Pastor: ' + values['Community Pastor'] +
+					 '<br /><br />' +
+					 '</div>';
+				} else {
+				  var content = '<div id="iw_container">' +
+					 '<div class="iw_title">'+kmlEvent.featureData.name+'</div>' +
+					 '<br />' +
+					 '</div>';
+				}
+				  var infowindow = new google.maps.InfoWindow({
+					content: content,
+					pixelOffset: new google.maps.Size(0, -30)
+					 })
+				  infowindow.setPosition(kmlEvent.latLng);
+				  infowindow.open(currentMap);
+				});
+			})(map);
+		});
+
+        $('.map-checkbox').click(function() {
+            if ($(this).prop( "checked" )) {
+				if (this.id == 'campuses') {
+					for (var i = 0; i < campusMarkers.length; i++) {
+						campusMarkers[i].setMap(map);
+					}
+				} else {
+					layers[this.id].setMap(map);
+				}
+				$('.'+this.id+'-content').show(500);
+				$('.'+this.id+'-content').prependTo('#map-data');
+            } else {
+				if (this.id == 'campuses') {
+					for (var i = 0; i < campusMarkers.length; i++) {
+						campusMarkers[i].setMap(null);
+					}
+				} else {
+					layers[this.id].setMap(null);
+				}
+				$('.'+this.id+'-content').hide(500);
+            }
+        });
+        if ($( document ).width() > 768) {
+			map.setCenter(new google.maps.LatLng((map.getCenter().lat()) , (map.getCenter().lng() - .5)));
+		}
+
+    });
+</script>

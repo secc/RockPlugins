@@ -1,0 +1,75 @@
+<style>
+    .isotope_item {
+        opacity: 0; /* hide by default */ {
+    }
+    .hide {
+        display: none;
+    }
+</style>
+<script src="https://unpkg.com/imagesloaded@4/imagesloaded.pkgd.min.js"></script>
+
+<script>
+$(document).ready(function() {
+
+    // Initialize Isotope
+    var $grid = $('.isotope_wrap').isotope({
+        // options
+        percentPosition: true,
+        itemSelector: '.isotope_item',
+        layoutMode: 'fitRows'
+    });
+
+    // reveal all items after init
+    var $items = $grid.find('.isotope_item');
+    $grid.imagesLoaded().progress( function() {
+      $grid.removeClass('hide-on-load').addClass('is-showing-items').isotope('layout');
+    });
+    $grid.isotope( 'revealItemElements', $items );
+});
+</script>
+
+
+<div id="story-results" class="container g-padding-y-100--xs g-padding-x-20--xs">
+
+    <div class="isotope_wrap">
+
+		<div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
+            <article class="post_item_story g-margin-y-0--xs card">
+
+                <div class="post_featured_story">
+                    <div class="post_thumb_story" data-image="/Content/Ministries/Community-Engagement/lightstock_163565_full_jerry.jpg" data-title="{{ item.Title }}">
+    					<a class="hover_icon hover_icon_link" href="#">
+                            <img class="img-responsive" alt="{{ item.Title }}" src="/Content/Ministries/Community-Engagement/lightstock_163565_full_jerry.jpg" style="margin: 0 auto">
+                        </a>
+                    </div>
+                </div>
+                <div class="massonry_border g-height-150--xs g-padding-x-20--xs g-padding-y-20--xs">
+					<h5 class="g-font-family--secondary">
+						<a class="g-letter-spacing--1" href="#">Prayer Walk Guide</a>
+                    </h5>
+    			</div>
+
+            </article>
+        </div>
+
+        <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
+            <article class="post_item_story g-margin-y-0--xs card">
+
+                <div class="post_featured_story">
+                    <div class="post_thumb_story" data-image="/Content/Ministries/Community-Engagement/lightstock_361976_full_jerry.jpg" data-title="{{ item.Title }}">
+    					<a class="hover_icon hover_icon_link" href="#">
+                            <img class="img-responsive" alt="{{ item.Title }}" src="/Content/Ministries/Community-Engagement/lightstock_361976_full_jerry.jpg" style="margin: 0 auto">
+                        </a>
+                    </div>
+                </div>
+                <div class="massonry_border g-height-150--xs g-padding-x-20--xs g-padding-y-20--xs">
+					<h5 class="g-font-family--secondary">
+						<a class="g-letter-spacing--1" href="#">Reach Out Guide</a>
+                    </h5>
+    			</div>
+
+            </article>
+        </div>
+
+    </div>
+</div>
