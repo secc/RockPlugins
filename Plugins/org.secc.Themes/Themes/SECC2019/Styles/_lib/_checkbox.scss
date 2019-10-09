@@ -3,15 +3,17 @@
 	input {
 		display: none;
 
-		&:checked + .icon-box {
-			animation: keyframes(animOn) 0.8s 1 forwards;
-			background: $brand-primary;
+		&:checked + label {
+			.icon-box {
+				animation: keyframes(animOn) 0.8s 1 forwards;
+				background: $color-dark;
 
-			i {
-				transform: translate(-50%, -50%) scale(1);
-				transition-duration: 250ms;
-				opacity: 1;
-				color: #fff;
+				i {
+					transform: translate(-50%, -50%) scale(1);
+					transition-duration: 250ms;
+					opacity: 1;
+					color: $color-white;
+				}
 			}
 		}
 	}
@@ -26,15 +28,15 @@
 		cursor: pointer;
 
 		.icon-box {
-			background: rgba(#000, 0.3);
-			border-radius: 5px;
+			background: rgba(#fff, 0.3);
+			border: 2px solid rgba(124, 124, 124, 0.18);
 			position: relative;
 			width: 50px;
 			height: 50px;
 			transition: background 300ms ease;
 
 			&:hover {
-				background: rgba(#000, 0.5);
+				background: rgba(#fff, 0.5);
 			}
 
 			i {
