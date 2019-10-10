@@ -39,7 +39,8 @@ Eventually we will need to convert the inline css below into BEM CSS.
                     <div class="g-padding-x-60--xs">
                         <h3 class="g-font-weight--700">Giving Statements</h3>
                         <br />
-						{% if CurrentPerson.GivingId != empty && CurrentPerson.GivingId != '' %}
+						{% assign givingIdSize == CurrentPerson.GivingId | Size %}
+						{% if givingIdSize > 0 %}
 							{% binaryfile where:'BinaryFileTypeId == 36 && GivingId == "{{CurrentPerson.GivingId}}"' %}
 								{% assign binaryfileItemsSize = binaryfileItems | Size %}
 								{% if binaryfileItemsSize == 0 %}
