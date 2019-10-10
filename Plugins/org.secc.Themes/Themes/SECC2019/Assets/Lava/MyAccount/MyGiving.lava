@@ -35,44 +35,35 @@ Eventually we will need to convert the inline css below into BEM CSS.
 
 		<div class="row">
 		    <div class="col-md-6 event-calendar">
-		        <div class="clearfix card g-margin-x-40--xs g-margin-x-20--md giving-min-height">
-                    <div class="g-padding-x-60--xs g-padding-t-80--xs g-padding-b-20--xs">
+		        <div class="clearfix card g-margin-x-40--xs g-margin-x-20--md g-padding-y-80--xs giving-min-height">
+                    <div class="g-padding-x-60--xs">
                         <h3 class="g-font-weight--700">Giving Statements</h3>
                         <br />
-                        <a href="#" class="link--hover-grey-bg" download>
-                            <p class="g-margin-b-0--xs g-padding-y-15--xs g-padding-x-20--xs g-font-weight--600">
-                            2019 YTD Statement <span class="pull-right"><i class="far fa-download"></i></span>
-                            </p>
-                        </a>
-                        <a href="#" class="link--hover-grey-bg" download>
-                            <p class="g-margin-b-0--xs g-padding-y-15--xs g-padding-x-20--xs g-font-weight--600">
-                             2018 Statement <span class="pull-right"><i class="far fa-download"></i></span>
-                            </p>
-                        </a>
-                        <a href="#" class="link--hover-grey-bg" download>
-                            <p class="g-margin-b-0--xs g-padding-y-15--xs g-padding-x-20--xs g-font-weight--600">
-                            2017 Statement <span class="pull-right"><i class="far fa-download"></i></span>
-                            </p>
-                        </a>
-                        <a href="#" class="link--hover-grey-bg" download>
-                            <p class="g-margin-b-0--xs g-padding-y-15--xs g-padding-x-20--xs g-font-weight--600">
-                            2016 Statement <span class="pull-right"><i class="far fa-download"></i></span>
-                            </p>
-                        </a>
+						{% if CurrentPerson.GivingId != empty && CurrentPerson.GivingId != '' %}
+							{% binaryfile where:'BinaryFileTypeId == 36 && GivingId == "{{CurrentPerson.GivingId}}"' %}
+								{% assign binaryfileItemsSize = binaryfileItems | Size %}
+								{% if binaryfileItemsSize == 0 %}
+									No contributions statements are available
+								{% endif %}
+								{% for binaryfile in binaryfileItems %}
+									<a href="/GetFile.ashx?guid={{binaryfile.Guid}}" target="_blank" class="link--hover-grey-bg" download>
+										<p class="g-margin-b-0--xs g-padding-y-15--xs g-padding-x-20--xs g-font-weight--600">
+										 {{binaryfile.FileName}} <span class="pull-right"><i class="far fa-download"></i></span>
+										</p>
+									</a>
+								{% endfor %}
+							{% endbinaryfile %}
+						{% endif %}
                     </div>
 
-                    <div class="g-padding-x-60--xs g-padding-y-5--xs">
-                        <a href="#">
-                            <h6 class="g-margin-b-0--xs g-padding-y-15--xs g-padding-x-20--xs g-font-weight--400 text-uppercase g-display-inline-block--xs pull-right">
-                                More Statements
-                                <span class="pull-right se-carat se-carat--right g-display-inline-block--xs" style="
-                                    display: inline-block;
-                                    top: 0;
-                                    border-width: 0px 1px 1px 0px;
-                                    ">
-                                </span>
-                            </h6>
-                        </a>
+                    <div class="g-padding-x-60--xs g-margin-x-20--md ">
+						<hr>
+						<a class="pull-right" href="/mygiving/deliverypreference">
+							<strong>Update</strong>
+						</a>
+						{% assign statementDeliveryPreference = CurrentPerson | Attribute:'StatementDeliveryPreference' %}
+						<b>Delivery Preference:</b> {{ statementDeliveryPreference }}
+						<p class="g-width-80-percent--xs">{% if statementDeliveryPreference == 'Email' %}All updates for the availability of contribution statements will be emailed to you.{% else %}All contribution statements will be printed and mailed to you.{% endif %}</p>
                     </div>
                 </div>
             </div>
