@@ -590,12 +590,14 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                     {
                         if ( groupMember.GetAttributeValue( "NursingHomes" ).IsNotNullOrWhiteSpace() )
                         {
-                            //if ( groupMember.GetAttributeValue( "NursingHomes" ).AsGuid() == nursingHome.Guid )
+                           
                             if ( groupMember.GetAttributeValue( "NursingHomes" ).ToLower().Contains( nursingHome.Guid.ToString().ToLower() ) )
                             {
                                 if ( volunteerList.ContainsKey( nursingHome.Guid ) )
                                 {
+                                    volunteerList[ nursingHome.Guid ] = volunteerList[ nursingHome.Guid ] + ", " + groupMember.EntityStringValue;
                                 }
+                            
                                 else
                                 {
                                     volunteerList.Add( nursingHome.Guid, groupMember.EntityStringValue );
