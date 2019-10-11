@@ -1,0 +1,181 @@
+<style type="text/css">
+  #churchonline_counter_container { display: none; }
+  #churchonline_counter { overflow: auto; width: auto; height: 100%; }
+  #churchonline_counter .description, #churchonline_counter .time li .label { font-size: 0.6em; }
+  #churchonline_counter .time { list-style: none; display: inline-block; }
+  #churchonline_counter .time li { float: left; padding: 0 10px 0 10px; text-align: center; border-right: 1px solid grey;}
+  #churchonline_counter .time li h3 {line-height: 1.1; vertical-align: middle; padding-top: 5px; }
+  #churchonline_counter .time li:first-child { }
+  #churchonline_counter .time li:last-child { padding: 0 10px 0 10px; border-right: none; }
+  #churchonline_counter .time li span { font-size: 1.2em; color: black}
+  #churchonline_counter .live { display: none }
+  #superNoticeHeader {
+      padding: 0px;
+      color: #000000;
+      background-color: #FFFFFF;
+      width: 100%;
+      z-index: 0;
+      position: relative;
+      height: auto;
+      -moz-transition: height 0.2s ease-in-out 0.2s;
+      -webkit-transition: height 0.2s ease-in-out 0.2s;
+      -o-transition: height 0.2s ease-in-out 0.2s;
+      transition: height 0.2s ease-in-out 0.2s;
+  }
+</style>
+
+<div class="container g-padding-x-50--xs">
+
+    <div class="row">
+        <div class="isotope_wrap g-margin-b-80--xs">
+            <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
+                <div class="clearfix card g-margin-b-20--xs g-padding-x-50--xs g-padding-y-50--xs" style="min-height: 240px;">
+                    <h4 class="g-font-family--secondary">SE Online</h4>
+                    <p class="g-margin-b-0--xs">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras vitae quam sed tellus gravida aliquet sed ac lorem.</p>
+
+                    <div id="churchonline_counter_container" class="alertBar container-fluid" style="border-width: 2px;">
+                        <div class="row">
+                            <div class="col-md-12 text-center g-padding-x-0--xs g-padding-b-45--xs g-padding-b-0--sm">
+                                <div id="churchonline_counter">
+                                  <span class="g-display-inline-block--xs g-margin-t-45--xs g-padding-x-15--xs" style="vertical-align: top;">
+                                      <a href="https://online.southeastchristian.org" class="cd-nav-item live-stream coming-soon">
+                                        <h5 class="notlive uppercase g-color--black g-font-weight--700 g-padding-b-10--xs" style="vertical-align:middle">Next Event</h5>
+                                        <h5 class="live uppercase g-color--black g-font-weight--700" style="vertical-align:middle">Live Now</h5>
+                                      </a>
+                                  </span>
+                                  <ul class="time g-padding-x-50--xs g-padding-x-0--sm">
+                                    <li><h3 class="g-font-weight--700"><span class="days">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">days</span></li>
+                                    <li><h3 class="g-font-weight--700"><span class="hours">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">hours</span></li>
+                                    <li><h3 class="g-font-weight--700"><span class="minutes">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">mins</span></li>
+                                    <li><h3 class="g-font-weight--700"><span class="seconds">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">secs</span></li>
+                                  </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
+                <div class="clearfix card g-margin-b-20--xs g-padding-x-50--xs g-padding-t-50--xs g-padding-b-25--xs" style="min-height: 240px;">
+                    <img src="https://www.southeastchristian.org/GetImage.ashx?id=1999706&h=175&w=175&mode=crop" class="pull-left img-responsive g-padding-r-50--xs g-padding-b-25--xs g-width-40-percent--xs g-width-50-percent--md" style="margin-right: 0 !important;" />
+                    <h4 class="g-font-family--secondary g-margin-b-10--xs">New Here?</h4>
+                    <p class="g-margin-b-0--xs g-padding-b-25--xs">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras vitae quam sed tellus gravida aliquet sed ac lorem.</p>
+                </div>
+            </div>
+
+            <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
+                <div class="clearfix card g-margin-b-20--xs g-padding-x-50--xs g-padding-t-50--xs g-padding-b-25--xs" style="min-height: 240px;">
+                    <img src="https://www.southeastchristian.org/GetImage.ashx?id=2012076&h=175&w=175&mode=crop" class="pull-left img-responsive g-padding-r-50--xs g-padding-b-25--xs g-width-40-percent--xs g-width-50-percent--md" style="margin-right: 0 !important;" />
+                    <h4 class="g-font-family--secondary g-margin-b-10--xs">Mantra Resources</h4>
+                    <p class="g-margin-b-0--xs g-padding-b-25--xs">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras vitae quam sed tellus gravida aliquet sed ac lorem.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    // isotop options and wrapper
+    var $grid = $('.isotope_wrap');
+    var isoOptions = {
+        percentPosition: true,
+        itemSelector: '.isotope_item'
+    };
+    $(window).load(function() {
+        // executes when complete page is fully loaded, including all frames, objects and images
+        // Initialize Isotope
+        var $grid = $('.isotope_wrap').isotope({
+            // options
+            percentPosition: true,
+            itemSelector: '.isotope_item'
+        });
+        // reveal all items after init
+        var $items = $grid.find('.isotope_item');
+        $grid.addClass('is-showing-items')
+        .isotope( 'revealItemElements', $items );
+    });
+    $(document).ready(function(){
+        if ($('#churchonline_counter_container').length) {
+
+            var days, goLive, hours, intervalId, minutes, seconds;
+            // Your churchonline.org url
+            var churchUrl = "https://southeastchristian.churchonline.org"
+
+            goLive = function() {
+              $("#churchonline_counter_container").show();
+              $("#churchonline_counter .time").hide();
+              $("#churchonline_counter .notlive").hide();
+              $("#churchonline_counter .live").show();
+              initAlert();
+            };
+            loadCountdown = function(data){
+              var seconds_till;
+              if (data.response.item.isLive) {
+                return goLive();
+              } else {
+                // Parse ISO 8601 date string
+                date = data.response.item.eventStartTime.match(/^(\d{4})-0?(\d+)-0?(\d+)[T ]0?(\d+):0?(\d+):0?(\d+)Z$/)
+                dateString = date[2] + "/" + date[3] + "/" + date[1] + " " + date[4] + ":" + date[5] + ":" + date[6] + " +0000"
+                seconds_till = ((new Date(dateString)) - (new Date())) / 1000;
+                days = Math.floor(seconds_till / 86400);
+                hours = Math.floor((seconds_till % 86400) / 3600);
+                minutes = Math.floor((seconds_till % 3600) / 60);
+                seconds = Math.floor(seconds_till % 60);
+                return intervalId = setInterval(function() {
+                  if (--seconds < 0) {
+                    seconds = 59;
+                    if (--minutes < 0) {
+                      minutes = 59;
+                      if (--hours < 0) {
+                        hours = 23;
+                        if (--days < 0) {
+                          days = 0;
+                        }
+                      }
+                    }
+                  }
+                  $("#churchonline_counter .days").html((days.toString().length < 2) ? "0" + days : days);
+                  $("#churchonline_counter .hours").html((hours.toString().length < 2 ? "0" + hours : hours));
+                  $("#churchonline_counter .minutes").html((minutes.toString().length < 2 ? "0" + minutes : minutes));
+                  $("#churchonline_counter .seconds").html((seconds.toString().length < 2 ? "0" + seconds : seconds));
+                  if (seconds === 0 && minutes === 0 && hours === 0 && days === 0) {
+                    goLive();
+                    return clearInterval(intervalId);
+                  }
+                  $("#churchonline_counter_container").show();
+                  initAlert();
+                }, 1000);
+              }
+            }
+            days = void 0;
+            hours = void 0;
+            minutes = void 0;
+            seconds = void 0;
+            intervalId = void 0;
+            eventUrl = churchUrl + "/api/v1/events/current"
+            msie = /msie/.test(navigator.userAgent.toLowerCase())
+            if (msie && window.XDomainRequest) {
+                var xdr = new XDomainRequest();
+                xdr.open("get", eventUrl);
+                xdr.onload = function() {
+                  loadCountdown(jQuery.parseJSON(xdr.responseText))
+                };
+                xdr.send();
+            } else {
+              $.ajax({
+                url: eventUrl,
+                dataType: "json",
+                crossDomain: true,
+                success: function(data) {
+                  loadCountdown(data);
+                },
+                error: function(xhr, ajaxOptions, thrownError) {
+                  return console.log(thrownError);
+                }
+              });
+            }
+        }
+    });
+</script>
