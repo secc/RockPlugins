@@ -2,6 +2,11 @@
 
 <asp:UpdatePanel runat="server">
     <ContentTemplate>
+        <Rock:GridFilter runat="server" ID="fGroups" OnApplyFilterClick="fGroups_ApplyFilterClick">
+            <Rock:PersonPicker runat="server" Label="Contact Person" ID="pContactPerson" />
+            <Rock:RockCheckBoxList runat="server" Label="Status" ID="cblStatus" />
+        </Rock:GridFilter>
+
         <Rock:Grid runat="server" ID="gGroups" OnRowSelected="gGroups_RowSelected" DataKeyNames="Id">
             <Columns>
                 <Rock:RockBoundField HeaderText="Group" DataField="Group.Name" />
