@@ -3,8 +3,8 @@
   #churchonline_counter { overflow: auto; width: auto; height: 100%; }
   #churchonline_counter .description, #churchonline_counter .time li .label { font-size: 0.6em; }
   #churchonline_counter .time { list-style: none; display: inline-block; }
-  #churchonline_counter .time li { float: left; padding: 0 10px 0 10px; text-align: center; border-right: 1px solid grey;}
-  #churchonline_counter .time li h3 {line-height: 1.1; vertical-align: middle; padding-top: 5px; }
+  #churchonline_counter .time li { float: left; padding: 0 5px 0 5px; text-align: center; border-right: 1px solid grey;}
+  #churchonline_counter .time li h4 {line-height: 1.2; vertical-align: middle; padding-top: 5px; }
   #churchonline_counter .time li:first-child { }
   #churchonline_counter .time li:last-child { padding: 0 10px 0 10px; border-right: none; }
   #churchonline_counter .time li span { font-size: 1.2em; color: black}
@@ -24,54 +24,61 @@
   }
 </style>
 
-<div class="container g-padding-x-50--xs">
-
-    <div class="row">
-        <div class="isotope_wrap g-margin-b-80--xs">
-            <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
-                <div class="clearfix card g-margin-b-20--xs g-padding-x-50--xs g-padding-y-50--xs" style="min-height: 240px;">
-                    <h4 class="g-font-family--secondary">SE Online</h4>
-                    <p class="g-margin-b-0--xs">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras vitae quam sed tellus gravida aliquet sed ac lorem.</p>
+<div class="fluid-container">
+    <div class="container">
+    <div class="row g-display-flex--md">
+        <div class="g-margin-b-80--xs g-display-flex--lg">
+            <div class="col-xs-12 col-lg-4 event-calendar">
+                <a href="#">
+                <div class="clearfix card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
+                    <h5 class="g-font-family--secondary">SE Online</h5>
+                    <h6 class="g-margin-b-0--xs g-line-height--normal">Live stream our worship services each Sunday at 11:30 a.m., 2:00 p.m., & 8:00 p.m.</h6>
 
                     <div id="churchonline_counter_container" class="alertBar container-fluid" style="border-width: 2px;">
                         <div class="row">
-                            <div class="col-md-12 text-center g-padding-x-0--xs g-padding-b-45--xs g-padding-b-0--sm">
+                            <div class="col-md-12 text-center g-padding-x-0--xs g-padding-b-0--sm">
                                 <div id="churchonline_counter">
-                                  <span class="g-display-inline-block--xs g-margin-t-45--xs g-padding-x-15--xs" style="vertical-align: top;">
-                                      <a href="https://online.southeastchristian.org" class="cd-nav-item live-stream coming-soon">
-                                        <h5 class="notlive uppercase g-color--black g-font-weight--700 g-padding-b-10--xs" style="vertical-align:middle">Next Event</h5>
-                                        <h5 class="live uppercase g-color--black g-font-weight--700" style="vertical-align:middle">Live Now</h5>
-                                      </a>
+                                  <span class="g-display-inline-block--xs g-margin-t-15--xs" style="vertical-align: top;padding: 20px 0px;">
+                                      <span class="live-stream coming-soon">
+                                        <h6 class="notlive uppercase g-color--black g-font-weight--700" style="vertical-align:middle">Next Event</h6>
+                                        <h6 class="live uppercase g-color--black g-font-weight--700" style="vertical-align:middle">Live Now</h6>
+                                      </span>
                                   </span>
-                                  <ul class="time g-padding-x-50--xs g-padding-x-0--sm">
-                                    <li><h3 class="g-font-weight--700"><span class="days">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">days</span></li>
-                                    <li><h3 class="g-font-weight--700"><span class="hours">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">hours</span></li>
-                                    <li><h3 class="g-font-weight--700"><span class="minutes">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">mins</span></li>
-                                    <li><h3 class="g-font-weight--700"><span class="seconds">00</span></h3> <span class="label uppercase" style="top: -10px;position: relative;">secs</span></li>
+                                  <ul class="time g-padding-x-0--xs">
+                                    <li><h4 class="g-font-weight--700"><span class="days">00</span></h4> <span class="label uppercase" style="top: -10px;position: relative;">days</span></li>
+                                    <li><h4 class="g-font-weight--700"><span class="hours">00</span></h4> <span class="label uppercase" style="top: -10px;position: relative;">hours</span></li>
+                                    <li><h4 class="g-font-weight--700"><span class="minutes">00</span></h4> <span class="label uppercase" style="top: -10px;position: relative;">mins</span></li>
+                                    <li><h4 class="g-font-weight--700"><span class="seconds">00</span></h4> <span class="label uppercase" style="top: -10px;position: relative;">secs</span></li>
                                   </ul>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                </a>
             </div>
 
-            <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
-                <div class="clearfix card g-margin-b-20--xs g-padding-x-50--xs g-padding-t-50--xs g-padding-b-25--xs" style="min-height: 240px;">
-                    <img src="https://www.southeastchristian.org/GetImage.ashx?id=1999706&h=175&w=175&mode=crop" class="pull-left img-responsive g-padding-r-50--xs g-padding-b-25--xs g-width-40-percent--xs g-width-50-percent--md" style="margin-right: 0 !important;" />
-                    <h4 class="g-font-family--secondary g-margin-b-10--xs">New Here?</h4>
-                    <p class="g-margin-b-0--xs g-padding-b-25--xs">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras vitae quam sed tellus gravida aliquet sed ac lorem.</p>
+            <div class="col-xs-12 col-lg-4 event-calendar">
+                <a href="#">
+                <div class="clearfix card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
+                    <img src="https://www.southeastchristian.org/GetImage.ashx?id=1999706&h=175&w=175&mode=crop" class="pull-left img-responsive g-padding-r-30--xs g-width-200--xs g-width-250--lg" style="margin-right: 0 !important;" />
+                    <h5 class="g-font-family--secondary g-margin-b-5--xs">New Here?</h5>
+                    <h6 class="g-margin-b-0--xs g-line-height--normal">We have multiple locations but one mission: <i>Connecting people to Jesus and one another.</i> Learn more about what to expect on your visit.</h6>
                 </div>
+                </a>
             </div>
 
-            <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
-                <div class="clearfix card g-margin-b-20--xs g-padding-x-50--xs g-padding-t-50--xs g-padding-b-25--xs" style="min-height: 240px;">
-                    <img src="https://www.southeastchristian.org/GetImage.ashx?id=2012076&h=175&w=175&mode=crop" class="pull-left img-responsive g-padding-r-50--xs g-padding-b-25--xs g-width-40-percent--xs g-width-50-percent--md" style="margin-right: 0 !important;" />
-                    <h4 class="g-font-family--secondary g-margin-b-10--xs">Mantra Resources</h4>
-                    <p class="g-margin-b-0--xs g-padding-b-25--xs">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras vitae quam sed tellus gravida aliquet sed ac lorem.</p>
+            <div class="col-xs-12 col-lg-4 event-calendar">
+                <a href="#">
+                <div class="clearfix card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
+                    <img src="https://www.southeastchristian.org/GetImage.ashx?id=2012076&h=175&w=175&mode=crop" class="pull-left img-responsive g-padding-r-30--xs g-width-200--xs g-width-250--lg" style="margin-right: 0 !important;" />
+                    <h5 class="g-font-family--secondary g-margin-b-5--xs">Mantra Resources</h5>
+                    <h6 class="g-margin-b-0--xs g-line-height--normal">{{ "Dive deeper into the Mantra series with more resources to help you grow!" | Truncate:134,'...' }}</h6>
                 </div>
+                </a>
             </div>
         </div>
+    </div>
     </div>
 </div>
 
@@ -108,7 +115,6 @@
               $("#churchonline_counter .time").hide();
               $("#churchonline_counter .notlive").hide();
               $("#churchonline_counter .live").show();
-              initAlert();
             };
             loadCountdown = function(data){
               var seconds_till;
@@ -145,7 +151,6 @@
                     return clearInterval(intervalId);
                   }
                   $("#churchonline_counter_container").show();
-                  initAlert();
                 }, 1000);
               }
             }
