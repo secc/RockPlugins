@@ -530,7 +530,7 @@ namespace RockWeb.Plugins.GroupManager
             }
             if ( tbContactPhoneNumber.Text.IsNullOrWhiteSpace() )
             {
-                var number = person.GetPhoneNumber( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_BUSINESS.AsGuid() );
+                var number = person.GetPhoneNumber( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_WORK.AsGuid() );
                 if ( number != null )
                 {
                     tbContactPhoneNumber.Text = number.NumberFormatted;
