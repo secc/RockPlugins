@@ -79,13 +79,26 @@ namespace org.secc.GroupManager.Model
         public string ContactEmail { get; set; }
 
         [DataMember]
+        [Obsolete]
         public bool RequiresRegistration { get; set; } = false;
+
+        [DataMember]
+        public RegistrationRequirement RegistrationRequirement { get; set; } = RegistrationRequirement.NoRegistration;
 
         [DataMember]
         public string RegistrationLink { get; set; }
 
         [DataMember]
         public bool ChildcareAvailable { get; set; } = false;
+
+        [DataMember]
+        public ChildcareOptions ChildcareOptions { get; set; } = 0;
+
+        [DataMember]
+        public string RegistrationDescription { get; set; }
+
+        [DataMember]
+        public string ChildcareRegistrationDescription { get; set; }
 
         [DataMember]
         public string ChildcareRegistrationLink { get; set; }
@@ -157,9 +170,30 @@ namespace org.secc.GroupManager.Model
 
     public enum PublishGroupStatus
     {
-        Pending = 0,
+        PendingApproval = 0,
         Approved = 1,
-        Denied = 2
+        Denied = 2,
+        Draft = 3,
+        PendingIT = 4
+    }
+
+    public enum RegistrationRequirement
+    {
+        NoRegistration = 0,
+        RegistrationAvailable = 1,
+        RegistrationRequired = 2,
+        CustomRegistration = 3,
+        NeedCustomRegistration = 4
+
+
+    }
+
+    public enum ChildcareOptions
+    {
+        NoChildcare = 0,
+        ChildcareNoRegistration = 1,
+        ChildcareRegistrationRequired = 2,
+        ChildareIncludedInCustomRegistration = 3
     }
 
     public partial class PublishGroupConfiguration : EntityTypeConfiguration<PublishGroup>
