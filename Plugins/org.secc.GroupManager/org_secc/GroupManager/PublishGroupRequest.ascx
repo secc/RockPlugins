@@ -53,7 +53,7 @@
                                 <asp:ListItem Text="Automatically Generate an Optional Registration" Value="1" />
                                 <asp:ListItem Text="Automatically Generate a Required Registration" Value="2" />
                                 <asp:ListItem Text="Custom Registration - I HAVE A Custom Link" Value="3" />
-                                <asp:ListItem Text="Custom Registration - I NEED A Custom Link" Value="4" />
+                                <asp:ListItem Text="Custom Registration - I NEED A Custom Registration" Value="4" />
                             </Rock:RockDropDownList>
                         </div>
                         <div class="col-md-8 registrationInformation">
