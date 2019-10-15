@@ -151,6 +151,8 @@ namespace RockWeb.Plugins.GroupManager
             SwitchRegistrationRequirement( publishGroup.RegistrationRequirement );
             tbRegistrationDetails.Text = publishGroup.RegistrationDescription;
 
+            ddlChildcareNeedRegistration.SelectedValue = publishGroup.ChildcareRegistrationLink.IsNotNullOrWhiteSpace() ? "1" :
+                publishGroup.ChildcareRegistrationDescription.IsNotNullOrWhiteSpace() ? "2" : "";
             SwitchChildcareOptions( publishGroup.ChildcareOptions );
             tbChildcareRegistrationDetails.Text = publishGroup.ChildcareRegistrationDescription;
 
@@ -158,6 +160,7 @@ namespace RockWeb.Plugins.GroupManager
 
             tbRegistrationLink.Text = publishGroup.RegistrationLink;
             cbAllowSpouseRegistration.Checked = publishGroup.AllowSpouseRegistration;
+            tbRegistrationLink.Text = publishGroup.RegistrationDescription;
 
             ddlChildcareOptions.SelectedValue = publishGroup.ChildcareOptions.ConvertToInt().ToString();
             tbChildcareRegistrationLink.Text = publishGroup.ChildcareRegistrationLink;
@@ -323,7 +326,8 @@ namespace RockWeb.Plugins.GroupManager
             publishGroup.RegistrationRequirement = ( RegistrationRequirement ) ddlRegistration.SelectedValue.AsInteger();
             publishGroup.RequiresRegistration = ddlRegistration.SelectedValue.AsInteger() > 0; //This is obsolete but left in for backward compatability
             publishGroup.RegistrationLink = publishGroup.RegistrationRequirement == RegistrationRequirement.CustomRegistration ? tbRegistrationLink.Text : "";
-            publishGroup.ChildcareRegistrationDescription = tbChildcareRegistrationDetails.Text;
+            publishGroup.RegistrationDescription = tbRegistrationDetails.Text;
+            publishGroup.ChildcareRegistrationDescription = ddlChildcareNeedRegistration.SelectedValue == "2" ? tbChildcareRegistrationDetails.Text : "";
             publishGroup.AllowSpouseRegistration = cbAllowSpouseRegistration.Checked;
             publishGroup.ChildcareOptions = ( ChildcareOptions ) ddlChildcareOptions.SelectedValue.AsInteger();
             publishGroup.ChildcareAvailable = ddlChildcareOptions.SelectedValue.AsInteger() > 0;
