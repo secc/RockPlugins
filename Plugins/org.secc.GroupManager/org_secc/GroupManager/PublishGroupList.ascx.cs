@@ -35,6 +35,12 @@ namespace RockWeb.Plugins.GroupManager
 
     public partial class PublishGroupList : RockBlock
     {
+
+        protected override void OnInit( EventArgs e )
+        {
+            base.OnInit( e );
+        }
+
         /// <summary>
         /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
         /// </summarysni>
@@ -43,17 +49,42 @@ namespace RockWeb.Plugins.GroupManager
         {
             if ( !Page.IsPostBack )
             {
+                SetFilters();
+
                 BindGrid();
             }
+        }
+
+        private void SetFilters()
+        {
+            cblStatus.BindToEnum<PublishGroupStatus>();
+            PersonService personService = new PersonService( new RockContext() );
+            pContactPerson.SetValue( personService.Get( GetBlockUserPreference( "ContactPersonId" ).AsInteger() ) );
+            cblStatus.SetValues( GetBlockUserPreference( "PublishGroupStatus" ).SplitDelimitedValues() );
         }
 
         private void BindGrid()
         {
             RockContext rockContext = new RockContext();
             PublishGroupService publishGroupService = new PublishGroupService( rockContext );
-            gGroups.DataSource = publishGroupService.Queryable()
-                .OrderBy(p => p.PublishGroupStatus)
-                .ThenByDescending(p => p.StartDateTime)
+
+            var qry = publishGroupService.Queryable();
+
+            if ( pContactPerson.SelectedValue.HasValue )
+            {
+                var contactPersonId = pContactPerson.SelectedValue.Value;
+                qry = qry.Where( p => p.ContactPersonAlias.PersonId == contactPersonId );
+            }
+
+            if ( cblStatus.SelectedValues.Count != 0 )
+            {
+                var selectedItems = cblStatus.SelectedValues.Select( i => ( PublishGroupStatus ) i.AsInteger() );
+                qry = qry.Where( p => selectedItems.Contains( p.PublishGroupStatus ) );
+            }
+
+            gGroups.DataSource = qry
+                .OrderBy( p => p.PublishGroupStatus )
+                .ThenByDescending( p => p.StartDateTime )
                 .ToList();
             gGroups.DataBind();
         }
@@ -62,6 +93,13 @@ namespace RockWeb.Plugins.GroupManager
         {
             NavigateToLinkedPage( "PublishGroupDetailPage", new Dictionary<string, string> { { "PublishGroupId", e.RowKeyValue.ToString() } } );
 
+        }
+
+        protected void fGroups_ApplyFilterClick( object sender, EventArgs e )
+        {
+            SetBlockUserPreference( "ContactPersonId", pContactPerson.SelectedValue.ToString() );
+            SetBlockUserPreference( "PublishGroupStatus", string.Join( ",", cblStatus.SelectedValues ) );
+            BindGrid();
         }
     }
 }
