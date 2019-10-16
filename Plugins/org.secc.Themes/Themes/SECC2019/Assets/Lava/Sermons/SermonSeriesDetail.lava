@@ -1,7 +1,3 @@
-<style>
-
-
-</style>
 {% assign slug = 'Global' | PageParameter:'Slug' %}
 {% assign sermonSlug = 'Global' | PageParameter:'SermonSlug' %}
 {% cache key:'sermonPage:{{slug}}:{{sermonSlug}}' duration:'3600' %}
@@ -186,7 +182,10 @@
             {% for messages in itemChildItems %}
                 {% assign resource = messages.ChildContentChannelItem %}
                 {% assign resourceMediaFile = resource | Attribute:'ResourceFile','Object' %}
+                {% assign resourceURL = resource | Attribute:'ResourceURL','RawValue' %}
+                {% assign ResourceURLText = resource | Attribute:'ResourceURLText','RawValue' %}
                 {% if resource.ContentChannelId == "58" %}
+
                     <div class="isotope_item
                         hide-on-load
                         event-calendar
@@ -207,39 +206,54 @@
                                 g-padding-x-50--xs
                                 text-center
                                 ">
-                                <h4 class="g-font-weight--700 g-color--white">{{ resource.Title }}</h4>
-                                <br />
-                                <a href="/GetFile.ashx?guid={{ resourceMediaFile.Guid }}" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1" download>
-            			            <strong>Download</strong>
-            			        </a>
+                                {% if resourceMediaFile.Guid != null %}
+                                    <h4 class="g-font-weight--700 g-color--white">{{ resource.Title }}</h4>
+                                    <br />
+                                    <a href="/GetFile.ashx?guid={{ resourceMediaFile.Guid }}" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1" download>
+                			            <strong>Download</strong>
+                			        </a>
+                                {% elseif resourceURL != "" %}
+                                    <h4 class="g-font-weight--700 g-color--white">{{ resource.Title }}</h4>
+                                    <br />
+                                    <a href="{{ resourceURL }}" target="_blank" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
+                                        <strong>
+                                            {% if ResourceURLText != "" %}
+                                                {{ ResourceURLText }}
+                                            {% else %}
+                                                Link
+                                            {% endif %}
+                                        </strong>
+                                    </a>
+                                {% endif %}
                             </div>
                     </div>
+
                 {% endif %}
             {% endfor %}
         </div>
         {% endif %}
-
+    </div>
 </div>
 
-	<script>
-	$(document).ready(function() {
-			$('.cd-main-header').removeClass('transparent-menu-enabled').removeClass('transparent-header');
-			$('.cd-main-content').removeClass('transparent-content');
-	});
-	$(window).load(function() {
-        // Initialize Isotope
-        var $grid = $('.isotope_wrap').isotope({
-            // options
-            percentPosition: true,
-            itemSelector: '.isotope_item',
-			layoutMode: 'fitRows'
-        });
-        // reveal all items after init
-        var $items = $grid.find('.isotope_item');
-        $grid.addClass('is-showing-items')
-          .isotope( 'revealItemElements', $items );
+<script>
+$(document).ready(function() {
+	$('.cd-main-header').removeClass('transparent-menu-enabled').removeClass('transparent-header');
+	$('.cd-main-content').removeClass('transparent-content');
+});
+$(window).load(function() {
+    // Initialize Isotope
+    var $grid = $('.isotope_wrap').isotope({
+        // options
+        percentPosition: true,
+        itemSelector: '.isotope_item',
+		layoutMode: 'fitRows'
     });
-    </script>
+    // reveal all items after init
+    var $items = $grid.find('.isotope_item');
+    $grid.addClass('is-showing-items')
+      .isotope( 'revealItemElements', $items );
+});
+</script>
 
 {% else %}
 	<h1 class="g-font-size--jumbo-1">Could not find series.</h1>
