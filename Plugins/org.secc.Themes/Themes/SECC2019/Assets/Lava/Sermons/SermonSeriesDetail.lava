@@ -16,244 +16,280 @@
 {% comment %}
     ************ SERMON VIDEO ************
 {% endcomment %}
-<div class="container g-padding-y-100--md g-padding-x-0--xs">
-    {% assign currentDate = 'Now' | Date:'M/d/yyyy' %}
-    {% assign sermonSlug = 'Global' | PageParameter:'SermonSlug' %}
-    {% assign currentMessage = item.ChildItems | Sort:'Order' | First %}
+{% assign currentDate = 'Now' | Date:'M/d/yyyy' %}
+{% assign sermonSlug = 'Global' | PageParameter:'SermonSlug' %}
+{% assign currentMessage = item.ChildItems | Sort:'Order' | First %}
 
-    {% comment %}
-        The Lava Code below checks for the closest sermon message to this day – IF a slug isn't defined.
-    {% endcomment %}
-    {% for childItem in item.ChildItems %}
-        {% if sermonSlug != "" -%}
-            {% if sermonSlug == childItem.ChildContentChannelItem.PrimarySlug -%}
-                {% assign currentMessage = childItem %}
-            {% endif -%}
-        {% endif -%}
-    {% endfor %}
+    {% if currentMessage != null %}
+        <div class="container g-padding-y-100--md g-padding-x-0--xs">
 
-    {% assign seriesImageGuid = item | Attribute:'SeriesImage','RawValue' %}
-    {% assign currentMessageVideoId = currentMessage.ChildContentChannelItem | Attribute:'VimeoId' %}
-
-    <div class="series-detail container">
-        <div id="seriesHead" class="row">
-            {% unless currentMessageVideoId == empty %}
-            <div id="sermonVideo" class="col-sm-12 col-lg-8 g-padding-x-0--xs g-padding-x-60--lg">
-                <div class="embed-responsive embed-responsive-16by9 media-border-only">
-                    <div class="embed-responsive embed-responsive-16by9 media-border-only">
-                        <iframe src="https://player.vimeo.com/video/{{ currentMessageVideoId }}?title=0&byline=0&portrait=0" width="640" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
-                    </div>
-                </div>
-			</div>
-            {% endunless %}
-
-            <div id="sermonContent" class="col-sm-12 col-lg-4">
-                <br />
-                <h2 class="g-font-size--jumbo-2 g-font-family--secondary">{{ currentMessage.ChildContentChannelItem.Title }}</h2>
-            	<h5 class="uppercase">by {{ currentMessage.ChildContentChannelItem | Attribute:'Speaker' }} – {{ currentMessage.ChildContentChannelItem.StartDateTime | Date:'MMMM dd, yyyy' }}</h5>
-                <hr />
-                {% if currentMessage.ChildContentChannelItem.Content != empty -%}
-                <p class="series-summary g-line-height--sm">
-                    {{ currentMessage.ChildContentChannelItem.Content }}
-                </p>
-                <hr />
+            {% comment %}
+                The Lava Code below checks for the closest sermon message to this day – IF a slug isn't defined.
+            {% endcomment %}
+            {% for childItem in item.ChildItems %}
+                {% if sermonSlug != "" -%}
+                    {% if sermonSlug == childItem.ChildContentChannelItem.PrimarySlug -%}
+                        {% assign currentMessage = childItem %}
+                    {% endif -%}
                 {% endif -%}
-				<div class="text-center">
-					{%- assign mediaURL = currentMessage.ChildContentChannelItem | Attribute:'Audio','Path' | Replace:'~/','' -%}
-					{%- unless mediaURL == empty -%}
-					<a href="{{ 'Global' | Attribute:'PublicApplicationRoot' }}{{ mediaURL }}" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" style="margin-top: 5px;">
-						<i class="fa fa-headphones"></i>
-						Audio
-					</a>
-					{%- endunless -%}
-					<a href="https://itunes.apple.com/us/podcast/southeast-christian-church/id287341044?mt=2" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" style="margin-top: 5px;">
-						<i class="fa fa-music"></i>
-						iTunes
-					</a>
-				</div>
-				<br />
-                <div class="text-center">
-					<br />
-                    <p><i class="fa fa-share-alt"></i> Share this Sermon:
-                    {[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{ seriesImageGuid }}' ]}
-                    <br />
-                    <br />
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-{% comment %}
-    ************ SERIES - The rest of the Sermons ************
-{% endcomment %}
-
-
-
-<div class="container-fluid" style="padding: 0 0 20px 0;">
-
-	{%- contentchannelitem where:'ContentChannelId == 24' sort:'StartDateTime desc' -%}
-		{%- for item in contentchannelitemItems -%}
-			{%- if forloop.first -%}
-				{% assign currentSeries = contentchannelitemItems | First -%}
-			{%- endif -%}
-		{%- endfor -%}
-	{%- endcontentchannelitem -%}
-
-    <!-- START: Page Sub-Menu -->
-    <div class="page-menu" >
-        <div class="container-fluid text-center" style="padding: 0;">
-            <nav class="page-nav text-center">
-                <ul class="list-inline">
-                    <li><a href="/sermons">Explore All Series</a></li>
-                    <li><a href="/sermons/{{ currentSeries.PrimarySlug | Escape }}">Jump to Current Series</a></li>
-                </ul>
-            </nav>
-        </div>
-    </div>
-    <!-- END: Page Sub-Menu -->
-
-    <div class="container g-padding-y-100--xs">
-
-        <div class="row g-padding-b-60--xs">
-            <div class="col-md-12 text-center">
-                <br />
-                <h1 class="g-font-size--jumbo-1 g-font-family--secondary">{{ item.Title }}</h1>
-                <p class="series-dates">
-                    Series Date:
-                    <i><strong>
-                        {% assign lastSermon = item.ChildItems | Last %}
-                        {{ item.StartDateTime | Date:'MMM dd, yyyy' }} - {{ lastSermon.ChildContentChannelItem.StartDateTime | Date:'MMM dd, yyyy' }}
-                    </strong></i>
-                </p>
-            </div>
-        </div>
-        <div class="row">
-        {% unless currentMessageVideoEmbed == empty %}
-            <div class="col-md-12 text-center">
-                {% comment %} <br /> {% endcomment %}
-                {% comment %} <h3 style="font-weight: 300" class="uppercase">Sermons In This Series</h3> {% endcomment %}
-                <br />
-            </div>
-        {% endunless %}
-        </div>
-
-        {% assign resourcesCount = 0 %}
-        {% assign itemChildItems = item.ChildItems | Sort:'Order' %}
-        <div class="messages isotope_wrap series-list g-margin-b-150--xs">
-			{% for messages in itemChildItems %}
-                {% assign message = messages.ChildContentChannelItem %}
-                {% assign videoImageGuid = message | Attribute:'Image','RawValue' %}
-                {% if message.ContentChannelId == "23" %}
-                <div class="isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load">
-
-                    <a class="series-link" href="/sermons/{{ item.PrimarySlug }}/{{ message.PrimarySlug }}">
-                    <div class="card g-margin-b-25--xs">
-                        <!-- Image -->
-                        <div class="img-hover">
-                            <img src="/GetImage.ashx?Guid={{ videoImageGuid }}" class="img-responsive img-rounded" style="margin: 0 auto">
-                        </div>
-                        <div class="series-body g-padding-x-40--xs g-padding-y-40--xs">
-                            <h5 class="g-font-family--secondary g-padding-b-20--xs">{{ message.Title }}</h5>
-                            <h6 class="g-line-height--normal uppercase">
-								{{ message| Attribute: 'Speaker' }} – {{ message.StartDateTime | Date:'MMMM dd, yyyy' }}<br />
-                                {% assign runningMinutes = message | Attribute: 'Duration' | DividedBy:60 | Floor %}
-                                {% assign temp = runningMinutes | Times:60 %}
-                                {% assign runningSeconds = message | Attribute: 'Duration' | Minus:temp %}
-                                Running Time: {{runningMinutes}}:{{runningSeconds}}
-						    </h6>
-                        </div>
-                    </div>
-                    </a>
-                </div>
-                {% else %}
-                {% assign resourcesCount = resourcesCount | Plus:1 %}
-                {% endif %}
             {% endfor %}
-        </div>
 
-        {% if resourcesCount != 0 %}
-        <div class="row g-padding-y-60--xs">
-            <div class="col-md-12 text-center">
-                <h1 class="g-font-size--jumbo-1 g-font-family--secondary">Series Resources</h1>
-            </div>
-        </div>
-        <div class="messages isotope_wrap series-list">
-            {% for messages in itemChildItems %}
-                {% assign resource = messages.ChildContentChannelItem %}
-                {% assign resourceMediaFile = resource | Attribute:'ResourceFile','Object' %}
-                {% assign resourceURL = resource | Attribute:'ResourceURL','RawValue' %}
-                {% assign ResourceURLText = resource | Attribute:'ResourceURLText','RawValue' %}
-                {% if resource.ContentChannelId == "58" %}
+            {% assign seriesImageGuid = item | Attribute:'SeriesImage','RawValue' %}
+            {% assign currentMessageVideoId = currentMessage.ChildContentChannelItem | Attribute:'VimeoId' %}
 
-                    <div class="isotope_item
-                        hide-on-load
-                        event-calendar
-                        col-md-4
-                        col-sm-6
-                        col-xs-12
-                        g-margin-b-0--xs
-                        ">
-                            <div class="
-                                g-bg-color--gray-lighter
-                                g-margin-b-50--md
-                                g-margin-x-25--md
-                                g-margin-b-30--xs
-                                g-margin-x-15--xs
-                                g-padding-y-100--md
-                                g-padding-x-100--md
-                                g-padding-y-50--xs
-                                g-padding-x-50--xs
-                                text-center
-                                ">
-                                {% if resourceMediaFile.Guid != null %}
-                                    <h4 class="g-font-weight--700 g-color--white">{{ resource.Title }}</h4>
-                                    <br />
-                                    <a href="/GetFile.ashx?guid={{ resourceMediaFile.Guid }}" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1" download>
-                			            <strong>Download</strong>
-                			        </a>
-                                {% elseif resourceURL != "" %}
-                                    <h4 class="g-font-weight--700 g-color--white">{{ resource.Title }}</h4>
-                                    <br />
-                                    <a href="{{ resourceURL }}" target="_blank" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
-                                        <strong>
-                                            {% if ResourceURLText != "" %}
-                                                {{ ResourceURLText }}
-                                            {% else %}
-                                                Link
-                                            {% endif %}
-                                        </strong>
-                                    </a>
-                                {% endif %}
+            <div class="series-detail container">
+                <div id="seriesHead" class="row">
+                    {% unless currentMessageVideoId == empty %}
+                    <div id="sermonVideo" class="col-sm-12 col-lg-8 g-padding-x-0--xs g-padding-x-60--lg">
+                        <div class="embed-responsive embed-responsive-16by9 media-border-only">
+                            <div class="embed-responsive embed-responsive-16by9 media-border-only">
+                                <iframe src="https://player.vimeo.com/video/{{ currentMessageVideoId }}?title=0&byline=0&portrait=0" width="640" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
                             </div>
+                        </div>
+        			</div>
+                    {% endunless %}
+
+                    <div id="sermonContent" class="col-sm-12 col-lg-4">
+                        <br />
+                        <h2 class="g-font-size--jumbo-2 g-font-family--secondary">{{ currentMessage.ChildContentChannelItem.Title }}</h2>
+                    	<h5 class="uppercase">by {{ currentMessage.ChildContentChannelItem | Attribute:'Speaker' }} – {{ currentMessage.ChildContentChannelItem.StartDateTime | Date:'MMMM dd, yyyy' }}</h5>
+                        <hr />
+                        {% if currentMessage.ChildContentChannelItem.Content != empty -%}
+                        <p class="series-summary g-line-height--sm">
+                            {{ currentMessage.ChildContentChannelItem.Content }}
+                        </p>
+                        <hr />
+                        {% endif -%}
+        				<div class="text-center">
+        					{%- assign mediaURL = currentMessage.ChildContentChannelItem | Attribute:'Audio','Path' | Replace:'~/','' -%}
+        					{%- unless mediaURL == empty -%}
+        					<a href="{{ 'Global' | Attribute:'PublicApplicationRoot' }}{{ mediaURL }}" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" style="margin-top: 5px;">
+        						<i class="fa fa-headphones"></i>
+        						Audio
+        					</a>
+        					{%- endunless -%}
+        					<a href="https://itunes.apple.com/us/podcast/southeast-christian-church/id287341044?mt=2" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" style="margin-top: 5px;">
+        						<i class="fa fa-music"></i>
+        						iTunes
+        					</a>
+        				</div>
+        				<br />
+                        <div class="text-center">
+        					<br />
+                            <p><i class="fa fa-share-alt"></i> Share this Sermon:
+                            {[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{ seriesImageGuid }}' ]}
+                            <br />
+                            <br />
+                        </div>
                     </div>
-
-                {% endif %}
-            {% endfor %}
+                </div>
+            </div>
         </div>
-        {% endif %}
-    </div>
-</div>
 
-<script>
-$(document).ready(function() {
-	$('.cd-main-header').removeClass('transparent-menu-enabled').removeClass('transparent-header');
-	$('.cd-main-content').removeClass('transparent-content');
-});
-$(window).load(function() {
-    // Initialize Isotope
-    var $grid = $('.isotope_wrap').isotope({
-        // options
-        percentPosition: true,
-        itemSelector: '.isotope_item',
-		layoutMode: 'fitRows'
-    });
-    // reveal all items after init
-    var $items = $grid.find('.isotope_item');
-    $grid.addClass('is-showing-items')
-      .isotope( 'revealItemElements', $items );
-});
-</script>
+        {% comment %}
+            ************ SERIES - The rest of the Sermons ************
+        {% endcomment %}
+
+        <div class="container-fluid" style="padding: 0 0 20px 0;">
+
+        	{%- contentchannelitem where:'ContentChannelId == 24' sort:'StartDateTime desc' -%}
+        		{%- for item in contentchannelitemItems -%}
+        			{%- if forloop.first -%}
+        				{% assign currentSeries = contentchannelitemItems | First -%}
+        			{%- endif -%}
+        		{%- endfor -%}
+        	{%- endcontentchannelitem -%}
+
+            <!-- START: Page Sub-Menu -->
+            <div class="page-menu" >
+                <div class="container-fluid text-center" style="padding: 0;">
+                    <nav class="page-nav text-center">
+                        <ul class="list-inline">
+                            <li><a href="/sermons">Explore All Series</a></li>
+                            <li><a href="/sermons/{{ currentSeries.PrimarySlug | Escape }}">Jump to Current Series</a></li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+            <!-- END: Page Sub-Menu -->
+
+            <div class="container g-padding-y-100--xs">
+
+                <div class="row g-padding-b-60--xs">
+                    <div class="col-md-12 text-center">
+                        <br />
+                        <h1 class="g-font-size--jumbo-1 g-font-family--secondary">{{ item.Title }}</h1>
+                        <p class="series-dates">
+                            Series Date:
+                            <i><strong>
+                                {% assign lastSermon = item.ChildItems | Last %}
+                                {{ item.StartDateTime | Date:'MMM dd, yyyy' }} - {{ lastSermon.ChildContentChannelItem.StartDateTime | Date:'MMM dd, yyyy' }}
+                            </strong></i>
+                        </p>
+                    </div>
+                </div>
+                <div class="row">
+                {% unless currentMessageVideoEmbed == empty %}
+                    <div class="col-md-12 text-center">
+                        {% comment %} <br /> {% endcomment %}
+                        {% comment %} <h3 style="font-weight: 300" class="uppercase">Sermons In This Series</h3> {% endcomment %}
+                        <br />
+                    </div>
+                {% endunless %}
+                </div>
+
+                {% assign resourcesCount = 0 %}
+                {% assign itemChildItems = item.ChildItems | Sort:'Order' %}
+                <div class="messages isotope_wrap series-list g-margin-b-150--xs">
+        			{% for messages in itemChildItems %}
+                        {% assign message = messages.ChildContentChannelItem %}
+                        {% assign videoImageGuid = message | Attribute:'Image','RawValue' %}
+                        {% if message.ContentChannelId == "23" %}
+                        <div class="isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load">
+
+                            <a class="series-link" href="/sermons/{{ item.PrimarySlug }}/{{ message.PrimarySlug }}">
+                            <div class="card g-margin-b-25--xs">
+                                <!-- Image -->
+                                <div class="img-hover">
+                                    <img src="/GetImage.ashx?Guid={{ videoImageGuid }}" class="img-responsive img-rounded" style="margin: 0 auto">
+                                </div>
+                                <div class="series-body g-padding-x-40--xs g-padding-y-40--xs">
+                                    <h5 class="g-font-family--secondary g-padding-b-20--xs">{{ message.Title }}</h5>
+                                    <h6 class="g-line-height--normal uppercase">
+        								{{ message| Attribute: 'Speaker' }} – {{ message.StartDateTime | Date:'MMMM dd, yyyy' }}<br />
+                                        {% assign runningMinutes = message | Attribute: 'Duration' | DividedBy:60 | Floor %}
+                                        {% assign temp = runningMinutes | Times:60 %}
+                                        {% assign runningSeconds = message | Attribute: 'Duration' | Minus:temp %}
+                                        Running Time: {{runningMinutes}}:{{runningSeconds}}
+        						    </h6>
+                                </div>
+                            </div>
+                            </a>
+                        </div>
+                        {% else %}
+                        {% assign resourcesCount = resourcesCount | Plus:1 %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                {% if resourcesCount != 0 %}
+                <div class="row g-padding-y-60--xs">
+                    <div class="col-md-12 text-center">
+                        <h1 class="g-font-size--jumbo-1 g-font-family--secondary">Series Resources</h1>
+                    </div>
+                </div>
+                <div class="messages isotope_wrap series-list">
+                    {% for messages in itemChildItems %}
+                        {% assign resource = messages.ChildContentChannelItem %}
+                        {% assign resourceMediaFile = resource | Attribute:'ResourceFile','Object' %}
+                        {% assign resourceURL = resource | Attribute:'ResourceURL','RawValue' %}
+                        {% assign ResourceURLText = resource | Attribute:'ResourceURLText','RawValue' %}
+                        {% if resource.ContentChannelId == "58" %}
+
+                            <div class="isotope_item
+                                hide-on-load
+                                event-calendar
+                                col-md-4
+                                col-sm-6
+                                col-xs-12
+                                g-margin-b-0--xs
+                                ">
+                                    <div class="
+                                        g-bg-color--gray-lighter
+                                        g-margin-b-50--md
+                                        g-margin-x-25--md
+                                        g-margin-b-30--xs
+                                        g-margin-x-15--xs
+                                        g-padding-y-100--md
+                                        g-padding-x-100--md
+                                        g-padding-y-50--xs
+                                        g-padding-x-50--xs
+                                        text-center
+                                        ">
+                                        {% if resourceMediaFile.Guid != null %}
+                                            <h4 class="g-font-weight--700 g-color--white">{{ resource.Title }}</h4>
+                                            <br />
+                                            <a href="/GetFile.ashx?guid={{ resourceMediaFile.Guid }}" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1" download>
+                        			            <strong>Download</strong>
+                        			        </a>
+                                        {% elseif resourceURL != "" %}
+                                            <h4 class="g-font-weight--700 g-color--white">{{ resource.Title }}</h4>
+                                            <br />
+                                            <a href="{{ resourceURL }}" target="_blank" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
+                                                <strong>
+                                                    {% if ResourceURLText != "" %}
+                                                        {{ ResourceURLText }}
+                                                    {% else %}
+                                                        Link
+                                                    {% endif %}
+                                                </strong>
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                            </div>
+
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <script>
+        $(document).ready(function() {
+        	$('.cd-main-header').removeClass('transparent-menu-enabled').removeClass('transparent-header');
+        	$('.cd-main-content').removeClass('transparent-content');
+        });
+        $(window).load(function() {
+            // Initialize Isotope
+            var $grid = $('.isotope_wrap').isotope({
+                // options
+                percentPosition: true,
+                itemSelector: '.isotope_item',
+        		layoutMode: 'fitRows'
+            });
+            // reveal all items after init
+            var $items = $grid.find('.isotope_item');
+            $grid.addClass('is-showing-items')
+              .isotope( 'revealItemElements', $items );
+        });
+        </script>
+    {% else %}
+
+        <div class="container g-padding-y-100--md g-padding-x-0--xs">
+
+            {% assign seriesImageGuid = item | Attribute:'Image','RawValue' %}
+
+            <div class="series-detail container">
+                <div id="seriesHead" class="row">
+                    {% unless seriesImageGuid == null %}
+                    <div class="col-sm-12 col-lg-6 g-padding-x-0--xs g-padding-x-60--lg">
+                        <img src="/GetImage.ashx?Guid={{ seriesImageGuid }}" class="img-responsive" style="margin: 0 auto">
+                    </div>
+                    {% endunless %}
+
+                    <div class="col-sm-12 col-lg-6">
+                        <br />
+                        <h2 class="g-font-size--jumbo-2 g-font-family--secondary">{{ item.Title }}</h2>
+                        {% if item.Content != empty -%}
+                        <p class="series-summary g-line-height--sm">
+                            {{ item.Content }}
+                        </p>
+                        {% endif -%}
+                        <br />
+                        <div class="text-center">
+                            <br />
+                            <p><i class="fa fa-share-alt"></i> Share this:
+                            {[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{ seriesImageGuid }}' ]}
+                            <br />
+                            <br />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    {% endif %}
 
 {% else %}
 	<h1 class="g-font-size--jumbo-1">Could not find series.</h1>
