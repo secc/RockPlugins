@@ -142,7 +142,7 @@
 {% endcomment %}
 
 {% assign dt =  'Now' | Date:'yyyy/MM/dd HH:mm:ss tt' -%}
-{% contentchannelitem where:'ContentChannelId == 58 && StartDateTime <= "{{dt}}"' sort:'Order' limit:3 %}
+{% contentchannelitem where:'ContentChannelId == 60 && StartDateTime <= "{{dt}}"' sort:'Order' %}
 {% assign Items = contentchannelitemItems %}
 {% endcontentchannelitem %}
 
@@ -165,6 +165,7 @@
         <div class="row">
             <div class="g-margin-b-80--xs g-display-flex--lg">
 
+            {% assign cardsFlagCount = 0 %}
             {% assign firstFlag = false %}
             {%- for item in Items -%}
                 {% assign itemStartDateTime = item.StartDateTime | Date:'MMddyyHHmm' | AsInteger %}
@@ -181,6 +182,7 @@
 
                 {% assign alert_template = item | Attribute:'AlertTemplate','RawValue' %}
                 {%- if alert_template == 1 -%}
+                    {% assign cardsFlagCount = cardsFlagCount | Plus:1 %}
                     <a href="https://southeastchristian.org/online">
                     <div class="clearfix card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
                         <h5 class="g-font-family--secondary">SE Online</h5>
@@ -212,6 +214,7 @@
                     </div>
                     </a>
                 {%- elseif alert_template == 2 -%}
+                    {% assign cardsFlagCount = cardsFlagCount | Plus:1 %}
                     <a href="/locations">
                     <div class="clearfix card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
                         <img src="https://www.southeastchristian.org/GetImage.ashx?id=1999706&h=175&w=175&mode=crop" class="pull-left img-responsive g-padding-r-30--xs g-width-200--xs g-width-250--lg" style="margin-right: 0 !important;" />
@@ -220,6 +223,7 @@
                     </div>
                     </a>
                 {%- else -%}
+                    {% assign cardsFlagCount = cardsFlagCount | Plus:1 %}
                     {% assign defaultImageGuid = item | Attribute:'DefaultImage','RawValue' %}
                     {% assign defaultURL = item | Attribute:'DefaultURL','RawValue' %}
                     {% assign defaultContent = item | Attribute:'DefaultContent' %}
@@ -239,6 +243,10 @@
                 </div>
                 {%- endif -%}
                 {%- endif -%}
+
+                {% if cardsFlagCount == 3 %}
+                    {% break %}
+                {% endif %}
             {%- endfor -%}
 
             </div>
