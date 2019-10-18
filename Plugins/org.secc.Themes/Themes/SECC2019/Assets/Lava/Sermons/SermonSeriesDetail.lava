@@ -4,33 +4,54 @@
 
 {% assign slug = 'Global' | PageParameter:'Slug' %}
 {% contentchannelitemslug where:'Slug=="{{slug}}"' -%}
-{% for itemSlug in contentchannelitemslugItems -%}
-{% assign item = itemSlug.ContentChannelItem %}
-{% break %}
-{% endfor -%}
+    {% for itemSlug in contentchannelitemslugItems -%}
+        {% assign series = itemSlug.ContentChannelItem %}
+        {% break %}
+    {% endfor -%}
 {% endcontentchannelitemslug -%}
 
+{% comment %}
+{% assign itemChildItems = cci.ChildItems | Sort:'Order' %}
+{%- for messages in itemChildItems -%}
+    {% assign message = messages.ChildContentChannelItem %}
+    {% if message.ContentChannelId == "23" %}
+        {% assign series = cci %}
+        {% break %}
+    {%- endif -%}
+{%- endfor -%}
+{% endcomment %}
 
-
-{% if item  %}
+{% if series %}
 {% comment %}
     ************ SERMON VIDEO ************
+    {% assign currentMessage = series.ChildItems | Sort:'Order' | First %}
 {% endcomment %}
-{% assign currentDate = 'Now' | Date:'M/d/yyyy' %}
-{% assign sermonSlug = 'Global' | PageParameter:'SermonSlug' %}
-{% assign currentMessage = item.ChildItems | Sort:'Order' | First %}
+    {% assign currentDate = 'Now' | Date:'M/d/yyyy' %}
+    {% assign sermonSlug = 'Global' | PageParameter:'SermonSlug' %}
+
+    {% assign seriesChildItems = series.ChildItems | Sort:'Order' %}
+    {%- for messages in seriesChildItems -%}
+        {% assign message = messages.ChildContentChannelItem %}
+        {% if message.ContentChannelId == "23" %}
+            {% assign currentMessage = seriesChildItems | Last %}
+            {% break %}
+        {%- endif -%}
+    {%- endfor -%}
 
     {% if currentMessage != null %}
         <div class="container g-padding-y-100--md g-padding-x-0--xs">
-
-            {% comment %}
-                The Lava Code below checks for the closest sermon message to this day – IF a slug isn't defined.
-            {% endcomment %}
-            {% for childItem in item.ChildItems %}
+            {% assign seriesChildItems = series.ChildItems | Sort:'Order' %}
+            {% for childItem in seriesChildItems %}
                 {% if sermonSlug != "" -%}
-                    {% if sermonSlug == childItem.ChildContentChannelItem.PrimarySlug -%}
+                    {% if sermonSlug == childItem.ChildContentChannelItem.PrimarySlug and childItem.ChildContentChannelItem.ContentChannelId == "23" -%}
                         {% assign currentMessage = childItem %}
+                        {% break %}
                     {% endif -%}
+                {% else %}
+                    {% if message.ContentChannelId == "23" %}
+                        {% assign currentMessage = childItem %}
+                        {% break %}
+                    {%- endif -%}
                 {% endif -%}
             {% endfor %}
 
@@ -118,12 +139,12 @@
                 <div class="row g-padding-b-60--xs">
                     <div class="col-md-12 text-center">
                         <br />
-                        <h1 class="g-font-size--jumbo-1 g-font-family--secondary">{{ item.Title }}</h1>
+                        <h1 class="g-font-size--jumbo-1 g-font-family--secondary">{{ series.Title }}</h1>
                         <p class="series-dates">
                             Series Date:
                             <i><strong>
-                                {% assign lastSermon = item.ChildItems | Last %}
-                                {{ item.StartDateTime | Date:'MMM dd, yyyy' }} - {{ lastSermon.ChildContentChannelItem.StartDateTime | Date:'MMM dd, yyyy' }}
+                                {% assign lastSermon = series.ChildItems | Last %}
+                                {{ series.StartDateTime | Date:'MMM dd, yyyy' }} - {{ lastSermon.ChildContentChannelItem.StartDateTime | Date:'MMM dd, yyyy' }}
                             </strong></i>
                         </p>
                     </div>
@@ -139,7 +160,7 @@
                 </div>
 
                 {% assign resourcesCount = 0 %}
-                {% assign itemChildItems = item.ChildItems | Sort:'Order' %}
+                {% assign itemChildItems = series.ChildItems | Sort:'Order' %}
                 <div class="messages isotope_wrap series-list g-margin-b-150--xs">
         			{% for messages in itemChildItems %}
                         {% assign message = messages.ChildContentChannelItem %}
@@ -147,7 +168,7 @@
                         {% if message.ContentChannelId == "23" %}
                         <div class="isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load">
 
-                            <a class="series-link" href="/sermons/{{ item.PrimarySlug }}/{{ message.PrimarySlug }}">
+                            <a class="series-link" href="/sermons/{{ series.PrimarySlug }}/{{ message.PrimarySlug }}">
                             <div class="card g-margin-b-25--xs">
                                 <!-- Image -->
                                 <div class="img-hover">
@@ -167,7 +188,7 @@
                             </a>
                         </div>
                         {% else %}
-                        {% assign resourcesCount = resourcesCount | Plus:1 %}
+                            {% assign resourcesCount = resourcesCount | Plus:1 %}
                         {% endif %}
                     {% endfor %}
                 </div>
@@ -258,8 +279,7 @@
 
         <div class="container g-padding-y-100--md g-padding-x-0--xs">
 
-            {% assign seriesImageGuid = item | Attribute:'Image','RawValue' %}
-
+            {% assign seriesImageGuid = series | Attribute:'Image','RawValue' %}
             <div class="series-detail container">
                 <div id="seriesHead" class="row">
                     {% unless seriesImageGuid == null %}
@@ -270,10 +290,10 @@
 
                     <div class="col-sm-12 col-lg-6">
                         <br />
-                        <h2 class="g-font-size--jumbo-2 g-font-family--secondary">{{ item.Title }}</h2>
-                        {% if item.Content != empty -%}
+                        <h2 class="g-font-size--jumbo-2 g-font-family--secondary">{{ series.Title }}</h2>
+                        {% if series.Content != empty -%}
                         <p class="series-summary g-line-height--sm">
-                            {{ item.Content }}
+                            {{ series.Content }}
                         </p>
                         {% endif -%}
                         <br />
@@ -287,6 +307,96 @@
                     </div>
                 </div>
             </div>
+
+            {% assign resourcesCount = 0 %}
+            {% assign itemChildItems = series.ChildItems | Sort:'Order' %}
+            {% for messages in itemChildItems %}
+                {% assign message = messages.ChildContentChannelItem %}
+                {% assign videoImageGuid = message | Attribute:'Image','RawValue' %}
+                {% if message.ContentChannelId == "58" %}
+                    {% assign resourcesCount = resourcesCount | Plus:1 %}
+                {% endif %}
+            {% endfor %}
+
+            {% if resourcesCount != 0 %}
+            <div class="row g-padding-y-60--xs">
+                <div class="col-md-12 text-center">
+                    <h1 class="g-font-size--jumbo-1 g-font-family--secondary">Series Resources</h1>
+                </div>
+            </div>
+            <div class="messages isotope_wrap series-list">
+                {% for messages in itemChildItems %}
+                    {% assign resource = messages.ChildContentChannelItem %}
+                    {% assign resourceMediaFile = resource | Attribute:'ResourceFile','Object' %}
+                    {% assign resourceURL = resource | Attribute:'ResourceURL','RawValue' %}
+                    {% assign ResourceURLText = resource | Attribute:'ResourceURLText','RawValue' %}
+                    {% if resource.ContentChannelId == "58" %}
+
+                        <div class="isotope_item
+                            hide-on-load
+                            event-calendar
+                            col-md-4
+                            col-sm-6
+                            col-xs-12
+                            g-margin-b-0--xs
+                            ">
+                                <div class="
+                                    g-bg-color--gray-lighter
+                                    g-margin-b-50--md
+                                    g-margin-x-25--md
+                                    g-margin-b-30--xs
+                                    g-margin-x-15--xs
+                                    g-padding-y-100--md
+                                    g-padding-x-100--md
+                                    g-padding-y-50--xs
+                                    g-padding-x-50--xs
+                                    text-center
+                                    ">
+                                    {% if resourceMediaFile.Guid != null %}
+                                        <h4 class="g-font-weight--700 g-color--white">{{ resource.Title }}</h4>
+                                        <br />
+                                        <a href="/GetFile.ashx?guid={{ resourceMediaFile.Guid }}" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1" download>
+                                            <strong>Download</strong>
+                                        </a>
+                                    {% elseif resourceURL != "" %}
+                                        <h4 class="g-font-weight--700 g-color--white">{{ resource.Title }}</h4>
+                                        <br />
+                                        <a href="{{ resourceURL }}" target="_blank" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
+                                            <strong>
+                                                {% if ResourceURLText != "" %}
+                                                    {{ ResourceURLText }}
+                                                {% else %}
+                                                    Link
+                                                {% endif %}
+                                            </strong>
+                                        </a>
+                                    {% endif %}
+                                </div>
+                        </div>
+
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <script>
+            $(document).ready(function() {
+            	$('.cd-main-header').removeClass('transparent-menu-enabled').removeClass('transparent-header');
+            	$('.cd-main-content').removeClass('transparent-content');
+            });
+            $(window).load(function() {
+                // Initialize Isotope
+                var $grid = $('.isotope_wrap').isotope({
+                    // options
+                    percentPosition: true,
+                    itemSelector: '.isotope_item',
+            		layoutMode: 'fitRows'
+                });
+                // reveal all items after init
+                var $items = $grid.find('.isotope_item');
+                $grid.addClass('is-showing-items')
+                  .isotope( 'revealItemElements', $items );
+            });
+            </script>
+            {% endif %}
         </div>
 
     {% endif %}
