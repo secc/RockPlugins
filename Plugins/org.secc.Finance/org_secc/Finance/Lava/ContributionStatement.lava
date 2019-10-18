@@ -14,14 +14,14 @@
 
 			<strong>Period</strong>: &nbsp;{{ StatementStartDate | Date:'MMM d' }} - {{ StatementEndDate | Date:'MMM d, yyyy' }}<br />
 			<strong>Issued</strong>: &nbsp;{{ 'Now' | Date:'MMM d, yyyy h:mm tt' }}<br />
-			<strong>Version</strong>: 1
+			<strong>Version</strong>: {{ Workflow | Attribute:'Version' | Default:'1' }}
 			<br />
 			<br />
 			
 			<strong>{{ Salutation | Upcase }}</strong><br />
 			{{ StreetAddress1 | Upcase  }} <br />
-			{% if StreetAddress2 != '' %}
-				{{ StreetAddress2 | Upcase  }} <br />
+			{% assign StreetAddress2 = StreetAddress2 | Trim %}{% if StreetAddress2 != '' %}
+				"{{ StreetAddress2 | Upcase  }}"<br />
 			{% endif %}
 			{{ City | Upcase  }}, {{ State | Upcase  }} {{ PostalCode }}
             <br />
@@ -73,7 +73,13 @@
 						{% elseif transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid == '928a2e04-c77b-4282-888f-ec549cee026a' %}
 							&#9679;&#9679;&#9679;&#9679; &#9679;&#9679;&#9679;&#9679; &#9679;&#9679;&#9679;&#9679; {{ transaction.Transaction.FinancialPaymentDetail.AccountNumberMasked | Right:4 }}
 						{% elseif transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid == 'dabee8fd-aedf-43e1-8547-4c97fa14d9b6' %}
-							{{ transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Value }} - {{ transaction.Transaction.FinancialPaymentDetail.AccountNumberMasked | Split:' ' | Index:1 }}
+						    {%- assign maskedAccount = transaction.Transaction.FinancialPaymentDetail.AccountNumberMasked | Split:' ' | Index:1 -%}
+						    {%- assign maskedAccountSize = maskedAccount | Size -%}
+						    {%- assign maskedAccountDigits = maskedAccount | RegExMatchValue:'\d+' -%}
+						    {%- assign maskedAccountDigitsSize = maskedAccountDigits | Size -%}
+						    {%- assign maskedAccountNonDigitsSize = maskedAccountSize | Minus:maskedAccountDigitsSize -%}
+							{{ transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Value }} - 
+							{% for i in (1..maskedAccountNonDigitsSize) %}&#9679;{% endfor %}{{ maskedAccountDigits }}
 						{% else %}
 							{{ transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Value }} 
 						{% endif %}</td>
