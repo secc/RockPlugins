@@ -18,13 +18,17 @@
 </style>
 
 {% if CurrentPerson.Guid %}
+<!-- {{ CurrentPerson.Guid }} -->
     {% assign itemId = 'Global' | PageParameter:'ItemID' %}
     {% if itemId == empty %}
     {% assign itemId = 'Global' | PageParameter:'slug' %}
     {% endif %}
+
+<!-- ItemId {{itemId}} -->
     {% if itemId != empty %}
     {% contentchannelitem id:'{{itemId}}' %}
         {% if contentchannelitem %}
+        <!-- Content Channel Item Guid {{ contentchannelitem.Guid }} -->
             {{ CurrentPerson | SetUserPreference: contentchannelitem.Guid, '1'}}
         {% endif %}
     {% endcontentchannelitem %}
@@ -70,7 +74,7 @@ ORDER BY StartDateTime desc
 			    <i class="fas fa-bell fa-stack-1x"></i><span class="sr-only">{{count}} Unread Items</span>
 			</span>
 		</a>
-		<ul class="dropdown-menu dropdown-menu-right">
+		<ul class="dropdown-menu dropdown-menu-right" style="max-height: 300px; overflow-y: scroll;">
 		<li class="g-padding-x-20--xs g-padding-t-5--xs g-padding-b-10--xs"><b>Activity</b></li>
 		{% for item in items %}
 			<li>

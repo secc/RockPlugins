@@ -37,9 +37,11 @@ namespace org.secc.PDF
 
 
     //Settings
-    [CodeEditorField("Lava", "The lava to convert to a PDF", Rock.Web.UI.Controls.CodeEditorMode.Lava)]
-    [WorkflowAttribute( "PDF", "Binary File attribute to output PDF to.", fieldTypeClassNames: new string[] { "Rock.Field.Types.FileFieldType" } )]
-    [TextField( "Document Name", "The name of the document <span class='tip tip-lava'></span>.", true, "LavaDocument.pdf" )]
+    [CodeEditorField("Lava", "The lava to convert to a PDF", Rock.Web.UI.Controls.CodeEditorMode.Lava, height:300, order: 1)]
+    [CodeEditorField( "Header", "The html/lava to use in the page header.", Rock.Web.UI.Controls.CodeEditorMode.Lava, height: 100, required: false, order: 2 )]
+    [CodeEditorField( "Footer", "The html/lava to use in the page footer.", Rock.Web.UI.Controls.CodeEditorMode.Lava, height: 100, required: false, order: 3 )]
+    [WorkflowAttribute( "PDF", "Binary File attribute to output PDF to.", fieldTypeClassNames: new string[] { "Rock.Field.Types.FileFieldType" }, order: 4 )]
+    [TextField( "Document Name", "The name of the document <span class='tip tip-lava'></span>.", true, "LavaDocument.pdf", order: 5 )]
     class LavaPDF : ActionComponent
     {
         
@@ -57,15 +59,17 @@ namespace org.secc.PDF
 
             
             string html = GetActionAttributeValue( action, "Lava" ).ResolveMergeFields( GetMergeFields( action ) );
+            string header = GetActionAttributeValue( action, "Header" ).ResolveMergeFields( GetMergeFields( action ) );
+            string footer = GetActionAttributeValue( action, "Footer" ).ResolveMergeFields( GetMergeFields( action ) );
             string documentName = GetActionAttributeValue( action, "DocumentName" ).ResolveMergeFields( GetMergeFields( action ) );
 
-            BinaryFile pdfBinary = Utility.HtmlToPdf( html, rockContext, documentName );
+            BinaryFile pdfBinary = Utility.HtmlToPdf( html, header, footer, rockContext, documentName );
 
 
             Guid guid = GetAttributeValue( action, "PDF" ).AsGuid();
             if ( !guid.IsEmpty() )
             {
-                var destinationAttribute = AttributeCache.Read( guid, rockContext );
+                var destinationAttribute = AttributeCache.Get( guid, rockContext );
                 if ( destinationAttribute != null )
                 {
 

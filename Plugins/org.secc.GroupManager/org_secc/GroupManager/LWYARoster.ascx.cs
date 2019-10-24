@@ -44,7 +44,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [BooleanField( "Allow Email", "Allow email to be sent from this block.", false )]
     [BooleanField( "Allow SMS", "Allow test messages to be sent from this block.", false )]
 
-    [TextField( "Safe Sender Email", "If the current users email address is not from a safe sender, the email address to use." )]
+    [TextField( "Safe Sender Email", "If the current users email address is not from a safe sender, the email address to use.", category: "Email Settings" )]
+    [DefinedTypeField ( "Mail Relay Domain Blacklist", "The Defined Type containing the blacklist of restricted domains for relaying email.", false, key:"RestrictedDomains", category:"Email Settings" )]
+    [TextField ("From Email Help", "The help text for the \"From Email\" field", true, "Certain email providers (such as aol.com and yahoo.com) do not permit relaying email from your email address on our servers.  Please select the email address you want this email to be sent from.", category: "Email Settings" )]
     public partial class LWYARoster : GroupManagerBlock
     {
         List<GroupMemberData> memberData = new List<GroupMemberData>();
@@ -250,6 +252,35 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             pnlEmail.Visible = true;
 
             DisplayEmailRecipients();
+
+            if ( GetAttributeValue( "SafeSenderEmail" ).IsNotNullOrWhiteSpace() )
+            {
+                ddlFrom.Help = GetAttributeValue( "FromEmailHelp" );
+
+                List<ListItem> items = new List<ListItem>();
+                if ( CurrentPerson.Email.IsNotNullOrWhiteSpace() )
+                {
+                    items.Add( new ListItem( CurrentPerson.Email ) );
+                }
+                items.Add( new ListItem( GetAttributeValue( "SafeSenderEmail" ) ) );
+
+                ddlFrom.DataSource = items;
+                ddlFrom.DataBind();
+
+                Guid? restrictedDomainsGuid = GetAttributeValue( "RestrictedDomains" ).AsGuidOrNull();
+                if ( restrictedDomainsGuid.HasValue )
+                {
+                    var restrictedDomains = DefinedTypeCache.Get( restrictedDomainsGuid.Value );
+                    if ( restrictedDomains.DefinedValues.Where(dv => CurrentPerson.Email.EndsWith(dv.Value)).Any() )
+                    {
+                        ddlFrom.SelectedValue = GetAttributeValue( "SafeSenderEmail" );
+                        ddlFrom.Enabled = false;
+                    }
+                }
+            } else
+            {
+                ddlFrom.Visible = false;
+            }
         }
 
         protected void btnEmailSend_Click( object sender, EventArgs e )
@@ -269,7 +300,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                     communication.Subject = tbSubject.Text;
                     communication.FromName = CurrentPerson.FullName;
-                    communication.FromEmail = CurrentPerson.Email;
+                    communication.FromEmail = ddlFrom.SelectedValue;
                     communication.ReplyToEmail = CurrentPerson.Email;
                     communication.Message = tbBody.Text.Replace( "\n", "<br />" );
 

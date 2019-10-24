@@ -64,6 +64,10 @@
     <Compile Include="Data\GroupManagerContext.cs" />
     <Compile Include="Data\GroupManagerService.cs" />
     <Compile Include="Exceptions\NonExistantFilter.cs" />
+    <Compile Include="Migrations\201910110000001_ChildcareOptions.cs" />
+    <Compile Include="Migrations\201910140000001_RegistrationDescription.cs" />
+    <Compile Include="Migrations\201910140000000_ChildcareDescription.cs" />
+    <Compile Include="Migrations\201910110000000_RegistrationOptions.cs" />
     <Compile Include="Migrations\201908090000000_MeetingDetails.cs" />
     <Compile Include="Migrations\201908020000000_SpouseRegistration.cs" />
     <Compile Include="Migrations\201907011232595_Init.cs" />

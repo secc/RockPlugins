@@ -25,6 +25,7 @@ using Rock.Model;
 using Rock.Web.UI.Controls;
 using Rock.Attribute;
 using org.secc.Finance.Utility;
+using Rock.Web.Cache;
 
 namespace RockWeb.Plugins.org_secc.Finance
 {
@@ -181,22 +182,47 @@ namespace RockWeb.Plugins.org_secc.Finance
 
         private void DisplayResults()
         {
-            gdGivingUnits.SetLinqDataSource( GetGivingGroups() );
+            gdGivingUnits.DataSource = GetGivingGroups().ToList();
             gdGivingUnits.DataBind();
         }
 
         private IQueryable<GivingGroup> GetGivingGroups()
         {
             RockContext rockContext = new RockContext();
+            rockContext.SqlLogging( true );
 
-            FinancialTransactionService financialTransactionService = new FinancialTransactionService( rockContext );
-            var financialTransactions = financialTransactionService.Queryable().Where( ft => ft.TransactionTypeValue.Guid.ToString() == Rock.SystemGuid.DefinedValue.TRANSACTION_TYPE_CONTRIBUTION ).GroupBy( ft => ft.AuthorizedPersonAlias.Person.GivingId );
-            var givingGroups = financialTransactions.SelectMany( ft => ft.Select( fta => new GivingGroup()
+            int contributionTypeId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.TRANSACTION_TYPE_CONTRIBUTION ).Id;
+
+            DateTime lower = DateTime.MinValue;
+            DateTime upper = DateTime.MaxValue;
+
+            // Filter by Last Gift DateRange
+            if ( drpDates.LowerValue.HasValue || drpDates.UpperValue.HasValue )
             {
-                LastGift = ft.Max( ftb => ftb.TransactionDateTime ),
-                GivingId = fta.AuthorizedPersonAlias.Person.GivingId,
-                GivingGroupName = fta.AuthorizedPersonAlias.Person.GivingId.StartsWith( "G" ) ? fta.AuthorizedPersonAlias.Person.GivingGroup.Name : fta.AuthorizedPersonAlias.Person.NickName + " " + fta.AuthorizedPersonAlias.Person.LastName
-            } ) ).Distinct();
+                lower = ( drpDates.LowerValue.HasValue ? drpDates.LowerValue.Value : DateTime.MinValue );
+                upper = ( drpDates.UpperValue.HasValue ? drpDates.UpperValue.Value.AddDays( 1 ) : DateTime.MaxValue );
+            }
+
+            var givingGroups = rockContext.Database.SqlQuery<GivingGroup>( @"SELECT 
+                    max([GivingGroups].[TransactionDateTime] ) AS [LastGift], 
+                    [GivingGroups].[GivingId] AS [GivingId], 
+                    [GivingGroups].[GivingGroupName] AS [GivingGroupName]
+                        FROM( SELECT
+                         [FT].[TransactionDateTime] AS [TransactionDateTime],
+                         [FT].[TransactionTypeValueId] AS [TransactionTypeValueId],
+                         [P].[GivingId] AS [GivingId],
+                         CASE WHEN ([P].[GivingId] LIKE N'G%') THEN [G].[Name] 
+							ELSE CASE WHEN( [P].[NickName] IS NULL ) THEN N'' 
+							ELSE [P].[NickName] END + N' ' + CASE WHEN( [P].[LastName] IS NULL ) THEN N'' ELSE [P].[LastName] END END AS [GivingGroupName]
+                        FROM [dbo].[FinancialTransaction] AS [FT]
+                            LEFT OUTER JOIN[dbo].[PersonAlias] AS [PA] ON [FT].[AuthorizedPersonAliasId] = [PA].[Id]
+                            LEFT OUTER JOIN[dbo].[Person] AS [P] ON [PA].[PersonId] = [P].[Id]
+                            LEFT OUTER JOIN[dbo].[Group] AS [G] ON [P].[GivingGroupId] = [G].[Id]
+                        WHERE [FT].[TransactionTypeValueId] = @p0
+						AND (@p1 is NULL OR [FT].[TransactionDateTime] >= @p1)
+						AND (@p2 is NULL OR [FT].[TransactionDateTime] < @p2)
+                    )  AS [GivingGroups]
+                    GROUP by GivingId, GivingGroupName", contributionTypeId, lower, upper).AsQueryable();
 
             // Filter by Giving ID
             if (tbGivingId.Text.IsNotNullOrWhiteSpace())
@@ -210,13 +236,6 @@ namespace RockWeb.Plugins.org_secc.Finance
                 givingGroups = givingGroups.Where( gg => gg.GivingGroupName.Contains( tbGivingGroup.Text ) );
             }
 
-            // Filter by Last Gift DateRange
-            if (drpDates.LowerValue.HasValue || drpDates.UpperValue.HasValue)
-            {
-                DateTime lower = (drpDates.LowerValue.HasValue ? drpDates.LowerValue.Value : DateTime.MinValue);
-                DateTime upper = (drpDates.UpperValue.HasValue ? drpDates.UpperValue.Value.AddDays( 1 ) : DateTime.MaxValue);
-                givingGroups = givingGroups.Where( gg => gg.LastGift.Value >= lower && gg.LastGift.Value <= upper );
-            }
 
             givingGroups = givingGroups.OrderByDescending( g => g.LastGift );
 

@@ -13,7 +13,7 @@
               set(target, prop, value) {
                 target[prop] = value;
                 if (prop == 'video') {
-                    value.videoImage = "/Content/Main_homepage.jpg";
+                    value.videoImage = "https://www.southeastchristian.org/Content/0N2A1494.jpg";
                     value.userEventsList['started'][0] = function () {
 
                         self.image.$default_item = self.image.$item;
@@ -48,7 +48,7 @@
             // Use a proxy'ed JS object
             var self = new Proxy(this, imageHandler);
             self.defaultInitImgResult = true;
-            self.image.src = "/Content/Main_homepage.jpg";
+            self.image.src = "https://www.southeastchristian.org/Content/0N2A1494.jpg";
 
             // save default user styles
             var curStyle = self.$item.getAttribute('style');
@@ -58,7 +58,7 @@
 
             // set new background
             self.css(self.$item, {
-                'background-image': 'url("/Content/Main_homepage.jpg")',
+                'background-image': 'url("https://www.southeastchristian.org/Content/0N2A1494.jpg")',
                 'background-position': 'center',
                 'background-size': 'cover',
                 'transition': 'opacity .25s ease-in-out',
@@ -73,7 +73,7 @@
         </script>
         <div style="background-color:black">
 
-            {[ parallax videourl:'https://vimeo.com/357603792' image:'/Content/Main_homepage.jpg'  videostarttime:'0' videoendtime:'19' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'100vh' position:'bottom center' speed:'-15' ]}
+            {[ parallax videourl:'https://vimeo.com/357603792' image:'https://www.southeastchristian.org/Content/0N2A1494.jpg'  videostarttime:'0' videoendtime:'19' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'75vh' position:'bottom center' speed:'-15' ]}
                 <!-- START: Ministry Logo & Video -->
                 <div class="parallax-logo centered" style="max-width: inherit;padding: 0px;">
                     <h1 class="g-font-family--secondary g-font-size-130--lg g-font-size-80--xs g-text-shadow--black--soft" style="text-shadow: none;">Streaming Now</h1>
@@ -94,25 +94,26 @@
 {% else %}
 
     {% comment %}
-        This shows from Mon thru Sat - with a Sermon Message if avail.
+        This parallax shows from Mon thru Sat - with a Sermon Message if avail.
     {% endcomment %}
-    {% contentchannelitem where:'ContentChannelId == 24 && Status == 2' sort:'StartDateTime desc' limit:'1' %}
-    {% assign item = contentchannelitem %}
+    {% contentchannelitem where:'ContentChannelId == 24 && Status == 2' sort:'StartDateTime asc' %}
+    {% for item in contentchannelitemItems %}
+        {% assign itemChildItems = item.ChildItems | Sort:'Order' %}
+        {%- for messages in itemChildItems -%}
+            {% assign message = messages.ChildContentChannelItem %}
+            {% if message.ContentChannelId == "23" %}
+                {% assign series = item %}
+                {% break %}
+            {%- endif -%}
+        {%- endfor -%}
+    {% endfor %}
     {% endcontentchannelitem %}
-    {% if item %}
+
+    {% if series %}
     	{% assign currentDate = 'Now' | Date:'M/d/yyyy' %}
-    	{% assign currentMessage = item.ChildItems | First %}
-    	{% comment %}
-    		The Lava Code below checks for the closest sermon message to this day.
-        {% endcomment %}
-    	{% for childItem in item.ChildItems %}
-            {% assign message = childItem.ChildContentChannelItem %}
-    		{% assign currentMessageDays = currentDate | DateDiff:childItem.ChildContentChannelItem.StartDateTime,'d' %}
-    		{% if currentMessageDays <= 0 and message.ContentChannelId == "23" %}
-    			{% assign currentMessage = childItem %}
-    		{% endif %}
-    	{% endfor %}
-    	{% assign seriesImageGuid = item | Attribute:'SeriesImage','RawValue' %}
+    	{% assign currentMessage = series.ChildItems | Sort:'Order' | First %}
+
+    	{% assign seriesImageGuid = series | Attribute:'SeriesImage','RawValue' %}
     	{% assign currentMessageVimeoID = currentMessage.ChildContentChannelItem | Attribute:'VimeoId' %}
         <section id="">
     		<script>
@@ -158,7 +159,7 @@
     		    // Use a proxy'ed JS object
     		    var self = new Proxy(this, imageHandler);
     		    self.defaultInitImgResult = true;
-    		    self.image.src = "/Content/Main_homepage.jpg";
+    		    self.image.src = "https://www.southeastchristian.org/Content/0N2A1494.jpg";
 
     		    // save default user styles
     		    var curStyle = self.$item.getAttribute('style');
@@ -168,7 +169,7 @@
 
     		    // set new background
     		    self.css(self.$item, {
-    		        'background-image': 'url("/Content/Main_homepage.jpg")',
+    		        'background-image': 'url("https://www.southeastchristian.org/Content/0N2A1494.jpg")',
     		        'background-position': 'center',
     		        'background-size': 'cover',
     		        'transition': 'opacity .25s ease-in-out',
@@ -184,12 +185,12 @@
         	<div style="background-color:black">
                 {% unless currentMessageVimeoID == empty %}
 
-                    {[ parallax videourl:'https://vimeo.com/318802665' image:'/Content/Main_homepage.jpg'  videostarttime:'0' videoendtime:'19' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'100vh' position:'bottom center' speed:'-15' ]}
+                    {[ parallax videourl:'https://vimeo.com/318802665' image:'https://www.southeastchristian.org/Content/0N2A1494.jpg'  videostarttime:'0' videoendtime:'19' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'75vh' position:'bottom center' speed:'-15' ]}
     					<!-- START: Ministry Logo & Video -->
                         <div class="parallax-logo centered" style="max-width: inherit;padding: 0px;">
                             <h4 class="uppercase g-letter-spacing--3">Latest Sermon</h4>
     						<hr class="g-width-80--xs">
-                            <h1 class="g-font-family--secondary g-font-size-130--lg g-font-size-80--xs g-text-shadow--black--soft" style="text-shadow: none;">{{ item.Title }}</h1>
+                            <h1 class="g-font-family--secondary g-font-size-130--lg g-font-size-80--xs g-text-shadow--black--soft" style="text-shadow: none;">{{ series.Title }}</h1>
     						<br />
     						<h4 class="uppercase g-letter-spacing--3">{{ currentMessage.ChildContentChannelItem.Title }}</h4>
                             <br />
@@ -205,11 +206,9 @@
         	</div>
         </section>
     {% else %}
-    	{[ parallax image:'https://www.southeastchristian.org/Content/Main_homepage.jpg' zindex:'0' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'100vh' position:'bottom center' speed:'-15' ]}
+    	{[ parallax image:'https://www.southeastchristian.org/Content/0N2A1494.jpg' zindex:'0' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'75vh' position:'bottom center' speed:'-15' ]}
     	    <div class="parallax-logo centered" style="padding: 0px; z-index:3">
     	        <h4 class="uppercase g-letter-spacing--3">Connecting people to Jesus and one another</h4>
-    	        <!-- <br /> -->
-    	        <!-- <h1 class="g-font-family--secondary g-font-size-150--lg g-font-size-80--xs g-text-shadow--black--soft">See Latest Sermon</h1> -->
     	        <br />
     	        <br />
     	        <a href="/sermons" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">

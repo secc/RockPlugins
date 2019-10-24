@@ -18,7 +18,7 @@
               {% endattribute %}
               {% for type in trainingTypes %}
                 <li><a class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" href="#{{ type | ToCssClass | Trim }}">
-                    {% if type == "Annual" %}
+                    {% if typeName == "Recurring" %}
                         Recurring
                     {% elseif type == "Other" %}
                         Specific
@@ -39,7 +39,7 @@
         <div class="row g-padding-t-150--xs">
             <div class="col-xs-12 g-padding-b-40--xs">
                 <h1 class="g-font-size--jumbo-1 g-font-family--secondary text-center">
-                    {% if typeName == "Annual" %}
+                    {% if typeName == "Recurring" %}
                         Recurring Training
                     {% elseif typeName == "Other" %}
                         Specific Training
@@ -48,7 +48,7 @@
                     {% endif %}
                 </h1>
                 <div class="g-width-90-percent--sm g-width-70-percent--md g-margin-x-auto--xs" >
-                    {% if typeName == "Annual" %}
+                    {% if typeName == "Recurring" %}
                     <p>This group of trainings are required for ALL staff members regardless of how long you’ve worked at Southeast. Each will need to be renewed after specific intervals.</p>
                     {% endif %}
                     {% if typeName == "Onboarding" %}
@@ -64,7 +64,8 @@
 				{% definedvalue where:'DefinedTypeId == 257 && TrainingType == {{typeName}}' %}
 	                {% for definedValueItem in definedvalueItems %}
 	                {% assign trainingType = definedValueItem | Attribute:"TrainingType" %}
-	                {% assign trainingTaken = false | AsBoolean%}
+                    {% assign trainingRecurringFreq = definedValueItem | Attribute:"RecurringFrequency","RawValue" %}
+	                {% assign trainingTaken = false | AsBoolean %}
 
 	                {% assign trainingNeeded = true | AsBoolean %}
 	                {% assign currentDate = 'Now' | Date:'M/d/yyyy' %}
@@ -78,9 +79,16 @@
 	                        {% break %}
 	                    {% endif %}
 	                {% endfor %}
-	                {% if trainingTaken == true and daysSinceCompleted < 365 %}
-	                    {% assign trainingNeeded = false | AsBoolean %}
-	                {% endif %}
+
+                    {% if trainingRecurringFreq != "" %}
+                        {% if trainingTaken == true and daysSinceCompleted < trainingRecurringFreq %}
+                            {% assign trainingNeeded = false | AsBoolean %}
+                        {% endif %}
+                    {% else %}
+                        {% if trainingTaken == true and daysSinceCompleted < 365 %}
+    	                    {% assign trainingNeeded = false | AsBoolean %}
+    	                {% endif %}
+                    {% endif %}
 
 	                {% comment %} Ministry Safe is handled here {% endcomment %}
 	                {% if definedValueItem.Id == 21517 %}
@@ -89,9 +97,16 @@
 	                    {% assign trainingTaken = true | AsBoolean%}
 	                    {% assign daysSinceCompleted = trainingDate | DateDiff:currentDate,'d' %}
 
-	                    {% if trainingTaken == true and daysSinceCompleted < 730 %}
-	                        {% assign trainingNeeded = false | AsBoolean %}
-	                    {% endif %}
+                        {% if trainingRecurringFreq != "" %}
+                            {% if trainingTaken == true and daysSinceCompleted < trainingRecurringFreq %}
+    	                        {% assign trainingNeeded = false | AsBoolean %}
+    	                    {% endif %}
+                        {% else %}
+                            {% if trainingTaken == true and daysSinceCompleted < 730 %}
+                                {% assign trainingNeeded = false | AsBoolean %}
+                            {% endif %}
+                        {% endif %}
+
 	                {% endif %}
 
 	                {% if trainingType == {{typeName}} %}

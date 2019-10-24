@@ -28,7 +28,7 @@ namespace org.secc.PDF
 {
     public class Utility
     {
-        public static BinaryFile HtmlToPdf( string html, RockContext rockContext = null, string pdfFileName = "GeneratedPDF.pdf", PageMargins margins = null, PageOrientation orientation = PageOrientation.Default )
+        public static BinaryFile HtmlToPdf( string html, string pageHeaderHtml = null, string pageFooterHtml = null, RockContext rockContext = null, string pdfFileName = "GeneratedPDF.pdf", PageMargins margins = null, PageOrientation orientation = PageOrientation.Default )
         {
             if (rockContext == null)
             {
@@ -40,6 +40,18 @@ namespace org.secc.PDF
                 htmlToPdf.Margins = margins;
             }
             htmlToPdf.Orientation = orientation;
+
+            // Add the Header
+            if ( pageHeaderHtml != null && !string.IsNullOrWhiteSpace( pageHeaderHtml ) )
+            {
+                htmlToPdf.PageHeaderHtml = pageHeaderHtml;
+            }
+            // Add the Footer
+            if ( pageFooterHtml != null && !string.IsNullOrWhiteSpace( pageFooterHtml ) )
+            {
+                htmlToPdf.PageFooterHtml = pageFooterHtml;
+            }
+
 
             using ( MemoryStream msPDF = new MemoryStream( htmlToPdf.GeneratePdf( html ) ) )
             {
