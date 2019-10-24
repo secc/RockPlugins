@@ -111,10 +111,17 @@
 								{%- endfor -%}
 								{% if sermonsCount > 1 -%}
 								{{ item.StartDateTime | Date:'MMM dd, yyyy' }} - {{ lastSermon.ChildContentChannelItem.StartDateTime | Date:'MMM dd, yyyy' }}
-								{% else -%}
-								{{ item.StartDateTime | Date:'MMM dd, yyyy' }}
-								{% endif -%}<br />
+								<br />
 								SERMONS: {{ sermonsCount }}
+								{% else -%}
+									{% if sermonsCount == 1 -%}
+										{{ item.StartDateTime | Date:'MMM dd, yyyy' }}
+										<br />
+										SERMONS: {{ sermonsCount }}
+									{% else -%}
+										SERMONS COMING SOON
+									{% endif -%}
+								{% endif -%}
 							</h6>
 						</div>
 					</div>

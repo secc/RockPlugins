@@ -5,35 +5,28 @@
 </style>
 {% assign total = 0 %}
 {% assign StatementEndMonthDay = StatementEndDate | Date:'MMdd' %}
-<div style="min-width: 1024px">
+<div style="min-width: 1024px;">
 	<div class="row">
 		<div class="col-xs-8">
 			<h1>{{ StatementStartDate | Date:'yyyy' }} {% if StatementEndMonthDay == '1231' %}Annual{% else %}Year-to-date{% endif %} Giving Statement</h1>
-			
-			<hr style="opacity: .5;" />
-
-			<strong>Period</strong>: &nbsp;{{ StatementStartDate | Date:'MMM d' }} - {{ StatementEndDate | Date:'MMM d, yyyy' }}<br />
-			<strong>Issued</strong>: &nbsp;{{ 'Now' | Date:'MMM d, yyyy h:mm tt' }}<br />
-			<strong>Version</strong>: 1
-			<br />
-			<br />
-			
-			<strong>{{ Salutation | Upcase }}</strong><br />
-			{{ StreetAddress1 | Upcase  }} <br />
-			{% if StreetAddress2 != '' %}
-				{{ StreetAddress2 | Upcase  }} <br />
-			{% endif %}
-			{{ City | Upcase  }}, {{ State | Upcase  }} {{ PostalCode }}
+    		<strong>Period</strong>: &nbsp;{{ StatementStartDate | Date:'MMM d' }} - {{ StatementEndDate | Date:'MMM d, yyyy' }}
+			<div style="margin: 210px 0px 50px 75px">
+    			<strong>{{ Salutation | Upcase }}</strong><br />
+    			{{ StreetAddress1 | Upcase  }} <br />
+    			{% assign StreetAddress2 = StreetAddress2 | Trim %}{% if StreetAddress2 != '' %}
+    				{{ StreetAddress2 | Upcase  }}<br />
+    			{% endif %}
+    			{{ City | Upcase  }}, {{ State | Upcase  }} {{ PostalCode }}
+			</div>
             <br />
             <br />
 		</div>
 		<div class="col-xs-4">
 			<div class="row">
 				<div class="col-xs-12 text-center">
-					<div class="clearfix" style="margin-top: 20px">
-						<img src="{{ 'Global' | Attribute:'PublicApplicationRoot' }}/Plugins/org_secc/Finance/Lava/SEC_logo_line_black.png" width="100px" />
+					<div class="clearfix" style="margin: 25px">
+						<img src="{{ 'Global' | Attribute:'PublicApplicationRoot' }}/Plugins/org_secc/Finance/Lava/SE_Primary_Logo.png" width="250px"/>
 					</div>
-					<strong>{{ 'Global' | Attribute:'OrganizationName' }}</strong><br />
 					{{ 'Global' | Attribute:'OrganizationAddress','Street1' }}<br />
 					{{ 'Global' | Attribute:'OrganizationAddress','City' }}, {{ 'Global' | Attribute:'OrganizationAddress','State' }} {{ 'Global' | Attribute:'OrganizationAddress','PostalCode' }}<br />
 					{{ 'Global' | Attribute:'OrganizationWebsite' }}
@@ -73,7 +66,13 @@
 						{% elseif transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid == '928a2e04-c77b-4282-888f-ec549cee026a' %}
 							&#9679;&#9679;&#9679;&#9679; &#9679;&#9679;&#9679;&#9679; &#9679;&#9679;&#9679;&#9679; {{ transaction.Transaction.FinancialPaymentDetail.AccountNumberMasked | Right:4 }}
 						{% elseif transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid == 'dabee8fd-aedf-43e1-8547-4c97fa14d9b6' %}
-							{{ transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Value }} - {{ transaction.Transaction.FinancialPaymentDetail.AccountNumberMasked | Split:' ' | Index:1 }}
+						    {%- assign maskedAccount = transaction.Transaction.FinancialPaymentDetail.AccountNumberMasked | Split:' ' | Index:1 -%}
+						    {%- assign maskedAccountSize = maskedAccount | Size -%}
+						    {%- assign maskedAccountDigits = maskedAccount | RegExMatchValue:'\d+' -%}
+						    {%- assign maskedAccountDigitsSize = maskedAccountDigits | Size -%}
+						    {%- assign maskedAccountNonDigitsSize = maskedAccountSize | Minus:maskedAccountDigitsSize -%}
+							{{ transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Value }} - 
+							{% for i in (1..maskedAccountNonDigitsSize) %}&#9679;{% endfor %}{{ maskedAccountDigits }}
 						{% else %}
 							{{ transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Value }} 
 						{% endif %}</td>

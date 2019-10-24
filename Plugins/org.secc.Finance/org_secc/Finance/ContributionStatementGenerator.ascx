@@ -18,7 +18,7 @@
                         <Rock:GridFilter runat="server" ID="gfFilter" OnApplyFilterClick="gfFilter_ApplyFilterClick" OnClearFilterClick="gfFilter_ClearFilterClick">
                             <Rock:RockTextBox ID="tbGivingId" runat="server" Label="Giving ID"></Rock:RockTextBox>
                             <Rock:RockTextBox ID="tbGivingGroup" runat="server" Label="Giving Group"></Rock:RockTextBox>
-                            <Rock:DateRangePicker ID="drpDates" runat="server" Label="Last Gift Date Range" />
+                            <Rock:DateRangePicker ID="drpDates" runat="server" Label="Contribution Date Range" />
                         </Rock:GridFilter>
                         <Rock:Grid ID="gdGivingUnits" runat="server" EmptyDataText="No Giving Units Found" 
                             RowItemText="Giving Units" AllowSorting="true" ExportSource="ColumnOutput"
@@ -27,7 +27,7 @@
                                 <Rock:SelectField></Rock:SelectField>
                                 <Rock:RockBoundField DataField="GivingId" HeaderText="Giving ID" SortExpression="Name" />
                                 <Rock:RockBoundField DataField="GivingGroupName" HeaderText="Giving Group" SortExpression="GivingGroupName" />
-                                <Rock:RockBoundField DataField="LastGift" HeaderText="Last Gift" SortExpression="LastGift" />
+                                <Rock:RockBoundField DataField="LastGift" HeaderText="Last Contribution (in Filter Range)" SortExpression="LastGift" />
                              </Columns>
                         </Rock:Grid>
                     </div>
