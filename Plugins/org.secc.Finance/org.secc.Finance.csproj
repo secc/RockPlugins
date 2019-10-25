@@ -64,14 +64,19 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Handlers\GetStatement.ashx.cs">
+      <DependentUpon>GetStatement.ashx</DependentUpon>
+    </Compile>
     <Compile Include="Jobs\ProcessGivingStatements.cs" />
     <Compile Include="Utility\Statement.cs" />
     <Compile Include="Workflow\GenerateStatement.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="Handlers\GetStatement.ashx" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"
