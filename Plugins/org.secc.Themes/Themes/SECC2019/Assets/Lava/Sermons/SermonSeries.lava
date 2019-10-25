@@ -170,7 +170,7 @@ function getMoreSermons($) {
 	// check and see if another request is being loaded
 	if (sermonsLoading == false) {
 		$.ajax( {
-			url: 'https://www.southeastchristian.org/Webhooks/Lava.ashx/sermons/'+sermonOffset,
+			url: '/Webhooks/Lava.ashx/sermons/'+sermonOffset,
 			async: true,
 			beforeSend: function(data) {
 				sermonsLoading = true; // start ajax loading process
