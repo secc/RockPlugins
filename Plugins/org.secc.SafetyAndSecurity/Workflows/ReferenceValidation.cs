@@ -248,8 +248,13 @@ namespace org.secc.SafetyAndSecurity
             number = number.Replace( " ", "" );
             return ( number );
         }
-        private string formatStreet( string street )
+        private string formatStreet( string? street )
         {
+            if ( string.IsNullOrWhiteSpace( street ) )
+            {
+                return "";
+            }
+
             street = street.Trim();
             street = street.Substring( 0, street.LastIndexOf( " " ) + 1 );
             street = street.Replace( " ", "" );
@@ -259,10 +264,10 @@ namespace org.secc.SafetyAndSecurity
         private string formatAddress( Location location )
         {
             string address;
-            address = String.Concat( formatStreet( location?.Street1.ToLower() ), 
-                                     formatStreet( location?.Street2.ToLower() ),
-                                     location?.City.ToLower(), location?.State.ToLower(), 
-                                     location?.PostalCode.SafeSubstring( 0, 5 ) );
+            address = String.Concat( formatStreet( location?.Street1?.ToLower() ), 
+                                     formatStreet( location?.Street2?.ToLower() ),
+                                     location?.City?.ToLower(), location?.State?.ToLower(), 
+                                     location?.PostalCode?.SafeSubstring( 0, 5 ) );
             address = address.Replace( " ", "" );
             address = address.Replace( "-", "" ).Trim();
             return ( address );
