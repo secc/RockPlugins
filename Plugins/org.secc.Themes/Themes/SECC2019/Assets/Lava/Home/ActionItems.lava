@@ -22,6 +22,18 @@
       -o-transition: all ease .5s;
       transition: all ease .5s;
   }
+  @media (min-width: 992px) and (max-width: 1199px) {
+      .live-stream-container {
+          padding: 0px !important;
+      }
+      .action-image {
+          width: 40% !important;
+      }
+      .action-content {
+          clear: both;
+          padding-top: 10px !important;
+      }
+  }
 </style>
 <script type="text/javascript">
     // isotop options and wrapper
@@ -195,7 +207,7 @@
                             <div class="row">
                                 <div class="col-md-12 text-center g-padding-x-0--xs g-padding-b-0--sm">
                                     <div id="churchonline_counter">
-                                        <span class="g-display-inline-block--xs g-margin-t-15--xs" style="vertical-align: top;padding: 20px 0px;">
+                                        <span class="g-display-inline-block--xs g-margin-t-15--xs live-stream-container" style="vertical-align: top;padding: 20px 0px;">
                                             <span class="live-stream coming-soon">
                                                 <h6 class="notlive uppercase g-color--black g-font-weight--700" style="vertical-align:middle">Next Event</h6>
                                                 <h6 class="live uppercase g-color--black g-font-weight--700" style="vertical-align:middle">Live Now</h6>
@@ -217,9 +229,9 @@
                     {% assign cardsFlagCount = cardsFlagCount | Plus:1 %}
                     <a href="/locations">
                     <div class="clearfix card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
-                        <img src="/GetImage.ashx?id=1999706&h=175&w=175&mode=crop" class="pull-left img-responsive g-padding-r-30--xs g-width-200--xs g-width-250--lg" style="margin-right: 0 !important;" />
+                        <img src="/GetImage.ashx?id=1999706&h=175&w=175&mode=crop" class="pull-left img-responsive g-padding-r-30--xs g-width-200--xs g-width-250--lg action-image" style="margin-right: 0 !important;" />
                         <h5 class="g-font-family--secondary g-margin-b-5--xs">New Here?</h5>
-                        <h6 class="g-margin-b-0--xs g-line-height--normal">We have multiple locations but one mission: <i>Connecting people to Jesus and one another.</i> Learn more about what to expect on your visit.</h6>
+                        <h6 class="g-margin-b-0--xs g-line-height--normal action-content">We have multiple locations but one mission: <i>Connecting people to Jesus and one another.</i> Learn more about what to expect on your visit.</h6>
                     </div>
                     </a>
                 {%- else -%}
@@ -231,10 +243,10 @@
                     <a href="{{ defaultURL }}">
                     <div class="clearfix card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
                         {% if defaultImageGuid != '' %}
-                        <img src="/GetImage.ashx?Guid={{ defaultImageGuid }}&h=175&w=175&mode=crop" class="pull-left img-responsive g-padding-r-30--xs g-width-200--xs g-width-250--lg" style="margin-right: 0 !important;" />
+                        <img src="/GetImage.ashx?Guid={{ defaultImageGuid }}&h=175&w=175&mode=crop" class="pull-left img-responsive g-padding-r-30--xs g-width-200--xs g-width-250--lg action-image" style="margin-right: 0 !important;" />
                         {% endif %}
                         <h5 class="g-font-family--secondary g-margin-b-5--xs">{{ item.Title }}</h5>
-                        <h6 class="g-margin-b-0--xs g-line-height--normal">{{ defaultContent | Truncate:134,'...' }}</h6>
+                        <h6 class="g-margin-b-0--xs g-line-height--normal action-content">{{ defaultContent | Truncate:134,'...' }}</h6>
                     </div>
                     </a>
                     {%- endif -%}
