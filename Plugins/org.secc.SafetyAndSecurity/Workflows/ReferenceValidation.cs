@@ -248,7 +248,7 @@ namespace org.secc.SafetyAndSecurity
             number = number.Replace( " ", "" );
             return ( number );
         }
-        private string formatStreet( string? street )
+        private string formatStreet( string street )
         {
             if ( string.IsNullOrWhiteSpace( street ) )
             {
