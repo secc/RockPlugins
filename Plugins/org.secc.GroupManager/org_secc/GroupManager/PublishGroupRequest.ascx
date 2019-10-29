@@ -4,6 +4,10 @@
         <asp:Panel runat="server" ID="pnlEdit" Visible="true">
             <div class="panel panel-default">
                 <div class="panel-heading">
+                    <div class="pull-right">
+                        <asp:LinkButton CausesValidation="false" runat="server" ID="btnLink" CssClass="btn btn-default btn-xs"
+                            Text="<i class='fa fa-link'></i> Go To Group" OnClick="btnLink_Click" />
+                    </div>
                     <h3 class="panel-title">Publish:
                         <asp:Literal ID="ltGroupName" runat="server" />
                     </h3>

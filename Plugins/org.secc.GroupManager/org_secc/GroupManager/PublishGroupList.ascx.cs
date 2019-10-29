@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Web.UI.WebControls;
 using org.secc.GroupManager.Model;
 using Rock;
 using Rock.Attribute;
@@ -24,6 +25,7 @@ using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.GroupManager
 {
@@ -99,6 +101,52 @@ namespace RockWeb.Plugins.GroupManager
         {
             SetBlockUserPreference( "ContactPersonId", pContactPerson.SelectedValue.ToString() );
             SetBlockUserPreference( "PublishGroupStatus", string.Join( ",", cblStatus.SelectedValues ) );
+            BindGrid();
+        }
+        protected void btnLink_Click( object sender, EventArgs e )
+        {
+            LinkButton btn = ( LinkButton ) sender;
+            GridViewRow gvr = ( GridViewRow ) btn.NamingContainer;
+            var hfGroupId = ( HiddenField ) gvr.FindControl( "hfGroupId" );
+            var groupId = hfGroupId.Value;
+            NavigateToPage( Rock.SystemGuid.Page.GROUP_VIEWER.AsGuid(), new Dictionary<string, string> { { "GroupId", groupId } } );
+        }
+
+        protected void btnEdit_Click( object sender, EventArgs e )
+        {
+            LinkButton btn = ( LinkButton ) sender;
+            GridViewRow gvr = ( GridViewRow ) btn.NamingContainer;
+            var hfPublishGroupId = ( HiddenField ) gvr.FindControl( "hfPublishGroupId" );
+            var publishGroupId = hfPublishGroupId.Value;
+            NavigateToLinkedPage( "PublishGroupDetailPage", new Dictionary<string, string> { { "PublishGroupId", publishGroupId } } );
+        }
+
+        protected void btnDelete_Click( object sender, EventArgs e )
+        {
+            LinkButton btn = ( LinkButton ) sender;
+            GridViewRow gvr = ( GridViewRow ) btn.NamingContainer;
+            var hfPublishGroupId = ( HiddenField ) gvr.FindControl( "hfPublishGroupId" );
+            var publishGroupId = hfPublishGroupId.Value.AsInteger();
+
+            using ( RockContext rockContext = new RockContext() )
+            {
+                PublishGroupService publishGroupService = new PublishGroupService( rockContext );
+                var publishGroup = publishGroupService.Get( publishGroupId );
+                if ( publishGroup != null )
+                {
+                    if ( this.IsUserAuthorized( Rock.Security.Authorization.EDIT ) ||
+                        publishGroup.ContactPersonAlias.Person.Id == CurrentPersonId ||
+                        publishGroup.CreatedByPersonId == CurrentPersonId )
+                    {
+                        publishGroupService.Delete( publishGroup );
+                        rockContext.SaveChanges();
+                    }
+                    else
+                    {
+                        maAlert.Show( "We are sorry, you are not permitted to delete this publish group.", ModalAlertType.Alert );
+                    }
+                }
+            }
             BindGrid();
         }
     }
