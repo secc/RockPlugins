@@ -39,8 +39,11 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
     [Category( "SECC > CRM" )]
     [Description( "Allows people to enter changes which can later be reviewed." )]
 
-    [BooleanField( "Apply On Submit", "Should the changed be applied as soon as they are submitted?", true, key: "AutoApply" )]
-    [WorkflowTypeField( "Workflow", "Workflow to run after a change request is made." )]
+    [BooleanField( "Apply On Submit", "Should the changed be applied as soon as they are submitted?", true, key: "AutoApply", order: 0 )]
+    [DataViewField( "Blacklist Data View",
+        "Data View of people who should never have their data automatically updated such as staff members, VIPs or other people you wish to have reviewed before updating.",
+        false, key: "BlacklistDataView", order: 1 )]
+    [WorkflowTypeField( "Workflow", "Workflow to run after a change request is made.", order: 2 )]
     public partial class ChangeEntry : Rock.Web.UI.RockBlock
     {
         /// <summary>
@@ -211,7 +214,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 {
                     GroupTypeRole groupTypeRole;
                     GroupTypeRoleService groupTypeRoleService = new GroupTypeRoleService( rockContext );
-                    if (ddlFamilyRole.SelectedValue == "A" )
+                    if ( ddlFamilyRole.SelectedValue == "A" )
                     {
                         groupTypeRole = groupTypeRoleService.Get( Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() );
                     }
@@ -418,14 +421,38 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
             }
 
+            var autoApply = false;
+            if ( GetAttributeValue( "AutoApply" ).AsBoolean() )
+            {
+                var blackListDV = GetAttributeValue( "BlacklistDataView" ).AsGuidOrNull();
+                if ( blackListDV.HasValue )
+                {
+                    DataViewService dataViewService = new DataViewService( rockContext );
+                    var dv = dataViewService.Get( blackListDV.Value );
+                    if ( dv != null )
+                    {
+                        List<string> errorMessages;
+                        var qry = ( IQueryable<Person> ) dv.GetQuery( null, 30, out errorMessages );
+                        if ( qry.Where( p => p.Id == person.Id ).Count() == 0 )
+                        {
+                            autoApply = true;
+                        }
+                    }
+                }
+                else
+                {
+                    autoApply = true;
+                }
+            }
+
             if ( changeRequest.ChangeRecords.Any()
-                || ( !familyChangeRequest.ChangeRecords.Any() && tbComments.Text.IsNotNullOrWhiteSpace() ) )
+            || ( !familyChangeRequest.ChangeRecords.Any() && tbComments.Text.IsNotNullOrWhiteSpace() ) )
             {
                 changeRequest.RequestorComment = tbComments.Text;
                 ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
                 changeRequestService.Add( changeRequest );
                 rockContext.SaveChanges();
-                if ( GetAttributeValue( "AutoApply" ).AsBoolean() )
+                if ( autoApply )
                 {
                     changeRequest.CompleteChanges( rockContext );
                 }
@@ -439,7 +466,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
                 changeRequestService.Add( familyChangeRequest );
                 rockContext.SaveChanges();
-                if ( GetAttributeValue( "AutoApply" ).AsBoolean() )
+                if ( autoApply )
                 {
                     familyChangeRequest.CompleteChanges( rockContext );
                 }
@@ -448,7 +475,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
 
 
-            if ( GetAttributeValue( "AutoApply" ).AsBoolean() )
+            if ( autoApply )
             {
                 NavigateToPerson();
             }

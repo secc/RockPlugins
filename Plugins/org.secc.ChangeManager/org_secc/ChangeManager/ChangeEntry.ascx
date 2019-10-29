@@ -143,6 +143,7 @@
                 Your changes have been submitted. Pending review, they will be applied.
                 <br />
                 <Rock:BootstrapButton runat="server" Text="Done" ID="btnDone" OnClick="btnDone_Click" CssClass="btn btn-primary" />
+                <br />
             </asp:Panel>
         </div>
     </ContentTemplate>

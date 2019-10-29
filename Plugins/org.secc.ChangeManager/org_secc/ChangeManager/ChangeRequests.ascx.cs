@@ -97,8 +97,23 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 changeRequests = changeRequests.Where( c => c.EntityTypeId == entityTypeId );
             }
 
-            changeRequests = changeRequests.OrderBy( c => c.IsComplete ).ThenByDescending( c => c.CreatedDateTime );
-            gRequests.SetLinqDataSource( changeRequests );
+            var requests = changeRequests.Select( c =>
+                 new ChangePOCO
+                 {
+                     Id = c.Id,
+                     Name = c.Name,
+                     EntityType = c.EntityType.FriendlyName,
+                     Requestor = c.RequestorAlias.Person.NickName + " " + c.RequestorAlias.Person.LastName,
+                     Requested = c.CreatedDateTime ?? Rock.RockDateTime.Today,
+                     Applied = c.ChangeRecords.Any( r => r.WasApplied ),
+                     WasReviewed = c.IsComplete
+                 }
+            );
+
+            requests = requests.OrderBy( c => c.WasReviewed )
+                .ThenBy( c => c.Applied )
+                .ThenByDescending( c => c.Requested );
+            gRequests.SetLinqDataSource( requests );
             gRequests.DataBind();
         }
 
@@ -107,23 +122,37 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             NavigateToLinkedPage( "DetailsPage", new Dictionary<string, string> { { "ChangeRequest", e.RowKeyId.ToString() } } );
         }
 
-        protected void gRequests_RowDataBound( object sender, GridViewRowEventArgs e )
-        {
-            if ( e.Row.RowType == DataControlRowType.DataRow )
-            {
-                e.Row.Cells[1].Text = e.Row.Cells[1].Text.Split( '.' ).Last();
-                if ( e.Row.Cells[1].Text == "PersonAlias" )
-                {
-                    e.Row.Cells[1].Text = "Person";
-                }
-            }
-        }
-
         protected void fRequests_ApplyFilterClick( object sender, EventArgs e )
         {
             SetBlockUserPreference( "ShowComplete", cbShowComplete.Checked.ToString() );
             SetBlockUserPreference( "EntityType", pEntityType.SelectedValue );
             BindGrid();
+        }
+
+        private class ChangePOCO
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            private string entityType = "";
+            public string EntityType
+            {
+                get
+                {
+                    return entityType;
+                }
+                set
+                {
+                    entityType = value;
+                    if ( entityType == "Person Alias" )
+                    {
+                        entityType = "Person";
+                    }
+                }
+            }
+            public string Requestor { get; set; }
+            public DateTime Requested { get; set; }
+            public bool Applied { get; set; }
+            public bool WasReviewed { get; set; }
         }
     }
 }
