@@ -137,7 +137,10 @@ namespace RockWeb.Plugins.GroupManager
 
             ddlAudience.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.MARKETING_CAMPAIGN_AUDIENCE_TYPE.AsGuid() ) );
             ddlDayOfWeek.BindToEnum<DayOfWeek>( true );
-            ltGroupName.Text = publishGroup.Group.Name;
+
+            var groupPageId = PageCache.Get( Rock.SystemGuid.Page.GROUP_VIEWER.AsGuid() ).Id;
+
+            ltGroupName.Text = string.Format( "<a href='/page/{0}' target='_blank'>{1}</a>", groupPageId, publishGroup.Group.Name );
             tbDescription.Text = publishGroup.Description.IsNotNullOrWhiteSpace() ? publishGroup.Description : publishGroup.Group.Description;
             iGroupImage.BinaryFileId = publishGroup.ImageId;
             drPublishDates.UpperValue = publishGroup.EndDateTime;
@@ -575,5 +578,11 @@ namespace RockWeb.Plugins.GroupManager
             UpdateChildcareFields();
         }
         #endregion
+
+        protected void btnLink_Click( object sender, EventArgs e )
+        {
+            var publishGroup = GetPublishGroup();
+            NavigateToPage( Rock.SystemGuid.Page.GROUP_VIEWER.AsGuid(), new Dictionary<string, string> { { "GroupId", publishGroup.GroupId.ToString() } } );
+        }
     }
 }
