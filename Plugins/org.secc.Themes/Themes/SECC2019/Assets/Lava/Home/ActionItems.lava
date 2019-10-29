@@ -15,18 +15,24 @@
   #churchonline_counter .time li:last-child { padding: 0 10px 0 10px; border-right: none; }
   #churchonline_counter .time li span { font-size: 1.2em; color: black}
   #churchonline_counter .live { display: none }
-  #superNoticeHeader {
-      padding: 0px;
-      color: #000000;
-      background-color: #FFFFFF;
-      width: 100%;
-      z-index: 0;
-      position: relative;
-      height: auto;
-      -moz-transition: height 0.2s ease-in-out 0.2s;
-      -webkit-transition: height 0.2s ease-in-out 0.2s;
-      -o-transition: height 0.2s ease-in-out 0.2s;
-      transition: height 0.2s ease-in-out 0.2s;
+  .card {
+      -webkit-transition: all ease .5s;
+      -moz-transition: all ease .5s;
+      -ms-transition: all ease .5s;
+      -o-transition: all ease .5s;
+      transition: all ease .5s;
+  }
+  @media (min-width: 992px) and (max-width: 1199px) {
+      .live-stream-container {
+          padding: 0px !important;
+      }
+      .action-image {
+          width: 40% !important;
+      }
+      .action-content {
+          clear: both;
+          padding-top: 10px !important;
+      }
   }
 </style>
 <script type="text/javascript">
@@ -57,6 +63,7 @@
             var churchUrl = "https://southeastchristian.churchonline.org"
 
             goLive = function() {
+              $("#churchonline_counter_loader").hide();
               $("#churchonline_counter_container").show();
               $("#churchonline_counter .time").hide();
               $("#churchonline_counter .notlive").hide();
@@ -96,7 +103,8 @@
                     goLive();
                     return clearInterval(intervalId);
                   }
-                  $("#churchonline_counter_container").show();
+                  $("#churchonline_counter_loader").fadeOut().next().delay(500);
+                  $("#churchonline_counter_container").fadeIn( 300 );
                 }, 1000);
               }
             }
@@ -145,37 +153,61 @@
     Production is 60.
 {% endcomment %}
 
-{% contentchannelitem where:'ContentChannelId == 58' sort:'Order' limit:3 %}
+{% assign dt =  'Now' | Date:'yyyy/MM/dd HH:mm:ss tt' -%}
+{% contentchannelitem where:'ContentChannelId == 60 && StartDateTime <= "{{dt}}"' sort:'Order' %}
 {% assign Items = contentchannelitemItems %}
-{% assign ItemsCount = contentchannelitemItems | Size %}
 {% endcontentchannelitem %}
 
+{% assign currentDateTime = 'Now' | Date:'MMddyyHHmm' | AsInteger %}
+
+{% assign ItemsCount = 0 %}
+{% for item in Items %}
+    {% assign itemStartDateTime = item.StartDateTime | Date:'MMddyyHHmm' | AsInteger %}
+    {% assign itemExpireDateTime = item.ExpireDateTime | Date:'MMddyyHHmm' | AsInteger %}
+    {% if itemStartDateTime <= currentDateTime %}
+        {% if itemExpireDateTime > currentDateTime or itemExpireDateTime == null %}
+            {% assign ItemsCount = ItemsCount | Plus:1 %}
+        {% endif %}
+    {% endif %}
+{% endfor %}
+
+{[ wow animate:'fadeInUp' duration:'.8s' ]}
 <div class="fluid-container">
     <div class="container">
         <div class="row">
             <div class="g-margin-b-80--xs g-display-flex--lg">
 
-
+            {% assign cardsFlagCount = 0 %}
+            {% assign firstFlag = false %}
             {%- for item in Items -%}
+                {% assign itemStartDateTime = item.StartDateTime | Date:'MMddyyHHmm' | AsInteger %}
+                {% assign itemExpireDateTime = item.ExpireDateTime | Date:'MMddyyHHmm' | AsInteger %}
+                {% if itemStartDateTime <= currentDateTime %}
+                {% if itemExpireDateTime > currentDateTime or itemExpireDateTime == null %}
                 <div class="col-xs-12 col-lg-4
-                    {% if forloop.first %}
+                    {% if firstFlag == false %}
                         {% if ItemsCount == 1 %} col-lg-offset-4 {% endif %}
                         {% if ItemsCount == 2 %} col-lg-offset-2 {% endif %}
+                        {% assign firstFlag = true %}
                     {% endif %}
                   event-calendar">
 
                 {% assign alert_template = item | Attribute:'AlertTemplate','RawValue' %}
                 {%- if alert_template == 1 -%}
-                    <a href="https://southeastchristian.org/online">
+                    {% assign cardsFlagCount = cardsFlagCount | Plus:1 %}
+                    <a href="/online">
                     <div class="clearfix card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
                         <h5 class="g-font-family--secondary">SE Online</h5>
                         <h6 class="g-margin-b-0--xs g-line-height--normal">Live stream our worship services each Sunday at 11:30 a.m., 2:00 p.m., & 8:00 p.m.</h6>
 
+                        <div id="churchonline_counter_loader" class="g-margin-x-auto--xs text-center">
+                            <img src="/Content/ExternalSite/WebImages/Loader808.gif" class="g-padding-y-30--xs"/>
+                        </div>
                         <div id="churchonline_counter_container" class="alertBar container-fluid" style="border-width: 2px;">
                             <div class="row">
                                 <div class="col-md-12 text-center g-padding-x-0--xs g-padding-b-0--sm">
                                     <div id="churchonline_counter">
-                                        <span class="g-display-inline-block--xs g-margin-t-15--xs" style="vertical-align: top;padding: 20px 0px;">
+                                        <span class="g-display-inline-block--xs g-margin-t-15--xs live-stream-container" style="vertical-align: top;padding: 20px 0px;">
                                             <span class="live-stream coming-soon">
                                                 <h6 class="notlive uppercase g-color--black g-font-weight--700" style="vertical-align:middle">Next Event</h6>
                                                 <h6 class="live uppercase g-color--black g-font-weight--700" style="vertical-align:middle">Live Now</h6>
@@ -194,14 +226,16 @@
                     </div>
                     </a>
                 {%- elseif alert_template == 2 -%}
+                    {% assign cardsFlagCount = cardsFlagCount | Plus:1 %}
                     <a href="/locations">
                     <div class="clearfix card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
-                        <img src="https://www.southeastchristian.org/GetImage.ashx?id=1999706&h=175&w=175&mode=crop" class="pull-left img-responsive g-padding-r-30--xs g-width-200--xs g-width-250--lg" style="margin-right: 0 !important;" />
+                        <img src="/GetImage.ashx?id=1999706&h=175&w=175&mode=crop" class="pull-left img-responsive g-padding-r-30--xs g-width-200--xs g-width-250--lg action-image" style="margin-right: 0 !important;" />
                         <h5 class="g-font-family--secondary g-margin-b-5--xs">New Here?</h5>
-                        <h6 class="g-margin-b-0--xs g-line-height--normal">We have multiple locations but one mission: <i>Connecting people to Jesus and one another.</i> Learn more about what to expect on your visit.</h6>
+                        <h6 class="g-margin-b-0--xs g-line-height--normal action-content">We have multiple locations but one mission: <i>Connecting people to Jesus and one another.</i> Learn more about what to expect on your visit.</h6>
                     </div>
                     </a>
                 {%- else -%}
+                    {% assign cardsFlagCount = cardsFlagCount | Plus:1 %}
                     {% assign defaultImageGuid = item | Attribute:'DefaultImage','RawValue' %}
                     {% assign defaultURL = item | Attribute:'DefaultURL','RawValue' %}
                     {% assign defaultContent = item | Attribute:'DefaultContent' %}
@@ -209,19 +243,26 @@
                     <a href="{{ defaultURL }}">
                     <div class="clearfix card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
                         {% if defaultImageGuid != '' %}
-                        <img src="/GetImage.ashx?Guid={{ defaultImageGuid }}&h=175&w=175&mode=crop" class="pull-left img-responsive g-padding-r-30--xs g-width-200--xs g-width-250--lg" style="margin-right: 0 !important;" />
+                        <img src="/GetImage.ashx?Guid={{ defaultImageGuid }}&h=175&w=175&mode=crop" class="pull-left img-responsive g-padding-r-30--xs g-width-200--xs g-width-250--lg action-image" style="margin-right: 0 !important;" />
                         {% endif %}
                         <h5 class="g-font-family--secondary g-margin-b-5--xs">{{ item.Title }}</h5>
-                        <h6 class="g-margin-b-0--xs g-line-height--normal">{{ defaultContent | Truncate:134,'...' }}</h6>
+                        <h6 class="g-margin-b-0--xs g-line-height--normal action-content">{{ defaultContent | Truncate:134,'...' }}</h6>
                     </div>
                     </a>
                     {%- endif -%}
                 {%- endif -%}
 
                 </div>
+                {%- endif -%}
+                {%- endif -%}
+
+                {% if cardsFlagCount == 3 %}
+                    {% break %}
+                {% endif %}
             {%- endfor -%}
 
             </div>
         </div>
     </div>
 </div>
+{[ endwow ]}

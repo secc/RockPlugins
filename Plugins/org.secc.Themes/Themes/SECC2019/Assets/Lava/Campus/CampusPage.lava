@@ -21,8 +21,8 @@
 
 {% assign campus = pageParamCampus %}
 {% assign campusSlug = campus | Attribute:'Slug' %}
-{% assign HeroImage = campus | Attribute:'HeroImage2','Object' %}
-{% assign HeroImagePosition = campus | Attribute:'HeroImage2Position','Object' %}
+{% assign HeroImage = campus | Attribute:'HeroImage','Object' %}
+{% assign HeroImagePosition = campus | Attribute:'HeroImagePosition','Object' %}
 {% assign CampusImageThumb = campus | Attribute:'CampusThumbnail','Object' %}
 {% assign WorshipImage = campus | Attribute:'WorshipServiceImage','Object' %}
 {% assign WorshipImagePosition = campus | Attribute:'WorshipServiceImagePosition','Object' %}
@@ -154,41 +154,14 @@
             {% endunless %}
         </div>
         <!-- START: Page Sub-Menu -->
-            {% comment %}
-            <section id="PageHeader">
-            <div id="sub-connect-menu">
-            <nav class="expandable-menu section-nav">
-            <a href="/{{ campus | Attribute: 'Slug' }}/">
-            <div class="se-logo {{ campus | Attribute: 'Slug' }}">{{ campus | Attribute:'ShortCode' }}</div>
-            </a>
-            <ul>
-            {% for item in CampusSubMenuItems %}
-            {% assign itemkv = item | PropertyToKeyValue %}
-            <li><a href="{{ itemkv.Value }}">{{ itemkv.Key }}</a></li>
-            {% endfor %}
-            </ul>
-            </nav>
-            </div>
-            </section>
-        {% endcomment %}
         <div class="page-menu">
             <div class="container-fluid text-center" style="padding: 0;">
                 <nav class="page-nav text-center">
                     <ul class="list-inline">
-                        <li><a href="#Location">Location</a></li>
-                        <li><a href="#WorshipTimes">Worship Times</a></li>
-                        <li><a href="#Leadership">Leadership</a></li>
-                        {% unless campusSlug == "chapelinthewoods" %}
-                            <li><a href="#Children">Children</a></li>
-                            <li><a href="#Students">Students</a></li>
-                            {% unless campusSlug == "elizabethtown" or campusSlug == "rivervalley"%}
-                            <li><a href="#LivingWord">Living Word</a></li>
-                            {% endunless %}
-                            {% if campusSlug == "blankenbaker" %}
-                            <li><a href="#SoutheastLibraries">Libraries</a></li>
-                            {% endif %}
-                            <li><a href="#Connect">Get Connected</a></li>
-                        {% endunless %}
+                        {% for item in CampusSubMenuItems %}
+                            {% assign itemkv = item | PropertyToKeyValue %}
+                            <li><a href="{{ itemkv.Value }}">{{ itemkv.Key }}</a></li>
+                        {% endfor %}
                     </ul>
                 </nav>
             </div>
@@ -235,129 +208,6 @@
                 </div>
             </div>
         </div>
-    </section>
-
-    <section id="WorshipTimes" class="g-margin-t-150--xs">
-        {[ parallax image:'/GetImage.ashx?Guid={{ WorshipImage.Guid }}' addclass:'g-bg-parallax-color--black--30 g-padding-y-150--md' height:'auto' position:'{{ WorshipImagePosition }}' speed:'-15' ]}
-                <div class="parallax-body container g-padding-y-150--xs">
-                    <div class="row">
-                        <div class="col-md-5">
-                            <div class="services g-text-left--xs">
-            					<h2 class="g-font-size--jumbo-2 g-font-family--secondary">Worship Service Times</h2>
-            					<h5 class="service-times">
-                                    <strong>
-                                    {%assign campusServicesJSON = campus | Attribute:'SiteScheduleInformation' %}
-                                    {%assign interpreted = false %}
-                                    {%- if campusServicesJSON != "" -%}
-                                        {%- assign campusServices = campusServicesJSON | FromJSON -%}
-
-                                        {%- for serviceDay in campusServices.adult -%}
-                                            {{serviceDay.day}} &bull;
-                                            {%- assign timesCount = serviceDay.times | Size -%}
-
-                                            {%- for times in serviceDay.times -%}
-                                                {{times.time}}{%- if (times.interpreted == true -%}*{%-assign interpreted = true -%}{%- endif -%}
-                                                {%- if (forloop.rindex0 == 0 -%}<br />{%- break -%}
-                                                {%- elseif (forloop.rindex0 == 1 and timesCount > 2) -%} &amp;{%- else -%},{%- endif -%}
-                                            {%- endfor -%}
-
-                                        {%- endfor -%}
-                                    {%- endif -%}
-                                    </strong>
-            					</h5>
-                                {%- if interpreted == true -%}
-                                    <small>*Interpreted for the deaf</small>
-                                {%- endif -%}
-                                <br /><br />
-                                <h5>
-                                {% unless campusSlug == "chapelinthewoods" %}
-                                <strong>Children's Ministry</strong><br />
-                            	<span>Children’s Ministry Programs are available during all worship services for birth through fifth grade</span>
-                                {% endunless %}
-                                </h5>
-                                <br />
-
-                                {%-assign campusServicesJSON = campus | Attribute:'SiteScheduleInformation' -%}
-                                {%-assign interpreted = false -%}
-                                {%- if campusServicesJSON != "" -%}
-                                    {% assign campusServices = campusServicesJSON | FromJSON %}
-
-                                    {%- if campusServices.msm != null &&  campusServices.hsm != null -%}
-                                    <h5>
-                                        <strong>Student Ministries</strong><br />
-                                        {%- if campusSlug == 'rivervalley' -%}
-                    						Weekly programming launches Sep. 8th<br /><br />
-                    					{%- endif -%}
-                                    {%- endif -%}
-
-                                    {%- if campusServices.msm != null -%}
-                                    Middle School (MSM)
-                                    <br />
-                                        {% for serviceDay in campusServices.msm %}
-                                            <span class="service-day">{{serviceDay.day}}s &bull;</span>
-                                            {% assign timesCount = serviceDay.times | Size %}
-                                            {% assign serviceLocation = serviceDay.location %}
-                                            <span class="service-time">
-                                                {%- for times in serviceDay.times -%}
-                                                    {{times.time}}{%- if (times.interpreted == true -%}*{%-assign interpreted = true -%}{%- endif -%}
-                                                    {%- if (forloop.rindex0 == 0 -%}
-                                                        {% break %}
-                                                    {%- elseif (forloop.rindex0 == 1 and timesCount > 2) -%}
-                                                        &amp;
-                                                    {%- else -%},{%- endif -%}
-                                                {%- endfor -%}
-                                                {%- if campusServicesJSON != "" -%}
-                                                    • {{ serviceLocation }}
-                                                {%- endif -%}
-                							</span>
-                                            <br />
-                                        {%- endfor -%}
-                                    {%- endif -%}
-
-                                {%- endif -%}
-                                {%-assign slug = campus | Attribute: 'slug'-%}
-                                {%- if slug == 'indiana' -%}
-            						(in the back of the building)
-            					{%- endif -%}
-                                </h5>
-
-                                <h5>
-                                {%assign campusServicesJSON = campus | Attribute:'SiteScheduleInformation' %}
-                                {%assign interpreted = false %}
-                                {% if campusServicesJSON != "" %}
-                                    {% assign campusServices = campusServicesJSON | FromJSON %}
-
-                                    {%- if campusServices.hsm != null -%}
-                                    High School Ministry (HSM)
-                                    <br/>
-                                            {% for serviceDay in campusServices.hsm %}
-                                            <span class="service-day">{{serviceDay.day}}s:</span>
-                                            {% assign timesCount = serviceDay.times | Size %}
-                                            {% assign serviceLocation = serviceDay.location %}
-                                            <span class="service-time">
-                                                {% for times in serviceDay.times %}
-                                                    {{times.time}}{% if (times.interpreted == true %}*{%assign interpreted = true %}{% endif %}
-                                                    {% if (forloop.rindex0 == 0 %}
-                                                        {% break %}
-                                                    {% elseif (forloop.rindex0 == 1 and timesCount > 2) %}
-                                                        &amp;
-                                                    {% else %},
-                                                    {% endif %}
-                                                {% endfor %}
-                                                {% if campusServicesJSON != "" %}
-                                                    • {{ serviceLocation }}
-                                                {% endif %}
-                							</span>
-                                            <br />
-                                        {% endfor %}
-                                    {%- endif -%}
-                                {% endif %}
-                            </h5>
-            				</div>
-                        </div>
-                    </div>
-                </div>
-        {[ endparallax ]}
     </section>
 
     <script>
