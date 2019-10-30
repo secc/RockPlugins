@@ -26,6 +26,7 @@ using Rock.Web.UI.Controls;
 using Rock.Attribute;
 using org.secc.Finance.Utility;
 using Rock.Web.Cache;
+using System.Data.SqlTypes;
 
 namespace RockWeb.Plugins.org_secc.Finance
 {
@@ -193,14 +194,14 @@ namespace RockWeb.Plugins.org_secc.Finance
 
             int contributionTypeId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.TRANSACTION_TYPE_CONTRIBUTION ).Id;
 
-            DateTime lower = DateTime.MinValue;
-            DateTime upper = DateTime.MaxValue;
+            DateTime lower = SqlDateTime.MinValue.Value;
+            DateTime upper = SqlDateTime.MaxValue.Value;
 
             // Filter by Last Gift DateRange
             if ( drpDates.LowerValue.HasValue || drpDates.UpperValue.HasValue )
             {
-                lower = ( drpDates.LowerValue.HasValue ? drpDates.LowerValue.Value : DateTime.MinValue );
-                upper = ( drpDates.UpperValue.HasValue ? drpDates.UpperValue.Value.AddDays( 1 ) : DateTime.MaxValue );
+                lower = ( drpDates.LowerValue.HasValue ? drpDates.LowerValue.Value : SqlDateTime.MinValue.Value );
+                upper = ( drpDates.UpperValue.HasValue ? drpDates.UpperValue.Value.AddDays( 1 ) : SqlDateTime.MaxValue.Value );
             }
 
             var givingGroups = rockContext.Database.SqlQuery<GivingGroup>( @"SELECT 
