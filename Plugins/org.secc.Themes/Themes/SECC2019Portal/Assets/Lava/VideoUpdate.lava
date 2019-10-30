@@ -10,29 +10,19 @@
       <div id="video-swiper" class="swiper-container">
           <div class="swiper-wrapper">
           {% for post in Items %}
-            {% capture thumbnailUrl %}
-              {% execute import:'RestSharp,Newtonsoft.Json,Newtonsoft.Json.Linq' %}
-              
-                  var client = new RestClient("https://api.vimeo.com/videos/{{post | Attribute:'VimeoID'}}?fields=pictures.sizes");
-                  var request = new RestRequest(Method.GET);
-                  request.AddHeader("cache-control", "no-cache");
-                  request.AddHeader("Authorization", "Bearer 70a6c809b1994228bc8ce0559cbd9646");
-                  IRestResponse response = client.Execute(request);
-
-                  JObject o = JObject.Parse(response.Content);
-
-									return (string)o["pictures"]["sizes"][2]["link"];
-
-              {% endexecute %}
-            {% endcapture %}
-              <div class="swiper-slide" style="background-image: url('{{ thumbnailUrl | Trim }}')">
-                  <a href="{{LinkedPages.DetailPage}}/{{post.Id}}" class="episode-button">
-                      <div class="slide_content">
-                          <h2>{{ post.Title }}</h2>
-                          <p>{{ post.Content|StripHtml|Truncate:142 }}</p>
-                      </div>
-                  </a>
-              </div>
+            <div class="swiper-slide">
+			  <div class="swiper-slide-clip">
+				<iframe src="https://player.vimeo.com/video/{{post | Attribute:'VimeoID'}}?autoplay=0&autoplay=0&loop=0&title=0&byline=0&portrait=0&controls=0" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen="" frameborder="0"></iframe>
+				<div class="video-overlay">
+				  <a href="{{LinkedPages.DetailPage}}/{{post.Id}}" class="episode-button">
+					  <div class="slide_content">
+						  <h2>{{ post.Title }}</h2>
+						  <p>{{ post.Content|StripHtml|Truncate:142 }}</p>
+					  </div>
+				  </a>
+				</div>
+			  </div>
+            </div>
           {% endfor %}
           </div>
           <div class="video-swiper-button-prev swiper-nav-button swiper-button-prev"></div>

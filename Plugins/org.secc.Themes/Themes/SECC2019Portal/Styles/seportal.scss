@@ -34,8 +34,11 @@ $xs: unquote("(min-width: #{$screen-xs-min})");
 $sm: unquote("(min-width: #{$screen-sm-min})");
 $md: unquote("(min-width: #{$screen-md-min})");
 $lg: unquote("(min-width: #{$screen-lg-min})");
+$xl: unquote("(min-width: 1600px)");
 $sm-only: unquote("(min-width: #{$screen-sm}) and (max-width: #{$screen-sm-max})");
 $md-only: unquote("(min-width: #{$screen-md}) and (max-width: #{$screen-md-max})");
+$lg-only: unquote("(min-width: #{$screen-lg}) and (max-width: 1599px)");
+
 
 //SECC2019Portal custom styles
 hr.g-border-b-2--xs {
@@ -362,9 +365,74 @@ hr.g-border-b-2--xs {
 		}
 	}
 }
+
+.swiper-slide-clip {
+  @media #{$sm-only} {
+    height: 118px;
+	overflow:hidden;
+	iframe {
+		height:138px;
+	}
+	&:hover {
+		height:138px;
+	}
+  }
+  @media #{$md-only} {
+    height: 165px;
+	overflow:hidden;
+	iframe {
+		height:185px !important;
+	}
+	&:hover {
+		height:176px;
+	}  
+  }
+  @media #{$lg-only} {
+    height: 202px;
+	overflow:hidden;
+	iframe {
+		height:222px !important;
+	}
+	&:hover {
+		height:214px;
+	} 
+  }
+  @media #{$xl} {
+    height: 240px;
+	overflow:hidden;
+	iframe {
+		height:260px !important;
+	}
+	&:hover {
+		height:254px;
+	} 
+  }
+  transition: all 200ms ease-in-out;
+  height:118px;
+  width:100%;
+  overflow:hidden;
+   iframe {
+	height:138px;
+	width:120%; 
+	margin-left:-10%;
+  }
+  .video-overlay {
+	position: absolute;
+	top: 0px;
+	height: 100%;
+	width: 100%;
+  }
+}
+
 #video-swiper {
-  @media #{$md} {
+  @media #{$md-only} {
+    height: 347px;
+  }
+  @media #{$lg-only} {
     height: 421px;
+  }
+  @media #{$xl} {
+    height: 533px;
   }
 	&.swiper-container {
 	  padding: 20px 40px;
@@ -514,14 +582,14 @@ hr.g-border-b-2--xs {
 	      &:hover {
 	        //transform: scale(1.1);
 	        z-index: 999;
-			    margin: -10px 0;
-          width: calc(100% + 20px) !important;
-          @include media-breakpoint-up(sm){
-          	width: calc(35% + 20px) !important;
-          }
-          @include media-breakpoint-up(lg){
-          	width: calc(100% + 20px) !important;
-          }
+			margin: -10px 0;
+			width: calc(100% + 20px) !important;
+			  @include media-breakpoint-up(sm){
+				width: calc(35% + 20px) !important;
+			  }
+			  @include media-breakpoint-up(lg){
+				width: calc(100% + 20px) !important;
+			  }
 	      }
 	      &.open {
 	        transform: scale(1.1);
