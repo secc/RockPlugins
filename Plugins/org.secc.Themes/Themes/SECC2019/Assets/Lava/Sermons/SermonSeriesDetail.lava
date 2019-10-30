@@ -98,7 +98,7 @@
                         <div class="text-center">
         					<br />
                             <p><i class="fa fa-share-alt"></i> Share this Sermon:
-                            {[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{ seriesImageGuid }}' ]}
+                            {[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{ seriesImageGuid }}' emailsubject:'{{ currentMessage.ChildContentChannelItem.Title }}' emailbody:'Check out this sermon I found at Southeast Christian Church.' ]}
                             <br />
                             <br />
                         </div>
