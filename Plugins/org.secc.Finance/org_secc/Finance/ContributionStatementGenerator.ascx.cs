@@ -38,6 +38,8 @@ namespace RockWeb.Plugins.org_secc.Finance
     [Description( "Block for kicking off the process for generating contribution statements." )]
     [WorkflowTypeField( "Statement Generator Workflow", "The workflow to launch to generate statements.", true )]
     [DataViewField( "Default Review DataView", "The default DataView to use for the review process.", false )]
+    [IntegerField( "Command Timeout", "Maximum amount of time (in seconds) to wait for the query to run.", false, 300, key:"CommandTimeout" )]
+
     public partial class ContributionStatementGenerator : Rock.Web.UI.RockBlock
     {
         #region Base Control Methods
@@ -203,6 +205,7 @@ namespace RockWeb.Plugins.org_secc.Finance
                 lower = ( drpDates.LowerValue.HasValue ? drpDates.LowerValue.Value : SqlDateTime.MinValue.Value );
                 upper = ( drpDates.UpperValue.HasValue ? drpDates.UpperValue.Value.AddDays( 1 ) : SqlDateTime.MaxValue.Value );
             }
+            rockContext.Database.CommandTimeout = GetAttributeValue( "CommandTimeout" ).AsIntegerOrNull() ?? 300;
 
             var givingGroups = rockContext.Database.SqlQuery<GivingGroup>( @"SELECT 
                     max([GivingGroups].[TransactionDateTime] ) AS [LastGift], 
