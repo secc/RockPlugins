@@ -26,6 +26,7 @@ using Rock.Web.UI.Controls;
 using Rock.Attribute;
 using org.secc.Finance.Utility;
 using Rock.Web.Cache;
+using System.Data.SqlTypes;
 
 namespace RockWeb.Plugins.org_secc.Finance
 {
@@ -37,6 +38,8 @@ namespace RockWeb.Plugins.org_secc.Finance
     [Description( "Block for kicking off the process for generating contribution statements." )]
     [WorkflowTypeField( "Statement Generator Workflow", "The workflow to launch to generate statements.", true )]
     [DataViewField( "Default Review DataView", "The default DataView to use for the review process.", false )]
+    [IntegerField( "Command Timeout", "Maximum amount of time (in seconds) to wait for the query to run.", false, 300, key:"CommandTimeout" )]
+
     public partial class ContributionStatementGenerator : Rock.Web.UI.RockBlock
     {
         #region Base Control Methods
@@ -193,15 +196,16 @@ namespace RockWeb.Plugins.org_secc.Finance
 
             int contributionTypeId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.TRANSACTION_TYPE_CONTRIBUTION ).Id;
 
-            DateTime lower = DateTime.MinValue;
-            DateTime upper = DateTime.MaxValue;
+            DateTime lower = SqlDateTime.MinValue.Value;
+            DateTime upper = SqlDateTime.MaxValue.Value;
 
             // Filter by Last Gift DateRange
             if ( drpDates.LowerValue.HasValue || drpDates.UpperValue.HasValue )
             {
-                lower = ( drpDates.LowerValue.HasValue ? drpDates.LowerValue.Value : DateTime.MinValue );
-                upper = ( drpDates.UpperValue.HasValue ? drpDates.UpperValue.Value.AddDays( 1 ) : DateTime.MaxValue );
+                lower = ( drpDates.LowerValue.HasValue ? drpDates.LowerValue.Value : SqlDateTime.MinValue.Value );
+                upper = ( drpDates.UpperValue.HasValue ? drpDates.UpperValue.Value.AddDays( 1 ) : SqlDateTime.MaxValue.Value );
             }
+            rockContext.Database.CommandTimeout = GetAttributeValue( "CommandTimeout" ).AsIntegerOrNull() ?? 300;
 
             var givingGroups = rockContext.Database.SqlQuery<GivingGroup>( @"SELECT 
                     max([GivingGroups].[TransactionDateTime] ) AS [LastGift], 
