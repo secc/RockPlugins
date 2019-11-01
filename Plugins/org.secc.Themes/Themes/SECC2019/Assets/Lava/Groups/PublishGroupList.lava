@@ -112,7 +112,7 @@
 						{% if publishGroup.ChildcareAvailable == true %}
 						<div class="event-items col-xs-4 g-padding-x-10--xs col-xs-offset-{{offset}}">
 							<div class="event-icon --teddy-bear"><!-- Teddy Bear SVG Image --></div>
-							<h6>Childcare<br> Available</h6>
+							<h6>Children's<br>Programming<br> Available</h6>
 						</div>
 						{% endif %}
 
