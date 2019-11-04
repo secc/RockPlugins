@@ -1,0 +1,103 @@
+<div class="se-panel">
+    <div class="clearfix g-margin-b-20--xs" >
+
+        <span class="g-position--absolute" style="right: 15px;top: 15px;z-index:100;">
+            <a href="#EditProfile" class="g-padding-y-20--xs g-padding-x-20--xs g-color--dark">
+                <i class="fas fa-user-cog"></i>
+            </a>
+        </span>
+
+        <div class="fluid-container">
+            <div class="col-md-5 g-padding-x-80--xs g-padding-y-80--xs">
+                <img src="{{ Person.PhotoUrl }}" class="img-responsive img-circle" style="margin: 0 auto;">
+            </div>
+            <div class="col-md-7 g-padding-b-80--xs g-padding-t-80--lg">
+                <h3 class="g-font-weight--700 g-padding-b-20--xs">
+                    {% if Person.NickName %}
+                        {{ Person.NickName }} {{ Person.LastName }}
+                    {% endif %}
+                </h3>
+                <div class="container-fluid g-padding-x-0--xs">
+                    <div class="col-xs-6 g-padding-x-0--xs">
+                        <p class="g-font-weight--600 text-uppercase">
+                            Age
+                        </p>
+                    </div>
+                    <div class="col-xs-6 g-padding-x-0--xs">
+                        {% if Person.NickName %}
+                            {{ Person.Age }} Years ({{ Person.BirthDate | Date:'M/d/yyyy'}})
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="container-fluid g-padding-x-0--xs">
+                    <div class="col-xs-6 g-padding-x-0--xs">
+                        <p class="g-font-weight--600 text-uppercase">
+                            Gender
+                        </p>
+                    </div>
+                    <div class="col-xs-6 g-padding-x-0--xs">
+                        {% if Person.Gender %}
+                            {{ Person.Gender }}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="container-fluid g-padding-x-0--xs">
+                    <div class="col-xs-6 g-padding-x-0--xs">
+                        <p class="g-font-weight--600 text-uppercase">
+                            Martial Status
+                        </p>
+                    </div>
+                    <div class="col-xs-6 g-padding-x-0--xs">
+                        {% definedvalue where:'DefinedTypeId == 7' sort:'Value' %}
+                         {% for definedValueItem in definedvalueItems %}
+                            {% if Person.MaritalStatusValueId == definedValueItem.Id %}
+                                {{ definedValueItem.Value }} ({{ Person.AnniversaryDate | Date:'M/d' }})
+                            {% endif %}
+    					 {% endfor %}
+    					{% enddefinedvalue %}
+    				</div>
+                </div>
+                <div class="container-fluid g-padding-x-0--xs">
+                    <div class="col-xs-6 g-padding-x-0--xs">
+                        <p class="g-font-weight--600 text-uppercase">
+                            Email
+                        </p>
+                    </div>
+                    <div class="col-xs-6 g-padding-x-0--xs">
+                        {{ Person.Email }}
+    				</div>
+                </div>
+
+                <div class="container-fluid g-padding-x-0--xs">
+                    <div class="col-xs-6 g-padding-x-0--xs">
+                        <p class="g-font-weight--600 text-uppercase">
+                            Address
+                        </p>
+                    </div>
+                    <div class="col-xs-6 g-padding-x-0--xs">
+
+                        {% assign personalHome =  Person | Address:'Home' %}
+						{% if personalHome != '' %}
+						    {{ personalHome }}
+						{% endif %}
+
+                        <br />
+                        <br />
+    				</div>
+                </div>
+                <div class="container-fluid g-padding-x-0--xs">
+                    <div class="col-xs-6 g-padding-x-0--xs">
+                        <p class="g-font-weight--600 text-uppercase">
+                            Phone
+                        </p>
+                    </div>
+                    <div class="col-xs-6 g-padding-x-0--xs">
+                        {% for phone in Person.PhoneNumbers %}
+						{{ phone.NumberFormatted }} <small>({{ phone.NumberTypeValue.Value }})</small><br />
+						{% endfor %}
+    				</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
