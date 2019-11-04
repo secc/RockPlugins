@@ -125,7 +125,6 @@ namespace RockWeb.Plugins.GroupManager
         {
             if ( IsUserAuthorized( Rock.Security.Authorization.EDIT ) )
             {
-                iGroupImage.Required = true;
                 btnSave.Text = "Save";
                 btnDraft.Visible = false;
                 ddlStatus.SelectedValue = publishGroup.PublishGroupStatus.ConvertToInt().ToString();
@@ -143,6 +142,7 @@ namespace RockWeb.Plugins.GroupManager
             ltGroupName.Text = string.Format( "<a href='/page/{0}' target='_blank'>{1}</a>", groupPageId, publishGroup.Group.Name );
             tbDescription.Text = publishGroup.Description.IsNotNullOrWhiteSpace() ? publishGroup.Description : publishGroup.Group.Description;
             iGroupImage.BinaryFileId = publishGroup.ImageId;
+            iGroupImage.Required = publishGroup.PublishGroupStatus == PublishGroupStatus.Approved;
             drPublishDates.UpperValue = publishGroup.EndDateTime;
             drPublishDates.LowerValue = publishGroup.StartDateTime;
             ddlDayOfWeek.SelectedValue = publishGroup.WeeklyDayOfWeek != null ? ( ( int ) publishGroup.WeeklyDayOfWeek ).ToString() : "";
@@ -583,6 +583,13 @@ namespace RockWeb.Plugins.GroupManager
         {
             var publishGroup = GetPublishGroup();
             NavigateToPage( Rock.SystemGuid.Page.GROUP_VIEWER.AsGuid(), new Dictionary<string, string> { { "GroupId", publishGroup.GroupId.ToString() } } );
+        }
+
+        protected void ddlStatus_SelectedIndexChanged( object sender, EventArgs e )
+        {
+            //only make the image required if the status is approved
+            var publishGroupStatus = ddlStatus.SelectedValueAsEnum<PublishGroupStatus>();
+            iGroupImage.Required = publishGroupStatus == PublishGroupStatus.Approved;
         }
     }
 }
