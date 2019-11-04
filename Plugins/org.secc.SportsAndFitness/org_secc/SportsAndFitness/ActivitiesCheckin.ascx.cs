@@ -487,8 +487,11 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                             {
                                 nbNote.NotificationBoxType = NotificationBoxType.Info;
                             }
-                            nbNote.Text = nbNote.Text = note.Text.Replace( "\n", "<br>" );
-                            phNotes.Controls.Add( nbNote );
+                            if ( nbNote.Text.IsNotNullOrWhiteSpace() )
+                            {
+                                nbNote.Text = nbNote.Text = note.Text.Replace( "\n", "<br>" );
+                                phNotes.Controls.Add( nbNote );
+                            }
                         }
 
                         Literal ltGroup = new Literal();
