@@ -41,19 +41,25 @@ Eventually we will need to convert the inline css below into BEM CSS.
                         <br />
 						{% assign givingIdSize = CurrentPerson.GivingId | Size %}
 						{% if givingIdSize > 0 %}
-							{% binaryfile where:'BinaryFileTypeId == 36 && GivingId == "{{CurrentPerson.GivingId}}"' sort:'FileName desc' %}
-								{% assign binaryfileItemsSize = binaryfileItems | Size %}
-								{% if binaryfileItemsSize == 0 %}
-									No contributions statements are available
-								{% endif %}
-								{% for binaryfile in binaryfileItems %}
-									<a href="/GetFile.ashx?guid={{binaryfile.Guid}}" target="_blank" class="link--hover-grey-bg" download>
-										<p class="g-margin-b-0--xs g-padding-y-15--xs g-padding-x-20--xs g-font-weight--600">
-										 {{binaryfile.FileName | Split:' - ' | Index: 1 | Trim}} Statement <span class="pull-right"><i class="far fa-download"></i></span>
-										</p>
-									</a>
-								{% endfor %}
-							{% endbinaryfile %}
+							{% sql %}
+								SELECT bf.FileName, bf.Guid FROM BinaryFile bf
+									JOIN AttributeValue av ON bf.Id = av.EntityId
+									JOIN Attribute a ON av.AttributeId = a.Id AND a.EntityTypeQualifierValue = '36' AND a.[Key] = 'GivingId'
+									WHERE av.Value = '{{CurrentPerson.GivingId | Replace:"'",''}}'
+									ORDER BY bf.FileName DESC
+							{% endsql %}
+
+							{% assign resultsSize = results | Size %}
+							{% if resultsSize == 0 %}
+								No contributions statements are available
+							{% endif %}
+							{% for binaryfile in results %}
+								<a href="/GetStatement.ashx?guid={{binaryfile.Guid}}" target="_blank" class="link--hover-grey-bg" download>
+									<p class="g-margin-b-0--xs g-padding-y-15--xs g-padding-x-20--xs g-font-weight--600">
+									 {{binaryfile.FileName | Split:' - ' | Index: 1 | Trim}} Statement <span class="pull-right"><i class="far fa-download"></i></span>
+									</p>
+								</a>
+							{% endfor %}
 						{% endif %}
                     </div>
 
