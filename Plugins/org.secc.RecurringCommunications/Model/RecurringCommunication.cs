@@ -54,6 +54,14 @@ namespace org.secc.RecurringCommunications.Model
         public int? PhoneNumberValueId { get; set; }
         [LavaInclude]
         public virtual DefinedValue PhoneNumberValue { get; set; }
+        [DataMember]
+        public string PushMessage { get; set; }
+        [DataMember]
+        public string PushTitle { get; set; }
+        [DataMember]
+        public string PushSound { get; set; }
+        [DataMember]
+        public string ScheduleDescription { get; set; }
     }
 
     public partial class RecurringCommunicationConfiguration : EntityTypeConfiguration<RecurringCommunication>

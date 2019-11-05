@@ -80,12 +80,17 @@ namespace org.secc.RecurringCommunications.Jobs
             communication.Message = recurringCommunication.EmailBody;
             communication.SMSFromDefinedValueId = recurringCommunication.PhoneNumberValueId;
             communication.SMSMessage = recurringCommunication.SMSBody;
+            communication.PushTitle = recurringCommunication.PushTitle;
+            communication.PushSound = recurringCommunication.PushSound;
+            communication.PushMessage = recurringCommunication.PushMessage;
             communication.Status = CommunicationStatus.Approved;
+
 
             communicationService.Add( communication );
 
             var emailMediumEntityType = EntityTypeCache.Get( Rock.SystemGuid.EntityType.COMMUNICATION_MEDIUM_EMAIL.AsGuid() );
             var smsMediumEntityType = EntityTypeCache.Get( Rock.SystemGuid.EntityType.COMMUNICATION_MEDIUM_SMS.AsGuid() );
+            var pushNotificationMediumEntityType = EntityTypeCache.Get( Rock.SystemGuid.EntityType.COMMUNICATION_MEDIUM_PUSH_NOTIFICATION.AsGuid() );
 
             List<string> errorsOut;
             var dataview = ( IQueryable<Person> ) recurringCommunication.DataView.GetQuery( null, rockContext, null, out errorsOut );
@@ -110,6 +115,10 @@ namespace org.secc.RecurringCommunications.Jobs
                 else if ( communication.CommunicationType == CommunicationType.SMS )
                 {
                     recipient.MediumEntityTypeId = smsMediumEntityType.Id;
+                }
+                else if ( communication.CommunicationType == CommunicationType.PushNotification )
+                {
+                    recipient.MediumEntityTypeId = pushNotificationMediumEntityType.Id;
                 }
                 else if ( communication.CommunicationType == CommunicationType.RecipientPreference )
                 {
