@@ -13,34 +13,44 @@
 // </copyright>
 using System;
 using System.ComponentModel;
-using Rock;
-using Rock.Model;
-using System.Web.UI;
-using Rock.Web.Cache;
-using Rock.Data;
-using System.Collections.Generic;
 using System.Linq;
-using System.Web.UI.WebControls;
-using org.secc.ChangeManager.Model;
-using Rock.Attribute;
+using System.Web.UI;
 using org.secc.RecurringCommunications.Model;
-using Rock.Web.UI.Controls;
+using Rock;
+using Rock.Attribute;
+using Rock.Data;
+using Rock.Model;
+using Rock.Web.Cache;
 
 namespace RockWeb.Plugins.org_secc.RecurringCommunications
 {
     [DisplayName( "Recurring Communications Detail" )]
     [Category( "SECC > Communication" )]
     [Description( "Block for the creation and editing of recurring communications." )]
+
+    [CustomCheckboxListField(
+        "Enabled Communication Types",
+        "Select the communication types users will be allowed to send from",
+        "0^Recipient Preference,1^Email,2^SMS,3^Push Notification",
+        Key = AttributeKey.EnabledCommunicationTypes,
+        DefaultValue = "0,1,2" )]
     public partial class RecurringCommunicationsDetail : Rock.Web.UI.RockBlock
     {
+        internal class AttributeKey
+        {
+            public const string EnabledCommunicationTypes = "EnabledCommunicationTypes";
+        }
+
+
         internal class PageParameterKey
         {
-            public static string RecurringCommunicationId = "RecurringCommunicationId";
+            public const string RecurringCommunicationId = "RecurringCommunicationId";
         }
 
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
+            this.BlockUpdated += Block_BlockUpdated;
             var personEntityId = EntityTypeCache.Get( typeof( Person ) ).Id;
             dvpDataview.EntityTypeId = personEntityId;
         }
@@ -53,16 +63,31 @@ namespace RockWeb.Plugins.org_secc.RecurringCommunications
         {
             if ( !Page.IsPostBack )
             {
-                rblCommunicationType.BindToEnum<CommunicationFocus>();
-                ddlPhoneNumber.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.COMMUNICATION_SMS_FROM ), true );
                 DisplayDetails();
+
             }
+        }
+
+        protected void Block_BlockUpdated( object sender, EventArgs e )
+        {
+            DisplayDetails();
         }
 
         private void DisplayDetails()
         {
-            RecurringCommunication recurringCommunication = GetRecurringCommunication();
+            var values = GetAttributeValue( AttributeKey.EnabledCommunicationTypes ).SplitDelimitedValues();
+            var communicationDictionary = Enum
+                .GetValues( typeof( CommunicationType ) )
+                .Cast<CommunicationType>()
+                .ToDictionary( t => ( ( int ) t ).ToString(), t => t.ToString() )
+                .Where( d => values.Contains( d.Key ) )
+                .ToDictionary( k => k.Key, v => v.Value );
+            rblCommunicationType.DataSource = communicationDictionary;
+            rblCommunicationType.DataBind();
 
+            ddlPhoneNumber.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.COMMUNICATION_SMS_FROM ), true );
+
+            RecurringCommunication recurringCommunication = GetRecurringCommunication();
 
             tbName.Text = recurringCommunication.Name;
             dvpDataview.SetValue( recurringCommunication.DataView );
@@ -81,21 +106,30 @@ namespace RockWeb.Plugins.org_secc.RecurringCommunications
 
             ddlPhoneNumber.SelectedValue = recurringCommunication.PhoneNumberValueId.ToString();
             tbSMSBody.Text = recurringCommunication.SMSBody;
+
+            tbPushNotificationTitle.Text = recurringCommunication.PushTitle;
+            tbPushNotificationBody.Text = recurringCommunication.PushMessage;
+            cbPlaySound.Checked = recurringCommunication.PushSound.IsNotNullOrWhiteSpace();
         }
 
         private void DisplayScheduleDetails()
+        {
+            lScheduleDescription.Text = GetScheduleDescription();
+        }
+
+        private string GetScheduleDescription()
         {
             var iCal = sbScheduleBuilder.iCalendarContent;
             if ( iCal.IsNullOrWhiteSpace() )
             {
                 lScheduleDescription.Visible = false;
-                return;
+                return "";
             }
 
             lScheduleDescription.Visible = true;
             var schedule = new Schedule();
             schedule.iCalendarContent = sbScheduleBuilder.iCalendarContent;
-            lScheduleDescription.Text = schedule.ToFriendlyScheduleText();
+            return schedule.ToFriendlyScheduleText();
         }
 
         private void UpdateCommunicationTypeUI( CommunicationType communicationType )
@@ -105,14 +139,22 @@ namespace RockWeb.Plugins.org_secc.RecurringCommunications
                 case CommunicationType.RecipientPreference:
                     DisplaySMS( true );
                     DisplayEMail( true );
+                    DisplayPushNotification( false );
                     break;
                 case CommunicationType.Email:
                     DisplayEMail( true );
                     DisplaySMS( false );
+                    DisplayPushNotification( false );
                     break;
                 case CommunicationType.SMS:
                     DisplaySMS( true );
                     DisplayEMail( false );
+                    DisplayPushNotification( false );
+                    break;
+                case CommunicationType.PushNotification:
+                    DisplaySMS( false );
+                    DisplayEMail( false );
+                    DisplayPushNotification( true );
                     break;
                 default:
                     break;
@@ -133,6 +175,13 @@ namespace RockWeb.Plugins.org_secc.RecurringCommunications
             pnlSMS.Visible = shouldDisplay;
             ddlPhoneNumber.Required = shouldDisplay;
             tbSMSBody.Required = shouldDisplay;
+        }
+
+        private void DisplayPushNotification( bool shouldDisplay )
+        {
+            pnlPushNofitication.Visible = shouldDisplay;
+            tbPushNotificationBody.Required = shouldDisplay;
+            tbPushNotificationTitle.Required = shouldDisplay;
         }
 
         private RecurringCommunication GetRecurringCommunication()
@@ -182,11 +231,15 @@ namespace RockWeb.Plugins.org_secc.RecurringCommunications
             recurringCommunication.EmailBody = ceEmailBody.Text;
             recurringCommunication.PhoneNumberValueId = ddlPhoneNumber.SelectedValue.AsIntegerOrNull();
             recurringCommunication.SMSBody = tbSMSBody.Text;
+            recurringCommunication.PushTitle = tbPushNotificationTitle.Text;
+            recurringCommunication.PushMessage = tbPushNotificationBody.Text;
+            recurringCommunication.PushSound = cbPlaySound.Checked ? "default" : string.Empty;
 
             if ( recurringCommunication.Id == 0 )
             {
                 recurringCommunicationService.Add( recurringCommunication );
             }
+            recurringCommunication.ScheduleDescription = GetScheduleDescription();
             rockContext.SaveChanges();
             NavigateToParentPage();
         }
@@ -200,12 +253,5 @@ namespace RockWeb.Plugins.org_secc.RecurringCommunications
         {
             DisplayScheduleDetails();
         }
-    }
-
-    public enum CommunicationFocus
-    {
-        RecipientPreference = 0,
-        Email = 1,
-        SMS = 2,
     }
 }
