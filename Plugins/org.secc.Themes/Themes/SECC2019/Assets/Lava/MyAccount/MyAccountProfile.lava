@@ -1,8 +1,8 @@
-<div class="se-panel">
+<div class="se-panel g-margin-x-20--xs">
     <div class="clearfix g-margin-b-20--xs" >
 
-        <span class="g-position--absolute" style="right: 15px;top: 15px;z-index:100;">
-            <a href="#EditProfile" class="g-padding-y-20--xs g-padding-x-20--xs g-color--dark">
+        <span class="g-position--absolute g-padding-y-20--xs g-padding-x-15--xs" style="right: 0px;top: 6px;z-index:100;">
+            <a href="#EditProfile" class="se-action-btn g-padding-y-15--xs g-padding-x-15--xs g-color--dark g-radius--circle g-bg-color-hover--black-opacity-lightest">
                 <i class="fas fa-user-cog"></i>
             </a>
         </span>

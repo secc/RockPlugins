@@ -76,6 +76,13 @@ $utils-colors: (
 		}
   	}
 }
+@each $color-name, $color in $utils-colors {
+	.g-bg-color-hover--#{$color-name} {
+		@include hover {
+	  		background-color: map-get($color, color) !important;
+		}
+  	}
+}
 
 .g-color--text[href] {
 	@include hover {

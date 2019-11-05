@@ -6,6 +6,10 @@
 	@include btn;
 }
 
+.se-action-btn {
+	@include transition(all .1s ease);
+}
+
 .se-btn {
 	&__element--vertical-inherit {
 		vertical-align: inherit;
