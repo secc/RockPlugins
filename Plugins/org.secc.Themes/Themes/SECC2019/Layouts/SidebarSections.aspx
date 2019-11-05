@@ -37,7 +37,6 @@
     }
 
     /* Sidebar Styles */
-
     .sidebar-nav {
         position: absolute;
         top: 0;
@@ -146,7 +145,7 @@
                 <!-- Start Content Area -->
                 <!-- Page Title -->
                 <Rock:PageIcon ID="PageIcon" runat="server" />
-                <h1 class="g-font-family--secondary g-margin-b-60--xs"><Rock:PageTitle ID="PageTitle" runat="server" /></h1>
+                <h1 class="g-font-family--secondary g-margin-b-60--xs g-padding-x-20--xs"><Rock:PageTitle ID="PageTitle" runat="server" /></h1>
                 <Rock:PageBreadCrumbs ID="PageBreadCrumbs" runat="server" />
                 <!-- Ajax Error -->
                 <div class="alert alert-danger ajax-error" style="display:none">

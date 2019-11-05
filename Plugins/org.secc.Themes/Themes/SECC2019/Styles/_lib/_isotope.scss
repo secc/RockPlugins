@@ -1,6 +1,8 @@
 /* Masonry and Portfolio */
 .isotope_wrap {
 
+    @include transition(all .3s ease);
+
     /* clear fix */
     &:after {
        content: '';

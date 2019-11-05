@@ -67,7 +67,7 @@ Accordion shortcode for the public website to be used in faq section
 
 
 <div class="col-md-{{gridNum}} g-padding-x-20--xs">
-  <div class="panel-{{ wrapperId }} accordions-1" id="faq-accordion-{{wrapperId}}" role="tablist" aria-multiselectable="true">
+  <div class="panel-{{ wrapperId }} {{accordionclass}}" id="faq-accordion-{{wrapperId}}" role="tablist" aria-multiselectable="true">
   {%- for item in items -%}
 
         <div class="panel panel-default">
@@ -100,7 +100,7 @@ Accordion shortcode for the public website to be used in faq section
      {% if nextPage == nextPageCounter %}
         </div></div>
         <div class="col-md-{{gridNum}} g-padding-x-20--xs">
-        <div class="panel-{{ wrapperId }} accordions-1" id="faq-accordion-{{wrapperId2}}" role="tablist" aria-multiselectable="true">
+        <div class="panel-{{ wrapperId }} {{accordionclass}}" id="faq-accordion-{{wrapperId2}}" role="tablist" aria-multiselectable="true">
      {%- assign nextPageCounter = 0 -%}
      {% endif%}
 
