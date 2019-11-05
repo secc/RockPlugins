@@ -5,6 +5,8 @@
             <Columns>
                 <Rock:RockBoundField HeaderText="Communication Name" DataField="Name" />
                 <Rock:RockBoundField HeaderText="Created By" DataField="CreatedByPersonAlias.Person.FullName" />
+                <Rock:RockBoundField HeaderText="Communication Type" DataField="CommunicationType" />
+                <Rock:RockBoundField HeaderText="Schedule" DataField="ScheduleDescription" />
                 <Rock:RockBoundField HeaderText="DataView" DataField="DataView.Name" />
             </Columns>
         </Rock:Grid>
