@@ -2,6 +2,12 @@
 
 <asp:Content ID="ctMain" ContentPlaceHolderID="main" runat="server">
 
+	<style>
+	.no-padding {
+	padding: 0px;
+	}
+	</style>
+
 	<main>
 
         <!-- Start Content Area -->
@@ -31,11 +37,11 @@
         </div>
 
 		<div class="row">
-            <div class="col-md-12">
+            <div class="col-md-12 no-padding">
                 <Rock:Zone Name="Footer" runat="server" />
             </div>
         </div>
-		
+
         <!-- End Content Area -->
 
 	</main>
