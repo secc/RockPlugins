@@ -4,15 +4,9 @@ jQuery(document).ready(function() {
 	jQuery('.teams-slider[id^="owl-teams"]').each( function() {
 
 		var $div = jQuery(this);
-		var token = $div.data('token');
 		var bool = true;
 
-		var settingObj = window['dt_teams'];
-		if((settingObj.team_speed == '') || (settingObj.team_speed == 'false')) {
-			bool = false;
-		}
-
-		jQuery("#owl-teams-"+settingObj.id+"").owlCarousel({
+		jQuery("#owl-teams").owlCarousel({
 			autoHeight : true,
 		    responsive:{
 		        0:{
@@ -25,14 +19,14 @@ jQuery(document).ready(function() {
 		            items:3
 		        },
 		        1024:{
-		            items: settingObj.items_per_row
+		            items: 3
 		        }
 		    },
 			nav: true,
 			rewind: true,
 			rtl: false,
-			autoplay: bool,
-			autoplayTimeout: settingObj.team_speed,
+			autoplay: false,
+			autoplayTimeout: "",
 			autoplayHoverPause: true,
 			dots: true,
 			smartSpeed: 800

@@ -20,29 +20,29 @@
                         <li id="menu-item-250" class="menu-item menu-item-type-post_type menu-item-object-page page_item page-item-245 menu-item-250" style="overflow: visible;">
                             <a href="http://kyleidleman.com/sermons/" aria-current="page"><span>sermons</span></a>
                         </li>
-                        <li id="menu-item-339" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-has-children menu-item-339" style="overflow: visible;">
+                        {% assign currentSlug = 'Global' | PageParameter:'Slug'  %}
+                        {% assign hightlightedState = false %}
+                        {% contentchannelitem where:'ContentChannelId == 51' sort:'Order' %}
+                            {% for item in contentchannelitemItems %}
+                                {% if currentSlug contains item.PrimarySlug %}
+                                    {% assign hightlightedState = true %}
+                                {% endif %}
+                            {% endfor %}
+                        {% endcontentchannelitem %}
+                        <li id="menu-item-339" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-has-children menu-item-339 {% if hightlightedState == true %} highlighted-state {% endif %}" style="overflow: visible;">
                             <a href="http://kyleidleman.com/#books" class="external sf-with-ul">
                                 <span>titles</span>
                             </a>
                             <ul class="sub-menu" style="display: none;">
-                                <li id="menu-item-592" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-592" style="overflow: visible;">
-                                    <a href="http://kyleidleman.com/titles/dont-give-up/" class="external" style="background: rgb(255, 255, 255);">Don’t Give Up</a>
-                                </li>
-                                <li id="menu-item-559" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-559" style="overflow: visible;">
-                                    <a href="https://www.graceisgreaterbook.com/" class="external" style="background: rgb(255, 255, 255);">Grace Is Greater</a>
-                                </li>
-                                <li id="menu-item-333" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-333" style="overflow: visible;">
-                                    <a href="http://kyleidleman.com/titles/the-end-of-me/" class="external" style="background: rgb(255, 255, 255);">the end of me</a>
-                                </li>
-                                <li id="menu-item-335" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-335" style="overflow: visible;">
-                                    <a href="http://kyleidleman.com/titles/aha/" class="external" style="background: rgb(255, 255, 255);">AHA</a>
-                                </li>
-                                <li id="menu-item-336" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-336" style="overflow: visible;">
-                                    <a href="http://kyleidleman.com/titles/gods-at-war/" class="external" style="background: rgb(255, 255, 255);">gods at war</a>
-                                </li>
-                                <li id="menu-item-334" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-334" style="overflow: visible;">
-                                    <a href="http://kyleidleman.com/titles/not-a-fan/" class="external" style="background: rgb(255, 255, 255);">not a fan.</a>
-                                </li>
+                                {% contentchannelitem where:'ContentChannelId == 51' sort:'Order' %}
+                                    {% for item in contentchannelitemItems %}
+                                        {% assign titleImageFile = item | Attribute:'SquareImage', 'FileName' %}
+                                        {% assign titleImageGuid = item | Attribute:'SquareImage', 'RawValue' %}
+                                        <li id="menu-item-592" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-592" style="overflow: visible;">
+                                            <a href="/kyle-titles/{{ item.PrimarySlug }}" class="external" style="background: rgb(255, 255, 255);">{{ item.Title }}</a>
+                                        </li>
+                                    {% endfor %}
+                                {% endcontentchannelitem %}
                             </ul>
                         </li>
                         <li id="menu-item-242" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-242" style="overflow: visible;">
