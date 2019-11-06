@@ -71,7 +71,6 @@ namespace RockWeb.Plugins.GroupManager
             PublishGroupService publishGroupService = new PublishGroupService( rockContext );
 
             var qry = publishGroupService.Queryable();
-              //.Where( pg => pg.Group!=null && pg.Group.Name != null );
 
             if ( pContactPerson.SelectedValue.HasValue )
             {
