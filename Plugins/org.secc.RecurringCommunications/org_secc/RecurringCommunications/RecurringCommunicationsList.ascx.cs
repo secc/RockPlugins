@@ -78,5 +78,19 @@ namespace RockWeb.Plugins.org_secc.RecurringCommunications
         {
             NavigateToLinkedPage( AttributeKeys.DetailsPage, new Dictionary<string, string> { { "RecurringCommunicationId", e.RowKeyId.ToString() } } );
         }
+
+        protected void btnDelete_Click( object sender, Rock.Web.UI.Controls.RowEventArgs e )
+        {
+            var rcId = ( int ) e.RowKeyValue;
+            RockContext rockContext = new RockContext();
+            RecurringCommunicationService recurringCommunicationService = new RecurringCommunicationService( rockContext );
+            var recurringCommunication = recurringCommunicationService.Get( rcId );
+            if ( recurringCommunication != null )
+            {
+                recurringCommunicationService.Delete( recurringCommunication );
+                rockContext.SaveChanges();
+            }
+            BindGrid();
+        }
     }
 }
