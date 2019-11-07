@@ -42,7 +42,7 @@
                     </asp:Panel>
                     </fieldset>
                     <Rock:BootstrapButton runat="server" ID="btnSave" CssClass="btn btn-primary" Text="Save" OnClick="btnSave_Click" />
-                    <asp:LinkButton Text="Cancel" ID="btnCancel" runat="server" OnClick="btnCancel_Click" />
+                    <asp:LinkButton Text="Cancel" ID="btnCancel" runat="server" OnClick="btnCancel_Click" CausesValidation="false" />
                 </div>
             </asp:Panel>
         </div>
