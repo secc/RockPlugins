@@ -10,45 +10,33 @@
     {% endfor -%}
 {% endcontentchannelitemslug -%}
 
-{% comment %}
-{% assign itemChildItems = cci.ChildItems | Sort:'Order' %}
-{%- for messages in itemChildItems -%}
-    {% assign message = messages.ChildContentChannelItem %}
-    {% if message.ContentChannelId == "23" %}
-        {% assign series = cci %}
-        {% break %}
-    {%- endif -%}
-{%- endfor -%}
-{% endcomment %}
-
 {% if series %}
-{% comment %}
-    ************ SERMON VIDEO ************
-    {% assign currentMessage = series.ChildItems | Sort:'Order' | First %}
-{% endcomment %}
-    {% assign currentDate = 'Now' | Date:'M/d/yyyy' %}
+    {% comment %}
+    ************ Checks to see if any sermons are in ************
+    {% endcomment %}
     {% assign sermonSlug = 'Global' | PageParameter:'SermonSlug' %}
-
-    {% assign seriesChildItems = series.ChildItems | Sort:'Order' %}
+    {% assign seriesChildItems = series.ChildItems | Sort:'Order','Asc' %}
     {%- for messages in seriesChildItems -%}
         {% assign message = messages.ChildContentChannelItem %}
         {% if message.ContentChannelId == "23" %}
-            {% assign currentMessage = seriesChildItems | Last %}
+            {% assign currentMessage = messages %}
             {% break %}
         {%- endif -%}
     {%- endfor -%}
 
     {% if currentMessage != null %}
         <div class="container g-padding-y-100--md g-padding-x-0--xs">
-            {% assign seriesChildItems = series.ChildItems | Sort:'Order' %}
+            {% assign seriesChildItems = series.ChildItems | Sort:'Order','Desc' %}
             {% for childItem in seriesChildItems %}
                 {% if sermonSlug != "" -%}
-                    {% if sermonSlug == childItem.ChildContentChannelItem.PrimarySlug and childItem.ChildContentChannelItem.ContentChannelId == "23" -%}
-                        {% assign currentMessage = childItem %}
-                        {% break %}
+                    {% if sermonSlug == childItem.ChildContentChannelItem.PrimarySlug -%}
+                        {% if childItem.ChildContentChannelItem.ContentChannelId == "23" %}
+                            {% assign currentMessage = childItem %}
+                            {% break %}
+                        {% endif %}
                     {% endif -%}
                 {% else %}
-                    {% if message.ContentChannelId == "23" %}
+                    {% if message.ChildContentChannelItem.ContentChannelId == "23" %}
                         {% assign currentMessage = childItem %}
                         {% break %}
                     {%- endif -%}
