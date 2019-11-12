@@ -9,54 +9,20 @@
                 <li class="see-all">
                     <a href="/locations">Plan Your Visit</a>
                 </li>
-                <li>
-                    <a class="cd-nav-item" href="/location/blankenbaker">
-                        <h3>Blankenbaker</h3>
-                        <img src="/Themes/SECC2019/Assets/img/SE/Campuses/920.jpg" class="img-responsive" />
-                    </a>
-                </li>
-                <li>
-                    <a class="cd-nav-item" href="/location/indiana">
-                        <h3>Indiana</h3>
-                        <img src="/Themes/SECC2019/Assets/img/SE/Campuses/IN.jpg" class="img-responsive" />
-                    </a>
-                </li>
-                <li>
-                    <a class="cd-nav-item" href="/location/crestwood">
-                        <h3>Crestwood</h3>
-                        <img src="/Themes/SECC2019/Assets/img/SE/Campuses/CW.jpg" class="img-responsive" />
-                    </a>
-                </li>
-                <li>
-                    <a class="cd-nav-item" href="/location/southwest">
-                        <h3>Southwest</h3>
-                        <img src="/Themes/SECC2019/Assets/img/SE/Campuses/SW.jpg" class="img-responsive" />
-                    </a>
-                </li>
-                <li>
-                    <a class="cd-nav-item" href="/location/lagrange">
-                        <h3>La Grange</h3>
-                        <img src="/Themes/SECC2019/Assets/img/SE/Campuses/LA.jpg" class="img-responsive" />
-                    </a>
-                </li>
-                <li>
-                    <a class="cd-nav-item" href="/location/elizabethtown">
-                        <h3>Elizabethtown</h3>
-                        <img src="/Themes/SECC2019/Assets/img/SE/Campuses/ET.jpg" class="img-responsive" />
-                    </a>
-                </li>
-                <li>
-                    <a class="cd-nav-item" href="/location/rivervalley">
-                        <h3>River Valley</h3>
-                        <img src="/Themes/SECC2019/Assets/img/SE/Campuses/RV.jpg" class="img-responsive" />
-                    </a>
-                </li>
-				<li>
-					<a class="cd-nav-item" href="/location/chapelinthewoods">
-					  <h3>Chapel in the Woods</h3>
-					  <img src="/Themes/SECC2019/Assets/img/SE/Campuses/CITW.jpg" class="img-responsive" />
-					</a>
-				</li>
+                {% assign campusesSorted = Campuses | Sort:'Order','Asc' %}
+                {% for campus in campusesSorted %}
+                    {% assign publicCampus = campus | Attribute:'Public' %}
+                    {% assign slug = campus | Attribute:'Slug' %}
+                    {% if publicCampus == 'Yes' %}
+                        {% assign CampusImageThumb = campus | Attribute:'CampusThumbnail','Object' %}
+                        <li>
+                            <a class="cd-nav-item" href="/location/{{slug}}">
+                                <h3>{{ campus.Name }}</h3>
+                                <img src="/GetImage.ashx?Guid={{ CampusImageThumb.Guid }}" class="img-responsive" />
+                            </a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
             </ul>
         </li>
 

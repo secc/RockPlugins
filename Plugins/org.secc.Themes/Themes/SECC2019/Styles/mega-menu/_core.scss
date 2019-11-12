@@ -1064,7 +1064,7 @@ main {
 				/* set here number of columns - use width percentage */
 				// @include column(.22);
 				// margin: 0 4% 40px 0;
-				@include column(.125);
+				@include column(.20);
 
 				&:last-child {
 					/* This gives some space for the "See All" button */
@@ -1086,6 +1086,7 @@ main {
 					border-radius: 100%;
 					width: 70%;
 					margin: 15px auto;
+					max-width: 100px;
 				}
 
 				h3 {
