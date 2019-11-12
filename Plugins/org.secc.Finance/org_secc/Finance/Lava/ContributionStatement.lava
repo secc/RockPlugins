@@ -100,7 +100,7 @@
       {% endif %}
       {% endfor %}
 
-      {% for transaction in ExcludedTransactionDetails %}
+      {% for transaction in ExcludedTransactionDetails reversed %}
       {% if forloop.first %}
       <h4 class="margin-t-md margin-b-md" style="border-bottom: 2px solid black;">Non Cash gifts for {{ StatementStartDate | Date:'MMM d' }} - {{ StatementEndDate | Date:'MMM d, yyyy' }}</h4>
 
