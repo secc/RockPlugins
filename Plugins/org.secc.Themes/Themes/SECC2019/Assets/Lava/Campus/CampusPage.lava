@@ -177,8 +177,8 @@
 
     <section id="Location">
         <div class="container">
-    		<div class="campus-info row g-display-flex--md">
-    			<div class="col-sm-12 col-md-6 col-lg-6 g-margin-t-150--xs">
+    		<div class="campus-info row g-display-flex--md g-margin-y-150--xs">
+    			<div class="col-sm-12 col-md-6 col-lg-6">
                     <img src="/GetImage.ashx?Guid={{ CampusImageThumb.Guid }}" class="img-responsive img-circle g-margin-x-auto--xs g-margin-y-0--xs g-pull-right--md" style="max-width: 40rem; width: 100%;">
                 </div>
                 <div class="col-sm-12 col-md-6 col-lg-6 g-margin-t-50--xs">
