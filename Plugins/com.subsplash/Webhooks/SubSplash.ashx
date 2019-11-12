@@ -45,6 +45,10 @@ public class SubSplash : IHttpHandler
                     context.Response.ContentType = "text/plain";
                     context.Response.StatusCode = 401;
                     context.Response.Write( "Unauthorized Error." );
+					context.Response.Flush();
+
+					context.Server.ClearError(); //Clearing server error
+					context.ApplicationInstance.CompleteRequest();
                     return;
                 }
 
