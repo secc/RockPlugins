@@ -40,7 +40,7 @@ public class SubSplash : IHttpHandler
 
                 // Check to see if security should be applied
                 if ( !api.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser != null ? currentUser.Person : null )
-                    || (context.Request.Headers["Bearer"] != null && currentUser == null ) )
+                    || (context.Request.Headers["Authorization"] != null && currentUser == null ) )
                 {
                     context.Response.ContentType = "text/plain";
                     context.Response.StatusCode = 401;
