@@ -1,0 +1,53 @@
+                {%- assign role = partition -%}
+				{%- assign spotsLeft = role.Limit | Minus: role.Filled -%}
+				<div class="col-sm-6 col-md-4">
+					{% if spotsLeft > 0 and role.Limit > 0 %}
+						{% if partitionSize > 0 %}
+							<a href="#" onclick="doSlide('#{{divId}}_{{role.Value}}'); return false;">
+						{% else %}
+                            {%- assign groupId = partition.GroupId -%}
+                            {%- if role.Entity.GroupTypeId == 167 -%}
+                                {%- assign groupId = groupId | Plus: 1 -%}
+                            {%- endif -%}
+							<a href="{{partition.Url}}&GroupId={{groupId}}">
+						{% endif %}
+					{% endif %}
+					<div class="serve-card serve-card g-margin-y-40--xs g-margin-x-auto--xs">
+                        <div class="box text-center g-padding-t-60--xs g-position--relative" style="min-height: 270px; background-color: #eef0e6;">
+                            {% assign icon = role.Entity | Attribute:"Icon" %}
+							{% if icon != '' and icon != empty %}
+                                {% if icon == "fa fa-baby" or icon == "fa fa-child" %}
+                                    {[ vivus svg:'/Content/Serve/2019/Christmas/Icons/TeddyBear.svg' fill:'#000000' max-width:'120px;' duration:'10' ]}
+                                {% elseif icon contains "coffee" %}
+                                    {[ vivus svg:'/Content/Serve/2019/Christmas/Icons/coffee.svg' fill:'#000000' max-width:'120px;' duration:'10' ]}
+                                {% elseif icon contains "bread-slice" %}
+                                    {[ vivus svg:'/Content/Serve/2019/Christmas/Icons/Communion.svg' fill:'#000000' max-width:'120px;' duration:'10' ]}
+                                {% elseif icon contains "handshake" %}
+                                    {[ vivus svg:'/Content/Serve/2019/Christmas/Icons/Leadership.svg' fill:'#000000' max-width:'120px;' duration:'10' ]}
+                                {% elseif icon contains "camera" %}
+                                    {[ vivus svg:'/Content/Serve/2019/Christmas/Icons/camera.svg' fill:'#000000' max-width:'120px;' duration:'10' ]}
+                                {% elseif icon contains "puzzle-piece" %}
+                                    {[ vivus svg:'/Content/Serve/2019/Christmas/Icons/sectionhost.svg' fill:'#000000' max-width:'120px;' duration:'10' ]}
+                                {% elseif icon contains "traffic-cone" %}
+                                    {[ vivus svg:'/Content/Serve/2019/Christmas/Icons/Traffic.svg' fill:'#000000' max-width:'120px;' duration:'10' ]}
+                                {% elseif icon contains "user-tie" %}
+                                    {[ vivus svg:'/Content/Serve/2019/Christmas/Icons/Usher.svg' fill:'#000000' max-width:'120px;' duration:'10' ]}
+                                {% else %}
+                                <i class="{{icon}} fa-5x g-color--dark"></i>
+                                {% endif %}
+							{% endif %}
+                            <span class="label label-default label label-default g-position--absolute" style="background-color: #19b3c0;top: -20px;right: -20px;width: 80px;white-space: normal;border-radius: 100%;height: 80px;">
+                                <span class="g-center--xs">
+                                    <h5 style="line-height: 20px;" class="g-font-weight--700 g-color--primary">{% if role.Limit == null %}Unlimited{% else %}{% if spotsLeft <= 0 %}Full{% else %}{{spotsLeft}}</h5>
+                                    <h5 style="line-height: 10px;" class="uppercase g-font-weight--700">
+                                        <small class="g-color--primary">{{ 'Spot' | PluralizeForQuantity:spotsLeft }} Open{% endif %}</small>
+                                    </h5>{% endif %}
+                                </span>
+                            </span>
+                            <h3 class="g-font-family--secondary g-padding-b-40--xs g-font-weight--600">{{ role.Entity.Name }}</h3>
+                        </div>
+					</div>
+					{% if spotsLeft > 0 and role.Limit > 0 %}
+						</a>
+					{% endif %}
+                </div>
