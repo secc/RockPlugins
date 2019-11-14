@@ -1,0 +1,282 @@
+<%@ Master Language="C#" AutoEventWireup="true" Inherits="Rock.Web.UI.RockMasterPage" %>
+<%@ Import Namespace="System.Web.Optimization" %>
+<%@ Import Namespace="Rock" %>
+<%@ Import Namespace="Rock.Model" %>
+<%@ Import Namespace="Rock.Web.UI" %>
+<%@ Import Namespace="Rock.Web.Cache" %>
+<!DOCTYPE html>
+
+<script runat="server">
+
+    // keep code below to call base class init method
+
+    /// <summary>
+    /// Raises the <see cref="E:System.Web.UI.Control.Init" /> event.
+    /// </summary>
+    /// <param name="e">An <see cref="T:System.EventArgs" /> object that contains the event data.</param>
+    protected override void OnInit( EventArgs e )
+    {
+        base.OnInit( e );
+        //Check to see if we should remove menu transparency
+        var page = PageCache.Get( ( ( RockPage ) Page ).PageId );
+        var showTransparentMenu = page.GetAttributeValue( "TransparentMenu" ).AsBoolean();
+        var facebookOG = page.GetAttributeValue("UseFaceBookOG").AsBoolean();
+        var facebookOGImage = page.GetAttributeValue("FacebookOGImage");
+
+        if ( !showTransparentMenu )
+        {
+            var script = @"
+                var $menu = $('.cd-main-header');
+                $menu.removeClass('transparent-menu-enabled').removeClass('transparent-header');
+                $('.cd-main-content').removeClass('transparent-content');
+            ";
+            ScriptManager.RegisterStartupScript( this.Page, this.GetType(), "transparentMenu", script, true );
+        }
+                if (facebookOG)
+        {
+            HtmlMeta typeOGMetaTag = new HtmlMeta();
+            typeOGMetaTag.Attributes.Add("property", "og:type");
+            typeOGMetaTag.Attributes.Add("content", "website");
+            Page.Header.Controls.Add(typeOGMetaTag);
+            if (!(string.IsNullOrEmpty(page.PageTitle)))
+            {
+                HtmlMeta titleOGMetaTag = new HtmlMeta();
+                titleOGMetaTag.Attributes.Add("property", "og:title");
+                titleOGMetaTag.Attributes.Add("content", page.PageTitle);
+                Page.Header.Controls.Add(titleOGMetaTag);
+            }
+            if (!(string.IsNullOrEmpty(page.Description)))
+            {
+                HtmlMeta descOGMetaTag = new HtmlMeta();
+                descOGMetaTag.Attributes.Add("property", "og:description");
+                descOGMetaTag.Attributes.Add("content", page.Description);
+                Page.Header.Controls.Add(descOGMetaTag);
+            }
+            if (!(string.IsNullOrEmpty(facebookOGImage)))
+            {
+                HtmlMeta imageOGMetaTag = new HtmlMeta();
+                imageOGMetaTag.Attributes.Add("property", "og:image");
+                imageOGMetaTag.Attributes.Add("content", "https://staging.southeastchristian.org/GetImage.ashx?Guid=" + facebookOGImage);
+                Page.Header.Controls.Add(imageOGMetaTag);
+            }
+            HtmlMeta urlOGMetaTag = new HtmlMeta();
+            urlOGMetaTag.Attributes.Add("property", "og:url");
+            urlOGMetaTag.Attributes.Add("content", Request.Url.AbsoluteUri);
+            Page.Header.Controls.Add(urlOGMetaTag);
+        }
+
+    }
+
+</script>
+
+<html class="no-js">
+<head runat="server">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=10" />
+    <meta charset="utf-8">
+    <title></title>
+
+    <script src="<%# ResolveRockUrl("~/Scripts/jquery-3.3.1.min.js" ) %>"></script>
+    <script src="<%# ResolveRockUrl("~/Scripts/jquery-migrate-3.0.1.min.js" ) %>"></script>
+
+    <!-- Set the viewport width to device width for mobile -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <!-- Included CSS Files -->
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/layout.css", true) %>"/>
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/main.css", true) %>"/>
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~/Styles/developer.css", true) %>"/>
+    <asp:ContentPlaceHolder ID="css" runat="server" />
+
+    <!-- Included JS Files -->
+    <script src="<%# ResolveRockUrl("/themes/SECC2019/Scripts/modernizr-custom.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("/themes/SECC2019/Scripts/global-dist.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("/themes/SECC2019/Scripts/isotope.pkgd.min.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("/themes/SECC2019/Scripts/imagesloaded.pkgd.min.js" ) %>"></script>
+    <script src="<%# ResolveRockUrl("/themes/SECC2019/Scripts/smooth-scroll.min.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("/themes/SECC2019/Scripts/select2/select2.full.min.js" ) %>" ></script>
+
+    <asp:ContentPlaceHolder ID="head" runat="server"></asp:ContentPlaceHolder>
+
+    <!-- Icons -->
+    <link rel="shortcut icon" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/secc-favicon.ico", true) %>"/>
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/secc-touch-icon-ipad-retina.png", true) %>"/>
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/secc-touch-icon-iphone-retina.png", true) %>"/>
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/secc-touch-icon-ipad.png", true) %>"/>
+    <link rel="apple-touch-icon-precomposed" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/secc-touch-icon-iphone.png", true) %>"/>
+
+    <!-- Include Mega Menu Assets -->
+	<script src="<%# ResolveRockUrl("/themes/SECC2019/Assets/Vendor/mega-site-navigation/js/modernizr.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("/themes/SECC2019/Assets/Vendor/mega-site-navigation/js/jquery.mobile.custom.min.js", true) %>"></script>
+    <script src="<%# ResolveRockUrl("/themes/SECC2019/Assets/Vendor/mega-site-navigation/js/main.js", true) %>"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.7/jarallax.js" ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/object-fit-images/3.2.3/ofi.min.js" ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.7/jarallax-video.js" ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vivus/0.4.4/vivus.min.js" ></script>
+    <link href="/Themes/SECC2019/Assets/vendor/photo_swipe/photoswipe.css?v=4.1.2-1.0.4" />
+    <link href="/Themes/SECC2019/Assets/vendor/photo_swipe/default-skin/default-skin.css?v=4.1.2-1.0.4" />
+    <script src="/Themes/SECC2019/Assets/vendor/photo_swipe/photoswipe.js"></script>
+    <script src="/Themes/SECC2019/Assets/vendor/photo_swipe/photoswipe-ui-default.js"></script>
+
+    <!--
+    Start of global snippet: Please do not remove
+    Place this snippet between the <head> and </head> tags on every page of your site.
+    -->
+    <!-- Global site tag (gtag.js) - Google Marketing Platform -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=DC-9235428"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'DC-9235428');
+    </script>
+    <!-- End of global snippet: Please do not remove -->
+
+    <!--
+    Event snippet for HTV - WLKY - Southeast Christian Church - Easter - Retargeting Pixel - 03/27/2019 on : Please do not remove.
+    Place this snippet on pages with events you‚Äôre tracking.
+    Creation date: 03/27/2019
+    -->
+    <script>
+      gtag('event', 'conversion', {
+        'allow_custom_scripts': true,
+        'send_to': 'DC-9235428/invmedia/htv-w0+standard'
+      });
+    </script>
+    <noscript>
+    <img src="https://ad.doubleclick.net/ddm/activity/src=9235428;type=invmedia;cat=htv-w0;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;npa=;ord=1?" width="1" height="1" alt=""/>
+    </noscript>
+    <!-- End of event snippet: Please do not remove -->
+</head>
+
+<body runat="server" id="body" class="nav-is-fixed">
+
+
+    <div id="DocumentWrapper">
+
+        <form id="form1" runat="server">
+
+            <Rock:Zone Name="Primary Site Navigation Placeholder" runat="server" />
+
+            <main id="PageBody" class="cd-main-content transparent-content">
+
+                <!-- Page Header -->
+                <header id="SiteHeader">
+                    <!-- SUPERNAV -->
+                    <Rock:Zone Name="SuperNav" runat="server" />
+                    <!-- MAIN SITE NAVIGATION -->
+                </header>
+
+                <!--========== PAGE CONTENT ==========-->
+                <asp:ContentPlaceHolder ID="feature" runat="server"></asp:ContentPlaceHolder>
+                <asp:ContentPlaceHolder ID="main" runat="server"></asp:ContentPlaceHolder>
+                <!--========== END PAGE CONTENT ==========-->
+
+                <footer id="SiteFooter">
+                    <section class="partners">
+                        <div class="container">
+                            <!-- FOOTER LINKS -->
+                            <Rock:Zone Name="FooterLinks" runat="server" />
+                        </div>
+                    </section>
+                    <section class="footer-menu">
+                        <div class="container">
+                            <!-- SUB FOOTER -->
+                            <Rock:Zone Name="SubFooter" runat="server" />
+                        </div>
+                    </section>
+                    <section class="signoff">
+                        <div class="container">
+                            <!-- MAIN FOOTER -->
+                            <Rock:Zone Name="MainFooter" runat="server" />
+                        </div>
+                    </section>
+                </footer>
+
+            </main>
+
+            <Rock:Zone Name="Primary Site Navigation" runat="server" />
+
+        	<div id="cd-search" class="cd-search">
+        		<input type="search" name="q" placeholder="Search...">
+        	</div>
+
+            <div class="cd-overlay"></div>
+
+            <%-- controls for scriptmanager and update panel --%>
+            <asp:ScriptManager ID="sManager" runat="server"/>
+            <asp:UpdateProgress id="updateProgress" runat="server" DisplayAfter="800">
+    		        <ProgressTemplate>
+                        <div class="updateprogress-status">
+                            <div class="secc-cube-grid">
+                              <div class="secc-cube secc-cube1"></div>
+                              <div class="secc-cube secc-cube2"></div>
+                              <div class="secc-cube secc-cube3"></div>
+                              <div class="secc-cube secc-cube4"></div>
+                              <div class="secc-cube secc-cube5"></div>
+                              <div class="secc-cube secc-cube6"></div>
+                              <div class="secc-cube secc-cube7"></div>
+                              <div class="secc-cube secc-cube8"></div>
+                              <div class="secc-cube secc-cube9"></div>
+                           </div>
+                        </div>
+                        <div class="updateprogress-bg modal-backdrop"></div>
+    		        </ProgressTemplate>
+            </asp:UpdateProgress>
+
+
+        </form>
+
+        <!-- Back To Top -->
+        <a href="javascript:void(0);" class="s-back-to-top js__back-to-top"></a>
+
+    </div>
+</body>
+
+<footer>
+    <script src="https://use.typekit.net/eni5wig.js"></script>
+	<script>
+    try{Typekit.load({ async: true });}catch(e){}
+    </script>
+    <script>
+    /*
+     * Replace all SVG images with inline SVG
+     */
+    jQuery('img.se-brand-logo').each(function(){
+        var $img = jQuery(this);
+        var imgID = $img.attr('id');
+        var imgClass = $img.attr('class');
+        var imgURL = $img.attr('src');
+
+        jQuery.get(imgURL, function(data) {
+            // Get the SVG tag, ignore the rest
+            var $svg = jQuery(data).find('svg');
+
+            // Add replaced image's ID to the new SVG
+            if(typeof imgID !== 'undefined') {
+                $svg = $svg.attr('id', imgID);
+            }
+            // Add replaced image's classes to the new SVG
+            if(typeof imgClass !== 'undefined') {
+                $svg = $svg.attr('class', imgClass+' replaced-svg');
+            }
+
+            // Remove any invalid XML tags as per http://validator.w3.org
+            $svg = $svg.removeAttr('xmlns:a');
+
+            // Check if the viewport is set, if the viewport is not set the SVG wont't scale.
+            if(!$svg.attr('viewBox') && $svg.attr('height') && $svg.attr('width')) {
+                $svg.attr('viewBox', '0 0 ' + $svg.attr('height') + ' ' + $svg.attr('width'))
+            }
+
+            // Replace image with new SVG
+            $img.replaceWith($svg);
+
+        }, 'xml');
+
+    });
+    </script>
+</footer>
+</html>

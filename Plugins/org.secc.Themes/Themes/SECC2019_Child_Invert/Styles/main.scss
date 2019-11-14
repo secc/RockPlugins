@@ -1,0 +1,74 @@
+// Core variables and mixins
+@import '../../SECC2019/Styles/mixins';
+@import '../../SECC2019/Styles/_lib/init';
+@import '../../SECC2019/Styles/bootstrap';
+@import '../../SECC2019/Styles/bootstrap/theme';
+@import '../../SECC2019/Styles/_lib/bootstrap-overrides';
+@import '../../../Styles/FontAwesome/Scss/fontawesome';
+@import '../../../Styles/FontAwesome/Scss/solid';
+@import '../../../Styles/FontAwesome/Scss/light';
+@import '../../../Styles/FontAwesome/Scss/regular';
+@import '../../../Styles/FontAwesome/Scss/brands';
+@import '../../../Styles/FontAwesome/Scss/v4-shims';
+
+// Gui
+@import '../../SECC2019/Styles/_lib/isotope';
+@import '../../SECC2019/Styles/_lib/roles';
+@import '../../SECC2019/Styles/_lib/checkbox';
+@import '../../SECC2019/Styles/_lib/social';
+@import '../../SECC2019/Styles/_lib/events';
+@import '../../SECC2019/Styles/_lib/events-filters';
+@import '../../SECC2019/Styles/_lib/social';
+@import '../../SECC2019/Styles/_lib/panels';
+@import '../../SECC2019/Styles/_lib/breadcrumbs';
+@import '../../SECC2019/Styles/select2/_core';
+
+// Rock Core Theme
+@import '../../SECC2019/Styles/rock/init';
+
+// 2019 Custom SECC Theme
+@import '../../SECC2019/Styles/_lib/type';
+@import '../../SECC2019/Styles/_lib/_expandable';
+@import '../../SECC2019/Styles/_lib/_back-to-top';
+@import '../../SECC2019/Styles/_lib/links';
+@import '../../SECC2019/Styles/_lib/_photo_swipe';
+@import '../../SECC2019/Styles/global/_global';
+@import '../../SECC2019/Styles/_lib/forms';
+
+// SECC Custom Components
+@import '../../SECC2019/Styles/bourbon/bourbon'; // http://bourbon.io/
+@import '../../SECC2019/Styles/_lib/_layout'; // responsive grid and media queries
+@import '../../SECC2019/Styles/_lib/section-navigation';
+@import '../../SECC2019/Styles/_lib/intro_section';
+@import '../../SECC2019/Styles/_lib/sections';
+@import '../../SECC2019/Styles/_lib/accordions';
+@import '../../SECC2019/Styles/_lib/buttons';
+@import '../../SECC2019/Styles/_lib/page_menu';
+@import '../../SECC2019/Styles/_lib/modal_video';
+
+// 2019 Custom SECC Theme
+// moving existing pages over, need to refactor this one day.
+@import '../../SECC2019/Styles/_lib/campus-styles';
+@import '../../SECC2019/Styles/_lib/pages/ministries_container';
+@import '../../SECC2019/Styles/_lib/pages/students';
+@import '../../SECC2019/Styles/_lib/pages/missions';
+@import '../../SECC2019/Styles/_lib/pages/visit';
+@import '../../SECC2019/Styles/_lib/pages/contact';
+@import '../../SECC2019/Styles/_lib/pages/beliefs';
+@import '../../SECC2019/Styles/_lib/pages/about';
+@import '../../SECC2019/Styles/_lib/pages/locations';
+@import '../../SECC2019/Styles/_lib/pages/employment';
+
+// SECC Custom Nav Menu
+@import '../../SECC2019/Styles/mega-menu/core';
+
+/******************************************************
+* MAIN.SCSS
+*	Main site element styles go in this file.
+*	Iclude styles for primary elements that are
+*	used site wide (a, h1, p, body, etc).
+\******************************************************/
+@import '_lib/site';
+@import '_lib/app';
+
+@import '../../SECC2019/Styles/_lib/print';

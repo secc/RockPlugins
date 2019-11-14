@@ -1,0 +1,46 @@
+.cd-main-header {
+  display: none !important;
+}
+#PageBody {
+  top: 0px !important;
+  background-color: #000;
+  color: #fff;
+  p, h1, h2, h3, h4, h5, h6, a, div, span {
+      color: #fff;
+  }
+}
+div.card,.panel,.panel-default,.panel-body,.panel-heading {
+    background-color: rgba(124, 124, 124, 0.38) !important;
+    box-shadow: none !important;
+}
+#SiteFooter {
+  clear:both;
+  background-color: rgba(124, 124, 124, 0.18);
+  section.signoff {
+      background-color: #131313;
+      display: none !important;
+  }
+}
+.partners {
+  display: none !important;
+}
+.footer-menu {
+  display: none !important;
+}
+.s-back-to-top {
+  display: none !important;
+}
+.img-circle {
+    border: 5px solid white;
+}
+.se-brand-logo,.event-icon {
+    path, polygon, rect {
+        fill: #fff;
+    }
+}
+
+.panel-block>.panel-heading {
+    color: #898989;
+    background-color: #efefef;
+    border-color: #efefef;
+}
