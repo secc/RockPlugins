@@ -3,21 +3,27 @@
 }
 #PageBody {
   top: 0px !important;
-  background-color: #000;
+  background-color: #121212;
   color: #fff;
   p, h1, h2, h3, h4, h5, h6, a, div, span {
       color: #fff;
   }
 }
 div.card,.panel,.panel-default,.panel-body,.panel-heading {
-    background-color: rgba(124, 124, 124, 0.38) !important;
+    background-color: #1e1e1e !important;
     box-shadow: none !important;
+}
+.panel-body {
+    border-top: 2px solid #2e2e2e !important;
+}
+.accordions-1 .panel .panel-heading::before {
+    border-color: #fff;
 }
 #SiteFooter {
   clear:both;
   background-color: rgba(124, 124, 124, 0.18);
   section.signoff {
-      background-color: #131313;
+      background-color: #131313 !important;
       display: none !important;
   }
 }
@@ -29,9 +35,6 @@ div.card,.panel,.panel-default,.panel-body,.panel-heading {
 }
 .s-back-to-top {
   display: none !important;
-}
-.img-circle {
-    border: 5px solid white;
 }
 .se-brand-logo,.event-icon {
     path, polygon, rect {
