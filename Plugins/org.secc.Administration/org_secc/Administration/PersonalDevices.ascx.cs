@@ -20,6 +20,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Web.Script.Serialization;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using Rock;
@@ -55,7 +56,8 @@ namespace RockWeb.Plugins.org_secc.Administration
     </dl>
 </div>
 ", "", 2, "LavaTemplate" )]
-    [BooleanField( "Remove Device", "if true, the specific personal device will be removed from front porch", true )]
+    [BooleanField( "Remove Device", "If true, the specific personal device will be removed from Front Porch.", true )]
+    [TextField( "Secure Network SSID", "The secure network SSID for our Front Porch account.", false )]
     [ContextAware( typeof( Person ) )]
 
     public partial class PersonalDevices : RockBlock
@@ -107,6 +109,15 @@ namespace RockWeb.Plugins.org_secc.Administration
             if ( !Page.IsPostBack )
             {
                 lPanelHeader.Text = _person.FullName;
+                if ( !string.IsNullOrWhiteSpace( GetAttributeValue( "SecureNetworkSSID" ) ) )
+                {
+                    cbSecureNetwork.Visible = true;
+                    cbSecureNetwork.Label = "Secure Network Access (" + GetAttributeValue( "SecureNetworkSSID" ) + ")";
+                }
+                else
+                {
+                    cbSecureNetwork.Visible = false;
+                }
                 BindRepeater();
             }
             base.OnLoad( e );
@@ -162,6 +173,7 @@ namespace RockWeb.Plugins.org_secc.Administration
         {
             var rockContext = new RockContext();
             var personalDeviceService = new PersonalDeviceService( rockContext );
+            var personAliasService = new PersonAliasService( rockContext );
             var personalDevice = personalDeviceService.Get( hfDeviceId.ValueAsInt() );
 
             if ( personalDevice == null )
@@ -185,12 +197,26 @@ namespace RockWeb.Plugins.org_secc.Administration
             var previousMACAddress = personalDevice.MACAddress != null ? personalDevice.MACAddress.ToLower() : "";
             personalDevice.MACAddress = tbmaddress.Text.RemoveAllNonAlphaNumericCharacters().ToLower();
 
+            ModifyFrontPorchUser( personAliasService.Get( personalDevice.PersonAliasId ?? ppPerson.PersonAliasId.Value ) );
+            AddDeviceToFP( personalDevice.MACAddress );
+
+            // Archive any mac addresses that match for other devices
             if ( personalDevice.MACAddress != previousMACAddress )
             {
-                UpdateMAC( personalDevice.MACAddress, previousMACAddress );
+                var personalDevices = personalDeviceService
+                   .Queryable()
+                   .Where( d => d.MACAddress == personalDevice.MACAddress )
+                   .ToList();   
+
+                foreach ( var device in personalDevices )
+                {
+                    RemoveDeviceMAC( device, rockContext );
+                }
+                RemoveDeviceFromFP( previousMACAddress ); //Remove the previous device from FP
             }
 
             rockContext.SaveChanges();
+
             mdEdit.Hide();
             BindRepeater();
         }
@@ -286,26 +312,19 @@ namespace RockWeb.Plugins.org_secc.Administration
             tbdeviceversion.Text = personalDevice.DeviceVersion;
             tbmaddress.Text = personalDevice.MACAddress;
             hfDeviceId.SetValue( personalDeviceId );
-            mdEdit.Show();
-        }
-
-        private void UpdateMAC( string newMAC, string oldMAC )
-        {
-            RemoveDeviceFromFP( oldMAC ); //Remove the previous device from FP
-            AddDeviceToFP( newMAC );
-
-            //Remove mac address from any previous devices in our system
-            RockContext rockContext = new RockContext(); //new rockcontext so we can save freely
-            PersonalDeviceService personalDeviceService = new PersonalDeviceService( rockContext );
-            var personalDevices = personalDeviceService
-                .Queryable()
-                .Where( d => d.MACAddress == newMAC )
-                .ToList();
-
-            foreach ( var device in personalDevices )
+            if ( !string.IsNullOrWhiteSpace( GetAttributeValue( "SecureNetworkSSID" ) ) )
             {
-                RemoveDeviceMAC( device, rockContext );
+                var tmp = GetFrontPorchUser( personalDevice );
+                if ( tmp != null )
+                {
+                    cbSecureNetwork.Checked = tmp.secureNetworkSSID != null;
+                }
             }
+            else
+            {
+                cbSecureNetwork.Visible = false;
+            }
+            mdEdit.Show();
         }
 
         private void RemoveDeviceMAC( PersonalDevice device, RockContext rockContext )
@@ -345,6 +364,7 @@ namespace RockWeb.Plugins.org_secc.Administration
 
         private bool AddDeviceToFP( string macAddress )
         {
+
             var url = string.Format( "https://{0}/api/user/add?mac={1}&fpid={2}", fpHost, macAddress, ppPerson.PersonAliasId );
 
             HttpWebRequest request = ( HttpWebRequest ) WebRequest.Create( url );
@@ -364,6 +384,76 @@ namespace RockWeb.Plugins.org_secc.Administration
                 return false;
             }
             return true;
+        }
+
+        private FrontPorchUser GetFrontPorchUser( PersonalDevice device )
+        {
+            var url = string.Format( "https://{0}/api/user/get?fpid={1}", fpHost, device.PersonAliasId );
+
+            HttpWebRequest request = ( HttpWebRequest ) WebRequest.Create( url );
+            request.Headers.Add( fpAuthenticationHeader );
+            try
+            {
+                HttpWebResponse response = ( HttpWebResponse ) request.GetResponse();
+                Stream resStream = response.GetResponseStream();
+                if ( response.StatusCode == HttpStatusCode.OK )
+                {
+                    using ( var reader = new StreamReader( response.GetResponseStream() ) )
+                    {
+                        JavaScriptSerializer js = new JavaScriptSerializer();
+                        var objText = reader.ReadToEnd();
+                        var obj = ( FrontPorchUser ) js.Deserialize( objText, typeof( FrontPorchUser ) );
+                        obj.userId = device.PersonAliasId.Value;
+                        return obj;
+                    }
+                }
+            }
+            catch ( Exception e )
+            {
+                LogException( e );
+                return null;
+            }
+            return null;
+        }
+        private bool ModifyFrontPorchUser( PersonAlias personAlias )
+        {
+            FrontPorchUser user = new FrontPorchUser() { name = personAlias.Person.FullName, email = personAlias.Person.Email, userId = personAlias.Id };
+
+            if ( cbSecureNetwork.Checked )
+            {
+                user.secureNetworkSSID = GetAttributeValue( "SecureNetworkSSID" );
+            }
+            var url = string.Format( "https://{0}/api/user/modify", fpHost );
+
+            HttpWebRequest request = ( HttpWebRequest ) WebRequest.Create( url );
+            request.Headers.Add( fpAuthenticationHeader );
+            request.Method = "POST";
+            request.ContentType = "application/json";
+            try
+            {
+
+                JavaScriptSerializer js = new JavaScriptSerializer();
+                byte[] byteArray = System.Text.Encoding.UTF8.GetBytes( js.Serialize( user ) );
+                request.ContentLength = byteArray.Length;
+
+                // Get the request stream.  
+                Stream dataStream = request.GetRequestStream();
+                // Write the data to the request stream.  
+                dataStream.Write( byteArray, 0, byteArray.Length );
+                // Close the Stream objec
+
+                HttpWebResponse response = ( HttpWebResponse ) request.GetResponse();
+                Stream resStream = response.GetResponseStream();
+                if ( response.StatusCode == HttpStatusCode.OK )
+                {
+                    return true;
+                }
+            }
+            catch ( Exception e )
+            {
+                LogException( e );
+            }
+            return false;
         }
 
 
@@ -400,6 +490,14 @@ namespace RockWeb.Plugins.org_secc.Administration
             /// The platform value.
             /// </value>
             public string PlatformValue { get; set; }
+        }
+
+        public class FrontPorchUser
+        {
+            public int userId { get; set; }
+            public string name { get; set; }
+            public string email { get; set; }
+            public string secureNetworkSSID { get; set; }
         }
 
         #endregion
