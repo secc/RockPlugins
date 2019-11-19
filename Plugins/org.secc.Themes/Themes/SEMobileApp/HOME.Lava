@@ -4,12 +4,28 @@
 	},
 	"displayOptions":{
 		"style":"stacked",
-	    "contentWidthRatio":1.0,
+		"contentWidthRatio":9.5,
 	    "itemDisplayOptions":{
-	        "indicatorAspectRatio":2.76,
-	        "indicatorShadowEnabled": true,
-	        "maxWidth":1400,
-	        "textPosition":"overlay"
+	        "indicatorAspectRatio":2.47407
+	    },
+		"colors":{
+	        "brand":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "theme":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "topBar":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "bottomBar":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "brandableElements":"{{colors:brand}}"
 	    }
 	},
 	"items": [
@@ -27,10 +43,8 @@
 			{
 				"images":[{
 					"width": {{-imageWidth-}},
-					"url":"https://www.southeastchristian.org/GetImage.ashx?Guid={{ imageGuid }}"
-				}],
-				"title": "{{-title-}}",
-				"subtitle": "{{-subtitle-}}"
+					"url":"https://www.southeastchristian.org/GetImage.ashx?Guid={{ imageGuid }}&mode=crop&s.roundcorners=20&bgcolor=121212&format=png"
+				}]
 				{%- if actionJson != "" -%}
 				,"actions":[{
 					{{-actionJson-}}
