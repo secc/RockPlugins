@@ -328,28 +328,30 @@
 				{% endfor %}
 			</div>
 		</div>
-		<script>
-		$(document).ready(function() {
-			$('.cd-main-header').removeClass('transparent-menu-enabled').removeClass('transparent-header');
-			$('.cd-main-content').removeClass('transparent-content');
-		});
-		$(window).load(function() {
-			// Initialize Isotope
-			var $grid = $('.isotope_wrap').isotope({
-				// options
-				percentPosition: true,
-				itemSelector: '.isotope_item',
-				layoutMode: 'fitRows'
-			});
-			// reveal all items after init
-			var $items = $grid.find('.isotope_item');
-			$grid.addClass('is-showing-items')
-			  .isotope( 'revealItemElements', $items );
-		});
-		</script>
+		
 	{% endif %}
 
 {% else %}
 	<h1 class="g-font-size--jumbo-1">Could not find series.</h1>
 {% endif %}
 {% endcache %}
+
+<script>
+	$(document).ready(function() {
+		$('.cd-main-header').removeClass('transparent-menu-enabled').removeClass('transparent-header');
+		$('.cd-main-content').removeClass('transparent-content');
+	});
+	$(window).load(function() {
+		// Initialize Isotope
+		var $grid = $('.isotope_wrap').isotope({
+			// options
+			percentPosition: true,
+			itemSelector: '.isotope_item',
+			layoutMode: 'fitRows'
+		});
+		// reveal all items after init
+		var $items = $grid.find('.isotope_item');
+		$grid.addClass('is-showing-items')
+		  .isotope( 'revealItemElements', $items );
+		});
+</script>
