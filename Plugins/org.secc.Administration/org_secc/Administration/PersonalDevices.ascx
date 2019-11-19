@@ -18,6 +18,7 @@
                     <Rock:RockTextBox ID="tbdeviceuniqueid" runat="server" Label="Device Unique Identifier" />
                     <Rock:RockTextBox ID="tbdeviceversion" runat="server" Label="Device Version" />
                     <Rock:RockTextBox ID="tbmaddress" runat="server" Label="MAC Address" />
+                    <Rock:RockCheckBox id="cbSecureNetwork" runat="server" Label="Secure Network Access" />
                 </fieldset>
             </Content>
         </Rock:ModalDialog>
