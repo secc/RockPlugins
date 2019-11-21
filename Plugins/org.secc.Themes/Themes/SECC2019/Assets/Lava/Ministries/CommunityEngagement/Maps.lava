@@ -1,3 +1,6 @@
+<section id="Map" class="clearfix">
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBsXUGTFS09pLVdsYEE9YrO2y4IAncAO2U"></script>
+
 <style>
     .google-maps {
         position: relative;
@@ -77,17 +80,6 @@
             </div>
         </div>
         <div class="layer-selector">
-            <div class="g-padding-y-20--xs" style="float:left">
-                <div class="check">
-                    <input id="partners" type="checkbox" class="map-checkbox" />
-                    <label for="partners">
-                      <div class="icon-box"><i class="fa fa-check"></i></div>
-                      <span class="layer-label">&nbsp;Ministry Partners</span>
-                    </label>
-                </div>
-            </div>
-        </div>
-        <div class="layer-selector">
             <div class="g-padding-y-20--xs">
                 <div class="check">
                     <input id="residential" type="checkbox" class="map-checkbox" />
@@ -119,20 +111,20 @@
         <div class="map-overlay col-xs-12 col-sm-4 col-md-3" style="z-index:100">
             <div class="g-padding-x-50--xs g-padding-y-50--xs" id="map-data">
     			<div class="campuses-content">
-    				<h3 class="g-padding-b-10--xs g-font-weight--600">Our Campuses</h4>
+    				<h3 class="g-padding-b-10--xs g-font-weight--600">Our Campuses</h3>
     				<p>Southeast Christian Church is one church with multiple locations, or campuses. Select a campus on the map to see its exact address and service times. </p>
     				<br />
     				<p>Our mission as a church is connecting people to Jesus and one another. Each of our campuses serves as a hub for these connections to take place through worship services; groups, classes, and events; and other opportunities. </p>
     				<br />
     			</div>
     			<div class="partners-content" style="display: none;">
-    				<h3 class="g-padding-b-10--xs g-font-weight--600">Ministry Partners</h4>
+    				<h3 class="g-padding-b-10--xs g-font-weight--600">Ministry Partners</h3>
     				<p>Ministry Partners are other churches and organizations we partner with in loving where we are. We believe in working together as the body of Christ to make the Gospel known in our communities. </p>
     				<br />
     			</div>
 
     			<div class="residential-content" style="display: none;">
-    				<h3 class="g-padding-b-10--xs g-font-weight--600">Residential Community Leaders</h4>
+    				<h3 class="g-padding-b-10--xs g-font-weight--600">Residential Community Leaders</h3>
     				<p>Residential Community Leaders are individuals who are committed to being a Gospel presence where they live. They are connected to a Community Pastor and are intentionally sharing the Gospel within their residential neighborhood.</p>
     				<br />
     				<p>Residential Community Leaders might be engaged by opening their home to a neighborhood group, regularly prayer walking their neighborhoods, throwing block parties to get to know their neighbors, or a variety of other outreach opportunities.</p>
@@ -140,7 +132,7 @@
     			</div>
 
     			<div class="nonresidential-content" style="display: none;">
-    				<h3 class="g-padding-b-10--xs g-font-weight--600">Nonresidential Community Leaders</h4>
+    				<h3 class="g-padding-b-10--xs g-font-weight--600">Nonresidential Community Leaders</h3>
     				<p>Nonresidential Community Leaders are individuals who are committed to taking the Gospel to a place outside of their residential neighborhood—where they work and go.</p>
     				<br />
     				<p>Nonresidential Community Leaders might be engaged by loving where they are at their schools, workplaces, teams, gyms, and other places where they interact with people on a regular basis. </p>
@@ -213,19 +205,19 @@
         // create kmlLayer object from URL
 		var layers = {};
         layers['residential'] =  new google.maps.KmlLayer({
-          url: "https://www.lovewhereuare.org/Content/LWYA/Residential-20171002.kmz",
+          url: "https://southeastchristian.org/Webhooks/Lava.ashx/ministries/communityengagement/communitypastors/residential.kml",
           suppressInfoWindows: true,
 		  preserveViewport: true,
           map: null
         });
         layers['nonresidential'] = new google.maps.KmlLayer({
-          url: "https://www.lovewhereuare.org/Content/LWYA/Nonresidential-20171002-1.kmz",
+          url: "https://southeastchristian.org/Webhooks/Lava.ashx/ministries/communityengagement/communitypastors/nonresidential.kml",
           suppressInfoWindows: true,
 		  preserveViewport: true,
           map: null
         });
         layers['partners'] = new google.maps.KmlLayer({
-          url: "https://www.lovewhereuare.org/Content/LWYA/Partners-20171002.kmz",
+          url: "https://southeastchristian.org/Content/LWYA/Partners-20171002.kmz",
           suppressInfoWindows: true,
 		  preserveViewport: true,
           map: null
@@ -244,6 +236,7 @@
 					}
 				});
 				var title = "";
+				console.debug(values)
 				if(values.hasOwnProperty('Place of Ministry')){
 				  var content = '<div id="iw_container">' +
 					 '<div class="iw_subTitle">'+values['Place of Ministry']+'</div>' +
@@ -295,3 +288,4 @@
 
     });
 </script>
+</section>
