@@ -172,91 +172,93 @@
 {% endfor %}
 
 {[ wow animate:'fadeInUp' duration:'.8s' ]}
-<div class="row">
-    <div class="g-margin-b-80--xs g-display-flex--lg container">
-    {% assign cardsFlagCount = 0 %}
-    {% assign firstFlag = false %}
-    {%- for item in Items -%}
-        {% assign itemStartDateTime = item.StartDateTime | Date:'MMddyyHHmm' | AsInteger %}
-        {% assign itemExpireDateTime = item.ExpireDateTime | Date:'MMddyyHHmm' | AsInteger %}
-        {% if itemStartDateTime <= currentDateTime %}
-        {% if itemExpireDateTime > currentDateTime or itemExpireDateTime == null %}
-        <div class="col-xs-12 col-lg-4
-            {% if firstFlag == false %}
-                {% if ItemsCount == 1 %} col-lg-offset-4 {% endif %}
-                {% if ItemsCount == 2 %} col-lg-offset-2 {% endif %}
-                {% assign firstFlag = true %}
-            {% endif %}
-          event-calendar">
+        <div class="row">
+            <div class="g-margin-b-80--xs g-display-flex--lg container">
 
-        {% assign alert_template = item | Attribute:'AlertTemplate','RawValue' %}
-        {%- if alert_template == 1 -%}
-            {% assign cardsFlagCount = cardsFlagCount | Plus:1 %}
-            <a href="/online">
-            <div class="clearfix card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
-                <h5 class="g-font-family--secondary">SE Online</h5>
-                <h6 class="g-margin-b-0--xs g-line-height--normal">Live stream our worship services each Sunday at 11:30 a.m., 2:00 p.m., & 8:00 p.m.</h6>
+            {% assign cardsFlagCount = 0 %}
+            {% assign firstFlag = false %}
+            {%- for item in Items -%}
+                {% assign itemStartDateTime = item.StartDateTime | Date:'MMddyyHHmm' | AsInteger %}
+                {% assign itemExpireDateTime = item.ExpireDateTime | Date:'MMddyyHHmm' | AsInteger %}
+                {% if itemStartDateTime <= currentDateTime %}
+                {% if itemExpireDateTime > currentDateTime or itemExpireDateTime == null %}
+                <div class="col-xs-12 col-lg-4
+                    {% if firstFlag == false %}
+                        {% if ItemsCount == 1 %} col-lg-offset-4 {% endif %}
+                        {% if ItemsCount == 2 %} col-lg-offset-2 {% endif %}
+                        {% assign firstFlag = true %}
+                    {% endif %}
+                  event-calendar">
 
-                <div id="churchonline_counter_loader" class="g-margin-x-auto--xs text-center">
-                    <img src="/Content/ExternalSite/WebImages/Loader808.gif" class="g-padding-y-30--xs"/>
-                </div>
-                <div id="churchonline_counter_container" class="alertBar container-fluid" style="border-width: 2px;">
-                    <div class="row">
-                        <div class="col-md-12 text-center g-padding-x-0--xs g-padding-b-0--sm">
-                            <div id="churchonline_counter">
-                                <span class="g-display-inline-block--xs g-margin-t-15--xs live-stream-container" style="vertical-align: top;padding: 20px 0px;">
-                                    <span class="live-stream coming-soon">
-                                        <h6 class="notlive uppercase g-color--black g-font-weight--700" style="vertical-align:middle">Next Event</h6>
-                                        <h6 class="live uppercase g-color--black g-font-weight--700" style="vertical-align:middle">Live Now</h6>
-                                    </span>
-                                </span>
-                                <ul class="time g-padding-x-0--xs">
-                                    <li><h4 class="g-font-weight--700"><span class="days">00</span></h4> <span class="label uppercase" style="top: -10px;position: relative;">days</span></li>
-                                    <li><h4 class="g-font-weight--700"><span class="hours">00</span></h4> <span class="label uppercase" style="top: -10px;position: relative;">hours</span></li>
-                                    <li><h4 class="g-font-weight--700"><span class="minutes">00</span></h4> <span class="label uppercase" style="top: -10px;position: relative;">mins</span></li>
-                                    <li><h4 class="g-font-weight--700"><span class="seconds">00</span></h4> <span class="label uppercase" style="top: -10px;position: relative;">secs</span></li>
-                                </ul>
+                {% assign alert_template = item | Attribute:'AlertTemplate','RawValue' %}
+                {%- if alert_template == 1 -%}
+                    {% assign cardsFlagCount = cardsFlagCount | Plus:1 %}
+                    <a href="/online">
+                    <div class="clearfix card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
+                        <h5 class="g-font-family--secondary">SE Online</h5>
+                        <h6 class="g-margin-b-0--xs g-line-height--normal">Live stream our worship services each Sunday at 11:30 a.m., 2:00 p.m., & 8:00 p.m.</h6>
+
+                        <div id="churchonline_counter_loader" class="g-margin-x-auto--xs text-center">
+                            <img src="/Content/ExternalSite/WebImages/Loader808.gif" class="g-padding-y-30--xs"/>
+                        </div>
+                        <div id="churchonline_counter_container" class="alertBar container-fluid" style="border-width: 2px;">
+                            <div class="row">
+                                <div class="col-md-12 text-center g-padding-x-0--xs g-padding-b-0--sm">
+                                    <div id="churchonline_counter">
+                                        <span class="g-display-inline-block--xs g-margin-t-15--xs live-stream-container" style="vertical-align: top;padding: 20px 0px;">
+                                            <span class="live-stream coming-soon">
+                                                <h6 class="notlive uppercase g-color--black g-font-weight--700" style="vertical-align:middle">Next Event</h6>
+                                                <h6 class="live uppercase g-color--black g-font-weight--700" style="vertical-align:middle">Live Now</h6>
+                                            </span>
+                                        </span>
+                                        <ul class="time g-padding-x-0--xs">
+                                            <li><h4 class="g-font-weight--700"><span class="days">00</span></h4> <span class="label uppercase" style="top: -10px;position: relative;">days</span></li>
+                                            <li><h4 class="g-font-weight--700"><span class="hours">00</span></h4> <span class="label uppercase" style="top: -10px;position: relative;">hours</span></li>
+                                            <li><h4 class="g-font-weight--700"><span class="minutes">00</span></h4> <span class="label uppercase" style="top: -10px;position: relative;">mins</span></li>
+                                            <li><h4 class="g-font-weight--700"><span class="seconds">00</span></h4> <span class="label uppercase" style="top: -10px;position: relative;">secs</span></li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
+                    </a>
+                {%- elseif alert_template == 2 -%}
+                    {% assign cardsFlagCount = cardsFlagCount | Plus:1 %}
+                    <a href="/locations">
+                    <div class="clearfix card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
+                        <img src="/GetImage.ashx?id=1999706&h=175&w=175&mode=crop" class="pull-left img-responsive g-padding-r-30--xs g-width-200--xs g-width-250--lg action-image" style="margin-right: 0 !important;" />
+                        <h5 class="g-font-family--secondary g-margin-b-5--xs">New Here?</h5>
+                        <h6 class="g-margin-b-0--xs g-line-height--normal action-content">We have multiple locations but one mission: <i>Connecting people to Jesus and one another.</i> Learn more about what to expect on your visit.</h6>
+                    </div>
+                    </a>
+                {%- else -%}
+                    {% assign cardsFlagCount = cardsFlagCount | Plus:1 %}
+                    {% assign defaultImageGuid = item | Attribute:'DefaultImage','RawValue' %}
+                    {% assign defaultURL = item | Attribute:'DefaultURL','RawValue' %}
+                    {% assign defaultContent = item | Attribute:'DefaultContent' %}
+                    {%- if defaultURL != "" -%}
+                    <a href="{{ defaultURL }}">
+                    <div class="clearfix card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
+                        {% if defaultImageGuid != '' %}
+                        <img src="/GetImage.ashx?Guid={{ defaultImageGuid }}&h=175&w=175&mode=crop" class="pull-left img-responsive g-padding-r-30--xs g-width-200--xs g-width-250--lg action-image" style="margin-right: 0 !important;" />
+                        {% endif %}
+                        <h5 class="g-font-family--secondary g-margin-b-5--xs">{{ item.Title }}</h5>
+                        <h6 class="g-margin-b-0--xs g-line-height--normal action-content">{{ defaultContent | Truncate:134,'...' }}</h6>
+                    </div>
+                    </a>
+                    {%- endif -%}
+                {%- endif -%}
+
                 </div>
-            </div>
-            </a>
-        {%- elseif alert_template == 2 -%}
-            {% assign cardsFlagCount = cardsFlagCount | Plus:1 %}
-            <a href="/locations">
-            <div class="clearfix card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
-                <img src="/GetImage.ashx?id=1999706&h=175&w=175&mode=crop" class="pull-left img-responsive g-padding-r-30--xs g-width-200--xs g-width-250--lg action-image" style="margin-right: 0 !important;" />
-                <h5 class="g-font-family--secondary g-margin-b-5--xs">New Here?</h5>
-                <h6 class="g-margin-b-0--xs g-line-height--normal action-content">We have multiple locations but one mission: <i>Connecting people to Jesus and one another.</i> Learn more about what to expect on your visit.</h6>
-            </div>
-            </a>
-        {%- else -%}
-            {% assign cardsFlagCount = cardsFlagCount | Plus:1 %}
-            {% assign defaultImageGuid = item | Attribute:'DefaultImage','RawValue' %}
-            {% assign defaultURL = item | Attribute:'DefaultURL','RawValue' %}
-            {% assign defaultContent = item | Attribute:'DefaultContent' %}
-            {%- if defaultURL != "" -%}
-            <a href="{{ defaultURL }}">
-            <div class="clearfix card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
-                {% if defaultImageGuid != '' %}
-                <img src="/GetImage.ashx?Guid={{ defaultImageGuid }}&h=175&w=175&mode=crop" class="pull-left img-responsive g-padding-r-30--xs g-width-200--xs g-width-250--lg action-image" style="margin-right: 0 !important;" />
+                {%- endif -%}
+                {%- endif -%}
+
+                {% if cardsFlagCount == 3 %}
+                    {% break %}
                 {% endif %}
-                <h5 class="g-font-family--secondary g-margin-b-5--xs">{{ item.Title }}</h5>
-                <h6 class="g-margin-b-0--xs g-line-height--normal action-content">{{ defaultContent | Truncate:134,'...' }}</h6>
+            {%- endfor -%}
+
             </div>
-            </a>
-            {%- endif -%}
-        {%- endif -%}
-
         </div>
-        {%- endif -%}
-        {%- endif -%}
-
-        {% if cardsFlagCount == 3 %}
-            {% break %}
-        {% endif %}
-    {%- endfor -%}
-    </div>
-</div>
 {[ endwow ]}
