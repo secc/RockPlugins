@@ -270,7 +270,66 @@
 	.panel+.panel {
 		margin-top: 2.7rem;
 	}
-} // .accordions-2
+} // .accordions-nostyle
+
+.accordions-christmas2019 {
+	.panel {
+		border-radius: 0px !important;
+		@include transition(all .3s ease);
+        &:hover {
+			@include transition(all .3s ease);
+		}
+        .panel-heading {
+
+			color: #fff;
+			position: relative;
+            cursor: pointer;
+			padding: 25px;
+			text-align: center;
+			background-color: #d5b47e;
+			border-color: #d5b47e;
+
+			.panel-title {
+				@extend h3;
+				width: 100%;
+				padding: 0px;
+				margin: 0px;
+				text-align: center;
+				font-size: 1.4em !important;
+				text-transform: none !important;
+				color: #fff !important;
+				a {
+					&:focus {
+						text-decoration: none;
+					}
+				}
+			}
+		} // .panel-heading
+
+		.panel-collapse {
+
+			.panel-body {
+				border: none;
+                border-radius: 0;
+				background-color: #eee5d7;
+                padding: 30px;
+				text-align: left;
+				p {
+					margin: 0px;
+					color: #6e6e6e;
+					a:not(.btn):not(.btn-doors) {
+						color: #6e6e6e;
+                        font-weight: bolder;
+					}
+				}
+			} // .panel-body
+		} // .panel-collapse
+	} // .panel
+
+	.panel+.panel {
+		margin-top: 2.7rem;
+	}
+} // .accordions-christmas2019
 
 .faq-contact-links {
 	color: rgba($CopyColor, 0.8);
