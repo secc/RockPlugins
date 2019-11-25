@@ -35,6 +35,7 @@ using Rock;
 using Rock.Data;
 using Rock.Model;
 using Rock.Security;
+using System.Linq;
 
 namespace RockWeb
 {
@@ -46,6 +47,7 @@ namespace RockWeb
         internal class AttributeKeys
         {
             internal const string GivingId = "GivingId";
+            internal const string PersonIds = "PersonIds";
         }
 
         /// <summary>
@@ -109,7 +111,9 @@ namespace RockWeb
                         if ( !binaryFile.IsAuthorized( Authorization.VIEW, currentPerson ) )
                         {
                             binaryFile.LoadAttributes();
-                            if ( binaryFile.GetAttributeValue( AttributeKeys.GivingId ) != currentPerson.GivingId )
+                            var previousPersonIds = currentPerson.Aliases.Select( pa => pa.AliasPersonId ).ToArray();
+                            var binaryFilePersonIds = binaryFile.GetAttributeValue( AttributeKeys.PersonIds ).SplitDelimitedValues().Select( pi => pi.AsIntegerOrNull() );
+                            if ( !(binaryFile.GetAttributeValue( AttributeKeys.GivingId ) == currentPerson.GivingId || previousPersonIds.Intersect( binaryFilePersonIds ).Any() ) )
                             {
                                 SendError( context, 403, "Not authorized to view file." );
                                 return;
