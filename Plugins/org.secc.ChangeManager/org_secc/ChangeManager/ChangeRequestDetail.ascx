@@ -6,6 +6,8 @@
                 <asp:Literal runat="server" ID="lName" />
             </div>
             <div class="panel-body">
+                <Rock:NotificationBox runat="server" Text="Warning: This is as change to someone on the blacklist. Please check changes with great care."
+                    NotificationBoxType="Warning" Visible="false" ID="nbBlacklistWarning" />
                 <asp:HiddenField runat="server" ID="hfChangeId" />
                 <div class="col-md-12">
                     <Rock:Grid runat="server" ID="gRecords" DataKeyNames="Id">

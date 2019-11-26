@@ -108,12 +108,21 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                      Applied = c.ChangeRecords.Any( r => r.WasApplied ),
                      WasReviewed = c.IsComplete
                  }
-            );
+            ).ToList();
+
+            foreach ( var request in requests )
+            {
+                if ( request.Applied == false && request.WasReviewed == false )
+                {
+                    request.Name = "<i class='fa fa-exclamation-triangle'></i> " + request.Name;
+                }
+            }
 
             requests = requests.OrderBy( c => c.WasReviewed )
                 .ThenBy( c => c.Applied )
-                .ThenByDescending( c => c.Requested );
-            gRequests.SetLinqDataSource( requests );
+                .ThenByDescending( c => c.Requested )
+                .ToList();
+            gRequests.DataSource = requests;
             gRequests.DataBind();
         }
 
