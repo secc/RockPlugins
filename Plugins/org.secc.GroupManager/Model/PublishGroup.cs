@@ -15,10 +15,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
 using System.Linq;
 using System.Runtime.Serialization;
+using Rock;
 using Rock.Data;
 using Rock.Model;
 using Rock.Security;
@@ -35,6 +37,22 @@ namespace org.secc.GroupManager.Model
 
         [LavaInclude]
         public virtual Group Group { get; set; }
+
+        [DataMember]
+        public string Name { get; set; }
+
+        [LavaInclude]
+        public string Title
+        {
+            get
+            {
+                if ( Name.IsNotNullOrWhiteSpace() )
+                {
+                    return Name;
+                }
+                return Group.Name;
+            }
+        }
 
         [DataMember]
         public string Description { get; set; }
@@ -131,10 +149,40 @@ namespace org.secc.GroupManager.Model
         public TimeSpan? WeeklyTimeOfDay { get; set; }
 
         [DataMember]
+        public string CustomSchedule { get; set; }
+
+
+        [LavaInclude]
+        public string ScheduleText
+        {
+            get
+            {
+                if ( CustomSchedule.IsNotNullOrWhiteSpace() )
+                {
+                    return CustomSchedule;
+                }
+                if ( WeeklyDayOfWeek.HasValue )
+                {
+                    return string.Format( "{0}s {1}",
+                        WeeklyDayOfWeek.Value.ToString(),
+                        WeeklyTimeOfDay.HasValue ? new DateTime( WeeklyTimeOfDay.Value.Ticks ).ToString( "h:mm tt" ) : "" );
+                }
+                return "";
+            }
+        }
+
+        [DataMember]
         public DateTime? StartDate { get; set; }
 
         [DataMember]
         public string MeetingLocation { get; set; }
+
+        [DataMember]
+        public bool IsHidden { get; set; }
+
+        [StringLength( 75 )]
+        [DataMember]
+        public string Slug { get; set; }
 
         [NotMapped]
         public bool IsActive { get => WasActive( Rock.RockDateTime.Today ); }
