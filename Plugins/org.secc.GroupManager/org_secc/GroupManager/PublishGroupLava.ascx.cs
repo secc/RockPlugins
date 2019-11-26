@@ -89,6 +89,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             var qry = publishGroupService
                 .Queryable( "Group" )
+                .Where(pg => !pg.IsHidden) //Is not hidden from list
                 .Where( pg => pg.PublishGroupStatus == PublishGroupStatus.Approved ) //Approved
                 .Where( pg => pg.StartDateTime <= Rock.RockDateTime.Today && pg.EndDateTime >= Rock.RockDateTime.Today ) //Active
                 .Where( pg => pg.Group.GroupType.GroupCapacityRule == GroupCapacityRule.None

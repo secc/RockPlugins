@@ -406,6 +406,12 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             if ( _publishGroup != null )
             {
+                if ( _publishGroup.RegistrationRequirement != RegistrationRequirement.RegistrationAvailable &&
+                     _publishGroup.RegistrationRequirement != RegistrationRequirement.RegistrationRequired )
+                {
+                    pnlForm.Visible = false;
+                }
+
                 // Show lava content
                 var mergeFields = new Dictionary<string, object>();
                 mergeFields.Add( "PublishGroup", _publishGroup );
@@ -637,19 +643,18 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 {
                     _publishGroup = publishGroupService.Get( publishGroupGuid.Value );
                 }
+                else
+                {
+                    var slug = PageParameter( "PublishGroup" ).ToLower();
+                    _publishGroup = publishGroupService.Queryable().Where( pg => pg.Slug == slug ).FirstOrDefault();
+                }
             }
 
-            if ( _publishGroup == null )
+            if ( _publishGroup == null || _publishGroup.PublishGroupStatus != PublishGroupStatus.Approved )
             {
                 nbNotice.Heading = "Unknown Group";
                 nbNotice.Text = "<p>This page requires a valid group identifying parameter and there was not one provided.</p>";
                 nbNotice.Visible = true;
-                return false;
-            }
-
-            if ( !_publishGroup.RequiresRegistration )
-            {
-                nbNotice.Visible = false;
                 return false;
             }
 
