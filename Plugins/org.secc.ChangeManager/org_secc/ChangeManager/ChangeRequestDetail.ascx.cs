@@ -31,6 +31,9 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
     [Category( "SECC > CRM" )]
     [Description( "View requests" )]
 
+    [DataViewField( "Blacklist Data View",
+        "Data View of people who should never have their data automatically updated such as staff members, VIPs or other people you wish to have reviewed before updating.",
+        false, key: "BlacklistDataView", order: 1 )]
     [WorkflowTypeField( "Workflow", "Workflow to run after completing request." )]
     public partial class ChangeRequestDetail : Rock.Web.UI.RockBlock
     {
@@ -69,6 +72,9 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 this.Visible = false;
                 return;
             }
+
+            CheckForBlacklist( changeRequest );
+
             var link = "";
             if ( changeRequest.EntityTypeId == EntityTypeCache.Get( typeof( PersonAlias ) ).Id )
             {
@@ -134,6 +140,53 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                .Cast<DataControlField>()
                .Where( fld => ( fld.HeaderText == "Is Rejected" ) )
                .SingleOrDefault() ).Visible = false;
+            }
+        }
+
+        private void CheckForBlacklist( ChangeRequest changeRequest )
+        {
+            var blackListDV = GetAttributeValue( "BlacklistDataView" ).AsGuidOrNull();
+            if ( blackListDV.HasValue )
+            {
+
+
+                RockContext rockContext = new RockContext();
+                List<int> relatedPersonIds = new List<int>();
+
+                if ( changeRequest.EntityTypeId == EntityTypeCache.Get( typeof( PersonAlias ) ).Id )
+                {
+                    PersonAliasService personAliasService = new PersonAliasService( rockContext );
+                    var personAlias = personAliasService.Get( changeRequest.EntityId );
+                    if ( personAlias != null )
+                    {
+                        relatedPersonIds.Add( personAlias.PersonId );
+                    }
+                }
+                else if ( changeRequest.EntityTypeId == EntityTypeCache.Get( typeof( Person ) ).Id )
+                {
+                    relatedPersonIds.Add( changeRequest.EntityId );
+                }
+                else if ( changeRequest.EntityTypeId == EntityTypeCache.Get( typeof( Group ) ).Id )
+                {
+                    GroupService groupService = new GroupService( rockContext );
+                    var family = groupService.Get( changeRequest.EntityId );
+                    if ( family != null )
+                    {
+                        relatedPersonIds.AddRange( family.Members.Select( m => m.PersonId ) );
+                    }
+                }
+                DataViewService dataViewService = new DataViewService( rockContext );
+                var dv = dataViewService.Get( blackListDV.Value );
+                if ( dv != null )
+                {
+                    List<string> errorMessages;
+                    var qry = ( IQueryable<Person> ) dv.GetQuery( null, 30, out errorMessages );
+
+                    if ( qry.Where( p => relatedPersonIds.Contains( p.Id ) ).Any() )
+                    {
+                        nbBlacklistWarning.Visible = true;
+                    }
+                }
             }
         }
 

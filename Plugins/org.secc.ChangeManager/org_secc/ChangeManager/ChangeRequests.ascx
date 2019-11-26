@@ -7,7 +7,7 @@
         </Rock:GridFilter>
         <Rock:Grid runat="server" ID="gRequests" DataKeyNames="Id" OnRowSelected="gRequests_RowSelected">
             <Columns>
-                <Rock:RockBoundField HeaderText="Entity Name" DataField="Name" />
+                <Rock:RockBoundField HeaderText="Entity Name" DataField="Name" HtmlEncode="false" />
                 <Rock:RockBoundField HeaderText="Entity Type" DataField="EntityType" />
                 <Rock:RockBoundField HeaderText="Requestor" DataField="Requestor" />
                 <Rock:DateTimeField HeaderText="Requested" DataField="Requested" />
