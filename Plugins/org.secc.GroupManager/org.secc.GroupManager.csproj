@@ -64,6 +64,7 @@
     <Compile Include="Data\GroupManagerContext.cs" />
     <Compile Include="Data\GroupManagerService.cs" />
     <Compile Include="Exceptions\NonExistantFilter.cs" />
+    <Compile Include="Migrations\201911220000000_RequestedChanges.cs" />
     <Compile Include="Migrations\201910110000001_ChildcareOptions.cs" />
     <Compile Include="Migrations\201911050000000_AddKeys.cs" />
     <Compile Include="Migrations\201910140000001_RegistrationDescription.cs" />
