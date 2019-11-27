@@ -6,9 +6,6 @@
 							<a href="#" onclick="doSlide('#{{divId}}_{{role.Value}}'); return false;">
 						{% else %}
                             {%- assign groupId = partition.GroupId -%}
-                            {%- if role.Entity.GroupTypeId == 167 -%}
-                                {%- assign groupId = groupId | Plus: 1 -%}
-                            {%- endif -%}
 							<a href="{{partition.Url}}&GroupId={{groupId}}">
 						{% endif %}
 					{% endif %}
