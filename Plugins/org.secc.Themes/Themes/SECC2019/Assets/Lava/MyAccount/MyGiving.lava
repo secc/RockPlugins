@@ -44,15 +44,9 @@ Eventually we will need to convert the inline css below into BEM CSS.
 							{% sql %}
 								SELECT bf.FileName, bf.Guid FROM BinaryFile bf
 								JOIN AttributeValue av ON bf.Id = av.EntityId
-								JOIN Attribute a ON av.AttributeId = a.Id AND a.EntityTypeQualifierValue = '36' AND (a.[Key] = 'GivingId' OR a.[Key] = 'PersonIds')
-								WHERE (av.Value = '{{CurrentPerson.GivingId | Replace:"'",'' | SanitizeSql}}' OR (
-									SELECT COUNT(*) FROM (
-										SELECT * FROM _org_secc_fnSplit(av.Value, '|') 
-										INTERSECT 
-										SELECT CAST(AliasPersonId AS VARCHAR(MAX)) FROM PersonAlias pa 
-											WHERE pa.PersonId = '{{CurrentPerson.Id | Replace:"'",'' | SanitizeSql}}') tmp
-										) > 0 
-									)
+								JOIN Attribute a ON av.AttributeId = a.Id AND a.EntityTypeQualifierValue = '36' AND a.[Key] = 'PersonIds'
+								Cross apply _org_secc_fnSplit(av.Value, '|') GivingAndPersonIds 
+								JOIN PersonAlias pa ON (GivingAndPersonIds.item = pa.AliasPersonId AND pa.PersonId = {{CurrentPerson.Id | Replace:"'",'' | SanitizeSql}} AND av.Value like '%'+cast(pa.AliasPersonId as varchar(max))+'%')
 								ORDER BY bf.FileName DESC;
 							{% endsql %}
 
