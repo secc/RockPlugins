@@ -1,5 +1,9 @@
 {% assign currentDay = 'Now' | Date:'dddd' | Downcase %}
 
+{% if currentDay != "sunday" %}
+    {% assign currentDay = 'christmas' %}
+{% endif %}
+
 {% if currentDay == "sunday" %}
     {% comment %}
         This shows on Sundays
@@ -90,6 +94,92 @@
 
         </div>
     </section>
+
+{% elseif currentDay == "christmas" %}
+
+    <script>
+    		  var tmpCanInitParallax = jarallax.constructor.prototype.canInitParallax;
+    		  jarallax.constructor.prototype.canInitParallax = function(callback) {
+    		    // Intercept the set call for the video object and manually set the image
+    		    var imageHandler = {
+    		      set(target, prop, value) {
+    		        target[prop] = value;
+    		        if (prop == 'video') {
+    		            value.videoImage = "/content/externalsite/webimages/christmas2019/ChristmasCover.jpg";
+    		            value.userEventsList['started'][0] = function () {
+
+    		                self.image.$default_item = self.image.$item;
+    		                self.image.$item = self.$video;
+
+    		                // set video width and height
+    		                self.image.width = self.video.videoWidth || 1280;
+    		                self.image.height = self.video.videoHeight || 720;
+    		                self.options.imgWidth = self.image.width;
+    		                self.options.imgHeight = self.image.height;
+    		                self.coverImage();
+    		                self.clipContainer();
+    		                self.onScroll();
+
+    		                // hide image
+    		                if (self.image.$default_item) {
+    		                    self.css(self.image.$default_item, {
+    		                        'transition': 'opacity .25s ease-in-out',
+    		                        '-moz-transition': 'opacity .25s ease-in-out',
+    		                        '-webkit-transition': 'opacity .25s ease-in-out',
+    		                        'opacity': 1,
+    		                    });
+    		                    setTimeout(function () {
+    		                        self.image.$default_item.style.opacity = 0;
+    		                    }, 500);
+    		                }
+    		            };
+    		        }
+    		        return true;
+    		      }
+    		    };
+    		    // Use a proxy'ed JS object
+    		    var self = new Proxy(this, imageHandler);
+    		    self.defaultInitImgResult = true;
+    		    self.image.src = "/content/externalsite/webimages/christmas2019/ChristmasCover.jpg";
+
+    		    // save default user styles
+    		    var curStyle = self.$item.getAttribute('style');
+    		    if (curStyle) {
+    		        self.$item.setAttribute('data-jarallax-original-styles', curStyle);
+    		    }
+
+    		    // set new background
+    		    self.css(self.$item, {
+    		        'background-image': 'url("/content/externalsite/webimages/christmas2019/ChristmasCover.jpg")',
+    		        'background-position': 'center',
+    		        'background-size': 'cover',
+    		        'transition': 'opacity .25s ease-in-out',
+    		        '-moz-transition': 'opacity .25s ease-in-out',
+    		        '-webkit-transition': 'opacity .25s ease-in-out',
+    		        'opacity': 1,
+    		    });
+
+    		    // Now actually call the method against the proxy object
+    		    return tmpCanInitParallax.apply(self);
+    		  }
+    		</script>
+
+    <div style="background-color:black">
+
+        {[ parallax videourl:'https://vimeo.com/375492816' image:'/content/externalsite/webimages/christmas2019/ChristmasCover.jpg' addclass:'menu-switch' height:'75vh' position:'top center' speed:'-15' videostarttime:'0' videoendtime:'27' ]}
+            <!-- START: Ministry Logo & Video -->
+            <div class="parallax-logo centered" style="max-width: inherit;padding: 0px;">
+                <img src="/content/externalsite/webimages/christmas2019/Christmas_logo_2019.svg" class="img-responsive g-width-600--xs g-width-40-percent--lg g-margin-x-auto--xs" style="max-width: 500px;" />
+                <br />
+                <br />
+                <a href="/christmas" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
+                    <strong>SEE CHRISTMAS TIMES</strong>
+                </a>
+            </div>
+            <!-- END: Ministry Logo & Videod -->
+        {[ endparallax ]}
+
+    </div>
 
 {% else %}
 
