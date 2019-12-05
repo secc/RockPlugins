@@ -709,6 +709,15 @@ __doPostBack('PhotoUpload', JSON.stringify(req))
         {
             List<Note> notes = new List<Note>();
 
+            if (person.Person.GetAttributeValue( "Employer" ) == "Southeast Christian Church" )
+            {
+                notes.Add( new Note
+                {
+                    Text = "Staff Member",
+                    IsAlert = false
+                } );
+            }
+
             var personNoteKey = GetAttributeValue( "SportsAndFitnessNote" );
             var sfNote = person.Person.GetAttributeValue( personNoteKey );
 
