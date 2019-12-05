@@ -84,9 +84,11 @@
                                         <asp:Repeater ID="rptPartions" runat="server" OnItemDataBound="rptPartions_ItemDataBound">
                                             <ItemTemplate>
                                                 <div class="row">
-                                                    <div class="col-sm-2 col-xs-4"><strong><%# Eval("PartitionType") %></strong></div>
-                                                    <div class="col-sm-6 col-xs-6"><asp:PlaceHolder ID="phPartitionControl" runat="server"></asp:PlaceHolder></div>
-                                                    <div class="col-sm-3 col-xs-10"><strong>Parameter Name</strong><br /><Rock:RockTextBox ID="tbAttributeKey" runat="server" Placeholder="Parameter Name"  OnTextChanged="tbAttributeKey_TextChanged" AutoPostBack="true" /></div>
+                                                    <div class="col-sm-8 col-xs-10">
+                                                        <strong><%# Eval("PartitionType") %></strong><br />
+                                                        <asp:PlaceHolder ID="phPartitionControl" runat="server">
+                                                    </asp:PlaceHolder></div>
+                                                    <div class="col-sm-3 col-xs-10"><Rock:RockTextBox ID="tbAttributeKey" runat="server" Placeholder="Parameter Name" Label="Parameter Name" Help="This is used to name the QueryString URL parameter which is used for the end-user's selection." OnTextChanged="tbAttributeKey_TextChanged" AutoPostBack="true" /></div>
                                                     <div class="col-sm-1 col-xs-2"><asp:LinkButton ID="bbPartitionDelete" runat="server" OnClick="bbPartitionDelete_Click" ToolTip="Remove" CssClass="btn btn-danger" OnClientClick="Rock.dialogs.confirmPreventOnCancel(event, 'Making changes to partition settings will clear all existing counts!  Are you sure you want to proceed?');"><i class="fa fa-remove"></i></asp:LinkButton></div>
                                                 </div>
                                             </ItemTemplate>
@@ -103,8 +105,16 @@
                                     <h1 class="panel-title">Volunteers Needed</h1>
                                 </div>
                                 <div class="panel-body">
-                                    <Rock:Grid ID="gCounts" runat="server" AllowPaging="false" DataKeyNames="RowId" AllowSorting="false" ShowActionRow="false" OnRowDataBound="gCounts_RowDataBound" ViewStateMode="Disabled">
+                                    <style>
+                                        div[id$=pnlCounts] .grid-filter { min-height: 32px; }
+                                        div[id$=pnlCounts] .grid-actions { display: none; }
+                                    </style>
+                                    <Rock:GridFilter ID="gFilter" runat="server" OnApplyFilterClick="gFilter_ApplyFilterClick" OnClearFilterClick="gFilter_ClearFilterClick">
+                                        
+                                    </Rock:GridFilter>
+                                    <Rock:Grid ID="gCounts" runat="server" AllowPaging="false" DataKeyNames="RowId" AllowSorting="false" ShowActionRow="false" OnRowDataBound="gCounts_RowDataBound" ViewStateMode="Disabled" EnableResponsiveTable="false" ShowActionsInHeader="false">
                                         <Columns>
+                                            <asp:TemplateField HeaderText="Group" ItemStyle-Width="250px"></asp:TemplateField>
                                             <asp:TemplateField HeaderText="Total" ItemStyle-Width="75px"></asp:TemplateField>
                                         </Columns>
                                     </Rock:Grid>
