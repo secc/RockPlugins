@@ -1,98 +1,155 @@
 /* Custom Code Here */
 .check {
-	input {
-		display: none;
+    input {
+        display: none;
 
-		&:checked + label {
-			.icon-box {
-				animation: keyframes(animOn) 0.8s 1 forwards;
-				background: $color-dark;
+        &:checked + label {
+            .icon-box {
+                animation: keyframes(animOn) 0.8s 1 forwards;
+                background: $color-dark;
 
-				i {
-					transform: translate(-50%, -50%) scale(1);
-					transition-duration: 250ms;
-					opacity: 1;
-					color: $color-white;
-				}
-			}
-		}
-	}
+                i {
+                    transform: translate(-50%, -50%) scale(1);
+                    transition-duration: 250ms;
+                    opacity: 1;
+                    color: $color-white;
+                }
+            }
+        }
+    }
 
-	label {
-		min-width: 100px;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		flex-direction: row;
-		min-height: 60px;
-		cursor: pointer;
+    label {
+        min-width: 100px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: row;
+        min-height: 60px;
+        cursor: pointer;
 
-		.icon-box {
-			background: rgba(#fff, 0.3);
-			border: 2px solid rgba(124, 124, 124, 0.18);
-			position: relative;
-			width: 50px;
-			height: 50px;
-			transition: background 300ms ease;
+        .icon-box {
+            background: rgba(#fff, 0.3);
+            border: 2px solid rgba(124, 124, 124, 0.18);
+            position: relative;
+            width: 50px;
+            height: 50px;
+            transition: background 300ms ease;
 
-			&:hover {
-				background: rgba(#fff, 0.5);
-			}
+            &:hover {
+                background: rgba(#fff, 0.5);
+            }
 
-			i {
-				position: absolute;
-				top: 50%;
-				left: 50%;
-				font-size: 20px;
-				display: inline-block;
-				opacity: 0;
-				pointer-events: none;
-				transition: all 0.2s ease-in-out;
-				transition-delay: 200ms;
-				transform: translate(-50%, -50%) scale(6);
-			}
-		}
-	}
+            i {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                font-size: 20px;
+                display: inline-block;
+                opacity: 0;
+                pointer-events: none;
+                transition: all 0.2s ease-in-out;
+                transition-delay: 200ms;
+                transform: translate(-50%, -50%) scale(6);
+            }
+        }
+    }
 }
 
-@mixin keyframes( $animationName )
+@mixin keyframes( $animationName ) {
+    @-webkit-keyframes
+    $animationName
+
 {
-    @-webkit-keyframes $animationName {
-        @content;
-    }
-    @-moz-keyframes $animationName {
-        @content;
-    }
-    @-o-keyframes $animationName {
-        @content;
-    }
-    @keyframes $animationName {
-        @content;
-    }
+    @content;
 }
 
-@include keyframes( animOn )
+@-moz-keyframes
+$animationName
+
 {
-	40% {
-		height: 20px;
-		width: 100px;
-	}
-	50% {
-		height: 60px;
-		width: 30px;
-	}
-	60% {
-		height: 40px;
-		width: 70px;
-	}
-	70% {
-		height: 55px;
-		width: 45px;
-	}
-	100% {
-		height: 50px;
-		width: 50px;
-	}
+    @content;
 }
 
+@-o-keyframes
+$animationName
+
+{
+    @content;
+}
+
+@keyframes
+$animationName
+
+{
+    @content;
+}
+
+}
+
+@include keyframes( animOn ) {
+    40% {
+        height: 20px;
+        width: 100px;
+    }
+
+    50% {
+        height: 60px;
+        width: 30px;
+    }
+
+    60% {
+        height: 40px;
+        width: 70px;
+    }
+
+    70% {
+        height: 55px;
+        width: 45px;
+    }
+
+    100% {
+        height: 50px;
+        width: 50px;
+    }
+}
+
+
+@for $i from 1 through 6 {
+    .in-columns-#{$i} {
+        -moz-column-count: #{$i};
+        -webkit-column-count: #{$i};
+        column-count: #{$i};
+    }
+}
+
+.in-columns {
+    -webkit-column-gap: 8px;
+    -moz-column-gap: 8px;
+    column-gap: 8px;
+    -webkit-column-width: 130px;
+    -moz-column-width: 130px;
+    column-width: 130px;
+}
+
+.in-columns .radio:first-child, .in-columns .checkbox:first-child, .in-columns .radio-inline:first-child, .in-columns .checkbox-inline:first-child {
+    margin-top: 0;
+}
+
+.in-columns .radio, .in-columns .checkbox, .in-columns .radio-inline, .in-columns .checkbox-inline {
+    display: block;
+    padding-right: 0;
+}
+
+.checkbox-inline:first-child, .radio-inline:first-child {
+    padding-left: 30px;
+}
+
+.radio-inline, .checkbox-inline {
+    display: inline-block;
+    padding-left: 20px;
+    margin-bottom: 0;
+    vertical-align: middle;
+    font-weight: normal;
+    cursor: pointer;
+}
 /* end of custom code */
