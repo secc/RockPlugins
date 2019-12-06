@@ -176,7 +176,7 @@ namespace RockWeb.Plugins.GroupManager
 
             tbRegistrationLink.Text = publishGroup.RegistrationLink;
             cbAllowSpouseRegistration.Checked = publishGroup.AllowSpouseRegistration;
-            tbRegistrationLink.Text = publishGroup.RegistrationDescription;
+            tbRegistrationDetails.Text = publishGroup.RegistrationDescription;
 
             ddlChildcareOptions.SelectedValue = publishGroup.ChildcareOptions.ConvertToInt().ToString();
             tbChildcareRegistrationLink.Text = publishGroup.ChildcareRegistrationLink;
