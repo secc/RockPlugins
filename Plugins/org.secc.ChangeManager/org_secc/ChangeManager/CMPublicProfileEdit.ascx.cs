@@ -48,10 +48,32 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_PHONE_TYPE, "Required Adult Phone Types", "The phone numbers that are required when editing an adult record.", false, true, order: 7 )]
     [BooleanField( "Require Adult Email Address", "Require an email address on adult records", true, order: 8 )]
     [BooleanField( "Show Communication Preference", "Show the communication preference and allow it to be edited", true, order: 9 )]
+
+    [BooleanField(
+        "Display Terms of Service",
+        Description ="Should a checkbox agreeing to the terms service be required?",
+        Key = AttributeKeys.DisplayTerms,
+        Order = 10)]
+
+    [CodeEditorField(
+        "Terms of Service Text",
+        Description = "The text to be displayed next to the agree to the terms of service link.",
+        Key = AttributeKeys.TermsOfServiceText,
+        DefaultValue = "I agree to the terms of service.",
+        IsRequired = false,
+        Order = 11 )]
+
     [BooleanField( "Show Campus Selector", "Allows selection of primary campus.", false, order: 12 )]
+
     public partial class CMPublicProfileEdit : RockBlock
     {
         #region Keys
+        protected static class AttributeKeys
+        {
+            internal const string DisplayTerms = "DisplayTerms";
+            internal const string TermsOfServiceText = "TermsOfServiceText";
+        }
+
         protected static class PageParameterKeys
         {
             internal const string PersonGuid = "PersonGuid";
@@ -139,6 +161,12 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnSave_Click( object sender, EventArgs e )
         {
+            if ( GetAttributeValue( AttributeKeys.DisplayTerms ).AsBoolean() && !cbTOS.Checked )
+            {
+                nbTOS.Visible = true;
+                return;
+            }
+
             var rockContext = new RockContext();
             var personService = new PersonService( rockContext );
 
@@ -547,6 +575,13 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             BindPhoneNumbers( person );
 
             pnlEdit.Visible = true;
+
+            if ( GetAttributeValue( AttributeKeys.DisplayTerms ).AsBoolean() )
+            {
+                cbTOS.Visible=true;
+                cbTOS.Required = true;
+                cbTOS.Text = GetAttributeValue( AttributeKeys.TermsOfServiceText );
+            }
         }
         private void BindPhoneNumbers( Person person = null )
         {

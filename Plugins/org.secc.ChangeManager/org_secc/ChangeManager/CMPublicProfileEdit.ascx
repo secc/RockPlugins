@@ -143,6 +143,8 @@
                         </fieldset>
                         <Rock:RockTextBox runat="server" ID="tbComments" TextMode="MultiLine" Height="200" Label="Other Change Requests" />
                     </asp:Panel>
+                    <Rock:NotificationBox runat="server" ID="nbTOS" NotificationBoxType="Validation" Text="Please check the box below before saving your changes." Visible="false" />
+                    <Rock:RockCheckBox runat="server" ID="cbTOS" Visible="false" />
 
                     <div class="actions">
                         <asp:LinkButton ID="btnSave" runat="server" AccessKey="s" ToolTip="Alt+s" Text="Save" CssClass="btn btn-primary" OnClick="btnSave_Click" />
