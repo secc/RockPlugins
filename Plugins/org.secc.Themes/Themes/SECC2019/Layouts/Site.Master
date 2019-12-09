@@ -54,10 +54,10 @@
                 Page.Header.Controls.Add(descOGMetaTag);
             }
             if (!(string.IsNullOrEmpty(facebookOGImage)))
-            {
+            {   var globalAttributesCache = GlobalAttributesCache.Get();
                 HtmlMeta imageOGMetaTag = new HtmlMeta();
                 imageOGMetaTag.Attributes.Add("property", "og:image");
-                imageOGMetaTag.Attributes.Add("content", "https://www.southeastchristian.org/GetImage.ashx?Guid=" + facebookOGImage);
+                imageOGMetaTag.Attributes.Add("content", globalAttributesCache.GetValue( "PublicApplicationRoot" ) + "GetImage.ashx?Guid=" + facebookOGImage);
                 Page.Header.Controls.Add(imageOGMetaTag);
             }
             HtmlMeta urlOGMetaTag = new HtmlMeta();
