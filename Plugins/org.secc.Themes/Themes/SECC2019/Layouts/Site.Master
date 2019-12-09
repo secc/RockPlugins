@@ -32,7 +32,8 @@
             ";
             ScriptManager.RegisterStartupScript( this.Page, this.GetType(), "transparentMenu", script, true );
         }
-                if (facebookOG)
+
+        if (facebookOG)
         {
             HtmlMeta typeOGMetaTag = new HtmlMeta();
             typeOGMetaTag.Attributes.Add("property", "og:type");
@@ -56,7 +57,7 @@
             {
                 HtmlMeta imageOGMetaTag = new HtmlMeta();
                 imageOGMetaTag.Attributes.Add("property", "og:image");
-                imageOGMetaTag.Attributes.Add("content", "https://staging.southeastchristian.org/GetImage.ashx?Guid=" + facebookOGImage);
+                imageOGMetaTag.Attributes.Add("content", "https://www.southeastchristian.org/GetImage.ashx?Guid=" + facebookOGImage);
                 Page.Header.Controls.Add(imageOGMetaTag);
             }
             HtmlMeta urlOGMetaTag = new HtmlMeta();
