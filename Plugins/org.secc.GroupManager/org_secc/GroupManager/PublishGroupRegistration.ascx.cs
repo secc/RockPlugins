@@ -227,8 +227,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     {
                         homeLocation = aFamily.GroupLocations
                             .Where( l =>
-                                l.GroupLocationTypeValueId == _homeAddressType.Id &&
-                                l.IsMappedLocation )
+                                l.GroupLocationTypeValueId == _homeAddressType.Id )
                             .FirstOrDefault();
                         if ( homeLocation != null )
                         {
@@ -267,6 +266,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                         {
                             homeLocation = new GroupLocation();
                             homeLocation.GroupLocationTypeValueId = _homeAddressType.Id;
+                            homeLocation.IsMappedLocation = true;
                             family.GroupLocations.Add( homeLocation );
                         }
                         else
@@ -462,7 +462,20 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                         cbSms.Checked = cellPhone.IsMessagingEnabled;
                     }
 
-                    var homeAddress = person.GetHomeLocation();
+                    Location homeAddress = null;
+
+                    var families = person.GetFamilies();
+
+                    // If address can being entered, look for first family with a home location
+
+                    foreach ( var aFamily in families )
+                    {
+                        homeAddress = aFamily.GroupLocations
+                            .Where( l =>
+                                l.GroupLocationTypeValueId == _homeAddressType.Id )
+                            .FirstOrDefault().Location;
+                    }
+
                     if ( homeAddress != null )
                     {
                         acAddress.SetValues( homeAddress );
