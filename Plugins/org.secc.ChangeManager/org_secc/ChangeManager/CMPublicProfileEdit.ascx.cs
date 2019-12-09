@@ -51,9 +51,9 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
     [BooleanField(
         "Display Terms of Service",
-        Description ="Should a checkbox agreeing to the terms service be required?",
+        Description = "Should a checkbox agreeing to the terms service be required?",
         Key = AttributeKeys.DisplayTerms,
-        Order = 10)]
+        Order = 10 )]
 
     [CodeEditorField(
         "Terms of Service Text",
@@ -261,6 +261,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             if ( showPhoneNumbers )
             {
                 var phoneNumberTypeIds = new List<int>();
+                var phoneNumbersScreen = new List<PhoneNumber>();
                 bool smsSelected = false;
                 foreach ( RepeaterItem item in rContactInfo.Items )
                 {
@@ -278,8 +279,10 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                         int phoneNumberTypeId;
                         if ( int.TryParse( hfPhoneType.Value, out phoneNumberTypeId ) )
                         {
-                            var phoneNumber = person.PhoneNumbers.FirstOrDefault( n => n.NumberTypeValueId == phoneNumberTypeId );
+                            var phoneNumberList = person.PhoneNumbers.Where( n => n.NumberTypeValueId == phoneNumberTypeId ).ToList();
+                            var phoneNumber = phoneNumberList.FirstOrDefault( pn => pn.Number == PhoneNumber.CleanNumber( pnbPhone.Number ) );
                             string oldPhoneNumber = string.Empty;
+
                             if ( phoneNumber == null && pnbPhone.Number.IsNotNullOrWhiteSpace() ) //Add number
                             {
                                 phoneNumber = new PhoneNumber
@@ -292,22 +295,30 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                                 };
                                 var phoneComment = string.Format( "{0}: {1}.", DefinedValueCache.Get( phoneNumberTypeId ).Value, pnbPhone.Number );
                                 changeRequest.AddEntity( phoneNumber, rockContext, true, phoneComment );
-                            }
-                            else if ( phoneNumber != null && pnbPhone.Text.IsNullOrWhiteSpace() ) // delete number
-                            {
-                                var phoneComment = string.Format( "{0}: {1}.", phoneNumber.NumberTypeValue.Value, phoneNumber.NumberFormatted );
-                                changeRequest.DeleteEntity( phoneNumber, true, phoneComment );
+                                phoneNumbersScreen.Add( phoneNumber );
+
                             }
                             else if ( phoneNumber != null && pnbPhone.Text.IsNotNullOrWhiteSpace() ) // update number
                             {
                                 changeRequest.EvaluatePropertyChange( phoneNumber, "Number", PhoneNumber.CleanNumber( pnbPhone.Number ), true );
                                 changeRequest.EvaluatePropertyChange( phoneNumber, "IsMessagingEnabled", ( !smsSelected && cbSms.Checked ), true );
                                 changeRequest.EvaluatePropertyChange( phoneNumber, "IsUnlisted", cbUnlisted.Checked, true );
+                                phoneNumbersScreen.Add( phoneNumber );
                             }
-                        }
 
+                        }
                     }
                 }
+                //Remove old phone numbers or changed
+                var phoneNumbersToRemove = person.PhoneNumbers
+                                   .Where( n => !phoneNumbersScreen.Any( n2 => n2.Number == n.Number && n2.NumberTypeValueId == n.NumberTypeValueId ) ).ToList();
+
+                foreach ( var number in phoneNumbersToRemove )
+                {
+                    var phoneComment = string.Format( "{0}: {1}.", number.NumberTypeValue.Value, number.NumberFormatted );
+                    changeRequest.DeleteEntity( number, true, phoneComment );
+                }
+
             }
 
             changeRequest.EvaluatePropertyChange( person, "Email", tbEmail.Text.Trim() );
@@ -578,7 +589,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
             if ( GetAttributeValue( AttributeKeys.DisplayTerms ).AsBoolean() )
             {
-                cbTOS.Visible=true;
+                cbTOS.Visible = true;
                 cbTOS.Required = true;
                 cbTOS.Text = GetAttributeValue( AttributeKeys.TermsOfServiceText );
             }
@@ -602,24 +613,32 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 {
                     foreach ( var phoneNumberType in phoneNumberTypes.DefinedValues.Where( pnt => selectedPhoneTypeGuids.Contains( pnt.Guid ) ) )
                     {
-                        var phoneNumber = person.PhoneNumbers.FirstOrDefault( n => n.NumberTypeValueId == phoneNumberType.Id );
-                        if ( phoneNumber == null )
+                        var phoneNumberList = person.PhoneNumbers.Where( n => n.NumberTypeValueId == phoneNumberType.Id ).ToList();
+                        if ( phoneNumberList.Count() == 0 )
                         {
-                            var numberType = new DefinedValue();
-                            numberType.Id = phoneNumberType.Id;
-                            numberType.Value = phoneNumberType.Value;
-                            numberType.Guid = phoneNumberType.Guid;
-
-                            phoneNumber = new PhoneNumber { NumberTypeValueId = numberType.Id, NumberTypeValue = numberType };
-                            phoneNumber.IsMessagingEnabled = mobilePhoneType != null && phoneNumberType.Id == mobilePhoneType.Id;
-                        }
-                        else
-                        {
-                            // Update number format, just in case it wasn't saved correctly
-                            phoneNumber.NumberFormatted = PhoneNumber.FormattedNumber( phoneNumber.CountryCode, phoneNumber.Number );
+                            phoneNumberList.Add( null );
                         }
 
-                        phoneNumbers.Add( phoneNumber );
+                        foreach ( var phoneNumberTemp in phoneNumberList )
+                        {
+                            var phoneNumber = phoneNumberTemp;
+                            if ( phoneNumber == null )
+                            {
+                                var numberType = new DefinedValue();
+                                numberType.Id = phoneNumberType.Id;
+                                numberType.Value = phoneNumberType.Value;
+
+                                phoneNumber = new PhoneNumber { NumberTypeValueId = numberType.Id, NumberTypeValue = numberType };
+                                phoneNumber.IsMessagingEnabled = mobilePhoneType != null && phoneNumberType.Id == mobilePhoneType.Id;
+                            }
+                            else
+                            {
+                                // Update number format, just in case it wasn't saved correctly
+                                phoneNumber.NumberFormatted = PhoneNumber.FormattedNumber( phoneNumber.CountryCode, phoneNumber.Number );
+                            }
+
+                            phoneNumbers.Add( phoneNumber );
+                        }
                     }
 
                     rContactInfo.DataSource = phoneNumbers;

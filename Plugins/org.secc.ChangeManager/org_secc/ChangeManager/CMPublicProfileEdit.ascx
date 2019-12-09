@@ -145,7 +145,6 @@
                     </asp:Panel>
                     <Rock:NotificationBox runat="server" ID="nbTOS" NotificationBoxType="Validation" Text="Please check the box below before saving your changes." Visible="false" />
                     <Rock:RockCheckBox runat="server" ID="cbTOS" Visible="false" />
-
                     <div class="actions">
                         <asp:LinkButton ID="btnSave" runat="server" AccessKey="s" ToolTip="Alt+s" Text="Save" CssClass="btn btn-primary" OnClick="btnSave_Click" />
                         <asp:LinkButton ID="btnCancel" runat="server" AccessKey="c" ToolTip="Alt+c" Text="Cancel" CssClass="btn btn-link" CausesValidation="false" OnClick="btnCancel_Click" />
