@@ -25,7 +25,6 @@ using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI;
-using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.GroupManager
 {
@@ -56,13 +55,6 @@ namespace RockWeb.Plugins.GroupManager
         Order = 3
         )]
 
-    [CodeEditorField(
-        "Default Email",
-        "Default text to show for confirmation emails.",
-        key: AttributeKeys.DefaultEmail,
-        mode: CodeEditorMode.Html
-        )]
-
     public partial class PublishGroupRequest : RockBlock
     {
         #region Keys
@@ -72,7 +64,6 @@ namespace RockWeb.Plugins.GroupManager
             public const string Workflow = "Workflow";
             public const string RegistrationDetails = "RegistrationDetails";
             public const string ChildcareRegistrationDetails = "ChildcareRegistrationDetails";
-            public const string DefaultEmail = "DefaultEmail";
         }
 
         /// <summary>Page Parameter Keys for the Block</summary>
@@ -148,9 +139,6 @@ namespace RockWeb.Plugins.GroupManager
 
             var groupPageId = PageCache.Get( Rock.SystemGuid.Page.GROUP_VIEWER.AsGuid() ).Id;
 
-            tbName.Text = publishGroup.Title;
-            tbSlug.Text = GetSlug( publishGroup );
-
             ltGroupName.Text = string.Format( "<a href='/page/{0}' target='_blank'>{1}</a>", groupPageId, publishGroup.Group.Name );
             tbDescription.Text = publishGroup.Description.IsNotNullOrWhiteSpace() ? publishGroup.Description : publishGroup.Group.Description;
             iGroupImage.BinaryFileId = publishGroup.ImageId;
@@ -160,7 +148,6 @@ namespace RockWeb.Plugins.GroupManager
             ddlDayOfWeek.SelectedValue = publishGroup.WeeklyDayOfWeek != null ? ( ( int ) publishGroup.WeeklyDayOfWeek ).ToString() : "";
             tTimeOfDay.SelectedTime = publishGroup.WeeklyTimeOfDay;
             dpStartDate.SelectedDate = publishGroup.StartDate;
-            tbCustomSchedule.Text = publishGroup.CustomSchedule;
             tbLocationName.Text = publishGroup.MeetingLocation;
             ddlRegistration.SelectedValue = publishGroup.RegistrationRequirement.ConvertToInt().ToString();
 
@@ -199,36 +186,6 @@ namespace RockWeb.Plugins.GroupManager
                 phAttributeEdits.Controls.Clear();
                 Rock.Attribute.Helper.AddEditControls( publishGroup, phAttributeEdits, true );
             }
-        }
-
-        private string GetSlug( PublishGroup publishGroup )
-        {
-            if ( publishGroup.Slug.IsNotNullOrWhiteSpace() )
-            {
-                return publishGroup.Slug;
-            }
-
-            var slug = publishGroup.Title.RemoveAllNonAlphaNumericCharacters().ToLower();
-
-            RockContext rockContext = new RockContext();
-            PublishGroupService publishGroupService = new PublishGroupService( rockContext );
-            var takenSlug = publishGroupService.Queryable().Where( pg => pg.Slug == slug ).FirstOrDefault();
-
-            var i = 0;
-
-            while ( takenSlug != null )
-            {
-                i++;
-                var testSlug = slug + i.ToString();
-                takenSlug = publishGroupService.Queryable().Where( pg => pg.Slug == testSlug ).FirstOrDefault();
-            }
-
-            if ( i != 0 )
-            {
-                slug += i.ToString();
-            }
-
-            return slug;
         }
 
         /// <summary>Switches the childcare options.</summary>
@@ -301,7 +258,7 @@ namespace RockWeb.Plugins.GroupManager
                         ChildcareOptions = ChildcareOptions.NoChildcare,
                         Group = group,
                         RequestorAliasId = CurrentPersonAliasId.Value,
-                        ConfirmationBody = GetAttributeValue( AttributeKeys.DefaultEmail ),
+                        ConfirmationBody = "{{ 'Global' | Attribute:'EmailHeader' }}\n<br>\n<br>\n{{ 'Global' | Attribute:'EmailFooter' }}",
                         RegistrationDescription = GetAttributeValue( AttributeKeys.RegistrationDetails ),
                         ChildcareRegistrationDescription = GetAttributeValue( AttributeKeys.ChildcareRegistrationDetails )
                     };
@@ -327,29 +284,6 @@ namespace RockWeb.Plugins.GroupManager
         /// <param name="publishGroupStatus">The publish group status.</param>
         private void Save( PublishGroupStatus publishGroupStatus )
         {
-
-            RockContext rockContext = new RockContext();
-            PublishGroupService publishGroupService = new PublishGroupService( rockContext );
-            PublishGroup publishGroup = GetPublishGroup( rockContext, publishGroupService );
-
-            var slug = tbSlug.Text.ToLower();
-
-            //Test for already taken Slugs
-            var isDuplicateSlug = publishGroupService.Queryable()
-                .Where( pg => pg.Slug == slug && pg.Id != publishGroup.Id )
-                .Any();
-            if ( isDuplicateSlug )
-            {
-                nbSlug.Visible = true;
-                return;
-            }
-            else
-            {
-                nbSlug.Visible = false;
-                publishGroup.Slug = slug;
-            }
-
-
             bool isApprover = false;
             if ( IsUserAuthorized( Rock.Security.Authorization.EDIT ) )
             {
@@ -369,6 +303,10 @@ namespace RockWeb.Plugins.GroupManager
                 }
             }
 
+            RockContext rockContext = new RockContext();
+            PublishGroupService publishGroupService = new PublishGroupService( rockContext );
+            PublishGroup publishGroup = GetPublishGroup( rockContext, publishGroupService );
+
             if ( publishGroup.PublishGroupStatus == PublishGroupStatus.Approved )
             {
                 var tempGroup = publishGroup.Group;
@@ -379,7 +317,6 @@ namespace RockWeb.Plugins.GroupManager
                 publishGroupService.Add( publishGroup );
             }
 
-            publishGroup.Name = tbName.Text;
             publishGroup.ImageId = iGroupImage.BinaryFileId;
             publishGroup.PublishGroupStatus = publishGroupStatus;
             publishGroup.Description = tbDescription.Text;
@@ -387,7 +324,6 @@ namespace RockWeb.Plugins.GroupManager
             publishGroup.StartDateTime = drPublishDates.LowerValue.Value;
             publishGroup.WeeklyDayOfWeek = ddlDayOfWeek.SelectedValueAsEnumOrNull<DayOfWeek>();
             publishGroup.WeeklyTimeOfDay = tTimeOfDay.SelectedTime;
-            publishGroup.CustomSchedule = tbCustomSchedule.Text;
             publishGroup.StartDate = dpStartDate.SelectedDate;
             publishGroup.MeetingLocation = tbLocationName.Text;
             publishGroup.RegistrationRequirement = ( RegistrationRequirement ) ddlRegistration.SelectedValue.AsInteger();
@@ -448,7 +384,7 @@ namespace RockWeb.Plugins.GroupManager
                 publishGroup.LaunchWorkflow( GetAttributeValue( AttributeKeys.Workflow ).AsGuidOrNull() );
             }
 
-            NavigateToParentPage( new Dictionary<string, string> { { "GroupId", publishGroup.GroupId.ToString() } } );
+            NavigateToParentPage();
         }
 
         /// <summary>Gets the selected audiences.</summary>
