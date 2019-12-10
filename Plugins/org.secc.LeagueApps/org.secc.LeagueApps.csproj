@@ -38,29 +38,29 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DotLiquid">
-      <HintPath>..\GitHub\Rock6\DotLiquid\bin\Debug\DotLiquid.dll</HintPath>
+      <HintPath>$(SolutionDir)\DotLiquid\bin\Debug\DotLiquid.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>..\GitHub\Rock6\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>..\GitHub\Rock6\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="jose-jwt, Version=2.4.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\GitHub\Rock6\packages\jose-jwt.2.4.0\lib\net40\jose-jwt.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\jose-jwt.2.4.0\lib\net40\jose-jwt.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\GitHub\Rock6\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Quartz, Version=2.0.0.100, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\GitHub\Rock6\libs\Quartz\Quartz.dll</HintPath>
+      <HintPath>$(SolutionDir)\libs\Quartz\Quartz.dll</HintPath>
     </Reference>
     <Reference Include="RestSharp, Version=105.2.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\GitHub\Rock6\packages\RestSharp.105.2.3\lib\net452\RestSharp.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\RestSharp.105.2.3\lib\net452\RestSharp.dll</HintPath>
     </Reference>
     <Reference Include="Rock">
-      <HintPath>..\GitHub\Rock6\Rock\bin\Debug\Rock.dll</HintPath>
+      <HintPath>$(SolutionDir)\Rock\bin\Debug\Rock.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -92,7 +92,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\GitHub\RockPlugins\Plugins\org.secc.PersonMatch\org.secc.PersonMatch.csproj">
+    <ProjectReference Include="..\org.secc.PersonMatch\org.secc.PersonMatch.csproj">
       <Project>{26cc0ba6-968b-4464-9992-d1d3510af9ab}</Project>
       <Name>org.secc.PersonMatch</Name>
     </ProjectReference>
