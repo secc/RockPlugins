@@ -1,0 +1,71 @@
+ {% assign photo = 'Global' | Attribute:'PublicApplicationRoot' | Append: '/GetImage.ashx?id=' | Append: PublishGroup.ImageId  %}            
+<!-- START: Social Media - Shareables -->
+	{{ PublishGroup.Title | Append: ' | Southeast Christian Church' | SetPageTitle }}
+	{{ 'summary_large_image' | AddMetaTagToHead:'property','twitter:card' }}
+	{{ PublishGroup.Title | AddMetaTagToHead:'property','twitter:title' }}
+	{{ PublishGroup.Description | StripHtml | AddMetaTagToHead:'property','twitter:description' }}
+
+	{{ PublishGroup.Title | AddMetaTagToHead:'property','og:title' }}
+	{{ PublishGroup.Description | StripHtml | AddMetaTagToHead:'property','og:description' }}
+
+	{{ photo | AddMetaTagToHead:'property','og:image' }}
+
+	{{ photo | AddMetaTagToHead:'property','twitter:image' }}
+
+<!-- END: Social Media - Shareable Media -->
+
+<div class="container">
+    <div class="row">
+
+        <div class="col-md-4">
+            <img src="{{photo}}" class="event-image img-responsive" onerror="this.style.display='none'">
+        </div>    
+        <div class="col-md-8">
+			<div class="g-padding-b-20--xs">
+                    {[ socialshare facebooktitle:'{{ PublishGroup.Title }}' emailsubject:'{{ PublishGroup.Title | Escape }}' facebookimage:'https://{{- 'Global' | Page:'Host' -}}{{ photo }}' facebooksummary:'{{ PublishGroup.Description | StripHtml }}' ]}
+            </div>
+            <h3 class="g-font-family--secondary">{{PublishGroup.Title}}</h3>
+            <h6 class="uppercase g-padding-b-20--xs g-font-weight--700">{{ PublishGroup.Group.Campus.Name }}</h6>
+
+            {{ PublishGroup.Description }}
+            <br><br>
+                        <div class="event-calendar g-width-600--sm">
+                {% if PublishGroup.ScheduleText != empty %}
+					<div class="event-items col-xs-4 {% if PublishGroup.MeetingLocation != null and PublishGroup.MeetingLocation != empty  %} g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter{% endif %}">
+						 <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
+						 <h6>
+							{{ PublishGroup.ScheduleText }}
+							{% if PublishGroup.StartDate and PublishGroup.StartDate != empty %}
+							<br>
+							Starting: {{ PublishGroup.StartDate | Date:'MMM d'}}
+							{% endif %}
+						 </h6>
+					</div>
+				{% endif %}
+                
+				{% if PublishGroup.MeetingLocation != null and PublishGroup.MeetingLocation != empty%}
+					<div class="event-items g-padding-x-10--xs col-xs-4 {% if PublishGroup.ChildcareAvailable == true %}g-ver-divider__solid__r--gray-lighter{% endif %}">
+						 <div class="event-icon --location"><!-- Marker / Location SVG Image --></div>
+						 <h6>
+							{{ PublishGroup.MeetingLocation }}
+						 </h6>
+					</div>
+					{% assign offset = 0 %}
+				{% endif %}
+
+						<!-- ChildCare -->
+						{% if PublishGroup.ChildcareAvailable == true %}
+						<div class="event-items col-xs-4 g-padding-x-10--xs">
+							<div class="event-icon --teddy-bear"><!-- Teddy Bear SVG Image --></div>
+							<h6>Children's<br>Programming<br> Available</h6>
+						</div>
+						{% endif %}
+			</div>
+        </div>
+    </div>
+</div>
+<br><br>
+{% if PublishGroup.RequiresRegistration == 'true' %}
+	<h3 class="g-font-family--secondary">Register:</h3>
+{% endif %}
+
