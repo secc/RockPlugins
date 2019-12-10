@@ -22,6 +22,21 @@
 {% assign Author = AuthorObject | Attribute:'Person','Object' %}
 {% assign AuthorImageGuid = AuthorObject | Attribute:'BioImage','RawValue' %}
 
+{% comment %}
+The code below is to set the facebook open graph image through the two-pass cache cycle.
+{% endcomment %}
+{% assign ending = '%25%7D' | UnescapeDataString %}
+{{ '{% assign facebookOGTitle = "' | Append:item.Title | Append: '" ' | Append: ending }}
+{{ '{% assign ImageFile = "' | Append:ImageFile | Append: '" ' | Append: ending }}
+{{ '{% assign ImageGuid = "' | Append:ImageGuid | Append: '" ' | Append: ending }}
+{{ '{% assign showSocialMediaShare = "' | Append:showSocialMediaShare | Append: '" ' | Append: ending }}
+{{ '{% assign globalHost = ' | Append: "'Global' | Page:'Host'" | Append: ' ' | Append: ending }}
+{{ '{% assign facebookOGimage = "https://" | Append: globalHost | Append: "/GetImage.ashx/" | Append: ImageFile | Append: "?Guid=" | Append: ImageGuid ' | Append: ending }}
+{% raw %}
+    {{ facebookOGTitle | AddMetaTagToHead:'property','og:title' }}
+    {{ facebookOGimage | Escape | AddMetaTagToHead:'property','og:image' }}
+{% endraw %}
+
 {[ wow animate:'fadeIn' ]}
 <article class="post_item {{ PostLayout }}">
 
@@ -41,7 +56,7 @@
 		<hr />
 		<div class="text-center">
 			<p class="uppercase"><i class="fa fa-share-alt"></i> <strong>Share</strong> this Story:
-			{[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx/{{- ImageFile -}}?Guid={{- ImageGuid -}}' ]}
+			{[ socialshare facebookog:'false' ]}
 		</div>
         <hr />
         <div class="text-left">
@@ -70,7 +85,7 @@
 			<hr />
 			<div class="text-center">
 				<p class="uppercase"><i class="fa fa-share-alt"></i> <strong>Share</strong> this Story:
-				{[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx/{{- ImageFile -}}?Guid={{- ImageGuid -}}' ]}
+				{[ socialshare facebookog:'false' ]}
 			</div>
             <hr />
             <div class="text-left">

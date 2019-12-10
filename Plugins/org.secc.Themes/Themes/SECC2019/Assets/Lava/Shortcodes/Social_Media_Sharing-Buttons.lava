@@ -65,15 +65,19 @@ Note: This requires the WOW animations shortcode, make sure you have included in
         </div>
         {{ social_url | AddMetaTagToHead:'property','og:url' }}
         {{ "website" | AddMetaTagToHead:'property','og:type' }}
-        {% if facebooktitle != "" %}
-            {{ facebooktitle | AddMetaTagToHead:'property','og:title' }}
+
+        {% if facebookog == "true" %}
+            {% if facebooktitle != "" %}
+                {{ facebooktitle | AddMetaTagToHead:'property','og:title' }}
+            {% endif %}
+            {% if facebooksummary != "" %}
+                {{ facebooksummary | AddMetaTagToHead:'property','og:description' }}
+            {% endif %}
+            {% if facebookimage != "" %}
+                {{ facebookimage | Escape | AddMetaTagToHead:'property','og:image' }}
+            {% endif %}
         {% endif %}
-        {% if facebooksummary != "" %}
-            {{ facebooksummary | AddMetaTagToHead:'property','og:description' }}
-        {% endif %}
-        {% if facebookimage != "" %}
-            {{ facebookimage | Escape | AddMetaTagToHead:'property','og:image' }}
-        {% endif %}
+
     {%- endif -%}
     {%- if twitter == "true" -%}
         <div class="socials_item">
@@ -144,3 +148,4 @@ url             -
 facebooktitle   -
 facebooksummary -
 facebookimage   -
+facebookog      - true

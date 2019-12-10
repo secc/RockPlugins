@@ -23,6 +23,21 @@
 {% assign Author = AuthorObject | Attribute:'Person','Object' %}
 {% assign AuthorImageGuid = AuthorObject | Attribute:'BioImage','RawValue' %}
 
+{% comment %}
+The code below is to set the facebook open graph image through the two-pass cache cycle.
+{% endcomment %}
+{% assign ending = '%25%7D' | UnescapeDataString %}
+{{ '{% assign facebookOGTitle = "' | Append:item.Title | Append: '" ' | Append: ending }}
+{{ '{% assign ImageFile = "' | Append:ImageFile | Append: '" ' | Append: ending }}
+{{ '{% assign ImageGuid = "' | Append:ImageGuid | Append: '" ' | Append: ending }}
+{{ '{% assign showSocialMediaShare = "' | Append:showSocialMediaShare | Append: '" ' | Append: ending }}
+{{ '{% assign globalHost = ' | Append: "'Global' | Page:'Host'" | Append: ' ' | Append: ending }}
+{{ '{% assign facebookOGimage = "https://" | Append: globalHost | Append: "/GetImage.ashx/" | Append: ImageFile | Append: "?Guid=" | Append: ImageGuid ' | Append: ending }}
+{% raw %}
+    {{ facebookOGTitle | AddMetaTagToHead:'property','og:title' }}
+    {{ facebookOGimage | Escape | AddMetaTagToHead:'property','og:image' }}
+{% endraw %}
+
 {[ wow animate:'fadeIn' ]}
 <article class="post_item {{ PostLayout }}">
 
@@ -33,6 +48,7 @@
 		********************************************************************************************
 		********************************************************************************************
 	{% endcomment %}
+
 	{% if PostLayout contains "post_video"%}
 		<div class="post_content" itemprop="reviewBody">
 			<h3 itemprop="itemReviewed" class="post_title entry-title g-font-family--secondary" style="text-transform: inherit;">{{ item.Title }}</h3>
@@ -43,7 +59,7 @@
 		<hr />
 		<div class="text-center">
 			<p class="uppercase"><i class="fa fa-share-alt"></i> <strong>Share</strong> this Story:
-			{[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx/{{- ImageFile -}}?Guid={{- ImageGuid -}}' ]}
+			{[ socialshare facebookog:'false' ]}
 		</div>
         <hr />
         {% endif %}
@@ -71,13 +87,14 @@
 			{[ endphotoswipe ]}
 			<br />
             {% if showSocialMediaShare == "Yes" %}
-			<hr />
-			<div class="text-center">
-				<p class="uppercase"><i class="fa fa-share-alt"></i> <strong>Share</strong> this Story:
-				{[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx/{{- ImageFile -}}?Guid={{- ImageGuid -}}' ]}
-			</div>
-            <hr />
+    			<hr />
+    			<div class="text-center">
+    				<p class="uppercase"><i class="fa fa-share-alt"></i> <strong>Share</strong> this Story:
+    				{[ socialshare facebookog:'false' ]}
+                </div>
+                <hr />
             {% endif %}
+
             <div class="text-left">
                 {% taggeditem where:'EntityGuid == "{{item.Guid}}"' %}
                    {% for tag in taggeditemItems %}
