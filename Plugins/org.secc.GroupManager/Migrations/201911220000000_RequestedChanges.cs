@@ -28,7 +28,7 @@ namespace org.secc.GroupManager.Migrations
             AddColumn( "dbo._org_secc_GroupManager_PublishGroup", "CustomSchedule", c => c.String() );
             Sql( "CREATE INDEX[IX_Slug] ON[dbo].[_org_secc_GroupManager_PublishGroup]([Slug])" );
             Sql( "UPDATE [dbo].[_org_secc_GroupManager_PublishGroup] SET IsHidden = 0" );
-            Sql( "UPDATE pg SET [Slug] = LOWER( REPLACE( g.Name, ' ', '' ) ) FROM [dbo].[_org_secc_GroupManager_PublishGroup] pg INNER JOIN [group] g ON pg.groupId = g.id" );
+            Sql( "UPDATE pg SET [Slug] = LEFT( LOWER( REPLACE( g.Name, ' ', '' ) ), 75) FROM [dbo].[_org_secc_GroupManager_PublishGroup] pg INNER JOIN [group] g ON pg.groupId = g.id" );
         }
 
         public override void Down()
