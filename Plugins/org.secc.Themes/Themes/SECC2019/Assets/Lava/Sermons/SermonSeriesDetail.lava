@@ -1,6 +1,6 @@
 {% assign slug = 'Global' | PageParameter:'Slug' %}
 {% assign sermonSlug = 'Global' | PageParameter:'SermonSlug' %}
-{% cache key:'sermonPage:{{slug}}:{{sermonSlug}}' duration:'3600' %}
+{% cache key:'sermonPage:{{slug}}:{{sermonSlug}}' duration:'3600' twopass:'true' %}
 
 {% assign slug = 'Global' | PageParameter:'Slug' %}
 {% contentchannelitemslug where:'Slug=="{{slug}}"' -%}
@@ -22,7 +22,7 @@
             {% break %}
         {%- endif -%}
     {%- endfor -%}
-	
+
 	{% comment %}
     ************ Get the sermon or video resource from the slug ************
     {% endcomment %}
@@ -48,9 +48,11 @@
     {% if currentMessage != null %}
         <div class="container g-padding-y-100--md g-padding-x-0--xs">
 
-            {% assign seriesImageGuid = item | Attribute:'SeriesImage','RawValue' %}
-            {% assign currentMessageVideoId = currentMessage | Attribute:'VimeoId' %}
+            {% assign seriesImageGuid = currentMessage | Attribute:'Image','RawValue' %}
+            {% assign ending = '%25%7D' | UnescapeDataString %}
+            {{ '{% assign seriesImageGuid = "' | Append:seriesImageGuid | Append: '" ' | Append: ending }}
 
+            {% assign currentMessageVideoId = currentMessage | Attribute:'VimeoId' %}
             <div class="series-detail container">
                 <div id="seriesHead" class="row">
                     {% unless currentMessageVideoId == empty %}
@@ -91,7 +93,9 @@
                         <div class="text-center">
         					<br />
                             <p><i class="fa fa-share-alt"></i> Share this Sermon:
+                            {% raw %}
                             {[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{ seriesImageGuid }}' emailsubject:'{{ currentMessage.Title }}' emailbody:'Check out this sermon I found at Southeast Christian Church.' ]}
+                            {% endraw %}
                             <br />
                             <br />
                         </div>
@@ -104,7 +108,7 @@
 				{% assign embedCode = videoResource | Attribute:'EmbedCode','RawValue' %}
 				<div class="series-detail container">
 					<div id="seriesHead" class="row">
-						
+
 						<div id="sermonVideo" class="col-sm-12 col-lg-8 g-padding-x-0--xs g-padding-x-60--lg">
 							<div class="embed-responsive embed-responsive-16by9 media-border-only">
 								{{ embedCode }}
@@ -128,8 +132,8 @@
 			</div>
 		{% else %}
 			<div class="container g-padding-y-100--md g-padding-x-0--xs">
-				{% assign seriesImageGuid = series | Attribute:'Image','RawValue' %}
-				<div class="series-detail container">
+                {% assign seriesImageGuid = series | Attribute:'Image','RawValue' %}
+                <div class="series-detail container">
 					<div id="seriesHead" class="row">
 						{% unless seriesImageGuid == null %}
 						<div class="col-sm-12 col-lg-6 g-padding-x-0--xs g-padding-x-60--lg">
@@ -158,12 +162,12 @@
 				</div>
 			</div>
 		{%endif %}
-		
+
         {% comment %}
             ************ SERIES - The rest of the Sermons ************
         {% endcomment %}
 
-		
+
         <div class="container-fluid" style="padding: 0 0 20px 0;">
 
         	{%- contentchannelitem where:'ContentChannelId == 24' sort:'StartDateTime desc' -%}
@@ -274,7 +278,7 @@
 					{% assign resourceURL = resource | Attribute:'ResourceURL','RawValue' %}
 					{% assign ResourceURLText = resource | Attribute:'ResourceURLText','RawValue' %}
 					{% assign embedCode = resource | Attribute:'EmbedCode','RawValue' %}
-					
+
 					{% if resource.ContentChannelId != "23" %}
 
 						<div class="isotope_item
@@ -328,12 +332,13 @@
 				{% endfor %}
 			</div>
 		</div>
-		
+
 	{% endif %}
 
 {% else %}
 	<h1 class="g-font-size--jumbo-1">Could not find series.</h1>
 {% endif %}
+
 {% endcache %}
 
 <script>
