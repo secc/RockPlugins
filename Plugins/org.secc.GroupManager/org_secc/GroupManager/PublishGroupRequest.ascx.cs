@@ -63,6 +63,13 @@ namespace RockWeb.Plugins.GroupManager
         mode: CodeEditorMode.Html
         )]
 
+    [TextField(
+        "Group Registration Url",
+        Description = "The base url that will be displayed to help people share their group.",
+        Key = AttributeKeys.GroupRegistrationUrl,
+        DefaultValue = "https://organization.org/groups/register/"
+        )]
+
     public partial class PublishGroupRequest : RockBlock
     {
         #region Keys
@@ -73,6 +80,7 @@ namespace RockWeb.Plugins.GroupManager
             public const string RegistrationDetails = "RegistrationDetails";
             public const string ChildcareRegistrationDetails = "ChildcareRegistrationDetails";
             public const string DefaultEmail = "DefaultEmail";
+            public const string GroupRegistrationUrl = "GroupRegistrationUrl";
         }
 
         /// <summary>Page Parameter Keys for the Block</summary>
@@ -150,6 +158,11 @@ namespace RockWeb.Plugins.GroupManager
 
             tbName.Text = publishGroup.Title;
             tbSlug.Text = GetSlug( publishGroup );
+            if ( tbSlug.Text.IsNotNullOrWhiteSpace() )
+            {
+                lSlug.Visible = true;
+                lSlug.Text = GetAttributeValue( AttributeKeys.GroupRegistrationUrl ) + tbSlug.Text;
+            }
 
             ltGroupName.Text = string.Format( "<a href='/page/{0}' target='_blank'>{1}</a>", groupPageId, publishGroup.Group.Name );
             tbDescription.Text = publishGroup.Description.IsNotNullOrWhiteSpace() ? publishGroup.Description : publishGroup.Group.Description;
@@ -332,7 +345,8 @@ namespace RockWeb.Plugins.GroupManager
             PublishGroupService publishGroupService = new PublishGroupService( rockContext );
             PublishGroup publishGroup = GetPublishGroup( rockContext, publishGroupService );
 
-            var slug = tbSlug.Text.ToLower();
+            var slug = tbSlug.Text.ToLower().RemoveAllNonAlphaNumericCharacters();
+            tbSlug.Text = slug;
 
             //Test for already taken Slugs
             var isDuplicateSlug = publishGroupService.Queryable()
@@ -654,6 +668,28 @@ namespace RockWeb.Plugins.GroupManager
             //only make the image required if the status is approved
             var publishGroupStatus = ddlStatus.SelectedValueAsEnum<PublishGroupStatus>();
             iGroupImage.Required = publishGroupStatus == PublishGroupStatus.Approved;
+        }
+
+        protected void tbSlug_TextChanged( object sender, EventArgs e )
+        {
+            var publishGroup = GetPublishGroup();
+            var slug = tbSlug.Text.ToLower().RemoveAllNonAlphaNumericCharacters();
+            tbSlug.Text = slug;
+            PublishGroupService publishGroupService = new PublishGroupService( new RockContext() );
+            var isDuplicateSlug = publishGroupService.Queryable()
+                .Where( pg => pg.Slug == slug && pg.Id != publishGroup.Id )
+                .Any();
+            if ( isDuplicateSlug )
+            {
+                lSlug.Visible = false;
+                nbSlug.Visible = true;
+            }
+            else
+            {
+                nbSlug.Visible = false;
+                lSlug.Visible = true;
+                lSlug.Text = GetAttributeValue( AttributeKeys.GroupRegistrationUrl ) + slug;
+            }
         }
     }
 }
