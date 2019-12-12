@@ -51,7 +51,7 @@
         {% endif %}
 
         {% if filterByMinistry == null or ministryIsContained == true %}
-    		{% assign registrationLink = '/groups/oncampus/details/' | Append: publishGroup.Slug %}
+    		{% assign registrationLink = '/groups/oncampus/details/' | Append:publishGroup.Slug %}
     		{% assign contactLink = '/groups/oncampus/contact/' | Append:publishGroup.Guid %}
     		<div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar" data-day="{{ publishGroup.WeeklyDayOfWeek}}">
                 <div class="clearfix card">
@@ -60,7 +60,7 @@
 					</div>
                     <div class="caption g-padding-x-30--xs g-padding-t-30--xs g-margin-b-40--xs">
 					<h5 class="g-font-family--secondary g-padding-r-60--xs" style="margin-bottom: 5px;">
-						{{ publishGroup.Title }}
+						{{ publishGroup.Group.Name}}
                     </h5>
                         <h6 class="uppercase g-padding-b-20--xs g-font-weight--700">
 							{{ publishGroup.Group.Campus.Name }}
@@ -118,25 +118,32 @@
 
 
 						<div class="text-center col-xs-12 g-margin-t-40--xs g-hor-divider__solid__t--gray-lighter">
-							<div class="col-md-6">
-								<a href="{{ contactLink }}" class='eventCardLink link--hover-underscore'>
-									<h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">
-										Contact
-									</h6>
-								</a>
-							</div>
-							<div class="col-md-6">
-								<a href="{{ registrationLink }}" class='eventCardLink link--hover-underscore'>
-									<h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">
-									{% if publishGroup.RequiresRegistration == true %}
-										Register&nbsp;Now
+							
+								<div class="col-md-6">
+									<a href="{{ contactLink }}" class='eventCardLink link--hover-underscore'>
+										<h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">
+											Contact
+										</h6>
+									</a>
+								</div>
+								<div class="col-md-6">
+									<a href="{{ registrationLink }}" class='eventCardLink link--hover-underscore'>
+										<h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">
+										{% if publishGroup.RequiresRegistration == true %}
+											Register&nbsp;Now
 										{% else %}
-										Details
+											Details
 										{% endif %}
-									</h6>
-								</a>
-							</div>
+										</h6>
+									</a>
+								</div>
+							
+							
+							
+
 						</div>
+
+
                     </div>
                 </div><!-- END: isotope_item -->
         {% endif %}

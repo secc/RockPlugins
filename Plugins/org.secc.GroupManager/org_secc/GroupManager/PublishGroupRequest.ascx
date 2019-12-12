@@ -31,7 +31,8 @@
                         </div>
                         <div class="row">
                             <div class="col-lg-4">
-                                <Rock:RockDropDownList runat="server" ID="ddlDayOfWeek" Label="Day Of Week" />
+                                <Rock:RockDropDownList runat="server" ID="ddlDayOfWeek" Label="Day Of Week"
+                                    Help="Selecting a meeting day of week will allow users to filter even if a custom schedule is used." />
                             </div>
                             <div class="col-lg-4">
                                 <Rock:TimePicker runat="server" ID="tTimeOfDay" Label="Time of Day"  />
@@ -66,7 +67,8 @@
                         <hr />
                         <Rock:NotificationBox runat="server" ID="nbSlug" NotificationBoxType="Validation"
                             Text="This website slug has already been taken. Please choose a new slug." Visible="false" CssClass="col-xs-12" />
-                        <Rock:RockTextBox runat="server" ID="tbSlug" Label="Website Slug" Required="true" />
+                        <Rock:RockTextBox runat="server" ID="tbSlug" Label="Website Slug" Required="true" AutoPostBack="true" OnTextChanged="tbSlug_TextChanged" />
+                        <Rock:RockLiteral runat="server" ID="lSlug" Label="Details Url:" Visible="false" />
                         <Rock:DateRangePicker runat="server" ID="drPublishDates" Label="Publish Dates" Required="true" Help="Dates the group will be published online. Dates are inclusive" />
                         <Rock:Toggle runat="server" ID="cbIsHidden" Label="Hide On Website"
                             Help="If yes, your group will not be listed with the rest of the published groups. You will have to directly share your group."
