@@ -217,7 +217,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             if ( changeRecord.Property.IsNotNullOrWhiteSpace() )
             {
                 PropertyInfo enumProp = targetEntity.GetType().GetProperty( changeRecord.Property, BindingFlags.Public | BindingFlags.Instance );
-                if ( enumProp.PropertyType != null && enumProp.PropertyType.IsEnum )
+                if ( enumProp != null && enumProp.PropertyType != null && enumProp.PropertyType.IsEnum )
                 {
                     enumProp.PropertyType.GetEnumUnderlyingType();
                     changeRecord.NewValue = System.Enum.GetName( enumProp.PropertyType, changeRecord.NewValue.AsInteger() ).SplitCase();
