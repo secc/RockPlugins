@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Reflection;
 using org.secc.ChangeManager.Model;
 using Rock;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Web.Cache;
 
@@ -302,6 +302,51 @@ namespace org.secc.ChangeManager.Utilities
 
             changeRequest.ChangeRecords.Add( changeRecord );
             return changeRecord;
+        }
+
+        public static List<ChangeRecord> EvaluateAttributes( this ChangeRequest changeRequest, IEntity entity, bool isRelated = false, string comment = "" )
+        {
+            var changeRecords = new List<ChangeRecord>();
+
+            if ( !( entity is IHasAttributes ) || entity.Id == 0 )
+            {
+                return null;
+            }
+
+            var ihaEntity = entity as IHasAttributes;
+
+            RockContext rockContext = new RockContext();
+            var entityService = Reflection.GetServiceForEntityType( EntityTypeCache.Get( ihaEntity.GetType() ).GetEntityType(), rockContext );
+            MethodInfo queryableMethodInfo = entityService.GetType().GetMethod( "Queryable", new Type[] { } );
+            IQueryable<IEntity> entityQuery = queryableMethodInfo.Invoke( entityService, null ) as IQueryable<IEntity>;
+            var currentModel = ( IHasAttributes ) entityQuery.Where( x => x.Id == ihaEntity.Id ).FirstOrDefault();
+            currentModel.LoadAttributes();
+
+            foreach ( var cAttribute in currentModel.Attributes )
+            {
+                if ( currentModel.GetAttributeValue( cAttribute.Key ) != ihaEntity.GetAttributeValue( cAttribute.Key ) )
+                {
+                    var changeRecord = new ChangeRecord
+                    {
+                        OldValue = currentModel.GetAttributeValue( cAttribute.Key ),
+                        NewValue = ihaEntity.GetAttributeValue( cAttribute.Key ),
+                        IsRejected = false,
+                        WasApplied = false,
+                        Action = ChangeRecordAction.Attribute,
+                        Property = cAttribute.Key,
+                        Comment = comment
+                    };
+
+                    if ( isRelated )
+                    {
+                        changeRecord.RelatedEntityId = entity.Id;
+                        changeRecord.RelatedEntityTypeId = EntityTypeCache.Get( entity.GetType() ).Id;
+                    }
+                    changeRequest.ChangeRecords.Add( changeRecord );
+                    changeRecords.Add( changeRecord );
+                }
+            }
+            return changeRecords;
         }
     }
 }
