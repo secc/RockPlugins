@@ -75,6 +75,7 @@ namespace org.secc.ChangeManager.Model
     {
         Update = 0,
         Create = 1,
-        Delete = 2
+        Delete = 2,
+        Attribute = 3
     }
 }
