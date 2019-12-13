@@ -111,9 +111,15 @@ namespace org.secc.LeagueApps
                         var grandparentgroup = string.Format("{0}", startdate.Year);
                         if (program.programId > 0)
                         {
-                            league = groupService.Queryable().Where(l => l.Name == grandparentgroup).FirstOrDefault();
-                            league2 = groupService.Queryable().Where(l => l.Name == mode && l.ParentGroup.Name == grandparentgroup).FirstOrDefault();
-                            league3 = groupService.Queryable().Where(l => l.ForeignId == program.programId && l.GroupTypeId == groupType.Id).FirstOrDefault();                           
+                            league = groupService.Queryable().Where(l => l.Name == grandparentgroup && l.ParentGroupId == group.Id ).FirstOrDefault();
+                            if ( league != null )
+                            {
+                                league2 = groupService.Queryable().Where( l => l.Name == mode && l.ParentGroupId == league.Id ).FirstOrDefault();
+                                if ( league2 != null)
+                                {
+                                    league3 = groupService.Queryable().Where( l => l.ForeignId == program.programId && l.GroupTypeId == groupType.Id && l.ParentGroupId == league2.Id ).FirstOrDefault();
+                                }
+                            }                           
                         }
                         Guid guid = Guid.NewGuid();
                         Guid guid2 = Guid.NewGuid();
