@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading.Tasks;
 using org.secc.ChangeManager.Data;
 using Rock;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
@@ -126,7 +127,10 @@ namespace org.secc.ChangeManager.Model
                         {
                             DeleteEntity( targetEntity, rockContext );
                         }
-
+                        else if ( changeRecord.Action == ChangeRecordAction.Attribute )
+                        {
+                            UpdateAttribute( targetEntity, changeRecord.Property, changeRecord.NewValue, rockContext );
+                        }
                         else if ( changeRecord.Property.IsNotNullOrWhiteSpace() )
                         {
                             PropertyInfo prop = targetEntity.GetType().GetProperty( changeRecord.Property, BindingFlags.Public | BindingFlags.Instance );
@@ -181,6 +185,10 @@ namespace org.secc.ChangeManager.Model
                             targetEntity = CreateNewEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.OldValue, rockContext );
                             changeRecord.RelatedEntityId = targetEntity.Id;
                         }
+                        else if ( changeRecord.Action == ChangeRecordAction.Attribute )
+                        {
+                            UpdateAttribute( targetEntity, changeRecord.Property, changeRecord.OldValue, rockContext );
+                        }
                         //Property changes
                         else if ( changeRecord.Property.IsNotNullOrWhiteSpace() )
                         {
@@ -218,6 +226,19 @@ namespace org.secc.ChangeManager.Model
                     throw new Exception( "Exception occured durring saving changes.", e );
                 }
             }
+        }
+
+        private void UpdateAttribute( IEntity targetEntity, string attributeKey, string value, RockContext rockContext )
+        {
+            if ( !( targetEntity is IHasAttributes ) )
+            {
+                return ;
+            }
+            var ihaEntity = targetEntity as IHasAttributes;
+            ihaEntity.LoadAttributes( rockContext );
+
+            ihaEntity.SetAttributeValue( attributeKey, value );
+            ihaEntity.SaveAttributeValues( rockContext );
         }
 
         private void DeleteEntity( IEntity targetEntity, RockContext dbContext )
