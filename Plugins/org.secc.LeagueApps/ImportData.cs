@@ -216,7 +216,7 @@ namespace org.secc.LeagueApps
                         APIClient.RunAsync(p12File, clientid, true, "/v2/sites/" + siteid + "/export/registrations-2?last-updated=0&last-id=0&program-id=" + program.programId).GetAwaiter().GetResult();
                         var applicants = APIClient.names;
 
-                        context.UpdateLastStatusMessage( "Processing " + program.startTime.Year + " > " + program.mode + " > " + program.name + " ("+applicants.Count +" members)." );
+                        context.UpdateLastStatusMessage( "Processing league " + (processed + 1) + " of " + programs.Count + ": " + program.startTime.Year + " > " + program.mode + " > " + program.name + " ("+applicants.Count +" members)." );
 
                         foreach (Contracts.Registrations applicant in applicants)
                         {
