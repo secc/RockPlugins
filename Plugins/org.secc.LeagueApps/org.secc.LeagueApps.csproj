@@ -63,7 +63,7 @@
       <HintPath>$(SolutionDir)\Rock\bin\Debug\Rock.dll</HintPath>
     </Reference>
     <Reference Include="Security.Cryptography, Version=1.7.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\..\Rock-1.8.7\packages\Security.Cryptography.1.7.2\lib\net35\Security.Cryptography.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\Security.Cryptography.1.7.2\lib\net35\Security.Cryptography.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
