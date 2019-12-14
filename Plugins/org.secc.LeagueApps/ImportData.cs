@@ -61,11 +61,7 @@ namespace org.secc.LeagueApps
                 String siteid = Encryption.DecryptString(dataMap.GetString("LeagueAppsSiteId"));
                 String clientid = Encryption.DecryptString(dataMap.GetString("LeagueAppsClientId"));
                 DefinedValueCache connectionStatus = DefinedValueCache.Get(dataMap.GetString("DefaultConnectionStatus").AsGuid(), dbContext);
-                var file = binaryFileService.Get(dataMap.GetString("LeagueAppsServiceAccountFile").AsGuid());
-                MemoryStream memoryStream = new MemoryStream();
-                file.ContentStream.CopyTo(memoryStream);
-                var p12 = memoryStream.ToArray();
-                memoryStream.Dispose();
+                var p12File = binaryFileService.Get(dataMap.GetString("LeagueAppsServiceAccountFile").AsGuid());
 
 
                 Group group = groupService.Get(dataMap.GetString("ParentGroup").AsGuid());
@@ -101,6 +97,7 @@ namespace org.secc.LeagueApps
 
                     foreach(Contracts.Programs program in programs)
                     {
+
                         // Process the program
                         Group league = null;
                         Group league2 = null;
@@ -216,10 +213,12 @@ namespace org.secc.LeagueApps
                         league3.SetAttributeValue("ProgramLogo", program.programLogo150);
                         league3.SaveAttributeValues();
                         dbContext.SaveChanges();
-                        APIClient.RunAsync(p12, clientid, true, "/v2/sites/" + siteid + "/export/registrations-2?last-updated=0&last-id=0&program-id=" + program.programId).GetAwaiter().GetResult();
+                        APIClient.RunAsync(p12File, clientid, true, "/v2/sites/" + siteid + "/export/registrations-2?last-updated=0&last-id=0&program-id=" + program.programId).GetAwaiter().GetResult();
                         var applicants = APIClient.names;
 
-                        foreach(Contracts.Registrations applicant in applicants)
+                        context.UpdateLastStatusMessage( "Processing " + program.startTime.Year + " > " + program.mode + " > " + program.name + " ("+applicants.Count +" members)." );
+
+                        foreach (Contracts.Registrations applicant in applicants)
                         {
                             Person person = null;                            
                             var personIds = attributeValueService.Queryable().Where(av => av.AttributeId == personattribute.Id && av.Value == applicant.userId.ToString()).Select(av => av.EntityId);
@@ -233,7 +232,7 @@ namespace org.secc.LeagueApps
                             //    just use the standard person match/create logic
                             if (person == null)
                             {
-                                APIClient.RunAsync(p12, clientid, false, "/v2/sites/" + siteid + "/members/" + applicant.userId).GetAwaiter().GetResult();
+                                APIClient.RunAsync(p12File, clientid, false, "/v2/sites/" + siteid + "/members/" + applicant.userId).GetAwaiter().GetResult();
                                 var member = APIClient.user;
                                 var street1 = member.address1;
                                 var postalCode = member.zipCode;

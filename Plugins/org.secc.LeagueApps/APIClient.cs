@@ -8,9 +8,13 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Security.Cryptography;
+using Rock.Model;
+using System.IO;
 
 namespace org.secc.LeagueApps
 {
@@ -19,7 +23,7 @@ namespace org.secc.LeagueApps
         internal static List<Registrations> names { get; private set; }
         internal static Member user { get; private set; }
 
-        public static async System.Threading.Tasks.Task RunAsync(Byte[] rawdata, String client_id, Boolean registrations, String resource)
+        public static async System.Threading.Tasks.Task RunAsync(BinaryFile file, String client_id, Boolean registrations, String resource)
         {
             // Get a Unix Timestamp
             TimeSpan t = (DateTime.UtcNow - new DateTime(1970, 1, 1));
@@ -32,12 +36,26 @@ namespace org.secc.LeagueApps
                 { "iat", timestamp },
                 { "exp", timestamp+300  }
             };
-            X509Certificate2 cert = new X509Certificate2(rawdata, "notasecret", X509KeyStorageFlags.Exportable);
-            RSACryptoServiceProvider key = (RSACryptoServiceProvider)cert.PrivateKey;
-            RSACryptoServiceProvider privateKey = new RSACryptoServiceProvider();
-            privateKey.ImportParameters(key.ExportParameters(true));
-            byte[] data = Encoding.UTF8.GetBytes("Data to be signed");
-            privateKey.SignData(data, "SHA256");
+
+            string tempFile = Path.Combine( Path.GetTempPath(), file.FileName );
+            // Open a FileStream to write to the file:
+            using ( Stream fileStream = File.OpenWrite( tempFile ) )
+            {
+                file.ContentStream.CopyTo( fileStream );
+            }
+
+            X509Certificate2 cert = new X509Certificate2( tempFile, "notasecret", X509KeyStorageFlags.Exportable);
+            object privateKey;
+            if ( cert.HasCngKey() ) {
+                privateKey = new RSACng( cert.GetCngPrivateKey() );
+            }
+            else
+            {
+                RSACryptoServiceProvider key = ( RSACryptoServiceProvider ) cert.PrivateKey;
+                privateKey = new RSACryptoServiceProvider();
+                ((RSACryptoServiceProvider)privateKey).ImportParameters( key.ExportParameters( true ) );
+            }
+             
             string assertion = JWT.Encode(payload, privateKey, JwsAlgorithm.RS256);
             // Using the JWT assertion, get an OAuth Bearer token for subsequent requests
             var client = new HttpClient(new LoggingHandler(new HttpClientHandler()));
@@ -65,6 +83,7 @@ namespace org.secc.LeagueApps
                     user = JsonConvert.DeserializeObject<Contracts.Member>(export);
 
             }
+            File.Delete( tempFile );
         }
     }
 
