@@ -39,9 +39,7 @@ namespace org.secc.LeagueApps
         public void Execute(IJobExecutionContext context)
         {
             RockContext dbContext = new RockContext();
-            PersonService personService = new PersonService(dbContext);
             GroupService groupService = new GroupService(dbContext);
-            GroupMemberService groupMemberService = new GroupMemberService(dbContext);
             AttributeService attributeService = new AttributeService(dbContext);
             AttributeValueService attributeValueService = new AttributeValueService(dbContext);
             GroupTypeRoleService groupTypeRoleService = new GroupTypeRoleService(dbContext);
@@ -220,145 +218,155 @@ namespace org.secc.LeagueApps
 
                         foreach (Contracts.Registrations applicant in applicants)
                         {
-                            Person person = null;                            
-                            var personIds = attributeValueService.Queryable().Where(av => av.AttributeId == personattribute.Id && av.Value == applicant.userId.ToString()).Select(av => av.EntityId);
-
-                            if (personIds.Count() == 1)
+                            // Use a fresh RockContext on every person/groupmember to keep things moving quickly
+                            using ( var rockContext = new RockContext() )
                             {
-                                person = personService.Get(personIds.FirstOrDefault().Value);
-                            }
+                                PersonService personService = new PersonService( rockContext );
+                                GroupMemberService groupMemberService = new GroupMemberService( rockContext );
 
-                            // 2. If we don't have a person match then
-                            //    just use the standard person match/create logic
-                            if (person == null)
-                            {
-                                APIClient.RunAsync(p12File, clientid, false, "/v2/sites/" + siteid + "/members/" + applicant.userId).GetAwaiter().GetResult();
-                                var member = APIClient.user;
-                                var street1 = member.address1;
-                                var postalCode = member.zipCode;
-                                var email = string.IsNullOrEmpty(member.email) ? String.Empty : member.email.Trim();
-
-                                if (email != String.Empty)
+                                Person person = null;
+                                
+                                // 1. Try to load the person using the LeagueApps UserId
+                                var personIds = attributeValueService.Queryable().Where( av => av.AttributeId == personattribute.Id && av.Value == applicant.userId.ToString() ).Select( av => av.EntityId );
+                                if ( personIds.Count() == 1 )
                                 {
-                                    if (!email.IsValidEmail())
-                                        email = String.Empty;
+                                    person = personService.Get( personIds.FirstOrDefault().Value );
                                 }
 
-                                List<Person> matches = personService.GetByMatch(member.firstName.Trim(), member.lastName.Trim(), null, email, null, street1, postalCode).ToList();
-
-                                if (matches.Count > 1)
+                                // 2. If we don't have a person match then
+                                //    just use the standard person match/create logic
+                                if ( person == null )
                                 {
-                                    // Find the oldest member record in the list
-                                    person = matches.Where(p => p.ConnectionStatusValue.Value == "Member").OrderBy(p => p.Id).FirstOrDefault();
+                                    APIClient.RunAsync( p12File, clientid, false, "/v2/sites/" + siteid + "/members/" + applicant.userId ).GetAwaiter().GetResult();
+                                    var member = APIClient.user;
+                                    var street1 = member.address1;
+                                    var postalCode = member.zipCode;
 
-                                    if (person == null)
+                                    var email = string.IsNullOrEmpty( member.email ) ? String.Empty : member.email.Trim();
+
+                                    if ( email != String.Empty )
                                     {
-                                        // Find the oldest attendee record in the list
-                                        person = matches.Where(p => p.ConnectionStatusValue.Value == "Attendee").OrderBy(p => p.Id).FirstOrDefault();
-                                        if (person == null)
+                                        if ( !email.IsValidEmail() )
+                                            email = String.Empty;
+                                    }
+
+                                    List<Person> matches = personService.GetByMatch( member.firstName.Trim(), member.lastName.Trim(), null, email, null, street1, postalCode ).ToList();
+
+                                    if ( matches.Count > 1 )
+                                    {
+                                        // Find the oldest member record in the list
+                                        person = matches.Where( p => p.ConnectionStatusValue.Value == "Member" ).OrderBy( p => p.Id ).FirstOrDefault();
+
+                                        if ( person == null )
                                         {
-                                            person = matches.OrderBy(p => p.Id).First();
+                                            // Find the oldest attendee record in the list
+                                            person = matches.Where( p => p.ConnectionStatusValue.Value == "Attendee" ).OrderBy( p => p.Id ).FirstOrDefault();
+                                            if ( person == null )
+                                            {
+                                                person = matches.OrderBy( p => p.Id ).First();
+                                            }
                                         }
                                     }
-                                }
-                                else if (matches.Count == 1)
-                                {
-                                    person = matches.First();
-                                }
-                                else
-                                {
-                                    // Create the person
-                                    Guid guid4 = Guid.NewGuid();
-                                    person = new Person();
-                                    person.FirstName = member.firstName.Trim();
-                                    person.LastName = member.lastName.Trim();
-
-                                    if (email!=String.Empty)
-                                        person.Email = email;
-                                    person.RecordTypeValueId = DefinedValueCache.Get(Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid()).Id;
-                                    person.ConnectionStatusValueId = connectionStatus.Id;
-                                    person.RecordStatusValueId = DefinedValueCache.Get(Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid()).Id;
-                                    person.IsSystem = false;
-                                    person.IsDeceased = false;
-                                    person.Guid = guid4;
-                                    var gender = member.gender;
-
-                                    if (!String.IsNullOrEmpty(gender))
+                                    else if ( matches.Count == 1 )
                                     {
-                                        gender.Trim();
+                                        person = matches.First();
+                                    }
+                                    else
+                                    {
+                                        // Create the person
+                                        Guid guid4 = Guid.NewGuid();
+                                        person = new Person();
+                                        person.FirstName = member.firstName.Trim();
+                                        person.LastName = member.lastName.Trim();
 
-                                        if (gender == "Male" || gender == "male")
-                                            person.Gender = Gender.Male;
-                                        else if (gender == "Female" || gender == "female")
-                                            person.Gender = Gender.Female;
+                                        if ( email != String.Empty )
+                                            person.Email = email;
+                                        person.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+                                        person.ConnectionStatusValueId = connectionStatus.Id;
+                                        person.RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id;
+                                        person.IsSystem = false;
+                                        person.IsDeceased = false;
+                                        person.Guid = guid4;
+                                        var gender = member.gender;
+
+                                        if ( !String.IsNullOrEmpty( gender ) )
+                                        {
+                                            gender.Trim();
+
+                                            if ( gender == "Male" || gender == "male" )
+                                                person.Gender = Gender.Male;
+                                            else if ( gender == "Female" || gender == "female" )
+                                                person.Gender = Gender.Female;
+                                            else
+                                                person.Gender = Gender.Unknown;
+                                        }
                                         else
+                                        {
                                             person.Gender = Gender.Unknown;
+                                        }
+                                        Group family = PersonService.SaveNewPerson( person, rockContext );
+                                        GroupLocation location = new GroupLocation();
+                                        location.GroupLocationTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME ).Id;
+                                        location.Location = new Location()
+                                        {
+                                            Street1 = member.address1,
+                                            Street2 = member.address2,
+                                            City = member.city,
+                                            State = member.state,
+                                            PostalCode = member.zipCode,
+                                            Country = member.country
+                                        };
+                                        location.IsMappedLocation = true;
+                                        family.CampusId = CampusCache.All().FirstOrDefault().Id;
+                                        family.GroupLocations.Add( location );
+                                        rockContext.SaveChanges();
+                                    }
+                                    person.LoadAttributes();
+                                    person.SetAttributeValue( personattribute.Key, applicant.userId.ToString() );
+                                    person.SaveAttributeValues();
+                                    rockContext.SaveChanges();
+                                }
+
+                                // Check to see if the group member already exists
+                                var groupmember = groupService.GroupHasMember( league3.Guid, person.Id );
+
+                                if ( groupmember == false )
+                                {
+                                    Guid guid5 = Guid.NewGuid();
+                                    GroupMember participant = new GroupMember();
+                                    participant.PersonId = person.Id;
+                                    participant.GroupId = league3.Id;
+                                    participant.IsSystem = false;
+                                    participant.Guid = guid5;
+
+                                    if ( !String.IsNullOrEmpty( applicant.role ) )
+                                    {
+                                        var role = applicant.role.Split( '(' )[0].Trim();
+
+                                        if ( role == "FREEAGENT" || role == "PLAYER" )
+                                            role = "Member";
+                                        else if ( role == "CAPTAIN" )
+                                            role = "Captain";
+                                        else if ( role == "HEAD COACH" || role == "Head Coach" )
+                                            role = "Head Coach";
+                                        else if ( role == "ASST. COACH" || role == "Asst. Coach" )
+                                            role = "Asst. Coach";
+                                        else
+                                            role = "Member";
+                                        var grouprole = groupTypeRoleService.Queryable().Where( r => r.GroupTypeId == groupType.Id && r.Name == role ).FirstOrDefault().Id;
+                                        participant.GroupRoleId = grouprole;
                                     }
                                     else
                                     {
-                                        person.Gender = Gender.Unknown;
+                                        participant.GroupRoleId = groupType.DefaultGroupRoleId.Value;
                                     }
-                                    Group family = PersonService.SaveNewPerson(person, dbContext);
-                                    GroupLocation location = new GroupLocation();
-                                    location.GroupLocationTypeValueId = DefinedValueCache.Get(Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME).Id;
-                                    location.Location = new Location()
-                                    {
-                                        Street1 = member.address1,
-                                        Street2 = member.address2,
-                                        City = member.city,
-                                        State = member.state,
-                                        PostalCode = member.zipCode,
-                                        Country = member.country
-                                    };
-                                    location.IsMappedLocation = true;
-                                    family.CampusId = CampusCache.All().FirstOrDefault().Id;
-                                    family.GroupLocations.Add(location);
-                                    dbContext.SaveChanges();
+                                    participant.GroupMemberStatus = GroupMemberStatus.Active;
+                                    groupMemberService.Add( participant );
+                                    participant.LoadAttributes();
+                                    participant.SetAttributeValue( groupmemberattribute.Key, applicant.team );
+                                    participant.SaveAttributeValues();
+                                    rockContext.SaveChanges();
                                 }
-                            }
-                            var userid = applicant.userId;
-                            person.LoadAttributes();
-                            person.SetAttributeValue(personattribute.Key, applicant.userId.ToString());                            
-                            person.SaveAttributeValues();
-                            dbContext.SaveChanges();
-                            var groupmember = groupService.GroupHasMember(league3.Guid, person.Id);
-
-                            if (groupmember == false)
-                            {
-                                Guid guid5 = Guid.NewGuid();
-                                GroupMember participant = new GroupMember();
-                                participant.PersonId = person.Id;
-                                participant.GroupId = league3.Id;
-                                participant.IsSystem = false;
-                                participant.Guid = guid5;
-
-                                if (!String.IsNullOrEmpty(applicant.role))
-                                {
-                                    var role = applicant.role.Split('(')[0].Trim();
-
-                                    if (role == "FREEAGENT" || role == "PLAYER")
-                                        role = "Member";
-                                    else if (role == "CAPTAIN")
-                                        role = "Captain";
-                                    else if (role == "HEAD COACH" || role == "Head Coach")
-                                        role = "Head Coach";
-                                    else if (role == "ASST. COACH" || role == "Asst. Coach")
-                                        role = "Asst. Coach";
-                                    else
-                                        role = "Member";
-                                    var grouprole = groupTypeRoleService.Queryable().Where(r => r.GroupTypeId == groupType.Id && r.Name == role).FirstOrDefault().Id;
-                                    participant.GroupRoleId = grouprole;
-                                }
-                                else
-                                {
-                                    participant.GroupRoleId = groupType.DefaultGroupRoleId.Value;
-                                }
-                                participant.GroupMemberStatus = GroupMemberStatus.Active;
-                                groupMemberService.Add(participant);
-                                participant.LoadAttributes();
-                                participant.SetAttributeValue(groupmemberattribute.Key, applicant.team);
-                                participant.SaveAttributeValues();
-                                dbContext.SaveChanges();                                
                             }
                         }
                         processed++;
