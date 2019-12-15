@@ -82,14 +82,8 @@ namespace org.secc.PersonMatch
                         ( !birthDate.HasValue || p.BirthDate == null || (birthDate.HasValue && p.BirthDate.Value == birthDate.Value ) ) )
                     .ToList();
 
-                // Check the address if it was passed
-                Location location = new Location();
-                if ( persons.Count() > 0 && !string.IsNullOrEmpty( street1 ) && !string.IsNullOrEmpty( postalCode ) )
-                {
-                    location.Street1 = street1;
-                    location.PostalCode = postalCode;
-                    locationService.Verify( location, true );
-                }
+                // Set a placeholder for the location so we only geocode it 1 time
+                Location location = null;
 
                 foreach (Person person in persons)
                 {
@@ -109,12 +103,17 @@ namespace org.secc.PersonMatch
                                 addressMatches = true;
                             }
                             // If it doesn't match, we need to geocode it and check it again
-                            if (!addressMatches) {
+                            if ( location == null && !string.IsNullOrEmpty( street1 ) && !string.IsNullOrEmpty( postalCode ) )
+                            {
+                                location = new Location();
+                                location.Street1 = street1;
+                                location.PostalCode = postalCode;
+                                locationService.Verify( location, true );
 
-                                if (person.GetHomeLocation().Street1 == location.Street1)
-                                {
-                                    addressMatches = true;
-                                }
+                            }
+                            if ( location != null && !addressMatches && person.GetHomeLocation().Street1 == location.Street1)
+                            {
+                                addressMatches = true;
                             }
                         }
                     }
