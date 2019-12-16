@@ -13,6 +13,9 @@
 // </copyright>
 //
 
+using System;
+using Newtonsoft.Json;
+
 namespace org.secc.LeagueApps.Contracts
 {
     class Member
@@ -21,6 +24,19 @@ namespace org.secc.LeagueApps.Contracts
         public string email { get; set; }
         public string firstName { get; set; }
         public string lastName { get; set; }
+        private DateTime? _birthDate = null;
+        [JsonConverter( typeof( MillisecondEpochConverter ) )]
+        public DateTime? birthDate {
+            get {
+                return _birthDate;
+            }
+            set {
+                if ( value.HasValue )
+                {
+                    _birthDate = value.Value.Date;
+                }
+            }
+        }
         public string gender { get; set; }
         public string address1 { get; set; }
         public string address2 { get; set; }
