@@ -76,11 +76,10 @@ namespace org.secc.LeagueApps
                 var client = new RestClient("https://public.leagueapps.io");
 
                 // Get all programs from LeagueApps
-                var request = new RestRequest("/v1/sites/{siteid}/programs/current", Method.GET);
-                request.AddUrlSegment("siteid", siteid);
-                request.AddHeader("la-api-key", clientid);
-
-                var response = client.Get(request);
+                var request = new RestRequest( "/v1/sites/{siteid}/programs/current", Method.GET );
+                request.AddUrlSegment( "siteid", siteid );
+                request.AddHeader( "la-api-key", clientid );
+                var response = client.Get( request );
 
                 if (response.StatusCode != System.Net.HttpStatusCode.OK)
                 {
@@ -95,7 +94,6 @@ namespace org.secc.LeagueApps
 
                     foreach(Contracts.Programs program in programs)
                     {
-
                         // Process the program
                         Group league = null;
                         Group league2 = null;
@@ -250,7 +248,7 @@ namespace org.secc.LeagueApps
                                             email = String.Empty;
                                     }
 
-                                    List<Person> matches = personService.GetByMatch( member.firstName.Trim(), member.lastName.Trim(), null, email, null, street1, postalCode ).ToList();
+                                    List<Person> matches = personService.GetByMatch( member.firstName.Trim(), member.lastName.Trim(), member.birthDate, email, null, street1, postalCode ).ToList();
 
                                     if ( matches.Count > 1 )
                                     {
@@ -278,6 +276,7 @@ namespace org.secc.LeagueApps
                                         person = new Person();
                                         person.FirstName = member.firstName.Trim();
                                         person.LastName = member.lastName.Trim();
+                                        person.SetBirthDate( member.birthDate.Value );
 
                                         if ( email != String.Empty )
                                             person.Email = email;
@@ -328,16 +327,17 @@ namespace org.secc.LeagueApps
                                 }
 
                                 // Check to see if the group member already exists
-                                var groupmember = groupService.GroupHasMember( league3.Guid, person.Id );
 
-                                if ( groupmember == false )
+                                GroupMember groupmember = league3.Members.Where( m => m.PersonId == person.Id ).FirstOrDefault();
+
+                                if ( groupmember == null )
                                 {
                                     Guid guid5 = Guid.NewGuid();
-                                    GroupMember participant = new GroupMember();
-                                    participant.PersonId = person.Id;
-                                    participant.GroupId = league3.Id;
-                                    participant.IsSystem = false;
-                                    participant.Guid = guid5;
+                                    groupmember = new GroupMember();
+                                    groupmember.PersonId = person.Id;
+                                    groupmember.GroupId = league3.Id;
+                                    groupmember.IsSystem = false;
+                                    groupmember.Guid = guid5;
 
                                     if ( !String.IsNullOrEmpty( applicant.role ) )
                                     {
@@ -354,19 +354,21 @@ namespace org.secc.LeagueApps
                                         else
                                             role = "Member";
                                         var grouprole = groupTypeRoleService.Queryable().Where( r => r.GroupTypeId == groupType.Id && r.Name == role ).FirstOrDefault().Id;
-                                        participant.GroupRoleId = grouprole;
+                                        groupmember.GroupRoleId = grouprole;
                                     }
                                     else
                                     {
-                                        participant.GroupRoleId = groupType.DefaultGroupRoleId.Value;
+                                        groupmember.GroupRoleId = groupType.DefaultGroupRoleId.Value;
                                     }
-                                    participant.GroupMemberStatus = GroupMemberStatus.Active;
-                                    groupMemberService.Add( participant );
-                                    participant.LoadAttributes();
-                                    participant.SetAttributeValue( groupmemberattribute.Key, applicant.team );
-                                    participant.SaveAttributeValues();
+                                    groupmember.GroupMemberStatus = GroupMemberStatus.Active;
+                                    groupMemberService.Add( groupmember );
                                     rockContext.SaveChanges();
                                 }
+
+                                // Make sure we update the team if necessary
+                                groupmember.LoadAttributes();
+                                groupmember.SetAttributeValue( groupmemberattribute.Key, applicant.team );
+                                groupmember.SaveAttributeValues( rockContext );
                             }
                         }
                         processed++;
