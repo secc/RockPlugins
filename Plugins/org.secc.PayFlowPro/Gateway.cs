@@ -80,11 +80,11 @@ namespace org.secc.PayFlowPro
             {
                 var values = new List<DefinedValueCache>();
 
-                values.Add( DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.TRANSACTION_FREQUENCY_ONE_TIME ) );
-                values.Add( DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.TRANSACTION_FREQUENCY_WEEKLY ) );
-                values.Add( DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.TRANSACTION_FREQUENCY_BIWEEKLY ) );
+                values.Add( DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.TRANSACTION_FREQUENCY_ONE_TIME ) );
+                values.Add( DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.TRANSACTION_FREQUENCY_WEEKLY ) );
+                values.Add( DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.TRANSACTION_FREQUENCY_BIWEEKLY ) );
                 //values.Add( DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.TRANSACTION_FREQUENCY_TWICEMONTHLY ) );
-                values.Add( DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.TRANSACTION_FREQUENCY_MONTHLY ) );
+                values.Add( DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.TRANSACTION_FREQUENCY_MONTHLY ) );
                 return values;
             }
         }
@@ -130,6 +130,39 @@ namespace org.secc.PayFlowPro
                     recurringInfo.PayPeriod = "YEAR";
                     break;
             }
+        }
+
+
+        /// <summary>
+        /// Charges the specified payment info.
+        /// </summary>
+        /// <param name="financialGateway"></param>
+        /// <param name="paymentInfo">The payment info.</param>
+        /// <param name="errorMessage">The error message.</param>
+        /// <returns></returns>
+        public override FinancialTransaction Charge( FinancialGateway financialGateway, PaymentInfo paymentInfo, out string errorMessage )
+        {
+            var financialTransaction = base.Charge( financialGateway, paymentInfo, out errorMessage );
+            // Handle issues with the "Original transaction ID not found" error more gracefully
+            if ( paymentInfo is ReferencePaymentInfo  && errorMessage == "[19] Original transaction ID not found")
+            {
+                // First delete the saved account--it is worthless
+                var rockContext = new RockContext();
+                var savedAccountService = new FinancialPersonSavedAccountService( rockContext );
+                var savedAccount = savedAccountService.Queryable()
+                .Where( s =>
+                    s.TransactionCode == (( ReferencePaymentInfo )paymentInfo).TransactionCode &&
+                    s.FinancialGatewayId.HasValue &&
+                    s.FinancialGatewayId.Value == financialGateway.Id )
+                .FirstOrDefault();
+                if (savedAccount != null)
+                {
+                    savedAccountService.Delete( savedAccount );
+                    rockContext.SaveChanges();
+                    errorMessage = "The previously saved payment method is no longer valid.  Please select a different method.";
+                }
+            }
+            return financialTransaction;
         }
 
         /// <summary>
