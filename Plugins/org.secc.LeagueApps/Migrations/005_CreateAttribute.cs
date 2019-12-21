@@ -25,7 +25,7 @@ namespace org.secc.LeagueApps.Migrations
         public override void Up()
         {
             RockMigrationHelper.UpdatePersonAttribute(
-                "A75DFC58-7A1B-4799-BF31-451B2BBE38FF",
+                "7BDAE237-6E49-47AC-9961-A45AFB69E240",
                 "4D1E1EBA-ABF2-4A7C-8ADF-65CB5AAE94E2",
                 "LeagueApps UserId",
                 "LeagueAppsUserId",
