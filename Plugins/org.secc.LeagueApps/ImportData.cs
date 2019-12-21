@@ -224,8 +224,11 @@ namespace org.secc.LeagueApps
                                 Person person = null;
 
                                 // 1. Try to load the person using the LeagueApps UserId
-                                var attributevalue = applicant.userId.ToString() + "|";
-                                var personIds = attributeValueService.Queryable().Where( av => av.AttributeId == personattribute.Id && av.Value.Contains(attributevalue)).Select( av => av.EntityId );
+                                var attributevalue = applicant.userId.ToString();
+                                var personIds = attributeValueService.Queryable().Where( av => av.AttributeId == personattribute.Id && 
+                                    ( av.Value == attributevalue ||
+                                      av.Value.Contains( "|" + attributevalue + "|" ) || 
+                                      av.Value.StartsWith( attributevalue + "|" ) ) ).Select( av => av.EntityId );
                                 if ( personIds.Count() == 1 )
                                 {
                                     person = personService.Get( personIds.FirstOrDefault().Value );
@@ -303,10 +306,11 @@ namespace org.secc.LeagueApps
                                         {
                                             person.Gender = Gender.Unknown;
                                         }
-                                        Group family = PersonService.SaveNewPerson( person, rockContext );
-                                        GroupLocation location = new GroupLocation();
-                                        location.GroupLocationTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME ).Id;
-                                        location.Location = new Location()
+
+
+                                        var groupLocationTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME ).Id;
+
+                                        Location location = new Location()
                                         {
                                             Street1 = member.address1,
                                             Street2 = member.address2,
@@ -315,16 +319,55 @@ namespace org.secc.LeagueApps
                                             PostalCode = member.zipCode,
                                             Country = member.country
                                         };
-                                        location.IsMappedLocation = true;
-                                        family.CampusId = CampusCache.All().FirstOrDefault().Id;
-                                        family.GroupLocations.Add( location );
+                                        locationService.Verify( location, true );
+                                        bool existingFamily = false;
+                                        if ( !string.IsNullOrWhiteSpace( member.address1 ) )
+                                        {
+                                            var familyGroupType = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY );
+
+                                            // See if we can find an existing family using the location where everyone is a web prospect
+                                            var matchingLocations = locationService.Queryable().Where( l => l.Street1 == location.Street1 && l.PostalCode == location.PostalCode );
+                                            var matchingFamilies = matchingLocations.Where( l => l.GroupLocations.Any( gl => gl.Group.GroupTypeId == familyGroupType.Id ) ).SelectMany( l => l.GroupLocations ).Select( gl => gl.Group );
+                                            var matchingFamily = matchingFamilies.Where( f => f.Members.All( m => m.Person.ConnectionStatusValueId == connectionStatus.Id ) && f.Name == member.lastName + " Family" );
+                                            if (matchingFamily.Count() == 1)
+                                            {
+
+                                                var adultRole = familyGroupType.Roles
+                                                    .FirstOrDefault( r =>
+                                                        r.Guid.Equals( Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() ) );
+
+                                                var childRole = familyGroupType.Roles
+                                                    .FirstOrDefault( r =>
+                                                        r.Guid.Equals( Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_CHILD.AsGuid() ) );
+
+                                                var age = person.Age;
+
+                                                var familyRole = age.HasValue && age < 18 ? childRole : adultRole;
+                                                PersonService.AddPersonToFamily( person, true, matchingFamily.FirstOrDefault().Id, familyRole.Id, rockContext );
+                                                existingFamily = true;
+                                            }
+                                        }
+
+                                        if ( !existingFamily )
+                                        {
+                                            Group family = PersonService.SaveNewPerson( person, rockContext );
+                                            GroupLocation groupLocation = new GroupLocation();
+                                            groupLocation.GroupLocationTypeValueId = groupLocationTypeValueId;
+                                            groupLocation.Location = location;
+                                            groupLocation.IsMappedLocation = true;
+                                            family.CampusId = CampusCache.All().FirstOrDefault().Id;
+                                            family.GroupLocations.Add( groupLocation );
+                                        }
+                                        
                                         rockContext.SaveChanges();
                                     }
                                     person.LoadAttributes();
-                                    var attributevaluelist = person.GetAttributeValue(personattribute.Key);
-                                    person.SetAttributeValue(personattribute.Key, attributevaluelist + applicant.userId.ToString() + "|");
-                                    person.SaveAttributeValues();
-                                    rockContext.SaveChanges();
+                                    var attributevaluelist = person.GetAttributeValue(personattribute.Key).SplitDelimitedValues();
+                                    if (!attributevaluelist.Contains( applicant.userId.ToString() ) )
+                                    { 
+                                        person.SetAttributeValue(personattribute.Key, string.Join("|", attributevaluelist) + "|" + applicant.userId.ToString() + "|" );
+                                        person.SaveAttributeValues( rockContext );
+                                    }
                                 }
 
                                 // Check to see if the group member already exists
