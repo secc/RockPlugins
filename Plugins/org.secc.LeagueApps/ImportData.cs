@@ -61,7 +61,6 @@ namespace org.secc.LeagueApps
                 DefinedValueCache connectionStatus = DefinedValueCache.Get(dataMap.GetString("DefaultConnectionStatus").AsGuid(), dbContext);
                 var p12File = binaryFileService.Get(dataMap.GetString("LeagueAppsServiceAccountFile").AsGuid());
 
-
                 Group group = groupService.Get(dataMap.GetString("ParentGroup").AsGuid());
                 GroupTypeCache grandparentGroupType = GroupTypeCache.Get(dataMap.Get("YearGroupType").ToString().AsGuid(), dbContext);
                 GroupTypeCache parentGroupType = GroupTypeCache.Get(dataMap.Get("CategoryGroupType").ToString().AsGuid(), dbContext);
@@ -223,9 +222,10 @@ namespace org.secc.LeagueApps
                                 GroupMemberService groupMemberService = new GroupMemberService( rockContext );
 
                                 Person person = null;
-                                
+
                                 // 1. Try to load the person using the LeagueApps UserId
-                                var personIds = attributeValueService.Queryable().Where( av => av.AttributeId == personattribute.Id && av.Value == applicant.userId.ToString() ).Select( av => av.EntityId );
+                                var attributevalue = applicant.userId.ToString() + "|";
+                                var personIds = attributeValueService.Queryable().Where( av => av.AttributeId == personattribute.Id && av.Value.Contains(attributevalue)).Select( av => av.EntityId );
                                 if ( personIds.Count() == 1 )
                                 {
                                     person = personService.Get( personIds.FirstOrDefault().Value );
@@ -321,7 +321,8 @@ namespace org.secc.LeagueApps
                                         rockContext.SaveChanges();
                                     }
                                     person.LoadAttributes();
-                                    person.SetAttributeValue( personattribute.Key, applicant.userId.ToString() );
+                                    var attributevaluelist = person.GetAttributeValue(personattribute.Key);
+                                    person.SetAttributeValue(personattribute.Key, attributevaluelist + applicant.userId.ToString() + "|");
                                     person.SaveAttributeValues();
                                     rockContext.SaveChanges();
                                 }
