@@ -39,6 +39,12 @@
             typeOGMetaTag.Attributes.Add("property", "og:type");
             typeOGMetaTag.Attributes.Add("content", "website");
             Page.Header.Controls.Add(typeOGMetaTag);
+            var globalAttributesCache = GlobalAttributesCache.Get();
+
+            var publicApplicationRoot = globalAttributesCache.GetValue( "PublicApplicationRoot" );
+            int lastSlash = publicApplicationRoot.LastIndexOf('/');
+            publicApplicationRoot = (lastSlash > -1) ? publicApplicationRoot.Substring(0, lastSlash) : publicApplicationRoot;
+
             if (!(string.IsNullOrEmpty(page.PageTitle)))
             {
                 HtmlMeta titleOGMetaTag = new HtmlMeta();
@@ -54,15 +60,15 @@
                 Page.Header.Controls.Add(descOGMetaTag);
             }
             if (!(string.IsNullOrEmpty(facebookOGImage)))
-            {   var globalAttributesCache = GlobalAttributesCache.Get();
+            {
                 HtmlMeta imageOGMetaTag = new HtmlMeta();
                 imageOGMetaTag.Attributes.Add("property", "og:image");
-                imageOGMetaTag.Attributes.Add("content", globalAttributesCache.GetValue( "PublicApplicationRoot" ) + "GetImage.ashx?Guid=" + facebookOGImage);
+                imageOGMetaTag.Attributes.Add("content", publicApplicationRoot + "/GetImage.ashx?Guid=" + facebookOGImage);
                 Page.Header.Controls.Add(imageOGMetaTag);
             }
             HtmlMeta urlOGMetaTag = new HtmlMeta();
             urlOGMetaTag.Attributes.Add("property", "og:url");
-            urlOGMetaTag.Attributes.Add("content", Request.Url.AbsoluteUri);
+            urlOGMetaTag.Attributes.Add("content", publicApplicationRoot + Request.Url.AbsolutePath );
             Page.Header.Controls.Add(urlOGMetaTag);
         }
 
