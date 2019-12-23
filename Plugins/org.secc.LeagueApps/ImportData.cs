@@ -45,7 +45,6 @@ namespace org.secc.LeagueApps
             GroupTypeRoleService groupTypeRoleService = new GroupTypeRoleService(dbContext);
             DefinedValueService definedValueService = new DefinedValueService(dbContext);
             DefinedTypeService definedTypeService = new DefinedTypeService(dbContext);
-            LocationService locationService = new LocationService(dbContext);
             BinaryFileService binaryFileService = new BinaryFileService(dbContext);
 
             // Get the datamap for loading attributes
@@ -220,6 +219,7 @@ namespace org.secc.LeagueApps
                             {
                                 PersonService personService = new PersonService( rockContext );
                                 GroupMemberService groupMemberService = new GroupMemberService( rockContext );
+                                LocationService locationService = new LocationService( rockContext );
 
                                 Person person = null;
 
@@ -252,6 +252,16 @@ namespace org.secc.LeagueApps
                                     }
 
                                     List<Person> matches = personService.GetByMatch( member.firstName.Trim(), member.lastName.Trim(), member.birthDate, email, null, street1, postalCode ).ToList();
+
+                                    Location location = new Location()
+                                    {
+                                        Street1 = member.address1,
+                                        Street2 = member.address2,
+                                        City = member.city,
+                                        State = member.state,
+                                        PostalCode = member.zipCode,
+                                        Country = member.country ?? "US"
+                                    };
 
                                     if ( matches.Count > 1 )
                                     {
@@ -310,15 +320,6 @@ namespace org.secc.LeagueApps
 
                                         var groupLocationTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME ).Id;
 
-                                        Location location = new Location()
-                                        {
-                                            Street1 = member.address1,
-                                            Street2 = member.address2,
-                                            City = member.city,
-                                            State = member.state,
-                                            PostalCode = member.zipCode,
-                                            Country = member.country
-                                        };
                                         locationService.Verify( location, true );
                                         bool existingFamily = false;
                                         if ( !string.IsNullOrWhiteSpace( member.address1 ) )
@@ -358,20 +359,51 @@ namespace org.secc.LeagueApps
                                             family.CampusId = CampusCache.All().FirstOrDefault().Id;
                                             family.GroupLocations.Add( groupLocation );
                                         }
-                                        
+
                                         rockContext.SaveChanges();
                                     }
+
+                                    var groupLocationType = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME );
+
+                                    // Check to see if the address/location should be updated.
+                                    if ( member.dateJoined > person.GetFamilies().SelectMany(f => f.GroupLocations).Where( gl => gl.GroupLocationTypeValueId == groupLocationType.Id).Max(gl => gl.CreatedDateTime?? gl.Location.CreatedDateTime) )
+                                    {
+                                        if ( !location.StandardizedDateTime.HasValue )
+                                        {
+                                            locationService.Verify( location, true );
+                                        }
+                                        var allLocations = person.GetFamilies().SelectMany( f => f.GroupLocations );
+                                        if ( location.Street1 != null && location.StandardizedDateTime != null && !allLocations.Any( hl => hl.Location.Street1 == location.Street1) && !location.Street1.Contains( "PO Box" ) && !location.Street1.Contains( "PMB" ) )
+                                        {
+                                            locationService.Add( location );
+                                            rockContext.SaveChanges();
+
+
+                                            // Get all existing addresses of the specified type
+                                            var groupLocations = person.PrimaryFamily.GroupLocations.Where( l => l.GroupLocationTypeValueId == groupLocationType.Id ).ToList();
+
+                                            // Create a new address of the specified type, saving all existing addresses of that type as Previous Addresses
+                                            // Use the Is Mailing and Is Mapped values from any of the existing addresses of that type have those values set to true
+                                            GroupService.AddNewGroupAddress( rockContext, person.PrimaryFamily,
+                                                groupLocationType.Guid.ToString(), location.Id, true,
+                                                "LeagueApps Import Data Job",
+                                                groupLocations.Any( x => x.IsMailingLocation ),
+                                                groupLocations.Any( x => x.IsMappedLocation ) );
+                                        }
+                                    }
+
+                                    // Update the person's LeagueApps User ID attribute
                                     person.LoadAttributes();
-                                    var attributevaluelist = person.GetAttributeValue(personattribute.Key).SplitDelimitedValues();
+                                    var attributevaluelist = person.GetAttributeValue(personattribute.Key).SplitDelimitedValues().ToList();
                                     if (!attributevaluelist.Contains( applicant.userId.ToString() ) )
-                                    { 
-                                        person.SetAttributeValue(personattribute.Key, string.Join("|", attributevaluelist) + "|" + applicant.userId.ToString() + "|" );
+                                    {
+                                        attributevaluelist.Add( applicant.userId.ToString() );
+                                        person.SetAttributeValue(personattribute.Key, string.Join("|", attributevaluelist) + "|" );
                                         person.SaveAttributeValues( rockContext );
                                     }
                                 }
 
                                 // Check to see if the group member already exists
-
                                 GroupMember groupmember = league3.Members.Where( m => m.PersonId == person.Id ).FirstOrDefault();
 
                                 if ( groupmember == null )
