@@ -37,6 +37,8 @@ namespace org.secc.LeagueApps.Contracts
                 }
             }
         }
+        [JsonConverter( typeof( MillisecondEpochConverter ) )]
+        public DateTime dateJoined { get; set; }
         public string gender { get; set; }
         public string address1 { get; set; }
         public string address2 { get; set; }
