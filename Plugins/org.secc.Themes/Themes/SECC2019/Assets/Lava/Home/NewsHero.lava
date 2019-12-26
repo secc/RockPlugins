@@ -1,9 +1,5 @@
 {% assign currentDay = 'Now' | Date:'dddd' | Downcase %}
 
-{% if currentDay != "sunday" %}
-    {% assign currentDay = 'christmas' %}
-{% endif %}
-
 {% if currentDay == "sunday" %}
     {% comment %}
         This shows on Sundays
@@ -296,7 +292,7 @@
         	<div style="background-color:black">
                 {% unless currentMessageVimeoID == empty %}
 
-                    {[ parallax videourl:'https://vimeo.com/318802665' image:'/Content/0N2A1494.jpg'  videostarttime:'0' videoendtime:'19' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'75vh' position:'bottom center' speed:'-15' ]}
+                    {[ parallax videourl:'https://vimeo.com/380352381' image:'/Content/0N2A1494.jpg'  videostarttime:'0' videoendtime:'19' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'75vh' position:'bottom center' speed:'-15' ]}
     					<!-- START: Ministry Logo & Video -->
                         <div class="parallax-logo centered" style="max-width: inherit;padding: 0px;">
                             <h4 class="uppercase g-letter-spacing--3">Latest Sermon</h4>
