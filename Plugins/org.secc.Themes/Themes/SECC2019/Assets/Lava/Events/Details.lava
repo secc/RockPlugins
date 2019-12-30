@@ -111,47 +111,24 @@
 
                 <div class="text-center g-padding-b-20--xs">
                     {[ socialshare facebooktitle:'{{ Event.Name }}' emailsubject:'{{ Event.Name | Escape }}' facebookimage:'https://{{- 'Global' | Page:'Host' -}}{{ eventPhoto }}' facebooksummary:'{{ Event.Description | StripHtml }}' ]}
+                    <!-- START: Meta Data for Twitter -->
+                    {{ 'summary_large_image' | AddMetaTagToHead:'property','twitter:card' }}
+                    {{ Event.Name | AddMetaTagToHead:'property','twitter:title' }}
+                    {{ Event.Description | StripHtml | AddMetaTagToHead:'property','twitter:description' }}
+                    {% if twitterPhoto != '' %}
+                        {{ twitterPhoto.Url | AddMetaTagToHead:'property','twitter:image' }}
+                    {% endif %}
+                    <!-- END: Meta Data for Twitter -->
                 </div>
 
             </div><!-- END: col-md-4 -->
 
             <div class="col-md-8 g-padding-t-10--xs g-padding-t-70--lg g-padding-t-100--lg" style="min-height: 65px;">
-
                 <h3 class="g-font-family--secondary g-padding-b-10--xs">{{Event.Name}}</h3>
-
                 {{ Event.Description }}
-
-                <!-- START: Social Media - Shareables -->
-                {{ 'summary_large_image' | AddMetaTagToHead:'property','twitter:card' }}
-                {{ Event.Name | AddMetaTagToHead:'property','twitter:title' }}
-                {{ Event.Description | StripHtml | AddMetaTagToHead:'property','twitter:description' }}
-
-                {{ Event.Name | AddMetaTagToHead:'property','og:title' }}
-                {{ Event.Description | StripHtml | AddMetaTagToHead:'property','og:description' }}
-
-
-                {% if facebookPhoto %}
-                    {{ facebookPhoto.Url | AddMetaTagToHead:'property','og:image' }}
-                {% else %}
-                    {% assign siteURL = 'Global' | Page:'Host' %}
-                    {% assign facebookPhoto = "https://" | Plus: siteURL | Plus: eventPhoto %}
-                    {{ facebookPhoto | AddMetaTagToHead:'property','og:image' }}
-                {% endif %}
-
-                {% if twitterPhoto != '' %}
-                    {{ twitterPhoto.Url | AddMetaTagToHead:'property','twitter:image' }}
-                {% else %}
-                    {% assign siteURL = 'Global' | Page:'Host' %}
-                    {% assign twitterPhoto = "https://" | Plus: siteURL | Plus: eventPhoto %}
-                    {{ twitterPhoto | AddMetaTagToHead:'property','og:image' }}
-                {% endif %}
-                <!-- END: Social Media - Shareable Media -->
-
             </div>
 
-
             <div class="col-md-4 g-padding-t-10--xs g-padding-b-60--xs g-padding-x-50--lg">
-
                 {% assign eventOccurencesCount = Event.EventItemOccurrences | Size %}
                 {% if eventOccurencesCount > 1 %}
                     {% if eventOccurencesCount > 1 %}
