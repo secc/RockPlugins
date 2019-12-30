@@ -46,9 +46,8 @@ Note: This requires the WOW animations shortcode, make sure you have included in
 {% endcomment %}
 
 {%- if url == empty -%}
-    {% assign host = 'Global' | Page:'Host' %}
-	{% assign url = 'Global' | Page:'Url' %}
-	{% assign social_url = url | Replace:host, 'www.southeastchristian.org' | Escape %}
+    {% assign path = 'Global' | Page:'Path' %}
+	{% assign social_url = 'Global' | Attribute:'PublicApplicationRoot' | ReplaceLast:'/', '' | Append:path | Escape %}
 {%- else -%}
     {% assign social_url = url | Escape %}
 {%- endif -%}

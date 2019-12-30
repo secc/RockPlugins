@@ -10,44 +10,51 @@
    {% endfor %}
 {% endcontentchannelitemslug %}
 
-
-{% assign ImageFile = item | Attribute:'Image', 'FileName' %}
+{% assign ImageFile = item | Attribute:'Image', 'FileName' | EscapeDataString %}
 {% assign ImageGuid = item | Attribute:'Image','RawValue' %}
 {% assign AuthorObject = item | Attribute:'Author','Object' %}
 {% assign PostLayout = item | Attribute:'PostLayout','RawValue' %}
-
-{% assign sc = '{{" ' | Append:item.Title | Append:' | Southeast Christian Church' | Append:'" | SetPageTitle }}' %}
-{{sc}}
-
 {% assign Author = AuthorObject | Attribute:'Person','Object' %}
 {% assign AuthorImageGuid = AuthorObject | Attribute:'BioImage','RawValue' %}
 
 {% comment %}
-The code below is to set the facebook open graph image through the two-pass cache cycle.
+*************************************************
+********* TWOPASS - SETTING PAGE TITLE *********
+*************************************************
 {% endcomment %}
-{% assign ending = '%25%7D' | UnescapeDataString %}
-{{ '{% assign facebookOGTitle = "' | Append:item.Title | Append: '" ' | Append: ending }}
-{{ '{% assign ImageFile = "' | Append:ImageFile | Append: '" ' | Append: ending }}
-{{ '{% assign ImageGuid = "' | Append:ImageGuid | Append: '" ' | Append: ending }}
-{{ '{% assign showSocialMediaShare = "' | Append:showSocialMediaShare | Append: '" ' | Append: ending }}
-{{ '{% assign globalHost = ' | Append: "'Global' | Page:'Host'" | Append: ' ' | Append: ending }}
-{{ '{% assign facebookOGimage = "https://" | Append: globalHost | Append: "/GetImage.ashx/" | Append: ImageFile | Append: "?Guid=" | Append: ImageGuid ' | Append: ending }}
-{% raw %}
-    {{ facebookOGTitle | AddMetaTagToHead:'property','og:title' }}
-    {{ facebookOGimage | Escape | AddMetaTagToHead:'property','og:image' }}
-{% endraw %}
+{% assign setTitle = '{{" ' | Append:item.Title | Append:' | Southeast Christian Church' | Append:'" | SetPageTitle }}' %}
+{{ setTitle }}
+
+{% comment %}
+******************************************************************************
+********* TWOPASS SHORTCODE - SETTING FACEBOOK OPEN GRAPH PARAMETERS *********
+******************************************************************************
+{% endcomment %}
+{% assign endPercetageBracketRaw = '%25%7D' | UnescapeDataString %}
+{{ '{% assign ImageFile = "' | Append:ImageFile | Append: '" ' | Append: endPercetageBracketRaw }}
+{{ '{% assign ImageGuid = "' | Append:ImageGuid | Append: '" ' | Append: endPercetageBracketRaw }}
+{{ '{% assign facebookTitle = "' | Append:item.Title | Append: '" ' | Append: endPercetageBracketRaw }}
+{% comment %}
+   Shortcodes within a shortcode will run twice even with caching, so as a
+   fix, we needed to wrap the shortcode with a caputure tag, url encode it, and then wrap again
+   with a raw tag to allow lava pass through the first time. Then execute on
+   the second pass by outputing the caputure variable within the WOW shortcode.
+{% endcomment %}
 
 {[ wow animate:'fadeIn' ]}
 <article class="post_item {{ PostLayout }}">
+    {% raw %}
+        {% capture socialshareCaptured %}%7B%5B%20socialshare%20facebookimage%3A%27https%3A%2F%2F%7B%7B-%20%27Global%27%20%7C%20Page%3A%27Host%27%20-%7D%7D%2FGetImage.ashx%2F%7B%7B-%20ImageFile%20-%7D%7D%3FGuid%3D%7B%7B-%20ImageGuid%20-%7D%7D%27%20facebooktitle%3A%27%7B%7B-%20facebookTitle%20-%7D%7D%27%20%5D%7D{% endcapture %}
+    {% endraw %}
 
-	{% comment %}
-		********************************************************************************************
-		********************************************************************************************
-		********* THIS IF CONDITION IS ONLY FOR A LAYOUT THAT IS MEANT FOR EMBEDED VIDEOS! *********
-		********************************************************************************************
-		********************************************************************************************
-	{% endcomment %}
 	{% if PostLayout contains "post_video"%}
+        {% comment %}
+        ********************************************************************************************
+        ********************************************************************************************
+        ********* THIS IF CONDITION IS ONLY FOR A LAYOUT THAT IS MEANT FOR EMBEDED VIDEOS! *********
+        ********************************************************************************************
+        ********************************************************************************************
+        {% endcomment %}
 		<div class="post_content" itemprop="reviewBody">
 			<h3 itemprop="itemReviewed" class="post_title entry-title g-font-family--secondary" style="text-transform: inherit;">{{ item.Title }}</h3>
 			<br />
@@ -56,8 +63,10 @@ The code below is to set the facebook open graph image through the two-pass cach
 		<hr />
 		<div class="text-center">
 			<p class="uppercase"><i class="fa fa-share-alt"></i> <strong>Share</strong> this Story:
-			{[ socialshare facebookog:'false' ]}
-		</div>
+            {% raw %}
+            {{ socialshareCaptured | UnescapeDataString }}
+            {% endraw %}
+        </div>
         <hr />
         <div class="text-left">
             {% taggeditem where:'EntityGuid == "{{item.Guid}}"' %}
@@ -69,15 +78,14 @@ The code below is to set the facebook open graph image through the two-pass cach
             {% endtaggeditem %}
         </div>
 	{% else %}
-	{% comment %}
+    	{% comment %}
 		********************************************************************************************
 		********************************************************************************************
 		************************* ELSE THIS LAYOUT IS USED FOR ANY CONTENT *************************
 		********************************************************************************************
 		********************************************************************************************
-	{% endcomment %}
+    	{% endcomment %}
 		<div class="post_featured">
-
 			{[ photoswipe imgsrc:'/GetImage.ashx?Guid={{ ImageGuid }}' imgtitle:'{{ item.Title }}' ]}
 				<img src="/GetImage.ashx?Guid={{ ImageGuid }}" class="img-responsive" itemprop="thumbnail" alt="{{ item.Title }}">
 			{[ endphotoswipe ]}
@@ -85,8 +93,10 @@ The code below is to set the facebook open graph image through the two-pass cach
 			<hr />
 			<div class="text-center">
 				<p class="uppercase"><i class="fa fa-share-alt"></i> <strong>Share</strong> this Story:
-				{[ socialshare facebookog:'false' ]}
-			</div>
+                {% raw %}
+                {{ socialshareCaptured | UnescapeDataString }}
+                {% endraw %}
+            </div>
             <hr />
             <div class="text-left">
                 {% taggeditem where:'EntityGuid == "{{item.Guid}}"' %}
