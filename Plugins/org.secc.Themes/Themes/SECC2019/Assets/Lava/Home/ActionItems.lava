@@ -158,7 +158,7 @@
 {% assign Items = contentchannelitemItems %}
 {% endcontentchannelitem %}
 
-{% assign currentDateTime = 'Now' | Date:'MMddyyHHmm' | AsInteger %}
+{% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsInteger %}
 
 {% assign ItemsCount = 0 %}
 {% for item in Items %}
