@@ -162,8 +162,8 @@
 
 {% assign ItemsCount = 0 %}
 {% for item in Items %}
-    {% assign itemStartDateTime = item.StartDateTime | Date:'MMddyyHHmm' | AsInteger %}
-    {% assign itemExpireDateTime = item.ExpireDateTime | Date:'MMddyyHHmm' | AsInteger %}
+    {% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsInteger %}
+    {% assign itemExpireDateTime = item.ExpireDateTime | Date:'yyMMddHHmm' | AsInteger %}
     {% if itemStartDateTime <= currentDateTime %}
         {% if itemExpireDateTime > currentDateTime or itemExpireDateTime == null %}
             {% assign ItemsCount = ItemsCount | Plus:1 %}
@@ -178,8 +178,8 @@
             {% assign cardsFlagCount = 0 %}
             {% assign firstFlag = false %}
             {%- for item in Items -%}
-                {% assign itemStartDateTime = item.StartDateTime | Date:'MMddyyHHmm' | AsInteger %}
-                {% assign itemExpireDateTime = item.ExpireDateTime | Date:'MMddyyHHmm' | AsInteger %}
+                {% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsInteger %}
+                {% assign itemExpireDateTime = item.ExpireDateTime | Date:'yyMMddHHmm' | AsInteger %}
                 {% if itemStartDateTime <= currentDateTime %}
                 {% if itemExpireDateTime > currentDateTime or itemExpireDateTime == null %}
                 <div class="col-xs-12 col-lg-4
