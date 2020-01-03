@@ -1636,6 +1636,7 @@ namespace RockWeb.Plugins.org_secc.Event
             string script = @"
     // Detect credit card type
     $('.credit-card').creditCardTypeDetector({ 'credit_card_logos': '.card-logos' });
+    //$('.credit-card').keyup(); 
 ";
             ScriptManager.RegisterStartupScript( Page, Page.GetType(), "registration-detail-card-info", script, true );
 
