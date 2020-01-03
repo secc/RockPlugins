@@ -90,7 +90,7 @@ namespace RockWeb.Plugins.org_secc.Event
 
         private enum PanelIndex
         {
-            PanelHowMany = 0,
+            PanelStart = 0,
             PanelRegistrationAttributesStart = 1,
             PanelRegistrant = 2,
             PanelRegistrationAttributesEnd = 3,
@@ -547,7 +547,7 @@ namespace RockWeb.Plugins.org_secc.Event
 
             GroupId = ViewState[GROUP_ID_KEY] as int?;
             CampusId = ViewState[CAMPUS_ID_KEY] as int?;
-            CurrentPanel = ViewState[CURRENT_PANEL_KEY] as PanelIndex? ?? PanelIndex.PanelHowMany;
+            CurrentPanel = ViewState[CURRENT_PANEL_KEY] as PanelIndex? ?? PanelIndex.PanelStart;
             CurrentRegistrantIndex = ViewState[CURRENT_REGISTRANT_INDEX_KEY] as int? ?? 0;
             CurrentFormIndex = ViewState[CURRENT_FORM_INDEX_KEY] as int? ?? 0;
             minimumPayment = ViewState[MINIMUM_PAYMENT_KEY] as decimal?;
@@ -647,8 +647,8 @@ namespace RockWeb.Plugins.org_secc.Event
                                     }
                                     else
                                     {
-                                        // show the panel for asking how many registrants ( it may be skipped )
-                                        ShowHowMany();
+                                        // show the panel with the instructions and/or asking how many registrants ( it may be skipped if there are neither )
+                                        ShowStart();
                                     }
                                 }
                             }
@@ -803,13 +803,13 @@ namespace RockWeb.Plugins.org_secc.Event
             {
                 string[] commands = state.Split( ',' );
 
-                PanelIndex panelIndex = PanelIndex.PanelHowMany;
+                PanelIndex panelIndex = PanelIndex.PanelStart;
                 int registrantId = 0;
                 int formId = 0;
 
                 if (commands.Count() == 3)
                 {
-                    panelIndex = commands[0].ConvertToEnumOrNull<PanelIndex>() ?? PanelIndex.PanelHowMany;
+                    panelIndex = commands[0].ConvertToEnumOrNull<PanelIndex>() ?? PanelIndex.PanelStart;
                     registrantId = int.Parse( commands[1] );
                     formId = int.Parse( commands[2] );
                 }
@@ -850,7 +850,7 @@ namespace RockWeb.Plugins.org_secc.Event
 
                     default:
                         {
-                            ShowHowMany();
+                            ShowStart();
                             break;
                         }
                 }
@@ -866,7 +866,7 @@ namespace RockWeb.Plugins.org_secc.Event
             }
             else
             {
-                ShowHowMany();
+                ShowStart();
             }
         }
 
@@ -1000,7 +1000,7 @@ namespace RockWeb.Plugins.org_secc.Event
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnRegistrationAttributesStartPrev_Click( object sender, EventArgs e )
         {
-            ShowHowMany();
+            ShowStart();
             hfTriggerScroll.Value = "true";
         }
 
@@ -1070,7 +1070,7 @@ namespace RockWeb.Plugins.org_secc.Event
             }
             else
             {
-                ShowHowMany();
+                ShowStart();
             }
 
             hfTriggerScroll.Value = "true";
@@ -1091,7 +1091,7 @@ namespace RockWeb.Plugins.org_secc.Event
             }
             else
             {
-                ShowHowMany();
+                ShowStart();
             }
 
             hfTriggerScroll.Value = "true";
@@ -1163,7 +1163,7 @@ namespace RockWeb.Plugins.org_secc.Event
             }
             else
             {
-                ShowHowMany();
+                ShowStart();
             }
 
             hfTriggerScroll.Value = "true";
@@ -1194,7 +1194,7 @@ namespace RockWeb.Plugins.org_secc.Event
             }
             else
             {
-                ShowHowMany();
+                ShowStart();
             }
 
             hfTriggerScroll.Value = "true";
@@ -1255,7 +1255,7 @@ namespace RockWeb.Plugins.org_secc.Event
             }
             else
             {
-                ShowHowMany();
+                ShowStart();
             }
 
             hfTriggerScroll.Value = "true";
@@ -1276,7 +1276,7 @@ namespace RockWeb.Plugins.org_secc.Event
             }
             else
             {
-                ShowHowMany();
+                ShowStart();
             }
 
             hfTriggerScroll.Value = "true";
@@ -1319,7 +1319,7 @@ namespace RockWeb.Plugins.org_secc.Event
             }
             else
             {
-                ShowHowMany();
+                ShowStart();
             }
 
             hfTriggerScroll.Value = "true";
@@ -3653,44 +3653,52 @@ namespace RockWeb.Plugins.org_secc.Event
 
         #region Display Methods
 
-        /// <summary>
-        /// Shows the how many panel
-        /// </summary>
-        private void ShowHowMany()
+        private bool ShowInstructions()
         {
             string instructions = string.IsNullOrEmpty( RegistrationInstanceState.RegistrationInstructions ) ?
-                                    RegistrationTemplate.RegistrationInstructions :
-                                    RegistrationInstanceState.RegistrationInstructions;
+                RegistrationTemplate.RegistrationInstructions :
+                RegistrationInstanceState.RegistrationInstructions;
 
-            if (!string.IsNullOrEmpty( instructions ))
+            if ( !string.IsNullOrEmpty( instructions ) )
             {
                 lInstructions.Text = string.Format( "<div class='text-left'>{0}</div>", instructions );
             }
 
+            return instructions.IsNotNullOrWhiteSpace();
+        }
+
+        /// <summary>
+        /// Shows the how many panel
+        /// </summary>
+        private void ShowStart()
+        {
             lRegistrantTerm.Text = RegistrantTerm.Pluralize().ToLower();
 
             // If this is an existing registration, go directly to the summary
-            if (!Page.IsPostBack && RegistrationState != null && RegistrationState.RegistrationId.HasValue && !PageParameter( START_AT_BEGINNING ).AsBoolean())
+            if ( !Page.IsPostBack && RegistrationState != null && RegistrationState.RegistrationId.HasValue && !PageParameter( START_AT_BEGINNING ).AsBoolean() )
             {
                 // ShowSummary will set visibility on things like the lbSummaryPrev button, so we want to
                 // call this before we might change that lbSummaryPrev button's visibility below.
                 ShowSummary();
 
                 // check if template does not allow updating the saved registration, if so hide the back button on the summary screen
-                if (!RegistrationTemplate.AllowExternalRegistrationUpdates)
+                if ( !RegistrationTemplate.AllowExternalRegistrationUpdates )
                 {
                     lbSummaryPrev.Visible = false;
                 }
             }
             else
             {
+                bool hasInstructions = ShowInstructions();
+                SetPanel( PanelIndex.PanelStart );
+
                 int max = MaxRegistrants;
-                if (!RegistrationTemplate.WaitListEnabled && RegistrationState.SlotsAvailable.HasValue && RegistrationState.SlotsAvailable.Value < max)
+                if ( !RegistrationTemplate.WaitListEnabled && RegistrationState.SlotsAvailable.HasValue && RegistrationState.SlotsAvailable.Value < max )
                 {
                     max = RegistrationState.SlotsAvailable.Value;
                 }
 
-                if (max > MinRegistrants)
+                if ( max > MinRegistrants )
                 {
                     // If registration allows multiple registrants show the 'How Many' panel
                     numHowMany.Maximum = max;
@@ -3699,17 +3707,24 @@ namespace RockWeb.Plugins.org_secc.Event
 
                     ShowWaitingListNotice();
 
-                    SetPanel( PanelIndex.PanelHowMany );
+                    pnlHowMany.Visible = true;
                 }
                 else
                 {
-                    // ... else skip to the registrant panel
                     CurrentRegistrantIndex = 0;
                     CurrentFormIndex = 0;
 
                     SetRegistrantState( MinRegistrants );
                     numHowMany.Value = MinRegistrants;
-                    ShowRegistrationAttributesStart( true );
+
+                    // Hide the number selection panel
+                    pnlHowMany.Visible = false;
+
+                    if ( !hasInstructions )
+                    {
+                        // If there are no instructions to display then skip to the registrant panel
+                        ShowRegistrationAttributesStart( true );
+                    }
                 }
             }
         }
@@ -4135,7 +4150,7 @@ namespace RockWeb.Plugins.org_secc.Event
 
             CreateDynamicControls( true );
 
-            pnlHowMany.Visible = CurrentPanel <= 0;
+            pnlStart.Visible = CurrentPanel <= 0;
             pnlRegistrationAttributesStart.Visible = CurrentPanel == PanelIndex.PanelRegistrationAttributesStart;
             pnlRegistrant.Visible = CurrentPanel == PanelIndex.PanelRegistrant;
             pnlRegistrationAttributesEnd.Visible = CurrentPanel == PanelIndex.PanelRegistrationAttributesEnd;
