@@ -2,14 +2,16 @@
     <div class="clearfix g-margin-b-20--xs" >
 
         <span class="g-position--absolute g-padding-y-20--xs g-padding-x-15--xs" style="right: 0px;top: 6px;z-index:100;">
-            <a href="#EditProfile" class="se-action-btn g-padding-y-15--xs g-padding-x-15--xs g-color--dark g-radius--circle g-bg-color-hover--black-opacity-lightest">
+            <a href="MyAccount/Edit/{{ Person.Guid }}" title="Change Account Info" class="se-action-btn g-padding-y-15--xs g-padding-x-15--xs g-color--dark g-radius--circle g-bg-color-hover--black-opacity-lightest">
                 <i class="fas fa-user-cog"></i>
             </a>
         </span>
 
         <div class="fluid-container">
             <div class="col-md-5 g-padding-x-80--xs g-padding-y-80--xs">
-                <img src="{{ Person.PhotoUrl }}" class="img-responsive img-circle" style="margin: 0 auto;">
+                <a href="MyAccount/Edit/{{ Person.Guid }}">
+                    <img src="{{ Person.PhotoUrl }}" title="Change Image" class="img-responsive img-circle" style="margin: 0 auto;">
+                </a>
             </div>
             <div class="col-md-7 g-padding-b-80--xs g-padding-t-80--lg">
                 <h3 class="g-font-weight--700 g-padding-b-20--xs">
@@ -95,6 +97,19 @@
                         {% for phone in Person.PhoneNumbers %}
 						{{ phone.NumberFormatted }} <small>({{ phone.NumberTypeValue.Value }})</small><br />
 						{% endfor %}
+    				</div>
+                </div>
+                <div class="container-fluid g-padding-x-0--xs">
+                    <hr />
+                    <div class="col-xs-12 col-md-6 g-padding-x-0--xs">
+                        <p class="g-font-weight--600 text-uppercase">
+                            Account Settings
+                        </p>
+                    </div>
+                    <div class="col-xs-12 col-md-6 g-padding-x-0--xs">
+                        <a href="~/ChangePassword">Change Password</a><br>
+                        <a href="~/Subscribe">Subscribe to Communication Lists</a><br>
+                        <a href="~/Unsubscribe">Unsubscribe from Lists</a>
     				</div>
                 </div>
             </div>
