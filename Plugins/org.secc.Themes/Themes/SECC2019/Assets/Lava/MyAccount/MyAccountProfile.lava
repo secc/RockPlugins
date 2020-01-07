@@ -21,7 +21,7 @@
                 </h3>
                 <div class="container-fluid g-padding-x-0--xs">
                     <div class="col-xs-6 g-padding-x-0--xs">
-                        <p class="g-font-weight--600 text-uppercase">
+                        <p class="g-margin-y-0--xs g-font-weight--600 text-uppercase">
                             Age
                         </p>
                     </div>
@@ -33,7 +33,7 @@
                 </div>
                 <div class="container-fluid g-padding-x-0--xs">
                     <div class="col-xs-6 g-padding-x-0--xs">
-                        <p class="g-font-weight--600 text-uppercase">
+                        <p class="g-margin-y-0--xs g-font-weight--600 text-uppercase">
                             Gender
                         </p>
                     </div>
@@ -45,7 +45,7 @@
                 </div>
                 <div class="container-fluid g-padding-x-0--xs">
                     <div class="col-xs-6 g-padding-x-0--xs">
-                        <p class="g-font-weight--600 text-uppercase">
+                        <p class="g-margin-y-0--xs g-font-weight--600 text-uppercase">
                             Martial Status
                         </p>
                     </div>
@@ -61,7 +61,7 @@
                 </div>
                 <div class="container-fluid g-padding-x-0--xs">
                     <div class="col-xs-6 g-padding-x-0--xs">
-                        <p class="g-font-weight--600 text-uppercase">
+                        <p class="g-margin-y-0--xs g-font-weight--600 text-uppercase">
                             Email
                         </p>
                     </div>
@@ -72,24 +72,21 @@
 
                 <div class="container-fluid g-padding-x-0--xs">
                     <div class="col-xs-6 g-padding-x-0--xs">
-                        <p class="g-font-weight--600 text-uppercase">
+                        <p class="g-margin-y-0--xs g-font-weight--600 text-uppercase">
                             Address
                         </p>
                     </div>
                     <div class="col-xs-6 g-padding-x-0--xs">
-
                         {% assign personalHome =  Person | Address:'Home' %}
 						{% if personalHome != '' %}
 						    {{ personalHome }}
 						{% endif %}
-
-                        <br />
                         <br />
     				</div>
                 </div>
                 <div class="container-fluid g-padding-x-0--xs">
                     <div class="col-xs-6 g-padding-x-0--xs">
-                        <p class="g-font-weight--600 text-uppercase">
+                        <p class="g-margin-y-0--xs g-font-weight--600 text-uppercase">
                             Phone
                         </p>
                     </div>
@@ -102,7 +99,7 @@
                 <div class="container-fluid g-padding-x-0--xs">
                     <hr />
                     <div class="col-xs-12 col-md-6 g-padding-x-0--xs">
-                        <p class="g-font-weight--600 text-uppercase">
+                        <p class="g-margin-y-0--xs g-font-weight--600 text-uppercase g-padding-r-10--xs">
                             Account Settings
                         </p>
                     </div>
