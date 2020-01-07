@@ -22,11 +22,15 @@ using Rock.Attribute;
 
 namespace org.secc.Attributes.Attributes
 {
-    public class DynamicPhoneNumber : FieldAttribute
+    [AttributeUsage( AttributeTargets.Class, AllowMultiple = true, Inherited = true )]
+    public class CascadingDropDownFieldAttribute: FieldAttribute
     {
-        public DynamicPhoneNumber( string name, string description = "", bool required = true, string defaultGroupGuid = "", string category = "", int order = 0, string key = null )
-            : base( name, description, required, defaultGroupGuid, category, order, key, typeof( DynamicPhoneNumberFieldType ).FullName )
+        private const string CONFIG = "configuration";
+
+        public CascadingDropDownFieldAttribute( string name, string description, string matrix,  bool required = true, string defaultValue = "", string category = "", int order = 0, string key = null )
+            : base( name, description, required, defaultValue, category, order, key, typeof( CascadingDropDownFieldType ).FullName, "org.secc.Attributes" )
         {
+            FieldConfigurationValues.Add( CONFIG, new Rock.Field.ConfigurationValue( matrix ) );
         }
     }
 }
