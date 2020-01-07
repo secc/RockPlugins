@@ -21,6 +21,8 @@
     {% endif %}
 {% endfor %}
 
+{% assign eventOccurencesCount = Event.EventItemOccurrences | Size %}
+
 <div class="container-fluid">
 	<div class="row">
 		<div class="col-sm-12 g-padding-x-0--xs">
@@ -49,7 +51,14 @@
                         </div>
                     </div>
                     {% endcomment %}
-                    {[ parallax image:'{{ eventPhoto }}' height:'55vh' position:'center center' speed:'-15' ]}
+                    {[ parallax image:'{{ eventPhoto }}' height:'55vh' position:'center center' speed:'-15' {% if eventOccurencesCount == 0 %}addclass:'g-bg-parallax-color--black--80'{% endif %} ]}
+                        {% if eventOccurencesCount == 0 %}
+                        <div class="parallax-logo centered" style="padding: 0px;">
+                           <h2 class="g-padding-x-30--xs g-font-family--secondary g-text-shadow--black--soft">This event is no longer active.</h2>
+                           <hr class="g-padding-x-30--xs g-width-100--xs">
+                           <h5 class="g-padding-x-30--xs ">For other events, please look under <a href="/events" class="g-color--white"><u><i>Connect > Events</i></u></a>.</h5>
+                        </div>
+                        {% endif %}
                     {[ endparallax ]}
 
                 {% endif %}
@@ -70,19 +79,10 @@
 	</div>
 </div>
 
-{% assign eventOccurencesCount = Event.EventItemOccurrences | Size %}
-
 <div class="container">
     <div class="row">
 
         <div class="container">
-
-            {% if eventOccurencesCount == 0 %}
-            <div class="col-md-12 g-padding-t-70--xs g-padding-x-50--lg text-center">
-                <h4><strong>This event is no longer active.</strong></h4>
-                <hr />
-            </div>
-            {% endif %}
 
             <div class="col-md-4 g-padding-t-70--xs g-padding-t-100--lg g-padding-x-50--lg">
 
