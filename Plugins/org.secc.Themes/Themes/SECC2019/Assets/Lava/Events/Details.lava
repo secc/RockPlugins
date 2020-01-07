@@ -28,7 +28,7 @@
 		<div class="col-sm-12 g-padding-x-0--xs">
 
             {% if eventVimeoID != "" %}
-            <a class="js-modal-video" data-video-id="{{ eventVimeoID }}">
+            <a class="js-modal-video g-color--white" data-video-id="{{ eventVimeoID }}">
             {% endif %}
 
             {% assign eventPromoImage = '/GetImage.ashx/' | Plus: eventPromoImageObject.Guid | Plus: '.jpg?guid=' | Plus: eventPromoImageObject.Guid %}
@@ -56,20 +56,30 @@
                         <div class="parallax-logo centered" style="padding: 0px;">
                            <h2 class="g-padding-x-30--xs g-font-family--secondary g-text-shadow--black--soft">This event is no longer active.</h2>
                            <hr class="g-padding-x-30--xs g-width-100--xs">
-                           <h5 class="g-padding-x-30--xs ">For other events, please look under <a href="/events" class="g-color--white"><u><i>Connect > Events</i></u></a>.</h5>
+                           <h5 class="g-padding-x-30--xs g-color--white">For other events, please look under <a href="/events" class="g-color--white"><u><i>Connect > Events</i></u></a>.</h5>
                         </div>
                         {% endif %}
                     {[ endparallax ]}
 
                 {% endif %}
             {% else %}
-                <div class="event-photo-container">
-                    <div class="event-photo">
-                        <center>
-                            <img src="{{eventPromoImage}}" class="img-responsive" style="width: 100%;" onerror="this.style.display='none'">
-                        </center>
+                {% if eventOccurencesCount == 0 %}
+                    {[ parallax image:'{{eventPromoImage}}' height:'55vh' position:'center center' speed:'-15' {% if eventOccurencesCount == 0 %}addclass:'g-bg-parallax-color--black--80'{% endif %} ]}
+                    <div class="parallax-logo centered" style="padding: 0px;">
+                        <h2 class="g-padding-x-30--xs g-font-family--secondary g-text-shadow--black--soft">This event is no longer active.</h2>
+                        <hr class="g-padding-x-30--xs g-width-100--xs">
+                        <h5 class="g-padding-x-30--xs g-color--white">For other events, please look under <a href="/events" class="g-color--white"><u><i>Connect > Events</i></u></a>.</h5>
                     </div>
-                </div>
+                    {[ endparallax ]}
+                {% else %}
+                    <div class="event-photo-container">
+                        <div class="event-photo">
+                            <center>
+                                <img src="{{eventPromoImage}}" class="img-responsive" style="width: 100%;" onerror="this.style.display='none'">
+                            </center>
+                        </div>
+                    </div>
+                {% endif %}
             {% endif %}
 
             {% if eventVimeoID != "" %}
