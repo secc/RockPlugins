@@ -70,11 +70,19 @@
 	</div>
 </div>
 
+{% assign eventOccurencesCount = Event.EventItemOccurrences | Size %}
 
 <div class="container">
     <div class="row">
 
         <div class="container">
+
+            {% if eventOccurencesCount == 0 %}
+            <div class="col-md-12 g-padding-t-70--xs g-padding-x-50--lg text-center">
+                <h4><strong>This event is no longer active.</strong></h4>
+                <hr />
+            </div>
+            {% endif %}
 
             <div class="col-md-4 g-padding-t-70--xs g-padding-t-100--lg g-padding-x-50--lg">
 
@@ -124,12 +132,11 @@
             </div><!-- END: col-md-4 -->
 
             <div class="col-md-8 g-padding-t-10--xs g-padding-t-70--lg g-padding-t-100--lg" style="min-height: 65px;">
-                <h3 class="g-font-family--secondary g-padding-b-10--xs">{{Event.Name}}</h3>
+                <h3 class="g-font-family--secondary g-padding-b-10--xs">{{ Event.Name }}</h3>
                 {{ Event.Description }}
             </div>
 
             <div class="col-md-4 g-padding-t-10--xs g-padding-b-60--xs g-padding-x-50--lg">
-                {% assign eventOccurencesCount = Event.EventItemOccurrences | Size %}
                 {% if eventOccurencesCount > 1 %}
                     {% if eventOccurencesCount > 1 %}
                         {% assign campusesAvail = '' %}
@@ -152,7 +159,6 @@
                         {% endif %}
                     {% endif %}
                 {% endif %}
-
             </div><!-- END: col-md-4 -->
 
         </div>
