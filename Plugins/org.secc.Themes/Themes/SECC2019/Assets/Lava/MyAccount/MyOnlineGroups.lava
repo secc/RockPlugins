@@ -1,0 +1,85 @@
+{% comment %}
+Eventually we will need to convert the inline css below into BEM CSS.
+{% endcomment %}
+<style>
+    .giving-min-height {
+        min-height: 400px;
+    }
+    .card:hover {
+     transform: translateY(0px) !important;
+     -webkit-box-shadow: 0 11px 66px rgba(0, 0, 0, 0.15) !important;
+     box-shadow: 0 11px 66px rgba(0, 0, 0, 0.15) !important;
+    }
+    .link--hover-grey-bg {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+        transition: background .2s ease;
+        -webkit-transition: background .2s ease;
+    }
+    .link--hover-grey-bg:hover {
+        background: rgba(124, 124, 124, 0.18);
+    }
+</style>
+
+<div class="container g-margin-y-60--xs g-margin-y-120--md">
+	<div class="row g-display-flex--md">
+		<div class="col-xs-12 col-lg-6 g-margin-b-50--xs">
+			<div class="se-panel g-padding-y-50--xs g-padding-x-50--xs g-height-100-percent--xs">
+				<h3 class="g-font-family--secondary g-font-weight--600">My Online Groups</h3>
+				<p class="g-font-family--primary g-line-height--sm">To find online groups to join, look under <a href="/page/2137" class="g-color--black"><u><i>Connect > Groups</i></u></a>.</p>
+				<hr />
+				{% if CurrentPerson != null %}
+				{% assign hasGroup = 'false' %}
+				{% assign groupIds = '|' %}
+
+				{% group where:'GroupTypeId == 324' limit:'1000' %}
+					{% for group in groupItems %}
+						{% assign groupIds = groupIds | Append:group.Id | Append: '|' %}
+					{% endfor %}
+				{% endgroup %}
+				{% groupmember where:'PersonId == {{CurrentPerson.Id}} && GroupMemberStatus == 1' limit:'10000' %}
+					{% for member in groupmemberItems %}
+						{% assign searchString = '|' | Append: member.GroupId | Append: '|' %}
+						{% if groupIds contains searchString %}
+							{% assign hasGroup = 'true' %}
+							<a href="{{member.Group | Attribute:'ZoomMeetingUrl', 'RawValue' }}" class="link--hover-grey-bg g-margin-b-20--xs" style="border-left: 3px solid black;" target="_blank">
+								<p class="g-margin-b-0--xs g-padding-y-15--xs g-padding-x-20--xs">
+									<strong>{{member.Group.Name}}</strong>
+									{% if member.Group.Schedule != null %}
+									<br>{{ member.Group.Schedule.WeeklyDayOfWeek }}s {{ member.Group.Schedule.WeeklyTimeOfDay | Date:'@ h:mm tt'}} <span class="pull-right"><i class="fas fa-external-link"></i></span>
+									{% endif %}
+								</p>
+							</a>
+						{% endif %}
+					{% endfor %}
+				{% endgroupmember %}
+				{% if hasGroup == 'false' %}
+				<p class="g-font-family--primary g-line-height--sm">You are currently not in any online groups.</p>
+				{% endif %}
+				{% endif %}
+			</div>
+		</div>
+		<div class="col-xs-12 col-lg-6 g-margin-b-50--xs">
+			<div class="se-panel g-padding-y-50--xs g-padding-x-50--xs clearfix">
+				<h3 class="g-font-family--secondary g-font-weight--600">Feedback</h3>
+				<p class="g-font-family--primary g-line-height--sm">We would love to hear your thoughts to continue making this better. Please fill out the box below, and then click 'Submit'.</p>
+				<hr />
+				<form>
+					<textarea Id="tbFeedback" class="
+                           g-padding-y-25--xs
+                           g-padding-x-20--xs
+                           g-bg-color--gray-lightest" style="border: 3px solid lightgrey;"></textarea>
+					<a href="javascript:sendFeedback()" class="btn btn-primary pull-right">Submit</a>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+function sendFeedback(){
+	var feedback = document.getElementById("tbFeedback").value;
+	document.location = "{{ 'Global' | Attribute: 'PublicApplicationRoot'}}myonlinegroups/feedback?Command=Submit&Feedback=" + feedback;
+}
+</script>
