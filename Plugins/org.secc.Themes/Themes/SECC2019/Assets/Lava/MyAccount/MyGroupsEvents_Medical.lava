@@ -1,0 +1,17 @@
+{% assign age = Person.Age %}
+{% if age > 17 or age == null or age == empty %}
+<div class="se-panel g-margin-x-20--xs g-padding-x-80--xs g-padding-y-60--xs">
+    <div class="clearfix g-margin-b-20--xs" >
+        <!--<i class="fa fa-medkit fa-2x"></i>&nbsp;&nbsp;-->
+        <strong style="font-size:30px;">Medication Information</strong>
+        <br />
+        If you need to provide medication information (over the counter, prescriptions, and life saving devices) for your student or an attendee of an overnight event
+        you can do so by clicking the following "Update Medication Information" button:
+        <br />
+        <br />
+        <div class="col-md-12 text-center">
+            <a href="/page/1234" class="btn btn-primary btn-xs">Update Info</a>
+        </div>
+    </div>
+</div>
+{% endif %}
