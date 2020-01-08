@@ -23,6 +23,10 @@ using Rock.Web.UI.Controls;
 using Rock;
 using Rock.Web.Cache;
 using org.secc.Attributes.Controls;
+using Rock.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using org.secc.Attributes.Helpers;
 
 namespace org.secc.Attributes.FieldTypes
 {
@@ -30,10 +34,12 @@ namespace org.secc.Attributes.FieldTypes
     /// Field used to save and display a dynamic phone number
     /// </summary>
     [Serializable]
-    public class DynamicPhoneNumberFieldType : Rock.Field.FieldType
+    public class CascadingDropDownFieldType : Rock.Field.FieldType
     {
 
         #region Configuration
+
+        private const string CONFIG = "configuration";
 
         /// <summary>
         /// Returns a list of the configuration keys
@@ -41,7 +47,9 @@ namespace org.secc.Attributes.FieldTypes
         /// <returns></returns>
         public override List<string> ConfigurationKeys()
         {
-            return base.ConfigurationKeys();
+            var configKeys = base.ConfigurationKeys();
+            configKeys.Add( CONFIG );
+            return configKeys;
         }
 
         /// <summary>
@@ -50,7 +58,19 @@ namespace org.secc.Attributes.FieldTypes
         /// <returns></returns>
         public override List<Control> ConfigurationControls()
         {
-            return base.ConfigurationControls();
+            var controls = new List<Control>();
+            var textBox = new RockTextBox
+            {
+                AutoPostBack = true,
+                Label = "Data Matrix",
+                Help = "Matrix of data to filter by. Create a comma separated key^value row for each set. For SQL return a column for each dropdown with the format 'key^value'. ",
+                Required = true,
+                TextMode = TextBoxMode.MultiLine,
+                Height = 300
+            };
+            textBox.TextChanged += OnQualifierUpdated;
+            controls.Add( textBox );
+            return controls;
         }
 
         /// <summary>
@@ -60,10 +80,16 @@ namespace org.secc.Attributes.FieldTypes
         /// <returns></returns>
         public override Dictionary<string, ConfigurationValue> ConfigurationValues( List<Control> controls )
         {
-            return base.ConfigurationValues( controls );
+            Dictionary<string, ConfigurationValue> configurationValues = new Dictionary<string, ConfigurationValue>();
+            configurationValues.Add( CONFIG, new ConfigurationValue( "Data Matrix", "Matrix of data to filter by. Create coma separated key^value row for each set. For SQL return a column for each dropdown with the format 'key^value'. ", "" ) );
+
+            if ( controls.Count > 0 && controls[0] is RockTextBox )
+            {
+                configurationValues[CONFIG].Value = ( ( RockTextBox ) controls[0] ).Text;
+            }
+
+            return configurationValues;
         }
-
-
 
         /// <summary>
         /// Sets the configuration value.
@@ -72,7 +98,13 @@ namespace org.secc.Attributes.FieldTypes
         /// <param name="configurationValues"></param>
         public override void SetConfigurationValues( List<Control> controls, Dictionary<string, ConfigurationValue> configurationValues )
         {
-
+            if ( configurationValues != null )
+            {
+                if ( controls.Count > 0 && controls[0] is RockTextBox && configurationValues.ContainsKey( CONFIG ) )
+                {
+                    ( ( RockTextBox ) controls[0] ).Text = configurationValues[CONFIG].Value;
+                }
+            }
         }
 
         #endregion
@@ -89,19 +121,21 @@ namespace org.secc.Attributes.FieldTypes
         /// <returns></returns>
         public override string FormatValue( Control parentControl, string value, Dictionary<string, ConfigurationValue> configurationValues, bool condensed )
         {
-            var items = value.SplitDelimitedValues( false );
-            if ( items.Length < 2 )
+            var config = "";
+            if ( configurationValues != null &&
+  configurationValues.ContainsKey( CONFIG ) )
             {
-                return "";
+                config = configurationValues[CONFIG].Value;
             }
 
-            var dv = DefinedValueCache.Get( items[0].AsInteger() );
-            if ( dv == null )
+            if ( config.IsNullOrWhiteSpace() )
             {
-                return "";
+                return null;
             }
 
-            return string.Format( "{0}: {1}", dv.Value, items[1] );
+            var matrix = new KeyValueMatrix( config );
+
+            return matrix.FormatValue( value );
         }
 
         /// <summary>
@@ -112,35 +146,20 @@ namespace org.secc.Attributes.FieldTypes
         /// <returns></returns>
         public override string GetEditValue( System.Web.UI.Control control, Dictionary<string, ConfigurationValue> configurationValues )
         {
-            DynamicPhoneNumberPicker picker = control as DynamicPhoneNumberPicker;
-            if ( string.IsNullOrWhiteSpace( picker.PhoneNumber ) )
+            if ( control is CascadingDropDownList )
             {
-                return "";
+                var cddl = control as CascadingDropDownList;
+                return cddl.SelectedValue;
             }
-            var value = string.Format( "{0}|{1}", picker.PhoneNumberType, picker.PhoneNumber );
-            return value;
+            return "";
         }
 
         public override void SetEditValue( System.Web.UI.Control control, Dictionary<string, ConfigurationValue> configurationValues, string value )
         {
-
-            var picker = control as DynamicPhoneNumberPicker;
-
-            if ( picker != null )
+            if ( control is CascadingDropDownList )
             {
-                var items = value.SplitDelimitedValues( false );
-                if ( items.Length < 2 )
-                {
-                    return;
-                }
-
-                var dv = DefinedValueCache.Get( items[0].AsInteger() );
-                if ( dv == null )
-                {
-                    return;
-                }
-                picker.PhoneNumberType = items[0];
-                picker.PhoneNumber = items[1];
+                var cddl = control as CascadingDropDownList;
+                cddl.SelectedValue = value;
             }
         }
 
@@ -158,8 +177,25 @@ namespace org.secc.Attributes.FieldTypes
         /// </returns>
         public override Control EditControl( Dictionary<string, ConfigurationValue> configurationValues, string id )
         {
-            DynamicPhoneNumberPicker dynamicPhoneNumberPicker = new DynamicPhoneNumberPicker { ID = id };
-            return dynamicPhoneNumberPicker;
+            var config = "";
+            if ( configurationValues != null &&
+  configurationValues.ContainsKey( CONFIG ) )
+            {
+                config = configurationValues[CONFIG].Value;
+            }
+
+            if ( config.IsNullOrWhiteSpace() )
+            {
+                return null;
+            }
+
+            CascadingDropDownList cascadingDropDownList = new CascadingDropDownList
+            {
+                ID = id
+            };
+            cascadingDropDownList.SetConfiguration( config );
+
+            return cascadingDropDownList;
         }
 
         #endregion

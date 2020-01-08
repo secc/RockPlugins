@@ -13,23 +13,29 @@
 // </copyright>
 //
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using Newtonsoft.Json;
+using org.secc.Attributes.Helpers;
+using Rock;
+using Rock.Data;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 
 namespace org.secc.Attributes.Controls
 {
-    public class DynamicPhoneNumberPicker : CompositeControl, IRockControl
+    public class CascadingDropDownList : CompositeControl, IRockControl
     {
         private Panel panel;
-        private RockDropDownList numberType;
-        private PhoneNumberBox phoneNumber;
+        private List<RockDropDownList> dropDownLists;
 
         #region IRockControl implementation
 
@@ -214,7 +220,7 @@ namespace org.secc.Attributes.Controls
         /// </value>
         public RequiredFieldValidator RequiredFieldValidator { get; set; }
 
-        public DynamicPhoneNumberPicker()
+        public CascadingDropDownList()
             : base()
         {
             HelpBlock = new HelpBlock();
@@ -223,35 +229,35 @@ namespace org.secc.Attributes.Controls
             RequiredFieldValidator.ValidationGroup = this.ValidationGroup;
         }
 
-        public string PhoneNumberType
+        public void SetConfiguration( string configuration )
+        {
+            ViewState["Configuration"] = configuration;
+        }
+
+        public void SetConfiguration( List<KeyValueMatrix> configuration )
+        {
+            ViewState["Configuration"] = JsonConvert.SerializeObject( configuration );
+        }
+
+        public string SelectedValue
         {
             get
             {
-                EnsureChildControls();
-                return numberType.SelectedValue;
+                if ( ViewState["Value"] != null && ViewState["Value"] is string )
+                {
+                    return ViewState["Value"] as string;
+                }
+                return "";
             }
             set
             {
+                ViewState["Value"] = value;
                 EnsureChildControls();
-                numberType.SelectedValue = value;
+                UpdateDropDowns( panel );
             }
         }
 
-        public string PhoneNumber
-        {
-            get
-            {
-                EnsureChildControls();
-                return phoneNumber.Text;
-            }
-            set
-            {
-                EnsureChildControls();
-                phoneNumber.Text = value;
-            }
-        }
-
-        public bool DisplayRequiredIndicator { get => false; set { } }
+        public bool DisplayRequiredIndicator { get => ViewState["Required"] as bool? ?? false; set { } }
 
         protected override void OnLoad( EventArgs e )
         {
@@ -259,39 +265,120 @@ namespace org.secc.Attributes.Controls
             base.OnLoad( e );
         }
 
+        protected override void LoadViewState( object savedState )
+        {
+            base.LoadViewState( savedState );
+            EnsureChildControls();
+            UpdateDropDowns( panel );
+        }
+
         protected override void CreateChildControls()
         {
             base.CreateChildControls();
             Controls.Clear();
-            numberType = new RockDropDownList();
-            phoneNumber = new PhoneNumberBox();
+
             RockControlHelper.CreateChildControls( this, Controls );
 
             panel = new Panel()
             {
-                CssClass = "row"
+                ID = string.Format( "pnl_{0}", this.ID )
             };
-
-            Panel typePanel = new Panel { CssClass = "col-md-4" };
-            Panel numberPanel = new Panel { CssClass = "col-md-8" };
-
-            numberType.ID = "numberType_" + this.ID;
-            numberType.DataValueField = "Id";
-            numberType.DataTextField = "Value";
-            numberType.DataSource = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_PHONE_TYPE ).DefinedValues;
-            numberType.DataBind();
-            numberType.Required = Required;
-
-            phoneNumber.ID = "phoneNumber_" + this.ID;
-            phoneNumber.Required = Required;
-
-            this.RequiredFieldValidator.ControlToValidate = phoneNumber.ID;
-
             Controls.Add( panel );
-            panel.Controls.Add( typePanel );
-            typePanel.Controls.Add( numberType );
-            panel.Controls.Add( numberPanel );
-            numberPanel.Controls.Add( phoneNumber );
+
+            UpdateDropDowns( panel );
+
+        }
+
+        private void UpdateDropDowns( Panel panel )
+        {
+            List<string> values = new List<string>();
+            dropDownLists = new List<RockDropDownList>();
+
+            if ( ViewState["Value"] != null )
+            {
+                var value = ViewState["Value"] as string;
+                values = value.Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries ).ToList();
+            }
+
+            panel.Controls.Clear();
+            var configurationString = ViewState["Configuration"] as string;
+            
+            KeyValueMatrix config = new KeyValueMatrix( configurationString );
+
+            if ( config.Count == 0 )
+            {
+                var ddl = new DropDownList()
+                {
+                    ID = string.Format( "ddlNull_{0}", this.ID)
+                };
+                panel.Controls.Add( ddl );
+                this.RequiredFieldValidator.ControlToValidate = ddl.ID;
+                return;
+            }
+
+            for ( var i = 0; i < config.OrderByDescending( c => c.Count ).First().Count; i++ )
+            {
+                var ddl = new RockDropDownList
+                {
+                    ID = string.Format( "ddl_{0}_{1}", this.ID, i ),
+                    DataValueField = "Key",
+                    DataTextField = "Value",
+                    AutoPostBack = true
+                };
+
+                if (i > 0 )
+                {
+                    ddl.Style.Add( "margin-top", "5px" );
+                }
+
+                var source = config
+                    .Where( p => p.Count > i )
+                    .Select( p => p[i] )
+                    .DistinctBy( p => p.Key ).ToList();
+
+                source.Insert( 0, new KeyValuePair<string,string>( "", "" ) );
+                ddl.DataSource = source;
+                ddl.DataBind();
+                ddl.SelectedIndexChanged += Ddl_SelectedIndexChanged;
+
+                ddl.Required = this.Required;
+
+
+                dropDownLists.Add( ddl );
+                panel.Controls.Add( ddl );
+                this.RequiredFieldValidator.ControlToValidate = ddl.ID;
+
+                if ( values.Count > i && ddl.Items.FindByValue( values[i] ) != null ) //we have a value for this dropdown
+                {
+                    ddl.SelectedValue = values[i];
+                    //Limit items to only those with this key in its ancestry
+                    var rows = config.Where( p => p[i].Key == values[i] );
+                    config = new KeyValueMatrix( rows );
+                }
+                else
+                {
+                    break; //there is no value for this dropdown, don't continue
+                }
+            }
+
+        }
+
+        
+
+        private void Ddl_SelectedIndexChanged( object sender, EventArgs e )
+        {
+            var values = new List<string>();
+            foreach ( var ddl in dropDownLists )
+            {
+                if ( ddl.SelectedValue.IsNotNullOrWhiteSpace() )
+                {
+                    values.Add( ddl.SelectedValue );
+                }
+            }
+            var value = string.Join( "|", values );
+            ViewState["Value"] = value;
+            EnsureChildControls();
+            UpdateDropDowns( panel );
         }
 
         #endregion
