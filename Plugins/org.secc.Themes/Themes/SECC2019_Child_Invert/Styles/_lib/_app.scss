@@ -1,6 +1,9 @@
 .cd-main-header {
   display: none !important;
 }
+body {
+	background-color: #121212;
+}
 #PageBody {
   top: 0px !important;
   background-color: #121212;
@@ -9,15 +12,9 @@
       color: #fff;
   }
 }
-div.card,.panel,.panel-default,.panel-body,.panel-heading {
+div.card {
     background-color: #1e1e1e !important;
     box-shadow: none !important;
-}
-.panel-body {
-    border-top: 2px solid #2e2e2e !important;
-}
-.accordions-1 .panel .panel-heading::before {
-    border-color: #fff;
 }
 #SiteFooter {
   clear:both;
@@ -41,9 +38,34 @@ div.card,.panel,.panel-default,.panel-body,.panel-heading {
         fill: #fff;
     }
 }
+.se-mobile-app_hide {
+    display: none !important;
+}
 
-.panel-block>.panel-heading {
-    color: #898989;
-    background-color: #efefef;
-    border-color: #efefef;
+.panel,
+.panel-default,
+.panel-body,
+.panel-heading {
+    background-color: #1e1e1e !important;
+    box-shadow: none !important;
+}
+.panel-body {
+    border-top: 2px solid #2e2e2e !important;
+}
+.panel-block {
+    border-top-color: rgba($LightGrayColor, 0.1) !important;
+    border-color: rgba($LightGrayColor, 0.1) !important;
+}
+.panel-block > .panel-heading {
+    color: $LightGrayColor;
+    background-color: rgba($LightGrayColor, 0.1) !important;
+    border-color: rgba($LightGrayColor, 0.1) !important;
+}
+.input-group-addon {
+    background-color: rgba($LightGrayColor, 0.2) !important;
+    border: none !important;
+    text-rendering: optimizeLegibility;
+}
+.form-group.required .control-label:after {
+    text-rendering: optimizeLegibility; /* fixes fontawesome rendering on OSX*/
 }

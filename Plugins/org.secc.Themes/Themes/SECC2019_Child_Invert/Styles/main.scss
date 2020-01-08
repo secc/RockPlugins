@@ -33,7 +33,7 @@
 @import '../../SECC2019/Styles/_lib/links';
 @import '../../SECC2019/Styles/_lib/_photo_swipe';
 @import '../../SECC2019/Styles/global/_global';
-@import '../../SECC2019/Styles/_lib/forms';
+@import '_lib/forms'; // Chid App Override
 
 // SECC Custom Components
 @import '../../SECC2019/Styles/bourbon/bourbon'; // http://bourbon.io/
@@ -68,7 +68,7 @@
 *	Iclude styles for primary elements that are
 *	used site wide (a, h1, p, body, etc).
 \******************************************************/
-@import '_lib/site';
-@import '_lib/app';
+@import '_lib/site'; // Chid App Override
+@import '_lib/app'; // Chid App Override
 
 @import '../../SECC2019/Styles/_lib/print';
