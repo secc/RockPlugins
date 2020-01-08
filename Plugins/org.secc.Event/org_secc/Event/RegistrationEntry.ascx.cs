@@ -4759,7 +4759,7 @@ namespace RockWeb.Plugins.org_secc.Event
                     foreach (var fee in RegistrationTemplate.Fees)
                     {
                         List<FeeInfo> feeValues = fee.GetFeeInfoFromControls( phFees );
-                        if (fee != null)
+                        if ( feeValues != null)
                         {
                             registrant.FeeValues.AddOrReplace( fee.Id, feeValues );
                         }
