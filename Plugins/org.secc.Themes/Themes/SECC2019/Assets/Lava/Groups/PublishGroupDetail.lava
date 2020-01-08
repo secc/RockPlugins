@@ -1,13 +1,6 @@
  {% assign photo = 'Global' | Attribute:'PublicApplicationRoot' | Append: '/GetImage.ashx?id=' | Append: PublishGroup.ImageId  %}
  {{ PublishGroup.Title | Append: ' | Southeast Christian Church' | SetPageTitle }}
 
- <!-- START: Social Media Meta for Twitter -->
- {{ 'summary_large_image' | AddMetaTagToHead:'property','twitter:card' }}
- {{ PublishGroup.Title | AddMetaTagToHead:'property','twitter:title' }}
- {{ PublishGroup.Description | StripHtml | AddMetaTagToHead:'property','twitter:description' }}
- {{ photo | AddMetaTagToHead:'property','twitter:image' }}
- <!-- END: Social Media - Shareable Media -->
-
 <div class="container">
     <div class="row">
 
