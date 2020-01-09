@@ -1,0 +1,50 @@
+
+<div class="centered-wrapper">
+    <section class="percent-page no-sidebar">
+        <article id="page-567" class="begin-content">
+            <div class="vc_row wpb_row vc_row-fluid" style="" data-token="LBuSR">
+                <div class="wpb_column vc_column_container vc_col-sm-12">
+                    <div class="vc_column-inner ">
+                        <div class="wpb_wrapper">
+                            <div style="clear:both; width:100%; height:150px"></div>
+                            <div class="dt-title-wrapper"><h1 class="section-title">Titles</h1></div>
+                            <div style="clear:both; width:100%; height:32px"></div>
+                            <div class="teams-carousel">
+                                <div id="owl-teams" class="owl-carousel teams-slider">
+
+                                    {% contentchannelitem where:'ContentChannelId == 51' sort:'Order' %}
+                                        {% for item in contentchannelitemItems %}
+
+                                            {% assign titleImageFile = item | Attribute:'SquareImage', 'FileName' %}
+                                            {% assign titleImageGuid = item | Attribute:'SquareImage', 'RawValue' %}
+
+                                            {% unless currentSlug == item.PrimarySlug %}
+                                            <div class="team-member"><a href="/kyle-titles/{{ item.PrimarySlug }}">
+                                                <span class="item-on-hover">
+                                                    <span class="hover-image"><i class="fa fa-external-link"></i></span>
+                                                </span>
+                                                <img alt="{{ item.Title }}" class="lazy grayscale" data-original="/GetImage.ashx/{{- titleImageFile -}}?Guid={{- titleImageGuid -}}" width="417"  height="417" /></a>
+                                                <div class="team-text"><h3><span>{{ item.Title }}</span></h3>
+                                                    <p>{{ item.Summary | Truncate:210,'...' }}
+                                                        <a class="button" href="/kyle-titles/{{ item.PrimarySlug }}">Learn more about {{ item.Title }}</a>
+                                                        <br />
+                                                    </p>
+                                                </div>
+                                                <div class="team-social"></div>
+                                            </div>
+                                            {% endunless %}
+                                        {% endfor %}
+                                    {% endcontentchannelitem %}
+
+                                </div>
+                                <div class="owl-nav disabled"><div class="owl-prev">prev</div><div class="owl-next">next</div></div>
+                                <div class="owl-dots disabled"><div class="owl-dot active"><span></span></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </article>
+        <div class="double-space"></div>
+    </section>
+</div>
