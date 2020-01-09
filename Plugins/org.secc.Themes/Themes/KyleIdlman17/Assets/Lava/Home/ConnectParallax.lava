@@ -1,0 +1,83 @@
+<div id="Connect" class="vc_row wpb_row vc_row-fluid no-margin parallax-bag-Connect lazy" data-original="http://kyleidleman.com/wp-content/uploads/2014/03/parallax-contact.jpg" style="background-image: url(&quot;http://kyleidleman.com/wp-content/uploads/2014/03/parallax-contact.jpg&quot;); background-repeat: no-repeat; background-attachment: fixed; background-position: 50% 63px; display: block;" data-token="Connect">
+    <div class="darker-overlay vc_row-o-content-middle vc_row-flex" style="padding-top: 100px;padding-bottom: 100px; background-color: rgba(0,0,0, 0.70);">
+        <div class="wpb_column vc_column_container vc_col-sm-12">
+            <div class="vc_column-inner ">
+                <div class="wpb_wrapper">
+                    <div class="vc_row wpb_row vc_inner vc_row-fluid">
+                        <div class="wpb_column vc_column_container vc_col-sm-12">
+                            <div class="vc_column-inner ">
+                                <div class="wpb_wrapper">
+                                    <div class="dt-title-wrapper"><h1 class="section-title">Connect</h1></div>
+                                    <h2 class="section-tagline">kyle idleman</h2>
+                                    <div style="clear:both; width:100%; height:60px">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="vc_row wpb_row vc_inner vc_row-fluid">
+                        <div class="wpb_column vc_column_container vc_col-sm-3">
+                            <div class="vc_column-inner ">
+                                <div class="wpb_wrapper">
+                                	<div class="wpb_text_column wpb_content_element ">
+                                		<div class="wpb_wrapper">
+                                			<ul class="contact-info">
+                                                <li style="text-align: center;"><i class="fa fa-twitter"></i><a href="https://twitter.com/kyleidleman" target="_blank" rel="noopener noreferrer">Follow on Twitter</a></li>
+                                            </ul>
+                                		</div>
+                                	</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="wpb_column vc_column_container vc_col-sm-3">
+                            <div class="vc_column-inner ">
+                                <div class="wpb_wrapper">
+                                	<div class="wpb_text_column wpb_content_element ">
+                                		<div class="wpb_wrapper">
+                                			<ul class="contact-info">
+                                                <li style="text-align: center;"><i class="fa fa-facebook"></i> <a href="https://www.facebook.com/kyleidleman/" target="_blank" rel="noopener noreferrer">Follow on Facebook</a></li>
+                                            </ul>
+                                		</div>
+                                	</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="wpb_column vc_column_container vc_col-sm-3">
+                            <div class="vc_column-inner ">
+                                <div class="wpb_wrapper">
+                                	<div class="wpb_text_column wpb_content_element ">
+                                		<div class="wpb_wrapper">
+                                			<ul class="contact-info">
+                                            <li style="text-align: center;"><i class="fa fa-envelope"></i><a href="mailto:kidleman@secc.org">kidleman@secc.org</a></li>
+                                            </ul>
+                                		</div>
+                                	</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="wpb_column vc_column_container vc_col-sm-3">
+                            <div class="vc_column-inner ">
+                                <div class="wpb_wrapper">
+                                	<div class="wpb_text_column wpb_content_element ">
+                                		<div class="wpb_wrapper">
+                                			<ul class="contact-info">
+                                                <li style="text-align: center;"><i class="fa fa-globe"></i><a href="#about">kyleidleman.com</a></li>
+                                            </ul>
+                                		</div>
+                                	</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="clear"></div>
+    </div>
+</div>
+
+<script type='text/javascript'>
+/* <![CDATA[ */
+var dt_parallax_Connect = {"id":"Connect","inertia":"0.4"};
+/* ]]> */
+</script>
