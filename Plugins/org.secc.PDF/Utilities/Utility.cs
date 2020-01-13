@@ -51,6 +51,7 @@ namespace org.secc.PDF
             {
                 htmlToPdf.PageFooterHtml = pageFooterHtml;
             }
+            htmlToPdf.Size = PageSize.Letter;
 
 
             using ( MemoryStream msPDF = new MemoryStream( htmlToPdf.GeneratePdf( html ) ) )
