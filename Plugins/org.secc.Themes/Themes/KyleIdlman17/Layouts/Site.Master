@@ -48,6 +48,15 @@
     <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/patti/color-schemes/orange.css", true) %>"/>
     <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/sermons.css", true) %>"/>
 
+    <!-- REVOLUTION STYLE SHEETS -->
+    <link href="https://fonts.googleapis.com/css?family=Poppins:600%2C300%2C700" rel="stylesheet" property="stylesheet" type="text/css" media="all">
+	<link rel="stylesheet" type="text/css" href="<%# ResolveRockUrl("~~/Assets/Vendor/revslider/revolution/fonts/pe-icon-7-stroke/css/pe-icon-7-stroke.css", true) %>" />
+	<link rel="stylesheet" type="text/css" href="<%# ResolveRockUrl("~~/Assets/Vendor/revslider/revolution/fonts/font-awesome/css/font-awesome.css", true) %>" />
+    <link rel="stylesheet" type="text/css" href="<%# ResolveRockUrl("~~/Assets/Vendor/revslider/revolution/css/settings.css", true) %>" />
+	<link rel="stylesheet" type="text/css" href="<%# ResolveRockUrl("~~/Assets/Vendor/revslider/revolution/css/layers.css", true) %>" />
+	<link rel="stylesheet" type="text/css" href="<%# ResolveRockUrl("~~/Assets/Vendor/revslider/revolution/css/navigation.css", true) %>" />
+	<!-- END REVOLUTION STYLE SHEETS -->
+
     <script src="<%# ResolveRockUrl("~/Scripts/modernizr.js" ) %>" ></script>
 
 
@@ -101,6 +110,20 @@
             </asp:UpdateProgress>
         </div>
     </form>
+
+    <!-- START REVOLUTION JS -->
+    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revslider/revolution/js/jquery.themepunch.tools.min.js", true) %>"></script>
+    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revslider/revolution/js/jquery.themepunch.revolution.min.js", true) %>"></script>
+    <!-- SLIDER REVOLUTION 5.0 EXTENSIONS  (Load Extensions only on Local File Systems !  The following part can be removed on Server for On Demand Loading) -->
+    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revslider/revolution/js/extensions/revolution.extension.actions.min.js", true) %>"></script>
+    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revslider/revolution/js/extensions/revolution.extension.carousel.min.js", true) %>"></script>
+    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revslider/revolution/js/extensions/revolution.extension.kenburn.min.js", true) %>"></script>
+    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revslider/revolution/js/extensions/revolution.extension.layeranimation.min.js", true) %>"></script>
+    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revslider/revolution/js/extensions/revolution.extension.migration.min.js", true) %>"></script>
+    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revslider/revolution/js/extensions/revolution.extension.navigation.min.js", true) %>"></script>
+    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revslider/revolution/js/extensions/revolution.extension.parallax.min.js", true) %>"></script>
+    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revslider/revolution/js/extensions/revolution.extension.slideanims.min.js", true) %>"></script>
+    <script type="text/javascript" src="<%= ResolveRockUrl("~~/Assets/Vendor/revslider/revolution/js/extensions/revolution.extension.video.min.js", true) %>"></script>
 
 </body>
 
