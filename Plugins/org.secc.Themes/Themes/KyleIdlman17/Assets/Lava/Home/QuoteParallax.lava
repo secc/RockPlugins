@@ -1,6 +1,6 @@
-<div id="quote20200109" class="vc_row wpb_row vc_row-fluid no-margin parallax-bag-20200109 lazy"
-                 data-original="http://kyleidleman.com/wp-content/uploads/2014/03/FullSizeRender-8_rev.jpeg"
-                 style="background-image: url(&quot;http://kyleidleman.com/wp-content/uploads/2014/03/FullSizeRender-8_rev.jpeg&quot;); background-repeat: no-repeat; background-attachment: fixed; background-position: 50% 1px; display: block;"
+<div id="quote20200109" class="vc_row wpb_row vc_row-fluid no-margin parallax-bag-20200109"
+                 data-original="/Themes/KyleIdlman17/Assets/images/kyle/FullSizeRender-8_rev.jpg"
+                 style="background-image: url(&quot;/Themes/KyleIdlman17/Assets/images/kyle/FullSizeRender-8_rev.jpg&quot;); background-repeat: no-repeat; background-attachment: fixed; background-position: 20% 1px; display: block;"
                  data-token="20200109">
     <div class="darker-overlay vc_row-o-content-bottom vc_row-flex" style="padding-top: 200px;padding-bottom: 200px; background-color: rgba(0,0,0, 0.30);">
         <div class="wpb_column vc_column_container vc_col-sm-12">
@@ -22,8 +22,3 @@
         <div class="clear"></div>
     </div>
 </div>
-<script type='text/javascript'>
-/* <![CDATA[ */
-var dt_parallax_20200109 = {"id":"20200109","inertia":"0.4"};
-/* ]]> */
-</script>
