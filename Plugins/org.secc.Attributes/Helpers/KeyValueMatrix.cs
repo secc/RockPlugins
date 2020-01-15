@@ -116,7 +116,7 @@ namespace org.secc.Attributes.Helpers
                     {
                         foreach ( var item in itemList )
                         {
-                            if ( item.IsNotNullOrWhiteSpace() )
+                            if ( item.IsNullOrWhiteSpace() )
                             {
                                 continue;
                             }
