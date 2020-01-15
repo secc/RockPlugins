@@ -1,4 +1,4 @@
-<div id="Connect" class="vc_row wpb_row vc_row-fluid no-margin parallax-bag-Connect lazy" data-original="http://kyleidleman.com/wp-content/uploads/2014/03/parallax-contact.jpg" style="background-image: url(&quot;http://kyleidleman.com/wp-content/uploads/2014/03/parallax-contact.jpg&quot;); background-repeat: no-repeat; background-attachment: fixed; background-position: 50% 63px; display: block;" data-token="Connect">
+<div id="Connect" class="vc_row wpb_row vc_row-fluid no-margin parallax-bag-Connect" data-original="/Themes/KyleIdlman17/Assets/images/kyle/parallax-contact.jpg" style="background-image: url(&quot;/Themes/KyleIdlman17/Assets/images/kyle/parallax-contact.jpg&quot;); background-repeat: no-repeat; background-attachment: fixed; background-position: 50% 63px; display: block;" data-token="Connect">
     <div class="darker-overlay vc_row-o-content-middle vc_row-flex" style="padding-top: 100px;padding-bottom: 100px; background-color: rgba(0,0,0, 0.70);">
         <div class="wpb_column vc_column_container vc_col-sm-12">
             <div class="vc_column-inner ">
@@ -75,9 +75,3 @@
         <div class="clear"></div>
     </div>
 </div>
-
-<script type='text/javascript'>
-/* <![CDATA[ */
-var dt_parallax_Connect = {"id":"Connect","inertia":"0.4"};
-/* ]]> */
-</script>
