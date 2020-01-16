@@ -1,5 +1,5 @@
 jQuery(document).ready(function(){
- 
+
         jQuery("body").queryLoader2({
             onComplete: function() {},
             onLoadComplete: function() {},
@@ -18,6 +18,6 @@ jQuery(document).ready(function(){
         // Rev Slider default heights
         var fullscreenheight = jQuery(window).height() - jQuery('#header').outerHeight();
         jQuery('.rev_slider_wrapper .fullscreenbanner').css({'height': fullscreenheight});
-        jQuery('.rev_slider_wrapper .fullscreenbanner ul').css({'height': fullscreenheight});   
+        jQuery('.rev_slider_wrapper .fullscreenbanner ul').css({'height': fullscreenheight});
 
 });
