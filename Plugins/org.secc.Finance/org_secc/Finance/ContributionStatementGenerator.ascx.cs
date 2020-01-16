@@ -207,7 +207,8 @@ namespace RockWeb.Plugins.org_secc.Finance
             }
             rockContext.Database.CommandTimeout = GetAttributeValue( "CommandTimeout" ).AsIntegerOrNull() ?? 300;
 
-            var givingGroups = rockContext.Database.SqlQuery<GivingGroup>( @"SELECT 
+            var givingGroups = rockContext.Database.SqlQuery<GivingGroup>( @"
+				SELECT 
                     max([GivingGroups].[TransactionDateTime] ) AS [LastGift], 
                     [GivingGroups].[GivingId] AS [GivingId], 
                     [GivingGroups].[GivingGroupName] AS [GivingGroupName]
@@ -226,7 +227,14 @@ namespace RockWeb.Plugins.org_secc.Finance
 						AND (@p1 is NULL OR [FT].[TransactionDateTime] >= @p1)
 						AND (@p2 is NULL OR [FT].[TransactionDateTime] < @p2)
                     )  AS [GivingGroups]
-                    GROUP by GivingId, GivingGroupName", contributionTypeId, lower, upper).AsQueryable();
+					LEFT JOIN ( 
+						SELECT av.Value FROM attributevalue av 
+						INNER JOIN AttributeValue srav on av.EntityId = srav.EntityId and srav.AttributeId = 86060
+						WHERE av.attributeid = 86061 AND srav.Value = @p3
+						) Existing on Existing.Value = GivingId
+					WHERE (@p3 IS NULL OR Existing.Value is null)
+					GROUP by GivingId, GivingGroupName",
+					contributionTypeId, lower, upper, null/*"2019-01-01T00:00:00,2019-12-31T00:00:00"*/).AsQueryable();
 
             // Filter by Giving ID
             if (tbGivingId.Text.IsNotNullOrWhiteSpace())
