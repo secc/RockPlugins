@@ -135,15 +135,20 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             if ( !Page.IsPostBack )
             {
                 var person = GetPerson();
-                if ( person != null )
+
+                if ( CurrentPerson != null
+                    && CurrentPerson.AgeClassification != AgeClassification.Child
+                    && person != null )
                 {
-                    ShowEditPersonDetails( person );
+                    if ( CurrentPerson.GetFamilyMembers( true ).Select( m => m.Person ).Where( p => p.Id == person.Id ).Any() )
+                    {
+                        ShowEditPersonDetails( person );
+                        return;
+                    }
                 }
-                else
-                {
-                    pnlEdit.Visible = false;
-                    nbNotAuthorized.Visible = true;
-                }
+
+                pnlEdit.Visible = false;
+                nbNotAuthorized.Visible = true;
             }
         }
 

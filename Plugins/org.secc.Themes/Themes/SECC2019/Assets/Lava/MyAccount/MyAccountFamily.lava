@@ -4,6 +4,13 @@
     }
 </style>
 
+{% if CurrentPerson.AgeClassification == 'Child' %}
+	{% assign isAdult = false  %}
+{% else %}
+	{% assign isAdult = true  %}
+{% endif %}
+
+
 <div id="family" class="fluid-container g-padding-x-0--xs g-padding-y-60--xs">
     {% assign groupMembers = CurrentPerson | Groups: "10",'Active' %}
     {% for groupMember in groupMembers %}
@@ -18,11 +25,13 @@
                 {% if Person.Guid != familyMember.Person.Guid %}
                 <div class="isotope_item col-xs-12 col-sm-12 col-md-6 col-lg-4 g-padding-x-40--xs g-padding-x-20--md">
                     <div class="se-panel" style="z-index: {{ zIndexC }}">
-                        <span class="g-position--absolute g-padding-y-20--xs g-padding-x-15--xs" style="right: 0px;top: 6px;z-index:100;">
-                            <a href="MyAccount/Edit/{{ familyMember.Person.Guid }}" title="Change Account Info" class="se-action-btn g-padding-y-15--xs g-padding-x-15--xs g-color--dark g-radius--circle g-bg-color-hover--black-opacity-lightest">
-                                <i class="fas fa-user-cog"></i>
-                            </a>
-                        </span>
+						{% if isAdult -%}
+							<span class="g-position--absolute g-padding-y-20--xs g-padding-x-15--xs" style="right: 0px;top: 6px;z-index:100;">
+								<a href="MyAccount/Edit/{{ familyMember.Person.Guid }}" title="Change Account Info" class="se-action-btn g-padding-y-15--xs g-padding-x-15--xs g-color--dark g-radius--circle g-bg-color-hover--black-opacity-lightest">
+									<i class="fas fa-user-cog"></i>
+								</a>
+							</span>
+						{% endif -%}
                         <span class="g-padding-y-40--xs g-padding-x-60--xs g-padding-y-60--sm g-padding-x-80--sm g-padding-y-80--lg g-padding-x-120--lg">
                             {% assign avatar = "" %}
                             <a href="MyAccount/Edit/{{ familyMember.Person.Guid }}">
