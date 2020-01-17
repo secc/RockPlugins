@@ -1,10 +1,19 @@
+{% if Person.AgeClassification == 'Child' %}
+	{% assign isAdult = false  %}
+{% else %}
+	{% assign isAdult = true  %}
+{% endif %}
+
+
 <div class="se-panel g-margin-x-20--xs">
     <div class="clearfix g-margin-b-20--xs" >
 
         <span class="g-position--absolute g-padding-y-20--xs g-padding-x-15--xs" style="right: 0px;top: 6px;z-index:100;">
-            <a href="MyAccount/Edit/{{ Person.Guid }}" title="Change Account Info" class="se-action-btn g-padding-y-15--xs g-padding-x-15--xs g-color--dark g-radius--circle g-bg-color-hover--black-opacity-lightest">
+            {%if isAdult -%}
+			<a href="MyAccount/Edit/{{ Person.Guid }}" title="Change Account Info" class="se-action-btn g-padding-y-15--xs g-padding-x-15--xs g-color--dark g-radius--circle g-bg-color-hover--black-opacity-lightest">
                 <i class="fas fa-user-cog"></i>
             </a>
+			{% endif -%}
         </span>
 
         <div class="fluid-container">
