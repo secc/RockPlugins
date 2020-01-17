@@ -60,7 +60,7 @@
 					</div>
                     <div class="caption g-padding-x-30--xs g-padding-t-30--xs g-margin-b-40--xs">
 					<h5 class="g-font-family--secondary g-padding-r-60--xs" style="margin-bottom: 5px;">
-						{{ publishGroup.Group.Name}}
+						{{ publishGroup.Title}}
                     </h5>
                         <h6 class="uppercase g-padding-b-20--xs g-font-weight--700">
 							{{ publishGroup.Group.Campus.Name }}

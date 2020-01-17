@@ -225,7 +225,8 @@ namespace RockWeb.Plugins.GroupManager
 
             RockContext rockContext = new RockContext();
             PublishGroupService publishGroupService = new PublishGroupService( rockContext );
-            var takenSlug = publishGroupService.Queryable().Where( pg => pg.Slug == slug ).FirstOrDefault();
+            var takenSlug = publishGroupService.Queryable()
+                .Where( pg => pg.Slug == slug && pg.GroupId != publishGroup.Group.Id ).FirstOrDefault();
 
             var i = 0;
 
@@ -350,7 +351,7 @@ namespace RockWeb.Plugins.GroupManager
 
             //Test for already taken Slugs
             var isDuplicateSlug = publishGroupService.Queryable()
-                .Where( pg => pg.Slug == slug && pg.Id != publishGroup.Id )
+                .Where( pg => pg.Slug == slug && pg.Id != publishGroup.Id && pg.GroupId != publishGroup.Group.Id )
                 .Any();
             if ( isDuplicateSlug )
             {
@@ -677,7 +678,7 @@ namespace RockWeb.Plugins.GroupManager
             tbSlug.Text = slug;
             PublishGroupService publishGroupService = new PublishGroupService( new RockContext() );
             var isDuplicateSlug = publishGroupService.Queryable()
-                .Where( pg => pg.Slug == slug && pg.Id != publishGroup.Id )
+                .Where( pg => pg.Slug == slug && pg.Id != publishGroup.Id && pg.GroupId != publishGroup.Group.Id )
                 .Any();
             if ( isDuplicateSlug )
             {
