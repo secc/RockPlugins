@@ -4,6 +4,7 @@
     <ContentTemplate>
 
         <Rock:NotificationBox runat="server" ID="nbAlert" Dismissable="true" NotificationBoxType="Danger" />
+        <asp:Literal ID="ltLava" runat="server" />
         <Rock:Grid runat="server" ID="gGrid" ShowActionRow="false" DataKeyNames="Id" RowItemText="Student"
             ShowFooter="false" ShowActionsInHeader="false" AllowPaging="false" AllowSorting="false" OnRowSelected="gGrid_RowSelected">
             <Columns>
