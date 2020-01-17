@@ -10,117 +10,127 @@
 	{% assign isAdult = true  %}
 {% endif %}
 
+{% assign familyName = '' %}
+
+{% assign zIndexC = rows | Size | Plus: 10 %}
 
 <div id="family" class="fluid-container g-padding-x-0--xs g-padding-y-60--xs">
-    {% assign groupMembers = CurrentPerson | Groups: "10",'Active' %}
-    {% for groupMember in groupMembers %}
-        <div class="row">
-            <div class="col-md-12 text-center g-padding-b-20--xs g-padding-x-40--xs">
-                <h3 class="g-font-family--secondary">{{ groupMember.Group.Name }}</h3>
-            </div>
-        </div>
-        <div class="isotope_wrap clearfix">
-            {% assign zIndexC = groupMember.Group.Members | Size | Plus:10 %}
-            {% for familyMember in groupMember.Group.Members %}
-                {% if Person.Guid != familyMember.Person.Guid %}
-                <div class="isotope_item col-xs-12 col-sm-12 col-md-6 col-lg-4 g-padding-x-40--xs g-padding-x-20--md">
-                    <div class="se-panel" style="z-index: {{ zIndexC }}">
+    {% for row in rows %}
+		{% if familyName != row.FamilyName %}
+			{% assign familyName = row.FamilyName %}
+			{% assign index =  forloop.index0 %}
+			{% if index > 0 %}
+				</div> {% comment %} Close out the last family {% endcomment %}
+			{% endif %}
+			<div class="row">
+				<div class="col-md-12 text-center g-padding-b-20--xs g-padding-x-40--xs">
+					<h3 class="g-font-family--secondary">{{ row.FamilyName}}</h3>
+				</div>
+			</div>
+			<div class="isotope_wrap clearfix">
+			{% endif %}
+				{% assign person = row.PersonId | PersonById %}
+				<div class="isotope_item col-xs-12 col-sm-12 col-md-6 col-lg-4 g-padding-x-40--xs g-padding-x-20--md">
+					<div class="se-panel" style="z-index: {{ zIndexC }}">
 						{% if isAdult -%}
 							<span class="g-position--absolute g-padding-y-20--xs g-padding-x-15--xs" style="right: 0px;top: 6px;z-index:100;">
-								<a href="MyAccount/Edit/{{ familyMember.Person.Guid }}" title="Change Account Info" class="se-action-btn g-padding-y-15--xs g-padding-x-15--xs g-color--dark g-radius--circle g-bg-color-hover--black-opacity-lightest">
+								<a href="MyAccount/Edit/{{ person.Guid }}" title="Change Account Info" class="se-action-btn g-padding-y-15--xs g-padding-x-15--xs g-color--dark g-radius--circle g-bg-color-hover--black-opacity-lightest">
 									<i class="fas fa-user-cog"></i>
 								</a>
 							</span>
 						{% endif -%}
-                        <span class="g-padding-y-40--xs g-padding-x-60--xs g-padding-y-60--sm g-padding-x-80--sm g-padding-y-80--lg g-padding-x-120--lg">
-                            {% assign avatar = "" %}
-                            <a href="MyAccount/Edit/{{ familyMember.Person.Guid }}">
-                                {% if Person.PhotoUrl != " "%}
-                                    {% assign avatar = familyMember.Person.PhotoUrl %}
-                                {% elseif familyMember.GroupRoleId == 3 %}
-                                    {% if familyMember.Person.Gender == "Male" %}
-                                        {% assign avatar = "/Themes/SECC2019/Assets/img/SE/Users/Man_Avatar.svg" %}
-                                    {% elseif familyMember.Person.Gender == "Female" %}
-                                        {% assign avatar = "/Themes/SECC2019/Assets/img/SE/Users/Woman_Avatar.svg" %}
-                                    {% else %}
-                                        <!-- Bi-gender? -->
-                                    {% endif %}
-                                {% elseif familyMember.GroupRoleId == 4 %}
-                                    {% if familyMember.Person.Gender == "Male" %}
-                                        {% assign avatar = "/Themes/SECC2019/Assets/img/SE/Users/Boy_Avatar.svg" %}
-                                    {% elseif familyMember.Person.Gender == "Female" %}
-                                        {% assign avatar = "/Themes/SECC2019/Assets/img/SE/Users/Girl_Avatar.svg" %}
-                                    {% else %}
-                                        <!-- Bi-gender? -->
-                                    {% endif %}
-                                {% else %}
-                                <!-- Not a kid or an adult? -->
-                                {% endif %}
-                                <img src="{{ avatar }}" title="Change Image" class="img-responsive img-circle" style="margin: 0 auto; max-width: 180px;">
-                            </a>
-                        </span>
-                        <div class="caption g-padding-b-40--xs">
-                            <div class="g-position--relative clearfix">
-                                {[ faq columns:'1' autoheight:'true' accordionclass:'accordions-nostyle']}
-                                    [[ item title:'{{ familyMember.Person.FullName }}' ]]
-                                        <div class="g-padding-x-20--xs g-padding-y-20--xs">
-                                            <p>
-                                                <span class="g-font-weight--600 text-uppercase">Age</span><br />
-                                                {% if familyMember.Person.NickName %}
-                                                    {{ familyMember.Person.Age }} Years ({{ familyMember.Person.BirthDate | Date:'M/d/yyyy'}})
-                                                {% endif %}
-                                            </p><br />
-                                            <p>
-                                                <span class="g-font-weight--600 text-uppercase">Gender</span><br />
-                                                {% if familyMember.Person.Gender %}
-                                                    {{ familyMember.Person.Gender }}
-                                                {% endif %}
-                                            </p><br />
-                                            {% if familyMember.GroupRoleId != 4 %}
-                                            <p>
-                                                <span class="g-font-weight--600 text-uppercase">Martial Status</span><br />
-                                                {% definedvalue where:'DefinedTypeId == 7' sort:'Value' %}
-                                                 {% for definedValueItem in definedvalueItems %}
-                                                    {% if familyMember.Person.MaritalStatusValueId == definedValueItem.Id %}
-                                                        {{ definedValueItem.Value }} ({{ familyMember.Person.AnniversaryDate | Date:'M/d' }})
-                                                    {% endif %}
-                                                 {% endfor %}
-                                                {% enddefinedvalue %}
-                                            </p><br />
-                                            {% endif %}
-                                            <p>
-                                                <span class="g-font-weight--600 text-uppercase">Email</span><br />
-                                                {% if familyMember.Person.Email != "" %}
-                                                    {{ familyMember.Person.Email }}
-                                                {% else %}
-                                                    Email address is not set.
-                                                {% endif %}
-                                            </p><br />
-                                            <p>
-                                                <span class="g-font-weight--600 text-uppercase">Address</span><br />
-                                                {% assign personalHome =  familyMember.Person | Address:'Home' %}
-                                                {% if personalHome != '' %}
-                                                    {{ personalHome }}
-                                                {% endif %}
-                                            </p><br />
-                                            <p>
-                                                <span class="g-font-weight--600 text-uppercase">Phone</span><br />
-                                                {% for phone in familyMember.Person.PhoneNumbers %}
-                                                {{ phone.NumberFormatted }} <small>({{ phone.NumberTypeValue.Value }})</small><br />
-                                                {% endfor %}
-                                            </p>
-                                        </div>
-                                    [[ enditem ]]
-                                {[ endfaq ]}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% assign zIndexC = zIndexC | Minus:1 %}
-                {% endif %}
-            {% endfor %}
-    	</div>
-    {% endfor %}
+						<span class="g-padding-y-40--xs g-padding-x-60--xs g-padding-y-60--sm g-padding-x-80--sm g-padding-y-80--lg g-padding-x-120--lg">
+							{% assign avatar = "" %}
+							<a href="MyAccount/Edit/{{ person.Guid }}">
+								{% if Person.PhotoUrl != " "%}
+									{% assign avatar = person.PhotoUrl %}
+								{% elseif familyMember.GroupRoleId == 3 %}
+									{% if person.Gender == "Male" %}
+										{% assign avatar = "/Themes/SECC2019/Assets/img/SE/Users/Man_Avatar.svg" %}
+									{% elseif person.Gender == "Female" %}
+										{% assign avatar = "/Themes/SECC2019/Assets/img/SE/Users/Woman_Avatar.svg" %}
+									{% else %}
+										<!-- Bi-gender? -->
+									{% endif %}
+								{% elseif familyMember.GroupRoleId == 4 %}
+									{% if person.Gender == "Male" %}
+										{% assign avatar = "/Themes/SECC2019/Assets/img/SE/Users/Boy_Avatar.svg" %}
+									{% elseif person.Gender == "Female" %}
+										{% assign avatar = "/Themes/SECC2019/Assets/img/SE/Users/Girl_Avatar.svg" %}
+									{% else %}
+										<!-- Bi-gender? -->
+									{% endif %}
+								{% else %}
+								<!-- Not a kid or an adult? -->
+								{% endif %}
+								<img src="{{ avatar }}" title="Change Image" class="img-responsive img-circle" style="margin: 0 auto; max-width: 180px;">
+							</a>
+						</span>
+						<div class="caption g-padding-b-40--xs">
+							<div class="g-position--relative clearfix">
+								{[ faq columns:'1' autoheight:'true' accordionclass:'accordions-nostyle']}
+									[[ item title:'{{ person.FullName }}' ]]
+										<div class="g-padding-x-20--xs g-padding-y-20--xs">
+											<p>
+												<span class="g-font-weight--600 text-uppercase">Age</span><br />
+												{% if person.NickName %}
+													{{ person.Age }} Years ({{ person.BirthDate | Date:'M/d/yyyy'}})
+												{% endif %}
+											</p>
+												<br />
+											<p>
+											<span class="g-font-weight--600 text-uppercase">Gender</span><br />
+												{% if person.Gender %}
+													{{ person.Gender }}
+												{% endif %}
+											</p>
+											<br />
+											{% if familyMember.GroupRoleId != 4 %}
+												<p>
+													<span class="g-font-weight--600 text-uppercase">Martial Status</span><br />
+														{% definedvalue where:'DefinedTypeId == 7' sort:'Value' %}
+															{% for definedValueItem in definedvalueItems %}
+																{% if person.MaritalStatusValueId == definedValueItem.Id %}
+																	{{ definedValueItem.Value }} ({{ person.AnniversaryDate | Date:'M/d' }})
+																{% endif %}
+															{% endfor %}
+														{% enddefinedvalue %}
+												</p>
+												<br />
+											{% endif %}
+											<p>
+												<span class="g-font-weight--600 text-uppercase">Email</span><br />
+													{% if person.Email != "" %}
+														{{ person.Email }}
+													{% else %}
+														Email address is not set.
+													{% endif %}
+											</p>
+											<br />
+											<p>
+												<span class="g-font-weight--600 text-uppercase">Address</span><br />
+													{% assign personalHome =  person | Address:'Home' %}
+													{% if personalHome != '' %}
+														{{ personalHome }}
+												{% endif %}
+											</p>
+												<br />
+											<p>
+												<span class="g-font-weight--600 text-uppercase">Phone</span><br />
+													{% for phone in person.PhoneNumbers %}
+														{{ phone.NumberFormatted }} <small>({{ phone.NumberTypeValue.Value }})</small><br />
+													{% endfor %}
+											</p>
+										</div>
+									[[ enditem ]]
+								{[ endfaq ]}
+							</div>
+						</div>
+					</div>
+				</div>
+				{% assign zIndexC = zIndexC | Minus:1 %}
+			{% endfor %}
+		</div>
     <div class="row g-padding-x-20--xs">
         <div class="col-md-12 g-padding-b-20--xs">
             <a id="" class="btn btn-primary btn-xs" href="#"> Add New Family Member</a>
