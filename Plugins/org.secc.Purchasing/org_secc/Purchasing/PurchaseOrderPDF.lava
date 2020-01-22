@@ -24,38 +24,41 @@ table {
 <body>
     <div style="height: 92%">
         <div>
-            <div style="float:left; width: 300px; text-align: left;">
-                <img src="https://www.southeastchristian.org/_/img/logos/southeast/black-border-on-white.png" height="100" />
+            <div style="float:left; width: 350px; text-align: left;">
+                <img src="{{ 'Global' | Attribute:'PublicApplicationRoot' }}/Plugins/org_secc/Purchasing/SE_Primary_Logo.png" height="35" />
+				<p style="margin-top: 5px">920 Blankenbaker Parkway<br />
+					Louisville, KY 40243-1845<br />
+                    Phone: (502) 253-8000</p>
             </div>
-            <div style="float: left; width: 250px">
+            <div style="float: left; width: 350px">
+			<div style="display:none;">
                 <h2 style="margin-top: 0px">Purchase Order</h2>
                 <h4>Southeast Christian Church<br />
                     920 Blankenbaker Parkway<br />
                     Louisville, KY 40243-1845<br />
-                    (502) 253-8000</h4>
+                    (502) 253-8000</h4></div>
             </div>
-            <div style="float: left; width: 150px; text-align: right;">
-                <h4>PO #: {{PurchaseOrder.PurchaseOrderID}}</h4>
+            <div style="float: right; text-align: right;">
+                <h3>Purchase Order #: {{PurchaseOrder.PurchaseOrderID}}</h3>
             </div>
         </div>
         <br clear="both" />
         <div style="text-align: center; font-size: 12px: border: 3px">
             <em><strong>Jesus answered, "I am the way and the truth and the life. No one comes to the Father except through me." John 14:6 NIV®</strong></em>
-             <hr width="80%" noshade size="1" style="margin: 0px; margin-top: 5px" />
-            <hr width="80%" noshade size="1" style="margin: 0px" />
+             <hr width="80%" noshade size="1" style="margin: 0px; margin-top: 5px; margin-left: 100px;" />
         </div>
 
         <div style="float:left; width: 100px;">&nbsp;</div>
         <div style="float:left; width: 100px;">
             <h4>Vendor:</h4>
         </div>
-        <div style="float:left; width: 200px; font-size: 12px; padding-top: 5px">
+        <div style="float:left; width: 200px; font-size: 12px; padding-top: 25px">
             {{Vendor}}
         </div>
         <div style="float:left; width: 100px;">
             <h4>Ship To:</h4>
         </div>
-        <div style="float:left; width: 200px; font-size: 12px; padding-top: 5px">
+        <div style="float:left; width: 200px; font-size: 12px; padding-top: 25px">
             {{ShipTo.Name}}<br />
             {% if ShipTo.Attn != '' %}
                 Attn: {{ShipTo.Attn }} <br />
@@ -117,7 +120,7 @@ table {
             </tbody>
         </table>
     </div>
-    <table cellspacing="10" style="width:99%; height: 100px; top:1200px; border: 1px solid #000; position: fixed;">
+    <table cellspacing="10" style="width:99%; height: 100px; top:1125px; border: 1px solid #000; position: fixed;">
         <tbody>
             <tr>
                 <td colspan="4">Southeast Christian Church is a tax exempt organization. Tax exempt #E2458</td>
