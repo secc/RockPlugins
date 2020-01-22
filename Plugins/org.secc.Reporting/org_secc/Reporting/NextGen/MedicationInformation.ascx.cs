@@ -35,7 +35,11 @@ namespace RockWeb.Blocks.Reporting.NextGen
     [GroupTypesField( "Group Types", "Any member of these group types will show up." )]
     [TextField( "Medication Matrix Key", "The attribute key for the medication schedule matrix." )]
     [WorkflowTypeField( "EditWorkflow" )]
-    [LinkedPage( "Workflow Page" )]
+    [LinkedPage( "Workflow Page", required:false )]
+    [CodeEditorField( "Lava Template",
+        "Optional template for displaying the information. Merge field is Items: [Person (Person), Groups (List of Groups), Medications (AttributeMatrix)]",
+        Rock.Web.UI.Controls.CodeEditorMode.Lava,
+        required: false )]
     public partial class MedicationInformation : RockBlock
     {
         protected override void OnInit( EventArgs e )
@@ -83,50 +87,94 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
                 var members = groups.SelectMany( g => g.Members );
 
-
-                var gridData = new List<GridData>();
-                AttributeMatrixService attributeMatrixService = new AttributeMatrixService( rockContext );
-                foreach ( var person in familyMembers )
+                var lava = GetAttributeValue( "LavaTemplate" );
+                if ( lava.IsNotNullOrWhiteSpace() )
                 {
-                    //Get all the camp group members for this person
-                    List<GroupMember> medicalMembers = members.Where( m => m.PersonId == person.Id ).ToList();
+                    BindLava( members, familyMembers, rockContext );
+                }
+                else
+                {
+                    BindGrid( members, familyMembers, rockContext );
+                }
+            }
 
-                    if ( !medicalMembers.Any() )
-                    {
-                        continue;
-                    }
+        }
 
-                    GridData data = new GridData
-                    {
-                        Id = person.PrimaryAlias.Guid,
-                        Name = person.FullName,
-                        Group = string.Join( "<br>", medicalMembers.Select( m => m.Group.Name ) ),
-                        Medications = "No Medication Information"
-                    };
-                    person.LoadAttributes();
-                    var attribute = person.GetAttributeValue( GetAttributeValue( "MedicationMatrixKey" ) );
-                    var attributeMatrix = attributeMatrixService.Get( attribute.AsGuid() );
-                    if ( attributeMatrix != null )
-                    {
-                        var lava = attributeMatrix.AttributeMatrixTemplate.FormattedLava;
-                        var template = attributeMatrix.AttributeMatrixTemplate;
-                        template.LoadAttributes();
-                        AttributeMatrixItem tempAttributeMatrixItem = new AttributeMatrixItem();
-                        tempAttributeMatrixItem.AttributeMatrix = attributeMatrix;
-                        tempAttributeMatrixItem.LoadAttributes();
-                        Dictionary<string, object> mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, null, new Rock.Lava.CommonMergeFieldsOptions { GetLegacyGlobalMergeFields = false } );
-                        mergeFields.Add( "AttributeMatrix", attributeMatrix );
-                        mergeFields.Add( "ItemAttributes", tempAttributeMatrixItem.Attributes.Select( a => a.Value ).OrderBy( a => a.Order ).ThenBy( a => a.Name ) );
-                        mergeFields.Add( "AttributeMatrixItems", attributeMatrix.AttributeMatrixItems.OrderBy( a => a.Order ) );
-                        var medications = lava.ResolveMergeFields( mergeFields );
-                        data.Medications = medications;
-                    }
-                    gridData.Add( data );
+        private void BindLava( IQueryable<GroupMember> members, List<Person> familyMembers, RockContext rockContext )
+        {
+            var items = new List<LavaData>();
+            AttributeMatrixService attributeMatrixService = new AttributeMatrixService( rockContext );
+            foreach ( var person in familyMembers )
+            {
+                //Get all the camp group members for this person
+                List<GroupMember> medicalMembers = members.Where( m => m.PersonId == person.Id ).ToList();
+
+                if ( !medicalMembers.Any() )
+                {
+                    continue;
                 }
 
-                gGrid.DataSource = gridData;
-                gGrid.DataBind();
+                person.LoadAttributes();
+                var attribute = person.GetAttributeValue( GetAttributeValue( "MedicationMatrixKey" ) );
+                var attributeMatrix = attributeMatrixService.Get( attribute.AsGuid() );
+
+                LavaData data = new LavaData
+                {
+                    Person = person,
+                    Groups = medicalMembers.Select( m => m.Group ).ToList(),
+                    Medications = attributeMatrix
+                };
+                items.Add( data );
             }
+            var mergeObjects = Rock.Lava.LavaHelper.GetCommonMergeFields( RockPage, CurrentPerson );
+            mergeObjects.Add( "Items", items );
+            ltLava.Text = GetAttributeValue( "LavaTemplate" ).ResolveMergeFields( mergeObjects );
+        }
+
+        private void BindGrid( IQueryable<GroupMember> members, List<Person> familyMembers, RockContext rockContext )
+        {
+            var gridData = new List<GridData>();
+            AttributeMatrixService attributeMatrixService = new AttributeMatrixService( rockContext );
+            foreach ( var person in familyMembers )
+            {
+                //Get all the camp group members for this person
+                List<GroupMember> medicalMembers = members.Where( m => m.PersonId == person.Id ).ToList();
+
+                if ( !medicalMembers.Any() )
+                {
+                    continue;
+                }
+
+                GridData data = new GridData
+                {
+                    Id = person.PrimaryAlias.Guid,
+                    Name = person.FullName,
+                    Group = string.Join( "<br>", medicalMembers.Select( m => m.Group.Name ) ),
+                    Medications = "No Medication Information"
+                };
+                person.LoadAttributes();
+                var attribute = person.GetAttributeValue( GetAttributeValue( "MedicationMatrixKey" ) );
+                var attributeMatrix = attributeMatrixService.Get( attribute.AsGuid() );
+                if ( attributeMatrix != null )
+                {
+                    var lava = attributeMatrix.AttributeMatrixTemplate.FormattedLava;
+                    var template = attributeMatrix.AttributeMatrixTemplate;
+                    template.LoadAttributes();
+                    AttributeMatrixItem tempAttributeMatrixItem = new AttributeMatrixItem();
+                    tempAttributeMatrixItem.AttributeMatrix = attributeMatrix;
+                    tempAttributeMatrixItem.LoadAttributes();
+                    Dictionary<string, object> mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, null, new Rock.Lava.CommonMergeFieldsOptions { GetLegacyGlobalMergeFields = false } );
+                    mergeFields.Add( "AttributeMatrix", attributeMatrix );
+                    mergeFields.Add( "ItemAttributes", tempAttributeMatrixItem.Attributes.Select( a => a.Value ).OrderBy( a => a.Order ).ThenBy( a => a.Name ) );
+                    mergeFields.Add( "AttributeMatrixItems", attributeMatrix.AttributeMatrixItems.OrderBy( a => a.Order ) );
+                    var medications = lava.ResolveMergeFields( mergeFields );
+                    data.Medications = medications;
+                }
+                gridData.Add( data );
+            }
+
+            gGrid.DataSource = gridData;
+            gGrid.DataBind();
         }
 
         private void AddCaretakees( List<Person> familyMembers, RockContext rockContext )
@@ -151,7 +199,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
         {
             var personAliasGuid = ( ( Guid ) e.RowKeyValue ).ToString();
             NavigateToWorkflow( personAliasGuid );
-         
+
         }
 
         protected void gGrid_RowSelected( object sender, Rock.Web.UI.Controls.RowEventArgs e )
@@ -167,7 +215,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
             var workflowGuid = GetAttributeValue( "EditWorkflow" );
             var workflowId = workflowTypeService.Get( workflowGuid.AsGuid() ).Id.ToString();
             NavigateToLinkedPage( "WorkflowPage", new Dictionary<string, string> { { "WorkflowTypeId", workflowId }, { "PersonGuid", personAliasGuid } } );
-        }      
+        }
 
         class GridData
         {
@@ -175,6 +223,13 @@ namespace RockWeb.Blocks.Reporting.NextGen
             public string Name { get; set; }
             public string Group { get; set; }
             public string Medications { get; set; }
+        }
+
+        class LavaData
+        {
+            public Person Person { get; set; }
+            public List<Group> Groups { get; set; }
+            public AttributeMatrix Medications { get; set; }
         }
     }
 }
