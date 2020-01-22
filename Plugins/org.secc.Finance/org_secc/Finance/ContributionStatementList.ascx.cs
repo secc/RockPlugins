@@ -99,7 +99,6 @@ namespace RockWeb.Plugins.org_secc.Finance
 
         public void ExportPdfs_Click( object sender, EventArgs e )
         {
-            /*
             RockContext rockContext = new RockContext();
             rockContext.Database.CommandTimeout = 180;
 
@@ -115,13 +114,12 @@ namespace RockWeb.Plugins.org_secc.Finance
                  )
                 ) tmp where
                  tmp.filename like '%2019 Annual%';" ).ToList();
-               
+
+            //var files = GetBinaryFiles();
 
             BinaryFileService binaryFileService = new BinaryFileService( rockContext );
             var files = binaryFileService.Queryable().Where( bf => fileIds.Contains( bf.Id ) ).ToList().OrderBy( bf => bf.FileName.Right( bf.FileName.Length - bf.FileName.IndexOf( " - " ) ) );
-            */
 
-            var files = GetBinaryFiles();
             PdfImportedPage importedPage;
 
             var outputStream = new MemoryStream();
@@ -133,19 +131,18 @@ namespace RockWeb.Plugins.org_secc.Finance
             sourceDocument.Open();
 
 
-            Regex regex = new Regex( @"/Type\s*/
-            Page[^s]" );
+            Regex regex = new Regex( @"/Type\s*/Page[^s]" );
 
             foreach ( var file in files )
             {
-                if (file.BinaryFile.MimeType == "application/pdf")
+                if (file.MimeType == "application/pdf")
                 {
-                    using ( StreamReader sr = new StreamReader( file.BinaryFile.ContentStream ) )
+                    using ( StreamReader sr = new StreamReader( file.ContentStream ) )
                     {
                         MatchCollection matches = regex.Matches( sr.ReadToEnd() );
                         int pages = matches.Count;
 
-                        PdfReader reader = new PdfReader( file.BinaryFile.ContentStream );
+                        PdfReader reader = new PdfReader( file.ContentStream );
                         //Add pages in new file  
                         for ( int i = 1; i <= pages; i++ )
                         {
@@ -325,7 +322,6 @@ namespace RockWeb.Plugins.org_secc.Finance
             {
                 queryable = queryable.OrderBy( d => d.BinaryFile.FileName );
             }
-
             var list = queryable.ToList();
 
             // Set all the PersonIds;
@@ -349,15 +345,17 @@ namespace RockWeb.Plugins.org_secc.Finance
             }
 
             List<Guid?> dataviews = GetAttributeValue( "PrintAndMail" ).SplitDelimitedValues().AsGuidOrNullList();
-            if ( dataviews != null && dataviews.Count > 0 )
-            {
-                var dataViewService = new DataViewService( context );
-                foreach ( var dataviewguid in dataviews )
-                {
-                    List<string> errorMessages = new List<string>();
-                    list.FirstOrDefault().MailPersonIds.AddRange( dataViewService.Get( dataviewguid.Value ).GetQuery( null, null, out errorMessages ).OfType<Rock.Model.Person>().Select( p => p.Id ).ToList() );
-                }
-            }
+			if ( list.Count() > 0 ) {
+				if ( dataviews != null && dataviews.Count > 0 )
+				{
+					var dataViewService = new DataViewService( context );
+					foreach ( var dataviewguid in dataviews )
+					{
+						List<string> errorMessages = new List<string>();
+						list.FirstOrDefault().MailPersonIds.AddRange( dataViewService.Get( dataviewguid.Value ).GetQuery( null, null, out errorMessages ).OfType<Rock.Model.Person>().Select( p => p.Id ).ToList() );
+					}
+				}
+			}
 
             if ( sortProperty != null && sortProperty.Property == "PersonNames" )
             {
