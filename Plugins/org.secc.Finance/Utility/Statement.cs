@@ -65,7 +65,7 @@ namespace org.secc.Finance.Utility
             mergeFields.Add("StatementEndDate", dateRange.End?.ToShortDateString());
 
             var familyGroupTypeId = GroupTypeCache.Get(Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY).Id;
-            var groupMemberQry = new GroupMemberService(rockContext).Queryable().Where(m => m.Group.GroupTypeId == familyGroupTypeId);
+            var groupMemberQry = new GroupMemberService(rockContext).Queryable(true).Where(m => m.Group.GroupTypeId == familyGroupTypeId);
 
             // get giving group members in order by family role (adult -> child) and then gender (male -> female)
             var givingGroup = new PersonService(rockContext).Queryable(true).AsNoTracking()
