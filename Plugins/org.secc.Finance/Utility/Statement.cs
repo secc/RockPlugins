@@ -68,7 +68,7 @@ namespace org.secc.Finance.Utility
             var groupMemberQry = new GroupMemberService(rockContext).Queryable().Where(m => m.Group.GroupTypeId == familyGroupTypeId);
 
             // get giving group members in order by family role (adult -> child) and then gender (male -> female)
-            var givingGroup = new PersonService(rockContext).Queryable().AsNoTracking()
+            var givingGroup = new PersonService(rockContext).Queryable(true).AsNoTracking()
                                     .Where(p => p.GivingId == targetPerson.GivingId)
                                     .GroupJoin(
                                         groupMemberQry,
