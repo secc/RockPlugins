@@ -175,6 +175,7 @@
     ****************************************
     {% endcomment %}
 
+    {% if campus.Location.Street1 != emtpy %}
     <section id="Location">
         <div class="container">
     		<div class="campus-info row g-display-flex--md g-margin-y-150--xs">
@@ -209,6 +210,7 @@
             </div>
         </div>
     </section>
+    {% endif %}
 
     <script>
     // Initialize SmoothScroll
