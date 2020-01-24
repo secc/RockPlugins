@@ -1,0 +1,377 @@
+<style>
+.bug {
+    background-color: #E5A133;
+    top: -20px;
+    right: -20px;
+    width: 80px;
+    white-space: normal;
+    border-radius: 100%;
+    height: 80px;
+}
+.bug-2 {
+    background-color: #68C1BA;
+    top: -20px;
+    right: -20px;
+    width: 80px;
+    white-space: normal;
+    border-radius: 100%;
+    height: 80px;
+}
+.se-dropdown {
+    border: 2px solid black;
+    cursor: pointer;
+    padding: 5px 70px 5px 15px;
+    display: block;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    color: black;
+    line-height: 28px;
+    text-transform: uppercase;
+    font-weight: 600;
+    box-sizing: border-box;
+    display: inline-block;
+    margin: 0;
+    position: relative;
+    vertical-align: middle;
+    margin-top: 5px;
+    min-width: 170px;
+    z-index: 10;
+    width: 100%;
+}
+.se-dropdown .arrow {
+    height: auto;
+    position: absolute;
+    top: 19px;
+    right: 15px;
+    width: 20px;
+}
+.se-dropdown .arrow b {
+    border-color: white;
+    border-style: none;
+    border-width: 0px;
+    height: 0;
+    position: absolute;
+    width: 0;
+}
+.se-dropdown .arrow b:before {
+    width: 10px;
+    height: 10px;
+    content: "";
+    border: solid #000000;
+    border-width: 0 2px 2px 0;
+    display: inline-block;
+    position: absolute;
+    top: 55%;
+    left: 50%;
+    transition: all 0.4s ease;
+    transform: translate(-50%, -50%) rotate(45deg);
+    -webkit-transform: translate(-50%, -50%) rotate(45deg);
+}
+.se-dropdown + div {
+    box-shadow:0px 0px 5px 1px rgba(0, 0, 0, 0.15);
+    padding: 15px;
+    display: none;
+    position: absolute;
+    background-color: #FFFFFF;
+    overflow: visible;
+    box-sizing: border-box;
+    z-index: 1051;
+    margin-bottom: 20px;
+}
+.se-dropdown[aria-expanded="true"] + div {
+    display: block;
+}
+.se-dropdown[aria-expanded="true"] .arrow b:before {
+    transform: translate(-50%, -50%) rotate(-135deg);
+    -webkit-transform: translate(-50%, -50%) rotate(-135deg);
+    top: 3px;
+}
+
+.se-input {
+    background-color: white;
+    border: 2px solid black;
+    padding: 5px 70px 5px 15px;
+    display: block;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    color: black;
+    line-height: 28px;
+    text-transform: uppercase;
+    font-weight: 600;
+    box-sizing: border-box;
+    display: inline-block;
+    margin: 0;
+    position: relative;
+    vertical-align: middle;
+    margin-top: 5px;
+    min-width: 170px;
+    z-index: 10;
+}
+.se-zipcode-loading {
+    position: absolute;
+    right: 25px;
+    top: 18px;
+    z-index: 30;
+}
+@media (max-width:991px)
+{
+    .se-dropdown + div {
+        position: relative;
+    }
+}
+</style>
+
+
+<div class="container g-padding-t-150--xs g-padding-b-50--xs">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-10 col-md-offset-1" >
+            <h3 class="g-font-weight--600">Find Help in Your Area</h3>
+            <p class="g-font-weight--400 g-line-height--sm">Filter to find the resources for your area</p>
+            <div id="partnerFilters" class="g-display-block--xs">
+
+                <!-- Select a Need? -->
+                <div class="g-display-inline-block--xs col-xs-12 col-md-3 g-padding-x-5--xs">
+                    <select class="select2-need" name="Need?" data-control="#partnerFilters">
+                        <option value="allNeeds" data-shortcode="SE" data-need="">Need?</option>
+                        {% tag where:'CategoryId == 1413' %}
+                           {% for tag in tagItems %}
+                                <option value="{{ tag.Id }}" data-need="{{ tag.Id }}">
+                                    {{ tag.Name }}
+                                </option>
+                           {% endfor %}
+                        {% endtag %}
+                    </select>
+                </div>
+
+                <!-- Filter by Southeast Ministries -->
+                <div class="g-display-inline-block--xs col-xs-12 col-md-3 g-padding-x-5--xs g-margin-t-15--xs g-margin-l-20--xs">
+					<input id="se-partner" class="" type="checkbox" />
+                    <label for="se-otc" class="g-font-size-20--xs g-font-weight--600 g-display-inline-block--xs g-padding-r-10--xs">Only show Southeast ministries</label>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid g-padding-y-50--xs">
+    <div class="row g-padding-b-10--xs">
+    </div>
+
+        <div class="container">
+            <div class="isotope_wrap">
+
+                {% contentchannelitem where:'ContentChannelId == 68' sort:'Order' %}
+                   {% for item in contentchannelitemItems %}
+
+                        {% assign phone = item | Attribute:'Phone' %}
+                        {% assign website_url = item | Attribute:'Website','RawValue' %}
+                        {% assign se_address = item | Attribute:'Location' %}
+                        {% assign se_recognition = item | Attribute:'SoutheastRecognition' %}
+
+                        <div class="homegroup isotope_item col-sm-6 col-lg-4 g-padding-y-25--xs g-padding-x-35--xs"
+                             data-groupid="{{item.Id}}"
+                             data-need="{% taggeditem where:'EntityGuid == "{{item.Guid}}"' %}{% for tag in taggeditemItems %}{%- if forloop.first -%}{%- else -%},{%- endif -%}{{ tag.Tag.Id }}{% endfor %}{% endtaggeditem %}"
+                             data-zipcode="{{ item | Attribute:'Location','PostalCode' | Truncate:5,'' }}"
+                             data-partner="{%- if se_recognition != "" -%}yes{%- endif -%}">
+
+                            <div class="clearfix se-panel">
+                                <div class="g-padding-y-50--xs g-padding-x-50--xs g-margin-y-20--xs g-margin-x-10--xs">
+
+                                    <div class="distance-container hidden">
+                                        <h6 class="uppercase g-padding-b-5--xs g-font-weight--700 g-width-100-percent--xs">
+                                            Distance: <span class="distance"></span> miles
+                                        </h6>
+                                        <hr class="g-hor-divider__solid__t--gray-lighter" />
+                                    </div>
+
+                                    {% if se_recognition == "Mission Partner"%}
+                                    <span class="label label-default label label-default g-position--absolute bug">
+                                        <span class="g-center--xs" style="width:90px;">
+                                            <img src="/Themes/SECC2019/Assets/img/SE/Mission_Partner_text.svg" class="img-responsive" />
+                                        </span>
+                                    </span>
+                                    {% endif %}
+                                    {% if se_recognition == "Mission Ministry"%}
+                                    <span class="label label-default label label-default g-position--absolute bug-2">
+                                        <span class="g-center--xs" style="width:90px;">
+                                            <img src="/Themes/SECC2019/Assets/img/SE/Southeast_Ministry_text.svg" class="img-responsive" />
+                                        </span>
+                                    </span>
+                                    {% endif %}
+
+                                    <h5 class="g-padding-b-20--xs g-font-family--secondary">
+                                    {{ item.Title }}
+                                    </h5>
+                                    <h6 class="g-line-height">{{ item.Content }}</h6>
+
+                                    {% if phone != empty %}
+                                    <div class="partner_location g-margin-t-20--xs g-display-inline-block--xs g-width-100-percent--xs">
+                                        <div class="pull-left g-margin-r-20--xs" style="max-width: 35px; height:100%;" class="pull-left">
+                                            {[ vivus svg:'/Themes/SECC2019/Assets/img/SE/phone.svg' fill:'#000000' max-width:'120px;' duration:'10' ]}
+                                        </div>
+                                        <div>
+                                            <h6>
+                                                <small class="uppercase g-font-weight--700">phone</small><br />
+                                                {{ phone }}
+                                            </h6>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+
+                                    {% if website != empty %}
+                                    <div class="partner_location g-margin-t-20--xs g-display-inline-block--xs g-width-100-percent--xs">
+                                        <div class="pull-left g-margin-r-20--xs" style="max-width: 35px; height:100%;" class="pull-left">
+                                            {[ vivus svg:'/Themes/SECC2019/Assets/img/SE/web.svg' fill:'#000000' max-width:'120px;' duration:'10' ]}
+                                        </div>
+                                        <div>
+                                            <h6>
+                                                <small class="uppercase g-font-weight--700">website</small><br />
+                                                {{ website_url | Linkify }}
+                                            </h6>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+
+                                    {% if se_address != emtpy %}
+                                    <div class="partner_location g-margin-t-20--xs g-display-inline-block--xs g-width-100-percent--xs">
+                                        <div class="pull-left g-margin-r-20--xs" style="max-width: 35px; height:100%;" class="pull-left">
+                                            {[ vivus svg:'/Themes/SECC2019/Assets/img/SE/Location.svg' fill:'#000000' max-width:'120px;' duration:'10' ]}
+                                        </div>
+                                        <div>
+                                            <h6>
+                                                <small class="uppercase g-font-weight--700">location</small><br />
+                                                {{ item | Attribute:'Location','Street1' }}<br />
+                                                {{ item | Attribute:'Location','City' }}, {{ item | Attribute:'Location','State' }} {{ item | Attribute:'Location','PostalCode' }}
+                                            </h6>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                    {% endfor %}
+                {% endcontentchannelitem %}
+
+            </div>
+        </div>
+</div>
+
+<script>
+
+    // Initialize Isotope/Items
+    var $grid = $('.isotope_wrap').isotope({
+      itemSelector: '.isotope_item',
+      percentPosition: true,
+      layoutMode: 'fitRows'
+    });
+
+    if (Modernizr.mq('only all and (max-width: 720px)')) {
+        // Not using isotope or readmore on mobile - it's heavy on JS (breaks old iphones)
+        $('.isotope_wrap').addClass('is-showing-items');
+    } else {
+        var isoOptions = {
+            itemSelector: '.isotope_item',
+            percentPosition: true,
+            layoutMode: 'fitRows'
+        };
+        // init Isotope
+        $grid.addClass('is-showing-items').isotope(isoOptions);
+    }
+
+    // bind to 'need?' dropdown selection
+    var needSelected = '';
+    $('.select2-need').select2({
+      placeholder: 'Need?'
+    });
+    $('.select2-need').on('select2:select', function (e) {
+        e.preventDefault();
+        var data = e.params.data;
+        needSelected = $(data.element).data('need');
+        buildNeedFilters(needSelected);
+        reapplyIso();
+    });
+
+    // bind to partners checkbox
+    $('#se-partner:checkbox').change(function(e) {
+		e.preventDefault();
+        buildPartnerFilter();
+        reapplyIso();
+	});
+
+    // handling partners selection
+    var partner_selected = [];
+    function buildPartnerFilter() {
+        // reset campus array, campuses are only selected one at a time
+        partner_selected = [];
+       var checkbox = document.getElementById('se-partner').checked ? 'yes' : 'no';
+        // add to array
+        if (checkbox != undefined && checkbox == 'yes') {
+            partner_selected.push(checkbox);
+        }
+    }
+
+    // handling 'need?' tag selected
+    var need_filters_selected = [];
+    function buildNeedFilters(need) {
+        // reset need array, 'need?' values are only selected one at a time
+        need_filters_selected = [];
+        // add to array
+        if (need != '' && need != undefined) {
+            need_filters_selected.push(need);
+        }
+    }
+
+    function runFilters() {
+         var filterSelectors = [];
+         // if 'need?' tag is selected
+         if (need_filters_selected.length != 0) {
+             filterSelectors.push(createFilters(need_filters_selected, 'data-need'));
+         }
+         // if otc is selected
+         if (partner_selected.length != 0) {
+             filterSelectors.push(createFilters(partner_selected, 'data-partner'));
+         }
+         var filterArray = [];
+         if (filterSelectors.length!=0){
+             filterSelectors.forEach(function(filterSet, index, array) {
+                if (index==0) {
+                    filterArray = filterSet;
+                } else {
+                    var tempArray = [];
+                    filterArray.forEach(function(primaryFilter) {
+                        filterSet.forEach(function(secondaryFilter) {
+                            tempArray.push(primaryFilter+secondaryFilter);
+                        });
+                    });
+                    filterArray = tempArray;
+                }
+             });
+         }
+         return filterArray.join(',');
+     }
+
+     function reapplyIso() {
+         $grid.isotope({
+           itemSelector: '.isotope_item',
+           percentPosition: true,
+           layoutMode: 'fitRows',
+           filter: runFilters()
+         });
+     }
+
+     function createFilters(arrayList, selector) {
+         var output = [];
+         if (arrayList.length != 0) {
+             // make string of selectors
+             arrayList.forEach(function(item, index, array) {
+                 output.push('['+selector+'*="'+item+'"]');
+             });
+         }
+         return output;
+     }
+
+</script>
