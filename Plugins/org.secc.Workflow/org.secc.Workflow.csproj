@@ -85,6 +85,7 @@
   <ItemGroup>
     <Compile Include="CMS\ClearCacheTags.cs" />
     <Compile Include="Person\GetPersonFromFields.cs" />
+    <Compile Include="Person\PersonAddHistory.cs" />
     <Compile Include="Registrations\AutoApplyDiscountCode.cs" />
     <Compile Include="Registrations\SetAttributeFromRegistrantField.cs" />
     <Compile Include="Schedule\ScheduleNextStartDate.cs" />
