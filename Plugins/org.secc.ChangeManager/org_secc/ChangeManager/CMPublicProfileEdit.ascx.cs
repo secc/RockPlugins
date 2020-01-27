@@ -140,7 +140,8 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                     && CurrentPerson.AgeClassification != AgeClassification.Child
                     && person != null )
                 {
-                    if ( CurrentPerson.GetFamilyMembers( true ).Select( m => m.Person ).Where( p => p.Id == person.Id ).Any() )
+                    if ( person.Id == 0
+                        || CurrentPerson.GetFamilyMembers( true ).Select( m => m.Person ).Where( p => p.Id == person.Id ).Any() )
                     {
                         ShowEditPersonDetails( person );
                         return;
@@ -179,95 +180,317 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
             var personAliasEntityType = EntityTypeCache.Get( typeof( PersonAlias ) );
 
-            if ( person == null )
+            if ( person.Id != 0 )
             {
-                return;
-            }
 
-            var changeRequest = new ChangeRequest
-            {
-                EntityTypeId = personAliasEntityType.Id,
-                EntityId = person.PrimaryAliasId ?? 0,
-                RequestorAliasId = CurrentPersonAliasId ?? 0
-            };
-
-
-            if ( person.PhotoId != imgPhoto.BinaryFileId )
-            {
-                changeRequest.EvaluatePropertyChange( person, "PhotoId", imgPhoto.BinaryFileId );
-                if ( person.Photo != null )
+                var changeRequest = new ChangeRequest
                 {
-                    changeRequest.EvaluatePropertyChange( person.Photo, "IsTemporary", true, true );
-                }
-            }
+                    EntityTypeId = personAliasEntityType.Id,
+                    EntityId = person.PrimaryAliasId ?? 0,
+                    RequestorAliasId = CurrentPersonAliasId ?? 0
+                };
 
-            changeRequest.EvaluatePropertyChange( person, "TitleValue", DefinedValueCache.Get( ddlTitle.SelectedValueAsInt() ?? 0 ) );
-            changeRequest.EvaluatePropertyChange( person, "FirstName", tbFirstName.Text );
-            changeRequest.EvaluatePropertyChange( person, "NickName", tbNickName.Text );
-            changeRequest.EvaluatePropertyChange( person, "LastName", tbLastName.Text );
-            changeRequest.EvaluatePropertyChange( person, "SuffixValue", DefinedValueCache.Get( ddlSuffix.SelectedValueAsInt() ?? 0 ) );
 
-            var birthMonth = person.BirthMonth;
-            var birthDay = person.BirthDay;
-            var birthYear = person.BirthYear;
-
-            var birthday = bpBirthDay.SelectedDate;
-            if ( birthday.HasValue )
-            {
-                // If setting a future birth date, subtract a century until birth date is not greater than today.
-                var today = RockDateTime.Today;
-                while ( birthday.Value.CompareTo( today ) > 0 )
+                if ( person.PhotoId != imgPhoto.BinaryFileId )
                 {
-                    birthday = birthday.Value.AddYears( -100 );
+                    changeRequest.EvaluatePropertyChange( person, "PhotoId", imgPhoto.BinaryFileId );
+                    if ( person.Photo != null )
+                    {
+                        changeRequest.EvaluatePropertyChange( person.Photo, "IsTemporary", true, true );
+                    }
                 }
 
-                changeRequest.EvaluatePropertyChange( person, "BirthMonth", birthday.Value.Month );
-                changeRequest.EvaluatePropertyChange( person, "BirthDay", birthday.Value.Day );
+                changeRequest.EvaluatePropertyChange( person, "TitleValue", DefinedValueCache.Get( ddlTitle.SelectedValueAsInt() ?? 0 ) );
+                changeRequest.EvaluatePropertyChange( person, "FirstName", tbFirstName.Text );
+                changeRequest.EvaluatePropertyChange( person, "NickName", tbNickName.Text );
+                changeRequest.EvaluatePropertyChange( person, "LastName", tbLastName.Text );
+                changeRequest.EvaluatePropertyChange( person, "SuffixValue", DefinedValueCache.Get( ddlSuffix.SelectedValueAsInt() ?? 0 ) );
 
-                if ( birthday.Value.Year != DateTime.MinValue.Year )
+                var birthMonth = person.BirthMonth;
+                var birthDay = person.BirthDay;
+                var birthYear = person.BirthYear;
+
+                var birthday = bpBirthDay.SelectedDate;
+                if ( birthday.HasValue )
                 {
-                    changeRequest.EvaluatePropertyChange( person, "BirthYear", birthday.Value.Year );
+                    // If setting a future birth date, subtract a century until birth date is not greater than today.
+                    var today = RockDateTime.Today;
+                    while ( birthday.Value.CompareTo( today ) > 0 )
+                    {
+                        birthday = birthday.Value.AddYears( -100 );
+                    }
+
+                    changeRequest.EvaluatePropertyChange( person, "BirthMonth", birthday.Value.Month );
+                    changeRequest.EvaluatePropertyChange( person, "BirthDay", birthday.Value.Day );
+
+                    if ( birthday.Value.Year != DateTime.MinValue.Year )
+                    {
+                        changeRequest.EvaluatePropertyChange( person, "BirthYear", birthday.Value.Year );
+                    }
+                    else
+                    {
+                        changeRequest.EvaluatePropertyChange( person, "BirthYear", ( int? ) null );
+                    }
                 }
-                else
+
+                if ( ddlGradePicker.Visible )
                 {
-                    changeRequest.EvaluatePropertyChange( person, "BirthYear", ( int? ) null );
+                    changeRequest.EvaluatePropertyChange( person, "GraduationYear", ypGraduation.SelectedYear );
+                }
+                changeRequest.EvaluatePropertyChange( person, "Gender", rblGender.SelectedValue.ConvertToEnum<Gender>() );
+
+                var primaryFamilyMembers = person.GetFamilyMembers( true ).Where( m => m.PersonId == person.Id ).ToList();
+                foreach ( var member in primaryFamilyMembers )
+                {
+                    changeRequest.EvaluatePropertyChange( member, "GroupRoleId", rblRole.SelectedValue.AsInteger(), true );
+                }
+
+                var primaryFamily = person.GetFamily( rockContext );
+                var familyChangeRequest = new ChangeRequest
+                {
+                    EntityTypeId = EntityTypeCache.Get( typeof( Group ) ).Id,
+                    EntityId = primaryFamily.Id,
+                    RequestorAliasId = CurrentPersonAliasId ?? 0
+                };
+
+                // update campus
+                bool showCampus = GetAttributeValue( "ShowCampusSelector" ).AsBoolean();
+                if ( showCampus )
+                {
+                    familyChangeRequest.EvaluatePropertyChange( primaryFamily, "CampusId", cpCampus.SelectedCampusId );
+                }
+
+                //Evaluate PhoneNumbers
+                bool showPhoneNumbers = GetAttributeValue( "ShowPhoneNumbers" ).AsBoolean();
+                if ( showPhoneNumbers )
+                {
+                    var phoneNumberTypeIds = new List<int>();
+                    var phoneNumbersScreen = new List<PhoneNumber>();
+                    bool smsSelected = false;
+                    foreach ( RepeaterItem item in rContactInfo.Items )
+                    {
+                        HiddenField hfPhoneType = item.FindControl( "hfPhoneType" ) as HiddenField;
+                        PhoneNumberBox pnbPhone = item.FindControl( "pnbPhone" ) as PhoneNumberBox;
+                        CheckBox cbUnlisted = item.FindControl( "cbUnlisted" ) as CheckBox;
+                        CheckBox cbSms = item.FindControl( "cbSms" ) as CheckBox;
+
+                        if ( hfPhoneType != null &&
+                            pnbPhone != null &&
+                            cbSms != null &&
+                            cbUnlisted != null )
+                        {
+
+                            int phoneNumberTypeId;
+                            if ( int.TryParse( hfPhoneType.Value, out phoneNumberTypeId ) )
+                            {
+                                var phoneNumberList = person.PhoneNumbers.Where( n => n.NumberTypeValueId == phoneNumberTypeId ).ToList();
+                                var phoneNumber = phoneNumberList.FirstOrDefault( pn => pn.Number == PhoneNumber.CleanNumber( pnbPhone.Number ) );
+                                string oldPhoneNumber = string.Empty;
+
+                                if ( phoneNumber == null && pnbPhone.Number.IsNotNullOrWhiteSpace() ) //Add number
+                                {
+                                    phoneNumber = new PhoneNumber
+                                    {
+                                        PersonId = person.Id,
+                                        NumberTypeValueId = phoneNumberTypeId,
+                                        CountryCode = PhoneNumber.CleanNumber( pnbPhone.CountryCode ),
+                                        IsMessagingEnabled = !smsSelected && cbSms.Checked,
+                                        Number = PhoneNumber.CleanNumber( pnbPhone.Number )
+                                    };
+                                    var phoneComment = string.Format( "{0}: {1}.", DefinedValueCache.Get( phoneNumberTypeId ).Value, pnbPhone.Number );
+                                    changeRequest.AddEntity( phoneNumber, rockContext, true, phoneComment );
+                                    phoneNumbersScreen.Add( phoneNumber );
+
+                                }
+                                else if ( phoneNumber != null && pnbPhone.Text.IsNotNullOrWhiteSpace() ) // update number
+                                {
+                                    changeRequest.EvaluatePropertyChange( phoneNumber, "Number", PhoneNumber.CleanNumber( pnbPhone.Number ), true );
+                                    changeRequest.EvaluatePropertyChange( phoneNumber, "IsMessagingEnabled", ( !smsSelected && cbSms.Checked ), true );
+                                    changeRequest.EvaluatePropertyChange( phoneNumber, "IsUnlisted", cbUnlisted.Checked, true );
+                                    phoneNumbersScreen.Add( phoneNumber );
+                                }
+
+                            }
+                        }
+                    }
+                    //Remove old phone numbers or changed
+                    var phoneNumbersToRemove = person.PhoneNumbers
+                                       .Where( n => !phoneNumbersScreen.Any( n2 => n2.Number == n.Number && n2.NumberTypeValueId == n.NumberTypeValueId ) ).ToList();
+
+                    foreach ( var number in phoneNumbersToRemove )
+                    {
+                        var phoneComment = string.Format( "{0}: {1}.", number.NumberTypeValue.Value, number.NumberFormatted );
+                        changeRequest.DeleteEntity( number, true, phoneComment );
+                    }
+
+                }
+
+                changeRequest.EvaluatePropertyChange( person, "Email", tbEmail.Text.Trim() );
+                changeRequest.EvaluatePropertyChange( person, "EmailPreference", rblEmailPreference.SelectedValueAsEnum<EmailPreference>() );
+                changeRequest.EvaluatePropertyChange( person, "CommunicationPreference", rblCommunicationPreference.SelectedValueAsEnum<CommunicationType>() );
+
+                // if they used the ImageEditor, and cropped it, the non-cropped file is still in BinaryFile. So clean it up
+                if ( imgPhoto.CropBinaryFileId.HasValue )
+                {
+                    if ( imgPhoto.CropBinaryFileId != person.PhotoId )
+                    {
+                        BinaryFileService binaryFileService = new BinaryFileService( rockContext );
+                        var binaryFile = binaryFileService.Get( imgPhoto.CropBinaryFileId.Value );
+                        if ( binaryFile != null && binaryFile.IsTemporary )
+                        {
+                            string errorMessage;
+                            if ( binaryFileService.CanDelete( binaryFile, out errorMessage ) )
+                            {
+                                binaryFileService.Delete( binaryFile );
+                                rockContext.SaveChanges();
+                            }
+                        }
+                    }
+
+
+                    // save family information
+                    if ( pnlAddress.Visible )
+                    {
+                        var currentLocation = person.GetHomeLocation();
+                        Location location = new Location
+                        {
+                            Street1 = acAddress.Street1,
+                            Street2 = acAddress.Street2,
+                            City = acAddress.City,
+                            State = acAddress.State,
+                            PostalCode = acAddress.PostalCode,
+                        };
+                        var globalAttributesCache = GlobalAttributesCache.Get();
+                        location.Country = globalAttributesCache.OrganizationCountry;
+                        location.Country = string.IsNullOrWhiteSpace( location.Country ) ? "US" : location.Country;
+
+                        if ( ( currentLocation == null && location.Street1.IsNotNullOrWhiteSpace() ) ||
+                            ( currentLocation != null && currentLocation.Street1 != location.Street1 ) )
+                        {
+                            LocationService locationService = new LocationService( rockContext );
+                            locationService.Add( location );
+                            rockContext.SaveChanges();
+
+                            var previousLocationType = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_PREVIOUS.AsGuid() );
+                            var homeLocationType = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() );
+
+                            GroupLocation groupLocation = new GroupLocation
+                            {
+                                CreatedByPersonAliasId = CurrentPersonAliasId,
+                                ModifiedByPersonAliasId = CurrentPersonAliasId,
+                                GroupId = primaryFamily.Id,
+                                LocationId = location.Id,
+                                GroupLocationTypeValueId = homeLocationType.Id,
+                                IsMailingLocation = true,
+                                IsMappedLocation = true
+                            };
+
+                            var newGroupLocation = familyChangeRequest.AddEntity( groupLocation, rockContext, true, location.ToString() );
+
+                            var homelocations = primaryFamily.GroupLocations.Where( gl => gl.GroupLocationTypeValueId == homeLocationType.Id );
+                            foreach ( var homelocation in homelocations )
+                            {
+                                familyChangeRequest.EvaluatePropertyChange(
+                                    homelocation,
+                                    "GroupLocationTypeValue",
+                                    previousLocationType,
+                                    true,
+                                    homelocation.Location.ToString() );
+
+                                familyChangeRequest.EvaluatePropertyChange(
+                                    homelocation,
+                                    "IsMailingLocation",
+                                    false,
+                                    true,
+                                    homelocation.Location.ToString() );
+                            }
+                        }
+
+                    }
+                }
+
+                if ( changeRequest.ChangeRecords.Any()
+                || ( !familyChangeRequest.ChangeRecords.Any() && tbComments.Text.IsNotNullOrWhiteSpace() ) )
+                {
+                    changeRequest.RequestorComment = tbComments.Text;
+                    ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
+                    changeRequestService.Add( changeRequest );
+                    rockContext.SaveChanges();
+
+                    changeRequest.CompleteChanges( rockContext );
+                }
+
+                if ( familyChangeRequest.ChangeRecords.Any() )
+                {
+                    familyChangeRequest.RequestorComment = tbComments.Text;
+                    ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
+                    changeRequestService.Add( familyChangeRequest );
+                    rockContext.SaveChanges();
+                    familyChangeRequest.CompleteChanges( rockContext );
                 }
             }
-
-            if ( ddlGradePicker.Visible )
+            else
             {
-                changeRequest.EvaluatePropertyChange( person, "GraduationYear", ypGraduation.SelectedYear );
-            }
-            changeRequest.EvaluatePropertyChange( person, "Gender", rblGender.SelectedValue.ConvertToEnum<Gender>() );
+                var primaryFamily = CurrentPerson.GetFamily( rockContext );
 
-            var primaryFamilyMembers = person.GetFamilyMembers( true ).Where( m => m.PersonId == person.Id ).ToList();
-            foreach ( var member in primaryFamilyMembers )
-            {
-                changeRequest.EvaluatePropertyChange( member, "GroupRoleId", rblRole.SelectedValue.AsInteger(), true );
-            }
+                person.PhotoId = imgPhoto.BinaryFileId;
 
-            var primaryFamily = person.GetFamily( rockContext );
-            var familyChangeRequest = new ChangeRequest
-            {
-                EntityTypeId = EntityTypeCache.Get( typeof( Group ) ).Id,
-                EntityId = primaryFamily.Id,
-                RequestorAliasId = CurrentPersonAliasId ?? 0
-            };
+                if ( imgPhoto.BinaryFileId.HasValue )
+                {
+                    BinaryFileService binaryFileService = new BinaryFileService( rockContext );
+                    var binaryFile = binaryFileService.Get( imgPhoto.BinaryFileId.Value );
+                    binaryFile.IsTemporary = false;
+                }
 
-            // update campus
-            bool showCampus = GetAttributeValue( "ShowCampusSelector" ).AsBoolean();
-            if ( showCampus )
-            {
-                familyChangeRequest.EvaluatePropertyChange( primaryFamily, "CampusId", cpCampus.SelectedCampusId );
-            }
+                person.FirstName = tbFirstName.Text;
+                person.NickName = tbNickName.Text;
+                person.LastName = tbLastName.Text;
+                person.TitleValueId = ddlTitle.SelectedValue.AsIntegerOrNull();
+                person.SuffixValueId = ddlSuffix.SelectedValue.AsIntegerOrNull();
+                var birthday = bpBirthDay.SelectedDate;
+                if ( birthday.HasValue )
+                {
+                    // If setting a future birth date, subtract a century until birth date is not greater than today.
+                    var today = RockDateTime.Today;
+                    while ( birthday.Value.CompareTo( today ) > 0 )
+                    {
+                        birthday = birthday.Value.AddYears( -100 );
+                    }
 
-            //Evaluate PhoneNumbers
-            bool showPhoneNumbers = GetAttributeValue( "ShowPhoneNumbers" ).AsBoolean();
-            if ( showPhoneNumbers )
-            {
-                var phoneNumberTypeIds = new List<int>();
-                var phoneNumbersScreen = new List<PhoneNumber>();
-                bool smsSelected = false;
+                    person.BirthMonth = birthday.Value.Month;
+                    person.BirthDay = birthday.Value.Day;
+
+                    if ( birthday.Value.Year != DateTime.MinValue.Year )
+                    {
+                        person.BirthYear = birthday.Value.Year;
+                    }
+                    else
+                    {
+                        person.BirthYear = null;
+                    }
+                }
+
+                person.Gender = rblGender.SelectedValue.ConvertToEnum<Gender>();
+                person.Email = tbEmail.Text;
+                person.EmailPreference = rblEmailPreference.SelectedValue.ConvertToEnum<EmailPreference>();
+
+                if ( ddlGradePicker.Visible )
+                {
+                    person.GraduationYear = ypGraduation.SelectedYear;
+                }
+
+
+                GroupMember groupMember = new GroupMember
+                {
+                    PersonId = person.Id,
+                    GroupId = primaryFamily.Id,
+                    GroupRoleId = rblRole.SelectedValue.AsInteger()
+                };
+
+                PersonService.AddPersonToFamily( person, true, primaryFamily.Id, rblRole.SelectedValue.AsInteger(), rockContext );
+
+                PhoneNumberService phoneNumberService = new PhoneNumberService( rockContext );
+
                 foreach ( RepeaterItem item in rContactInfo.Items )
                 {
                     HiddenField hfPhoneType = item.FindControl( "hfPhoneType" ) as HiddenField;
@@ -284,150 +507,31 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                         int phoneNumberTypeId;
                         if ( int.TryParse( hfPhoneType.Value, out phoneNumberTypeId ) )
                         {
-                            var phoneNumberList = person.PhoneNumbers.Where( n => n.NumberTypeValueId == phoneNumberTypeId ).ToList();
-                            var phoneNumber = phoneNumberList.FirstOrDefault( pn => pn.Number == PhoneNumber.CleanNumber( pnbPhone.Number ) );
-                            string oldPhoneNumber = string.Empty;
-
-                            if ( phoneNumber == null && pnbPhone.Number.IsNotNullOrWhiteSpace() ) //Add number
+                            var phoneNumber = new PhoneNumber
                             {
-                                phoneNumber = new PhoneNumber
-                                {
-                                    PersonId = person.Id,
-                                    NumberTypeValueId = phoneNumberTypeId,
-                                    CountryCode = PhoneNumber.CleanNumber( pnbPhone.CountryCode ),
-                                    IsMessagingEnabled = !smsSelected && cbSms.Checked,
-                                    Number = PhoneNumber.CleanNumber( pnbPhone.Number )
-                                };
-                                var phoneComment = string.Format( "{0}: {1}.", DefinedValueCache.Get( phoneNumberTypeId ).Value, pnbPhone.Number );
-                                changeRequest.AddEntity( phoneNumber, rockContext, true, phoneComment );
-                                phoneNumbersScreen.Add( phoneNumber );
-
-                            }
-                            else if ( phoneNumber != null && pnbPhone.Text.IsNotNullOrWhiteSpace() ) // update number
-                            {
-                                changeRequest.EvaluatePropertyChange( phoneNumber, "Number", PhoneNumber.CleanNumber( pnbPhone.Number ), true );
-                                changeRequest.EvaluatePropertyChange( phoneNumber, "IsMessagingEnabled", ( !smsSelected && cbSms.Checked ), true );
-                                changeRequest.EvaluatePropertyChange( phoneNumber, "IsUnlisted", cbUnlisted.Checked, true );
-                                phoneNumbersScreen.Add( phoneNumber );
-                            }
-
+                                PersonId = person.Id,
+                                NumberTypeValueId = phoneNumberTypeId,
+                                CountryCode = PhoneNumber.CleanNumber( pnbPhone.CountryCode ),
+                                IsMessagingEnabled = cbSms.Checked,
+                                Number = PhoneNumber.CleanNumber( pnbPhone.Number )
+                            };
+                            phoneNumberService.Add( phoneNumber );
                         }
                     }
                 }
-                //Remove old phone numbers or changed
-                var phoneNumbersToRemove = person.PhoneNumbers
-                                   .Where( n => !phoneNumbersScreen.Any( n2 => n2.Number == n.Number && n2.NumberTypeValueId == n.NumberTypeValueId ) ).ToList();
+                rockContext.SaveChanges();
 
-                foreach ( var number in phoneNumbersToRemove )
+                var changeRequest = new ChangeRequest
                 {
-                    var phoneComment = string.Format( "{0}: {1}.", number.NumberTypeValue.Value, number.NumberFormatted );
-                    changeRequest.DeleteEntity( number, true, phoneComment );
-                }
-
-            }
-
-            changeRequest.EvaluatePropertyChange( person, "Email", tbEmail.Text.Trim() );
-            changeRequest.EvaluatePropertyChange( person, "EmailPreference", rblEmailPreference.SelectedValueAsEnum<EmailPreference>() );
-            changeRequest.EvaluatePropertyChange( person, "CommunicationPreference", rblCommunicationPreference.SelectedValueAsEnum<CommunicationType>() );
-
-            // if they used the ImageEditor, and cropped it, the non-cropped file is still in BinaryFile. So clean it up
-            if ( imgPhoto.CropBinaryFileId.HasValue )
-            {
-                if ( imgPhoto.CropBinaryFileId != person.PhotoId )
-                {
-                    BinaryFileService binaryFileService = new BinaryFileService( rockContext );
-                    var binaryFile = binaryFileService.Get( imgPhoto.CropBinaryFileId.Value );
-                    if ( binaryFile != null && binaryFile.IsTemporary )
-                    {
-                        string errorMessage;
-                        if ( binaryFileService.CanDelete( binaryFile, out errorMessage ) )
-                        {
-                            binaryFileService.Delete( binaryFile );
-                            rockContext.SaveChanges();
-                        }
-                    }
-                }
-
-
-                // save family information
-                if ( pnlAddress.Visible )
-                {
-                    var currentLocation = person.GetHomeLocation();
-                    Location location = new Location
-                    {
-                        Street1 = acAddress.Street1,
-                        Street2 = acAddress.Street2,
-                        City = acAddress.City,
-                        State = acAddress.State,
-                        PostalCode = acAddress.PostalCode,
-                    };
-                    var globalAttributesCache = GlobalAttributesCache.Get();
-                    location.Country = globalAttributesCache.OrganizationCountry;
-                    location.Country = string.IsNullOrWhiteSpace( location.Country ) ? "US" : location.Country;
-
-                    if ( ( currentLocation == null && location.Street1.IsNotNullOrWhiteSpace() ) ||
-                        ( currentLocation != null && currentLocation.Street1 != location.Street1 ) )
-                    {
-                        LocationService locationService = new LocationService( rockContext );
-                        locationService.Add( location );
-                        rockContext.SaveChanges();
-
-                        var previousLocationType = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_PREVIOUS.AsGuid() );
-                        var homeLocationType = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() );
-
-                        GroupLocation groupLocation = new GroupLocation
-                        {
-                            CreatedByPersonAliasId = CurrentPersonAliasId,
-                            ModifiedByPersonAliasId = CurrentPersonAliasId,
-                            GroupId = primaryFamily.Id,
-                            LocationId = location.Id,
-                            GroupLocationTypeValueId = homeLocationType.Id,
-                            IsMailingLocation = true,
-                            IsMappedLocation = true
-                        };
-
-                        var newGroupLocation = familyChangeRequest.AddEntity( groupLocation, rockContext, true, location.ToString() );
-
-                        var homelocations = primaryFamily.GroupLocations.Where( gl => gl.GroupLocationTypeValueId == homeLocationType.Id );
-                        foreach ( var homelocation in homelocations )
-                        {
-                            familyChangeRequest.EvaluatePropertyChange(
-                                homelocation,
-                                "GroupLocationTypeValue",
-                                previousLocationType,
-                                true,
-                                homelocation.Location.ToString() );
-
-                            familyChangeRequest.EvaluatePropertyChange(
-                                homelocation,
-                                "IsMailingLocation",
-                                false,
-                                true,
-                                homelocation.Location.ToString() );
-                        }
-                    }
-
-                }
-            }
-
-            if ( changeRequest.ChangeRecords.Any()
-            || ( !familyChangeRequest.ChangeRecords.Any() && tbComments.Text.IsNotNullOrWhiteSpace() ) )
-            {
-                changeRequest.RequestorComment = tbComments.Text;
+                    EntityTypeId = personAliasEntityType.Id,
+                    EntityId = person.PrimaryAliasId ?? 0,
+                    RequestorAliasId = CurrentPersonAliasId ?? 0,
+                    RequestorComment = "Added as new person from My Account."
+                };
                 ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
                 changeRequestService.Add( changeRequest );
                 rockContext.SaveChanges();
-
                 changeRequest.CompleteChanges( rockContext );
-            }
-
-            if ( familyChangeRequest.ChangeRecords.Any() )
-            {
-                familyChangeRequest.RequestorComment = tbComments.Text;
-                ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
-                changeRequestService.Add( familyChangeRequest );
-                rockContext.SaveChanges();
-                familyChangeRequest.CompleteChanges( rockContext );
             }
 
             NavigateToParentPage();
@@ -493,7 +597,8 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             bpBirthDay.SelectedDate = person.BirthDate;
             rblGender.SelectedValue = person.Gender.ConvertToString();
 
-            rblRole.SelectedValue = person.GetFamilyRole().Id.ToString();
+            var familyRole = person.GetFamilyRole();
+            rblRole.SelectedValue = familyRole != null ? familyRole.Id.ToString() : "0";
 
 
             if ( person.Id != 0 && person.GetFamilyRole().Guid == childGuid )
@@ -765,7 +870,10 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             var person = personService.Get( personGuid.AsGuid() );
             if ( person == null )
             {
-                return null;
+                return new Person
+                {
+                    Guid = Guid.NewGuid()
+                };
             }
 
             //Only return if the person is in the same family
@@ -795,10 +903,12 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                                gr.Id == selectedId ).Any() )
                 {
                     ddlGradePicker.Visible = false;
+                    tbEmail.Required = true;
                 }
                 else
                 {
                     ddlGradePicker.Visible = true;
+                    tbEmail.Required = false;
                 }
             }
         }
