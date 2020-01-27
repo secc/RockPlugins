@@ -11,7 +11,7 @@ using Rock.Model;
 
 namespace org.secc.Widgities.Model
 {
-    [Table( "_org_secc_Widgity_WidgityItem" )]
+    [Table( "_org_secc_Widgities_WidgityItem" )]
     [DataContract]
     public class WidgityItem : Model<WidgityItem>, IRockEntity, IOrdered
     {

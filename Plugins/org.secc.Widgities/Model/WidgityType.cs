@@ -12,7 +12,7 @@ using Rock.Model;
 
 namespace org.secc.Widgities.Model
 {
-    [Table( "_org_secc_Widgity_WidgityType" )]
+    [Table( "_org_secc_Widgities_WidgityType" )]
     [DataContract]
     public class WidgityType : Model<WidgityType>, IRockEntity, ICategorized
     {
@@ -23,7 +23,7 @@ namespace org.secc.Widgities.Model
         public bool IsSystem { get; set; }
 
         [DataMember]
-        public string Icon { get; set; }     
+        public string Icon { get; set; }
 
         [DataMember]
         public bool HasItems { get; set; }
@@ -44,17 +44,16 @@ namespace org.secc.Widgities.Model
         [LavaInclude]
         public virtual Category Category { get; set; }
 
-        [DataMember]
-        public int EntityTypeId { get; set; }
-
         [LavaInclude]
-        public virtual EntityType EntityType { get; set; }
+        public virtual ICollection<EntityType> EntityTypes { get; set; }
     }
 
     public partial class WidgityTypeConfiguration : EntityTypeConfiguration<WidgityType>
     {
         public WidgityTypeConfiguration()
         {
+            this.HasMany( k => k.EntityTypes ).WithMany()
+                .Map( t => { t.MapLeftKey( "WidgityTypeId" ); t.MapRightKey( "EntityTypeId" ); t.ToTable( "_org_secc_Widgities_WidgityTypeEntityType" ); } );
             this.HasEntitySetName( "WidgityItemTypes" );
         }
     }

@@ -24,6 +24,12 @@ namespace org.secc.Widgities.Cache
         public WidgityTypeCache WidgityType => WidgityTypeCache.Get( WidgityTypeId );
 
         [DataMember]
+        public EntityTypeCache EntityType => EntityTypeCache.Get( EntityTypeId );
+
+        [DataMember]
+        public int EntityTypeId { get; set; }
+
+        [DataMember]
         public int EntityId { get; private set; }
 
         [DataMember]
@@ -83,7 +89,7 @@ namespace org.secc.Widgities.Cache
         public static List<WidgityCache> GetForEntity( int EntityTypeId, int EntityId )
         {
             return All()
-                .Where( w => w.WidgityType.EntityTypeId == EntityTypeId )
+                .Where( w => w.EntityTypeId == EntityTypeId )
                 .Where( w => w.EntityId == EntityId )
                 .OrderBy( w => w.Id )
                 .ToList();
@@ -100,6 +106,7 @@ namespace org.secc.Widgities.Cache
             Id = widgity.Id;
             Guid = widgity.Guid;
             EntityId = widgity.EntityId;
+            EntityTypeId = widgity.EntityTypeId;
             WidgityTypeId = widgity.WidgityTypeId; 
             Order = widgity.Order;
         }

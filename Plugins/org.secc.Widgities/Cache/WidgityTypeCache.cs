@@ -43,10 +43,21 @@ namespace org.secc.Widgities.Cache
         public CategoryCache Category => CategoryId.HasValue ? CategoryCache.Get( CategoryId.Value ) : null;
 
         [DataMember]
-        public int EntityTypeId { get; private set; }
+        public List<int> EntityTypeIds { get; private set; }
 
         [DataMember]
-        public EntityTypeCache EntityType => EntityTypeId != 0 ? EntityTypeCache.Get( EntityTypeId ) : null;
+        public List<EntityTypeCache> EntityTypes
+        {
+            get
+            {
+                var entityTypes = new List<EntityTypeCache>();
+                foreach ( var id in EntityTypeIds )
+                {
+                    entityTypes.Add( EntityTypeCache.Get( id ) );
+                }
+                return entityTypes;
+            }
+        }
 
         public override void SetFromEntity( IEntity entity )
         {
@@ -61,8 +72,9 @@ namespace org.secc.Widgities.Cache
             Guid = widgityType.Guid;
             Description = widgityType.Description;
             EnabledLavaCommands = widgityType.EnabledLavaCommands;
-            EntityTypeId = widgityType.EntityTypeId;
+            EntityTypeIds = widgityType.EntityTypes.Select( e => e.Id ).ToList();
             Markdown = widgityType.Markdown;
+            HasItems = widgityType.HasItems;
             CategoryId = widgityType.CategoryId;
             IsSystem = widgityType.IsSystem;
             Icon = widgityType.Icon;
@@ -73,12 +85,13 @@ namespace org.secc.Widgities.Cache
             WidgityType widgityType = new WidgityType
             {
                 Id = Id,
-                Name =Name,
+                Name = Name,
                 Description = Description,
-                Guid=   Guid,
+                Guid = Guid,
                 EnabledLavaCommands = EnabledLavaCommands,
-                EntityTypeId = EntityTypeId,
+                EntityTypes = EntityTypes.Select( e => e.GetEntityType() ) as ICollection<Rock.Model.EntityType>,
                 Markdown = Markdown,
+                HasItems = HasItems,
                 CategoryId = CategoryId,
                 IsSystem = IsSystem,
                 Icon = Icon,

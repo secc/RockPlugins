@@ -11,7 +11,7 @@ using Rock.Model;
 
 namespace org.secc.Widgities.Model
 {
-    [Table( "_org_secc_Widgity_Widgity" )]
+    [Table( "_org_secc_Widgities_Widgity" )]
     [DataContract]
     public class Widgity : Model<Widgity>, IRockEntity, IOrdered
     {
@@ -20,6 +20,12 @@ namespace org.secc.Widgities.Model
 
         [LavaInclude]
         public virtual WidgityType WidgityType { get; set; }
+
+        [DataMember]
+        public int EntityTypeId { get; set; }
+
+        [LavaInclude]
+        public virtual EntityType EntityType { get; set; }
 
         [DataMember]
         public int EntityId { get; set; }
