@@ -6,7 +6,7 @@
             <div id="partnerFilters" class="g-display-block--xs">
 
                 <!-- Select a Need? -->
-                <div class="g-display-inline-block--xs col-xs-12 col-md-3 g-padding-x-5--xs">
+                <div class="g-display-inline-block--xs col-xs-12 col-md-5 g-padding-x-5--xs">
                     <select class="select2-need" name="Need?" data-control="#partnerFilters">
                         <option value="allNeeds" data-shortcode="SE" data-need="">Need?</option>
                         {% tag where:'CategoryId == 1413' %}
@@ -63,7 +63,7 @@
                                     </span>
                                 </span>
                                 {% endif %}
-                                {% if se_recognition == "Mission Ministry"%}
+                                {% if se_recognition == "Southeast Ministry"%}
                                 <span class="label label-default label label-default g-position--absolute bug g-bg-color--2020-crisis-ministry">
                                     <span class="g-center--xs" style="width:90px;">
                                         <img src="/Themes/SECC2019/Assets/img/SE/Southeast_Ministry_text.svg" class="img-responsive" />
