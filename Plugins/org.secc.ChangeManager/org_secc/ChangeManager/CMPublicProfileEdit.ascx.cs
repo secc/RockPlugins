@@ -528,6 +528,12 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                     RequestorAliasId = CurrentPersonAliasId ?? 0,
                     RequestorComment = "Added as new person from My Account."
                 };
+
+                if ( tbComments.Text.IsNotNullOrWhiteSpace() )
+                {
+                    changeRequest.RequestorComment += "<br><br>Comment: " + tbComments.Text;
+                }
+
                 ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
                 changeRequestService.Add( changeRequest );
                 rockContext.SaveChanges();
