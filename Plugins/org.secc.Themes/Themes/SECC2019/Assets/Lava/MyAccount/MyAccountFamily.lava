@@ -133,8 +133,7 @@
 		</div>
     <div class="row g-padding-x-20--xs">
         <div class="col-md-12 g-padding-b-20--xs">
-            <a id="" class="btn btn-primary btn-xs" href="#"> Add New Family Member</a>
-            <a id="" class="btn btn-primary btn-xs" href="#"> Request Additional Changes</a>
+            <a class="btn btn-primary btn-xs" href="/MyAccount/Edit"> Add New Family Member</a>
         </div>
     </div>
 </div>
