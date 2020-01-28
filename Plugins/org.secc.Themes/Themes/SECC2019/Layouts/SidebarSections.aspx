@@ -123,20 +123,7 @@
 
         <!-- Sidebar -->
         <div id="sidebar-wrapper">
-            <ul class="sidebar-nav">
-                <li>
-                    <a href="#"><i class="fas fa-th-large fa-2x"></i> Dashboard</a>
-                </li>
-                <li>
-                    <a href="#"><i class="fal fa-heart fa-2x"></i> Giving</a>
-                </li>
-                <li>
-                    <a href="#"><i class="fal fa-users fa-2x"></i> Groups & Events</a>
-                </li>
-                <li class="active">
-                    <a href="#"><i class="fal fa-user-circle fa-2x"></i> Account</a>
-                </li>
-            </ul>
+            <Rock:Zone Name="Sidebar Nav" runat="server" />
         </div>
         <!-- /#sidebar-wrapper -->
 
