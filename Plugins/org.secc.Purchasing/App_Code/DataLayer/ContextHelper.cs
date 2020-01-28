@@ -12,7 +12,6 @@
 // limitations under the License.
 // </copyright>
 //
-using org.secc.Purchasing.DataLayer.Accounting;
 using System;
 using System.Configuration;
 using System.Linq;
@@ -29,13 +28,5 @@ namespace org.secc.Purchasing.DataLayer
             return context;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public static ShelbyContext GetShelbyContext()
-        {
-            return new ShelbyContext(ConfigurationManager.ConnectionStrings["ShelbyContext"].ConnectionString);
-        }
     }
 }

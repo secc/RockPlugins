@@ -17,10 +17,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
-
+using Newtonsoft.Json;
 using org.secc.Purchasing.DataLayer;
-using org.secc.Purchasing.Accounting;
+using org.secc.Purchasing.Intacct;
+using org.secc.Purchasing.Intacct.Model;
 using Rock.Model;
+using Rock.Web.Cache;
+
 namespace org.secc.Purchasing
 {
     public class PaymentCharge : PurchasingBase
@@ -28,7 +31,7 @@ namespace org.secc.Purchasing
         #region Fields
         Requisition mRequisition;
         Payment mPayment;
-        Account mAccount;
+        GLAccount mAccount;
         Person mCreatedBy;
         Person mModifiedBy;
 
@@ -95,13 +98,32 @@ namespace org.secc.Purchasing
         }
 
         [XmlIgnore]
-        public Account Account
+        public GLAccount Account
         {
             get
             {
-                if ((mAccount == null || (mAccount.CompanyID != CompanyID || mAccount.FundID != FundID || mAccount.DepartmentID != DepartmentID || mAccount.AccountID != AccountID)) &&
-                    CompanyID > 0 && FundID > 0 && DepartmentID > 0 && AccountID > 0 && FYStartDate > DateTime.MinValue)
-                    mAccount = new Account(CompanyID, FundID, DepartmentID, AccountID, FYStartDate);
+                string jsonSettings = Rock.Security.Encryption.DecryptString( GlobalAttributesCache.Get().GetValue( "IntacctAPISettings" ) );
+                ApiClient api = JsonConvert.DeserializeObject<ApiClient>( jsonSettings );
+
+                // Fetch the account
+                mAccount = api.GetGLAccounts().Where( a => a.AccountNo == AccountID ).FirstOrDefault();
+
+                // Now verify that the location and department are valid
+                if ( mAccount != null )
+                {
+                    var restrictedData = api.GetDimensionRestrictedData( mAccount );
+                    if ( !restrictedData.Any( r => r.Dimension == "DEPARTMENT" && r.IdValues.Contains( DepartmentID ) ) )
+                    {
+                        mAccount = null;
+                    }
+
+                    if ( !restrictedData.Any( r => r.Dimension == "LOCATION" && r.IdValues.Contains( FundID ) ) )
+                    {
+                        mAccount = null;
+                    }
+
+                }
+
                 return mAccount;
             }
         }
@@ -225,7 +247,7 @@ namespace org.secc.Purchasing
             ChargeID = 0;
             PaymentID = 0;
             RequisitionID = 0;
-            CompanyID = Company.GetDefaultCompany().CompanyID;
+            CompanyID = 1;
             FundID = 0;
             DepartmentID = 0;
             AccountID = 0;
@@ -308,7 +330,7 @@ namespace org.secc.Purchasing
             if (AccountID <= 0)
                 ValErrors.Add("AccountID", "Account ID must be greater than 0.");
 
-            if (CompanyID > 0 && FundID > 0 && DepartmentID > 0 && AccountID > 0 && (Account == null || Account.AccountID <= 0))
+            if (CompanyID > 0 && FundID > 0 && DepartmentID > 0 && AccountID > 0 && (Account == null || Account.AccountNo <= 0))
                 ValErrors.Add("AccountID", "Account not found");
 
             if ((Payment.PaymentAmount > 0 && Amount < 0) || (Payment.PaymentAmount < 0 && Amount > 0))

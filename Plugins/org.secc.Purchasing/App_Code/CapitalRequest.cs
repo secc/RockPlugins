@@ -1064,14 +1064,11 @@ namespace org.secc.Purchasing
             OngoingMaintenanceCost = 0;
             ItemLocation = null;
             AnticipatedInserviceDate = DateTime.MinValue;
-            GLCompanyId = Accounting.Company.GetDefaultCompany().CompanyID;
+            GLCompanyId = 1;
             GLFundId = null;
             GLDepartmentId = null;
             GLAccountId = null;
-            Accounting.Company company = new Accounting.Company((int)GLCompanyId);
-            if (company.GetCurrentFiscalYear() != null) {
-                GLFiscalYearStartDate = company.GetCurrentFiscalYear().StartDate;
-            }
+            GLFiscalYearStartDate = new DateTime( DateTime.Now.Year, 1, 1 );
             CreatedByUserId = null;
             ModifiedByUserId = null;
             DateCreated = DateTime.MinValue;
@@ -1334,12 +1331,13 @@ namespace org.secc.Purchasing
 
             if ( GLCompanyId != null && GLFundId != null && GLDepartmentId != null && GLAccountId != null )
             {
-                Accounting.Account glaccount = new Accounting.Account( (int)GLCompanyId, (int)GLFundId, (int)GLDepartmentId, (int)GLAccountId, GLFiscalYearStartDate );
+                /*Accounting.Account glaccount = new Accounting.Account( (int)GLCompanyId, (int)GLFundId, (int)GLDepartmentId, (int)GLAccountId, GLFiscalYearStartDate );
 
                 if ( glaccount == null || glaccount.AccountID <= 0 )
                 {
                     valErrors.Add( "General Ledger Account", "General Ledger Account is not valid." );
-                }
+                }*/
+                throw new NotImplementedException( "Need to validate" );
             }
 
             if (StatusLUID != DefinedValueCache.Get(new Guid(LOOKUP_STATUS_NEW_GUID)).Id && StatusLUID != DefinedValueCache.Get(new Guid(LOOKUP_STATUS_CANCELLED_GUID)).Id)

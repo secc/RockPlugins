@@ -17,10 +17,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
+using Newtonsoft.Json;
 using org.secc.Purchasing.DataLayer;
 using org.secc.Purchasing.Enums;
-using org.secc.Purchasing.Accounting;
+using org.secc.Purchasing.Intacct;
+using org.secc.Purchasing.Intacct.Model;
 using Rock.Model;
+using Rock.Web.Cache;
 
 namespace org.secc.Purchasing
 {
@@ -30,7 +33,7 @@ namespace org.secc.Purchasing
         private Requisition mRequisition;
         private Person mCreatedBy;
         private Person mModifiedBy;
-        private Account mAccount;
+        private GLAccount mAccount;
         private List<PurchaseOrderItem> mPOItems;
 
         private Guid ShippingTypeLTGuid = new Guid("DFAC2EB7-97D0-4318-ACF3-554ADC2272F3");
@@ -91,13 +94,32 @@ namespace org.secc.Purchasing
         }
 
         [XmlIgnore]
-        public Account Account
+        public GLAccount Account
         {
             get
             {
-                if(CompanyID > 0 && FundID > 0 && DepartmentID > 0 && AccountID > 0 && FYStartDate > DateTime.MinValue)
-                    mAccount = new Account(CompanyID, FundID, DepartmentID, AccountID, FYStartDate);
-                
+                string jsonSettings = Rock.Security.Encryption.DecryptString( GlobalAttributesCache.Get().GetValue( "IntacctAPISettings" ) );
+                ApiClient api = JsonConvert.DeserializeObject<ApiClient>( jsonSettings );
+
+                // Fetch the account
+                mAccount = api.GetGLAccounts().Where( a => a.AccountNo == AccountID ).FirstOrDefault();
+
+                // Now verify that the location and department are valid
+                if ( mAccount != null)
+                {
+                    var restrictedData = api.GetDimensionRestrictedData( mAccount );
+                    if (!restrictedData.Any(r => r.Dimension == "DEPARTMENT" && r.IdValues.Contains( DepartmentID ) ) )
+                    {
+                        mAccount = null;
+                    }
+
+                    if ( !restrictedData.Any( r => r.Dimension == "LOCATION" && r.IdValues.Contains( FundID ) ) )
+                    {
+                        mAccount = null;
+                    }
+                    
+                }
+
                 return mAccount;
             }
         }
@@ -402,7 +424,7 @@ namespace org.secc.Purchasing
             if (CompanyID <= 0 || FundID <= 0 || DepartmentID <= 0 || AccountID <= 0 || FYStartDate == DateTime.MinValue)
             { 
                 ValErrors.Add("Account", "Please select a valid account");
-            } else if (Account == null || Account.AccountID <= 0)
+            } else if (Account == null || Account.AccountNo <= 0)
             {
                 ValErrors.Add("Account", "Account not found.");
             }
