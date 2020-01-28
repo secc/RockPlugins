@@ -23,16 +23,7 @@ Eventually we will need to convert the inline css below into BEM CSS.
 </style>
 
 <section id="MyGiving">
-    <div class="container g-padding-t-100--xs g-padding-b-150--xs">
-
-        <div class="row">
-            <div class="col-lg-12 clearfix text-center">
-                <h1 class="g-font-size--jumbo-1 g-font-family--secondary">My Giving</h1>
-                <br>
-                <br>
-    		</div>
-        </div>
-
+    <div class="container-fluid g-padding-b-150--xs">
 		<div class="row">
 		    <div class="col-md-6 event-calendar">
 		        <div class="clearfix card g-margin-x-40--xs g-margin-x-20--md g-padding-y-80--xs giving-min-height">
@@ -47,7 +38,7 @@ Eventually we will need to convert the inline css below into BEM CSS.
 								SELECT max(bf.Id) FROM BinaryFile bf
 									JOIN AttributeValue av ON bf.Id = av.EntityId
 									JOIN Attribute a ON av.AttributeId = a.Id AND a.EntityTypeQualifierValue = '36' AND a.[Key] = 'PersonIds'
-									Cross apply _org_secc_fnSplit(av.Value, '|') GivingAndPersonIds 
+									Cross apply _org_secc_fnSplit(av.Value, '|') GivingAndPersonIds
 									JOIN PersonAlias pa ON (GivingAndPersonIds.item = pa.AliasPersonId AND pa.PersonId = {{CurrentPerson.Id | Replace:"'",'' | SanitizeSql}} AND av.Value like '%'+cast(pa.AliasPersonId as varchar(max))+'%')
 									GROUP BY /*YEAR*/substring(bf.FileName, Charindex('- ', bf.FileName)+2, 4)
 								)
