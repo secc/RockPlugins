@@ -22,7 +22,6 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 
 using org.secc.Purchasing;
-using org.secc.Purchasing.Accounting;
 using Rock.Web.UI;
 using Rock.Attribute;
 using Rock.Model;
@@ -31,6 +30,8 @@ using Rock;
 using Rock.Web.Cache;
 using System.Web.UI.HtmlControls;
 using Rock.Data;
+using org.secc.Purchasing.Intacct;
+using Newtonsoft.Json;
 
 namespace RockWeb.Plugins.org_secc.Purchasing
 {
@@ -290,6 +291,15 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         #endregion
 
         #region Properties
+        protected ApiClient ApiClient
+        {
+            get {
+
+                string jsonSettings = Rock.Security.Encryption.DecryptString(GlobalAttributesCache.Get().GetValue( "IntacctAPISettings" ) );
+                return JsonConvert.DeserializeObject<ApiClient>( jsonSettings );
+            }
+        }
+
         protected int RequisitionID
         {
             get
@@ -2095,9 +2105,11 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             ddlItemCompany.Items.Clear();
 
-            ddlItemCompany.DataSource = Company.GetCompanies().OrderBy(c => c.CompanyName);
-            ddlItemCompany.DataValueField = "CompanyID";
-            ddlItemCompany.DataTextField = "CompanyName";
+            
+
+            ddlItemCompany.DataSource = ApiClient.GetLocationEntities().OrderBy(c => c.Name);
+            ddlItemCompany.DataValueField = "RecordNo";
+            ddlItemCompany.DataTextField = "Name";
             ddlItemCompany.DataBind();
         }
 
@@ -2115,7 +2127,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             txtItemAccountNumber.Text = string.Empty;
             chkItemAllowExpedited.Checked = false;
             
-            int DefaultCompanyID = GetUserCompanyID(Company.GetDefaultCompany().CompanyID);
+            int DefaultCompanyID = GetUserCompanyID( ApiClient.GetLocationEntities().Min(l => l.RecordNo) );
 
             if(ddlItemCompany.Items.FindByValue(DefaultCompanyID.ToString()) != null)
             {
