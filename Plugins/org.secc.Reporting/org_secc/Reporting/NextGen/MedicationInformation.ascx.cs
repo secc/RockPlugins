@@ -225,7 +225,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
             public string Medications { get; set; }
         }
 
-        class LavaData
+        class LavaData : DotLiquid.Drop
         {
             public Person Person { get; set; }
             public List<Group> Groups { get; set; }
