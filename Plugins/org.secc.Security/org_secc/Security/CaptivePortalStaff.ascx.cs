@@ -30,6 +30,8 @@ using Rock.Web.UI.Controls;
 using System.Net;
 using System.Text.RegularExpressions;
 using Rock.Security;
+using System.Web.Script.Serialization;
+using System.IO;
 
 namespace RockWeb.Plugins.org_secc.Security
 {
@@ -65,6 +67,8 @@ namespace RockWeb.Plugins.org_secc.Security
     #endregion Block Settings
     public partial class CaptivePortalStaff : RockBlock
     {
+        private readonly string fpAuthenticationHeader = string.Format( "authorization-token:{0}", GlobalAttributesCache.Value( "FrontporchAPIToken" ) );
+        private readonly string fpHost = GlobalAttributesCache.Value( "FrontporchHost" );
 
         /// <summary>
         /// The user agents to ignore. UA strings that begin with one of these will be ignored.
@@ -218,6 +222,12 @@ namespace RockWeb.Plugins.org_secc.Security
                 if (personalDevice.PersonAliasId != CurrentPersonAliasId && CurrentPersonAliasId.HasValue)
                 {
                     RockPage.LinkPersonAliasToDevice( CurrentPersonAliasId.Value, macAddress );
+                }
+
+                // Create/Modify the user in Front Porch
+                if ( CurrentPersonAliasId.HasValue )
+                {
+                    ModifyFrontPorchUser( CurrentPersonAliasId.Value );
                 }
             }
 
@@ -416,6 +426,57 @@ namespace RockWeb.Plugins.org_secc.Security
                 httpcookie.Values.Add( "ROCK_PERSONALDEVICE_ADDRESS", macAddress );
                 Response.Cookies.Add( httpcookie );
             }
+        }
+
+
+
+        private bool ModifyFrontPorchUser( int personAliasId )
+        {
+            // Fetch the person alias
+            PersonAliasService personAliasService = new PersonAliasService( new RockContext() );
+            PersonAlias personAlias = personAliasService.Get( personAliasId );
+
+            FrontPorchUser user = new FrontPorchUser() { name = personAlias.Person.FullName, email = personAlias.Person.Email, userId = personAlias.Id };
+            // Always set the SecureNetworkSSID;
+            user.secureNetworkSSID = GetAttributeValue( "NetworkSSID" );
+            var url = string.Format( "https://{0}/api/user/modify", fpHost );
+
+            HttpWebRequest request = ( HttpWebRequest ) WebRequest.Create( url );
+            request.Headers.Add( fpAuthenticationHeader );
+            request.Method = "POST";
+            request.ContentType = "application/json";
+            try
+            {
+
+                JavaScriptSerializer js = new JavaScriptSerializer();
+                byte[] byteArray = System.Text.Encoding.UTF8.GetBytes( js.Serialize( user ) );
+                request.ContentLength = byteArray.Length;
+
+                // Get the request stream.  
+                Stream dataStream = request.GetRequestStream();
+                // Write the data to the request stream.  
+                dataStream.Write( byteArray, 0, byteArray.Length );
+                // Close the Stream objec
+
+                HttpWebResponse response = ( HttpWebResponse ) request.GetResponse();
+                Stream resStream = response.GetResponseStream();
+                if ( response.StatusCode == HttpStatusCode.OK )
+                {
+                    return true;
+                }
+            }
+            catch ( Exception e )
+            {
+                LogException( e );
+            }
+            return false;
+        }
+        public class FrontPorchUser
+        {
+            public int userId { get; set; }
+            public string name { get; set; }
+            public string email { get; set; }
+            public string secureNetworkSSID { get; set; }
         }
     }
 }
