@@ -34,14 +34,14 @@
 					<div class="se-panel" style="z-index: {{ zIndexC }}">
 						{% if isAdult -%}
 							<span class="g-position--absolute g-padding-y-20--xs g-padding-x-15--xs" style="right: 0px;top: 6px;z-index:100;">
-								<a href="MyAccount/Edit/{{ person.Guid }}" title="Change Account Info" class="se-action-btn g-padding-y-15--xs g-padding-x-15--xs g-color--dark g-radius--circle g-bg-color-hover--black-opacity-lightest">
+								<a href="/MyAccount/Edit/{{ person.Guid }}" title="Change Account Info" class="se-action-btn g-padding-y-15--xs g-padding-x-15--xs g-color--dark g-radius--circle g-bg-color-hover--black-opacity-lightest">
 									<i class="fas fa-user-cog"></i>
 								</a>
 							</span>
 						{% endif -%}
 						<span class="g-padding-y-40--xs g-padding-x-60--xs g-padding-y-60--sm g-padding-x-80--sm g-padding-y-80--lg g-padding-x-120--lg">
 							{% assign avatar = "" %}
-							<a href="MyAccount/Edit/{{ person.Guid }}">
+							<a href="/MyAccount/Edit/{{ person.Guid }}">
 								{% if Person.PhotoUrl != " "%}
 									{% assign avatar = person.PhotoUrl %}
 								{% elseif familyMember.GroupRoleId == 3 %}
@@ -133,8 +133,7 @@
 		</div>
     <div class="row g-padding-x-20--xs">
         <div class="col-md-12 g-padding-b-20--xs">
-            <a id="" class="btn btn-primary btn-xs" href="#"> Add New Family Member</a>
-            <a id="" class="btn btn-primary btn-xs" href="#"> Request Additional Changes</a>
+            <a class="btn btn-primary btn-xs" href="/MyAccount/Edit"> Add New Family Member</a>
         </div>
     </div>
 </div>
