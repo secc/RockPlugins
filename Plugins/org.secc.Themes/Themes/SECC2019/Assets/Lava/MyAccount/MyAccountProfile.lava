@@ -10,7 +10,7 @@
 
         <span class="g-position--absolute g-padding-y-20--xs g-padding-x-15--xs" style="right: 0px;top: 6px;z-index:100;">
             {%if isAdult -%}
-			<a href="MyAccount/Edit/{{ Person.Guid }}" title="Change Account Info" class="se-action-btn g-padding-y-15--xs g-padding-x-15--xs g-color--dark g-radius--circle g-bg-color-hover--black-opacity-lightest">
+			<a href="/MyAccount/Edit/{{ Person.Guid }}" title="Change Account Info" class="se-action-btn g-padding-y-15--xs g-padding-x-15--xs g-color--dark g-radius--circle g-bg-color-hover--black-opacity-lightest">
                 <i class="fas fa-user-cog"></i>
             </a>
 			{% endif -%}
@@ -18,7 +18,7 @@
 
         <div class="fluid-container">
             <div class="col-md-5 g-padding-x-80--xs g-padding-y-80--xs">
-                <a href="MyAccount/Edit/{{ Person.Guid }}">
+                <a href="/MyAccount/Edit/{{ Person.Guid }}">
                     <img src="{{ Person.PhotoUrl }}" title="Change Image" class="img-responsive img-circle" style="margin: 0 auto;">
                 </a>
             </div>
