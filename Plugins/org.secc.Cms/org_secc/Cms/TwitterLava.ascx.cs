@@ -141,7 +141,7 @@ namespace RockWeb.Plugins.org_secc.CMS
                 }
             }
 
-            var timelineFormat = "https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name={0}&include_rts=0&exclude_replies=1&count={1}";
+            var timelineFormat = "https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name={0}&include_rts=1&exclude_replies=1&count={1}";
             var timelineUrl = string.Format( timelineFormat, screenname, GetAttributeValue( AttributeKeys.TweetCount ) );
             HttpWebRequest timeLineRequest = ( HttpWebRequest ) WebRequest.Create( timelineUrl );
             var timelineHeaderFormat = "{0} {1}";
@@ -198,8 +198,7 @@ namespace RockWeb.Plugins.org_secc.CMS
         public string access_token { get; set; }
     }
 
-    [DotLiquid.LiquidType( "Id", "Text", "Created" )]
-    internal class Tweet
+    internal class Tweet : DotLiquid.Drop
     {
         public long Id { get; set; }
         public string Text { get; set; }
