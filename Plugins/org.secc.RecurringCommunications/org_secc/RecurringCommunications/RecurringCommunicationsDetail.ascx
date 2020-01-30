@@ -14,6 +14,9 @@
                     <Rock:RockRadioButtonList runat="server" ID="rblCommunicationType" Label="Communication Type"
                         AutoPostBack="true" OnSelectedIndexChanged="rblCommunicationType_SelectedIndexChanged"
                         DataValueField="Key" DataTextField="Value" />
+                    <Rock:RockDropDownList ID="ddlTransformTypes" runat="server" Label="Recipient Transformation" />
+
+                    
                     <asp:Panel ID="pnlEmail" runat="server" CssClass="well form-well">
                         <fieldset>
                             <legend>Email Details</legend>
@@ -27,7 +30,7 @@
                     <asp:Panel runat="server" ID="pnlSMS" CssClass="well form-well">
                         <fieldset>
                             <legend>SMS Details</legend>
-                            <Rock:RockDropDownList runat="server" ID="ddlPhoneNumber" Label="From Number" />
+                            <Rock:DefinedValuePicker runat="server" ID="dvpPhoneNumber" Label="From Number" />
                             <Rock:RockTextBox runat="server" ID="tbSMSBody" Label="Text Message" TextMode="MultiLine"
                                 Height="200" />
                         </fieldset>
