@@ -15,11 +15,14 @@ using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Web.UI;
+using System.Web.UI.WebControls;
 using org.secc.RecurringCommunications.Model;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
+using Rock.Reporting;
+using Rock.Security;
 using Rock.Web.Cache;
 
 namespace RockWeb.Plugins.org_secc.RecurringCommunications
@@ -45,6 +48,21 @@ namespace RockWeb.Plugins.org_secc.RecurringCommunications
         internal class PageParameterKey
         {
             public const string RecurringCommunicationId = "RecurringCommunicationId";
+        }
+
+        EntityTypeCache _personEntityType = null;
+
+        private EntityTypeCache PersonEntityType
+        {
+            get
+            {
+                if (_personEntityType == null)
+                {
+                    _personEntityType = EntityTypeCache.Get(Rock.SystemGuid.EntityType.PERSON.AsGuid());
+                }
+
+                return _personEntityType;
+            }
         }
 
         protected override void OnInit( EventArgs e )
@@ -73,6 +91,23 @@ namespace RockWeb.Plugins.org_secc.RecurringCommunications
             DisplayDetails();
         }
 
+        private void BindTransformationTypes()
+        {
+            ddlTransformTypes.Items.Clear();
+            
+            foreach ( var component in DataTransformContainer.GetComponentsByTransformedEntityName( PersonEntityType.Name ).OrderBy( c => c.Title ) )
+            {
+                if (component.IsAuthorized( Authorization.VIEW, CurrentPerson ) )
+                {
+                    var transformEntityType = EntityTypeCache.Get(component.TypeName);
+                    ListItem li = new ListItem(component.Title, transformEntityType.Id.ToString());
+                    ddlTransformTypes.Items.Add(li);
+                }               
+            }
+
+            ddlTransformTypes.Items.Insert(0, new ListItem("", ""));
+        }
+
         private void DisplayDetails()
         {
             var values = GetAttributeValue( AttributeKey.EnabledCommunicationTypes ).SplitDelimitedValues();
@@ -85,7 +120,9 @@ namespace RockWeb.Plugins.org_secc.RecurringCommunications
             rblCommunicationType.DataSource = communicationDictionary;
             rblCommunicationType.DataBind();
 
-            ddlPhoneNumber.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.COMMUNICATION_SMS_FROM ), true );
+            dvpPhoneNumber.DefinedTypeId = DefinedTypeCache.Get(Rock.SystemGuid.DefinedType.COMMUNICATION_SMS_FROM.AsGuid()).Id;
+
+            BindTransformationTypes();
 
             RecurringCommunication recurringCommunication = GetRecurringCommunication();
 
@@ -97,6 +134,27 @@ namespace RockWeb.Plugins.org_secc.RecurringCommunications
                 DisplayScheduleDetails();
             }
             rblCommunicationType.SetValue( recurringCommunication.CommunicationType.ConvertToInt() );
+
+            if (recurringCommunication.TransformationEntityTypeId.HasValue)
+            {
+                if (ddlTransformTypes.Items.FindByValue(recurringCommunication.TransformationEntityTypeId.Value.ToString()) != null)
+                {
+                    ddlTransformTypes.SelectedValue = recurringCommunication.TransformationEntityTypeId.Value.ToString();
+                }
+                else
+                {
+                    var transformComponent = DataTransformContainer.GetComponentsByTransformedEntityName(PersonEntityType.Name)
+                        .SingleOrDefault(c => c.Id == recurringCommunication.TransformationEntityTypeId.Value);
+
+                    if (transformComponent != null)
+                    {
+                        var li = new ListItem(transformComponent.Title, transformComponent.Id.ToString());
+                        ddlTransformTypes.Items.Insert(1, li);
+                        ddlTransformTypes.SelectedIndex = 1;
+                    }
+                }
+            }
+
             UpdateCommunicationTypeUI( recurringCommunication.CommunicationType );
 
             tbFromName.Text = recurringCommunication.FromName;
@@ -104,7 +162,7 @@ namespace RockWeb.Plugins.org_secc.RecurringCommunications
             tbSubject.Text = recurringCommunication.Subject;
             ceEmailBody.Text = recurringCommunication.EmailBody;
 
-            ddlPhoneNumber.SelectedValue = recurringCommunication.PhoneNumberValueId.ToString();
+            dvpPhoneNumber.SetValue(recurringCommunication.PhoneNumberValueId);
             tbSMSBody.Text = recurringCommunication.SMSBody;
 
             tbPushNotificationTitle.Text = recurringCommunication.PushTitle;
@@ -173,7 +231,7 @@ namespace RockWeb.Plugins.org_secc.RecurringCommunications
         private void DisplaySMS( bool shouldDisplay )
         {
             pnlSMS.Visible = shouldDisplay;
-            ddlPhoneNumber.Required = shouldDisplay;
+            dvpPhoneNumber.Required = shouldDisplay;
             tbSMSBody.Required = shouldDisplay;
         }
 
@@ -229,11 +287,13 @@ namespace RockWeb.Plugins.org_secc.RecurringCommunications
             recurringCommunication.FromEmail = tbFromEmail.Text;
             recurringCommunication.Subject = tbSubject.Text;
             recurringCommunication.EmailBody = ceEmailBody.Text;
-            recurringCommunication.PhoneNumberValueId = ddlPhoneNumber.SelectedValue.AsIntegerOrNull();
+            recurringCommunication.PhoneNumberValueId = dvpPhoneNumber.SelectedDefinedValueId > 0 ? dvpPhoneNumber.SelectedDefinedValueId : null;
             recurringCommunication.SMSBody = tbSMSBody.Text;
             recurringCommunication.PushTitle = tbPushNotificationTitle.Text;
             recurringCommunication.PushMessage = tbPushNotificationBody.Text;
             recurringCommunication.PushSound = cbPlaySound.Checked ? "default" : string.Empty;
+            recurringCommunication.TransformationEntityTypeId = ddlTransformTypes.SelectedValue.AsIntegerOrNull();
+
 
             if ( recurringCommunication.Id == 0 )
             {
