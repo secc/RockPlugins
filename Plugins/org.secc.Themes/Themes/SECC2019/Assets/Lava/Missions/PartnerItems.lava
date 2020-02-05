@@ -38,7 +38,9 @@
 
    <div class="isotope_wrap">
        {% for Item in Items limit:limitPartners %}
-               <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
+          {%- assign filterCampus = Item | Attribute: 'PartnerCampus' | Split:',' -%}
+          {%- assign filterCause = Item | Attribute: 'PartnerCause' | Split:',' -%}
+               <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar{% for class in filterCampus %} campus-{{ class | Trim | ToCssClass }}{% endfor %}{% for class in filterCause %} cause-{{ class | Trim | ToCssClass }}{% endfor %}">
                    <div class="clearfix card">
                        <a href="{{ Item | Attribute:'PartnerURL','RawValue' }}" class='eventCardLink' target="_blank">
                          {% assign partnerImage = Item | Attribute:'Image', 'RawValue' %}
