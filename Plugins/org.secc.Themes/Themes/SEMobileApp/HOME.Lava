@@ -6,7 +6,8 @@
 		"style":"stacked",
 		"contentWidthRatio":9.5,
 	    "itemDisplayOptions":{
-	        "indicatorAspectRatio":2.47407
+	        "indicatorAspectRatio":2.47407,
+	        "textPosition": "none"
 	    },
 		"colors":{
 	        "brand":{
@@ -29,29 +30,32 @@
 	    }
 	},
 	"items": [
-		{%- contentchannelitem where:'ContentChannelId == 57' sort:'Order' -%}
-			{%- for item in contentchannelitemItems -%}
-			{%- assign title = item.Title -%}
-			{%- assign subtitle = item | Attribute:'Subtitle' -%}
-			{%- assign visible = item | Attribute:'Visible' -%}
-			{%- assign schedule = item | Attribute:'Schedule' -%}
-			{%- assign imageGuid = item | Attribute:'Image','RawValue' -%}
-			{%- assign imageWidth = item | Attribute:'ImageWidth' -%}
-			{%- assign actionJson = item | Attribute:'ActionJson' -%}
+		{%- contentchannelitem Id:'2087' -%}
+			{%- assign childItemsSorted = contentchannelitem.ChildItems | Sort:"Order" -%}
+			{%- for item in childItemsSorted -%}
+			    {%- assign nowDateTime = 'Now' | Date:'yyyyMMddhhmmss' -%}
+    			{%- assign startDateTime = item.ChildContentChannelItem.StartDateTime | Date:'yyyyMMddhhmmss' -%}
+    			{%- assign endDateTime = item.ChildContentChannelItem.ExpireDateTime | Date:'yyyyMMddhhmmss' | Default:'99999999999999' -%}
+    			{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+        			{%- assign title = item.ChildContentChannelItem.Title -%}
+        			{%- assign subtitle = item.ChildContentChannelItem | Attribute:'Subtitle' -%}
+        			{%- assign imageGuid = item.ChildContentChannelItem | Attribute:'Image','RawValue' -%}
+        			{%- assign actionJson = item.ChildContentChannelItem | Attribute:'Action' -%}
 
-			{%- if visible == "True" -%}
-			{
-				"images":[{
-					"width": {{-imageWidth-}},
-					"url":"https://www.southeastchristian.org/GetImage.ashx?Guid={{ imageGuid }}&mode=crop&s.roundcorners=20&bgcolor=121212&format=png"
-				}]
-				{%- if actionJson != "" -%}
-				,"actions":[{
-					{{-actionJson-}}
-				}]
-				{%- endif -%}
-			}{%- if forloop.last -%}{%- else -%},{%- endif -%}
-			{%- endif %}
+        			{
+        				"images":[
+        				    {"width": 668,
+        					"url":"https://www.southeastchristian.org/GetImage.ashx?Guid={{ imageGuid }}&mode=crop&s.roundcorners=20&bgcolor=121212&format=png"}
+        					]
+        				{%- if actionJson != "" -%}
+        				,"actions":[{
+        					{{-actionJson-}}
+        				}],
+        				"title": "{{ title }}",
+        				"subtitle": "{{ subtitle }}"
+        				{%- endif -%}
+        			}{%- if forloop.last -%}{%- else -%},{%- endif -%}
+    			{%- endif -%}
 			{%- endfor %}
 		{%- endcontentchannelitem %}
 	]

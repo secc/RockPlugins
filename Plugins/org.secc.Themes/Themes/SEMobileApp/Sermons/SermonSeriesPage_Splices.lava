@@ -43,23 +43,25 @@
 	        {%- for item in contentchannelitemItems -%}
 	        {% unless forloop.first %},{% endunless %}
 	        {
+				"title": "{{item.Title | Replace:'"','\"'}}",
+				"subtitle": "{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
 	            "images":[
 				    { "width":400, "url":"https://www.southeastchristian.org/GetImage.ashx/{{item | Attribute:'Image', 'RawValue'}}.jpg?guid={{item | Attribute:'Image', 'RawValue'}}&width=400&height=75&mode=crop&s.roundcorners=80,80,0,0&bgcolor=121212&format=png&margin=40,75,40,0&anchor=topcenter"  }
 			    ],
 				"actions": [{
-					"handler": "list",
-					"url": "https://rock.secc.org/webhooks/Lava.ashx/subsplash/sermons/series/{{item.Id}}"
-				}],
-				"title": "{{item.Title | Replace:'"','\"'}}",
-				"subtitle": "{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode  }}"
+					"handler": "subtabs",
+            		"type": "navigation",
+					"url": "https://rock.secc.org/webhooks/SubSplash.ashx/tabs/series/{{item.Id}}"
+				}]
 			},
 			{
 	            "images":[
 				    { "width":400, "url":"https://www.southeastchristian.org/GetImage.ashx/7{{item | Attribute:'Image', 'RawValue'}}.jpg?guid={{item | Attribute:'Image', 'RawValue'}}&width=400&height=150&mode=crop&s.roundcorners=0,0,0,0&bgcolor=121212&format=png&margin=40,0,40,0&anchor=bottomcenter"  }
 			    ],
 				"actions": [{
-					"handler": "list",
-					"url": "https://rock.secc.org/webhooks/Lava.ashx/subsplash/sermons/series/{{item.Id}}"
+					"handler": "subtabs",
+            		"type": "navigation",
+					"url": "https://rock.secc.org/webhooks/SubSplash.ashx/tabs/series/{{item.Id}}"
 				}]
 			},
 			{
@@ -67,8 +69,9 @@
 				    { "width":480, "url":"https://rock.secc.org/Content/SubSplash/ContentPart1.jpg"  }
 			    ],
 				"actions": [{
-					"handler": "list",
-					"url": "https://rock.secc.org/webhooks/Lava.ashx/subsplash/sermons/series/{{item.Id}}"
+					"handler": "subtabs",
+            		"type": "navigation",
+					"url": "https://rock.secc.org/webhooks/SubSplash.ashx/tabs/series/{{item.Id}}"
 				}]
 			},
 			{
@@ -76,8 +79,9 @@
 				    { "width":480, "url":"https://rock.secc.org/Content/SubSplash/ContentPart2.jpg"  }
 			    ],
 				"actions": [{
-					"handler": "list",
-					"url": "https://rock.secc.org/webhooks/Lava.ashx/subsplash/sermons/series/{{item.Id}}"
+					"handler": "subtabs",
+            		"type": "navigation",
+					"url": "https://rock.secc.org/webhooks/SubSplash.ashx/tabs/series/{{item.Id}}"
 				}]
 			}
 	        {%- endfor -%}
