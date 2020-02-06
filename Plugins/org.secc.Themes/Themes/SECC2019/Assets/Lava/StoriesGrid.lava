@@ -25,7 +25,7 @@
         </div>
       {% endfor %}
     </div>
-    <p class="text-center g-margin-b-40--xs"><a href="/stories" class="uppercase se-btn se-btn--dark-brd g-letter-spacing--3">
+    <p class="text-center g-margin-b-40--xs"><a href="/stories/tag/Missions" class="uppercase se-btn se-btn--dark-brd g-letter-spacing--3">
         <strong>See More</strong>
     </a></p>
 

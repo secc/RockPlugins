@@ -45,7 +45,7 @@ namespace org.secc.RecurringCommunications.Jobs
                 var lastExpectedRun = communication.Schedule
                     .GetScheduledStartTimes( RockDateTime.Now.AddDays( -1 ), RockDateTime.Now )
                     .LastOrDefault();
-                if ( lastExpectedRun != null )
+                if ( lastExpectedRun != null && lastExpectedRun > DateTime.MinValue )
                 {
                     if ( communication.LastRunDateTime == null || communication.LastRunDateTime <= lastExpectedRun )
                     {
