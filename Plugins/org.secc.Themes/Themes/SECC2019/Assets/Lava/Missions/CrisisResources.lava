@@ -1,12 +1,47 @@
-<div class="container g-padding-t-150--xs g-padding-b-50--xs">
+<style>
+.se-input {
+	background-color: white;
+	border: 2px solid black;
+	padding: 5px 70px 5px 15px;
+	display: block;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	color: black;
+	line-height: 28px;
+	text-transform: uppercase;
+	font-weight: 600;
+	box-sizing: border-box;
+	display: inline-block;
+	margin: 0;
+	position: relative;
+	vertical-align: middle;
+	margin-top: 5px;
+	min-width: 170px;
+	z-index: 10;
+}
+.se-zipcode-loading {
+	position: absolute;
+	right: 25px;
+	top: 18px;
+	z-index: 30;
+}
+</style>
+
+<div class="container g-padding-t-150--xs g-padding-b-50--xs g-padding-x-50--xs">
     <div class="row">
         <div class="col-xs-12 col-sm-12 col-md-10 col-md-offset-1" >
             <h3 class="g-font-weight--600">Find Help in Your Area</h3>
             <p class="g-font-weight--400 g-line-height--sm">Filter to find the resources for your area</p>
             <div id="partnerFilters" class="g-display-block--xs">
 
+ <div class="g-display-inline-block--xs col-xs-12 col-md-3 g-padding-x-5--xs">
+                    <input id="se-zipcode" class="g-width-100-percent--xs se-input" placeholder="Zipcode" type="number" pattern="\d*" />
+                    <i class="fas fa-circle-notch fa-spin se-zipcode-loading hidden"></i>
+                </div>
+
                 <!-- Select a Need? -->
-                <div class="g-display-inline-block--xs col-xs-12 col-md-5 g-padding-x-5--xs">
+                <div class="g-display-inline-block--xs col-xs-12 col-md-4 g-padding-x-5--xs">
                     <select class="select2-need" name="Need?" data-control="#partnerFilters">
                         <option value="allNeeds" data-shortcode="SE" data-need="">Need?</option>
                         {% tag where:'CategoryId == 1413' %}
@@ -33,14 +68,14 @@
 <div class="container-fluid g-padding-y-50--xs">
     <div class="container g-padding-b-10--xs">
         <div class="isotope_wrap">
-            {% contentchannelitem where:'ContentChannelId == 68' sort:'Order' %}
+            {% contentchannelitem where:'ContentChannelId == 66' sort:'Order' %}
                {% for item in contentchannelitemItems %}
 
                     {% assign phone = item | Attribute:'Phone' %}
                     {% assign website_url = item | Attribute:'Website','RawValue' %}
                     {% assign se_address = item | Attribute:'Location' %}
                     {% assign se_recognition = item | Attribute:'SoutheastRecognition' %}
-                    <div class="isotope_item col-sm-12 col-md-6 col-lg-4 g-padding-y-25--xs g-padding-x-35--xs"
+                    <div class="isotope_item col-sm-12 col-md-6 col-lg-4"
                          data-groupid="{{item.Id}}"
                          data-need="{% taggeditem where:'EntityGuid == "{{item.Guid}}"' %}{% for tag in taggeditemItems %}{%- if forloop.first -%}{%- else -%},{%- endif -%}{{ tag.Tag.Id }}{% endfor %}{% endtaggeditem %}"
                          data-zipcode="{{ item | Attribute:'Location','PostalCode' | Truncate:5,'' }}"
@@ -48,13 +83,6 @@
 
                         <div class="clearfix se-panel">
                             <div class="g-padding-y-50--xs g-padding-x-50--xs g-margin-y-20--xs g-margin-x-10--xs">
-
-                                <div class="distance-container hidden">
-                                    <h6 class="uppercase g-padding-b-5--xs g-font-weight--700 g-width-100-percent--xs">
-                                        Distance: <span class="distance"></span> miles
-                                    </h6>
-                                    <hr class="g-hor-divider__solid__t--gray-lighter" />
-                                </div>
 
                                 {% if se_recognition == "Mission Partner"%}
                                 <span class="label label-default label label-default g-position--absolute bug g-bg-color--2020-crisis-partner">
@@ -108,13 +136,17 @@
                                 <div class="partner_location g-margin-t-20--xs g-display-inline-block--xs g-width-100-percent--xs">
                                     <div class="pull-left g-margin-r-20--xs" style="max-width: 35px; height:100%;" class="pull-left">
                                         {[ vivus svg:'/Themes/SECC2019/Assets/img/SE/Location.svg' fill:'#000000' max-width:'120px;' duration:'10' ]}
-                                    </div>
-                                    <div>
+									</div>
+									<div>
                                         <h6>
                                             <small class="uppercase g-font-weight--700">location</small><br />
                                             {{ item | Attribute:'Location','Street1' }}<br />
                                             {{ item | Attribute:'Location','City' }}, {{ item | Attribute:'Location','State' }} {{ item | Attribute:'Location','PostalCode' }}
-                                        </h6>
+											<br />
+											<small class="uppercase distance-miles">
+												
+											 </small>
+										</h6>
                                     </div>
                                 </div>
                                 {% endif %}
@@ -130,10 +162,14 @@
 
 <script>
     // Initialize Isotope/Items
-    var $grid = $('.isotope_wrap').isotope({
+    $grid = $('.isotope_wrap').isotope({
       itemSelector: '.isotope_item',
       percentPosition: true,
-      layoutMode: 'masonry'
+      layoutMode: 'masonry',
+	  getSortData: {
+					distance: '[data-distance] parseFloat',
+				},
+	  sortBy: 'distance'
     });
 
     if (Modernizr.mq('only all and (max-width: 720px)')) {
@@ -143,7 +179,11 @@
         var isoOptions = {
             itemSelector: '.isotope_item',
             percentPosition: true,
-            layoutMode: 'masonry'
+            layoutMode: 'masonry',
+			getSortData: {
+					distance: '[data-distance] parseFloat',
+				},
+			sortBy: 'distance'
         };
         // init Isotope
         $grid.addClass('is-showing-items').isotope(isoOptions);
@@ -182,6 +222,7 @@
     }
 
     // handling 'need?' tag selected
+    var need_filters_selected = [];
     var need_filters_selected = [];
     function buildNeedFilters(need) {
         // reset need array, 'need?' values are only selected one at a time
@@ -240,4 +281,63 @@
          }
          return output;
      }
+	 
+	 
+	      //This is for the zipcode :)
+    $zipcode_input = $('#se-zipcode')
+
+    $zipcode_input.keydown( function (e) {
+        if (e.keyCode == 13) {
+            e.preventDefault();
+        }
+    });
+
+    $zipcode_input.keyup(function(){
+        var zipcode = $zipcode_input.val();
+        var $isotopeItem = $('.isotope_item');
+        if (zipcode.length==5){
+            $('.se-zipcode-loading').removeClass('hidden');
+            $.getJSON(
+            "/api/mapping/distance/27984/"+zipcode,
+            function(data){
+                $('.se-zipcode-loading').addClass('hidden');
+               
+                $isotopeItem.attr("data-distance",Number.MAX_VALUE);
+                $.each( data, function( key, val ){
+					var $itemDiv = $("div[data-groupid='"+key+"']");
+                    $itemDiv.attr("data-distance",val);
+					$itemDiv.find('.distance-miles').html(val + " MILES")
+                });
+				$grid.isotope('updateSortData').isotope({
+					getSortData: {
+					distance: '[data-distance] parseFloat',
+				},
+				sortBy: [ 'distance' ]
+			});
+			});
+        } else {
+            $isotopeItem.find('div.distance-container').each(function(){
+               $(this).addClass("hidden");
+            });
+            $grid.isotope();
+        }
+     });
+
+     // Restricts input for the given textbox to the given inputFilter.
+     function setInputFilter(textbox, inputFilter) {
+      ["input", "keydown", "keyup", "mousedown", "mouseup", "select", "contextmenu", "drop"].forEach(function(event) {
+        textbox.addEventListener(event, function() {
+          if (inputFilter(this.value)) {
+            this.oldValue = this.value;
+            this.oldSelectionStart = this.selectionStart;
+            this.oldSelectionEnd = this.selectionEnd;
+          }
+        });
+      });
+     }
+
+     // Restrict input to digits
+     setInputFilter(document.getElementById("se-zipcode"), function(value) {
+         return /^\d*$/.test(value);
+     });
 </script>
