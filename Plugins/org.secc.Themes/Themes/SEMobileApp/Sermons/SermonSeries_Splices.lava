@@ -1,0 +1,65 @@
+{%- contentchannelitem where:'ContentChannelId == 24 && Id == {{series}}' sort:'StartDateTime desc'  -%}
+{%- for series in contentchannelitemItems -%}
+{
+	"header": {
+		"title": "{{series.Title | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
+		"style": "featured",
+		"items": [{
+			"images":[
+                { "width":320, "url":"https://www.southeastchristian.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121314&width=110&height=110"  },
+                { "width":720, "url":"https://www.southeastchristian.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121314&width=720&height=720" },
+                { "width":1080, "url":"https://www.southeastchristian.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121314&width=1080&height=1080" },
+                { "width":1920, "url":"https://www.southeastchristian.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121314&width=1920&height=1920" }
+		    ]
+		}]
+	},
+	"displayOptions": {
+		"style":"stacked",
+		"contentWidthRatio": 1.0,
+		"itemDisplayOptions": {
+			"indicatorAspectRatio":3.66,
+			"indicatorShadowEnabled":true,
+        	"maxWidth":1400,
+	        "textPosition": "none"
+		}
+    },
+    "items": [
+        {%- assign comma = "" -%}
+        {%- for seriesChild in series.ChildItems reversed -%}
+        {%- assign sermon = seriesChild.ChildContentChannelItem -%}
+        {%- if sermon.ContentChannelId == "23" -%}
+        {{ comma }}
+		{
+			"title": "{{sermon.Title | Replace:'"','\"'}}",
+			"subtitle": "{{ sermon | Attribute:'Speaker' | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }} {{ '&bull;' | HtmlDecode }} {{ sermon.StartDateTime | Date:'MMMM d, yyyy' }}",
+			"images":[
+				{ "width":747, "url":"https://www.southeastchristian.org/GetImage.ashx/abb0fd8e-46d5-413c-b673-7058a813ae4c.jpg?guid=abb0fd8e-46d5-413c-b673-7058a813ae4c&bgcolor=121314&mode=crop&s.roundcorners=40&margin=40,40,40,0"  }
+			],
+			"actions": [{
+				"handler": "detail",
+				"url": "https://www.southeastchristian.org/webhooks/Subsplash.ashx/sermon/{{sermon.Id}}"
+			}]
+		}
+        {%- assign comma = "," -%}
+        {%- endif -%}
+
+		{%- if forloop.last -%}
+		{{ comma }}
+		{
+			"title": "{{sermon.Title | Replace:'"','\"'}}",
+			"subtitle": "{{ sermon | Attribute:'Speaker' | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }} {{ '&bull;' | HtmlDecode }} {{ sermon.StartDateTime | Date:'MMMM d, yyyy' }}",
+			"images":[
+				{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/SermonBlank.jpg"  }
+			],
+			"actions": [{
+				"handler": "detail",
+				"url": "https://www.southeastchristian.org/webhooks/Subsplash.ashx/sermon/{{sermon.Id}}"
+			}]
+		}
+		{%- endif -%}
+
+        {%- endfor -%}
+    ]
+}
+{%- endfor -%}
+{% endcontentchannelitem -%}
