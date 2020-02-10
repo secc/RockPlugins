@@ -141,9 +141,9 @@
             <asp:Panel runat="server" ID="pnlDone" CssClass="text-center" Visible="false">
                 <h3>Success!</h3>
                 Your changes have been submitted. Pending review, they will be applied.
-                <br />
+                <br /><br />
                 <Rock:BootstrapButton runat="server" Text="Done" ID="btnDone" OnClick="btnDone_Click" CssClass="btn btn-primary" />
-                <br />
+                <br /><br />
             </asp:Panel>
         </div>
     </ContentTemplate>
