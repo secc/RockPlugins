@@ -45,7 +45,11 @@
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\Newtonsoft.Json.6.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="RestSharp, Version=105.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+	    <HintPath>$(SolutionDir)packages\RestSharp.105.2.3\lib\net452\RestSharp.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Linq.Dynamic, Version=1.0.6132.35681, Culture=neutral, processorArchitecture=MSIL">
@@ -54,6 +58,7 @@
     <Reference Include="System.Net.Http.Formatting, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\Microsoft.AspNet.WebApi.Client.5.2.3\lib\net45\System.Net.Http.Formatting.dll</HintPath>
     </Reference>
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Spatial, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\System.Spatial.5.6.0\lib\net40\System.Spatial.dll</HintPath>
     </Reference>
@@ -97,13 +102,49 @@
       <Name>Rock</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
-    <None Include="Webhooks\SubSplash.ashx" />
+    <Compile Include="Communication\Transport\Subsplash.cs" />
+    <Compile Include="Model\Address.cs" />
+    <Compile Include="Model\App.cs" />
+    <Compile Include="Model\ErrorResponse.cs" />
+    <Compile Include="Model\ErrorResponseErrors.cs" />
+    <Compile Include="Model\ExternalUser.cs" />
+    <Compile Include="Model\Geofence.cs" />
+    <Compile Include="Model\GeofenceEmbedded.cs" />
+    <Compile Include="Model\InlineResponse200.cs" />
+    <Compile Include="Model\InlineResponse2001.cs" />
+    <Compile Include="Model\InlineResponse2001Embedded.cs" />
+    <Compile Include="Model\InlineResponse2002.cs" />
+    <Compile Include="Model\InlineResponse2002Embedded.cs" />
+    <Compile Include="Model\InlineResponse200Embedded.cs" />
+    <Compile Include="Model\Link.cs" />
+    <Compile Include="Model\Links.cs" />
+    <Compile Include="Model\Location.cs" />
+    <Compile Include="Model\LocationEmbedded.cs" />
+    <Compile Include="Model\Notification.cs" />
+    <Compile Include="Model\NotificationEmbedded.cs" />
+    <Compile Include="Model\PlatformEndpoint.cs" />
+    <Compile Include="Model\SelfLink.cs" />
+    <Compile Include="Model\Sort.cs" />
+    <Compile Include="Model\Sort1.cs" />
+    <Compile Include="Model\Sort2.cs" />
+    <Compile Include="Model\Timezone.cs" />
+    <Compile Include="Model\Topic.cs" />
+    <Compile Include="Model\TopicSubscription.cs" />
+    <Compile Include="Model\TopicSubscriptionBulk.cs" />
+    <Compile Include="Model\TopicSubscriptionBulkEmbedded.cs" />
+    <Compile Include="Model\TopicSubscriptionEmbedded.cs" />
+    <Compile Include="Model\TypeBitSet.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+    <None Include="Webhooks\Subsplash.ashx" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Y /R "$(ProjectDir)Webhooks\*" "$(SolutionDir)RockWeb\Webhooks\"</PostBuildEvent>
+    <PostBuildEvent>xcopy /Y /R "$(ProjectDir)bin\Debug\com.subsplash.dll" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(ProjectDir)Webhooks\*" "$(SolutionDir)RockWeb\Webhooks\"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
