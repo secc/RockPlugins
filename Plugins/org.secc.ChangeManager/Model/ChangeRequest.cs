@@ -13,6 +13,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using org.secc.ChangeManager.Data;
+using org.secc.ChangeManager.Utilities;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -92,6 +93,12 @@ namespace org.secc.ChangeManager.Model
 
         public void CompleteChanges( RockContext rockContext = null )
         {
+            SecurityChangeDetail securityChangeDetail = new SecurityChangeDetail
+            {
+                ChangeRequestId = this.Id,
+                ChangeDetails = new List<string>()
+            };
+
             if ( rockContext == null )
             {
                 rockContext = new RockContext();
@@ -119,6 +126,15 @@ namespace org.secc.ChangeManager.Model
                                 //new entity
                                 targetEntity = CreateNewEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.NewValue, rockContext );
                                 changeRecord.RelatedEntityId = targetEntity.Id;
+
+                                //if we add a phone number add that to the change list
+                                if ( targetEntity.GetType() == typeof( PhoneNumber ) )
+                                {
+                                    var number = targetEntity as PhoneNumber;
+                                    var numberType = DefinedValueCache.GetValue( number.NumberTypeValueId.Value );
+                                    securityChangeDetail.ChangeDetails.Add( string.Format( "Added {0} phone number {1}", numberType, number.NumberFormatted ) );
+                                }
+
                             }
                         }
 
@@ -155,6 +171,32 @@ namespace org.secc.ChangeManager.Model
                             }
                         }
                         changeRecord.WasApplied = true;
+
+                        //Check to see if the email address was changed
+                        var targetEntityType = targetEntity.GetType();
+                        if ( targetEntityType?.BaseType == typeof( Person ) // is a person
+                            && changeRecord.Property == "Email" // and changed email
+                            && changeRecord.OldValue.IsNotNullOrWhiteSpace() //old value isn't blank
+                            && changeRecord.NewValue.IsNotNullOrWhiteSpace() //new value isn't blank
+                            )
+                        {
+                            securityChangeDetail.ChangeDetails.Add( string.Format( "Changed email address from {0} to {1}", changeRecord.OldValue, changeRecord.NewValue ) );
+                            securityChangeDetail.CurrentEmail = changeRecord.NewValue;
+                            securityChangeDetail.PreviousEmail = changeRecord.OldValue;
+                        }
+
+                        //Check to see if the phone number was changed
+                        if ( targetEntityType?.BaseType == typeof( PhoneNumber ) //is a phonenuumber
+                            && changeRecord.Property == "Number"  //is a number change
+                            )
+                        {
+                            var number = targetEntity as PhoneNumber;
+                            var numberType = DefinedValueCache.GetValue( number.NumberTypeValueId.Value );
+                            securityChangeDetail.ChangeDetails.Add( string.Format( "Changed {0} phone number from {1} to {2}",
+                                numberType,
+                                PhoneNumber.FormattedNumber( PhoneNumber.DefaultCountryCode(), changeRecord.OldValue ),
+                                PhoneNumber.FormattedNumber( PhoneNumber.DefaultCountryCode(), changeRecord.NewValue ) ) );
+                        }
                     }
 
                     //Undo Changes
@@ -219,6 +261,14 @@ namespace org.secc.ChangeManager.Model
 
                     rockContext.SaveChanges();
                     dbContextTransaction.Commit();
+
+                    if ( entity.GetType()?.BaseType == typeof( Person ) && securityChangeDetail.ChangeDetails.Any() )
+                    {
+                        var workflowGuid = GlobalAttributesCache.Get().GetValue( "ChangeManagerSecurityWorkflow" ).AsGuidOrNull();
+                        this.LaunchWorkflow( workflowGuid,
+                            "Change Request Security Notice",
+                            new Dictionary<string, string> { { "ChangeDetail", securityChangeDetail.ToJson() } } );
+                    }
                 }
                 catch ( Exception e )
                 {
@@ -232,7 +282,7 @@ namespace org.secc.ChangeManager.Model
         {
             if ( !( targetEntity is IHasAttributes ) )
             {
-                return ;
+                return;
             }
             var ihaEntity = targetEntity as IHasAttributes;
             ihaEntity.LoadAttributes( rockContext );

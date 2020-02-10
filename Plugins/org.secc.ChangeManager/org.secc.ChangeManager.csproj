@@ -68,6 +68,7 @@
     <Compile Include="Model\ChangeRecordService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\PropertyChangeEvaluators.cs" />
+    <Compile Include="Utilities\SecurityChangeDetail.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

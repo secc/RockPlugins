@@ -1,0 +1,25 @@
+{%- contentchannelitem where:'ContentChannelId == 24 && Id == {{series}}' sort:'StartDateTime desc'  -%}
+{%- for series in contentchannelitemItems -%}
+{
+	"header": {
+		"title": "{{series.Title | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}"
+	},
+    "items": [
+        {
+            "title": "Sermons",
+            "actions": [{
+				"handler": "list",
+				"url": "https://www.southeastchristian.org/webhooks/SubSplash.ashx/sermons/series/{{series.Id}}"
+			}]
+        },
+        {
+            "title": "Resources",
+            "actions": [{
+                "handler": "list",
+                "url": "https://www.southeastchristian.org/webhooks/SubSplash.ashx/sermons/series/{{series.Id}}/resources"
+            }]
+        }
+    ]
+}
+{%- endfor -%}
+{% endcontentchannelitem -%}
