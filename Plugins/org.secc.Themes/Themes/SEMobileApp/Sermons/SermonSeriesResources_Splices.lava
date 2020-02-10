@@ -1,0 +1,134 @@
+{%- contentchannelitem where:'ContentChannelId == 24 && Id == {{series}}' sort:'StartDateTime desc'  -%}
+{%- for series in contentchannelitemItems -%}
+{
+	"header": {
+		"title": "{{series.Title | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
+		"style": "featured",
+		"items": [{
+			"images":[
+                { "width":320, "url":"https://www.southeastchristian.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121314&width=110&height=110"  },
+                { "width":720, "url":"https://www.southeastchristian.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121314&width=720&height=720" },
+                { "width":1080, "url":"https://www.southeastchristian.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121314&width=1080&height=1080" },
+                { "width":1920, "url":"https://www.southeastchristian.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121314&width=1920&height=1920" }
+		    ]
+		}]
+	},
+	"displayOptions": {
+		"style":"stacked",
+		"contentWidthRatio": 1.0,
+		"itemDisplayOptions": {
+			"indicatorAspectRatio":3.66,
+			"indicatorShadowEnabled":true,
+        	"maxWidth":1400,
+	        "textPosition": "none"
+		}
+    },
+    "items": [
+		{%- assign comma = "" -%}
+		{%- assign resourcesCount = 0 -%}
+		{%- assign itemChildItems = series.ChildItems | Sort:'Order' -%}
+		{%- for messages in itemChildItems -%}
+			{%- assign message = messages.ChildContentChannelItem -%}
+			{%- assign videoImageGuid = message | Attribute:'Image','RawValue' -%}
+			{%- if message.ContentChannelId != "23" -%}
+				{%- assign resourcesCount = resourcesCount | Plus:1 -%}
+			{%- endif -%}
+		{%- endfor -%}
+		{%- if resourcesCount != 0 -%}
+			{%- assign studiesStudiesIncluded = false -%}
+			{%- assign studiesReadingPlansIncluded = false -%}
+			{%- assign studiesMediaIncluded = false -%}
+
+			{%- for messages in itemChildItems -%}
+
+				{%- assign resource = messages.ChildContentChannelItem -%}
+				{%- assign resourceMediaFile = resource | Attribute:'ResourceFile','Object' -%}
+				{%- assign resourceURL = resource | Attribute:'ResourceURL','RawValue' -%}
+				{%- assign ResourceURLText = resource | Attribute:'ResourceURLText','RawValue' -%}
+				{%- assign embedCode = resource | Attribute:'EmbedCode','RawValue' -%}
+
+				{%- if resource.ContentChannelId != "23" -%}
+					{{ comma }}
+					{%- if resourceMediaFile.Guid != null -%}
+						{%- if studiesStudiesIncluded == false -%}
+						{
+							"images":[
+								{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/ResourcesStudies.jpg"  }
+							]
+						},
+						{%- assign studiesStudiesIncluded = true -%}
+						{%- endif -%}
+						{
+							"title": "{{ resource.Title }}",
+							"subtitle": "Download",
+							"images":[
+								{ "width":747, "url":"https://www.southeastchristian.org/GetImage.ashx/5a131e54-dbb4-4558-be26-9a88c0c88b20.jpg?guid=5a131e54-dbb4-4558-be26-9a88c0c88b20&bgcolor=121314&mode=crop&s.roundcorners=40&margin=40,0,40,40"  }
+							],
+							"actions": [{
+								"handler": "internalBrowser showTabBar",
+								"type":"navigation",
+								"showBrowserControls": true,
+								"contentUrl": "https://www.southeastchristian.org/GetFile.ashx?guid={{ resourceMediaFile.Guid }}"
+							}]
+						}
+					{%- elseif resourceURL != "" -%}
+						{%- if studiesReadingPlansIncluded == false -%}
+						{
+							"images":[
+								{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/ResourcesReadingPlans.jpg"  }
+							]
+						},
+						{%- assign studiesReadingPlansIncluded = true -%}
+						{%- endif -%}
+						{
+							"title": "{{ resource.Title }}",
+							"subtitle": "{%- if ResourceURLText != "" -%}{{ ResourceURLText }}{%- else -%}Link{%- endif -%}",
+							"images":[
+								{ "width":747, "url":"https://www.southeastchristian.org/GetImage.ashx/5a131e54-dbb4-4558-be26-9a88c0c88b20.jpg?guid=5a131e54-dbb4-4558-be26-9a88c0c88b20&bgcolor=121314&mode=crop&s.roundcorners=40&margin=40,0,40,40"  }
+							],
+							"actions": [{
+								"handler": "internalBrowser showTabBar",
+								"type":"navigation",
+								"showBrowserControls": true,
+								"contentUrl": "{{ resourceURL }}"
+							}]
+						}
+					{%- elseif embedCode != "" -%}
+						{%- if studiesMediaIncluded == false -%}
+						{
+							"images":[
+								{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/ResourcesMedia.jpg"  }
+							]
+						},
+						{%- assign studiesMediaIncluded = true -%}
+						{%- endif -%}
+						{
+							"title": "{{ resource.Title }}",
+							"subtitle": "Watch",
+							"images":[
+								{ "width":747, "url":"https://www.southeastchristian.org/GetImage.ashx/5a131e54-dbb4-4558-be26-9a88c0c88b20.jpg?guid=5a131e54-dbb4-4558-be26-9a88c0c88b20&bgcolor=121314&mode=crop&s.roundcorners=40&margin=40,0,40,40"  }
+							],
+							"actions": [{
+								"handler": "internalBrowser showTabBar",
+								"type":"navigation",
+								"showBrowserControls": true,
+								"contentUrl": "https://www.southeastchristian.org/sermons/{{slug}}/{{resource.PrimarySlug}}"
+							}]
+						}
+					{%- endif -%}
+					{%- assign comma = "," -%}
+				{%- endif -%}
+				{%- if forloop.last -%}
+				{{ comma }}
+				{
+					"images":[
+						{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/SermonBlank.jpg"  }
+					]
+				}
+				{%- endif -%}
+			{%- endfor -%}
+		{%- endif -%}
+    ]
+}
+{%- endfor -%}
+{%- endcontentchannelitem -%}

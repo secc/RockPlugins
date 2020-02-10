@@ -85,9 +85,11 @@ function updatePath(key, value) {
                 {%- assign randomOrderedAds = Items | Shuffle -%}
                 {%- for Item in randomOrderedAds -%}
                 {%- assign filterClass = Item | Attribute: 'Campus' | Split:',' -%}
-                    <div class="col-xs-12 col-md-6 col-lg-4 isotope_item{% if forloop.index0 < 3 %} initial-show{% endif %}{% for class in filterClass %} campus-{{ class | Trim | ToCssClass }}{% endfor %}">
+                    <div class="col-xs-12 col-md-6 col-lg-4">
                         <div class="shareable">
                             <img src="/GetImage.ashx?Guid={{ Item | Attribute:'ShareableImage', 'RawValue' }}&height=500&width=500&mode=crop&scale=both" alt="{{ Item.Title }}" />
+                            {[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx/?Guid={{ Item | Attribute:'ShareableImage', 'RawValue' }}' ]}
+
                         </div>
                     </div>
                 {%- endfor -%}

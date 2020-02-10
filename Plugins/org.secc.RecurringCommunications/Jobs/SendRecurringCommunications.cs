@@ -24,6 +24,8 @@ using System.Collections.Generic;
 using org.secc.RecurringCommunications.Model;
 using Rock.Web.Cache;
 using System;
+using Rock.Reporting;
+using System.Reflection;
 
 namespace org.secc.RecurringCommunications.Jobs
 {
@@ -43,7 +45,7 @@ namespace org.secc.RecurringCommunications.Jobs
                 var lastExpectedRun = communication.Schedule
                     .GetScheduledStartTimes( RockDateTime.Now.AddDays( -1 ), RockDateTime.Now )
                     .LastOrDefault();
-                if ( lastExpectedRun != null )
+                if ( lastExpectedRun != null && lastExpectedRun > DateTime.MinValue )
                 {
                     if ( communication.LastRunDateTime == null || communication.LastRunDateTime <= lastExpectedRun )
                     {
@@ -70,6 +72,8 @@ namespace org.secc.RecurringCommunications.Jobs
                 return;
             }
 
+
+
             var communication = new Communication();
             communication.SenderPersonAlias = recurringCommunication.CreatedByPersonAlias;
             communication.Name = recurringCommunication.Name;
@@ -85,6 +89,13 @@ namespace org.secc.RecurringCommunications.Jobs
             communication.PushMessage = recurringCommunication.PushMessage;
             communication.Status = CommunicationStatus.Approved;
 
+            DataTransformComponent transform = null;
+            if (recurringCommunication.TransformationEntityTypeId.HasValue)
+            {
+                transform = DataTransformContainer.GetComponent(recurringCommunication.TransformationEntityType.Name);
+                communication.AdditionalMergeFields = new List<string>() { "AppliesTo" };
+            }
+
 
             communicationService.Add( communication );
 
@@ -94,16 +105,55 @@ namespace org.secc.RecurringCommunications.Jobs
 
             List<string> errorsOut;
             var dataview = ( IQueryable<Person> ) recurringCommunication.DataView.GetQuery( null, rockContext, null, out errorsOut );
-            communication.Recipients = dataview
-                .ToList()
-                .Select( p =>
-                    new CommunicationRecipient
-                    {
-                        PersonAlias = p.PrimaryAlias,
-                        MediumEntityTypeId = p.CommunicationPreference == CommunicationType.SMS ? smsMediumEntityType.Id : emailMediumEntityType.Id
-                    } )
-                .ToList();
 
+
+            if (transform != null)
+            {
+                var recipients = new List<CommunicationRecipient>();
+                var personService = new PersonService(rockContext);
+                var paramExpression = personService.ParameterExpression;
+                
+                foreach (Person dvPerson in dataview)
+                {
+                    var whereExp = Rock.Reporting.FilterExpressionExtractor.Extract<Rock.Model.Person>(personService.Queryable().Where(p => p.Id == dvPerson.Id), paramExpression, "p");
+                    var transformExp = transform.GetExpression(personService, paramExpression, whereExp);
+
+                    MethodInfo getMethod = personService.GetType().GetMethod("Get", new Type[] { typeof(System.Linq.Expressions.ParameterExpression), typeof(System.Linq.Expressions.Expression) });
+
+                    if (getMethod != null)
+                    {
+                        var getResult = getMethod.Invoke(personService, new object[] { paramExpression, transformExp });
+                        var qry = getResult as IQueryable<Person>;
+
+                        foreach (var p in qry.ToList())
+                        {
+                            var fieldValues = new Dictionary<string, object>();
+                            fieldValues.Add("AppliesTo", dvPerson);
+                            recipients.Add(new CommunicationRecipient()
+                            {
+                                PersonAlias = p.PrimaryAlias,
+                                MediumEntityTypeId = p.CommunicationPreference == CommunicationType.SMS ? smsMediumEntityType.Id : emailMediumEntityType.Id,
+                                AdditionalMergeValues = fieldValues
+                            }); 
+
+                        }
+                    }
+
+                    communication.Recipients = recipients;
+                }
+            }
+            else
+            {
+                communication.Recipients = dataview
+                    .ToList()
+                    .Select(p =>
+                       new CommunicationRecipient
+                        {
+                            PersonAlias = p.PrimaryAlias,
+                            MediumEntityTypeId = p.CommunicationPreference == CommunicationType.SMS ? smsMediumEntityType.Id : emailMediumEntityType.Id
+                        })
+                    .ToList();
+            }
             Dictionary<int, CommunicationType?> communicationListGroupMemberCommunicationTypeLookup = new Dictionary<int, CommunicationType?>();
 
             foreach ( var recipient in communication.Recipients )
@@ -134,7 +184,8 @@ namespace org.secc.RecurringCommunications.Jobs
             var transaction = new Rock.Transactions.SendCommunicationTransaction();
             transaction.CommunicationId = communication.Id;
             transaction.PersonAlias = recurringCommunication.CreatedByPersonAlias;
-            Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
+            Rock.Transactions.RockQueue.TransactionQueue.Enqueue(transaction);
         }
+
     }
 }

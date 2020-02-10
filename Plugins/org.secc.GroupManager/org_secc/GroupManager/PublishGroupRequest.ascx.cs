@@ -174,6 +174,7 @@ namespace RockWeb.Plugins.GroupManager
             tTimeOfDay.SelectedTime = publishGroup.WeeklyTimeOfDay;
             dpStartDate.SelectedDate = publishGroup.StartDate;
             tbCustomSchedule.Text = publishGroup.CustomSchedule;
+            cbIsHidden.Checked = publishGroup.IsHidden;
             tbLocationName.Text = publishGroup.MeetingLocation;
             ddlRegistration.SelectedValue = publishGroup.RegistrationRequirement.ConvertToInt().ToString();
 
@@ -405,6 +406,7 @@ namespace RockWeb.Plugins.GroupManager
             publishGroup.CustomSchedule = tbCustomSchedule.Text;
             publishGroup.StartDate = dpStartDate.SelectedDate;
             publishGroup.MeetingLocation = tbLocationName.Text;
+            publishGroup.IsHidden = cbIsHidden.Checked;
             publishGroup.RegistrationRequirement = ( RegistrationRequirement ) ddlRegistration.SelectedValue.AsInteger();
             publishGroup.RequiresRegistration = ddlRegistration.SelectedValue.AsInteger() > 0; //This is obsolete but left in for backward compatability
             publishGroup.RegistrationLink = publishGroup.RegistrationRequirement == RegistrationRequirement.CustomRegistration ? tbRegistrationLink.Text : "";
