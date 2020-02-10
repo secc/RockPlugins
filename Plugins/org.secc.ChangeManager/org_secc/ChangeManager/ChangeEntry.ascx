@@ -1,4 +1,21 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="ChangeEntry.ascx.cs" Inherits="RockWeb.Plugins.org_secc.ChangeManager.ChangeEntry" %>
+<script>
+    isDirty = false;
+
+    $(document).ready(function () {
+        $(":input[type=email],:input[type=tel]")
+            .change(function () {
+                if (!isDirty) {
+                    $('.btn-save').click(function () {
+                        return Rock.dialogs.confirmPreventOnCancel(event, 'Updating a phone number and/or e-mail address can impact a users login ability and can allow a users account to be stolen.  Please ensure that you have adequately identified the person you are updating and that they have authorization to make this change.');
+                    });
+                }
+                isDirty = true;
+            })
+    });
+
+</script>
+
 <asp:UpdatePanel runat="server" ID="upContent">
     <ContentTemplate>
         <div class="panel panel-default">
@@ -131,7 +148,8 @@
                     </div>
                     <br />
                     <br />
-                    <Rock:BootstrapButton runat="server" ID="btnSave" Text="Save" CssClass="btn btn-primary pull-right" OnClick="btnSave_Click" />
+                    <asp:LinkButton runat="server" ID="btnSave" Text="Save" CssClass="btn btn-primary pull-right btn-save"
+                        OnClick="btnSave_Click" OnClientClick=";" />
             </asp:Panel>
             <asp:Panel runat="server" ID="pnlNoPerson" Visible="false" CssClass="row">
                 <div class="col-md-10" style="margin-left: 10px">
@@ -141,9 +159,11 @@
             <asp:Panel runat="server" ID="pnlDone" CssClass="text-center" Visible="false">
                 <h3>Success!</h3>
                 Your changes have been submitted. Pending review, they will be applied.
-                <br /><br />
+                <br />
+                <br />
                 <Rock:BootstrapButton runat="server" Text="Done" ID="btnDone" OnClick="btnDone_Click" CssClass="btn btn-primary" />
-                <br /><br />
+                <br />
+                <br />
             </asp:Panel>
         </div>
     </ContentTemplate>
