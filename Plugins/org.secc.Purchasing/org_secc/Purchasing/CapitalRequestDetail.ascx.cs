@@ -49,11 +49,11 @@ namespace RockWeb.Plugins.org_secc.Purchasing
     [TextField("Default Title", "The default title for the capital request.", false, "", "Summary Settings")]
     [IntegerField("Minimum Required Bids", "The minimum number of bids that are required for a capital request to be submitted for Ministry Approval. Default is 1.", false, 0, "Bid Settings")]
     [BinaryFileTypeField("Quote Document Type", "The document type that is used for quotes.", true, null, "Bid Settings")]
-    [SystemEmailField("Ministry Approval Notification Template", "The email template that is used to notify the ministry approver that they have a capital request waiting for their approval.", true, "", "Approval")]
-    [SystemEmailField("Finance Approval Notification Template", "The email template that is used to notify the finance approver that they have a capital request waiting for their approval.", true, "", "Approval")]
+    [SystemCommunicationField("Ministry Approval Notification Template", "The email template that is used to notify the ministry approver that they have a capital request waiting for their approval.", true, "", "Approval")]
+    [SystemCommunicationField("Finance Approval Notification Template", "The email template that is used to notify the finance approver that they have a capital request waiting for their approval.", true, "", "Approval")]
     [GroupField("Finance Approver Tag", "The tag that contains the list of individuals who can approve capital requests.", true, null, "Approval")]
-    [SystemEmailField("Approved Notification Template", "The email template that is used to notify the requester that the capital request has been approved.", true, "", "Approval")]
-    [SystemEmailField("Returned Notification Template", "The email template that is used to notify the requester that the capital request has been returned/denied by a requester.", true, "", "Approval")]
+    [SystemCommunicationField("Approved Notification Template", "The email template that is used to notify the requester that the capital request has been approved.", true, "", "Approval")]
+    [SystemCommunicationField("Returned Notification Template", "The email template that is used to notify the requester that the capital request has been returned/denied by a requester.", true, "", "Approval")]
     [LinkedPage("Requisition Detail Page", "The page to use to display the detail of the requisition.", true, null, "Requisition")]
     public partial class CapitalRequestDetail : RockBlock
     {
