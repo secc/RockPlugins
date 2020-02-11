@@ -25,6 +25,7 @@ using Rock.Attribute;
 using System.Text.RegularExpressions;
 using System.Text;
 using Rock.Security;
+using Rock.Web.Cache;
 
 namespace org.secc.SafetyAndSecurity
 {
@@ -84,8 +85,7 @@ namespace org.secc.SafetyAndSecurity
 
             var workflow = action.Activity.Workflow;
 
-            var activityType = new WorkflowActivityTypeService( rockContext ).Queryable()
-                .Where( a => a.Guid.Equals( guid ) ).FirstOrDefault();
+            var activityType = WorkflowActivityTypeCache.Get( guid );
 
             if ( activityType == null )
             {
