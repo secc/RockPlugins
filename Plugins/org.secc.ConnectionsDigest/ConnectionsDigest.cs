@@ -14,21 +14,19 @@
 //
 using System.Linq;
 using System.Data;
-using System.Data.Entity;
 using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using System.Collections.Generic;
-using System.Data.Entity.SqlServer;
 using System;
 using Rock.Communication;
 
 namespace org.secc.Jobs
 {
     [CustomCheckboxListField("Connection Opportunities", "Select the connection opportunities you would like to include.", "SELECT Guid AS Value, Name AS Text FROM ConnectionOpportunity WHERE IsActive = 1;" )]
-    [SystemEmailField("Email", "The email to send to the connectors", true)]
+    [SystemCommunicationField("Email", "The email to send to the connectors", true)]
     [BooleanField( "Save Communication History", "Should a record of this communication be saved to the recipient's profile", false, "")]
 
     [DisallowConcurrentExecution]
@@ -54,7 +52,7 @@ namespace org.secc.Jobs
 
             DateTime _midnightToday = RockDateTime.Today.AddDays( 1 );
             var currentDateTime = RockDateTime.Now;
-            var recipients = new List<RecipientData>();
+            var recipients = new List<RockEmailMessageRecipient>();
             ConnectionRequestService connectionRequestService = new ConnectionRequestService( rockContext );
             PersonService personService = new PersonService( rockContext );
             var connectionRequestsQry = connectionRequestService.Queryable().Where( cr => 
@@ -99,11 +97,14 @@ namespace org.secc.Jobs
                 mergeFields.Add( "LastRunDate", job.LastRunDateTime );
 
                 
-                recipients.Add( new RecipientData( person.Email, mergeFields ) );
+                recipients.Add( new RockEmailMessageRecipient( person, mergeFields ) );
 
             }
 
-            Email.Send( systemEmail.Value, recipients, string.Empty, string.Empty, dataMap.GetString( "SaveCommunicationHistory" ).AsBoolean() );
+            var emailMessage = new RockEmailMessage( systemEmail.Value );
+            emailMessage.SetRecipients( recipients );
+            emailMessage.CreateCommunicationRecord = dataMap.GetString( "SaveCommunicationHistory" ).AsBoolean();
+            emailMessage.Send();
 
             context.Result = string.Format( "Sent "+recipients.Count+" connection digest emails." );
         }
