@@ -31,6 +31,7 @@ using Rock;
 using Rock.Web.Cache;
 using System.Web.UI.HtmlControls;
 using Rock.Data;
+using Rock.Communication;
 
 namespace RockWeb.Plugins.org_secc.Purchasing
 {
@@ -52,15 +53,15 @@ namespace RockWeb.Plugins.org_secc.Purchasing
     [AttributeField(Rock.SystemGuid.EntityType.PERSON, "MinistryLocationAttributeID", "Ministry Location Attribute ID. Default is 14031.", false, false, "", "Staff Selector")]
     [BooleanField("Send Approval Request Notification", "Send Approval Request Notification to new approvers when they are added to the requisition.", false, "Notifications")]
     [BooleanField("Send Requisition Approved Notification", "Send notification to requester when the requisition has been approved.", true, "Notifications")]
-    [SystemEmailField("Requisition Approved Notification Template", "Communication Template for Approval Request Notification.", true, "", "Notifications")]
-    [SystemEmailField("Approval Request Notification Template", "Communication Template for Approval Request Notification.", true, "", "Notifications")]
-    [SystemEmailField("Approval Declined Notification Template", "Communication Template for Approval Declined Notifications.", true, "", "Notifications")]
+    [SystemCommunicationField("Requisition Approved Notification Template", "Communication Template for Approval Request Notification.", true, "", "Notifications")]
+    [SystemCommunicationField( "Approval Request Notification Template", "Communication Template for Approval Request Notification.", true, "", "Notifications")]
+    [SystemCommunicationField( "Approval Declined Notification Template", "Communication Template for Approval Declined Notifications.", true, "", "Notifications")]
     [BooleanField("Send emails to template recipients only.", "Only send email messages to recipients that are included in the email template. This is setting for test purposes only.", false, "Notifications")]
     [BooleanField("Prompt for Note on Decline", "Prompt user for note when declining a requisition.", false, "Approvals")]
-    [SystemEmailField("New Requisition in Purchasing Queue Notification", "Notification for when new requisition has been added to the purchasing queue.", true, "", "Notifications")]
-    [SystemEmailField("Requisition Submitted To Purchasing Notification", "Notification to requester when requisition has been submitted to purchasing.", true, "", "Notifications")]
-    [SystemEmailField("Requisition Returned To Requester Notification", "Notification to requester when requisition has been returned to requester.", true, "", "Notifications")]
-    [SystemEmailField("Requisition Accepted By Purchasing Notification", "Notification to requester when purchasing has accepted the requisition.", true, "", "Notifications")]
+    [SystemCommunicationField( "New Requisition in Purchasing Queue Notification", "Notification for when new requisition has been added to the purchasing queue.", true, "", "Notifications")]
+    [SystemCommunicationField( "Requisition Submitted To Purchasing Notification", "Notification to requester when requisition has been submitted to purchasing.", true, "", "Notifications")]
+    [SystemCommunicationField( "Requisition Returned To Requester Notification", "Notification to requester when requisition has been returned to requester.", true, "", "Notifications")]
+    [SystemCommunicationField( "Requisition Accepted By Purchasing Notification", "Notification to requester when purchasing has accepted the requisition.", true, "", "Notifications")]
     [LinkedPage("Requisition List Page", "Page that shows the requisition list", true, "", "General")]
     [LinkedPage("Purchase Order Detail Page", "Page that shows the Purchase Order", true, "", "General")]
     [LinkedPage("Capital Request Detail Page", "Page that shows the Capital Request", true, "", "General")]
@@ -74,7 +75,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         bool? mUserCanEditItem;
         private int mItemCount = 0;
         Rock.Data.RockContext rockContext = new Rock.Data.RockContext();
-        SystemEmailService systemEmailService = null;
+        SystemCommunicationService systemCommunicationService = null;
         PersonAliasService personAliasService = null;
         UserLoginService userLoginService = null;
         AttributeService attributeService = null;
@@ -556,7 +557,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         protected override void OnInit(EventArgs e)
         {
-            systemEmailService = new SystemEmailService(rockContext);
+            systemCommunicationService = new SystemCommunicationService(rockContext);
             personAliasService = new PersonAliasService(rockContext);
             userLoginService = new UserLoginService(rockContext);
             attributeService = new AttributeService(rockContext);
@@ -1914,8 +1915,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void SendRequesterSentToPurchasingNotification()
         {
-            SystemEmail ct = systemEmailService.Get(RequisitionSubmittedToPurchasingSetting.Value);
-            Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
+            SystemCommunication ct = systemCommunicationService.Get(RequisitionSubmittedToPurchasingSetting.Value);
+            Dictionary<string, object> Fields = Rock.Lava.LavaHelper.GetCommonMergeFields( RockPage, CurrentPerson );
 
             Fields.Add("Requester", CurrentRequisition.Requester.NickName);
             Fields.Add("RequisitionTitle", CurrentRequisition.Title);
@@ -1930,15 +1931,15 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void SendPurchasingTeamNotification()
         {
-            SystemEmail ctOriginal = systemEmailService.Get(NewRequisitionInPurchasingQueueNotificationSetting.Value);
+            SystemCommunication ctOriginal = systemCommunicationService.Get(NewRequisitionInPurchasingQueueNotificationSetting.Value);
 
             String[] emails = ctOriginal.To.Split(new char[] { ',', ';' });
             PersonService personService = new PersonService(new Rock.Data.RockContext());
             foreach (var email in emails)
             {
                 Person recepient = personService.GetByEmail(email.Trim()).FirstOrDefault();
-                SystemEmail ct = ctOriginal;
-                Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
+                SystemCommunication ct = ctOriginal;
+                Dictionary<string, object> Fields = Rock.Lava.LavaHelper.GetCommonMergeFields( RockPage, CurrentPerson);
 
                 if (recepient == null)
                 {
@@ -1985,9 +1986,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void SendRequisitionAcceptedNotification()
         {
-            SystemEmail ct = systemEmailService.Get(AcceptedByPurchasingNotificationSetting.Value);
+            SystemCommunication ct = systemCommunicationService.Get(AcceptedByPurchasingNotificationSetting.Value);
 
-            Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
+            Dictionary<string, object> Fields = Rock.Lava.LavaHelper.GetCommonMergeFields( RockPage, CurrentPerson );
 
             Fields.Add("Requester", CurrentRequisition.Requester.NickName);
             Fields.Add("RequisitionTitle", CurrentRequisition.Title);
@@ -2010,9 +2011,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             {
                 return;
             }
-            SystemEmail ct = systemEmailService.Get(ReturnedToRequesterNotificationSetting.Value);
+            SystemCommunication ct = systemCommunicationService.Get(ReturnedToRequesterNotificationSetting.Value);
 
-            Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
+            Dictionary<string, object> Fields = Rock.Lava.LavaHelper.GetCommonMergeFields( RockPage, CurrentPerson );
 
             int ItemDetailCount = CurrentRequisition.GetItemDetailCount( true );
             string Link = GetRequisitionLink();
@@ -2075,7 +2076,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if ( capitalRequestId > 0 )
             {
                 var capitalRequest = new CapitalRequest( capitalRequestId );
-                lCapitalRequest.Text = String.Format( "<a href=\"/page/{0}?CER={1}\" target=\"_blank\" class=\"CERLink\">{2}</a>", PageCache.Read( CapitalRequestDetailPageSetting.AsGuid() ).Id, capitalRequestId, capitalRequest.ProjectName );
+                lCapitalRequest.Text = String.Format( "<a href=\"/page/{0}?CER={1}\" target=\"_blank\" class=\"CERLink\">{2}</a>", PageCache.Get( CapitalRequestDetailPageSetting.AsGuid() ).Id, capitalRequestId, capitalRequest.ProjectName );
             }
             else
             {
@@ -2693,8 +2694,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             Approval DeclinedApproval = new Approval(approvalID);
 
-            SystemEmail notificationTemplate = systemEmailService.Get(ApprovalDeclinedNotificationTemplateSetting);
-            Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
+            SystemCommunication notificationTemplate = systemCommunicationService.Get(ApprovalDeclinedNotificationTemplateSetting);
+            Dictionary<string, object> Fields = Rock.Lava.LavaHelper.GetCommonMergeFields( RockPage, CurrentPerson );
 
             Fields.Add("Requester", CurrentRequisition.Requester.NickName);
             Fields.Add("ApproverName", DeclinedApproval.Approver.FullName);
@@ -2713,9 +2714,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             Approval a = new Approval(approvalID);
 
-            SystemEmail notificationTemplate = systemEmailService.Get(RequisitionApprovedNotificationTemplateSetting);
+            SystemCommunication notificationTemplate = systemCommunicationService.Get(RequisitionApprovedNotificationTemplateSetting);
 
-            Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
+            Dictionary<string, object> Fields = Rock.Lava.LavaHelper.GetCommonMergeFields( RockPage, CurrentPerson );
 
             Fields.Add("RequesterName", CurrentRequisition.Requester.NickName);
             Fields.Add("RequisitionTitle", CurrentRequisition.Title);
@@ -2737,9 +2738,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             Approval a = new Approval(approvalID);
 
-            SystemEmail notificationTemplate = systemEmailService.Get(ApprovalRequestNotificationTemplateSetting);
+            SystemCommunication notificationTemplate = systemCommunicationService.Get(ApprovalRequestNotificationTemplateSetting);
 
-            Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
+            Dictionary<string, object> Fields = Rock.Lava.LavaHelper.GetCommonMergeFields( RockPage, CurrentPerson );
             Fields.Add("ApproverName", a.Approver.NickName);
             Fields.Add("RequisitionTitle", CurrentRequisition.Title);
             Fields.Add("ApprovalRequester", CurrentPerson.NickName);
@@ -2758,7 +2759,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 "/page/" + CurrentPageReference.PageId + "?RequisitionId=" + CurrentRequisition.RequisitionID;
         }
 
-        private void SendCommunication(SystemEmail notificationTemplate, Person sender, Person recepient)
+        private void SendCommunication(SystemCommunication notificationTemplate, Person sender, Person recepient)
         {
             if (notificationTemplate == null)
                 return;
@@ -2791,8 +2792,19 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
             string RecepientEmail = recepient.Email;
     
-                if (EnableNotificationSetting || RequesterIsInBetaGroup())
-                    Rock.Communication.Email.Send(fromEmail, fromName, notificationTemplate.Subject, new List<String>() { RecepientEmail }, notificationTemplate.Body);
+            if (EnableNotificationSetting || RequesterIsInBetaGroup())
+            {
+
+                var emailMessage = new RockEmailMessage( notificationTemplate );
+                emailMessage.ReplyToEmail = replyToEmail;
+                emailMessage.FromEmail = fromEmail;
+                emailMessage.FromName = fromName;
+                emailMessage.AddRecipient( new RockEmailMessageRecipient( recepient, null) );
+                emailMessage.CreateCommunicationRecord = true;
+                emailMessage.Send();
+                //Rock.Communication.Email.Send( fromEmail, fromName, notificationTemplate.Subject, new List<String>() {  }, notificationTemplate.Body );
+
+            }
         }
 
         private bool RequesterIsInBetaGroup()

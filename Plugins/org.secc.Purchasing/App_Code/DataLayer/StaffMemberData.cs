@@ -174,7 +174,7 @@ namespace org.secc.Purchasing.DataLayer
             Rock.Model.Attribute ministryAttribute = attributeService.Get(ministryAID);
             Rock.Model.Attribute positionAttribute = attributeService.Get(positionAID);
             Rock.Data.RockContext context = new Rock.Data.RockContext();
-            int personEntityId = EntityTypeCache.Read( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
+            int personEntityId = EntityTypeCache.Get( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
             var people = new PersonService( context ).Queryable()
                 .Where( p => p.RecordStatusValueId == 3 && (name2 == "" && (p.NickName.Contains( name1 ) || p.LastName.Contains( name1)) || ( p.NickName.Contains( name1 ) &&  p.LastName.Contains( name2 ))) )
                     .Join( new AttributeService( context ).Queryable(),

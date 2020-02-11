@@ -950,7 +950,7 @@ namespace org.secc.Purchasing
 
                 foreach (var item in Reqs.Select(r => r.RequesterID).Distinct())
             	{
-                    var attribute = Rock.Web.Cache.AttributeCache.Read( ministryAttributeID );
+                    var attribute = Rock.Web.Cache.AttributeCache.Get( ministryAttributeID );
                     var Ministry = Helpers.Person.GetMyMinistryLookup(item, attribute.Key);
                     foreach (var reqItem in Reqs.Where(r => r.RequesterID == item))
                     {
@@ -1518,7 +1518,6 @@ namespace org.secc.Purchasing
             bool IsFullyOrdered = false;
             bool IsFullyReceived = false;
 
-            Status.LoadAttributes();
             if (DateAccepted == DateTime.MinValue || Status.GetAttributeValue("IsClosed").AsBoolean() )
                 return;
 
