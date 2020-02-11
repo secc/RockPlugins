@@ -21,7 +21,6 @@ using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using Newtonsoft.Json;
-using org.secc.Learning.Model;
 using org.secc.Widgities.Cache;
 using org.secc.Widgities.Model;
 using Rock;
@@ -39,12 +38,6 @@ namespace RockWeb.Plugins.org.secc.Widgities
     [DisplayName( "Widgity Container" )]
     [Category( "SECC > Widgity" )]
     [Description( "Block for containing widgities" )]
-
-    [TextField(
-        "Content",
-        Key = "Content",
-        Category = "CustomSettings"
-        )]
     public partial class WidgityContainer : Rock.Web.UI.RockBlockCustomSettings
     {
         public override string SettingsToolTip
@@ -195,17 +188,13 @@ namespace RockWeb.Plugins.org.secc.Widgities
             var blockEntityTypeId = EntityTypeCache.Get( typeof( Block ) ).Id;
 
             var widgityTypes = widgityTypeService.Queryable()
-                .Where( wt => wt.EntityTypeId == blockEntityTypeId ).ToList();
+                .Where( wt => wt.EntityTypes.Select( e => e.Id ).Contains( blockEntityTypeId ) ).ToList();
             rpWidgityTypes.DataSource = widgityTypes;
             rpWidgityTypes.DataBind();
         }
 
         private void LoadWidgities()
         {
-            var widgitiesIds = GetAttributeValue( AttributeKey.Content )
-                .SplitDelimitedValues()
-                .Select( i => i.AsInteger() ).ToList();
-
             var blockEntityTypeId = EntityTypeCache.Get( typeof( Block ) ).Id;
 
             var widgityCache = WidgityCache.GetForEntity( typeof( Block ), BlockCache.Id );
@@ -605,7 +594,7 @@ namespace RockWeb.Plugins.org.secc.Widgities
                     var blockEntityTypeId = EntityTypeCache.Get( typeof( Block ) ).Id;
 
                     var toRemove = widgityService.Queryable( "WidgityType" )
-                        .Where( w => w.EntityId == BlockCache.Id && w.WidgityType.EntityTypeId == blockEntityTypeId )
+                        .Where( w => w.EntityId == BlockCache.Id && w.EntityTypeId == blockEntityTypeId )
                         .Where( w => !widgityRefIds.Contains( w.Id ) )
                         .ToList();
 
@@ -620,6 +609,7 @@ namespace RockWeb.Plugins.org.secc.Widgities
                         if ( widgity == null )
                         {
                             widgity = widgityRef;
+                            widgity.EntityTypeId = EntityTypeCache.Get( typeof( Block ) ).Id;
                             widgityService.Add( widgity );
                             rockContext.SaveChanges();
                         }

@@ -5,13 +5,13 @@ using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using Newtonsoft.Json;
-using org.secc.Learning.Model;
 using org.secc.Widgities.Cache;
 using org.secc.Widgities.Model;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
+using Rock.Utility.EntityCoding;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 
@@ -162,6 +162,16 @@ namespace RockWeb.Plugins.org.secc.Widgities
 
             if ( !Page.IsPostBack )
             {
+                btnExport.Visible = PageParameter( PageParameterKey.WidgityTypeId ).AsInteger() != 0;
+                pdAuditDetails.Visible = btnExport.Visible;
+                var entityTypes = new EntityTypeService( new RockContext() ).GetEntities()
+                   .OrderBy( t => t.FriendlyName )
+                   .ToList();
+                lbEntityTypes.DataSource = entityTypes;
+                lbEntityTypes.DataBind();
+
+                pCategory.EntityTypeId = EntityTypeCache.GetId( typeof( WidgityType ) ).Value;
+
                 ShowDetails();
                 BindAttributeGrids();
             }
@@ -226,7 +236,7 @@ namespace RockWeb.Plugins.org.secc.Widgities
                 widgityType = new WidgityType
                 {
                     CategoryId = 0,
-                    EntityTypeId = EntityTypeCache.GetId( typeof( Block ) ) ?? 0
+                    EntityTypes = new List<EntityType>()
                 };
             }
             return widgityType;
@@ -263,11 +273,11 @@ namespace RockWeb.Plugins.org.secc.Widgities
             lcCommands.SelectedValue = widgityType.EnabledLavaCommands;
             tbIcon.Text = widgityType.Icon;
             ceMarkup.Text = widgityType.Markdown;
-
+            lbEntityTypes.SetValues( widgityType.EntityTypes.Select( w => w.Id.ToString() ).ToList() );
+            pCategory.SetValue( widgityType.CategoryId );
             cbHasItems.Checked = widgityType.HasItems;
             pnlWidgityItemAttributes.Visible = cbHasItems.Checked;
         }
-
         #endregion
 
 
@@ -291,6 +301,9 @@ namespace RockWeb.Plugins.org.secc.Widgities
                 widgityType.Icon = tbIcon.Text;
                 widgityType.Markdown = ceMarkup.Text;
                 widgityType.HasItems = cbHasItems.Checked;
+                var _ = widgityType.EntityTypes.ToList(); //Attach the entity types to context
+                widgityType.EntityTypes = new EntityTypeService( rockContext ).GetByIds( lbEntityTypes.SelectedValuesAsInt ).ToList();
+                widgityType.CategoryId = pCategory.SelectedValueAsId();
                 rockContext.SaveChanges();
 
                 //Widgity Attributes
@@ -323,6 +336,14 @@ namespace RockWeb.Plugins.org.secc.Widgities
                     {
                         var trackedAttribute = actualAttributes.Where( a => a.Guid == attribute.Guid ).FirstOrDefault();
                         trackedAttribute.CopyPropertiesFrom( attribute );
+                        foreach ( var qualifier in trackedAttribute.AttributeQualifiers )
+                        {
+                            var value = attribute.AttributeQualifiers.Where( q => q.Key == qualifier.Key ).FirstOrDefault();
+                            if ( value != null )
+                            {
+                                qualifier.Value = value.Value;
+                            }
+                        }
                         trackedAttribute.Order = WidgityAttributes.IndexOf( attribute );
                     }
                 }
@@ -359,6 +380,14 @@ namespace RockWeb.Plugins.org.secc.Widgities
                     {
                         var trackedAttribute = actualItemAttributes.Where( a => a.Guid == attribute.Guid ).FirstOrDefault();
                         trackedAttribute.CopyPropertiesFrom( attribute );
+                        foreach ( var qualifier in trackedAttribute.AttributeQualifiers )
+                        {
+                            var value = attribute.AttributeQualifiers.Where( q => q.Key == qualifier.Key ).FirstOrDefault();
+                            if ( value != null )
+                            {
+                                qualifier.Value = value.Value;
+                            }
+                        }
                         trackedAttribute.Order = WidgityItemAttributes.IndexOf( attribute );
                     }
                 }
@@ -538,6 +567,31 @@ namespace RockWeb.Plugins.org.secc.Widgities
         {
             SaveWidgityItemAttribute();
             ShowWidgityItemAttributeEditor( Guid.NewGuid() );
+        }
+
+        protected void btnExport_Click( object sender, EventArgs e )
+        {
+            RockContext rockContext = new RockContext();
+            WidgityTypeService widgityTypeService = new WidgityTypeService( rockContext );
+            var widgityType = widgityTypeService.Get( PageParameter( PageParameterKey.WidgityTypeId ).AsInteger() );
+            if ( widgityType == null )
+            {
+                return;
+            }
+
+            var coder = new EntityCoder( new RockContext() );
+            coder.EnqueueEntity( widgityType, new WidgityTypeExporter() );
+
+            var container = coder.GetExportedEntities();
+
+            Page.EnableViewState = false;
+            Page.Response.Clear();
+            Page.Response.ContentType = "application/json";
+            Page.Response.AppendHeader( "Content-Disposition", string.Format( "attachment; filename=\"{0}_{1}.json\"", widgityType.Name.MakeValidFileName(), RockDateTime.Now.ToString( "yyyyMMddHHmm" ) ) );
+            Page.Response.Write( Newtonsoft.Json.JsonConvert.SerializeObject( container, Newtonsoft.Json.Formatting.Indented ) );
+            Page.Response.Flush();
+            Page.Response.End();
+
         }
     }
 }

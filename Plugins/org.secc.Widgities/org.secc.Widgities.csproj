@@ -62,6 +62,7 @@
     <Compile Include="Cache\WidgityCache.cs" />
     <Compile Include="Cache\WidgityTypeCache.cs" />
     <Compile Include="Controls\WidgityControl.cs" />
+    <Compile Include="Controls\WidgityPubArgs.cs" />
     <Compile Include="Data\WidgityContext.cs" />
     <Compile Include="Lava\CustomFilters.cs" />
     <Compile Include="Migrations\202001131305110_Init.cs" />

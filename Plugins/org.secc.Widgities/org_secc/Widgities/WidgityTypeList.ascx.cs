@@ -15,6 +15,7 @@ using Rock.Web.UI.Controls;
 using Rock.Attribute;
 using Rock.Web.UI;
 using org.secc.Widgities.Model;
+using Rock.Utility.EntityCoding;
 
 namespace RockWeb.Plugins.org_secc.Widgities
 {
@@ -27,7 +28,7 @@ namespace RockWeb.Plugins.org_secc.Widgities
 
     [LinkedPage(
         "Details Page",
-        Description= "Page to edit widgity type.",
+        Description = "Page to edit widgity type.",
         Key = AttributeKey.DetailsPage
         )]
     public partial class WidgityTypeList : RockBlock
@@ -73,6 +74,13 @@ namespace RockWeb.Plugins.org_secc.Widgities
 
             if ( !Page.IsPostBack )
             {
+                var rockContext = new RockContext();
+                var entityTypes = new EntityTypeService( rockContext ).GetEntities()
+                    .OrderBy( t => t.FriendlyName )
+                    .ToList();
+
+                ddlEntityType.EntityTypes = entityTypes;
+
                 BindGrid();
             }
         }
@@ -129,6 +137,50 @@ namespace RockWeb.Plugins.org_secc.Widgities
         protected void gList_RowSelected( object sender, RowEventArgs e )
         {
             NavigateToLinkedPage( AttributeKey.DetailsPage, new Dictionary<string, string> { { "WidgityTypeId", e.RowKeyId.ToString() } } );
+        }
+
+        protected void btnImport_Click( object sender, EventArgs e )
+        {
+            mdImport.Show();
+        }
+
+        protected void mdImport_SaveClick( object sender, EventArgs e )
+        {
+            if ( !fImport.BinaryFileId.HasValue )
+            {
+                return;
+            }
+
+            using ( var rockContext = new RockContext() )
+            {
+                var binaryFileService = new BinaryFileService( rockContext );
+                var binaryFile = binaryFileService.Get( fImport.BinaryFileId ?? 0 );
+                var categoryService = new CategoryService( rockContext );
+
+                var container = Newtonsoft.Json.JsonConvert.DeserializeObject<ExportedEntitiesContainer>( binaryFile.ContentsToString() );
+                List<string> messages;
+
+                var decoder = new EntityDecoder( new RockContext() );
+                //decoder.UserValues.Add( "EntityTypes",  ddlEntityType );
+
+                var success = decoder.Import( container, false, out messages );
+
+                nbImport.Text = string.Empty;
+                foreach ( var msg in messages )
+                {
+                    nbImport.Text += string.Format( "{0}<br>", msg.EncodeHtml() );
+                }
+
+                nbImport.Visible = true;
+
+                if ( success )
+                {
+                    fImport.BinaryFileId = null;
+                }
+
+                mdImport.Hide();
+                BindGrid();
+            }
         }
     }
 }

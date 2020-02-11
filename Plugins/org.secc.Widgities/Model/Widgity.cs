@@ -28,7 +28,7 @@ namespace org.secc.Widgities.Model
         public virtual EntityType EntityType { get; set; }
 
         [DataMember]
-        public int EntityId { get; set; }
+        public Guid EntityGuid { get; set; }
 
         [LavaInclude]
         public virtual ICollection<WidgityItem> WidgityItems { get; set; }

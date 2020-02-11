@@ -32,11 +32,17 @@
             <div class="panel-heading">
                 <h1 class="panel-title">Edit Widgity Type
                 </h1>
+                <div class="panel-labels">
+                    <asp:LinkButton CssClass="btn btn-default" Text="<i class='fa fa-download'></i>" ID="btnExport" OnClick="btnExport_Click" runat="server" />
+                </div>
             </div>
 
             <Rock:PanelDrawer ID="pdAuditDetails" runat="server"></Rock:PanelDrawer>
             <div class="panel-body">
                 <Rock:RockTextBox runat="server" Label="Name" ID="tbName" Required="true" />
+                <Rock:RockListBox runat="server" ID="lbEntityTypes" DisplayDropAsAbsolute="true"
+                    Label="Entity Types" DataValueField="Id" DataTextField="FriendlyName" />
+                <Rock:CategoryPicker runat="server" ID="pCategory" />
                 <Rock:RockTextBox runat="server" ID="tbIcon" Label="Icon Class" Required="true" />
                 <Rock:RockTextBox runat="server" Label="Description" ID="tbDescription" TextMode="MultiLine" Height="100" />
                 <Rock:CodeEditor runat="server" Label="Lava Markup" ID="ceMarkup" EditorMode="Lava" EditorHeight="400" Required="true" />
@@ -93,4 +99,7 @@
                 </div>
             </div>
     </ContentTemplate>
+    <Triggers>
+        <asp:PostBackTrigger ControlID="btnExport" />
+    </Triggers>
 </asp:UpdatePanel>

@@ -30,7 +30,7 @@ namespace org.secc.Widgities.Cache
         public int EntityTypeId { get; set; }
 
         [DataMember]
-        public int EntityId { get; private set; }
+        public Guid EntityGuid { get; private set; }
 
         [DataMember]
         public List<WidgityItemCache> WidgityItems
@@ -78,19 +78,19 @@ namespace org.secc.Widgities.Cache
 
         public static List<WidgityCache> GetForEntity( IEntity entity )
         {
-            return GetForEntity( entity.GetType(), entity.Id );
+            return GetForEntity( entity.GetType(), entity.Guid );
         }
 
-        public static List<WidgityCache> GetForEntity( Type entityType, int EntityId )
+        public static List<WidgityCache> GetForEntity( Type entityType, Guid entityGuid )
         {
-            return GetForEntity( EntityTypeCache.Get( entityType ).Id, EntityId );
+            return GetForEntity( EntityTypeCache.Get( entityType ).Id, entityGuid );
         }
 
-        public static List<WidgityCache> GetForEntity( int EntityTypeId, int EntityId )
+        public static List<WidgityCache> GetForEntity( int EntityTypeId, Guid entityGuid )
         {
             return All()
                 .Where( w => w.EntityTypeId == EntityTypeId )
-                .Where( w => w.EntityId == EntityId )
+                .Where( w => w.EntityGuid == entityGuid )
                 .OrderBy( w => w.Id )
                 .ToList();
         }
@@ -105,9 +105,9 @@ namespace org.secc.Widgities.Cache
 
             Id = widgity.Id;
             Guid = widgity.Guid;
-            EntityId = widgity.EntityId;
+            EntityGuid = widgity.EntityGuid;
             EntityTypeId = widgity.EntityTypeId;
-            WidgityTypeId = widgity.WidgityTypeId; 
+            WidgityTypeId = widgity.WidgityTypeId;
             Order = widgity.Order;
         }
 
@@ -117,7 +117,7 @@ namespace org.secc.Widgities.Cache
             {
                 Id = Id,
                 Guid = Guid,
-                EntityId = EntityId,
+                EntityGuid = EntityGuid,
                 WidgityTypeId = WidgityTypeId,
                 WidgityType = WidgityType.GetEntity(),
                 Order = Order,

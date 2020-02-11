@@ -54,19 +54,19 @@ namespace org.secc.Widgities.Controls
        DefaultValue( "" ),
        Description( "The Entity Id for the particlar set of widgities" )
        ]
-        public int EntityId
+        public Guid EntityGuid
         {
             get
             {
-                if ( ViewState["EntityId"] != null && ViewState["EntityId"] is int )
+                if ( ViewState["EntityGuid"] != null && ViewState["EntityGuid"] is Guid )
                 {
-                    return ( int ) ViewState["EntityTypeId"];
+                    return ( Guid ) ViewState["EntityGuid"];
                 }
-                return 0;
+                return new Guid();
             }
             set
             {
-                ViewState["EntityId"] = value;
+                ViewState["EntityGuid"] = value;
             }
         }
 
@@ -129,6 +129,22 @@ namespace org.secc.Widgities.Controls
             }
         }
 
+        public bool ShowPublishButtons
+        {
+            get
+            {
+                if ( ViewState["ShowPublishButtons"] != null && ViewState["ShowPublishButtons"] is bool )
+                {
+                    return ( bool ) ViewState["ShowPublishButtons"];
+                }
+                return true;
+            }
+            set
+            {
+                ViewState["ShowPublishButtons"] = value;
+            }
+        }
+
         #endregion
 
         #region Controls
@@ -138,6 +154,7 @@ namespace org.secc.Widgities.Controls
         private Panel pnlContent;
         private Panel pnlItems;
         private PlaceHolder phAttributesEdit;
+        private ValidationSummary validationSummary;
 
         #endregion
 
@@ -155,8 +172,6 @@ namespace org.secc.Widgities.Controls
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
-
-            ( this.Page as RockPage ).AddScriptLink( "~/Scripts/dragula.min.js" );
         }
 
         protected override void LoadViewState( object savedState )
@@ -189,18 +204,20 @@ namespace org.secc.Widgities.Controls
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
-            if ( !Page.IsPostBack )
+            if ( Page.IsPostBack )
             {
-                LoadWidgities();
-                ShowWidgities( false );
-            }
-            else
-            {
-                if ( HttpContext.Current.Request["__EVENTTARGET"].ToStringSafe() == lbDragCommand.ClientID )
+                EnsureChildControls();
+                if ( HttpContext.Current.Request["__EVENTTARGET"].ToStringSafe().Contains( "_lbDragCommand" ) )
                 {
                     ProcessDragEvents();
                 }
             }
+        }
+
+        public override void DataBind()
+        {
+            LoadWidgities();
+            ShowWidgities( false );
         }
 
         private void ProcessDragEvents()
@@ -267,7 +284,7 @@ namespace org.secc.Widgities.Controls
                 {
                     WidgityTypeId = widgityTypeId,
                     Guid = Guid.NewGuid(),
-                    EntityId = EntityId,
+                    EntityGuid = EntityGuid,
                     EntityTypeId = EntityTypeId
                 };
 
@@ -385,14 +402,14 @@ namespace org.secc.Widgities.Controls
         {
             var blockEntityTypeId = EntityTypeCache.Get( EntityTypeId ).Id;
 
-            var widgityCache = WidgityCache.GetForEntity( blockEntityTypeId, EntityId );
+            var widgityCache = WidgityCache.GetForEntity( blockEntityTypeId, EntityGuid );
 
             Widgities = widgityCache.Select( w => w.GetEntity() ).OrderBy( w => w.Order ).ToList();
 
             WidgityItems = new Dictionary<Guid, List<WidgityItem>>();
 
             EntityTypeId = EntityTypeId;
-            EntityId = EntityId;
+            EntityGuid = EntityGuid;
             Mode = Mode;
 
 
@@ -407,9 +424,6 @@ namespace org.secc.Widgities.Controls
 
         private void ShowWidgities( bool setValues )
         {
-            var page = this.Page as RockPage;
-            page.AddCSSLink( "~/Plugins/org_secc/Widgities/Widgities.css" );
-
             EnsureChildControls();
             pnlContent.Controls.Clear();
 
@@ -513,14 +527,20 @@ namespace org.secc.Widgities.Controls
 
             RegisterDragDropScript();
 
+            validationSummary = new ValidationSummary
+            {
+                HeaderText = "Please correct the following",
+                CssClass = "alert alert-validation",
+                ID = this.ID + "_validation",
+                ValidationGroup = this.ID + "ValidationGroup"
+            };
+            pnlMenu.Controls.Add( validationSummary );
+
             var currentEditWidgity = Widgities.Where( w => w.Guid == CurrentEditWidgity ).FirstOrDefault();
 
             if ( currentEditWidgity != null ) //Build Widigty
             {
                 ShowWidigtyEdit( setValues );
-                //phAttributesEdit.Controls.Clear();
-                //Rock.Attribute.Helper.AddEditControls( currentEditWidgity, phAttributesEdit, false, BlockValidationGroup );
-                //BuildWidigityItemAttibutes( currentEditWidgity, false );
             }
             else
             {
@@ -546,7 +566,7 @@ namespace org.secc.Widgities.Controls
                 ID = this.ID + "_phAttributesEdit"
             };
             pnlMenu.Controls.Add( phAttributesEdit );
-            Rock.Attribute.Helper.AddEditControls( widgity, phAttributesEdit, setValues );
+            Rock.Attribute.Helper.AddEditControls( widgity, phAttributesEdit, setValues, this.ID + "ValidationGroup" );
 
             if ( widgityType.HasItems )
             {
@@ -560,7 +580,8 @@ namespace org.secc.Widgities.Controls
             {
                 CssClass = "btn btn-primary",
                 Text = "Save",
-                ID = this.ID + "_btnEditSave"
+                ID = this.ID + "_btnEditSave",
+                ValidationGroup = this.ID + "ValidationGroup"
             };
             pnlMenu.Controls.Add( btnEditSave );
             btnEditSave.Click += BtnEditSave_Click;
@@ -690,7 +711,7 @@ namespace org.secc.Widgities.Controls
 
                         linkButton.Click += ( s, e ) => { DeleteWidgityItem( widgityItem.Guid ); };
 
-                        Rock.Attribute.Helper.AddEditControls( widgityItem, phItemAttributes, setValues );
+                        Rock.Attribute.Helper.AddEditControls( widgityItem, phItemAttributes, setValues, this.ID + "ValidationGroup" );
                     }
                 }
                 else
@@ -845,26 +866,32 @@ namespace org.secc.Widgities.Controls
                 }
             }
 
-            HtmlGenericContainer hr = new HtmlGenericContainer( "hr" );
-            pnlMenu.Controls.Add( hr );
-
-            BootstrapButton btnSave = new BootstrapButton
+            if ( ShowPublishButtons )
             {
-                CssClass = "btn btn-primary",
-                Text = "Publish",
-                ID = this.ID + "_btnSave"
-            };
-            pnlMenu.Controls.Add( btnSave );
-            btnSave.Click += BtnSave_Click;
 
-            LinkButton btnCancel = new LinkButton
-            {
-                ID = this.ID + "_btnCancel",
-                Text = "Cancel",
-                CssClass = "btn btn-link"
-            };
-            pnlMenu.Controls.Add( btnCancel );
-            btnCancel.Click += BtnCancel_Click;
+
+                HtmlGenericContainer hr = new HtmlGenericContainer( "hr" );
+                pnlMenu.Controls.Add( hr );
+
+                BootstrapButton btnSave = new BootstrapButton
+                {
+                    CssClass = "btn btn-primary",
+                    Text = "Publish",
+                    ID = this.ID + "_btnSave",
+                    ValidationGroup = this.ID + "ValidationGroup"
+                };
+                pnlMenu.Controls.Add( btnSave );
+                btnSave.Click += BtnSave_Click;
+
+                LinkButton btnCancel = new LinkButton
+                {
+                    ID = this.ID + "_btnCancel",
+                    Text = "Cancel",
+                    CssClass = "btn btn-link"
+                };
+                pnlMenu.Controls.Add( btnCancel );
+                btnCancel.Click += BtnCancel_Click;
+            }
         }
 
         private void BtnCancel_Click( object sender, EventArgs e )
@@ -872,7 +899,14 @@ namespace org.secc.Widgities.Controls
             HideSettings();
         }
 
+        public event EventHandler<WidgityPubArgs> WidgityPublished;
+
         private void BtnSave_Click( object sender, EventArgs e )
+        {
+            Publish();
+        }
+
+        public void Publish()
         {
             if ( Page.IsValid )
             {
@@ -880,84 +914,89 @@ namespace org.secc.Widgities.Controls
                 var widgityRefIds = widgityRefs.Select( w => w.Id ).ToList();
                 RockContext rockContext = new RockContext();
                 rockContext.WrapTransaction( () =>
-                {
-                    WidgityService widgityService = new WidgityService( rockContext );
+                         {
+                             WidgityService widgityService = new WidgityService( rockContext );
 
-                    var toRemove = widgityService.Queryable( "WidgityType" )
-                        .Where( w => w.EntityId == EntityId && w.EntityTypeId == EntityTypeId )
+                             var toRemove = widgityService.Queryable( "WidgityType" )
+                        .Where( w => w.EntityGuid == EntityGuid && w.EntityTypeId == EntityTypeId )
                         .Where( w => !widgityRefIds.Contains( w.Id ) )
                         .ToList();
 
-                    widgityService.DeleteRange( toRemove );
+                             widgityService.DeleteRange( toRemove );
 
-                    List<Widgity> widgities = new List<Widgity>();
+                             List<Widgity> widgities = new List<Widgity>();
 
-                    foreach ( var widgityRef in widgityRefs )
-                    {
-                        Widgity widgity = widgityService.Get( widgityRef.Id );
+                             foreach ( var widgityRef in widgityRefs )
+                             {
+                                 Widgity widgity = widgityService.Get( widgityRef.Id );
 
-                        if ( widgity == null )
-                        {
-                            widgity = widgityRef;
-                            widgity.EntityTypeId = EntityTypeId;
-                            widgity.EntityId = EntityId;
-                            widgityService.Add( widgity );
-                            rockContext.SaveChanges();
-                        }
-                        else
-                        {
-                            widgity.LoadAttributes();
-                        }
-                        widgities.Add( widgity );
-                        widgity.AttributeValues = widgityRef.AttributeValues;
-                        widgity.Order = widgities.IndexOf( widgity );
-                    }
-                    rockContext.SaveChanges();
-                    foreach ( var widgity in widgities )
-                    {
-                        widgity.SaveAttributeValues();
-                    }
+                                 if ( widgity == null )
+                                 {
+                                     widgity = widgityRef;
+                                     widgity.EntityTypeId = EntityTypeId;
+                                     widgity.EntityGuid = EntityGuid;
+                                     widgityService.Add( widgity );
+                                     rockContext.SaveChanges();
+                                 }
+                                 else
+                                 {
+                                     widgity.LoadAttributes();
+                                 }
+                                 widgities.Add( widgity );
+                                 widgity.AttributeValues = widgityRef.AttributeValues;
+                                 widgity.Order = widgities.IndexOf( widgity );
+                             }
+                             rockContext.SaveChanges();
+                             foreach ( var widgity in widgities )
+                             {
+                                 widgity.SaveAttributeValues();
+                             }
 
-                    //WidgityItems
-                    WidgityItemService widgityItemService = new WidgityItemService( rockContext );
+                             //WidgityItems
+                             WidgityItemService widgityItemService = new WidgityItemService( rockContext );
 
-                    foreach ( var widgity in widgities )
-                    {
-                        var storedWidgityItems = WidgityItems[widgity.Guid];
-                        var storedWidgityItemGuids = storedWidgityItems.Select( wi => wi.Guid ).ToList();
-                        var databaseWidgityItems = widgityItemService.Queryable().Where( wi => wi.WidgityId == widgity.Id ).ToList();
+                             foreach ( var widgity in widgities )
+                             {
+                                 var storedWidgityItems = WidgityItems[widgity.Guid];
+                                 var storedWidgityItemGuids = storedWidgityItems.Select( wi => wi.Guid ).ToList();
+                                 var databaseWidgityItems = widgityItemService.Queryable().Where( wi => wi.WidgityId == widgity.Id ).ToList();
 
-                        //Remove deleted items
-                        var itemsToRemove = databaseWidgityItems.Where( wi => !storedWidgityItemGuids.Contains( wi.Guid ) ).ToList();
-                        widgityItemService.DeleteRange( itemsToRemove );
+                                 //Remove deleted items
+                                 var itemsToRemove = databaseWidgityItems.Where( wi => !storedWidgityItemGuids.Contains( wi.Guid ) ).ToList();
+                                 widgityItemService.DeleteRange( itemsToRemove );
 
-                        foreach ( var item in storedWidgityItems )
-                        {
-                            if ( item.Id == 0 ) // new
-                            {
-                                item.Order = storedWidgityItems.IndexOf( item );
-                                item.WidgityId = widgity.Id;
-                                item.WidgityTypeId = widgity.WidgityTypeId;
-                                widgityItemService.Add( item );
-                                rockContext.SaveChanges();
-                                item.SaveAttributeValues();
-                            }
-                            else // update
-                            {
-                                var databaseItem = databaseWidgityItems.Where( wi => wi.Guid == item.Guid ).FirstOrDefault();
-                                databaseItem.Order = storedWidgityItems.IndexOf( item );
-                                databaseItem.LoadAttributes();
-                                databaseItem.AttributeValues = item.AttributeValues;
-                                databaseItem.SaveAttributeValues();
-                                rockContext.SaveChanges();
-                            }
-                        }
-                    }
-                } );
+                                 foreach ( var item in storedWidgityItems )
+                                 {
+                                     if ( item.Id == 0 ) // new
+                                     {
+                                         item.Order = storedWidgityItems.IndexOf( item );
+                                         item.WidgityId = widgity.Id;
+                                         item.WidgityTypeId = widgity.WidgityTypeId;
+                                         widgityItemService.Add( item );
+                                         rockContext.SaveChanges();
+                                         item.SaveAttributeValues();
+                                     }
+                                     else // update
+                                     {
+                                         var databaseItem = databaseWidgityItems.Where( wi => wi.Guid == item.Guid ).FirstOrDefault();
+                                         databaseItem.Order = storedWidgityItems.IndexOf( item );
+                                         databaseItem.LoadAttributes();
+                                         databaseItem.AttributeValues = item.AttributeValues;
+                                         databaseItem.SaveAttributeValues();
+                                         rockContext.SaveChanges();
+                                     }
+                                 }
+                             }
+                         } );
             }
             WidgityCache.Clear();
             WidgityItemCache.Clear();
             HideSettings();
+
+            EventHandler<WidgityPubArgs> handler = WidgityPublished;
+            var args = new WidgityPubArgs();
+            args.WidgityIds = Widgities.Select( w => w.Id ).ToList();
+            handler?.Invoke( this, args );
         }
 
         public void ShowSettings()
@@ -986,6 +1025,7 @@ namespace org.secc.Widgities.Controls
 
             string script = string.Format( @"
 function InitDrag() {{
+
                 var containers = [];
 
 var items = document.getElementsByClassName('widgitySource');
@@ -1036,7 +1076,30 @@ console.log(containers);
         }});
 
     }}
-InitDrag();
+
+var cssId = 'widgityCss';
+if (!document.getElementById(cssId))
+{{
+    var head  = document.getElementsByTagName('head')[0];
+    var link  = document.createElement('link');
+    link.id   = cssId;
+    link.rel  = 'stylesheet';
+    link.type = 'text/css';
+    link.href = '/Plugins/org_secc/Widgities/Widgities.css';
+    link.media = 'all';
+    head.appendChild(link);
+}}
+
+//Dynamically load dragula and set up dragging
+var script = document.createElement('script');
+script.src = '/Scripts/dragula.min.js';
+
+script.onload = function () {{
+    InitDrag();
+}};
+
+document.head.appendChild(script);
+
 ", lbDragCommand.ClientID );
             ScriptManager.RegisterStartupScript( this, GetType(), "DragDrop", script, true );
         }

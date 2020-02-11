@@ -14,7 +14,7 @@
                     Id = c.Int( nullable: false, identity: true ),
                     WidgityTypeId = c.Int( nullable: false ),
                     EntityTypeId = c.Int( nullable: false ),
-                    EntityId = c.Int( nullable: false ),
+                    EntityGuid = c.Guid( nullable: false ),
                     Order = c.Int( nullable: false ),
                     CreatedDateTime = c.DateTime(),
                     ModifiedDateTime = c.DateTime(),
