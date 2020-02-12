@@ -1,0 +1,52 @@
+{% assign currentDate = 'Now' | Date:'MMddHHmm' | AsDouble %}
+{% assign islive = 'Global' | PageParameter:'islive' %}
+{% if currentDate >= 02151700 or islive == 'true' %}
+<style>
+.select2-container--default .select2-selection--single {
+  background-color: transparent;
+  border: 0.4rem solid #000000;
+  border-radius: 0px; }
+</style>
+<div class="row g-padding-b-50--xs g-padding-x-50--xs g-display-flex--lg">
+    <div class="col-lg-offset-1 col-lg-5 col-sm-6 col-xs-12">
+        <div class="se-panel g-padding-x-60--xs g-padding-y-80--xs text-center g-margin-y-20--xs g-height-100-percent--xs">
+            <div class="g-center--md g-width-80-percent--md g-position--relative">
+                <h3 class="g-font-family--secondary g-padding-b-40--xs">Camp Freedom Registration</h3>
+                <a href="/registration/20CmpFrdmCMPR" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1">
+                    <strong>Camper</strong>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5 col-sm-6 col-xs-12">
+        <div class="se-panel g-padding-x-60--xs g-padding-y-80--xs text-center g-margin-y-20--xs g-height-100-percent--xs">
+            <div class="g-center--md g-width-80-percent--md g-position--relative">
+            <h3 class="g-font-family--secondary g-padding-b-40--xs">Leader Registration</h3>
+
+            <div class="g-display-inline-block--xs g-width-100-percent--xs">
+                <select class="select2-two" name="campusReg" style="height:50px">
+                    <option value="selectOption">Select Option</option>
+                    <option value="20CmpFrdmAL">Adult Leader</option>
+                    <option value="20CmpFrdmJL">Junior Leader</option>
+                    <option value="20CmpFrdmYT">Youth Team</option>
+                </select>
+            </div>
+            <script>
+                $('.select2-two').select2({
+                  placeholder: 'Select Campus',
+                  minimumResultsForSearch: -1,
+                  width: '100%'
+                });
+                $('.select2-two').on('select2:select', function (e) {
+                    e.preventDefault();
+                    var value = $(this).val();
+                    if (value != "selectOption")
+                    window.open("https://www.southeastchristian.org/registration/"+value, "_blank");
+                });
+            </script>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}

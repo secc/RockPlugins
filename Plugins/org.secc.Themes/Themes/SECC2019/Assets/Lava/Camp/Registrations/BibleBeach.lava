@@ -1,0 +1,125 @@
+{% assign currentDate = 'Now' | Date:'MMddHHmm' | AsDouble %}
+{% assign islive = 'Global' | PageParameter:'islive' %}
+{% if currentDate >= 02151700 or islive == 'true' %}
+<div class="row g-padding-b-50--xs g-padding-x-50--xs g-display-flex--lg">
+    <style>
+    .select2-container--default .select2-selection--single {
+        background-color: transparent;
+        border: 0.4rem solid #000000;
+        border-radius: 0px; }
+    </style>
+    <div class="col-lg-6 col-md-6 col-xs-12">
+        <div class="se-panel g-padding-x-20--xs g-padding-y-40--xs text-center g-margin-y-20--xs g-height-100-percent--xs">
+            <div class="g-center--lg g-width-80-percent--lg g-position--relative">
+            <h3 class="g-font-family--secondary g-padding-b-40--xs">Under 18 <br />Student Registration</h3>
+
+            <!-- Select Campus? -->
+            <div class="g-display-inline-block--xs g-width-100-percent--xs">
+                <select class="select2-one" name="campusReg" style="height:50px">
+                    <option value="selectCampus">Select Campus</option>
+                    {% registrationinstance where:'Name *= "2020 | BIBLE & BEACH | STUDENT UNDER 18"' %}
+                    {% for instance in registrationinstanceItems %}
+                        {% assign linkages = instance | Property:"Linkages" %}
+                        {% for linkage in linkages %}
+                            <option value="{{linkage.UrlSlug}}">{{instance.Name | Split:'|' | Last | Trim }}</option>
+                        {% endfor %}
+                    {% endfor %}
+                    {% endregistrationinstance %}
+                </select>
+            </div>
+            <script>
+                // bind to 'need?' dropdown selection
+                $('.select2-one').select2({
+                  placeholder: 'Select Campus',
+                  minimumResultsForSearch: -1,
+                  width: '100%'
+                });
+                $('.select2-one').on('select2:select', function (e) {
+                    e.preventDefault();
+                    var value = $(this).val();
+                    if (value != "selectCampus")
+                    window.open("https://www.southeastchristian.org/registration/"+value, "_blank");
+                });
+            </script>
+
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6 col-md-6 col-xs-12">
+        <div class="se-panel g-padding-x-20--xs g-padding-y-40--xs text-center g-margin-y-20--xs g-height-100-percent--xs">
+            <div class="g-center--lg g-width-80-percent--lg g-position--relative">
+            <h3 class="g-font-family--secondary g-padding-b-40--xs">Over 18 <br />Student Registration</h3>
+
+            <!-- Select Campus? -->
+            <div class="g-display-inline-block--xs g-width-100-percent--xs">
+                <select class="select2-two" name="campusReg" style="height:50px">
+                    <option value="selectCampus">Select Campus</option>
+                    {% registrationinstance where:'Name *= "2020 | BIBLE & BEACH | STUDENT 18 AND OVER"' %}
+                    {% for instance in registrationinstanceItems %}
+                        {{ instance.Name }}
+                        {% assign linkages = instance | Property:"Linkages" %}
+                        {% for linkage in linkages %}
+                            <option value="{{linkage.UrlSlug}}">{{instance.Name | Split:'|' | Last | Trim }}</option>
+                        {% endfor %}
+                    {% endfor %}
+                    {% endregistrationinstance %}
+                </select>
+            </div>
+            <script>
+                // bind to 'need?' dropdown selection
+                $('.select2-two').select2({
+                  placeholder: 'Select Campus',
+                  minimumResultsForSearch: -1,
+                  width: '100%'
+                });
+                $('.select2-two').on('select2:select', function (e) {
+                    e.preventDefault();
+                    var value = $(this).val();
+                    if (value != "selectCampus")
+                    window.open("https://www.southeastchristian.org/registration/"+value, "_blank");
+                });
+            </script>
+
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6 col-md-6 col-xs-12">
+        <div class="se-panel g-padding-x-20--xs g-padding-y-40--xs text-center g-margin-y-20--xs g-height-100-percent--xs">
+            <div class="g-center--lg g-width-80-percent--lg g-position--relative">
+            <h3 class="g-font-family--secondary g-padding-b-40--xs">Leader Registration</h3>
+
+            <!-- Select Campus? -->
+            <div class="g-display-inline-block--xs g-width-100-percent--xs">
+                <select class="select2-three" name="campusReg" style="height:50px">
+                    <option value="selectCampus">Select Campus</option>
+                    {% registrationinstance where:'Name *= "2020 | BIBLE & BEACH | LEADER"' %}
+                    {% for instance in registrationinstanceItems %}
+                        {{ instance.Name }}
+                        {% assign linkages = instance | Property:"Linkages" %}
+                        {% for linkage in linkages %}
+                            <option value="{{linkage.UrlSlug}}">{{instance.Name | Split:'|' | Last | Trim }}</option>
+                        {% endfor %}
+                    {% endfor %}
+                    {% endregistrationinstance %}
+                </select>
+            </div>
+            <script>
+                // bind to 'need?' dropdown selection
+                $('.select2-three').select2({
+                  placeholder: 'Select Campus',
+                  minimumResultsForSearch: -1,
+                  width: '100%'
+                });
+                $('.select2-three').on('select2:select', function (e) {
+                    e.preventDefault();
+                    var value = $(this).val();
+                    if (value != "selectCampus")
+                    window.open("https://www.southeastchristian.org/registration/"+value, "_blank");
+                });
+            </script>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
