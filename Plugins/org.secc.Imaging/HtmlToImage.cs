@@ -17,6 +17,10 @@ namespace org.secc.Imaging
         {
             var htmlToImageConv = new HtmlToImageConverter();
 
+            if ( format == "png" )
+            {
+                htmlToImageConv.CustomArgs = "--transparent";
+            }
             if ( width.HasValue )
             {
                 htmlToImageConv.Width = width.Value;
