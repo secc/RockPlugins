@@ -82,7 +82,7 @@
 			},
 			{
 	            "images":[
-				    { "width":480, "url":"https://rock.secc.org/Content/SubSplash/ContentPart1.jpg"  }
+				    { "width":480, "url":"https://www.southeastchristian.org/Content/SubSplash/ContentPart1.jpg"  }
 			    ],
 				"actions": [{
 					"handler": "{{- itemActionHandler -}}",
@@ -92,7 +92,7 @@
 			},
 			{
 	            "images":[
-				    { "width":480, "url":"https://rock.secc.org/Content/SubSplash/ContentPart2.jpg"  }
+				    { "width":480, "url":"https://www.southeastchristian.org/Content/SubSplash/ContentPart2.jpg"  }
 			    ],
 				"actions": [{
 					"handler": "{{- itemActionHandler -}}",
