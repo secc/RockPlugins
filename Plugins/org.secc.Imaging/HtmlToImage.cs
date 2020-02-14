@@ -32,7 +32,7 @@ namespace org.secc.Imaging
             }
 
 
-            var image = htmlToImageConv.GenerateImage( html, ImageFormat.Png );
+            var image = htmlToImageConv.GenerateImage( html, format == "jpg" ? ImageFormat.Jpeg : ImageFormat.Png );
 
             return image;
         }
