@@ -17,6 +17,10 @@ namespace org.secc.Imaging
         {
             var htmlToImageConv = new HtmlToImageConverter();
 
+            if ( format == "png" )
+            {
+                htmlToImageConv.CustomArgs = "--transparent";
+            }
             if ( width.HasValue )
             {
                 htmlToImageConv.Width = width.Value;
@@ -28,7 +32,7 @@ namespace org.secc.Imaging
             }
 
 
-            var image = htmlToImageConv.GenerateImage( html, ImageFormat.Png );
+            var image = htmlToImageConv.GenerateImage( html, format == "jpg" ? ImageFormat.Jpeg : ImageFormat.Png );
 
             return image;
         }
