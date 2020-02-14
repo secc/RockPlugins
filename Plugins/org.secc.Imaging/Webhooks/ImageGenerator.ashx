@@ -72,7 +72,15 @@ public class ImageGenerator : IHttpHandler
                 }
                 context.Response.BinaryWrite( image );
                 context.Response.ContentType = imageType.IsNotNullOrWhiteSpace() ? "image/" + imageType : "image/png";
-
+                    
+                // Add the response headers
+                var headers = api.GetAttributeValue( "ResponseHeaders" );
+                if ( headers != null ) {
+                    foreach( var header in headers.AsDictionary() )
+                    {
+                        context.Response.AddHeader( header.Key.ResolveMergeFields(mergeFields, currentUser != null ? currentUser.Person : null, enabledLavaCommands ), header.Value.ResolveMergeFields(mergeFields, currentUser != null ? currentUser.Person : null, enabledLavaCommands ) );
+                    }
+                }
                 return;
             }
 
