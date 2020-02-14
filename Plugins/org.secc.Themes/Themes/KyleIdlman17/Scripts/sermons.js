@@ -13,7 +13,7 @@
 				$.each(data, function(i, series){
 		            $('<a></a>', {
 						"class": "list-item",
-						"href": "/kyle-sermons/"+series.slug.toLowerCase(),
+						"href": "/sermons/"+series.slug.toLowerCase(),
 					}).append(
 						$('<div/>', {
 							"class": 'sermon-series',
