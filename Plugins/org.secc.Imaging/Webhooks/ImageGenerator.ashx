@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Xml;
+using System.Security.Cryptography;
 
 using Rock;
 using Rock.Web.Cache;
@@ -48,8 +49,11 @@ public class ImageGenerator : IHttpHandler
                 var width = api.GetAttributeValue( "Width" ).AsIntegerOrNull();
                 var height = api.GetAttributeValue( "Height" ).AsIntegerOrNull();
 
+                if(!Directory.Exists(context.Request.MapPath( "~/App_Data/Files/ComputedImages/" )))
+                    Directory.CreateDirectory(context.Request.MapPath( "~/App_Data/Files/ComputedImages/" ));
+
                 var filename = context.Request.MapPath( string.Format( "~/App_Data/Files/ComputedImages/{0}_w{1}_h{2}.{3}",
-                               html.Md5Hash(),
+                               Md5Hash(html),
                                width.ToString(),
                                height.ToString(),
                                imageType
@@ -68,7 +72,15 @@ public class ImageGenerator : IHttpHandler
                 }
                 context.Response.BinaryWrite( image );
                 context.Response.ContentType = imageType.IsNotNullOrWhiteSpace() ? "image/" + imageType : "image/png";
-
+                    
+                // Add the response headers
+                var headers = api.GetAttributeValue( "ResponseHeaders" );
+                if ( headers != null ) {
+                    foreach( var header in headers.AsDictionary() )
+                    {
+                        context.Response.AddHeader( header.Key.ResolveMergeFields(mergeFields, currentUser != null ? currentUser.Person : null, enabledLavaCommands ), header.Value.ResolveMergeFields(mergeFields, currentUser != null ? currentUser.Person : null, enabledLavaCommands ) );
+                    }
+                }
                 return;
             }
 
@@ -94,6 +106,24 @@ public class ImageGenerator : IHttpHandler
             return false;
         }
     }
+	
+	public string Md5Hash(string str)
+	{
+        {
+            using ( var crypt = MD5.Create() )
+            {
+                var hash = crypt.ComputeHash( Encoding.UTF8.GetBytes( str ) );
+
+                StringBuilder sb = new StringBuilder();
+                foreach ( byte b in hash )
+                {
+                    // Can be "x2" if you want lowercase
+                    sb.Append( b.ToString( "x2" ) );
+                }
+                return sb.ToString();
+            }
+        }
+	}
 
     #region Main Methods
 
