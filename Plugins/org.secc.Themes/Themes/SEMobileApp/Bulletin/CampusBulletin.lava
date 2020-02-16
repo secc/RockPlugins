@@ -1,0 +1,77 @@
+{%- contentchannelitem where:'ContentChannelId == 24 && Status == 2' sort:'StartDateTime Desc' -%}
+{%- assign series = "" -%}
+{%- assign currentMessage = "" -%}
+{%- for item in contentchannelitemItems -%}
+	{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
+	{%- for messages in itemChildItems -%}
+		{%- assign message = messages.ChildContentChannelItem -%}
+		{%- if message.ContentChannelId == "23" -%}
+			{%- assign series = item -%}
+			{%- assign currentMessage = message -%}
+			{%- break -%}
+		{%- endif -%}
+	{%- endfor -%}
+	{%- if series != "" -%}
+		{%- break -%}
+	{%- endif -%}
+{%- endfor -%}
+{%- endcontentchannelitem -%}
+{% assign seriesImageGuid = series | Attribute:'Image','RawValue' -%}
+{
+	"header": {
+		"title": "Blankenbaker Bulletin",
+		"style": "featured"
+		{%- if seriesImageGuid -%}
+		{%- assign itemActionHandler = "list" -%}
+		{%- assign itemActionUrl = "https://www.southeastchristian.org/webhooks/SubSplash.ashx/sermons/series/" | Append:series.Id -%}
+		{%- assign resourcesCount = 0 -%}
+		{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
+		{%- for messages in itemChildItems -%}
+			{%- assign message = messages.ChildContentChannelItem -%}
+			{%- if message.ContentChannelId != "23" -%}
+				{%- assign resourcesCount = resourcesCount | Plus:1 -%}
+			{%- endif -%}
+		{%- endfor -%}
+		{%- if resourcesCount != 0 -%}
+		{%- assign itemActionHandler = "subtabs" -%}
+		{%- assign itemActionUrl = "https://www.southeastchristian.org/webhooks/SubSplash.ashx/tabs/series/" | Append:series.Id -%}
+		{%- endif -%}
+		,"items": [{
+			"images":[
+                { "width":320, "url":"https://www.southeastchristian.org/GetImage.ashx/{{ seriesImageGuid }}.jpg?guid={{ seriesImageGuid }}&bgcolor=121212&width=110&height=110"  },
+                { "width":720, "url":"https://www.southeastchristian.org/GetImage.ashx/{{ seriesImageGuid }}.jpg?guid={{ seriesImageGuid }}&bgcolor=121212&width=720&height=720" },
+                { "width":1080, "url":"https://www.southeastchristian.org/GetImage.ashx/{{ seriesImageGuid }}.jpg?guid={{ seriesImageGuid }}&bgcolor=121212&width=1080&height=1080" },
+                { "width":1920, "url":"https://www.southeastchristian.org/GetImage.ashx/{{ seriesImageGuid }}.jpg?guid={{ seriesImageGuid }}&bgcolor=121212&width=1920&height=1920" }
+		    ],
+			"actions": [{
+				"handler": "{{- itemActionHandler -}}",
+				{%- if itemActionHandler == "subtabs" -%}"type": "navigation",{%- endif -%}
+				"url": "{{- itemActionUrl -}}"
+			}]
+		}]
+		{%- endif -%}
+	},
+	"displayOptions": {
+		"style":"stacked",
+		"contentWidthRatio": 1.0,
+		"itemDisplayOptions": {
+			"indicatorAspectRatio":1.65,
+			"indicatorShadowEnabled":true,
+        	"maxWidth":1400,
+	        "textPosition": "none"
+		}
+    },
+    "items": [
+        {
+            "images":[
+                { "width":636, "url":"https://www.southeastchristian.org/GetImage.ashx/37addd71-6720-4dc2-bda6-a7d170c818a1.jpg?guid=37addd71-6720-4dc2-bda6-a7d170c818a1&bgcolor=121212&mode=crop&margin=40,30,40,10"  }
+            ]
+        }{%- contentchannelitem where:'ContentChannelId == 70' sort:'StartDateTime desc'  -%}{%- for item in contentchannelitemItems -%},{
+            "images": [
+                { "width":636, "url":"https://www.southeastchristian.org/GetImage.ashx/{{item | Attribute:'SEMobileImage', 'RawValue'}}.jpg?guid={{item | Attribute:'SEMobileImage', 'RawValue'}}&bgcolor=121212&mode=crop&s.roundcorners=20,20,20,20&margin=40,0,40,40"  }
+            ]
+        }
+		{%- endfor -%}
+		{%- endcontentchannelitem -%}
+    ]
+}

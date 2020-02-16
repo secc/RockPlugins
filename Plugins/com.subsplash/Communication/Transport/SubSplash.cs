@@ -147,7 +147,8 @@ namespace com.subsplash.Communcation.Transport
 
                     JsonSerializerSettings serializerSettings = new JsonSerializerSettings
                     {
-                        ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor
+                        ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
+                        DateTimeZoneHandling = DateTimeZoneHandling.Local
                     };
 
                     bool recipientFound = true;
@@ -176,6 +177,7 @@ namespace com.subsplash.Communcation.Transport
                                     notification.AppKey = GetAttributeValue( "AppKey" );
                                     notification.Body = message;
                                     notification.Title = title;
+                                    notification.PublishedAt = RockDateTime.Now;
                                     notification.Embedded = new NotificationEmbedded();
                                     notification.Embedded.ExternalUser = new ExternalUser();
                                     notification.Embedded.ExternalUser.AuthProviderId = Encryption.DecryptString( GetAttributeValue("AuthProviderId" ) ).AsGuidOrNull();
@@ -185,14 +187,14 @@ namespace com.subsplash.Communcation.Transport
                                     sendPush.AddHeader( "Content-Type", "application/json" );
                                     sendPush.AddHeader( "Authorization", "Bearer " + Encryption.DecryptString( GetAttributeValue( "JWTToken" ) ) );
                                     sendPush.RequestFormat = DataFormat.Json;
-                                    sendPush.AddParameter( "application/json", JsonConvert.SerializeObject( notification ), ParameterType.RequestBody );
+                                    sendPush.AddParameter( "application/json", JsonConvert.SerializeObject( notification, serializerSettings), ParameterType.RequestBody );
 
 
                                     var response = client.Execute( sendPush );
 
                                     ErrorResponse error = ( ErrorResponse ) JsonConvert.DeserializeObject( response.Content, typeof( ErrorResponse ), serializerSettings );
 
-                                    if ( error != null )
+                                    if ( error != null && error.Errors != null )
                                     {
                                         recipient.StatusNote = string.Join( "\n", error.Errors.Select( e => e.Code + ": " + ( e.Message ?? e.Detail ) ).ToList() );
                                         recipient.Status = CommunicationRecipientStatus.Failed;

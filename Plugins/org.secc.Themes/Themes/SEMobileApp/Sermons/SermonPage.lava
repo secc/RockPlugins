@@ -7,7 +7,7 @@
 			"title": "Sermons",
 			"images": [{
 				"width": 500,
-				"url": "https://rock.secc.org/Content/SEApp/SermonsKyle.jpg"
+				"url": "https://www.southeastchristian.org/Content/SEApp/SermonsKyle.jpg"
 			}]
 		}]
 	},
@@ -31,14 +31,14 @@
         {% unless forloop.first %},{% endunless %}
         {
             "images":[
-			    { "url":"https://rock.secc.org/GetImage.ashx/{{item | Attribute:'Image', 'RawValue'}}.jpg?guid={{item | Attribute:'Image', 'RawValue'}}&width=110" }
+			    { "url":"https://www.southeastchristian.org/GetImage.ashx/{{item | Attribute:'Image', 'RawValue'}}.jpg?guid={{item | Attribute:'Image', 'RawValue'}}&width=110" }
 		    ],
 			"position": "{{forloop.index}}",
 			"title": "{{item.Title | Replace:'"','\"'}}",
 			"subtitle": "{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
 			"actions": [{
 				"handler": "list",
-				"url": "https://rock.secc.org/webhooks/Lava.ashx/subsplash/sermons/series/{{item.Id}}"
+				"url": "https://www.southeastchristian.org/webhooks/Lava.ashx/subsplash/sermons/series/{{item.Id}}"
 			}]
 		}
         {%- endfor -%}
