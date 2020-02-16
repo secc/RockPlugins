@@ -3103,7 +3103,7 @@ namespace RockWeb.Plugins.org_secc.Event
                 }
             }
 
-            if (familyId.HasValue && location != null)
+            if (familyId.HasValue && location != null && location.IsMinimumViableAddress() )
             {
                 var familyGroup = new GroupService( rockContext ).Get( familyId.Value );
                 var existingLocation = new LocationService( rockContext ).Get(
