@@ -13,6 +13,7 @@ using System.Security.Cryptography;
 using Rock;
 using Rock.Web.Cache;
 using Newtonsoft.Json;
+using ImageResizer;
 using Rock.Utility;
 
 using org.secc.Imaging;
@@ -41,19 +42,19 @@ public class ImageGenerator : IHttpHandler
                 // Get the necessary values from the defined value.
                 string lava = api.GetAttributeValue( "Template" );
                 string enabledLavaCommands = api.GetAttributeValue( "EnabledLavaCommands" );
-                string imageType = api.GetAttributeValue( "ImageType" );
+                string imageType = "png";
                 var currentUser = Rock.Model.UserLoginService.GetCurrentUser();
 
                 string html = lava.ResolveMergeFields( mergeFields, currentUser != null ? currentUser.Person : null, enabledLavaCommands );
 
-                var width = api.GetAttributeValue( "Width" ).AsIntegerOrNull();
-                var height = api.GetAttributeValue( "Height" ).AsIntegerOrNull();
+                var width = api.GetAttributeValue( "CanvasWidth" ).AsIntegerOrNull();
+                var height = api.GetAttributeValue( "CanvasHeight" ).AsIntegerOrNull();
 
                 if(!Directory.Exists(context.Request.MapPath( "~/App_Data/Files/ComputedImages/" )))
                     Directory.CreateDirectory(context.Request.MapPath( "~/App_Data/Files/ComputedImages/" ));
 
                 var filename = context.Request.MapPath( string.Format( "~/App_Data/Files/ComputedImages/{0}_w{1}_h{2}.{3}",
-                               Md5Hash(html),
+                               Md5Hash(html + context.Request.Url.Query),
                                width.ToString(),
                                height.ToString(),
                                imageType
@@ -68,11 +69,66 @@ public class ImageGenerator : IHttpHandler
                 else
                 {
                     image = HtmlToImage.GenerateImage( html, imageType.IsNotNullOrWhiteSpace() ? imageType : "png", width, height );
+
+                    // Now set things up and run it through the ImageResizer so we can have all that power too!
+                    Stream fileStream = new MemoryStream(image);
+                    ResizeSettings settings = new ResizeSettings( context.Request.QueryString );
+
+                    if ( settings["mode"] == null || settings["mode"] == "clip" )
+                    {
+                        settings.Add( "mode", "max" );
+
+                        if ( !string.IsNullOrEmpty( settings["width"] ) && !string.IsNullOrEmpty( settings["height"] ) )
+                        {
+                            if ( settings["width"].AsInteger() > settings["height"].AsInteger() )
+                            {
+                                settings.Remove( "height" );
+                            }
+                            else
+                            {
+                                settings.Remove( "width" );
+                            }
+                        }
+                    }
+
+                    settings.Add( "autorotate.default", "true" );
+
+                    MemoryStream resizedStream = new MemoryStream();
+
+                    ImageBuilder.Current.Build( fileStream, resizedStream, settings, false );
+
+                    image = resizedStream.ToArray();
                     File.WriteAllBytes( filename, image );
+
                 }
                 context.Response.BinaryWrite( image );
-                context.Response.ContentType = imageType.IsNotNullOrWhiteSpace() ? "image/" + imageType : "image/png";
-                    
+
+                // Output the content type.
+                context.Response.ContentType = "image/"+imageType;
+
+                // check that the format of the image wasn't changed by a format query parm if so adjust the mime-type to reflect the conversion
+                if ( context.Request["format"].IsNotNullOrWhiteSpace() )
+                {
+                    switch ( context.Request["format"] )
+                    {
+                        case "png":
+                            {
+                                context.Response.ContentType = "image/png";
+                                break;
+                            }
+                        case "gif":
+                            {
+                                context.Response.ContentType = "image/gif";
+                                break;
+                            }
+                        case "jpg":
+                            {
+                                context.Response.ContentType = "image/jpeg";
+                                break;
+                            }
+                    }
+                }
+
                 // Add the response headers
                 var headers = api.GetAttributeValue( "ResponseHeaders" );
                 if ( headers != null ) {
@@ -106,9 +162,9 @@ public class ImageGenerator : IHttpHandler
             return false;
         }
     }
-	
-	public string Md5Hash(string str)
-	{
+
+    public string Md5Hash(string str)
+    {
         {
             using ( var crypt = MD5.Create() )
             {
@@ -123,7 +179,7 @@ public class ImageGenerator : IHttpHandler
                 return sb.ToString();
             }
         }
-	}
+    }
 
     #region Main Methods
 
