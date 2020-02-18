@@ -68,7 +68,7 @@
 <div class="container-fluid g-padding-y-50--xs">
     <div class="container g-padding-b-10--xs">
         <div class="isotope_wrap">
-            {% contentchannelitem where:'ContentChannelId == 66' sort:'Order' %}
+            {% contentchannelitem where:'ContentChannelId == 68' sort:'Order' %}
                {% for item in contentchannelitemItems %}
 
                     {% assign phone = item | Attribute:'Phone' %}
@@ -298,7 +298,7 @@
         if (zipcode.length==5){
             $('.se-zipcode-loading').removeClass('hidden');
             $.getJSON(
-            "/api/mapping/distance/27984/"+zipcode,
+            "/api/mapping/distance/30533/"+zipcode,
             function(data){
                 $('.se-zipcode-loading').addClass('hidden');
                
