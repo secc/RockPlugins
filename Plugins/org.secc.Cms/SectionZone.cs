@@ -66,8 +66,8 @@ namespace org.secc.Cms
                         {
                             if ( grandChildControl.GetType().ToString().Contains( "org_secc_cms_sectionheader" ) )
                             {
-                                var block = BlockCache.Read( ( ( RockBlock ) grandChildControl ).BlockId );
-                                var definedValue = DefinedValueCache.Read( block.GetAttributeValue( "SectionType" ) );
+                                var block = BlockCache.Get( ( ( RockBlock ) grandChildControl ).BlockId );
+                                var definedValue = DefinedValueCache.Get( block.GetAttributeValue( "SectionType" ) );
                                 if ( definedValue != null && definedValue.AttributeValues.ContainsKey( "ClassName" ) )
                                 {
                                     cssClass = definedValue.AttributeValues["ClassName"].ToString();
