@@ -138,7 +138,7 @@ namespace RockWeb.Plugins.org_secc.Security
             var attributeStatements = new Dictionary<string, string> {
                 {"FirstName", CurrentPerson.FirstName },
                 { "LastName", CurrentPerson.LastName },
-                { "DateOfBirth", CurrentPerson.BirthDate.ToISO8601DateString()},
+                { "DateOfBirth", CurrentPerson.BirthDate.Value.ToString( "o" )},
                 { "Gender", CurrentPerson.Gender.ToString() },
                 { "Email", CurrentPerson.Email },
             };
