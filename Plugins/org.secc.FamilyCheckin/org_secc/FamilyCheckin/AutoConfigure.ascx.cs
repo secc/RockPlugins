@@ -173,10 +173,9 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 }
                 device.SaveAttributeValues( rockContext );
 
-                CurrentKioskId = device.Id;
-                CurrentGroupTypeIds = kiosk.KioskType.GroupTypes.Select( gt => gt.Id ).ToList();
-
-                CurrentCheckinTypeId = kiosk.KioskType.CheckinTemplateId;
+                LocalDeviceConfig.CurrentKioskId = device.Id;
+                LocalDeviceConfig.CurrentGroupTypeIds = kiosk.KioskType.GroupTypes.Select( gt => gt.Id ).ToList();
+                LocalDeviceConfig.CurrentCheckinTypeId = kiosk.KioskType.CheckinTemplateId;
 
                 CurrentCheckInState = null;
                 CurrentWorkflow = null;

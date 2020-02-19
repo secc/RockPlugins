@@ -80,7 +80,10 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
             {
                 var Session = HttpContext.Current.Session;
 
-                CurrentKioskId = ( int ) Session["CheckInKioskId"];
+                var localDeviceConfigCookie =  HttpContext.Current.Request.Cookies[CheckInCookieKey.LocalDeviceConfig].Value;
+                var localDevice = localDeviceConfigCookie.FromJsonOrNull<LocalDeviceConfiguration>();
+
+                CurrentKioskId = localDevice.CurrentKioskId.Value;
                 Guid blockGuid = ( Guid ) Session["BlockGuid"];
                 List<int> CheckInGroupTypeIds = ( List<int> ) Session["CheckInGroupTypeIds"];
                 CurrentCheckInState = new CheckInState( CurrentKioskId, null, CheckInGroupTypeIds );
