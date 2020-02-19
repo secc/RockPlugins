@@ -1,0 +1,68 @@
+{%- contentchannelitem where:'Guid == "{{Guid}}"' -%}
+    {%- assign item = contentchannelitemItems | First - %}
+    {%- assign lastSermon = item.ChildItems | Last -%}
+	{%- assign sermonsCount = 0 %}
+	{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
+	{%- for messages in itemChildItems -%}
+		{% assign message = messages.ChildContentChannelItem -%}
+		{% if message.ContentChannelId == "23" %}
+			{%- assign sermonsCount = sermonsCount | Plus:1 -%}
+		{%- endif -%}
+	{%- endfor -%}
+{%- endcontentchannelitem -%}
+
+<html>
+    <head>
+        <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019/Styles/layout.css?v=637171650738055685"/>
+        <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019/Styles/main.css?v=637171650775243506"/>
+        <style>
+            html, body {
+              margin: 0px;
+              padding: 0px;
+              background-color: #121212;
+            }
+            .box {
+              margin: 0px 120px 60px;
+              width: 1256px;
+              height:822px;
+              background-color: #262626;
+              border-radius: 0px 0px 80px 80px;
+              background-repeat: no-repeat;
+              background-size: contain;
+              background-position: top;
+            }
+            .box h4, .box h5, .box p {
+              color: white;
+            }
+            .content{
+              padding: 5em 5em 5em 5em;
+              height: 100%;
+              overflow: hidden;
+            }
+        </style>
+    </head>
+    {%- assign bodyCharactersLimit = 150 -%}
+    {%- assign titleLimitBeforeSubractingBody = 15 -%}
+    {%- assign titleLength = item.Title | Size -%}
+    {%- if titleLength > titleLimitBeforeSubractingBody -%}
+        {%- assign titleLength = titleLength | Modulo:titleLimitBeforeSubractingBody | Times:4 }} -%}
+        {%- assign bodyCharactersLimit = bodyCharactersLimit | Minus:titleLength -%}
+    {%- endif -%}
+    <body>
+        <div class="box">
+            <div class="content">
+                	<h1 class="g-font-weight--600 g-color--white g-line-height" style="font-size: 4.5em;">{{item.Title | Upcase }}</h2>
+                    {% if sermonsCount > 1 -%}
+                    <h3 class="g-color--white g-line-height" style="font-size: 5rem;">{{ item.StartDateTime | Date:'MMM dd, yyyy' }} - {{ lastSermon.ChildContentChannelItem.StartDateTime | Date:'MMM dd, yyyy' }}<br />
+                    SERMONS: {{ sermonsCount }}</h3>
+                    <br />
+                    <h3 class="g-color--white g-padding-t-20--xs g-line-height" style="font-size: 5rem;">{{item.Content | Truncate:bodyCharactersLimit}}</h3>
+                    {% else %}
+                    <h3 class="g-color--white g-line-height" style="font-size: 5rem;">{{ item.StartDateTime | Date:'MMM dd, yyyy' }}</h3>
+                    <br />
+                    <h3 class="g-color--white g-padding-t-20--xs g-line-height" style="font-size: 5rem;">{{item.Content | Truncate:bodyCharactersLimit}}</h3>
+                    {% endif %}
+            </div>
+        </div>
+    </body>
+</html>

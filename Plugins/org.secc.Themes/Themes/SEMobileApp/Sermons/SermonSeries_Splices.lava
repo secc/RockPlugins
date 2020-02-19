@@ -30,10 +30,10 @@
         {%- if sermon.ContentChannelId == "23" -%}
         {{ comma }}
 		{
-			"title": "{{sermon.Title | Replace:'"','\"'}}",
+			"title": "{{sermon.Guid}} {{sermon.Title | Replace:'"','\"'}}",
 			"subtitle": "{{ sermon | Attribute:'Speaker' | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }} {{ '&bull;' | HtmlDecode }} {{ sermon.StartDateTime | Date:'MMMM d, yyyy' }}",
 			"images":[
-				{ "width":747, "url":"https://www.southeastchristian.org/GetImage.ashx/abb0fd8e-46d5-413c-b673-7058a813ae4c.jpg?guid=abb0fd8e-46d5-413c-b673-7058a813ae4c&bgcolor=121314&mode=crop&s.roundcorners=40&margin=40,40,40,0"  }
+				{ "width":747, "url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/sermon/button/{{sermon.Guid}}?bgcolor=121314&mode=crop&s.roundcorners=40&margin=80,80,80,0"  }
 			],
 			"actions": [{
 				"handler": "detail",
