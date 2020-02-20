@@ -53,7 +53,9 @@
 						{%- if studiesStudiesIncluded == false -%}
 						{
 							"images":[
-								{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/ResourcesStudies.jpg"  }
+								{%- assign Title = "Studies" | Escape | EscapeDataString -%}
+								{%- assign Body = "Find additinal studies related below." | Escape | EscapeDataString -%}
+								{ "width":747, "url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
 							]
 						},
 						{%- assign studiesStudiesIncluded = true -%}
@@ -75,7 +77,9 @@
 						{%- if studiesReadingPlansIncluded == false -%}
 						{
 							"images":[
-								{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/ResourcesReadingPlans.jpg"  }
+								{%- assign Title = "Reading Plans" | Escape | EscapeDataString -%}
+								{%- assign Body = "Interested in a devotion?" | Escape | EscapeDataString -%}
+								{ "width":747, "url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
 							]
 						},
 						{%- assign studiesReadingPlansIncluded = true -%}
@@ -97,7 +101,9 @@
 						{%- if studiesMediaIncluded == false -%}
 						{
 							"images":[
-								{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/ResourcesMedia.jpg"  }
+								{%- assign Title = "Media" | Escape | EscapeDataString -%}
+								{%- assign Body = "See other related videos, links, or testimonies." | Escape | EscapeDataString -%}
+								{ "width":747, "url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
 							]
 						},
 						{%- assign studiesMediaIncluded = true -%}
@@ -122,7 +128,7 @@
 				{{ comma }}
 				{
 					"images":[
-						{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/SermonBlank.jpg"  }
+						{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/SermonBlank121212.jpg"  }
 					]
 				}
 				{%- endif -%}
