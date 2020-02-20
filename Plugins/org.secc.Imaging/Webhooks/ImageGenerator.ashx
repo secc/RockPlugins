@@ -68,7 +68,7 @@ public class ImageGenerator : IHttpHandler
                 }
                 else
                 {
-                    image = HtmlToImage.GenerateImage( html, imageType.IsNotNullOrWhiteSpace() ? imageType : "png", width, height );
+                    image = HtmlToImage.GenerateImage( UnicodeEncode( html), imageType.IsNotNullOrWhiteSpace() ? imageType : "png", width, height );
 
                     // Now set things up and run it through the ImageResizer so we can have all that power too!
                     Stream fileStream = new MemoryStream(image);
@@ -151,6 +151,21 @@ public class ImageGenerator : IHttpHandler
             WriteToLog( e.Message );
         }
     }
+	
+	public string UnicodeEncode( string text ) {
+		char[] chars = text.ToCharArray();
+		StringBuilder result = new StringBuilder( text.Length + (int)( text.Length * 0.1 ) );
+
+		foreach ( char c in chars ) {
+			int value = Convert.ToInt32( c );
+			if ( value > 127 )
+				result.AppendFormat("&#{0};",value); 
+			else
+				result.Append( c );
+		}
+
+		return result.ToString();
+	}
 
     /// <summary>
     /// These webhooks are not reusable and must only be used once.
