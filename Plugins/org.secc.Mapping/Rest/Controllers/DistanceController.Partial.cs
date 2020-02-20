@@ -78,11 +78,11 @@ namespace org.secc.Mapping.Rest.Controllers
                 .Where( l => locationGuids.Contains( l.Guid ) )
                 .ToList();
 
-            var destinations = locationGuids
-                .Select( lg => new Destination
+            var destinations = attributeValues
+                .Select( av => new Destination
                 {
-                    Entity = attributeValues.Where( av => av.Value == lg.Value.ToString() ).FirstOrDefault(),
-                    Location = locations.Where( l => l.Guid == lg.Value ).FirstOrDefault()
+                    Entity = av,
+                    Location = locations.Where( l => l.Guid == av.Value.AsGuid() ).FirstOrDefault()
                 } )
                 .Where( d => d.Location != null && d.Entity != null )
                 .ToList();

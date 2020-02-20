@@ -6,9 +6,9 @@
 		"style":"stacked",
 		"contentWidthRatio":1.0,
 	    "itemDisplayOptions":{
-			"indicatorAspectRatio":1.696,
+			"indicatorAspectRatio":0.83636364,
 			"indicatorShadowEnabled":true,
-        	"maxWidth":1400,
+        	"maxWidth":1100,
 	        "textPosition": "none"
 	    },
 		"colors":{
@@ -38,7 +38,7 @@
 	    {%- assign pageNumber = page -%}
 	{%- endif -%}
 	{%- assign offset = pageNumber | Minus:1 | Times: 120 -%}
-	{%- contentchannelitem where:'ContentChannelId == 24' sort:'StartDateTime desc' offset:'{{offset}}' limit:'120'  -%}
+	{%- contentchannelitem where:'ContentChannelId == 24' sort:'StartDateTime desc' offset:'4' limit:'120'  -%}
 		"items": [
 	        {%- for item in contentchannelitemItems -%}
 	        {% unless forloop.first %},{% endunless %}
@@ -61,29 +61,7 @@
 				"title": "{{item.Title | Replace:'"','\"'}}",
 				"subtitle": "{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
 	            "images":[
-					{%- assign seriesImageGuid = item | Attribute:'Image', 'RawValue' -%}
-					{%- if seriesImageGuid != empty -%}
-						{ "width":748, "url":"https://www.southeastchristian.org/GetImage.ashx/{{seriesImageGuid}}.jpg?guid={{seriesImageGuid}}&width=628&height=auto&mode=crop&s.roundcorners=20,20,0,0&bgcolor=121212&format=png&margin=60,87,60,0&anchor=topcenter"  }
-					{%- else -%}
-						{%- for child in item.ChildItems -%}
-						{%- assign seriesImage = child.ChildContentChannelItem | Attribute:'Image' -%}
-						{%- assign seriesImageGuid = child.ChildContentChannelItem | Attribute:'Image','RawValue' -%}
-						{%- if seriesImage != empty -%}
-						{ "width":748, "url":"https://www.southeastchristian.org/GetImage.ashx/{{seriesImageGuid}}.jpg?guid={{seriesImageGuid}}&width=628&height=auto&mode=crop&s.roundcorners=20,20,0,0&bgcolor=121212&format=png&margin=60,87,60,0&anchor=topcenter"  }
-						{%- break -%}
-						{%- endif %}
-						{%- endfor -%}
-					{%- endif -%}
-			    ],
-				"actions": [{
-					"handler": "{{- itemActionHandler -}}",
-            		{%- if itemActionHandler == "subtabs" -%}"type": "navigation",{%- endif -%}
-					"url": "{{- itemActionUrl -}}"
-				}]
-			},
-			{
-	            "images":[
-				    { "width":748, "url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/sermon/halfcard/{{item.Guid | Upcase}}"  }
+					{ "width":920, "url":"https://rockstaging.secc.org/Webhooks/ImageGenerator.ashx/sermon/card/{{item.Guid | Upcase}}"  }
 			    ],
 				"actions": [{
 					"handler": "{{- itemActionHandler -}}",
