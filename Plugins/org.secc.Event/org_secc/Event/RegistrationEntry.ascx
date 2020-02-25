@@ -1,5 +1,5 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="RegistrationEntry.ascx.cs" Inherits="RockWeb.Blocks.Event.RegistrationEntry" %>
-
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="RegistrationEntry.ascx.cs" Inherits="RockWeb.Plugins.org_secc.Event.RegistrationEntry" ValidateRequestMode="Disabled" %>
+<%@ Register Src="SignNow.ascx" TagName="SignNow" TagPrefix="secc" %>
 <style>
     iframe {
         width: 100%;
@@ -34,7 +34,7 @@
     </asp:Panel>
     <%-- Prompt for any Registration Attributes that should be prompted for before entering registrations--%>
     <asp:Panel ID="pnlRegistrationAttributesStart" runat="server" Visible="false" CssClass="registrationentry-registration-attributes">
-
+        <div class="registration-heading">
         <h1><asp:Literal ID="lRegistrationAttributesStartTitle" runat="server" /></h1>
 
         <asp:Panel ID="pnlRegistrationAttributesStartProgressBar" runat="server">
@@ -44,6 +44,7 @@
                 </div>
             </div>
         </asp:Panel>
+        </div>
 
         <Rock:AttributeValuesContainer ID="avcRegistrationAttributesStart" runat="server" />
         <div class="actions">
@@ -55,7 +56,7 @@
     <%-- Prompt for information on each Registration --%>
     <asp:Panel ID="pnlRegistrant" runat="server" Visible="false" CssClass="registrationentry-registrant">
 
-        
+        <div class="registration-heading">
         <h1>
             <asp:Literal ID="lRegistrantTitle" runat="server" />
         </h1>        
@@ -69,6 +70,7 @@
                 </div>
             </div>
         </asp:Panel>
+        </div>
 
         <asp:Panel id="pnlRegistrantFields" runat="server" >
 
@@ -92,11 +94,14 @@
         </asp:Panel>
 
         <asp:Panel id="pnlDigitalSignature" runat="server" visible="false">
+            <secc:SignNow runat="server" ID="SignNow" EnableViewState="true" />
             <Rock:NotificationBox ID="nbDigitalSignature" runat="server" NotificationBoxType="Info"></Rock:NotificationBox>
             <asp:HiddenField ID="hfRequiredDocumentLinkUrl" runat="server" />
             <asp:HiddenField ID="hfRequiredDocumentQueryString" runat="server" />
+            <asp:HiddenField ID="hfRegistrantGuid" runat="server" ClientIDMode="Static" />
 
-            <iframe id="iframeRequiredDocument" frameborder="0" ></iframe>
+            <iframe id="iframeRequiredDocument" frameborder="0" runat="server" Visible="false" ClientIDMode="Static" ></iframe>
+            <a id="lbRequiredDocument" runat="server" Visible="false" class="btn btn-default pull-right">Sign Document</a>
             <span style="display:none" >
                 <asp:LinkButton ID="lbRequiredDocumentNext" runat="server" Text="Required Document Return" OnClick="lbRequiredDocumentNext_Click" CausesValidation="false" ></asp:LinkButton>
             </span>
@@ -112,7 +117,7 @@
 
     <%-- Prompt for any Registration Attributes that should be prompted for after entering registrations--%>
     <asp:Panel ID="pnlRegistrationAttributesEnd" runat="server" Visible="false" CssClass="registrationentry-registration-attributes">
-
+        <div class="registration-heading">
         <h1><asp:Literal ID="lRegistrationAttributesEndTitle" runat="server" /></h1>
 
         <asp:Panel ID="pnlRegistrationAttributesEndProgressBar" runat="server">
@@ -122,6 +127,7 @@
                 </div>
             </div>
         </asp:Panel>
+        </div>
 
         <Rock:AttributeValuesContainer ID="avcRegistrationAttributesEnd" runat="server" />
         <div class="actions">
@@ -132,7 +138,7 @@
 
     <%-- Summary and Payment --%>
     <asp:Panel ID="pnlSummaryAndPayment" runat="server" Visible="false" CssClass="registrationentry-summary">
-        
+        <div class="registration-heading">
         <h1><asp:Literal ID="lSummaryAndPaymentTitle" runat="server" /></h1>
 
         <asp:Panel ID="pnlSummaryAndPaymentProgressBar" runat="server">
@@ -142,53 +148,7 @@
                 </div>
             </div>
         </asp:Panel>
-        
-        <asp:Panel ID="pnlRegistrarInfoPrompt" runat="server" CssClass="well">
-            
-            <h4>This <asp:Literal id="lRegistrationTermPrompt" runat="server" /> Was Completed By</h4>
-            <div class="row">
-                <div class="col-md-6">
-                    <Rock:RockTextBox ID="tbYourFirstName" runat="server" Label="First Name" CssClass="js-your-first-name" Required="true" />
-                </div>
-                <div class="col-md-6">
-                    <Rock:RockTextBox ID="tbYourLastName" runat="server" Label="Last Name" Required="true" />
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6">
-                    <Rock:EmailBox ID="tbConfirmationEmail" runat="server" Label="Send Confirmation Emails To" Required="true" />
-                    <Rock:RockCheckBox ID="cbUpdateEmail" runat="server" Text="Should Your Account Be Updated To Use This Email Address?" Visible="false" Checked="true" />
-                    <asp:Literal ID="lUpdateEmailWarning" runat="server" Text="Note: Your account will automatically be updated with this email address." Visible="false" />
-                </div>
-                <div class="col-md-6">
-                    <asp:Panel ID="pnlRegistrarFamilyOptions" runat="server" CssClass="js-registration-same-family">
-                        <Rock:RockRadioButtonList ID="rblRegistrarFamilyOptions" runat="server" Label="You are in the same immediate family as" RepeatDirection="Horizontal" Required="true" DataTextField="Value" DataValueField="Key" RequiredErrorMessage="Answer to which family is required." />
-                    </asp:Panel>
-                </div>
-            </div>
-
-        </asp:Panel>
-
-        <asp:Panel ID="pnlRegistrarInfoUseLoggedInPerson" runat="server" CssClass="well" Visible="false">
-            <h4>This <asp:Literal id="lRegistrationTermLoggedInPerson" runat="server" /> Was Completed By</h4>
-            <div class="row">
-                <div class="col-md-6">
-                    <Rock:RockLiteral ID="lUseLoggedInPersonFirstName" runat="server" Label="First Name"/>
-                </div>
-                <div class="col-md-6">
-                    <Rock:RockLiteral ID="lUseLoggedInPersonLastName" runat="server" Label="Last Name" />
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6">
-                    <Rock:RockLiteral ID="lUseLoggedInPersonEmail" runat="server" Label="Email" />
-                    <Rock:EmailBox ID="tbUseLoggedInPersonEmail" runat="server" Label="Email" Required="true" />
-                </div>
-                <div class="col-md-6">
-                </div>
-            </div>
-        </asp:Panel>
-        
+        </div>
         <asp:Panel ID="pnlRegistrantsReview" CssClass="margin-b-md" runat="server" Visible="false">
             <asp:Literal ID="lRegistrantsReview" runat="server" />
             <ul>
@@ -226,7 +186,7 @@
                 </div>
             </div>
 
-            <div class="fee-table">
+            <div class="fee-table container-fluid">
                 <asp:Repeater ID="rptFeeSummary" runat="server">
                     <HeaderTemplate>
                         <div class="row hidden-xs fee-header">
@@ -295,7 +255,7 @@
 
             <asp:Literal ID="lPaymentInfoTitle" runat="server" />
 
-            <Rock:RockRadioButtonList ID="rblSavedCC" runat="server" CssClass="radio-list margin-b-lg" RepeatDirection="Vertical" DataValueField="Id" DataTextField="Name" />
+            <Rock:RockRadioButtonList ID="rblSavedCC" runat="server" CssClass="radio-list margin-b-lg" RepeatDirection="Vertical" DataValueField="Id" DataTextField="Name" AutoPostBack="true" />
             
             <div id="divNewCard" runat="server" class="radio-content">
                 <Rock:RockTextBox ID="txtCardFirstName" runat="server" Label="First Name on Card" Visible="false" ></Rock:RockTextBox>
@@ -320,7 +280,52 @@
             </div>
 
         </asp:Panel>
+            <asp:Panel ID="pnlRegistrarInfoPrompt" runat="server" CssClass="well">
+            
+            <h4>This <asp:Literal id="lRegistrationTermPrompt" runat="server" /> Was Entered By</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <Rock:RockTextBox ID="tbYourFirstName" runat="server" Label="First Name" CssClass="js-your-first-name" Required="true" />
+                </div>
+                <div class="col-md-6">
+                    <Rock:RockTextBox ID="tbYourLastName" runat="server" Label="Last Name" Required="true" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <Rock:EmailBox ID="tbConfirmationEmail" runat="server" Label="Send Confirmation Emails To" Required="true" />
+                    <Rock:RockCheckBox ID="cbUpdateEmail" runat="server" Text="Should Your Account Be Updated To Use This Email Address?" Visible="false" Checked="true" />
+                    <asp:Literal ID="lUpdateEmailWarning" runat="server" Text="Note: Your account will automatically be updated with this email address." Visible="false" />
+                </div>
+                <div class="col-md-6">
+                    <asp:Panel ID="pnlRegistrarFamilyOptions" runat="server" CssClass="js-registration-same-family">
+                        <Rock:RockRadioButtonList ID="rblRegistrarFamilyOptions" runat="server" Label="You are in the same immediate family as" RepeatDirection="Horizontal" Required="true" DataTextField="Value" DataValueField="Key" RequiredErrorMessage="Answer to which family is required." />
+                    </asp:Panel>
+                </div>
+            </div>
 
+        </asp:Panel>
+
+        <asp:Panel ID="pnlRegistrarInfoUseLoggedInPerson" runat="server" CssClass="well" Visible="false">
+            <h4>This <asp:Literal id="lRegistrationTermLoggedInPerson" runat="server" /> Was Entered By</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <Rock:RockLiteral ID="lUseLoggedInPersonFirstName" runat="server" Label="First Name"/>
+                </div>
+                <div class="col-md-6">
+                    <Rock:RockLiteral ID="lUseLoggedInPersonLastName" runat="server" Label="Last Name" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <Rock:RockLiteral ID="lUseLoggedInPersonEmail" runat="server" Label="Email" />
+                    <Rock:EmailBox ID="tbUseLoggedInPersonEmail" runat="server" Label="Email" Required="true" />
+                </div>
+                <div class="col-md-6">
+                </div>
+            </div>
+        </asp:Panel>
+        
         <div class="actions">
             <asp:LinkButton ID="lbSummaryPrev" runat="server" AccessKey="p" ToolTip="Alt+p" Text="Previous" CssClass="btn btn-default" CausesValidation="false" OnClick="lbSummaryPrev_Click" />
             <Rock:BootstrapButton ID="lbSummaryNext" runat="server" AccessKey="n" ToolTip="Alt+n" Text="Finish" DataLoadingText="Next" CssClass="btn btn-primary pull-right" CausesValidation="true" OnClick="lbSummaryNext_Click" />
@@ -340,7 +345,7 @@
     </asp:Panel>
 
     <asp:Panel ID="pnlSuccess" runat="server" Visible="false" >
-        
+        <div class="registration-heading">
         <h1><asp:Literal ID="lSuccessTitle" runat="server" /></h1>
 
         <asp:Panel ID="pnlSuccessProgressBar" runat="server">
@@ -350,6 +355,7 @@
                 </div>
             </div>
         </asp:Panel>
+        </div>
 
         <asp:Literal ID="lSuccess" runat="server" />
         <asp:Literal ID="lSuccessDebug" runat="server" Visible="false" />

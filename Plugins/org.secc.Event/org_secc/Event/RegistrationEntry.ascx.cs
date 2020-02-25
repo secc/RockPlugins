@@ -40,14 +40,15 @@ using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 using Helper = Rock.Attribute.Helper;
+using org.secc.PersonMatch;
 
-namespace RockWeb.Blocks.Event
+namespace RockWeb.Plugins.org_secc.Event
 {
     /// <summary>
     /// Block used to register for a registration instance.
     /// </summary>
     [DisplayName( "Registration Entry" )]
-    [Category( "Event" )]
+    [Category( "SECC > Event" )]
     [Description( "Block used to register for a registration instance." )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Connection Status", "The connection status to use for new individuals (default: 'Web Prospect'.)", true, false, Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT, "", 0 )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_RECORD_STATUS, "Record Status", "The record status to use for new individuals (default: 'Pending'.)", true, false, Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING, "", 1 )]
@@ -79,6 +80,8 @@ namespace RockWeb.Blocks.Event
         DefaultBooleanValue = true,
         Order = 10,
         Key = AttributeKey.ShowFieldDescriptions )]
+    [WorkflowTypeField( "Discount Code Workflow",
+        Description = "The workflow to execute to automatically apply discount codes (Passes an entity which is a Dictionary containing \"RegistrationInstance\" and \"RegistrationInfo\" keys)" )]
     public partial class RegistrationEntry : RockBlock
     {
         private static class AttributeKey
@@ -665,7 +668,8 @@ namespace RockWeb.Blocks.Event
                                     if ( SignInline &&
                                         !PageParameter( "redirected" ).AsBoolean() &&
                                         DigitalSignatureComponent != null &&
-                                        !string.IsNullOrWhiteSpace( DigitalSignatureComponent.CookieInitializationUrl ) )
+                                        !string.IsNullOrWhiteSpace( DigitalSignatureComponent.CookieInitializationUrl )
+                                        && false )
                                     {
                                         // Redirect for Digital Signature Cookie Initialization
                                         var returnUrl = ResolvePublicUrl( Request.Url.PathAndQuery );
@@ -687,6 +691,10 @@ namespace RockWeb.Blocks.Event
                         }
                     }
                 }
+            }
+            else if ( ( !string.IsNullOrWhiteSpace( PageParameter( "document_id" ) ) || !string.IsNullOrWhiteSpace( Request.Form["document_id"] ) ) && RegistrationState.Registrants.Count() > CurrentRegistrantIndex && RegistrationState.Registrants[CurrentRegistrantIndex].SignatureDocumentKey == null )
+            {
+                lbRequiredDocumentNext_Click( null, e );
             }
             else
             {
@@ -1136,12 +1144,24 @@ namespace RockWeb.Blocks.Event
             hfRequiredDocumentLinkUrl.Value = string.Empty;
 
             string qryString = hfRequiredDocumentQueryString.Value;
-            if ( qryString.StartsWith( "?document_id=" ) )
+            if ( qryString.StartsWith( "?document_id=" ) || !string.IsNullOrWhiteSpace( PageParameter( "document_id" ) ) || !string.IsNullOrWhiteSpace( Request.Form["document_id"] ) )
             {
                 if ( RegistrationState != null && RegistrationState.RegistrantCount > CurrentRegistrantIndex )
                 {
                     var registrant = RegistrationState.Registrants[CurrentRegistrantIndex];
-                    registrant.SignatureDocumentKey = qryString.Substring( 13 );
+                    if ( qryString.StartsWith( "?document_id=" ) )
+                    {
+                        registrant.SignatureDocumentKey = qryString.Substring( 13 );
+                    }
+                    else if ( !string.IsNullOrWhiteSpace( PageParameter( "document_id" ) ) )
+                    {
+                        registrant.SignatureDocumentKey = PageParameter( "document_id" );
+                    }
+                    else
+                    {
+                        registrant.SignatureDocumentKey = Request.Form["document_id"];
+                    }
+
                     registrant.SignatureDocumentLastSent = RockDateTime.Now;
                 }
 
@@ -2442,7 +2462,11 @@ namespace RockWeb.Blocks.Event
                 else
                 {
                     // otherwise look for one and one-only match by name/email
-                    registrar = personService.FindPerson( registration.FirstName, registration.LastName, registration.ConfirmationEmail, true );
+                    var possibleRegistrars = personService.GetByMatch( registration.FirstName, registration.LastName, null, email: registration.ConfirmationEmail );
+                    if ( possibleRegistrars.Count() == 1 )
+                    {
+                        registrar = possibleRegistrars.FirstOrDefault();
+                    }
                     if ( registrar != null )
                     {
                         registration.PersonAliasId = registrar.PrimaryAliasId;
@@ -2490,7 +2514,6 @@ namespace RockWeb.Blocks.Event
                 {
                     person.RecordStatusValueId = dvcRecordStatus.Id;
                 }
-
                 registrar = SavePerson( rockContext, person, RegistrationState.FamilyGuid, CampusId, null, adultRoleId, childRoleId, multipleFamilyGroupIds, ref singleFamilyId );
                 registration.PersonAliasId = registrar != null ? registrar.PrimaryAliasId : ( int? ) null;
 
@@ -2542,6 +2565,36 @@ namespace RockWeb.Blocks.Event
                     string firstName = registrantInfo.GetFirstName( RegistrationTemplate );
                     string lastName = registrantInfo.GetLastName( RegistrationTemplate );
                     string email = registrantInfo.GetEmail( RegistrationTemplate );
+                    object dateOfBirthObj = registrantInfo.GetPersonFieldValue( RegistrationTemplate, RegistrationPersonFieldType.Birthdate );
+                    object mobilePhoneObj = registrantInfo.GetPersonFieldValue( RegistrationTemplate, RegistrationPersonFieldType.MobilePhone );
+                    object homePhoneObj = registrantInfo.GetPersonFieldValue( RegistrationTemplate, RegistrationPersonFieldType.HomePhone );
+                    object addressObj = registrantInfo.GetPersonFieldValue( RegistrationTemplate, RegistrationPersonFieldType.Address );
+                    DateTime? dateOfBirth = null;
+                    string phone = null;
+                    string street1 = null;
+                    string postalCode = null;
+
+
+                    if ( dateOfBirthObj != null && dateOfBirthObj is DateTime? )
+                    {
+                        dateOfBirth = dateOfBirthObj as DateTime?;
+                    }
+
+                    if ( mobilePhoneObj != null && mobilePhoneObj is PhoneNumber )
+                    {
+                        phone = ( ( PhoneNumber ) mobilePhoneObj ).Number;
+                    }
+                    else if ( homePhoneObj != null && homePhoneObj is PhoneNumber )
+                    {
+                        phone = ( ( PhoneNumber ) homePhoneObj ).Number;
+                    }
+
+                    if ( addressObj != null && addressObj is Location )
+                    {
+                        var address = addressObj as Location;
+                        street1 = address.Street1;
+                        postalCode = address.PostalCode;
+                    }
 
                     if ( registrantInfo.Id > 0 )
                     {
@@ -2573,8 +2626,31 @@ namespace RockWeb.Blocks.Event
 
                     if ( person == null )
                     {
-                        // Try to find a matching person based on name and email address
-                        person = personService.FindPerson( firstName, lastName, email, true );
+                        if ( dateOfBirth.HasValue )
+                        {
+                            // Try to find a matching person based on name and email address
+                            var possiblePersons = personService.GetByMatch(
+                                firstName,
+                                lastName,
+                                dateOfBirth,
+                                email,
+                                phone,
+                                street1,
+                                postalCode
+                                );
+                            if ( possiblePersons.Count() == 1 )
+                            {
+                                person = possiblePersons.FirstOrDefault();
+                            }
+                        }
+                        else
+                        {
+                            var possiblePersons = personService.FindPersons( firstName, lastName, email );
+                            if ( possiblePersons.Count() == 1 )
+                            {
+                                person = possiblePersons.FirstOrDefault();
+                            }
+                        }
 
                         // Try to find a matching person based on name within same family as registrar
                         if ( person == null && registrar != null && registrantInfo.FamilyGuid == RegistrationState.FamilyGuid )
@@ -2612,6 +2688,11 @@ namespace RockWeb.Blocks.Event
 
                     if ( person == null )
                     {
+                        if ( string.IsNullOrWhiteSpace( firstName ) && string.IsNullOrWhiteSpace( lastName ) )
+                        {
+                            throw new Exception( "Empty person record encountered during registration." );
+                        }
+
                         // If a match was not found, create a new person
                         person = new Person();
                         person.FirstName = firstName;
@@ -3883,7 +3964,25 @@ namespace RockWeb.Blocks.Event
                     PercentComplete = ( currentStep / ProgressBarSteps ) * 100.0m;
                     pnlRegistrantProgressBar.Visible = GetAttributeValue( "DisplayProgressBar" ).AsBoolean();
 
-                    if ( SignInline && CurrentFormIndex >= FormCount )
+                    if ( SignInline && CurrentFormIndex >= FormCount && !string.IsNullOrWhiteSpace( RegistrationState.Registrants[CurrentRegistrantIndex].SignatureDocumentKey ) )
+                    {
+                        ShowRegistrant( true, true );
+                        hfTriggerScroll.Value = "true";
+                        return;
+                    }
+                    else if ( SignInline && CurrentFormIndex >= FormCount )
+                    {
+                        if ( SignNow.Load( CurrentRegistrantIndex, RegistrationState, RegistrationInstanceState ) )
+                        {
+                            ShowRegistrant( true, true );
+                            hfTriggerScroll.Value = "true";
+                            return;
+                        }
+                        pnlRegistrantFields.Visible = false;
+                        pnlDigitalSignature.Visible = true;
+                        lbRegistrantNext.Visible = false;
+                    }
+                    /*if ( SignInline && CurrentFormIndex >= FormCount )
                     {
                         string registrantName = RegistrantTerm;
                         if ( RegistrationState != null && RegistrationState.RegistrantCount > CurrentRegistrantIndex )
@@ -3914,7 +4013,7 @@ namespace RockWeb.Blocks.Event
                         pnlRegistrantFields.Visible = false;
                         pnlDigitalSignature.Visible = true;
                         lbRegistrantNext.Visible = false;
-                    }
+                    }*/
                     else
                     {
                         pnlRegistrantFields.Visible = true;
@@ -5667,6 +5766,31 @@ namespace RockWeb.Blocks.Event
                         nbDiscountCode.NotificationBoxType = NotificationBoxType.Success;
                         nbDiscountCode.Text = string.Format( "The {0} '{1}' was automatically applied.", DiscountCodeTerm.ToLower(), discount.Code );
                         break;
+                    }
+                }
+
+                // If we have a Discount Code workflow
+                if ( !String.IsNullOrWhiteSpace( GetAttributeValue( "DiscountCodeWorkflow" ) ) )
+                {
+                    var workflowType = WorkflowTypeCache.Get( GetAttributeValue( "DiscountCodeWorkflow" ).AsGuid() );
+                    var workflow = Rock.Model.Workflow.Activate( workflowType, RegistrationState.FirstName + " " + RegistrationState.LastName + " - Discount Code" );
+
+                    Dictionary<string, object> entityDictionary = new Dictionary<string, object>();
+                    entityDictionary.Add( "RegistrationInstance", RegistrationInstanceState );
+                    entityDictionary.Add( "RegistrationInfo", RegistrationState );
+                    entityDictionary.Add( "ExistingDiscountCode", RegistrationState.DiscountCode );
+                    entityDictionary.Add( "ExistingDiscountPercentage", RegistrationState.DiscountPercentage );
+                    entityDictionary.Add( "ExistingDiscountAmount", RegistrationState.DiscountAmount );
+                    List<string> workflowErrors;
+                    var processed = new Rock.Model.WorkflowService( new RockContext() ).Process( workflow, entityDictionary, out workflowErrors );
+
+                    tbDiscountCode.Text = RegistrationState.DiscountCode;
+
+                    foreach ( string error in workflowErrors )
+                    {
+                        nbDiscountCode.NotificationBoxType = NotificationBoxType.Warning;
+                        nbDiscountCode.Text += string.Format( "{0}<br />", error );
+                        nbDiscountCode.Visible = true;
                     }
                 }
             }
