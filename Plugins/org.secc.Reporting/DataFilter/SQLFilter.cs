@@ -200,7 +200,7 @@ function() {
                 var entityIds = serviceInstance.Context.Database.SqlQuery<int>( selection ).ToList();
 
                 //Small data sets don't need to be put in the database for subselect
-                if ( entityIds.Count <= 1 )
+                if ( entityIds.Count <= 1000 )
                 {
                     var qry = entityQuery.Where( p => entityIds.Contains( p.Id ) );
                     return FilterExpressionExtractor.Extract<IEntity>( qry, parameterExpression, "p" );
