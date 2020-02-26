@@ -80,13 +80,12 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
             {
                 var Session = HttpContext.Current.Session;
 
-                var localDeviceConfigCookie =  HttpContext.Current.Request.Cookies[CheckInCookieKey.LocalDeviceConfig].Value;
+                var localDeviceConfigCookie = HttpContext.Current.Request.Cookies[CheckInCookieKey.LocalDeviceConfig].Value;
                 var localDevice = localDeviceConfigCookie.FromJsonOrNull<LocalDeviceConfiguration>();
 
                 CurrentKioskId = localDevice.CurrentKioskId.Value;
                 Guid blockGuid = ( Guid ) Session["BlockGuid"];
-                List<int> CheckInGroupTypeIds = ( List<int> ) Session["CheckInGroupTypeIds"];
-                CurrentCheckInState = new CheckInState( CurrentKioskId, null, CheckInGroupTypeIds );
+                CurrentCheckInState = new CheckInState( CurrentKioskId, localDevice.CurrentCheckinTypeId, localDevice.CurrentGroupTypeIds );
                 CurrentCheckInState.CheckIn.UserEnteredSearch = true;
                 CurrentCheckInState.CheckIn.ConfirmSingleFamily = true;
                 CurrentCheckInState.CheckIn.SearchType = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER );
