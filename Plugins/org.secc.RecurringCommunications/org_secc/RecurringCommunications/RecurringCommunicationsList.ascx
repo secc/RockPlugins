@@ -8,6 +8,7 @@
                 <Rock:RockBoundField HeaderText="Communication Type" DataField="CommunicationType" />
                 <Rock:RockBoundField HeaderText="Schedule" DataField="ScheduleDescription" />
                 <Rock:RockBoundField HeaderText="DataView" DataField="DataView.Name" />
+                <Rock:RockBoundField HeaderText="Transformation" DataField="TransformationEntityType.FriendlyName" />
                 <Rock:DeleteField ID="btnDelete" OnClick="btnDelete_Click" />
             </Columns>
         </Rock:Grid>

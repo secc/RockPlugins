@@ -1,4 +1,4 @@
-﻿<%@ WebHandler Language="C#" Class="SubSplash" %>
+﻿<%@ WebHandler Language="C#" Class="Subsplash" %>
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,7 +17,7 @@ using Rock.Utility;
 /// A webhook for processing the request with Lava. Does basic decoding of FORM, JSON
 /// and XML data and provides basic HttpRequest information to the Lava script.
 /// </summary>
-public class SubSplash : IHttpHandler
+public class Subsplash : IHttpHandler
 {
     const string SUBSPLASH_WEBHOOK = "3D36C1CD-2B3B-41C4-80AB-BE22B9631DC1";
 

@@ -34,6 +34,7 @@
         position: relative;
         background-color: #F5F5F5;
         padding: 20px;
+		min-height: 400px;
     }
 
     /* Sidebar Styles */

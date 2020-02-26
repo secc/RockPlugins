@@ -1,0 +1,97 @@
+{
+	"header": {
+		"title": "Sermons"
+	},
+	"displayOptions":{
+		"style":"stacked",
+		"contentWidthRatio":1.0,
+	    "itemDisplayOptions":{
+			"indicatorAspectRatio":1.696,
+			"indicatorShadowEnabled":true,
+        	"maxWidth":1400,
+	        "textPosition": "none"
+	    },
+		"colors":{
+	        "brand":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+			"theme":{
+	            "primary":"#121212",
+				"block":"#262626",
+	            "blockAccent":"#262626",
+	            "secondaryAccent":"#FFFFFF",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "topBar":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "bottomBar":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "brandableElements":"{{colors:brand}}"
+	    }
+	},
+	{%- if page != empty -%}
+	    {%- assign pageNumber = page -%}
+	{%- endif -%}
+	{%- assign offset = pageNumber | Minus:1 | Times: 120 -%}
+	{%- contentchannelitem where:'ContentChannelId == 24' sort:'StartDateTime desc' offset:'{{offset}}' limit:'120'  -%}
+		"items": [
+	        {%- for item in contentchannelitemItems -%}
+	        {% unless forloop.first %},{% endunless %}
+
+			{%- assign itemActionHandler = "list" -%}
+			{%- assign itemActionUrl = "https://www.southeastchristian.org/webhooks/SubSplash.ashx/sermons/series/" | Append:item.Id -%}
+			{%- assign resourcesCount = 0 -%}
+			{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
+			{%- for messages in itemChildItems -%}
+				{%- assign message = messages.ChildContentChannelItem -%}
+				{%- if message.ContentChannelId != "23" -%}
+					{%- assign resourcesCount = resourcesCount | Plus:1 -%}
+				{%- endif -%}
+			{%- endfor -%}
+			{%- if resourcesCount != 0 -%}
+			{%- assign itemActionHandler = "subtabs" -%}
+			{%- assign itemActionUrl = "https://www.southeastchristian.org/webhooks/SubSplash.ashx/tabs/series/" | Append:item.Id -%}
+			{%- endif -%}
+	        {
+				"title": "{{item.Title | Replace:'"','\"'}}",
+				"subtitle": "{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
+	            "images":[
+					{%- assign seriesImageGuid = item | Attribute:'Image', 'RawValue' -%}
+					{%- if seriesImageGuid != empty -%}
+						{ "width":748, "url":"https://www.southeastchristian.org/GetImage.ashx/{{seriesImageGuid}}.jpg?guid={{seriesImageGuid}}&width=628&height=auto&mode=crop&s.roundcorners=20,20,0,0&bgcolor=121212&format=png&margin=60,87,60,0&anchor=topcenter"  }
+					{%- else -%}
+						{%- for child in item.ChildItems -%}
+						{%- assign seriesImage = child.ChildContentChannelItem | Attribute:'Image' -%}
+						{%- assign seriesImageGuid = child.ChildContentChannelItem | Attribute:'Image','RawValue' -%}
+						{%- if seriesImage != empty -%}
+						{ "width":748, "url":"https://www.southeastchristian.org/GetImage.ashx/{{seriesImageGuid}}.jpg?guid={{seriesImageGuid}}&width=628&height=auto&mode=crop&s.roundcorners=20,20,0,0&bgcolor=121212&format=png&margin=60,87,60,0&anchor=topcenter"  }
+						{%- break -%}
+						{%- endif %}
+						{%- endfor -%}
+					{%- endif -%}
+			    ],
+				"actions": [{
+					"handler": "{{- itemActionHandler -}}",
+            		{%- if itemActionHandler == "subtabs" -%}"type": "navigation",{%- endif -%}
+					"url": "{{- itemActionUrl -}}"
+				}]
+			},
+			{
+	            "images":[
+				    { "width":748, "url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/sermon/halfcard/{{item.Guid | Upcase}}"  }
+			    ],
+				"actions": [{
+					"handler": "{{- itemActionHandler -}}",
+            		{%- if itemActionHandler == "subtabs" -%}"type": "navigation",{%- endif -%}
+					"url": "{{- itemActionUrl -}}"
+				}]
+			}
+	        {%- endfor -%}
+	    ]
+	{%- endcontentchannelitem -%}
+}

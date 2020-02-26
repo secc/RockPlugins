@@ -21,7 +21,6 @@ using Rock.Data;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.UI.WebControls;
-using org.secc.ChangeManager.Model;
 using Rock.Attribute;
 using org.secc.RecurringCommunications.Model;
 

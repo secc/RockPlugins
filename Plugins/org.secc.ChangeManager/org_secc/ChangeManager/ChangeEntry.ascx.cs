@@ -39,11 +39,14 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
     [Category( "SECC > CRM" )]
     [Description( "Allows people to enter changes which can later be reviewed." )]
 
-    [BooleanField( "Apply On Submit", "Should the changed be applied as soon as they are submitted?", true, key: "AutoApply", order: 0 )]
+    [BooleanField( "Apply On Submit", "Should the changed be applied as soon as they are submitted? Ignored if there is an Approved Updaters Data View.", true, key: "AutoApply", order: 0 )]
+    [DataViewField( "Approved Updaters Data View",
+        "Data View of people who's changes are automatically applied.",
+        false, key: "ApprovedDataView", order: 1 )]
     [DataViewField( "Blacklist Data View",
         "Data View of people who should never have their data automatically updated such as staff members, VIPs or other people you wish to have reviewed before updating.",
-        false, key: "BlacklistDataView", order: 1 )]
-    [WorkflowTypeField( "Workflow", "Workflow to run after a change request is made.", order: 2 )]
+        false, key: "BlacklistDataView", order: 2 )]
+    [WorkflowTypeField( "Workflow", "Workflow to run after a change request is made.", order: 3 )]
     public partial class ChangeEntry : Rock.Web.UI.RockBlock
     {
         /// <summary>
@@ -421,29 +424,8 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
             }
 
-            var autoApply = false;
-            if ( GetAttributeValue( "AutoApply" ).AsBoolean() )
-            {
-                var blackListDV = GetAttributeValue( "BlacklistDataView" ).AsGuidOrNull();
-                if ( blackListDV.HasValue )
-                {
-                    DataViewService dataViewService = new DataViewService( rockContext );
-                    var dv = dataViewService.Get( blackListDV.Value );
-                    if ( dv != null )
-                    {
-                        List<string> errorMessages;
-                        var qry = ( IQueryable<Person> ) dv.GetQuery( null, 30, out errorMessages );
-                        if ( qry.Where( p => p.Id == person.Id ).Count() == 0 )
-                        {
-                            autoApply = true;
-                        }
-                    }
-                }
-                else
-                {
-                    autoApply = true;
-                }
-            }
+            bool autoApply = CanAutoApply( person );
+
 
             if ( changeRequest.ChangeRecords.Any()
             || ( !familyChangeRequest.ChangeRecords.Any() && tbComments.Text.IsNotNullOrWhiteSpace() ) )
@@ -485,6 +467,54 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 pnlNoPerson.Visible = false;
                 pnlDone.Visible = true;
             }
+        }
+
+        private bool CanAutoApply( Person person )
+        {
+            var userCanApply = false;
+            var approvedDataview = GetAttributeValue( "ApprovedDataView" ).AsGuidOrNull();
+
+            RockContext rockContext = new RockContext();
+            if ( approvedDataview.HasValue )
+            {
+                DataViewService dataViewService = new DataViewService( rockContext );
+                var dv = dataViewService.Get( approvedDataview.Value );
+                if ( dv != null )
+                {
+                    List<string> errorMessages;
+                    var qry = ( IQueryable<Person> ) dv.GetQuery( null, 30, out errorMessages );
+                    if ( qry.Where( p => p.Id == CurrentPersonId ).Any() )
+                    {
+                        userCanApply = true;
+                    }
+                }
+            }
+            else
+            {
+                userCanApply = GetAttributeValue( "AutoApply" ).AsBoolean();
+            }
+
+            if ( !userCanApply )
+            {
+                return false;
+            }
+
+            var blackListDV = GetAttributeValue( "BlacklistDataView" ).AsGuidOrNull();
+            if ( blackListDV.HasValue )
+            {
+                DataViewService dataViewService = new DataViewService( rockContext );
+                var dv = dataViewService.Get( blackListDV.Value );
+                if ( dv != null )
+                {
+                    List<string> errorMessages;
+                    var qry = ( IQueryable<Person> ) dv.GetQuery( null, 30, out errorMessages );
+                    if ( qry.Where( p => p.Id == person.Id ).Any() )
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
 
         protected void pPerson_SelectPerson( object sender, EventArgs e )

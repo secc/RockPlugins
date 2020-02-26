@@ -1,0 +1,140 @@
+{%- contentchannelitem where:'ContentChannelId == 24 && Id == {{series}}' sort:'StartDateTime desc'  -%}
+{%- for series in contentchannelitemItems -%}
+{
+	"header": {
+		"title": "{{series.Title | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
+		"style": "featured",
+		"items": [{
+			"images":[
+                { "width":320, "url":"https://www.southeastchristian.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121212&width=110&height=110"  },
+                { "width":720, "url":"https://www.southeastchristian.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121212&width=720&height=720" },
+                { "width":1080, "url":"https://www.southeastchristian.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121212&width=1080&height=1080" },
+                { "width":1920, "url":"https://www.southeastchristian.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121212&width=1920&height=1920" }
+		    ]
+		}]
+	},
+	"displayOptions": {
+		"style":"stacked",
+		"contentWidthRatio": 1.0,
+		"itemDisplayOptions": {
+			"indicatorAspectRatio":3.66,
+			"indicatorShadowEnabled":true,
+        	"maxWidth":1400,
+	        "textPosition": "none"
+		}
+    },
+    "items": [
+		{%- assign comma = "" -%}
+		{%- assign resourcesCount = 0 -%}
+		{%- assign itemChildItems = series.ChildItems | Sort:'Order' -%}
+		{%- for messages in itemChildItems -%}
+			{%- assign message = messages.ChildContentChannelItem -%}
+			{%- assign videoImageGuid = message | Attribute:'Image','RawValue' -%}
+			{%- if message.ContentChannelId != "23" -%}
+				{%- assign resourcesCount = resourcesCount | Plus:1 -%}
+			{%- endif -%}
+		{%- endfor -%}
+		{%- if resourcesCount != 0 -%}
+			{%- assign studiesStudiesIncluded = false -%}
+			{%- assign studiesReadingPlansIncluded = false -%}
+			{%- assign studiesMediaIncluded = false -%}
+
+			{%- for messages in itemChildItems -%}
+
+				{%- assign resource = messages.ChildContentChannelItem -%}
+				{%- assign resourceMediaFile = resource | Attribute:'ResourceFile','Object' -%}
+				{%- assign resourceURL = resource | Attribute:'ResourceURL','RawValue' -%}
+				{%- assign ResourceURLText = resource | Attribute:'ResourceURLText','RawValue' -%}
+				{%- assign embedCode = resource | Attribute:'EmbedCode','RawValue' -%}
+
+				{%- if resource.ContentChannelId != "23" -%}
+					{{ comma }}
+					{%- if resourceMediaFile.Guid != null -%}
+						{%- if studiesStudiesIncluded == false -%}
+						{
+							"images":[
+								{%- assign Title = "Studies" | Escape | EscapeDataString -%}
+								{%- assign Body = "Find additinal studies related below." | Escape | EscapeDataString -%}
+								{ "width":747, "url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
+							]
+						},
+						{%- assign studiesStudiesIncluded = true -%}
+						{%- endif -%}
+						{
+							"title": "{{ resource.Title }}",
+							"subtitle": "Download",
+							"images":[
+								{ "width":747, "url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
+							],
+							"actions": [{
+								"handler": "internalBrowser showTabBar",
+								"type":"navigation",
+								"showBrowserControls": true,
+								"contentUrl": "https://www.southeastchristian.org/GetFile.ashx?guid={{ resourceMediaFile.Guid }}"
+							}]
+						}
+					{%- elseif resourceURL != "" -%}
+						{%- if studiesReadingPlansIncluded == false -%}
+						{
+							"images":[
+								{%- assign Title = "Reading Plans" | Escape | EscapeDataString -%}
+								{%- assign Body = "Interested in a devotion?" | Escape | EscapeDataString -%}
+								{ "width":747, "url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
+							]
+						},
+						{%- assign studiesReadingPlansIncluded = true -%}
+						{%- endif -%}
+						{
+							"title": "{{ resource.Title }}",
+							"subtitle": "{%- if ResourceURLText != "" -%}{{ ResourceURLText }}{%- else -%}Link{%- endif -%}",
+							"images":[
+								{ "width":747, "url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
+							],
+							"actions": [{
+								"handler": "internalBrowser showTabBar",
+								"type":"navigation",
+								"showBrowserControls": true,
+								"contentUrl": "{{ resourceURL }}"
+							}]
+						}
+					{%- elseif embedCode != "" -%}
+						{%- if studiesMediaIncluded == false -%}
+						{
+							"images":[
+								{%- assign Title = "Media" | Escape | EscapeDataString -%}
+								{%- assign Body = "See other related videos, links, or testimonies." | Escape | EscapeDataString -%}
+								{ "width":747, "url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
+							]
+						},
+						{%- assign studiesMediaIncluded = true -%}
+						{%- endif -%}
+						{
+							"title": "{{ resource.Title }}",
+							"subtitle": "Watch",
+							"images":[
+								{ "width":747, "url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
+							],
+							"actions": [{
+								"handler": "internalBrowser showTabBar",
+								"type":"navigation",
+								"showBrowserControls": true,
+								"contentUrl": "https://www.southeastchristian.org/sermons/{{slug}}/{{resource.PrimarySlug}}"
+							}]
+						}
+					{%- endif -%}
+					{%- assign comma = "," -%}
+				{%- endif -%}
+				{%- if forloop.last -%}
+				{{ comma }}
+				{
+					"images":[
+						{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/SermonBlank121212.jpg"  }
+					]
+				}
+				{%- endif -%}
+			{%- endfor -%}
+		{%- endif -%}
+    ]
+}
+{%- endfor -%}
+{%- endcontentchannelitem -%}

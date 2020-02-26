@@ -62,6 +62,7 @@
     <Compile Include="Data\RecurringCommunicationsService.cs" />
     <Compile Include="Jobs\SendRecurringCommunications.cs" />
     <Compile Include="Migrations\201910311455314_Init.cs" />
+    <Compile Include="Migrations\20200107104400_AddTransformationColumn.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Model\RecurringCommunicationService.cs" />
     <Compile Include="Model\RecurringCommunication.cs" />

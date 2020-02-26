@@ -12,7 +12,7 @@
                             <div class="teams-carousel">
                                 <div id="owl-teams" class="owl-carousel teams-slider">
 
-                                    {% contentchannelitem where:'ContentChannelId == 51' sort:'Order' %}
+                                    {% contentchannelitem where:'ContentChannelId == 69' sort:'Order' %}
                                         {% for item in contentchannelitemItems %}
 
                                             {% assign titleImageFile = item | Attribute:'SquareImage', 'FileName' %}
