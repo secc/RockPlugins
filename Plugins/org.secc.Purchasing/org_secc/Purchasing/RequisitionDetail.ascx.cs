@@ -2162,6 +2162,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 txtItemFundNumber.Text = i.FundID.ToString();
                 txtItemDepartmentNumber.Text = i.DepartmentID.ToString();
                 txtItemAccountNumber.Text = i.AccountID.ToString();
+                txtProjectId.Text = i.ProjectId;
                 
                 if(i.DateNeeded > DateTime.MinValue)
                     txtDateNeeded.Text = string.Format("{0:d}", i.DateNeeded);
@@ -2180,6 +2181,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 txtItemFundNumber.Text = CurrentRequisition.CapitalRequest.GLFundId.ToString();
                 txtItemDepartmentNumber.Text = CurrentRequisition.CapitalRequest.GLDepartmentId.ToString();
                 txtItemAccountNumber.Text = CurrentRequisition.CapitalRequest.GLAccountId.ToString();
+                txtProjectId.Text = CurrentRequisition.CapitalRequest.ProjectId;
             }
 
 
@@ -2294,6 +2296,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 {
                     Item.AccountID = accountID;
                 }
+
+                Item.ProjectId = txtProjectId.Text;
 
                 Decimal ItemPrice = 0;
                 if ( decimal.TryParse( txtItemPrice.Text.Trim(), out ItemPrice ) || String.IsNullOrWhiteSpace( txtItemPrice.Text ) )

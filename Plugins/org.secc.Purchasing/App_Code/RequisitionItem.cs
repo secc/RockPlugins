@@ -51,6 +51,7 @@ namespace org.secc.Purchasing
         public int FundID { get; set; }
         public int DepartmentID { get; set; }
         public int AccountID { get; set; }
+        public string ProjectId { get; set; }
         public DateTime FYStartDate { get; set; }
         public string CreatedByUserID { get; set; }
         public string ModifiedByUserID { get; set; }
@@ -98,16 +99,13 @@ namespace org.secc.Purchasing
         {
             get
             {
-                string jsonSettings = Rock.Security.Encryption.DecryptString( GlobalAttributesCache.Get().GetValue( "IntacctAPISettings" ) );
-                ApiClient api = JsonConvert.DeserializeObject<ApiClient>( jsonSettings );
-
                 // Fetch the account
-                mAccount = api.GetGLAccounts().Where( a => a.AccountNo == AccountID ).FirstOrDefault();
+                mAccount = ApiClient.GetGLAccounts().Where( a => a.AccountNo == AccountID ).FirstOrDefault();
 
                 // Now verify that the location and department are valid
                 if ( mAccount != null)
                 {
-                    var restrictedData = api.GetDimensionRestrictedData( mAccount );
+                    var restrictedData = ApiClient.GetDimensionRestrictedData( mAccount );
                     if (!restrictedData.Any(r => r.Dimension == "DEPARTMENT" && r.IdValues.Contains( DepartmentID ) ) )
                     {
                         mAccount = null;
@@ -136,6 +134,20 @@ namespace org.secc.Purchasing
             }
         }
 
+        private ApiClient apiClient = null;
+        [XmlIgnore]
+        ApiClient ApiClient
+        {
+            get
+            {
+                if ( apiClient == null )
+                {
+                    string jsonSettings = Rock.Security.Encryption.DecryptString( GlobalAttributesCache.Get().GetValue( "IntacctAPISettings" ) );
+                    apiClient = JsonConvert.DeserializeObject<ApiClient>( jsonSettings );
+                }
+                return apiClient;
+            }
+        }
         #endregion
 
         #region Constructors
@@ -188,6 +200,8 @@ namespace org.secc.Purchasing
                 if (!Changed && DepartmentID != Original.DepartmentID)
                     Changed = true;
                 if (!Changed && AccountID != Original.AccountID)
+                    Changed = true;
+                if ( !Changed && ProjectId != Original.ProjectId )
                     Changed = true;
                 if (!Changed && FYStartDate != Original.FYStartDate)
                     Changed = true;
@@ -257,6 +271,7 @@ namespace org.secc.Purchasing
                     data.fund_id = FundID;
                     data.department_id = DepartmentID;
                     data.account_id = AccountID;
+                    data.project_id = ProjectId;
                     data.active = Active;
                     data.fiscal_year_start = FYStartDate;
                     data.is_expedited_shipping_allowed = IsExpeditiedShippingAllowed;
@@ -335,6 +350,7 @@ namespace org.secc.Purchasing
             FundID = 0;
             DepartmentID = 0;
             AccountID = 0;
+            ProjectId = null;
             FYStartDate = new DateTime(DateTime.Now.Year, 1, 1);
             CreatedByUserID = String.Empty;
             ModifiedByUserID = String.Empty;
@@ -370,6 +386,7 @@ namespace org.secc.Purchasing
                 FundID = data.fund_id;
                 DepartmentID = data.department_id;
                 AccountID = data.account_id;
+                ProjectId = data.project_id;
                 CreatedByUserID = data.created_by;
                 ModifiedByUserID = data.modified_by;
                 DateCreated = data.date_created;
@@ -429,6 +446,14 @@ namespace org.secc.Purchasing
                 ValErrors.Add("Account", "Account not found.");
             }
 
+            if ( !string.IsNullOrWhiteSpace( ProjectId ) )
+            {
+                if ( !ApiClient.GetProjects().Where(p => p.ProjectId == ProjectId).Any() )
+                {
+                    ValErrors.Add( "Project", "Project not found: Please enter a valid project code." );
+                }
+            }
+
             if (ItemID <= 0 && FYStartDate.Year < DateTime.Now.Year)
                 ValErrors.Add("Fiscal Year", "Fiscal year can not be in the past.");
 
@@ -438,7 +463,7 @@ namespace org.secc.Purchasing
 
             return ValErrors;
         }
-        
+
         #endregion
 
     }
@@ -453,6 +478,7 @@ namespace org.secc.Purchasing
         public DateTime? DateNeeded { get; set; }
         public bool ExpeditedShipping { get; set; }
         public string AccountNumber { get; set; }
+        public string ProjectId { get; set; }
         public List<int> PONumbers { get; set; }
         public decimal? EstimatedCost { get; set; }
         public decimal? LineItemCost { get; set; }

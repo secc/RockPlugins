@@ -156,6 +156,16 @@ namespace org.secc.Purchasing.Intacct
             return ReadByQuery<Location>();
         }
 
+
+        /// <summary>
+        /// This gets all projects from Intacct.
+        /// </summary>
+        /// <returns>List of Project objects.</returns>
+        public List<Project> GetProjects()
+        {
+            return ReadByQuery<Project>();
+        }
+
         private List<T> ReadByQuery<T>() where T : IntacctModel
         {
             string operation = typeof( T ).Name.ToUpper();
