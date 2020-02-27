@@ -812,6 +812,11 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     hasChanged = true;
                 }
 
+                if ( !hasChanged && CurrentCapitalRequest.ProjectId != txtProject.Text )
+                {
+                    hasChanged = true;
+                }
+
             }
 
             return hasChanged;
@@ -1259,6 +1264,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             {
                 txtGLAccount.Text = string.Format( "{0}-{1}-{2}", CurrentCapitalRequest.GLFundId, CurrentCapitalRequest.GLDepartmentId, CurrentCapitalRequest.GLAccountId );
             }
+            txtProject.Text = CurrentCapitalRequest.ProjectId;
         }
 
         private void PopulateSummaryViewFields()
@@ -1341,6 +1347,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             {
                 lGLAccount.Text = string.Format( "{0}-{1}-{2}", CurrentCapitalRequest.GLFundId, CurrentCapitalRequest.GLDepartmentId, CurrentCapitalRequest.GLAccountId );
             }
+
+            lProject.Text = CurrentCapitalRequest.ProjectId;
         }
 
         private void PromptUserForReturnReason( int approvalId )
@@ -1535,6 +1543,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             txtItemLocation.Text = null;
             txtInServiceDate.Text = null;
             txtGLAccount.Text = null;
+            txtProject.Text = null;
         }
 
         private void ResetSummaryViewFields()
@@ -1573,6 +1582,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             lItemLocation.Text = "&nbsp;";
             lInServiceDate.Text = "&nbsp;";
             lGLAccount.Text = "(not selected)";
+            lProject.Text = "";
         }
 
         private void ReturnRequest( int approvalId )
@@ -1803,6 +1813,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     CurrentCapitalRequest.GLDepartmentId = null;
                     CurrentCapitalRequest.GLAccountId = null;
                 }
+
+                CurrentCapitalRequest.ProjectId = txtProject.Text;
 
                 CurrentCapitalRequest.Save( CurrentUser.UserName );
                 CERId = CurrentCapitalRequest.CapitalRequestId;

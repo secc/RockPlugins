@@ -63,6 +63,7 @@
                         <Rock:RockBoundField DataField="RequestingMinistry" HeaderText="Requesting Ministry" SortExpression="RequestingMinistry" />
                         <Rock:RockBoundField DataField="RequesterName" HeaderText="Requester" SortExpression="RequesterNameLastFirst" />
                         <Rock:RockBoundField DataField="FullAccountNumber" HeaderText="Account" SortExpression="FullAccountNumber" />
+                        <Rock:RockBoundField DataField="ProjectId" HeaderText="Project" SortExpression="Project" />
                         <Rock:RockBoundField DataField="Status" HeaderText="Status" SortExpression="Status" />
                         <Rock:RockBoundField DataField="RequisitionCount" HeaderText="Requisitions" SortExpression="RequisitionCount" HeaderStyle-HorizontalAlign="Center" ItemStyle-HorizontalAlign="Center" />
                         <Rock:RockBoundField DataField="TotalCharges" HeaderText="Current Charges" SortExpression="TotalCharges" DataFormatString="{0:c}" />

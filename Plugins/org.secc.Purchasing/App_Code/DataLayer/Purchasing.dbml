@@ -79,6 +79,7 @@
       <Column Name="fiscal_year_start" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="is_expedited_shipping_allowed" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
       <Column Name="item_number" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="project_id" Storage="_project_key" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
       <Association Name="RequisitionItemData_PurchaseOrderItemData" Member="PurchaseOrderItemDatas" ThisKey="requisition_item_id" OtherKey="requisition_item_id" Type="PurchaseOrderItemData" />
       <Association Name="RequisitionData_RequisitionItemData" Member="RequisitionData" ThisKey="requisition_id" OtherKey="requisition_id" Type="RequisitionData" IsForeignKey="true" />
     </Type>
@@ -350,6 +351,7 @@
       <Column Name="organization_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="gl_fiscal_year_start" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="location_luid" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="project_id" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
       <Association Name="CapitalRequestData_RequisitionData" Member="RequisitionDatas" ThisKey="capital_request_id" OtherKey="capital_request_id" Type="RequisitionData" />
       <Association Name="CapitalRequestData_CapitalRequestBidData" Member="CapitalRequestBidDatas" ThisKey="capital_request_id" OtherKey="capital_request_id" Type="CapitalRequestBidData" />
     </Type>

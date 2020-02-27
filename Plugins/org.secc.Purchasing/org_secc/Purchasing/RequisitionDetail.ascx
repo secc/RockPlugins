@@ -343,7 +343,7 @@
                                 <Rock:RockBoundField HeaderText="Qty" DataField="Quantity" ItemStyle-Width="4%" ItemStyle-HorizontalAlign="Center"/>
                                 <Rock:RockBoundField HeaderText="Qty Recv'd" DataField="QuantityReceived" ItemStyle-Width="4%" ItemStyle-HorizontalAlign="Center" />
                                 <Rock:RockBoundField HeaderText="Item #" DataField="ItemNumber" ItemStyle-Width="10%" />
-                                <Rock:RockBoundField HeaderText="Description" DataField="Description" ItemStyle-Width="30%" ItemStyle-CssClass="wrap" />
+                                <Rock:RockBoundField HeaderText="Description" DataField="Description" ItemStyle-Width="25%" ItemStyle-CssClass="wrap" />
                                 <Rock:RockBoundField HeaderText="Needed By" DataField="DateNeeded" ItemStyle-Width="5%" DataFormatString="{0:d}"  />
                                 <Rock:BoolField HeaderText="Express Shipping" DataField="ExpeditedShipping" ItemStyle-Width="5%" ItemStyle-HorizontalAlign="Center" HeaderStyle-HorizontalAlign="Center" />
                                 <Rock:RockTemplateField SortExpression="AccountNumber" ItemStyle-Width="7%">
@@ -353,6 +353,7 @@
                                         <%# DataBinder.Eval(Container.DataItem, "AccountNumber") %>
                                     </ItemTemplate>
                                 </Rock:RockTemplateField>
+                                <Rock:RockBoundField HeaderText="Project" DataField="ProjectId" ItemStyle-Width="5%" />
                                 <Rock:RockBoundField HeaderText="Cost/Item" DataField="EstimatedCost" ItemStyle-Width="5%" DataFormatString="{0:c}" />
                                 <Rock:RockBoundField HeaderText="Ext" DataField="LineItemCost" ItemStyle-Width="5%" DataFormatString="{0:c}" />
                                 <Rock:RockTemplateField HeaderText="Purchase Orders" HeaderStyle-HorizontalAlign="Center" ItemStyle-Width="5%" ItemStyle-HorizontalAlign="Center">
@@ -660,7 +661,7 @@
                                 <Rock:RockDropDownList Label="Organization" ID="ddlItemCompany" runat="server" />
                             </asp:Panel>
                             <div class="row">
-                                <div class="col-sm-3">
+                                <div class="col-sm-4">
                                     <div class="form-group required">
                                         <label class="control-label">
                                             Account
@@ -676,8 +677,18 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="form-group">
+                                        <label class="control-label">
+                                           Intacct Project
+                                        </label>
+                                        <div>
+                                            <div class="form-inline">
+                                                <Rock:RockTextBox ID="txtProjectId" runat="server" MaxLength="15" Size="15" ValidationGroup="ItemDetail" />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-sm-3">
+                                <div class="col-sm-2">
                                     <Rock:RockTextBox ID="txtItemPrice" Label="Price/Each" runat="server" ValidationGroup="ItemDetail" />
                                 </div>
                                 <div class="col-sm-3">

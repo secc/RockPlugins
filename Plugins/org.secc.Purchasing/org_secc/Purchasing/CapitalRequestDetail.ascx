@@ -112,6 +112,14 @@
                             </div>
                             <div class="form-group">
                                 <label>
+                                    Anticipated In-Service Date
+                                </label>
+                                <div class="formItem">
+                                    <asp:Literal ID="lInServiceDate" runat="server" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>
                                     Requester
                                 </label>
                                 <div class="formItem">
@@ -164,18 +172,18 @@
                             </div>
                             <div class="form-group">
                                 <label>
-                                    Anticipated In-Service Date
-                                </label>
-                                <div class="formItem">
-                                    <asp:Literal ID="lInServiceDate" runat="server" />
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label>
                                     General Ledger Account
                                 </label>
                                 <div class="formItem">
                                     <asp:Literal ID="lGLAccount" runat="server" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    Intacct Project
+                                </label>
+                                <div class="formItem">
+                                    <asp:Literal ID="lProject" runat="server" />
                                 </div>
                             </div>
                         </div>
@@ -222,6 +230,15 @@
                                 </label>
                                 <div class="formItem">
                                     <asp:TextBox ID="txtOngoingCost" runat="server" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    Anticipated In-Service Date
+                                    <span class="instructions">(mm/dd/yyyy)</span>
+                                </label>
+                                <div class="formItem">
+                                    <asp:TextBox ID="txtInServiceDate" runat="server" class="form-control" />
                                 </div>
                             </div>
                             <div class="form-group required">
@@ -278,21 +295,20 @@
                                     <asp:TextBox ID="txtItemLocation" runat="server" class="form-control" />
                                 </div>
                             </div>
-                            <div class="form-group">
-                                <label>
-                                    Anticipated In-Service Date
-                                    <span class="instructions">(mm/dd/yyyy)</span>
-                                </label>
-                                <div class="formItem">
-                                    <asp:TextBox ID="txtInServiceDate" runat="server" class="form-control" />
-                                </div>
-                            </div>
                             <div class="form-group required">
                                 <label class="control-label">
                                     General Ledger Account
                                 </label>
                                 <div class="formItem">
                                     <asp:TextBox ID="txtGLAccount" runat="server" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">
+                                    Intacct Project
+                                </label>
+                                <div class="formItem">
+                                    <asp:TextBox ID="txtProject" runat="server" class="form-control" />
                                 </div>
                             </div>
                         </div>
