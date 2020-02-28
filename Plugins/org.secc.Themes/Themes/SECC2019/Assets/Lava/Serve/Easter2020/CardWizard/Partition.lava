@@ -35,7 +35,11 @@
 						<br />
 						<h2 class="
 						g-font-weight--600">{{ parentPartition.Entity.Name }}</h2>
+						{% if partition.PartitionType == "Campus" %}
+						<p class="text-center col-sm-10 col-sm-offset-1">There are many ways you can serve during our Easter services. Click on the serving roles below for more information and to sign up!  </p>
+						{% else %}
 						<p class="text-center col-sm-10 col-sm-offset-1">{{ parentPartition.Entity.Description }}</p>
+						{% endif %}
 					</header>
 				</div>
 			</div>
@@ -54,7 +58,7 @@
 							{% if forloop.first %}<h3 class="g-font-weight--700 text-center g-padding-b-20--xs g-font-size-28--xs g-font-size-36--md">Please select your schedule:</h3>{% endif %}
 							{% include '~~/Assets/Lava/Serve/Easter2020/CardWizard/CardSchedule.lava' %}
 						{% elseif partition.PartitionType == 'Campus' %}
-							{% if forloop.first %}<h3 class="g-font-weight--700 text-center g-padding-b-20--xs g-font-size-28--xs g-font-size-36--md">Please select your campus:</h3>{% endif %}
+							{% if forloop.first %}<h3 class="g-font-weight--700 text-center g-padding-b-20--xs g-font-size-28--xs g-font-size-36--md">Serve With Us</h3><p class="text-center col-sm-10 col-sm-offset-1">Help make our Easter services special for all who attend! There are a variety of ways you can serve. Click below to learn more about volunteer opportunities.</p>{% endif %}
 							{% include '~~/Assets/Lava/Serve/Easter2020/CardWizard/CardCampus.lava' %}
 						{% elseif partition.PartitionType == 'Role' %}
 							{% if forloop.first %}<h3 class="g-font-weight--700 text-center g-padding-b-20--xs g-font-size-28--xs g-font-size-36--md">Please select your serving role:</h3>{% endif %}
