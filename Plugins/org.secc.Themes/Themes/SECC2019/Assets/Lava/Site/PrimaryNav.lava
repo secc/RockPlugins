@@ -135,8 +135,13 @@
                     <li>
                         <a href="/ministries/famly">Family</a>
                     </li>
-                    <li>
-                        <a href="/ministries/children">Children</a>
+                    <li class="has-children">
+                        <a class="arrow">Children</a>
+                        <ul class="is-hidden">
+                            <li class="go-back arrow"><a class="arrow">Children</a></li>
+                            <li><a href="/ministries/children">Overview</a></li>
+                            <li><a href="/camp/sekids-summer-camp">Camp</a></li>
+                        </ul>
                     </li>
                 </div>
 
@@ -147,11 +152,21 @@
                     <li>
                         <a href="/ministries/college-age">College Age</a>
                     </li>
-                    <li>
-                        <a href="/ministries/high-school">High School</a>
+                    <li class="has-children">
+                        <a class="arrow">High School</a>
+                        <ul class="is-hidden">
+                            <li class="go-back arrow"><a class="arrow">High School</a></li>
+                            <li><a href="/ministries/high-school">Overview</a></li>
+                            <li><a href="/camp/bibleandbeach">Camp</a></li>
+                        </ul>
                     </li>
-                    <li>
-                        <a href="/ministries/middle-school">Middle School</a>
+                    <li class="has-children">
+                        <a class="arrow">Middle School</a>
+                        <ul class="is-hidden">
+                            <li class="go-back arrow"><a class="arrow">Middle School</a></li>
+                            <li><a href="/ministries/middle-school">Overview</a></li>
+                            <li><a href="/camp/mix">Camp</a></li>
+                        </ul>
                     </li>
                 </div>
 
@@ -165,8 +180,13 @@
                     <li>
                         <a href="/ministries/foster-and-adoption">Foster Care & Adoption </a>
                     </li>
-                    <li>
-                        <a href="/ministries/deaf-and-disabilities-ministry">Deaf & Disabilities</a>
+                    <li class="has-children">
+                        <a class="arrow">Deaf & Disabilities</a>
+                        <ul class="is-hidden">
+                            <li class="go-back arrow"><a class="arrow">Deaf & Disabilities</a></li>
+                            <li><a href="/ministries/deaf-and-disabilities-ministry">Overview</a></li>
+                            <li><a href="/camp/camp-freedom">Camp</a></li>
+                        </ul>
                     </li>
                 </div>
 
