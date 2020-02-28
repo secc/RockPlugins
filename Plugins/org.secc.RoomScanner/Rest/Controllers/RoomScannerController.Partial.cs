@@ -506,6 +506,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                         GroupLocationService groupLocationService = new GroupLocationService( rockContext );
                         var acceptableServiceIds = groupLocationService.Queryable()
                             .Where( gl => gl.LocationId == req.LocationId && childGroupIds.Contains( gl.GroupId ) )
+                            .Where( gl => gl.Group.IsActive && !gl.Group.IsArchived )
                             .SelectMany( gl => gl.Schedules )
                             .Select( s => s.Id ).ToList();
                         var availableAttendances = attendances.Where( a => acceptableServiceIds.Contains( a.Occurrence.ScheduleId ?? 0 ) );
