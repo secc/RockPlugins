@@ -333,7 +333,7 @@ namespace org.secc.Connection
             }
 
             var connectionOpportunityService = new ConnectionOpportunityService( new RockContext() );
-            var connections = connectionOpportunityService.Queryable().Where( co => co.IsActive == true ).OrderBy( co => co.ConnectionType.Name ).ThenBy( co => co.Name ).ToList()
+            var connections = connectionOpportunityService.Queryable().Where( co => co.IsActive == true || co.Guid == Settings.EntityGuid ).OrderBy( co => co.ConnectionType.Name ).ThenBy( co => co.Name ).ToList()
                                                                     .Select( co => new ListItem( co.ConnectionType.Name + ": " + co.Name, co.Guid.ToString() ) ).ToList();
             connections.Insert( 0, new ListItem( "Select One . . ." ) );
             rddlConnection.DataSource = connections;
