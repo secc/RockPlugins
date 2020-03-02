@@ -16,21 +16,15 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Web.Security;
-using System.Linq;
 using Rock;
 using Rock.Attribute;
-using Rock.Security;
 using System.Text;
-using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using System.IdentityModel.Tokens;
 using System.Xml;
 using System.IO;
 using org.secc.Security.SAML2;
 using Rock.Data;
 using Rock.Model;
-using System.Net;
 
 namespace RockWeb.Plugins.org_secc.Security
 {
@@ -66,6 +60,10 @@ namespace RockWeb.Plugins.org_secc.Security
         Key = AttributeKey.DaysValid,
         DefaultValue = "30" )]
 
+    [BooleanField( "Show Debug",
+        Description = "Should administrators be shown a debug menu before being forwarded to WellRight?",
+        Key = AttributeKey.ShowDebug,
+        DefaultValue = "False" )]
 
     public partial class WellrightRedirect : Rock.Web.UI.RockBlock
     {
@@ -77,6 +75,7 @@ namespace RockWeb.Plugins.org_secc.Security
             internal const string CertificateFile = "CertificateFile";
             internal const string CertificatePassword = "CertificatePassword";
             internal const string DaysValid = "DaysValid";
+            internal const string ShowDebug = "ShowDebug";
         }
 
         #region Base Control Methods
@@ -102,7 +101,9 @@ namespace RockWeb.Plugins.org_secc.Security
             {
                 var response = GetResponse();
 
-                if ( UserCanAdministrate && !PageParameter("Continue").AsBoolean())
+                if ( UserCanAdministrate
+                    && !PageParameter( "Continue" ).AsBoolean()
+                    && GetAttributeValue( AttributeKey.ShowDebug ).AsBoolean() == true )
                 {
                     DisplayData( response );
                 }
@@ -111,9 +112,6 @@ namespace RockWeb.Plugins.org_secc.Security
                     Redirect( response );
                 }
             }
-
-
-
         }
 
         private string GetResponse()
@@ -164,7 +162,7 @@ namespace RockWeb.Plugins.org_secc.Security
             xml = FormatXML( xml );
 
 
-            ltDebug.Text = "If you had not been an administrator you would have had the following code posted to "+ GetAttributeValue(AttributeKey.PostUrl) + " <pre>" + xml.EncodeHtml() + "</pre>";
+            ltDebug.Text = "If you had not been an administrator you would have had the following code posted to " + GetAttributeValue( AttributeKey.PostUrl ) + " <pre>" + xml.EncodeHtml() + "</pre>";
         }
 
         private string FormatXML( string xml )
