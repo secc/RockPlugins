@@ -14,10 +14,12 @@
             })
     });
 
+
 </script>
 
 <asp:UpdatePanel runat="server" ID="upContent">
     <ContentTemplate>
+        <Rock:ModalAlert runat="server" ID="maNotice" />
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h3 class="panel-title">Person Update</h3>
@@ -62,7 +64,8 @@
                                                 <div class="form-row">
                                                     <div class="col-md-7">
                                                         <asp:HiddenField ID="hfPhoneType" runat="server" Value='<%# Eval("NumberTypeValueId")  %>' />
-                                                        <Rock:PhoneNumberBox ID="pnbPhone" runat="server" CountryCode='<%# Eval("CountryCode") %>' Number='<%# Eval("NumberFormatted")  %>' autocomplete="off" />
+                                                        <Rock:PhoneNumberBox ID="pnbPhone" runat="server" CountryCode='<%# Eval("CountryCode") %>' AutoPostBack="true"
+                                                            Number='<%# Eval("NumberFormatted")  %>' autocomplete="off" OnTextChanged="pnbPhone_TextChanged" />
                                                     </div>
                                                     <div class="col-md-5">
                                                         <Rock:RockCheckBox ID="cbSms" runat="server" Text="SMS" Checked='<%# (bool)Eval("IsMessagingEnabled") %>' ContainerCssClass="pull-left" CssClass="js-sms-number" />
@@ -166,5 +169,6 @@
                 <br />
             </asp:Panel>
         </div>
+
     </ContentTemplate>
 </asp:UpdatePanel>
