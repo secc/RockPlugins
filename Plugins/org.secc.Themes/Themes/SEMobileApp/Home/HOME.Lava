@@ -45,7 +45,7 @@
         			{
         				"images":[
         				    {"width": 668,
-        					"url":"https://www.southeastchristian.org/GetImage.ashx?Guid={{ imageGuid }}&mode=crop&s.roundcorners=20&bgcolor=121212&format=png"}
+        					"url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
         					]
         				{%- if actionJson != "" -%}
         				,"actions":[{
