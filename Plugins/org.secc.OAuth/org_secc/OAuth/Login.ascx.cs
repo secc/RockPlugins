@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -11,23 +11,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
-//
-// <copyright>
-// Copyright by the Spark Development Network
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
-//
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -163,7 +146,7 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
                             }
                             else
                             {
-                                var globalMergeFields = Rock.Web.Cache.GlobalAttributesCache.GetMergeFields(null);
+                                var globalMergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields(null);
 
                                 if (userLogin.IsLockedOut ?? false)
                                 {
@@ -283,7 +266,7 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
                 url = ResolveRockUrl( "~/ConfirmAccount" );
             }
 
-            var mergeObjects = GlobalAttributesCache.GetMergeFields( CurrentPerson );
+            var mergeObjects = Rock.Lava.LavaHelper.GetCommonMergeFields(null, CurrentPerson );
             mergeObjects.Add( "ConfirmAccountUrl", RootPath + url.TrimStart( new char[] { '/' } ) );
 
             var personDictionary = userLogin.Person.ToLiquid() as Dictionary<string, object>;
@@ -293,7 +276,10 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
             var recipients = new List<RecipientData>();
             recipients.Add( new RecipientData( userLogin.Person.Email, mergeObjects ) );
 
-            Email.Send( GetAttributeValue( "ConfirmAccountTemplate" ).AsGuid(), recipients, ResolveRockUrl( "~/" ), ResolveRockUrl( "~~/" ), false );
+            var emailMessage = new RockEmailMessage( GetAttributeValue( "ConfirmAccountTemplate" ).AsGuid() );
+            emailMessage.SetRecipients( recipients );
+            emailMessage.CreateCommunicationRecord = false;
+            emailMessage.Send();
         }
 
         private void CreateOAuthIdentity(UserLogin userLogin)
