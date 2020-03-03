@@ -2,7 +2,7 @@
 
 <asp:UpdatePanel ID="upnlContent" runat="server">
     <ContentTemplate>
-
+        <Rock:NotificationBox ID="nbEdit" runat="server" NotificationBoxType="Warning" />
         <Rock:Grid ID="gPeople" runat="server" AllowSorting="true">
             <Columns>
                 <Rock:RockBoundField DataField="FirstName" HeaderText="First Name" SortExpression="FullName" />

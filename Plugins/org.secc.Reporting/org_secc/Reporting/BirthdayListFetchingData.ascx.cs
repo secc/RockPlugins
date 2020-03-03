@@ -26,6 +26,7 @@ using Rock.Attribute;
 using System.Collections.Generic;
 using Rock;
 using Rock.Web.Cache;
+using System.Text;
 
 namespace RockWeb.Plugins.org_secc.Reporting
 {
@@ -33,7 +34,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
     /// Template block for developers to use to start a new block.
     /// </summary>
     [DisplayName( "Birthday List Fetching Data" )]
-    [Category( "SECC2 > Project" )]
+    [Category( "SECC > Reporting" )]
     [Description( "A simple block to fetch some data from Rock" )]
     [DataViewField( "Data View", entityTypeName:"Rock.Model.Person" )]
     [MemoField( "Lava", required:false, allowHtml:true )]
@@ -111,26 +112,54 @@ namespace RockWeb.Plugins.org_secc.Reporting
         #region Methods
 
         private void BindGrid()
-        {                   
-            Person person = new Person();
-            var l = GetAttributeValue( "Limit" ).AsInteger();
-            var tt = GetAttributeValue( "DataView" );
-            Guid newguid = new Guid( tt );
+        {
+            nbEdit.Visible = false;
+            var limit = GetAttributeValue( "Limit" ).AsInteger();
+            var dataviewstring = GetAttributeValue( "DataView" ).AsGuid();
+
+            if( dataviewstring == Guid.Empty )
+            {
+                nbEdit.Visible = true;
+                nbEdit.Text = "Data view not selected";
+                return;
+            }
             RockContext rockContext = new RockContext();
             DataViewService dataService = new DataViewService( rockContext );
-            var items = dataService
-                .Get( newguid );
-            List<string> list = new List<string>();
-            var qry = items.GetQuery( null, null, out list );
+            var dataviewitems = dataService
+                .Get( dataviewstring );
+            
+            if( dataviewitems == null )
+            {
+                nbEdit.Visible = true;
+                nbEdit.Text = "The data view doesn't exist";
+                return;
+            }
+            List<string> errorlist = new List<string>();
+            var qry = dataviewitems.GetQuery( null, null, out errorlist );
+            
+            if ( errorlist.Any() )
+            {
+                nbEdit.Visible = true;
+                StringBuilder builder = new StringBuilder();
+                builder.AppendLine( "<ul>" );
+
+                foreach ( var error in errorlist )
+                {
+                    builder.AppendLine( String.Format( "<li>{0}</li>", error.EncodeHtml() ) );
+                }
+                builder.AppendLine( "</ul>");
+                nbEdit.Text = builder.ToString();
+            }
+
             var personList = (IQueryable<Person>)qry;
             var plist = personList
                 .Where( p => p.BirthDate != null )
                 .OrderBy( p => p.DaysUntilBirthday );
             List<Person> plistd = new List<Person>();
 
-            if ( l != 0 )
+            if ( limit != 0 )
             {
-                var plist2 = plist.Take( l );
+                var plist2 = plist.Take( limit );
                 plistd = plist2.ToList();
             }
             else
@@ -150,15 +179,15 @@ namespace RockWeb.Plugins.org_secc.Reporting
             {
                 { "People", plistd }
             };
-                lLava.Text = ProcessLava( lava, person, mergeObjects );
+                lLava.Text = ProcessLava( lava, CurrentPerson, mergeObjects );
             }
         }
 
-        public static string ProcessLava( string lava, Person person, Dictionary<string, object> mergeObjects = null )
+        public static string ProcessLava( string lava, Person currentPerson, Dictionary<string, object> mergeObjects = null )
         {
             if ( mergeObjects == null )
             {
-                mergeObjects = GetMergeFields( person );
+                mergeObjects = GetMergeFields( currentPerson );
             }
             
             while ( ( lava.HasLavaCommandFields() || lava.HasMergeFields() ) )
@@ -168,9 +197,9 @@ namespace RockWeb.Plugins.org_secc.Reporting
             return lava;
         }
 
-        public static Dictionary<string, Object> GetMergeFields( Person person )
+        public static Dictionary<string, Object> GetMergeFields( Person currentPerson )
         {
-            var mergeObjects = Rock.Lava.LavaHelper.GetCommonMergeFields( null, person );
+            var mergeObjects = Rock.Lava.LavaHelper.GetCommonMergeFields( null, currentPerson );
             return mergeObjects;
         }
 
