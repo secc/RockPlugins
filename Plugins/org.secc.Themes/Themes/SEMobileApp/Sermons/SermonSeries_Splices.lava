@@ -21,13 +21,21 @@
 			"indicatorShadowEnabled":true,
         	"maxWidth":1400,
 	        "textPosition": "none"
-		}
+		},
+		"colors":{
+			"brand":{
+            "primary":"#121212",
+            "primaryAccent":"#000000"
+	        }
+	    }
     },
     "items": [
         {%- assign comma = "" -%}
+		{%- assign zeroSermons = true -%}
         {%- for seriesChild in series.ChildItems reversed -%}
         {%- assign sermon = seriesChild.ChildContentChannelItem -%}
         {%- if sermon.ContentChannelId == "23" -%}
+		{%- assign zeroSermons = false -%}
         {{ comma }}
 		{
 			"title": "{{sermon.Guid}} {{sermon.Title | Replace:'"','\"'}}",
@@ -42,14 +50,22 @@
 		}
         {%- assign comma = "," -%}
         {%- endif -%}
-
+		{%- if forloop.last and zeroSermons == true -%}
+		{
+			"images":[
+				{%- assign Title = "Sermons Coming Soon" | Escape | EscapeDataString -%}
+				{%- assign Body = "Please look under resources for more info." | Escape | EscapeDataString -%}
+				{ "width":747, "url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
+			]
+		},
+		{%- endif -%}
 		{%- if forloop.last -%}
 		{{ comma }}
 		{
 			"title": "{{sermon.Title | Replace:'"','\"'}}",
 			"subtitle": "{{ sermon | Attribute:'Speaker' | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }} {{ '&bull;' | HtmlDecode }} {{ sermon.StartDateTime | Date:'MMMM d, yyyy' }}",
 			"images":[
-				{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/SermonBlank.jpg"  }
+				{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/SermonBlank121212.jpg"  }
 			],
 			"actions": [{
 				"handler": "detail",
