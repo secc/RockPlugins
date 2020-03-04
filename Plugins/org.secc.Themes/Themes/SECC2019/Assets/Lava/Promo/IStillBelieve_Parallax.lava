@@ -1,0 +1,140 @@
+{% comment %}  March 1 at 12:00am {% endcomment %}
+{% assign launch = '3/8/2020 20:00:00pm' %}
+{% assign launchDate = 03082000 %}
+{% assign JSlaunch = '03-08-2020 20:00:00' %}
+
+{% assign currentDate = 'Now' | Date:'MMddHHmm' | AsDouble %}
+
+{% comment %}  This is to set the page {% endcomment %}
+{% assign now = 'Now' | Date:'M/d/yyyy HH:mm:sstt' | Downcase %}
+{% comment %}
+Launching: {{launch}}<br />
+Current Time: {{now}}<br /><br />
+{% endcomment %}
+{% assign daysLeft = now | DateDiff:launch,'d' %}
+{% assign daysLeftInHours = daysLeft | Times:24  %}
+{% assign daysLeftInMinutes = daysLeft | Times:24 | Times:60  %}
+{% assign daysLeftInSeconds = daysLeft | Times:24 | Times:60 | Times:60  %}
+{% comment %}{{ daysLeft | Format:'D2' }} days{% endcomment %}
+{% assign hoursLeft = now | DateDiff:launch,'h' | Minus:daysLeftInHours %}
+{% assign hoursLeftInMinutes = hoursLeft | Times:60  %}
+{% assign hoursLeftInSeconds = hoursLeftInMinutes | Times:60  %}
+{% comment %}{{ hoursLeft | Format:'D2' }} hours{% endcomment %}
+{% assign minutesLeft = now | DateDiff:launch,'m' | Minus:daysLeftInMinutes | Minus:hoursLeftInMinutes %}
+{% assign minutesLeftInSeconds = minutesLeft | Times:60  %}
+{% comment %}{{ minutesLeft | Format:'D2' }} minutes{% endcomment %}
+{% comment %}
+{{ now | DateDiff:launch,'s' | Minus:daysLeftInSeconds | Minus:hoursLeftInSeconds | Minus:minutesLeftInSeconds | Format:'D2' }} seconds
+{% endcomment %}
+
+<style>
+.artshadow {
+-webkit-box-shadow: 0 0.3125rem 3rem 0 rgba(0, 0, 0, 0.6);
+box-shadow: 0 0.3125rem 3rem 0 rgba(0, 0, 0, 0.6);
+}
+</style>
+<section>
+	<div class="g-bg-color--gray-lightest">
+    {[ parallax addclass:'g-bg-parallax-color--black--60 menu-switch' image:'/Content/IStillBelieve/IStillBelieve-background.jpg' height:'75vh' position:'center center' speed:'-15' ]}
+        <div class="parallax-logo centered" style="max-width: inherit;padding: 0px;">
+            <a href="javascript:void(0)" class="js-modal-video" data-video-id="395474760">
+            <img src="/Content/IStillBelieve/New-ISB-828x315banner.jpg" class="img-responsive g-width-90-percent--xs g-width-70-percent--md g-width-40-percent--lg g-margin-x-auto--xs artshadow">
+            </a>
+            <br>
+            <a href="javascript:void(0)" class="js-modal-video text-center" data-video-id="395474760">
+                        <h3>
+                            WATCH
+                            <div class="play">
+                    			<svg version="1.1" id="play" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" height="75px" width="75px" viewBox="0 0 100 100" enable-background="new 0 0 100 100" xml:space="preserve">
+                                  <path class="stroke-solid" fill="none" stroke="white" d="M49.9,2.5C23.6,2.8,2.1,24.4,2.5,50.4C2.9,76.5,24.7,98,50.3,97.5c26.4-0.6,47.4-21.8,47.2-47.7
+                                    C97.3,23.7,75.7,2.3,49.9,2.5"></path>
+                                  <path class="stroke-dotted" fill="none" stroke="white" d="M49.9,2.5C23.6,2.8,2.1,24.4,2.5,50.4C2.9,76.5,24.7,98,50.3,97.5c26.4-0.6,47.4-21.8,47.2-47.7
+                                    C97.3,23.7,75.7,2.3,49.9,2.5"></path>
+                                  <path class="icon" fill="white" d="M38,69c-1,0.5-1.8,0-1.8-1.1V32.1c0-1.1,0.8-1.6,1.8-1.1l34,18c1,0.5,1,1.4,0,1.9L38,69z"></path>
+                                </svg>
+                            </div>
+                            TRAILER
+                        </h3>
+                    </a>
+        </div>
+
+        {% unless currentDate >= launchDate %}
+        <div id="TicketsInfo" class="hidden-xs hidden-sm hidden-md" style="
+                position: absolute;
+                left: 10%;
+                opacity: 70%;
+                width: 200px;
+                text-align: center;
+                z-index: 10;
+                top: 50%;
+                transform: translateY(-50%);
+            ">
+            <div id="seonline_counter_tix">
+              <ul class="time g-padding-x-50--xs g-padding-x-0--sm">
+                <li style="
+                    margin: 0 auto;
+                    clear: both;
+                    float: none;
+                    overflow: hidden;
+                    text-align: center;
+                    padding: 0 10px 0 0;
+                ">
+                <h1 class="g-font-weight--700 g-color--white" style="font-size: 5em;"><span class="SEdays g-color--white">{{ daysLeft | Format:'D2' }}</span></h1>
+                <h5 class="uppercase g-color--white" style="top: -10px;position: relative;">days</h5>
+                <li style="
+                    margin: 0 auto;
+                    clear: both;
+                    float: none;
+                    overflow: hidden;
+                    text-align: center;
+                ">
+
+                {% if hoursLeft == 0 %}
+                <h1 class="g-font-weight--700 g-color--white" style="font-size: 5em;"><span class="SEhours g-color--white">{{ hoursLeft | Format:'D2' }}</span></h1>
+                {% else %}
+                <h1 class="g-font-weight--700 g-color--white" style="font-size: 5em;"><span class="SEhours g-color--white">{{ hoursLeft | Minus:1 | Format:'D2' }}</span></h1>
+                {% endif %}
+
+                <h5 class="uppercase g-color--white" style="top: -10px;position: relative;">hours</h5>
+                </li>
+                <li style="
+                    margin: 0 auto;
+                    clear: both;
+                    float: none;
+                    overflow: hidden;
+                    text-align: center;
+                "><h1 class="g-font-weight--700 g-color--white" style="font-size: 5em;"><span class="SEminutes g-color--white">{{ minutesLeft | Format:'D2' }}</span></h1>
+                <h5 class="uppercase g-color--white" style="top: -10px;position: relative;">min</h5></li>
+                <li style="
+                    margin: 0 auto;
+                    clear: both;
+                    float: none;
+                    overflow: hidden;
+                    text-align: center;
+                "><h1 class="g-font-weight--700 g-color--white" style="font-size: 5em;"><span class="SEseconds g-color--white">{{ now | DateDiff:launch,'s' | Minus:daysLeftInSeconds | Minus:hoursLeftInSeconds | Minus:minutesLeftInSeconds | Format:'D2' }}</span></h1>
+                <h5 class="uppercase g-color--white" style="top: -10px;position: relative;">sec</h5></li>
+              </ul>
+            </div>
+        </div>
+        {% endunless %}
+
+    {[ endparallax ]}
+    </div>
+    <div class="page-menu" style="background-color: #FAFBF9;">
+		<div class="container-fluid text-center" style="padding: 0;">
+			<nav class="page-nav text-center">
+				<ul class="list-inline">
+					<li><a href="#Info">Info</a></li>
+					<li><a href="#Tickets">Tickets</a></li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+    <script>
+    var scroll = new SmoothScroll('div.page-menu a[href*="#"]', {
+        speed: 500, // Integer. How fast to complete the scroll in milliseconds
+        easing: 'easeInOutCubic', // Easing pattern to use
+        header: '.cd-main-header'
+    });
+    </script>
+</section>
