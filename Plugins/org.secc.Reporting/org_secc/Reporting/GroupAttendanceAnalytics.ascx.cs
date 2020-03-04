@@ -516,9 +516,11 @@ namespace RockWeb.Blocks.CheckIn
                 return;
             }
 
+            var groupBy = ChartGroupBy.Week;
+
             if ( pnlShowByChart.Visible )
             {
-                var groupBy = hfGroupBy.Value.ConvertToEnumOrNull<ChartGroupBy>() ?? ChartGroupBy.Week;
+                groupBy = hfGroupBy.Value.ConvertToEnumOrNull<ChartGroupBy>() ?? ChartGroupBy.Week;
                 lcAttendance.TooltipFormatter = null;
                 double? chartDataWeekCount = null;
                 double? chartDataMonthCount = null;
@@ -528,6 +530,8 @@ namespace RockWeb.Blocks.CheckIn
                     chartDataWeekCount = ( dateRange.End.Value - dateRange.Start.Value ).TotalDays / 7;
                     chartDataMonthCount = ( dateRange.End.Value - dateRange.Start.Value ).TotalDays / 30;
                 }
+
+                UpdateGridDateHeader( groupBy );
 
                 switch ( groupBy )
                 {
@@ -655,9 +659,16 @@ function(item) {
             if ( pnlShowByAttendees.Visible )
             {
                 BindAttendeesGrid();
+                UpdateGridDateHeader( groupBy );
             }
 
             SaveSettings();
+        }
+
+        private void UpdateGridDateHeader( ChartGroupBy groupBy )
+        {
+            gChartAttendance.Columns[0].HeaderText = groupBy.ToString() + " of";
+
         }
 
         /// <summary>
