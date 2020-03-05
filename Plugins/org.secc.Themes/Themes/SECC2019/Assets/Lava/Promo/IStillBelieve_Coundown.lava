@@ -1,5 +1,5 @@
-<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment-with-locales.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+<script src="/Themes/SECC2019/Scripts/moment/moment-with-locales.min.js"></script>
+<script src="/Themes/SECC2019/Scripts/moment/moment.min.js"></script>
 
 {% comment %}  March 1 at 12:00am {% endcomment %}
 {% assign launch = '3/8/2020 20:00:00pm' %}
@@ -53,7 +53,7 @@ Current Time: {{now}}<br /><br />
 
     <div id="Tickets" class="container-fluid g-hor-divider__solid__b--gray-lightest g-padding-y-150--xs g-bg-color--gray-lightest" style="border-width: 2px;">
         <div class="row">
-            <div class="col-md-12 text-center g-padding-y-10--md g-padding-x-50--xs g-padding-b-45--xs g-padding-b-0--sm">
+            <div class="col-md-12 text-center g-padding-y-10--md g-padding-b-45--xs g-padding-b-0--sm">
                 <div id="seonline_counter_tix">
                   <span class="g-display-inline-block--xs g-margin-t-45--xs g-padding-x-15--xs" style="vertical-align: top;">
                      <h5 class="notlive uppercase g-color--black g-font-weight--700" style="vertical-align:middle">Free Tickets Coming Soon</h5>
@@ -61,7 +61,7 @@ Current Time: {{now}}<br /><br />
 
                   <br />
 
-                  <ul class="time g-padding-x-50--xs g-padding-x-0--sm">
+                  <ul class="time g-margin-x-auto--xs" style="padding:0px;">
                     <li><h2 class="g-font-weight--700"><span class="SEdays">{{ daysLeft | Format:'D2' }}</span></h2> <span class="label uppercase" style="top: -10px;position: relative;">days</span></li>
                     {% if hoursLeft == 0 %}
                     <li><h2 class="g-font-weight--700"><span class="SEhours">{{ hoursLeft | Format:'D2' }}</span></h2> <span class="label uppercase" style="top: -10px;position: relative;">hours</span></li>
