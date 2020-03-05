@@ -58,6 +58,17 @@ namespace org.secc.OAuth
 
             int tokenLifespan = settings["OAuthTokenLifespan"].AsIntegerOrNull() ?? 10;
 
+            // Go ahead and set the .ROCK authentication cookie
+            app.Use( async ( context, next ) =>
+            {
+                await next();
+                var cookieName = System.Web.Security.FormsAuthentication.FormsCookieName;
+                if ( context.Authentication?.User?.Identity?.Name != null && context.Request.Cookies[cookieName] == null )
+                {
+                    Rock.Security.Authorization.SetAuthCookie( context.Authentication.User.Identity.Name, false, false );
+                }
+            } );
+
             //Enable Application Sign In Cookie
             app.UseCookieAuthentication( new CookieAuthenticationOptions
             {
