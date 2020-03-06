@@ -17,6 +17,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
+using System.Web;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
@@ -66,6 +67,21 @@ namespace org.secc.OAuth
                 if ( context.Authentication?.User?.Identity?.Name != null && context.Request.Cookies[cookieName] == null )
                 {
                     Rock.Security.Authorization.SetAuthCookie( context.Authentication.User.Identity.Name, false, false );
+                }
+
+                // Pull the SetCookie header out of Owin and push it into HttpContext so Rock honors it
+                if ( context.Response.Headers.GetValueOrNull( "Set-Cookie" ) != null )
+                {
+                    foreach ( string value in context.Response.Headers.GetValueOrNull( "Set-Cookie" ) )
+                    {
+                        var cookieParts = value.Split( new[] { '=' }, 2 );
+                        if ( cookieParts[0].Contains( "OAuth" ) )
+                        {
+                            var cookie = new HttpCookie( cookieParts[0], cookieParts[1] );
+                            HttpContext.Current.Response.Cookies.Add( cookie );
+                        }
+                    }
+
                 }
             } );
 
