@@ -84,6 +84,29 @@
 	}
 }
 
+.se-btn--app-highlight {
+	@extend .se-btn;
+	@include btn-style(
+	$color: $color-primary,
+	$padding: 1.2rem 2rem,
+	$bg: $SEApp-highlight,
+	$brd-width: .4rem,
+	$brd-style: solid,
+	$brd-color: transparent,
+	$brd-radius: 3rem);
+
+	&.active {
+		color: $color-primary;
+		background-color: $SEApp-highlight;
+	}
+
+	&.no-transitions {
+	  transition-duration: none !important;
+	  transition-property: none !important;
+	  transition-timing-function: none !important;
+	}
+}
+
 /* ---- 2.1 Defualt Buttons ---- */
 .btn {
 	/*@include btn-style(
