@@ -18,6 +18,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Web;
+using Microsoft.AspNet.Identity;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
@@ -82,7 +83,7 @@ namespace org.secc.OAuth
                     foreach ( string value in context.Response.Headers.GetValueOrNull( "Set-Cookie" ) )
                     {
                         var cookieParts = value.Split( new[] { '=' }, 2 );
-                        if ( cookieParts[0].Contains( "OAuth" ) )
+                        if ( cookieParts[0].Contains( DefaultAuthenticationTypes.ApplicationCookie ) )
                         {
                             var cookie = new HttpCookie( cookieParts[0], cookieParts[1] );
                             HttpContext.Current.Response.Cookies.Add( cookie );
@@ -95,7 +96,7 @@ namespace org.secc.OAuth
             //Enable Application Sign In Cookie
             app.UseCookieAuthentication( new CookieAuthenticationOptions
             {
-                AuthenticationType = "OAuth",
+                AuthenticationType = DefaultAuthenticationTypes.ApplicationCookie,
                 AuthenticationMode = AuthenticationMode.Passive,
                 LoginPath = new PathString( "/" + settings["OAuthLoginPath"].Trim( '/' ) ),
                 LogoutPath = new PathString( "/" + settings["OAuthLogoutPath"].Trim( '/' ) ),
