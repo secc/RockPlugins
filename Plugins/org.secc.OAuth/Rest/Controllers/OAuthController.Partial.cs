@@ -31,14 +31,15 @@ namespace org.secc.OAuth.Rest.Controllers
     /// <summary>
     /// REST API for OAuth
     /// </summary>
-    public partial class OAuthController :  ApiController, IHasCustomRoutes
+    public partial class OAuthController :  ApiController, IHasCustomHttpRoutes
     {
 
         /// <summary>
         /// Add Custom route for handling the OAuth bearer token authentication.
         /// </summary>
         /// <param name="routes"></param>
-        public void AddRoutes(System.Web.Routing.RouteCollection routes)
+
+        public void AddRoutes( HttpRouteCollection routes )
         {
             var config = new HttpConfiguration();
             // Web API configuration and services
@@ -48,7 +49,7 @@ namespace org.secc.OAuth.Rest.Controllers
 
             // Web API routes
             config.MapHttpAttributeRoutes();
-            config.Routes.MapHttpRoute(
+            routes.MapHttpRoute(
                 name: "OAuth Services",
                 routeTemplate: "api/oauth",
                 defaults: new
@@ -135,7 +136,8 @@ namespace org.secc.OAuth.Rest.Controllers
                 return ControllerContext.Request.CreateResponse(HttpStatusCode.InternalServerError, "Internal Server Error");
             }
         }
-        
+
+
         /// <summary>
         /// A profile object for describing a person in Rock
         /// </summary>

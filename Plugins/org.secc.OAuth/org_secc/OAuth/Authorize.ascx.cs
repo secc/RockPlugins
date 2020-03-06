@@ -14,21 +14,16 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Web.UI;
 using Rock;
 using Rock.Attribute;
-using Rock.Communication;
-using Rock.Data;
 using Rock.Model;
-using Rock.Security;
 using Rock.Web.Cache;
-using Rock.Web.UI.Controls;
 using System.Web;
 using System.Security.Claims;
-using Microsoft.Owin.Security;
 using System.Linq;
 using org.secc.OAuth.Model;
 using org.secc.OAuth.Data;
+using Microsoft.AspNet.Identity;
 
 namespace RockWeb.Plugins.org_secc.OAuth
 {
@@ -67,8 +62,8 @@ namespace RockWeb.Plugins.org_secc.OAuth
             if (!String.IsNullOrEmpty(PageParameter("OAuthLogout")))
             {
                 var authentication = HttpContext.Current.GetOwinContext().Authentication;
-                authentication.SignOut("OAuth");
-                authentication.Challenge("OAuth");
+                authentication.SignOut( DefaultAuthenticationTypes.ApplicationCookie );
+                authentication.Challenge( DefaultAuthenticationTypes.ApplicationCookie );
                 Response.Redirect(OAuthSettings["OAuthLoginPath"] +"?logout=true&ReturnUrl=" + Server.UrlEncode(Request.RawUrl.Replace("&OAuthLogout=true", "")));
             }
             if (IsPostBack)
@@ -116,7 +111,7 @@ namespace RockWeb.Plugins.org_secc.OAuth
             base.OnLoad( e );
 
             var authentication = HttpContext.Current.GetOwinContext().Authentication;
-            var ticket = authentication.AuthenticateAsync("OAuth").Result;
+            var ticket = authentication.AuthenticateAsync( DefaultAuthenticationTypes.ApplicationCookie ).Result;
             var identity = ticket != null ? ticket.Identity : null;
             string userName = null;
             string[] authorizedScopes = null;
@@ -124,14 +119,14 @@ namespace RockWeb.Plugins.org_secc.OAuth
             bool scopesApproved = false;
             if (identity == null)
             {
-                authentication.Challenge("OAuth");
+                authentication.Challenge( DefaultAuthenticationTypes.ApplicationCookie );
                 Response.Redirect(OAuthSettings["OAuthLoginPath"] + "?ReturnUrl=" + Server.UrlEncode(Request.RawUrl), true);
             }
             else if (CurrentUser == null)
             {
                 // Kill the OAuth session
-                authentication.SignOut("OAuth");
-                authentication.Challenge("OAuth");
+                authentication.SignOut( DefaultAuthenticationTypes.ApplicationCookie );
+                authentication.Challenge( DefaultAuthenticationTypes.ApplicationCookie );
                 Response.Redirect(OAuthSettings["OAuthLoginPath"] + "?ReturnUrl=" + Server.UrlEncode(Request.RawUrl), true);
             }
             else

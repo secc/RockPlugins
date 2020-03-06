@@ -21,11 +21,11 @@ using Rock.Communication;
 using Rock.Data;
 using Rock.Model;
 using Rock.Security;
-using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 using System.Web;
 using System.Security.Claims;
 using Microsoft.Owin.Security;
+using Microsoft.AspNet.Identity;
 
 namespace RockWeb.Plugins.org_secc.OAuth
 {
@@ -42,7 +42,7 @@ namespace RockWeb.Plugins.org_secc.OAuth
 Thank-you for logging in, however, we need to confirm the email associated with this account belongs to you. We've sent you an email that contains a link for confirming.  Please click the link in your email to continue.
 ", "", 2 )]
     [LinkedPage( "Confirmation Page", "Page for user to confirm their account (if blank will use 'ConfirmAccount' page route)", false, "", "", 3 )]
-    [SystemEmailField( "Confirm Account Template", "Confirm Account Email Template", false, Rock.SystemGuid.SystemEmail.SECURITY_CONFIRM_ACCOUNT, "", 4 )]
+    [SystemCommunicationField( "Confirm Account Template", "Confirm Account Email Template", false, Rock.SystemGuid.SystemCommunication.SECURITY_CONFIRM_ACCOUNT, "", 4 )]
     [CodeEditorField( "Locked Out Caption", "The text (HTML) to display when a user's account has been locked.", CodeEditorMode.Html, CodeEditorTheme.Rock, 100, false, @"
 Sorry, your account has been locked.  Please contact our office at {{ 'Global' | Attribute:'OrganizationPhone' }} or email {{ 'Global' | Attribute:'OrganizationEmail' }} to resolve this.  Thank-you. 
 ", "", 5 )]
@@ -273,8 +273,8 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
             mergeObjects.Add( "Person", personDictionary );
             mergeObjects.Add( "User", userLogin );
 
-            var recipients = new List<RecipientData>();
-            recipients.Add( new RecipientData( userLogin.Person.Email, mergeObjects ) );
+            var recipients = new List<RockMessageRecipient>();
+            recipients.Add( new RockEmailMessageRecipient( userLogin.Person, mergeObjects ));
 
             var emailMessage = new RockEmailMessage( GetAttributeValue( "ConfirmAccountTemplate" ).AsGuid() );
             emailMessage.SetRecipients( recipients );
@@ -302,7 +302,7 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
                                 };
 
             authentication.SignIn(new AuthenticationProperties { IsPersistent = cbRememberMe.Checked },
-                new ClaimsIdentity(claims.ToArray(), "OAuth"));
+                new ClaimsIdentity(claims.ToArray(), DefaultAuthenticationTypes.ApplicationCookie ) );
 
 
         }
