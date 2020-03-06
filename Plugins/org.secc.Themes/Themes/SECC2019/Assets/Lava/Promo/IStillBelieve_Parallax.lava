@@ -1,9 +1,9 @@
 {% comment %}  March 1 at 12:00am {% endcomment %}
-{% assign launch = '3/8/2020 20:00:00pm' %}
-{% assign launchDate = 03082000 %}
-{% assign JSlaunch = '03-08-2020 20:00:00' %}
+{% assign launch = '3/8/2020 08:00:00pm' %}
+{% assign launchDate = 0308200000 %}
+{% assign JSlaunch = '03-08-2020 20:00:00Z' %}
 
-{% assign currentDate = 'Now' | Date:'MMddHHmm' | AsDouble %}
+{% assign currentDate = 'Now' | Date:'MMddHHmmss' | AsDouble %}
 
 {% comment %}  This is to set the page {% endcomment %}
 {% assign now = 'Now' | Date:'M/d/yyyy HH:mm:sstt' | Downcase %}
@@ -89,11 +89,7 @@ box-shadow: 0 0.3125rem 3rem 0 rgba(0, 0, 0, 0.6);
                     text-align: center;
                 ">
 
-                {% if hoursLeft == 0 %}
                 <h1 class="g-font-weight--700 g-color--white" style="font-size: 5em;"><span class="SEhours g-color--white">{{ hoursLeft | Format:'D2' }}</span></h1>
-                {% else %}
-                <h1 class="g-font-weight--700 g-color--white" style="font-size: 5em;"><span class="SEhours g-color--white">{{ hoursLeft | Minus:1 | Format:'D2' }}</span></h1>
-                {% endif %}
 
                 <h5 class="uppercase g-color--white" style="top: -10px;position: relative;">hours</h5>
                 </li>
@@ -125,6 +121,7 @@ box-shadow: 0 0.3125rem 3rem 0 rgba(0, 0, 0, 0.6);
 			<nav class="page-nav text-center">
 				<ul class="list-inline">
 					<li><a href="#Info">Info</a></li>
+					<li><a href="#Reveal">Bible Study</a></li>
 					<li><a href="#Tickets">Tickets</a></li>
 				</ul>
 			</nav>

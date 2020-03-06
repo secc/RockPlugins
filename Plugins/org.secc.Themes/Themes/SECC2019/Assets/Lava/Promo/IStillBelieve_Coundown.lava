@@ -2,11 +2,11 @@
 <script src="/Themes/SECC2019/Scripts/moment/moment.min.js"></script>
 
 {% comment %}  March 1 at 12:00am {% endcomment %}
-{% assign launch = '3/8/2020 20:00:00pm' %}
-{% assign launchDate = 03082000 %}
-{% assign JSlaunch = '03-08-2020 20:00:00' %}
+{% assign launch = '3/8/2020 08:00:00pm' %}
+{% assign launchDate = 0308200000 %}
+{% assign JSlaunch = '03-08-2020 20:00:00Z' %}
 
-{% assign currentDate = 'Now' | Date:'MMddHHmm' | AsDouble %}
+{% assign currentDate = 'Now' | Date:'MMddHHmmss' | AsDouble %}
 
 {% comment %}  This is to set the page {% endcomment %}
 {% assign now = 'Now' | Date:'M/d/yyyy HH:mm:sstt' | Downcase %}
@@ -63,11 +63,7 @@ Current Time: {{now}}<br /><br />
 
                   <ul class="time g-margin-x-auto--xs" style="padding:0px;">
                     <li><h2 class="g-font-weight--700"><span class="SEdays">{{ daysLeft | Format:'D2' }}</span></h2> <span class="label uppercase" style="top: -10px;position: relative;">days</span></li>
-                    {% if hoursLeft == 0 %}
                     <li><h2 class="g-font-weight--700"><span class="SEhours">{{ hoursLeft | Format:'D2' }}</span></h2> <span class="label uppercase" style="top: -10px;position: relative;">hours</span></li>
-                    {% else %}
-                    <li><h2 class="g-font-weight--700"><span class="SEhours">{{ hoursLeft | Minus:1 | Format:'D2' }}</span></h2> <span class="label uppercase" style="top: -10px;position: relative;">hours</span></li>
-                    {% endif %}
                     <li><h2 class="g-font-weight--700"><span class="SEminutes">{{ minutesLeft | Format:'D2' }}</span></h2> <span class="label uppercase" style="top: -10px;position: relative;">mins</span></li>
                     <li><h2 class="g-font-weight--700"><span class="SEseconds">{{ now | DateDiff:launch,'s' | Minus:daysLeftInSeconds | Minus:hoursLeftInSeconds | Minus:minutesLeftInSeconds | Format:'D2' }}</span></h2> <span class="label uppercase" style="top: -10px;position: relative;">secs</span></li>
                   </ul>
@@ -79,14 +75,14 @@ Current Time: {{now}}<br /><br />
     <script type="text/javascript">
 
         window.onload = function(e){
-            {% assign serverNow = 'Now' | Date:'MM-dd-yyyy HH:mm:ss' %}
-            var serverTime = moment('{{ serverNow }}', 'MM-DD-YYYY HH:mm:ss').unix(),
-                eventTime = moment('{{ JSlaunch }}', 'MM-DD-YYYY HH:mm:ss').unix(),
-                currentTime = moment().unix(),
+            {% assign serverNow = 'Now' | Date:'MM-dd-yyyy HH:mm:ssZ' %}
+            var serverTime = moment('{{ serverNow }}', 'MM-DD-YYYY HH:mm:ssZ zz').valueOf(),
+                eventTime = moment('{{ JSlaunch }}', 'MM-DD-YYYY HH:mm:ssZ zz').valueOf(),
+                currentTime = moment().valueOf(),
                 localDiffTime = serverTime - currentTime,
                 diffTime = eventTime - (currentTime + localDiffTime),
-                duration = moment.duration(diffTime * 1000, 'milliseconds'),
-                interval = 1000;
+                duration = moment.duration(diffTime),
+                interval = 1000; // milliseconds
 
             console.log('server time is:'+serverTime);
             console.log('current local time is:'+currentTime);
@@ -109,7 +105,8 @@ Current Time: {{now}}<br /><br />
                         //setTimeout(function() { location.reload(); }, 300);
                         clearInterval(intervalId);
                     } else {
-                        duration = moment.duration(duration.asMilliseconds() - interval, 'milliseconds');
+                        console.log((diffTime) + ' milliseconds');
+                        duration = moment.duration(duration - interval);
                         var d = moment.duration(duration).days(),
                             h = moment.duration(duration).hours(),
                             m = moment.duration(duration).minutes(),
