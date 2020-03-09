@@ -1,7 +1,7 @@
                 {%- assign schedule = partition -%}
 				{%- assign spotsLeft = schedule.Limit | Minus: schedule.Filled -%}
 				<div class="col-sm-6 col-md-4" style="margin-bottom: 20px;">
-					{% if spotsLeft > 0 and schedule.Limit > 0 %}
+					{% if schedule.Limit == null or spotsLeft > 0 and schedule.Limit > 0 %}
 						{% if partitionSize > 0 %}
 							<a href="#" onclick="doSlide('#{{divId}}_{{schedule.Value}}'); return false;">
 						{% else %}
@@ -16,7 +16,7 @@
                             <h3>{{ schedule.Entity.Name }}</h3>
                         </div>
 					</div>
-					{% if spotsLeft > 0 and schedule.Limit > 0 %}
+					{% if schedule.Limit == null or spotsLeft > 0 and schedule.Limit > 0 %}
 						</a>
 					{% endif %}
                 </div>
