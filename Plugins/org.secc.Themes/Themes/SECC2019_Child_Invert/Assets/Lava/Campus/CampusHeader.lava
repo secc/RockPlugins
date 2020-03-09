@@ -75,7 +75,7 @@
             <div style="width:100%;">
                 <h6 class="text-center pull-left" style="width:25%;">
                     &nbsp;
-
+                    {% comment %}
                     <a id="mycampus" class="pull-right g-letter-spacing--1 g-padding-y-5--xs g-display-inline-block--xs">
                        <i class="fa fa-plus g-padding-b-10--xs"></i><br />
                        My Campus
@@ -85,7 +85,7 @@
                         $(this).find('i').toggleClass('fa-plus').toggleClass('fa-check');
                     });
                     </script>
-
+                    {% endcomment %}
                 </h6>
                 <h6 class="text-center pull-left" style="vertical-align:bottom;width: 50%;white-space: normal;font-size: 0.7em;">
                     <a class="uppercase se-btn--app-highlight uppercase g-letter-spacing--1 g-display-inline-block--xs"
@@ -97,12 +97,12 @@
                 </h6>
                 <h6 class="text-center pull-left" style="width:25%;">
                     &nbsp;
-
+                    {% comment %}
                     <a class="pull-left g-letter-spacing--1 g-padding-y-5--xs g-display-inline-block--xs">
                        <i class="far fa-envelope g-padding-b-10--xs"></i><br />
                        Contact
                     </a>
-
+                    {% endcomment %}
                 </h6>
             </div>
         </div>

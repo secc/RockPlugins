@@ -44,7 +44,7 @@
 					"handler": "browser",
 					"type":"navigation",
 					"showBrowserControls": false,
-					"contentUrl": "https://rockstaging.secc.org/seapp/location/{{ campusSlug }}?theme=SECC2019_Child_Invert"
+					"contentUrl": "https://www.southeastchristian.org/seapp/location/{{ campusSlug }}?theme=SECC2019_Child_Invert"
 				}]
 			}{%- if forloop.last -%}{%- else -%},{%- endif -%}
           {% endfor %}
