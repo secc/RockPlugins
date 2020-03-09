@@ -45,7 +45,7 @@
                         ],
                         "title": "{{ title }}",
                         "actions":[{
-                            "handler":"browser",
+                            "handler":"externalBrowser",
                             "type":"navigation",
                             "showBrowserControls": true,
                             "contentUrl": "https://www.southeastchristian.org/resources/bible-studies/{{ item.PrimarySlug }}"
