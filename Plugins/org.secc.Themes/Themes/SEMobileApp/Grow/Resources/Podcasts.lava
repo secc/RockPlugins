@@ -1,0 +1,58 @@
+{
+	"header": {
+		"title": "Podcasts"
+	},
+	"displayOptions":{
+		"style":"stacked",
+		"contentWidthRatio":1,
+	    "itemDisplayOptions":{
+	        "indicatorAspectRatio":2.5265,
+	        "textPosition": "none"
+	    },
+		"colors":{
+	        "brand":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "theme":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "topBar":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "bottomBar":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "brandableElements":"{{colors:brand}}"
+	    }
+	},
+	"items": [
+        {% contentchannelitem where:'ContentChannelId == 61' sort:'Order desc' %}
+            {% for item in contentchannelitemItems %}
+                {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
+                {%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+                {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+                {%- assign url = item | Attribute:'PodcastURL','RawValue' -%}
+                {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+                    {%- assign title = item.Title -%}
+                    {
+                        "images":[
+                            {"width": 667,
+                            "url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/grow/resources/listcard/{{ item.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+                        ],
+                        "title": "{{ title }}",
+                        "actions":[{
+                            "handler":"externalBrowser",
+                            "type":"navigation",
+                            "showBrowserControls": true,
+                            "contentUrl": "{{ url }}"
+                        }]
+                    }{%- if forloop.last -%}{%- else -%},{%- endif -%}
+                {%- endif -%}
+            {% endfor %}
+        {% endcontentchannelitem %}
+	]
+}

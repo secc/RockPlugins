@@ -33,9 +33,9 @@
 		{%- contentchannelitem Id:'2087' -%}
 			{%- assign childItemsSorted = contentchannelitem.ChildItems | Sort:"Order" -%}
 			{%- for item in childItemsSorted -%}
-			    {%- assign nowDateTime = 'Now' | Date:'yyyyMMddhhmmss' -%}
-    			{%- assign startDateTime = item.ChildContentChannelItem.StartDateTime | Date:'yyyyMMddhhmmss' -%}
-    			{%- assign endDateTime = item.ChildContentChannelItem.ExpireDateTime | Date:'yyyyMMddhhmmss' | Default:'99999999999999' -%}
+			    {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
+    			{%- assign startDateTime = item.ChildContentChannelItem.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+    			{%- assign endDateTime = item.ChildContentChannelItem.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
     			{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
         			{%- assign title = item.ChildContentChannelItem.Title -%}
         			{%- assign subtitle = item.ChildContentChannelItem | Attribute:'Subtitle' -%}

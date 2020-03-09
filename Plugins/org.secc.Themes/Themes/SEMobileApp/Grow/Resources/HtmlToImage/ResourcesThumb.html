@@ -1,0 +1,60 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019/Styles/layout.css"/>
+        <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019/Styles/main.css"/>
+        <style>
+            html, body {
+              margin: 0px;
+              padding: 0px;
+              background-color: #121212;
+            }
+            .box {
+              width: 800px;
+              height:800px;
+              background-image: url("https://www.southeastchristian.org/GetImage.ashx/4ad28f32-dea0-463e-902a-5afe7b1dbe45.jpg?guid=4ad28f32-dea0-463e-902a-5afe7b1dbe45");
+              background-repeat: no-repeat;
+              background-size: cover;
+            }
+            .box::after {
+                background-color: rgba(0, 0, 0, 0.6);
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                content:'';
+                position:absolute;
+            }
+            .box h1,.box h2,.box h3, .box h4, .box h5, .box p {
+              color: white;
+            }
+
+            .box h1 {
+              font-size: 50px;
+              font-weight: 500;
+            }
+            .middle {
+              display: table-cell;
+              text-align: center;
+              vertical-align: middle;
+            }
+            .overlay {
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              position: relative;
+              z-index: 1;
+              display: table;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="box">
+            <div class="overlay">
+                <div class="middle">
+                    <h1 class="g-font-family--secondary g-padding-x-40--xs" style="font-size: 6.2em;">Right Now Media</h1>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
