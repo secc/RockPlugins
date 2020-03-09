@@ -11,7 +11,7 @@
     max-width: 800px;
 }
 </style>
-<div id="CampusBody" class="g-padding-t-60--xs">
+<div id="CampusBody" class="g-padding-t-35--xs">
 {% assign pageID = 'Global' | Page:'Id' %}
 {% page id:'{{ pageID }}' %}
     {% assign pageGuid = page.Guid %}
@@ -87,7 +87,7 @@
 
     {% assign campus = pageParamCampus %}
 
-    {% contentchannelitem where:'Status == 1 && ContentChannelId == 67' sort:'Order' %}
+    {% contentchannelitem where:'Status == 2 && ContentChannelId == 72' sort:'Order' %}
 
         {% assign itemCount = 0 %}
         {% for item in contentchannelitemItems %}
