@@ -194,13 +194,8 @@
                 </div>
 
                 <div class="extralinks">
-                    <li class="has-children">
-                        <a class="arrow">Care</a>
-                        <ul class="is-hidden">
-                            <li class="go-back arrow"><a class="arrow">Care</a></li>
-                            <li><a href="/ministries/care">Overview</a></li>
-                            <li><a href="/ministries/care/encounter-groups">Encounter Groups</a></li>
-                        </ul>
+                    <li>
+                        <a href="/ministries/care">Care</a>
                     </li>
                     <li class="has-children">
                         <a class="arrow">Missions</a>
