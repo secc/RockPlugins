@@ -11,7 +11,7 @@
     max-width: 800px;
 }
 </style>
-<div id="CampusBody" class="g-padding-t-35--xs">
+<div id="CampusBody" class="g-padding-t-35--xs g-padding-b-50--xs">
 {% assign pageID = 'Global' | Page:'Id' %}
 {% page id:'{{ pageID }}' %}
     {% assign pageGuid = page.Guid %}
