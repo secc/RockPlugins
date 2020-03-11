@@ -76,6 +76,11 @@
                 <h6 class="text-center pull-left" style="width:25%;">
                     &nbsp;
                     {% comment %}
+                    {% assign CampusEmail = campus | Attribute:'Email' %}
+                    <a href="mailto:{{ CampusEmail }}" id="mycampus" class="pull-right g-letter-spacing--1 g-padding-y-5--xs g-display-inline-block--xs">
+                       <i class="fa fa-envelope g-padding-b-10--xs"></i><br />
+                       Contact
+                    </a>
                     <a id="mycampus" class="pull-right g-letter-spacing--1 g-padding-y-5--xs g-display-inline-block--xs">
                        <i class="fa fa-plus g-padding-b-10--xs"></i><br />
                        My Campus
@@ -98,9 +103,9 @@
                 <h6 class="text-center pull-left" style="width:25%;">
                     &nbsp;
                     {% comment %}
-                    <a class="pull-left g-letter-spacing--1 g-padding-y-5--xs g-display-inline-block--xs">
-                       <i class="far fa-envelope g-padding-b-10--xs"></i><br />
-                       Contact
+                    <a href="tel:{{ campus.PhoneNumber }}" class="pull-left g-letter-spacing--1 g-padding-y-5--xs g-display-inline-block--xs">
+                       <i class="far fa-phone g-padding-b-10--xs"></i><br />
+                       Phone
                     </a>
                     {% endcomment %}
                 </h6>
