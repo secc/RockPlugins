@@ -67,7 +67,8 @@
 								{ "width":747, "url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
 							],
 							"actions": [{
-								"handler": "internalBrowser showTabBar",
+								"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
+								"style":"{%- if Headers.sap-device-os == 'Android' -%}external{%- else -%}internal{%- endif -%}",
 								"type":"navigation",
 								"showBrowserControls": true,
 								"contentUrl": "https://www.southeastchristian.org/GetFile.ashx?guid={{ resourceMediaFile.Guid }}"
@@ -91,7 +92,8 @@
 								{ "width":747, "url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
 							],
 							"actions": [{
-								"handler": "internalBrowser showTabBar",
+								"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
+								"style":"{%- if Headers.sap-device-os == 'Android' -%}external{%- else -%}internal{%- endif -%}",
 								"type":"navigation",
 								"showBrowserControls": true,
 								"contentUrl": "{{ resourceURL }}"
@@ -115,7 +117,8 @@
 								{ "width":747, "url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
 							],
 							"actions": [{
-								"handler": "internalBrowser showTabBar",
+								"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
+								"style":"{%- if Headers.sap-device-os == 'Android' -%}external{%- else -%}internal{%- endif -%}",
 								"type":"navigation",
 								"showBrowserControls": true,
 								"contentUrl": "https://www.southeastchristian.org/sermons/{{slug}}/{{resource.PrimarySlug}}"
