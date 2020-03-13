@@ -1,0 +1,141 @@
+{%- assign pageParamCampus = Campus -%}
+{%- if pageParamCampus != empty and pageParamCampus != null and pageParamCampus != 'allCampuses' -%}
+    {%- assign pageParamCampus = Campus -%}
+    {%- campus where:'Public == true' -%}
+        {%- for campus in campusItems -%}
+            {%- assign campusSlug = campus | Attribute: 'Slug' -%}
+            {%- if campus.Name == pageParamCampus or campusSlug == pageParamCampus -%}
+                {%- assign pageParamCampus = campus -%}
+            {%- endif -%}
+        {%- endfor -%}
+    {%- endcampus -%}
+{%- endif -%}
+{%- assign campus = pageParamCampus -%}
+{%- assign campusSlug = campus | Attribute:'Slug' -%}
+{%- assign HeroImage = campus | Attribute:'HeroImage','Object' -%}
+{%- assign HeroImagePosition = campus | Attribute:'HeroImagePosition','Object' -%}
+{%- assign CampusImageThumb = campus | Attribute:'CampusThumbnail','Object' -%}
+{%- assign WorshipImage = campus | Attribute:'WorshipServiceImage','Object' -%}
+{%- assign WorshipImagePosition = campus | Attribute:'WorshipServiceImagePosition','Object' -%}
+{%- assign CampusSubMenuItems = campus | Attribute:'CampusSubMenu' -%}
+{%- assign CampusVideo = campus | Attribute:'CampusVideo' -%}
+{%- assign CampusEmail = campus | Attribute:'Email' -%}
+{%- assign CampusFacebookSlug = campus | Attribute:'FacebookSlug' -%}
+{%- assign CampusVimeoId = campus | Attribute:'VimeoID' -%}
+{%- assign CampusLongitude = campus | Attribute:'Longitude' -%}
+{%- assign CampusLatitude = campus | Attribute:'Latitude' -%}
+
+{%- if campusSlug != "" -%}
+    {{ campus.Name | Append: ' Campus' | SetPageTitle }}
+    <html>
+        <head>
+            <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019_Child_Invert/Styles/layout.css?v=637196153346169397"/>
+            <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019_Child_Invert/Styles/main.css?v=637196153358512916"/>
+            <style>
+                html, body {
+                  margin: 0px;
+                  padding: 0px;
+                  background-color: #121212;
+                  color: white;
+                  height: 1724px;
+                }
+                a,p,h1,h2,h3,h4,h5,h6,span,div {
+                    color: white !important;
+                }
+                #CampusBody {
+                    position: relative;
+                    width: 100%;
+                    margin: 0 auto;
+                    /* min-height: 100px; */
+                    max-width: 1600px;
+                }
+                h3 {
+                    3em;
+                }
+            </style>
+        </head>
+        <body>
+        <div id="CampusBody" class="">
+            {%- if pageParamCampus.Name != null -%}
+                {%- if debug == true -%}
+                <style>
+                    .devmode {
+                        background-color: #545E75;
+                        color: white;
+                        padding: 10px;
+                        /* width: 100%; */
+                        border-bottom: 3px dashed black;
+                    }
+                    .devmode.section {
+                        background-color: #3CB2F6;
+                    }
+                    .devmode.lava {
+                        background-color: #39304A;
+                    }
+                </style>
+                <div class="devmode">
+                    <h1>Parameter: {{ pageParamCampus.Name }}</h1>
+                </div>
+                {%- endif -%}
+                {%- contentchannelitem where:'Status == 2 && ContentChannelId == 73' sort:'Order' -%}
+                    {%- assign itemCount = 0 -%}
+                    {%- for item in contentchannelitemItems -%}
+                        {%- assign campus_item = item | Attribute:'Campus' -%}
+                        {%- if campus_item == pageParamCampus.Name -%}
+                            {%- assign itemCount = itemCount | Plus:1 -%}
+                        {%- endif -%}
+                    {%- endfor -%}
+                    {%- if itemCount > 0 -%}
+                        {%- assign campusItemCount = 0 -%}
+                        {%- for item in contentchannelitemItems -%}
+                            {%- assign itemCampus = item | Attribute:'Campus' -%}
+                            {%- if itemCampus == null -%}
+                                {%- comment -%} *** Display Content *** {%- endcomment -%}
+                            {%- else -%}
+                                {%- if itemCampus == campus.Name -%}
+                                    {%- assign campusItemCount = campusItemCount | Plus:1 -%}
+                                    {%- if campusItemCount == 2 -%}
+                                        {{- item.Content -}}
+                                        {{- item | Attribute:'LavaEditor' -}}
+                                    {% endif %}
+                                {%- endif%}
+                            {%- endif%}
+                        {%- endfor -%}
+                    {%- endif -%}
+                {%- endcontentchannelitem -%}
+            {%- endif -%}
+            </div>
+        </body>
+    </html>
+    {%- else -%}
+    {{ 'Campus Not Found' | SetPageTitle }}
+    <html>
+        <head>
+            <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019_Child_Invert/Styles/layout.css?v=637196153346169397"/>
+            <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019_Child_Invert/Styles/main.css?v=637196153358512916"/>
+            <style>
+                html, body {
+                  margin: 0px;
+                  padding: 0px;
+                  background-color: #121212;
+                  color: white;
+                  height: 1724px;
+                }
+                a,p,h1,h2,h3,h4,h5,h6,span,div {
+                    color: white !important;
+                }
+            </style>
+        </head>
+        <body class="g-padding-y-150--xs">
+            <section class="g-padding-y-150--xs">
+                <div class="text-center g-padding-x-150--xs g-padding-y-150--xs">
+                    <h5 class="uppercase g-letter-spacing--3 g-font-size-80--xs">Campus Not Found.</h5>
+                    <br />
+                    <h3 class="g-font-family--secondary g-font-size-80--xs">Please try again by selecting a campus from "Locations".</h3>
+                    <br />
+                    <h5 class="g-font-size-60--xs">"For the Son of Man came to seek and to save the lost." Luke 19:10</h5>
+                </div>
+            </section>
+        </body>
+    </html>
+{%- endif -%}

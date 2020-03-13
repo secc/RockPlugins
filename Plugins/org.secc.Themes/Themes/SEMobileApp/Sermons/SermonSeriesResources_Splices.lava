@@ -54,7 +54,7 @@
 						{
 							"images":[
 								{%- assign Title = "Studies" | Escape | EscapeDataString -%}
-								{%- assign Body = "Find additinal studies related below." | Escape | EscapeDataString -%}
+								{%- assign Body = "Find related studies below." | Escape | EscapeDataString -%}
 								{ "width":747, "url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
 							]
 						},
@@ -79,7 +79,7 @@
 						{
 							"images":[
 								{%- assign Title = "Reading Plans" | Escape | EscapeDataString -%}
-								{%- assign Body = "Interested in a devotion?" | Escape | EscapeDataString -%}
+								{%- assign Body = "Grow spiritually with a daily devotion." | Escape | EscapeDataString -%}
 								{ "width":747, "url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
 							]
 						},
