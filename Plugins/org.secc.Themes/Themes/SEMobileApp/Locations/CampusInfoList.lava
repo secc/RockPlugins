@@ -1,0 +1,96 @@
+{%- campus id:'{{Id}}' -%}
+{% assign campusSlug = campus | Attribute:'Slug' %}
+{
+	"header": {
+		"title": "{{campus.Name}} Campus"
+	},
+	"displayOptions":{
+		"style":"stacked",
+		"contentWidthRatio":1.0,
+	    "itemDisplayOptions":{
+			"indicatorAspectRatio":2.784222737819026,
+			"indicatorShadowEnabled":true,
+        	"maxWidth":1400,
+	        "textPosition": "none"
+	    },
+		"colors":{
+	        "brand":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+			"theme":{
+	            "primary":"#121212",
+				"block":"#262626",
+	            "blockAccent":"#262626",
+	            "secondaryAccent":"#FFFFFF",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "topBar":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "bottomBar":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "brandableElements":"{{colors:brand}}"
+	    }
+	},
+	"items": [
+        {%- comment -%}
+        Campus Image & Worship Service Times (if available)
+        {%- endcomment -%}
+        {%- assign intervalCuts = 574.666666666666667 -%}
+        {%- assign interY1 = 0 -%}
+        {%- assign interY2 = intervalCuts -%}
+        {%- assign comma = "" -%}
+        {%- for i in (0..2) -%}
+        {{- comma -}}{
+			"title": "{{campus.Name}} Image",
+            "images":[
+			    { "width":800, "url":"https://rock.secc.org/Webhooks/ImageGenerator.ashx/location/info/{{campusSlug}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})"  }
+		    ]{% if forloop.index == 2 %},"actions":[{
+                "handler":"browser",
+                "type":"navigation",
+                "style":"external",
+                "showBrowserControls": false,
+                "contentUrl": "https://maps.google.com/"
+            }]{% endif %}
+		}
+        {%- assign comma = "," -%}
+        {%- assign interY1 = interY1 | Plus:intervalCuts -%}
+        {%- assign interY2 = interY2 | Plus:intervalCuts -%}
+        {%- endfor -%}
+        {%- comment -%}
+        Group
+        {%- endcomment -%}
+        {%- assign intervalCuts = 574.666666666666667 -%}
+        {%- assign interY1 = 0 -%}
+        {%- assign interY2 = intervalCuts -%}
+        {%- for i in (0..2) -%}
+        {{- comma -}}{
+			"title": "{{campus.Name}} Image",
+            "images":[
+			    { "width":800, "url":"https://rock.secc.org/Webhooks/ImageGenerator.ashx/location/info/{{campusSlug}}/group?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})"  }
+		    ]{% if forloop.index == 2 %},"actions":[{
+                "handler":"browser",
+                "type":"navigation",
+                "style":"external",
+                "showBrowserControls": false,
+                "contentUrl": "https://www.southeastchristian.org/groups/oncampus/details/movingforward"
+            }]{%- else -%},"actions":[{
+                "handler":"browser",
+                "type":"navigation",
+                "style":"external",
+                "showBrowserControls": false,
+                "contentUrl": "https://www.southeastchristian.org/groups/oncampus/{{campusSlug}}/all"
+            }]
+			{%- endif -%}
+		}
+        {%- assign comma = "," -%}
+        {%- assign interY1 = interY1 | Plus:intervalCuts -%}
+        {%- assign interY2 = interY2 | Plus:intervalCuts -%}
+        {%- endfor -%}
+    ]
+}
+{%- endcampus -%}

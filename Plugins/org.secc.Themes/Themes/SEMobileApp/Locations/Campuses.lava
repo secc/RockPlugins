@@ -41,10 +41,8 @@
 					],
 				"title":"{{campus.Name}}",
 				"actions": [{
-					"handler": "browser",
-					"type":"navigation",
-					"showBrowserControls": false,
-					"contentUrl": "https://www.southeastchristian.org/seapp/location/{{ campusSlug }}?theme=SECC2019_Child_Invert"
+					"handler": "list",
+					"url": "https://www.southeastchristian.org/webhooks/SubSplash.ashx/campus/{{campus.Id}}"
 				}]
 			}{%- if forloop.last -%}{%- else -%},{%- endif -%}
           {% endfor %}

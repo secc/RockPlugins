@@ -1,0 +1,66 @@
+{% campus id:'{{Id}}' %}
+{
+	"header": {
+		"title": "{{campus.Name}}"
+	},
+	"displayOptions":{
+		"style":"stacked",
+		"contentWidthRatio":9.5,
+	    "itemDisplayOptions":{
+	        "indicatorAspectRatio":2.47407,
+	        "textPosition":"overlay"
+	    },
+		"colors":{
+	        "brand":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "theme":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "topBar":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "bottomBar":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "brandableElements":"{{colors:brand}}"
+	    }
+	},
+	"items": [
+	    {
+				"images":[
+				    {"width": 668,
+					"url":"https://www.southeastchristian.org/GetImage.ashx?Guid=5DAB7A1E-483C-4169-A1BA-34FB87516736&mode=crop&s.roundcorners=20&bgcolor=121212&format=png&w=668&margin=50"}
+					],
+				"title":"Worship Service Times",
+				"subtitle":"Saturday - 5:30 p.m.\nSunday - 9:30 a.m., 11:15 a.m."
+			}
+			{% comment %}
+		{%- contentchannelitem Id:'2087' sort:'Order' -%}
+			{%- for item in contentchannelitem.ChildItems -%}
+			{%- assign title = item.ChildContentChannelItem.Title -%}
+			{%- assign subtitle = item.ChildContentChannelItem | Attribute:'Subtitle' -%}
+			{%- assign imageGuid = item.ChildContentChannelItem | Attribute:'Image','RawValue' -%}
+			{%- assign actionJson = item.ChildContentChannelItem | Attribute:'Action' -%}
+
+			{
+				"images":[
+				    {"width": 668,
+					"url":"https://www.southeastchristian.org/GetImage.ashx?Guid=5DAB7A1E-483C-4169-A1BA-34FB87516736&mode=crop&s.roundcorners=20&bgcolor=121212&format=png"}
+					]
+				{%- if actionJson != "" -%}
+				,"actions":[{
+					{{-actionJson-}}
+				}]
+				{%- endif -%}
+			}{%- if forloop.last -%}{%- else -%},{%- endif -%}
+			{%- endfor %}
+		{%- endcontentchannelitem %}
+{% endcomment %}
+	]
+}
+{% endcampus %}
