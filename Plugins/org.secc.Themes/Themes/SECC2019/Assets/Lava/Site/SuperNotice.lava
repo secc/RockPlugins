@@ -12,7 +12,7 @@
   #superNoticeHeader {
       padding: 0px;
       color: #000000;
-      background-color: #FFFFFF;
+      background-color: #ffffff;
       width: 100%;
       z-index: 0;
       position: relative;
