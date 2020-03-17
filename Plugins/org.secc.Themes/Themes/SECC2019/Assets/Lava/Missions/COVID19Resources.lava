@@ -35,7 +35,7 @@
             <p class="g-font-weight--400 g-line-height--sm">Filter to find the resources for your area</p>
             <div id="partnerFilters" class="g-display-block--xs">
 
- <div class="g-display-inline-block--xs col-xs-12 col-md-3 g-padding-x-5--xs">
+ 				<div class="g-display-inline-block--xs col-xs-12 col-md-3 g-padding-x-5--xs">
                     <input id="se-zipcode" class="g-width-100-percent--xs se-input" placeholder="Zipcode" type="number" pattern="\d*" />
                     <i class="fas fa-circle-notch fa-spin se-zipcode-loading hidden"></i>
                 </div>
@@ -71,10 +71,15 @@
             {% contentchannelitem where:'ContentChannelId == 68' sort:'Order' %}
                {% for item in contentchannelitemItems %}
 
-                    {% assign phone = item | Attribute:'Phone' %}
+			   		{% assign covidApplicable = item | Attribute:'COVID19' %}
+					{% assign covidInfo = item | Attribute:'COVID19INFO' %}
+
+					{% assign phone = item | Attribute:'Phone' %}
                     {% assign website_url = item | Attribute:'Website','RawValue' %}
                     {% assign se_address = item | Attribute:'Location' %}
                     {% assign se_recognition = item | Attribute:'SoutheastRecognition' %}
+
+					{% if covidApplicable == "Yes" or covidApplicable == "Both" %}
                     <div class="isotope_item col-sm-12 col-md-6 col-lg-4"
                          data-groupid="{{item.Id}}"
                          data-need="{% taggeditem where:'EntityGuid == "{{item.Guid}}"' %}{% for tag in taggeditemItems %}{%- if forloop.first -%}{%- else -%},{%- endif -%}{{ tag.Tag.Id }}{% endfor %}{% endtaggeditem %}"
@@ -99,15 +104,17 @@
                                 </span>
                                 {% endif %}
 
+								{% if website_url != empty %}<a href="{{ website_url }}" target="_blank">{% endif %}
                                 <h5 class="g-padding-b-20--xs g-font-family--secondary">
                                 {{ item.Title }}
                                 </h5>
+								{% if website_url != empty %}</a>{% endif %}
                                 <h6 class="g-line-height">{{ item.Content }}</h6>
 
                                 {% if phone != empty %}
                                 <div class="partner_location g-margin-t-20--xs g-display-inline-block--xs g-width-100-percent--xs">
                                     <div class="pull-left g-margin-r-20--xs" style="max-width: 35px; height:100%;" class="pull-left">
-                                        <img src="/Themes/SECC2019/Assets/img/SE/phone.svg" style="max-width:120px; width: 100%;" />
+										<img src="/Themes/SECC2019/Assets/img/SE/phone.svg" style="max-width:120px; width: 100%;" />
                                     </div>
                                     <div>
                                         <h6>
@@ -118,7 +125,7 @@
                                 </div>
                                 {% endif %}
 
-                                {% if website != empty %}
+                                {% if website_url != empty %}
                                 <div class="partner_location g-margin-t-20--xs g-display-inline-block--xs g-width-100-percent--xs">
                                     <div class="pull-left g-margin-r-20--xs" style="max-width: 35px; height:100%;" class="pull-left">
 										<a href="{{ website_url }}" target="_blank">
@@ -134,7 +141,7 @@
                                 </div>
                                 {% endif %}
 
-								{% if se_address != emtpy %}
+                                {% if se_address != emtpy %}
                                 <div class="partner_location g-margin-t-20--xs g-display-inline-block--xs g-width-100-percent--xs">
                                     <div class="pull-left g-margin-r-20--xs" style="max-width: 35px; height:100%;" class="pull-left">
                                         <img src="/Themes/SECC2019/Assets/img/SE/Location.svg" style="max-width:120px; width: 100%;" />
@@ -151,9 +158,19 @@
                                     </div>
                                 </div>
                                 {% endif %}
+
+                                {% if covidInfo != "" %}
+                                <div class="covid_info g-margin-t-20--xs g-display-inline-block--xs g-width-100-percent--xs">
+									<h6 class="g-line-height g-hor-divider__solid__t--black-opacity-lighter g-padding-t-20--xs g-font-weight--700">COVID-19 Information:</h6>
+									<h6 class="g-line-height">
+									{{ covidInfo }}
+									</h6>
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
+					{% endif %}
 
                 {% endfor %}
             {% endcontentchannelitem %}
