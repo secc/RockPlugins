@@ -42,13 +42,13 @@
         {%- endcomment -%}
         {%- assign intervalCuts = 574.666666666666667 -%}
         {%- assign interY1 = 0 -%}
-        {%- assign interY2 = intervalCuts -%}
+        {%- assign interY2 = intervalCuts | Plus:1 -%}
         {%- assign comma = "" -%}
         {%- for i in (0..2) -%}
         {{- comma -}}{
 			"title": "{{campus.Name}} Image",
             "images":[
-			    { "width":800, "url":"https://rock.secc.org/Webhooks/ImageGenerator.ashx/location/info/{{campusSlug}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})"  }
+			    { "width":800, "url":"https://rock.secc.org/Webhooks/ImageGenerator.ashx/location/info/{{campusSlug}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
 		    ]{% if forloop.index == 2 %},"actions":[{
                 "handler":"browser",
                 "type":"navigation",
@@ -58,20 +58,25 @@
             }]{% endif %}
 		}
         {%- assign comma = "," -%}
-        {%- assign interY1 = interY1 | Plus:intervalCuts -%}
-        {%- assign interY2 = interY2 | Plus:intervalCuts -%}
+		{%- if forloop.index ==  1 -%}
+			{%- assign interY1 = interY1 | Plus:intervalCuts | Minus:1 -%}
+			{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+		{%- else -%}
+			{%- assign interY1 = interY1 | Plus:intervalCuts -%}
+			{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+		{%- endif -%}
         {%- endfor -%}
         {%- comment -%}
         Group
         {%- endcomment -%}
         {%- assign intervalCuts = 574.666666666666667 -%}
         {%- assign interY1 = 0 -%}
-        {%- assign interY2 = intervalCuts -%}
+        {%- assign interY2 = intervalCuts | Plus:1 -%}
         {%- for i in (0..2) -%}
         {{- comma -}}{
 			"title": "{{campus.Name}} Image",
             "images":[
-			    { "width":800, "url":"https://rock.secc.org/Webhooks/ImageGenerator.ashx/location/info/{{campusSlug}}/group?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})"  }
+			    { "width":800, "url":"https://rock.secc.org/Webhooks/ImageGenerator.ashx/location/info/{{campusSlug}}/group?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
 		    ]{% if forloop.index == 2 %},"actions":[{
                 "handler":"browser",
                 "type":"navigation",
@@ -88,8 +93,69 @@
 			{%- endif -%}
 		}
         {%- assign comma = "," -%}
-        {%- assign interY1 = interY1 | Plus:intervalCuts -%}
-        {%- assign interY2 = interY2 | Plus:intervalCuts -%}
+		{%- if forloop.index ==  1 -%}
+			{%- assign interY1 = interY1 | Plus:intervalCuts | Minus:1 -%}
+			{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+		{%- else -%}
+			{%- assign interY1 = interY1 | Plus:intervalCuts -%}
+			{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+		{%- endif -%}
+        {%- endfor -%}
+		{%- comment -%}
+        Connection
+        {%- endcomment -%}
+        {%- assign intervalCuts = 574.666666666666667 -%}
+        {%- assign interY1 = 0 -%}
+        {%- assign interY2 = intervalCuts | Plus:1 -%}
+        {%- for i in (0..1) -%}
+        {{- comma -}}{
+			"title": "{{campus.Name}} Image",
+            "images":[
+			    { "width":800, "url":"https://rock.secc.org/Webhooks/ImageGenerator.ashx/location/info/{{campusSlug}}/Connection?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+		    ],"actions":[{
+                "handler":"browser",
+                "type":"navigation",
+                "style":"external",
+                "showBrowserControls": false,
+                "contentUrl": "https://www.southeastchristian.org/sermons/reversethecurse"
+            }]
+		}
+        {%- assign comma = "," -%}
+		{%- if forloop.index ==  1 -%}
+			{%- assign interY1 = interY1 | Plus:intervalCuts | Minus:1 -%}
+			{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+		{%- else -%}
+			{%- assign interY1 = interY1 | Plus:intervalCuts -%}
+			{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+		{%- endif -%}
+        {%- endfor -%}
+		{%- comment -%}
+        Leaders
+        {%- endcomment -%}
+        {%- assign intervalCuts = 574.666666666666667 -%}
+        {%- assign interY1 = 0 -%}
+        {%- assign interY2 = intervalCuts | Plus:1 -%}
+        {%- for i in (0..1) -%}
+        {{- comma -}}{
+			"title": "{{campus.Name}} Image",
+            "images":[
+			    { "width":800, "url":"https://rock.secc.org/Webhooks/ImageGenerator.ashx/location/info/{{campusSlug}}/Leaders?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+		    ],"actions":[{
+                "handler":"browser",
+                "type":"navigation",
+                "style":"external",
+                "showBrowserControls": false,
+                "contentUrl": "https://www.southeastchristian.org/{{campusSlug}}#Contact"
+            }]
+		}
+        {%- assign comma = "," -%}
+		{%- if forloop.index ==  1 -%}
+			{%- assign interY1 = interY1 | Plus:intervalCuts | Minus:1 -%}
+			{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+		{%- else -%}
+			{%- assign interY1 = interY1 | Plus:intervalCuts -%}
+			{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+		{%- endif -%}
         {%- endfor -%}
     ]
 }

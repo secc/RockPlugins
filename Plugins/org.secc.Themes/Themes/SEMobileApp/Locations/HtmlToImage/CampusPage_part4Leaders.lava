@@ -1,0 +1,92 @@
+{%- assign pageParamCampus = Campus -%}
+{%- if pageParamCampus != empty and pageParamCampus != null and pageParamCampus != 'allCampuses' -%}
+    {%- assign pageParamCampus = Campus -%}
+    {%- campus where:'Public == true' -%}
+        {%- for campus in campusItems -%}
+            {%- assign campusSlug = campus | Attribute: 'Slug' -%}
+            {%- if campus.Name == pageParamCampus or campusSlug == pageParamCampus -%}
+                {%- assign pageParamCampus = campus -%}
+            {%- endif -%}
+        {%- endfor -%}
+    {%- endcampus -%}
+{%- endif -%}
+{%- assign campus = pageParamCampus -%}
+{%- assign campusSlug = campus | Attribute:'Slug' -%}
+{%- assign HeroImage = campus | Attribute:'HeroImage','Object' -%}
+{%- assign HeroImagePosition = campus | Attribute:'HeroImagePosition','Object' -%}
+{%- assign CampusImageThumb = campus | Attribute:'CampusThumbnail','Object' -%}
+{%- assign WorshipImage = campus | Attribute:'WorshipServiceImage','Object' -%}
+{%- assign WorshipImagePosition = campus | Attribute:'WorshipServiceImagePosition','Object' -%}
+{%- assign CampusSubMenuItems = campus | Attribute:'CampusSubMenu' -%}
+{%- assign CampusVideo = campus | Attribute:'CampusVideo' -%}
+{%- assign CampusEmail = campus | Attribute:'Email' -%}
+{%- assign CampusFacebookSlug = campus | Attribute:'FacebookSlug' -%}
+{%- assign CampusVimeoId = campus | Attribute:'VimeoID' -%}
+{%- assign CampusLongitude = campus | Attribute:'Longitude' -%}
+{%- assign CampusLatitude = campus | Attribute:'Latitude' -%}
+
+{%- if campusSlug != "" -%}
+    {{ campus.Name | Append: ' Campus' | SetPageTitle }}
+    <html>
+        <head>
+            <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019_Child_Invert/Styles/layout.css?v=637196153346169397"/>
+            <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019_Child_Invert/Styles/main.css?v=637196153358512916"/>
+            <style>
+                html, body {
+                  margin: 0px;
+                  padding: 0px;
+                  background-color: #121212;
+                  color: white;
+                  height: 1149.33333px;
+                  overflow-y: hidden;
+                }
+                a,p,h1,h2,h3,h4,h5,h6,span,div {
+                    color: white !important;
+                }
+                #CampusBody {
+                    position: relative;
+                    width: 100%;
+                    margin: 0 auto;
+                    /* min-height: 100px; */
+                    max-width: 1600px;
+                }
+                h3 {
+                    3em;
+                }
+            </style>
+        </head>
+        <body>
+        <div id="CampusBody" class="">
+
+            <article class="g-margin-x-150--xs g-margin-y-0--xs g-padding-t-0--xs g-padding-b-150--xs">
+                <div class="g-bg-color--2020-seapp-grey g-overflow--hidden g-position--relative" style="border-radius:5.5em;">
+                    <div class="g-text-left--xs g-padding-x-150--xs g-padding-t-150--xs g-padding-b-40--xs">
+                        <p class="g-margin-b-0--xs g-display-inline-block--xs g-font-size-100--xs g-padding-b-10--xs"><strong>Leadership</strong></p>
+                	   <div class="row">
+                            <div class="col-xs-6 text-center">
+                    		    <img src="https://www.southeastchristian.org/Content/Staff/KyleIdleman.jpg" class="img-responsive img-circle" style="margin: 15px auto 30px; width: 90%; max-width: 54rem;">
+                    		    <p class="g-line-height--xs g-font-size-80--xs"><strong>Kyle Idleman</strong>
+                    		        <br>
+                    		        Senior Pastor
+                    			</p>
+                            </div>
+                            <div class="col-xs-6 text-center">
+                    		    <img src="https://www.southeastchristian.org/Content/Staff/NealGossett.jpg" class="img-responsive img-circle" style="margin: 15px auto 30px; width: 90%; max-width: 54rem;">
+                    		    <p class="g-line-height--xs g-font-size-80--xs"><strong>Neal Gossett</strong>
+                    		        <br>
+                    		        Campus Pastor
+                    			</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="g-padding-x-100--xs g-padding-y-75--xs g-position--relative g-width-100-percent--xs g-bg-color--2020-seapp-blue-dark text-center" style="bottom: 0; border-radius: 0px 0px 5.5em 5.5em;">
+                        <p class="g-margin-b-0--xs g-display-inline-block--xs uppercase g-font-size-80--xs" style="vertical-align: middle;">
+                		    <strong>Contact Campus</strong>
+                		</p>
+                    </div>
+                </div>
+            </article>
+
+        </body>
+    </html>
+{%- endif -%}
