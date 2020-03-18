@@ -136,22 +136,20 @@ namespace org.secc.OAuth
         #endregion
 
         #region Authentication Token Provider
-
-        private readonly ConcurrentDictionary<string, string> mAuthenticationCodes =
-            new ConcurrentDictionary<string, string>( StringComparer.Ordinal );
-
+        
         private void CreateAuthenticationCode( AuthenticationTokenCreateContext context )
         {
             context.SetToken( Guid.NewGuid().ToString( "n" ) + Guid.NewGuid().ToString( "n" ) );
-            mAuthenticationCodes[context.Token] = context.SerializeTicket();
+            RockCache.AddOrUpdate( context.Token, context.SerializeTicket() );
 
         }
 
         private void ReceiveAuthenticationCode( AuthenticationTokenReceiveContext context )
         {
-            string value;
-            if ( mAuthenticationCodes.TryRemove( context.Token, out value ) )
+            string value = RockCache.Get( context.Token ).ToString();
+            if ( !string.IsNullOrWhiteSpace( value ) )
             {
+                RockCache.Remove( context.Token );
                 context.DeserializeTicket( value );
             }
         }
