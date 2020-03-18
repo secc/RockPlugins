@@ -1,3 +1,6 @@
+{%- contentchannelitem where:'Guid == "{{Guid}}"' -%}
+{%- assign item = contentchannelitemItems | First - %}
+{%- endcontentchannelitem -%}
 <html>
     <head>
         <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019_Child_Invert/Styles/layout.css?v=637196153346169397"/>
@@ -8,7 +11,8 @@
               padding: 0px;
               background-color: #121212;
               color: white;
-              height: 1724px;
+              height: 574.666666666666667;
+              overflow-y: hidden;
             }
             a,p,h1,h2,h3,h4,h5,h6,span,div {
                 color: white !important;
@@ -26,7 +30,8 @@
         </style>
     </head>
     <body>
-    <div id="CampusBody" class="">
-        {[ seappgrouptwo groupid:'{{PublishGroupId}}' ]}
+    <div id="CampusBody">
+        {{- item.Content -}}
+    </div>
     </body>
 </html>
