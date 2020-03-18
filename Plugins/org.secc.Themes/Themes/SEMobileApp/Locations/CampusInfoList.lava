@@ -37,14 +37,15 @@
 	    }
 	},
 	"items": [
+
         {%- comment -%}
-        Campus Image & Worship Service Times (if available)
+        Campus Image
         {%- endcomment -%}
         {%- assign intervalCuts = 574.666666666666667 -%}
         {%- assign interY1 = 0 -%}
         {%- assign interY2 = intervalCuts | Plus:1 -%}
         {%- assign comma = "" -%}
-        {%- for i in (0..2) -%}
+        {%- for i in (0..1) -%}
         {{- comma -}}{
 			"title": "{{campus.Name}} Image",
             "images":[
@@ -66,97 +67,216 @@
 			{%- assign interY2 = interY2 | Plus:intervalCuts -%}
 		{%- endif -%}
         {%- endfor -%}
-        {%- comment -%}
+
+		{%- comment -%}
+        Worship Service Times (if any)
+        {%- endcomment -%}
+		{%- contentchannelitem where:'Status == 2 && ContentChannelId == 73' sort:'Order' -%}
+			{%- assign itemCount = 0 -%}
+			{%- assign contentItem = "" -%}
+			{%- for item in contentchannelitemItems -%}
+				{%- assign locationInfoTemplate = item | Attribute:'Template','RawValue' -%}
+				{%- assign locationCampus = item | Attribute:'Campus','Object' -%}
+				{%- if locationInfoTemplate == "worship" and locationCampus.Name == campus.Name -%}
+					{%- assign itemCount = itemCount | Plus:1 -%}
+					{%- assign contentItem = item -%}
+					{% break %}
+				{%- endif -%}
+			{%- endfor -%}
+			{%- if contentItem != "" -%}
+				{%- assign url = contentItem | Attribute:'itemurl','RawValue' -%}
+				{%- comment -%}
+				iterate for each html-to-image slice
+				{%- endcomment -%}
+				{%- assign intervalCuts = 574.666666666666667 -%}
+				{%- assign interY1 = 0 -%}
+				{%- assign interY2 = intervalCuts | Plus:1 -%}
+				,{
+					"title": "{{campus.Name}} Worship Service Times",
+					"images":[
+						{ "width":800, "url":"https://rock.secc.org/Webhooks/ImageGenerator.ashx/location/info/oneslice/{{contentItem.Guid}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+					]{%- if url != "" -%},"actions":[{
+		                "handler":"browser",
+		                "type":"navigation",
+		                "style":"external",
+		                "showBrowserControls": false,
+		                "contentUrl": "{{ url }}"
+		            }]{%- endif-%}
+				}
+			{%- endif -%}
+		{%- endcontentchannelitem -%}
+
+		{%- comment -%}
         Group
         {%- endcomment -%}
-        {%- assign intervalCuts = 574.666666666666667 -%}
-        {%- assign interY1 = 0 -%}
-        {%- assign interY2 = intervalCuts | Plus:1 -%}
-        {%- for i in (0..2) -%}
-        {{- comma -}}{
-			"title": "{{campus.Name}} Image",
-            "images":[
-			    { "width":800, "url":"https://rock.secc.org/Webhooks/ImageGenerator.ashx/location/info/{{campusSlug}}/group?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
-		    ]{% if forloop.index == 2 %},"actions":[{
-                "handler":"browser",
-                "type":"navigation",
-                "style":"external",
-                "showBrowserControls": false,
-                "contentUrl": "https://www.southeastchristian.org/groups/oncampus/details/movingforward"
-            }]{%- else -%},"actions":[{
-                "handler":"browser",
-                "type":"navigation",
-                "style":"external",
-                "showBrowserControls": false,
-                "contentUrl": "https://www.southeastchristian.org/groups/oncampus/{{campusSlug}}/all"
-            }]
+		{%- contentchannelitem where:'Status == 2 && ContentChannelId == 73' sort:'Order' -%}
+			{%- assign itemCount = 0 -%}
+			{%- assign contentItem = "" -%}
+			{%- for item in contentchannelitemItems -%}
+				{%- assign locationInfoTemplate = item | Attribute:'Template','RawValue' -%}
+				{%- assign locationCampus = item | Attribute:'Campus','Object' -%}
+				{%- if locationInfoTemplate == "group" and locationCampus.Name == campus.Name -%}
+					{%- assign itemCount = itemCount | Plus:1 -%}
+					{%- assign contentItem = item -%}
+					{% break %}
+				{%- endif -%}
+			{%- endfor -%}
+			{%- if contentItem != "" -%}
+
+				{%- assign url = contentItem | Attribute:'itemurl','RawValue' -%}
+				{%- assign publishGroupId = contentItem | Attribute:'PublishGroupId' -%}
+				{%- comment -%}
+				iterate for each html-to-image slice
+				{%- endcomment -%}
+				{%- assign intervalCuts = 574.666666666666667 -%}
+		        {%- assign interY1 = 0 -%}
+		        {%- assign interY2 = intervalCuts | Plus:1 -%}
+		        {%- for i in (0..2) -%}
+		        {{- comma -}}{
+					"title": "{{campus.Name}} Group",
+		            "images":[
+					    { "width":800, "url":"https://rock.secc.org/Webhooks/ImageGenerator.ashx/location/info/threeslice/{{publishGroupId}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+				    ]{% if forloop.index == 2 %}{%- if url != "" -%},"actions":[{
+						"handler":"browser",
+						"type":"navigation",
+						"style":"external",
+						"showBrowserControls": false,
+						"contentUrl": "{{ url }}"
+					}]{%- else -%},"actions":[{
+		                "handler":"browser",
+		                "type":"navigation",
+		                "style":"external",
+		                "showBrowserControls": false,
+		                "contentUrl": "https://www.southeastchristian.org/groups/oncampus/{{campusSlug}}/all"
+		            }]{%- endif -%}{%- else -%},"actions":[{
+		                "handler":"browser",
+		                "type":"navigation",
+		                "style":"external",
+		                "showBrowserControls": false,
+		                "contentUrl": "https://www.southeastchristian.org/groups/oncampus/{{campusSlug}}/all"
+		            }]
+					{%- endif -%}
+				}
+		        {%- assign comma = "," -%}
+				{%- if forloop.index ==  1 -%}
+					{%- assign interY1 = interY1 | Plus:intervalCuts | Minus:1 -%}
+					{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+				{%- else -%}
+					{%- assign interY1 = interY1 | Plus:intervalCuts -%}
+					{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+				{%- endif -%}
+		        {%- endfor -%}
+
 			{%- endif -%}
-		}
-        {%- assign comma = "," -%}
-		{%- if forloop.index ==  1 -%}
-			{%- assign interY1 = interY1 | Plus:intervalCuts | Minus:1 -%}
-			{%- assign interY2 = interY2 | Plus:intervalCuts -%}
-		{%- else -%}
-			{%- assign interY1 = interY1 | Plus:intervalCuts -%}
-			{%- assign interY2 = interY2 | Plus:intervalCuts -%}
-		{%- endif -%}
-        {%- endfor -%}
+		{%- endcontentchannelitem -%}
+
 		{%- comment -%}
-        Connection
+        Connection Card(s) (if any)
         {%- endcomment -%}
-        {%- assign intervalCuts = 574.666666666666667 -%}
-        {%- assign interY1 = 0 -%}
-        {%- assign interY2 = intervalCuts | Plus:1 -%}
-        {%- for i in (0..1) -%}
-        {{- comma -}}{
-			"title": "{{campus.Name}} Image",
-            "images":[
-			    { "width":800, "url":"https://rock.secc.org/Webhooks/ImageGenerator.ashx/location/info/{{campusSlug}}/Connection?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
-		    ],"actions":[{
-                "handler":"browser",
-                "type":"navigation",
-                "style":"external",
-                "showBrowserControls": false,
-                "contentUrl": "https://www.southeastchristian.org/sermons/reversethecurse"
-            }]
-		}
-        {%- assign comma = "," -%}
-		{%- if forloop.index ==  1 -%}
-			{%- assign interY1 = interY1 | Plus:intervalCuts | Minus:1 -%}
-			{%- assign interY2 = interY2 | Plus:intervalCuts -%}
-		{%- else -%}
-			{%- assign interY1 = interY1 | Plus:intervalCuts -%}
-			{%- assign interY2 = interY2 | Plus:intervalCuts -%}
-		{%- endif -%}
-        {%- endfor -%}
+        {%- contentchannelitem where:'Status == 2 && ContentChannelId == 73' sort:'Order' -%}
+			{%- assign itemCount = 0 -%}
+			{%- assign contentItem = "" -%}
+
+			{%- for item in contentchannelitemItems -%}
+				{%- assign locationInfoTemplate = item | Attribute:'Template','RawValue' -%}
+				{%- assign locationCampus = item | Attribute:'Campus','Object' -%}
+				{%- if locationInfoTemplate == "connection" and locationCampus.Name == campus.Name -%}
+					{%- assign itemCount = itemCount | Plus:1 -%}
+				{%- endif -%}
+			{%- endfor -%}
+			{%- if itemCount > 0 -%}
+				{%- for item in contentchannelitemItems -%}
+					{%- assign contentItem = item -%}
+					{%- assign url = contentItem | Attribute:'itemurl','RawValue' -%}
+					{%- assign itemCampus = contentItem | Attribute:'Campus' -%}
+					{%- if itemCampus == null -%}
+						{%- comment -%} *** Display Content *** {%- endcomment -%}
+					{%- else -%}
+						{%- assign locationInfoTemplate = item | Attribute:'Template','RawValue' -%}
+						{%- assign locationCampus = item | Attribute:'Campus','Object' -%}
+						{%- if locationInfoTemplate == "connection" and locationCampus.Name == campus.Name -%}
+						{%- comment -%}
+						iterate for each html-to-image slice
+						{%- endcomment -%}
+						{%- assign intervalCuts = 574.666666666666667 -%}
+						{%- assign interY1 = 0 -%}
+						{%- assign interY2 = intervalCuts | Plus:1 -%}
+						{%- for i in (0..1) -%}
+						{{- comma -}}{
+							"title": "{{campus.Name}} Connection",
+							"images":[
+								{ "width":800, "url":"https://rock.secc.org/Webhooks/ImageGenerator.ashx/location/info/twoslice/{{contentItem.Guid}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+							]{%- if url != "" -%},"actions":[{
+								"handler":"browser",
+								"type":"navigation",
+								"style":"external",
+								"showBrowserControls": false,
+								"contentUrl": "{{ url }}"
+							}]{%- endif-%}
+						}
+						{%- assign comma = "," -%}
+						{%- if forloop.index ==  1 -%}
+							{%- assign interY1 = interY1 | Plus:intervalCuts | Minus:1 -%}
+							{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+						{%- else -%}
+							{%- assign interY1 = interY1 | Plus:intervalCuts -%}
+							{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+						{%- endif -%}
+						{%- endfor -%}
+						{%- endif -%}
+					{%- endif%}
+				{%- endfor -%}
+
+			{%- endif -%}
+		{%- endcontentchannelitem -%}
+
 		{%- comment -%}
-        Leaders
+        Leaders (if any)
         {%- endcomment -%}
-        {%- assign intervalCuts = 574.666666666666667 -%}
-        {%- assign interY1 = 0 -%}
-        {%- assign interY2 = intervalCuts | Plus:1 -%}
-        {%- for i in (0..1) -%}
-        {{- comma -}}{
-			"title": "{{campus.Name}} Image",
-            "images":[
-			    { "width":800, "url":"https://rock.secc.org/Webhooks/ImageGenerator.ashx/location/info/{{campusSlug}}/Leaders?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
-		    ],"actions":[{
-                "handler":"browser",
-                "type":"navigation",
-                "style":"external",
-                "showBrowserControls": false,
-                "contentUrl": "https://www.southeastchristian.org/{{campusSlug}}#Contact"
-            }]
-		}
-        {%- assign comma = "," -%}
-		{%- if forloop.index ==  1 -%}
-			{%- assign interY1 = interY1 | Plus:intervalCuts | Minus:1 -%}
-			{%- assign interY2 = interY2 | Plus:intervalCuts -%}
-		{%- else -%}
-			{%- assign interY1 = interY1 | Plus:intervalCuts -%}
-			{%- assign interY2 = interY2 | Plus:intervalCuts -%}
-		{%- endif -%}
-        {%- endfor -%}
+		{%- contentchannelitem where:'Status == 2 && ContentChannelId == 73' sort:'Order' -%}
+			{%- assign itemCount = 0 -%}
+			{%- assign contentItem = "" -%}
+			{%- for item in contentchannelitemItems -%}
+				{%- assign locationInfoTemplate = item | Attribute:'Template','RawValue' -%}
+				{%- assign locationCampus = item | Attribute:'Campus','Object' -%}
+				{%- if locationInfoTemplate == "leadership" and locationCampus.Name == campus.Name -%}
+					{%- assign itemCount = itemCount | Plus:1 -%}
+					{%- assign contentItem = item -%}
+					{% break %}
+				{%- endif -%}
+			{%- endfor -%}
+			{%- if contentItem != "" -%}
+				{%- assign url = contentItem | Attribute:'itemurl','RawValue' -%}
+				{%- comment -%}
+				iterate for each html-to-image slice
+				{%- endcomment -%}
+				{%- assign intervalCuts = 574.666666666666667 -%}
+				{%- assign interY1 = 0 -%}
+				{%- assign interY2 = intervalCuts | Plus:1 -%}
+				{%- for i in (0..1) -%}
+				{{- comma -}}{
+					"title": "{{campus.Name}} Leadership",
+					"images":[
+						{ "width":800, "url":"https://rock.secc.org/Webhooks/ImageGenerator.ashx/location/info/twoslice/{{contentItem.Guid}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+					]{%- if url != "" -%},"actions":[{
+		                "handler":"browser",
+		                "type":"navigation",
+		                "style":"external",
+		                "showBrowserControls": false,
+		                "contentUrl": "{{ url }}"
+		            }]{%- endif-%}
+				}
+				{%- assign comma = "," -%}
+				{%- if forloop.index ==  1 -%}
+					{%- assign interY1 = interY1 | Plus:intervalCuts | Minus:1 -%}
+					{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+				{%- else -%}
+					{%- assign interY1 = interY1 | Plus:intervalCuts -%}
+					{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+				{%- endif -%}
+				{%- endfor -%}
+			{%- endif -%}
+		{%- endcontentchannelitem -%}
     ]
 }
 {%- endcampus -%}
