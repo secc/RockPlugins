@@ -1,0 +1,65 @@
+{
+	"header": {
+		"title": "Give"
+	},
+	"displayOptions":{
+		"style":"stacked",
+		"contentWidthRatio":1.0,
+	    "itemDisplayOptions":{
+			"indicatorAspectRatio":0.485103626943005,
+			"indicatorShadowEnabled":true,
+        	"maxWidth":1400,
+	        "textPosition": "none"
+	    },
+		"colors":{
+	        "brand":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+			"theme":{
+	            "primary":"#121212",
+				"block":"#262626",
+	            "blockAccent":"#262626",
+	            "secondaryAccent":"#FFFFFF",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "topBar":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "bottomBar":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "brandableElements":"{{colors:brand}}"
+	    }
+	},
+	"items": [
+        {% assign intervalCuts = 749 %}
+        {% assign interY1 = 0 %}
+        {%- assign interY2 = intervalCuts | Plus:1 -%}
+        {%- assign comma = "" -%}
+        {% for i in (0..3) %}
+        {{ comma }}
+        {
+			"title": "{{item.Title | Replace:'"','\"'}}",
+			"subtitle": "{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
+            "images":[
+				{ "width":772, "url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/give?bgcolor=121314&crop=(0,{{ interY1 }},1544,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+			],
+			"actions": [{
+				"handler": "externalBrowser",
+        		"url": "https://pushpay.com/pay/southeastchristian"
+			}]
+		}
+        {%- assign comma = "," -%}
+		{%- if forloop.index ==  1 -%}
+			{%- assign interY1 = interY1 | Plus:intervalCuts | Minus:1 -%}
+			{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+		{%- else -%}
+			{%- assign interY1 = interY1 | Plus:intervalCuts -%}
+			{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+		{%- endif -%}
+        {% endfor %}
+    ]
+}

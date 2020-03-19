@@ -1,0 +1,50 @@
+{
+	"header": {
+		"title": "Location"
+	},
+	"displayOptions":{
+		"style":"grid",
+		"contentWidthRatio":5,
+	    "itemDisplayOptions":{
+	        "indicatorAspectRatio":1,
+	        "indicatorShadowEnabled":false,
+	        "textPosition":"none"
+	    },
+		"colors":{
+	        "brand":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "theme":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "topBar":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "bottomBar":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "brandableElements":"{{colors:brand}}"
+	    }
+	},
+	"items": [
+	      {% assign campusesSorted = Campuses | Sort:'Order','Asc' %}
+	      {% for campus in campusesSorted sort:'Order','Asc' %}
+	        {% assign campusSlug = campus | Attribute: 'Slug' %}
+	        {
+				"images":[
+				    {"width": 668,
+					"url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/location/{{campus.Guid}}?bgcolor=121212&mode=crop&s.roundcorners=10"}
+					],
+				"title":"{{campus.Name}}",
+				"actions": [{
+					"handler": "list",
+					"url": "https://www.southeastchristian.org/webhooks/SubSplash.ashx/campus/{{campus.Id}}"
+				}]
+			}{%- if forloop.last -%}{%- else -%},{%- endif -%}
+          {% endfor %}
+	]
+}

@@ -53,7 +53,7 @@
 								              <div class="row">
 									              <div class="col-md-8 col-md-offset-2">
 										              <h3 class="g-font-weight--700">Event Details</h3>
-										              <p><strong>Time:</strong> {{ eventItemOccurrence.DateTime | Date: 'hh:mm a'  }}</p>
+										              <p><strong>Time:</strong> {{ eventItemOccurrence.DateTime | Date: 'hh:mm tt'  }}</p>
 										              <p><strong>Location:</strong> {{ eventItemOccurrence.Location }}</p>
 										              <div class="g-margin-t-30--sm g-margin-t-20--xs">
 										                <p>{{ eventSummary }}</p>

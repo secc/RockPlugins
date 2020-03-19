@@ -162,12 +162,6 @@
 
             <main id="PageBody" class="cd-main-content transparent-content">
 
-                <!-- Page Header -->
-                <header id="SiteHeader">
-                    <!-- SUPERNAV -->
-                    <Rock:Zone Name="SuperNav" runat="server" />
-                    <!-- MAIN SITE NAVIGATION -->
-                </header>
 
                 <!--========== PAGE CONTENT ==========-->
                 <asp:ContentPlaceHolder ID="feature" runat="server"></asp:ContentPlaceHolder>
@@ -196,14 +190,6 @@
                 </footer>
 
             </main>
-
-            <Rock:Zone Name="Primary Site Navigation" runat="server" />
-
-        	<div id="cd-search" class="cd-search">
-        		<input type="search" name="q" placeholder="Search...">
-        	</div>
-
-            <div class="cd-overlay"></div>
 
             <%-- controls for scriptmanager and update panel --%>
             <asp:ScriptManager ID="sManager" runat="server"/>

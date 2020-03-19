@@ -331,6 +331,65 @@
 	}
 } // .accordions-christmas2019
 
+.accordions-easter2020 {
+	.panel {
+		border-radius: 0px !important;
+		@include transition(all .3s ease);
+        &:hover {
+			@include transition(all .3s ease);
+		}
+        .panel-heading {
+
+			color: #004121;
+			position: relative;
+            cursor: pointer;
+			padding: 25px;
+			text-align: center;
+			background-color: #fff;
+			border-color: #fff;
+
+			.panel-title {
+				@extend h3;
+				width: 100%;
+				padding: 0px;
+				margin: 0px;
+				text-align: center;
+				font-size: 1.4em !important;
+				text-transform: none !important;
+				color: #004121 !important;
+				a {
+					&:focus {
+						text-decoration: none;
+					}
+				}
+			}
+		} // .panel-heading
+
+		.panel-collapse {
+
+			.panel-body {
+				border: none;
+                border-radius: 0;
+				background-color: #004121;
+                padding: 30px;
+				text-align: left;
+				p {
+					margin: 0px;
+					color: #E4E2D3;
+					a:not(.btn):not(.btn-doors) {
+						color: #E4E2D3;
+                        font-weight: bolder;
+					}
+				}
+			} // .panel-body
+		} // .panel-collapse
+	} // .panel
+
+	.panel+.panel {
+		margin-top: 2.7rem;
+	}
+} // .accordions-christmas2019
+
 .faq-contact-links {
 	color: rgba($CopyColor, 0.8);
 	font-size: .9em;

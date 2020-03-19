@@ -1,0 +1,65 @@
+{% assign launch = '3/8/2020 08:00:00pm' %}
+{% assign launchDate = 0308200000 %}
+{% assign JSlaunch = '03-08-2020 20:00:00Z' %}
+
+{% assign currentDate = 'Now' | Date:'MMddHHmmss' | AsDouble %}
+{% unless currentDate < launchDate %}
+    <style>
+    .panel-title {
+     font-weight: 600 !important;
+    }
+    </style>
+    <div id="Tickets" class="container-fluid g-hor-divider__solid__b--gray-lightest g-padding-y-150--xs g-bg-color--gray-lightest text-center" style="border-width: 2px;">
+        <div class="row">
+            <div class="col-md-offset-2 col-md-8 g-padding-y-10--md g-padding-x-50--xs g-padding-b-45--xs g-padding-b-0--sm">
+            <h2 class="g-font-weight--600 g-font-family--secondary">Free movie tickets for a theater near you!</h2><h5>Select your campus below.</h5>
+            <hr class="g-width-80--xs" style="border-color: #000;">
+            </div>
+        </div>
+        <div class="row g-padding-b-20--xs">
+            <div class="col-xs-12 col-md-offset-2 col-md-8 g-padding-y-10--md g-padding-x-50--xs g-padding-b-45--xs g-padding-b-0--sm">
+                <a href="https://secure.acceptiva.com/?cst=AmbnpU" target="_blank">
+                    <div class="se-panel g-padding-x-20--xs g-padding-y-40--xs text-center">
+                        <h4>IN – REGAL NEW ALBANY</h4>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="row g-padding-b-20--xs">
+            <div class="col-xs-12 col-md-offset-2 col-md-8 g-padding-y-10--md g-padding-x-50--xs g-padding-b-45--xs g-padding-b-0--sm">
+                <a href="https://secure.acceptiva.com/?cst=43QLdo" target="_blank">
+                    <div class="se-panel g-padding-x-20--xs g-padding-y-40--xs text-center">
+                        <h4>ET – MOVIE PALACE</h4>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="row g-padding-b-20--xs">
+            <div class="col-xs-12 col-md-offset-2 col-md-8 g-padding-y-10--md g-padding-x-50--xs g-padding-b-45--xs g-padding-b-0--sm">
+                <a href="https://secure.acceptiva.com/?cst=wUPNGm" target="_blank">
+                    <div class="se-panel g-padding-x-20--xs g-padding-y-40--xs text-center">
+                        <h4>LA/CW/RV – TINSELTOWN</h4>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="row g-padding-b-20--xs">
+            <div class="col-xs-12 col-md-offset-2 col-md-8 g-padding-y-10--md g-padding-x-50--xs g-padding-b-45--xs g-padding-b-0--sm">
+                <a href="https://secure.acceptiva.com/?cst=4WLZc3" target="_blank">
+                    <div class="se-panel g-padding-x-20--xs g-padding-y-40--xs text-center">
+                        <h4>BB/CIW/SHELBYVILLE – XSCAPE-STONYBROOK</h4>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="row g-padding-b-20--xs">
+            <div class="col-xs-12 col-md-offset-2 col-md-8 g-padding-y-10--md g-padding-x-50--xs g-padding-b-45--xs g-padding-b-0--sm">
+                <a href="https://secure.acceptiva.com/?cst=KYzQLo" target="_blank">
+                    <div class="se-panel g-padding-x-20--xs g-padding-y-40--xs text-center">
+                        <h4>SW – PRESTON CROSSING</h4>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+{% endunless %}

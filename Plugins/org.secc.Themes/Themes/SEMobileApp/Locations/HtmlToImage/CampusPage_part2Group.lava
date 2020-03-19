@@ -1,0 +1,32 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019_Child_Invert/Styles/layout.css?v=637196153346169397"/>
+        <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019_Child_Invert/Styles/main.css?v=637196153358512916"/>
+        <style>
+            html, body {
+              margin: 0px;
+              padding: 0px;
+              background-color: #121212;
+              color: white;
+              height: 1724px;
+            }
+            a,p,h1,h2,h3,h4,h5,h6,span,div {
+                color: white !important;
+            }
+            #CampusBody {
+                position: relative;
+                width: 100%;
+                margin: 0 auto;
+                /* min-height: 100px; */
+                max-width: 1600px;
+            }
+            h3 {
+                3em;
+            }
+        </style>
+    </head>
+    <body>
+    <div id="CampusBody" class="">
+        {[ seappgrouptwo groupid:'{{PublishGroupId}}' ]}
+    </body>
+</html>

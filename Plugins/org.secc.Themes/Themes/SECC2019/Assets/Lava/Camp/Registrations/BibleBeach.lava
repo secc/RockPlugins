@@ -23,9 +23,12 @@
                             {% registrationinstance where:'Name *= "2020 | BIBLE & BEACH | STUDENT UNDER 18"' %}
                             {% for instance in registrationinstanceItems %}
                                 {% assign linkages = instance | Property:"Linkages" %}
-                                {% for linkage in linkages %}
-                                    <option value="{{linkage.UrlSlug}}">{{instance.Name | Split:'|' | Last | Trim }}</option>
-                                {% endfor %}
+                                {% assign campus = instance.Name | Split:'|' | Last | Trim %}
+                                {% if campus != "RIVER VALLEY" %}
+                                    {% for linkage in linkages %}
+                                        <option value="{{linkage.UrlSlug}}">{{instance.Name | Split:'|' | Last | Trim }}</option>
+                                    {% endfor %}
+                                {% endif %}
                             {% endfor %}
                             {% endregistrationinstance %}
                         </select>
@@ -61,9 +64,12 @@
                             {% for instance in registrationinstanceItems %}
                                 {{ instance.Name }}
                                 {% assign linkages = instance | Property:"Linkages" %}
+                                {% assign campus = instance.Name | Split:'|' | Last | Trim %}
+                                {% if campus != "RIVER VALLEY" %}
                                 {% for linkage in linkages %}
                                     <option value="{{linkage.UrlSlug}}">{{instance.Name | Split:'|' | Last | Trim }}</option>
                                 {% endfor %}
+                                {% endif %}
                             {% endfor %}
                             {% endregistrationinstance %}
                         </select>
@@ -100,7 +106,7 @@
                                 {{ instance.Name }}
                                 {% assign linkages = instance | Property:"Linkages" %}
                                 {% assign campus = instance.Name | Split:'|' | Last | Trim %}
-                                {% if campus != "BLANKENBAKER" and campus != "INDIANA" and campus != "ELIZABETHTOWN" and campus != "LA GRANGE" and campus != "SHELBY COUNTY" %}
+                                {% if campus != "BLANKENBAKER" and campus != "INDIANA" and campus != "ELIZABETHTOWN" and campus != "LA GRANGE" and campus != "SHELBY COUNTY" and campus != "RIVER VALLEY" and campus != "SOUTHWEST" %}
                                     {% for linkage in linkages %}
                                         <option value="{{linkage.UrlSlug}}">{{instance.Name | Split:'|' | Last | Trim }}</option>
                                     {% endfor %}

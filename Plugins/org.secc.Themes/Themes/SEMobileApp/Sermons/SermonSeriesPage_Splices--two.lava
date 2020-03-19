@@ -38,7 +38,7 @@
 	    {%- assign pageNumber = page -%}
 	{%- endif -%}
 	{%- assign offset = pageNumber | Minus:1 | Times: 120 -%}
-	{%- contentchannelitem where:'ContentChannelId == 24' sort:'StartDateTime desc' offset:'{{offset}}' limit:'120'  -%}
+	{%- contentchannelitem where:'Status == 2 && ContentChannelId == 24' sort:'StartDateTime desc' offset:'{{offset}}' limit:'120'  -%}
 		"items": [
 	        {%- for item in contentchannelitemItems -%}
 	        {% unless forloop.first %},{% endunless %}

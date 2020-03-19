@@ -197,7 +197,8 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             {
                 EntityTypeId = personAliasEntityType.Id,
                 EntityId = person.PrimaryAliasId ?? 0,
-                RequestorAliasId = CurrentPersonAliasId ?? 0
+                RequestorAliasId = CurrentPersonAliasId ?? 0,
+                RequestorComment = tbComments.Text
             };
 
             changeRequest.EvaluatePropertyChange( person, "PhotoId", iuPhoto.BinaryFileId );
@@ -273,6 +274,15 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                             changeRequest.EvaluatePropertyChange( phoneNumber, "Number", PhoneNumber.CleanNumber( pnbPhone.Number ), true );
                             changeRequest.EvaluatePropertyChange( phoneNumber, "IsMessagingEnabled", ( !smsSelected && cbSms.Checked ), true );
                             changeRequest.EvaluatePropertyChange( phoneNumber, "IsUnlisted", cbUnlisted.Checked, true );
+                        }
+
+                        if ( hfPhoneType.Value.AsInteger() == DefinedValueCache.GetId( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ) )
+                        {
+                            var validationInfo = ValidateMobilePhoneNumber( PhoneNumber.CleanNumber( pnbPhone.Number ) );
+                            if ( validationInfo.IsNotNullOrWhiteSpace() )
+                            {
+                                changeRequest.RequestorComment += "<h4>Dynamically Generated Warnings:</h4>" + validationInfo;
+                            }
                         }
                     }
 
@@ -430,7 +440,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             if ( changeRequest.ChangeRecords.Any()
             || ( !familyChangeRequest.ChangeRecords.Any() && tbComments.Text.IsNotNullOrWhiteSpace() ) )
             {
-                changeRequest.RequestorComment = tbComments.Text;
+
                 ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
                 changeRequestService.Add( changeRequest );
                 rockContext.SaveChanges();
@@ -454,8 +464,6 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 }
                 familyChangeRequest.LaunchWorkflow( GetAttributeValue( "Workflow" ).AsGuidOrNull() );
             }
-
-
 
             if ( autoApply )
             {
@@ -534,6 +542,52 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
         private void NavigateToPerson()
         {
             Response.Redirect( "/Person/" + GetPerson().Id.ToString() );
+        }
+
+        protected void pnbPhone_TextChanged( object sender, EventArgs e )
+        {
+
+            var tbPhone = ( PhoneNumberBox ) sender;
+            var hfPhoneType = ( HiddenField ) tbPhone.Parent.FindControl( "hfPhoneType" );
+            var mobileDV = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() );
+            if ( hfPhoneType.Value.AsInteger() == mobileDV.Id )
+            {
+
+                var number = PhoneNumber.CleanNumber( tbPhone.Text );
+                string validationInformation = ValidateMobilePhoneNumber( number );
+
+                if ( validationInformation.IsNotNullOrWhiteSpace() )
+                {
+                    maNotice.Show( validationInformation, ModalAlertType.Warning );
+                }
+            }
+        }
+
+        private string ValidateMobilePhoneNumber( string number )
+        {
+            var person = GetPerson();
+            RockContext rockContext = new RockContext();
+            PhoneNumberService phoneNumberService = new PhoneNumberService( rockContext );
+
+            var otherOwners = phoneNumberService.Queryable()
+                .Where( pn => pn.Number == number )
+                .Select( pn => pn.Person )
+                .Where( p => p.Id != person.Id )
+                .ToList();
+
+            if ( otherOwners.Any() )
+            {
+                var notice = string.Format(
+                    "The phone number {0} is on the following records." +
+                    "<ul>{1}</ul>" +
+                    "Mobile phone numbers should exist on one record only. Please ensure that {0} belongs to {2} and remove this number from all other users.",
+                    PhoneNumber.FormattedNumber( PhoneNumber.DefaultCountryCode(), number ),
+                    string.Join( "", otherOwners.Select( p => "<li><a href='/Person/" + p.Id.ToString() + "' target='_blank'>" + p.FullName + "</a></li>" ) ),
+                    person.FullName
+                    );
+                return notice;
+            }
+            return string.Empty;
         }
     }
 }

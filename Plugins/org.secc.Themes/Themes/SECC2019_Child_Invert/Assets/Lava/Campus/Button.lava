@@ -1,0 +1,28 @@
+<article class="g-margin-x-40--xs g-margin-t-0--xs">
+    <div class="g-bg-color--2020-seapp-grey g-overflow--hidden g-position--relative" style="border-radius:1.5em;">
+        <div class="g-text-left--xs g-padding-x-40--xs g-padding-y-40--xs">
+            <p class="g-margin-b-0--xs g-display-inline-block--xs"><strong>Leadership</strong></p>
+    	   <div class="row">
+                <div class="col-xs-6 text-center">
+        		    <img src="/Content/Staff/KyleIdleman.jpg" class="img-responsive img-circle" style="margin: 15px auto 30px; width: 100%; max-width: 27rem;">
+        		    <p class="g-line-height--xs g-font-size-24--xs"><strong>Kyle Idleman</strong>
+        		        <br>
+        		        Senior Pastor
+        			</p>
+                </div>
+                <div class="col-xs-6 text-center">
+        		    <img src="/Content/Staff/NealGossett.jpg" class="img-responsive img-circle" style="margin: 15px auto 30px; width: 100%; max-width: 27rem;">
+        		    <p class="g-line-height--xs g-font-size-24--xs"><strong>Neal Gossett</strong>
+        		        <br>
+        		        Campus Pastor
+        			</p>
+                </div>
+            </div>
+        </div>
+        <div class="g-margin-t-5--xs g-padding-x-40--xs g-padding-y-20--xs g-position--relative g-width-100-percent--xs g-bg-color--2020-seapp-blue-dark text-center" style="bottom: 0;">
+            <p class="g-margin-b-0--xs g-display-inline-block--xs uppercase g-font-size-20--xs" style="vertical-align: middle;">
+    		    <strong>Contact Campus</strong>
+    		</p>
+        </div>
+    </div>
+</article>

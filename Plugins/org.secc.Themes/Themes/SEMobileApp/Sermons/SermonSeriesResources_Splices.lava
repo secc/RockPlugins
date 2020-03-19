@@ -54,7 +54,7 @@
 						{
 							"images":[
 								{%- assign Title = "Studies" | Escape | EscapeDataString -%}
-								{%- assign Body = "Find additinal studies related below." | Escape | EscapeDataString -%}
+								{%- assign Body = "Find related studies below." | Escape | EscapeDataString -%}
 								{ "width":747, "url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
 							]
 						},
@@ -67,7 +67,8 @@
 								{ "width":747, "url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
 							],
 							"actions": [{
-								"handler": "internalBrowser showTabBar",
+								"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
+								"style":"{%- if Headers.sap-device-os == 'Android' -%}external{%- else -%}internal{%- endif -%}",
 								"type":"navigation",
 								"showBrowserControls": true,
 								"contentUrl": "https://www.southeastchristian.org/GetFile.ashx?guid={{ resourceMediaFile.Guid }}"
@@ -78,7 +79,7 @@
 						{
 							"images":[
 								{%- assign Title = "Reading Plans" | Escape | EscapeDataString -%}
-								{%- assign Body = "Interested in a devotion?" | Escape | EscapeDataString -%}
+								{%- assign Body = "Grow spiritually with a daily devotion." | Escape | EscapeDataString -%}
 								{ "width":747, "url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
 							]
 						},
@@ -91,7 +92,8 @@
 								{ "width":747, "url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
 							],
 							"actions": [{
-								"handler": "internalBrowser showTabBar",
+								"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
+								"style":"{%- if Headers.sap-device-os == 'Android' -%}external{%- else -%}internal{%- endif -%}",
 								"type":"navigation",
 								"showBrowserControls": true,
 								"contentUrl": "{{ resourceURL }}"
@@ -115,7 +117,8 @@
 								{ "width":747, "url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
 							],
 							"actions": [{
-								"handler": "internalBrowser showTabBar",
+								"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
+								"style":"{%- if Headers.sap-device-os == 'Android' -%}external{%- else -%}internal{%- endif -%}",
 								"type":"navigation",
 								"showBrowserControls": true,
 								"contentUrl": "https://www.southeastchristian.org/sermons/{{slug}}/{{resource.PrimarySlug}}"
