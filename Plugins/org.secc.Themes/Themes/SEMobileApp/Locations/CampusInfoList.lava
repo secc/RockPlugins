@@ -1,5 +1,5 @@
 {%- campus id:'{{Id}}' -%}
-{% assign campusSlug = campus | Attribute:'Slug' %}
+{%- assign campusSlug = campus | Attribute:'Slug' -%}
 {
 	"header": {
 		"title": "{{campus.Name}} Campus"
@@ -49,14 +49,14 @@
         {{- comma -}}{
 			"title": "{{campus.Name}} Image",
             "images":[
-			    { "width":800, "url":"https://rock.secc.org/Webhooks/ImageGenerator.ashx/location/info/{{campusSlug}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
-		    ]{% if forloop.index == 2 %},"actions":[{
+			    { "width":800, "url":"https://southeastchristian.org/Webhooks/ImageGenerator.ashx/location/info/{{campusSlug}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+		    ]{%- if forloop.index == 2 -%},"actions":[{
                 "handler":"browser",
                 "type":"navigation",
                 "style":"external",
                 "showBrowserControls": false,
-                "contentUrl": "https://maps.google.com/"
-            }]{% endif %}
+                "contentUrl": "https://southeastchristian.org/seapp/campus/directions/{{campusSlug}}"
+            }]{%- endif -%}
 		}
         {%- assign comma = "," -%}
 		{%- if forloop.index ==  1 -%}
@@ -72,15 +72,13 @@
         Worship Service Times (if any)
         {%- endcomment -%}
 		{%- contentchannelitem where:'Status == 2 && ContentChannelId == 73' sort:'Order' -%}
-			{%- assign itemCount = 0 -%}
 			{%- assign contentItem = "" -%}
 			{%- for item in contentchannelitemItems -%}
 				{%- assign locationInfoTemplate = item | Attribute:'Template','RawValue' -%}
-				{%- assign locationCampus = item | Attribute:'Campus','Object' -%}
-				{%- if locationInfoTemplate == "worship" and locationCampus.Name == campus.Name -%}
-					{%- assign itemCount = itemCount | Plus:1 -%}
+				{%- assign locationCampuses = item | Attribute:'Campuses' -%}
+				{%- if locationInfoTemplate == "worship" and locationCampuses contains campus.Name -%}
 					{%- assign contentItem = item -%}
-					{% break %}
+					{%- break -%}
 				{%- endif -%}
 			{%- endfor -%}
 			{%- if contentItem != "" -%}
@@ -94,7 +92,7 @@
 				,{
 					"title": "{{campus.Name}} Worship Service Times",
 					"images":[
-						{ "width":800, "url":"https://rock.secc.org/Webhooks/ImageGenerator.ashx/location/info/oneslice/{{contentItem.Guid}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+						{ "width":800, "url":"https://southeastchristian.org/Webhooks/ImageGenerator.ashx/location/info/oneslice/{{contentItem.Guid}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
 					]{%- if url != "" -%},"actions":[{
 		                "handler":"browser",
 		                "type":"navigation",
@@ -110,21 +108,28 @@
         Group
         {%- endcomment -%}
 		{%- contentchannelitem where:'Status == 2 && ContentChannelId == 73' sort:'Order' -%}
-			{%- assign itemCount = 0 -%}
 			{%- assign contentItem = "" -%}
 			{%- for item in contentchannelitemItems -%}
 				{%- assign locationInfoTemplate = item | Attribute:'Template','RawValue' -%}
-				{%- assign locationCampus = item | Attribute:'Campus','Object' -%}
-				{%- if locationInfoTemplate == "group" and locationCampus.Name == campus.Name -%}
-					{%- assign itemCount = itemCount | Plus:1 -%}
+				{%- assign locationCampus = item | Attribute:'Campuses' -%}
+				{%- if locationInfoTemplate == "group" and locationCampus contains campus.Name -%}
 					{%- assign contentItem = item -%}
-					{% break %}
+					{%- break -%}
 				{%- endif -%}
 			{%- endfor -%}
 			{%- if contentItem != "" -%}
 
 				{%- assign url = contentItem | Attribute:'itemurl','RawValue' -%}
+
 				{%- assign publishGroupId = contentItem | Attribute:'PublishGroupId' -%}
+				{%- assign registrationLink = "" -%}
+				{%- if publishGroupId != "" -%}
+					{% publishgroup where:'Id == {{- publishGroupId -}}' sort:'Order' %}
+						{%- assign publishGroup = publishgroupItems | First -%}
+					{%- endpublishgroup -%}
+					{%- assign registrationLink = 'https://www.southeastchristian.org/groups/oncampus/details/' | Append:publishGroup.Slug -%}
+				{%- endif -%}
+
 				{%- comment -%}
 				iterate for each html-to-image slice
 				{%- endcomment -%}
@@ -135,26 +140,36 @@
 		        {{- comma -}}{
 					"title": "{{campus.Name}} Group",
 		            "images":[
-					    { "width":800, "url":"https://rock.secc.org/Webhooks/ImageGenerator.ashx/location/info/threeslice/{{publishGroupId}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
-				    ]{% if forloop.index == 2 %}{%- if url != "" -%},"actions":[{
-						"handler":"browser",
-						"type":"navigation",
-						"style":"external",
-						"showBrowserControls": false,
-						"contentUrl": "{{ url }}"
-					}]{%- else -%},"actions":[{
-		                "handler":"browser",
-		                "type":"navigation",
-		                "style":"external",
-		                "showBrowserControls": false,
-		                "contentUrl": "https://www.southeastchristian.org/groups/oncampus/{{campusSlug}}/all"
-		            }]{%- endif -%}{%- else -%},"actions":[{
-		                "handler":"browser",
-		                "type":"navigation",
-		                "style":"external",
-		                "showBrowserControls": false,
-		                "contentUrl": "https://www.southeastchristian.org/groups/oncampus/{{campusSlug}}/all"
-		            }]
+					    { "width":800, "url":"https://southeastchristian.org/Webhooks/ImageGenerator.ashx/location/info/threeslice/{{publishGroupId}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+				    ]
+					{%- if forloop.first -%}
+						,"actions":[{
+							"handler":"browser",
+							"type":"navigation",
+							"style":"external",
+							"showBrowserControls": false,
+							"contentUrl": "https://www.southeastchristian.org/groups/oncampus/{{campusSlug}}/all"
+						}]
+					{%- else -%}
+						{%- if registrationLink != "" -%},"actions":[{
+							"handler":"browser",
+							"type":"navigation",
+							"style":"external",
+							"showBrowserControls": false,
+							"contentUrl": "{{ registrationLink }}"
+						}]{%- elseif url != "" -%},"actions":[{
+							"handler":"browser",
+							"type":"navigation",
+							"style":"external",
+							"showBrowserControls": false,
+							"contentUrl": "{{ url }}"
+						}]{%- else -%},"actions":[{
+							"handler":"browser",
+							"type":"navigation",
+							"style":"external",
+							"showBrowserControls": false,
+							"contentUrl": "https://www.southeastchristian.org/groups/oncampus/{{campusSlug}}/all"
+						}]{%- endif -%}
 					{%- endif -%}
 				}
 		        {%- assign comma = "," -%}
@@ -179,8 +194,8 @@
 
 			{%- for item in contentchannelitemItems -%}
 				{%- assign locationInfoTemplate = item | Attribute:'Template','RawValue' -%}
-				{%- assign locationCampus = item | Attribute:'Campus','Object' -%}
-				{%- if locationInfoTemplate == "connection" and locationCampus.Name == campus.Name -%}
+				{%- assign locationCampus = item | Attribute:'Campuses' -%}
+				{%- if locationInfoTemplate == "connection" and locationCampus contains campus.Name -%}
 					{%- assign itemCount = itemCount | Plus:1 -%}
 				{%- endif -%}
 			{%- endfor -%}
@@ -188,13 +203,13 @@
 				{%- for item in contentchannelitemItems -%}
 					{%- assign contentItem = item -%}
 					{%- assign url = contentItem | Attribute:'itemurl','RawValue' -%}
-					{%- assign itemCampus = contentItem | Attribute:'Campus' -%}
-					{%- if itemCampus == null -%}
+					{%- assign itemCampuses = contentItem | Attribute:'Campuses' -%}
+					{%- if itemCampuses == null -%}
 						{%- comment -%} *** Display Content *** {%- endcomment -%}
 					{%- else -%}
 						{%- assign locationInfoTemplate = item | Attribute:'Template','RawValue' -%}
-						{%- assign locationCampus = item | Attribute:'Campus','Object' -%}
-						{%- if locationInfoTemplate == "connection" and locationCampus.Name == campus.Name -%}
+						{%- assign locationCampus = item | Attribute:'Campuses' -%}
+						{%- if locationInfoTemplate == "connection" and locationCampus contains campus.Name -%}
 						{%- comment -%}
 						iterate for each html-to-image slice
 						{%- endcomment -%}
@@ -205,7 +220,7 @@
 						{{- comma -}}{
 							"title": "{{campus.Name}} Connection",
 							"images":[
-								{ "width":800, "url":"https://rock.secc.org/Webhooks/ImageGenerator.ashx/location/info/twoslice/{{contentItem.Guid}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+								{ "width":800, "url":"https://southeastchristian.org/Webhooks/ImageGenerator.ashx/location/info/twoslice/{{contentItem.Guid}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
 							]{%- if url != "" -%},"actions":[{
 								"handler":"browser",
 								"type":"navigation",
@@ -234,15 +249,13 @@
         Leaders (if any)
         {%- endcomment -%}
 		{%- contentchannelitem where:'Status == 2 && ContentChannelId == 73' sort:'Order' -%}
-			{%- assign itemCount = 0 -%}
 			{%- assign contentItem = "" -%}
 			{%- for item in contentchannelitemItems -%}
 				{%- assign locationInfoTemplate = item | Attribute:'Template','RawValue' -%}
-				{%- assign locationCampus = item | Attribute:'Campus','Object' -%}
-				{%- if locationInfoTemplate == "leadership" and locationCampus.Name == campus.Name -%}
-					{%- assign itemCount = itemCount | Plus:1 -%}
+				{%- assign locationCampus = item | Attribute:'Campuses' -%}
+				{%- if locationInfoTemplate == "leadership" and locationCampus contains campus.Name -%}
 					{%- assign contentItem = item -%}
-					{% break %}
+					{%- break -%}
 				{%- endif -%}
 			{%- endfor -%}
 			{%- if contentItem != "" -%}
@@ -257,7 +270,7 @@
 				{{- comma -}}{
 					"title": "{{campus.Name}} Leadership",
 					"images":[
-						{ "width":800, "url":"https://rock.secc.org/Webhooks/ImageGenerator.ashx/location/info/twoslice/{{contentItem.Guid}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+						{ "width":800, "url":"https://southeastchristian.org/Webhooks/ImageGenerator.ashx/location/info/twoslice/{{contentItem.Guid}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
 					]{%- if url != "" -%},"actions":[{
 		                "handler":"browser",
 		                "type":"navigation",

@@ -1,0 +1,130 @@
+{% contentchannelitem where:'ContentChannelId == 24 && Status == 2' sort:'StartDateTime Desc' %}
+{% assign series = "" %}
+{% assign currentMessage = "" %}
+{% for item in contentchannelitemItems %}
+	{% assign itemChildItems = item.ChildItems | Sort:'Order' %}
+	{%- for messages in itemChildItems -%}
+		{% assign message = messages.ChildContentChannelItem %}
+		{% if message.ContentChannelId == "23" %}
+			{% assign series = item %}
+			{% assign currentMessage = message %}
+			{% break %}
+		{%- endif -%}
+	{%- endfor -%}
+	{%- if series != "" -%}
+		{%- break -%}
+	{%- endif -%}
+{% endfor %}
+{% endcontentchannelitem %}
+
+<section>
+    <div class="container">
+        <div class="row g-padding-y-150--xs">
+            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3 event-calendar">
+                <article class="g-margin-x-40--xs g-margin-y-20--xs g-margin-x-20--md card">
+                    <div>
+                        <a class="hover_icon hover_icon_link" href="/resources/podcasts">
+                            <img class="img-responsive g-width-100-percent--xs" alt="{{ item.Title }}" src="/Content/Media/Resources/neil-godding-179009-unsplash.jpg" style="margin: 0 auto">
+                        </a>
+                    </div>
+                    <div class="g-height-150--xs g-position--relative">
+    					<h5 class="g-font-family--secondary g-padding-y-40--xs g-padding-x-40--xs">
+    						<a class="g-letter-spacing--1" href="https://itunes.apple.com/us/podcast/southeast-christian-church/id287341044?mt=2" target="_blank">
+    						    Podcasts
+    						</a>
+                        </h5>
+        			</div>
+                </article>
+            </div>
+
+            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3 event-calendar">
+                <article class="g-margin-x-40--xs g-margin-y-20--xs g-margin-x-20--md card">
+                    <div>
+                        <a class="hover_icon hover_icon_link" href="https://accounts.rightnow.org/Account/Invite/secc?returnUrl=https://www.rightnowmedia.org/Account/Media/InviteReturn" target="_blank">
+                            <img class="img-responsive g-width-100-percent--xs" src="/Content/Media/Resources/SE_Rightnow_Media_promo_full_page_outlook_ad.jpg" style="margin: 0 auto">
+                        </a>
+                    </div>
+                    <div class="g-height-150--xs g-position--relative">
+    					<h5 class="g-font-family--secondary g-padding-y-40--xs g-padding-x-40--xs">
+    						<a class="g-letter-spacing--1" href="https://accounts.rightnow.org/Account/Invite/secc?returnUrl=https://www.rightnowmedia.org/Account/Media/InviteReturn" target="_blank">
+    						    RightNow Media
+    						</a>
+                        </h5>
+        			</div>
+                </article>
+            </div>
+
+            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3 event-calendar">
+                <article class="g-margin-x-40--xs g-margin-y-20--xs g-margin-x-20--md card">
+                    <div>
+                        <a class="hover_icon hover_icon_link" href="/resources/bible-studies">
+                            <img class="img-responsive g-width-100-percent--xs" src="/Content/Media/Resources/alexander-michl-724529-unsplash.jpg" style="margin: 0 auto">
+                        </a>
+                    </div>
+                    <div class="g-height-150--xs g-position--relative">
+    					<h5 class="g-font-family--secondary g-padding-y-40--xs g-padding-x-40--xs">
+    						<a class="g-letter-spacing--1" href="/resources/bible-studies">
+    						    Bible Studies &amp; Articles
+    						</a>
+                        </h5>
+        			</div>
+                </article>
+            </div>
+
+            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3 event-calendar">
+                <article class="g-margin-x-40--xs g-margin-y-20--xs g-margin-x-20--md card">
+                    <div>
+                        <a class="hover_icon hover_icon_link" href="/resources/readingplans">
+                            <img class="img-responsive g-width-100-percent--xs" src="/Content/Media/Resources/Reading_Plan.jpg" style="margin: 0 auto">
+                        </a>
+                    </div>
+                    <div class="g-height-150--xs g-position--relative">
+    					<h5 class="g-font-family--secondary g-padding-y-40--xs g-padding-x-40--xs">
+    						<a class="g-letter-spacing--1" href="/resources/readingplans" target="_blank">
+    						    YouVersion Reading Plans
+    						</a>
+                        </h5>
+        			</div>
+                </article>
+            </div>
+
+            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3 event-calendar">
+                <article class="g-margin-x-40--xs g-margin-y-20--xs g-margin-x-20--md card">
+                    <div>
+                        <a class="hover_icon hover_icon_link" href="http://reveal-tv.com/" target="_blank">
+                            <img class="img-responsive g-width-100-percent--xs" src="/Content/Media/Resources/c7f92665-a2eb-42a8-b6f7-6ef65a5f5fd3.jpg" style="margin: 0 auto">
+                        </a>
+                    </div>
+                    <div class="g-height-150--xs g-position--relative">
+    					<h5 class="g-font-family--secondary g-padding-y-40--xs g-padding-x-40--xs">
+    						<a class="g-letter-spacing--1" href="http://reveal-tv.com/" target="_blank">
+    						    Reveal Platform
+    						</a>
+                        </h5>
+        			</div>
+                </article>
+            </div>
+
+            {% if series %}
+                {% assign seriesImageGuid = series | Attribute:'Image','RawValue' %}
+                <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3 event-calendar">
+                    <article class="g-margin-x-40--xs g-margin-y-20--xs g-margin-x-20--md card">
+                        <div>
+                            <a class="hover_icon hover_icon_link" href="/sermons/{{ series.PrimarySlug }}">
+                                <img class="img-responsive g-width-100-percent--xs" src="https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{ seriesImageGuid }}&format=jpg&mode=crop&width=800&height=591" style="margin: 0 auto">
+                            </a>
+                        </div>
+                        <div class="g-height-150--xs g-position--relative">
+        					<h5 class="g-font-family--secondary g-padding-y-40--xs g-padding-x-40--xs">
+        						<a class="g-letter-spacing--1" href="/sermons/{{ series.PrimarySlug }}">
+        						    Current Sermon Series Resources
+        						</a>
+                            </h5>
+            			</div>
+                    </article>
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+</section>

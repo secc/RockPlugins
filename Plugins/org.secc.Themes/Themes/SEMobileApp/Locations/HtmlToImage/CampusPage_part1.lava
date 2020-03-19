@@ -95,7 +95,7 @@
 
         <section id="CampusImage">
             <!-- Campus Image -->
-            <div class="campus-actions-items" style="bottom: -5%;">
+            <div class="campus-actions-items" style="bottom: -8%;">
                 <!-- Campus Title - Secondary Font -->
                 <h1 class="g-font-family--secondary g-padding-b-100--xs g-font-size-150--xs g-color--white g-font-size-100--xs">{{ campus.Name }} Campus</h3>
                 <!-- My Campus -->
