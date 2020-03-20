@@ -69,7 +69,7 @@
 </div>
 
 <div class="container-fluid g-padding-y-50--xs">
-    <div class="container g-padding-b-10--xs">
+    <div class="container g-padding-b-10--xs g-padding-x-0--xs">
         <div class="isotope_wrap">
             {% contentchannelitem where:'ContentChannelId == 68' sort:'Order' %}
                {% for item in contentchannelitemItems %}
@@ -83,14 +83,14 @@
                     {% assign se_recognition = item | Attribute:'SoutheastRecognition' %}
 
 					{% if covidApplicable == "Yes" or covidApplicable == "Both" %}
-                    <div class="isotope_item col-sm-12 col-md-6 col-lg-4"
+                    <div class="isotope_item col-xs-12 col-md-6 col-lg-4"
                          data-groupid="{{item.Id}}"
                          data-need="{% taggeditem where:'EntityGuid == "{{item.Guid}}"' %}{% for tag in taggeditemItems %}{%- if forloop.first -%}{%- else -%},{%- endif -%}{{ tag.Tag.Id }}{% endfor %}{% endtaggeditem %}"
                          data-zipcode="{{ item | Attribute:'Location','PostalCode' | Truncate:5,'' }}"
                          data-partner="{%- if se_recognition != "" -%}yes{%- endif -%}">
 
                         <div class="clearfix se-panel">
-                            <div class="g-padding-y-50--xs g-padding-x-50--xs g-margin-y-20--xs g-margin-l-20--xs g-margin-r-50--xs">
+                            <div class="g-padding-y-25--xs g-padding-x-25--xs g-padding-y-50--md g-padding-x-50--md g-margin-y-20--xs g-margin-l-20--xs g-margin-r-50--xs">
 
                                 {% if se_recognition == "Mission Partner"%}
                                 <span class="label label-default label label-default g-position--absolute bug g-bg-color--2020-crisis-partner">
@@ -138,7 +138,7 @@
                                     <div>
                                         <h6>
                                             <small class="uppercase g-font-weight--700">website</small><br />
-                                            <a href="{{ website_url }}" target="_blank">{{ website_url | Truncate:35,'...' }}</a>
+                                            <a href="{{ website_url }}" target="_blank">{{ website_url | Truncate:30,'...' }}</a>
                                         </h6>
                                     </div>
                                 </div>
