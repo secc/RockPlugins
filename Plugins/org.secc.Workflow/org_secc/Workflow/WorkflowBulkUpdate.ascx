@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="WorkflowBulkUpdate.ascx.cs" Inherits="RockWeb.Plugins.org_secc.WorkFlow.WorkflowBulkUpdate" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="WorkflowBulkUpdate.ascx.cs" Inherits="RockWeb.Plugins.org_secc.WorkFlowUpdate.WorkflowBulkUpdate" %>
 
 <asp:UpdatePanel ID="upnlSettings" runat="server">
     <ContentTemplate>

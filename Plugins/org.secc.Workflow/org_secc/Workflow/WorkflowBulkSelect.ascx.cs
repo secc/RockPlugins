@@ -47,7 +47,7 @@ using Rock.Security;
 using Rock.Web.Cache;
 using Newtonsoft.Json;
 
-namespace RockWeb.Plugins.org_secc.WorkFlow
+namespace RockWeb.Plugins.org_secc.WorkFlowUpdate
 {
     [DisplayName( "Workflow Bulk Select" )]
     [Category( "SECC > WorkFlow" )]
