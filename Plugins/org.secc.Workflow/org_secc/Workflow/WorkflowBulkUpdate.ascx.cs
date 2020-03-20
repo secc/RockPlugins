@@ -32,7 +32,7 @@ using Rock.Web.Cache;
 using Newtonsoft.Json;
 using Rock.Lava;
 
-namespace RockWeb.Plugins.org_secc.WorkFlow
+namespace RockWeb.Plugins.org_secc.WorkFlowUpdate
 {
     [DisplayName( "Workflow Bulk Update" )]
     [Category( "SECC > WorkFlow" )]
