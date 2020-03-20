@@ -63,9 +63,16 @@ namespace org.secc.OAuth
             {
                 await next();
                 var cookieName = System.Web.Security.FormsAuthentication.FormsCookieName;
-                if ( context.Authentication?.User?.Identity?.Name != null && context.Request.Cookies[cookieName] == null )
+                if ( !string.IsNullOrWhiteSpace(context.Authentication?.User?.Identity?.Name) && context.Request.Cookies[cookieName] == null )
                 {
-                    Rock.Security.Authorization.SetAuthCookie( context.Authentication.User.Identity.Name, false, false );
+                    try
+                    {
+                        Rock.Security.Authorization.SetAuthCookie( context.Authentication.User.Identity.Name, false, false );
+                    } 
+                    catch ( System.Web.HttpException )
+                    {
+                        // Just eat this exception.  It's thrown when headers have already been sent
+                    }
                 }
             } );
 
