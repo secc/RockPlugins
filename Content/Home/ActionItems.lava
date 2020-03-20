@@ -195,9 +195,9 @@
                     {% assign cardsFlagCount = cardsFlagCount | Plus:1 %}
                     <a href="/online">
                     <div class="clearfix card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
-                        <h5 class="g-font-family--secondary">SE Online</h5>
-                        <h6 class="g-margin-b-0--xs g-line-height--normal">Live stream our worship services each Sunday at 11:30 a.m., 2:00 p.m., & 8:00 p.m.</h6>
-
+                        <h5 class="g-font-family--secondary">{{ item.Title }}</h5>
+                        {%- assign defaultContent = item | Attribute:'DefaultContent' -%}
+                        <h6 class="g-margin-b-0--xs g-padding-b-10--xs g-line-height--normal">{{ defaultContent | Truncate:134,'...' }}</h6>
                         <div id="co_action_counter_loader" class="g-margin-x-auto--xs text-center">
                             <img src="/Content/ExternalSite/WebImages/Loader808.gif" class="g-padding-y-30--xs"/>
                         </div>
