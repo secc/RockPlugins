@@ -38,6 +38,7 @@
 	},
 	"items": [
 
+		{%- assign googleDir = 'https://www.google.com/maps/dir/Current+Location/' | Append:campus.Location.Street1 | Replace:' ','+' | Append:'+' | Append:campus.Location.City | Append:'+' | Append:campus.Location.State | Append:'+' | Append:campus.Location.PostalCode -%}
         {%- comment -%}
         Campus Image
         {%- endcomment -%}
@@ -55,7 +56,7 @@
                 "type":"navigation",
                 "style":"external",
                 "showBrowserControls": false,
-                "contentUrl": "https://southeastchristian.org/seapp/campus/directions/{{campusSlug}}"
+                "contentUrl": "{{googleDir}}"
             }]{%- endif -%}
 		}
         {%- assign comma = "," -%}
