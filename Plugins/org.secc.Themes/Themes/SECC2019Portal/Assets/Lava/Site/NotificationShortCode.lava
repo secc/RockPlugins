@@ -38,6 +38,7 @@
 select Id, Title,  StartDateTime
 from ContentChannelItem
 where ContentChannelId in (51, 53)
+AND CreatedDateTime >= DateAdd(mm,-6,GETDATE())
 AND CreatedDateTime >= COALESCE(
 	(SELECT top 1 cast(av.Value as datetime)
 		FROM [EntityType] et
