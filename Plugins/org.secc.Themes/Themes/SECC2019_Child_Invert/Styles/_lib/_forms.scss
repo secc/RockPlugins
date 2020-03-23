@@ -236,3 +236,20 @@ input.error {
 .registration-entry a[id$=lbDiscountApply] {
     margin-top: 0px !important;
 }
+
+.alert-warning {
+	background-color: #ffc543;
+	border-color: #ffc543;
+	background-image: none;
+	font-weight: 600;
+	color: #000 !important;
+}
+.alert-warning a {
+	color: #6b6b6b !important;
+}
+.alert-danger {
+	background-color: #a94442;
+    border-color: #a94442;
+    background-image: none;
+    color: white;
+}
