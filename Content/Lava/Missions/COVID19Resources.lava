@@ -81,6 +81,7 @@
                     {% assign website_url = item | Attribute:'Website','RawValue' %}
                     {% assign se_address = item | Attribute:'Location' %}
                     {% assign se_recognition = item | Attribute:'SoutheastRecognition' %}
+					{% assign resourceMediaFile = item | Attribute:'File','Object' %}
 
 					{% if covidApplicable == "Yes" or covidApplicable == "Both" %}
                     <div class="isotope_item col-xs-12 col-md-6 col-lg-4"
@@ -170,6 +171,13 @@
 									</h6>
                                 </div>
                                 {% endif %}
+								{% if resourceMediaFile.Guid != null %}
+								<div class="g-margin-t-20--xs g-display-inline-block--xs g-width-100-percent--xs">
+									<a href="/GetFile.ashx?guid={{ resourceMediaFile.Guid }}" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 g-width-100-percent--xs" download>
+										<strong>Download PDF</strong>
+									</a>
+                                </div>
+								{% endif %}
                             </div>
                         </div>
                     </div>
