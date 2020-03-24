@@ -1,0 +1,151 @@
+<section>
+    <div class="container g-padding-b-50--xs">
+    	<div class="row">
+            <div class="col-md-6 col-md-offset-3 text-center">
+	            {% assign now = 'Now' | Date: 'yyyyMMdd' %}
+	            {% assign thisday = StartDate | Date:'yyyyMMdd' %}
+	            <nav>
+		            <ul class="pager">
+			            {% if thisday > now %}
+			            <li class="previous">
+                            <a href="{{ DetailsPage }}?date={{ StartDate | DateAdd:-1,'d' | Date:'MM/dd/yyyy' }}" style="
+                                    width: 50px;
+                                    height: 50px;
+                                    position: relative;
+                                    border-radius: 40px;
+                                ">
+                                <span class="arrow g-center--xs" aria-hidden="true">
+                                    <i class="fas fa-chevron-left" style="margin-left: -3px;"></i>
+                                </span>
+                                <span class="sr-only">{{ StartDate | DateAdd:-1,'d' | Date:'MMM dd, yyyy' }}</span>
+                            </a>
+                        </li>
+			            {% else %}
+			            <li class="previous disabled">
+                            <a style="
+                                    width: 50px;
+                                    height: 50px;
+                                    position: relative;
+                                    border-radius: 40px;
+                                ">
+                                <span class="arrow g-center--xs" aria-hidden="true">
+                                    <i class="fas fa-chevron-left" style="margin-left: -3px;"></i>
+                                </span>
+                                <span class="sr-only">{{ StartDate | DateAdd:-1,'d' | Date:'MMM dd, yyyy' }}</span>
+                            </a>
+                        </li>
+			            {% endif %}
+			            <li class="g-font-size--jumbo-1 g-font-family--secondary g-font-weight--400">{{ StartDate | Date:'MMMM dd' }}</li>
+			            <li class="next">
+                            <a href="{{ DetailsPage }}?date={{ StartDate | DateAdd:1,'d' | Date:'MM/dd/yyyy' }}"style="
+                                    width: 50px;
+                                    height: 50px;
+                                    position: relative;
+                                    border-radius: 40px;
+                                ">
+                                <span class="arrow g-center--xs" aria-hidden="true">
+                                    <i class="fas fa-chevron-right" style="margin-right: -3px;"></i>
+                                </span>
+                                <span class="sr-only">{{ StartDate | DateAdd:1,'d' | Date:'MMM dd, yyyy' }}</span>
+                            </a>
+                        </li>
+		            </ul>
+	            </nav>
+
+            </div>
+    	</div>
+    	<div class="row g-padding-b-75--md">
+            <div class="col-md-10 col-md-offset-1">
+
+							{%- assign events = EventItemOccurrences | Size -%}
+
+                            {%- if events >= 1 -%}
+							<div class="col-md-10 col-md-offset-1 g-padding-x-20--xs g-padding-t-40--xs">
+							  <div class="accordions-1" role="tablist" aria-multiselectable="true">
+
+							  {%- for eventItemOccurrence in EventItemOccurrences -%}
+							      {%- assign eventName = eventItemOccurrence.Name -%}
+							      {%- assign eventSummary = eventItemOccurrence.Description -%}
+                                  {%- assign eventURLLink = eventItemOccurrence.DetailsUrl -%}
+							      {%- assign eventStartDiff = 'Now' | DateDiff: eventItemOccurrence.DateTime, 'm' -%}
+
+										{%- if eventStartDiff > 0 -%}
+							        <div class="panel panel-default" style="border-left: 10px solid #222324;">
+                                        <div class="panel-heading collapsed" role="button" id="heading{{ forloop.index }}-accordion-events" data-toggle="collapse" data-parent="#event-accordion-accordion-events" href="#collapse{{ forloop.index }}-accordion-events" aria-expanded="false" aria-controls="collapse{{ forloop.index }}-accordion-events" style="
+                                            padding: 0px 20% 0px 0px;
+                                        ">
+							              <div class="panel-title g-font-size-30--xs g-font-size-32--md g-font-weight--700 g-display-flex--sm" style="align-items: center;width: 100%;">
+
+                                              <div class="hidden-xs hidden-sm text-center g-padding-x-20--xs g-margin-y-40--xs g-padding-r-20--sm g-ver-divider__solid__r--gray-lightest pull-left g-width-100-percent--xs g-width-40-percent--sm g-width-30-percent--lg" style="border-width:2px;">
+                                                 <h3 class="g-font-family--secondary g-padding-x-20--xs g-padding-r-20--sm" style="
+                                                       vertical-align: middle;
+                                                       position: relative;
+                                                       height: 100%;
+                                                       display: block;
+                                                       line-height: 2.5rem;
+                                                   ">{{ eventItemOccurrence.DateTime | Date: 'h:mmtt' | Downcase }}
+                                                   <small class="g-font-family--primary clearfix" style="
+                                                       position: relative;
+                                                       display: block;
+                                                   ">{{ eventItemOccurrence.DateTime | Date: 'ddd, MMM dd' }}</small>
+                                                 </h3>
+                                              </div>
+                                              <div class="text-center g-width-100-percent--xs g-margin-y-40--xs">
+                                                  <h3 class="g-font-family--secondary g-padding-x-20--xs g-padding-r-20--sm" style="
+                                                        vertical-align: middle;
+                                                        position: relative;
+                                                        height: 100%;
+                                                        display: block;
+                                                        line-height: 2.5rem;
+                                                    ">{{ eventName }}
+                                                    <small class="hidden-xs hidden-sm g-font-family--primary clearfix" style="
+                                                        position: relative;
+                                                        display: block;
+                                                    ">{{ eventItemOccurrence.EventItemOccurrence.Campus.Name }}</small>
+                                                    <small class="visible-xs visible-sm g-font-family--primary clearfix" style="
+                                                        position: relative;
+                                                        display: block;
+                                                    ">{{ eventItemOccurrence.EventItemOccurrence.Campus.ShortCode }} {{ eventItemOccurrence.DateTime | Date: 'ddd @ h:mmtt'  }}</small>
+                                                  </h3>
+                                              </div>
+
+                                          </div>
+		                                </div>
+                                        <div id="collapse{{ forloop.index }}-accordion-events" class="panel-collapse collapse" role="tabpanel"
+							            aria-labelledby="heading{{ forloop.index }}-accordion-events" aria-expanded="false" style="height: 0px;">
+							              <div class="panel-body g-overflow--hidden">
+							                  <h3 class="g-font-weight--700">Online Event Details</h3>
+								              <p><strong>Time:</strong> {{ eventItemOccurrence.DateTime | Date: 'h:mm tt'  }}</p>
+								              <p><strong>Online Campus:</strong> {{ eventItemOccurrence.Location }}</p>
+        						              <div class="g-margin-t-30--sm g-margin-t-20--xs">
+								                <p>{{ eventSummary }}</p>
+                                                {% comment %}
+								                <p class="g-margin-t-40--xs"><a href="" onclick="return ics_click_{{ eventItemOccurrence.EventItemOccurrence.Id }}()" title="Add to Calendar" data-original-title="Add to Calendar" class="btn uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1">Add to Calendar</a></p>
+                                                {% endcomment %}
+                                              </div>
+							              </div>
+							            </div>
+							          </div>
+                                      <script>function ics_click_{{ eventItemOccurrence.EventItemOccurrence.Id }}() { text = `{{ eventItemOccurrence.EventItemOccurrence.Schedule.iCalendarContent }}`.replace('END:VEVENT', 'SUMMARY: {{ eventItemOccurrence.Name | Escape }}\r\nLOCATION: {{ eventItemOccurrence.Location | Escape }}\r\nEND:VEVENT'); var element = document.createElement('a'); element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text)); element.setAttribute('download', '{{ eventItemOccurrence.Name | ToCssClass }}.ics'); element.style.display = 'none'; document.body.appendChild(element); element.click(); document.body.removeChild(element); }</script>
+										{%- endif -%}
+							  {%- endfor -%}
+							  </div>
+							</div>
+                            {%- else -%}
+                            <div class="text-center g-padding-x-100--xs">
+                                <hr style="border-color:#d2d2d2" />
+                                <br>
+                                <h5 class="uppercase g-letter-spacing--3">No events on this day.</h5>
+                                <br>
+                                <h3 class="g-font-family--secondary">Please try tomorrow or the day before for more events.</h3>
+                                <br>
+                                <h5>"For the Son of Man came to seek and to save the lost." Luke 19:10</h5>
+                                <br>
+                                <hr style="border-color:#d2d2d2" />
+                            </div>
+                            {%- endif -%}
+
+            </div>
+        </div>
+    </div>
+</section>
