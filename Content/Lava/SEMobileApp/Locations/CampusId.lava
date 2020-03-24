@@ -34,7 +34,7 @@
 	    {
 				"images":[
 				    {"width": 668,
-					"url":"https://www.southeastchristian.org/GetImage.ashx?Guid=5DAB7A1E-483C-4169-A1BA-34FB87516736&mode=crop&s.roundcorners=20&bgcolor=121212&format=png&w=668&margin=50"}
+					"url":"https://app.secc.org/GetImage.ashx?Guid=5DAB7A1E-483C-4169-A1BA-34FB87516736&mode=crop&s.roundcorners=20&bgcolor=121212&format=png&w=668&margin=50"}
 					],
 				"title":"Worship Service Times",
 				"subtitle":"Saturday - 5:30 p.m.\nSunday - 9:30 a.m., 11:15 a.m."
@@ -50,7 +50,7 @@
 			{
 				"images":[
 				    {"width": 668,
-					"url":"https://www.southeastchristian.org/GetImage.ashx?Guid=5DAB7A1E-483C-4169-A1BA-34FB87516736&mode=crop&s.roundcorners=20&bgcolor=121212&format=png"}
+					"url":"https://app.secc.org/GetImage.ashx?Guid=5DAB7A1E-483C-4169-A1BA-34FB87516736&mode=crop&s.roundcorners=20&bgcolor=121212&format=png"}
 					]
 				{%- if actionJson != "" -%}
 				,"actions":[{

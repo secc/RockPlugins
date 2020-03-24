@@ -1,15 +1,15 @@
 {%- contentchannelitem where:'Guid == "{{Guid}}"' -%}
-{%- assign item = contentchannelitemItems | First - %}
+    {%- assign item = contentchannelitemItems | First - %}
+    {%- assign lastSermon = item.ChildItems | Last -%}
+	{%- assign sermonsCount = 0 %}
+	{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
+	{%- for messages in itemChildItems -%}
+		{% assign message = messages.ChildContentChannelItem -%}
+		{% if message.ContentChannelId == "23" %}
+			{%- assign sermonsCount = sermonsCount | Plus:1 -%}
+		{%- endif -%}
+	{%- endfor -%}
 {%- endcontentchannelitem -%}
-
-{%- assign SquarePodcastImageGuid = item | Attribute:'SquarePodcastImage','RawValue' -%}
-
-{%- assign imgGuid = '' -%}
-{%- if SquarePodcastImageGuid != '' -%}
-    {%- assign imgGuid = SquarePodcastImageGuid -%}
-{%- else -%}
-    {%- assign imgGuid = item | Attribute:'Image','RawValue' -%}
-{%- endif -%}
 <html>
     <head>
         <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019/Styles/layout.css?v=637171650738055685"/>
@@ -21,11 +21,11 @@
               background-color: #121212;
             }
             .box {
-              /* margin: 0px 60px; */
-              width: 1334px;
-              height: 528px;
+              margin: 0px 120px 60px;
+              width: 1256px;
+              height:822px;
               background-color: #262626;
-              border-radius: 0px 0px 0px 0px;
+              border-radius: 0px 0px 80px 80px;
               background-repeat: no-repeat;
               background-size: contain;
               background-position: top;
@@ -33,38 +33,49 @@
             .box h4, .box h5, .box p {
               color: white;
             }
-            .content{
-              padding: 5em 5em 5em 5em;
+            .content {
+              padding: 5em;
               height: 100%;
               overflow: hidden;
             }
-            .resourceTitle {
-                font-size: 4em;
-            }
-            .thumb {
-                width: 45%;
-                height: 100%;
-                position: relative;
-                float: left;
-                background-image: url("https://app.secc.org/GetImage.ashx/{{ imgGuid }}.jpg?guid={{ imgGuid }}");
-                background-repeat: no-repeat;
-                background-size: cover;
-                background-position: center;
+            .truncate-info, .truncate-info-long {
+                font-size: 3em;
             }
         </style>
     </head>
-    {%- assign daysInPlan = item | Attribute:'DaysinPlan','RawValue' -%}
-    {%- if daysInPlan != "" -%}
-        {%- assign smallPrint = daysInPlan | Append:' Days' -%}
+    {%- assign bodyCharactersLimit = 200 -%}
+    {%- assign titleLimitBeforeSubractingBody = 20 -%}
+    {%- assign titleLength = item.Title | Size -%}
+    {%- if titleLength > titleLimitBeforeSubractingBody -%}
+        {%- assign titleLength = titleLength | Modulo:titleLimitBeforeSubractingBody | Times:4 }} -%}
+        {%- assign bodyCharactersLimit = bodyCharactersLimit | Minus:titleLength -%}
     {%- endif -%}
     <body>
         <div class="box">
-            <div class="thumb">
-            </div>
-            <div class="content g-position--relative">
-                <h1 class="resourceTitle pull-left g-padding-x-150--xs g-width-100-percent--xs g-center--xs g-font-weight--600 g-color--white">
-                    <div class="truncate-info">{{ item.Title }}</div>{%- if smallPrint != "" -%}<small class="g-padding-t-40--xs" style="color:grey; font-weight: 500; position:relative;">{{ smallPrint }}</small>{%- endif -%}
-                </h1>
+            <div class="content">
+                <h1 class="g-font-weight--600 g-color--white g-line-height" style="font-size: 4.5em;">{{item.Title | StripHtml | Upcase }}</h1>
+                {% if sermonsCount > 1 -%}
+                <h3 class="g-color--white g-line-height" style="font-size: 5rem">{{ item.StartDateTime | Date:'MMM dd, yyyy' }} - {{ lastSermon.ChildContentChannelItem.StartDateTime | Date:'MMM dd, yyyy' }}<br />
+                SERMONS: {{ sermonsCount }}</h3>
+                <br />
+                <h3 class="truncate-info g-color--white g-padding-t-20--xs g-line-height">
+                    {%- if titleLength > titleLimitBeforeSubractingBody -%}
+                    {{item.Content | StripHtml | Truncate:bodyCharactersLimit,' ...' }}
+                    {%- else -%}
+                    {{item.Content | StripHtml }}
+                    {%- endif -%}
+                </h3>
+                {% else %}
+                <h3 class="g-color--white g-line-height" style="font-size: 5rem;">{{ item.StartDateTime | Date:'MMM dd, yyyy' }}</h3>
+                <br />
+                <h3 class="truncate-info-long g-color--white g-padding-t-20--xs g-line-height">
+                    {%- if titleLength > titleLimitBeforeSubractingBody -%}
+                    {{item.Content | StripHtml | Truncate:bodyCharactersLimit,' ...' }}
+                    {%- else -%}
+                    {{item.Content | StripHtml }}
+                    {%- endif -%}
+                </h3>
+                {% endif %}
             </div>
         </div>
         <script>
@@ -152,6 +163,8 @@
 
         }));
         shave('.truncate-info', 375, {character: ' ...'});
+        shave('.truncate-info-long', 425, {character: ' ...'});
         </script>
+
     </body>
 </html>

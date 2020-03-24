@@ -14,7 +14,7 @@
             .box {
               width: 800px;
               height:800px;
-              background-image: url("https://www.southeastchristian.org/GetImage.ashx/{{item | Attribute:'Image','RawValue'}}.jpg?guid={{item | Attribute:'Image','RawValue'}}");
+              background-image: url("https://app.secc.org/GetImage.ashx/{{item | Attribute:'Image','RawValue'}}.jpg?guid={{item | Attribute:'Image','RawValue'}}");
               background-repeat: no-repeat;
               background-size: cover;
             }

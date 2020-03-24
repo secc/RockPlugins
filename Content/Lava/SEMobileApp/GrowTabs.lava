@@ -4,18 +4,18 @@
 	},
     "items": [
         {
+            "title": "Resources",
+            "actions": [{
+                "handler": "list",
+                "url": "https://app.secc.org/webhooks/SubSplash.ashx/campuses"
+            }]
+        },
+        {
             "title": "Bible",
             "actions": [{
 				"handler": "list",
 				"url": "http://api-feeds.subsplash.com/bible/books.xml"
 			}]
-        },
-        {
-            "title": "Resources",
-            "actions": [{
-                "handler": "list",
-                "url": "https://www.southeastchristian.org/webhooks/SubSplash.ashx/campuses"
-            }]
         }
     ]
 }

@@ -18,7 +18,7 @@
             .box {
               width: 800px;
               height:800px;
-              background-image: url("https://www.southeastchristian.org/GetImage.ashx/{{campus | Attribute:'CampusThumbnail','RawValue'}}.jpg?guid={{campus | Attribute:'CampusThumbnail','RawValue'}}");
+              background-image: url("https://app.secc.org/GetImage.ashx/{{campus | Attribute:'CampusThumbnail','RawValue'}}.jpg?guid={{campus | Attribute:'CampusThumbnail','RawValue'}}");
               background-repeat: no-repeat;
               background-size: cover;
             }

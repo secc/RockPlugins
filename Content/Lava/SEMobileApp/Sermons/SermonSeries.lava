@@ -6,10 +6,10 @@
 		"style": "featured",
 		"items": [{
 			"images":[
-                { "width":320, "url":"https://www.southeastchristian.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121314&width=110&height=110"  },
-                { "width":720, "url":"https://www.southeastchristian.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121314&width=720&height=720" },
-                { "width":1080, "url":"https://www.southeastchristian.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121314&width=1080&height=1080" },
-                { "width":1920, "url":"https://www.southeastchristian.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121314&width=1920&height=1920" }
+                { "width":320, "url":"https://app.secc.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121314&width=110&height=110"  },
+                { "width":720, "url":"https://app.secc.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121314&width=720&height=720" },
+                { "width":1080, "url":"https://app.secc.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121314&width=1080&height=1080" },
+                { "width":1920, "url":"https://app.secc.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121314&width=1920&height=1920" }
 		    ]
 		}]
 	},

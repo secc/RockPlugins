@@ -31,14 +31,14 @@
         {% unless forloop.first %},{% endunless %}
         {
             "images":[
-			    { "url":"https://www.southeastchristian.org/GetImage.ashx/{{item | Attribute:'Image', 'RawValue'}}.jpg?guid={{item | Attribute:'Image', 'RawValue'}}&width=110" }
+			    { "url":"https://app.secc.org/GetImage.ashx/{{item | Attribute:'Image', 'RawValue'}}.jpg?guid={{item | Attribute:'Image', 'RawValue'}}&width=110" }
 		    ],
 			"position": "{{forloop.index}}",
 			"title": "{{item.Title | Replace:'"','\"'}}",
 			"subtitle": "{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
 			"actions": [{
 				"handler": "list",
-				"url": "https://www.southeastchristian.org/webhooks/Lava.ashx/subsplash/sermons/series/{{item.Id}}"
+				"url": "https://app.secc.org/webhooks/Lava.ashx/subsplash/sermons/series/{{item.Id}}"
 			}]
 		}
         {%- endfor -%}

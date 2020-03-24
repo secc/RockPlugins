@@ -44,7 +44,7 @@
                 }
 
                 #CampusImage {
-                    background: no-repeat 50% url("https://www.southeastchristian.org/GetImage.ashx?Guid={{ CampusImageThumb.Guid }}");
+                    background: no-repeat 50% url("https://app.secc.org/GetImage.ashx?Guid={{ CampusImageThumb.Guid }}");
                     background-size: cover;
                     position: relative;
                     width: 100%;

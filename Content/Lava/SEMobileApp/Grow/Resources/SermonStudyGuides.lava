@@ -33,7 +33,7 @@
         {%- contentchannelitem where:'ContentChannelId == 24' sort:'StartDateTime desc' offset:'{{offset}}' limit:'120'  -%}
             {%- for series in contentchannelitemItems -%}
 	        	{%- assign itemActionHandler = "list" -%}
-				{%- assign itemActionUrl = "https://www.southeastchristian.org/webhooks/SubSplash.ashx/sermons/series/" | Append:series.Id -%}
+				{%- assign itemActionUrl = "https://app.secc.org/webhooks/SubSplash.ashx/sermons/series/" | Append:series.Id -%}
 				{%- assign resourcesCount = 0 -%}
 				{%- assign itemChildItems = series.ChildItems | Sort:'Order' -%}
 				{%- for messages in itemChildItems -%}
@@ -45,13 +45,13 @@
 				{%- if resourcesCount != 0 -%}
 					{%- unless forloop.first -%},{%- endunless -%}
 					{%- assign itemActionHandler = "subtabs" -%}
-					{%- assign itemActionUrl = "https://www.southeastchristian.org/webhooks/SubSplash.ashx/tabs/series/" | Append:series.Id | Append:'/resources' -%}
+					{%- assign itemActionUrl = "https://app.secc.org/webhooks/SubSplash.ashx/tabs/series/" | Append:series.Id | Append:'/resources' -%}
 					{
 						"title": "{{-series.Title | Replace:'"','\"'-}}",
 						"subtitle": "{{- series.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode  -}}",
 			            "images":[{
 							"width": 667,
-							"url":"https://www.southeastchristian.org/Webhooks/ImageGenerator.ashx/grow/resources/listcard/{{- series.Guid -}}?mode=crop&s.roundcorners=20&bgcolor=121212"
+							"url":"https://app.secc.org/webhooks/ImageGenerator.ashx/grow/resources/listcard/{{- series.Guid -}}?mode=crop&s.roundcorners=20&bgcolor=121212"
 						}],
 						"actions": [{
 							"handler": "{{- itemActionHandler -}}",

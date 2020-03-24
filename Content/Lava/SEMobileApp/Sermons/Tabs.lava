@@ -9,14 +9,14 @@
             "title": "Sermons",
             "actions": [{
 				"handler": "list",
-				"url": "https://www.southeastchristian.org/webhooks/SubSplash.ashx/sermons/series/{{series.Id}}"
+				"url": "https://app.secc.org/webhooks/SubSplash.ashx/sermons/series/{{series.Id}}"
 			}]
         },
         {
             "title": "Resources",
             "actions": [{
                 "handler": "list",
-                "url": "https://www.southeastchristian.org/webhooks/SubSplash.ashx/sermons/series/{{series.Id}}/resources"
+                "url": "https://app.secc.org/webhooks/SubSplash.ashx/sermons/series/{{series.Id}}/resources"
             }]
         }
     ]

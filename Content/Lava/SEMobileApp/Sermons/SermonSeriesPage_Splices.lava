@@ -42,22 +42,6 @@
 		"items": [
 	        {%- for item in contentchannelitemItems -%}
 	        {% unless forloop.first %},{% endunless %}
-
-			{%- assign itemActionHandler = "list" -%}
-			{%- assign itemActionUrl = "https://app.secc.org/webhooks/SubSplash.ashx/sermons/series/" | Append:item.Id -%}
-			{%- assign resourcesCount = 0 -%}
-			{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
-			{%- for messages in itemChildItems -%}
-				{%- assign message = messages.ChildContentChannelItem -%}
-				{%- if message.ContentChannelId != "23" -%}
-					{%- assign resourcesCount = resourcesCount | Plus:1 -%}
-				{%- endif -%}
-			{%- endfor -%}
-			{%- if resourcesCount != 0 -%}
-			{%- assign itemActionHandler = "subtabs" -%}
-			{%- assign itemActionUrl = "https://app.secc.org/webhooks/SubSplash.ashx/tabs/series/" | Append:item.Id -%}
-			{%- endif -%}
-
 	        {
 				"title": "{{item.Title | Replace:'"','\"'}}",
 				"subtitle": "{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
@@ -65,9 +49,9 @@
 				    { "width":400, "url":"https://app.secc.org/GetImage.ashx/{{item | Attribute:'Image', 'RawValue'}}.jpg?guid={{item | Attribute:'Image', 'RawValue'}}&width=400&height=75&mode=crop&s.roundcorners=80,80,0,0&bgcolor=121212&format=png&margin=40,75,40,0&anchor=topcenter"  }
 			    ],
 				"actions": [{
-					"handler": "{{- itemActionHandler -}}",
-            		{%- if itemActionHandler == "subtabs" -%}"type": "navigation",{%- endif -%}
-					"url": "{{- itemActionUrl -}}"
+					"handler": "subtabs",
+            		"type": "navigation",
+					"url": "https://app.secc.org/webhooks/SubSplash.ashx/tabs/series/{{item.Id}}"
 				}]
 			},
 			{
@@ -75,29 +59,29 @@
 				    { "width":400, "url":"https://app.secc.org/GetImage.ashx/7{{item | Attribute:'Image', 'RawValue'}}.jpg?guid={{item | Attribute:'Image', 'RawValue'}}&width=400&height=150&mode=crop&s.roundcorners=0,0,0,0&bgcolor=121212&format=png&margin=40,0,40,0&anchor=bottomcenter"  }
 			    ],
 				"actions": [{
-					"handler": "{{- itemActionHandler -}}",
-            		{%- if itemActionHandler == "subtabs" -%}"type": "navigation",{%- endif -%}
-					"url": "{{- itemActionUrl -}}"
+					"handler": "subtabs",
+            		"type": "navigation",
+					"url": "https://app.secc.org/webhooks/SubSplash.ashx/tabs/series/{{item.Id}}"
 				}]
 			},
 			{
 	            "images":[
-				    { "width":480, "url":"https://www.southeastchristian.org/Content/SubSplash/ContentPart1.jpg"  }
+				    { "width":480, "url":"https://app.secc.org/Content/SubSplash/ContentPart1.jpg"  }
 			    ],
 				"actions": [{
-					"handler": "{{- itemActionHandler -}}",
-            		{%- if itemActionHandler == "subtabs" -%}"type": "navigation",{%- endif -%}
-					"url": "{{- itemActionUrl -}}"
+					"handler": "subtabs",
+            		"type": "navigation",
+					"url": "https://app.secc.org/webhooks/SubSplash.ashx/tabs/series/{{item.Id}}"
 				}]
 			},
 			{
 	            "images":[
-				    { "width":480, "url":"https://www.southeastchristian.org/Content/SubSplash/ContentPart2.jpg"  }
+				    { "width":480, "url":"https://app.secc.org/Content/SubSplash/ContentPart2.jpg"  }
 			    ],
 				"actions": [{
-					"handler": "{{- itemActionHandler -}}",
-            		{%- if itemActionHandler == "subtabs" -%}"type": "navigation",{%- endif -%}
-					"url": "{{- itemActionUrl -}}"
+					"handler": "subtabs",
+            		"type": "navigation",
+					"url": "https://app.secc.org/webhooks/SubSplash.ashx/tabs/series/{{item.Id}}"
 				}]
 			}
 	        {%- endfor -%}
