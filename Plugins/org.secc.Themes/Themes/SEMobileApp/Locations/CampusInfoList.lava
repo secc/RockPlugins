@@ -38,7 +38,7 @@
 	},
 	"items": [
 
-		{%- assign googleDir = 'https://www.google.com/maps/dir/Current+Location/' | Append:campus.Location.Street1 | Replace:' ','+' | Append:'+' | Append:campus.Location.City | Append:'+' | Append:campus.Location.State | Append:'+' | Append:campus.Location.PostalCode -%}
+		{%- assign googleDir = 'https://www.google.com/maps/dir/Current+Location/' | Append:campus.Location.Street1 | Append:'+' | Append:campus.Location.City | Append:'+' | Append:campus.Location.State | Append:'+' | Append:campus.Location.PostalCode | Replace:' ','+' -%}
         {%- comment -%}
         Campus Image
         {%- endcomment -%}
